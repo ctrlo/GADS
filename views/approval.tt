@@ -1,0 +1,29 @@
+<h2>Approve record</h2>
+<p></p>
+[% IF approves.size %]
+<table class="table table-striped">
+    <tr>
+        <th>Serial</th>
+    </tr>
+    [% FOREACH approve IN approves %]
+        <tr>
+            [% IF autoserial %]
+                <td><a href="/approval/[% approve.id %]">[% approve.current.id %]</a></td>
+            [% ELSE %]
+                <td><a href="/approval/[% approve.id %]">[% approve.current.serial %]</a></td>
+            [% END %]
+        </tr>
+    [% END %]
+</table>
+[% ELSE %]
+<p>There are no records requiring approval.
+[% END %]
+
+<script type="text/javascript">
+    var jscode='[% FILTER remove('\n+') %]
+        [% FILTER replace('\'', '\\\'') %]
+        [% INCLUDE tree.tt %]
+[% END %]
+[% END %]';
+</script>
+

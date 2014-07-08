@@ -1,0 +1,22 @@
+        $(document).ready(function () {
+            [% FOREACH tree IN trees %]
+                $('#jstree[% tree.id %]')
+                .on('changed.jstree', function (e, data) {
+                    document.getElementById('treeval[% tree.id %]').value =  data.instance.get_node(data.selected[0]).id;
+                })
+                .jstree({
+                    "core" : {
+                        "check_callback" : true,
+                        "themes" : { "stripes" : true },
+                        'data' : {
+                            'url' : function (node) {
+                                return '/tree/[% tree.id %]/[% tree.value %]';
+                            },
+                            'data' : function (node) {
+                                return { 'id' : node.id };
+                            }
+                        }
+                    },
+                });
+            [% END %]
+        }); 

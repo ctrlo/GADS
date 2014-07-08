@@ -1,0 +1,287 @@
+<h2>Edit layout</h2>
+[% IF edit.defined %]
+<form role="form" method="post">
+    <div class="row">
+        <div class="col-md-6">
+            [% IF edit %]
+                [% edititem = items.shift %]
+                <input type="hidden" name="id" value="[% edititem.id %]">
+            [% END %]
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" class="form-control" id="name" name="name" value="[% edititem.name %]">
+            </div>
+            <div class="form-group">
+                <label for="type">Type:</label>
+                <select class="form-control" id="type" name="type">
+                    <option value="string" [% IF edititem.type == "string" %]selected[% END %]>String</option>
+                    <option value="intgr" [% IF edititem.type == "intgr" %]selected[% END %]>Integer</option>
+                    <option value="date" [% IF edititem.type == "date" %]selected[% END %]>Date</option>
+                    <option value="enum" [% IF edititem.type == "enum" %]selected[% END %]>Multiple select</option>
+                    <option value="tree" [% IF edititem.type == "tree" %]selected[% END %]>Tree</option>
+                    <option value="person" [% IF edititem.type == "person" %]selected[% END %]>Person</option>
+                    <option value="rag" [% IF edititem.type == "rag" %]selected[% END %]>RedAmberGreen status (RAG)</option>
+                    <option value="calc" [% IF edititem.type == "calc" %]selected[% END %]>Calculated value</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="email">Permissions:</label>
+                <select class="form-control" name="permission">
+                    <option value="0" [% IF edititem.permission == 0 %]selected[% END %]>Open access</option>
+                    <option value="1" [% IF edititem.permission == 1 %]selected[% END %]>Edit with approval</option>
+                    <option value="2" [% IF edititem.permission == 2 %]selected[% END %]>Read only</option>
+                </select>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="optional" [% IF edititem.optional %]checked[% END %]>Field is optional
+                </label>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div id="divtree"
+                [% IF edititem.type != "tree" %]
+                    style="display:none"
+                [% END %]
+                >
+                <label for="enumval">Tree values:</label>
+                <div class="form-group">
+                    <button class="btn btn-success btn-sm" onclick="demo_create();" type="button">Create</button>
+                    <button class="btn btn-warning btn-sm" onclick="demo_rename();" type="button">Rename</button>
+                    <button class="btn btn-danger btn-sm" onclick="demo_delete();" type="button">Delete</button>
+                    <div id="jstree_demo_div"></div>
+                </div>
+            </div>
+            <div id="divenum"
+                [% IF edititem.type != "enum" %]
+                    style="display:none"
+                [% END %]
+                >
+                <label for="enumval">Multiple select values:</label>
+                <div id="legs">
+                    [% FOREACH enumval IN edititem.enumvals %]
+                        [% UNLESS enumval.deleted %]
+                            <div class="request-row">
+                                    <div class="col-md-11">
+                                        <p>
+                                        <input type="text" class="form-control" name="enumval[% enumval.id %]" value="[% enumval.value %]">
+                                        </p>
+                                    </div>
+                                    <button type="button" class="close closeme pull-left">&times;</button>
+                            </div>
+                        [% END %]
+                    [% END %]
+                    <div class="request-add">
+                            <div class="col-md-11">
+                                <button type="button" class="btn btn-default add">
+                                    Add
+                                </button>
+                            </div>
+                    </div>
+                </div>
+            </div>
+            <div id="divrag"
+                [% IF edititem.type != "rag" %]
+                    style="display:none"
+                [% END %]
+                >
+                <h4>RAG conditions</h4>
+                <p>Use <strong>[field]</strong> to insert the value of a field. Use <strong>CURDATE</strong> to insert the current date.</p>
+                <div class="form-group">
+                    <label for="red">Red:</label>
+                    <input type="text" class="form-control" name="red" id="red" value="[% edititem.rag.red | html_entity %]">
+                </div>
+                <div class="form-group">
+                    <label for="amber">Amber:</label>
+                    <input type="text" class="form-control" name="amber" id="amber" value="[% edititem.rag.amber | html_entity %]">
+                </div>
+                <div class="form-group">
+                    <label for="green">Green:</label>
+                    <input type="text" class="form-control" name="green" id="green" value="[% edititem.rag.green | html_entity %]">
+                </div>
+            </div>
+            <div id="divcalc"
+                [% IF edititem.type != "calc" %]
+                    style="display:none"
+                [% END %]
+                >
+                <div class="form-group">
+                    <label for="calc">Calculation:</label>
+                    <textarea class="form-control monospace" id="calc" name="calc" rows="10">[% edititem.calc.calc | html_entity %]</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">[% IF edititem.id %]Update[% ELSE %]Create[% END %]</button>
+    [% IF edit %]
+        <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
+    [% END %]
+</form>
+       <!-- Modal -->
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form role="form" method="post" enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">Are you sure?</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete this item? Deleting an item will also delete all its associated data.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button type="submit" name="delete" value="delete" class="btn btn-primary">Confirm deletion</button>
+                    </div>
+                    </form>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+[% ELSE %]
+<p>
+    <a href="/layout/0" class="btn btn-default" role="button">Create item</a>
+</p>
+<table class="table table-striped">
+    <tr>
+        <th></th>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Permissions</th>
+    </tr>
+    [% FOREACH item IN items %]
+        <tr>
+            <td><a href="/layout/[% item.id %]">Edit</a></td>
+            <td>[% item.name %]
+            <td>
+                [% IF item.type == "string" %]Text[% END %]
+                [% IF item.type == "intgr" %]Integer[% END %]
+                [% IF item.type == "date" %]Date[% END %]
+                [% IF item.type == "enum" %]Select[% END %]
+                [% IF item.type == "tree" %]Tree[% END %]
+                [% IF item.type == "person" %]Person[% END %]
+                [% IF item.type == "rag" %]RedAmberGreen (RAG) status[% END %]
+                [% IF item.type == "calc" %]Calculated value[% END %]
+            </td>
+            <td>
+                [% IF item.permission == 0 %]Open access[% END %]
+                [% IF item.permission == 1 %]Edit with approval[% END %]
+                [% IF item.permission == 2 %]Read only[% END %]
+            </td>
+        </tr>
+    [% END %]
+</table>
+[% END %]
+
+<script type="text/javascript">
+    var jscode='[% FILTER remove('\n+') %]
+        [% FILTER replace('\'', '\\\'') %]
+        $(document).on("click", "#submit", function() {
+            if( !$('#jstree_demo_div').length ) return true;
+            if( !$('#jstree_demo_div').is(":visible") ) return true;
+            var v =$("#jstree_demo_div").jstree(true).get_json('#', { 'flat': false });
+            var mytext = JSON.stringify(v);
+            $.ajax({
+                async: false,
+                type: "POST",
+                url: "/tree/[% edititem.id %]",
+                data: {'data': mytext }
+            }).done(function( data ) {
+                alert( "Tree has been updated" );
+            });
+            return true;
+        });
+        function demo_delete() {
+            var ref = $('#jstree_demo_div').jstree(true),
+                sel = ref.get_selected();
+            if(!sel.length) { return false; }
+            ref.delete_node(sel);
+        };
+        function demo_create() {
+            var ref = $('#jstree_demo_div').jstree(true),
+                sel = ref.get_selected();
+            if(sel.length) {
+                sel = sel[0];
+            } else {
+                sel = '#';
+            }
+            sel = ref.create_node(sel, {"type":"file"});
+            if(sel) {
+                ref.edit(sel);
+            }
+        };
+        function demo_rename() {
+            var ref = $('#jstree_demo_div').jstree(true),
+                sel = ref.get_selected();
+            if(!sel.length) { return false; }
+            sel = sel[0];
+            ref.edit(sel);
+        };
+        $(document).ready(function () {
+            $('#jstree_demo_div').jstree({
+                "core" : {
+                    "check_callback" : true,
+                    "themes" : { "stripes" : true },
+                    'data' : {
+                        'url' : function (node) {
+                            return node.id === '#' ? '/tree/[% edititem.id %]' : '/tree/[% edititem.id %]';
+                        },
+                        'data' : function (node) {
+                            return { 'id' : node.id };
+                        }
+                    }
+                },
+            });
+            $('div#legs').on('click','.closeme', function(){
+                var count = $(".request-row").length;
+                if (count < 2) return;
+                $(this).parents('.request-row').remove();
+            });
+            $('div#legs').on('click','.add', function(){
+                $(this).parents('.request-add').before( '
+                    <div class="request-row">
+                    <div class="col-md-11">
+                    <p>
+                    <input type="text" class="form-control" name="enumvalue">
+                    </p>
+                    </div>
+                    <button type="button" class="close closeme pull-left">&times;</button>
+                    </div>
+                ' );
+            });
+            $('#type').change(function(){
+                $('#divenum').hide();
+                $('#divtree').show();
+                var val = $(this).val();
+                if (val == "tree") {
+                    $('#divenum').hide();
+                    $('#divtree').show();
+                    $('#divrag').hide();
+                    $('#divcalc').hide();
+                } else if (val == "enum") {
+                    $('#divenum').show();
+                    $('#divtree').hide();
+                    $('#divrag').hide();
+                    $('#divcalc').hide();
+                } else if (val == "rag") {
+                    $('#divrag').show();
+                    $('#divtree').hide();
+                    $('#divenum').hide();
+                    $('#divcalc').hide();
+                } else if (val == "calc") {
+                    $('#divrag').hide();
+                    $('#divtree').hide();
+                    $('#divenum').hide();
+                    $('#divcalc').show();
+                } else {
+                    $('#divenum').hide();
+                    $('#divtree').hide();
+                    $('#divrag').hide();
+                    $('#divcalc').hide();
+                }
+            });
+        }); 
+[% END %]
+[% END %]';
+</script>
+
+

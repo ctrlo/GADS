@@ -1,0 +1,44 @@
+# Your application's name
+appname: "GADS"
+
+# The default layout to use for your application (located in
+# views/layouts/main.tt)
+layout: "main"
+
+# when the charset is set to UTF-8 Dancer2 will handle for you
+# all the magic of encoding and decoding. You should not care
+# about unicode within your app when this setting is set (recommended).
+charset: "UTF-8"
+
+# template engine
+# simple: default and very basic template engine
+# template_toolkit: TT
+
+template: "template_toolkit"
+
+session: "YAML"
+
+engines:
+  session:
+    YAML:
+      session_dir: "/tmp/dancer-sessions"
+
+gads:
+  name: "App name" # The local name for the application
+  serial: "auto"   # Generate serial numbers automatically
+
+plugins:
+  DBIC:
+    default:
+      dsn: dbi:mysql:database=dbname;mysql_enable_utf8=1;host=localhost
+      schema_class: GADS::Schema
+      user: dbuser
+      pass: dbpass
+      options:
+        RaiseError: 1
+        PrintError: 1
+  Emailesque:
+    from: '"GADS" <user@example.com>' # Emails are sent from this
+    driver: sendmail
+    type: text
+

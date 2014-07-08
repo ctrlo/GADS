@@ -1,0 +1,2 @@
+# Use this to update the schema
+dbicdump -o components='["InflateColumn::DateTime"]' GADS::Schema 'dbi:mysql:dbname=sds' root xxxx

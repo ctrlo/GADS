@@ -1,0 +1,123 @@
+<h2>Graphs</h2>
+[% IF edit.defined %]
+<form role="form" method="post">
+    <div class="row">
+        <div class="col-md-6">
+            [% IF edit %]
+                [% edititem = graphs.shift %]
+                <input type="hidden" name="id" value="[% edititem.id %]">
+            [% END %]
+            <div class="form-group">
+                <label for="firstname">Title:</label>
+                <input type="text" name="title" class="form-control" name="name" value="[% edititem.title %]">
+            </div>
+            <div class="form-group">
+                <label for="firstname">Description:</label>
+                <textarea class="form-control" name="description" rows="3">[% edititem.description %]</textarea>
+            </div>
+            <div class="form-group">
+                <label for="email">Type:</label>
+                <select class="form-control" name="type">
+                    [% FOREACH graphtype IN graphtypes %]
+                        <option value="[% graphtype %]" [% IF edititem.type == graphtype %]selected[% END %]>[% graphtype.ucfirst %]</option>
+                    [% END %]
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="email">Based on view:</label>
+                <select class="form-control" name="view_id">
+                    [% FOREACH v IN user.views %]
+                        <option value="[% v.id %]" [% IF edititem.view.id == v.id %]selected[% END %]>[% v.name %]</option>
+                    [% END %]
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="email">X-axis:</label>
+                <select class="form-control" name="xaxis">
+                    [% FOREACH column IN all_columns %]
+                        <option value="[% column.id %]" [% IF edititem.layout.id == column.id %]selected[% END %]>[% column.name %]</option>
+                    [% END %]
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="email">X-axis grouping (optional):</label>
+                <select class="form-control" name="layout_id_group">
+                    <option value="" [% UNLESS edititem.layout_id_group %]selected[% END %]></option>
+                    [% FOREACH dg IN dategroup.pairs %]
+                        <option value="[% dg.key %]" [% IF edititem.layout_id_group == dg.key %]selected[% END %]>
+                            [% dg.key %]
+                        </option>
+                    [% END %]
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="email">Y-axis:</label>
+                <select class="form-control" name="yaxis">
+                    <option value="count" [% IF edititem.yaxis == "count" %]selected[% END %]>Count total number of discrete values</option>
+                    <option value="sum" [% IF edititem.yaxis == "sum" %]selected[% END %]>Calculate total sum of field values</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="email">Group by (optional):</label>
+                <select class="form-control" name="layout_id2">
+                    <option value="0" [% UNLESS edititem.layout_id2.id %]selected[% END %]></option>
+                    [% FOREACH column IN all_columns %]
+                        <option value="[% column.id %]" [% IF edititem.layout_id2.id == column.id %]selected[% END %]>[% column.name %]</option>
+                    [% END %]
+                </select>
+            </div>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="stackseries" value="1" [% IF edititem.stackseries %]checked[% END %]>Stack data within same series
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h4>Based on view</h4>
+            <p>Defines which data view to draw the values from. The first column of the view will be used for the data series. Any filtering on the view will be used to only display that range of data.</p>
+            <h4>X-axis</h4>
+            <p>Defines the set of values to use for the x-axis. For a donut graph, this defines each segment within a ring. In the case of a date field, they can be grouped together.</p>
+            <h4>X-axis grouping</h4>
+            <p>Defines the grouping for the x-axis where applicable (date fields only).
+            <h4>Y-axis</h4>
+            <p>The Y-axis is based on the selected view (see above). This option configures whether to use the total sum of a particular field (numeric values only), or whether to count the number of discrete items.</p>
+            <h4>Group by</h4>
+            <p>This is a general grouping of related data items. In the case of a donut graph, this defines the rings. Otherwise, the data being displayed is normally a smaller subset of this grouping option. For example, if countries were being displayed on the graph, this option could be used to group (and colour code) by continent.</p>
+            <h4>Stack data</h4>
+            <p>This option will cause different data items for the same x value to be stacked on top of each other, rather than displayed side-by-side.</p>
+        </div>
+    </div>
+    <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">[% IF edititem.id %]Update[% ELSE %]Create[% END %]</button>
+    [% IF edit %]
+        <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
+    [% END %]
+</form>
+<p></p>
+[% ELSE %]
+    <p>
+        <a href="/graph/0" class="btn btn-default" role="button">Create new graph</a>
+    </p>
+    <table class="table table-striped">
+        <tr>
+            <th></th>
+            <th>Title</th>
+            <th>Type</th>
+            <th>View</th>
+            <th>X-axis</th>
+            <th>Group by</th>
+        </tr>
+        [% FOREACH graph IN graphs %]
+            <tr>
+                <td><a href="/graph/[% graph.id %]">Edit</a></td>
+                <td>[% graph.title %]
+                <td>[% graph.type.ucfirst %]</td>
+                <td>[% graph.view.name %]</td>
+                <td>[% graph.layout.name %]</td>
+                <td>[% graph.layout_id2.name %]</td>
+            </tr>
+        [% END %]
+    </table>
+[% END %]
+

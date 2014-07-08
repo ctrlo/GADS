@@ -1,0 +1,45 @@
+<h2>
+    [% IF autoserial %]
+        Record ID [% record.current.id %]
+    [% ELSE %]
+        [% record.current.serial %]
+    [% END %]
+</h2>
+<div class="dropdown">
+    <a id="drop4" class="btn btn-primary" role="button" data-toggle="dropdown" href="#">Version history <b class="caret"></b></a>
+    <ul id="menu1" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop4">
+        [% FOREACH version IN versions %]
+        [% IF version.id == record.id %]
+        [% selected = "selected" %]
+        [% ELSE %]
+        [% selected = "" %]
+        [% END %]
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="/record/[% version.id %]">[% version.created %]</a></li>
+        [% END %]
+    </ul>
+    [% IF user.permissions.update %]
+        <a href="/edit/[% record.current_id %]" class="btn btn-default" role="button">Edit</a>
+    [% END %]
+</div>
+<p></p>
+<table class="table table-striped">
+    [% FOREACH col IN all_columns %]
+        [% NEXT IF col.type == "rag" OR col.type == "calc" %]
+        <tr>
+            <th>[% col.name %]</th>
+            [% field = 'field' _ col.id %]
+            <td>
+                [% IF col.type == "enum" OR col.type == "tree" %]
+                    [% record.$field.value.value %]
+                [% ELSIF col.type == "person" %]
+                    [% record.$field.value.surname %], [% record.$field.value.firstname %]
+                [% ELSIF col.type == "date" %]
+                    [% record.$field.value.ymd %]
+                [% ELSE %]
+                    [% record.$field.value %]
+                [% END %]
+            </td>
+        </tr>
+    [% END %]
+</table>
+

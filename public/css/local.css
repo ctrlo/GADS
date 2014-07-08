@@ -1,0 +1,43 @@
+.table tbody>tr>td.vert-align
+{
+    vertical-align: middle;
+}
+
+a.normal {
+    color: #222222;
+}
+
+div.circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    font-size: 20px;
+    behavior: url(/js/PIE.htc);
+}
+
+.red {
+    background: #d9534f;
+}
+
+.amber {
+    background: #f0ad4e;
+}
+
+.green {
+    background: #5cb85c;
+}
+
+.grey {
+    background: gray;
+}
+
+.scrollable-menu {
+    height: auto;
+    max-height: 400px;
+    overflow-x: hidden;
+}
+
+.monospace {
+    font-family:monospace;
+}
+

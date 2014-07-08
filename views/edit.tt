@@ -1,0 +1,109 @@
+<h2>
+    [% IF autoserial %]
+        Record ID [% record.current.id %]
+    [% ELSE %]
+        [% record.current.serial %]
+    [% END %]
+</h2>
+<p></p>
+<form role="form" method="post">
+    <div class="row">
+        <div class="col-md-6">
+            [% IF record.size %]
+                <input type="hidden" name="current_id" value="[% record.current.id %]">
+            [% ELSE %]
+                [% IF approves %]
+                    [% record = approves.pop %]
+                [% END %]
+                [% UNLESS autoserial %]
+                    <div class="form-group">
+                        <label for="serial">Serial*</label>
+                        <input type="text" class="form-control" id="serial" name="serial" value="[% record.current.serial %]">
+                    </div>
+                [% END %]
+            [% END %]
+            [% trees = [] %]
+            [% FOREACH col IN all_columns %]
+                [% NEXT IF col.type == "rag" OR col.type == "calc" %]
+                [% field = 'field' _ col.id %]
+                [% NEXT UNLESS record.$field.defined OR NOT approves %]
+                [% IF approves %]
+                    [% oldvalue = record.record.$field.value %]
+                [% END %]
+                [% IF record.$field.value.id %]
+                    [% value = record.$field.value.id %]
+                [% ELSIF record.$field.value.ymd %]
+                    [% value = record.$field.value.ymd %]
+                [% ELSE %]
+                    [% value = record.$field.value %]
+                [% END %]
+                [% IF record.size AND col.readonly AND NOT user.permissions.update_noneed_approval AND NOT user.permissions.approver %]
+                    [% readonly = "readonly" %]
+                [% ELSE %]
+                    [% readonly = "" %]
+                [% END %]
+                <div class="form-group">
+                    [% label = col.name %]
+                    [% UNLESS col.optional %][% label = label _ '*' %][% END %]
+                [% IF col.type == "enum" %]
+                    <label for="[% col.id %]">
+                        [% label %][% IF oldvalue %] (previously &quot;[% oldvalue.value %]&quot;)[% END %]
+                    </label>
+                    <select class="form-control" name="[% field %]" [% readonly %] >
+                        [% IF col.optional OR value.deleted %]
+                            <option></option>
+                        [% END %]
+                        [% FOREACH enumval IN col.enumvals %]
+                            [% UNLESS enumval.deleted %]
+                                <option value="[% enumval.id %]" [% IF value == enumval.id %]selected[% END %]>
+                                    [% enumval.value %]</option>
+                            [% END %]
+                        [% END %]
+                    </select>
+                [% ELSIF col.type == "tree" %]
+                    [% trees.push({id = col.id, value = value}) %]
+                    <label for="[% col.id %]">
+                        [% label %][% IF oldvalue %] (previously &quot;[% oldvalue.value %]&quot;)[% END %]
+                    </label>
+                    <div class="form-group">
+                        <div id="jstree[% col.id %]"></div>
+                    </div>
+                    <input type="hidden" name="[% field %]" id="treeval[% col.id %]" value="[% value %]">
+                [% ELSIF col.type == "person" %]
+                    <label for="[% col.id %]">
+                        [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
+                    </label>
+                    <select class="form-control" name="[% field %]" [% readonly %] >
+                        [% IF col.optional OR value.deleted %]
+                            <option></option>
+                        [% END %]
+                        [% FOREACH person IN people %]
+                            [% UNLESS person.deleted %]
+                                <option value="[% person.id %]" [% IF value == person.id %]selected[% END %]>
+                                    [% person.surname %], [% person.firstname %]</option>
+                            [% END %]
+                        [% END %]
+                    </select>
+                [% ELSE %]
+                    <label for="[% col.id %]">
+                        [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
+                    </label>
+                    <input type="text" class="form-control [% IF col.type == "date" %]datepicker[% END %]" id="[% col.id %]"
+                        name="[% field %]" value="[% IF record %][% value %][% END %]" [% readonly %] >
+                [% END %]
+                </div>
+            [% END %]
+        </div>
+    </div>
+    <button type="submit" name="submit" value="submit" class="btn btn-primary">Submit</button>
+</form>
+<p></p>
+
+<script type="text/javascript">
+    var jscode='[% FILTER remove('\n+') %]
+        [% FILTER replace('\'', '\\\'') %]
+        [% INCLUDE tree.tt %]
+[% END %]
+[% END %]';
+</script>
+

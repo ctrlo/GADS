@@ -1,0 +1,80 @@
+<h2>Manage users</h2>
+[% IF edit.defined %]
+<form role="form" method="post">
+    <div class="row">
+        <div class="col-md-6">
+            [% IF edit %]
+                [% edituser = users.shift %]
+                <input type="hidden" name="id" value="[% edituser.id %]">
+            [% END %]
+            <div class="form-group">
+                <label for="firstname">Firstname:</label>
+                <input type="text" class="form-control" id="firstname" name="firstname" value="[% edituser.firstname %]">
+            </div>
+            <div class="form-group">
+                <label for="email">Surname:</label>
+                <input type="text" class="form-control" id="surname" name="surname" value="[% edituser.surname %]">
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="text" class="form-control" id="email" name="email" value="[% edituser.email %]">
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="update" [% IF edituser.permissions.update %]checked[% END %]>User can update records
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="update_noneed_approval" [% IF edituser.permissions.update_noneed_approval %]checked[% END %]>User does not need approval when updating records
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="create" [% IF edituser.permissions.create %]checked[% END %]>User can create new records
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="create_noneed_approval" [% IF edituser.permissions.create_noneed_approval %]checked[% END %]>User does not need approval when creating new records
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="approver" [% IF edituser.permissions.approver %]checked[% END %]>User can approve changes
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="admin" [% IF edituser.permissions.admin %]checked[% END %]>User is an administrator
+                </label>
+            </div>
+        </div>
+    </div>
+    <button type="submit" name="submit" value="submit" class="btn btn-primary">[% IF edituser.id %]Update[% ELSE %]Create[% END %]</button>
+    [% IF edituser.id %]
+        <button type="submit" name="delete" value="[% edituser.id %]" class="btn btn-default">Delete</button>
+    [% END %]
+</form>
+[% ELSE %]
+<p>
+    <a href="/user/0" class="btn btn-default" role="button">Create user</a>
+</p>
+<table class="table table-striped">
+    <tr>
+        <th>ID</th>
+        <th>Surname</th>
+        <th>Firstname</th>
+        <th>Email</th>
+    </tr>
+    [% FOREACH edituser IN users %]
+        <tr>
+            <td><a href="/user/[% edituser.id %]">[% edituser.id %]</a></td>
+            <td>[% edituser.surname %]</a></td>
+            <td>[% edituser.firstname %]</a></td>
+            <td>[% edituser.email %]</a></td>
+        </tr>
+    [% END %]
+</table>
+[% END %]
+
