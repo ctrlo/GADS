@@ -128,6 +128,9 @@ any '/data' => sub {
         return forwardHome({ danger => bleep });
     }
 
+    session 'rows' => 50 unless session 'rows';
+    session 'page' => 1 unless session 'page';
+
     # @records contains all the information for each required record
     my $get = {
         view_id => $view_id,
