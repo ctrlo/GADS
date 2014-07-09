@@ -1,0 +1,17 @@
+<h2>Graphs</h2>
+<form role="form" method="post">
+    <div class="row">
+        <div class="col-md-6">
+            [% FOREACH graph IN data.graphs %]
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="graphs" value="[% graph.id %]"
+                            [% IF graph.selected %]checked[% END %]
+                        >[% graph.title %]
+                    </label>
+                </div>
+            [% END %]
+        </div>
+    </div>
+    <button type="submit" id="submit" name="graphsubmit" value="submit" class="btn btn-primary">Save</button>
+</form>

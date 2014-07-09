@@ -45,7 +45,7 @@ __PACKAGE__->table("view");
 
   data_type: 'integer'
   is_foreign_key: 1
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 name
 
@@ -65,7 +65,7 @@ __PACKAGE__->add_columns(
   "id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "user_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "name",
   { data_type => "varchar", is_nullable => 1, size => 128 },
   "global",
@@ -128,7 +128,12 @@ __PACKAGE__->belongs_to(
   "user",
   "GADS::Schema::Result::User",
   { id => "user_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
 );
 
 =head2 view_layouts
@@ -147,8 +152,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-08 11:57:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5YUIkr2qUpbPg1c9HZwPng
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-09 01:13:12
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:StqL6yZL8JqgT09M79L94w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

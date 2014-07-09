@@ -29,8 +29,37 @@ schema->storage->debug(1);
 use GADS::Schema;
 
 sub all
-{   my ($class, $new) = @_;
-    my @graphs = rset('Graph')->all;
+{   my ($class, $params) = @_;
+
+    my @graphs;
+    if (my $user = $params->{user})
+    {
+        @graphs = rset('Graph')->search({
+            'user_graphs.user_id' => $user->{id},
+        },{
+            join => 'user_graphs',
+        })->all;
+
+        if ($params->{all})
+        {
+            my @g;
+            foreach my $g (rset('Graph')->all)
+            {
+                my $selected = grep { $_->id == $g->id } @graphs;
+                push @g, {
+                    id          => $g->id,
+                    title       => $g->title,
+                    description => $g->description,
+                    selected    => $selected,
+                };
+            }
+            @graphs = @g;
+        }
+    }
+    else {
+        @graphs = rset('Graph')->all unless @graphs;
+    }
+
     \@graphs;
 }
 
@@ -80,6 +109,22 @@ sub graph
         }
         else {
             $args->{id} = rset('Graph')->create($newgraph)->id;
+        }
+
+        # Add to all users default graphs if needed
+        if ($args->{addgraphusers})
+        {
+            my @existing = rset('UserGraph')->search({ graph_id => $args->{id} })->all;
+            foreach my $user (@{GADS::User->all})
+            {
+                unless (grep { $_->user_id == $user->id } @existing)
+                {
+                    rset('UserGraph')->create({
+                        graph_id => $args->{id},
+                        user_id  => $user->id,
+                    }) or ouch 'dbfail', "There was an error adding a graph to a user";
+                }
+            }
         }
     }
     

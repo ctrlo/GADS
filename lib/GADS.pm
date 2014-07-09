@@ -62,8 +62,6 @@ hook before => sub {
             }
         );
     }
-
-    session 'messages' => [];
 };
 
 hook before_template => sub {
@@ -84,7 +82,7 @@ hook before_template => sub {
 
 get '/' => sub {
 
-    my $todraw = GADS::Graph->all;
+    my $todraw = GADS::Graph->all({ user => var('user') });
 
     my @graphs;
     foreach my $g (@$todraw)
@@ -210,6 +208,41 @@ any '/data' => sub {
         };
         $output;
     }
+};
+
+any '/account/?:action?/?' => sub {
+
+    my $action = param 'action';
+
+    if (param 'graphsubmit')
+    {
+        eval { GADS::User->graphs(var('user'), param('graphs')) };
+        if (hug)
+        {
+            messageAdd({ danger => bleep });
+        }
+        else {
+            return forwardHome(
+                { success => "The selected graphs have been updated" }, 'account/graph' );
+        }
+    }
+
+    my $data;
+
+    if ($action eq 'graph')
+    {
+        $data->{graphs} = GADS::Graph->all({ user => var('user'), all => 1 });
+    }
+    else {
+        return forwardHome({ danger => "Unrecognised action $action" });
+    }
+
+    my $output  = template 'account' => {
+        data   => $data,
+        action => $action,
+        page   => 'account',
+    };
+    $output;
 };
 
 any '/graph/?:id?' => sub {
@@ -624,9 +657,6 @@ get '/resetpw/:code' => sub {
 sub forwardHome {
     if (my $message = shift)
     {
-        my $text = ( values %$message )[0];
-        my $type = ( keys %$message )[0];
-
         messageAdd($message);
     }
     my $page = shift || '';

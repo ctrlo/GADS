@@ -174,6 +174,21 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 user_graphs
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::UserGraph>
+
+=cut
+
+__PACKAGE__->has_many(
+  "user_graphs",
+  "GADS::Schema::Result::UserGraph",
+  { "foreign.graph_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 view
 
 Type: belongs_to
@@ -195,8 +210,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-08 11:57:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UMD2OSZaP4KFxF4OhDNtXg
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-08 16:16:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WTS/olJLJpOg6uoH+0Cd5A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

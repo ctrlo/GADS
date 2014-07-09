@@ -1,3 +1,8 @@
+[% UNLESS graphs.size %]
+<p>No graphs are selected for display. Please use your
+<a href="[% url.page %]/account/graph/">account options</a> to add graphs to this page.</p>
+[% END %]
+
 [% FOREACH graph IN graphs %]
     <h3>[% graph.dbrow.title %]</h3>
     [% IF graph.dbrow.description %]<p>[% graph.dbrow.description %]</p>[% END %]

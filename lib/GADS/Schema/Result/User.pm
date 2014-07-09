@@ -194,6 +194,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 user_graphs
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::UserGraph>
+
+=cut
+
+__PACKAGE__->has_many(
+  "user_graphs",
+  "GADS::Schema::Result::UserGraph",
+  { "foreign.user_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 views
 
 Type: has_many
@@ -210,8 +225,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-08 11:57:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0zKbALhUGHHXCPm9W7kKGA
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-08 16:16:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4wO5wTl53MZGaP/JfMyq0g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

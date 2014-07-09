@@ -100,6 +100,13 @@ sub update
             or ouch 'nourl', "Please provide a URL when creating a user";
         my $user     = rset('User')->create($user)
             or ouch 'dbfail', "Database error when creating new user";
+        # By default, add all graphs to the user
+        my $graphs = GADS::Graph->all;
+        foreach my $graph (@$graphs)
+        {
+            rset('UserGraph')->create({ user_id => $user->id, graph_id => $graph->id })
+                or ouch 'dbfail', "Database error when creating new user";
+        }
         my $reset    = $class->resetpwreq($user->id);
         my $gadsname = config->{gads}->{name};
         my $msg      = "A new account for $gadsname has been created for you. ";
@@ -116,11 +123,71 @@ sub update
     }
 }
 
+sub graphs
+{
+    my ($class, $user, $graphs) = @_;
+
+    # Will be a scalar if only one value submitted. If so,
+    # convert to array
+    my @graphs = !$graphs
+               ? ()
+               : ref $graphs eq 'ARRAY'
+               ? @$graphs
+               : ( $graphs );
+
+    foreach my $g (@graphs)
+    {
+        my $item = {
+            user_id  => $user->{id},
+            graph_id => $g,
+        };
+
+        unless(rset('UserGraph')->search($item)->count)
+        {
+            rset('UserGraph')->create($item);
+        }
+    }
+
+    # Delete any graphs that no longer exist
+    my $search = { user_id => $user->{id} };
+    $search->{graph_id} = {
+        '!=' => [ -and => @graphs ]
+    } if @graphs;
+    rset('UserGraph')->search($search)->delete
+        or ouch 'dbfail', "There was a database error deleting old graphs";
+}
+
 sub delete
 {
     my ($self, $user_id) = @_;
     my $user = rset('User')->find($user_id)
         or ouch 'notfound', "User $user_id not found";
+    rset('UserGraph')->search({ user_id => $user->id })->delete
+        or ouch 'dbfail', "There was a database error when removing old user graphs";
+
+    # We want to remove all views for the user, but some may have been
+    # used for graphs. For these ones, set the view to global
+    rset('View')->search({
+        user_id     => $user->id,
+        'graphs.id' => {-not => undef},
+    },{
+        join => 'graphs',
+    })->update({
+        global => 1,
+        user_id => undef,
+    });
+
+    my $views = rset('View')->search({ user_id => $user->id });
+    my @views;
+    foreach my $v ($views->all)
+    {
+        push @views, $v->id;
+    }
+    rset('ViewLayout')->search({ view_id => \@views })->delete
+        or ouch 'dbfail', "There was a database error removing old user view layouts";
+    $views->delete
+        or ouch 'dbfail', "There was a database error removing old user views";
+
     $user->update({ deleted => 1 })
         or ouch 'dbfail', "Database error when deleting user";
 }
