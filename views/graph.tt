@@ -83,7 +83,7 @@
             <h4>Based on view</h4>
             <p>Defines which data view to draw the values from. The first column of the view will be used for the data series. Any filtering on the view will be used to only display that range of data.</p>
             <h4>X-axis</h4>
-            <p>Defines the set of values to use for the x-axis. For a donut graph, this defines each segment within a ring. In the case of a date field, they can be grouped together.</p>
+            <p>Defines the set of values to use for the x-axis. For a donut or pie graph, this defines each segment within a ring. In the case of a date field, they can be grouped together.</p>
             <h4>X-axis grouping</h4>
             <p>Defines the grouping for the x-axis where applicable (date fields only).
             <h4>Y-axis</h4>

@@ -24,7 +24,7 @@
                     [
                     [% FOREACH s IN series %]
                         [
-                            [% IF graph.type == "donut" %]
+                            [% IF graph.type == "donut" || graph.type == "pie" %]
                                 [% FOREACH datum IN s.data %]
                                 [
                                     '[% graph.xlabels.${loop.index} %]', [% datum %]
@@ -57,14 +57,23 @@
                                     dataLabels: 'value'
                                 }
                             },
+                        [% ELSIF graph.type == "pie" %]
+                            seriesDefaults:{
+                                renderer:$.jqplot.PieRenderer,
+                                rendererOptions: {
+                                    showDataLabels: true,
+                                    dataLabels: 'value'
+                                }
+                            },
                         [% END %]
                         series:[
                         [% FOREACH row IN series %]
                             {
                                 showLabel: [% row.label.showlabel %],
+                                showLine: [% row.label.showline %],
+                                markerOptions: [% row.label.markeroptions %],
                                 color: '[% row.label.color %]',
                                 label: '[% row.label.label %]',
-                                markerOptions: { show: false },
                                 pointLabels: {
                                     labels:[
                                     [% FOREACH point IN row.label.points %]
@@ -77,7 +86,7 @@
                             [% UNLESS loop.last %],[% END %]
                         [% END %]
                         ],
-                        [% UNLESS graph.type == "donut" %]
+                        [% UNLESS graph.type == "donut" OR graph.type == "pie" %]
                             axes: {
                                 xaxis: {
                                     renderer: $.jqplot.CategoryAxisRenderer,

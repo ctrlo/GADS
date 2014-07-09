@@ -127,6 +127,7 @@
             <link rel="stylesheet" type="text/css" href="[% url.css %]/jquery.jqplot.min.css" />
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.barRenderer.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.donutRenderer.js"></script>
+            <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.pieRenderer.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.categoryAxisRenderer.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.pointLabels.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.dateAxisRenderer.js"></script>

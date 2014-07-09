@@ -74,7 +74,7 @@ sub dategroup
 
 sub graphtypes
 {
-    qw(bar line donut);
+    qw(bar line donut scatter pie);
 }
 
 sub graph
@@ -96,7 +96,7 @@ sub graph
                 or ouch 'badvalue', "$args->{layout_id_group} is an invalid value for X-axis grouping";
         }
         $newgraph->{layout_id_group} = $args->{layout_id_group};
-        $newgraph->{layout_id2}      = $args->{layout_id2} if $args->{layout_id2};
+        $newgraph->{layout_id2}      = $args->{layout_id2} ? $args->{layout_id2} : undef;
         $newgraph->{stackseries}     = $args->{stackseries} ? 1 : 0;
         grep { $args->{type} eq $_ } graphtypes
             or ouch 'badvalue', "Invalid graph type $newgraph->{type}";
@@ -290,6 +290,10 @@ sub data
         }
     }
 
+    my $markeroptions = $graph->type eq "scatter"
+                      ? '{ size: 7, style:"x" }'
+                      : '{ show: false }';
+
     # Now work out the Y labels for each point. Go into each data set and
     # see if there is a value. If there is, set the label, otherwise leave
     # it blank in order to show no label at that point
@@ -302,9 +306,9 @@ sub data
             my $label = $point ? $k : '';
             push @row, $label;
         }
-        my $group2 = $series->{$k}->{group2};
+        my $group2 = $series->{$k}->{group2} || '';
         my $showlabel;
-        if ($unique2{$group2}->{defined})
+        if (!$group2 || $unique2{$group2}->{defined})
         {
             $showlabel = 'false';
         }
@@ -313,19 +317,21 @@ sub data
             $unique2{$group2}->{defined} = 1;
         }
         $series->{$k}->{label} = {
-            points    => \@row,
-            color     => $unique2{$group2}->{color},
-            showlabel => $showlabel,
-            label     => $group2
+            points        => \@row,
+            color         => $unique2{$group2}->{color},
+            showlabel     => $showlabel,
+            showline      => $graph->type eq "scatter" ? 'false' : 'true',
+            markeroptions => $markeroptions,
+            label         => $group2
         };
     }
 
     # Sort the series by group2, so that the groupings appear together on the chart
     my @series = values $series;
-    @series = sort { $a->{group2} cmp $b->{group2} } @series;
+    @series = sort { $a->{group2} cmp $b->{group2} } @series if $groupcol2;
 
     # Legend is shown for secondary groupings. No point otherwise.
-    my $showlegend = $graph->layout_id2 ? 'true' : false;
+    my $showlegend = $graph->layout_id2 || $graph->type eq "pie" ? 'true' : false;
     # Other graph options from graph definition
     my $stackseries = $graph->stackseries ? 'true' : false;
     my $type = $graph->type ? $graph->type : 'line';
