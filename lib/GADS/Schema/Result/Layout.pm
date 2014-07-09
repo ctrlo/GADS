@@ -65,6 +65,12 @@ __PACKAGE__->table("layout");
   default_value: 0
   is_nullable: 0
 
+=head2 remember
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -77,6 +83,8 @@ __PACKAGE__->add_columns(
   "permission",
   { data_type => "integer", default_value => 0, is_nullable => 0 },
   "optional",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "remember",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
 );
 
@@ -275,8 +283,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-08 11:57:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ei6HgtdP5QvftHt9qUHh4g
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-09 09:28:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:upC1q6J9LF1PWl84nzIkhQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

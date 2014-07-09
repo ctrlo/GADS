@@ -37,6 +37,11 @@
                     <input type="checkbox" name="optional" [% IF edititem.optional %]checked[% END %]>Field is optional
                 </label>
             </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="remember" [% IF edititem.remember %]checked[% END %]>Remember last value for new entry
+                </label>
+            </div>
         </div>
         <div class="col-md-6">
             <div id="divtree"

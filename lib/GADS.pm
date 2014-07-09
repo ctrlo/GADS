@@ -552,6 +552,7 @@ any '/edit/:id?' => sub {
     my $id = param 'id';
     my $user = GADS::User->user({ id => session('user_id') });
 
+    my $all_columns = GADS::View->columns;
     my $record;
     if (param 'submit')
     {
@@ -559,6 +560,7 @@ any '/edit/:id?' => sub {
         eval { GADS::Record->update($params, $user) };
         if (hug)
         {
+            # Remember previous submitted values in event of error
             foreach my $fn (keys %$params)
             {
                 next unless $fn =~ /^field(\d+)$/;
@@ -571,18 +573,26 @@ any '/edit/:id?' => sub {
                 { success => 'Record has been successfully updated' }, 'data' );
         }
     }
-    else {
-        $record = $id ? GADS::Record->current({ current_id => $id }) : {};
+    elsif($id) {
+        $record = GADS::Record->current({ current_id => $id });
+    }
+    elsif(my $previous = $user->{lastrecord})
+    {
+        # Prefill previous values, but only those tagged to be remembered
+        my $previousr = GADS::Record->current({ record_id => $previous });
+        foreach my $column (@$all_columns)
+        {
+            my $field = $column->{field};
+            $record->{$field} = {value => $previousr->$field->value} if $column->{remember};
+        }
     }
 
-    use Data::Dumper;
-    say STDERR Dumper $record;
     my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
     my $output = template 'edit' => {
         record      => $record,
         autoserial  => $autoserial,
         people      => GADS::User->all,
-        all_columns => GADS::View->columns,
+        all_columns => $all_columns,
         page        => 'edit'
     };
     $output;

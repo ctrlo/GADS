@@ -285,9 +285,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 users
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-08 11:57:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:etnQyP7b52dZCE3ipQ1Djw
+Type: has_many
+
+Related object: L<GADS::Schema::Result::User>
+
+=cut
+
+__PACKAGE__->has_many(
+  "users",
+  "GADS::Schema::Result::User",
+  { "foreign.lastrecord" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-09 09:23:19
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:l7LTJbgEgtlQDMCSIccLnA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

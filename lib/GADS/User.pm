@@ -59,6 +59,7 @@ sub user($)
     $retuser->{email}       = $user->email;
     $retuser->{username}    = $user->username;
     $retuser->{views}       = GADS::View->all($user->id);
+    $retuser->{lastrecord}  = $user->lastrecord ? $user->lastrecord->id : undef;
     $retuser->{permission}  = $user->permission;
     $retuser->{permissions} = {
         update                 => $user->permission & UPDATE,

@@ -188,6 +188,7 @@ sub columns
 
         $c->{id}         = $col->id,
         $c->{name}       = $col->name,
+        $c->{remember}   = $col->remember,
         $c->{permission} = $col->permission,
         $c->{readonly}   = $col->permission == READONLY ? 1 : 0;
         $c->{approve}    = $col->permission == APPROVE ? 1 : 0;

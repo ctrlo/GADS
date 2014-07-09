@@ -100,6 +100,12 @@ __PACKAGE__->table("user");
   datetime_undef_if_invalid: 1
   is_nullable: 1
 
+=head2 lastrecord
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -133,6 +139,8 @@ __PACKAGE__->add_columns(
     datetime_undef_if_invalid => 1,
     is_nullable => 1,
   },
+  "lastrecord",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -148,6 +156,26 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
+
+=head2 lastrecord
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Record>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "lastrecord",
+  "GADS::Schema::Result::Record",
+  { id => "lastrecord" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
 
 =head2 people
 
@@ -225,8 +253,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-08 16:16:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4wO5wTl53MZGaP/JfMyq0g
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-09 09:23:19
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/eme0XMLNeQ5Oy3atMWAUg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -569,9 +569,19 @@ sub update
     }
 
     my $record_rs   = record_rs($current_id, $user) if $need_rec;
+
     my $rid = $record_rs ? $record_rs->id
                          : $old ? $old->id : undef;
     my $approval_rs = approval_rs($current_id, $rid) if $need_app;
+
+    unless ($old)
+    {
+        # New entry, so save record ID to user for retrieval of previous
+        # values if needed for another new entry. Use the approval ID id
+        # it exists, otherwise the record ID.
+        my $id = $approval_rs ? $approval_rs->id : $record_rs->id;
+        rset('User')->find($user->{id})->update({ lastrecord => $id });
+    }
 
     # Write all the values
     foreach my $fieldid (keys %$newvalue)

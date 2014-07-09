@@ -77,7 +77,6 @@ sub _delete_unused_nodes
     }
     @flat = sort { $b->{level} <=> $a->{level} } @flat;
 
-    use Data::Dumper; say STDERR Dumper \@flat;
     # Do the actual deletion if they don't exist
     foreach my $node (@flat)
     {
@@ -248,6 +247,7 @@ sub item
     {
         my $newitem;
         $newitem->{optional} = $args->{optional} ? 1 : 0;
+        $newitem->{remember} = $args->{remember} ? 1 : 0;
         ($newitem->{name} = $args->{name}) =~ /^[ \S]+$/ # Only normal spaces please
             or ouch 'badvalue', "Please enter a name for item";
         ($newitem->{type}       = $args->{type}) =~ /^(intgr|string|date|enum|tree|person|rag|calc)$/
@@ -396,6 +396,7 @@ sub item
         type       => $item->type,
         permission => $item->permission,
         optional   => $item->optional,
+        remember   => $item->remember,
     };
 
     if ($item->type eq 'enum' || $item->type eq 'tree')
