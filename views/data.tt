@@ -5,12 +5,11 @@
                 <a id="drop4" class="btn btn-primary" role="button" data-toggle="dropdown" href="#">View <b class="caret"></b></a>
                 <ul id="menu1" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop4">
                     [% FOREACH v IN user.views %]
-                        [% IF v.id == view_id %]
-                            [% selected = "selected" %]
-                        [% ELSE %]
-                            [% selected = "" %]
+                        [% IF lastv AND v.global != lastv.global %]
+                            <li role="presentation" class="divider"></li>
                         [% END %]
                         <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?view=[% v.id %]">[% v.name %]</a></li>
+                        [% lastv = v %]
                     [% END %]
                     <li role="presentation" class="divider"></li>
                     <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0">Create new view</a></li>

@@ -53,8 +53,10 @@ sub all
     my @views = rset('View')->search({
         -or => [
             user_id => $user_id,
-            {global => 1}
+            global  => 1,
         ]
+    },{
+            order_by => 'global',
     })->all;
     \@views;
 }
