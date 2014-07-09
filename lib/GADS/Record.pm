@@ -360,7 +360,6 @@ sub calc
         # m!^([-()*+/0-9<> ]|&&|eq|==)+$! or return 'grey';
     }
 
-    say STDERR $code;
     return _safe_eval "$code";
 }
 
