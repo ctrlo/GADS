@@ -49,12 +49,54 @@
                     <input type="checkbox" name="admin" [% IF edituser.permissions.admin %]checked[% END %]>User is an administrator
                 </label>
             </div>
+            <button type="submit" name="submit" value="submit" class="btn btn-primary">[% IF edituser.id %]Update[% ELSE %]Create[% END %]</button>
+            [% IF edituser.id %]
+                <button type="submit" name="delete" value="[% edituser.id %]" class="btn btn-default">Delete</button>
+            [% END %]
+        </div>
+        <div class="col-md-6">
+            <h4>Permissions help</h4>
+            <dl>
+                <dt>No permissions selected</dt>
+                <dd>If a user has no permissions, they cannot edit any data. They can only:
+                    <ul>
+                        <li>View and download data</li>
+                        <li>Create private views of data</li>
+                        <li>Add and remove the graphs displayed on their personal page</li>
+                    </ul>
+                </dd>
+                <dt>User can update records</dt>
+                <dd>
+                    This permission allows a user to update an existing record:
+                    <ul>
+                        <li>Fields that are set to &quot;Open access&quot; can be updated immediately by the user</li>
+                        <li>Fields that are set to &quot;Edit with approval&quot; can be updated, but any changes
+                            will be held for approval</li>
+                        <li>Fields that are set to &quot;Read only&quot; cannot be changed</li>
+                    </ul>
+                </dd>
+                <dt>User does not need approval when updating records</dt>
+                <dd>This permission is similar to the previous one, except that all fields can be updated
+                    immediately by the user (including &quot;Read only&quot; fields).<ul></ul></dt>
+                <dt>User can create new records</dt>
+                <dd>This permission allows a user to create a new record. All values (including &quot;Read only&quot; values)
+                    can be entered, but the entire record will require approval.<ul></ul></dd>
+                <dt>User does not need approval when creating new records</dt>
+                <dd>This permission allows a user to create a new record. All values (including &quot;Read only&quot; values)
+                    can be entered, and the new record will not require any approval.<ul></ul></dd>
+                <dt>User can approve changes</dt>
+                <dd>This permission allows a user to approve any of the above changes that require approval.<ul></ul></dd>
+                <dt>User is an administrator</dt>
+                <dd>This permission allows a user to:
+                    <ul>
+                        <li>Edit the layout (add, change and remove fields)</li>
+                        <li>Add, remove and edit graphs</li>
+                        <li>Add, remove and edit users</li>
+                    </ul>
+                </dd>
+            </dl>
         </div>
     </div>
-    <button type="submit" name="submit" value="submit" class="btn btn-primary">[% IF edituser.id %]Update[% ELSE %]Create[% END %]</button>
-    [% IF edituser.id %]
-        <button type="submit" name="delete" value="[% edituser.id %]" class="btn btn-default">Delete</button>
-    [% END %]
 </form>
 [% ELSE %]
 <p>
