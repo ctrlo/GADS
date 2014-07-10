@@ -101,6 +101,9 @@
 </form>
 <p></p>
 [% ELSE %]
+    <p>Use this page to create, delete and edit graphs. Graphs can only be created by an
+    administrator, and will be displayed (by default) to all users. Users can individually
+    de-select graphs that they do not wish to be displayed.</p>
     <p>
         <a href="/graph/0" class="btn btn-default" role="button">Create new graph</a>
     </p>
