@@ -107,7 +107,7 @@ sub current($$)
             my $field = "field".$fil->layout->id;
             my $fieldsearch;
 
-            if ($fil->layout->type eq "rag" || $fil->layout->type eq "calc")
+            if ($fil->layout->type eq "rag" || $fil->layout->type eq "calc" || $fil->layout->type eq "person")
             {
                 next;
             }
@@ -259,7 +259,7 @@ sub data
     my $filters;
     foreach my $fil (rset('Filter')->search({ view_id => $view_id })->all)
     {
-        next unless $fil->layout->type eq "rag" || $fil->layout->type eq "calc";
+        next unless $fil->layout->type eq "rag" || $fil->layout->type eq "calc" || $fil->layout->type eq "person";
         my $field = "field".$fil->layout->id;
         $filters->{$field} = _search_construct $fil->operator, $fil->value;
     }
@@ -284,6 +284,11 @@ sub data
                 next RECORD if $filters->{$field} && !_filter($filters->{$field}, $value); # $filters->{$field} && $filters->{$field} ne $rag;
             }
             elsif ($column->{type} eq "calc")
+            {
+                # my $calc = GADS::Record->calc($column->{calc}, $record);
+                next RECORD if $filters->{$field} && !_filter($filters->{$field}, $value); # if $filters->{$field} && $filters->{$field} ne $calc;
+            }
+            elsif ($column->{type} eq "person")
             {
                 # my $calc = GADS::Record->calc($column->{calc}, $record);
                 next RECORD if $filters->{$field} && !_filter($filters->{$field}, $value); # if $filters->{$field} && $filters->{$field} ne $calc;
