@@ -92,6 +92,7 @@
                         <li>Edit the layout (add, change and remove fields)</li>
                         <li>Add, remove and edit graphs</li>
                         <li>Add, remove and edit users</li>
+                        <li>Send messages to users</li>
                     </ul>
                 </dd>
             </dl>

@@ -151,6 +151,10 @@ any '/data' => sub {
 
     if (param 'sendemail')
     {
+        return forwardHome(
+            { danger => 'You do not have permission to send messages' }, 'data' )
+            unless var('user')->{permissions}->{admin};
+
         # Collect all the actual record IDs, including RAG filters
         my @ids;
         foreach my $o (@output)
@@ -176,7 +180,7 @@ any '/data' => sub {
         }
         else {
             return forwardHome(
-                { success => "The message has been sent successfully" } );
+                { success => "The message has been sent successfully" }, 'data' );
         }
     }
 
