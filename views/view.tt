@@ -29,6 +29,35 @@
             </table>
         </div>
         <div class="col-md-6">
+            <h4>View help</h4>
+            <dl>
+                <dt>General</dt>
+                <dd>Views are used to display only certain items on the &quot;data&quot; page.
+                    Views can be used to only display certain columns (by ticking the relevant
+                    items on the left), or to only display some rows (using the filters below).
+                    <ul></ul>
+                </dd>
+                [% IF user.permissions.admin %]
+                    <dt>Global view</dt>
+                    <dd>If the view is defined as a global view, then it will be visible as an 
+                        available view for all users. A view does not need to be global for it
+                        to be used for a graph.
+                    </dd>
+                    <ul></ul>
+                [% END %]
+                <dt>Filters</dt>
+                <dd>Filters can be used to selectively display only some rows of data. Several
+                    filters can be applied to one view
+                    to further limit the data displayed: for example, 2 date filters can be used to
+                    only show data between 2 dates. Any dates entered must be specified in the
+                    form yyyy-m-dd.
+                    [% IF user.permissions.admin %]
+                        Filters are particularly useful for graphs: each graph has an associated
+                        view to define the items of data that the graph displays. 
+                    [% END %]
+                </dd>
+            </dl>
+
             <label for="filter">Filters:</label>
             <div id="filters">
                 [% FOREACH fil IN filters %]
