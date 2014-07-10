@@ -1,15 +1,19 @@
 <h2>
-    [% IF autoserial %]
-        Record ID [% record.current.id %]
+    [% IF record.current %]
+        [% IF autoserial %]
+            Record ID [% record.current.id %]
+        [% ELSE %]
+            [% record.current.serial %]
+        [% END %]
     [% ELSE %]
-        [% record.current.serial %]
+        New record
     [% END %]
 </h2>
 <p></p>
 <form role="form" method="post">
     <div class="row">
         <div class="col-md-6">
-            [% IF record.size %]
+            [% IF record.current %]
                 <input type="hidden" name="current_id" value="[% record.current.id %]">
             [% ELSE %]
                 [% IF approves %]
@@ -37,7 +41,7 @@
                 [% ELSE %]
                     [% value = record.$field.value %]
                 [% END %]
-                [% IF record.size AND col.readonly AND NOT user.permissions.update_noneed_approval AND NOT user.permissions.approver %]
+                [% IF record.current AND col.readonly AND NOT user.permissions.update_noneed_approval AND NOT user.permissions.approver %]
                     [% readonly = "readonly" %]
                 [% ELSE %]
                     [% readonly = "" %]
