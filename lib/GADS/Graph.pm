@@ -138,7 +138,6 @@ sub data
 {
     my ($class, $options) = @_;
     my $graph   = $options->{graph};
-    my $records = $options->{records};
 
     # Graph columns are taken directly from the view. It may not be possible
     # to display them all though
@@ -206,10 +205,15 @@ sub data
     my $index2 = 0;
 
     my @colors = ('#FF6961', '#77DD77', '#FFB347', '#AEC6CF', '#FDFD96');
+
+    my @additional = ($groupcol);
+    push @additional, $groupcol2 if $groupcol2;
+    my @records = GADS::Record->current({ view_id => $graph->view_id, additional => \@additional });
+
     # Go through each record, and count how many unique values
     # there are for the field in question. Then define the unique
     # hash value as above using the index count
-    foreach my $record (@$records)
+    foreach my $record (@records)
     {
         my $val  = item_value($groupcol , $record, $dtgroup);
         my $val2 = item_value($groupcol2, $record) if $groupcol2;
@@ -265,7 +269,7 @@ sub data
 
     # Now go into each record a second time, counting the values for each
     # of the above unique values, and setting the count into the series hash
-    foreach my $record (@$records)
+    foreach my $record (@records)
     {
         my $fieldcolval  = item_value($col, $record); # The actual value of the field
         my $fieldcolval2 = item_value($groupcol2, $record) if $groupcol2;

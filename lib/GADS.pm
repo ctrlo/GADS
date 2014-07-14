@@ -82,8 +82,8 @@ get '/' => sub {
     my @graphs;
     foreach my $g (@$todraw)
     {
-        my @records = GADS::Record->current({ view_id => $g->view_id });
-        my $graph = GADS::Graph->data({ graph => $g, records => \@records });
+        # my @records = GADS::Record->current({ view_id => $g->view_id });
+        my $graph = GADS::Graph->data({ graph => $g }); # , records => \@records });
         push @graphs, $graph if $graph;
     }
 

@@ -105,8 +105,9 @@ sub current($$)
         # First, add all the columns in the view as a prefetch. During
         # this stage, we keep track of what we've added, so that we
         # can act accordingly during the filters
-        my $columns = GADS::View->columns({ view_id => $view_id });
-        foreach my $c (@$columns)
+        my @columns = @{GADS::View->columns({ view_id => $view_id })};
+        push @columns, @{$item->{additional}} if $item->{additional};
+        foreach my $c (@columns)
         {
             next if ($c->{type} eq 'rag' || $c->{type} eq 'calc');
 

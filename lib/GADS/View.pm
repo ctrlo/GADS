@@ -103,13 +103,13 @@ sub _column
 
     if ($col->type eq 'rag')
     {
-        my ($rag) = rset('Rag')->search({ layout_id => $col->id });
+        my ($rag) = $col->rags;
         $c->{rag} = $rag;
     }
 
     if ($col->type eq 'calc')
     {
-        my ($calc) = rset('Calc')->search({ layout_id => $col->id });
+        my ($calc) = $col->calcs;
         $c->{calc} = $calc;
     }
 
@@ -202,7 +202,9 @@ sub columns
     }
     else
     {
-        @cols = rset('Layout')->all;
+        @cols = rset('Layout')->search({},{
+            prefetch => ['enumvals', 'calcs', 'rags' ],
+        })->all;
     }
     my @return;
     foreach my $col (@cols)
