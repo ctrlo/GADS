@@ -135,7 +135,7 @@
                 <p>
                     <select class="form-control" name="filfield[% fid %][% newf %]">
                     [% FOR column IN all_columns %]
-                        <option value="[% column.id %]" [% IF fil.layout_id == column.id %]selected[% END %]>[% column.name %]</option>
+                        <option value="[% column.id %]" [% IF fil.column.id == column.id %]selected[% END %]>[% column.name %]</option>
                     [% END %]
                     </select>
                 </p>

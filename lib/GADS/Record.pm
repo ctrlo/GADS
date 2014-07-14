@@ -108,46 +108,31 @@ sub current($$)
         my $columns = GADS::View->columns({ view_id => $view_id });
         foreach my $c (@$columns)
         {
-            if ($c->{type} eq 'tree' || $c->{type} eq 'enum')
-            {
-                # Value of enums are always "value" (joined table)
-                push @prefetch, { $c->{field} => 'value' }; # Add to prefetch list
-                $prefetch_used{value} = 1;                  # Tag that we've prefetched this value
-                $joincount{value}++;                        # Increment join counter to track _2 suffixes
-            }
-            elsif ($c->{type} eq 'intgr' || $c->{type} eq 'string' || $c->{type} eq 'date') {
-                # Value of others are in the original table, no join needed
-                push @prefetch, $c->{field};
-                $prefetch_used{$c->{field}} = 1;            # As before, track what we've done
-                $joincount{$c->{field}}++;
-            }
+            next if ($c->{type} eq 'rag' || $c->{type} eq 'calc');
+
+            # Value of enums are always "value" (joined table)
+            push @prefetch, $c->{join};          # Add to prefetch list
+            $prefetch_used{$c->{sprefix}} = 1;   # Tag that we've prefetched this value
+            $joincount{$c->{sprefix}}++;         # Increment join counter to track _2 suffixes
         }
 
         # Now add all the filters as joins (we don't need to prefetch this data). However,
         # the filter might also be a column in the view from before, in which case add
         # it to, or use, the prefetch. We use the tracking variables from above.
-        foreach my $fil (rset('Filter')->search({ view_id => $view_id })->all)
+        foreach my $filter (@{GADS::View->filters($view_id)})
         {
-            my $field = "field".$fil->layout->id;
+            my $field = $filter->{column}->{field};
             my $fieldsearch;
 
-            if ($fil->layout->type eq "rag" || $fil->layout->type eq "calc" || $fil->layout->type eq "person")
+            if ($filter->{column}->{type} eq "rag" || $filter->{column}->{type} eq "calc" || $filter->{column}->{type} eq "person")
             {
                 next;
             }
             else
             {
                 # As per the prefix, what we join depends on the type of field
-                my $sprefix; my $joinv;
-                if($fil->layout->type eq "enum" || $fil->layout->type eq "tree")
-                {
-                    $sprefix = 'value';
-                    $joinv   = {$field => 'value'};
-                }
-                else {
-                    $sprefix = $field;
-                    $joinv   = $field;
-                }
+                my $sprefix = $filter->{column}->{sprefix};
+                my $joinv   = $filter->{column}->{join};
                 if ($prefetch_used{$sprefix})
                 {
                     push @prefetch, $joinv;
@@ -160,7 +145,7 @@ sub current($$)
                 $fieldsearch = "$sprefix$in.value";
             }
             
-            my $svalue = _search_construct $fil->operator, $fil->value
+            my $svalue = _search_construct $filter->{operator}, $filter->{value}
                 or next;
 
             # Underscore in mysql is special for like

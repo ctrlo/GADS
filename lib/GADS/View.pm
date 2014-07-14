@@ -77,6 +77,55 @@ sub delete
         or ouch 'dbfail', "There was a database error when deleting the view";
 }
 
+sub _column
+{
+    my $col = shift;
+    my $c;
+    
+    my $field = "field".$col->id;
+
+    if ($col->type eq 'enum' || $col->type eq 'tree')
+    {
+        $c->{type} = $col->type;
+        $c->{sprefix} = 'value';
+        $c->{join}    = {$field => 'value'};
+        if ($c->{type} eq 'enum')
+        {
+            my @enums = $col->enumvals;
+            $c->{enumvals} = \@enums;
+        }
+    }
+    else {
+        $c->{type}    = $col->type;
+        $c->{sprefix} = $field;
+        $c->{join}    = $field;
+    }
+
+    if ($col->type eq 'rag')
+    {
+        my ($rag) = rset('Rag')->search({ layout_id => $col->id });
+        $c->{rag} = $rag;
+    }
+
+    if ($col->type eq 'calc')
+    {
+        my ($calc) = rset('Calc')->search({ layout_id => $col->id });
+        $c->{calc} = $calc;
+    }
+
+    $c->{id}         = $col->id,
+    $c->{name}       = $col->name,
+    $c->{remember}   = $col->remember,
+    $c->{permission} = $col->permission,
+    $c->{readonly}   = $col->permission == READONLY ? 1 : 0;
+    $c->{approve}    = $col->permission == APPROVE ? 1 : 0;
+    $c->{open}       = $col->permission == OPEN ? 1 : 0;
+    $c->{optional}   = $col->optional,
+    $c->{field}      = $field,
+
+    $c;
+}
+
 sub columns
 {   my ($class, $ident, $update) = @_;
 
@@ -155,48 +204,10 @@ sub columns
     {
         @cols = rset('Layout')->all;
     }
-    my @c; my @return;
+    my @return;
     foreach my $col (@cols)
     {
-        my $c;
-        if ($col->type eq 'enum')
-        {
-            # Is it an enum with parents? If so, it's actually a tree
-            if (rset('Enumval')->search({ layout_id => $col->id, parent => { '!=', undef }})->count)
-            {
-                $c->{type} = 'tree';
-            }
-            else {
-                $c->{type} = 'enum';
-                my @enums = $col->enumvals;
-                $c->{enumvals} = \@enums;
-            }
-        }
-        else {
-            $c->{type} = $col->type;
-        }
-
-        if ($col->type eq 'rag')
-        {
-            my ($rag) = rset('Rag')->search({ layout_id => $col->id });
-            $c->{rag} = $rag;
-        }
-
-        if ($col->type eq 'calc')
-        {
-            my ($calc) = rset('Calc')->search({ layout_id => $col->id });
-            $c->{calc} = $calc;
-        }
-
-        $c->{id}         = $col->id,
-        $c->{name}       = $col->name,
-        $c->{remember}   = $col->remember,
-        $c->{permission} = $col->permission,
-        $c->{readonly}   = $col->permission == READONLY ? 1 : 0;
-        $c->{approve}    = $col->permission == APPROVE ? 1 : 0;
-        $c->{open}       = $col->permission == OPEN ? 1 : 0;
-        $c->{optional}   = $col->optional,
-        $c->{field}      = "field".$col->id,
+        my $c = _column $col;
         push @return, $c;
     }
     return \@return;
@@ -282,7 +293,17 @@ sub filters
         }
     }
 
-    my @filters = rset('Filter')->search({ view_id => $view_id })->all;
+    my @filters;
+    foreach my $fil (rset('Filter')->search({ view_id => $view_id })->all)
+    {
+        my $f;
+        $f->{id}       = $fil->id;
+        $f->{operator} = $fil->operator;
+        $f->{value}    = $fil->value;
+        $f->{column}   = _column $fil->layout;
+        push @filters, $f;
+    }
+
     \@filters;
 }
 
