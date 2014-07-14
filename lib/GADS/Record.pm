@@ -318,12 +318,12 @@ sub rag
 sub calc
 {   my ($class, $calc, $record) = @_;
 
-    my $code = $calc->calc;
+    my $code = $calc->{calc};
 
-    foreach my $col (@{GADS::View->columns})
+    foreach my $col (@{$calc->{columns}})
     {
-        next if $col->{type} eq 'rag' || $col->{type} eq 'calc';
         my $name = $col->{name};
+        next unless $code =~ /\[$name\]/i;
 
         my $value = item_value($col, $record, {epoch => 1});
         $value = "\"$value\"" unless $value =~ /^[0-9]+$/;

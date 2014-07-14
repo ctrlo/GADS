@@ -110,7 +110,25 @@ sub _column
     if ($col->type eq 'calc')
     {
         my ($calc) = $col->calcs;
-        $c->{calc} = $calc;
+        my $allcols = shift;
+        my @calccols;
+        foreach my $acol (@$allcols)
+        {
+            next if $acol->type eq 'rag' || $acol->type eq 'calc';
+            my $name = $acol->name;
+            next unless $calc->calc =~ /\[$name\]/i;
+            push @calccols, {
+                id   => $acol->id,
+                type => $acol->type,
+                name => $acol->name,
+            };
+        }
+
+        $c->{calc} = {
+            id      => $calc->id,
+            calc    => $calc->calc,
+            columns => \@calccols,
+        };
     }
 
     $c->{id}         = $col->id,
@@ -178,6 +196,10 @@ sub columns
         $view->update($vu);
     }
 
+    my @allcols = rset('Layout')->search({},{
+        prefetch => ['enumvals', 'calcs', 'rags' ],
+    })->all; # Used for calc values
+
     my @cols;
     if (my $view_id = $ident->{view_id})
     {
@@ -202,14 +224,12 @@ sub columns
     }
     else
     {
-        @cols = rset('Layout')->search({},{
-            prefetch => ['enumvals', 'calcs', 'rags' ],
-        })->all;
+        @cols = @allcols;
     }
     my @return;
     foreach my $col (@cols)
     {
-        my $c = _column $col;
+        my $c = _column $col, \@allcols;
         push @return, $c;
     }
     return \@return;
