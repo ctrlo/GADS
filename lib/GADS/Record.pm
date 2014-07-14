@@ -90,20 +90,44 @@ sub current($$)
         approval => 0
     };
 
-    my @join;
+    my @join;     # Used for conditionals, which may not be shown in the view of choice
+    my @prefetch; # Used for any field that we display the value for
     
-    # XXXX A temporary hack. Doing multiple joins of enums/trees does not work, as each
-    # enum's associated value join is named the same ('value'). As such, only one
-    # join happens in the SQL and a search can't be done. Therefore, for each
-    # additional enum search, push it into an array and do the search after.
-    my @additional;
-
     if (my $view_id = $item->{view_id})
     {
-        my $enum;
+        # So that we know how many times we've joined a table.
+        # DBIC automatically suffixes additional joines _2 etc.
+        my %joincount;
+        # Keep a track of which we have joined at prefetch, so that we
+        # add to this for the searches, otherwise use a join
+        my %prefetch_used;
+
+        # First, add all the columns in the view as a prefetch. During
+        # this stage, we keep track of what we've added, so that we
+        # can act accordingly during the filters
+        my $columns = GADS::View->columns({ view_id => $view_id });
+        foreach my $c (@$columns)
+        {
+            if ($c->{type} eq 'tree' || $c->{type} eq 'enum')
+            {
+                # Value of enums are always "value" (joined table)
+                push @prefetch, { $c->{field} => 'value' }; # Add to prefetch list
+                $prefetch_used{value} = 1;                  # Tag that we've prefetched this value
+                $joincount{value}++;                        # Increment join counter to track _2 suffixes
+            }
+            elsif ($c->{type} eq 'intgr' || $c->{type} eq 'string' || $c->{type} eq 'date') {
+                # Value of others are in the original table, no join needed
+                push @prefetch, $c->{field};
+                $prefetch_used{$c->{field}} = 1;            # As before, track what we've done
+                $joincount{$c->{field}}++;
+            }
+        }
+
+        # Now add all the filters as joins (we don't need to prefetch this data). However,
+        # the filter might also be a column in the view from before, in which case add
+        # it to, or use, the prefetch. We use the tracking variables from above.
         foreach my $fil (rset('Filter')->search({ view_id => $view_id })->all)
         {
-            my $is_enum;
             my $field = "field".$fil->layout->id;
             my $fieldsearch;
 
@@ -111,84 +135,50 @@ sub current($$)
             {
                 next;
             }
-            elsif($fil->layout->type eq "enum" || $fil->layout->type eq "tree")
-            {
-                $fieldsearch = "value.value";
-                $is_enum = 1;
-            }
             else
             {
-                my $append = 1;
-                while (!$fieldsearch)
+                # As per the prefix, what we join depends on the type of field
+                my $sprefix; my $joinv;
+                if($fil->layout->type eq "enum" || $fil->layout->type eq "tree")
                 {
-                    my $app = $append == 1 ? '' : "_$append";
-                    if (defined $search->{"$field$app.value"})
-                    {
-                        $append++;
-                    }
-                    else {
-                        $fieldsearch =  "$field$app.value";
-                    }
+                    $sprefix = 'value';
+                    $joinv   = {$field => 'value'};
                 }
+                else {
+                    $sprefix = $field;
+                    $joinv   = $field;
+                }
+                if ($prefetch_used{$sprefix})
+                {
+                    push @prefetch, $joinv;
+                }
+                else {
+                    push @join, $joinv;
+                }
+                $joincount{$sprefix}++;
+                my $in = $joincount{$sprefix} == 1 ? '' : "_$joincount{$sprefix}"; # Join suffix
+                $fieldsearch = "$sprefix$in.value";
             }
-
             
             my $svalue = _search_construct $fil->operator, $fil->value
                 or next;
 
-            if ($is_enum && $enum)
-            {
-                # We've already hit the limit of enums. Tag it for later.
-                push @additional, { 'field' => $field, 'value' => $svalue };
-            }
-            elsif ($is_enum)
-            {
-                $svalue->{'-like'} =~ s/\_/\\\_/g if $svalue->{'-like'};
-                $search->{$fieldsearch} = $svalue;
-                push @join, {$field => 'value'};
-                $enum = 1;
-            }
-            else {
-                $svalue->{'-like'} =~ s/\_/\\\_/g if $svalue->{'-like'};
-                $search->{$fieldsearch} = $svalue;
-                push @join, $field;
-            }
-
+            # Underscore in mysql is special for like
+            $svalue->{'-like'} =~ s/\_/\\\_/g if $svalue->{'-like'};
+            $search->{$fieldsearch} = $svalue;
         }
     }
 
+    unshift @prefetch, 'current';
     my $orderby = config->{gads}->{serial} eq "auto" ? 'current.id' : 'current.serial';
     my @all = rset('Record')->search(
         $search,
         {
-            prefetch => 'current',
+            prefetch => \@prefetch,
             join     => \@join,
             order_by => $orderby,
         }
     );
-
-    foreach my $s (@additional)
-    {
-        # Those additional enum searches we talked about earlier
-        my @new;
-        foreach my $r (@all)
-        {
-            my $field = $s->{field};
-            my ($operator) = keys $s->{value};
-            my ($sval)     = values $s->{value};
-
-            if ($operator eq '-like')
-            {
-                $sval =~ s/%(.*)%/$1/;
-                push @new, $r if ($r->$field->value->value =~ /$sval/i);
-            }
-            elsif ($operator eq '=')
-            {
-                push @new, $r if lc $r->$field->value->value eq lc $sval;
-            }
-        }
-        @all = @new;
-    }
 
     wantarray ? @all : pop(@all);
 }
