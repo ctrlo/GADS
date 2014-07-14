@@ -294,7 +294,15 @@ sub filters
     }
 
     my @filters;
-    foreach my $fil (rset('Filter')->search({ view_id => $view_id })->all)
+    my $filter_r = rset('Filter')->search({
+        view_id => $view_id
+    },{
+        prefetch => {
+            'layout' => 'enumvals'
+        } 
+    });
+
+    foreach my $fil ($filter_r->all)
     {
         my $f;
         $f->{id}       = $fil->id;

@@ -232,11 +232,11 @@ sub data
     my @output;
 
     my $filters;
-    foreach my $fil (rset('Filter')->search({ view_id => $view_id })->all)
+    foreach my $filter (@{GADS::View->filters($view_id)})
     {
-        next unless $fil->layout->type eq "rag" || $fil->layout->type eq "calc" || $fil->layout->type eq "person";
-        my $field = "field".$fil->layout->id;
-        $filters->{$field} = _search_construct $fil->operator, $fil->value;
+        next unless $filter->{column}->{type} eq "rag" || $filter->{column}->{type} eq "calc" || $filter->{column}->{type} eq "person";
+        my $field = $filter->{column}->{field};
+        $filters->{$field} = _search_construct $filter->{operator}, $filter->{value};
     }
 
     my $columns = GADS::View->columns({ view_id => $view_id });
