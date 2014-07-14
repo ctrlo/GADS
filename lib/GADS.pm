@@ -39,7 +39,11 @@ hook before => sub {
         next if $col->type eq "rag"; # Not a real column
         my $coltype = $col->type eq "tree" ? 'enum' : $col->type;
         my $colname = "field".$col->id;
-        schema->source('Record')->add_relationship(
+
+        # Temporary hack
+        # very inefficient and needs to go away when the rel options show up
+        my $rec_class = schema->class('Record');
+        $rec_class->might_have(
             $colname => camelize($coltype),
             sub {
                 my $args = shift;
@@ -50,17 +54,8 @@ hook before => sub {
                 };
             }
         );
-        GADS::Schema::Result::Record->has_one(
-            $colname => camelize($coltype),
-            sub {
-                my $args = shift;
-
-                return {
-                    "$args->{foreign_alias}.record_id" => { -ident => "$args->{self_alias}.id" },
-                    "$args->{foreign_alias}.layout_id" => $col->id,
-                };
-            }
-        );
+        schema->unregister_source('Record');
+        schema->register_class(Record => $rec_class);
     }
 };
 
