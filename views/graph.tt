@@ -27,7 +27,18 @@
                 <label for="email">Based on view:</label>
                 <select class="form-control" name="view_id">
                     [% FOREACH v IN user.views %]
-                        <option value="[% v.id %]" [% IF edititem.view.id == v.id %]selected[% END %]>[% v.name %]</option>
+                        [% IF edititem.view.id == v.id %]
+                            [% selected = "selected" %]
+                            [% userview = 1 %]
+                        [% ELSE %]
+                            [% selected = "" %]
+                        [% END %]
+                        <option value="[% v.id %]" [% selected %]>[% v.name %]</option>
+                    [% END %]
+                    [% UNLESS userview %]
+                        <option value="[% edititem.view.id %]" selected>[% edititem.view.name %]
+                            (private view of [% edititem.view.user.email %])
+                        </option>
                     [% END %]
                 </select>
             </div>
