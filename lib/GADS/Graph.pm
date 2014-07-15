@@ -290,7 +290,7 @@ sub data
             $series->{$key}->{data}->[$idx]++;
         }
         else {
-            $series->{$key}->{data}->[$idx] += $fieldcolval;
+            $series->{$key}->{data}->[$idx] += $fieldcolval if $fieldcolval;
         }
     }
 
