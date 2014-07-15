@@ -375,9 +375,10 @@ any '/view/:id' => sub {
     $output;
 };
 
-any '/tree/:id?/?:value?' => sub {
+any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => sub {
+    # Random number can be used after "tree" to prevent caching
 
-    my $layout_id = param 'id';
+    my ($layout_id, $value) = splat;
 
     if (param 'data')
     {
@@ -392,9 +393,9 @@ any '/tree/:id?/?:value?' => sub {
 
     # If record is specified, select the record's value in the returned JSON
     GADS::Layout->tree(
-        param('id'),
+        $layout_id,
         {
-            value => param('value'),
+            value => $value,
         }
     );
 };

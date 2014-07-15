@@ -231,7 +231,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     "themes" : { "stripes" : true },
                     'data' : {
                         'url' : function (node) {
-                            return node.id === '#' ? '/tree/[% edititem.id %]' : '/tree/[% edititem.id %]';
+                            return '/tree' + new Date().getTime() + '/[% edititem.id %]?' ;
                         },
                         'data' : function (node) {
                             return { 'id' : node.id };
