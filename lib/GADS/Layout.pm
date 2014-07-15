@@ -93,7 +93,7 @@ sub _delete_unused_nodes
         else
         {
             my $count = rset('Enum')->search({ layout_id => $layout_id, value => $node->{id} })->count; # In use somewhere
-            my $haschild = grep {$_->{parent} && $node->{id} == $_->{parent}} @flat);                   # Has (deleted) children
+            my $haschild = grep {$_->{parent} && $node->{id} == $_->{parent}} @flat;                   # Has (deleted) children
             if ($count || $haschild)
             {
                 rset('Enumval')->find($node->{id})->update({ deleted => 1 })
