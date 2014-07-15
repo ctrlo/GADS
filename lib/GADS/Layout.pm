@@ -57,9 +57,9 @@ sub _delete_unused_nodes
     sub _flat
     {
         my ($start, $flat, $level) = @_;
-        push @$flat, { id => $start->id, level => $level, parent => $start->parent ? $start->parent->id : undef };
+        push @$flat, { id => $start->id, level => $level, deleted => $start->deleted, parent => $start->parent ? $start->parent->id : undef };
         # See if it has any children
-        my @children = rset('Enumval')->search({ parent => $start->id, deleted => 0 })->all;
+        my @children = rset('Enumval')->search({ parent => $start->id })->all;
         foreach my $child (@children)
         {
             _flat($child, $flat, $level + 1);
@@ -80,6 +80,7 @@ sub _delete_unused_nodes
     # Do the actual deletion if they don't exist
     foreach my $node (@flat)
     {
+        next if $node->{deleted}; # Already deleted
         if (grep {$node->{id} == $_} @$dbids)
         {
             # Current node still exists, but its parent doesn't
@@ -91,7 +92,9 @@ sub _delete_unused_nodes
         }
         else
         {
-            if (rset('Enum')->search({ layout_id => $layout_id, value => $node->{id} })->count)
+            my $count = rset('Enum')->search({ layout_id => $layout_id, value => $node->{id} })->count; # In use somewhere
+            my $haschild = grep {$_->{parent} && $node->{id} == $_->{parent}} @flat);                   # Has (deleted) children
+            if ($count || $haschild)
             {
                 rset('Enumval')->find($node->{id})->update({ deleted => 1 })
                     or ouch 'dbfail', "Database error deleting old tree values";
