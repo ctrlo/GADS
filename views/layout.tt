@@ -149,12 +149,14 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
 <p>
     <a href="/layout/0" class="btn btn-default" role="button">Create item</a>
 </p>
+<form role="form" method="post">
 <table class="table table-striped">
     <tr>
         <th></th>
         <th>Name</th>
         <th>Type</th>
         <th>Permissions</th>
+        <th>Order</th>
     </tr>
     [% FOREACH item IN items %]
         <tr>
@@ -175,9 +177,21 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 [% IF item.permission == 1 %]Edit with approval[% END %]
                 [% IF item.permission == 2 %]Read only[% END %]
             </td>
+            <td>
+                <select class="form-control" id="type" name="order[% item.id %]">
+                    [% o = 1 %]
+                    [% WHILE o <= items.size %]
+                        <option value="[% o %]" [% IF item.order == o %]selected[% END %]>[% o %]</option>
+                        [% o = o + 1 %]
+                    [% END %]
+                </select>
+            </td>
         </tr>
     [% END %]
 </table>
+<button type="submit" id="submit" name="saveorder" value="submit" class="btn btn-primary">Save order</button>
+<p></p>
+</form>
 [% END %]
 
 <script type="text/javascript">

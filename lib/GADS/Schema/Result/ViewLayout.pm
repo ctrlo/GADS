@@ -53,6 +53,11 @@ __PACKAGE__->table("view_layout");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 order
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -62,6 +67,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "order",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -109,8 +116,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-08 11:57:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wQfaQVvWYL4cE8lDlq7JBg
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-15 17:37:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Jmj9JJ26JkwTo/cBm5Ya7A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

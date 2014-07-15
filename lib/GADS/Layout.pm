@@ -41,7 +41,7 @@ sub all
             $count++;
         }
     }
-    my @layout = rset('Layout')->all;
+    my @layout = rset('Layout')->search({},{ order_by => 'order' })->all;
     \@layout;
 }
 
@@ -253,6 +253,16 @@ sub delete
         or ouch 'dbfail', "Database error deleting data associated with this item";
     $item->delete
         or ouch 'dbfail', "Database error deleting item";
+}
+
+sub order
+{   my ($class, $params) = @_;
+    foreach my $o (keys %$params)
+    {
+        next unless $o =~ /order([0-9]+)/;
+        rset('Layout')->find($1)->update({ order => $params->{$o} })
+            or ouch 'dbfail', "There was a database error when updating the order values";
+    }
 }
 
 sub item

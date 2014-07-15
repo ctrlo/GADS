@@ -71,6 +71,11 @@ __PACKAGE__->table("layout");
   default_value: 0
   is_nullable: 0
 
+=head2 order
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -86,6 +91,8 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "remember",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "order",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -283,8 +290,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-09 09:28:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:upC1q6J9LF1PWl84nzIkhQ
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-15 17:37:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IlElJCp19Sy8DFkmcRrj8w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

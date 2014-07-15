@@ -436,6 +436,20 @@ any '/layout/?:id?' => sub {
         }
     }
 
+    if (param 'saveorder')
+    {
+        my $values = params;
+        eval { GADS::Layout->order($values) };
+        if (hug)
+        {
+            messageAdd({ danger => bleep });
+        }
+        else {
+            return forwardHome(
+                { success => "The ordering has been saved successfully" }, 'layout' );
+        }
+    }
+
     my $items;
     if ($id)
     {
