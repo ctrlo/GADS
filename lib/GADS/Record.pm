@@ -93,38 +93,45 @@ sub current($$)
     my @join;     # Used for conditionals, which may not be shown in the view of choice
     my @prefetch; # Used for any field that we display the value for
     
+    # So that we know how many times we've joined a table.
+    # DBIC automatically suffixes additional joines _2 etc.
+    my %joincount;
+    # Keep a track of which we have joined at prefetch, so that we
+    # add to this for the searches, otherwise use a join
+    my %prefetch_used;
+
+    # First, add all the columns in the view as a prefetch. During
+    # this stage, we keep track of what we've added, so that we
+    # can act accordingly during the filters
+    my @columns;
     if (my $view_id = $item->{view_id})
     {
-        # So that we know how many times we've joined a table.
-        # DBIC automatically suffixes additional joines _2 etc.
-        my %joincount;
-        # Keep a track of which we have joined at prefetch, so that we
-        # add to this for the searches, otherwise use a join
-        my %prefetch_used;
-
-        # First, add all the columns in the view as a prefetch. During
-        # this stage, we keep track of what we've added, so that we
-        # can act accordingly during the filters
-        my @columns = @{GADS::View->columns({ view_id => $view_id })};
-        push @columns, @{$item->{additional}} if $item->{additional};
-        foreach my $c (@columns)
+        @columns = @{GADS::View->columns({ view_id => $view_id })};
+    }
+    else {
+        @columns = @{GADS::View->columns};
+    }
+    push @columns, @{$item->{additional}} if $item->{additional};
+    foreach my $c (@columns)
+    {
+        # If it's a calculated/rag value, prefetch the columns in the calc
+        if ($c->{type} eq 'rag' || $c->{type} eq 'calc')
         {
-            # If it's a calculated/rag value, prefetch the columns in the calc
-            if ($c->{type} eq 'rag' || $c->{type} eq 'calc')
-            {
-                push @columns, @{$c->{$c->{type}}->{columns}};
-                next;
-            }
-
-            # Value of enums are always "value" (joined table)
-            push @prefetch, $c->{join};          # Add to prefetch list
-            $prefetch_used{$c->{sprefix}} = 1;   # Tag that we've prefetched this value
-            $joincount{$c->{sprefix}}++;         # Increment join counter to track _2 suffixes
+            push @columns, @{$c->{$c->{type}}->{columns}};
+            next;
         }
 
-        # Now add all the filters as joins (we don't need to prefetch this data). However,
-        # the filter might also be a column in the view from before, in which case add
-        # it to, or use, the prefetch. We use the tracking variables from above.
+        # Value of enums are always "value" (joined table)
+        push @prefetch, $c->{join};          # Add to prefetch list
+        $prefetch_used{$c->{sprefix}} = 1;   # Tag that we've prefetched this value
+        $joincount{$c->{sprefix}}++;         # Increment join counter to track _2 suffixes
+    }
+
+    # Now add all the filters as joins (we don't need to prefetch this data). However,
+    # the filter might also be a column in the view from before, in which case add
+    # it to, or use, the prefetch. We use the tracking variables from above.
+    if (my $view_id = $item->{view_id})
+    {
         foreach my $filter (@{GADS::View->filters($view_id)})
         {
             my $field = $filter->{column}->{field};
