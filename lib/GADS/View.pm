@@ -86,7 +86,7 @@ sub _column
     
     my $field = "field".$col->id;
 
-    if ($col->type eq 'enum' || $col->type eq 'tree')
+    if ($col->type eq 'enum' || $col->type eq 'tree' || $col->type eq 'person')
     {
         $c->{type} = $col->type;
         $c->{sprefix} = 'value';
