@@ -109,7 +109,12 @@ sub current($$)
         push @columns, @{$item->{additional}} if $item->{additional};
         foreach my $c (@columns)
         {
-            next if ($c->{type} eq 'rag' || $c->{type} eq 'calc');
+            # If it's a calculated/rag value, prefetch the columns in the calc
+            if ($c->{type} eq 'rag' || $c->{type} eq 'calc')
+            {
+                push @columns, @{$c->{$c->{type}}->{columns}};
+                next;
+            }
 
             # Value of enums are always "value" (joined table)
             push @prefetch, $c->{join};          # Add to prefetch list
@@ -279,13 +284,12 @@ sub data
 sub rag
 {   my ($class, $rag, $record) = @_;
 
-    my $green = $rag->green;
-    my $amber = $rag->amber;
-    my $red   = $rag->red;
+    my $green = $rag->{green};
+    my $amber = $rag->{amber};
+    my $red   = $rag->{red};
 
-    foreach my $col (@{GADS::View->columns})
+    foreach my $col (@{$rag->{columns}})
     {
-        next if $col->{type} eq 'rag' || $col->{type} eq 'calc';
         my $name = $col->{name};
         my $value = item_value($col, $record, {epoch => 1});
         $green =~ s/\[$name\]/$value/gi;

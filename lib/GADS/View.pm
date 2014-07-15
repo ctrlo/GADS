@@ -77,6 +77,8 @@ sub delete
         or ouch 'dbfail', "There was a database error when deleting the view";
 }
 
+sub _column;
+
 sub _column
 {
     my $col = shift;
@@ -101,12 +103,6 @@ sub _column
         $c->{join}    = $field;
     }
 
-    if ($col->type eq 'rag')
-    {
-        my ($rag) = $col->rags;
-        $c->{rag} = $rag;
-    }
-
     if ($col->type eq 'calc')
     {
         my ($calc) = $col->calcs;
@@ -117,17 +113,37 @@ sub _column
             next if $acol->type eq 'rag' || $acol->type eq 'calc';
             my $name = $acol->name;
             next unless $calc->calc =~ /\[$name\]/i;
-            push @calccols, {
-                id   => $acol->id,
-                type => $acol->type,
-                name => $acol->name,
-            };
+            my $c = _column($acol);
+            push @calccols, $c;
         }
 
         $c->{calc} = {
             id      => $calc->id,
             calc    => $calc->calc,
             columns => \@calccols,
+        };
+    }
+
+    if ($col->type eq 'rag')
+    {
+        my ($rag) = $col->rags;
+        my $allcols = shift;
+        my @ragcols;
+        foreach my $acol (@$allcols)
+        {
+            next if $acol->type eq 'rag' || $acol->type eq 'calc';
+            my $name = $acol->name;
+            next unless $rag->green =~ /\[$name\]/i || $rag->amber =~ /\[$name\]/i || $rag->red =~ /\[$name\]/i;
+            my $c = _column($acol);
+            push @ragcols, $c;
+        }
+
+        $c->{rag} = {
+            id      => $rag->id,
+            green   => $rag->green,
+            amber   => $rag->amber,
+            red     => $rag->red,
+            columns => \@ragcols,
         };
     }
 
