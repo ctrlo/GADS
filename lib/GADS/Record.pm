@@ -682,7 +682,7 @@ sub _safe_eval
     #Comparators
     $cpt->permit(qw(lt i_lt gt i_gt le i_le ge i_ge eq i_eq ne i_ne ncmp i_ncmp slt sgt sle sge seq sne scmp));
 
-    # See https://rt.cpan.org/Public/Bug/Display.html?id=89437
+    # XXX fix later? See https://rt.cpan.org/Public/Bug/Display.html?id=89437
     $cpt->permit(qw(rv2gv));
 
     #Base math
