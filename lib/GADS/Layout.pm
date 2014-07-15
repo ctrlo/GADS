@@ -177,7 +177,12 @@ sub tree
     {
         my ($start, $selected) = @_;
         # See if it has any children
-        my @children = rset('Enumval')->search({ parent => $start->id, deleted => 0 })->all;
+        my @children = rset('Enumval')->search({
+            parent  => $start->id,
+            deleted => 0
+        },{
+            order_by => 'value'
+        })->all;
         my @cc;
         foreach my $child (@children)
         {
@@ -193,7 +198,14 @@ sub tree
         return $item;
     };
 
-    my @top = rset('Enumval')->search({ layout_id => $layout_id, parent => undef, deleted => 0 })->all;
+    my @top = rset('Enumval')->search({
+        layout_id => $layout_id,
+        parent    => undef,
+        deleted   => 0
+    },{
+        order_by  => 'value'
+    })->all;
+
     my @tree;
     foreach (@top)
     {
