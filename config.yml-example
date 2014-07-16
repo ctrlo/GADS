@@ -26,6 +26,7 @@ engines:
 gads:
   name: "App name" # The local name for the application
   serial: "auto"   # Generate serial numbers automatically
+  hostlocal: 0     # Whether to fetch files such as jquery.js locally
 
 plugins:
   DBIC:

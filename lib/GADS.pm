@@ -66,6 +66,7 @@ hook before_template => sub {
     $tokens->{url}->{js}   = request->base . 'js';
     $tokens->{url}->{page} = request->base;
     $tokens->{url}->{page} =~ s!.*/!!; # Remove trailing slash
+    $tokens->{hostlocal}   = config->{gads}->{hostlocal};
 
     $tokens->{header} = config->{gads}->{header};
 

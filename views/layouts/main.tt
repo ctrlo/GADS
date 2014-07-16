@@ -105,7 +105,11 @@
         <!-- Bootstrap core JavaScript
         ================================================== -->
         <!-- Placed at the end of the document so the pages load faster -->
-        <script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+        [% IF hostlocal %]
+            <script src="[% url.js %]/jquery-1.10.2.min.js"></script>
+        [% ELSE %]
+            <script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+        [% END %]
         <script src="[% url.js %]/bootstrap.min.js"></script>
         [% IF page == "edit" OR page == "approval" %]
             <script type="text/javascript" src="[% url.js %]/bootstrap-datepicker.js"></script>
