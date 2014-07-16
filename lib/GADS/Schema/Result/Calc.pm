@@ -49,9 +49,8 @@ __PACKAGE__->table("calc");
 
 =head2 calc
 
-  data_type: 'varchar'
+  data_type: 'mediumtext'
   is_nullable: 1
-  size: 5000
 
 =cut
 
@@ -61,7 +60,7 @@ __PACKAGE__->add_columns(
   "layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "calc",
-  { data_type => "varchar", is_nullable => 1, size => 5000 },
+  { data_type => "mediumtext", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -99,8 +98,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-08 11:57:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yLcwdIQzZsNxR+WS37vVAA
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-16 14:13:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IjICNQvXc/Q28EJcAO5RRg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
