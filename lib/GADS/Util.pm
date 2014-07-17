@@ -46,6 +46,8 @@ sub item_value
 {
     my ($column, $record, $options) = @_;
 
+    return undef unless $record;
+
     my $field = 'field'.$column->{id};
 
     # By default, return the actual end value. If raw is specified,
