@@ -176,8 +176,15 @@ sub tree
     sub _collate
     {
         my ($start, $selected, $all) = @_;
+
         # See if it has any children
-        my @children = grep { $_->parent && $_->parent->id == $start->id } @$all;
+        my @children = grep
+        {
+            my $p = $_->get_column('parent');
+            $p && $p == $start->id;
+        }
+        @$all;
+
         my @cc;
         foreach my $child (@children)
         {
@@ -200,8 +207,7 @@ sub tree
         order_by  => 'value'
     })->all;
 
-    my @top = grep { not defined $_->parent } @all;
-
+    my @top = grep { not defined $_->get_column('parent') } @all;
     my @tree;
     foreach (@top)
     {
