@@ -600,8 +600,12 @@ any '/edit/:id?' => sub {
         my $previousr = GADS::Record->current({ record_id => $previous });
         foreach my $column (@$all_columns)
         {
-            my $field = $column->{field};
-            $record->{$field} = {value => $previousr->$field->value} if $column->{remember};
+            if ($column->{remember})
+            {
+                my $v = item_value($column, $previousr);
+                my $field = $column->{field};
+                $record->{$field} = {value => $v} if $column->{remember};
+            }
         }
     }
 
