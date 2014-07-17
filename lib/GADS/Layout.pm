@@ -106,7 +106,7 @@ sub _delete_unused_nodes
     }
 }
 
-sub collate;
+sub _collate;
 
 sub tree
 {   my ($class, $layout_id, $args) = @_;
@@ -173,20 +173,15 @@ sub tree
         $selected = $value;
     }
 
-    sub collate
+    sub _collate
     {
-        my ($start, $selected) = @_;
+        my ($start, $selected, $all) = @_;
         # See if it has any children
-        my @children = rset('Enumval')->search({
-            parent  => $start->id,
-            deleted => 0
-        },{
-            order_by => 'value'
-        })->all;
+        my @children = grep { $_->parent && $_->parent->id == $start->id } @$all;
         my @cc;
         foreach my $child (@children)
         {
-            push @cc, collate($child, $selected);
+            push @cc, _collate($child, $selected, $all);
         }
         my $sbool = $selected && $selected == $start->id ? 1 : 0;
         my $item = {
@@ -198,18 +193,19 @@ sub tree
         return $item;
     };
 
-    my @top = rset('Enumval')->search({
+    my @all = rset('Enumval')->search({
         layout_id => $layout_id,
-        parent    => undef,
         deleted   => 0
     },{
         order_by  => 'value'
     })->all;
 
+    my @top = grep { not defined $_->parent } @all;
+
     my @tree;
     foreach (@top)
     {
-        push @tree, collate($_, $selected);
+        push @tree, _collate($_, $selected, \@all);
     }
     \@tree;
 }
