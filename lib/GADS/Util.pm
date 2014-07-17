@@ -60,6 +60,11 @@ sub item_value
     my $raw   = $options->{raw};
     my $blank = $raw ? undef : '';
 
+    # If prefilled from previous form submission (with errors), values
+    # will be in a hash
+    return $record->{$field}->{value}
+        if $raw && ref $record eq 'HASH';
+
     if ($column->{type} eq "rag")
     {
         return GADS::Record->rag($column->{rag}, $record);
