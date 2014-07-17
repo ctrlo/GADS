@@ -70,7 +70,7 @@ sub item_value
     {
         if ($raw)
         {
-            return $record->$field ? $record->$field->value : undef;
+            return $record->$field ? $record->$field->value->id : undef;
         }
         my $firstname = $record->$field ? $record->$field->value->firstname : '';
         my $surname   = $record->$field ? $record->$field->value->surname : '';
@@ -80,7 +80,7 @@ sub item_value
     {
         if ($raw)
         {
-            return $record->$field ? $record->$field->value : $blank;
+            return $record->$field ? $record->$field->value->id : $blank;
         }
         return $record->$field ? $record->$field->value->value : $blank;
     }
