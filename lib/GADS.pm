@@ -602,7 +602,7 @@ any '/edit/:id?' => sub {
         {
             if ($column->{remember})
             {
-                my $v = item_value($column, $previousr);
+                my $v = item_value($column, $previousr, {raw => 1});
                 my $field = $column->{field};
                 $record->{$field} = {value => $v} if $column->{remember};
             }

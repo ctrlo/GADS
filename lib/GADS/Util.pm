@@ -47,6 +47,17 @@ sub item_value
     my ($column, $record, $options) = @_;
 
     my $field = 'field'.$column->{id};
+
+    # By default, return the actual end value. If raw is specified,
+    # return the raw value, suitable for use in a HTML form:
+    # - the ID for an enum
+    # - the ymd for a date
+    # - the ID for a tree
+    # - standard value for other fields
+    # Returns undef for missing values
+    my $raw   = $options->{raw};
+    my $blank = $raw ? undef : '';
+
     if ($column->{type} eq "rag")
     {
         return GADS::Record->rag($column->{rag}, $record);
@@ -57,16 +68,28 @@ sub item_value
     }
     elsif ($column->{type} eq "person")
     {
+        if ($raw)
+        {
+            return $record->$field ? $record->$field->value : undef;
+        }
         my $firstname = $record->$field ? $record->$field->value->firstname : '';
         my $surname   = $record->$field ? $record->$field->value->surname : '';
         return "$surname, $firstname";
     }
     elsif ($column->{type} eq "enum" || $column->{type} eq 'tree')
     {
-        return $record->$field ? $record->$field->value->value : '';
+        if ($raw)
+        {
+            return $record->$field ? $record->$field->value : $blank;
+        }
+        return $record->$field ? $record->$field->value->value : $blank;
     }
     elsif ($column->{type} eq "date")
     {
+        if ($raw)
+        {
+            return $record->$field ? $record->$field->value->ymd : undef;
+        }
         my $date = $record->$field ? $record->$field->value : '';
         $date or return '';
 
@@ -94,7 +117,7 @@ sub item_value
     }
     else
     {
-        return $record->$field ? $record->$field->value : '';
+        return $record->$field ? $record->$field->value : $blank;
     }
 }
 
