@@ -28,8 +28,9 @@ use Ouch;
 sub send($)
 {   my ($class, $args) = @_;
 
-    my $emails  = $args->{emails} or ouch 'badparam', "Please specify some recipients to send an email to";
-    my $subject = $args->{subject} or ouch 'badparam', "Please enter some text for the email";
+    my $emails   = $args->{emails} or ouch 'badparam', "Please specify some recipients to send an email to";
+    my $subject  = $args->{subject} or ouch 'badparam', "Please enter some text for the email";
+    my $reply_to = $args->{reply_to};
     my $message = autoformat $args->{text}, {all => 1, break=>break_wrap};
 
     my %done;
@@ -38,11 +39,37 @@ sub send($)
         next if $done{$email}; # Stop duplicate emails
         $done{$email} = 1;
         email {
-            to      => $email,
-            subject => $subject,
-            message => $message,
+            to       => $email,
+            subject  => $subject,
+            message  => $message,
+            headers => {
+                "Reply-to" => $reply_to, # Reply_to in Emailesque is broken
+            },
         };
     }
+}
+
+sub message
+{
+    my ($self, $params, $records, $ids, $user) = @_;
+
+    my @emails;
+    my $field = $params->{peopcol}; # The people field to use
+    foreach my $record (@$records)
+    {
+        push @emails, $record->$field->value->email
+            if grep {$_ == $record->id} @$ids;
+    }
+
+    my $text = config->{gads}->{message_prefix} ."\n". $params->{text};
+
+    my $email = {
+        subject  => $params->{subject},
+        emails   => \@emails,
+        text     => $text,
+        reply_to => $user->{email},
+    };
+    $self->send($email);
 }
 
 1;

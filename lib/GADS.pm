@@ -157,19 +157,10 @@ any '/data' => sub {
         {
             push @ids, $o->[0];
         }
-        my @emails;
-        my $field = param('peopcol'); # The people field to use
-        foreach my $record (@records)
-        {
-            push @emails, $record->$field->value->email
-                if grep {$_ == $record->id} @ids;
-        }
-        my $email = {
-            subject => param('subject'),
-            emails  => \@emails,
-            text    => param('text'),
-        };
-        eval { GADS::Email->send($email) };
+
+        my $params = params;
+
+        eval { GADS::Email->message($params, \@records, \@ids, $user) };
         if (hug)
         {
             messageAdd({ danger => bleep });
