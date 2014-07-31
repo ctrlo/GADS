@@ -140,6 +140,21 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 calcvals
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Calcval>
+
+=cut
+
+__PACKAGE__->has_many(
+  "calcvals",
+  "GADS::Schema::Result::Calcval",
+  { "foreign.record_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 createdby
 
 Type: belongs_to
@@ -235,6 +250,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 ragvals
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Ragval>
+
+=cut
+
+__PACKAGE__->has_many(
+  "ragvals",
+  "GADS::Schema::Result::Ragval",
+  { "foreign.record_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 record
 
 Type: belongs_to
@@ -301,8 +331,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-09 09:23:19
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:l7LTJbgEgtlQDMCSIccLnA
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-31 12:47:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NVzBD2BpnsYKbe6j5zuG7w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

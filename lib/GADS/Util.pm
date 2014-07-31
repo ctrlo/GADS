@@ -67,11 +67,11 @@ sub item_value
 
     if ($column->{type} eq "rag")
     {
-        return GADS::Record->rag($column->{rag}, $record);
+        return GADS::Record->rag($column, $record);
     }
     elsif ($column->{type} eq "calc")
     {
-        return GADS::Record->calc($column->{calc}, $record);
+        return GADS::Record->calc($column, $record);
     }
     elsif ($column->{type} eq "person")
     {
@@ -79,6 +79,7 @@ sub item_value
         {
             return $record->$field ? $record->$field->value->id : undef;
         }
+        return GADS::Record->person($column, $record);
         my $firstname = $record->$field ? $record->$field->value->firstname : '';
         my $surname   = $record->$field ? $record->$field->value->surname : '';
         return "$surname, $firstname";

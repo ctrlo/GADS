@@ -106,6 +106,12 @@ __PACKAGE__->table("user");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 value
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 1024
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -141,6 +147,8 @@ __PACKAGE__->add_columns(
   },
   "lastrecord",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "value",
+  { data_type => "varchar", is_nullable => 1, size => 1024 },
 );
 
 =head1 PRIMARY KEY
@@ -253,8 +261,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-09 09:23:19
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/eme0XMLNeQ5Oy3atMWAUg
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-31 13:29:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NDEupt+OuiXSwMNz8VWCnA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

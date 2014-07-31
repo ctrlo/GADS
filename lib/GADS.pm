@@ -40,8 +40,14 @@ hook before => sub {
 
     foreach my $col (@cols)
     {
-        next if $col->type eq "rag"; # Not a real column
-        my $coltype = $col->type eq "tree" ? 'enum' : $col->type;
+        my $coltype = $col->type eq "tree"
+                    ? 'enum'
+                    : $col->type eq "calc"
+                    ? 'calcval'
+                    : $col->type eq "rag"
+                    ? 'ragval'
+                    : $col->type;
+
         my $colname = "field".$col->id;
 
         # Temporary hack

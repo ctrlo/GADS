@@ -111,6 +111,7 @@ sub current($$)
     else {
         @columns = @{GADS::View->columns};
     }
+    my %cache_cols; # Any column in the view that should be cached
     push @columns, @{$item->{additional}} if $item->{additional};
     foreach my $c (@columns)
     {
@@ -118,13 +119,43 @@ sub current($$)
         if ($c->{type} eq 'rag' || $c->{type} eq 'calc')
         {
             push @columns, @{$c->{$c->{type}}->{columns}};
-            next;
+            $cache_cols{$c->{field}} = $c;
+        } elsif ($c->{type} eq 'person')
+        {
+            # Still need to make sure we have cache of person's full name
+            $cache_cols{$c->{field}} = $c;
         }
 
         # Value of enums are always "value" (joined table)
         push @prefetch, $c->{join};          # Add to prefetch list
         $prefetch_used{$c->{sprefix}} = 1;   # Tag that we've prefetched this value
         $joincount{$c->{sprefix}}++;         # Increment join counter to track _2 suffixes
+    }
+
+    # First see if any calc or rag values are missing their cache values.
+    # If so, insert them
+    my %calcsearch      = %{$search};       # Only update rows from current result
+    my @cache_cols_join = map {$_->{join}} values %cache_cols; # The calc columns to join
+    foreach my $csearch (values %cache_cols)
+    {
+        # Create the search parameter, looking for undef fields of the column
+        my $sprefix = $csearch->{sprefix};
+        $calcsearch{"$sprefix.value"} = undef;
+    }
+    # Find them
+    my @tocache = rset('Record')->search(
+        \%calcsearch,
+        {
+            join => \@cache_cols_join,
+        }
+    )->all;
+    # For any that are found to be empty, update them with a value
+    foreach my $rec (@tocache)
+    {
+        foreach my $col (values %cache_cols)
+        {
+            item_value($col, $rec); # Force an creation of the cache value
+        }
     }
 
     # Now add all the filters as joins (we don't need to prefetch this data). However,
@@ -137,26 +168,19 @@ sub current($$)
             my $field = $filter->{column}->{field};
             my $fieldsearch;
 
-            if ($filter->{column}->{type} eq "rag" || $filter->{column}->{type} eq "calc" || $filter->{column}->{type} eq "person")
+            # As per the prefix, what we join depends on the type of field
+            my $sprefix = $filter->{column}->{sprefix};
+            my $joinv   = $filter->{column}->{join};
+            if ($prefetch_used{$sprefix})
             {
-                next;
+                push @prefetch, $joinv;
             }
-            else
-            {
-                # As per the prefix, what we join depends on the type of field
-                my $sprefix = $filter->{column}->{sprefix};
-                my $joinv   = $filter->{column}->{join};
-                if ($prefetch_used{$sprefix})
-                {
-                    push @prefetch, $joinv;
-                }
-                else {
-                    push @join, $joinv;
-                }
-                $joincount{$sprefix}++;
-                my $in = $joincount{$sprefix} == 1 ? '' : "_$joincount{$sprefix}"; # Join suffix
-                $fieldsearch = "$sprefix$in.value";
+            else {
+                push @join, $joinv;
             }
+            $joincount{$sprefix}++;
+            my $in = $joincount{$sprefix} == 1 ? '' : "_$joincount{$sprefix}"; # Join suffix
+            $fieldsearch = "$sprefix$in.value";
             
             my $svalue = _search_construct $filter->{operator}, $filter->{value}
                 or next;
@@ -244,14 +268,6 @@ sub data
     my ($class, $view_id, @records) = @_;
     my @output;
 
-    my $filters;
-    foreach my $filter (@{GADS::View->filters($view_id)})
-    {
-        next unless $filter->{column}->{type} eq "rag" || $filter->{column}->{type} eq "calc" || $filter->{column}->{type} eq "person";
-        my $field = $filter->{column}->{field};
-        $filters->{$field} = _search_construct $filter->{operator}, $filter->{value};
-    }
-
     my $columns = GADS::View->columns({ view_id => $view_id });
 
     RECORD:
@@ -266,21 +282,6 @@ sub data
             # Check for RAG/calc filters. These can't be done at record retrieval
             # time, as the other filters are
             my $value = item_value($column, $record);
-            if ($column->{type} eq "rag")
-            {
-                # my $rag = GADS::Record->rag($column->{rag}, $record);
-                next RECORD if $filters->{$field} && !_filter($filters->{$field}, $value); # $filters->{$field} && $filters->{$field} ne $rag;
-            }
-            elsif ($column->{type} eq "calc")
-            {
-                # my $calc = GADS::Record->calc($column->{calc}, $record);
-                next RECORD if $filters->{$field} && !_filter($filters->{$field}, $value); # if $filters->{$field} && $filters->{$field} ne $calc;
-            }
-            elsif ($column->{type} eq "person")
-            {
-                # my $calc = GADS::Record->calc($column->{calc}, $record);
-                next RECORD if $filters->{$field} && !_filter($filters->{$field}, $value); # if $filters->{$field} && $filters->{$field} ne $calc;
-            }
             push @rec, $value;
         }
         push @output, \@rec;
@@ -289,70 +290,133 @@ sub data
 }
 
 sub rag
-{   my ($class, $rag, $record) = @_;
+{   my ($class, $column, $record) = @_;
 
-    my $green = $rag->{green};
-    my $amber = $rag->{amber};
-    my $red   = $rag->{red};
-
-    foreach my $col (@{$rag->{columns}})
+    my $rag   = $column->{rag};
+    my $field = $column->{field};
+    my $item  = $record->$field;
+    if (defined $item)
     {
-        my $name = $col->{name};
-        my $value = item_value($col, $record, {epoch => 1});
-        $green =~ s/\[$name\]/$value/gi;
-        $amber =~ s/\[$name\]/$value/gi;
-        $red   =~ s/\[$name\]/$value/gi;
+        return $item->value;
     }
+    else {
+        my $green = $rag->{green};
+        my $amber = $rag->{amber};
+        my $red   = $rag->{red};
 
-    # Insert current date if required
-    my $now = time;
-    $green =~ s/CURDATE/$now/g;
-    $amber =~ s/CURDATE/$now/g;
-    $red   =~ s/CURDATE/$now/g;
+        foreach my $col (@{$rag->{columns}})
+        {
+            my $name = $col->{name};
+            my $value = item_value($col, $record, {epoch => 1});
+            $green =~ s/\[$name\]/$value/gi;
+            $amber =~ s/\[$name\]/$value/gi;
+            $red   =~ s/\[$name\]/$value/gi;
+        }
 
-    foreach my $code ($green, $amber, $red)
-    {
-        $_ = $code;
-        return 'grey' unless /^[ \S]+$/; # Only allow normal spaces
-        return 'grey' if /[\[\]]+/; # Do not allow any remaining brackets
-        return 'grey' if /\\/; # No escapes please
-        s/"[^"]+"//g;
-        m!^([-()*+/0-9<> ]|&&|eq|==)+$! or return 'grey';
+        # Insert current date if required
+        my $now = time;
+        $green =~ s/CURDATE/$now/g;
+        $amber =~ s/CURDATE/$now/g;
+        $red   =~ s/CURDATE/$now/g;
+
+        my $ragvalue; my $okaycount;
+        foreach my $code ($green, $amber, $red)
+        {
+            $_ = $code;
+            last unless /^[ \S]+$/; # Only allow normal spaces
+            last if /[\[\]]+/; # Do not allow any remaining brackets
+            last if /\\/; # No escapes please
+            s/"[^"]+"//g;
+            m!^([-()*+/0-9<> ]|&&|eq|==)+$! or last;
+            $okaycount++;
+        }
+
+        my $ragvalue;
+        if ($okaycount == 3)
+        {
+            if (_safe_eval "($red)")
+            {
+                $ragvalue = 'red';
+            }
+            elsif (_safe_eval "($amber)")
+            {
+                $ragvalue = 'amber';
+            }
+            elsif (_safe_eval "($green)")
+            {
+                $ragvalue = 'green';
+            }
+            else {
+                $ragvalue = 'grey';
+            }
+        }
+        else {
+            $ragvalue = 'grey';
+        }
+        rset('Ragval')->create({
+            record_id => $record->id,
+            layout_id => $column->{id},
+            value     => $ragvalue,
+        });
+        $ragvalue;
     }
-
-    return 'red' if _safe_eval "($red)";
-    return 'amber' if _safe_eval "($amber)";
-    return 'green' if _safe_eval "($green)";
-    'grey';
 }
 
 sub calc
-{   my ($class, $calc, $record) = @_;
+{   my ($class, $column, $record) = @_;
 
-    my $code = $calc->{calc};
-
-    foreach my $col (@{$calc->{columns}})
+    my $calc  = $column->{calc};
+    my $field = $column->{field};
+    my $item  = $record->$field;
+    if (defined $item)
     {
-        my $name = $col->{name};
-        next unless $code =~ /\[$name\]/i;
+        return $item->value;
+    }
+    else {
+        my $code = $calc->{calc};
+        foreach my $col (@{$calc->{columns}})
+        {
+            my $name = $col->{name};
+            next unless $code =~ /\[$name\]/i;
 
-        my $value = item_value($col, $record, {epoch => 1});
-        $value = "\"$value\"" unless $value =~ /^[0-9]+$/;
-        $code =~ s/\[$name\]/$value/gi;
-
+            my $value = item_value($col, $record, {epoch => 1});
+            $value = "\"$value\"" unless $value =~ /^[0-9]+$/;
+            $code =~ s/\[$name\]/$value/gi;
+        }
         # Insert current date if required
         my $now = time;
         $code =~ s/CURDATE/$now/g;
 
-        $_ = $code;
-        #return 'grey' unless /^[ \S]+$/; # Only allow normal spaces
-        #return 'grey' if /[\[\]]+/; # Do not allow any remaining brackets
-        #return 'grey' if /\\/; # No escapes please
-        #s/"[^"]+"//g;
-        # m!^([-()*+/0-9<> ]|&&|eq|==)+$! or return 'grey';
+        my $value = _safe_eval "$code";
+        rset('Calcval')->create({
+            record_id => $record->id,
+            layout_id => $column->{id},
+            value     => $value,
+        });
+        $value;
     }
+}
 
-    return _safe_eval "$code";
+sub person
+{   my ($class, $column, $record) = @_;
+
+    my $calc  = $column->{calc};
+    my $field = $column->{field};
+    my $item  = $record->$field;
+    if (defined $item->value->value)
+    {
+        return $item->value->value;
+    }
+    else {
+        my $firstname = $record->$field ? $record->$field->value->firstname : '';
+        my $surname   = $record->$field ? $record->$field->value->surname : '';
+        my $value     = "$surname, $firstname";
+
+        $item->value->update({
+            value     => $value,
+        });
+        $value;
+    }
 }
 
 sub approve

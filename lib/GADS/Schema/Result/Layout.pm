@@ -124,6 +124,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 calcvals
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Calcval>
+
+=cut
+
+__PACKAGE__->has_many(
+  "calcvals",
+  "GADS::Schema::Result::Calcval",
+  { "foreign.layout_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 dates
 
 Type: has_many
@@ -259,6 +274,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 ragvals
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Ragval>
+
+=cut
+
+__PACKAGE__->has_many(
+  "ragvals",
+  "GADS::Schema::Result::Ragval",
+  { "foreign.layout_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 strings
 
 Type: has_many
@@ -290,8 +320,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-15 17:37:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IlElJCp19Sy8DFkmcRrj8w
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-31 12:47:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uwJyVIbRNiFUE/IjqOT45w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
