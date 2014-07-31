@@ -16,6 +16,8 @@ charset: "UTF-8"
 
 template: "template_toolkit"
 
+serializer: "JSON"
+
 session: "YAML"
 
 engines:

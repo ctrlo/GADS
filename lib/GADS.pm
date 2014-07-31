@@ -24,9 +24,13 @@ hook before => sub {
     return if request->uri =~ m!^/(error|js|css|login|images|fonts|resetpw)!;
     return if param 'error';
 
+    # Redirect on no session
     redirect '/login' unless session('user_id');
 
-    var 'user' => GADS::User->user({ id => session('user_id') });
+    # Redirect if user no longer valid
+    my $user = GADS::User->user({ id => session('user_id') })
+        or redirect '/login';
+    var 'user' => $user;
 
     # Dynamically generate "virtual" columns for each row of data, based on the
     # configured layout

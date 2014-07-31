@@ -34,7 +34,9 @@ sub user($)
     my $user;
     if ($args->{id})
     {
-        $user = rset('User')->find($args->{id});
+        $user = rset('User')->find($args->{id})
+            or return;
+        return if $user->deleted;
     }
     elsif ($args->{username})
     {
