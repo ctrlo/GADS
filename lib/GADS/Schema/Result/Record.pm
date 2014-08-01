@@ -190,6 +190,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
+=head2 currents
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Current>
+
+=cut
+
+__PACKAGE__->has_many(
+  "currents",
+  "GADS::Schema::Result::Current",
+  { "foreign.record_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 dates
 
 Type: has_many
@@ -331,8 +346,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-31 12:47:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NVzBD2BpnsYKbe6j5zuG7w
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-01 18:29:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4f8M4q9GBz+AErcGKru5pA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

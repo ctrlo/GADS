@@ -37,58 +37,6 @@ sub _search_construct;
 
 sub current($$)
 {   my ($class, $item) = @_;
-    my $record_rs = rset('Record');
-    my @ids;
-
-    my $rows = $item->{rows};
-    my $page = $item->{page};
-
-    if($item->{record_id}) {
-        push @ids, $item->{record_id};
-    }
-    else
-    {
-        my $search = $item->{current_id} ? { 'current_id' => $item->{current_id} } : {};
-        $search->{approval} = 0;
-        $search->{"me.record_id"} = undef;
-
-        my $select =
-        {
-            'select' =>
-            [
-                { max => 'me.id',
-                  -as => 'id',
-                },
-            ],
-            'group_by' => 'current_id',
-        };
-
-        # Search for filtering results has to be done after initial selection,
-        # otherwise "max" selection to get latest record version causes wrong
-        # values to be selected
-        my $count = $record_rs->search(
-            $search, $select
-        )->count;
-
-        # Send page information back
-        $item->{pages} = $rows ? ceil($count / $rows) : 1;
-
-        $select->{rows} = $rows if $rows;
-        $select->{page} = $page if $page;
-
-        my $records = $record_rs->search(
-            $search, $select
-        );
-
-        foreach my $r ($records->all) {
-            push @ids, $r->id;
-        }
-    }
-
-    my $search = {
-        'me.id'  => \@ids,
-        approval => 0
-    };
 
     my @join;     # Used for conditionals, which may not be shown in the view of choice
     my @prefetch; # Used for any field that we display the value for
@@ -132,21 +80,41 @@ sub current($$)
         $joincount{$c->{sprefix}}++;         # Increment join counter to track _2 suffixes
     }
 
+    my $search;
+    if($item->{record_id}) {
+        $search->{"record.id"} = $item->{record_id};
+    }
+    elsif ($item->{current_id})
+    {
+        $search->{"me.id"} = $item->{current_id};
+        $search->{approval} = 0;
+    }
+    else {
+        $search->{"record.record_id"} = undef;
+        $search->{approval} = 0;
+    }
+
     # First see if any calc or rag values are missing their cache values.
     # If so, insert them
-    my %calcsearch      = %{$search};       # Only update rows from current result
-    my @cache_cols_join = map {$_->{join}} values %cache_cols; # The calc columns to join
+    my %calcsearch = %{$search}; # Only update rows from current result
+    my @cache_cols_join;         # The fields to join
+    my @cache_cols_search;       # The search for undefined values
+    my %cache_cols_done;         # Track whether we have already seen this field
     foreach my $csearch (values %cache_cols)
     {
         # Create the search parameter, looking for undef fields of the column
         my $sprefix = $csearch->{sprefix};
-        $calcsearch{"$sprefix.value"} = undef;
+        next if $cache_cols_done{$sprefix}; # No need if same cached column already joined
+        push @cache_cols_join, $csearch->{join};
+        push @cache_cols_search, {"$sprefix.value" => undef };
+        $cache_cols_done{$sprefix} = 1;
     }
+    $calcsearch{'-or'} = \@cache_cols_search if @cache_cols_search;
     # Find them
-    my @tocache = rset('Record')->search(
+    my @tocache = rset('Current')->search(
         \%calcsearch,
         {
-            join => \@cache_cols_join,
+            join => {record => \@cache_cols_join},
         }
     )->all;
     # For any that are found to be empty, update them with a value
@@ -154,7 +122,7 @@ sub current($$)
     {
         foreach my $col (values %cache_cols)
         {
-            item_value($col, $rec); # Force an creation of the cache value
+            item_value($col, $rec->record); # Force an creation of the cache value
         }
     }
 
@@ -191,16 +159,42 @@ sub current($$)
         }
     }
 
+    my $orderby = config->{gads}->{serial} eq "auto" ? 'me.id' : 'me.serial';
+
+    # XXX Okay, this is a bit weird - we join current to record to current.
+    # This is because we return records at the end, and it allows current
+    # to be used when the record is used. Is there a better way?
     unshift @prefetch, 'current';
-    my $orderby = config->{gads}->{serial} eq "auto" ? 'current.id' : 'current.serial';
-    my @all = rset('Record')->search(
-        $search,
-        {
-            prefetch => \@prefetch,
-            join     => \@join,
-            order_by => $orderby,
-        }
+
+    my $select = {
+        prefetch => {'record' => \@prefetch},
+        join     => {'record' => \@join},
+        order_by => $orderby,
+    };
+
+    # First count all values from result
+    my $count = rset('Current')->search(
+        $search, $select
+    )->count;
+
+    # Send page information back
+    my $rows = $item->{rows};
+    $item->{pages} = $rows ? ceil($count / $rows) : 1;
+
+    # Now redo query but with just one page of results
+    my $page = $item->{page}
+             ? $item->{page} > $item->{pages}
+             ? $item->{pages}
+             : $item->{page}
+             : undef;
+
+    $select->{rows} = $rows if $rows;
+    $select->{page} = $page if $page;
+    my $result = rset('Current')->search(
+        $search, $select
     );
+
+    my @all = map { $_->record } $result->all;
 
     wantarray ? @all : pop(@all);
 }
@@ -479,6 +473,8 @@ sub approve
     }
     $r->update({ approval => 0, record_id => undef, created => \"NOW()" })
         or ouch 'dbfail', "Database error when removing approval status from updated record";
+    rset('Current')->find($r->current_id)->update({ record_id => $r->id })
+        or ouch 'dbfail', "Database error when updating current record tracking";
 }
     
 sub versions($$)
@@ -683,6 +679,14 @@ sub update
             }) or ouch 'dbfail', "Failed to create approval database entry for field ".$field->name;
         }
 
+    }
+
+    # Finally update the current record tracking, if we've created a new
+    # permanent record
+    if ($need_rec)
+    {
+        rset('Current')->find($current_id)->update({ record_id => $record_rs->id })
+            or ouch 'dbfail', "Database error updating current record tracking";
     }
     1;
 }
