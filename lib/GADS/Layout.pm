@@ -386,6 +386,9 @@ sub item
             my ($ragr) = rset('Rag')->search({ layout_id => $item->id })->all;
             if ($ragr)
             {
+                # Clear out cached calues. Will be auto-inserted later
+                rset('Ragval')->search({ layout_id => $ragr->layout_id })->delete
+                    or ouch 'dbfail', "Database error deleting cached values for this RAG";
                 $ragr->update($rag)
                     or ouch 'dbfail', "Database error updating RAG values";
             }
@@ -403,6 +406,9 @@ sub item
             my ($calcr) = rset('Calc')->search({ layout_id => $item->id })->all;
             if ($calcr)
             {
+                # Clear out cached calues. Will be auto-inserted later
+                rset('Calcval')->search({ layout_id => $calcr->layout_id })->delete
+                    or ouch 'dbfail', "Database error deleting cached values for this calc";
                 $calcr->update($calc)
                     or ouch 'dbfail', "Database error updating calculated formula";
             }
