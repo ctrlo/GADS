@@ -313,7 +313,7 @@ sub rag
         $amber =~ s/CURDATE/$now/g;
         $red   =~ s/CURDATE/$now/g;
 
-        my $ragvalue; my $okaycount;
+        my $okaycount;
         foreach my $code ($green, $amber, $red)
         {
             $_ = $code;
