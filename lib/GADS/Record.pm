@@ -454,7 +454,7 @@ sub approve
         {
             # No field submitted - not part of approval. Use previous value if existing
             $v = $previous->$fn->value;
-        } elsif (!$col->{optional})
+        } elsif (!$col->{optional} && $previous->$fn)
         {
             ouch 'missing', "Field $col->{name} is not optional. Please enter a value.";
         }
