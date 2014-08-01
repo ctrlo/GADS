@@ -403,6 +403,9 @@ sub person
     my $calc  = $column->{calc};
     my $field = $column->{field};
     my $item  = $record->$field;
+
+    return undef unless $item; # Missing value
+
     if (defined $item->value->value)
     {
         return $item->value->value;
