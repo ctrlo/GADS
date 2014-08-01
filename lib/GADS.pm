@@ -559,6 +559,7 @@ any '/approval/?:id?' => sub {
     my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
     my $output = template $page => {
         form_value  => sub {item_value(@_, {raw => 1})},
+        item_value  => sub {item_value(@_)},
         approves    => $items,
         autoserial  => $autoserial,
         people      => GADS::User->all,

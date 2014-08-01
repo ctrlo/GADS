@@ -32,7 +32,7 @@
                 [% field = 'field' _ col.id %]
                 [% NEXT UNLESS record.$field.defined OR NOT approves %]
                 [% IF approves %]
-                    [% oldvalue = record.record.$field.value %]
+                    [% oldvalue = item_value(col, record.record) %]
                 [% END %]
                 [% value = form_value(col, record) %]
                 [% IF record.current AND col.readonly AND NOT user.permissions.update_noneed_approval AND NOT user.permissions.approver %]
