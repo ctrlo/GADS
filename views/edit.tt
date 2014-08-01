@@ -48,7 +48,7 @@
                         [% label %][% IF oldvalue %] (previously &quot;[% oldvalue.value %]&quot;)[% END %]
                     </label>
                     <select class="form-control" name="[% field %]" [% readonly %] >
-                        [% IF col.optional OR value.deleted %]
+                        [% IF col.optional OR value.deleted OR NOT value %]
                             <option></option>
                         [% END %]
                         [% FOREACH enumval IN col.enumvals %]
