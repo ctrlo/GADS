@@ -1,4 +1,7 @@
+[% PROCESS help.tt %]
+
 <h2>Edit layout</h2>
+
 [% IF edit.defined %]
 <form role="form" method="post">
     <div class="row">
@@ -25,7 +28,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="email">Permissions:</label>
+                <label for="email">Permissions: (<a href="" data-toggle="modal" data-target="#modalhelp">?</a>)</label>
                 <select class="form-control" name="permission">
                     <option value="0" [% IF edititem.permission == 0 %]selected[% END %]>Open access</option>
                     <option value="1" [% IF edititem.permission == 1 %]selected[% END %]>Edit with approval</option>
@@ -90,8 +93,7 @@
                     style="display:none"
                 [% END %]
                 >
-                <h4>RAG conditions</h4>
-                <p>Use <strong>[field]</strong> to insert the value of a field. Use <strong>CURDATE</strong> to insert the current date.</p>
+                <h4>RAG conditions: <small>(<a href="" data-toggle="modal" data-target="#helprag">?</a>)</small></h4>
                 <div class="form-group">
                     <label for="red">Red:</label>
                     <input type="text" class="form-control" name="red" id="red" value="[% edititem.rag.red | html_entity %]">
@@ -111,7 +113,7 @@
                 [% END %]
                 >
                 <div class="form-group">
-                    <label for="calc">Calculation:</label>
+                    <label for="calc">Calculation: (<a href="" data-toggle="modal" data-target="#helpcalc">?</a>)</label>
                     <textarea class="form-control monospace" id="calc" name="calc" rows="10">[% edititem.calc.calc | html_entity %]</textarea>
                 </div>
             </div>
@@ -122,6 +124,57 @@
         <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
     [% END %]
 </form>
+       <!-- Modal -->
+        <div class="modal fade" id="helprag" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">RAG values</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>[% global.helptext.layout_rag %]</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+       <!-- Modal -->
+        <div class="modal fade" id="helpcalc" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">Calculated values</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>[% global.helptext.layout_calc %]</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+       <!-- Modal -->
+        <div class="modal fade" id="modalhelp" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">Field permissions</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>[% global.helptext.layout_perms %]</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
        <!-- Modal -->
         <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog">

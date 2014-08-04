@@ -1,0 +1,68 @@
+[% global.helptext.layout_perms = BLOCK %]
+The permissions of the field affect the ability of users to specify
+the values in records, not change any aspect of the layout. Specifically:
+
+<h4>Open access</h4>
+<ul>
+    <li>Allows anyone who has "user can update records" permissions to change the
+    value of the field. Users without any permissions cannot change the value.
+    </li>
+</ul>
+<h4>Edit with approval</h4>
+<ul>
+    <li>Allows anyone who has "user can update records" permissions to
+        submit a new value, but any such change will be held for approval.</li>
+    <li>Allows anyone who has "user does not need approval when updating records"
+    to change the value immediately.</li>
+    <li>Users without any permissions cannot change the value.</li>
+</ul>
+<h4>Read only</h4>
+<ul>
+    <li>Allows anyone who has "user does not need approval when updating records"
+    to change the value immediately.</li>
+    <li>All other users cannot change the value.</li>
+</ul>
+[% END %]
+
+[% global.helptext.layout_calc = BLOCK %]
+Calculated fields can be used to automatically generate values based
+on other fields. Basic Perl programming style can be used, with the value that
+is returned being used for the value of the field. Values from other fields
+are used by inserting the field name between square brackets. For example:
+
+<tt><pre>
+[% FILTER html %]
+if ([Country] eq "Greece" && [Region] eq "A")
+{
+    return "Europe"
+}
+elsif ([Country] eq "Japan")
+{
+    return "Asia"
+}
+elsif ([Cost] < 10)
+{
+    return "Bargain"
+}
+[% END %]
+</pre></tt>
+
+[% END %]
+
+[% global.helptext.layout_rag = BLOCK %]
+RAG fields can be used to automatically generate colour-coded indicators based
+on other fields. Basic Perl programming style can be used to stipulate the conditions
+for the colour. If none match, the field will be indicated as grey. Values from other
+fields are used by inserting the field name between square brackets, whilst
+&quot;CURDATE&quot; can be used to insert the current date. For example:
+
+<tt><pre>[% FILTER html %]
+[Start Date] > CURDATE
+
+[Cost to date] > [Budget]
+
+[Budget] < 100000[% END %]
+</pre></tt>
+
+[% END %]
+
