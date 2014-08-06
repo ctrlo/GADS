@@ -88,9 +88,9 @@ sub item_value
     {
         if ($raw)
         {
-            return $record->$field ? $record->$field->value->id : $blank;
+            return $record->$field && $record->$field->value ? $record->$field->value->id : $blank;
         }
-        return $record->$field ? $record->$field->value->value : $blank;
+        return $record->$field && $record->$field->value ? $record->$field->value->value : $blank;
     }
     elsif ($column->{type} eq "date")
     {
