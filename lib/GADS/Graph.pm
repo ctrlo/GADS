@@ -229,6 +229,7 @@ sub data
         }
         if ($groupcoltype eq 'date')
         {
+            next unless $val;
             $datemin = $val if !defined $datemin || $datemin > $val;
             $datemax = $val if !defined $datemax || $datemax < $val;
         }
