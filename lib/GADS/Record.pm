@@ -96,7 +96,7 @@ sub current($$)
 
     my $search;
     if($item->{record_id}) {
-        $search->{"record.id"} = $item->{record_id};
+        $search->{"me.id"} = $item->{record_id};
     }
     elsif ($item->{current_id})
     {
@@ -125,18 +125,37 @@ sub current($$)
     }
     $calcsearch{'-or'} = \@cache_cols_search if @cache_cols_search;
     # Find them
-    my @tocache = rset('Current')->search(
-        \%calcsearch,
-        {
-            join => {record => \@cache_cols_join},
-        }
-    )->all;
+    my @tocache;
+    if ($item->{record_id})
+    {
+        @tocache = rset('Record')->search(
+            \%calcsearch,
+            {
+                join => \@cache_cols_join,
+            }
+        )->all;
+    }
+    else {
+        @tocache = rset('Current')->search(
+            \%calcsearch,
+            {
+                join => {record => \@cache_cols_join},
+            }
+        )->all;
+    }
     # For any that are found to be empty, update them with a value
     foreach my $rec (@tocache)
     {
         foreach my $col (values %cache_cols)
         {
-            item_value($col, $rec->record); # Force an creation of the cache value
+            # Force creation of the cache value
+            if ($item->{record_id})
+            {
+                item_value($col, $rec);
+            }
+            else {
+                item_value($col, $rec->record);
+            }
         }
     }
 
@@ -173,42 +192,58 @@ sub current($$)
         }
     }
 
-    my $orderby = config->{gads}->{serial} eq "auto" ? 'me.id' : 'me.serial';
+    my @all;
+    if ($item->{record_id})
+    {
+        unshift @prefetch, 'current'; # Add info about related current record
 
-    # XXX Okay, this is a bit weird - we join current to record to current.
-    # This is because we return records at the end, and it allows current
-    # to be used when the record is used. Is there a better way?
-    unshift @prefetch, 'current';
+        my $select = {
+            prefetch => \@prefetch,
+            join     => \@join,
+        };
 
-    my $select = {
-        prefetch => {'record' => \@prefetch},
-        join     => {'record' => \@join},
-        order_by => $orderby,
-    };
+        @all = rset('Record')->search(
+            $search, $select
+        )->all;
+    }
+    else {
+        my $orderby = config->{gads}->{serial} eq "auto" ? 'me.id' : 'me.serial';
 
-    # First count all values from result
-    my $count = rset('Current')->search(
-        $search, $select
-    )->count;
+        # XXX Okay, this is a bit weird - we join current to record to current.
+        # This is because we return records at the end, and it allows current
+        # to be used when the record is used. Is there a better way?
+        unshift @prefetch, 'current';
 
-    # Send page information back
-    my $rows = $item->{rows};
-    $item->{pages} = $rows ? ceil($count / $rows) : 1;
+        my $select = {
+            prefetch => {'record' => \@prefetch},
+            join     => {'record' => \@join},
+            order_by => $orderby,
+        };
 
-    # Now redo query but with just one page of results
-    my $page = $item->{page}
-             ? $item->{page} > $item->{pages}
-             ? $item->{pages}
-             : $item->{page}
-             : undef;
+        # First count all values from result
+        my $count = rset('Current')->search(
+            $search, $select
+        )->count;
 
-    $select->{rows} = $rows if $rows;
-    $select->{page} = $page if $page;
-    my $result = rset('Current')->search(
-        $search, $select
-    );
+        # Send page information back
+        my $rows = $item->{rows};
+        $item->{pages} = $rows ? ceil($count / $rows) : 1;
 
-    my @all = map { $_->record } $result->all;
+        # Now redo query but with just one page of results
+        my $page = $item->{page}
+                 ? $item->{page} > $item->{pages}
+                 ? $item->{pages}
+                 : $item->{page}
+                 : undef;
+
+        $select->{rows} = $rows if $rows;
+        $select->{page} = $page if $page;
+        my $result = rset('Current')->search(
+            $search, $select
+        );
+
+        @all = map { $_->record } $result->all;
+    }
 
     wantarray ? @all : pop(@all);
 }
