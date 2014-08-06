@@ -235,6 +235,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 files
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::File>
+
+=cut
+
+__PACKAGE__->has_many(
+  "files",
+  "GADS::Schema::Result::File",
+  { "foreign.record_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 intgrs
 
 Type: has_many
@@ -346,8 +361,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-01 18:29:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4f8M4q9GBz+AErcGKru5pA
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-05 10:26:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1DRRdm7Eu1hO1uVB8bIHmw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

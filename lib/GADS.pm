@@ -147,7 +147,8 @@ any '/data' => sub {
     my @records = GADS::Record->current($get);
     my $pages = $get->{pages};
     # @output contains just the data itself, which can be sent straight to a CSV
-    my @output = GADS::Record->data($view_id, @records);
+    my $options = defined param('download') ? { download => 1 } : {};
+    my @output = GADS::Record->data($view_id, \@records, $options);
 
     my @colnames = ('Serial');
     foreach my $column (@$columns)
@@ -533,8 +534,9 @@ any '/approval/?:id?' => sub {
     if (param 'submit')
     {
         # Do approval
-        my $values = params;
-        eval { GADS::Record->approve($id, $values) };
+        my $values  = params;
+        my $uploads = request->uploads;
+        eval { GADS::Record->approve($id, $values, $uploads) };
         if (hug)
         {
             messageAdd({ danger => bleep });
@@ -578,16 +580,29 @@ any '/edit/:id?' => sub {
     if (param 'submit')
     {
         my $params = params;
-        eval { GADS::Record->update($params, $user) };
+        my $uploads = request->uploads;
+        eval { GADS::Record->update($params, $user, $uploads) };
         if (hug)
         {
+
+            my $bleep = bleep; # Otherwise it's overwritten
+
             # Remember previous submitted values in event of error
             foreach my $fn (keys %$params)
             {
                 next unless $fn =~ /^field(\d+)$/;
                 $record->{$fn} = {value => $params->{$fn}};
             }
-            messageAdd( { danger => bleep } );
+
+            # For files, we have to retrieve the previous filenames,
+            # as we don't know what they were from the submit
+            my %files = GADS::Record->files($id);
+            foreach my $fn (keys %files)
+            {
+                $record->{$fn} = {value => $files{$fn}};
+            }
+
+            messageAdd( { danger => $bleep } );
         }
         else {
             return forwardHome(
@@ -624,12 +639,20 @@ any '/edit/:id?' => sub {
     $output;
 };
 
+any '/file/:id' => sub {
+    my $id = param 'id';
+    my $file = rset('Fileval')->find($id)
+        or return forwardHome( { error => 'File ID $id cannot be found' } );
+    send_file( \($file->content), content_type => $file->mimetype );
+};
+
 any '/record/:id' => sub {
     my $id = param 'id';
     my $record = $id ? GADS::Record->current({ record_id => $id }) : {};
     my $versions = $id ? GADS::Record->versions($record->current->id) : {};
     my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
     my $output = template 'record' => {
+        item_value  => sub {item_value(@_)},
         record      => $record,
         autoserial  => $autoserial,
         versions    => $versions,

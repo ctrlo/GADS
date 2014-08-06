@@ -27,17 +27,8 @@
         [% NEXT IF col.type == "rag" OR col.type == "calc" %]
         <tr>
             <th>[% col.name %]</th>
-            [% field = 'field' _ col.id %]
             <td>
-                [% IF col.type == "enum" OR col.type == "tree" %]
-                    [% record.$field.value.value %]
-                [% ELSIF col.type == "person" %]
-                    [% record.$field.value.surname %], [% record.$field.value.firstname %]
-                [% ELSIF col.type == "date" %]
-                    [% record.$field.value.ymd %]
-                [% ELSE %]
-                    [% record.$field.value %]
-                [% END %]
+                [% item_value(col, record) %]
             </td>
         </tr>
     [% END %]

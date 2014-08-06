@@ -35,6 +35,20 @@ use GADS::Schema;
 sub _safe_eval;
 sub _search_construct;
 
+sub files
+{
+    my ($class, $item) = @_;
+    my $record = $class->current({ current_id => $item });
+    my %files;
+    foreach my $col (@{GADS::View->columns({ files => 1 })})
+    {
+        my $f = $col->{field};
+        $files{$f} = $record->$f ? $record->$f->value->name : '';
+    }
+    %files;
+}
+
+
 sub current($$)
 {   my ($class, $item) = @_;
 
@@ -259,13 +273,13 @@ sub csv
 
 sub data
 {
-    my ($class, $view_id, @records) = @_;
+    my ($class, $view_id, $records, $options) = @_;
     my @output;
 
     my $columns = GADS::View->columns({ view_id => $view_id });
 
     RECORD:
-    foreach my $record (@records)
+    foreach my $record (@$records)
     {
         my $serial = config->{gads}->{serial} eq "auto" ? $record->current->id : $record->current->serial;
         my @rec = ($record->id, $serial);
@@ -275,7 +289,7 @@ sub data
             my $field = 'field'.$column->{id};
             # Check for RAG/calc filters. These can't be done at record retrieval
             # time, as the other filters are
-            my $value = item_value($column, $record);
+            my $value = item_value($column, $record, $options);
             push @rec, $value;
         }
         push @output, \@rec;
@@ -417,7 +431,7 @@ sub person
 }
 
 sub approve
-{   my ($class, $id, $values) = @_;
+{   my ($class, $id, $values, $uploads) = @_;
 
     # Search for records requiring approval
     my $search->{approval} = 1;
@@ -438,6 +452,22 @@ sub approve
         my $fn = "field".$col->{id};
 
         my $v;
+        if ($col->{type} eq 'file')
+        {
+            # If a new file has been uploaded, use that instead
+            if (my $upload = $uploads->{"file$col->{id}"})
+            {
+                my $upload = {
+                    name     => $upload->filename,
+                    mimetype => $upload->type,
+                    content  => $upload->content,
+                };
+                $values->{$fn} = $r->$fn->value->update($upload)->id;
+            }
+            else {
+                $values->{$fn} = $r->$fn->value->id; # Delete hidden value from submitted form
+            }
+        }
         if (defined $values->{$fn})
         {
             # Field was submitted in form
@@ -490,7 +520,7 @@ sub versions($$)
 }
 
 sub update
-{   my ($class, $params, $user) = @_;
+{   my ($class, $params, $user, $uploads) = @_;
 
     my $current_id = $params->{current_id} || 0;
 
@@ -546,6 +576,21 @@ sub update
             # Convert to DateTime object if required
             $newvalue->{$fieldid} = $format->parse_datetime($value);
             $newvalue->{$fieldid} or ouch 'invaliddate', "Invalid date \"$value\"";
+        }
+        elsif ($field->type eq 'file')
+        {
+            # Find the file upload and store for later
+            if (my $upload = $uploads->{"file$fieldid"})
+            {
+                $newvalue->{$fieldid} = {
+                    name     => $upload->filename,
+                    mimetype => $upload->type,
+                    content  => $upload->content,
+                };
+            }
+            else {
+                $newvalue->{$fieldid} = $oldvalue->{$fieldid}; # DB ID of existing filename
+            }
         }
         else
         {
@@ -643,6 +688,17 @@ sub update
         my $field = $layout_rs->find($fieldid);
         my $value = $newvalue->{$fieldid} or next;
 
+        # If new file, store it
+        if (!$old || ($field->type eq 'file' && $changed->{$fieldid}))
+        {
+            # Okay, this is probably bad programming practice, but it seems
+            # the tidyiest way to do it. $newvalue contains the file hash
+            # if it's a new file, but an integer of the existing filename ID
+            # if it's not been updated. Either way, on exit from here, it
+            # contains the ID of the file
+            my $file = rset('Fileval')->create($newvalue->{$fieldid});
+            $newvalue->{$fieldid} = $file->id;
+        }
         my $table = camelize $field->type eq 'tree' ? 'enum' : $field->type;
         if ($record_rs) # For new records, only set if user has create permissions without approval
         {
@@ -708,6 +764,10 @@ sub _changed
     elsif($field->type eq 'intgr')
     {
         return $old != $new;
+    }
+    elsif($field->type eq 'file')
+    {
+        return ref $new eq 'HASH' ? 1 : 0;
     }
     elsif($field->type eq 'enum' || $field->type eq 'tree' || $field->type eq 'person')
     {

@@ -22,6 +22,7 @@
                     <option value="date" [% IF edititem.type == "date" %]selected[% END %]>Date</option>
                     <option value="enum" [% IF edititem.type == "enum" %]selected[% END %]>Multiple select</option>
                     <option value="tree" [% IF edititem.type == "tree" %]selected[% END %]>Tree</option>
+                    <option value="file" [% IF edititem.type == "file" %]selected[% END %]>Document</option>
                     <option value="person" [% IF edititem.type == "person" %]selected[% END %]>Person</option>
                     <option value="rag" [% IF edititem.type == "rag" %]selected[% END %]>RedAmberGreen status (RAG)</option>
                     <option value="calc" [% IF edititem.type == "calc" %]selected[% END %]>Calculated value</option>
@@ -221,6 +222,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 [% IF item.type == "date" %]Date[% END %]
                 [% IF item.type == "enum" %]Select[% END %]
                 [% IF item.type == "tree" %]Tree[% END %]
+                [% IF item.type == "file" %]File[% END %]
                 [% IF item.type == "person" %]Person[% END %]
                 [% IF item.type == "rag" %]RedAmberGreen (RAG) status[% END %]
                 [% IF item.type == "calc" %]Calculated value[% END %]

@@ -123,6 +123,19 @@ sub item_value
             return $date->ymd;
         }
     }
+    elsif ($column->{type} eq "file")
+    {
+        if ($record->$field)
+        {
+            my $filename = $record->$field->value->name;
+            return $filename if $options->{download};
+            my $id = $record->$field->value->id;
+            return qq(<a href="/file/$id">$filename</a>);
+        }
+        else {
+            return '';
+        }
+    }
     else
     {
         return $record->$field ? $record->$field->value : $blank;

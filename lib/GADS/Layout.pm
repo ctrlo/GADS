@@ -277,7 +277,7 @@ sub item
         $newitem->{remember} = $args->{remember} ? 1 : 0;
         ($newitem->{name} = $args->{name}) =~ /^[ \S]+$/ # Only normal spaces please
             or ouch 'badvalue', "Please enter a name for item";
-        ($newitem->{type}       = $args->{type}) =~ /^(intgr|string|date|enum|tree|person|rag|calc)$/
+        ($newitem->{type}       = $args->{type}) =~ /^(intgr|string|date|enum|tree|person|rag|calc|file)$/
             or ouch 'badvalue', "Bad type $args->{type} for item";
         ($newitem->{permission} = $args->{permission}) =~ /^[012]$/
             or ouch 'badvalue', "Bad permission $args->{permission} for item";

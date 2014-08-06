@@ -10,7 +10,7 @@
     [% END %]
 </h2>
 <p></p>
-<form role="form" method="post">
+<form role="form" method="post" enctype="multipart/form-data">
     <div class="row">
         <div class="col-md-6">
             [% IF record.current %]
@@ -82,6 +82,22 @@
                             [% END %]
                         [% END %]
                     </select>
+                [% ELSIF col.type == "file" %]
+                    <label for="[% col.id %]">
+                        [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
+                    </label>
+                    [% IF readonly %]
+                        <p class="help-block">Current file name: [% value %] (read-only field, cannot be updated).</p>
+                    [% ELSE %]
+                        <input type="file" id="[% col.id %]" name="[% "file" _ col.id %]">
+                        [% IF value %]
+                            <p class="help-block">
+                            <input type="checkbox" name="[% field %]" value="1" checked>Include file.
+                            Current file name: [% value %]. Select a new file to replace.</p>
+                        [% ELSE %]
+                            <input type="hidden" name="[% field %]" value="1">
+                        [% END %]
+                    [% END %]
                 [% ELSE %]
                     <label for="[% col.id %]">
                         [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]

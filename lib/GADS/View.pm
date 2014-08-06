@@ -212,7 +212,10 @@ sub columns
         $view->update($vu);
     }
 
-    my @allcols = rset('Layout')->search({},{
+    # Whether we have only been asked for file columns
+    my $search = $ident->{files} ? { type => 'file' } : {};
+
+    my @allcols = rset('Layout')->search($search,{
         order_by => 'me.order',
         prefetch => ['enumvals', 'calcs', 'rags' ],
     })->all; # Used for calc values

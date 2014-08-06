@@ -184,6 +184,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 files
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::File>
+
+=cut
+
+__PACKAGE__->has_many(
+  "files",
+  "GADS::Schema::Result::File",
+  { "foreign.layout_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 filters
 
 Type: has_many
@@ -320,8 +335,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-31 12:47:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uwJyVIbRNiFUE/IjqOT45w
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-05 10:26:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lgWOprpgVEoC3cFYMazs5A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
