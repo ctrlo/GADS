@@ -127,6 +127,7 @@ sub item_value
     {
         if ($record->$field)
         {
+            return unless $record->$field->value;
             my $filename = $record->$field->value->name;
             return $filename if $options->{download};
             my $id = $record->$field->value->id;

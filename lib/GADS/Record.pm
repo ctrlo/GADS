@@ -483,8 +483,8 @@ sub approve
 
     foreach my $col (@$columns)
     {
-        next if $col->{type} eq "rag" || $col->{type} eq "calc";
-        my $fn = "field".$col->{id};
+        next unless $col->{userinput};
+        my $fn = $col->{field};
 
         my $v;
         if ($col->{type} eq 'file')
@@ -499,11 +499,25 @@ sub approve
                 };
                 $values->{$fn} = $r->$fn->value->update($upload)->id;
             }
-            else {
-                $values->{$fn} = $r->$fn->value->id; # Delete hidden value from submitted form
+            elsif($values->{$fn}) {
+                # Use the file that was submitted by the originator,
+                # only if not removed by approver
+                if ($r->$fn->value)
+                {
+                    # If the originator submitted a file
+                    $values->{$fn} = $r->$fn->value->id;
+                }
+                else {
+                    # Otherwise he removed it
+                    $values->{$fn} = undef;
+                }
             }
         }
-        if (defined $values->{$fn})
+
+        # See if approver has deleted any fields submitted by originator
+        $values->{$fn} = undef if $r->$fn && $r->$fn->value && !exists $values->{$fn};
+
+        if (exists $values->{$fn})
         {
             # Field was submitted in form
             $v = $values->{$fn};
@@ -518,17 +532,28 @@ sub approve
             ouch 'missing', "Field $col->{name} is not optional. Please enter a value.";
         }
 
-        next unless defined $v;
-
         # Does a value exist to update?
         if ($r->$fn)
         {
-            $r->$fn->update({ value => $v })
-                or ouch 'dbfail', "Database error updating new approved values";
+            if (exists $values->{$fn})
+            {
+                # The value that was originally submitted for approval
+                my $orig_submitted_file = $col->{type} eq 'file' ? $r->$fn->value->id : undef;
+
+                $r->$fn->update({ value => $v })
+                    or ouch 'dbfail', "Database error updating new approved values";
+
+                if (!defined($values->{$fn}) && $orig_submitted_file && !($previous->$fn && $previous->$fn->value))
+                {
+                    # If a value was not submitted in the approval, but there was
+                    # a value in the record submitted for approval, and there was
+                    # no previous value, then delete the associated file
+                    rset('Fileval')->find($orig_submitted_file)->delete; # Otherwise orphaned
+                }
+            }
         }
         else {
-            my $type = $col->{type} eq 'tree' ? 'enum' : $col->{type};
-            my $table = camelize $type;
+            my $table = $col->{table};
             rset($table)->create({
                 record_id => $r->id,
                 layout_id => $col->{id},
@@ -583,36 +608,36 @@ sub update
     my $noapproval = $user->{permissions}->{update_noneed_approval} || $user->{permissions}->{approver};
 
     # First loop round: sanitise and see which if any have changed
-    my $layout_rs = rset('Layout');
     my $newvalue; my $changed; my $oldvalue;
     my %appfields; # Any fields that need approval
     my ($need_app, $need_rec); # Whether a new approval_rs or record_rs needs to be created
-    foreach my $fn (keys %$params)
+    my $all_columns = GADS::View->columns;
+    foreach my $column (@$all_columns)
     {
-        # All data fields will be "field" with an integer key
-        next unless $fn =~ /^field(\d+)$/;
-        my $fieldid = $1;
+        next unless $column->{userinput};
+
+        my $fn      = $column->{field};
+        my $fieldid = $column->{id};
 
         # Keep a record of all the old values so that we can compare
         $oldvalue->{$fieldid} = ($old && $old->$fn) ? $old->$fn->value : undef;
 
-        my $field = $layout_rs->find($fieldid);
         my $value = $params->{$fn};
 
-        if (!$value && !$field->optional && (!$old || ($old && $oldvalue->{$fieldid})))
+        if (!$value && !$column->{optional} && (!$old || ($old && $oldvalue->{$fieldid})))
         {
             # Only if a value was set previously, otherwise a field that had no
             # value might be made mandatory, but if it's read-only then that will
             # stop users updating other fields of the record
-            ouch 'missing', '"'.$field->name.'" is not optional. Please enter a value.';
+            ouch 'missing', qq("$column->{name}" is not optional. Please enter a value.);
         }
-        elsif ($field->type eq 'date')
+        elsif ($column->{type} eq 'date')
         {
             # Convert to DateTime object if required
             $newvalue->{$fieldid} = $format->parse_datetime($value);
             $newvalue->{$fieldid} or ouch 'invaliddate', "Invalid date \"$value\"";
         }
-        elsif ($field->type eq 'file')
+        elsif ($column->{type} eq 'file')
         {
             # Find the file upload and store for later
             if (my $upload = $uploads->{"file$fieldid"})
@@ -624,7 +649,8 @@ sub update
                 };
             }
             else {
-                $newvalue->{$fieldid} = $oldvalue->{$fieldid}; # DB ID of existing filename
+                # Database ID of existing filename, but only if checkbox ticked to include
+                $newvalue->{$fieldid} = $oldvalue->{$fieldid} if $value;
             }
         }
         else
@@ -633,17 +659,17 @@ sub update
         }
 
         # Keep a track as to whether a value has changed. Keep it undef for new values
-        $changed->{$fieldid} = $old ? _changed($field, $oldvalue->{$fieldid}, $newvalue->{$fieldid}) : undef;
+        $changed->{$fieldid} = $old ? _changed($column, $oldvalue->{$fieldid}, $newvalue->{$fieldid}) : undef;
 
         ouch 'nopermission', "Field ID $fieldid is read only"
             if $changed->{$fieldid} &&
-            $field->permission == READONLY &&
+            $column->{permission} == READONLY &&
             !$noapproval;
 
         if ($old && $changed->{$fieldid})
         {
             # Update to record and the field has changed
-            if ($field->permission == APPROVE)
+            if ($column->{permission} == APPROVE)
             {
                 # Field needs approval
                 if ($noapproval)
@@ -668,7 +694,7 @@ sub update
             if ($noapproval)
             {
                 # User has permission to create new without approval
-                if (($field->permission == APPROVE || $field->permission == READONLY)
+                if (($column->{permission }== APPROVE || $column->{permission} == READONLY)
                     && !$noapproval)
                 {
                     # But field needs permission
@@ -718,13 +744,15 @@ sub update
     }
 
     # Write all the values
-    foreach my $fieldid (keys %$newvalue)
+    foreach my $column (@$all_columns)
     {
-        my $field = $layout_rs->find($fieldid);
-        my $value = $newvalue->{$fieldid} or next;
+        next unless $column->{userinput};
+
+        my $fieldid = $column->{id};
+        my $value = $newvalue->{$fieldid};
 
         # If new file, store it
-        if (!$old || ($field->type eq 'file' && $changed->{$fieldid}))
+        if ($column->{type} eq 'file' && $newvalue->{$fieldid} && ($changed->{$fieldid} || !$old))
         {
             # Okay, this is probably bad programming practice, but it seems
             # the tidyiest way to do it. $newvalue contains the file hash
@@ -734,12 +762,12 @@ sub update
             my $file = rset('Fileval')->create($newvalue->{$fieldid});
             $newvalue->{$fieldid} = $file->id;
         }
-        my $table = camelize $field->type eq 'tree' ? 'enum' : $field->type;
+        my $table = $column->{table};
         if ($record_rs) # For new records, only set if user has create permissions without approval
         {
             my $v;
             # Need to write all values regardless
-            if ($field->permission == OPEN || $noapproval)
+            if ($column->{permission} == OPEN || $noapproval)
             {
                 # Write new value
                 $v = $newvalue->{$fieldid};
@@ -754,9 +782,9 @@ sub update
                 # enums and other fields that reference others
                 rset($table)->create({
                     record_id => $record_rs->id,
-                    layout_id => $field->id,
+                    layout_id => $column->{id},
                     value     => $v,
-                }) or ouch 'dbfail', "Failed to create database entry for field ".$field->name;
+                }) or ouch 'dbfail', "Failed to create database entry for field ".$column->{name};
             }
         }
         if ($approval_rs)
@@ -765,9 +793,9 @@ sub update
             next unless $appfields{$fieldid};
             rset($table)->create({
                 record_id => $approval_rs->id,
-                layout_id => $field->id,
+                layout_id => $column->{id},
                 value     => $newvalue->{$fieldid},
-            }) or ouch 'dbfail', "Failed to create approval database entry for field ".$field->name;
+            }) or ouch 'dbfail', "Failed to create approval database entry for field ".$column->{name};
         }
 
     }
@@ -786,29 +814,32 @@ sub _changed
 {
     my ($field, $old, $new) = @_;
 
+    # Return true if no new value
+    return 1 if $old && !$new;
+
     # Return true if no old value
     return 1 if !$old && $new;
 
     # Return false if both undefined (prevent undefined warnings below)
     return 0 if !$old && !$new;
 
-    if ($field->type eq 'string')
+    if ($field->{type} eq 'string')
     {
         return $old ne $new;
     }
-    elsif($field->type eq 'intgr')
+    elsif($field->{type} eq 'intgr')
     {
         return $old != $new;
     }
-    elsif($field->type eq 'file')
+    elsif($field->{type} eq 'file')
     {
         return ref $new eq 'HASH' ? 1 : 0;
     }
-    elsif($field->type eq 'enum' || $field->type eq 'tree' || $field->type eq 'person')
+    elsif($field->{type} eq 'enum' || $field->{type} eq 'tree' || $field->{type} eq 'person')
     {
         return $old->id != $new;
     }
-    elsif($field->type eq 'date')
+    elsif($field->{type} eq 'date')
     {
         return DateTime->compare($old, $new);
     }

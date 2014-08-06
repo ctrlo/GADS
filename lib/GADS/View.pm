@@ -21,6 +21,7 @@ package GADS::View;
 use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
 use Ouch;
+use String::CamelCase qw(camelize);
 use GADS::Util         qw(:all);
 schema->storage->debug(1);
 
@@ -103,6 +104,8 @@ sub _column
         $c->{join}    = $field;
     }
 
+    $c->{table} = $c->{type} eq 'tree' ? 'Enum' : camelize $c->{type};
+
     if ($col->type eq 'calc')
     {
         my ($calc) = $col->calcs;
@@ -122,9 +125,10 @@ sub _column
             calc    => $calc->calc,
             columns => \@calccols,
         };
-    }
 
-    if ($col->type eq 'rag')
+        $c->{userinput} = 0;
+    }
+    elsif ($col->type eq 'rag')
     {
         my ($rag) = $col->rags;
         my $allcols = shift;
@@ -145,6 +149,11 @@ sub _column
             red     => $rag->red,
             columns => \@ragcols,
         };
+
+        $c->{userinput} = 0;
+    }
+    else {
+        $c->{userinput} = 1;
     }
 
     $c->{id}         = $col->id,
