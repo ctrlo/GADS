@@ -65,6 +65,18 @@ __PACKAGE__->table("user");
   is_nullable: 1
   size: 45
 
+=head2 title
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 organisation
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =head2 permission
 
   data_type: 'smallint'
@@ -125,6 +137,10 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "username",
   { data_type => "varchar", is_nullable => 1, size => 45 },
+  "title",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "organisation",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "permission",
   { data_type => "smallint", is_nullable => 1 },
   "password",
@@ -185,6 +201,26 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 organisation
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Organisation>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "organisation",
+  "GADS::Schema::Result::Organisation",
+  { id => "organisation" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
 =head2 people
 
 Type: has_many
@@ -230,6 +266,26 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 title
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Title>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "title",
+  "GADS::Schema::Result::Title",
+  { id => "title" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
 =head2 user_graphs
 
 Type: has_many
@@ -261,8 +317,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-31 13:29:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NDEupt+OuiXSwMNz8VWCnA
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-07 09:45:29
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yIgm8c4JyeaZC9ESZx2i/g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

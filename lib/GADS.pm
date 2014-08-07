@@ -517,9 +517,11 @@ any '/user/?:id?' => sub {
     }
 
     my $output = template 'user' => {
-        edit        => $id,
-        users       => $users,
-        page        => 'user'
+        edit          => $id,
+        users         => $users,
+        titles        => GADS::User->titles,
+        organisations => GADS::User->organisations,
+        page          => 'user'
     };
     $output;
 };

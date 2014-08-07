@@ -19,6 +19,24 @@
                 <label for="email">Email:</label>
                 <input type="text" class="form-control" id="email" name="email" value="[% edituser.email %]">
             </div>
+            <div class="form-group">
+                <label for="title">Title:</label>
+                <select class="form-control" id="title" name="title">
+                    [% FOREACH title IN titles %]
+                        <option value="[% title.id %]" [% IF edituser.title.id == title.id %]selected[% END %]>[% title.name %]</option>
+                    [% END %]
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="organisation">Organisation:</label>
+                <select class="form-control" id="organisation" name="organisation">
+                    [% FOREACH organisation IN organisations %]
+                        <option value="[% organisation.id %]"
+                            [% IF edituser.organisation.id == organisation.id %]selected[% END %]>[% organisation.name %]
+                        </option>
+                    [% END %]
+                </select>
+            </div>
             <div class="checkbox">
                 <label>
                     <input type="checkbox" name="update" [% IF edituser.permissions.update %]checked[% END %]>User can update records
@@ -106,16 +124,20 @@
 <table class="table table-striped">
     <tr>
         <th>ID</th>
+        <th>Title</th>
         <th>Surname</th>
         <th>Firstname</th>
         <th>Email</th>
+        <th>Organisation</th>
     </tr>
     [% FOREACH edituser IN users %]
         <tr>
             <td><a href="/user/[% edituser.id %]">[% edituser.id %]</a></td>
-            <td>[% edituser.surname %]</a></td>
-            <td>[% edituser.firstname %]</a></td>
-            <td>[% edituser.email %]</a></td>
+            <td>[% edituser.title.name %]</td>
+            <td>[% edituser.surname %]</td>
+            <td>[% edituser.firstname %]</td>
+            <td>[% edituser.email %]</td>
+            <td>[% edituser.organisation.name %]</td>
         </tr>
     [% END %]
 </table>

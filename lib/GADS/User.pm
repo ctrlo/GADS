@@ -34,8 +34,11 @@ sub user($)
     my $user;
     if ($args->{id})
     {
-        $user = rset('User')->find($args->{id})
-            or return;
+        ($user) = rset('User')->search({
+            'me.id'  => $args->{id},
+        },{
+            prefetch => ['title', 'organisation'],
+        }) or return;
         return if $user->deleted;
     }
     elsif ($args->{username})
@@ -55,15 +58,17 @@ sub user($)
         return;
     }
     my $retuser;
-    $retuser->{id}          = $user->id;
-    $retuser->{firstname}   = $user->firstname;
-    $retuser->{surname}     = $user->surname;
-    $retuser->{email}       = $user->email;
-    $retuser->{username}    = $user->username;
-    $retuser->{views}       = GADS::View->all($user->id);
-    $retuser->{lastrecord}  = $user->lastrecord ? $user->lastrecord->id : undef;
-    $retuser->{permission}  = $user->permission;
-    $retuser->{permissions} = {
+    $retuser->{id}           = $user->id;
+    $retuser->{firstname}    = $user->firstname;
+    $retuser->{surname}      = $user->surname;
+    $retuser->{email}        = $user->email;
+    $retuser->{title}        = $user->title;
+    $retuser->{organisation} = $user->organisation;
+    $retuser->{username}     = $user->username;
+    $retuser->{views}        = GADS::View->all($user->id);
+    $retuser->{lastrecord}   = $user->lastrecord ? $user->lastrecord->id : undef;
+    $retuser->{permission}   = $user->permission;
+    $retuser->{permissions}  = {
         update                 => $user->permission & UPDATE,
         update_noneed_approval => $user->permission & UPDATE_NONEED_APPROVAL,
         create                 => $user->permission & CREATE,
@@ -78,9 +83,11 @@ sub update
 {
     my ($class, $u, $args) = @_;
     my $user;
-    $user->{firstname}  = $u->{firstname} or ouch 'badname', "Please enter a firstname";
-    $user->{surname}    = $u->{surname}   or ouch 'badname', "Please enter a surname";
-    $user->{email}      = Email::Valid->address($u->{email}) or ouch 'bademail', "Please enter a valid email address";
+    $user->{firstname}    = $u->{firstname} or ouch 'badname', "Please enter a firstname";
+    $user->{surname}      = $u->{surname}   or ouch 'badname', "Please enter a surname";
+    $user->{organisation} = $u->{organisation};
+    $user->{title}        = $u->{title};
+    $user->{email}        = Email::Valid->address($u->{email}) or ouch 'bademail', "Please enter a valid email address";
     # Check if email already exists
     !$u->{id} && rset('User')->search({ email => $user->{email}, deleted => 0 })->count
         and ouch 'bademail', "Email address $user->{email} already exists";
@@ -124,6 +131,18 @@ sub update
         };
         GADS::Email->send($email);
     }
+}
+
+sub titles
+{
+    my @titles = rset('Title')->all;
+    \@titles;
+}
+
+sub organisations
+{
+    my @organisations = rset('Organisation')->all;
+    \@organisations;
 }
 
 sub graphs
