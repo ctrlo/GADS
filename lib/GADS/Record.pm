@@ -443,7 +443,6 @@ sub calc
 sub person
 {   my ($class, $column, $record) = @_;
 
-    my $calc  = $column->{calc};
     my $field = $column->{field};
     my $item  = $record->$field;
 

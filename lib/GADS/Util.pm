@@ -80,9 +80,6 @@ sub item_value
             return $record->$field ? $record->$field->value->id : undef;
         }
         return GADS::Record->person($column, $record);
-        my $firstname = $record->$field ? $record->$field->value->firstname : '';
-        my $surname   = $record->$field ? $record->$field->value->surname : '';
-        return "$surname, $firstname";
     }
     elsif ($column->{type} eq "enum" || $column->{type} eq 'tree')
     {
