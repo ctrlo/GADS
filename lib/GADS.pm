@@ -699,8 +699,8 @@ any '/login' => sub {
 
 get '/resetpw/:code' => sub {
 
-    my $pw;
-    eval { $pw = GADS::User->resetpwdo(param 'code') };
+    my $password;
+    eval { $password = GADS::User->resetpwdo(param 'code') };
     if (hug)
     {
         return forwardHome(
@@ -709,9 +709,11 @@ get '/resetpw/:code' => sub {
     }
     else {
         context->destroy_session;
-        return forwardHome(
-            { success => "Your password has been reset to '$pw'"}, 'login'
-        );
+        my $output  = template 'login' => {
+            password => $password,
+            page     => 'login',
+        };
+        $output;
     }
 };
 
