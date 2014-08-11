@@ -181,7 +181,7 @@ sub graphs
 sub delete
 {
     my ($self, $user_id) = @_;
-    my $user = rset('User')->find($user_id)
+    my $user = _user({ id => $user_id})
         or ouch 'notfound', "User $user_id not found";
     rset('UserGraph')->search({ user_id => $user->id })->delete
         or ouch 'dbfail', "There was a database error when removing old user graphs";
@@ -246,7 +246,7 @@ sub resetpw
     $crypt->add($pw);
     my $coded = $crypt->generate;
 
-    my $user = rset('User')->find($user_id)
+    my $user = _user({ id => $user_id })
         or ouch 'notfound', "User ID $user_id not found in database when generating password reset";
 
     $user->update({
@@ -264,18 +264,26 @@ sub resetpwreq
     my $gen = String::Random->new;
     $gen->{'A'} = [ 'A'..'Z', 'a'..'z' ];
     my $reset = scalar $gen->randregex('\w{32}');
-    my $user = rset('User')->find($user_id)
+    my $user = _user({ id => $user_id })
         or ouch 'notfound', "User ID $user_id not found in database when generating password reset request";
     $user->update({ resetpw => $reset })
         or ouch 'dbfail', "Database error when updating user with password reset code";
     $reset;
 }
 
+sub _user
+{
+    my $search = shift;
+    $search->{deleted} = 0;
+    my ($user) = rset('User')->search($search);
+    $user;
+}
+
 sub resetpwreq_email
 {
     my ($class, $email, $url) = @_;
 
-    my ($user) = rset('User')->search({ email => $email })->all;
+    my $user = _user({ email => $email });
     $user or return 1; # We return success so that people cannot test for valid logins
     my $reset    = $class->resetpwreq($user->id);
     my $gadsname = config->{gads}->{name};
