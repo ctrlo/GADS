@@ -53,6 +53,12 @@ __PACKAGE__->table("current");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 instance_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -61,6 +67,8 @@ __PACKAGE__->add_columns(
   "serial",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "record_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "instance_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
@@ -77,6 +85,26 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
+
+=head2 instance
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Instance>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "instance",
+  "GADS::Schema::Result::Instance",
+  { id => "instance_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
 
 =head2 record
 
@@ -114,8 +142,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-01 18:29:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:E4JcnUYIkEbPBvSXdbnS/A
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-11 22:28:12
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eI1do2RtbqO+ZjX539UwIA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

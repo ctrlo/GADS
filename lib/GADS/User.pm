@@ -117,13 +117,12 @@ sub update
             rset('UserGraph')->create({ user_id => $user->id, graph_id => $graph->id })
                 or ouch 'dbfail', "Database error when creating new user";
         }
-        my $reset    = $class->resetpwreq($user->id);
-        my $gadsname = config->{gads}->{name};
-        my $msg      = "A new account for $gadsname has been created for you. ";
-        $msg .= "Please use the following link to set your password:\n\n";
-        $msg .= $url."resetpw/$reset\n\n";
-        $msg .= "To access $gadsname in the future you will need to use the following link: $url - ";
-        $msg .= "please save it for future reference.\n";
+        my $reset      = $class->resetpwreq($user->id);
+        my $gadsname   = config->{gads}->{name};
+        my ($instance) = rset('Instance')->all;
+        my $msg        = $instance->email_welcome;
+        my $pwdurl     = $url."resetpw/$reset";
+        $msg =~ s/\$PWDURL/$pwdurl/g;
         my $email = {
             subject => "New account details",
             emails  => [$user->email],
