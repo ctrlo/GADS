@@ -124,6 +124,17 @@ __PACKAGE__->table("user");
   is_nullable: 1
   size: 1024
 
+=head2 account_request
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 1
+
+=head2 account_request_notes
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -165,6 +176,10 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "value",
   { data_type => "varchar", is_nullable => 1, size => 1024 },
+  "account_request",
+  { data_type => "smallint", default_value => 0, is_nullable => 1 },
+  "account_request_notes",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -317,8 +332,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-07 09:45:29
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yIgm8c4JyeaZC9ESZx2i/g
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-12 16:50:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FTUh4rK20gm667fM7GVaHg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

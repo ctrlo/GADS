@@ -527,7 +527,11 @@ any '/user/?:id?' => sub {
             }
         }
         else {
-            my $action = param('id') ? 'updated' : 'created';
+            # Delete account request user if this is a new account request
+            GADS::User->delete(param 'account_request')
+                if param 'account_request';
+
+            my $action = $id ? 'updated' : 'created';
             my $page   = param('page');
             return forwardHome(
                 { success => "User has been $action successfully" }, $page );
@@ -557,21 +561,23 @@ any '/user/?:id?' => sub {
     }
 
 
-    my $users;
+    my $users; my $register_requests;
     if ($id)
     {
         $users = GADS::User->user({ id => $id });
     }
     else {
-        $users = GADS::User->all;
+        $users             = GADS::User->all;
+        $register_requests = GADS::User->register_requests;
     }
 
     my $output = template 'user' => {
-        edit          => $id,
-        users         => $users,
-        titles        => GADS::User->titles,
-        organisations => GADS::User->organisations,
-        page          => 'user'
+        edit              => $id,
+        users             => $users,
+        register_requests => $register_requests,
+        titles            => GADS::User->titles,
+        organisations     => GADS::User->organisations,
+        page              => 'user'
     };
     $output;
 };
@@ -728,6 +734,21 @@ any '/login' => sub {
         : messageAdd( { danger => 'Failed to send a password reset link. Did you enter a valid email address?' } );
     }
 
+    my $error;
+
+    if (param 'register')
+    {
+        my $params = params;
+        eval { GADS::User->register($params) };
+        if (hug)
+        {
+            $error = bleep;
+        }
+        else {
+            return forwardHome({ success => "Your account request has been received successfully" });
+        }
+    }
+
     if (param('email'))
     {
         my $user = GADS::User->user({
@@ -742,7 +763,9 @@ any '/login' => sub {
     }
 
     my $output  = template 'login' => {
-        page     => 'login',
+        error         => $error,
+        register_text => GADS::User->register_text,
+        page          => 'login',
     };
     $output;
 };

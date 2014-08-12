@@ -45,8 +45,9 @@ sub user($)
     {
         ($user) = rset('User')->search(
             {
-                username => $args->{username},
-                deleted  => 0,
+                username        => $args->{username},
+                deleted         => 0,
+                account_request => 0,
             }
         );
         return unless $user;
@@ -58,18 +59,19 @@ sub user($)
         return;
     }
     my $retuser;
-    $retuser->{id}           = $user->id;
-    $retuser->{firstname}    = $user->firstname;
-    $retuser->{surname}      = $user->surname;
-    $retuser->{email}        = $user->email;
-    $retuser->{title}        = $user->title;
-    $retuser->{value}        = GADS::Record->person_update_value($user);
-    $retuser->{organisation} = $user->organisation;
-    $retuser->{username}     = $user->username;
-    $retuser->{views}        = GADS::View->all($user->id);
-    $retuser->{lastrecord}   = $user->lastrecord ? $user->lastrecord->id : undef;
-    $retuser->{permission}   = $user->permission;
-    $retuser->{permissions}  = {
+    $retuser->{id}              = $user->id;
+    $retuser->{firstname}       = $user->firstname;
+    $retuser->{surname}         = $user->surname;
+    $retuser->{email}           = $user->email;
+    $retuser->{title}           = $user->title;
+    $retuser->{account_request} = $user->account_request;
+    $retuser->{value}           = GADS::Record->person_update_value($user);
+    $retuser->{organisation}    = $user->organisation;
+    $retuser->{username}        = $user->username;
+    $retuser->{views}           = GADS::View->all($user->id);
+    $retuser->{lastrecord}      = $user->lastrecord ? $user->lastrecord->id : undef;
+    $retuser->{permission}      = $user->permission;
+    $retuser->{permissions}     = {
         update                 => $user->permission & UPDATE,
         update_noneed_approval => $user->permission & UPDATE_NONEED_APPROVAL,
         create                 => $user->permission & CREATE,
@@ -86,20 +88,27 @@ sub update
     my $user;
     $user->{firstname}    = $u->{firstname} or ouch 'badname', "Please enter a firstname";
     $user->{surname}      = $u->{surname}   or ouch 'badname', "Please enter a surname";
-    $user->{organisation} = $u->{organisation};
-    $user->{title}        = $u->{title};
     $user->{email}        = Email::Valid->address($u->{email}) or ouch 'bademail', "Please enter a valid email address";
-    # Check if email already exists
-    !$u->{id} && rset('User')->search({ email => $user->{email}, deleted => 0 })->count
-        and ouch 'bademail', "Email address $user->{email} already exists";
-    $user->{username}   = $user->{email};
-    $user->{permission} = 0;
-    $user->{permission} = $user->{permission} | UPDATE                 if $u->{update};
-    $user->{permission} = $user->{permission} | UPDATE_NONEED_APPROVAL if $u->{update_noneed_approval};
-    $user->{permission} = $user->{permission} | CREATE                 if $u->{create};
-    $user->{permission} = $user->{permission} | CREATE_NONEED_APPROVAL if $u->{create_noneed_approval};
-    $user->{permission} = $user->{permission} | APPROVER               if $u->{approver};
-    $user->{permission} = $user->{permission} | ADMIN                  if $u->{admin};
+    # Check if email already exists, but not if account registration for security reasons
+    if ($args->{register})
+    {
+        $user->{account_request}       = 1;
+        $user->{account_request_notes} = $u->{account_request_notes};
+    }
+    else {
+        !$u->{id} && rset('User')->search({ email => $user->{email}, deleted => 0, account_request => 0 })->count
+            and ouch 'bademail', "Email address $user->{email} already exists";
+        $user->{username}   = $user->{email};
+        $user->{organisation} = $u->{organisation};
+        $user->{title}        = $u->{title};
+        $user->{permission} = 0;
+        $user->{permission} = $user->{permission} | UPDATE                 if $u->{update};
+        $user->{permission} = $user->{permission} | UPDATE_NONEED_APPROVAL if $u->{update_noneed_approval};
+        $user->{permission} = $user->{permission} | CREATE                 if $u->{create};
+        $user->{permission} = $user->{permission} | CREATE_NONEED_APPROVAL if $u->{create_noneed_approval};
+        $user->{permission} = $user->{permission} | APPROVER               if $u->{approver};
+        $user->{permission} = $user->{permission} | ADMIN                  if $u->{admin};
+    }
     if ($u->{id})
     {
         my $old = rset('User')->find($u->{id})
@@ -107,29 +116,32 @@ sub update
         $old->update($user);
     }
     else {
-        my $url = $args->{url}
-            or ouch 'nourl', "Please provide a URL when creating a user";
         my $user     = rset('User')->create($user)
             or ouch 'dbfail', "Database error when creating new user";
-        # By default, add all graphs to the user
-        my $graphs = GADS::Graph->all;
-        foreach my $graph (@$graphs)
+        unless ($args->{register})
         {
-            rset('UserGraph')->create({ user_id => $user->id, graph_id => $graph->id })
-                or ouch 'dbfail', "Database error when creating new user";
+            my $url = $args->{url}
+                or ouch 'nourl', "Please provide a URL when creating a user";
+            # By default, add all graphs to the user
+            my $graphs = GADS::Graph->all;
+            foreach my $graph (@$graphs)
+            {
+                rset('UserGraph')->create({ user_id => $user->id, graph_id => $graph->id })
+                    or ouch 'dbfail', "Database error when creating new user";
+            }
+            my $reset      = $class->resetpwreq($user->id);
+            my $gadsname   = config->{gads}->{name};
+            my ($instance) = rset('Instance')->all;
+            my $msg        = $instance->email_welcome_text;
+            my $pwdurl     = $url."resetpw/$reset";
+            $msg =~ s/\$PWDURL/$pwdurl/g;
+            my $email = {
+                subject => $instance->email_welcome_subject,
+                emails  => [$user->email],
+                text    => $msg,
+            };
+            GADS::Email->send($email);
         }
-        my $reset      = $class->resetpwreq($user->id);
-        my $gadsname   = config->{gads}->{name};
-        my ($instance) = rset('Instance')->all;
-        my $msg        = $instance->email_welcome_text;
-        my $pwdurl     = $url."resetpw/$reset";
-        $msg =~ s/\$PWDURL/$pwdurl/g;
-        my $email = {
-            subject => $instance->email_welcome_subject,
-            emails  => [$user->email],
-            text    => $msg,
-        };
-        GADS::Email->send($email);
     }
 }
 
@@ -182,8 +194,15 @@ sub graphs
 sub delete
 {
     my ($self, $user_id) = @_;
-    my $user = _user({ id => $user_id})
+    my $user = rset('User')->find($user_id)
         or ouch 'notfound', "User $user_id not found";
+
+    if ($user->account_request)
+    {
+        $user->delete or ouch 'dbfail', "There was a database error deleting the request";
+        return;
+    }
+
     rset('UserGraph')->search({ user_id => $user->id })->delete
         or ouch 'dbfail', "There was a database error when removing old user graphs";
 
@@ -225,7 +244,13 @@ sub delete
 
 sub all
 {
-    my @users = rset('User')->search({ deleted => 0 })->all;
+    my @users = rset('User')->search({ deleted => 0, account_request => 0 })->all;
+    \@users;
+}
+
+sub register_requests
+{
+    my @users = rset('User')->search({ account_request => 1 })->all;
     \@users;
 }
 
@@ -284,7 +309,8 @@ sub resetpwreq
 sub _user
 {
     my $search = shift;
-    $search->{deleted} = 0;
+    $search->{deleted}         = 0;
+    $search->{account_request} = 0;
     my ($user) = rset('User')->search($search);
     $user;
 }
@@ -319,6 +345,18 @@ sub resetpwdo
     $user->update({ resetpw => undef })
         or ouch 'resetfail', "Failed to remove old password reset code";
     $reset;
+}
+
+sub register
+{
+    my ($class, $params) = @_;
+    $class->update($params, {register => 1});
+}
+
+sub register_text
+{
+    my ($instance) = rset('Instance')->all;
+    $instance->register_text;
 }
 
 1;

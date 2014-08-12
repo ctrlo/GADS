@@ -136,11 +136,11 @@
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasTextRenderer.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasAxisTickRenderer.js"></script>
         [% END %]
-        [% IF page == "layout" OR page == "edit" OR page == "view" OR page == "approval" OR page == "index" %]
-            <script type="text/javascript">
+        <script type="text/javascript">
+            if (typeof jscode != 'undefined') {
                 eval(jscode);
-            </script>
-        [% END %]
+            }
+        </script>
         [% IF page == "layout" OR page == "edit" OR page == "approval" %]
             <script src="[% url.js %]/jstree.min.js"></script>
         [% END %]

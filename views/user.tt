@@ -8,8 +8,8 @@
     <div class="row">
         <div class="col-md-6">
             <form role="form" method="post" action="[% url.path %]/user" style="display: inline"> <!-- Prevent reset password button line break -->
-            [% IF edituser %]
-                <input type="hidden" name="id" value="[% edituser.id %]">
+            [% IF edituser.account_request %]
+                <input type="hidden" name="account_request" value="[% edituser.id %]">
             [% END %]
             <input type="hidden" name="page" value="[% page %]">
             <div class="form-group">
@@ -27,6 +27,9 @@
             <div class="form-group">
                 <label for="title">Title:</label>
                 <select class="form-control" id="title" name="title">
+                    [% UNLESS edituser.title.id %]
+                        <option></option>
+                    [% END %]
                     [% FOREACH title IN titles %]
                         <option value="[% title.id %]" [% IF edituser.title.id == title.id %]selected[% END %]>[% title.name %]</option>
                     [% END %]
@@ -35,6 +38,9 @@
             <div class="form-group">
                 <label for="organisation">Organisation:</label>
                 <select class="form-control" id="organisation" name="organisation">
+                    [% UNLESS edituser.organisation.id %]
+                        <option></option>
+                    [% END %]
                     [% FOREACH organisation IN organisations %]
                         <option value="[% organisation.id %]"
                             [% IF edituser.organisation.id == organisation.id %]selected[% END %]>[% organisation.name %]
@@ -158,6 +164,9 @@
 <p>
     <a href="/user/0" class="btn btn-default" role="button">Create user</a>
 </p>
+[% IF register_requests.size %]
+    <h4>Active accounts</h4>
+[% END %]
 <table class="table table-striped">
     <tr>
         <th>ID</th>
@@ -178,5 +187,24 @@
         </tr>
     [% END %]
 </table>
+[% IF register_requests.size %]
+    <h4>Account requests</h4>
+    <table class="table table-striped">
+        <tr>
+            <th>ID</th>
+            <th>Surname</th>
+            <th>Firstname</th>
+            <th>Email</th>
+        </tr>
+        [% FOREACH register_request IN register_requests %]
+            <tr>
+                <td><a href="/user/[% register_request.id %]">[% register_request.id %]</a></td>
+                <td>[% register_request.surname %]</td>
+                <td>[% register_request.firstname %]</td>
+                <td>[% register_request.email %]</td>
+            </tr>
+        [% END %]
+    </table>
+[% END %]
 [% END %]
 

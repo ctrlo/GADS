@@ -33,7 +33,7 @@
                                 <input type="submit" class="btn btn-lg btn-success btn-block" value="Sign In">
                             </div>
                             <div class="col-xs-6 col-sm-6 col-md-6">
-                                <a href="" class="btn btn-lg btn-primary btn-block">Register</a>
+                                <a href="" class="btn btn-lg btn-primary btn-block" data-toggle="modal" data-target="#modalregister">Register</a>
                             </div>
                         </div>
                     </fieldset>
@@ -65,7 +65,60 @@
                 </div><!-- /.modal-content -->
             </div><!-- /.modal-dialog -->
         </div><!-- /.modal -->
+        <!-- Modal -->
+        <div class="modal fade" id="modalregister" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form role="form" method="post">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">Request account</h4>
+                    </div>
+                    <div class="modal-body">
+                        [% IF error %]
+                            <div class="alert alert-danger" role="alert">[% error %]</div>
+                        [% END %]
+                        [% IF register_text %]
+                            <p>[% register_text %]</p>
+                        [% END %]
+                        <div class="form-group">
+                            <label for="firstname">Firstname:</label>
+                            <input type="text" class="form-control" id="firstname" name="firstname">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Surname:</label>
+                            <input type="text" class="form-control" id="surname" name="surname">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input type="text" class="form-control" id="email" name="email">
+                        </div>
+                        <div class="form-group">
+                            <label for="account_request_notes">Notes:</label>
+                            <textarea class="form-control" name="account_request_notes" id="account_request_notes" rows="5"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button type="submit" name="register" value="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                    </form>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
     [% END %]
 
 </div>
+
+[% IF error %]
+<script type="text/javascript">
+    var jscode='[% FILTER remove('\n+') %]
+        [% FILTER replace('\'', '\\\'') %]
+            $(window).load(function(){
+                $('#modalregister').modal('show');
+            });
+        [% END %]
+    [% END %]';
+</script>
+[% END %]
 
