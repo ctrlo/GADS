@@ -453,15 +453,20 @@ sub person
         return $item->value->value;
     }
     else {
-        my $firstname = $record->$field ? $record->$field->value->firstname : '';
-        my $surname   = $record->$field ? $record->$field->value->surname : '';
-        my $value     = "$surname, $firstname";
-
-        $item->value->update({
-            value     => $value,
-        });
-        $value;
+        return $class->person_update_value($item->value);
     }
+}
+
+sub person_update_value
+{   my ($class, $person) = @_;
+    my $firstname = $person->firstname || '';
+    my $surname   = $person->surname || '';
+    my $value     = "$surname, $firstname";
+
+    $person->update({
+        value     => $value,
+    }) if $value ne $person->value;
+    $value;
 }
 
 sub approve

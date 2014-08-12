@@ -1,12 +1,17 @@
-<h2>Manage users</h2>
 [% IF edit.defined %]
-<form role="form" method="post">
+[% IF edit %]
+    [% edituser = users.shift %]
+    <h2>User - [% edituser.value %]</h2>
+[% ELSE %]
+    <h2>New user</h2>
+[% END %]
     <div class="row">
         <div class="col-md-6">
-            [% IF edit %]
-                [% edituser = users.shift %]
+            <form role="form" method="post" action="[% url.path %]/user" style="display: inline"> <!-- Prevent reset password button line break -->
+            [% IF edituser %]
                 <input type="hidden" name="id" value="[% edituser.id %]">
             [% END %]
+            <input type="hidden" name="page" value="[% page %]">
             <div class="form-group">
                 <label for="firstname">Firstname:</label>
                 <input type="text" class="form-control" id="firstname" name="firstname" value="[% edituser.firstname %]">
@@ -37,84 +42,116 @@
                     [% END %]
                 </select>
             </div>
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" name="update" [% IF edituser.permissions.update %]checked[% END %]>User can update records
-                </label>
-            </div>
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" name="update_noneed_approval" [% IF edituser.permissions.update_noneed_approval %]checked[% END %]>User does not need approval when updating records
-                </label>
-            </div>
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" name="create" [% IF edituser.permissions.create %]checked[% END %]>User can create new records
-                </label>
-            </div>
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" name="create_noneed_approval" [% IF edituser.permissions.create_noneed_approval %]checked[% END %]>User does not need approval when creating new records
-                </label>
-            </div>
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" name="approver" [% IF edituser.permissions.approver %]checked[% END %]>User can approve changes
-                </label>
-            </div>
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" name="admin" [% IF edituser.permissions.admin %]checked[% END %]>User is an administrator
-                </label>
-            </div>
+            [% IF page == "user" %]
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="update" [% IF edituser.permissions.update %]checked[% END %]>User can update records
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="update_noneed_approval" [% IF edituser.permissions.update_noneed_approval %]checked[% END %]>User does not need approval when updating records
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="create" [% IF edituser.permissions.create %]checked[% END %]>User can create new records
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="create_noneed_approval" [% IF edituser.permissions.create_noneed_approval %]checked[% END %]>User does not need approval when creating new records
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="approver" [% IF edituser.permissions.approver %]checked[% END %]>User can approve changes
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="admin" [% IF edituser.permissions.admin %]checked[% END %]>User is an administrator
+                    </label>
+                </div>
+            [% END %]
             <button type="submit" name="submit" value="submit" class="btn btn-primary">[% IF edituser.id %]Update[% ELSE %]Create[% END %]</button>
-            [% IF edituser.id %]
+            [% IF page == "user" AND edituser.id %]
                 <button type="submit" name="delete" value="[% edituser.id %]" class="btn btn-default">Delete</button>
             [% END %]
+            </form>
+            [% IF page == "account/detail" %]
+                <button type="submit" data-toggle="modal" data-target="#pwdchange" class="btn btn-default">Change password</button>
+            [% END %]
         </div>
-        <div class="col-md-6">
-            <h4>Permissions help</h4>
-            <dl>
-                <dt>No permissions selected</dt>
-                <dd>If a user has no permissions, they cannot edit any data. They can only:
-                    <ul>
-                        <li>View and download data</li>
-                        <li>Create private views of data</li>
-                        <li>Add and remove the graphs displayed on their personal page</li>
-                    </ul>
-                </dd>
-                <dt>User can update records</dt>
-                <dd>
-                    This permission allows a user to update an existing record:
-                    <ul>
-                        <li>Fields that are set to &quot;Open access&quot; can be updated immediately by the user</li>
-                        <li>Fields that are set to &quot;Edit with approval&quot; can be updated, but any changes
-                            will be held for approval</li>
-                        <li>Fields that are set to &quot;Read only&quot; cannot be changed</li>
-                    </ul>
-                </dd>
-                <dt>User does not need approval when updating records</dt>
-                <dd>This permission is similar to the previous one, except that all fields can be updated
-                    immediately by the user (including &quot;Read only&quot; fields).<ul></ul></dt>
-                <dt>User can create new records</dt>
-                <dd>This permission allows a user to create a new record. All values (including &quot;Read only&quot; values)
-                    can be entered, but the entire record will require approval.<ul></ul></dd>
-                <dt>User does not need approval when creating new records</dt>
-                <dd>This permission allows a user to create a new record. All values (including &quot;Read only&quot; values)
-                    can be entered, and the new record will not require any approval.<ul></ul></dd>
-                <dt>User can approve changes</dt>
-                <dd>This permission allows a user to approve any of the above changes that require approval.<ul></ul></dd>
-                <dt>User is an administrator</dt>
-                <dd>This permission allows a user to:
-                    <ul>
-                        <li>Edit the layout (add, change and remove fields)</li>
-                        <li>Add, remove and edit graphs</li>
-                        <li>Add, remove and edit users</li>
-                        <li>Send messages to users</li>
-                    </ul>
-                </dd>
-            </dl>
-        </div>
+        [% IF page == "user" %]
+            <div class="col-md-6">
+                <h4>Permissions help</h4>
+                <dl>
+                    <dt>No permissions selected</dt>
+                    <dd>If a user has no permissions, they cannot edit any data. They can only:
+                        <ul>
+                            <li>View and download data</li>
+                            <li>Create private views of data</li>
+                            <li>Add and remove the graphs displayed on their personal page</li>
+                        </ul>
+                    </dd>
+                    <dt>User can update records</dt>
+                    <dd>
+                        This permission allows a user to update an existing record:
+                        <ul>
+                            <li>Fields that are set to &quot;Open access&quot; can be updated immediately by the user</li>
+                            <li>Fields that are set to &quot;Edit with approval&quot; can be updated, but any changes
+                                will be held for approval</li>
+                            <li>Fields that are set to &quot;Read only&quot; cannot be changed</li>
+                        </ul>
+                    </dd>
+                    <dt>User does not need approval when updating records</dt>
+                    <dd>This permission is similar to the previous one, except that all fields can be updated
+                        immediately by the user (including &quot;Read only&quot; fields).<ul></ul></dt>
+                    <dt>User can create new records</dt>
+                    <dd>This permission allows a user to create a new record. All values (including &quot;Read only&quot; values)
+                        can be entered, but the entire record will require approval.<ul></ul></dd>
+                    <dt>User does not need approval when creating new records</dt>
+                    <dd>This permission allows a user to create a new record. All values (including &quot;Read only&quot; values)
+                        can be entered, and the new record will not require any approval.<ul></ul></dd>
+                    <dt>User can approve changes</dt>
+                    <dd>This permission allows a user to approve any of the above changes that require approval.<ul></ul></dd>
+                    <dt>User is an administrator</dt>
+                    <dd>This permission allows a user to:
+                        <ul>
+                            <li>Edit the layout (add, change and remove fields)</li>
+                            <li>Add, remove and edit graphs</li>
+                            <li>Add, remove and edit users</li>
+                            <li>Send messages to users</li>
+                        </ul>
+                    </dd>
+                </dl>
+            </div>
+        [% ELSE %]
+           <!-- Modal -->
+            <div class="modal fade" id="pwdchange" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form role="form" method="post">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                <h4 class="modal-title" id="myModalLabel">Change password</h4>
+                            </div>
+                            <div class="modal-body">
+                                <p>Please enter your existing password in order to generate a new password.
+                                    Passwords can only be auto-generated for security reasons.</p>
+                                <div class="form-group">
+                                    <input type="password" class="form-control" name="oldpassword" placeholder="Existing password">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" value="submit" class="btn btn-primary" name="newpassword">Generate new password</button>
+                            </div>
+                        </form>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal-dialog -->
+            </div><!-- /.modal -->
+        [% END %]
     </div>
 </form>
 [% ELSE %]

@@ -219,6 +219,26 @@ any '/account/?:action?/?' => sub {
 
     my $action = param 'action';
 
+    if (param 'newpassword')
+    {
+        # See if existing password is correct first
+        GADS::User->user({
+            username => var('user')->{username},
+            password => param('oldpassword'),
+        }) or forwardHome({ danger => 'The existing password entered is incorrect'}, 'account/detail');
+
+        my $user_id = var('user')->{id};
+        my $newpw   = GADS::User->resetpw(var('user')->{id});
+
+        if ($newpw)
+        {
+            forwardHome({ success => qq(<h3 class="text-center"><small>Your password has been changed to:</small> $newpw</h3>)}, 'account/detail' );
+        }
+        else {
+            forwardHome({ danger => "There was an error generating a new password"}, 'account/detail' );
+        }
+    }
+
     if (param 'graphsubmit')
     {
         eval { GADS::User->graphs(var('user'), param('graphs')) };
@@ -237,17 +257,25 @@ any '/account/?:action?/?' => sub {
     if ($action eq 'graph')
     {
         $data->{graphs} = GADS::Graph->all({ user => var('user'), all => 1 });
+        template 'account' => {
+            data   => $data,
+            action => $action,
+            page   => 'account',
+        };
+    }
+    elsif ($action eq 'detail')
+    {
+        template 'user' => {
+            edit          => var('user')->{id},
+            users         => [var('user')],
+            titles        => GADS::User->titles,
+            organisations => GADS::User->organisations,
+            page          => 'account/detail'
+        };
     }
     else {
         return forwardHome({ danger => "Unrecognised action $action" });
     }
-
-    my $output  = template 'account' => {
-        data   => $data,
-        action => $action,
-        page   => 'account',
-    };
-    $output;
 };
 
 any '/graph/?:id?' => sub {
@@ -475,8 +503,8 @@ any '/user/?:id?' => sub {
 
     return forwardHome(
         { danger => 'You do not have permission to manage users' } )
-        unless var('user')->{permissions}->{admin};
-
+        unless var('user')->{permissions}->{admin}
+            || var('user')->{id} == $id;
     if (param 'submit')
     {
         my $values = params;
@@ -484,17 +512,39 @@ any '/user/?:id?' => sub {
         eval { GADS::User->update($values, {url => request->base}) };
         if (hug)
         {
-            messageAdd({ danger => bleep });
+            if (param('page') eq 'user')
+            {
+                messageAdd({ danger => bleep });
+            }
+            else {
+                # Forward to the sending page if not users page,
+                # otherwise attempt will be made to send somebody
+                # editing their own account details to the users
+                # page on error
+                my $page   = param('page');
+                return forwardHome(
+                    { danger => bleep }, $page );
+            }
         }
         else {
             my $action = param('id') ? 'updated' : 'created';
+            my $page   = param('page');
             return forwardHome(
-                { success => "User has been $action successfully" }, 'user' );
+                { success => "User has been $action successfully" }, $page );
         }
     }
 
+    # This shouldn't happen for a normal user, but let's
+    # play it safe
+    return forwardHome(
+        { danger => 'You do not have permission to manage users' } )
+        unless var('user')->{permissions}->{admin};
+
     if (param 'delete')
     {
+        return forwardHome(
+            { danger => "Cannot delete current logged-in User" } )
+            if var('user')->{id} eq param('delete');
         eval { GADS::User->delete(param 'delete') };
         if (hug)
         {

@@ -74,7 +74,8 @@
                                     <li><a href="#">Action</a></li>
                                     <li><a href="#">Another action</a></li>
                                     -->
-                                    <li><a href="[% url.page %]/account/graph">Graphs</a></li>
+                                    <li><a href="[% url.page %]/account/detail">My details</a></li>
+                                    <li><a href="[% url.page %]/account/graph">My graphs</a></li>
                                     <li class="divider"></li>
                                     <li><a href="[% url.page %]/login?logout">Logout</a></li>
                                 </ul>

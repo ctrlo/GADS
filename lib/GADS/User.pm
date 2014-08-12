@@ -63,6 +63,7 @@ sub user($)
     $retuser->{surname}      = $user->surname;
     $retuser->{email}        = $user->email;
     $retuser->{title}        = $user->title;
+    $retuser->{value}        = GADS::Record->person_update_value($user);
     $retuser->{organisation} = $user->organisation;
     $retuser->{username}     = $user->username;
     $retuser->{views}        = GADS::View->all($user->id);
