@@ -796,6 +796,9 @@ any '/login' => sub {
             session 'user_id' => $user->{id};
             forwardHome();
         }
+        else {
+            messageAdd({ danger => "The username or password was not recognised" });
+        }
     }
 
     my $output  = template 'login' => {
