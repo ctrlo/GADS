@@ -151,10 +151,24 @@ sub titles
     \@titles;
 }
 
+sub title_new
+{
+    my ($class, $params) = @_;
+    rset('Title')->create({ name => $params->{name} })
+        or ouch 'dbfail', "There was a database error when creating the title";
+}
+
 sub organisations
 {
     my @organisations = rset('Organisation')->all;
     \@organisations;
+}
+
+sub organisation_new
+{
+    my ($class, $params) = @_;
+    rset('Organisation')->create({ name => $params->{name} })
+        or ouch 'dbfail', "There was a database error when creating the organisation";
 }
 
 sub graphs

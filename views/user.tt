@@ -1,13 +1,13 @@
 [% IF edit.defined %]
-[% IF edit %]
-    [% edituser = users.shift %]
+[% edituser = users.shift %]
+[% IF edituser.id %]
     <h2>User - [% edituser.value %]</h2>
 [% ELSE %]
     <h2>New user</h2>
 [% END %]
     <div class="row">
         <div class="col-md-6">
-            <form role="form" method="post" action="[% url.path %]/user" style="display: inline"> <!-- Prevent reset password button line break -->
+            <form role="form" method="post" style="display: inline"> <!-- Prevent reset password button line break -->
             [% IF edituser.account_request %]
                 <input type="hidden" name="account_request" value="[% edituser.id %]">
             [% END %]
@@ -25,7 +25,7 @@
                 <input type="text" class="form-control" id="email" name="email" value="[% edituser.email %]">
             </div>
             <div class="form-group">
-                <label for="title">Title:</label>
+                <label for="title">Title: (<a data-toggle="modal" data-target="#newtitle" href="">new</a>)</label>
                 <select class="form-control" id="title" name="title">
                     [% UNLESS edituser.title.id %]
                         <option></option>
@@ -36,7 +36,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="organisation">Organisation:</label>
+                <label for="organisation">Organisation: (<a data-toggle="modal" data-target="#neworganisation" href="">new</a>)</label>
                 <select class="form-control" id="organisation" name="organisation">
                     [% UNLESS edituser.organisation.id %]
                         <option></option>
@@ -84,8 +84,8 @@
             [% IF page == "user" AND edituser.id %]
                 <button type="submit" name="delete" value="[% edituser.id %]" class="btn btn-default">Delete</button>
             [% END %]
-            </form>
             [% IF page == "account/detail" %]
+                </form>
                 <button type="submit" data-toggle="modal" data-target="#pwdchange" class="btn btn-default">Change password</button>
             [% END %]
         </div>
@@ -133,6 +133,47 @@
                     </dd>
                 </dl>
             </div>
+           <!-- Modal -->
+            <div class="modal fade" id="neworganisation" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title" id="myModalLabel">Add organisation</h4>
+                        </div>
+                        <div class="modal-body">
+                            <p>Please enter the name of a new organisation:</p>
+                            <div class="form-group">
+                                <input type="text" class="form-control" name="neworganisation" placeholder="New organisation">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" value="submit" class="btn btn-primary" name="submitneworganisation">Create</button>
+                        </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal-dialog -->
+            </div><!-- /.modal -->
+           <!-- Modal -->
+            <div class="modal fade" id="newtitle" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title" id="myModalLabel">Add title</h4>
+                        </div>
+                        <div class="modal-body">
+                            <p>Please enter the name of a new title:</p>
+                            <div class="form-group">
+                                <input type="text" class="form-control" name="newtitle" placeholder="New title">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" value="submit" class="btn btn-primary" name="submitnewtitle">Create</button>
+                        </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal-dialog -->
+            </div><!-- /.modal -->
+            </form>
         [% ELSE %]
            <!-- Modal -->
             <div class="modal fade" id="pwdchange" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

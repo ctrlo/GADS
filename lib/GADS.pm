@@ -505,6 +505,7 @@ any '/user/?:id?' => sub {
         { danger => 'You do not have permission to manage users' } )
         unless var('user')->{permissions}->{admin}
             || var('user')->{id} == $id;
+
     if (param 'submit')
     {
         my $values = params;
@@ -560,13 +561,48 @@ any '/user/?:id?' => sub {
         }
     }
 
-
     my $users; my $register_requests;
+
+    if (param('neworganisation') || param('newtitle'))
+    {
+        if (my $org = param 'neworganisation')
+        {
+            eval { GADS::User->organisation_new({ name => $org }) };
+            if (hug)
+            {
+                messageAdd({ danger => bleep });
+            }
+            else {
+                messageAdd({ success => "The organisation has been created successfully" });
+            }
+        }
+
+        if (my $title = param 'newtitle')
+        {
+            eval { GADS::User->title_new({ name => $title }) };
+            if (hug)
+            {
+                messageAdd({ danger => bleep });
+            }
+            else {
+                messageAdd({ success => "The title has been created successfully" });
+            }
+        }
+
+        $users = [{
+            firstname    => param('firstname'),
+            surname      => param('surname'),
+            email        => param('email'),
+            title        => { id => param('title') },
+            organisation => { id => param('organisation') },
+        }];
+    }
+
     if ($id)
     {
         $users = GADS::User->user({ id => $id });
     }
-    else {
+    elsif (!defined $id) {
         $users             = GADS::User->all;
         $register_requests = GADS::User->register_requests;
     }
