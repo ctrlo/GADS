@@ -99,8 +99,8 @@ sub update
         !$u->{id} && rset('User')->search({ email => $user->{email}, deleted => 0, account_request => 0 })->count
             and ouch 'bademail', "Email address $user->{email} already exists";
         $user->{username}   = $user->{email};
-        $user->{organisation} = $u->{organisation};
-        $user->{title}        = $u->{title};
+        $user->{organisation} = $u->{organisation} || undef;
+        $user->{title}        = $u->{title} || undef;
         $user->{permission} = 0;
         $user->{permission} = $user->{permission} | UPDATE                 if $u->{update};
         $user->{permission} = $user->{permission} | UPDATE_NONEED_APPROVAL if $u->{update_noneed_approval};
