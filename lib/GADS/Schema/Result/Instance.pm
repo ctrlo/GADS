@@ -47,16 +47,27 @@ __PACKAGE__->table("instance");
   is_nullable: 1
   size: 45
 
-=head2 email_welcome
+=head2 email_welcome_text
 
   data_type: 'text'
   is_nullable: 1
 
-=head2 email_delete
+=head2 email_welcome_subject
 
   data_type: 'varchar'
   is_nullable: 1
-  size: 45
+  size: 128
+
+=head2 email_delete_text
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 email_delete_subject
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 128
 
 =cut
 
@@ -65,10 +76,14 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "name",
   { data_type => "varchar", is_nullable => 1, size => 45 },
-  "email_welcome",
+  "email_welcome_text",
   { data_type => "text", is_nullable => 1 },
-  "email_delete",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
+  "email_welcome_subject",
+  { data_type => "varchar", is_nullable => 1, size => 128 },
+  "email_delete_text",
+  { data_type => "text", is_nullable => 1 },
+  "email_delete_subject",
+  { data_type => "varchar", is_nullable => 1, size => 128 },
 );
 
 =head1 PRIMARY KEY
@@ -101,8 +116,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-11 22:28:12
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HwiWtmsWwF49Xi5AEdf5OQ
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-12 15:21:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QWgpCEaBAxu2BmD8vDvENA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

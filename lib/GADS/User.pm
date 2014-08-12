@@ -121,11 +121,11 @@ sub update
         my $reset      = $class->resetpwreq($user->id);
         my $gadsname   = config->{gads}->{name};
         my ($instance) = rset('Instance')->all;
-        my $msg        = $instance->email_welcome;
+        my $msg        = $instance->email_welcome_text;
         my $pwdurl     = $url."resetpw/$reset";
         $msg =~ s/\$PWDURL/$pwdurl/g;
         my $email = {
-            subject => "New account details",
+            subject => $instance->email_welcome_subject,
             emails  => [$user->email],
             text    => $msg,
         };
@@ -212,6 +212,15 @@ sub delete
 
     $user->update({ deleted => 1 })
         or ouch 'dbfail', "Database error when deleting user";
+
+    my ($instance) = rset('Instance')->all;
+    my $msg        = $instance->email_delete_text;
+    my $email = {
+        subject => $instance->email_delete_subject,
+        emails  => [$user->email],
+        text    => $instance->email_delete_text,
+    };
+    GADS::Email->send($email);
 }
 
 sub all
