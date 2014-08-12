@@ -80,7 +80,8 @@ __PACKAGE__->table("user");
 =head2 permission
 
   data_type: 'smallint'
-  is_nullable: 1
+  default_value: 0
+  is_nullable: 0
 
 =head2 password
 
@@ -153,7 +154,7 @@ __PACKAGE__->add_columns(
   "organisation",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "permission",
-  { data_type => "smallint", is_nullable => 1 },
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "password",
   { data_type => "varchar", is_nullable => 1, size => 128 },
   "pwchanged",
@@ -332,8 +333,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-12 16:50:07
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FTUh4rK20gm667fM7GVaHg
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-12 18:16:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Wg7VIBIKl4AZJw8MNMUxJQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
