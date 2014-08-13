@@ -147,7 +147,12 @@ sub update
 
 sub titles
 {
-    my @titles = rset('Title')->all;
+    my @titles = rset('Title')->search(
+        {},
+        {
+            order_by => 'name',
+        }
+    )->all;
     \@titles;
 }
 
@@ -160,7 +165,12 @@ sub title_new
 
 sub organisations
 {
-    my @organisations = rset('Organisation')->all;
+    my @organisations = rset('Organisation')->search(
+        {},
+        {
+            order_by => 'name',
+        }
+    )->all;
     \@organisations;
 }
 
