@@ -82,7 +82,7 @@
                             <p>[% register_text %]</p>
                         [% END %]
                         <div class="form-group">
-                            <label for="firstname">Firstname:</label>
+                            <label for="firstname">First name:</label>
                             <input type="text" class="form-control" id="firstname" name="firstname">
                         </div>
                         <div class="form-group">
