@@ -4,9 +4,11 @@
             <div class="dropdown">
                 <a id="drop4" class="btn btn-primary" role="button" data-toggle="dropdown" href="#">View <b class="caret"></b></a>
                 <ul id="menu1" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop4">
+                    <li role="presentation" class="dropdown-header">Global views</li>
                     [% FOREACH v IN user.views %]
                         [% IF lastv AND v.global != lastv.global %]
                             <li role="presentation" class="divider"></li>
+                            <li role="presentation" class="dropdown-header">Personal views</li>
                         [% END %]
                         <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?view=[% v.id %]">[% v.name %]</a></li>
                         [% lastv = v %]
