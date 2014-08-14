@@ -506,7 +506,12 @@ any '/user/?:id?' => sub {
         unless var('user')->{permissions}->{admin}
             || var('user')->{id} == $id;
 
-    if (param 'submit')
+    # Check normal submit first. We do this now, as it could be a normal
+    # user doing the submit, and we won't allow them much furthe. However,
+    # we need to check that it's not an admin creating a new title or org,
+    # as they should be handled differently. The submit button will still
+    # be triggered on a new org/title creation, if the user has pressed enter
+    if (param('submit') && !param('neworganisation') && !param('newtitle'))
     {
         my $values = params;
 
@@ -545,22 +550,6 @@ any '/user/?:id?' => sub {
         { danger => 'You do not have permission to manage users' } )
         unless var('user')->{permissions}->{admin};
 
-    if (param 'delete')
-    {
-        return forwardHome(
-            { danger => "Cannot delete current logged-in User" } )
-            if var('user')->{id} eq param('delete');
-        eval { GADS::User->delete(param 'delete') };
-        if (hug)
-        {
-            messageAdd({ danger => bleep });
-        }
-        else {
-            return forwardHome(
-                { success => "User has been deleted successfully" }, 'user' );
-        }
-    }
-
     my $users; my $register_requests;
 
     if (param('neworganisation') || param('newtitle'))
@@ -596,6 +585,21 @@ any '/user/?:id?' => sub {
             title        => { id => param('title') },
             organisation => { id => param('organisation') },
         }];
+    }
+    elsif (param 'delete')
+    {
+        return forwardHome(
+            { danger => "Cannot delete current logged-in User" } )
+            if var('user')->{id} eq param('delete');
+        eval { GADS::User->delete(param 'delete') };
+        if (hug)
+        {
+            messageAdd({ danger => bleep });
+        }
+        else {
+            return forwardHome(
+                { success => "User has been deleted successfully" }, 'user' );
+        }
     }
 
     if ($id)

@@ -28,7 +28,7 @@
                 <label for="title">
                     Title:
                     [% IF page == "user" %]
-                        (<a data-toggle="modal" data-target="#newtitle" href="">create</a>)
+                        (<a data-toggle="modal" data-target="#modalnewtitle" href="">create</a>)
                     [% END %]
                 </label>
                 <select class="form-control" id="title" name="title">
@@ -44,7 +44,7 @@
                 <label for="organisation">
                     Organisation:
                     [% IF page == "user" %]
-                        (<a data-toggle="modal" data-target="#neworganisation" href="">create</a>)
+                        (<a data-toggle="modal" data-target="#modalneworganisation" href="">create</a>)
                     [% END %]
                 </label>
                 <select class="form-control" id="organisation" name="organisation">
@@ -144,7 +144,7 @@
                 </dl>
             </div>
            <!-- Modal -->
-            <div class="modal fade" id="neworganisation" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal fade" id="modalneworganisation" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -154,7 +154,7 @@
                         <div class="modal-body">
                             <p>Please enter the name of a new organisation:</p>
                             <div class="form-group">
-                                <input type="text" class="form-control" name="neworganisation" placeholder="New organisation">
+                                <input type="text" class="form-control" id="neworganisation" name="neworganisation" placeholder="New organisation">
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -164,7 +164,7 @@
                 </div><!-- /.modal-dialog -->
             </div><!-- /.modal -->
            <!-- Modal -->
-            <div class="modal fade" id="newtitle" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal fade" id="modalnewtitle" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -174,7 +174,7 @@
                         <div class="modal-body">
                             <p>Please enter the name of a new title:</p>
                             <div class="form-group">
-                                <input type="text" class="form-control" name="newtitle" placeholder="New title">
+                                <input type="text" class="form-control" id="newtitle" name="newtitle" placeholder="New title">
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -258,4 +258,17 @@
     </table>
 [% END %]
 [% END %]
+
+<script type="text/javascript">
+    var jscode='[% FILTER remove('\n+') %]
+        [% FILTER replace('\'', '\\\'') %]
+            $('#modalnewtitle').on('hidden.bs.modal', function (e) {
+                $('#newtitle').val("");
+            });
+            $('#modalneworganisation').on('hidden.bs.modal', function (e) {
+                $('#neworganisation').val("");
+            });
+[% END %]
+[% END %]';
+</script>
 
