@@ -109,7 +109,13 @@
             [% END %]
         </div>
     </div>
-    <button type="submit" name="submit" value="submit" class="btn btn-primary">Submit</button>
+    <button type="submit" name="submit" value="submit" class="btn btn-primary">
+        [% IF approves %]
+            Approve
+        [% ELSE %]
+            Submit
+        [% END %]
+    </button>
 </form>
 <p></p>
 
