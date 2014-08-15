@@ -109,46 +109,52 @@ sub _column
     if ($col->type eq 'calc')
     {
         my ($calc) = $col->calcs;
-        my $allcols = shift;
-        my @calccols;
-        foreach my $acol (@$allcols)
+        if ($calc) # Calculations defined?
         {
-            next if $acol->type eq 'rag' || $acol->type eq 'calc';
-            my $name = $acol->name;
-            next unless $calc->calc =~ /\[$name\]/i;
-            my $c = _column($acol);
-            push @calccols, $c;
-        }
+            my $allcols = shift;
+            my @calccols;
+            foreach my $acol (@$allcols)
+            {
+                next if $acol->type eq 'rag' || $acol->type eq 'calc';
+                my $name = $acol->name;
+                next unless $calc->calc =~ /\[$name\]/i;
+                my $c = _column($acol);
+                push @calccols, $c;
+            }
 
-        $c->{calc} = {
-            id      => $calc->id,
-            calc    => $calc->calc,
-            columns => \@calccols,
-        };
+            $c->{calc} = {
+                id      => $calc->id,
+                calc    => $calc->calc,
+                columns => \@calccols,
+            };
+        }
 
         $c->{userinput} = 0;
     }
     elsif ($col->type eq 'rag')
     {
         my ($rag) = $col->rags;
-        my $allcols = shift;
-        my @ragcols;
-        foreach my $acol (@$allcols)
+        if ($rag) # RAG defined?
         {
-            next if $acol->type eq 'rag' || $acol->type eq 'calc';
-            my $name = $acol->name;
-            next unless $rag->green =~ /\[$name\]/i || $rag->amber =~ /\[$name\]/i || $rag->red =~ /\[$name\]/i;
-            my $c = _column($acol);
-            push @ragcols, $c;
-        }
+            my $allcols = shift;
+            my @ragcols;
+            foreach my $acol (@$allcols)
+            {
+                next if $acol->type eq 'rag' || $acol->type eq 'calc';
+                my $name = $acol->name;
+                next unless $rag->green =~ /\[$name\]/i || $rag->amber =~ /\[$name\]/i || $rag->red =~ /\[$name\]/i;
+                my $c = _column($acol);
+                push @ragcols, $c;
+            }
 
-        $c->{rag} = {
-            id      => $rag->id,
-            green   => $rag->green,
-            amber   => $rag->amber,
-            red     => $rag->red,
-            columns => \@ragcols,
-        };
+            $c->{rag} = {
+                id      => $rag->id,
+                green   => $rag->green,
+                amber   => $rag->amber,
+                red     => $rag->red,
+                columns => \@ragcols,
+            };
+        }
 
         $c->{userinput} = 0;
     }

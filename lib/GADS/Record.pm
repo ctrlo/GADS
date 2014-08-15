@@ -78,7 +78,7 @@ sub current($$)
     foreach my $c (@columns)
     {
         # If it's a calculated/rag value, prefetch the columns in the calc
-        if ($c->{type} eq 'rag' || $c->{type} eq 'calc')
+        if (($c->{type} eq 'rag' || $c->{type} eq 'calc') && $c->{$c->{type}})
         {
             push @columns, @{$c->{$c->{type}}->{columns}};
             $cache_cols{$c->{field}} = $c;
@@ -342,6 +342,10 @@ sub rag
     {
         return $item->value;
     }
+    elsif (!$rag)
+    {
+        return 'grey'
+    }
     else {
         my $green = $rag->{green};
         my $amber = $rag->{amber};
@@ -362,7 +366,7 @@ sub rag
         $amber =~ s/CURDATE/$now/g;
         $red   =~ s/CURDATE/$now/g;
 
-        my $okaycount;
+        my $okaycount = 0;
         foreach my $code ($green, $amber, $red)
         {
             $_ = $code;
@@ -414,6 +418,10 @@ sub calc
     if (defined $item)
     {
         return $item->value;
+    }
+    elsif(!$calc)
+    {
+        return undef;
     }
     else {
         my $code = $calc->{calc};
