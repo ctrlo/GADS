@@ -57,7 +57,7 @@ sub all
             global  => 1,
         ]
     },{
-            order_by => 'global',
+            order_by => ['global', 'name'],
     })->all;
     \@views;
 }
