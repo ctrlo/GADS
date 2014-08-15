@@ -250,6 +250,16 @@ sub delete
         rset('Enumval')->search({ layout_id => $item->id })->delete
             or ouch 'dbfail', "Database error deleting any enum values relating to this item";
     }
+    elsif($type eq 'calc')
+    {
+        rset('Calcval')->search({ layout_id => $item->id })->delete
+            or ouch 'dbfail', "Database error deleting any calc values relating to this item";
+    }
+    elsif($type eq 'rag')
+    {
+        rset('Ragval')->search({ layout_id => $item->id })->delete
+            or ouch 'dbfail', "Database error deleting any rag values relating to this item";
+    }
     my $table = camelize $type;
     rset($table)->search({ layout_id => $item->id })->delete
         or ouch 'dbfail', "Database error deleting data associated with this item";
