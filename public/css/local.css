@@ -34,7 +34,7 @@ div.circle {
 .scrollable-menu {
     height: auto;
     max-height: 400px;
-    overflow-x: hidden;
+    overflow: auto;
 }
 
 .monospace {
