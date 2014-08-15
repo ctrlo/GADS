@@ -239,6 +239,10 @@ sub delete
         or ouch 'dbfail', "Database error deleting any people relating to this item";
     rset('Enum')->search({ layout_id => $item->id })->delete
         or ouch 'dbfail', "Database error deleting any enums relating to this item";
+    rset('Calc')->search({ layout_id => $item->id })->delete
+        or ouch 'dbfail', "Database error deleting any calcs relating to this item";
+    rset('Rag')->search({ layout_id => $item->id })->delete
+        or ouch 'dbfail', "Database error deleting any rags relating to this item";
     my $type = $item->type;
     if ($type eq 'tree')
     {
