@@ -33,19 +33,20 @@ sub send($)
     my $reply_to = $args->{reply_to};
     my $message = autoformat $args->{text}, {all => 1, break=>break_wrap};
 
+    my $params = {
+        subject  => $subject,
+        message  => $message,
+    };
+    $params->{headers} = {
+        "Reply-to" => $reply_to, # Reply_to in Emailesque is broken
+    } if $reply_to;
     my %done;
     foreach my $email (@$emails)
     {
         next if $done{$email}; # Stop duplicate emails
         $done{$email} = 1;
-        email {
-            to       => $email,
-            subject  => $subject,
-            message  => $message,
-            headers => {
-                "Reply-to" => $reply_to, # Reply_to in Emailesque is broken
-            },
-        };
+        $params->{to} = $email;
+        email $params;
     }
 }
 
