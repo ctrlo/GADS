@@ -654,6 +654,8 @@ sub update
             # Find the file upload and store for later
             if (my $upload = $uploads->{"file$fieldid"})
             {
+                ouch 'toobig', "The uploaded file is greater than the maximum size allowed for this field"
+                    if $column->{file_option}->{filesize} && $upload->size > $column->{file_option}->{filesize} * 1024;
                 $newvalue->{$fieldid} = {
                     name     => $upload->filename,
                     mimetype => $upload->type,

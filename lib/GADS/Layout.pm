@@ -432,6 +432,23 @@ sub item
                     or ouch 'dbfail', "Database error creating calculated formula";
             }
         }
+        if ($args->{type} eq 'file')
+        {
+            my $foption = {
+                filesize => (int($args->{filesize}) || undef),
+            };
+            my ($file_option) = rset('FileOption')->search({ layout_id => $item->id })->all;
+            if ($file_option)
+            {
+                $file_option->update($foption)
+                    or ouch 'dbfail', "Database error updating file size option";
+            }
+            else {
+                $foption->{layout_id} = $item->id;
+                rset('FileOption')->create($foption)
+                    or ouch 'dbfail', "Database error creating calculated file size option";
+            }
+        }
     }
     else {
         $item = rset('Layout')->find($args->{id})
@@ -460,6 +477,11 @@ sub item
     {
         my ($calc) = rset('Calc')->search({ layout_id => $item->id });
         $itemhash->{calc} = $calc;
+    }
+    elsif ($item->type eq 'file')
+    {
+        my ($file_option) = rset('FileOption')->search({ layout_id => $item->id });
+        $itemhash->{file_option} = $file_option;
     }
     $itemhash;
 }

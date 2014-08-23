@@ -89,6 +89,17 @@
                     </div>
                 </div>
             </div>
+            <div id="divfile"
+                [% IF edititem.type != "file" %]
+                    style="display:none"
+                [% END %]
+                >
+                <div class="form-group">
+                    <label for="filesize">Maximum file size (KB):</label>
+                    <input type="text" class="form-control" name="filesize" id="filesize"
+                        value="[% edititem.file_option.filesize %]" placeholder="Leave blank for no limit">
+                </div>
+            </div>
             <div id="divrag"
                 [% IF edititem.type != "rag" %]
                     style="display:none"
@@ -334,26 +345,37 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divtree').show();
                     $('#divrag').hide();
                     $('#divcalc').hide();
+                    $('#divfile').hide();
                 } else if (val == "enum") {
                     $('#divenum').show();
                     $('#divtree').hide();
                     $('#divrag').hide();
                     $('#divcalc').hide();
+                    $('#divfile').hide();
                 } else if (val == "rag") {
                     $('#divrag').show();
                     $('#divtree').hide();
                     $('#divenum').hide();
                     $('#divcalc').hide();
+                    $('#divfile').hide();
                 } else if (val == "calc") {
                     $('#divrag').hide();
                     $('#divtree').hide();
                     $('#divenum').hide();
                     $('#divcalc').show();
+                    $('#divfile').hide();
+                } else if (val == "file") {
+                    $('#divrag').hide();
+                    $('#divtree').hide();
+                    $('#divenum').hide();
+                    $('#divcalc').hide();
+                    $('#divfile').show();
                 } else {
                     $('#divenum').hide();
                     $('#divtree').hide();
                     $('#divrag').hide();
                     $('#divcalc').hide();
+                    $('#divfile').hide();
                 }
             });
         }); 

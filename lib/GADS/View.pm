@@ -158,6 +158,17 @@ sub _column
 
         $c->{userinput} = 0;
     }
+    elsif ($col->type eq 'file')
+    {
+        $c->{userinput} = 1;
+        my ($file_option) = $col->file_options;
+        if ($file_option)
+        {
+            $c->{file_option} = {
+                filesize => $file_option->filesize,
+            };
+        }
+    }
     else {
         $c->{userinput} = 1;
     }
