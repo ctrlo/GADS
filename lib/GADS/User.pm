@@ -84,7 +84,7 @@ sub user($)
 
 sub update
 {
-    my ($class, $u, $args) = @_;
+    my ($self, $u, $args) = @_;
     my $user;
     $user->{firstname}    = $u->{firstname} or ouch 'badname', "Please enter a firstname";
     $user->{surname}      = $u->{surname}   or ouch 'badname', "Please enter a surname";
@@ -116,20 +116,35 @@ sub update
         $old->update($user);
     }
     else {
-        my $user     = rset('User')->create($user)
+        my $u = rset('User')->create($user)
             or ouch 'dbfail', "Database error when creating new user";
-        unless ($args->{register})
+        if ($args->{register})
         {
+            # Email admins with account request
+            my $admins = $self->all({ admins => 1 });
+            my @emails = map { $_->email } @$admins;
+            my $text = "A new account request has been received from the following person:\n\n";
+            $text .= "First name: $user->{firstname}, ";
+            $text .= "surname: $user->{surname}, ";
+            $text .= "email: $user->{email}\n";
+            my $msg = {
+                emails  => \@emails,
+                subject => "New account request",
+                text    => $text,
+            };
+            GADS::Email->send($msg);
+        }
+        else {
             my $url = $args->{url}
                 or ouch 'nourl', "Please provide a URL when creating a user";
             # By default, add all graphs to the user
             my $graphs = GADS::Graph->all;
             foreach my $graph (@$graphs)
             {
-                rset('UserGraph')->create({ user_id => $user->id, graph_id => $graph->id })
+                rset('UserGraph')->create({ user_id => $u->id, graph_id => $graph->id })
                     or ouch 'dbfail', "Database error when creating new user";
             }
-            my $reset      = $class->resetpwreq($user->id);
+            my $reset      = $self->resetpwreq($u->id);
             my $gadsname   = config->{gads}->{name};
             my ($instance) = rset('Instance')->all;
             my $msg        = $instance->email_welcome_text;
@@ -137,7 +152,7 @@ sub update
             $msg =~ s/\$PWDURL/$pwdurl/g;
             my $email = {
                 subject => $instance->email_welcome_subject,
-                emails  => [$user->email],
+                emails  => [$u->email],
                 text    => $msg,
             };
             GADS::Email->send($email);
@@ -268,7 +283,13 @@ sub delete
 
 sub all
 {
-    my @users = rset('User')->search({ deleted => 0, account_request => 0 })->all;
+    my ($self, $args) = @_;
+    my $search = {
+        deleted         => 0,
+        account_request => 0,
+    };
+    $search->{permission} = { '&' => ADMIN } if $args->{admins};
+    my @users = rset('User')->search($search)->all;
     \@users;
 }
 
