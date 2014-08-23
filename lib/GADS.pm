@@ -355,6 +355,8 @@ any '/view/:id' => sub {
             messageAdd({ danger => bleep });
         }
         else {
+            # Set current view to the one created/edited
+            session 'view_id' => $params->{view_id};
             # Then update any filters
             eval { GADS::View->filters($params->{view_id}, $values) };
             if (hug)
