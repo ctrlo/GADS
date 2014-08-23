@@ -1,3 +1,8 @@
+[% IF v %]
+    <h3>[% v.name %]</h3>
+[% ELSE %]
+    <h3>All data</h3>
+[% END %]
 <p>
     <div class="row">
         <div class="col-md-8">
@@ -16,8 +21,8 @@
                     <li role="presentation" class="divider"></li>
                     <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0">Create new view</a></li>
                 </ul>
-            [% IF view_id %]
-                <a href="/view/[% view_id %]" class="btn btn-default" role="button">Customise view</a>
+            [% IF v %]
+                <a href="/view/[% v.id %]" class="btn btn-default" role="button">Customise view</a>
             [% END %]
             [% IF user.permissions.create %]
                 <a href="/edit/" class="btn btn-default" role="button">New entry</a>

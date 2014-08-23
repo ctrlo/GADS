@@ -204,12 +204,12 @@ any '/data' => sub {
         };
 
         my $output  = template 'data' => {
-            subset      => $subset,,
-            records     => \@output,
-            columns     => $columns,
-            rag         => sub { GADS::Record->rag(@_) },
-            view_id     => $view_id,
-            page        => 'data'
+            subset  => $subset,,
+            records => \@output,
+            columns => $columns,
+            rag     => sub { GADS::Record->rag(@_) },
+            v       => GADS::View->view($view_id),  # View is reserved TT word
+            page    => 'data'
         };
         $output;
     }
