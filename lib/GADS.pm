@@ -791,7 +791,7 @@ any '/login' => sub {
         }
     }
 
-    if (param('email'))
+    if (param('signin'))
     {
         my $user = GADS::User->user({
             username => param('email'),
