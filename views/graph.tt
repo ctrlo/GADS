@@ -24,38 +24,27 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="email">Based on view:</label>
-                <select class="form-control" name="view_id">
-                    [% FOREACH v IN user.views %]
-                        [% IF edititem.view.id == v.id %]
-                            [% selected = "selected" %]
-                            [% userview = 1 %]
-                        [% ELSE %]
-                            [% selected = "" %]
-                        [% END %]
-                        <option value="[% v.id %]" [% selected %]>[% v.name %]</option>
-                    [% END %]
-                    [% UNLESS userview %]
-                        <option value="[% edititem.view.id %]" selected>[% edititem.view.name %]
-                            (private view of [% edititem.view.user.email %])
-                        </option>
+                <label for="email">Y-axis:</label>
+                <select class="form-control" name="y_axis">
+                    [% FOREACH column IN all_columns %]
+                        <option value="[% column.id %]" [% IF edititem.y_axis.id == column.id %]selected[% END %]>[% column.name %]</option>
                     [% END %]
                 </select>
             </div>
             <div class="form-group">
                 <label for="email">X-axis:</label>
-                <select class="form-control" name="xaxis">
+                <select class="form-control" name="x_axis">
                     [% FOREACH column IN all_columns %]
-                        <option value="[% column.id %]" [% IF edititem.layout.id == column.id %]selected[% END %]>[% column.name %]</option>
+                        <option value="[% column.id %]" [% IF edititem.x_axis.id == column.id %]selected[% END %]>[% column.name %]</option>
                     [% END %]
                 </select>
             </div>
             <div class="form-group">
                 <label for="email">X-axis grouping (optional):</label>
-                <select class="form-control" name="layout_id_group">
-                    <option value="" [% UNLESS edititem.layout_id_group %]selected[% END %]></option>
+                <select class="form-control" name="x_axis_grouping">
+                    <option value="" [% UNLESS edititem.x_axis_grouping %]selected[% END %]></option>
                     [% FOREACH dg IN dategroup.pairs %]
-                        <option value="[% dg.key %]" [% IF edititem.layout_id_group == dg.key %]selected[% END %]>
+                        <option value="[% dg.key %]" [% IF edititem.x_axis_grouping == dg.key %]selected[% END %]>
                             [% dg.key %]
                         </option>
                     [% END %]
@@ -63,17 +52,17 @@
             </div>
             <div class="form-group">
                 <label for="email">Y-axis:</label>
-                <select class="form-control" name="yaxis">
-                    <option value="count" [% IF edititem.yaxis == "count" %]selected[% END %]>Count total number of discrete values</option>
-                    <option value="sum" [% IF edititem.yaxis == "sum" %]selected[% END %]>Calculate total sum of field values</option>
+                <select class="form-control" name="y_axis_stack">
+                    <option value="count" [% IF edititem.y_axis_stack == "count" %]selected[% END %]>Count total number of discrete values</option>
+                    <option value="sum" [% IF edititem.y_axis_stack == "sum" %]selected[% END %]>Calculate total sum of field values</option>
                 </select>
             </div>
             <div class="form-group">
                 <label for="email">Group by (optional):</label>
-                <select class="form-control" name="layout_id2">
-                    <option value="0" [% UNLESS edititem.layout_id2.id %]selected[% END %]></option>
+                <select class="form-control" name="group_by">
+                    <option value="0" [% UNLESS edititem.group_by.id %]selected[% END %]></option>
                     [% FOREACH column IN all_columns %]
-                        <option value="[% column.id %]" [% IF edititem.layout_id2.id == column.id %]selected[% END %]>[% column.name %]</option>
+                        <option value="[% column.id %]" [% IF edititem.group_by.id == column.id %]selected[% END %]>[% column.name %]</option>
                     [% END %]
                 </select>
             </div>
@@ -134,7 +123,7 @@
                 <td>[% graph.type.ucfirst %]</td>
                 <td>[% graph.view.name %]</td>
                 <td>[% graph.layout.name %]</td>
-                <td>[% graph.layout_id2.name %]</td>
+                <td>[% graph.group_by.name %]</td>
             </tr>
         [% END %]
     </table>

@@ -88,22 +88,8 @@ hook before_template => sub {
 
 get '/' => sub {
 
-    my $todraw = GADS::Graph->all({ user => var('user') });
+    template 'index';
 
-    my @graphs;
-    foreach my $g (@$todraw)
-    {
-        # my @records = GADS::Record->current({ view_id => $g->view_id });
-        my $graph = GADS::Graph->data({ graph => $g }); # , records => \@records });
-        push @graphs, $graph if $graph;
-    }
-
-    my $output  = template 'index' => {
-        graphs      => \@graphs,
-        all_columns => GADS::View->columns,
-        page        => 'index'
-    };
-    $output;
 };
 
 any '/data' => sub {
@@ -123,7 +109,15 @@ any '/data' => sub {
         session 'page' => int $page;
     }
 
-    my $view_id = session 'view_id';
+    if (my $viewtype = param('viewtype'))
+    {
+        if ($viewtype eq 'graph' || $viewtype eq 'table')
+        {
+            session 'viewtype' => $viewtype;
+        }
+    }
+
+    my $view_id  = session 'view_id';
 
     my $columns;
     my $user = GADS::User->user({ id => session('user_id') });
@@ -134,85 +128,107 @@ any '/data' => sub {
         return forwardHome({ danger => bleep });
     }
 
-    session 'rows' => 50 unless session 'rows';
-    session 'page' => 1 unless session 'page';
+    my $params; # Variable for the template
 
-    # @records contains all the information for each required record
-    my $get = {
-        view_id => $view_id,
-        rows    => session('rows'),
-        page    => session('page'),
-    };
-
-    my @records = GADS::Record->current($get);
-    my $pages = $get->{pages};
-    # @output contains just the data itself, which can be sent straight to a CSV
-    my $options = defined param('download') ? { download => 1 } : {};
-    my @output = GADS::Record->data($view_id, \@records, $options);
-
-    my @colnames = ('Serial');
-    foreach my $column (@$columns)
+    if (session('viewtype') eq 'graph')
     {
-        push @colnames, $column->{name};
-    }
+        my $todraw = GADS::Graph->all({ user => var('user') });
 
-    if (param 'sendemail')
-    {
-        return forwardHome(
-            { danger => 'You do not have permission to send messages' }, 'data' )
-            unless var('user')->{permissions}->{admin};
-
-        # Collect all the actual record IDs, including RAG filters
-        my @ids;
-        foreach my $o (@output)
+        my @graphs;
+        foreach my $g (@$todraw)
         {
-            push @ids, $o->[0];
+            my $graph = GADS::Graph->data({ graph => $g, view_id => $view_id });
+            push @graphs, $graph if $graph;
         }
 
-        my $params = params;
+        $params = {
+            graphs      => \@graphs,
+            all_columns => GADS::View->columns,
+            viewtype    => 'graph',
+        };
 
-        eval { GADS::Email->message($params, \@records, \@ids, $user) };
-        if (hug)
-        {
-            messageAdd({ danger => bleep });
-        }
-        else {
-            return forwardHome(
-                { success => "The message has been sent successfully" }, 'data' );
-        }
     }
+    else {
+        session 'rows' => 50 unless session 'rows';
+        session 'page' => 1 unless session 'page';
 
-    if (defined param('download'))
-    {
-        my $csv;
-        eval { $csv = GADS::Record->csv(\@colnames, \@output) };
-        if (hug)
+        # @records contains all the information for each required record
+        my $get = {
+            view_id => $view_id,
+            rows    => session('rows'),
+            page    => session('page'),
+        };
+
+        my @records = GADS::Record->current($get);
+        my $pages = $get->{pages};
+        # @output contains just the data itself, which can be sent straight to a CSV
+        my $options = defined param('download') ? { download => 1 } : {};
+        my @output = GADS::Record->data($view_id, \@records, $options);
+
+        my @colnames = ('Serial');
+        foreach my $column (@$columns)
         {
-            messageAdd({ danger => bleep });
+            push @colnames, $column->{name};
         }
-        else {
-            my $now = DateTime->now();
-            send_file( \$csv, content_type => 'text/csv', filename => "$now.csv" );
-        }
-    }
-    else
-    {
+
         my $subset = {
             rows  => session('rows'),
             pages => $pages,
             page  => session('page'),
         };
 
-        my $output  = template 'data' => {
-            subset  => $subset,,
-            records => \@output,
-            columns => $columns,
-            rag     => sub { GADS::Record->rag(@_) },
-            v       => GADS::View->view($view_id),  # View is reserved TT word
-            page    => 'data'
+        $params = {
+            subset   => $subset,
+            records  => \@output,
+            columns  => $columns,
+            viewtype => 'table',
+            rag      => sub { GADS::Record->rag(@_) },
         };
-        $output;
+
+        if (param 'sendemail')
+        {
+            return forwardHome(
+                { danger => 'You do not have permission to send messages' }, 'data' )
+                unless var('user')->{permissions}->{admin};
+
+            # Collect all the actual record IDs, including RAG filters
+            my @ids;
+            foreach my $o (@output)
+            {
+                push @ids, $o->[0];
+            }
+
+            my $params = params;
+
+            eval { GADS::Email->message($params, \@records, \@ids, $user) };
+            if (hug)
+            {
+                messageAdd({ danger => bleep });
+            }
+            else {
+                return forwardHome(
+                    { success => "The message has been sent successfully" }, 'data' );
+            }
+        }
+
+        if (defined param('download'))
+        {
+            my $csv;
+            eval { $csv = GADS::Record->csv(\@colnames, \@output) };
+            if (hug)
+            {
+                messageAdd({ danger => bleep });
+            }
+            else {
+                my $now = DateTime->now();
+                send_file( \$csv, content_type => 'text/csv', filename => "$now.csv" );
+            }
+        }
     }
+
+    $params->{v}        = GADS::View->view($view_id),  # View is reserved TT word
+    $params->{page}     = 'data';
+    template 'data' => $params;
 };
 
 any '/account/?:action?/?' => sub {

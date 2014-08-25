@@ -6,134 +6,74 @@
 <p>
     <div class="row">
         <div class="col-md-8">
-            <div class="dropdown">
-                <a id="drop4" class="btn btn-primary" role="button" data-toggle="dropdown" href="#">View <b class="caret"></b></a>
-                <ul id="menu1" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop4">
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                        View type <span class="caret"></span>
+                </button>
+                <ul id="menu_type" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop_type">
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="?viewtype=table">Table</a></li>
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="?viewtype=graph">Graph</a></li>
+                </ul>
+            </div>
+            <div class="btn-group">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                        View <span class="caret"></span>
+                </button>
+                <ul id="menu_view" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop_view">
                     <li role="presentation" class="dropdown-header">Personal views</li>
-                    [% FOREACH v IN user.views %]
-                        [% IF lastv AND v.global != lastv.global %]
+                    [% FOREACH ve IN user.views %]
+                        [% IF lastv AND ve.global != lastv.global %]
                             <li role="presentation" class="divider"></li>
                             <li role="presentation" class="dropdown-header">Global views</li>
                         [% END %]
-                        <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?view=[% v.id %]">[% v.name %]</a></li>
-                        [% lastv = v %]
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?view=[% ve.id %]">[% ve.name %]</a></li>
+                        [% lastv = ve %]
                     [% END %]
                     <li role="presentation" class="divider"></li>
                     <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0">Create new view</a></li>
                 </ul>
+            </div>
             [% IF v %]
-                <a href="/view/[% v.id %]" class="btn btn-default" role="button">Customise view</a>
+                <div class="btn-group">
+                    <a href="/view/[% v.id %]" class="btn btn-default" role="button">Customise view</a>
+                </div>
             [% END %]
             [% IF user.permissions.create %]
-                <a href="/edit/" class="btn btn-default" role="button">New entry</a>
-            [% END %]
-            <a href="/data?download" class="btn btn-default" role="button">Download</a>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <form method="get" class="form-horizontal" role="form">
-                <div class="form-group">
-                    <div class="col-sm-4">
-                        <label for="inputEmail3" class="col-sm-2 control-label">Rows&nbsp;per&nbsp;page</label>
-                    </div>
-                    <div class="col-sm-8">
-                        <select class="form-control" name="rows" onchange="this.form.submit()">
-                            <option value="10" [% IF subset.rows == 10 %]selected[% END %]>10</option>
-                            <option value="50" [% IF subset.rows == 50 %]selected[% END %]>50</option>
-                            <option value="200" [% IF subset.rows == 200 %]selected[% END %]>200</option>
-                            <option value="500" [% IF subset.rows == 500 %]selected[% END %]>500</option>
-                        </select>
-                    </div>
+                <div class="btn-group">
+                    <a href="/edit/" class="btn btn-default" role="button">New entry</a>
                 </div>
-            </form>
+            [% END %]
+            [% IF viewtype == "table" %]
+                <div class="btn-group">
+                    <a href="/data?download" class="btn btn-default" role="button">Download</a>
+                </div>
+            [% END %]
         </div>
+        [% IF viewtype == "table" %]
+            <div class="col-md-4">
+                <form method="get" class="form-horizontal" role="form">
+                    <div class="form-group">
+                        <div class="col-sm-4">
+                            <label for="inputEmail3" class="col-sm-2 control-label">Rows&nbsp;per&nbsp;page</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <select class="form-control" name="rows" onchange="this.form.submit()">
+                                <option value="10" [% IF subset.rows == 10 %]selected[% END %]>10</option>
+                                <option value="50" [% IF subset.rows == 50 %]selected[% END %]>50</option>
+                                <option value="200" [% IF subset.rows == 200 %]selected[% END %]>200</option>
+                                <option value="500" [% IF subset.rows == 500 %]selected[% END %]>500</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        [% END %]
     </div>
 </p>
-<table class="table table-striped">
-    <tr>
-        <th>Serial</th>
-        [% peopcols = [] %]
-        [% FOREACH col IN columns %]
-            <th>[% col.name %]
-                [% IF col.type == "person" AND user.permissions.admin %]
-                    [% peopfield = "field" _ col.id %]
-                    [% peopcols.push(peopfield) %]
-                    <a href="" data-toggle="modal" data-target="#peopcol[% peopfield %]">
-                        <img src="/images/envw.png">
-                    </a>
-                [% END %]
-            </th>
-        [% END %]
-    </tr>
-    [% FOREACH record IN records %]
-    <tr>
-        <td><a href="/record/[% record.shift %]">[% record.shift %]</a></td>
-        [% FOREACH item IN record %]
-            <td>
-            [% li = loop.index %]
-            [% IF columns.$li.type == "rag" %]
-                <div class="circle
-                    [% item %]
-                    ">
-                </div>
-            [% ELSE %]
-                [% item %]
-            [% END %]
-            </td>
-        [% END %]
-    </tr>
-    [% END %]
-</table>
-<ul class="pagination">
-    [% IF subset.page == 1 %]
-        <li class="disabled"><span>&laquo;</span></li>
-    [% ELSE %]
-        <li><a href="?page=[% subset.page - 1 %]">&laquo;</a></li>
-    [% END %]
-    [% i = 0 %]
-    [% WHILE i < subset.pages %]
-        [% i = i + 1 %]
-        <li [% IF i == subset.page %]class="active"[% END %]><a href="?page=[% i %]">[% i %]</a></li>
-    [% END %]
-    [% IF subset.page == subset.pages %]
-        <li class="next disabled"><span>&raquo;</span></li>
-    [% ELSE %]
-        <li class="next"><a href="?page=[% subset.page + 1 %]">&raquo;</a></li>
-    [% END %]
-</ul>
 
-[% FOREACH peopcol IN peopcols %]
-    <!-- Modal -->
-    <div class="modal fade" id="peopcol[% peopcol %]" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form class="form-horizontal" role="form" method="post">
-                <input type="hidden" name="peopcol" value="[% peopcol %]">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title" id="myModalLabel">Send an email</h4>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="subject" class="col-sm-2 control-label">Subject</label>
-                        <div class="col-sm-10">
-                            <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="text" class="col-sm-2 control-label">Message</label>
-                        <div class="col-sm-10">
-                            <textarea class="form-control" id="text" name="text" rows="10"></textarea>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                    <button type="submit" name="sendemail" value="sendemail" class="btn btn-primary">Send email</button>
-                </div>
-                </form>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
+[% IF viewtype == "graph" %]
+    [% INCLUDE 'data_graph.tt' %]
+[% ELSE %]
+    [% INCLUDE 'data_table.tt' %]
 [% END %]
 

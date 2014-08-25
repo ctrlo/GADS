@@ -101,21 +101,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 graphs
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Graph>
-
-=cut
-
-__PACKAGE__->has_many(
-  "graphs",
-  "GADS::Schema::Result::Graph",
-  { "foreign.view_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 user
 
 Type: belongs_to
@@ -152,8 +137,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-09 01:13:12
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:StqL6yZL8JqgT09M79L94w
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-25 22:42:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:43v4iHtSI+RMc5J6V0DQ6g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

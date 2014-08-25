@@ -181,7 +181,6 @@ sub current($$)
             my $in = $joincount{$sprefix} == 1 ? '' : "_$joincount{$sprefix}"; # Join suffix
 
             my @searches = _search_construct $filter->{operator}, $filter->{value}, $filter->{column};
-            use Data::Dumper; say STDERR Dumper \@searches;
             while (@searches)
             {
                 my $sfield = shift @searches;

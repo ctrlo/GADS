@@ -1,0 +1,88 @@
+<table class="table table-striped">
+    <tr>
+        <th>Serial</th>
+        [% peopcols = [] %]
+        [% FOREACH col IN columns %]
+            <th>[% col.name %]
+                [% IF col.type == "person" AND user.permissions.admin %]
+                    [% peopfield = "field" _ col.id %]
+                    [% peopcols.push(peopfield) %]
+                    <a href="" data-toggle="modal" data-target="#peopcol[% peopfield %]">
+                        <img src="/images/envw.png">
+                    </a>
+                [% END %]
+            </th>
+        [% END %]
+    </tr>
+    [% FOREACH record IN records %]
+    <tr>
+        <td><a href="/record/[% record.shift %]">[% record.shift %]</a></td>
+        [% FOREACH item IN record %]
+            <td>
+            [% li = loop.index %]
+            [% IF columns.$li.type == "rag" %]
+                <div class="circle
+                    [% item %]
+                    ">
+                </div>
+            [% ELSE %]
+                [% item %]
+            [% END %]
+            </td>
+        [% END %]
+    </tr>
+    [% END %]
+</table>
+<ul class="pagination">
+    [% IF subset.page == 1 %]
+        <li class="disabled"><span>&laquo;</span></li>
+    [% ELSE %]
+        <li><a href="?page=[% subset.page - 1 %]">&laquo;</a></li>
+    [% END %]
+    [% i = 0 %]
+    [% WHILE i < subset.pages %]
+        [% i = i + 1 %]
+        <li [% IF i == subset.page %]class="active"[% END %]><a href="?page=[% i %]">[% i %]</a></li>
+    [% END %]
+    [% IF subset.page == subset.pages %]
+        <li class="next disabled"><span>&raquo;</span></li>
+    [% ELSE %]
+        <li class="next"><a href="?page=[% subset.page + 1 %]">&raquo;</a></li>
+    [% END %]
+</ul>
+
+[% FOREACH peopcol IN peopcols %]
+    <!-- Modal -->
+    <div class="modal fade" id="peopcol[% peopcol %]" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form class="form-horizontal" role="form" method="post">
+                <input type="hidden" name="peopcol" value="[% peopcol %]">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Send an email</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="subject" class="col-sm-2 control-label">Subject</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="text" class="col-sm-2 control-label">Message</label>
+                        <div class="col-sm-10">
+                            <textarea class="form-control" id="text" name="text" rows="10"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" name="sendemail" value="sendemail" class="btn btn-primary">Send email</button>
+                </div>
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+[% END %]
+

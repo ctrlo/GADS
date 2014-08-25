@@ -53,31 +53,31 @@ __PACKAGE__->table("graph");
   is_nullable: 1
   size: 5012
 
-=head2 view_id
+=head2 y_axis
 
   data_type: 'integer'
   is_foreign_key: 1
   is_nullable: 1
 
-=head2 yaxis
+=head2 y_axis_stack
 
   data_type: 'varchar'
   is_nullable: 1
   size: 45
 
-=head2 layout_id
+=head2 x_axis
 
   data_type: 'integer'
   is_foreign_key: 1
   is_nullable: 1
 
-=head2 layout_id_group
+=head2 x_axis_grouping
 
   data_type: 'varchar'
   is_nullable: 1
   size: 45
 
-=head2 layout_id2
+=head2 group_by
 
   data_type: 'integer'
   is_foreign_key: 1
@@ -104,15 +104,15 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 1024 },
   "description",
   { data_type => "varchar", is_nullable => 1, size => 5012 },
-  "view_id",
+  "y_axis",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "yaxis",
+  "y_axis_stack",
   { data_type => "varchar", is_nullable => 1, size => 45 },
-  "layout_id",
+  "x_axis",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "layout_id_group",
+  "x_axis_grouping",
   { data_type => "varchar", is_nullable => 1, size => 45 },
-  "layout_id2",
+  "group_by",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "stackseries",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
@@ -134,7 +134,7 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 layout
+=head2 group_by
 
 Type: belongs_to
 
@@ -143,29 +143,9 @@ Related object: L<GADS::Schema::Result::Layout>
 =cut
 
 __PACKAGE__->belongs_to(
-  "layout",
+  "group_by",
   "GADS::Schema::Result::Layout",
-  { id => "layout_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
-);
-
-=head2 layout_id2
-
-Type: belongs_to
-
-Related object: L<GADS::Schema::Result::Layout>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "layout_id2",
-  "GADS::Schema::Result::Layout",
-  { id => "layout_id2" },
+  { id => "group_by" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -189,18 +169,38 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 view
+=head2 x_axis
 
 Type: belongs_to
 
-Related object: L<GADS::Schema::Result::View>
+Related object: L<GADS::Schema::Result::Layout>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "view",
-  "GADS::Schema::Result::View",
-  { id => "view_id" },
+  "x_axis",
+  "GADS::Schema::Result::Layout",
+  { id => "x_axis" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 y_axis
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Layout>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "y_axis",
+  "GADS::Schema::Result::Layout",
+  { id => "y_axis" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -210,8 +210,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-08 16:16:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WTS/olJLJpOg6uoH+0Cd5A
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-25 22:42:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3oxpAvHoqv5jmR9uf7bONw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

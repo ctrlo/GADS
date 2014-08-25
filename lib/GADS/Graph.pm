@@ -23,6 +23,7 @@ use Dancer2::Plugin::DBIC qw(schema resultset rset);
 use GADS::View;
 use GADS::Util    qw(item_value);
 use Ouch;
+use Scalar::Util qw(looks_like_number);
 # use String::CamelCase qw(camelize);
 schema->storage->debug(1);
 
@@ -85,18 +86,18 @@ sub graph
         my $newgraph;
         $newgraph->{title}           = $args->{title} or ouch 'badvalue', "Please enter a title";
         $newgraph->{description}     = $args->{description};
-        $newgraph->{view_id}         = $args->{view_id} or ouch 'badvalue', "Please select a view";
-        $args->{yaxis} eq 'count' || $args->{yaxis} eq 'sum'
-            or ouch 'badvalue', "$args->{yaxis} is an invalid value for Y-axis";
-        $newgraph->{yaxis}           = $args->{yaxis};
-        $newgraph->{layout_id}       = $args->{xaxis} or ouch 'badvalue', "Please select a field for X-axis";
-        if ($args->{layout_id_group})
+        $newgraph->{y_axis}          = $args->{y_axis} or ouch 'badvalue', "Please select a Y-axis";
+        $args->{y_axis_stack} eq 'count' || $args->{y_axis_stack} eq 'sum'
+            or ouch 'badvalue', "$args->{y_axis_stack} is an invalid value for Y-axis";
+        $newgraph->{y_axis_stack}    = $args->{y_axis_stack};
+        $newgraph->{x_axis}          = $args->{x_axis} or ouch 'badvalue', "Please select a field for X-axis";
+        if ($args->{x_axis_grouping})
         {
-            grep { $args->{layout_id_group} eq $_ } keys dategroup
-                or ouch 'badvalue', "$args->{layout_id_group} is an invalid value for X-axis grouping";
+            grep { $args->{x_axis_grouping} eq $_ } keys dategroup
+                or ouch 'badvalue', "$args->{x_axis_grouping} is an invalid value for X-axis grouping";
         }
-        $newgraph->{layout_id_group} = $args->{layout_id_group};
-        $newgraph->{layout_id2}      = $args->{layout_id2} ? $args->{layout_id2} : undef;
+        $newgraph->{x_axis_grouping} = $args->{x_axis_grouping};
+        $newgraph->{group_by}        = $args->{group_by} ? $args->{group_by} : undef;
         $newgraph->{stackseries}     = $args->{stackseries} ? 1 : 0;
         grep { $args->{type} eq $_ } graphtypes
             or ouch 'badvalue', "Invalid graph type $newgraph->{type}";
@@ -139,95 +140,86 @@ sub data
     my ($class, $options) = @_;
     my $graph   = $options->{graph};
 
-    # Graph columns are taken directly from the view. It may not be possible
-    # to display them all though
-    my @columns; my $yaxis;
-    if ($graph->yaxis eq 'count')
+    my @columns; my $y_axis_stack;
+    if ($graph->y_axis_stack eq 'count')
     {
         # The count graph groups and counts values. As such, it's
         # only possible to display one field, so take only the first column
-        push @columns, shift GADS::View->columns({ view_id => $graph->view->id });
-        $yaxis = 'count';
+        push @columns, shift GADS::View->columns({ id => $graph->y_axis->id });
+        $y_axis_stack = 'count';
     }
-    elsif($graph->yaxis eq 'sum') {
-        push @columns, shift GADS::View->columns({ view_id => $graph->view->id });
-        # @columns = GADS::View->columns({ view_id => $graph->view->id });
-        $yaxis = 'sum';
+    elsif($graph->y_axis_stack eq 'sum') {
+        push @columns, shift GADS::View->columns({ id => $graph->y_axis->id });
+        $y_axis_stack = 'sum';
     }
     else {
-        ouch 'badparam', "Unknown graph yaxis value ".$graph->yaxis;
+        ouch 'badparam', "Unknown graph y_axis_stack value ".$graph->y_axis_stack;
     }
 
     my $series;
     my @xlabels; my @ylabels;
-    # The unique hash holds each field value as its key, and
-    # the array index associated with the field as its value
-    my %unique;
-    my %unique2;
 
     # $fieldgroup is the field to group by
-    my $groupcol  = shift GADS::View->columns({ id => $graph->layout->id });
-    my $groupcoltype = $graph->layout->type;
-    my $groupcol2;
-    $groupcol2 = shift GADS::View->columns({ id => $graph->layout_id2->id })
-        if $graph->layout_id2;
+    my $x_axis  = shift GADS::View->columns({ id => $graph->x_axis->id });
+    my $group_by;
+    $group_by = shift GADS::View->columns({ id => $graph->group_by->id })
+        if $graph->group_by;
 
     my $dtgroup;
     my ($datemin, $datemax);
-    if ($groupcoltype eq 'date')
+    if ($x_axis->{type} eq 'date')
     {
         my $date_fields;
-        if ($graph->layout_id_group eq 'year')
+        if ($graph->x_axis_grouping eq 'year')
         {
             $date_fields = {year => 1};
         }
-        elsif ($graph->layout_id_group eq 'month')
+        elsif ($graph->x_axis_grouping eq 'month')
         {
             $date_fields = {year => 1, month => 1};
         }
-        elsif ($graph->layout_id_group eq 'day')
+        elsif ($graph->x_axis_grouping eq 'day')
         {
             $date_fields = {year => 1, month => 1, day => 1};
         }
         else {
-            ouch 'badparam', "Unknown grouping for date: ".$graph->layout_id_group;
+            ouch 'badparam', "Unknown grouping for date: ".$graph->x_axis_grouping;
         }
         $dtgroup = {
             date_fields => $date_fields,
             epoch       => 1,
-            interval    => $graph->layout_id_group
+            interval    => $graph->x_axis_grouping
         };
     }
 
-    my $fieldgroup = "field".$graph->layout->id;
-
-    # $index2 used to count group2 unique values
-    my $index2 = 0;
+    # $y_group_index used to count y_group unique values
+    my $y_group_index = 0;
 
     my @colors = ('#FF6961', '#77DD77', '#FFB347', '#AEC6CF', '#FDFD96');
 
-    my @additional = ($groupcol);
-    push @additional, $groupcol2 if $groupcol2;
-    my @records = GADS::Record->current({ view_id => $graph->view_id, additional => \@additional });
+    my @additional = ($x_axis);
+    push @additional, $group_by if $group_by;
+    my @records = GADS::Record->current({ view_id => $options->{view_id}, additional => \@additional });
 
     # Go through each record, and count how many unique values
-    # there are for the field in question. Then define the unique
-    # hash value as above using the index count
+    # there are for the field in question. Then define the key
+    # of the xy_values hash using the index count
+    my %xy_values; my %y_group_values;
     foreach my $record (@records)
     {
-        my $val  = item_value($groupcol , $record, $dtgroup);
-        my $val2 = item_value($groupcol2, $record) if $groupcol2;
-        if (!defined $unique{$val})
+        my $val  = item_value($x_axis, $record, $dtgroup);
+        my $val2 = item_value($group_by, $record) if $group_by;
+        if (!defined $xy_values{$val})
         {
-            $unique{$val} = 1;
+            $xy_values{$val} = 1;
             push @xlabels, $val;
         }
-        if ($groupcol2 && !defined $unique2{$val2})
+        if ($group_by && !defined $y_group_values{$val2})
         {
-            $unique2{$val2} = { color => $colors[$index2], defined => 0 };
-            $index2++;
+            $y_group_values{$val2} = { color => $colors[$y_group_index], defined => 0 };
+            $y_group_index++;
         }
-        if ($groupcoltype eq 'date')
+        if ($x_axis->{type} eq 'date')
         {
             next unless $val;
             $datemin = $val if !defined $datemin || $datemin > $val;
@@ -244,7 +236,7 @@ sub data
         my $add = $dtgroup->{interval}.'s';
         while ($inc->epoch <= $datemax)
         {
-            $unique{$inc->epoch} = $count;
+            $xy_values{$inc->epoch} = $count;
             my $dg = dategroup;
             my $df = $dg->{$dtgroup->{interval}};
             push @xlabels, $inc->strftime($df);
@@ -256,7 +248,7 @@ sub data
     {
         foreach my $l (@xlabels)
         {
-            $unique{$l} = $count;
+            $xy_values{$l} = $count;
             $count++;
         }
     }
@@ -273,25 +265,28 @@ sub data
     foreach my $record (@records)
     {
         my $fieldcolval  = item_value($col, $record); # The actual value of the field
-        my $fieldcolval2 = item_value($groupcol2, $record) if $groupcol2;
+        my $fieldcolval2 = item_value($group_by, $record) if $group_by;
 
-        my $key = $yaxis eq 'count' ? $fieldcolval : $fieldcolval2;
+        my $key = $y_axis_stack eq 'count' ? $fieldcolval : $fieldcolval2;
         unless (defined $series->{$key})
         {
             # If not defined, zero out the field's values
             my @zero = (0) x $count;
             $series->{$key}->{data} = \@zero;
-            $series->{$key}->{group2} = $fieldcolval2;
+            $series->{$key}->{y_group} = $fieldcolval2;
         }
         # Finally increase by one the particlar value count in question
-        my $gval = item_value($groupcol, $record, $dtgroup);
-        my $idx = $unique{$gval};
-        if ($yaxis eq 'count')
+        my $gval = item_value($x_axis, $record, $dtgroup);
+        my $idx = $xy_values{$gval};
+        if ($y_axis_stack eq 'count')
         {
             $series->{$key}->{data}->[$idx]++;
         }
-        else {
+        elsif(looks_like_number $fieldcolval) {
             $series->{$key}->{data}->[$idx] += $fieldcolval if $fieldcolval;
+        }
+        else {
+            $series->{$key}->{data}->[$idx] = 0;
         }
     }
 
@@ -311,32 +306,32 @@ sub data
             my $label = $point ? $k : '';
             push @row, $label;
         }
-        my $group2 = $series->{$k}->{group2} || '';
+        my $y_group = $series->{$k}->{y_group} || '';
         my $showlabel;
-        if (!$group2 || $unique2{$group2}->{defined})
+        if (!$y_group || $y_group_values{$y_group}->{defined})
         {
             $showlabel = 'false';
         }
         else {
             $showlabel = 'true';
-            $unique2{$group2}->{defined} = 1;
+            $y_group_values{$y_group}->{defined} = 1;
         }
         $series->{$k}->{label} = {
             points        => \@row,
-            color         => $unique2{$group2}->{color},
+            color         => $y_group_values{$y_group}->{color},
             showlabel     => $showlabel,
             showline      => $graph->type eq "scatter" ? 'false' : 'true',
             markeroptions => $markeroptions,
-            label         => $group2
+            label         => $y_group
         };
     }
 
-    # Sort the series by group2, so that the groupings appear together on the chart
+    # Sort the series by y_group, so that the groupings appear together on the chart
     my @series = values $series;
-    @series = sort { $a->{group2} cmp $b->{group2} } @series if $groupcol2;
+    @series = sort { $a->{y_group} cmp $b->{y_group} } @series if $group_by;
 
     # Legend is shown for secondary groupings. No point otherwise.
-    my $showlegend = $graph->layout_id2 || $graph->type eq "pie" ? 'true' : false;
+    my $showlegend = $graph->group_by || $graph->type eq "pie" ? 'true' : false;
     # Other graph options from graph definition
     my $stackseries = $graph->stackseries ? 'true' : false;
     my $type = $graph->type ? $graph->type : 'line';

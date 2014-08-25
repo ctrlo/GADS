@@ -244,7 +244,7 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 graph_layout_id2s
+=head2 graph_groups_by
 
 Type: has_many
 
@@ -253,13 +253,13 @@ Related object: L<GADS::Schema::Result::Graph>
 =cut
 
 __PACKAGE__->has_many(
-  "graph_layout_id2s",
+  "graph_groups_by",
   "GADS::Schema::Result::Graph",
-  { "foreign.layout_id2" => "self.id" },
+  { "foreign.group_by" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 graph_layouts
+=head2 graph_y_axes
 
 Type: has_many
 
@@ -268,9 +268,24 @@ Related object: L<GADS::Schema::Result::Graph>
 =cut
 
 __PACKAGE__->has_many(
-  "graph_layouts",
+  "graph_y_axes",
   "GADS::Schema::Result::Graph",
-  { "foreign.layout_id" => "self.id" },
+  { "foreign.y_axis" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 graphs_x_axis
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Graph>
+
+=cut
+
+__PACKAGE__->has_many(
+  "graphs_x_axis",
+  "GADS::Schema::Result::Graph",
+  { "foreign.x_axis" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -365,8 +380,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-25 12:08:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:i4hbpng6yisDTWIOTQA0pw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-25 22:42:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Fdzd1tsIMvPgmIiFyIPWag
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
