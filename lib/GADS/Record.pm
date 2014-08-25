@@ -81,12 +81,10 @@ sub current($$)
         if (($c->{type} eq 'rag' || $c->{type} eq 'calc') && $c->{$c->{type}})
         {
             push @columns, @{$c->{$c->{type}}->{columns}};
-            $cache_cols{$c->{field}} = $c;
-        } elsif ($c->{type} eq 'person')
-        {
-            # Still need to make sure we have cache of person's full name
-            $cache_cols{$c->{field}} = $c;
         }
+        # Flag cache if need be - may beed updating
+        $cache_cols{$c->{field}} = $c
+            if $c->{hascache};
 
         # Value of enums are always "value" (joined table)
         push @prefetch, $c->{join};          # Add to prefetch list
@@ -108,7 +106,7 @@ sub current($$)
         $search->{approval} = 0;
     }
 
-    # First see if any calc or rag values are missing their cache values.
+    # First see if any cachable fields are missing their cache values.
     # If so, insert them
     my %calcsearch = %{$search}; # Only update rows from current result
     my @cache_cols_join;         # The fields to join
@@ -181,14 +179,20 @@ sub current($$)
             }
             $joincount{$sprefix}++;
             my $in = $joincount{$sprefix} == 1 ? '' : "_$joincount{$sprefix}"; # Join suffix
-            $fieldsearch = "$sprefix$in.value";
-            
-            my $svalue = _search_construct $filter->{operator}, $filter->{value}
-                or next;
 
-            # Underscore in mysql is special for like
-            $svalue->{'-like'} =~ s/\_/\\\_/g if $svalue->{'-like'};
-            $search->{$fieldsearch} = $svalue;
+            my @searches = _search_construct $filter->{operator}, $filter->{value}, $filter->{column};
+            use Data::Dumper; say STDERR Dumper \@searches;
+            while (@searches)
+            {
+                my $sfield = shift @searches;
+                my $svalue = shift @searches;
+                $sfield && $svalue or next;
+                $fieldsearch = "$sprefix$in.$sfield";
+
+                # Underscore in mysql is special for like
+                $svalue->{'-like'} =~ s/\_/\\\_/g if $svalue->{'-like'};
+                $search->{$fieldsearch} = $svalue;
+            }
         }
     }
 
@@ -267,23 +271,47 @@ sub _filter
 }
 
 sub _search_construct
-{   my ($operator, $value) = @_;
+{   my ($operator, $value, $column) = @_;
 
-    if ($operator eq "equal")
+    if ($column->{type} eq "daterange")
     {
-        { '=', $value};
+        # If it's a daterange, we have to be intelligent about the way the
+        # search is constructed. Greater than, less than, equals all require
+        # different values of the date range to be searched
+        if ($operator eq "equal")
+        {
+            ('value', { '=', $value});
+        }
+        elsif ($operator eq "gt")
+        {
+            ('from', { '>', $value});
+        }
+        elsif ($operator eq "lt")
+        {
+            ('to', { '<', $value});
+        }
+        elsif ($operator eq "contains")
+        {
+            ('from', { '<', $value}, 'to', { '>', $value});
+        }
     }
-    elsif ($operator eq "gt")
-    {
-        { '>', $value};
-    }
-    elsif ($operator eq "lt")
-    {
-        { '<', $value};
-    }
-    elsif ($operator eq "contains")
-    {
-        { '-like', "%$value%"};
+    else {
+        if ($operator eq "equal")
+        {
+            ('value', { '=', $value});
+        }
+        elsif ($operator eq "gt")
+        {
+            ('value', { '>', $value});
+        }
+        elsif ($operator eq "lt")
+        {
+            ('value', { '<', $value});
+        }
+        elsif ($operator eq "contains")
+        {
+            ('value', { '-like', "%$value%"});
+        }
     }
 }
 
@@ -477,6 +505,33 @@ sub person_update_value
     $value;
 }
 
+sub daterange
+{   my ($class, $column, $record) = @_;
+
+    my $field = $column->{field};
+    my $item  = $record->$field;
+
+    return undef unless $item; # Missing value
+
+    if (defined $item->value)
+    {
+        return $item->value;
+    }
+    else {
+        return $class->daterange_update_value($item);
+    }
+}
+
+sub daterange_update_value
+{   my ($class, $daterange) = @_;
+    my $value     = $daterange->from->ymd . " to " . $daterange->to->ymd;
+
+    $daterange->update({
+        value     => $value,
+    }) if $value ne $daterange->value;
+    $value;
+}
+
 sub approve
 {   my ($class, $id, $values, $uploads) = @_;
 
@@ -591,6 +646,24 @@ sub versions($$)
     \@records;
 }
 
+sub _field_write
+{
+    my ($column, $record, $value) = @_;
+    my $entry = {
+        record_id => $record->id,
+        layout_id => $column->{id},
+    };
+    if ($column->{type} eq "daterange")
+    {
+        $entry->{from} = $value->{from};
+        $entry->{to}   = $value->{to};
+    }
+    else {
+        $entry->{value} = $value;
+    }
+    $entry;
+}
+
 sub update
 {   my ($class, $params, $user, $uploads) = @_;
 
@@ -632,7 +705,17 @@ sub update
         my $fieldid = $column->{id};
 
         # Keep a record of all the old values so that we can compare
-        $oldvalue->{$fieldid} = ($old && $old->$fn) ? $old->$fn->value : undef;
+        if ($old && $old->$fn)
+        {
+            if ($column->{type} eq "daterange")
+            {
+
+                $oldvalue->{$fieldid} = { from => $old->$fn->from, to => $old->$fn->to };
+            }
+            else {
+                $oldvalue->{$fieldid} = $old->$fn->value;
+            }
+        }
 
         my $value = $params->{$fn};
 
@@ -647,7 +730,19 @@ sub update
         {
             # Convert to DateTime object if required
             $newvalue->{$fieldid} = $format->parse_datetime($value);
-            $newvalue->{$fieldid} or ouch 'invaliddate', "Invalid date \"$value\"";
+            $newvalue->{$fieldid} or ouch 'invaliddate', "Invalid date \"$value\" for $column->{name}";
+        }
+        elsif ($column->{type} eq 'daterange')
+        {
+            # Convert to DateTime objects
+            my ($from, $to) = split ' to ', $value;
+            $from && $to or ouch 'invaliddate', "Please select 2 dates for the date range $column->{name}";
+            my $f = _parse_daterange($from, $to, $format);
+            $f->{from} or ouch 'invaliddate', "Invalid from date in range: \"$from\" in $column->{name}";
+            $f->{to}   or ouch 'invaliddate', "Invalid to date in range: \"$to\" in $column->{name}";
+            # Swap dates around if from is after the to
+            ($f->{to}, $f->{from}) = ($f->{from}, $f->{to}) if DateTime->compare($f->{from}, $f->{to}) == 1;
+            $newvalue->{$fieldid} = $f;
         }
         elsif ($column->{type} eq 'file')
         {
@@ -794,22 +889,18 @@ sub update
             {
                 # Don't create a record for blank values. Doesn't work for
                 # enums and other fields that reference others
-                rset($table)->create({
-                    record_id => $record_rs->id,
-                    layout_id => $column->{id},
-                    value     => $v,
-                }) or ouch 'dbfail', "Failed to create database entry for field ".$column->{name};
+                my $entry = _field_write($column, $record_rs, $v);
+                rset($table)->create($entry)
+                    or ouch 'dbfail', "Failed to create database entry for field ".$column->{name};
             }
         }
         if ($approval_rs)
         {
             # Only need to write values that need approval
             next unless $appfields{$fieldid};
-            rset($table)->create({
-                record_id => $approval_rs->id,
-                layout_id => $column->{id},
-                value     => $newvalue->{$fieldid},
-            }) or ouch 'dbfail', "Failed to create approval database entry for field ".$column->{name};
+            my $entry = _field_write($column, $approval_rs, $newvalue->{$fieldid});
+            rset($table)->create($entry)
+                or ouch 'dbfail', "Failed to create approval database entry for field ".$column->{name};
         }
 
     }
@@ -822,6 +913,19 @@ sub update
             or ouch 'dbfail', "Database error updating current record tracking";
     }
     1;
+}
+
+sub _parse_daterange
+{
+    my ($from, $to, $parser) = @_;
+    $parser = DateTime::Format::Strptime->new(
+         pattern   => '%Y-%m-%d',
+         time_zone => 'local',
+    ) unless $parser;
+    {
+        from => $parser->parse_datetime($from),
+        to   => $parser->parse_datetime($to),
+    }
 }
 
 sub _changed
@@ -856,6 +960,11 @@ sub _changed
     elsif($field->{type} eq 'date')
     {
         return DateTime->compare($old, $new);
+    }
+    elsif($field->{type} eq 'daterange')
+    {
+        return DateTime->compare($old->{from}, $new->{from})
+            || DateTime->compare($old->{to}, $new->{to})
     }
 }
 

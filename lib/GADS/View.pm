@@ -173,6 +173,8 @@ sub _column
         $c->{userinput} = 1;
     }
 
+    my @cached = qw(rag calc person daterange);
+    $c->{hascache}   = grep( /$col->type/, @cached ),
     $c->{id}         = $col->id,
     $c->{name}       = $col->name,
     $c->{remember}   = $col->remember,

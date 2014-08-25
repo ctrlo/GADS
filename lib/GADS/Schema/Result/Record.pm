@@ -205,6 +205,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 dateranges
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Daterange>
+
+=cut
+
+__PACKAGE__->has_many(
+  "dateranges",
+  "GADS::Schema::Result::Daterange",
+  { "foreign.record_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 dates
 
 Type: has_many
@@ -361,8 +376,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-05 10:26:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1DRRdm7Eu1hO1uVB8bIHmw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-25 12:08:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:waoPWjelS2L+7rarKd8sXg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -176,26 +176,26 @@ sub data
     my ($datemin, $datemax);
     if ($groupcoltype eq 'date')
     {
-        my $only;
+        my $date_fields;
         if ($graph->layout_id_group eq 'year')
         {
-            $only = {year => 1};
+            $date_fields = {year => 1};
         }
         elsif ($graph->layout_id_group eq 'month')
         {
-            $only = {year => 1, month => 1};
+            $date_fields = {year => 1, month => 1};
         }
         elsif ($graph->layout_id_group eq 'day')
         {
-            $only = {year => 1, month => 1, day => 1};
+            $date_fields = {year => 1, month => 1, day => 1};
         }
         else {
             ouch 'badparam', "Unknown grouping for date: ".$graph->layout_id_group;
         }
         $dtgroup = {
-            only     => $only,
-            epoch    => 1,
-            interval => $graph->layout_id_group
+            date_fields => $date_fields,
+            epoch       => 1,
+            interval    => $graph->layout_id_group
         };
     }
 

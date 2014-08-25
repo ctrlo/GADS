@@ -98,10 +98,11 @@ sub item_value
         my $date = $record->$field ? $record->$field->value : '';
         $date or return '';
 
-        if ($options->{only})
+        # Whether to only select some fields from the date value
+        if ($options->{date_fields})
         {
             my $include;
-            foreach my $k (keys $options->{only})
+            foreach my $k (keys $options->{date_fields})
             {
                 $include->{$k} = $date->$k;
             }
@@ -118,6 +119,39 @@ sub item_value
         }
         else {
             return $date->ymd;
+        }
+    }
+    elsif ($column->{type} eq "daterange")
+    {
+        if ($raw)
+        {
+            return GADS::Record->daterange($column, $record);
+        }
+        my $date = $record->$field ? {from => $record->$field->from, to => $record->$field->to} : undef;
+        $date or return;
+
+        # Whether to only select some fields from the date value
+        if ($options->{date_fields})
+        {
+            my $include_from; my $include_to;
+            foreach my $k (keys $options->{date_fields})
+            {
+                $include_from->{$k} = $date->$k;
+                $include_to->{$k}   = $date->$k;
+            }
+            $date = {from => DateTime->new($include_from), to => DateTime->new($include_to)};
+        }
+
+        if ($options->{epoch})
+        {
+            return {from => $date->{from}->epoch, to => $date->{to}->epoch};
+        }
+        elsif (my $f = $options->{strftime})
+        {
+            return {from => $date->{from}->strftime($f), to => $date->{to}->strftime($f)};
+        }
+        else {
+            return GADS::Record->daterange($column, $record);
         }
     }
     elsif ($column->{type} eq "file")

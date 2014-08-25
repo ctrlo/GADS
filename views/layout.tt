@@ -20,6 +20,7 @@
                     <option value="string" [% IF edititem.type == "string" %]selected[% END %]>String</option>
                     <option value="intgr" [% IF edititem.type == "intgr" %]selected[% END %]>Integer</option>
                     <option value="date" [% IF edititem.type == "date" %]selected[% END %]>Date</option>
+                    <option value="daterange" [% IF edititem.type == "daterange" %]selected[% END %]>Date range</option>
                     <option value="enum" [% IF edititem.type == "enum" %]selected[% END %]>Multiple select</option>
                     <option value="tree" [% IF edititem.type == "tree" %]selected[% END %]>Tree</option>
                     <option value="file" [% IF edititem.type == "file" %]selected[% END %]>Document</option>
@@ -231,6 +232,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 [% IF item.type == "string" %]Text[% END %]
                 [% IF item.type == "intgr" %]Integer[% END %]
                 [% IF item.type == "date" %]Date[% END %]
+                [% IF item.type == "daterange" %]Date range[% END %]
                 [% IF item.type == "enum" %]Select[% END %]
                 [% IF item.type == "tree" %]Tree[% END %]
                 [% IF item.type == "file" %]File[% END %]
