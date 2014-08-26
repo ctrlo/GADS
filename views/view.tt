@@ -23,7 +23,7 @@
                             [% IF ucolumns.grep("^$id\$").size %]checked[% END %]
                         >
                     </td>
-                    <td>[% column.name %]</td>
+                    <td>[% column.name | html_entity %]</td>
                 </tr>
                 [% END %]
             </table>
