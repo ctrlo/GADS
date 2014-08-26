@@ -3,6 +3,7 @@ use strict;
 
 package GADS::Util;
 use base 'Exporter';
+use Regexp::Common "URI";
 
 my @permissions = qw/
   UPDATE
@@ -168,8 +169,15 @@ sub item_value
             return '';
         }
     }
-    else
+    elsif ($column->{type} eq "string")
     {
+        my $string = $record->$field ? $record->$field->value : $blank;
+        return $string if $raw;
+        $string =~ s( ($RE{URI}{HTTP}{-scheme => qr/https?/}) ) (<a href="$1">$1</a>)gx
+            if $string;
+        $string;
+    }
+    else {
         return $record->$field ? $record->$field->value : $blank;
     }
 }
