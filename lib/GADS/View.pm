@@ -72,8 +72,6 @@ sub delete
         or ouch 'dbfail', "There was a database error when deleting the view's layouts";
     rset('Filter')->search({ view_id => $view->id })->delete
         or ouch 'dbfail', "There was a database error when deleting the view's filters";
-    rset('Graph')->search({ view_id => $view->id })->delete
-        or ouch 'dbfail', "There was a database error when deleting the view's graphs";
     $view->delete
         or ouch 'dbfail', "There was a database error when deleting the view";
 }
