@@ -21,7 +21,7 @@
             <td>
             [% li = loop.index %]
             [% IF columns.$li.type == "rag" %]
-                <div class="circle
+                <div class="circ-large
                     [% item %]
                     ">
                 </div>

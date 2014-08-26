@@ -13,6 +13,7 @@
                 <ul id="menu_type" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop_type">
                     <li role="presentation"><a role="menuitem" tabindex="-1" href="?viewtype=table">Table</a></li>
                     <li role="presentation"><a role="menuitem" tabindex="-1" href="?viewtype=graph">Graph</a></li>
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="?viewtype=calendar">Calender</a></li>
                 </ul>
             </div>
             <div class="btn-group">
@@ -70,9 +71,10 @@
         [% END %]
     </div>
 </p>
-
 [% IF viewtype == "graph" %]
     [% INCLUDE 'data_graph.tt' %]
+[% ELSIF viewtype == "calendar" %]
+    [% INCLUDE 'data_calendar.tt' %]
 [% ELSE %]
     [% INCLUDE 'data_table.tt' %]
 [% END %]

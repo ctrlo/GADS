@@ -26,6 +26,9 @@
         <link rel="stylesheet" href="[% url.css %]/jstree.min.css" />
         <link rel="stylesheet" href="[% url.css %]/datepicker.css" />
         [% END %]
+        [% IF page == "data" AND viewtype == "calendar" %]
+            <link rel="stylesheet" href="[% url.css %]/calendar.min.css">
+        [% END %]
 
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
@@ -135,6 +138,10 @@
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.dateAxisRenderer.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasTextRenderer.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasAxisTickRenderer.js"></script>
+        [% END %]
+        [% IF page == "data" AND viewtype == "calendar" %]
+            <script type="text/javascript" src="[% url.js %]/underscore-min.js"></script>
+            <script type="text/javascript" src="[% url.js %]/calendar.min.js"></script>
         [% END %]
         <script type="text/javascript">
             if (typeof jscode != 'undefined') {

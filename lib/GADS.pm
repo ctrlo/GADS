@@ -92,6 +92,19 @@ get '/' => sub {
 
 };
 
+get '/data_calendar' => sub {
+
+    my $view_id = session 'view_id';
+    my $from    = param 'from';
+    my $to      = param 'to';
+
+    header "Cache-Control" => "max-age=0";
+    {
+        "success" => 1,
+        "result"  => GADS::Record->data_calendar($view_id, $from, $to),
+    }
+};
+
 any '/data' => sub {
 
     if (my $view_id = param('view'))
@@ -111,7 +124,7 @@ any '/data' => sub {
 
     if (my $viewtype = param('viewtype'))
     {
-        if ($viewtype eq 'graph' || $viewtype eq 'table')
+        if ($viewtype eq 'graph' || $viewtype eq 'table' || $viewtype eq 'calendar')
         {
             session 'viewtype' => $viewtype;
         }
@@ -147,6 +160,25 @@ any '/data' => sub {
             viewtype    => 'graph',
         };
 
+    }
+    elsif (session('viewtype') eq 'calendar')
+    {
+        # Get details of the view and work out color markers for date fields
+        my $columns = GADS::View->columns({ view_id => $view_id });
+        my @colors = qw/event-important event-success event-warning event-info event-inverse event-special/;
+        my %datecolors;
+        foreach my $column (@$columns)
+        {
+            if ($column->{type} eq "daterange" || $column->{type} eq "date")
+            {
+                $datecolors{$column->{name}} = shift @colors;
+            }
+        }
+
+        $params = {
+            datecolors => \%datecolors,
+            viewtype   => 'calendar',
+        }
     }
     else {
         session 'rows' => 50 unless session 'rows';

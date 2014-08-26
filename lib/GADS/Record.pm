@@ -75,6 +75,7 @@ sub current($$)
     }
     my %cache_cols; # Any column in the view that should be cached
     push @columns, @{$item->{additional}} if $item->{additional};
+    my @filters; # All the filters for this query
     foreach my $c (@columns)
     {
         # If it's a calculated/rag value, prefetch the columns in the calc
@@ -82,7 +83,31 @@ sub current($$)
         {
             push @columns, @{$c->{$c->{type}}->{columns}};
         }
-        # Flag cache if need be - may beed updating
+        elsif ($c->{type} eq "date" || $c->{type} eq "daterange")
+        {
+            # Apply any date filters if required
+            if (my $to = $item->{to})
+            {
+                my $f = {
+                    column   => $c,
+                    operator => 'lt',
+                    value    => $to->ymd,
+                    type     => 'or',
+                };
+                push @filters, $f;
+            }
+            if (my $from = $item->{from})
+            {
+                my $f = {
+                    column   => $c,
+                    operator => 'gt',
+                    value    => $from->ymd,
+                    type     => 'or',
+                };
+                push @filters, $f;
+            }
+        }
+        # Flag cache if need be - may need updating
         $cache_cols{$c->{field}} = $c
             if $c->{hascache};
 
@@ -160,40 +185,51 @@ sub current($$)
     # Now add all the filters as joins (we don't need to prefetch this data). However,
     # the filter might also be a column in the view from before, in which case add
     # it to, or use, the prefetch. We use the tracking variables from above.
-    if (my $view_id = $item->{view_id})
-    {
-        foreach my $filter (@{GADS::View->filters($view_id)})
-        {
-            my $field = $filter->{column}->{field};
-            my $fieldsearch;
 
-            # As per the prefix, what we join depends on the type of field
-            my $sprefix = $filter->{column}->{sprefix};
-            my $joinv   = $filter->{column}->{join};
-            if ($prefetch_used{$sprefix})
+    # Add all the view's filters onto any existing ones
+    push @filters, @{GADS::View->filters($item->{view_id})} if $item->{view_id};
+    # Any filters to OR to the overall query. These will probably be date
+    # filters specified above for a subset of results
+    my @or_filters;
+    foreach my $filter (@filters)
+    {
+        my $field = $filter->{column}->{field};
+        my $fieldsearch;
+
+        # As per the prefix, what we join depends on the type of field
+        my $sprefix = $filter->{column}->{sprefix};
+        my $joinv   = $filter->{column}->{join};
+        if ($prefetch_used{$sprefix})
+        {
+            push @prefetch, $joinv;
+        }
+        else {
+            push @join, $joinv;
+        }
+        $joincount{$sprefix}++;
+        my $in = $joincount{$sprefix} == 1 ? '' : "_$joincount{$sprefix}"; # Join suffix
+
+        my @searches = _search_construct $filter->{operator}, $filter->{value}, $filter->{column};
+        while (@searches)
+        {
+            my $sfield = shift @searches;
+            my $svalue = shift @searches;
+            $sfield && $svalue or next;
+            $fieldsearch = "$sprefix$in.$sfield";
+
+            # Underscore in mysql is special for like
+            $svalue->{'-like'} =~ s/\_/\\\_/g if $svalue->{'-like'};
+            if ($filter->{type} && $filter->{type} eq 'or')
             {
-                push @prefetch, $joinv;
+                push @or_filters, {$fieldsearch => $svalue};
             }
             else {
-                push @join, $joinv;
-            }
-            $joincount{$sprefix}++;
-            my $in = $joincount{$sprefix} == 1 ? '' : "_$joincount{$sprefix}"; # Join suffix
-
-            my @searches = _search_construct $filter->{operator}, $filter->{value}, $filter->{column};
-            while (@searches)
-            {
-                my $sfield = shift @searches;
-                my $svalue = shift @searches;
-                $sfield && $svalue or next;
-                $fieldsearch = "$sprefix$in.$sfield";
-
-                # Underscore in mysql is special for like
-                $svalue->{'-like'} =~ s/\_/\\\_/g if $svalue->{'-like'};
                 $search->{$fieldsearch} = $svalue;
             }
         }
     }
+
+    $search->{'-or'} = \@or_filters if @or_filters;
 
     my @all;
     if ($item->{record_id})
@@ -357,6 +393,79 @@ sub data
         push @output, \@rec;
     }
     @output;
+}
+
+sub data_calendar
+{
+    my ($self, $view_id, $from, $to) = @_;
+
+    my $fromdt  = DateTime->from_epoch( epoch => ( $from / 1000 ) );
+    my $todt    = DateTime->from_epoch( epoch => ( $to / 1000 ) );
+    my @records = $self->current({ view_id => $view_id, from => $fromdt, to => $todt });
+    my $columns = GADS::View->columns({ view_id => $view_id });
+
+    my @colors = qw/event-important event-success event-warning event-info event-inverse event-special/;
+    my @result; my %datecolors;
+    foreach my $record (@records)
+    {
+        my @dates; my @titles;
+        foreach my $column (@$columns)
+        {
+            if ($column->{type} eq "daterange" || $column->{type} eq "date")
+            {
+                # Create colour if need be
+                $datecolors{$column->{id}} = shift @colors unless $datecolors{$column->{id}};
+
+                # Set colour
+                my $color = $datecolors{$column->{id}};
+
+                # Get item value
+                my $d = item_value($column, $record, {epoch=>1});
+
+                # Push value onto stack
+                if ($column->{type} eq "daterange")
+                {
+                    $d->{color} = $color;
+                    push @dates, $d;
+                }
+                else {
+                    push @dates, {
+                        from => $d,
+                        to   => $d,
+                        color => $color,
+                    };
+                }
+            }
+            else {
+                # Not a date value, push onto title
+                my $v = item_value($column, $record);
+                push @titles, $v if $v;
+            }
+        }
+
+        # Create title label
+        my $title = join ' - ', @titles;
+        if (length $title > 30)
+        {
+            $title = substr($title, 0, 26).'...';
+        }
+
+        foreach my $d (@dates)
+        {
+            next unless $d->{from} && $d->{to};
+            my $item = {
+                "url"   => "/record/".$record->id,
+                "class" => $d->{color},
+                "title" => $title,
+                "id"    => $record->id,
+                "start" => $d->{from}*1000,
+                "end"   => $d->{to}*1000,
+            };
+            push @result, $item;
+        }
+    }
+
+    \@result;
 }
 
 sub rag
