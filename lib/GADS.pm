@@ -817,6 +817,10 @@ any '/login' => sub {
         context->destroy_session;
     }
 
+    # Don't allow login page to be displayed when logged-in, to prevent
+    # user thinking they are logged out when they are not
+    return forwardHome({}, '') if session 'user_id';
+
     # Request a password reset
     if (param('resetpwd'))
     {
@@ -895,6 +899,7 @@ sub forwardHome {
 
 sub messageAdd($) {
     my $message = shift;
+    return unless keys %$message;
     my $text    = ( values %$message )[0];
     my $type    = ( keys %$message )[0];
     my $msgs    = session 'messages';
