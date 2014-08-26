@@ -21,14 +21,18 @@
                         View <span class="caret"></span>
                 </button>
                 <ul id="menu_view" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop_view">
-                    <li role="presentation" class="dropdown-header">Personal views</li>
+                    [% first = 1 %]
                     [% FOREACH ve IN user.views %]
-                        [% IF lastv AND ve.global != lastv.global %]
-                            <li role="presentation" class="divider"></li>
+                        [% IF first AND NOT ve.global %]
+                            <li role="presentation" class="dropdown-header">Personal views</li>
+                        [% ELSIF (first AND NOT ve.gloabl) OR (lastv AND ve.global != lastv.global) %]
+                            [% UNLESS first %]
+                                <li role="presentation" class="divider"></li>
+                            [% END %]
                             <li role="presentation" class="dropdown-header">Global views</li>
                         [% END %]
                         <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?view=[% ve.id %]">[% ve.name | html_entity %]</a></li>
-                        [% lastv = ve %]
+                        [% lastv = ve %][% first = 0 %]
                     [% END %]
                     <li role="presentation" class="divider"></li>
                     <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0">Create new view</a></li>
