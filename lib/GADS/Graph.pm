@@ -229,7 +229,7 @@ sub data
 
     @xlabels = sort @xlabels;
     my $count = 0;
-    if ($dtgroup)
+    if ($dtgroup && $datemin && $datemax)
     {
         @xlabels = ();
         my $inc = DateTime->from_epoch( epoch => $datemin );
