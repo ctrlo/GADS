@@ -564,6 +564,7 @@ any '/user/?:id?' => sub {
     if (param('submit') && !param('neworganisation') && !param('newtitle'))
     {
         my $values = params;
+        delete $values->{id} if param 'account_request';
 
         eval { GADS::User->update($values, {url => request->base}) };
         if (hug)
