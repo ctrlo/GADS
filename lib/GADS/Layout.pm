@@ -222,8 +222,9 @@ sub delete
         or ouch 'notfound', "Unable to find item with ID $id";
     my @graphs = rset('Graph')->search(
         [
-            {layout_id => $item->id},
-            {layout_id2 => $item->id}
+            { x_axis => $item->id   },
+            { y_axis => $item->id   },
+            { group_by => $item->id },
         ]
     )->all;
     if (@graphs)
