@@ -3,7 +3,7 @@
         <th>Serial</th>
         [% peopcols = [] %]
         [% FOREACH col IN columns %]
-            <th>[% col.name %]
+            <th>[% col.name | html_entity %]
                 [% IF col.type == "person" AND user.permissions.admin %]
                     [% peopfield = "field" _ col.id %]
                     [% peopcols.push(peopfield) %]

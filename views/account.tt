@@ -10,7 +10,7 @@
                                 <label>
                                     <input type="checkbox" name="graphs" value="[% graph.id %]"
                                         [% IF graph.selected %]checked[% END %]
-                                    >[% graph.title %]
+                                    >[% graph.title | html_entity %]
                                 </label>
                             </div>
                         [% END %]
@@ -34,7 +34,7 @@
                                 <label>
                                     <input type="checkbox" name="graphs" value="[% graph.id %]"
                                         [% IF graph.selected %]checked[% END %]
-                                    >[% graph.title %]
+                                    >[% graph.title | html_entity %]
                                 </label>
                             </div>
                         [% END %]

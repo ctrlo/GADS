@@ -113,7 +113,7 @@
                         [% opts = "" %]
                     [% END %]
                     <input type="text" class="[% class %]" id="[% col.id %]"
-                        name="[% field %]" value="[% IF record %][% value %][% END %]" [% opts %] [% readonly %] >
+                        name="[% field %]" value="[% IF record %][% value | html_entity %][% END %]" [% opts %] [% readonly %] >
                 [% END %]
                 </div>
             [% END %]

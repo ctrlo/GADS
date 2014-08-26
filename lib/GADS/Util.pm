@@ -4,6 +4,7 @@ use strict;
 package GADS::Util;
 use base 'Exporter';
 use Regexp::Common "URI";
+use HTML::Entities;
 
 my @permissions = qw/
   UPDATE
@@ -80,7 +81,7 @@ sub item_value
         {
             return $record->$field ? $record->$field->value->id : undef;
         }
-        return GADS::Record->person($column, $record);
+        return encode_entities(GADS::Record->person($column, $record));
     }
     elsif ($column->{type} eq "enum" || $column->{type} eq 'tree')
     {
@@ -88,7 +89,7 @@ sub item_value
         {
             return $record->$field && $record->$field->value ? $record->$field->value->id : $blank;
         }
-        return $record->$field && $record->$field->value ? $record->$field->value->value : $blank;
+        return $record->$field && $record->$field->value ? encode_entities($record->$field->value->value) : $blank;
     }
     elsif ($column->{type} eq "date")
     {
@@ -163,6 +164,7 @@ sub item_value
             my $filename = $record->$field->value->name;
             return $filename if $options->{download};
             my $id = $record->$field->value->id;
+            $filename = encode_entities($filename);
             return qq(<a href="/file/$id">$filename</a>);
         }
         else {
@@ -173,6 +175,7 @@ sub item_value
     {
         my $string = $record->$field ? $record->$field->value : $blank;
         return $string if $raw;
+        $string = encode_entities($string);
         $string =~ s( ($RE{URI}{HTTP}{-scheme => qr/https?/}) ) (<a href="$1">$1</a>)gx
             if $string;
         $string;

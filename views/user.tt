@@ -14,15 +14,15 @@
             <input type="hidden" name="page" value="[% page %]">
             <div class="form-group">
                 <label for="firstname">Firstname:</label>
-                <input type="text" class="form-control" id="firstname" name="firstname" value="[% edituser.firstname %]">
+                <input type="text" class="form-control" id="firstname" name="firstname" value="[% edituser.firstname | html_entity %]">
             </div>
             <div class="form-group">
                 <label for="email">Surname:</label>
-                <input type="text" class="form-control" id="surname" name="surname" value="[% edituser.surname %]">
+                <input type="text" class="form-control" id="surname" name="surname" value="[% edituser.surname | html_entity %]">
             </div>
             <div class="form-group">
                 <label for="email">Email:</label>
-                <input type="text" class="form-control" id="email" name="email" value="[% edituser.email %]">
+                <input type="text" class="form-control" id="email" name="email" value="[% edituser.email | html_entity %]">
             </div>
             <div class="form-group">
                 <label for="title">
@@ -36,7 +36,7 @@
                         <option></option>
                     [% END %]
                     [% FOREACH title IN titles %]
-                        <option value="[% title.id %]" [% IF edituser.title.id == title.id %]selected[% END %]>[% title.name %]</option>
+                        <option value="[% title.id %]" [% IF edituser.title.id == title.id %]selected[% END %]>[% title.name | html_entity %]</option>
                     [% END %]
                 </select>
             </div>
@@ -53,7 +53,7 @@
                     [% END %]
                     [% FOREACH organisation IN organisations %]
                         <option value="[% organisation.id %]"
-                            [% IF edituser.organisation.id == organisation.id %]selected[% END %]>[% organisation.name %]
+                            [% IF edituser.organisation.id == organisation.id %]selected[% END %]>[% organisation.name | html_entity %]
                         </option>
                     [% END %]
                 </select>
@@ -230,11 +230,11 @@
     [% FOREACH edituser IN users %]
         <tr>
             <td><a href="/user/[% edituser.id %]">[% edituser.id %]</a></td>
-            <td>[% edituser.title.name %]</td>
-            <td>[% edituser.surname %]</td>
-            <td>[% edituser.firstname %]</td>
-            <td>[% edituser.email %]</td>
-            <td>[% edituser.organisation.name %]</td>
+            <td>[% edituser.title.name | html_entity %]</td>
+            <td>[% edituser.surname | html_entity %]</td>
+            <td>[% edituser.firstname | html_entity %]</td>
+            <td>[% edituser.email | html_entity %]</td>
+            <td>[% edituser.organisation.name | html_entity %]</td>
         </tr>
     [% END %]
 </table>
@@ -250,9 +250,9 @@
         [% FOREACH register_request IN register_requests %]
             <tr>
                 <td><a href="/user/[% register_request.id %]">[% register_request.id %]</a></td>
-                <td>[% register_request.surname %]</td>
-                <td>[% register_request.firstname %]</td>
-                <td>[% register_request.email %]</td>
+                <td>[% register_request.surname | html_entity %]</td>
+                <td>[% register_request.firstname | html_entity %]</td>
+                <td>[% register_request.email | html_entity %]</td>
             </tr>
         [% END %]
     </table>

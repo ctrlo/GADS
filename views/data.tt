@@ -1,5 +1,5 @@
 [% IF v %]
-    <h3>[% v.name %]</h3>
+    <h3>[% v.name | html_entity %]</h3>
 [% ELSE %]
     <h3>All data</h3>
 [% END %]
@@ -27,7 +27,7 @@
                             <li role="presentation" class="divider"></li>
                             <li role="presentation" class="dropdown-header">Global views</li>
                         [% END %]
-                        <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?view=[% ve.id %]">[% ve.name %]</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?view=[% ve.id %]">[% ve.name | html_entity %]</a></li>
                         [% lastv = ve %]
                     [% END %]
                     <li role="presentation" class="divider"></li>

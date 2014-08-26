@@ -10,7 +10,7 @@
             [% IF autoserial %]
                 <td><a href="/approval/[% approve.id %]">[% approve.current.id %]</a></td>
             [% ELSE %]
-                <td><a href="/approval/[% approve.id %]">[% approve.current.serial %]</a></td>
+                <td><a href="/approval/[% approve.id %]">[% approve.current.serial | html_entity %]</a></td>
             [% END %]
         </tr>
     [% END %]

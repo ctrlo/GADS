@@ -9,11 +9,11 @@
             [% END %]
             <div class="form-group">
                 <label for="firstname">Title:</label>
-                <input type="text" name="title" class="form-control" name="name" value="[% edititem.title %]">
+                <input type="text" name="title" class="form-control" name="name" value="[% edititem.title | html_entity %]">
             </div>
             <div class="form-group">
                 <label for="firstname">Description:</label>
-                <textarea class="form-control" name="description" rows="3">[% edititem.description %]</textarea>
+                <textarea class="form-control" name="description" rows="3">[% edititem.description | html_entity %]</textarea>
             </div>
             <div class="form-group">
                 <label for="email">Type:</label>
@@ -119,10 +119,10 @@
         [% FOREACH graph IN graphs %]
             <tr>
                 <td><a href="/graph/[% graph.id %]">Edit</a></td>
-                <td>[% graph.title %]
+                <td>[% graph.title | html_entity %]
                 <td>[% graph.type.ucfirst %]</td>
-                <td>[% graph.view.name %]</td>
-                <td>[% graph.layout.name %]</td>
+                <td>[% graph.view.name | html_entity %]</td>
+                <td>[% graph.layout.name | html_entity %]</td>
                 <td>[% graph.group_by.name %]</td>
             </tr>
         [% END %]

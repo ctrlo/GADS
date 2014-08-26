@@ -12,7 +12,7 @@
             [% END %]
             <div class="form-group">
                 <label for="name">Name:</label>
-                <input type="text" class="form-control" id="name" name="name" value="[% edititem.name %]">
+                <input type="text" class="form-control" id="name" name="name" value="[% edititem.name | html_entity %]">
             </div>
             <div class="form-group">
                 <label for="type">Type:</label>
@@ -74,7 +74,7 @@
                             <div class="request-row">
                                     <div class="col-md-11">
                                         <p>
-                                        <input type="text" class="form-control" name="enumval[% enumval.id %]" value="[% enumval.value %]">
+                                        <input type="text" class="form-control" name="enumval[% enumval.id %]" value="[% enumval.value | html_entity %]">
                                         </p>
                                     </div>
                                     <button type="button" class="close closeme pull-left">&times;</button>
@@ -227,7 +227,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
     [% FOREACH item IN items %]
         <tr>
             <td><a href="/layout/[% item.id %]">Edit</a></td>
-            <td>[% item.name %]
+            <td>[% item.name | html_entity %]
             <td>
                 [% IF item.type == "string" %]Text[% END %]
                 [% IF item.type == "intgr" %]Integer[% END %]

@@ -5,7 +5,7 @@
         <div class="col-md-6">
             <div class="form-group">
                 <label for="viewname">View name:</label>
-                <input type="text" class="form-control" id="viewname" name="viewname" value="[% v.name %]">
+                <input type="text" class="form-control" id="viewname" name="viewname" value="[% v.name | html_entity %]">
             </div>
             [% IF user.permissions.admin %]
                 <div class="checkbox">
@@ -135,7 +135,7 @@
                 <p>
                     <select class="form-control" name="filfield[% fid %][% newf %]">
                     [% FOR column IN all_columns %]
-                        <option value="[% column.id %]" [% IF fil.column.id == column.id %]selected[% END %]>[% column.name %]</option>
+                        <option value="[% column.id %]" [% IF fil.column.id == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
                     [% END %]
                     </select>
                 </p>
@@ -151,7 +151,7 @@
             </div>
             <div class="col-md-3">
                 <p>
-                <input type="text" class="form-control" name="filvalue[% fid %]" value="[% fil.value %]">
+                <input type="text" class="form-control" name="filvalue[% fid %]" value="[% fil.value | html_entity %]">
                 </p>
             </div>
             <button type="button" class="close closeme pull-left">&times;</button>
