@@ -219,6 +219,9 @@ any '/data' => sub {
 
         if (param 'sendemail')
         {
+            forwardHome({ danger => "There are no records in this view and therefore nobody to email"}, 'data')
+                unless @records;
+
             return forwardHome(
                 { danger => 'You do not have permission to send messages' }, 'data' )
                 unless var('user')->{permissions}->{admin};
@@ -245,6 +248,9 @@ any '/data' => sub {
 
         if (defined param('download'))
         {
+            forwardHome({ danger => "There are no records to download in this view"}, 'data')
+                unless @records;
+
             my $csv;
             eval { $csv = GADS::Record->csv(\@colnames, \@output) };
             if (hug)
