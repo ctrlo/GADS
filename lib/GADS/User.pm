@@ -245,18 +245,6 @@ sub delete
     rset('UserGraph')->search({ user_id => $user->id })->delete
         or ouch 'dbfail', "There was a database error when removing old user graphs";
 
-    # We want to remove all views for the user, but some may have been
-    # used for graphs. For these ones, set the view to global
-    rset('View')->search({
-        user_id     => $user->id,
-        'graphs.id' => {-not => undef},
-    },{
-        join => 'graphs',
-    })->update({
-        global => 1,
-        user_id => undef,
-    });
-
     my $views = rset('View')->search({ user_id => $user->id });
     my @views;
     foreach my $v ($views->all)
