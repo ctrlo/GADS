@@ -129,7 +129,9 @@ sub item_value
         {
             return GADS::Record->daterange($column, $record);
         }
-        my $date = $record->$field ? {from => $record->$field->from, to => $record->$field->to} : undef;
+        my $date = $record->$field && $record->$field->from && $record->$field->to
+                 ? {from => $record->$field->from, to => $record->$field->to}
+                 : undef;
         $date or return;
 
         # Whether to only select some fields from the date value
