@@ -122,12 +122,16 @@ any '/data' => sub {
         session 'page' => int $page;
     }
 
-    if (my $viewtype = param('viewtype'))
+    my $viewtype;
+    if ($viewtype = param('viewtype'))
     {
         if ($viewtype eq 'graph' || $viewtype eq 'table' || $viewtype eq 'calendar')
         {
             session 'viewtype' => $viewtype;
         }
+    }
+    else {
+        $viewtype = session('viewtype') || 'table';
     }
 
     my $view_id  = session 'view_id';
@@ -143,7 +147,7 @@ any '/data' => sub {
 
     my $params; # Variable for the template
 
-    if (session('viewtype') eq 'graph')
+    if ($viewtype eq 'graph')
     {
         my $todraw = GADS::Graph->all({ user => var('user') });
 
@@ -161,7 +165,7 @@ any '/data' => sub {
         };
 
     }
-    elsif (session('viewtype') eq 'calendar')
+    elsif ($viewtype eq 'calendar')
     {
         # Get details of the view and work out color markers for date fields
         my $columns = GADS::View->columns({ view_id => $view_id });
