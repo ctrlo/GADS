@@ -2,7 +2,9 @@
             [% FOREACH tree IN trees %]
                 $('#jstree[% tree.id %]')
                 .on('changed.jstree', function (e, data) {
-                    document.getElementById('treeval[% tree.id %]').value =  data.instance.get_node(data.selected[0]).id;
+                    var newval = data.instance.get_node(data.selected[0]).id;
+                    if (typeof newval == 'undefined') { newval = ''; }
+                    document.getElementById('treeval[% tree.id %]').value = newval;
                 })
                 .jstree({
                     "core" : {
