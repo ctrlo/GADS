@@ -23,6 +23,10 @@
 </div>
 <p></p>
 <table class="table table-striped">
+    <tr>
+        <th>Last updated by</th>
+        <td>[% record.createdby.value %]</td>
+    </tr>
     [% FOREACH col IN all_columns %]
         [% NEXT IF col.type == "rag" OR col.type == "calc" %]
         <tr>

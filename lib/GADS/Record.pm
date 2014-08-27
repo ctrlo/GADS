@@ -731,7 +731,7 @@ sub _field_write
 }
 
 sub approve
-{   my ($class, $id, $values, $uploads) = @_;
+{   my ($class, $user, $id, $values, $uploads) = @_;
 
     # Search for records requiring approval
     my $search->{approval} = 1;
@@ -841,7 +841,7 @@ sub approve
             }) or ouch 'dbfail', "Failed to create database entry for appproved field ".$col->{name};
         }
     }
-    $r->update({ approval => 0, record_id => undef, created => \"NOW()" })
+    $r->update({ approval => 0, record_id => undef, approvedby => $user->{id}, created => \"NOW()" })
         or ouch 'dbfail', "Database error when removing approval status from updated record";
     rset('Current')->find($r->current_id)->update({ record_id => $r->id })
         or ouch 'dbfail', "Database error when updating current record tracking";
@@ -991,7 +991,7 @@ sub update
 
     my $rid = $record_rs ? $record_rs->id
                          : $old ? $old->id : undef;
-    my $approval_rs = approval_rs($current_id, $rid) if $need_app;
+    my $approval_rs = approval_rs($current_id, $rid, $user) if $need_app;
 
     unless ($old)
     {
@@ -1131,12 +1131,13 @@ sub record_rs
 
 sub approval_rs
 {
-    my ($current_id, $record_id) = @_;
+    my ($current_id, $record_id, $user) = @_;
     my $record;
     $record->{current_id} = $current_id;
-    $record->{created} = \"NOW()";
-    $record->{record_id} = $record_id;
-    $record->{approval} = 1;
+    $record->{created}    = \"NOW()";
+    $record->{record_id}  = $record_id;
+    $record->{approval}   = 1;
+    $record->{createdby}  = $user->{id};
     rset('Record')->create($record)
         or ouch 'dbfail', "Failed to create a database record for the approval request";
 }

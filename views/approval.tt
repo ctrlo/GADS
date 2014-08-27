@@ -4,6 +4,7 @@
 <table class="table table-striped">
     <tr>
         <th>Serial</th>
+        <th>Submitted by</th>
     </tr>
     [% FOREACH approve IN approves %]
         <tr>
@@ -12,6 +13,7 @@
             [% ELSE %]
                 <td><a href="/approval/[% approve.id %]">[% approve.current.serial | html_entity %]</a></td>
             [% END %]
+            <td>[% approve.createdby.value %]</td>
         </tr>
     [% END %]
 </table>

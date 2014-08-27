@@ -695,7 +695,7 @@ any '/approval/?:id?' => sub {
         # Do approval
         my $values  = params;
         my $uploads = request->uploads;
-        eval { GADS::Record->approve($id, $values, $uploads) };
+        eval { GADS::Record->approve(var('user'), $id, $values, $uploads) };
         if (hug)
         {
             messageAdd({ danger => bleep });
