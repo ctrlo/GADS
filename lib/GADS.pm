@@ -11,6 +11,7 @@ use Dancer2::Plugin::DBIC qw(schema resultset rset);
 use String::CamelCase qw(camelize);
 use Ouch;
 use DateTime;
+use HTML::Entities;
 use JSON qw(decode_json encode_json);
 use Text::CSV;
 
@@ -913,7 +914,7 @@ sub messageAdd($) {
     my $text    = ( values %$message )[0];
     my $type    = ( keys %$message )[0];
     my $msgs    = session 'messages';
-    push @$msgs, { text => $text, type => $type };
+    push @$msgs, { text => encode_entities($text), type => $type };
     session 'messages' => $msgs;
 }
 
