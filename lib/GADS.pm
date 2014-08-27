@@ -698,7 +698,7 @@ any '/approval/?:id?' => sub {
         }
         else {
             return forwardHome(
-                { success => 'Record has been successfully approved', 'approval' } );
+                { success => 'Record has been successfully approved' }, 'approval' );
         }
     }
 
