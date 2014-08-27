@@ -43,7 +43,7 @@ sub files
     foreach my $col (@{GADS::View->columns({ files => 1 })})
     {
         my $f = $col->{field};
-        $files{$f} = $record->$f ? $record->$f->value->name : '';
+        $files{$f} = $record->$f && $record->$f->value ? $record->$f->value->name : '';
     }
     %files;
 }
@@ -592,7 +592,7 @@ sub person
 
     return undef unless $item; # Missing value
 
-    if (defined $item->value->value)
+    if ($item->value && defined $item->value->value)
     {
         return $item->value->value;
     }
@@ -603,6 +603,7 @@ sub person
 
 sub person_update_value
 {   my ($class, $person) = @_;
+    $person or return;
     my $firstname = $person->firstname || '';
     my $surname   = $person->surname || '';
     my $value     = "$surname, $firstname";
@@ -632,12 +633,101 @@ sub daterange
 
 sub daterange_update_value
 {   my ($class, $daterange) = @_;
+    return unless $daterange->from && $daterange->to;
     my $value     = $daterange->from->ymd . " to " . $daterange->to->ymd;
 
     $daterange->update({
         value     => $value,
     }) if $value ne $daterange->value;
     $value;
+}
+
+sub _process_input_value
+{
+    # $savedvalue is the value submitted by the originator, used
+    # when approving an entry
+    my ($column, $value, $uploads, $savedvalue) = @_;
+
+    # Set up a date parser
+    my $format = DateTime::Format::Strptime->new(
+         pattern   => '%Y-%m-%d',
+         time_zone => 'local',
+    );
+
+    if ($column->{type} eq 'date')
+    {
+        $value or return; # Do not return empty string for unspecified date
+        # Convert to DateTime object if required
+        my $new = $format->parse_datetime($value);
+        $new or ouch 'invaliddate', "Invalid date \"$value\" for $column->{name}";
+    }
+    elsif ($column->{type} eq 'daterange')
+    {
+        # Convert to DateTime objects
+        $value or return;
+        my ($from, $to) = split ' to ', $value;
+        $from && $to or ouch 'invaliddate', "Please select 2 dates for the date range $column->{name}";
+        my $f = _parse_daterange($from, $to, $format);
+        $f->{from} or ouch 'invaliddate', "Invalid from date in range: \"$from\" in $column->{name}";
+        $f->{to}   or ouch 'invaliddate', "Invalid to date in range: \"$to\" in $column->{name}";
+        # Swap dates around if from is after the to
+        ($f->{to}, $f->{from}) = ($f->{from}, $f->{to}) if DateTime->compare($f->{from}, $f->{to}) == 1;
+        $f;
+    }
+    elsif ($column->{type} eq 'file')
+    {
+        # Find the file upload and store for later
+        if (my $upload = $uploads->{"file$column->{id}"})
+        {
+            ouch 'toobig', "The uploaded file is greater than the maximum size allowed for this field"
+                if $column->{file_option}->{filesize} && $upload->size > $column->{file_option}->{filesize} * 1024;
+            {
+                name     => $upload->filename,
+                mimetype => $upload->type,
+                content  => $upload->content,
+            };
+        }
+        else {
+            # Database ID of existing filename, but only if checkbox ticked to include
+            # and if one was previously uploaded
+            $value && $savedvalue && $savedvalue->value ? $savedvalue->value->id : undef;
+        }
+    }
+    elsif ($column->{type} eq 'tree' || $column->{type} eq 'enum' || $column->{type} eq 'person')
+    {
+        # The values of these in the database reference other tables,
+        # so if a value is not input then set that DB value to undef
+        $value ? $value : undef;
+    }
+    else
+    {
+        $value;
+    }
+}
+
+sub _field_write
+{
+    my ($column, $record, $value) = @_;
+    my $entry = {
+        record_id => $record->id,
+        layout_id => $column->{id},
+    };
+    # Blank cached values to cause update later.
+    # Only really needed for approval, as normal
+    # updates will write a new row.
+    if ($column->{hascache})
+    {
+        $entry->{value} = undef;
+    }
+    if ($column->{type} eq "daterange")
+    {
+        $entry->{from}  = $value->{from};
+        $entry->{to}    = $value->{to};
+    }
+    else {
+        $entry->{value} = $value;
+    }
+    $entry;
 }
 
 sub approve
@@ -650,6 +740,11 @@ sub approve
 
     return \@r unless $values; # Summary only required
 
+    # $r contains the record with the values in that need approving.
+    # $previous contains the associated record from the same data entry,
+    # but containing the submitted values that didn't need approving.
+    # If all fields need approving (eg new entry) then $previous
+    # will not be set
     my $r = shift @r; # Just the first please
     my $previous;
     $previous = $r->record if $r->record; # Its related record
@@ -661,47 +756,54 @@ sub approve
         next unless $col->{userinput};
         my $fn = $col->{field};
 
-        my $v;
+        my $recordvalue = $r ? $r->$fn : undef;
+        my $newvalue = _process_input_value($col, $values->{$fn}, $uploads, $recordvalue);
         if ($col->{type} eq 'file')
         {
             # If a new file has been uploaded, use that instead
-            if (my $upload = $uploads->{"file$col->{id}"})
+            # and convert value (the uploaded file) to its database ID
+            if (ref $newvalue eq 'HASH')
             {
-                my $upload = {
-                    name     => $upload->filename,
-                    mimetype => $upload->type,
-                    content  => $upload->content,
-                };
-                $values->{$fn} = $r->$fn->value->update($upload)->id;
+                # Unlikely, but there is a chance that a previous uploaded
+                # file does not exist to update (if the field has become
+                # mandatory for example). Create one if it doesn't exist
+                if ($r->$fn->value)
+                {
+                    $newvalue = $r->$fn->value->update($newvalue)->id;
+                }
+                else {
+                    $newvalue = rset('Fileval')->create($newvalue)->id;
+                }
             }
-            elsif($values->{$fn}) {
+            elsif($newvalue) {
                 # Use the file that was submitted by the originator,
                 # only if not removed by approver
                 if ($r->$fn->value)
                 {
                     # If the originator submitted a file
-                    $values->{$fn} = $r->$fn->value->id;
+                    $newvalue = $r->$fn->value->id;
                 }
                 else {
                     # Otherwise he removed it
-                    $values->{$fn} = undef;
+                    $newvalue = undef;
                 }
             }
         }
 
-        # See if approver has deleted any fields submitted by originator
+        # See if approver has deleted any fields submitted by originator. $values->{fn}
+        # would not exist in which case. Changing it to undef will force it to appear
+        # as a submitted field that is now undefined
         $values->{$fn} = undef if $r->$fn && $r->$fn->value && !exists $values->{$fn};
 
         if (exists $values->{$fn})
         {
             # Field was submitted in form
-            $v = $values->{$fn};
-            !$v && !$col->{optional}
+            !$newvalue && !$col->{optional}
                 and ouch 'missing', "Field $col->{name} is not optional. Please enter a value.";
         } elsif($previous && $previous->$fn)
         {
             # No field submitted - not part of approval. Use previous value if existing
-            $v = $previous->$fn->value;
+            $newvalue = $previous->$fn->value;
         } elsif (!$col->{optional} && $previous->$fn)
         {
             ouch 'missing', "Field $col->{name} is not optional. Please enter a value.";
@@ -713,12 +815,15 @@ sub approve
             if (exists $values->{$fn})
             {
                 # The value that was originally submitted for approval
-                my $orig_submitted_file = $col->{type} eq 'file' ? $r->$fn->value->id : undef;
+                my $orig_submitted_file = $col->{type} eq 'file' && $r->$fn->value
+                                        ? $r->$fn->value->id
+                                        : undef;
 
-                $r->$fn->update({ value => $v })
+                my $write = _field_write($col, $r, $newvalue);
+                $r->$fn->update($write)
                     or ouch 'dbfail', "Database error updating new approved values";
 
-                if (!defined($values->{$fn}) && $orig_submitted_file && !($previous->$fn && $previous->$fn->value))
+                if (!defined($values->{$fn}) && $orig_submitted_file && !($previous && $previous->$fn && $previous->$fn->value))
                 {
                     # If a value was not submitted in the approval, but there was
                     # a value in the record submitted for approval, and there was
@@ -732,7 +837,7 @@ sub approve
             rset($table)->create({
                 record_id => $r->id,
                 layout_id => $col->{id},
-                value     => $v,
+                value     => $newvalue,
             }) or ouch 'dbfail', "Failed to create database entry for appproved field ".$col->{name};
         }
     }
@@ -754,24 +859,6 @@ sub versions($$)
     \@records;
 }
 
-sub _field_write
-{
-    my ($column, $record, $value) = @_;
-    my $entry = {
-        record_id => $record->id,
-        layout_id => $column->{id},
-    };
-    if ($column->{type} eq "daterange")
-    {
-        $entry->{from} = $value->{from};
-        $entry->{to}   = $value->{to};
-    }
-    else {
-        $entry->{value} = $value;
-    }
-    $entry;
-}
-
 sub update
 {   my ($class, $params, $user, $uploads) = @_;
 
@@ -791,12 +878,6 @@ sub update
         ouch 'nopermission', "No permissions to add a new entry"
             if !$user->{permissions}->{create};
     }
-
-    # Set up a date parser
-    my $format = DateTime::Format::Strptime->new(
-         pattern   => '%Y-%m-%d',
-         time_zone => 'local',
-    );
 
     my $noapproval = $user->{permissions}->{update_noneed_approval} || $user->{permissions}->{approver};
 
@@ -834,46 +915,7 @@ sub update
             # stop users updating other fields of the record
             ouch 'missing', qq("$column->{name}" is not optional. Please enter a value.);
         }
-        elsif ($column->{type} eq 'date')
-        {
-            # Convert to DateTime object if required
-            $newvalue->{$fieldid} = $format->parse_datetime($value);
-            $newvalue->{$fieldid} or ouch 'invaliddate', "Invalid date \"$value\" for $column->{name}";
-        }
-        elsif ($column->{type} eq 'daterange')
-        {
-            # Convert to DateTime objects
-            my ($from, $to) = split ' to ', $value;
-            $from && $to or ouch 'invaliddate', "Please select 2 dates for the date range $column->{name}";
-            my $f = _parse_daterange($from, $to, $format);
-            $f->{from} or ouch 'invaliddate', "Invalid from date in range: \"$from\" in $column->{name}";
-            $f->{to}   or ouch 'invaliddate', "Invalid to date in range: \"$to\" in $column->{name}";
-            # Swap dates around if from is after the to
-            ($f->{to}, $f->{from}) = ($f->{from}, $f->{to}) if DateTime->compare($f->{from}, $f->{to}) == 1;
-            $newvalue->{$fieldid} = $f;
-        }
-        elsif ($column->{type} eq 'file')
-        {
-            # Find the file upload and store for later
-            if (my $upload = $uploads->{"file$fieldid"})
-            {
-                ouch 'toobig', "The uploaded file is greater than the maximum size allowed for this field"
-                    if $column->{file_option}->{filesize} && $upload->size > $column->{file_option}->{filesize} * 1024;
-                $newvalue->{$fieldid} = {
-                    name     => $upload->filename,
-                    mimetype => $upload->type,
-                    content  => $upload->content,
-                };
-            }
-            else {
-                # Database ID of existing filename, but only if checkbox ticked to include
-                $newvalue->{$fieldid} = $oldvalue->{$fieldid} if $value;
-            }
-        }
-        else
-        {
-            $newvalue->{$fieldid} = $value;
-        }
+        $newvalue->{$fieldid} = _process_input_value($column, $value, $uploads);
 
         # Keep a track as to whether a value has changed. Keep it undef for new values
         $changed->{$fieldid} = $old ? _changed($column, $oldvalue->{$fieldid}, $newvalue->{$fieldid}) : undef;

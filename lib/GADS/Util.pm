@@ -79,7 +79,7 @@ sub item_value
     {
         if ($raw)
         {
-            return $record->$field ? $record->$field->value->id : undef;
+            return $record->$field && $record->$field->value ? $record->$field->value->id : undef;
         }
         return encode_entities(GADS::Record->person($column, $record));
     }
@@ -95,7 +95,7 @@ sub item_value
     {
         if ($raw)
         {
-            return $record->$field ? $record->$field->value->ymd : undef;
+            return $record->$field && $record->$field->value ? $record->$field->value->ymd : undef;
         }
         my $date = $record->$field ? $record->$field->value : '';
         $date or return '';

@@ -419,7 +419,7 @@ any '/view/:id' => sub {
             eval { GADS::View->filters($params->{view_id}, $values) };
             if (hug)
             {
-                messageAdd({ danger => $@ });
+                messageAdd({ danger => bleep });
             }
             else {
                 return forwardHome(
@@ -504,7 +504,7 @@ any '/layout/?:id?' => sub {
         eval { GADS::Layout->delete(param 'id') };
         if (hug)
         {
-            messageAdd({ danger => $@ });
+            messageAdd({ danger => bleep });
         }
         else {
             return forwardHome(
