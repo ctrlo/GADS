@@ -795,18 +795,19 @@ sub approve
         # as a submitted field that is now undefined
         $values->{$fn} = undef if $r->$fn && $r->$fn->value && !exists $values->{$fn};
 
-        if (exists $values->{$fn})
+        # This assumes the value was visible in the form. It should be, even if
+        # the field was made compulsory after added the initial submission.
+        if (!$col->{optional} && !$newvalue)
         {
-            # Field was submitted in form
-            !$newvalue && !$col->{optional}
-                and ouch 'missing', "Field $col->{name} is not optional. Please enter a value.";
-        } elsif($previous && $previous->$fn)
+            ouch 'missing', "Field \"$col->{name}\" is not optional. Please enter a value.";
+        }
+
+        if (!exists $values->{$fn})
         {
-            # No field submitted - not part of approval. Use previous value if existing
-            $newvalue = $previous->$fn->value;
-        } elsif (!$col->{optional} && $previous->$fn)
-        {
-            ouch 'missing', "Field $col->{name} is not optional. Please enter a value.";
+            # Field was not submitted in approval form. Use previously submitted
+            # value if it exists
+            $newvalue = $previous->$fn->value
+                if ($previous && $previous->$fn);
         }
 
         # Does a value exist to update?

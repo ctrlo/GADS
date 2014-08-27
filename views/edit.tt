@@ -30,7 +30,10 @@
             [% FOREACH col IN all_columns %]
                 [% NEXT IF col.type == "rag" OR col.type == "calc" %]
                 [% field = 'field' _ col.id %]
-                [% NEXT UNLESS record.$field.defined OR NOT approves %]
+
+                [%# Skip field if it's an approval request but a value not needing approval %]
+                [% NEXT UNLESS (record.$field.defined OR !col.optional) OR NOT approves %]
+
                 [% IF approves %]
                     [% oldvalue = item_value(col, record.record) | html_entity %]
                 [% END %]
