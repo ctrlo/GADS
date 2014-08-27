@@ -27,6 +27,7 @@ use Ouch;
 use Safe;
 use DateTime;
 use DateTime::Format::Strptime qw( );
+use Data::Compare;
 use POSIX qw(ceil);
 schema->storage->debug(1);
 
@@ -48,19 +49,48 @@ sub files
     %files;
 }
 
+sub _add_jp
+{
+    my ($toadd, $prefetches, $joins, $type) = @_;
+
+    # Process a join or prefetch. We see if we've already done
+    # it first before adding. If the join criteria is a hash
+    # (ie joining a field and then a value table), then we count
+    # the number of value joins, as these will subsequntyly be
+    # labelled _2 etc. In this case, we return index number.
+    my %found; my $key;
+    ($key) = keys %$toadd if ref $toadd eq 'HASH';
+    foreach my $j (@$prefetches, @$joins)
+    {
+        if ($key && ref $j eq 'HASH')
+        {
+            $found{$key}++;
+            return $found{$key} if Compare $toadd, $j;
+        }
+    }
+    if ($type eq 'join')
+    {
+        push @$joins, $toadd;
+    }
+    elsif ($type eq 'prefetch')
+    {
+        push @$prefetches, $toadd;
+    }
+    return $key ? $found{$key} : 1;
+}
+
+sub _add_prefetch
+{
+    _add_jp @_, 'prefetch';
+}
+
+sub _add_join
+{
+    _add_jp @_, 'join';
+}
 
 sub current($$)
 {   my ($class, $item) = @_;
-
-    my @join;     # Used for conditionals, which may not be shown in the view of choice
-    my @prefetch; # Used for any field that we display the value for
-    
-    # So that we know how many times we've joined a table.
-    # DBIC automatically suffixes additional joines _2 etc.
-    my %joincount;
-    # Keep a track of which we have joined at prefetch, so that we
-    # add to this for the searches, otherwise use a join
-    my %prefetch_used;
 
     # First, add all the columns in the view as a prefetch. During
     # this stage, we keep track of what we've added, so that we
@@ -76,6 +106,7 @@ sub current($$)
     my %cache_cols; # Any column in the view that should be cached
     push @columns, @{$item->{additional}} if $item->{additional};
     my @filters; # All the filters for this query
+    my $prefetches = []; my $joins = [];
     foreach my $c (@columns)
     {
         # If it's a calculated/rag value, prefetch the columns in the calc
@@ -86,15 +117,16 @@ sub current($$)
         elsif ($c->{type} eq "date" || $c->{type} eq "daterange")
         {
             # Apply any date filters if required
+            my @f;
             if (my $to = $item->{to})
             {
                 my $f = {
                     column   => $c,
                     operator => 'lt',
                     value    => $to->ymd,
-                    type     => 'or',
+                    type     => 'and',
                 };
-                push @filters, $f;
+                push @f, $f;
             }
             if (my $from = $item->{from})
             {
@@ -102,19 +134,19 @@ sub current($$)
                     column   => $c,
                     operator => 'gt',
                     value    => $from->ymd,
-                    type     => 'or',
+                    type     => 'and',
                 };
-                push @filters, $f;
+                push @f, $f;
             }
+            push @filters, {value => \@f, type => 'and'} if @f;
         }
         # Flag cache if need be - may need updating
         $cache_cols{$c->{field}} = $c
             if $c->{hascache};
 
-        # Value of enums are always "value" (joined table)
-        push @prefetch, $c->{join};          # Add to prefetch list
-        $prefetch_used{$c->{sprefix}} = 1;   # Tag that we've prefetched this value
-        $joincount{$c->{sprefix}}++;         # Increment join counter to track _2 suffixes
+        # Add to the prefetch array. This tracks what's been added
+        # and only adds additional fields as required
+        _add_prefetch ($c->{join}, $prefetches, $joins);
     }
 
     my $search;
@@ -194,37 +226,37 @@ sub current($$)
     foreach my $filter (@filters)
     {
         my $field = $filter->{column}->{field};
-        my $fieldsearch;
 
         # As per the prefix, what we join depends on the type of field
         my $sprefix = $filter->{column}->{sprefix};
-        my $joinv   = $filter->{column}->{join};
-        if ($prefetch_used{$sprefix})
-        {
-            push @prefetch, $joinv;
-        }
-        else {
-            push @join, $joinv;
-        }
-        $joincount{$sprefix}++;
-        my $in = $joincount{$sprefix} == 1 ? '' : "_$joincount{$sprefix}"; # Join suffix
 
-        my @searches = _search_construct $filter->{operator}, $filter->{value}, $filter->{column};
+        my @searches = _search_construct $filter, $prefetches, $joins;
+
         while (@searches)
         {
             my $sfield = shift @searches;
             my $svalue = shift @searches;
             $sfield && $svalue or next;
-            $fieldsearch = "$sprefix$in.$sfield";
 
             # Underscore in mysql is special for like
             $svalue->{'-like'} =~ s/\_/\\\_/g if $svalue->{'-like'};
-            if ($filter->{type} && $filter->{type} eq 'or')
+
+            if ($sfield eq 'multi')
             {
-                push @or_filters, {$fieldsearch => $svalue};
+                push @or_filters, $svalue;
             }
             else {
-                $search->{$fieldsearch} = $svalue;
+                if (ref $search->{$sfield} eq 'ARRAY')
+                {
+                    push @{$search->{$sfield}}, $svalue;
+                }
+                elsif ($search->{$sfield})
+                {
+                    $search->{$sfield} = [ -and => $search->{$sfield}, $svalue ];
+                }
+                else {
+                    $search->{$sfield} = $svalue;
+                }
             }
         }
     }
@@ -234,11 +266,11 @@ sub current($$)
     my @all;
     if ($item->{record_id})
     {
-        unshift @prefetch, 'current'; # Add info about related current record
+        unshift @$prefetches, 'current'; # Add info about related current record
 
         my $select = {
-            prefetch => \@prefetch,
-            join     => \@join,
+            prefetch => $prefetches,
+            join     => $joins,
         };
 
         @all = rset('Record')->search(
@@ -251,11 +283,11 @@ sub current($$)
         # XXX Okay, this is a bit weird - we join current to record to current.
         # This is because we return records at the end, and it allows current
         # to be used when the record is used. Is there a better way?
-        unshift @prefetch, 'current';
+        unshift @$prefetches, 'current';
 
         my $select = {
-            prefetch => {'record' => \@prefetch},
-            join     => {'record' => \@join},
+            prefetch => {'record' => $prefetches},
+            join     => {'record' => $joins},
             order_by => $orderby,
         };
 
@@ -306,7 +338,26 @@ sub _filter
 }
 
 sub _search_construct
-{   my ($operator, $value, $column) = @_;
+{   my ($filter, $prefetches, $joins) = @_;
+
+    my $operator = $filter->{operator};
+    my $value    = $filter->{value};
+    my $column   = $filter->{column};
+    my $type     = $filter->{type};
+
+    if (ref $value eq 'ARRAY')
+    {
+        my @v = map { _search_construct $_, $prefetches, $joins } @$value;
+        my $t = $type eq 'or' ? '-or' : '-and';
+        # Use a hash structure with operator rather than only an array
+        # ref, otherwise the same field with different search values
+        # will get overwritten
+        return ('multi', { $t => \@v });
+    }
+
+    my $jn = _add_join ($column->{join}, $prefetches, $joins);
+    my $index = $jn > 1 ? "_$jn" : '';
+    my $sfield   = $column->{sprefix} . $index;
 
     if ($column->{type} eq "daterange")
     {
@@ -315,37 +366,37 @@ sub _search_construct
         # different values of the date range to be searched
         if ($operator eq "equal")
         {
-            ('value', { '=', $value});
+            ("$sfield.value", { '=', $value});
         }
         elsif ($operator eq "gt")
         {
-            ('from', { '>', $value});
+            ("$sfield.from", { '>', $value});
         }
         elsif ($operator eq "lt")
         {
-            ('to', { '<', $value});
+            ("$sfield.to", { '<', $value});
         }
         elsif ($operator eq "contains")
         {
-            ('from', { '<', $value}, 'to', { '>', $value});
+            ("$sfield.from", { '<', $value}, 'to', { '>', $value});
         }
     }
     else {
         if ($operator eq "equal")
         {
-            ('value', { '=', $value});
+            ("$sfield.value", { '=', $value});
         }
         elsif ($operator eq "gt")
         {
-            ('value', { '>', $value});
+            ("$sfield.value", { '>', $value});
         }
         elsif ($operator eq "lt")
         {
-            ('value', { '<', $value});
+            ("$sfield.value", { '<', $value});
         }
         elsif ($operator eq "contains")
         {
-            ('value', { '-like', "%$value%"});
+            ("$sfield.value", { '-like', "%$value%"});
         }
     }
 }
