@@ -803,7 +803,7 @@ any '/file/:id' => sub {
     my $id = param 'id';
     my $file = rset('Fileval')->find($id)
         or return forwardHome( { error => 'File ID $id cannot be found' } );
-    send_file( \($file->content), content_type => $file->mimetype );
+    send_file( \($file->content), content_type => $file->mimetype, filename => $file->name );
 };
 
 any '/record/:id' => sub {
