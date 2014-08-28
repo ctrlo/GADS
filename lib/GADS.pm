@@ -199,7 +199,7 @@ any '/data' => sub {
         my @records = GADS::Record->current($get);
         my $pages = $get->{pages};
         # @output contains just the data itself, which can be sent straight to a CSV
-        my $options = defined param('download') ? { download => 1 } : {};
+        my $options = defined param('download') ? { plain => 1, encode_entities => 0 } : {};
         my @output = GADS::Record->data($view_id, \@records, $options);
 
         my @colnames = ('Serial');

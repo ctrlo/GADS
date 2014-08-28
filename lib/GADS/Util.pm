@@ -59,8 +59,11 @@ sub item_value
     # - the ID for a tree
     # - standard value for other fields
     # Returns undef for missing values
-    my $raw   = $options->{raw};
-    my $blank = $raw ? undef : '';
+    my $raw    = $options->{raw};
+    my $blank  = $raw ? undef : '';
+    my $encode = defined $options->{encode_entities}
+               ? $options->{encode_entities}
+               : 1;
 
     # If prefilled from previous form submission (with errors), values
     # will be in a hash
@@ -81,7 +84,8 @@ sub item_value
         {
             return $record->$field && $record->$field->value ? $record->$field->value->id : undef;
         }
-        return encode_entities(GADS::Record->person($column, $record));
+        my $v = GADS::Record->person($column, $record);
+        return $encode ? encode_entities($v) : $v;
     }
     elsif ($column->{type} eq "enum" || $column->{type} eq 'tree')
     {
@@ -89,7 +93,8 @@ sub item_value
         {
             return $record->$field && $record->$field->value ? $record->$field->value->id : $blank;
         }
-        return $record->$field && $record->$field->value ? encode_entities($record->$field->value->value) : $blank;
+        my $v = $record->$field && $record->$field->value ? $record->$field->value->value : $blank;
+        return $encode ? encode_entities($v) : $v;
     }
     elsif ($column->{type} eq "date")
     {
@@ -164,9 +169,9 @@ sub item_value
         {
             return unless $record->$field->value;
             my $filename = $record->$field->value->name;
-            return $filename if $options->{download};
+            $filename = $encode ? encode_entities($filename) : $filename;
+            return $filename if $options->{plain};
             my $id = $record->$field->value->id;
-            $filename = encode_entities($filename);
             return qq(<a href="/file/$id">$filename</a>);
         }
         else {
@@ -176,8 +181,8 @@ sub item_value
     elsif ($column->{type} eq "string")
     {
         my $string = $record->$field ? $record->$field->value : $blank;
-        return $string if $raw;
-        $string = encode_entities($string);
+        $string = $encode ? encode_entities($string) : $string;
+        return $string if $raw || $options->{plain};
         $string =~ s( ($RE{URI}{HTTP}{-scheme => qr/https?/}) ) (<a href="$1">$1</a>)gx
             if $string;
         $string;

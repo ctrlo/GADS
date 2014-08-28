@@ -489,16 +489,16 @@ sub data_calendar
             }
             else {
                 # Not a date value, push onto title
-                my $v = item_value($column, $record);
+                my $v = item_value($column, $record, {plain => 1, encode_entities => 1});
                 push @titles, $v if $v;
             }
         }
 
         # Create title label
         my $title = join ' - ', @titles;
-        if (length $title > 30)
+        if (length $title > 90)
         {
-            $title = substr($title, 0, 26).'...';
+            $title = substr($title, 0, 86).'...';
         }
 
         foreach my $d (@dates)
