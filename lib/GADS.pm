@@ -264,7 +264,7 @@ any '/data' => sub {
             }
             else {
                 my $now = DateTime->now();
-                send_file( \$csv, content_type => 'text/csv', filename => "$now.csv" );
+                return send_file( \$csv, content_type => 'text/csv', filename => "$now.csv" );
             }
         }
     }
