@@ -208,7 +208,7 @@ sub data
     foreach my $record (@records)
     {
         my $val  = item_value($x_axis, $record, $dtgroup);
-        my $val2 = item_value($group_by, $record) if $group_by;
+        my $val2 = item_value($group_by, $record, { encode_entities => 0 }) if $group_by;
         if (!defined $xy_values{$val})
         {
             $xy_values{$val} = 1;
@@ -264,8 +264,8 @@ sub data
     # of the above unique values, and setting the count into the series hash
     foreach my $record (@records)
     {
-        my $fieldcolval  = item_value($col, $record); # The actual value of the field
-        my $fieldcolval2 = item_value($group_by, $record) if $group_by;
+        my $fieldcolval  = item_value($col, $record, { encode_entities => 0 }); # The actual value of the field
+        my $fieldcolval2 = item_value($group_by, $record, { encode_entities => 0 }) if $group_by;
 
         my $key = $y_axis_stack eq 'count' ? $fieldcolval : $fieldcolval2;
         unless (defined $series->{$key})
