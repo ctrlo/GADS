@@ -99,7 +99,7 @@ get '/data_calendar' => sub {
     my $from    = param 'from';
     my $to      = param 'to';
 
-    header "Cache-Control" => "max-age=0";
+    header "Cache-Control" => "max-age=0, must-revalidate, private";
     {
         "success" => 1,
         "result"  => GADS::Record->data_calendar($view_id, $from, $to),
@@ -481,7 +481,7 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => sub {
         my $tree = decode_json(param 'data');
         GADS::Layout->tree($layout_id, { tree => $tree} );
     }
-    header "Cache-Control" => "max-age=0";
+    header "Cache-Control" => "max-age=0, must-revalidate, private";
 
     # If record is specified, select the record's value in the returned JSON
     GADS::Layout->tree(
