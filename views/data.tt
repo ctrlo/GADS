@@ -13,7 +13,7 @@
                 <ul id="menu_type" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop_type">
                     <li role="presentation"><a role="menuitem" tabindex="-1" href="?viewtype=table">Table</a></li>
                     <li role="presentation"><a role="menuitem" tabindex="-1" href="?viewtype=graph">Graph</a></li>
-                    <li role="presentation"><a role="menuitem" tabindex="-1" href="?viewtype=calendar">Calender</a></li>
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="?viewtype=calendar">Calendar</a></li>
                 </ul>
             </div>
             <div class="btn-group">
