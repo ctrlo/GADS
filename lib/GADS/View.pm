@@ -46,6 +46,7 @@ sub main($$)
 
 sub view
 {   my ($class, $view_id) = @_;
+    $view_id or return;
     rset('View')->find($view_id);
 }
 
