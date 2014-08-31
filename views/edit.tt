@@ -35,7 +35,7 @@
                 [% NEXT UNLESS (record.$field.defined OR !col.optional) OR NOT approves %]
 
                 [% IF approves %]
-                    [% oldvalue = item_value(col, record.record) | html_entity %]
+                    [% oldvalue = item_value(col, record.record) %] [%# All value already entity-encoded %]
                 [% END %]
                 [% value = form_value(col, record) %]
                 [% IF record.current AND col.readonly AND NOT user.permissions.update_noneed_approval AND NOT user.permissions.approver %]
@@ -116,7 +116,7 @@
                         [% opts = "" %]
                     [% END %]
                     <input type="text" class="[% class %]" id="[% col.id %]"
-                        name="[% field %]" value="[% IF record %][% value | html_entity %][% END %]" [% opts %] [% readonly %] >
+                        name="[% field %]" value="[% IF record %][% value %][% END %]" [% opts %] [% readonly %] >
                 [% END %]
                 </div>
             [% END %]

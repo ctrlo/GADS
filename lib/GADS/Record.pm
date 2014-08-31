@@ -471,7 +471,7 @@ sub data_calendar
                 my $color = $datecolors{$column->{id}};
 
                 # Get item value
-                my $d = item_value($column, $record, {epoch=>1});
+                my $d = item_value($column, $record, {epoch=>1, encode_entites => 1});
 
                 # Push value onto stack
                 if ($column->{type} eq "daterange")

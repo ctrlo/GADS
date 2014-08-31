@@ -30,9 +30,9 @@
     [% FOREACH col IN all_columns %]
         [% NEXT IF col.type == "rag" OR col.type == "calc" %]
         <tr>
-            <th>[% col.name %]</th>
+            <th>[% col.name | html_entity %]</th>
             <td>
-                [% item_value(col, record) %]
+                [% item_value(col, record) %] [%# will be returned with html entities encoded %]
             </td>
         </tr>
     [% END %]

@@ -199,7 +199,7 @@ any '/data' => sub {
         my @records = GADS::Record->current($get);
         my $pages = $get->{pages};
         # @output contains just the data itself, which can be sent straight to a CSV
-        my $options = defined param('download') ? { plain => 1, encode_entities => 0 } : {};
+        my $options = defined param('download') ? { plain => 1 } : { encode_entities => 1 };
         my @output = GADS::Record->data($view_id, \@records, $options);
 
         my @colnames = ('Serial');
@@ -720,8 +720,8 @@ any '/approval/?:id?' => sub {
 
     my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
     my $output = template $page => {
-        form_value  => sub {item_value(@_, {raw => 1})},
-        item_value  => sub {item_value(@_)},
+        form_value  => sub {item_value(@_, {raw => 1, encode_entities => 1})},
+        item_value  => sub {item_value(@_, {encoded_entities => 1})},
         approves    => $items,
         autoserial  => $autoserial,
         people      => GADS::User->all,
@@ -780,7 +780,7 @@ any '/edit/:id?' => sub {
         {
             if ($column->{remember})
             {
-                my $v = item_value($column, $previousr, {raw => 1});
+                my $v = item_value($column, $previousr, {raw => 1, encoded_entities => 1});
                 my $field = $column->{field};
                 $record->{$field} = {value => $v} if $column->{remember};
             }
@@ -789,7 +789,7 @@ any '/edit/:id?' => sub {
 
     my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
     my $output = template 'edit' => {
-        form_value  => sub {item_value(@_, {raw => 1})},
+        form_value  => sub {item_value(@_, {raw => 1, encode_entities => 1})},
         record      => $record,
         autoserial  => $autoserial,
         people      => GADS::User->all,
@@ -812,7 +812,7 @@ any '/record/:id' => sub {
     my $versions = $id ? GADS::Record->versions($record->current->id) : {};
     my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
     my $output = template 'record' => {
-        item_value  => sub {item_value(@_)},
+        item_value  => sub {item_value(@_, {encode_entities => 1})},
         record      => $record,
         autoserial  => $autoserial,
         versions    => $versions,

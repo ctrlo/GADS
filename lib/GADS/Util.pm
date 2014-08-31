@@ -61,9 +61,7 @@ sub item_value
     # Returns undef for missing values
     my $raw    = $options->{raw};
     my $blank  = $raw ? undef : '';
-    my $encode = defined $options->{encode_entities}
-               ? $options->{encode_entities}
-               : 1;
+    my $encode = $options->{encode_entities};
 
     # If prefilled from previous form submission (with errors), values
     # will be in a hash
