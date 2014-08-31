@@ -128,10 +128,6 @@ sub item_value
     }
     elsif ($column->{type} eq "daterange")
     {
-        if ($raw)
-        {
-            return GADS::Record->daterange($column, $record);
-        }
         my $date = $record->$field && $record->$field->from && $record->$field->to
                  ? {from => $record->$field->from, to => $record->$field->to}
                  : undef;
@@ -156,6 +152,10 @@ sub item_value
         elsif (my $f = $options->{strftime})
         {
             return {from => $date->{from}->strftime($f), to => $date->{to}->strftime($f)};
+        }
+        elsif ($options->{raw})
+        {
+            return {from => $date->{from}->ymd, to => $date->{to}->ymd};
         }
         else {
             return GADS::Record->daterange($column, $record);

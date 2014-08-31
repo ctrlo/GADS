@@ -726,7 +726,8 @@ sub _process_input_value
     {
         # Convert to DateTime objects
         $value or return;
-        my ($from, $to) = split ' to ', $value;
+        # Daterange values will always be 2 values in an arrayref
+        my ($from, $to) = @$value;
         $from && $to or ouch 'invaliddate', "Please select 2 dates for the date range $column->{name}";
         my $f = _parse_daterange($from, $to, $format);
         $f->{from} or ouch 'invaliddate', "Invalid from date in range: \"$from\" in $column->{name}";
