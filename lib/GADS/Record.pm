@@ -450,8 +450,18 @@ sub data_calendar
 {
     my ($self, $view_id, $from, $to) = @_;
 
-    my $fromdt  = DateTime->from_epoch( epoch => ( $from / 1000 ) );
+    # Epochs received from the calendar module are based on the timezone of the local
+    # browser. So in BST, 24th August is requested as 23rd August 23:00. Rather than
+    # trying to convert timezones, we keep things simple and round down any "from"
+    # times and round up any "to" times.
+    my $fromdt  = DateTime->from_epoch( epoch => ( $from / 1000 ) )->truncate( to => 'day');
     my $todt    = DateTime->from_epoch( epoch => ( $to / 1000 ) );
+    if ($todt->hms('') ne '000000')
+    {
+        # If time is after midnight, round down to midnight and add day
+        $todt->set(hour => 0, minute => 0, second => 0);
+        $todt->add(days => 1);
+    }
     my @records = $self->current({ view_id => $view_id, from => $fromdt, to => $todt });
     my $columns = GADS::View->columns({ view_id => $view_id });
 
