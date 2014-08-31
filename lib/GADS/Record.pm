@@ -370,11 +370,11 @@ sub _search_construct
         }
         elsif ($operator eq "gt")
         {
-            ("$sfield.from", { '>', $value});
+            ("$sfield.to", { '>', $value});
         }
         elsif ($operator eq "lt")
         {
-            ("$sfield.to", { '<', $value});
+            ("$sfield.from", { '<', $value});
         }
         elsif ($operator eq "contains")
         {
