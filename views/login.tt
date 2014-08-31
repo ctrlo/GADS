@@ -86,7 +86,7 @@
                             <input type="text" class="form-control" id="firstname" name="firstname">
                         </div>
                         <div class="form-group">
-                            <label for="email">Surname:</label>
+                            <label for="surname">Surname:</label>
                             <input type="text" class="form-control" id="surname" name="surname">
                         </div>
                         <div class="form-group">
