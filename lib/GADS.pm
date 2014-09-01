@@ -668,7 +668,6 @@ any '/user/?:id?' => sub {
         push @permissions, {$perm => $permissions{$perm}};
     }
 
-    use Data::Dumper; say STDERR Dumper \@permissions;
     my $output = template 'user' => {
         edit              => $id,
         users             => $users,
