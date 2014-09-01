@@ -748,9 +748,9 @@ sub _process_input_value
     elsif ($column->{type} eq 'daterange')
     {
         # Convert to DateTime objects
-        $value or return;
         # Daterange values will always be 2 values in an arrayref
         my ($from, $to) = @$value;
+        return unless $from || $to; # No dates entered - blank value
         $from && $to or ouch 'invaliddate', "Please select 2 dates for the date range $column->{name}";
         my $f = _parse_daterange($from, $to, $format);
         $f->{from} or ouch 'invaliddate', "Invalid from date in range: \"$from\" in $column->{name}";
