@@ -6,9 +6,9 @@ use GADS::View;
 use GADS::Layout;
 use GADS::Email;
 use GADS::Graph;
+use GADS::DB;
 use GADS::Util         qw(:all);
-use Dancer2::Plugin::DBIC qw(schema resultset rset);
-use String::CamelCase qw(camelize);
+use Dancer2::Plugin::Auth::Complete;
 use Ouch;
 use DateTime;
 use HTML::Entities;
@@ -19,6 +19,14 @@ set serializer => 'JSON';
 
 our $VERSION = '0.1';
 
+Dancer2::Plugin::Auth::Complete->user_callback( sub {
+    my ($retuser, $user) = @_;
+    $retuser->{value} = GADS::Record->person_update_value($user);
+    $retuser->{views} = GADS::View->all($user->id);
+    $retuser->{lastrecord} = $user->lastrecord ? $user->lastrecord->id : undef;
+    $retuser;
+});
+
 hook before => sub {
 
     # Static content
@@ -26,48 +34,12 @@ hook before => sub {
     return if param 'error';
 
     # Redirect on no session
-    redirect '/login' unless session('user_id');
-
-    # Redirect if user no longer valid
-    my $user = GADS::User->user({ id => session('user_id') })
-        or redirect '/login';
-    var 'user' => $user;
+    redirect '/login' unless user;
 
     # Dynamically generate "virtual" columns for each row of data, based on the
     # configured layout
+    GADS::DB->setup;
 
-    my $layout_rs = rset('Layout');
-    my @cols = $layout_rs->all;
-
-    foreach my $col (@cols)
-    {
-        my $coltype = $col->type eq "tree"
-                    ? 'enum'
-                    : $col->type eq "calc"
-                    ? 'calcval'
-                    : $col->type eq "rag"
-                    ? 'ragval'
-                    : $col->type;
-
-        my $colname = "field".$col->id;
-
-        # Temporary hack
-        # very inefficient and needs to go away when the rel options show up
-        my $rec_class = schema->class('Record');
-        $rec_class->might_have(
-            $colname => camelize($coltype),
-            sub {
-                my $args = shift;
-
-                return {
-                    "$args->{foreign_alias}.record_id" => { -ident => "$args->{self_alias}.id" },
-                    "$args->{foreign_alias}.layout_id" => $col->id,
-                };
-            }
-        );
-        schema->unregister_source('Record');
-        schema->register_class(Record => $rec_class);
-    }
 };
 
 hook before_template => sub {
@@ -82,7 +54,7 @@ hook before_template => sub {
     $tokens->{header} = config->{gads}->{header};
 
     $tokens->{messages} = session('messages');
-    $tokens->{user}     = var('user');
+    $tokens->{user}     = user;
     session 'messages' => [];
 
 };
@@ -138,8 +110,7 @@ any '/data' => sub {
     my $view_id  = session 'view_id';
 
     my $columns;
-    my $user = GADS::User->user({ id => session('user_id') });
-    eval { $columns = GADS::View->columns({ view_id => $view_id, user => $user }) };
+    eval { $columns = GADS::View->columns({ view_id => $view_id, user => user }) };
     if (hug)
     {
         session 'view_id' => undef;
@@ -150,7 +121,7 @@ any '/data' => sub {
 
     if ($viewtype eq 'graph')
     {
-        my $todraw = GADS::Graph->all({ user => var('user') });
+        my $todraw = GADS::Graph->all({ user => user });
 
         my @graphs;
         foreach my $g (@$todraw)
@@ -229,7 +200,7 @@ any '/data' => sub {
 
             return forwardHome(
                 { danger => 'You do not have permission to send messages' }, 'data' )
-                unless var('user')->{permissions}->{admin};
+                unless permission 'admin';
 
             # Collect all the actual record IDs, including RAG filters
             my @ids;
@@ -240,7 +211,7 @@ any '/data' => sub {
 
             my $params = params;
 
-            eval { GADS::Email->message($params, \@records, \@ids, $user) };
+            eval { GADS::Email->message($params, \@records, \@ids, user) };
             if (hug)
             {
                 messageAdd({ danger => bleep });
@@ -281,26 +252,18 @@ any '/account/?:action?/?' => sub {
     if (param 'newpassword')
     {
         # See if existing password is correct first
-        GADS::User->user({
-            username => var('user')->{username},
-            password => param('oldpassword'),
-        }) or forwardHome({ danger => 'The existing password entered is incorrect'}, 'account/detail');
-
-        my $user_id = var('user')->{id};
-        my $newpw   = GADS::User->resetpw(var('user')->{id});
-
-        if ($newpw)
+        if (my $newpw = reset_pw 'password' => param('oldpassword'))
         {
             forwardHome({ success => qq(<h3 class="text-center"><small>Your password has been changed to:</small> $newpw</h3>)}, 'account/detail' );
         }
         else {
-            forwardHome({ danger => "There was an error generating a new password"}, 'account/detail' );
+            forwardHome({ danger => "The existing password entered is incorrect"}, 'account/detail' );
         }
     }
 
     if (param 'graphsubmit')
     {
-        eval { GADS::User->graphs(var('user'), param('graphs')) };
+        eval { GADS::User->graphs(user, param('graphs')) };
         if (hug)
         {
             messageAdd({ danger => bleep });
@@ -315,7 +278,7 @@ any '/account/?:action?/?' => sub {
 
     if ($action eq 'graph')
     {
-        $data->{graphs} = GADS::Graph->all({ user => var('user'), all => 1 });
+        $data->{graphs} = GADS::Graph->all({ user => user, all => 1 });
         template 'account' => {
             data   => $data,
             action => $action,
@@ -325,8 +288,8 @@ any '/account/?:action?/?' => sub {
     elsif ($action eq 'detail')
     {
         template 'user' => {
-            edit          => var('user')->{id},
-            users         => [var('user')],
+            edit          => user->{id},
+            users         => [user],
             titles        => GADS::User->titles,
             organisations => GADS::User->organisations,
             page          => 'account/detail'
@@ -343,7 +306,7 @@ any '/graph/?:id?' => sub {
 
     return forwardHome(
         { danger => 'You do not have permission to edit graphs' } )
-        unless var('user')->{permissions}->{admin};
+        unless permission 'admin';
 
     if (param 'delete')
     {
@@ -395,8 +358,6 @@ any '/graph/?:id?' => sub {
 
 any '/view/:id' => sub {
 
-    my $user = GADS::User->user({ id => session('user_id') });
-
     my $view_id = param('id');
 
     if (param 'update')
@@ -406,7 +367,7 @@ any '/view/:id' => sub {
         # First update selected columns
         my $params = {
             view_id => $view_id, # ID returned here in case of new view
-            user    => $user,
+            user    => user,
         };
         eval { GADS::View->columns($params, $values) };
         if (hug)
@@ -432,7 +393,7 @@ any '/view/:id' => sub {
     if (param 'delete')
     {
         session 'view_id' => undef;
-        eval { GADS::View->delete(param('id'), $user) };
+        eval { GADS::View->delete(param('id'), user) };
         if (hug)
         {
             messageAdd({ danger => bleep });
@@ -445,7 +406,7 @@ any '/view/:id' => sub {
 
     my @ucolumns;
     my $viewcols;
-    eval { $viewcols = GADS::View->columns({ view_id => $view_id, user => $user }) };
+    eval { $viewcols = GADS::View->columns({ view_id => $view_id, user => user }) };
     if (hug)
     {
         return forwardHome({ danger => bleep });
@@ -476,7 +437,7 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => sub {
     {
         return forwardHome(
             { danger => 'You do not have permission to edit trees' } )
-            unless var('user')->{permissions}->{admin};
+            unless permission 'admin';
 
         my $tree = decode_json(param 'data');
         GADS::Layout->tree($layout_id, { tree => $tree} );
@@ -498,7 +459,7 @@ any '/layout/?:id?' => sub {
 
     return forwardHome(
         { danger => 'You do not have permission to edit the database layout' } )
-        unless var('user')->{permissions}->{admin};
+        unless permission 'admin';
 
     if (param 'delete')
     {
@@ -564,8 +525,10 @@ any '/user/?:id?' => sub {
 
     return forwardHome(
         { danger => 'You do not have permission to manage users' } )
-        unless var('user')->{permissions}->{admin}
-            || var('user')->{id} == $id;
+        unless permission('admin') || user->{id} == $id;
+
+    # Retrieve conf to get details of defined permissions
+    my $conf = Dancer2::Plugin::Auth::Complete->configure;
 
     # Check normal submit first. We do this now, as it could be a normal
     # user doing the submit, and we won't allow them much furthe. However,
@@ -574,10 +537,20 @@ any '/user/?:id?' => sub {
     # be triggered on a new org/title creation, if the user has pressed enter
     if (param('submit') && !param('neworganisation') && !param('newtitle'))
     {
-        my $values = params;
-        delete $values->{id} if param 'account_request';
+        my %values = %{params()};
+        delete $values{id}              if  param 'account_request';
+        delete $values{account_request} if  param 'account_request';
+        delete $values{organisation} unless param 'organisation';
+        delete $values{title}        unless param 'title';
+        $values{username} = $values{email};
 
-        eval { GADS::User->update($values, {url => request->base}) };
+        foreach my $permission (keys %{$conf->{permissions}})
+        {
+            $values{permission}->{$permission} = $values{"permission_$permission"} ? 1 : 0;
+        }
+
+        my $newuser;
+        eval { $newuser = user update => %values };
         if (hug)
         {
             if (param('page') eq 'user')
@@ -596,10 +569,24 @@ any '/user/?:id?' => sub {
         }
         else {
             # Delete account request user if this is a new account request
-            GADS::User->delete(param 'account_request')
+            user delete => id => param('account_request')
                 if param 'account_request';
 
-            my $action = $id ? 'updated' : 'created';
+            my $action;
+            if ($id) {
+                $action = 'updated';
+            }
+            else {
+                $action = 'created';
+                my $graphs = GADS::Graph->all;
+                my @gadd;
+                foreach my $graph (@$graphs)
+                {
+                    push @gadd, $graph->id;
+                }
+                GADS::User->graphs($newuser, \@gadd);
+            }
+
             my $page   = param('page');
             return forwardHome(
                 { success => "User has been $action successfully" }, $page );
@@ -610,7 +597,7 @@ any '/user/?:id?' => sub {
     # play it safe
     return forwardHome(
         { danger => 'You do not have permission to manage users' } )
-        unless var('user')->{permissions}->{admin};
+        unless permission 'admin';
 
     my $users; my $register_requests;
 
@@ -652,7 +639,7 @@ any '/user/?:id?' => sub {
     {
         return forwardHome(
             { danger => "Cannot delete current logged-in User" } )
-            if var('user')->{id} eq param('delete');
+            if user->{id} eq param('delete');
         eval { GADS::User->delete(param 'delete') };
         if (hug)
         {
@@ -666,19 +653,29 @@ any '/user/?:id?' => sub {
 
     if ($id)
     {
-        $users = GADS::User->user({ id => $id });
+        $users = user get => id => $id, account_request => [0,1];
     }
     elsif (!defined $id) {
         $users             = GADS::User->all;
         $register_requests = GADS::User->register_requests;
     }
 
+    # Get permissions and sort them
+    my @permissions;
+    my %permissions = %{$conf->{permissions}};
+    foreach my $perm (sort { $permissions{$a}->{value} <=> $permissions{$b}->{value} } keys %permissions)
+    {
+        push @permissions, {$perm => $permissions{$perm}};
+    }
+
+    use Data::Dumper; say STDERR Dumper \@permissions;
     my $output = template 'user' => {
         edit              => $id,
         users             => $users,
         register_requests => $register_requests,
         titles            => GADS::User->titles,
         organisations     => GADS::User->organisations,
+        permissions       => \@permissions,
         page              => 'user'
     };
     $output;
@@ -689,14 +686,14 @@ any '/approval/?:id?' => sub {
 
     return forwardHome(
         { danger => 'You do not have permission to approve records' } )
-        unless var('user')->{permissions}->{approver};
+        unless permission 'admin';
 
     if (param 'submit')
     {
         # Do approval
         my $values  = params;
         my $uploads = request->uploads;
-        eval { GADS::Record->approve(var('user'), $id, $values, $uploads) };
+        eval { GADS::Record->approve(user, $id, $values, $uploads) };
         if (hug)
         {
             messageAdd({ danger => bleep });
@@ -733,7 +730,6 @@ any '/approval/?:id?' => sub {
 
 any '/edit/:id?' => sub {
     my $id = param 'id';
-    my $user = GADS::User->user({ id => session('user_id') });
 
     my $all_columns = GADS::View->columns;
     my $record;
@@ -741,7 +737,7 @@ any '/edit/:id?' => sub {
     {
         my $params = params;
         my $uploads = request->uploads;
-        eval { GADS::Record->update($params, $user, $uploads) };
+        eval { GADS::Record->update($params, user, $uploads) };
         if (hug)
         {
 
@@ -772,7 +768,7 @@ any '/edit/:id?' => sub {
     elsif($id) {
         $record = GADS::Record->current({ current_id => $id });
     }
-    elsif(my $previous = $user->{lastrecord})
+    elsif(my $previous = user->{lastrecord})
     {
         # Prefill previous values, but only those tagged to be remembered
         my $previousr = GADS::Record->current({ record_id => $previous });
@@ -835,7 +831,7 @@ any '/login' => sub {
     # Request a password reset
     if (param('resetpwd'))
     {
-        GADS::User->resetpwreq_email(param('emailreset'), request->base)
+        reset_pw('send' => param('emailreset'))
         ? messageAdd( { success => 'An email has been sent to your email address with a link to reset your password' } )
         : messageAdd( { danger => 'Failed to send a password reset link. Did you enter a valid email address?' } );
     }
@@ -857,13 +853,8 @@ any '/login' => sub {
 
     if (param('signin'))
     {
-        my $user = GADS::User->user({
-            username => param('email'),
-            password => param('password'),
-        });
-        if ($user)
+        if (login)
         {
-            session 'user_id' => $user->{id};
             forwardHome();
         }
         else {
@@ -881,21 +872,19 @@ any '/login' => sub {
 
 get '/resetpw/:code' => sub {
 
-    my $password;
-    eval { $password = GADS::User->resetpwdo(param 'code') };
-    if (hug)
+    if (my $password = reset_pw 'code' => param('code'))
     {
-        return forwardHome(
-            { danger => bleep }, 'login'
-        );
-    }
-    else {
         context->destroy_session;
         my $output  = template 'login' => {
             password => $password,
             page     => 'login',
         };
         $output;
+    }
+    else {
+        return forwardHome(
+            { danger => "The requested authorisation code could not be processed" }, 'login'
+        );
     }
 };
 

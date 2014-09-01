@@ -17,7 +17,7 @@
         <li role="presentation"><a role="menuitem" tabindex="-1" href="/record/[% version.id %]">[% version.created %]</a></li>
         [% END %]
     </ul>
-    [% IF user.permissions.update %]
+    [% IF user.permission.update %]
         <a href="/edit/[% record.current_id %]" class="btn btn-default" role="button">Edit</a>
     [% END %]
 </div>

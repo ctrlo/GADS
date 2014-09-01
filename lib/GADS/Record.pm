@@ -956,16 +956,16 @@ sub update
     if ($current_id)
     {
         ouch 'nopermission', "No permissions to update an entry"
-            if !$user->{permissions}->{update};
+            if !$user->{permission}->{update};
         $old = GADS::Record->current({ current_id => $current_id });
     }
     else
     {
         ouch 'nopermission', "No permissions to add a new entry"
-            if !$user->{permissions}->{create};
+            if !$user->{permission}->{create};
     }
 
-    my $noapproval = $user->{permissions}->{update_noneed_approval} || $user->{permissions}->{approver};
+    my $noapproval = $user->{permission}->{update_noneed_approval} || $user->{permission}->{approver};
 
     # First loop round: sanitise and see which if any have changed
     my $newvalue; my $changed; my $oldvalue;

@@ -38,7 +38,7 @@
                     [% oldvalue = item_value(col, record.record) %] [%# All value already entity-encoded %]
                 [% END %]
                 [% value = form_value(col, record) %]
-                [% IF record.current AND col.readonly AND NOT user.permissions.update_noneed_approval AND NOT user.permissions.approver %]
+                [% IF record.current AND col.readonly AND NOT user.permission.update_noneed_approval AND NOT user.permission.approver %]
                     [% readonly = "readonly" %]
                 [% ELSE %]
                     [% readonly = "" %]

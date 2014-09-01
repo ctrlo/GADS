@@ -59,36 +59,15 @@
                 </select>
             </div>
             [% IF page == "user" %]
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="update" [% IF edituser.permissions.update %]checked[% END %]>User can update records
-                    </label>
-                </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="update_noneed_approval" [% IF edituser.permissions.update_noneed_approval %]checked[% END %]>User does not need approval when updating records
-                    </label>
-                </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="create" [% IF edituser.permissions.create %]checked[% END %]>User can create new records
-                    </label>
-                </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="create_noneed_approval" [% IF edituser.permissions.create_noneed_approval %]checked[% END %]>User does not need approval when creating new records
-                    </label>
-                </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="approver" [% IF edituser.permissions.approver %]checked[% END %]>User can approve changes
-                    </label>
-                </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="admin" [% IF edituser.permissions.admin %]checked[% END %]>User is an administrator
-                    </label>
-                </div>
+                [% FOREACH permission IN permissions %]
+                    [% key = permission.keys.first %]
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="permission_[% key %]"
+                                [% IF edituser.permission.$key %]checked[% END %]>[% permission.$key.description %]
+                        </label>
+                    </div>
+                [% END %]
             [% END %]
             <button type="submit" name="submit" value="submit" class="btn btn-primary">[% IF edituser.id %]Update[% ELSE %]Create[% END %]</button>
             [% IF page == "user" AND edituser.id %]

@@ -7,7 +7,7 @@
                 <label for="viewname">View name:</label>
                 <input type="text" class="form-control" id="viewname" name="viewname" value="[% v.name | html_entity %]">
             </div>
-            [% IF user.permissions.admin %]
+            [% IF user.permission.admin %]
                 <div class="checkbox">
                     <label>
                         <input type="checkbox" name="global" [% IF v.global %]checked[% END %]>Global view
@@ -37,7 +37,7 @@
                     items on the left), or to only display some rows (using the filters below).
                     <ul></ul>
                 </dd>
-                [% IF user.permissions.admin %]
+                [% IF user.permission.admin %]
                     <dt>Global view</dt>
                     <dd>If the view is defined as a global view, then it will be visible as an 
                         available view for all users. A view does not need to be global for it
@@ -51,7 +51,7 @@
                     that meets the criteria of all the filters. For example, 2 date filters can be used to
                     only show data between 2 dates. Any dates entered must be specified in the
                     form yyyy-m-dd.
-                    [% IF user.permissions.admin %]
+                    [% IF user.permission.admin %]
                         Filters are particularly useful for graphs: each graph has an associated
                         view to define the items of data that the graph displays. 
                     [% END %]
