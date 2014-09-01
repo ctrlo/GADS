@@ -45,4 +45,69 @@ plugins:
     from: '"GADS" <user@example.com>' # Emails are sent from this
     driver: sendmail
     type: text
+  Auth::Complete:
+    schema:
+      table: user
+      fields:
+        details: [firstname, surname, title, organisation, lastrecord, account_request, account_request_notes]
+        key: id
+        permissions: permission
+        username: username
+        email: email
+        deleted: deleted
+        request: account_request
+        password: password
+        pw_last_changed: pwchanged
+        pw_reset_code: resetpw
+    permissions:
+      update:
+        value: 1
+        description: User can update records
+      update_noneed_approval:
+        value: 2
+        description: User does not need approval when updating records
+      create:
+        value: 4
+        description: User can create new records
+      create_noneed_approval:
+        value: 8
+        description: User does not need approval when creating new records
+      delete:
+        value: 16
+        description: User can delete records
+      delete_noneed_approval:
+        value: 32
+        description: User does not need approval when deleting records
+      approver:
+        value: 64
+        description: User can approve changes
+      admin:
+        value: 128
+        description: User is an administrator
+    urls:
+      reset_pw: /resetpw
+      login: /login
+    emails:
+      new_account:
+        subject: Your new account details
+        from: '"My name" <info@example.com>'
+        plain: >
+          An account for GADS has been created for you. Please
+          click on the following link to retrieve your password:
+        
+          [URL]
+      reset_pw:
+        subject: Password reset request
+        from: '"My name" <info@example.com>'
+        plain: >
+          A request to reset your GADS password has been
+          received. Please click on the following link to retrieve
+          set your password:
+        
+          [URL]
+        html: >
+          A request to reset your GADS password has been
+          received. Please click on the following link to retrieve
+          set your password:<br>
+          <a href="[URL]">[URL]</a><br>
 
