@@ -552,9 +552,20 @@ sub rag
         {
             my $name = $col->{name};
             my $value = item_value($col, $record, {epoch => 1});
-            $green =~ s/\[$name\]/$value/gi;
-            $amber =~ s/\[$name\]/$value/gi;
-            $red   =~ s/\[$name\]/$value/gi;
+            if ($col->{type} eq "daterange")
+            {
+                $green =~ s/\[$name\.from\]/$value->{from}/gi;
+                $green =~ s/\[$name\.to\]/$value->{to}/gi;
+                $amber =~ s/\[$name\.from\]/$value->{from}/gi;
+                $amber =~ s/\[$name\.to\]/$value->{to}/gi;
+                $red   =~ s/\[$name\.from\]/$value->{from}/gi;
+                $red   =~ s/\[$name\.to\]/$value->{to}/gi;
+            }
+            else {
+                $green =~ s/\[$name\]/$value/gi;
+                $amber =~ s/\[$name\]/$value/gi;
+                $red   =~ s/\[$name\]/$value/gi;
+            }
         }
 
         # Insert current date if required
@@ -625,17 +636,29 @@ sub calc
         foreach my $col (@{$calc->{columns}})
         {
             my $name = $col->{name};
-            next unless $code =~ /\[$name\]/i;
+            my $extra = $col->{suffix};
+            next unless $code =~ /\Q[$name\E$extra\Q]/i;
 
             my $value = item_value($col, $record, {epoch => 1});
-            $value = "\"$value\"" unless $value =~ /^[0-9]+$/;
-            $code =~ s/\[$name\]/$value/gi;
+            if ($col->{type} eq "daterange")
+            {
+                $code =~ s/\[$name\.from\]/$value->{from}/gi;
+                $code =~ s/\[$name\.to\]/$value->{to}/gi;
+            }
+            else {
+                $value = "\"$value\"" unless $col->{numeric};
+                $code =~ s/\[$name\]/$value/gi;
+            }
         }
         # Insert current date if required
         my $now = time;
         $code =~ s/CURDATE/$now/g;
 
-        my $value = _safe_eval "$code";
+        # If there are still square brackets then something is wrong
+        my $value = $code =~ /[\[\]]+/
+                  ? 'Invalid field names in calc formula'
+                  : _safe_eval "$code";
+
         rset('Calcval')->create({
             record_id => $record->id,
             layout_id => $column->{id},

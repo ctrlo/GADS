@@ -77,7 +77,12 @@ sub delete
         or ouch 'dbfail', "There was a database error when deleting the view";
 }
 
-sub _column;
+# Any suffixes that may be valid when creating calc values
+sub _suffix
+{
+    return '(\.from|\.to)' if shift eq 'daterange';
+    return '';
+}
 
 sub _column
 {
@@ -115,8 +120,8 @@ sub _column
             foreach my $acol (@$allcols)
             {
                 next if $acol->type eq 'rag' || $acol->type eq 'calc';
-                my $name = $acol->name;
-                next unless $calc->calc =~ /\[$name\]/i;
+                my $name = $acol->name; my $suffix = _suffix $acol->type;
+                next unless $calc->calc =~ /\Q[$name\E$suffix\Q]/i;
                 my $c = _column($acol);
                 push @calccols, $c;
             }
@@ -140,8 +145,9 @@ sub _column
             foreach my $acol (@$allcols)
             {
                 next if $acol->type eq 'rag' || $acol->type eq 'calc';
-                my $name = $acol->name;
-                next unless $rag->green =~ /\[$name\]/i || $rag->amber =~ /\[$name\]/i || $rag->red =~ /\[$name\]/i;
+                my $name = $acol->name; my $suffix = _suffix $acol->type;
+                my $regex = qr/\Q[$name\E$suffix\Q]/i;
+                next unless $rag->green =~ $regex || $rag->amber =~ $regex || $rag->red =~ $regex;
                 my $c = _column($acol);
                 push @ragcols, $c;
             }
@@ -170,6 +176,15 @@ sub _column
     }
     else {
         $c->{userinput} = 1;
+    }
+
+    $c->{suffix}  = _suffix $col->type;
+    if ($col->type eq 'daterange' || $col->type eq 'date' || $col->type eq 'intgr')
+    {
+        $c->{numeric} = 1;
+    }
+    else {
+        $c->{numeric} = 0;
     }
 
     my @cached = qw(rag calc person daterange);

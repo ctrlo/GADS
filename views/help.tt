@@ -28,7 +28,9 @@ the values in records, not change any aspect of the layout. Specifically:
 Calculated fields can be used to automatically generate values based
 on other fields. Basic Perl programming style can be used, with the value that
 is returned being used for the value of the field. Values from other fields
-are used by inserting the field name between square brackets. For example:
+are used by inserting the field name between square brackets. Values in date
+ranges are used by adding the suffix ".from" or ".to" to specify the date
+required. For example:
 
 <tt><pre>
 [% FILTER html %]
@@ -39,6 +41,10 @@ if ([Country] eq "Greece" && [Region] eq "A")
 elsif ([Country] eq "Japan")
 {
     return "Asia"
+}
+elsif ([daterange.from] > CURDATE)
+{
+    return "Started"
 }
 elsif ([Cost] < 10)
 {
