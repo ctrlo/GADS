@@ -815,6 +815,31 @@ sub _field_write
     $entry;
 }
 
+sub delete
+{   my ($self, $id, $user) = @_;
+
+    my @records = rset('Record')->search({ current_id => $id })->all;
+
+    foreach my $record (@records)
+    {
+        my $rid = $record->id;
+        rset('Ragval')   ->search({ record_id  => $rid })->delete;
+        rset('Calcval')  ->search({ record_id  => $rid })->delete;
+        rset('Enum')     ->search({ record_id  => $rid })->delete;
+        rset('String')   ->search({ record_id  => $rid })->delete;
+        rset('Intgr')    ->search({ record_id  => $rid })->delete;
+        rset('Daterange')->search({ record_id  => $rid })->delete;
+        rset('Date')     ->search({ record_id  => $rid })->delete;
+        rset('Person')   ->search({ record_id  => $rid })->delete;
+        rset('File')     ->search({ record_id  => $rid })->delete;
+        rset('User')     ->search({ lastrecord => $rid })->update({ lastrecord => undef });
+    }
+    rset('Current')->find($id)->update({ record_id => undef });
+    rset('Record') ->search({ current_id => $id })->update({ record_id => undef });
+    rset('Record') ->search({ current_id => $id })->delete;
+    rset('Current')->find($id)->delete;
+}
+
 sub approve
 {   my ($class, $user, $id, $values, $uploads) = @_;
 

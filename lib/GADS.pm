@@ -806,6 +806,24 @@ any '/file/:id' => sub {
 
 any '/record/:id' => sub {
     my $id = param 'id';
+
+    if (my $delete_id = param 'delete')
+    {
+        return forwardHome(
+            { danger => 'You do not have permission to delete records' }, 'data' )
+            unless permission('delete') || permission('delete_noneed_approval');
+
+        eval { GADS::Record->delete($delete_id, user) };
+        if (hug)
+        {
+            messageAdd({ danger => $@ });
+        }
+        else {
+            return forwardHome(
+                { success => 'Record has been deleted successfully' }, 'data' );
+        }
+    }
+
     my $record = $id ? GADS::Record->current({ record_id => $id }) : {};
     my $versions = $id ? GADS::Record->versions($record->current->id) : {};
     my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
