@@ -167,6 +167,10 @@ sub register
 
     my %new;
     my %params = %$params;
+
+    # Prevent "email exists" errors for security
+    return if user get => ( email => $params->{email} );
+
     my @fields = qw(firstname surname email account_request_notes);
     @new{@fields} = @params{@fields};
     $new{username} = $params->{email};
