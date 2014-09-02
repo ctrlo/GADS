@@ -38,7 +38,7 @@
                     <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0">Create new view</a></li>
                 </ul>
             </div>
-            [% IF v %]
+            [% IF v AND (!v.global OR user.permission.layout) %]
                 <div class="btn-group">
                     <a href="/view/[% v.id %]" class="btn btn-default" role="button">Customise view</a>
                 </div>

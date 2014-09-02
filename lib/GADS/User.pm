@@ -149,7 +149,8 @@ sub all
         deleted         => 0,
         account_request => 0,
     };
-    $search->{permission} = { '&' => ADMIN } if $args->{admins};
+    my $adminval = config->{plugins}->{'Auth::Complete'}->{permissions}->{useradmin}->{value};
+    $search->{permission} = { '&' => $adminval } if $args->{admins};
     my @users = rset('User')->search($search)->all;
     \@users;
 }

@@ -63,11 +63,11 @@
                                 [% IF user.permission.approver %]
                                     <li [% IF page=="approval" %]class="active"[% END %]><a href="[% url.page %]/approval/">Approval</a></li>
                                 [% END %]
-                                [% IF user.permission.admin %]
+                                [% IF user.permission.layout %]
                                     <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/layout/">Layout</a></li>
                                     <li [% IF page=="graph" %]class="active"[% END %]><a href="[% url.page %]/graph/">Graphs</a></li>
                                 [% END %]
-                                [% IF user.permission.admin %]
+                                [% IF user.permission.useradmin %]
                                     <li [% IF page=="user" %]class="active"[% END %]><a href="[% url.page %]/user/">Users</a></li>
                                 [% END %]
                             </ul>

@@ -81,12 +81,18 @@ plugins:
       approver:
         value: 64
         description: User can approve changes
-      admin:
+      useradmin:
         value: 128
-        description: User is an administrator
+        description: User can manage other user accounts
       download:
         value: 256
         description: User can download data
+      layout:
+        value: 512
+        description: User can administer layout, views and graphs
+      message:
+        value: 1024
+        description: User can send messages
     urls:
       reset_pw: /resetpw
       login: /login

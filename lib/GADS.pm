@@ -200,7 +200,7 @@ any '/data' => sub {
 
             return forwardHome(
                 { danger => 'You do not have permission to send messages' }, 'data' )
-                unless permission 'admin';
+                unless permission 'message';
 
             # Collect all the actual record IDs, including RAG filters
             my @ids;
@@ -309,7 +309,7 @@ any '/graph/?:id?' => sub {
 
     return forwardHome(
         { danger => 'You do not have permission to edit graphs' } )
-        unless permission 'admin';
+        unless permission 'layout';
 
     if (param 'delete')
     {
@@ -440,7 +440,7 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => sub {
     {
         return forwardHome(
             { danger => 'You do not have permission to edit trees' } )
-            unless permission 'admin';
+            unless permission 'layout';
 
         my $tree = decode_json(param 'data');
         GADS::Layout->tree($layout_id, { tree => $tree} );
@@ -462,7 +462,7 @@ any '/layout/?:id?' => sub {
 
     return forwardHome(
         { danger => 'You do not have permission to edit the database layout' } )
-        unless permission 'admin';
+        unless permission 'layout';
 
     if (param 'delete')
     {
@@ -528,7 +528,7 @@ any '/user/?:id?' => sub {
 
     return forwardHome(
         { danger => 'You do not have permission to manage users' } )
-        unless permission('admin') || user->{id} == $id;
+        unless permission('useradmin') || user->{id} == $id;
 
     # Retrieve conf to get details of defined permissions
     my $conf = Dancer2::Plugin::Auth::Complete->configure;
@@ -600,7 +600,7 @@ any '/user/?:id?' => sub {
     # play it safe
     return forwardHome(
         { danger => 'You do not have permission to manage users' } )
-        unless permission 'admin';
+        unless permission 'useradmin';
 
     my $users; my $register_requests;
 
@@ -688,7 +688,7 @@ any '/approval/?:id?' => sub {
 
     return forwardHome(
         { danger => 'You do not have permission to approve records' } )
-        unless permission 'admin';
+        unless permission 'approver';
 
     if (param 'submit')
     {

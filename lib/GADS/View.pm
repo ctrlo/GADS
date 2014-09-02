@@ -67,7 +67,7 @@ sub delete
 {   my ($class, $id, $user) = @_;
 
     my $view = _get_view($id, $user->{id}); # Borks on an error
-    !$view->global || $user->{permission}->{admin}
+    !$view->global || $user->{permission}->{layout}
         or ouch 'noperms', "You do not have permission to delete $id";
     rset('ViewLayout')->search({ view_id => $view->id })->delete
         or ouch 'dbfail', "There was a database error when deleting the view's layouts";
@@ -220,7 +220,7 @@ sub columns
             $view_id = $ident->{view_id}; # or ouch 'badparam', "Please supply a view ID";
         }
         my $view = _get_view($view_id, $ident->{user}->{id}); # Borks on an error
-        !$view->global || $ident->{user}->{permission}->{admin}
+        !$view->global || $ident->{user}->{permission}->{layout}
             or ouch 'noperms', "You do not have access to modify view $view_id";
 
         # Will be a scalar if only one value submitted. If so,

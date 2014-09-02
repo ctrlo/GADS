@@ -4,7 +4,7 @@
         [% peopcols = [] %]
         [% FOREACH col IN columns %]
             <th>[% col.name | html_entity %]
-                [% IF col.type == "person" AND user.permission.admin AND records.size %]
+                [% IF col.type == "person" AND user.permission.message AND records.size %]
                     [% peopfield = "field" _ col.id %]
                     [% peopcols.push(peopfield) %]
                     <a href="" data-toggle="modal" data-target="#peopcol[% peopfield %]">
