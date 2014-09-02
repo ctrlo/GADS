@@ -48,7 +48,7 @@
                     <a href="/edit/" class="btn btn-default" role="button">New entry</a>
                 </div>
             [% END %]
-            [% IF viewtype == "table" AND records.size %]
+            [% IF viewtype == "table" AND records.size AND user.permission.download %]
                 <div class="btn-group">
                     <a href="/data?download" class="btn btn-default" role="button">Download</a>
                 </div>

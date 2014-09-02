@@ -84,6 +84,9 @@ plugins:
       admin:
         value: 128
         description: User is an administrator
+      download:
+        value: 256
+        description: User can download data
     urls:
       reset_pw: /resetpw
       login: /login

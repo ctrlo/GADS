@@ -224,6 +224,9 @@ any '/data' => sub {
 
         if (defined param('download'))
         {
+            forwardHome({ danger => "You do not have permission to download data"}, 'data')
+                unless permission 'download';
+
             forwardHome({ danger => "There are no records to download in this view"}, 'data')
                 unless @records;
 
