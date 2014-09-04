@@ -562,6 +562,7 @@ sub rag
                 $red   =~ s/\[$name\.to\]/$value->{to}/gi;
             }
             else {
+                $value = "\"$value\"" unless $col->{numeric};
                 $green =~ s/\[$name\]/$value/gi;
                 $amber =~ s/\[$name\]/$value/gi;
                 $red   =~ s/\[$name\]/$value/gi;
@@ -577,27 +578,22 @@ sub rag
         my $okaycount = 0;
         foreach my $code ($green, $amber, $red)
         {
-            $_ = $code;
-            last unless /^[ \S]+$/; # Only allow normal spaces
-            last if /[\[\]]+/; # Do not allow any remaining brackets
-            last if /\\/; # No escapes please
-            s/"[^"]+"//g;
-            m!^([-()*+/0-9<> ]|&&|eq|==)+$! or last;
-            $okaycount++;
+            # If there are still square brackets then something is wrong
+            $okaycount++ if $code !~ /[\[\]]+/;
         }
 
         my $ragvalue;
         if ($okaycount == 3)
         {
-            if (_safe_eval "($red)")
+            if ($red && _safe_eval "($red)")
             {
                 $ragvalue = 'red';
             }
-            elsif (_safe_eval "($amber)")
+            elsif ($amber && _safe_eval "($amber)")
             {
                 $ragvalue = 'amber';
             }
-            elsif (_safe_eval "($green)")
+            elsif ($green && _safe_eval "($green)")
             {
                 $ragvalue = 'green';
             }
