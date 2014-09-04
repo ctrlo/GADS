@@ -332,7 +332,11 @@ sub item
             }
 
             # Finally save the ordering value
-            $newitem->{ordering} = $args->{ordering} eq "desc" ? "desc" : "asc";
+            $newitem->{ordering} = $args->{ordering} eq "desc"
+                                 ? "desc"
+                                 : $args->{ordering} eq "asc"
+                                 ? "asc"
+                                 : undef;
         }
         if ($args->{id})
         {

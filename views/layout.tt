@@ -71,6 +71,7 @@
                     <div class="form-group">
                         <label for="enumval">Multiple select ordering:</label>
                         <select class="form-control" name="ordering">
+                            <option value="" [% IF NOT edititem.ordering %]selected[% END %]>As entered</option>
                             <option value="asc" [% IF edititem.ordering == "asc" %]selected[% END %]>Ascending</option>
                             <option value="desc" [% IF edititem.ordering == "desc" %]selected[% END %]>Descending</option>
                         </select>

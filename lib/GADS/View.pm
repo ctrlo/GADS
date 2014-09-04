@@ -192,6 +192,7 @@ sub _column
     $c->{id}         = $col->id,
     $c->{name}       = $col->name,
     $c->{remember}   = $col->remember,
+    $c->{ordering}   = $col->ordering,
     $c->{permission} = $col->permission,
     $c->{readonly}   = $col->permission == READONLY ? 1 : 0;
     $c->{approve}    = $col->permission == APPROVE ? 1 : 0;
@@ -258,7 +259,7 @@ sub columns
     my $search = $ident->{files} ? { type => 'file' } : {};
 
     my @allcols = rset('Layout')->search($search,{
-        order_by => 'me.position',
+        order_by => ['me.position', 'enumvals.id'],
         prefetch => ['enumvals', 'calcs', 'rags' ],
     })->all; # Used for calc values
 
