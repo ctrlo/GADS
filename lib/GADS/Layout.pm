@@ -459,8 +459,13 @@ sub item
         }
     }
     else {
-        $item = rset('Layout')->find($args->{id})
-            or ouch 'notfound', "Unable to find item with ID $args->{id}";
+        ($item) = rset('Layout')->search({
+            'me.id'  => $args->{id},
+        },{
+            prefetch => ['enumvals', 'calcs', 'rags' ],
+            order_by => 'enumvals.id',
+        })->all;
+        $item or ouch 'notfound', "Unable to find item with ID $args->{id}";
     }
     my $itemhash = {
         id         => $item->id,
