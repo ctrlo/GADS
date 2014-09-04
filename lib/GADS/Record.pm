@@ -1021,7 +1021,10 @@ sub update
 
         my $value = $params->{$fn};
 
-        if (!$value && !$column->{optional} && (!$old || ($old && $oldvalue->{$fieldid})))
+        # For a date range, a blank value will be an array ref of 2 undef values
+        my $is_blank = !$value || (ref $value eq 'ARRAY' && !(scalar grep {$_} @$value)) ? 1 : 0;
+
+        if ($is_blank && !$column->{optional} && (!$old || ($old && $oldvalue->{$fieldid})))
         {
             # Only if a value was set previously, otherwise a field that had no
             # value might be made mandatory, but if it's read-only then that will
