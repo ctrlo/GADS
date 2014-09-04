@@ -552,6 +552,12 @@ sub rag
         {
             my $name = $col->{name};
             my $value = item_value($col, $record, {epoch => 1});
+
+            # If the value is numeric and not defined, then return
+            # grey, otherwise the value will be treated as zero
+            # and will probably return misleading RAG values
+            return 'grey' if !$value && $col->{numeric};
+
             if ($col->{type} eq "daterange")
             {
                 $green =~ s/\[$name\.from\]/$value->{from}/gi;
