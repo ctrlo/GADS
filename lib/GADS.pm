@@ -492,10 +492,10 @@ any '/layout/?:id?' => sub {
         }
     }
 
-    if (param 'saveorder')
+    if (param 'saveposition')
     {
         my $values = params;
-        eval { GADS::Layout->order($values) };
+        eval { GADS::Layout->position($values) };
         if (hug)
         {
             messageAdd({ danger => bleep });

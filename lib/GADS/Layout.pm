@@ -41,7 +41,7 @@ sub all
             $count++;
         }
     }
-    my @layout = rset('Layout')->search({},{ order_by => 'order' })->all;
+    my @layout = rset('Layout')->search({},{ order_by => 'position' })->all;
     \@layout;
 }
 
@@ -272,13 +272,13 @@ sub delete
         or ouch 'dbfail', "Database error deleting item";
 }
 
-sub order
+sub position
 {   my ($class, $params) = @_;
     foreach my $o (keys %$params)
     {
-        next unless $o =~ /order([0-9]+)/;
-        rset('Layout')->find($1)->update({ order => $params->{$o} })
-            or ouch 'dbfail', "There was a database error when updating the order values";
+        next unless $o =~ /position([0-9]+)/;
+        rset('Layout')->find($1)->update({ position => $params->{$o} })
+            or ouch 'dbfail', "There was a database error when updating the position values";
     }
 }
 
@@ -330,6 +330,9 @@ sub item
                     push @enumvals, $e if $e;
                 }
             }
+
+            # Finally save the ordering value
+            $newitem->{ordering} = $args->{ordering} eq "desc" ? "desc" : "asc";
         }
         if ($args->{id})
         {
@@ -459,6 +462,7 @@ sub item
         id         => $item->id,
         name       => $item->name,
         type       => $item->type,
+        ordering   => $item->ordering,
         permission => $item->permission,
         optional   => $item->optional,
         remember   => $item->remember,

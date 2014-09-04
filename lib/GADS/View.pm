@@ -258,7 +258,7 @@ sub columns
     my $search = $ident->{files} ? { type => 'file' } : {};
 
     my @allcols = rset('Layout')->search($search,{
-        order_by => 'me.order',
+        order_by => 'me.position',
         prefetch => ['enumvals', 'calcs', 'rags' ],
     })->all; # Used for calc values
 
@@ -271,7 +271,7 @@ sub columns
             {
                 'view_id' => $view_id,
             },{
-                order_by => 'layout.order',
+                order_by => 'layout.position',
                 prefetch => 'layout',
             }
         )->all;

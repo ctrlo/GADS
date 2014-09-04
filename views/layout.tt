@@ -67,7 +67,18 @@
                     style="display:none"
                 [% END %]
                 >
-                <label for="enumval">Multiple select values:</label>
+                <div class="col-md-11">
+                    <div class="form-group">
+                        <label for="enumval">Multiple select ordering:</label>
+                        <select class="form-control" name="ordering">
+                            <option value="asc" [% IF edititem.ordering == "asc" %]selected[% END %]>Ascending</option>
+                            <option value="desc" [% IF edititem.ordering == "desc" %]selected[% END %]>Descending</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-11">
+                    <label for="enumval">Multiple select values:</label>
+                </div>
                 <div id="legs">
                     [% FOREACH enumval IN edititem.enumvals %]
                         [% UNLESS enumval.deleted %]
@@ -246,10 +257,10 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 [% IF item.permission == 2 %]Read only[% END %]
             </td>
             <td>
-                <select class="form-control" id="type" name="order[% item.id %]">
+                <select class="form-control" id="type" name="position[% item.id %]">
                     [% o = 1 %]
                     [% WHILE o <= items.size %]
-                        <option value="[% o %]" [% IF item.order == o %]selected[% END %]>[% o %]</option>
+                        <option value="[% o %]" [% IF item.position == o %]selected[% END %]>[% o %]</option>
                         [% o = o + 1 %]
                     [% END %]
                 </select>
@@ -257,7 +268,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
         </tr>
     [% END %]
 </table>
-<button type="submit" id="submit" name="saveorder" value="submit" class="btn btn-primary">Save order</button>
+<button type="submit" id="submit" name="saveposition" value="submit" class="btn btn-primary">Save order</button>
 <p></p>
 </form>
 [% END %]
