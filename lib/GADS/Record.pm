@@ -60,7 +60,7 @@ sub _add_jp
     # labelled _2 etc. In this case, we return index number.
     my %found; my $key;
     ($key) = keys %$toadd if ref $toadd eq 'HASH';
-    foreach my $j (@$prefetches, @$joins)
+    foreach my $j (@$joins, @$prefetches)
     {
         if ($key && ref $j eq 'HASH')
         {
@@ -76,6 +76,7 @@ sub _add_jp
     {
         push @$prefetches, $toadd;
     }
+    $found{$key}++ if $key;
     return $key ? $found{$key} : 1;
 }
 
@@ -223,6 +224,16 @@ sub current($$)
     # Any filters to OR to the overall query. These will probably be date
     # filters specified above for a subset of results
     my @or_filters;
+
+    # First loop through all the filters and gather the joins. The reason is that
+    # any extra joins will be added *before* the prefetches, thereby making the
+    # prefetch join numbers unpredictable. By gathering everything first, when we
+    # do the filters in a moment, we will have predictable join numbers
+    foreach my $filter (@filters) {
+        my $jn = _add_join ($filter->{column}->{join}, $prefetches, $joins);
+    }
+
+    # And now do the filters - prefetch and joins all fixed now
     foreach my $filter (@filters)
     {
         my $field = $filter->{column}->{field};
