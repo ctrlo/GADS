@@ -104,7 +104,7 @@ sub delete
 {
     my ($self, $user_id) = @_;
 
-    my $user = user 'get' => id => $user_id
+    my $user = user 'get' => id => $user_id, account_request => [0, 1]
         or ouch 'notfound', "User $user_id not found";
 
     if ($user->{account_request})
