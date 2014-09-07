@@ -138,6 +138,7 @@
             Submit
         [% END %]
     </button>
+    <a href="/data" class="btn btn-default">Cancel</a>
 </form>
 <p></p>
 
