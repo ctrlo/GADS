@@ -698,6 +698,21 @@ sub person
     }
 }
 
+sub person_popover
+{   my ($self, $person) = @_;
+    $person || return;
+    my $value = $person->value;
+    my $email = "";
+    if (my $e = $person->email)
+    {
+        $email = qq(Email: <a href='mailto:$e'>$e</a>);
+    }
+    return qq(<a style="cursor: pointer" class="personpop" data-toggle="popover"
+        title="$value"
+        data-content="$email">$value</a>
+    );
+}
+
 sub person_update_value
 {   my ($class, $person) = @_;
     $person or return;

@@ -83,7 +83,10 @@ sub item_value
             return $record->$field && $record->$field->value ? $record->$field->value->id : undef;
         }
         my $v = GADS::Record->person($column, $record);
-        return $encode ? encode_entities($v) : $v;
+        $v = $encode ? encode_entities($v) : $v;
+        return $v if $options->{plain};
+        my $person = $record->$field && $record->$field->value ? $record->$field->value : undef;
+        return $person ? GADS::Record->person_popover($person) : '';
     }
     elsif ($column->{type} eq "enum" || $column->{type} eq 'tree')
     {

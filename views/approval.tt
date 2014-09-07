@@ -13,7 +13,7 @@
             [% ELSE %]
                 <td><a href="/approval/[% approve.id %]">[% approve.current.serial | html_entity %]</a></td>
             [% END %]
-            <td>[% approve.createdby.value %]</td>
+            <td>[% person_popover(approve.createdby) %]</td>
         </tr>
     [% END %]
 </table>

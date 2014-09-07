@@ -721,13 +721,14 @@ any '/approval/?:id?' => sub {
 
     my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
     my $output = template $page => {
-        form_value  => sub {item_value(@_, {raw => 1, encode_entities => 1})},
-        item_value  => sub {item_value(@_, {encoded_entities => 1})},
-        approves    => $items,
-        autoserial  => $autoserial,
-        people      => GADS::User->all,
-        all_columns => GADS::View->columns,
-        page        => 'approval',
+        form_value     => sub {item_value(@_, {raw => 1, encode_entities => 1})},
+        item_value     => sub {item_value(@_, {encoded_entities => 1})},
+        person_popover => sub {GADS::Record->person_popover(@_)},
+        approves       => $items,
+        autoserial     => $autoserial,
+        people         => GADS::User->all,
+        all_columns    => GADS::View->columns,
+        page           => 'approval',
     };
     $output;
 };
@@ -830,12 +831,13 @@ any '/record/:id' => sub {
     my $versions = $id ? GADS::Record->versions($record->current->id) : {};
     my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
     my $output = template 'record' => {
-        item_value  => sub {item_value(@_, {encode_entities => 1})},
-        record      => $record,
-        autoserial  => $autoserial,
-        versions    => $versions,
-        all_columns => GADS::View->columns,
-        page        => 'record'
+        item_value     => sub {item_value(@_, {encode_entities => 1})},
+        person_popover => sub {GADS::Record->person_popover(@_)},
+        record         => $record,
+        autoserial     => $autoserial,
+        versions       => $versions,
+        all_columns    => GADS::View->columns,
+        page           => 'record'
     };
     $output;
 };

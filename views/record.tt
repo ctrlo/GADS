@@ -28,7 +28,7 @@
 <table class="table table-striped">
     <tr>
         <th>Last updated by</th>
-        <td>[% record.createdby.value %]</td>
+        <td>[% person_popover(record.createdby) %]</td>
     </tr>
     [% FOREACH col IN all_columns %]
         [% NEXT IF col.type == "rag" OR col.type == "calc" %]
