@@ -53,6 +53,8 @@ hook before_template => sub {
 
     $tokens->{header} = config->{gads}->{header};
 
+    $tokens->{approve_waiting} = scalar @{GADS::Record->approve}
+        if permission 'approver';
     $tokens->{messages} = session('messages');
     $tokens->{user}     = user;
     session 'messages' => [];
