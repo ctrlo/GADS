@@ -21,6 +21,8 @@
                         View <span class="caret"></span>
                 </button>
                 <ul id="menu_view" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop_view">
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0">Create new view</a></li>
+                    <li role="presentation" class="divider"></li>
                     [% first = 1 %]
                     [% FOREACH ve IN user.views %]
                         [% IF first AND NOT ve.global %]
@@ -34,8 +36,6 @@
                         <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?view=[% ve.id %]">[% ve.name | html_entity %]</a></li>
                         [% lastv = ve %][% first = 0 %]
                     [% END %]
-                    <li role="presentation" class="divider"></li>
-                    <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0">Create new view</a></li>
                 </ul>
             </div>
             [% IF v AND (!v.global OR user.permission.layout) %]
