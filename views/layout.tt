@@ -54,6 +54,13 @@
                     style="display:none"
                 [% END %]
                 >
+                <label for="end_node_only">Node selection:</label>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="end_node_only" [% IF edititem.end_node_only %]checked[% END %]>
+                        Only allow end-nodes to be selected
+                    </label>
+                </div>
                 <label for="enumval">Tree values:</label>
                 <div class="form-group">
                     <button class="btn btn-success btn-sm" onclick="demo_create();" type="button">Create</button>

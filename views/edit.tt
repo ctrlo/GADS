@@ -69,7 +69,7 @@
                         [% END %]
                     </select>
                 [% ELSIF col.type == "tree" %]
-                    [% trees.push({id = col.id, value = value}) %]
+                    [% trees.push({id = col.id, end_node_only = col.end_node_only, value = value}) %]
                     <label for="[% col.id %]">
                         [% label %][% IF oldvalue %] (previously &quot;[% oldvalue.value %]&quot;)[% END %]
                     </label>

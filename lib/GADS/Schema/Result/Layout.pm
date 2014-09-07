@@ -82,6 +82,12 @@ __PACKAGE__->table("layout");
   is_nullable: 1
   size: 45
 
+=head2 end_node_only
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -101,6 +107,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "ordering",
   { data_type => "varchar", is_nullable => 1, size => 45 },
+  "end_node_only",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -388,8 +396,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-04 10:55:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IX8onvUCnNi2P4tJYhiQIQ
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-07 23:04:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4nREnR31UBqPgKWVUBDW/A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

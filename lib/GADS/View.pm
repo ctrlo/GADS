@@ -188,17 +188,18 @@ sub _column
     }
 
     my @cached = qw(rag calc person daterange);
-    $c->{hascache}   = grep( /$col->type/, @cached ),
-    $c->{id}         = $col->id,
-    $c->{name}       = $col->name,
-    $c->{remember}   = $col->remember,
-    $c->{ordering}   = $col->ordering,
-    $c->{permission} = $col->permission,
-    $c->{readonly}   = $col->permission == READONLY ? 1 : 0;
-    $c->{approve}    = $col->permission == APPROVE ? 1 : 0;
-    $c->{open}       = $col->permission == OPEN ? 1 : 0;
-    $c->{optional}   = $col->optional,
-    $c->{field}      = $field,
+    $c->{hascache}      = grep( /$col->type/, @cached ),
+    $c->{id}            = $col->id,
+    $c->{name}          = $col->name,
+    $c->{remember}      = $col->remember,
+    $c->{ordering}      = $col->ordering,
+    $c->{permission}    = $col->permission,
+    $c->{readonly}      = $col->permission == READONLY ? 1 : 0;
+    $c->{approve}       = $col->permission == APPROVE ? 1 : 0;
+    $c->{open}          = $col->permission == OPEN ? 1 : 0;
+    $c->{optional}      = $col->optional,
+    $c->{end_node_only} = $col->end_node_only,
+    $c->{field}         = $field,
 
     $c;
 }

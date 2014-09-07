@@ -339,7 +339,11 @@ sub item
                                  : $args->{ordering} eq "asc"
                                  ? "asc"
                                  : undef;
+        } elsif ($args->{type} eq "tree")
+        {
+            $newitem->{end_node_only} = $args->{end_node_only} ? 1 : 0;
         }
+            
         if ($args->{id})
         {
             $item = rset('Layout')->find($args->{id})
@@ -470,13 +474,14 @@ sub item
         $item or ouch 'notfound', "Unable to find item with ID $args->{id}";
     }
     my $itemhash = {
-        id         => $item->id,
-        name       => $item->name,
-        type       => $item->type,
-        ordering   => $item->ordering,
-        permission => $item->permission,
-        optional   => $item->optional,
-        remember   => $item->remember,
+        id            => $item->id,
+        name          => $item->name,
+        type          => $item->type,
+        ordering      => $item->ordering,
+        permission    => $item->permission,
+        optional      => $item->optional,
+        end_node_only => $item->end_node_only,
+        remember      => $item->remember,
     };
 
     if ($item->type eq 'enum' || $item->type eq 'tree')
