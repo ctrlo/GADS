@@ -246,7 +246,7 @@ sub columns
             }
         }
         my $vu;
-        if ($ident->{user}->{permission}->{admin})
+        if ($ident->{user}->{permission}->{layout})
         {
             $vu->{global} = $update->{global} ? 1 : 0;
         }
