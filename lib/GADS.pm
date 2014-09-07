@@ -764,7 +764,7 @@ any '/edit/:id?' => sub {
         }
         else {
             return forwardHome(
-                { success => 'Record has been successfully updated' }, 'data' );
+                { success => 'Submission has been completed successfully' }, 'data' );
         }
     }
     elsif($id) {
