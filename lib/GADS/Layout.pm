@@ -200,6 +200,8 @@ sub tree
         return $item;
     };
 
+    return [] unless $layout_id;
+
     my @all = rset('Enumval')->search({
         layout_id => $layout_id,
         deleted   => 0
