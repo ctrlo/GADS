@@ -63,10 +63,27 @@ sub item_value
     my $blank  = $raw ? undef : '';
     my $encode = $options->{encode_entities};
 
-    # If prefilled from previous form submission (with errors), values
-    # will be in a hash
-    return $record->{$field}->{value}
-        if $raw && ref $record eq 'HASH';
+    # XXX This is all starting to get a bit messy. Probably time for
+    # a rewrite. If prefilled from previous form submission (with errors)
+    # or if remembered values, then values will be in a hash.
+    if ($raw && ref $record eq 'HASH')
+    {
+        # If the key doesn't exist, return undef, as that means
+        # there is no remember value for it. In the case of
+        # a person, this will allow the form to be pre-populated
+        # with the current user
+        if (exists $record->{$field}->{value})
+        {
+            # If the key does it exist, but it's undef, then
+            # it's a "blank" person value, in which case return
+            # an empty string, so as to set the selection as blank
+            # (and not default to current user)
+            return $record->{$field}->{value} // '';
+        }
+        else {
+            return undef;
+        }
+    }
 
     if ($column->{type} eq "rag")
     {
@@ -80,7 +97,7 @@ sub item_value
     {
         if ($raw)
         {
-            return $record->$field && $record->$field->value ? $record->$field->value->id : undef;
+            return $record->$field && $record->$field->value ? $record->$field->value->id : '';
         }
         my $v = GADS::Record->person($column, $record);
         $v = $encode ? encode_entities($v) : $v;

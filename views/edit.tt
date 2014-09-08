@@ -36,8 +36,19 @@
 
                 [% IF approves %]
                     [% oldvalue = item_value(col, record.record) %] [%# All value already entity-encoded %]
-                [% END %]
-                [% value = form_value(col, record) %]
+                    [% END %]
+
+                [%# This is painful. There appears to be no way to undefine a variable in TT,
+                    other than including raw Perl, which then requires a config change. So,
+                    use a hash for the value, and make it empty each loop. The value key
+                    is used for what would have been the value variable. %]
+                [% value = {} %]
+
+                [%# If form_value returns undef, then TT still gives it the value of "".
+                    Therefore, test the function first for undef, then assign. We rely
+                    on an undefined value for tests later. %]
+                [% IF form_value(col, record).defined %][% value.value = form_value(col, record) %][% END %]
+
                 [% IF record.current AND col.readonly AND NOT user.permission.update_noneed_approval AND NOT user.permission.approver %]
                     [% readonly = "readonly" %]
                 [% ELSE %]
@@ -58,7 +69,7 @@
                         [% label %][% IF oldvalue %] (previously &quot;[% oldvalue.value %]&quot;)[% END %]
                     </label>
                     <select class="form-control" name="[% field %]" [% readonly %] >
-                        [% IF col.optional OR value.deleted OR NOT value %]
+                        [% IF col.optional OR value.value.deleted OR NOT value.value %]
                             <option></option>
                         [% END %]
                         [% IF col.ordering == "desc" %]
@@ -76,35 +87,30 @@
                         [% END %]
                     </select>
                 [% ELSIF col.type == "tree" %]
-                    [% trees.push({id = col.id, end_node_only = col.end_node_only, value = value}) %]
+                    [% trees.push({id = col.id, end_node_only = col.end_node_only, value = value.value}) %]
                     <label for="[% col.id %]">
                         [% label %][% IF oldvalue %] (previously &quot;[% oldvalue.value %]&quot;)[% END %]
                     </label>
                     <div class="form-group">
                         <div id="jstree[% col.id %]"></div>
                     </div>
-                    <input type="hidden" name="[% field %]" id="treeval[% col.id %]" value="[% value %]">
+                    <input type="hidden" name="[% field %]" id="treeval[% col.id %]" value="[% value.value %]">
                 [% ELSIF col.type == "person" %]
                     <label for="[% col.id %]">
                         [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
                     </label>
                     <select class="form-control" name="[% field %]" [% readonly %] >
-                        [% IF col.optional OR value.deleted %]
+                        [% IF col.optional OR value.value.deleted %]
                             <option></option>
                         [% END %]
+                        [% IF value.value.defined %]
+                            [% selected = value.value %]
+                        [% ELSE %]
+                            [% selected = user.id %]
+                        [% END %]
                         [% FOREACH person IN people %]
-                            [% IF value %]
-                                [% IF value.defined %]
-                                    [% selected = value %]
-                                [% ELSE %]
-                                    [% selected = user.id %]
-                                [% END %]
-                                [% selected = value %]
-                            [% ELSE %]
-                                [% selected = user.id %]
-                            [% END %]
                             [% UNLESS person.deleted %]
-                                <option value="[% person.id %]" [% IF value == person.id %]selected[% END %]>
+                                <option value="[% person.id %]" [% IF selected == person.id %]selected[% END %]>
                                     [% person.surname %], [% person.firstname %]</option>
                             [% END %]
                         [% END %]
@@ -114,13 +120,13 @@
                         [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
                     </label>
                     [% IF readonly %]
-                        <p class="help-block">Current file name: [% value %] (read-only field, cannot be updated).</p>
+                        <p class="help-block">Current file name: [% value.value %] (read-only field, cannot be updated).</p>
                     [% ELSE %]
                         <input type="file" id="[% col.id %]" name="[% "file" _ col.id %]">
-                        [% IF value %]
+                        [% IF value.value %]
                             <p class="help-block">
                             <input type="checkbox" name="[% field %]" value="1" checked>Include file.
-                            Current file name: [% value %]. Select a new file to replace.</p>
+                            Current file name: [% value.value %]. Select a new file to replace.</p>
                         [% ELSE %]
                             <input type="hidden" name="[% field %]" value="1">
                         [% END %]
@@ -131,8 +137,8 @@
                     </label>
                     [% IF col.type == "daterange" %]
                         <div class="input-daterange datepicker" style="padding:0">
-                                <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline" value="[% value.from %]">
-                                <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline; float:right" value="[% value.to %]">
+                                <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline" value="[% value.value.from %]">
+                                <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline; float:right" value="[% value.value.to %]">
                         </div>
                     [% ELSE %]
                         [% IF col.type == "date" %]
@@ -141,7 +147,7 @@
                             [% class = "form-control" %]
                         [% END %]
                         <input type="text" class="[% class %]" id="[% col.id %]"
-                            name="[% field %]" value="[% IF record %][% value %][% END %]" [% readonly %] >
+                            name="[% field %]" value="[% IF record %][% value.value %][% END %]" [% readonly %] >
                     [% END %]
                 [% END %]
                 </div>
