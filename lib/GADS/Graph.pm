@@ -140,16 +140,14 @@ sub data
     my ($class, $options) = @_;
     my $graph   = $options->{graph};
 
-    my @columns; my $y_axis_stack;
+    my $y_axis_stack;
     if ($graph->y_axis_stack eq 'count')
     {
         # The count graph groups and counts values. As such, it's
         # only possible to display one field, so take only the first column
-        push @columns, shift GADS::View->columns({ id => $graph->y_axis->id });
         $y_axis_stack = 'count';
     }
     elsif($graph->y_axis_stack eq 'sum') {
-        push @columns, shift GADS::View->columns({ id => $graph->y_axis->id });
         $y_axis_stack = 'sum';
     }
     else {
@@ -197,9 +195,10 @@ sub data
 
     my @colors = ('#FF6961', '#77DD77', '#FFB347', '#AEC6CF', '#FDFD96');
 
-    my @additional = ($x_axis);
-    push @additional, $group_by if $group_by;
-    my @records = GADS::Record->current({ view_id => $options->{view_id}, additional => \@additional });
+    my @columns = @{GADS::View->columns({ id => $graph->y_axis->id })};
+    push @columns, $x_axis;
+    push @columns, $group_by if $group_by;
+    my @records = GADS::Record->current({ columns => \@columns });
 
     # Go through each record, and count how many unique values
     # there are for the field in question. Then define the key

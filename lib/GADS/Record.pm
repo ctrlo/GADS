@@ -101,11 +101,14 @@ sub current($$)
     {
         @columns = @{GADS::View->columns({ view_id => $view_id })};
     }
+    elsif ($item->{columns})
+    {
+        @columns = @{$item->{columns}};
+    }
     else {
         @columns = @{GADS::View->columns};
     }
     my %cache_cols; # Any column in the view that should be cached
-    push @columns, @{$item->{additional}} if $item->{additional};
     my @filters; # All the filters for this query
     my $prefetches = []; my $joins = [];
     foreach my $c (@columns)
