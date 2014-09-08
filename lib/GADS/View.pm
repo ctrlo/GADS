@@ -198,6 +198,8 @@ sub _column
     $c->{approve}       = $col->permission == APPROVE ? 1 : 0;
     $c->{open}          = $col->permission == OPEN ? 1 : 0;
     $c->{optional}      = $col->optional,
+    $c->{description}   = $col->description,
+    $c->{helptext}      = $col->helptext,
     $c->{end_node_only} = $col->end_node_only,
     $c->{field}         = $field,
 

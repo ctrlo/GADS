@@ -37,6 +37,14 @@
                     <option value="2" [% IF edititem.permission == 2 %]selected[% END %]>Read only</option>
                 </select>
             </div>
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <input type="text" class="form-control" id="description" name="description" value="[% edititem.description | html_entity %]">
+            </div>
+            <div class="form-group">
+                <label for="helptext">User help text:</label>
+                <textarea class="form-control" rows="5" id="helptext" name="helptext">[% edititem.helptext | html_entity %]</textarea>
+            </div>
             <div class="checkbox">
                 <label>
                     <input type="checkbox" name="optional" [% IF edititem.optional %]checked[% END %]>Field is optional
@@ -241,6 +249,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
         <th>Name</th>
         <th>Type</th>
         <th>Permissions</th>
+        <th>Description</th>
         <th>Order</th>
     </tr>
     [% FOREACH item IN items %]

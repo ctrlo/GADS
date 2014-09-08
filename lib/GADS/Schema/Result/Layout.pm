@@ -88,6 +88,16 @@ __PACKAGE__->table("layout");
   default_value: 0
   is_nullable: 0
 
+=head2 description
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 helptext
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -109,6 +119,10 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "end_node_only",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "description",
+  { data_type => "text", is_nullable => 1 },
+  "helptext",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -396,8 +410,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-07 23:04:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4nREnR31UBqPgKWVUBDW/A
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-08 01:11:11
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GoFHrFNcgLc6DdIO1YQs4A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

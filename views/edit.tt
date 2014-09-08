@@ -46,6 +46,13 @@
                 <div class="form-group">
                     [% label = col.name | html_entity %]
                     [% UNLESS col.optional %][% label = label _ '*' %][% END %]
+                    [% IF col.description %]
+                        [% label = label _ " (" _ col.description _ ")" %]
+                    [% END %]
+                    [% IF col.helptext %]
+                        [% label = label _ " (<a data-toggle='modal' href='/helptext/"
+                                         _ col.id  _ "' data-target='#helptext_modal'>?</a>)" %]
+                    [% END %]
                 [% IF col.type == "enum" %]
                     <label for="[% col.id %]">
                         [% label %][% IF oldvalue %] (previously &quot;[% oldvalue.value %]&quot;)[% END %]
@@ -141,6 +148,14 @@
     <a href="/data" class="btn btn-default">Cancel</a>
 </form>
 <p></p>
+
+       <!-- Modal -->
+        <div class="modal fade" id="helptext_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
 
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]

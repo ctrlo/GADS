@@ -298,6 +298,8 @@ sub item
             or ouch 'badvalue', "Bad type $args->{type} for item";
         ($newitem->{permission} = $args->{permission}) =~ /^[012]$/
             or ouch 'badvalue', "Bad permission $args->{permission} for item";
+        $newitem->{description} = $args->{description};
+        $newitem->{helptext}    = $args->{helptext};
         my @enumvals;
         if ($args->{type} eq 'enum')
         {
@@ -480,6 +482,8 @@ sub item
         ordering      => $item->ordering,
         permission    => $item->permission,
         optional      => $item->optional,
+        description   => $item->description,
+        helptext      => $item->helptext,
         end_node_only => $item->end_node_only,
         remember      => $item->remember,
     };

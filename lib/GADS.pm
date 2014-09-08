@@ -733,6 +733,12 @@ any '/approval/?:id?' => sub {
     $output;
 };
 
+get '/helptext/:id?' => sub {
+    my $id = param 'id';
+    my $col = GADS::Layout->item({ id => $id });
+    template 'helptext.tt', { column => $col }, { layout => undef };
+};
+
 any '/edit/:id?' => sub {
     my $id = param 'id';
 
