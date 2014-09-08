@@ -151,7 +151,7 @@ sub all
     );
     my $adminval = config->{plugins}->{'Auth::Complete'}->{permissions}->{useradmin}->{value};
     push @search, \[ "permission & ? > 0", $adminval ] if $args->{admins};
-    my @users = rset('User')->search({ -and => \@search })->all;
+    my @users = rset('User')->search({ -and => \@search }, { order_by => 'surname' })->all;
     \@users;
 }
 

@@ -93,6 +93,16 @@
                             <option></option>
                         [% END %]
                         [% FOREACH person IN people %]
+                            [% IF value %]
+                                [% IF value.defined %]
+                                    [% selected = value %]
+                                [% ELSE %]
+                                    [% selected = user.id %]
+                                [% END %]
+                                [% selected = value %]
+                            [% ELSE %]
+                                [% selected = user.id %]
+                            [% END %]
                             [% UNLESS person.deleted %]
                                 <option value="[% person.id %]" [% IF value == person.id %]selected[% END %]>
                                     [% person.surname %], [% person.firstname %]</option>
