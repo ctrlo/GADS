@@ -101,11 +101,13 @@ sub _column
             my @enums = $col->enumvals;
             $c->{enumvals} = \@enums;
         }
+        $c->{fixedvals} = 1;
     }
     else {
-        $c->{type}    = $col->type;
-        $c->{sprefix} = $field;
-        $c->{join}    = $field;
+        $c->{type}      = $col->type;
+        $c->{sprefix}   = $field;
+        $c->{join}      = $field;
+        $c->{fixedvals} = 0;
     }
 
     $c->{table} = $c->{type} eq 'tree' ? 'Enum' : camelize $c->{type};
@@ -300,6 +302,26 @@ sub columns
         push @return, $c;
     }
     return \@return;
+}
+
+# Return true if an enum value exists and is not deleted
+sub is_valid_enumval
+{   my ($self, $value, $column) = @_;
+
+    if ($column->{type} eq "person")
+    {
+        rset('User')->search({
+            id      => $value,
+            deleted => 0,
+        })->count ? 1 : 0;
+    }
+    else {
+        rset('Enumval')->search({
+            id        => $value,
+            layout_id => $column->{id},
+            deleted   => 0,
+        })->count ? 1 : 0;
+    }
 }
 
 sub _get_view

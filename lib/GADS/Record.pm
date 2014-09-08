@@ -808,8 +808,15 @@ sub _process_input_value
     }
     elsif ($column->{type} eq 'tree' || $column->{type} eq 'enum' || $column->{type} eq 'person')
     {
+        # First check if the value is valid
+        if ($value)
+        {
+            ouch 'badval', "ID value of $value is not valid for $column->{name}"
+                unless GADS::View->is_valid_enumval($value, $column);
+        }
         # The values of these in the database reference other tables,
-        # so if a value is not input then set that DB value to undef
+        # so if a value is not input (may be an empty string) then set
+        # that DB value to undef
         $value ? $value : undef;
     }
     else
