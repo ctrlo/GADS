@@ -760,6 +760,8 @@ any '/edit/:id?' => sub {
                 next unless $fn =~ /^field(\d+)$/;
                 $record->{$fn} = {value => $params->{$fn}};
             }
+            # For the hidden current_id field
+            $record->{current}->{id} = $params->{current_id};
 
             # For files, we have to retrieve the previous filenames,
             # as we don't know what they were from the submit
