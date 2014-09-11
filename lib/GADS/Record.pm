@@ -721,7 +721,9 @@ sub calc
                 $code =~ s/\[$name\.to\]/$value->{to}/gi;
             }
             else {
-                $value = "\"$value\"" unless $col->{numeric};
+                # XXX Is there a q char delimiter that is safe regardless
+                # of input? Backtick is unlikely to be used...
+                $value = "q`$value`" unless $col->{numeric};
                 $code =~ s/\[$name\]/$value/gi;
             }
         }
