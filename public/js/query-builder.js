@@ -952,7 +952,7 @@
                 }
             }
             // type check
-            else if (_.indexOf(this.operators[i].apply_to,filter.internalType) == -1) {
+            else if (typeof this.operators[i] == "undefined" || _.indexOf(this.operators[i].apply_to,filter.internalType) == -1) {
                 continue;
             }
 
