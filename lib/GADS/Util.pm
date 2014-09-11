@@ -50,6 +50,9 @@ sub item_value
 
     return undef unless $record;
 
+    # Check for special case of ID
+    return $record->current_id if $column->{type} eq "id";
+
     my $field = 'field'.$column->{id};
 
     # By default, return the actual end value. If raw is specified,
