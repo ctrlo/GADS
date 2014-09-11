@@ -379,6 +379,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 sorts
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Sort>
+
+=cut
+
+__PACKAGE__->has_many(
+  "sorts",
+  "GADS::Schema::Result::Sort",
+  { "foreign.layout_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 strings
 
 Type: has_many
@@ -410,8 +425,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-08 01:11:11
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GoFHrFNcgLc6DdIO1YQs4A
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-10 12:02:43
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YMJMCcEwjBQTz7s0GUXP9Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

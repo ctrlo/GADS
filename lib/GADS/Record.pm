@@ -29,6 +29,7 @@ use DateTime;
 use DateTime::Format::Strptime qw( );
 use Data::Compare;
 use POSIX qw(ceil);
+use JSON qw(decode_json encode_json);
 schema->storage->debug(1);
 
 use GADS::Schema;
@@ -67,6 +68,10 @@ sub _add_jp
             $found{$key}++;
             return $found{$key} if Compare $toadd, $j;
         }
+        elsif ($toadd eq $j)
+        {
+            return 1;
+        }
     }
     if ($type eq 'join')
     {
@@ -97,26 +102,30 @@ sub current($$)
     # this stage, we keep track of what we've added, so that we
     # can act accordingly during the filters
     my @columns;
-    if (my $view_id = $item->{view_id})
-    {
-        @columns = @{GADS::View->columns({ view_id => $view_id })};
-    }
-    elsif ($item->{columns})
+    if ($item->{columns})
     {
         @columns = @{$item->{columns}};
+    }
+    elsif (my $view_id = $item->{view_id})
+    {
+        @columns = @{GADS::View->columns({ view_id => $view_id })};
     }
     else {
         @columns = @{GADS::View->columns};
     }
     my %cache_cols; # Any column in the view that should be cached
-    my @filters; # All the filters for this query
-    my $prefetches = []; my $joins = [];
+    my $prefetches = []; # Tables to prefetch - data being viewed
+    my $joins = [];      # Tables to join - data being searched
+    my $cache_joins;     # Tables that have data needed for calculated fields
+    my @search_date;     # The search criteria to narrow-down by date range
     foreach my $c (@columns)
     {
-        # If it's a calculated/rag value, prefetch the columns in the calc
+        # If it's a calculated/rag value, log as prefetch for cached fields
+        # in case we need to recalculate them
         if (($c->{type} eq 'rag' || $c->{type} eq 'calc') && $c->{$c->{type}})
         {
-            push @columns, @{$c->{$c->{type}}->{columns}};
+            $cache_joins->{$_->{field}} = 1
+                foreach (@{$c->{$c->{type}}->{columns}});
         }
         elsif ($c->{type} eq "date" || $c->{type} eq "daterange")
         {
@@ -125,80 +134,143 @@ sub current($$)
             if (my $to = $item->{to})
             {
                 my $f = {
-                    column   => $c,
-                    operator => 'lt',
+                    id       => $c->{id},
+                    operator => 'less',
                     value    => $to->ymd,
-                    type     => 'and',
                 };
                 push @f, $f;
             }
             if (my $from = $item->{from})
             {
                 my $f = {
-                    column   => $c,
-                    operator => 'gt',
+                    id       => $c->{id},
+                    operator => 'greater',
                     value    => $from->ymd,
-                    type     => 'and',
                 };
                 push @f, $f;
             }
-            push @filters, {value => \@f, type => 'and'} if @f;
+            push @search_date, {
+                condition => "AND",
+                rules     => \@f,
+            } if @f;
         }
         # Flag cache if need be - may need updating
         $cache_cols{$c->{field}} = $c
             if $c->{hascache};
-
-        # Add to the prefetch array. This tracks what's been added
-        # and only adds additional fields as required
+        # We're viewing this, so prefetch all the values
         _add_prefetch ($c->{join}, $prefetches, $joins);
     }
 
-    my $search;
+    # A hash of the columns with the ID as a key, in order to
+    # easily look up a column from an ID number. Used by search
+    my $columns = {};
+    foreach my $c (@{GADS::View->columns})
+    {
+        $columns->{$c->{id}} = $c;
+    }
+
+    my @limit; # The overall limit, for example reduction by date range or approval field
+    # Add any date ranges to the search from above
+    if (@search_date)
+    {
+        # _search_construct returns an array ref, so dereference it first
+        my $res = @{(_search_construct {condition => 'OR', rules => \@search_date}, $columns, $prefetches, $joins)};
+        push @limit, $res if $res;
+    }
+
     if($item->{record_id}) {
-        $search->{"me.id"} = $item->{record_id};
+        push @limit, ("me.id" => $item->{record_id});
     }
     elsif ($item->{current_id})
     {
-        $search->{"me.id"} = $item->{current_id};
-        $search->{approval} = 0;
+        push @limit, ("me.id"  => $item->{current_id});
+        push @limit, (approval => 0);
     }
     else {
-        $search->{"record.record_id"} = undef;
-        $search->{approval} = 0;
+        push @limit, ("record.record_id" => undef);
+        push @limit, (approval => 0);
+    }
+
+    my @calcsearch; # The search for fields that may need to be recalculated
+    my @search;     # The user search
+    my @orderby;
+    # Now add all the filters as joins (we don't need to prefetch this data). However,
+    # the filter might also be a column in the view from before, in which case add
+    # it to, or use, the prefetch. We use the tracking variables from above.
+    if (my $view = GADS::View->view($item->{view_id}))
+    {
+        if (my $filter = $view->filter)
+        {
+            my $decoded = decode_json($filter);
+            # Do 2 loops through all the filters and gather the joins. The reason is that
+            # any extra joins will be added *before* the prefetches, thereby making the
+            # prefetch join numbers unpredictable. By doing an initial run, when we
+            # repeat we will have predictable join numbers.
+            if (keys %$decoded)
+            {
+                _search_construct $decoded, $columns, $prefetches, $joins;
+                # Get the user search criteria
+                @search     = @{_search_construct($decoded, $columns, $prefetches, $joins)};
+                # Put together the search to look for undefined calculated fields
+                @calcsearch = @{_search_construct($decoded, $columns, $prefetches, $joins, \%cache_cols)};
+            }
+        }
+        foreach my $sort ($view->sorts)
+        {
+            my $column  = $columns->{$sort->layout->id};
+            my $s_table = _table_name($column, $prefetches, $joins);
+            my $type = $sort->type eq 'desc' ? '-desc' : '-asc';
+            push @orderby, { $type => "$s_table.value" };
+        }
     }
 
     # First see if any cachable fields are missing their cache values.
-    # If so, insert them
-    my %calcsearch = %{$search}; # Only update rows from current result
-    my @cache_cols_join;         # The fields to join
-    my @cache_cols_search;       # The search for undefined values
-    my %cache_cols_done;         # Track whether we have already seen this field
+    my @cache_cols_search;
     foreach my $csearch (values %cache_cols)
     {
         # Create the search parameter, looking for undef fields of the column
         my $sprefix = $csearch->{sprefix};
-        next if $cache_cols_done{$sprefix}; # No need if same cached column already joined
-        push @cache_cols_join, $csearch->{join};
-        push @cache_cols_search, {"$sprefix.value" => undef };
-        $cache_cols_done{$sprefix} = 1;
+        if ($csearch->{type} eq "person")
+        {
+            # Special case: person cache value is one further down the join
+            # in the user table
+            push @cache_cols_search,
+                {"$sprefix.value" => undef, "$csearch->{field}.value" => {'!=' => undef} };
+        }
+        else {
+            push @cache_cols_search,
+                {"$sprefix.value" => undef };
+        }
     }
-    $calcsearch{'-or'} = \@cache_cols_search if @cache_cols_search;
-    # Find them
+    # The search here is a combination of the cached fields we know we
+    # are going to use, the overall limit of data rows to be retrieved,
+    # and the addition of the user search criteria without the calculated
+    # fields
+    my $calcsearch = [
+        -and => [
+            @limit,
+            @calcsearch,
+            -or => \@cache_cols_search
+        ],
+    ];
     my @tocache;
+    my @pf = (keys %$cache_joins, keys %cache_cols) ; # Prefetch any fields that may be needed to produce cache
     if ($item->{record_id})
     {
         @tocache = rset('Record')->search(
-            \%calcsearch,
+            $calcsearch,
             {
-                join => \@cache_cols_join,
+                join => [@$joins, @$prefetches],
+                prefetch => \@pf,
             }
         )->all;
     }
     else {
         @tocache = rset('Current')->search(
-            \%calcsearch,
+            $calcsearch,
             {
-                join => {record => \@cache_cols_join},
+                join => {record => [@$joins, @$prefetches]},
+                prefetch => {record => \@pf},
             }
         )->all;
     }
@@ -218,65 +290,7 @@ sub current($$)
         }
     }
 
-    # Now add all the filters as joins (we don't need to prefetch this data). However,
-    # the filter might also be a column in the view from before, in which case add
-    # it to, or use, the prefetch. We use the tracking variables from above.
-
-    # Add all the view's filters onto any existing ones
-    push @filters, @{GADS::View->filters($item->{view_id})} if $item->{view_id};
-    # Any filters to OR to the overall query. These will probably be date
-    # filters specified above for a subset of results
-    my @or_filters;
-
-    # First loop through all the filters and gather the joins. The reason is that
-    # any extra joins will be added *before* the prefetches, thereby making the
-    # prefetch join numbers unpredictable. By gathering everything first, when we
-    # do the filters in a moment, we will have predictable join numbers
-    foreach my $filter (@filters) {
-        my $jn = _add_join ($filter->{column}->{join}, $prefetches, $joins);
-    }
-
-    # And now do the filters - prefetch and joins all fixed now
-    foreach my $filter (@filters)
-    {
-        my $field = $filter->{column}->{field};
-
-        # As per the prefix, what we join depends on the type of field
-        my $sprefix = $filter->{column}->{sprefix};
-
-        my @searches = _search_construct $filter, $prefetches, $joins;
-
-        while (@searches)
-        {
-            my $sfield = shift @searches;
-            my $svalue = shift @searches;
-            $sfield && $svalue or next;
-
-            # Underscore in mysql is special for like
-            $svalue->{'-like'} =~ s/\_/\\\_/g if $svalue->{'-like'};
-
-            if ($sfield eq 'multi')
-            {
-                push @or_filters, $svalue;
-            }
-            else {
-                if (ref $search->{$sfield} eq 'ARRAY')
-                {
-                    push @{$search->{$sfield}}, $svalue;
-                }
-                elsif ($search->{$sfield})
-                {
-                    $search->{$sfield} = [ -and => $search->{$sfield}, $svalue ];
-                }
-                else {
-                    $search->{$sfield} = $svalue;
-                }
-            }
-        }
-    }
-
-    $search->{'-or'} = \@or_filters if @or_filters;
-
+    my $search = [-and => [@search, @limit]];
     my @all;
     if ($item->{record_id})
     {
@@ -292,7 +306,9 @@ sub current($$)
         )->all;
     }
     else {
-        my $orderby = config->{gads}->{serial} eq "auto" ? 'me.id' : 'me.serial';
+        my $orderby = @orderby
+                    ? \@orderby
+                    : config->{gads}->{serial} eq "auto" ? 'me.id' : 'me.serial';
 
         # XXX Okay, this is a bit weird - we join current to record to current.
         # This is because we return records at the end, and it allows current
@@ -351,69 +367,82 @@ sub _filter
     return 0;
 }
 
-sub _search_construct
-{   my ($filter, $prefetches, $joins) = @_;
-
-    my $operator = $filter->{operator};
-    my $value    = $filter->{value};
-    my $column   = $filter->{column};
-    my $type     = $filter->{type};
-
-    if (ref $value eq 'ARRAY')
-    {
-        my @v = map { _search_construct $_, $prefetches, $joins } @$value;
-        my $t = $type eq 'or' ? '-or' : '-and';
-        # Use a hash structure with operator rather than only an array
-        # ref, otherwise the same field with different search values
-        # will get overwritten
-        return ('multi', { $t => \@v });
-    }
-
+sub _table_name
+{   my ($column, $prefetches, $joins) = @_;
     my $jn = _add_join ($column->{join}, $prefetches, $joins);
     my $index = $jn > 1 ? "_$jn" : '';
-    my $sfield   = $column->{sprefix} . $index;
+    $column->{sprefix} . $index;
+}
 
+sub _search_construct
+{   my ($filter, $columns, $prefetches, $joins, $calcnull) = @_;
+
+    if (my $rules = $filter->{rules})
+    {
+        # Filter has other nested filters
+        my @final;
+        foreach my $rule (@$rules)
+        {
+            my @res = _search_construct $rule, $columns, $prefetches, $joins, $calcnull;
+            push @final, @res if @res;
+        }
+        my $condition = $filter->{condition} eq 'OR' ? '-or' : '-and';
+        return [$condition => \@final];
+    }
+
+    my %ops = (
+        equal    => '=',
+        greater  => '>',
+        less     => '<',
+        contains => '-like',
+    );
+
+    my $column   = $columns->{$filter->{id}};
+    my $operator = $ops{$filter->{operator}};
+
+    my $s_table = _table_name $column, $prefetches, $joins;
+
+    # Is the search looking for missing calculated values?
+    if ($column->{hascache} == 1 && ref $calcnull eq 'HASH')
+    {
+        $calcnull->{$column->{field}} = $column;
+        return;
+    }
+    my $value = $filter->{value};
+
+    my $s_field;
     if ($column->{type} eq "daterange")
     {
         # If it's a daterange, we have to be intelligent about the way the
         # search is constructed. Greater than, less than, equals all require
         # different values of the date range to be searched
-        if ($operator eq "equal")
+        if ($operator eq "=")
         {
-            ("$sfield.value", { '=', $value});
+            $s_field = "value";
         }
-        elsif ($operator eq "gt")
+        elsif ($operator eq ">")
         {
-            ("$sfield.to", { '>', $value});
+            $s_field = "to";
         }
-        elsif ($operator eq "lt")
+        elsif ($operator eq "<")
         {
-            ("$sfield.from", { '<', $value});
+            $s_field = "from";
         }
-        elsif ($operator eq "contains")
+        elsif ($operator eq "-like")
         {
-            ("$sfield.from", { '<', $value}, 'to', { '>', $value});
+            # Requires 2 searches ANDed together
+            return ('-and' => ["$s_table.from" => { '<', $value}, "$s_table.to" => { '>', $value}]);
         }
     }
     else {
-        if ($operator eq "equal")
-        {
-            ("$sfield.value", { '=', $value});
-        }
-        elsif ($operator eq "gt")
-        {
-            ("$sfield.value", { '>', $value});
-        }
-        elsif ($operator eq "lt")
-        {
-            ("$sfield.value", { '<', $value});
-        }
-        elsif ($operator eq "contains")
-        {
-            ("$sfield.value", { '-like', "%$value%"});
-        }
+        $s_field = "value";
     }
+
+    $value =~ s/\_/\\\_/g if $operator eq '-like';
+    ("$s_table.$s_field" => {$operator, $value});
 }
+
+
 
 sub csv
 {
@@ -570,7 +599,11 @@ sub rag
             # If the value is numeric and not defined, then return
             # grey, otherwise the value will be treated as zero
             # and will probably return misleading RAG values
-            return 'grey' if !$value && $col->{numeric};
+            if (!$value && $col->{numeric})
+            {
+                _write_rag($record, $column, 'grey');
+                return 'grey'
+            }
 
             if ($col->{type} eq "daterange")
             {
@@ -624,13 +657,18 @@ sub rag
         else {
             $ragvalue = 'grey';
         }
-        rset('Ragval')->create({
-            record_id => $record->id,
-            layout_id => $column->{id},
-            value     => $ragvalue,
-        });
+        _write_rag($record, $column, $ragvalue);
         $ragvalue;
     }
+}
+
+sub _write_rag
+{   my ($record, $column, $ragvalue) = @_;
+    rset('Ragval')->create({
+        record_id => $record->id,
+        layout_id => $column->{id},
+        value     => $ragvalue,
+    });
 }
 
 sub calc
@@ -645,7 +683,10 @@ sub calc
     }
     elsif(!$calc)
     {
-        return undef;
+        # Still write cache value, so that the system doesn't keep thinking
+        # that it's missing and trying to regenerate it
+        _write_calc($record, $column, '');
+        return '';
     }
     else {
         my $code = $calc->{calc};
@@ -675,13 +716,18 @@ sub calc
                   ? 'Invalid field names in calc formula'
                   : _safe_eval "$code";
 
-        rset('Calcval')->create({
-            record_id => $record->id,
-            layout_id => $column->{id},
-            value     => $value,
-        });
+        _write_calc($record, $column, $value);
         $value;
     }
+}
+
+sub _write_calc
+{   my ($record, $column, $value) = @_;
+    rset('Calcval')->create({
+        record_id => $record->id,
+        layout_id => $column->{id},
+        value     => $value,
+    });
 }
 
 sub person

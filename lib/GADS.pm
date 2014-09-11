@@ -368,30 +368,17 @@ any '/view/:id' => sub {
     if (param 'update')
     {
         my $values = params;
+        eval { GADS::View->view($view_id, user, $values) };
 
-        # First update selected columns
-        my $params = {
-            view_id => $view_id, # ID returned here in case of new view
-            user    => user,
-        };
-        eval { GADS::View->columns($params, $values) };
         if (hug)
         {
             messageAdd({ danger => bleep });
         }
         else {
             # Set current view to the one created/edited
-            session 'view_id' => $params->{view_id};
-            # Then update any filters
-            eval { GADS::View->filters($params->{view_id}, $values) };
-            if (hug)
-            {
-                messageAdd({ danger => bleep });
-            }
-            else {
-                return forwardHome(
-                    { success => "The view has been updated successfully" }, 'data' );
-            }
+            session 'view_id' => $view_id;
+            return forwardHome(
+                { success => "The view has been updated successfully" }, 'data' );
         }
     }
 
@@ -424,8 +411,8 @@ any '/view/:id' => sub {
     my $view = GADS::View->view($view_id);
     my $output  = template 'view' => {
         all_columns  => GADS::View->columns,
-        filters      => GADS::View->filters($view_id),
-        filter_types => GADS::View->filter_types,
+        sorts        => GADS::View->sorts($view_id),
+        sort_types   => GADS::View->sort_types,
         ucolumns     => \@ucolumns,
         v            => $view, # TT does not like variable "view"
         page         => 'view'

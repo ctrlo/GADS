@@ -28,6 +28,9 @@
         [% IF page == "data" AND viewtype == "calendar" %]
             <link rel="stylesheet" href="[% url.css %]/calendar.min.css">
         [% END %]
+        [% IF page == "view" %]
+            <link rel="stylesheet" href="[% url.css %]/query-builder.css">
+        [% END %]
 
         <!-- Custom styles for this template -->
         <link rel="stylesheet" href="[% url.css %]/local.css">
@@ -146,6 +149,10 @@
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.dateAxisRenderer.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasTextRenderer.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasAxisTickRenderer.js"></script>
+        [% END %]
+        [% IF page == "view" %]
+            <script type="text/javascript" src="[% url.js %]/underscore-min.js"></script>
+            <script type="text/javascript" src="[% url.js %]/query-builder.js"></script>
         [% END %]
         [% IF page == "data" AND viewtype == "calendar" %]
             <script type="text/javascript" src="[% url.js %]/underscore-min.js"></script>

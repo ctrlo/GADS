@@ -198,7 +198,7 @@ sub data
     my @columns = @{GADS::View->columns({ id => $graph->y_axis->id })};
     push @columns, $x_axis;
     push @columns, $group_by if $group_by;
-    my @records = GADS::Record->current({ columns => \@columns });
+    my @records = GADS::Record->current({ columns => \@columns, view_id => $options->{view_id} });
 
     # Go through each record, and count how many unique values
     # there are for the field in question. Then define the key

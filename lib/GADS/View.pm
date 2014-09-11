@@ -45,8 +45,33 @@ sub main($$)
 }
 
 sub view
-{   my ($class, $view_id) = @_;
-    $view_id or return;
+{   my ($self, $view_id, $user, $update) = @_;
+    $view_id || $update or return;
+
+    if ($update)
+    {
+        $user or ouch 'usermissing', "User ID needs to be supplied for view when updating";
+
+        # First update selected columns
+        my $params = {
+            view_id => $view_id, # ID returned here in case of new view
+            user    => $user,
+        };
+
+        $self->columns($params, $update);
+
+        # Pass the view ID back in case it was new
+        $view_id = $params->{view_id};
+
+        # Then update any sorts
+        $self->sorts($params->{view_id}, $update);
+
+        # Finally update the filter
+        rset('View')->find($view_id)->update({
+            filter => $update->{filter},
+        });
+    }
+
     rset('View')->find($view_id);
 }
 
@@ -190,7 +215,7 @@ sub _column
     }
 
     my @cached = qw(rag calc person daterange);
-    $c->{hascache}      = grep( /$col->type/, @cached ),
+    $c->{hascache}      = grep( /^$c->{type}$/, @cached ),
     $c->{id}            = $col->id,
     $c->{name}          = $col->name,
     $c->{remember}      = $col->remember,
@@ -263,9 +288,10 @@ sub columns
     # Whether we have only been asked for file columns
     my $search = $ident->{files} ? { type => 'file' } : {};
 
+    my $pf = ['enumvals', 'calcs', 'rags', 'file_options' ];
     my @allcols = rset('Layout')->search($search,{
         order_by => ['me.position', 'enumvals.id'],
-        prefetch => ['enumvals', 'calcs', 'rags' ],
+        prefetch => $pf,
     })->all; # Used for calc values
 
     my @cols;
@@ -278,7 +304,7 @@ sub columns
                 'view_id' => $view_id,
             },{
                 order_by => 'layout.position',
-                prefetch => 'layout',
+                prefetch => {layout => $pf},
             }
         )->all;
         foreach (@cc)
@@ -339,6 +365,20 @@ sub _get_view
     $view;
 }
 
+sub sort_types
+{
+    [
+        {
+            name        => "asc",
+            description => "Ascending"
+        },
+        {
+            name        => "desc",
+            description => "Descending"
+        },
+    ]
+}
+
 sub filter_types
 {
     [
@@ -349,63 +389,60 @@ sub filter_types
     ]
 }
 
-sub filters
+sub sorts
 {
     my ($class, $view_id, $update) = @_;
 
     if ($update)
     {
-        # Collect all the filters. These can be in a variety of formats. New
+        # Collect all the sorts. These can be in a variety of formats. New
         # ones will be a scalar for a single one or an arrayref for multiples.
         # Existing ones will have a unique field ID. This is maintained to retain
         # the data associated with that entry.
-        my @allfilters;
+        my @allsorts;
         foreach my $v (keys %$update)
         {
-            next unless $v =~ /^filfield(\d+)(new)?/; # For each filter group
-            my $id = $1;
-            my $new = $2 ? 'new' : '';
-            my $op = $update->{"filoperator$id"};
-            ouch 'badparam', "Invalid operator $op"
-                unless grep { $_->{code} eq $op } @{filter_types()};
-            my $filter = {
+            next unless $v =~ /^sortfield(\d+)(new)?/; # For each sort group
+            my $id   = $1;
+            my $new  = $2 ? 'new' : '';
+            my $type = $update->{"sorttype$id"};
+            ouch 'badparam', "Invalid type $type"
+                unless grep { $_->{name} eq $type } @{sort_types()};
+            my $sort = {
                 view_id   => $view_id,
-                layout_id => $update->{"filfield$id$new"},
-                value     => $update->{"filvalue$id"},
-                operator  => $op,
+                layout_id => $update->{"sortfield$id$new"},
+                type      => $type,
             };
             if ($new)
             {
                 # New filter
-                my $f = rset('Filter')->create($filter)
-                    or ouch 'dbfail', "Database error when inserting new filter";
-                push @allfilters, $f->id;
+                my $s = rset('Sort')->create($sort)
+                    or ouch 'dbfail', "Database error when inserting new sort";
+                push @allsorts, $s->id;
             }
             else {
                 # Search on view as well to ensure ID belongs to view
-                my ($f) = rset('Filter')->search({ view_id => $view_id, id => $id })->all;
-                if ($f)
+                my ($s) = rset('Sort')->search({ view_id => $view_id, id => $id })->all;
+                if ($s)
                 {
-                    $f->update($filter);
-                    push @allfilters, $id;
+                    $s->update($sort);
+                    push @allsorts, $id;
                 }
             }
         }
         # Then delete any that no longer exist
-        foreach my $f (rset('Filter')->search({ view_id => $view_id }))
+        foreach my $s (rset('Sort')->search({ view_id => $view_id }))
         {
-            unless (grep {$_ == $f->id} @allfilters)
+            unless (grep {$_ == $s->id} @allsorts)
             {
-                # Don't actually delete, so that old records can still reference the value
-                # Set deleted flag instead
-                $f->delete
-                    or ouch 'dbfail', "Database error when deleting view ".$f->id;
+                $s->delete
+                    or ouch 'dbfail', "Database error when deleting view ".$s->id;
             }
         }
     }
 
-    my @filters;
-    my $filter_r = rset('Filter')->search({
+    my @sorts;
+    my $sort_r = rset('Sort')->search({
         view_id => $view_id
     },{
         prefetch => {
@@ -413,17 +450,16 @@ sub filters
         } 
     });
 
-    foreach my $fil ($filter_r->all)
+    foreach my $sort ($sort_r->all)
     {
-        my $f;
-        $f->{id}       = $fil->id;
-        $f->{operator} = $fil->operator;
-        $f->{value}    = $fil->value;
-        $f->{column}   = _column $fil->layout;
-        push @filters, $f;
+        my $s;
+        $s->{id}     = $sort->id;
+        $s->{type  } = $sort->type;
+        $s->{column} = _column $sort->layout;
+        push @sorts, $s;
     }
 
-    \@filters;
+    \@sorts;
 }
 
 sub fields($)

@@ -50,26 +50,29 @@
                     filters can be applied to one view, in which case data will only be displayed
                     that meets the criteria of all the filters. For example, 2 date filters can be used to
                     only show data between 2 dates. Any dates entered must be specified in the
-                    form yyyy-m-dd.
+                    form yyyy-mm-dd.
                 </dd>
             </dl>
 
-            <label for="filter">Filters:</label>
-            <div id="filters">
-                [% FOREACH fil IN filters %]
-                    [% PROCESS filrow %]
+            <label>Filters:</label>
+            <div id="builder"></div>
+            <input id="filter" type="hidden" name="filter" value="[% v.filter %]">
+            <label for="sorts">Sorting:</label>
+            <div id="sorts">
+                [% FOREACH sort IN sorts %]
+                    [% PROCESS sortrow %]
                 [% END %]
-                <div class="filter-add">
+                <div class="sort-add">
                         <div class="col-md-11">
                             <button type="button" class="btn btn-default add">
-                                Add new filter
+                                Add new sort
                             </button>
                         </div>
                 </div>
             </div>
         </div>
     </div>
-    <button type="submit" name="update" value="update" class="btn btn-primary">
+    <button id="saveview" type="submit" name="update" value="update" class="btn btn-primary" onclick="UpdateFilter()">
         [% IF v.id %]
             Update
         [% ELSE %]
@@ -103,51 +106,81 @@
 <p></p>
 
 <script type="text/javascript">
-    var jscode='[% FILTER remove('\n+') %]
+    var jscode='[% FILTER remove('[\n\r]+') %]
         [% FILTER replace('\'', '\\\'') %]
         $(document).ready(function () {
-            $('div#filters').on('click','.closeme', function(){
+            $('div#sorts').on('click','.closeme', function(){
                 var c = $(".request-row").length;
                 if (c < 1) return;
                 $(this).parents('.request-row').remove();
             });
             var count = 0;
-            $('div#filters').on('click','.add', function(){
+            $('div#sorts').on('click','.add', function(){
                 count++;
-                $(this).parents('.filter-add').before( '
-                    [% PROCESS filrow newf='new' filid='\' + count + \'' %]
+                $(this).parents('.sort-add').before( '
+                    [% PROCESS sortrow newf='new' sortid='\' + count + \'' %]
                 ' );
             });
         }); 
+        $('#builder').queryBuilder({
+            filters: [
+                [% FOR column IN all_columns %]
+                    {
+                        id: '[% column.id %]',
+                        label: '[% column.name %]',
+                        [% IF column.type == "intgr" %]
+                            type: 'integer',
+                        [% ELSE %]
+                            type: 'string',
+                        [% END %]
+                    },
+                [% END %] 
+                ],
+                operators: [
+                    {type: 'equal',            accept_values: true,  apply_to: ['string', 'number', 'datetime']},
+                    {type: 'not_equal',        accept_values: true,  apply_to: ['string', 'number', 'datetime']},
+                    {type: 'less',             accept_values: true,  apply_to: ['string', 'number', 'datetime']},
+                    {type: 'greater',          accept_values: true,  apply_to: ['string', 'number', 'datetime']},
+                    {type: 'begins_with',      accept_values: true,  apply_to: ['string']},
+                    {type: 'contains',         accept_values: true,  apply_to: ['string']},
+                ]
+
+        });
+        function UpdateFilter() {
+            var res = $('#builder').queryBuilder('getRules');
+            $("#filter").val(JSON.stringify(res, null, 2));
+        };
+        [% UNLESS v.filter.match('^[{}\s]*$') %]
+            $( document ).ready(function() {
+                $('#builder').queryBuilder('setRules', 
+                    [% v.filter %]
+                );
+            });
+        [% END %]
 [% END %]
 [% END %]';
 </script>
 
-[% BLOCK filrow %]
-    [% IF filid %][% fid = filid %][% ELSE %][% fid = fil.id %][% END %]
+[% BLOCK sortrow %]
+    [% IF sortid %][% sid = sortid %][% ELSE %][% sid = sort.id %][% END %]
     <div class="row">
         <div class="request-row">
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <p>
-                    <select class="form-control" name="filfield[% fid %][% newf %]">
+                    <select class="form-control" name="sortfield[% sid %][% newf %]">
                     [% FOR column IN all_columns %]
-                        <option value="[% column.id %]" [% IF fil.column.id == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                        <option value="[% column.id %]" [% IF sort.column.id == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
                     [% END %]
                     </select>
                 </p>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <p>
-                    <select class="form-control" name="filoperator[% fid %]">
-                        [% FOREACH ft IN filter_types %]
-                            <option value="[% ft.code %]" [% IF fil.operator == ft.code %]selected[% END %]>[% ft.text %]</option>
+                    <select class="form-control" name="sorttype[% sid %]">
+                        [% FOREACH st IN sort_types %]
+                            <option value="[% st.name %]" [% IF sort.type == st.name %]selected[% END %]>[% st.description %]</option>
                         [% END %]
                     </select>
-                </p>
-            </div>
-            <div class="col-md-3">
-                <p>
-                <input type="text" class="form-control" name="filvalue[% fid %]" value="[% fil.value | html_entity %]">
                 </p>
             </div>
             <button type="button" class="close closeme pull-left">&times;</button>
