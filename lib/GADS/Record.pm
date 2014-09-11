@@ -598,7 +598,7 @@ sub rag
         foreach my $col (@{$rag->{columns}})
         {
             my $name = $col->{name};
-            my $value = item_value($col, $record, {epoch => 1});
+            my $value = item_value($col, $record, {epoch => 1, plain => 1});
 
             # If the value is numeric and not defined, then return
             # grey, otherwise the value will be treated as zero
@@ -714,7 +714,7 @@ sub calc
             my $extra = $col->{suffix};
             next unless $code =~ /\Q[$name\E$extra\Q]/i;
 
-            my $value = item_value($col, $record, {epoch => 1});
+            my $value = item_value($col, $record, {epoch => 1, plain => 1});
             if ($col->{type} eq "daterange")
             {
                 $code =~ s/\[$name\.from\]/$value->{from}/gi;
