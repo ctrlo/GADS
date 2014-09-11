@@ -391,15 +391,19 @@ sub _search_construct
     }
 
     my %ops = (
-        equal    => '=',
-        greater  => '>',
-        less     => '<',
-        contains => '-like',
+        equal       => '=',
+        greater     => '>',
+        less        => '<',
+        contains    => '-like',
+        begins_with => '-like',
     );
 
     my $column   = $columns->{$filter->{id}};
     my $operator = $ops{$filter->{operator}};
 
+    my $vprefix = $filter->{operator} eq 'contains' ? '%' : '';
+    my $vsuffix = $filter->{operator} =~ /contains|begins_with/ ? '%' : '';
+    
     my $s_table = _table_name $column, $prefetches, $joins;
 
     # Is the search looking for missing calculated values?
@@ -408,7 +412,7 @@ sub _search_construct
         $calcnull->{$column->{field}} = $column;
         return;
     }
-    my $value = $filter->{value};
+    my $value = $vprefix.$filter->{value}.$vsuffix;
 
     my $s_field;
     if ($column->{type} eq "daterange")
