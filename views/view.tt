@@ -150,7 +150,7 @@
             var res = $('#builder').queryBuilder('getRules');
             $("#filter").val(JSON.stringify(res, null, 2));
         };
-        [% UNLESS v.filter.match('^[{}\s]*$') %]
+        [% IF v.filter AND NOT v.filter.match('^[{}\s]*$') %]
             $( document ).ready(function() {
                 $('#builder').queryBuilder('setRules', 
                     [% v.filter %]
