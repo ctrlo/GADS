@@ -28,7 +28,8 @@ the values in records, not change any aspect of the layout. Specifically:
 Calculated fields can be used to automatically generate values based
 on other fields. Basic Perl programming style can be used, with the value that
 is returned being used for the value of the field. Values from other fields
-are used by inserting the field name between square brackets. Values in date
+are used by inserting the field name between square brackets. The ID of the
+record can be accessed using [id]. Values in date
 ranges are used by adding the suffix &quot;.from&quot; or &quot;.to&quot;
 to specify the date required. For example:
 
@@ -60,7 +61,8 @@ RAG fields can be used to automatically generate colour-coded indicators based
 on other fields. Basic Perl programming style can be used to stipulate the conditions
 for the colour. If none match, the field will be indicated as grey. Values from other
 fields are used by inserting the field name between square brackets, whilst
-&quot;CURDATE&quot; can be used to insert the current date. Values in date
+&quot;CURDATE&quot; can be used to insert the current date.  The ID of the
+record can be accessed using [id]. Values in date
 ranges are used by adding the suffix &quot;.from&quot; or &quot;.to&quot;
 to specify the date required. For example:
 

@@ -109,6 +109,16 @@ sub _suffix
     return '';
 }
 
+sub _column_id
+{
+    {
+        type    => 'id',
+        name    => 'id',
+        suffix  => '',
+        numeric => 1,
+    };
+}
+
 sub _column
 {
     my $col = shift;
@@ -152,6 +162,9 @@ sub _column
                 my $c = _column($acol);
                 push @calccols, $c;
             }
+            # Also check for special ID column
+            push @calccols, _column_id
+                if $calc->calc =~ /\Q[id]/i;
 
             $c->{calc} = {
                 id      => $calc->id,
@@ -178,6 +191,9 @@ sub _column
                 my $c = _column($acol);
                 push @ragcols, $c;
             }
+            # Also check for special ID column
+            push @ragcols, _column_id
+                if $rag->green =~ /\Q[id]/i || $rag->amber =~ /\Q[id]/i || $rag->red =~ /\Q[id]/i;
 
             $c->{rag} = {
                 id      => $rag->id,
