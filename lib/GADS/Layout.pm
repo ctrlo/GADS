@@ -431,7 +431,8 @@ sub item
         if ($args->{type} eq 'calc')
         {
             my $calc = {
-                calc => $args->{calc},
+                calc          => $args->{calc},
+                return_format => $args->{return_format} ? 'date' : '',
             };
             my ($calcr) = rset('Calc')->search({ layout_id => $item->id })->all;
             if ($calcr)

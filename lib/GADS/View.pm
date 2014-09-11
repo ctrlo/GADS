@@ -171,6 +171,8 @@ sub _column
                 calc    => $calc->calc,
                 columns => \@calccols,
             };
+            $c->{return_format} = $calc->return_format;
+            $c->{vtype} = "date";
         }
 
         $c->{userinput} = 0;
@@ -229,6 +231,9 @@ sub _column
     else {
         $c->{numeric} = 0;
     }
+
+    # Virtual type. Will definitely be date for date ;-)
+    $c->{vtype} = 'date' if $c->{type} eq 'date';
 
     my @cached = qw(rag calc person daterange);
     $c->{hascache}      = grep( /^$c->{type}$/, @cached ),

@@ -84,6 +84,22 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<index4>
+
+=over 4
+
+=item * L</record_id>
+
+=item * L</layout_id>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("index4", ["record_id", "layout_id"]);
+
 =head1 RELATIONS
 
 =head2 layout
@@ -117,8 +133,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-31 10:43:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:z3pL3kW85HJ+dHQLj4iKow
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-11 23:24:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oi0ULfTzn22gomKEWbqzbQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

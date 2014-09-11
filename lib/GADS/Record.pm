@@ -519,7 +519,7 @@ sub data_calendar
         my @dates; my @titles;
         foreach my $column (@$columns)
         {
-            if ($column->{type} eq "daterange" || $column->{type} eq "date")
+            if ($column->{type} eq "daterange" || $column->{vtype} eq "date")
             {
                 # Create colour if need be
                 $datecolors{$column->{id}} = shift @colors unless $datecolors{$column->{id}};

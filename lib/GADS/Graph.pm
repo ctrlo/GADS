@@ -165,7 +165,7 @@ sub data
 
     my $dtgroup;
     my ($datemin, $datemax);
-    if ($x_axis->{type} eq 'date')
+    if ($x_axis->{vtype} eq 'date')
     {
         my $date_fields;
         if ($graph->x_axis_grouping eq 'year')
@@ -218,7 +218,7 @@ sub data
             $y_group_values{$val2} = { color => $colors[$y_group_index], defined => 0 };
             $y_group_index++;
         }
-        if ($x_axis->{type} eq 'date')
+        if ($x_axis->{vtype} eq 'date')
         {
             next unless $val;
             $datemin = $val if !defined $datemin || $datemin > $val;

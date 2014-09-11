@@ -44,6 +44,34 @@ use constant
   , READONLY               => 2   # Read-only field
   };
 
+sub _date
+{
+    my ($date, $options) = @_;
+
+    # Whether to only select some fields from the date value
+    if ($options->{date_fields})
+    {
+        my $include;
+        foreach my $k (keys $options->{date_fields})
+        {
+            $include->{$k} = $date->$k;
+        }
+        $date = DateTime->new($include);
+    }
+
+    if ($options->{epoch})
+    {
+        return $date->epoch;
+    }
+    elsif (my $f = $options->{strftime})
+    {
+        return $date->strftime($f);
+    }
+    else {
+        return $date->ymd;
+    }
+}
+
 sub item_value
 {
     my ($column, $record, $options) = @_;
@@ -94,7 +122,15 @@ sub item_value
     }
     elsif ($column->{type} eq "calc")
     {
-        return GADS::Record->calc($column, $record);
+        my $v = GADS::Record->calc($column, $record);
+        if ($column->{return_format} eq "date")
+        {
+            my $date = DateTime->from_epoch(epoch => $v);
+            return _date $date, $options;
+        }
+        else {
+            return $v;
+        }
     }
     elsif ($column->{type} eq "person")
     {
@@ -126,28 +162,7 @@ sub item_value
         my $date = $record->$field ? $record->$field->value : '';
         $date or return '';
 
-        # Whether to only select some fields from the date value
-        if ($options->{date_fields})
-        {
-            my $include;
-            foreach my $k (keys $options->{date_fields})
-            {
-                $include->{$k} = $date->$k;
-            }
-            $date = DateTime->new($include);
-        }
-
-        if ($options->{epoch})
-        {
-            return $date->epoch;
-        }
-        elsif (my $f = $options->{strftime})
-        {
-            return $date->strftime($f);
-        }
-        else {
-            return $date->ymd;
-        }
+        return _date $date, $options;
     }
     elsif ($column->{type} eq "daterange")
     {

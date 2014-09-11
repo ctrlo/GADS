@@ -153,6 +153,13 @@
                 [% END %]
                 >
                 <div class="form-group">
+                    <label for="calc">Return value conversion:</label>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="return_format" [% IF edititem.calc.return_format == "date" %]checked[% END %]>
+                                Convert return value to date format
+                        </label>
+                    </div>
                     <label for="calc">Calculation: (<a href="" data-toggle="modal" data-target="#helpcalc">?</a>)</label>
                     <textarea class="form-control monospace" id="calc" name="calc" rows="10">[% edititem.calc.calc | html_entity %]</textarea>
                 </div>
