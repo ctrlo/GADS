@@ -1374,6 +1374,9 @@ sub _safe_eval
     #Conditionals
     $cpt->permit(qw(cond_expr flip flop andassign orassign and or xor));
 
+    # Concatenation and substr
+    $cpt->permit(qw(concat substr));
+
     #Advanced math
     #$cpt->permit(qw(atan2 sin cos exp log sqrt rand srand));
 
