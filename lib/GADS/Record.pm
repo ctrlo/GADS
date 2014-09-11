@@ -669,31 +669,19 @@ sub rag
 sub _write_cache
 {   my ($table, $record, $column, $value) = @_;
 
-    my $res = schema->storage->dbh_do(sub {
-        my ($storage, $dbh) = @_;
-        $dbh->do("
-            LOCK TABLES
-            $table AS $table WRITE,
-            $table AS me WRITE
-        ");
-    });
     my $tablec = camelize $table;
-    my $count = rset($tablec)->search({
-        record_id => $record->id,
-        layout_id => $column->{id},
-    })->count;
-    unless ($count)
-    {
+    # The cache tables have unqiue constraints to prevent
+    # duplicate cache values for the same records. Using an eval
+    # catches any attempts to write duplicate values.
+    # XXX Should table locking be used instead? Currently there
+    # appears to be no cross-database compatability
+    eval {
         rset($tablec)->create({
             record_id => $record->id,
             layout_id => $column->{id},
             value     => $value,
         });
     }
-    my $res = schema->storage->dbh_do(sub {
-        my ($storage, $dbh) = @_;
-        $dbh->do("UNLOCK TABLES");
-    });
 }
 
 sub _write_rag
