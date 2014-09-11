@@ -662,13 +662,39 @@ sub rag
     }
 }
 
-sub _write_rag
-{   my ($record, $column, $ragvalue) = @_;
-    rset('Ragval')->create({
+sub _write_cache
+{   my ($table, $record, $column, $value) = @_;
+
+    my $res = schema->storage->dbh_do(sub {
+        my ($storage, $dbh) = @_;
+        $dbh->do("
+            LOCK TABLES
+            $table AS $table WRITE,
+            $table AS me WRITE
+        ");
+    });
+    my $tablec = camelize $table;
+    my $count = rset($tablec)->search({
         record_id => $record->id,
         layout_id => $column->{id},
-        value     => $ragvalue,
+    })->count;
+    unless ($count)
+    {
+        rset($tablec)->create({
+            record_id => $record->id,
+            layout_id => $column->{id},
+            value     => $value,
+        });
+    }
+    my $res = schema->storage->dbh_do(sub {
+        my ($storage, $dbh) = @_;
+        $dbh->do("UNLOCK TABLES");
     });
+}
+
+sub _write_rag
+{   my ($record, $column, $ragvalue) = @_;
+    _write_cache('ragval', @_);
 }
 
 sub calc
@@ -723,11 +749,7 @@ sub calc
 
 sub _write_calc
 {   my ($record, $column, $value) = @_;
-    rset('Calcval')->create({
-        record_id => $record->id,
-        layout_id => $column->{id},
-        value     => $value,
-    });
+    _write_cache('calcval', @_);
 }
 
 sub person
