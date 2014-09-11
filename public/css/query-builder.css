@@ -71,6 +71,7 @@
     position:absolute;
     left:-15px;
     width:15px;
+    height:60%;
     height:calc(50% + 4px);
     border-color:#ccc;
     border-style:solid;
