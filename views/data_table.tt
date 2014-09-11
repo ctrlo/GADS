@@ -25,12 +25,14 @@
                     [% item %]
                     ">
                 </div>
-            [% ELSE %]
+            [% ELSIF columns.$li.type == "string" %]
                 <div class="more-less">
                     <div class="more-block">
                         <p>[% item %]</p>
                     </div>
                 </div>
+            [% ELSE %]
+                <p>[% item %]</p>
             [% END %]
             </td>
         [% END %]
