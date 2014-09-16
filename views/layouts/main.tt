@@ -73,9 +73,9 @@
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Configuration <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     [% IF user.permission.layout %]
-                                        <li><a href="[% url.page %]/layout/">Data Layout</a></li>
-                                        <li><a href="[% url.page %]/graph/">Graphs</a></li>
-                                        <li><a href="[% url.page %]/config/">General Settings</a></li>
+                                        <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/layout/">Data Layout</a></li>
+                                        <li [% IF page=="graph" %]class="active"[% END %]><a href="[% url.page %]/graph/">Graphs</a></li>
+                                        <li [% IF page=="config" %]class="active"[% END %]><a href="[% url.page %]/config/">General Settings</a></li>
                                     [% END %]
                                     [% IF user.permission.useradmin %]
                                         <li [% IF page=="user" %]class="active"[% END %]><a href="[% url.page %]/user/">Manage Users</a></li>
