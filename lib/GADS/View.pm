@@ -317,7 +317,7 @@ sub columns
     # Whether we have only been asked for file columns
     my $search = $ident->{files} ? { type => 'file' } : {};
 
-    my $pf = ['enumvals', 'calcs', 'rags', 'file_options' ];
+    my $pf = ['enumvals', 'calcs', 'rags', 'file_options', 'display_field' ];
     my @allcols = rset('Layout')->search($search,{
         order_by => ['me.position', 'enumvals.id'],
         prefetch => $pf,
