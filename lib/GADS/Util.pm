@@ -97,8 +97,9 @@ sub item_value
     # XXX This is all starting to get a bit messy. Probably time for
     # a rewrite. If prefilled from previous form submission (with errors)
     # or if remembered values, then values will be in a hash.
-    if ($raw && ref $record eq 'HASH')
+    if (ref $record eq 'HASH')
     {
+        return unless $raw;
         # If the key doesn't exist, return undef, as that means
         # there is no remember value for it. In the case of
         # a person, this will allow the form to be pre-populated
