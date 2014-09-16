@@ -171,7 +171,7 @@ sub register
     # Prevent "email exists" errors for security
     return if user get => ( email => $params->{email} );
 
-    my @fields = qw(firstname surname email account_request_notes);
+    my @fields = qw(firstname surname email telephone title account_request_notes);
     @new{@fields} = @params{@fields};
     $new{username} = $params->{email};
     $new{account_request} = 1;
@@ -183,7 +183,10 @@ sub register
     my $text = "A new account request has been received from the following person:\n\n";
     $text .= "First name: $newuser->{firstname}, ";
     $text .= "surname: $newuser->{surname}, ";
-    $text .= "email: $newuser->{email}\n";
+    $text .= "email: $newuser->{email}, ";
+    $text .= "title: ".$newuser->{title}->name.", ";
+    $text .= "telephone: $newuser->{telephone}\n\n";
+    $text .= "User notes: $newuser->{account_request_notes}\n";
     my $msg = {
         emails  => \@emails,
         subject => "New account request",

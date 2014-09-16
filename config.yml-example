@@ -49,7 +49,7 @@ plugins:
     schema:
       table: user
       fields:
-        details: [firstname, surname, title, organisation, lastrecord, account_request, account_request_notes]
+        details: [firstname, surname, title, organisation, telephone, lastrecord, account_request, account_request_notes]
         key: id
         permissions: permission
         username: username
