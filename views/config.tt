@@ -1,0 +1,29 @@
+<h2>General configuration</h2>
+<div class="row">
+    <div class="col-md-6">
+        <form role="form" method="post">
+            <div class="form-group">
+                <label for="homepage_text">Homepage message:</label>
+                <textarea class="form-control" id="homepage_text" name="homepage_text">[% config.homepage_text | html_entity %]</textarea>
+            </div>
+            <button type="submit" name="update" value="update" class="btn btn-primary">Update</button>
+            <a href="/" class="btn btn-default">Cancel</a>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var jscode='[% FILTER remove('\n+') %]
+        [% FILTER replace('\'', '\\\'') %]
+            tinymce.init({
+                selector: "textarea",
+                width : "800",
+                height : "400",
+                theme_advanced_buttons1 : "bold, italic, underline, strikethrough, justifyleft, justifycenter, justifyright, bullist, numlist, outdent, indent, undo, redo, link, unlink, cleanup, hr, formatselect, forecolor, backcolor",
+                theme_advanced_buttons2 : "",
+                theme_advanced_buttons3 : ""
+            });
+        [% END %]
+    [% END %]';
+</script>
+

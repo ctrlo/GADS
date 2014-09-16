@@ -6,6 +6,7 @@ use GADS::View;
 use GADS::Layout;
 use GADS::Email;
 use GADS::Graph;
+use GADS::Config;
 use GADS::DB;
 use GADS::Util         qw(:all);
 use Dancer2::Plugin::Auth::Complete;
@@ -63,8 +64,10 @@ hook before_template => sub {
 
 get '/' => sub {
 
-    template 'index';
-
+    template 'index' => {
+        config => GADS::Config->config,
+        page   => 'index'
+    };
 };
 
 get '/data_calendar' => sub {
@@ -304,6 +307,33 @@ any '/account/?:action?/?' => sub {
         return forwardHome({ danger => "Unrecognised action $action" });
     }
 };
+
+any '/config/?' => sub {
+
+    return forwardHome(
+        { danger => 'You do not have permission to edit general settings' } )
+        unless permission 'layout';
+
+    if (param 'update')
+    {
+        my $params = params;
+        eval { GADS::Config->config($params)};
+        if (hug)
+        {
+            messageAdd({ danger => bleep });
+        }
+        else {
+            return forwardHome(
+                { success => "Configuration settings have been updated successfully" } );
+        }
+    }
+
+    template 'config' => {
+        config      => GADS::Config->config,
+        page        => 'config'
+    };
+};
+
 
 any '/graph/?:id?' => sub {
 
