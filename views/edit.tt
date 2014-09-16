@@ -135,7 +135,7 @@
             <div id="jstree[% dispcol.id %]"></div>
         </div>
         <input type="hidden" name="[% field %]" id="treeval_id[% dispcol.id %]" value="[% value.value %]">
-        <input type="hidden" name="[% field %]" id="[% dispcol.id %]" value="">
+        <input type="hidden" id="[% dispcol.id %]" value="">
     [% ELSIF dispcol.type == "person" %]
         <label for="[% dispcol.id %]">
             [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
