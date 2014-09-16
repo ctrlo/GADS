@@ -25,6 +25,10 @@
                 <input type="text" class="form-control" id="email" name="email" value="[% edituser.email | html_entity %]">
             </div>
             <div class="form-group">
+                <label for="telephone">Telephone:</label>
+                <input type="text" class="form-control" id="telephone" name="telephone" value="[% edituser.telephone | html_entity %]">
+            </div>
+            <div class="form-group">
                 <label for="title">
                     Title:
                     [% IF page == "user" %]
