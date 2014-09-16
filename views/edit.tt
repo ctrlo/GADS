@@ -243,6 +243,7 @@
                             <div id="depend[% col.id %]_[% cc.id %]" [% UNLESS textval.match(c.regex) %]style="display:none" [% END %]>
                                 [% INCLUDE do_col parent = col col = cc %]
                             </div>
+                            [% jscode.push('$("#' _ col.id _ '").trigger("change");') %]
                         [% END %]
                     [% END %]
                 [% END %]
