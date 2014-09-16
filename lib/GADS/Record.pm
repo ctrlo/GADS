@@ -22,6 +22,7 @@ use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
 use GADS::Record;
 use GADS::Util         qw(:all);
+use GADS::Config;
 use String::CamelCase qw(camelize);
 use Ouch;
 use Safe;
@@ -245,8 +246,21 @@ sub current($$)
             }
         }
     }
-    push @orderby, { '-asc' => $index_sort }
-        unless @orderby;
+    # Default sort
+    unless (@orderby)
+    {
+        my $config = GADS::Config->config;
+        my $type = $config->sort_type eq 'desc' ? '-desc' : '-asc';
+        if (my $layout = $config->sort_layout_id)
+        {
+            my $column  = $columns->{$layout};
+            my $s_table = _table_name($column, $prefetches, $joins);
+            push @orderby, { $type => "$s_table.value" }
+        }
+        else {
+            push @orderby, { $type => $index_sort };
+        }
+    }
 
     # First see if any cachable fields are missing their cache values.
     my @cache_cols_search;

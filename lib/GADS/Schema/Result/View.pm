@@ -108,21 +108,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 instances
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Instance>
-
-=cut
-
-__PACKAGE__->has_many(
-  "instances",
-  "GADS::Schema::Result::Instance",
-  { "foreign.sort_view_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 sorts
 
 Type: has_many
@@ -174,8 +159,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-10 12:02:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+elHiE1jSuxkrHuBLbHkuQ
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-16 23:40:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Fx+CUarK4KTpMEK4rgF1dw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

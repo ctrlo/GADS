@@ -2,6 +2,28 @@
 <div class="row">
     <div class="col-md-6">
         <form role="form" method="post">
+            <label for="sort_layout_id">Default sort:</label>
+            <div class="row">
+                <div class="col-md-6">
+                    <select class="form-control" id="sort_layout_id" name="sort_layout_id">
+                        [% IF autoserial %]
+                            <option value="">ID</option>
+                        [% ELSE %]
+                            <option value="">Index</option>
+                        [% END %]
+                        [% FOREACH column IN all_columns %]
+                            <option value="[% column.id %]" [% IF config.sort_layout_id == column.id %]selected[% END %]>[% column.name %]</option>
+                        [% END %]
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <select class="form-control" id="sort_type" name="sort_type">
+                        <option value="asc" [% IF config.sort_type == "asc" %]selected[% END %]>Ascending</option>
+                        <option value="desc" [% IF config.sort_type == "desc" %]selected[% END %]>Descending</option>
+                    </select>
+                </div>
+            </div>
+            <p></p>
             <div class="form-group">
                 <label for="homepage_text">Homepage message:</label>
                 <textarea class="form-control" id="homepage_text" name="homepage_text">[% config.homepage_text | html_entity %]</textarea>

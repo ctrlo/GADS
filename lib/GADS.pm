@@ -109,6 +109,11 @@ any '/data' => sub {
         }
         session 'sort' => { type => $type, id => $sort };
     }
+    elsif (defined param('sort'))
+    {
+        # Provide a way of resetting sort to default
+        session 'sort' => undef;
+    }
 
     if (my $page = param('page'))
     {
@@ -345,7 +350,10 @@ any '/config/?' => sub {
         }
     }
 
+    my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
     template 'config' => {
+        all_columns => GADS::View->columns,
+        autoserial  => $autoserial,
         config      => GADS::Config->config,
         page        => 'config'
     };

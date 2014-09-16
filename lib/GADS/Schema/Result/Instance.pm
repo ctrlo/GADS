@@ -74,11 +74,17 @@ __PACKAGE__->table("instance");
   data_type: 'text'
   is_nullable: 1
 
-=head2 sort_view_id
+=head2 sort_layout_id
 
   data_type: 'integer'
   is_foreign_key: 1
   is_nullable: 1
+
+=head2 sort_type
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 45
 
 =head2 homepage_text
 
@@ -102,8 +108,10 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 128 },
   "register_text",
   { data_type => "text", is_nullable => 1 },
-  "sort_view_id",
+  "sort_layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "sort_type",
+  { data_type => "varchar", is_nullable => 1, size => 45 },
   "homepage_text",
   { data_type => "text", is_nullable => 1 },
 );
@@ -137,18 +145,18 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 sort_view
+=head2 sort_layout
 
 Type: belongs_to
 
-Related object: L<GADS::Schema::Result::View>
+Related object: L<GADS::Schema::Result::Layout>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "sort_view",
-  "GADS::Schema::Result::View",
-  { id => "sort_view_id" },
+  "sort_layout",
+  "GADS::Schema::Result::Layout",
+  { id => "sort_layout_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -158,8 +166,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-16 19:12:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wSmfLl1jFAEfwHskrn14Nw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-16 23:40:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xk4jHY5YfHt6qQ9UaCqXfg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
