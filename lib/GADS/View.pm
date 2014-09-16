@@ -94,6 +94,8 @@ sub delete
     my $view = _get_view($id, $user->{id}); # Borks on an error
     !$view->global || $user->{permission}->{layout}
         or ouch 'noperms', "You do not have permission to delete $id";
+    rset('Sort')->search({ view_id => $view->id })->delete
+        or ouch 'dbfail', "There was a database error when deleting the view's sort values";
     rset('ViewLayout')->search({ view_id => $view->id })->delete
         or ouch 'dbfail', "There was a database error when deleting the view's layouts";
     rset('Filter')->search({ view_id => $view->id })->delete
