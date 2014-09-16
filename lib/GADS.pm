@@ -65,7 +65,7 @@ hook before_template => sub {
 get '/' => sub {
 
     template 'index' => {
-        config => GADS::Config->config,
+        config => GADS::Config->conf,
         page   => 'index'
     };
 };
@@ -339,7 +339,7 @@ any '/config/?' => sub {
     if (param 'update')
     {
         my $params = params;
-        eval { GADS::Config->config($params)};
+        eval { GADS::Config->conf($params)};
         if (hug)
         {
             messageAdd({ danger => bleep });
@@ -354,7 +354,7 @@ any '/config/?' => sub {
     template 'config' => {
         all_columns => GADS::View->columns,
         autoserial  => $autoserial,
-        config      => GADS::Config->config,
+        config      => GADS::Config->conf,
         page        => 'config'
     };
 };

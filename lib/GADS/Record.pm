@@ -249,7 +249,7 @@ sub current($$)
     # Default sort
     unless (@orderby)
     {
-        my $config = GADS::Config->config;
+        my $config = GADS::Config->conf;
         my $type = $config->sort_type eq 'desc' ? '-desc' : '-asc';
         if (my $layout = $config->sort_layout_id)
         {

@@ -25,7 +25,7 @@ schema->storage->debug(1);
 
 use GADS::Schema;
 
-sub config
+sub conf
 {   my ($self, $update) = @_;
 
     if($update)
