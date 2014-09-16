@@ -194,6 +194,25 @@ sub current($$)
     my @calcsearch; # The search for fields that may need to be recalculated
     my @search;     # The user search
     my @orderby;
+    # Configure specific user selected sort. Do it now, as they may
+    # not have view selected
+    my $index_sort = config->{gads}->{serial} eq "auto" ? 'me.id' : 'me.serial';
+    if (my $sort = $item->{sort})
+    {
+        my $type = $sort->{type} eq 'desc' ? '-desc' : '-asc';
+        if ($sort->{id} == -1)
+        {
+            push @orderby, { $type => $index_sort };
+            use Data::Dumper; say STDERR Dumper \@orderby;
+        }
+        else {
+            my $column  = $columns->{$sort->{id}};
+            if (my $s_table = _table_name($column, $prefetches, $joins))
+            {
+                push @orderby, { $type => "$s_table.value" };
+            }
+        }
+    }
     # Now add all the filters as joins (we don't need to prefetch this data). However,
     # the filter might also be a column in the view from before, in which case add
     # it to, or use, the prefetch. We use the tracking variables from above.
@@ -215,14 +234,19 @@ sub current($$)
                 @calcsearch = @{_search_construct($decoded, $columns, $prefetches, $joins, \%cache_cols)};
             }
         }
-        foreach my $sort ($view->sorts)
+        unless ($item->{sort})
         {
-            my $column  = $columns->{$sort->layout->id};
-            my $s_table = _table_name($column, $prefetches, $joins);
-            my $type = $sort->type eq 'desc' ? '-desc' : '-asc';
-            push @orderby, { $type => "$s_table.value" };
+            foreach my $sort ($view->sorts)
+            {
+                my $column  = $columns->{$sort->layout->id};
+                my $s_table = _table_name($column, $prefetches, $joins);
+                my $type = $sort->type eq 'desc' ? '-desc' : '-asc';
+                push @orderby, { $type => "$s_table.value" };
+            }
         }
     }
+    push @orderby, { '-asc' => $index_sort }
+        unless @orderby;
 
     # First see if any cachable fields are missing their cache values.
     my @cache_cols_search;
@@ -306,10 +330,6 @@ sub current($$)
         )->all;
     }
     else {
-        my $orderby = @orderby
-                    ? \@orderby
-                    : config->{gads}->{serial} eq "auto" ? 'me.id' : 'me.serial';
-
         # XXX Okay, this is a bit weird - we join current to record to current.
         # This is because we return records at the end, and it allows current
         # to be used when the record is used. Is there a better way?
@@ -318,7 +338,7 @@ sub current($$)
         my $select = {
             prefetch => {'record' => $prefetches},
             join     => {'record' => $joins},
-            order_by => $orderby,
+            order_by => \@orderby,
         };
 
         # First count all values from result

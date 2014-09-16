@@ -95,6 +95,21 @@ any '/data' => sub {
         session 'rows' => int $rows;
     }
 
+    if (my $sort = param('sort'))
+    {
+        my $existing = session 'sort';
+        $sort = int $sort;
+        my $type;
+        if ($existing && $existing->{id} == $sort)
+        {
+            $type = $existing->{type} eq 'asc' ? 'desc' : 'asc';
+        }
+        else {
+            $type = 'asc';
+        }
+        session 'sort' => { type => $type, id => $sort };
+    }
+
     if (my $page = param('page'))
     {
         session 'page' => int $page;
@@ -170,6 +185,7 @@ any '/data' => sub {
             view_id => $view_id,
             rows    => session('rows'),
             page    => session('page'),
+            sort    => session('sort'),
         };
 
         my @records = GADS::Record->current($get);
@@ -191,6 +207,7 @@ any '/data' => sub {
         };
 
         $params = {
+            sort     => session('sort'),
             subset   => $subset,
             records  => \@output,
             columns  => $columns,

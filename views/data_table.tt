@@ -1,9 +1,23 @@
 <table class="table table-striped">
     <tr>
-        <th>Serial</th>
+        [% IF sort.id == -1 AND sort.type == "asc" %]
+            [% st = "&#9650;" %]
+        [% ELSIF sort.id == -1 %]
+            [% st = "&#9660;" %]
+        [% ELSE %]
+            [% st = "" %]
+        [% END %]
+        <th><a href="?sort=-1" style="color:black">Serial[% st %]</a></th>
         [% peopcols = [] %]
         [% FOREACH col IN columns %]
-            <th>[% col.name | html_entity %]
+            [% IF sort.id == col.id AND sort.type == "asc" %]
+                [% st = "&#9650;" %]
+            [% ELSIF sort.id == col.id %]
+                [% st = "&#9660;" %]
+            [% ELSE %]
+                [% st = "" %]
+            [% END %]
+            <th><a href="?sort=[% col.id %]" style="color:black">[% col.name | html_entity %][% IF col.id == sort.id %][% st %]</a>[% END %]
                 [% IF col.type == "person" AND user.permission.message AND records.size %]
                     [% peopfield = "field" _ col.id %]
                     [% peopcols.push(peopfield) %]
