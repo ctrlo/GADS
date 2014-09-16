@@ -28,48 +28,9 @@
             [% END %]
             [% trees = [] %]
             [% jscode = [] %]
+            [% columns_done = {} %]
             [% FOREACH col IN all_columns %]
-                [%# First display the actual column, only if it doesn't depend on others %]
-                [% UNLESS col.display_field %]
-                    [% dispcol = col %]
-                    [% PROCESS showcol %]
-                [% END %]
-
-                [%# Then add all the columns that depend on it. Put them in a JS code array,
-                    which gets output at the end of this templte. Each of these is in its own div %]
-                [% IF col.depended_by.size %]
-                    [% FOREACH depends IN dispcol.depended_by %]
-                        [% divid = "depend" _ dispcol.id _ "_" _ depends.id %]
-                        [% jscode.push('
-                            $("#' _ field  _ '").change( function () {
-                                var val = $("option:selected", $(this)).text();
-                                if (/^' _ depends.regex _ '$/.test(val)) {
-                                    $("#' _ divid _ '").show()
-                                } else {
-                                    $("#' _ divid _ '").hide()
-                                }
-                            } );')
-                        %]
-                    [% END %]
-
-                    <div class="row">
-                        <div class="col-md-1">
-                        </div>
-                        <div class="col-md-11">
-                            [% FOREACH c IN col.depended_by %]
-                                [% FOREACH cc IN all_columns %]
-                                    [% IF cc.id == c.id %]
-                                        [% textval = item_value(dispcol, record.record) %]
-                                        <div id="depend[% col.id %]_[% cc.id %]" [% UNLESS textval.match(c.regex) %]style="display:none" [% END %]>
-                                            [% dispcol = cc %]
-                                            [% PROCESS showcol %]
-                                        </div>
-                                    [% END %]
-                                [% END %]
-                            [% END %]
-                        </div>
-                    </div>
-                [% END %]
+                [% PROCESS do_col %]
             [% END %]
         </div>
     </div>
@@ -132,6 +93,8 @@
         [% readonly = "" %]
     [% END %]
 
+    <div class="row">
+        <div class="col-md-12">
     <div class="form-group">
         [% label = dispcol.name | html_entity %]
         [% UNLESS dispcol.optional %][% label = label _ '*' %][% END %]
@@ -146,7 +109,7 @@
         <label for="[% field %]">
             [% label %][% IF oldvalue %] (previously &quot;[% oldvalue.value %]&quot;)[% END %]
         </label>
-        <select class="form-control" name="[% field %]" id="[% field %]" [% readonly %] >
+        <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
             [% IF dispcol.optional OR value.value.deleted OR NOT value.value %]
                 <option></option>
             [% END %]
@@ -171,12 +134,13 @@
         <div class="form-group">
             <div id="jstree[% dispcol.id %]"></div>
         </div>
-        <input type="hidden" name="[% field %]" id="treeval[% dispcol.id %]" value="[% value.value %]">
+        <input type="hidden" name="[% field %]" id="treeval_id[% dispcol.id %]" value="[% value.value %]">
+        <input type="hidden" name="[% field %]" id="[% dispcol.id %]" value="">
     [% ELSIF dispcol.type == "person" %]
         <label for="[% dispcol.id %]">
             [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
         </label>
-        <select class="form-control" name="[% field %]" [% readonly %] >
+        <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
             [% IF dispcol.optional OR value.value.deleted %]
                 <option></option>
             [% END %]
@@ -187,8 +151,7 @@
             [% END %]
             [% FOREACH person IN people %]
                 [% UNLESS person.deleted %]
-                    <option value="[% person.id %]" [% IF selected == person.id %]selected[% END %]>
-                        [% person.surname %], [% person.firstname %]</option>
+                    <option value="[% person.id %]" [% IF selected == person.id %]selected[% END %]>[% person.surname %], [% person.firstname %]</option>
                 [% END %]
             [% END %]
         </select>
@@ -227,6 +190,64 @@
                 name="[% field %]" value="[% IF record %][% value.value %][% END %]" [% readonly %] >
         [% END %]
     [% END %]
-    </div>
+</div>
+</div>
+</div>
+
+    [%# Prevent recursive loops %]
+    [% cid = dispcol.id %]
+    [% columns_done.$cid = 1 %]
+[% END %]
+
+[% BLOCK do_col %]
+
+    [%# Prevent recursive loops %]
+    [% cid = col.id %]
+    [% NEXT IF columns_done.$cid %]
+
+    [%# First display the actual column, only if it doesn't depend on others,
+        or it's meant to be displayed because we're within the parent %]
+    [% IF !columns_done.$cid AND col.display_field.id == parent.id  OR NOT col.display_field.id %]
+        [% dispcol = col %]
+        [% PROCESS showcol %]
+    [% END %]
+
+    [%# Then add all the columns that depend on it. Put them in a JS code array,
+        which gets output at the end of this templte. Each of these is in its own div %]
+    [% IF col.depended_by.size %]
+        [% FOREACH depends IN dispcol.depended_by %]
+            [% divid = "depend" _ dispcol.id _ "_" _ depends.id %]
+            [% IF col.type == "enum" %]
+                [% js_valget = '$("option:selected", $(this)).text()' %]
+            [% ELSE %]
+                [% js_valget = '$(this).val()' %]
+            [% END %]
+            [% jscode.push('
+                $("#' _ col.id  _ '").change( function () {
+                    var val = ' _ js_valget _ ';
+                    if (/^' _ depends.regex _ '$/.test(val)) {
+                        $("#' _ divid _ '").show()
+                        } else {
+                        $("#' _ divid _ '").hide()
+                    }
+                } );')
+            %]
+        [% END %]
+
+        <div class="row">
+            <div class="col-md-11 col-md-offset-1">
+                [% FOREACH c IN col.depended_by %]
+                    [% FOREACH cc IN all_columns %]
+                        [% IF cc.id == c.id %]
+                            [% textval =  plain_value(col, record) %]
+                            <div id="depend[% col.id %]_[% cc.id %]" [% UNLESS textval.match(c.regex) %]style="display:none" [% END %]>
+                                [% INCLUDE do_col parent = col col = cc %]
+                            </div>
+                        [% END %]
+                    [% END %]
+                [% END %]
+            </div>
+        </div>
+    [% END %]
 [% END %]
 

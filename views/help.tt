@@ -24,6 +24,16 @@ the values in records, not change any aspect of the layout. Specifically:
 </ul>
 [% END %]
 
+[% global.helptext.layout_match = BLOCK %]
+<p>For an exact match, enter the required text. For any other type of
+match, enter a Regular Expression. For example:</p>
+<p>To match any non-blank value:</p>
+<tt><pre>.+</pre></tt>
+<p>To match any of three values "val1", "val2" or "val3":</p>
+<tt><pre>(val1|val2|val3)</pre></tt>
+
+[% END %]
+
 [% global.helptext.layout_calc = BLOCK %]
 Calculated fields can be used to automatically generate values based
 on other fields. Basic Perl programming style can be used, with the value that

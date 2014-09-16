@@ -788,6 +788,7 @@ any '/edit/:id?' => sub {
     my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
     my $output = template 'edit' => {
         form_value  => sub {item_value(@_, {raw => 1, encode_entities => 1})},
+        plain_value => sub {item_value(@_, {plain => 1, encode_entities => 1})},
         record      => $record,
         autoserial  => $autoserial,
         people      => GADS::User->all,
