@@ -29,8 +29,14 @@ the values in records, not change any aspect of the layout. Specifically:
 match, enter a Regular Expression. For example:</p>
 <p>To match any non-blank value:</p>
 <tt><pre>.+</pre></tt>
-<p>To match any of three values "val1", "val2" or "val3":</p>
-<tt><pre>(val1|val2|val3)</pre></tt>
+<p>To match any of three values "val1", "val2" or "val3 (comment)":</p>
+<tt><pre>(val1|val2|val3 \(comment\))</pre></tt>
+<p>To match a value containing the word "foo":</p>
+<tt><pre>.*foo.*</pre></tt>
+<p>To match anything beginning with "bar":</p>
+<tt><pre>bar.*</pre></tt>
+<p>To match any number:</p>
+<tt><pre>[0-9]+</pre></tt>
 
 [% END %]
 
