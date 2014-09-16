@@ -98,6 +98,18 @@ __PACKAGE__->table("layout");
   data_type: 'text'
   is_nullable: 1
 
+=head2 display_field
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 display_regex
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 256
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -123,6 +135,10 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "helptext",
   { data_type => "text", is_nullable => 1 },
+  "display_field",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "display_regex",
+  { data_type => "varchar", is_nullable => 1, size => 256 },
 );
 
 =head1 PRIMARY KEY
@@ -197,6 +213,26 @@ __PACKAGE__->has_many(
   "GADS::Schema::Result::Date",
   { "foreign.layout_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 display_field
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Layout>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "display_field",
+  "GADS::Schema::Result::Layout",
+  { id => "display_field" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
 );
 
 =head2 enums
@@ -334,6 +370,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 layouts
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Layout>
+
+=cut
+
+__PACKAGE__->has_many(
+  "layouts",
+  "GADS::Schema::Result::Layout",
+  { "foreign.display_field" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 people
 
 Type: has_many
@@ -425,8 +476,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-10 12:02:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YMJMCcEwjBQTz7s0GUXP9Q
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-16 01:35:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MO8CUS21WRWLoEhzqUfjnA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

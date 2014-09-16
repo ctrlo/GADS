@@ -122,6 +122,7 @@ sub _column_id
 sub _column
 {
     my $col = shift;
+    my $allcols = shift;
     my $c;
     
     my $field = "field".$col->id;
@@ -152,7 +153,6 @@ sub _column
         my ($calc) = $col->calcs;
         if ($calc) # Calculations defined?
         {
-            my $allcols = shift;
             my @calccols;
             foreach my $acol (@$allcols)
             {
@@ -182,7 +182,6 @@ sub _column
         my ($rag) = $col->rags;
         if ($rag) # RAG defined?
         {
-            my $allcols = shift;
             my @ragcols;
             foreach my $acol (@$allcols)
             {
@@ -232,6 +231,10 @@ sub _column
         $c->{numeric} = 0;
     }
 
+    # See what columns depend on this one
+    my @depends = grep {$_->display_field && $_->display_field->id == $col->id} @$allcols;
+    my @depended_by = map { { id => $_->id, regex => $_->display_regex } } @depends;
+
     # Virtual type. Will definitely be date for date ;-)
     $c->{vtype} = 'date' if $c->{type} eq 'date';
 
@@ -247,6 +250,9 @@ sub _column
     $c->{open}          = $col->permission == OPEN ? 1 : 0;
     $c->{optional}      = $col->optional,
     $c->{description}   = $col->description,
+    $c->{display_field} = $col->display_field,
+    $c->{display_regex} = $col->display_regex,
+    $c->{depended_by}   = \@depended_by;
     $c->{helptext}      = $col->helptext,
     $c->{end_node_only} = $col->end_node_only,
     $c->{field}         = $field,

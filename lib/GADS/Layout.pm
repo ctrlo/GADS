@@ -285,7 +285,7 @@ sub position
 }
 
 sub item
-{   my ($class, $args) = @_;
+{   my ($self, $args) = @_;
     my $item;
     if($args->{submit})
     {
@@ -300,6 +300,13 @@ sub item
             or ouch 'badvalue', "Bad permission $args->{permission} for item";
         $newitem->{description} = $args->{description};
         $newitem->{helptext}    = $args->{helptext};
+
+        $newitem->{display_field} = ($args->{display_condition} && grep {$args->{display_field} == $_->id} @{$self->all})
+                                  ? $args->{display_field}
+                                  : undef;
+
+        $newitem->{display_regex} = $args->{display_regex};
+
         my @enumvals;
         if ($args->{type} eq 'enum')
         {
@@ -485,6 +492,8 @@ sub item
         optional      => $item->optional,
         description   => $item->description,
         helptext      => $item->helptext,
+        display_field => $item->display_field,
+        display_regex => $item->display_regex,
         end_node_only => $item->end_node_only,
         remember      => $item->remember,
     };

@@ -55,6 +55,30 @@
                     <input type="checkbox" name="remember" [% IF edititem.remember %]checked[% END %]>Remember last value for new entry
                 </label>
             </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" id="display_condition" name="display_condition" [% IF edititem.display_field %]checked[% END %]>Only display under the following conditions:
+                </label>
+            </div>
+            <div class="form-group" id="display_condition_div" [% UNLESS edititem.display_field %]style="display:none"[% END %]>
+                <div class="row">
+                    <div class="col-md-5">
+                        <select class="form-control" id="display_field" name="display_field">
+                            [% FOREACH field in all_items %]
+                                <option value="[% field.id %]" [% IF edititem.display_field.id == field.id %]selected[% END %]>[% field.name %]</option>
+                            [% END %]
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <p>matches</p>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="display_regex" name="display_regex" value="[% edititem.display_regex | html_entity %]">
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="col-md-6">
             <div id="divtree"
@@ -171,6 +195,7 @@
         <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
     [% END %]
 </form>
+<p></p>
        <!-- Modal -->
         <div class="modal fade" id="helprag" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -259,7 +284,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
         <th>Description</th>
         <th>Order</th>
     </tr>
-    [% FOREACH item IN items %]
+    [% FOREACH item IN all_items %]
         <tr>
             <td><a href="/layout/[% item.id %]">Edit</a></td>
             <td>[% item.name | html_entity %]
@@ -283,7 +308,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
             <td>
                 <select class="form-control" id="type" name="position[% item.id %]">
                     [% o = 1 %]
-                    [% WHILE o <= items.size %]
+                    [% WHILE o <= all_items.size %]
                         <option value="[% o %]" [% IF item.position == o %]selected[% END %]>[% o %]</option>
                         [% o = o + 1 %]
                     [% END %]
@@ -300,6 +325,9 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
+        $('#display_condition').click(function () {
+            $("#display_condition_div").toggle(400);
+        });
         $(document).on("click", "#submit", function() {
             if( !$('#jstree_demo_div').length ) return true;
             if( !$('#jstree_demo_div').is(":visible") ) return true;

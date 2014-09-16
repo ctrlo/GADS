@@ -500,12 +500,10 @@ any '/layout/?:id?' => sub {
     {
         $items = GADS::Layout->item({ id => $id });
     }
-    else {
-        $items = GADS::Layout->all;
-    }
 
     my $output = template 'layout' => {
         edit        => $id,
+        all_items   => GADS::Layout->all,
         items       => $items,
         page        => 'layout'
     };
