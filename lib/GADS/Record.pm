@@ -767,14 +767,19 @@ sub person_popover
 {   my ($self, $person) = @_;
     $person || return;
     my $value = $person->value;
-    my $email = "";
+    my @details;
     if (my $e = $person->email)
     {
-        $email = qq(Email: <a href='mailto:$e'>$e</a>);
+        push @details, qq(Email: <a href='mailto:$e'>$e</a>);
     }
+    if (my $t = $person->telephone)
+    {
+        push @details, qq(Telephone: $t);
+    }
+    my $details = join '<br>', @details;
     return qq(<a style="cursor: pointer" class="personpop" data-toggle="popover"
         title="$value"
-        data-content="$email">$value</a>
+        data-content="$details">$value</a>
     );
 }
 
