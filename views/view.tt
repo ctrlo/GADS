@@ -15,10 +15,11 @@
                 </div>
             [% END %]
             <table class="table table-striped">
+                <tr><th><input type="checkbox" id="selectall" title="Select/deselect all"></th><th>Name</th></tr>
                 [% FOR column IN all_columns %]
                 <tr>
                     <td>
-                        <input type="checkbox" name="column" value="[% column.id %]"
+                        <input class="col_check" type="checkbox" name="column" value="[% column.id %]"
                             [% id = column.id %]
                             [% IF ucolumns.grep("^$id\$").size %]checked[% END %]
                         >
@@ -108,6 +109,10 @@
 <script type="text/javascript">
     var jscode='[% FILTER remove('[\n\r]+') %]
         [% FILTER replace('\'', '\\\'') %]
+        $('#selectall').click(function() {
+            var checked = this.checked ? true : false;
+            $('.col_check').prop('checked', this.checked);
+        });
         $(document).ready(function () {
             $('div#sorts').on('click','.closeme', function(){
                 var c = $(".request-row").length;
