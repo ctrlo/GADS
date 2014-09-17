@@ -59,9 +59,10 @@ sub view
         };
 
         $self->columns($params, $update);
+        $view_id = $params->{view_id};
 
         # Pass the view ID back in case it was new
-        $view_id = $params->{view_id};
+        $update->{view_id} = $view_id;
 
         # Then update any sorts
         $self->sorts($params->{view_id}, $update);

@@ -431,7 +431,7 @@ any '/view/:id' => sub {
         }
         else {
             # Set current view to the one created/edited
-            session 'view_id' => $view_id;
+            session 'view_id' => $values->{view_id};
             return forwardHome(
                 { success => "The view has been updated successfully" }, 'data' );
         }
