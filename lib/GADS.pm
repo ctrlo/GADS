@@ -451,6 +451,8 @@ any '/view/:id' => sub {
         }
     }
 
+    $view_id = param('clone') if param('clone') && !request->is_post;
+
     my @ucolumns;
     my $viewcols;
     eval { $viewcols = GADS::View->columns({ view_id => $view_id, user => user }) };

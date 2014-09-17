@@ -22,6 +22,9 @@
                 </button>
                 <ul id="menu_view" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop_view">
                     <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0">Create new view</a></li>
+                    [% IF v %]
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0?clone=[% v.id %]">Clone this view</a></li>
+                    [% END %]
                     <li role="presentation" class="divider"></li>
                     [% first = 1 %]
                     [% FOREACH ve IN user.views %]
