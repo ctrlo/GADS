@@ -110,7 +110,6 @@
     var jscode='[% FILTER remove('[\n\r]+') %]
         [% FILTER replace('\'', '\\\'') %]
         $('#selectall').click(function() {
-            var checked = this.checked ? true : false;
             $('.col_check').prop('checked', this.checked);
         });
         $(document).ready(function () {
