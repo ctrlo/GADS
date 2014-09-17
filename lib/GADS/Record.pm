@@ -1084,11 +1084,9 @@ sub approve
         }
         else {
             my $table = $col->{table};
-            rset($table)->create({
-                record_id => $r->id,
-                layout_id => $col->{id},
-                value     => $newvalue,
-            }) or ouch 'dbfail', "Failed to create database entry for appproved field ".$col->{name};
+            my $write = _field_write($col, $r, $newvalue);
+            rset($table)->create($write)
+                or ouch 'dbfail', "Failed to create database entry for field ".$col->{name};
         }
     }
     $r->update({ approval => 0, record_id => undef, approvedby => $user->{id}, created => \"NOW()" })
