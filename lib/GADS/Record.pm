@@ -433,7 +433,8 @@ sub _search_construct
     );
 
     my $column   = $columns->{$filter->{id}};
-    my $operator = $ops{$filter->{operator}};
+    my $operator = $ops{$filter->{operator}}
+        or ouch 'invop', "Invalid operator $filter->{operator}";
 
     my $vprefix = $filter->{operator} eq 'contains' ? '%' : '';
     my $vsuffix = $filter->{operator} =~ /contains|begins_with/ ? '%' : '';
@@ -470,6 +471,9 @@ sub _search_construct
         {
             # Requires 2 searches ANDed together
             return ('-and' => ["$s_table.from" => { '<', $value}, "$s_table.to" => { '>', $value}]);
+        }
+        else {
+            ouch 'invop', "Invalid operator $operator for date range";
         }
     }
     else {
