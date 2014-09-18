@@ -70,7 +70,9 @@ get '/' => sub {
     };
 };
 
-get '/data_calendar' => sub {
+get '/data_calendar/:time' => sub {
+
+    # Time variable is used to prevent caching by browser
 
     my $view_id = session 'view_id';
     my $from    = param 'from';
@@ -179,6 +181,7 @@ any '/data' => sub {
         $params = {
             datecolors => \%datecolors,
             viewtype   => 'calendar',
+            time       => time,
         }
     }
     else {

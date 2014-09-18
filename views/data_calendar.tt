@@ -33,7 +33,7 @@
                 "use strict";
 
                 var options = {
-                        events_source: '/data_calendar',
+                        events_source: '/data_calendar/[% time %]',
                         view: 'month',
                         tmpl_path: 'tmpls/',
                         tmpl_cache: false,
