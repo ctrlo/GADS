@@ -176,7 +176,7 @@ sub _column
                 columns => \@calccols,
             };
             $c->{return_format} = $calc->return_format;
-            $c->{vtype} = "date" if $c->{return_format} eq "date";
+            $c->{vtype} = "date" if $c->{return_format} && $c->{return_format} eq "date";
         }
 
         $c->{userinput} = 0;
