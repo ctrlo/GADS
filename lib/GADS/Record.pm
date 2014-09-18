@@ -429,10 +429,12 @@ sub _search_construct
         less        => '<',
         contains    => '-like',
         begins_with => '-like',
+        not_equal   => '!=',
     );
 
     my $column   = $columns->{$filter->{id}};
-    my $operator = $ops{$filter->{operator}};
+    my $operator = $ops{$filter->{operator}}
+        or ouch 'invop', "Invalid operator $filter->{operator}";
 
     my $vprefix = $filter->{operator} eq 'contains' ? '%' : '';
     my $vsuffix = $filter->{operator} =~ /contains|begins_with/ ? '%' : '';
@@ -450,6 +452,8 @@ sub _search_construct
     my $s_field;
     if ($column->{type} eq "daterange")
     {
+        $value = DateTime->now if $value = "CURDATE";
+        
         # If it's a daterange, we have to be intelligent about the way the
         # search is constructed. Greater than, less than, equals all require
         # different values of the date range to be searched
@@ -468,7 +472,10 @@ sub _search_construct
         elsif ($operator eq "-like")
         {
             # Requires 2 searches ANDed together
-            return ('-and' => ["$s_table.from" => { '<', $value}, "$s_table.to" => { '>', $value}]);
+            return ('-and' => ["$s_table.from" => { '<=', $value}, "$s_table.to" => { '>=', $value}]);
+        }
+        else {
+            ouch 'invop', "Invalid operator $operator for date range";
         }
     }
     else {

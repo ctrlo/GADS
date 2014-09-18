@@ -51,7 +51,8 @@
                     filters can be applied to one view, in which case data will only be displayed
                     that meets the configured criteria. Filters can be either logical AND or 
                     logical OR, and be grouped at different levels for maximum flexibility.
-                    Any dates entered must be specified in the form yyyy-mm-dd.
+                    Any dates entered must be specified in the form yyyy-mm-dd, or "CURDATE"
+                    can be used to specify the current date.
                 </dd>
             </dl>
 
