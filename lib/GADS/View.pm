@@ -150,6 +150,7 @@ sub _column
     }
 
     $c->{table} = $c->{type} eq 'tree' ? 'Enum' : camelize $c->{type};
+    $c->{vtype} = ""; # Initialise default
 
     if ($col->type eq 'calc')
     {
@@ -175,7 +176,7 @@ sub _column
                 columns => \@calccols,
             };
             $c->{return_format} = $calc->return_format;
-            $c->{vtype} = "date";
+            $c->{vtype} = "date" if $c->{return_format} eq "date";
         }
 
         $c->{userinput} = 0;
