@@ -175,8 +175,8 @@ sub current($$)
     if (@search_date)
     {
         # _search_construct returns an array ref, so dereference it first
-        my $res = @{(_search_construct {condition => 'OR', rules => \@search_date}, $columns, $prefetches, $joins)};
-        push @limit, $res if $res;
+        my @res = @{(_search_construct {condition => 'OR', rules => \@search_date}, $columns, $prefetches, $joins)};
+        push @limit, @res if @res;
     }
 
     if($item->{record_id}) {
@@ -204,7 +204,6 @@ sub current($$)
         if ($sort->{id} == -1)
         {
             push @orderby, { $type => $index_sort };
-            use Data::Dumper; say STDERR Dumper \@orderby;
         }
         else {
             my $column  = $columns->{$sort->{id}};
