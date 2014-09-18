@@ -453,6 +453,8 @@ sub _search_construct
     my $s_field;
     if ($column->{type} eq "daterange")
     {
+        $value = DateTime->now if $value = "CURDATE";
+        
         # If it's a daterange, we have to be intelligent about the way the
         # search is constructed. Greater than, less than, equals all require
         # different values of the date range to be searched
