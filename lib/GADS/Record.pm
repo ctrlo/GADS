@@ -430,6 +430,7 @@ sub _search_construct
         less        => '<',
         contains    => '-like',
         begins_with => '-like',
+        not_equal   => '!=',
     );
 
     my $column   = $columns->{$filter->{id}};
