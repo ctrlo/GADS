@@ -473,7 +473,7 @@ sub _search_construct
         elsif ($operator eq "-like")
         {
             # Requires 2 searches ANDed together
-            return ('-and' => ["$s_table.from" => { '<', $value}, "$s_table.to" => { '>', $value}]);
+            return ('-and' => ["$s_table.from" => { '<=', $value}, "$s_table.to" => { '>=', $value}]);
         }
         else {
             ouch 'invop', "Invalid operator $operator for date range";
