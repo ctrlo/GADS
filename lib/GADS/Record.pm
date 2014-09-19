@@ -31,6 +31,7 @@ use DateTime::Format::Strptime qw( );
 use Data::Compare;
 use POSIX qw(ceil);
 use JSON qw(decode_json encode_json);
+use Scalar::Util qw(looks_like_number);
 schema->storage->debug(1);
 
 use GADS::Schema;
@@ -991,6 +992,18 @@ sub delete
     rset('Current')->find($id)->delete;
 }
 
+sub _is_blank
+{
+    my ($column, $value) = @_;
+    if ($column->{numeric})
+    {
+        return (!$value && $value != 0) || (ref $value eq 'ARRAY' && !(scalar grep {$_} @$value)) ? 1 : 0;
+    }
+    else {
+        return !$value || (ref $value eq 'ARRAY' && !(scalar grep {$_} @$value)) ? 1 : 0;
+    }
+}
+
 sub approve
 {   my ($class, $user, $id, $values, $uploads) = @_;
 
@@ -1058,7 +1071,7 @@ sub approve
 
         # This assumes the value was visible in the form. It should be, even if
         # the field was made compulsory after added the initial submission.
-        if (!$col->{optional} && !$newvalue)
+        if (_is_blank $col, $newvalue)
         {
             ouch 'missing', "Field \"$col->{name}\" is not optional. Please enter a value.";
         }
@@ -1168,10 +1181,7 @@ sub update
 
         my $value = $params->{$fn};
 
-        # For a date range, a blank value will be an array ref of 2 undef values
-        my $is_blank = !$value || (ref $value eq 'ARRAY' && !(scalar grep {$_} @$value)) ? 1 : 0;
-
-        if ($is_blank && !$column->{optional} && (!$old || ($old && $oldvalue->{$fieldid})))
+        if (_is_blank($column, $value) && !$column->{optional} && (!$old || ($old && $oldvalue->{$fieldid})))
         {
             # Only if a value was set previously, otherwise a field that had no
             # value might be made mandatory, but if it's read-only then that will
@@ -1298,7 +1308,7 @@ sub update
                 # Write old value
                 $v = $oldvalue->{$fieldid};
             }
-            if ($v)
+            unless (_is_blank $column, $v)
             {
                 # Don't create a record for blank values. Doesn't work for
                 # enums and other fields that reference others
@@ -1352,7 +1362,7 @@ sub _changed
     return 1 if !$old && $new;
 
     # Return false if both undefined (prevent undefined warnings below)
-    return 0 if !$old && !$new;
+    return 0 if !defined $old && !defined $new;
 
     if ($field->{type} eq 'string')
     {
@@ -1360,6 +1370,8 @@ sub _changed
     }
     elsif($field->{type} eq 'intgr')
     {
+        return 1 if !looks_like_number $old && looks_like_number $new;
+        return 1 if looks_like_number $old && !looks_like_number $new;
         return $old != $new;
     }
     elsif($field->{type} eq 'file')
