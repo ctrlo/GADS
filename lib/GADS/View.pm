@@ -160,7 +160,6 @@ sub _column
             my @calccols;
             foreach my $acol (@$allcols)
             {
-                next if $acol->type eq 'rag' || $acol->type eq 'calc';
                 my $name = $acol->name; my $suffix = _suffix $acol->type;
                 next unless $calc->calc =~ /\Q[$name\E$suffix\Q]/i;
                 my $c = _column($acol);
@@ -189,7 +188,6 @@ sub _column
             my @ragcols;
             foreach my $acol (@$allcols)
             {
-                next if $acol->type eq 'rag' || $acol->type eq 'calc';
                 my $name = $acol->name; my $suffix = _suffix $acol->type;
                 my $regex = qr/\Q[$name\E$suffix\Q]/i;
                 next unless $rag->green =~ $regex || $rag->amber =~ $regex || $rag->red =~ $regex;
