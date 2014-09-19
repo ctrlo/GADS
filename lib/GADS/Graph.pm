@@ -64,6 +64,18 @@ sub all
     \@graphs;
 }
 
+sub delete
+{
+    my ($self, $graph_id) = @_;
+
+    my $graph = rset('Graph')->find($graph_id)
+        or ouch 'notfound', "Unable to find graph $graph_id";
+    rset('UserGraph')->search({ graph_id => $graph_id })->delete
+        or ouch 'dbfail', "Database error deleting user graphs";
+    rset('Graph')->search({ id => $graph_id })->delete
+        or ouch 'dbfail', "Database error when deleting graph";
+}
+
 sub dategroup
 {
     {
