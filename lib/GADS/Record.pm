@@ -681,6 +681,7 @@ sub rag
         }
 
         my $ragvalue;
+        # XXX Log somewhere if this fails
         if ($okaycount == 3)
         {
             if ($red && _safe_eval "($red)")
