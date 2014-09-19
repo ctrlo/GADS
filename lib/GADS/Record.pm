@@ -937,6 +937,12 @@ sub _process_input_value
         # that DB value to undef
         $value ? $value : undef;
     }
+    elsif ($column->{type} eq "intgr")
+    {
+        # Submitted integers will be and empty string
+        # for no value. We want undef
+        !$value && !looks_like_number($value) ? undef : $value;
+    }
     else
     {
         $value;
@@ -996,11 +1002,12 @@ sub delete
 sub _is_blank
 {
     my ($column, $value) = @_;
-    if ($column->{numeric})
+    if ($column->{type} eq "intgr")
     {
-        return (!$value && $value != 0) || (ref $value eq 'ARRAY' && !(scalar grep {$_} @$value)) ? 1 : 0;
+        return !$value && !looks_like_number $value;
     }
     else {
+        # Array ref for data ranges (with 2 values within)
         return !$value || (ref $value eq 'ARRAY' && !(scalar grep {$_} @$value)) ? 1 : 0;
     }
 }
@@ -1182,7 +1189,11 @@ sub update
 
         my $value = $params->{$fn};
 
-        if (_is_blank($column, $value) && !$column->{optional} && (!$old || ($old && $oldvalue->{$fieldid})))
+        if (
+               _is_blank($column, $value) # New value is blank
+            && !$column->{optional}       # Field is not optional
+            && (!_is_blank($column, $oldvalue->{$fieldid}) || ($old && $oldvalue->{$fieldid})) # Old value was not blank
+        )
         {
             # Only if a value was set previously, otherwise a field that had no
             # value might be made mandatory, but if it's read-only then that will
