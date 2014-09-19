@@ -641,10 +641,10 @@ sub rag
             my $name = $col->{name};
             my $value = item_value($col, $record, {epoch => 1, plain => 1});
 
-            # If the value is numeric and not defined, then return
+            # If field is numeric but does not have numeric value, then return
             # grey, otherwise the value will be treated as zero
             # and will probably return misleading RAG values
-            if (!$value && $col->{numeric})
+            if ($col->{numeric} && !looks_like_number $value)
             {
                 _write_rag($record, $column, 'grey');
                 return 'grey'
