@@ -41,6 +41,7 @@ plugins:
         RaiseError: 1
         PrintError: 1
         quote_names: 1
+        mysql_enable_utf8: 1 # or  pg_enable_utf8: 1
   Emailesque:
     from: '"GADS" <user@example.com>' # Emails are sent from this
     driver: sendmail
