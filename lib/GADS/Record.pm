@@ -644,10 +644,16 @@ sub rag
             # If field is numeric but does not have numeric value, then return
             # grey, otherwise the value will be treated as zero
             # and will probably return misleading RAG values
-            if ($col->{numeric} && !looks_like_number $value)
+            if ($col->{numeric})
             {
-                _write_rag($record, $column, 'grey');
-                return 'grey'
+                if (
+                       ($col->{type} eq "daterange" && (!$value->{from} || !$value->{to}))
+                    ||  $col->{type} ne "daterange" && !looks_like_number $value
+                )
+                {
+                    _write_rag($record, $column, 'grey');
+                    return 'grey'
+                }
             }
 
             if ($col->{type} eq "daterange")
