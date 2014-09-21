@@ -246,6 +246,8 @@ sub delete
         or ouch 'dbfail', "Database error deleting any calcs relating to this item";
     rset('Rag')->search({ layout_id => $item->id })->delete
         or ouch 'dbfail', "Database error deleting any rags relating to this item";
+    rset('AlertCache')->search({ layout_id => $item->id })->delete
+        or ouch 'dbfail', "Database error deleting any alert caches relating to this item";
     my $type = $item->type;
     if ($type eq 'tree')
     {

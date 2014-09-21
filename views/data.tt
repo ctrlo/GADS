@@ -99,9 +99,9 @@
                     <div class="form-group">
                         <label for="frequency">Alert me:</label>
                         <select class="form-control" name="frequency">
-                            <option value="" [% IF sort.column.id == column.id %]selected[% END %]>Never</option>
-                            <option value="0" [% IF sort.column.id == column.id %]selected[% END %]>Instantly</option>
-                            <option value="24" [% IF sort.column.id == column.id %]selected[% END %]>Every 24 hours</option>
+                            <option value="" [% IF NOT v.alert %]selected[% END %]>Never</option>
+                            <option value="0" [% IF v.alert.frequency == 0 %]selected[% END %]>Instantly</option>
+                            <option value="24" [% IF v.alert.frequency == 24 %]selected[% END %]>Every 24 hours</option>
                         </select>
                     </div>
                 </div>

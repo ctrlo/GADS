@@ -112,7 +112,18 @@ sub view
         rset('Filter')->search($search)->delete;
     }
 
-    _get_view($view_id, $user->{id}); # Borks on invalid user for view
+    my $view = _get_view($view_id, $user->{id}); # Borks on invalid user for view
+    my ($alert) = grep { $user->{id} == $_->user_id } $view->alerts;
+    my @sorts = $view->sorts;
+    {
+        id      => $view->id,
+        user_id => $view->user_id,
+        name    => $view->name,
+        global  => $view->global,
+        filter  => $view->filter,
+        sorts   => \@sorts,
+        alert   => $alert,
+    }
 }
 
 sub all
@@ -140,6 +151,10 @@ sub delete
         or ouch 'dbfail', "There was a database error when deleting the view's layouts";
     rset('Filter')->search({ view_id => $view->id })->delete
         or ouch 'dbfail', "There was a database error when deleting the view's filters";
+    rset('AlertCache')->search({ view_id => $view->id })->delete
+        or ouch 'dbfail', "There was a database error when deleting the view's alert's caches";
+    rset('Alert')->search({ view_id => $view->id })->delete
+        or ouch 'dbfail', "There was a database error when deleting the view's alerts";
     $view->delete
         or ouch 'dbfail', "There was a database error when deleting the view";
 }
@@ -336,11 +351,36 @@ sub columns
             if (grep {$c->id == $_} @colviews)
             {
                 # Column should be in view
-                rset('ViewLayout')->create($item)
-                    unless rset('ViewLayout')->search($item)->count;
+                unless(rset('ViewLayout')->search($item)->count)
+                {
+                    rset('ViewLayout')->create($item);
+                    # Update alert cache with new column
+                    my @alerts = rset('View')->search({
+                        'me.id' => $view_id
+                    },{
+                        prefetch => 'alert_caches',
+                        group_by => 'current_id',
+                        collapse => 1,
+                    })->all;
+                    my @pop;
+                    foreach my $alert (@alerts)
+                    {
+                        push @pop, map { {
+                            layout_id  => $c->id,
+                            view_id    => $view_id,
+                            current_id => $_->current_id
+                        } } $alert->alert_caches;
+                    }
+                    rset('AlertCache')->populate(\@pop);
+                }
             }
             else {
                 rset('ViewLayout')->search($item)->delete;
+                # Also delete alert cache for this column
+                rset('AlertCache')->search({
+                    view_id   => $view_id,
+                    layout_id => $c->id
+                })->delete;
             }
         }
         my $vu;

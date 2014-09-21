@@ -219,7 +219,7 @@ sub current($$)
     # it to, or use, the prefetch. We use the tracking variables from above.
     if (my $view = GADS::View->view($item->{view_id}, $item->{user}))
     {
-        if (my $filter = $view->filter)
+        if (my $filter = $view->{filter})
         {
             my $decoded = decode_json($filter);
             # Do 2 loops through all the filters and gather the joins. The reason is that
@@ -237,7 +237,7 @@ sub current($$)
         }
         unless ($item->{sort})
         {
-            foreach my $sort ($view->sorts)
+            foreach my $sort (@{$view->{sorts}})
             {
                 my $column  = $columns->{$sort->layout->id};
                 my $s_table = _table_name($column, $prefetches, $joins);
@@ -995,6 +995,7 @@ sub delete
     }
     rset('Current')->find($id)->update({ record_id => undef });
     rset('Record') ->search({ current_id => $id })->update({ record_id => undef });
+    rset('AlertCache')->search({ current_id => $id })->delete;
     rset('Record') ->search({ current_id => $id })->delete;
     rset('Current')->find($id)->delete;
 }
@@ -1203,7 +1204,7 @@ sub update
         $newvalue->{$fieldid} = _process_input_value($column, $value, $uploads);
 
         # Keep a track as to whether a value has changed. Keep it undef for new values
-        $changed->{$fieldid} = $old ? _changed($column, $oldvalue->{$fieldid}, $newvalue->{$fieldid}) : undef;
+        $changed->{$fieldid} = 1 if $old && _changed($column, $oldvalue->{$fieldid}, $newvalue->{$fieldid});
 
         ouch 'nopermission', "Field ID $fieldid is read only"
             if $changed->{$fieldid} &&
@@ -1288,11 +1289,14 @@ sub update
     }
 
     # Write all the values
+    my %columns_changed;
     foreach my $column (@$all_columns)
     {
+        my $fieldid = $column->{id};
+        $columns_changed{$fieldid} = $column if $changed->{$fieldid};
+
         next unless $column->{userinput};
 
-        my $fieldid = $column->{id};
         my $value = $newvalue->{$fieldid};
 
         # If new file, store it
@@ -1339,6 +1343,9 @@ sub update
         }
 
     }
+
+    # Send any alerts
+    GADS::Alert->send($current_id, \%columns_changed);
 
     # Finally update the current record tracking, if we've created a new
     # permanent record

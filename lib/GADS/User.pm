@@ -115,6 +115,8 @@ sub delete
 
     rset('UserGraph')->search({ user_id => $user_id })->delete
         or ouch 'dbfail', "There was a database error when removing old user graphs";
+    rset('Alert')->search({ user_id => $user_id })->delete
+        or ouch 'dbfail', "There was a database error when removing old user alerts";
 
     my $views = rset('View')->search({ user_id => $user_id });
     my @views;

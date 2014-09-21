@@ -86,21 +86,6 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 alert_caches
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::AlertCache>
-
-=cut
-
-__PACKAGE__->has_many(
-  "alert_caches",
-  "GADS::Schema::Result::AlertCache",
-  { "foreign.alert_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 user
 
 Type: belongs_to
@@ -132,8 +117,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-21 16:52:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+yb2aw9IiRmOFQpqcUgBbA
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-21 23:25:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:98/GIjvtFi9jZ9z7XsKyNg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

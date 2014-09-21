@@ -893,7 +893,7 @@ any '/record/:id' => sub {
         eval { GADS::Record->delete($delete_id, user) };
         if (hug)
         {
-            messageAdd({ danger => $@ });
+            messageAdd({ danger => bleep });
         }
         else {
             return forwardHome(

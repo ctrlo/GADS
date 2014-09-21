@@ -47,13 +47,13 @@ __PACKAGE__->table("alert_cache");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 alert_id
+=head2 view_id
 
   data_type: 'integer'
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 record_id
+=head2 current_id
 
   data_type: 'integer'
   is_foreign_key: 1
@@ -66,9 +66,9 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "alert_id",
+  "view_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "record_id",
+  "current_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
 
@@ -86,18 +86,18 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 alert
+=head2 current
 
 Type: belongs_to
 
-Related object: L<GADS::Schema::Result::Alert>
+Related object: L<GADS::Schema::Result::Current>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "alert",
-  "GADS::Schema::Result::Alert",
-  { id => "alert_id" },
+  "current",
+  "GADS::Schema::Result::Current",
+  { id => "current_id" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
@@ -116,24 +116,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
-=head2 record
+=head2 view
 
 Type: belongs_to
 
-Related object: L<GADS::Schema::Result::Record>
+Related object: L<GADS::Schema::Result::View>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "record",
-  "GADS::Schema::Result::Record",
-  { id => "record_id" },
+  "view",
+  "GADS::Schema::Result::View",
+  { id => "view_id" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-21 16:43:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5rngOCXuK9/ik3HuZK00pQ
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-21 23:25:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XEVMwab32arH5Pcyg/lQdw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
