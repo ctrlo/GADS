@@ -73,7 +73,7 @@ sub view
         });
     }
 
-    rset('View')->find($view_id);
+    _get_view($view_id, $user->{id}); # Borks on invalid user for view
 }
 
 sub all

@@ -155,6 +155,21 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 alert_caches
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::AlertCache>
+
+=cut
+
+__PACKAGE__->has_many(
+  "alert_caches",
+  "GADS::Schema::Result::AlertCache",
+  { "foreign.layout_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 calcs
 
 Type: has_many
@@ -491,8 +506,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-16 23:40:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cjfe9TLdzIurK8/5ytkt0g
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-21 16:43:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Yj8PqtPTZ7YLP7nj2z5wHw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

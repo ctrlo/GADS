@@ -205,6 +205,21 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 alerts
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Alert>
+
+=cut
+
+__PACKAGE__->has_many(
+  "alerts",
+  "GADS::Schema::Result::Alert",
+  { "foreign.user_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 lastrecord
 
 Type: belongs_to
@@ -341,8 +356,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-16 22:00:31
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zs9T10DHr9y/iTD5haz0DA
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-21 16:43:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vlAHrydHWqJ/EOZaUrMi/g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

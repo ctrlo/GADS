@@ -7,6 +7,7 @@ use GADS::Layout;
 use GADS::Email;
 use GADS::Graph;
 use GADS::Config;
+use GADS::Alert;
 use GADS::DB;
 use GADS::Util         qw(:all);
 use Dancer2::Plugin::Auth::Complete;
@@ -86,6 +87,20 @@ get '/data_calendar/:time' => sub {
 };
 
 any '/data' => sub {
+
+    # Deal with any alert requests
+    if (my $alert_view = param 'alert')
+    {
+        eval { GADS::Alert->alert($alert_view, param('frequency'), user) };
+        if (hug)
+        {
+            messageAdd({ danger => bleep });
+        }
+        else {
+            return forwardHome(
+                { success => "The alert has been saved successfully" }, 'data' );
+        }
+    }
 
     if (my $view_id = param('view'))
     {
@@ -191,6 +206,7 @@ any '/data' => sub {
         # @records contains all the information for each required record
         my $get = {
             view_id => $view_id,
+            user    => user,
             rows    => session('rows'),
             page    => session('page'),
             sort    => session('sort'),
@@ -273,7 +289,7 @@ any '/data' => sub {
         }
     }
 
-    $params->{v}        = GADS::View->view($view_id),  # View is reserved TT word
+    $params->{v}        = GADS::View->view($view_id, user),  # View is reserved TT word
     $params->{page}     = 'data';
     template 'data' => $params;
 };
@@ -468,7 +484,7 @@ any '/view/:id' => sub {
     {
         push @ucolumns, $c->{id};
     }
-    my $view = GADS::View->view($view_id);
+    my $view = GADS::View->view($view_id, user);
     my $output  = template 'view' => {
         all_columns  => GADS::View->columns,
         sorts        => GADS::View->sorts($view_id),

@@ -1,12 +1,12 @@
 use utf8;
-package GADS::Schema::Result::Filter;
+package GADS::Schema::Result::Alert;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-GADS::Schema::Result::Filter
+GADS::Schema::Result::Alert
 
 =cut
 
@@ -27,11 +27,11 @@ use base 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<filter>
+=head1 TABLE: C<alert>
 
 =cut
 
-__PACKAGE__->table("filter");
+__PACKAGE__->table("alert");
 
 =head1 ACCESSORS
 
@@ -47,10 +47,16 @@ __PACKAGE__->table("filter");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 layout_id
+=head2 user_id
 
   data_type: 'integer'
   is_foreign_key: 1
+  is_nullable: 0
+
+=head2 frequency
+
+  data_type: 'integer'
+  default_value: 0
   is_nullable: 0
 
 =cut
@@ -60,8 +66,10 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "view_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "layout_id",
+  "user_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "frequency",
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -78,18 +86,33 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 layout
+=head2 alert_caches
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::AlertCache>
+
+=cut
+
+__PACKAGE__->has_many(
+  "alert_caches",
+  "GADS::Schema::Result::AlertCache",
+  { "foreign.alert_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 user
 
 Type: belongs_to
 
-Related object: L<GADS::Schema::Result::Layout>
+Related object: L<GADS::Schema::Result::User>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "layout",
-  "GADS::Schema::Result::Layout",
-  { id => "layout_id" },
+  "user",
+  "GADS::Schema::Result::User",
+  { id => "user_id" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
@@ -109,8 +132,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-21 16:43:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:irz1TZL/j4UnE5B0xiIzrg
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-21 16:52:43
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+yb2aw9IiRmOFQpqcUgBbA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

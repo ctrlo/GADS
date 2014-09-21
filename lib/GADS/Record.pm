@@ -217,7 +217,7 @@ sub current($$)
     # Now add all the filters as joins (we don't need to prefetch this data). However,
     # the filter might also be a column in the view from before, in which case add
     # it to, or use, the prefetch. We use the tracking variables from above.
-    if (my $view = GADS::View->view($item->{view_id}))
+    if (my $view = GADS::View->view($item->{view_id}, $item->{user}))
     {
         if (my $filter = $view->filter)
         {
