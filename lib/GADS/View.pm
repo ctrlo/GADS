@@ -22,7 +22,8 @@ use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
 use Ouch;
 use String::CamelCase qw(camelize);
-use GADS::Util         qw(:all);
+use GADS::Util        qw(:all);
+use JSON qw(decode_json encode_json);
 schema->storage->debug(1);
 
 use GADS::Schema;
@@ -42,6 +43,22 @@ sub main($$)
     $v = rset('View')->create({ user => $user_id, main => 1 })
         unless $v;
     $v->id;
+}
+
+sub _filter_tables
+{   my ($filter, $tables) = @_;
+
+    if (my $rules = $filter->{rules})
+    {
+        # Filter has other nested filters
+        foreach my $rule (@$rules)
+        {
+            _filter_tables($rule, $tables);
+        }
+    }
+    elsif (my $id = $filter->{id}) {
+        $tables->{$filter->{id}} = 1;
+    }
 }
 
 sub view
@@ -67,10 +84,32 @@ sub view
         # Then update any sorts
         $self->sorts($params->{view_id}, $update);
 
-        # Finally update the filter
+        # Finally update the filter.
+        # First the text based filter, which is the one
+        # actually used:
         rset('View')->find($view_id)->update({
             filter => $update->{filter},
         });
+        # Then the filter table, which we use to query what fields are
+        # applied to a view's filters when doing alerts
+        my @existing = rset('Filter')->search({ view_id => $view_id })->all;
+        my $decoded = decode_json($update->{filter});
+        my $tables = {};
+        _filter_tables $decoded, $tables;
+        foreach my $table (keys $tables)
+        {
+            unless (grep { $_->layout_id == $table } @existing)
+            {
+                rset('Filter')->create({
+                    view_id   => $view_id,
+                    layout_id => $table,
+                });
+            }
+        }
+        # Delete those no longer there
+        my $search = { view_id => $view_id };
+        $search->{layout_id} = { '!=' => [ '-and', keys %$tables ] } if keys %$tables;
+        rset('Filter')->search($search)->delete;
     }
 
     _get_view($view_id, $user->{id}); # Borks on invalid user for view
