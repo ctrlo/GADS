@@ -536,7 +536,7 @@ sub data
 
 sub data_calendar
 {
-    my ($self, $view_id, $from, $to) = @_;
+    my ($self, $view_id, $user, $from, $to) = @_;
 
     # Epochs received from the calendar module are based on the timezone of the local
     # browser. So in BST, 24th August is requested as 23rd August 23:00. Rather than
@@ -550,7 +550,7 @@ sub data_calendar
         $todt->set(hour => 0, minute => 0, second => 0);
         $todt->add(days => 1);
     }
-    my @records = $self->current({ view_id => $view_id, from => $fromdt, to => $todt });
+    my @records = $self->current({ view_id => $view_id, from => $fromdt, to => $todt, user => $user });
     my $columns = GADS::View->columns({ view_id => $view_id });
 
     my @colors = qw/event-important event-success event-warning event-info event-inverse event-special/;

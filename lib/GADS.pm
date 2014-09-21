@@ -82,7 +82,7 @@ get '/data_calendar/:time' => sub {
     header "Cache-Control" => "max-age=0, must-revalidate, private";
     {
         "success" => 1,
-        "result"  => GADS::Record->data_calendar($view_id, $from, $to),
+        "result"  => GADS::Record->data_calendar($view_id, user, $from, $to),
     }
 };
 
