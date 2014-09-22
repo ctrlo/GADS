@@ -26,19 +26,24 @@ use Ouch;
 use Scalar::Util qw(looks_like_number);
 
 sub _create_cache
-{   my ($alert, $user, $view_id) = @_;
+{   my ($alert, @current_ids) = @_;
 
-    my @records = GADS::Record->current({ view_id => $view_id, user => $user });
-    my $columns = GADS::View->columns({ view_id => $view_id, user => $user });
+    my $view_id = $alert->view_id;
+
+    unless (@current_ids)
+    {
+        @current_ids = map {$_->current_id} GADS::Record->current({ view_id => $view_id });
+    }
+    my $columns = GADS::View->columns({ view_id => $view_id });
     my @caches;
-    foreach my $record (@records)
+    foreach my $current_id (@current_ids)
     {
         foreach my $column (@$columns)
         {
             push @caches, {
                 layout_id  => $column->{id},
                 view_id    => $view_id,
-                current_id => $record->current_id,
+                current_id => $current_id,
             };
         }
     }
@@ -93,14 +98,14 @@ sub alert
             user_id   => $user->{id},
             frequency => $frequency,
         });
-        _create_cache $alert, $user, $view_id unless $exists;
+        _create_cache $alert unless $exists;
     }
 }
 
 sub send
 {   my ($self, $current_id, $columns) = @_;
 
-    my @col_ids = keys %$columns;
+    my @col_ids = keys %$columns or return;
 
     my @caches = rset('View')->search({
         'alert_caches.current_id' => $current_id,
@@ -110,13 +115,39 @@ sub send
         collapse => 1,
     })->all;
 
+    my @view_ids;
     foreach my $cache (@caches)
     {
+        push @view_ids, $cache->id;
         my $view_name = $cache->name;
         my @cnames = map { $columns->{$_->layout_id}->{name} } $cache->alert_caches;
         my $cnames = join ',', @cnames;
         my $text   = "The following items were changed for record ID $current_id: $cnames";
         my @emails = map { $_->user->email } $cache->alerts;
+        GADS::Email->send({ emails => \@emails, subject => qq(Changes in view "$view_name"), text => $text });
+    }
+
+    # Look at any view that has filters containing changed values,
+    # and that aren't already in the notification queue.
+    my $search->{'filters.layout_id'} = \@col_ids;
+    $search->{'alerts.id'} = { '!=' => undef };
+    $search->{'me.id'} = { '!=' => [ -and => @view_ids ] } if @view_ids;
+    my @new = rset('View')->search($search,{
+        join => ['filters', 'alerts']
+    });
+
+    # See if the new data has cropped-up in any other views
+    my @now_in = GADS::Record->search_views($current_id, @new);
+    foreach my $v (@now_in)
+    {
+        my $view_name = $v->name;
+        my $text   = "A new item (ID $current_id) has appeared in the view $view_name.";
+        my @emails;
+        foreach my $alert ($v->alerts)
+        {
+            push @emails, $alert->user->email;
+            _create_cache $alert, $current_id;
+        }
         GADS::Email->send({ emails => \@emails, subject => qq(Changes in view "$view_name"), text => $text });
     }
 }

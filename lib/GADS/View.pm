@@ -113,7 +113,7 @@ sub view
     }
 
     my $view = _get_view($view_id, $user->{id}); # Borks on invalid user for view
-    my ($alert) = grep { $user->{id} == $_->user_id } $view->alerts;
+    my ($alert) = grep { $user->{id} && $user->{id} == $_->user_id } $view->alerts;
     my @sorts = $view->sorts;
     {
         id      => $view->id,
@@ -371,7 +371,7 @@ sub columns
                             current_id => $_->current_id
                         } } $alert->alert_caches;
                     }
-                    rset('AlertCache')->populate(\@pop);
+                    rset('AlertCache')->populate(\@pop) if @pop;
                 }
             }
             else {

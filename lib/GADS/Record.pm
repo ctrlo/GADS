@@ -97,6 +97,79 @@ sub _add_join
     _add_jp @_, 'join';
 }
 
+sub _columns
+{
+    # A hash of the columns with the ID as a key, in order to
+    # easily look up a column from an ID number. Used by search
+    my $columns;
+    foreach my $c (@{GADS::View->columns})
+    {
+        $columns->{$c->{id}} = $c;
+    }
+    $columns;
+}
+
+# A function to see if any views have a particular record within
+sub search_views
+{   my ($self, $current_id, @views) = @_;
+
+    return unless @views;
+
+    my $joins = [];
+    my $prefetches = [];
+
+    my $columns = _columns;
+    my @search;
+
+    # XXX This is up for debate. First, do a search with all views in, as it only
+    # requires one SQL query (albeit a big one). If none match, happy days.
+    # If one does match though, we have to redo all the searches individually
+    # to find which one matched. Is this the most efficient way of doing it?
+    foreach my $view (@views)
+    {
+        if (my $filter = $view->filter)
+        {
+            my $decoded = decode_json($filter);
+            if (keys %$decoded)
+            {
+                my @s = @{_search_construct($decoded, $columns, $prefetches, $joins)};
+                push @search, \@s;
+            }
+        }
+    }
+
+    my $count = rset('Current')->search({
+        'me.id' => $current_id,
+        '-or'   => \@search,
+    },{
+        join     => {'record' => $joins},
+    })->count;
+
+    my @foundin;
+    if ($count)
+    {
+        foreach my $view (@views)
+        {
+            if (my $filter = $view->filter)
+            {
+                my $decoded = decode_json($filter);
+                if (keys %$decoded)
+                {
+                    my @s = @{_search_construct($decoded, $columns, $prefetches, $joins)};
+                    my $found = rset('Current')->search({
+                        'me.id' => $current_id,
+                        @s,
+                    },{
+                        join     => {'record' => $joins},
+                    })->count;
+                    push @foundin, $view if $found;
+                }
+            }
+        }
+    }
+    @foundin;
+}
+
 sub current($$)
 {   my ($class, $item) = @_;
 
@@ -163,13 +236,7 @@ sub current($$)
         _add_prefetch ($c->{join}, $prefetches, $joins);
     }
 
-    # A hash of the columns with the ID as a key, in order to
-    # easily look up a column from an ID number. Used by search
-    my $columns = {};
-    foreach my $c (@{GADS::View->columns})
-    {
-        $columns->{$c->{id}} = $c;
-    }
+    my $columns = _columns;
 
     my @limit; # The overall limit, for example reduction by date range or approval field
     # Add any date ranges to the search from above
@@ -1350,9 +1417,6 @@ sub update
 
     }
 
-    # Send any alerts
-    GADS::Alert->send($current_id, \%columns_changed);
-
     # Finally update the current record tracking, if we've created a new
     # permanent record
     if ($need_rec)
@@ -1360,6 +1424,10 @@ sub update
         rset('Current')->find($current_id)->update({ record_id => $record_rs->id })
             or ouch 'dbfail', "Database error updating current record tracking";
     }
+
+    # Send any alerts
+    GADS::Alert->send($current_id, \%columns_changed);
+
     1;
 }
 
