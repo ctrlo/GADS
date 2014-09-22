@@ -1107,6 +1107,7 @@ sub approve
     $previous = $r->record if $r->record; # Its related record
 
     my $columns = GADS::View->columns; # All fields
+    my %columns_changed; # Track which columns have changed
 
     # First check whether anything is missing. Do it now before
     # we start writing values to the database
@@ -1177,7 +1178,7 @@ sub approve
         # Does a value exist to update?
         if ($r->$fn)
         {
-            if (exists $values->{$fn})
+            if (exists $values->{$fn}) # Field submitted on approval form
             {
                 # The value that was originally submitted for approval
                 my $orig_submitted_file = $col->{type} eq 'file' && $r->$fn->value
@@ -1195,6 +1196,7 @@ sub approve
                     # no previous value, then delete the associated file
                     rset('Fileval')->find($orig_submitted_file)->delete; # Otherwise orphaned
                 }
+                $columns_changed{$col->{id}} = $col; # Field has changed by means of being here
             }
         }
         else {
@@ -1208,6 +1210,10 @@ sub approve
         or ouch 'dbfail', "Database error when removing approval status from updated record";
     rset('Current')->find($r->current_id)->update({ record_id => $r->id })
         or ouch 'dbfail', "Database error when updating current record tracking";
+
+    # Send any alerts
+    GADS::Alert->send($r->current_id, \%columns_changed);
+
 }
     
 sub versions($$)
