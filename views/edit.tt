@@ -70,11 +70,11 @@
     [% field = 'field' _ dispcol.id %]
 
     [%# Skip field if it's an approval request but a value not needing approval %]
-    [% NEXT UNLESS (record.$field.defined OR !dispcol.optional) OR NOT approves %]
+    [% NEXT UNLESS (record.$field.defined) OR NOT approves %]
 
     [% IF approves %]
         [% oldvalue = item_value(dispcol, record.record) %] [%# All value already entity-encoded %]
-        [% END %]
+    [% END %]
 
     [%# This is painful. There appears to be no way to undefine a variable in TT,
         other than including raw Perl, which then requires a config change. So,
@@ -107,7 +107,7 @@
         [% END %]
     [% IF dispcol.type == "enum" %]
         <label for="[% field %]">
-            [% label %][% IF oldvalue %] (previously &quot;[% oldvalue.value %]&quot;)[% END %]
+            [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
         </label>
         <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
             [% IF dispcol.optional OR value.value.deleted OR NOT value.value %]
@@ -129,7 +129,7 @@
     [% ELSIF dispcol.type == "tree" %]
         [% trees.push({id = dispcol.id, end_node_only = dispcol.end_node_only, value = value.value}) %]
         <label for="[% dispcol.id %]">
-            [% label %][% IF oldvalue %] (previously &quot;[% oldvalue.value %]&quot;)[% END %]
+            [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
         </label>
         <div class="form-group">
             <div id="jstree[% dispcol.id %]"></div>

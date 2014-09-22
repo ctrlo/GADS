@@ -968,6 +968,7 @@ sub _process_input_value
     {
         # Convert to DateTime objects
         # Daterange values will always be 2 values in an arrayref
+        return unless $value;
         my ($from, $to) = @$value;
         return unless $from || $to; # No dates entered - blank value
         $from && $to or ouch 'invaliddate', "Please select 2 dates for the date range $column->{name}";
@@ -1107,6 +1108,21 @@ sub approve
 
     my $columns = GADS::View->columns; # All fields
 
+    # First check whether anything is missing. Do it now before
+    # we start writing values to the database
+    foreach my $col (@$columns)
+    {
+        my $fn = $col->{field};
+        my $recordvalue = $r ? $r->$fn : undef;
+        my $newvalue = _process_input_value($col, $values->{$fn}, $uploads, $recordvalue);
+        # This assumes the value was visible in the form. It should be, even if
+        # the field was made compulsory after added the initial submission.
+        if (!$col->{optional} && $r->$fn && _is_blank $col, $newvalue)
+        {
+            ouch 'missing', "Field \"$col->{name}\" is not optional. Please enter a value.";
+        }
+    }
+
     foreach my $col (@$columns)
     {
         next unless $col->{userinput};
@@ -1151,19 +1167,11 @@ sub approve
         # as a submitted field that is now undefined
         $values->{$fn} = undef if $r->$fn && $r->$fn->value && !exists $values->{$fn};
 
-        # This assumes the value was visible in the form. It should be, even if
-        # the field was made compulsory after added the initial submission.
-        if (_is_blank $col, $newvalue)
-        {
-            ouch 'missing', "Field \"$col->{name}\" is not optional. Please enter a value.";
-        }
-
         if (!exists $values->{$fn})
         {
             # Field was not submitted in approval form. Use previously submitted
             # value if it exists
-            $newvalue = $previous->$fn->value
-                if ($previous && $previous->$fn);
+            $newvalue = item_value($col, $previous, {raw => 1});
         }
 
         # Does a value exist to update?

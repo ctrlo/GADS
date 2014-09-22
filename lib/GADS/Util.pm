@@ -213,7 +213,7 @@ sub item_value
             return qq(<a href="/file/$id">$filename</a>);
         }
         else {
-            return '';
+            return;
         }
     }
     elsif ($column->{type} eq "string")
