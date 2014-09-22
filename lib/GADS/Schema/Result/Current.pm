@@ -101,6 +101,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 alerts_send
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::AlertSend>
+
+=cut
+
+__PACKAGE__->has_many(
+  "alerts_send",
+  "GADS::Schema::Result::AlertSend",
+  { "foreign.current_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 instance
 
 Type: belongs_to
@@ -157,8 +172,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-21 21:00:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7PMHy8qxL9ch5wt7OnfLOQ
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-22 20:35:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:N9RiI7zuVTRRIUT0+E2c2w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -102,7 +102,7 @@ sub alert
     }
 }
 
-sub send
+sub process
 {   my ($self, $current_id, $columns) = @_;
 
     my @col_ids = keys %$columns or return;
@@ -118,13 +118,28 @@ sub send
     my @view_ids;
     foreach my $cache (@caches)
     {
+        # Note which views we know have changed, so we don't search them later
         push @view_ids, $cache->id;
-        my $view_name = $cache->name;
-        my @cnames = map { $columns->{$_->layout_id}->{name} } $cache->alert_caches;
-        my $cnames = join ',', @cnames;
-        my $text   = "The following items were changed for record ID $current_id: $cnames";
-        my @emails = map { $_->user->email } $cache->alerts;
-        GADS::Email->send({ emails => \@emails, subject => qq(Changes in view "$view_name"), text => $text });
+
+        # Any emails that need to be sent instantly
+        my @emails = map { $_->user->email } grep { $_->frequency == 0 } $cache->alerts;
+        if (@emails)
+        {
+            my @col_ids = $cache->caches;
+            send_alert($columns, $current_id, $cache, \@emails, \@col_ids);
+        }
+
+        # And those to be sent later
+        my @later = map { {alert_id => $_->id, current_id => $current_id} } grep { $_->frequency > 0 } $cache->alerts;
+        foreach my $later (@later)
+        {
+            foreach my $col_id (@col_ids)
+            {
+                $later->{layout_id} = $col_id;
+                # Unique constraint. Catch any exceptions
+                eval { rset('AlertSend')->create($later) }
+            }
+        }
     }
 
     # Look at any view that has filters containing changed values,
@@ -140,15 +155,50 @@ sub send
     my @now_in = GADS::Record->search_views($current_id, @new);
     foreach my $v (@now_in)
     {
-        my $view_name = $v->name;
-        my $text   = "A new item (ID $current_id) has appeared in the view $view_name.";
         my @emails;
         foreach my $alert ($v->alerts)
         {
-            push @emails, $alert->user->email;
+            if ($alert->frequency)
+            {
+                # send later
+                eval {
+                    # Unique constraint on table. Catch
+                    # any exceptions
+                    rset('AlertSend')->create({
+                        alert_id   => $alert->id,
+                        current_id => $current_id,
+                    });
+                }
+            }
+            else {
+                # send now
+                push @emails, $alert->user->email;
+            }
             _create_cache $alert, $current_id;
         }
-        GADS::Email->send({ emails => \@emails, subject => qq(Changes in view "$view_name"), text => $text });
+        if (@emails)
+        {
+            send_alert($columns, $current_id, $v, \@emails);
+        }
+    }
+}
+
+sub send_alert
+{   my ($columns, $current_id, $view, $emails, $col_ids) = @_;
+
+    my $view_name = $view->name;
+
+    if (@$col_ids)
+    {
+        # Individual fields to notify
+        my @cnames = map { $columns->{$_->layout_id}->{name} } $view->alert_caches;
+        my $cnames = join ',', @cnames;
+        my $text   = "The following items were changed for record ID $current_id: $cnames";
+        GADS::Email->send({ emails => $emails, subject => qq(Changes in view "$view_name"), text => $text });
+    }
+    else {
+        my $text   = "A new item (ID $current_id) has appeared in the view $view_name.";
+        GADS::Email->send({ emails => $emails, subject => qq(Changes in view "$view_name"), text => $text });
     }
 }
 

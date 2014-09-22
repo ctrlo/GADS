@@ -170,6 +170,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 alerts_send
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::AlertSend>
+
+=cut
+
+__PACKAGE__->has_many(
+  "alerts_send",
+  "GADS::Schema::Result::AlertSend",
+  { "foreign.layout_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 calcs
 
 Type: has_many
@@ -506,8 +521,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-21 16:43:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Yj8PqtPTZ7YLP7nj2z5wHw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-22 20:35:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SuwvlG1pzEcy3ZX8TzwSaQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

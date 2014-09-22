@@ -1212,7 +1212,7 @@ sub approve
         or ouch 'dbfail', "Database error when updating current record tracking";
 
     # Send any alerts
-    GADS::Alert->send($r->current_id, \%columns_changed);
+    GADS::Alert->process($r->current_id, \%columns_changed);
 
 }
     
@@ -1440,7 +1440,7 @@ sub update
     }
 
     # Send any alerts
-    GADS::Alert->send($current_id, \%columns_changed);
+    GADS::Alert->process($current_id, \%columns_changed);
 
     1;
 }
