@@ -125,8 +125,7 @@ sub process
         my @emails = map { $_->user->email } grep { $_->frequency == 0 } $cache->alerts;
         if (@emails)
         {
-            my @col_ids = $cache->caches;
-            send_alert($columns, $current_id, $cache, \@emails, \@col_ids);
+            send_alert($current_id, $cache, \@emails, $columns);
         }
 
         # And those to be sent later
@@ -178,17 +177,17 @@ sub process
         }
         if (@emails)
         {
-            send_alert($columns, $current_id, $v, \@emails);
+            send_alert($current_id, $v, \@emails);
         }
     }
 }
 
 sub send_alert
-{   my ($columns, $current_id, $view, $emails, $col_ids) = @_;
+{   my ($current_id, $view, $emails, $columns) = @_;
 
     my $view_name = $view->name;
 
-    if (@$col_ids)
+    if ($columns)
     {
         # Individual fields to notify
         my @cnames = map { $columns->{$_->layout_id}->{name} } $view->alert_caches;
