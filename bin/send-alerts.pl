@@ -58,14 +58,14 @@ foreach my $row (@rows)
 
     if (defined $last_user && $last_user->id != $row->alert->user_id)
     {
-        push @notifications, _do_columns $current_id, \@columns if @columns;
+        push @notifications, _do_columns $last_current_id, \@columns if @columns;
         _send $last_user->email, @notifications;
         @notifications = ();
     }
 
     if (!defined $last_alert_id || $last_alert_id != $row->alert_id)
     {
-        push @notifications, _do_columns $current_id, \@columns if @columns;
+        push @notifications, _do_columns $last_current_id, \@columns if @columns;
         push @notifications, '' if @notifications; # blank line separater
         my $view_name = $row->alert->view->name;
         push @notifications, qq(The following are changes in the view "$view_name":);
@@ -76,13 +76,14 @@ foreach my $row (@rows)
         if (defined $last_current_id && $last_current_id != $row->current_id && @columns)
         {
             my $current_id = $row->current_id;
-            push @notifications, _do_columns $current_id, \@columns if @columns;
+            push @notifications, _do_columns $last_current_id, \@columns if @columns;
         }
         else {
             push @columns, $row->layout->name;
         }
     }
     else {
+        push @notifications, _do_columns $last_current_id, \@columns if @columns;
         push @notifications, "* Record $current_id is now in the view";
     }
 
