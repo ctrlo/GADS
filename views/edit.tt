@@ -122,7 +122,7 @@
             [% END %]
             [% FOREACH enumval IN enumvals %]
                 [% UNLESS enumval.deleted %]
-                    <option value="[% enumval.id %]" [% IF value == enumval.id %]selected[% END %]>[% enumval.value %]</option>
+                    <option value="[% enumval.id %]" [% IF value.value == enumval.id %]selected[% END %]>[% enumval.value %]</option>
                 [% END %]
             [% END %]
         </select>
