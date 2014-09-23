@@ -358,9 +358,13 @@ sub columns
                     my @alerts = rset('View')->search({
                         'me.id' => $view_id
                     },{
-                        prefetch => 'alert_caches',
+                        columns  => [
+                            { 'me.id'  => \"MAX(me.id)" },
+                            { 'alert_caches.id'  => \"MAX(alert_caches.id)" },
+                            { 'alert_caches.current_id'  => \"MAX(alert_caches.current_id)" },
+                        ],
+                        join     => 'alert_caches',
                         group_by => 'current_id',
-                        collapse => 1,
                     })->all;
                     my @pop;
                     foreach my $alert (@alerts)
