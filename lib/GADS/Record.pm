@@ -156,13 +156,17 @@ sub search_views
                 if (keys %$decoded)
                 {
                     my @s = @{_search_construct($decoded, $columns, $prefetches, $joins)};
-                    my $found = rset('Current')->search({
+                    my @found = rset('Current')->search({
                         'me.id' => $current_id,
                         @s,
                     },{
                         join     => {'record' => $joins},
-                    })->count;
-                    push @foundin, $view if $found;
+                    })->all;
+                    my @ids = map { $_->id } @found;
+                    push @foundin, {
+                        view => $view,
+                        ids  => \@ids,
+                    } if @found;
                 }
             }
         }
@@ -329,72 +333,6 @@ sub current($$)
         }
     }
 
-    # First see if any cachable fields are missing their cache values.
-    my @cache_cols_search;
-    foreach my $csearch (values %cache_cols)
-    {
-        # Create the search parameter, looking for undef fields of the column
-        my $sprefix = $csearch->{sprefix};
-        if ($csearch->{type} eq "person")
-        {
-            # Special case: person cache value is one further down the join
-            # in the user table
-            push @cache_cols_search,
-                {"$sprefix.value" => undef, "$csearch->{field}.value" => {'!=' => undef} };
-        }
-        else {
-            push @cache_cols_search,
-                {"$sprefix.value" => undef };
-        }
-    }
-    # The search here is a combination of the cached fields we know we
-    # are going to use, the overall limit of data rows to be retrieved,
-    # and the addition of the user search criteria without the calculated
-    # fields
-    my $calcsearch = [
-        -and => [
-            @limit,
-            @calcsearch,
-            -or => \@cache_cols_search
-        ],
-    ];
-    my @tocache;
-    my @pf = (keys %$cache_joins, keys %cache_cols) ; # Prefetch any fields that may be needed to produce cache
-    if ($item->{record_id})
-    {
-        @tocache = rset('Record')->search(
-            $calcsearch,
-            {
-                join => [@$joins, @$prefetches],
-                prefetch => \@pf,
-            }
-        )->all;
-    }
-    else {
-        @tocache = rset('Current')->search(
-            $calcsearch,
-            {
-                join => {record => [@$joins, @$prefetches]},
-                prefetch => {record => \@pf},
-            }
-        )->all;
-    }
-    # For any that are found to be empty, update them with a value
-    foreach my $rec (@tocache)
-    {
-        foreach my $col (values %cache_cols)
-        {
-            # Force creation of the cache value
-            if ($item->{record_id})
-            {
-                item_value($col, $rec);
-            }
-            else {
-                item_value($col, $rec->record);
-            }
-        }
-    }
-
     my $search = [-and => [@search, @limit]];
     my @all;
     if ($item->{record_id})
@@ -448,6 +386,32 @@ sub current($$)
     }
 
     wantarray ? @all : pop(@all);
+}
+
+sub update_cache
+{   my ($self, $records, $columns) = @_;
+
+    my @changed;
+    foreach my $rec (@$records)
+    {
+        my $has_change;
+        foreach my $col (@$columns)
+        {
+            my $field = $col->{field};
+            my $old   = item_value($col, $rec);
+            # Force creation of the cache value
+            my $new = item_value($col, $rec, {force_update => 1});
+            $has_change = $new ne $old;
+        }
+        push @changed, $rec->current_id if $has_change;
+    }
+
+    my $columns_changed;
+    foreach my $col (@$columns)
+    {
+        $columns_changed->{$col->{id}} = $col;
+    }
+    GADS::Alert->process(\@changed, $columns_changed);
 }
 
 sub _filter
@@ -685,12 +649,12 @@ sub data_calendar
 }
 
 sub rag
-{   my ($class, $column, $record) = @_;
+{   my ($class, $column, $record, $options) = @_;
 
     my $rag   = $column->{rag};
     my $field = $column->{field};
     my $item  = $record->$field;
-    if (defined $item)
+    if (defined $item && !$options->{force_update})
     {
         return $item->value;
     }
@@ -805,12 +769,12 @@ sub _write_rag
 }
 
 sub calc
-{   my ($class, $column, $record) = @_;
+{   my ($class, $column, $record, $options) = @_;
 
     my $calc  = $column->{calc};
     my $field = $column->{field};
     my $item  = $record->$field;
-    if (defined $item)
+    if (defined $item && !$options->{force_update})
     {
         return $item->value;
     }
@@ -1257,8 +1221,6 @@ sub update
     my $all_columns = GADS::View->columns;
     foreach my $column (@$all_columns)
     {
-        next unless $column->{userinput};
-
         my $fn      = $column->{field};
         my $fieldid = $column->{id};
 
@@ -1274,6 +1236,8 @@ sub update
                 $oldvalue->{$fieldid} = $old->$fn->value;
             }
         }
+
+        next unless $column->{userinput};
 
         my $value = $params->{$fn};
 
@@ -1376,13 +1340,20 @@ sub update
     }
 
     # Write all the values
-    my %columns_changed;
+    my %columns_changed; my @columns_cached;
     foreach my $column (@$all_columns)
     {
         my $fieldid = $column->{id};
-        $columns_changed{$fieldid} = $column if $changed->{$fieldid};
 
-        next unless $column->{userinput};
+        if (!$column->{userinput})
+        {
+            # Make a note of cached columns that need updating
+            # Don't write now as we haven't finished creating the record
+            push @columns_cached, $column;
+            next;
+        }
+
+        $columns_changed{$fieldid} = $column if $changed->{$fieldid};
 
         my $value = $newvalue->{$fieldid};
 
@@ -1431,12 +1402,24 @@ sub update
 
     }
 
+
     # Finally update the current record tracking, if we've created a new
     # permanent record
     if ($need_rec)
     {
         rset('Current')->find($current_id)->update({ record_id => $record_rs->id })
             or ouch 'dbfail', "Database error updating current record tracking";
+    }
+
+    # Write cached values
+    foreach my $col (@columns_cached)
+    {
+        # Get old value
+        my $old = $oldvalue->{$col->{id}};
+        # Force new value to be written
+        my $new = item_value($col, $record_rs);
+        # Changed?
+        $columns_changed{$col->{id}} = $col if $old ne $new;
     }
 
     # Send any alerts

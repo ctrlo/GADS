@@ -24,6 +24,7 @@ use Dancer2::Plugin::DBIC qw(schema resultset rset);
 schema->storage->debug(1);
 use Ouch;
 use Scalar::Util qw(looks_like_number);
+use List::MoreUtils qw/ uniq /;
 
 sub _create_cache
 {   my ($alert, @current_ids) = @_;
@@ -125,18 +126,28 @@ sub process
         my @emails = map { $_->user->email } grep { $_->frequency == 0 } $cache->alerts;
         if (@emails)
         {
-            send_alert($current_id, $cache, \@emails, $columns);
+            my @cids;
+            foreach my $i ($cache->alert_caches)
+            {
+                push @cids, $i->current_id;
+            }
+            send_alert(\@cids, $cache, \@emails, $columns);
         }
 
         # And those to be sent later
-        my @later = map { {alert_id => $_->id, current_id => $current_id} } grep { $_->frequency > 0 } $cache->alerts;
-        foreach my $later (@later)
+        my @cuid = ref $current_id eq 'ARRAY' ? @$current_id : ($current_id);
+        foreach my $cuid (@cuid)
         {
-            foreach my $col_id (@col_ids)
+            my @later = map { {alert_id => $_->id, current_id => $cuid} } grep { $_->frequency > 0 } $cache->alerts;
+            foreach my $later (@later)
             {
-                $later->{layout_id} = $col_id;
-                # Unique constraint. Catch any exceptions
-                eval { rset('AlertSend')->create($later) }
+                foreach my $col_id (@col_ids)
+                {
+                    $later->{layout_id} = $col_id;
+                    # Unique constraint. Catch any exceptions. This is also
+                    # why we probably can't do all these with one call to populate()
+                    eval { rset('AlertSend')->create($later) }
+                }
             }
         }
     }
@@ -152,33 +163,34 @@ sub process
 
     # See if the new data has cropped-up in any other views
     my @now_in = GADS::Record->search_views($current_id, @new);
-    foreach my $v (@now_in)
+    foreach my $found (@now_in)
     {
+        my $v = $found->{view};
         my @emails;
         foreach my $alert ($v->alerts)
         {
             if ($alert->frequency)
             {
                 # send later
-                eval {
-                    # Unique constraint on table. Catch
-                    # any exceptions
-                    rset('AlertSend')->create({
-                        alert_id   => $alert->id,
-                        current_id => $current_id,
-                    });
+                foreach my $cuid ($found->{ids})
+                {
+                    eval {
+                        # Unique constraint on table. Catch
+                        # any exceptions
+                        rset('AlertSend')->create({
+                            alert_id   => $alert->id,
+                            current_id => $cuid,
+                        });
+                    }
                 }
             }
             else {
                 # send now
                 push @emails, $alert->user->email;
             }
-            _create_cache $alert, $current_id;
+            _create_cache $alert, @{$found->{ids}};
         }
-        if (@emails)
-        {
-            send_alert($current_id, $v, \@emails);
-        }
+        send_alert($found->{ids}, $v, \@emails) if @emails;
     }
 }
 
@@ -190,13 +202,32 @@ sub send_alert
     if ($columns)
     {
         # Individual fields to notify
-        my @cnames = map { $columns->{$_->layout_id}->{name} } $view->alert_caches;
-        my $cnames = join ',', @cnames;
-        my $text   = "The following items were changed for record ID $current_id: $cnames";
+        my %cnames;
+        foreach my $col ($view->alert_caches)
+        {
+            $cnames{$columns->{$col->layout_id}->{name}} = 1;
+        }
+        my $cnames = join ', ', keys %cnames;
+        my $text;
+        if (ref $current_id eq 'ARRAY')
+        {
+            my $ids = join ', ', uniq @$current_id;
+            $text   = "The following items were changed for record IDs $ids: $cnames";
+        }
+        else {
+            $text   = "The following items were changed for record ID $current_id: $cnames";
+        }
         GADS::Email->send({ emails => $emails, subject => qq(Changes in view "$view_name"), text => $text });
     }
     else {
-        my $text   = "A new item (ID $current_id) has appeared in the view $view_name.";
+        my $text;
+        if (ref $current_id eq 'ARRAY')
+        {
+            $text   = "The following new items have appeared in the view $view_name: ".join(', ', @$current_id);
+        }
+        else {
+            $text   = "A new item (ID $current_id) has appeared in the view $view_name.";
+        }
         GADS::Email->send({ emails => $emails, subject => qq(Changes in view "$view_name"), text => $text });
     }
 }

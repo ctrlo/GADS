@@ -119,11 +119,11 @@ sub item_value
 
     if ($column->{type} eq "rag")
     {
-        return GADS::Record->rag($column, $record);
+        return GADS::Record->rag($column, $record, $options);
     }
     elsif ($column->{type} eq "calc")
     {
-        my $v = GADS::Record->calc($column, $record);
+        my $v = GADS::Record->calc($column, $record, $options);
         if ($column->{return_format} && $column->{return_format} eq "date")
         {
             my $date = eval {DateTime->from_epoch(epoch => $v)}

@@ -20,6 +20,7 @@ package GADS::Layout;
 
 use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
+use GADS::View;
 use Ouch;
 use String::CamelCase qw(camelize);
 schema->storage->debug(1);
@@ -423,18 +424,31 @@ sub item
                 green => $args->{green},
             };
             my ($ragr) = rset('Rag')->search({ layout_id => $item->id })->all;
+            my $need_update;
             if ($ragr)
             {
-                # Clear out cached calues. Will be auto-inserted later
-                rset('Ragval')->search({ layout_id => $ragr->layout_id })->delete
-                    or ouch 'dbfail', "Database error deleting cached values for this RAG";
+                # First see if the calculation has changed
+                $need_update =  $ragr->red ne $rag->{red}
+                             || $ragr->amber ne $rag->{amber}
+                             || $ragr->green ne $rag->{green};
                 $ragr->update($rag)
                     or ouch 'dbfail', "Database error updating RAG values";
+                # Clear out cached calues. Will be auto-inserted later
             }
             else {
                 $rag->{layout_id} = $item->id;
                 rset('Rag')->create($rag)
                     or ouch 'dbfail', "Database error creating RAG values";
+                $need_update = 1;
+            }
+            if ($need_update)
+            {
+                # Get records first so that we have old values
+                my $columns = GADS::View->columns({ id => $item->id });
+                my @records = GADS::Record->current({ columns => $columns });
+                rset('Ragval')->search({ layout_id => $ragr->layout_id })->delete
+                    or ouch 'dbfail', "Database error deleting cached values for this calc";
+                GADS::Record->update_cache(\@records, $columns);
             }
         }
         if ($args->{type} eq 'calc')
@@ -444,18 +458,28 @@ sub item
                 return_format => $args->{return_format} ? 'date' : '',
             };
             my ($calcr) = rset('Calc')->search({ layout_id => $item->id })->all;
+            my $need_update;
             if ($calcr)
             {
-                # Clear out cached calues. Will be auto-inserted later
-                rset('Calcval')->search({ layout_id => $calcr->layout_id })->delete
-                    or ouch 'dbfail', "Database error deleting cached values for this calc";
+                # First see if the calculation has changed
+                $need_update = $calcr->calc ne $calc->{calc};
                 $calcr->update($calc)
                     or ouch 'dbfail', "Database error updating calculated formula";
             }
             else {
                 $calc->{layout_id} = $item->id;
-                rset('Calc')->create($calc)
+                $calcr = rset('Calc')->create($calc)
                     or ouch 'dbfail', "Database error creating calculated formula";
+                $need_update = 1;
+            }
+            if ($need_update)
+            {
+                # Get records first so that we have old values
+                my $columns = GADS::View->columns({ id => $item->id });
+                my @records = GADS::Record->current({ columns => $columns });
+                rset('Calcval')->search({ layout_id => $calcr->layout_id })->delete
+                    or ouch 'dbfail', "Database error deleting cached values for this calc";
+                GADS::Record->update_cache(\@records, $columns);
             }
         }
         if ($args->{type} eq 'file')
