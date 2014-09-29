@@ -1244,7 +1244,7 @@ sub update
         if (
                _is_blank($column, $value) # New value is blank
             && !$column->{optional}       # Field is not optional
-            && (!_is_blank($column, $oldvalue->{$fieldid}) || ($old && $oldvalue->{$fieldid})) # Old value was not blank
+            && (!$current_id || !_is_blank($column, $oldvalue->{$fieldid})) # Old value was not blank
         )
         {
             # Only if a value was set previously, otherwise a field that had no
