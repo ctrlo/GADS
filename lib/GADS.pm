@@ -203,12 +203,15 @@ any '/data' => sub {
         session 'rows' => 50 unless session 'rows';
         session 'page' => 1 unless session 'page';
 
+        my $rows = defined param('download') ? undef : session('rows');
+        my $page = defined param('download') ? undef : session('page');
+
         # @records contains all the information for each required record
         my $get = {
             view_id => $view_id,
             user    => user,
-            rows    => session('rows'),
-            page    => session('page'),
+            rows    => $rows,
+            page    => $page,
             sort    => session('sort'),
         };
 
@@ -227,7 +230,7 @@ any '/data' => sub {
         my $subset = {
             rows  => session('rows'),
             pages => $pages,
-            page  => session('page'),
+            page  => $page,
         };
 
         $params = {
