@@ -152,7 +152,7 @@ any '/data' => sub {
     my $view_id  = session 'view_id';
 
     my $columns;
-    eval { $columns = GADS::View->columns({ view_id => $view_id, user => user }) };
+    eval { $columns = GADS::View->columns({ view_id => $view_id, user => user, no_hidden => 1 }) };
     if (hug)
     {
         session 'view_id' => undef;
@@ -168,13 +168,12 @@ any '/data' => sub {
         my @graphs;
         foreach my $g (@$todraw)
         {
-            my $graph = GADS::Graph->data({ graph => $g, view_id => $view_id });
+            my $graph = GADS::Graph->data({ graph => $g, view_id => $view_id, user => user });
             push @graphs, $graph if $graph;
         }
 
         $params = {
             graphs      => \@graphs,
-            all_columns => GADS::View->columns,
             viewtype    => 'graph',
         };
 
@@ -182,7 +181,6 @@ any '/data' => sub {
     elsif ($viewtype eq 'calendar')
     {
         # Get details of the view and work out color markers for date fields
-        my $columns = GADS::View->columns({ view_id => $view_id });
         my @colors = qw/event-important event-success event-warning event-info event-inverse event-special/;
         my %datecolors;
         foreach my $column (@$columns)
@@ -219,6 +217,7 @@ any '/data' => sub {
         my $pages = $get->{pages};
         # @output contains just the data itself, which can be sent straight to a CSV
         my $options = defined param('download') ? { plain => 1 } : { encode_entities => 1 };
+        $options->{user} = user;
         my @output = GADS::Record->data($view_id, \@records, $options);
 
         my @colnames = ('Serial');
@@ -487,9 +486,9 @@ any '/view/:id' => sub {
     {
         push @ucolumns, $c->{id};
     }
-    my $view = GADS::View->view($view_id, user);
-    my $output  = template 'view' => {
-        all_columns  => GADS::View->columns,
+    my $view   = GADS::View->view($view_id, user);
+    my $output = template 'view' => {
+        all_columns  => GADS::View->columns({ user => user, no_hidden => 1 }),
         sorts        => GADS::View->sorts($view_id),
         sort_types   => GADS::View->sort_types,
         ucolumns     => \@ucolumns,
@@ -806,7 +805,7 @@ get '/helptext/:id?' => sub {
 any '/edit/:id?' => sub {
     my $id = param 'id';
 
-    my $all_columns = GADS::View->columns;
+    my $all_columns = GADS::View->columns({ user => user, no_hidden => 1 }),
     my $record;
     if (param 'submit')
     {
@@ -904,7 +903,7 @@ any '/record/:id' => sub {
         }
     }
 
-    my $record = $id ? GADS::Record->current({ record_id => $id }) : {};
+    my $record = $id ? GADS::Record->current({ record_id => $id, user => user }) : {};
     my $versions = $id ? GADS::Record->versions($record->current->id) : {};
     my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
     my $output = template 'record' => {
@@ -913,7 +912,7 @@ any '/record/:id' => sub {
         record         => $record,
         autoserial     => $autoserial,
         versions       => $versions,
-        all_columns    => GADS::View->columns,
+        all_columns    => GADS::View->columns({ user => user, no_hidden => 1 }),
         page           => 'record'
     };
     $output;

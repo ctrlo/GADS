@@ -1,3 +1,9 @@
+[% global.helptext.layout_hidden = BLOCK %]
+Hidden fields will not be displayed or be editable by normal users.
+Only users with the permission to &quot;administer layout, views and graphs&quot;
+can view the field.
+[% END %]
+
 [% global.helptext.layout_perms = BLOCK %]
 The permissions of the field affect the ability of users to specify
 the values in records, not change any aspect of the layout. Specifically:

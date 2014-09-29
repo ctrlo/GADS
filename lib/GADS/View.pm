@@ -305,6 +305,7 @@ sub _column
     $c->{approve}       = $col->permission == APPROVE ? 1 : 0;
     $c->{open}          = $col->permission == OPEN ? 1 : 0;
     $c->{optional}      = $col->optional,
+    $c->{hidden}        = $col->hidden,
     $c->{description}   = $col->description,
     $c->{display_field} = $col->display_field,
     $c->{display_regex} = $col->display_regex,
@@ -347,6 +348,7 @@ sub columns
 
         foreach my $c (rset('Layout')->all)
         {
+            next if !$ident->{user}->{permission}->{layout} && $c->hidden;
             my $item = { view_id => $view_id, layout_id => $c->id };
             if (grep {$c->id == $_} @colviews)
             {
@@ -436,6 +438,7 @@ sub columns
     my @return;
     foreach my $col (@cols)
     {
+        next if $col->hidden && $ident->{no_hidden} && !$ident->{user}->{permission}->{layout};
         my $c = _column $col, \@allcols;
         push @return, $c;
     }

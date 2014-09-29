@@ -110,6 +110,12 @@ __PACKAGE__->table("layout");
   is_nullable: 1
   size: 256
 
+=head2 hidden
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -139,6 +145,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "display_regex",
   { data_type => "varchar", is_nullable => 1, size => 256 },
+  "hidden",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -521,8 +529,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-22 20:35:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SuwvlG1pzEcy3ZX8TzwSaQ
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-29 18:45:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:O+NbkZiFOhv/CXgJP8Kxig
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

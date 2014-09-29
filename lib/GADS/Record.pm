@@ -98,11 +98,13 @@ sub _add_join
 }
 
 sub _columns
-{
+{   my ($user, $no_hidden) = @_;
+
     # A hash of the columns with the ID as a key, in order to
     # easily look up a column from an ID number. Used by search
     my $columns;
-    foreach my $c (@{GADS::View->columns})
+    my $options = $no_hidden ? { user => $user, no_hidden => 1 } : {};
+    foreach my $c (@{GADS::View->columns($options)})
     {
         $columns->{$c->{id}} = $c;
     }
@@ -129,6 +131,7 @@ sub search_views
     {
         if (my $filter = $view->filter)
         {
+            # XXX Do not send alerts for hidden fields
             my $decoded = decode_json($filter);
             if (keys %$decoded)
             {
@@ -187,10 +190,10 @@ sub current($$)
     }
     elsif (my $view_id = $item->{view_id})
     {
-        @columns = @{GADS::View->columns({ view_id => $view_id })};
+        @columns = @{GADS::View->columns({ view_id => $view_id, no_hidden => 1, user => $item->{user} })};
     }
     else {
-        @columns = @{GADS::View->columns};
+        @columns = @{GADS::View->columns({ no_hidden => 1, user => $item->{user} })};
     }
     my %cache_cols; # Any column in the view that should be cached
     my $prefetches = []; # Tables to prefetch - data being viewed
@@ -240,7 +243,7 @@ sub current($$)
         _add_prefetch ($c->{join}, $prefetches, $joins);
     }
 
-    my $columns = _columns;
+    my $columns = _columns($item->{user}, 1);
 
     my @limit; # The overall limit, for example reduction by date range or approval field
     # Add any date ranges to the search from above
@@ -277,8 +280,8 @@ sub current($$)
         {
             push @orderby, { $type => $index_sort };
         }
-        else {
-            my $column  = $columns->{$sort->{id}};
+        elsif (my $column  = $columns->{$sort->{id}})
+        {
             if (my $s_table = _table_name($column, $prefetches, $joins))
             {
                 push @orderby, { $type => "$s_table.value" };
@@ -310,10 +313,12 @@ sub current($$)
         {
             foreach my $sort (@{$view->{sorts}})
             {
-                my $column  = $columns->{$sort->layout->id};
-                my $s_table = _table_name($column, $prefetches, $joins);
-                my $type = $sort->type eq 'desc' ? '-desc' : '-asc';
-                push @orderby, { $type => "$s_table.value" };
+                if (my $column  = $columns->{$sort->layout->id})
+                {
+                    my $s_table = _table_name($column, $prefetches, $joins);
+                    my $type = $sort->type eq 'desc' ? '-desc' : '-asc';
+                    push @orderby, { $type => "$s_table.value" };
+                }
             }
         }
     }
@@ -324,9 +329,14 @@ sub current($$)
         my $type = $config->sort_type eq 'desc' ? '-desc' : '-asc';
         if (my $layout = $config->sort_layout_id)
         {
-            my $column  = $columns->{$layout};
-            my $s_table = _table_name($column, $prefetches, $joins);
-            push @orderby, { $type => "$s_table.value" }
+            # Get column afresh rather than from $columns, as the
+            # default sort could be a hidden field
+            if (my $cols = GADS::View->columns({ id => $layout }))
+            {
+                my $column = pop @$cols;
+                my $s_table = _table_name($column, $prefetches, $joins);
+                push @orderby, { $type => "$s_table.value" }
+            }
         }
         else {
             push @orderby, { $type => $index_sort };
@@ -464,7 +474,8 @@ sub _search_construct
         not_equal   => '!=',
     );
 
-    my $column   = $columns->{$filter->{id}};
+    my $column   = $columns->{$filter->{id}}
+        or return;
     my $operator = $ops{$filter->{operator}}
         or ouch 'invop', "Invalid operator $filter->{operator}";
 
@@ -544,7 +555,7 @@ sub data
     my ($class, $view_id, $records, $options) = @_;
     my @output;
 
-    my $columns = GADS::View->columns({ view_id => $view_id });
+    my $columns = GADS::View->columns({ view_id => $view_id, no_hidden => 1, user => $options->{user} });
 
     RECORD:
     foreach my $record (@$records)
@@ -581,8 +592,8 @@ sub data_calendar
         $todt->set(hour => 0, minute => 0, second => 0);
         $todt->add(days => 1);
     }
-    my @records = $self->current({ view_id => $view_id, from => $fromdt, to => $todt, user => $user });
-    my $columns = GADS::View->columns({ view_id => $view_id });
+    my @records = $self->current({ view_id => $view_id, from => $fromdt, to => $todt, user => $user, no_hidden => 1 });
+    my $columns = GADS::View->columns({ view_id => $view_id, user => $user, no_hidden => 1 });
 
     my @colors = qw/event-important event-success event-warning event-info event-inverse event-special/;
     my @result; my %datecolors;
@@ -1239,7 +1250,16 @@ sub update
 
         next unless $column->{userinput};
 
-        my $value = $params->{$fn};
+        # If field is hidden then use previous value (if normal user)
+        my $value;
+        if ($column->{hidden} && !$user->{permission}->{layout})
+        {
+            $value = item_value($column, $old, {raw => 1})
+                if $old;
+        }
+        else {
+            $value = $params->{$fn};
+        }
 
         if (
                _is_blank($column, $value) # New value is blank

@@ -294,6 +294,7 @@ sub item
     {
         my $newitem;
         $newitem->{optional} = $args->{optional} ? 1 : 0;
+        $newitem->{hidden} = $args->{hidden} ? 1 : 0;
         $newitem->{remember} = $args->{remember} ? 1 : 0;
         ($newitem->{name} = $args->{name}) =~ /^[ \S]+$/ # Only normal spaces please
             or ouch 'badvalue', "Please enter a name for item";
@@ -516,6 +517,7 @@ sub item
         ordering      => $item->ordering,
         permission    => $item->permission,
         optional      => $item->optional,
+        hidden        => $item->hidden,
         description   => $item->description,
         helptext      => $item->helptext,
         display_field => $item->display_field,
