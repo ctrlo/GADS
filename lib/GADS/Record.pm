@@ -182,6 +182,11 @@ sub search
 
     my %results;
 
+    if ($search =~ s/\*/%/g )
+    {
+        $search = { like => $search };
+    }
+
     my @fields = (
         { type => 'string', plural => 'strings' },
         { type => 'int',    plural => 'intgrs' },
