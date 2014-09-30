@@ -180,6 +180,8 @@ sub search_views
 sub search
 {   my ($self, $search, $user) = @_;
 
+    $search or return;
+
     my %results;
 
     if ($search =~ s/\*/%/g )
