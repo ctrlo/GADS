@@ -85,7 +85,7 @@
                             </ul>
                             <form class="navbar-form navbar-left" role="search" action="/search">
                                 <div class="form-group">
-                                    <input type="text" name="search" class="form-control" title="Use * as a wildcard character" placeholder="Search" value="[% search %]">
+                                    <input type="text" name="search" class="form-control" title="Use * as a wildcard character" placeholder="Use * as wildcard" value="[% search %]">
                                 </div>
                                 <button type="submit" class="btn btn-default">Search</button>
                             </form>
@@ -170,11 +170,13 @@
             <script type="text/javascript" src="[% url.js %]/tiny_mce/tiny_mce.js"></script>
         [% END %]
 
+        <script type="text/javascript" src="[% url.js %]/jquery.placeholder.js"></script>
         <script type="text/javascript">
             $('.personpop').popover({placement:'auto', html:true});
             if (typeof jscode != 'undefined') {
                 eval(jscode);
             }
+            $('input, text').placeholder();
         </script>
         [% IF page == "layout" OR page == "edit" OR page == "approval" %]
             <script src="[% url.js %]/jstree.min.js"></script>
