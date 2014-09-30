@@ -177,6 +177,72 @@ sub search_views
     @foundin;
 }
 
+sub search
+{   my ($self, $search, $user) = @_;
+
+    my %results;
+
+    my @fields = (
+        { type => 'string', plural => 'strings' },
+        { type => 'int',    plural => 'intgrs' },
+        { type => 'string', plural => 'dates' },
+        { type => 'string', plural => 'dateranges' },
+        { type => 'string', plural => 'ragvals' },
+        { type => 'string', plural => 'calcvals' },
+        { type => 'string', plural => 'enums', sub => 1 },
+        { type => 'string', plural => 'people', sub => 1 },
+    );
+
+    foreach my $field (@fields)
+    {
+        next if $field->{type} eq 'int' and !looks_like_number $search;
+
+        my $plural   = $field->{plural};
+        my $s        = $field->{sub} ? 'value.value' : 'value';
+        my $prefetch = $field->{sub}
+                     ? {
+                           'record' => 
+                               {
+                                   $plural => ['value', 'layout']
+                               },
+                       } 
+                     : {
+                           'record' => { $plural => 'layout' },
+                       };
+
+        my @currents = rset('Current')->search({
+            $s => $search,
+        },{
+            prefetch => $prefetch,
+            collapse => 1,
+        })->all;
+
+        foreach my $current (@currents)
+        {
+            my @r;
+            foreach my $string ($current->record->$plural)
+            {
+                my $v = $field->{sub} ? $string->value->value : $string->value;
+                push @r, $string->layout->name. ": ". $v;
+            }
+            my $hl = join(', ', @r);
+            if ($results{$current->id})
+            {
+                $results{$current->id}->{results} .= ", $hl";
+            }
+            else {
+                $results{$current->id} = {
+                    current_id => $current->id,
+                    record_id  => $current->record->id,
+                    results    => $hl,
+                };
+            }
+        }
+    }
+
+    sort {$a->{current_id} <=> $b->{current_id}} values %results;
+}
+
 sub current($$)
 {   my ($class, $item) = @_;
 

@@ -86,6 +86,17 @@ get '/data_calendar/:time' => sub {
     }
 };
 
+get '/search' => sub {
+
+    my $search = param 'search';
+    my @results = GADS::Record->search($search, user);
+    template 'search' => {
+        results => \@results,
+        search  => $search,
+        page    => 'search',
+    };
+};
+
 any '/data' => sub {
 
     # Deal with any alert requests
