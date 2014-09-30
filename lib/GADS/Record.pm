@@ -189,8 +189,8 @@ sub search
 
     my @fields = (
         { type => 'string', plural => 'strings' },
-        { type => 'int',    plural => 'intgrs' },
-        { type => 'string', plural => 'dates' },
+        { type => 'int'   , plural => 'intgrs' },
+        { type => 'date'  , plural => 'dates' },
         { type => 'string', plural => 'dateranges' },
         { type => 'string', plural => 'ragvals' },
         { type => 'string', plural => 'calcvals' },
@@ -198,9 +198,15 @@ sub search
         { type => 'string', plural => 'people', sub => 1 },
     );
 
+    # Set up a date parser
+    my $format = DateTime::Format::Strptime->new(
+         pattern   => '%Y-%m-%d',
+         time_zone => 'local',
+    );
     foreach my $field (@fields)
     {
-        next if $field->{type} eq 'int' and !looks_like_number $search;
+        next if $field->{type} eq 'int' && !looks_like_number $search;
+        next if $field->{type} eq 'date' &&  !$format->parse_datetime($search);
 
         my $plural   = $field->{plural};
         my $s        = $field->{sub} ? 'value.value' : 'value';
