@@ -232,5 +232,24 @@ sub send_alert
     }
 }
 
+sub all
+{   my ($self, $user_id) = @_;
+
+    my @alerts_rs = rset('Alert')->search({
+        user_id => $user_id,
+    })->all;
+
+    my $alerts;
+    foreach my $alert (@alerts_rs)
+    {
+        $alerts->{$alert->view_id} = {
+            id => $alert->id,
+            view_id => $alert->view_id,
+            frequency => $alert->frequency,
+        };
+    };
+    $alerts;
+}
+
 1;
 

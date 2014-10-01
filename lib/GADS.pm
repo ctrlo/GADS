@@ -303,6 +303,7 @@ any '/data' => sub {
     }
 
     $params->{v}        = GADS::View->view($view_id, user),  # View is reserved TT word
+    $params->{alerts}   = GADS::Alert->all(user->{id});
     $params->{page}     = 'data';
     template 'data' => $params;
 };
