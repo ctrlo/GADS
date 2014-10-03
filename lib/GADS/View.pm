@@ -457,11 +457,21 @@ sub is_valid_enumval
         })->count ? 1 : 0;
     }
     else {
-        rset('Enumval')->search({
+        my ($found) = rset('Enumval')->search({
             id        => $value,
             layout_id => $column->{id},
             deleted   => 0,
-        })->count ? 1 : 0;
+        })->all;
+        if ($found && $column->{end_node_only})
+        {
+            # Check whether this is actually an end node
+            ouch 'badparam', qq(Please select an end node for "$column->{name}")
+                if (rset('Enumval')->search({
+                    layout_id => $column->{id},
+                    parent    => $found->id,
+                })->count);
+        }
+        $found ? 1 : 0;
     }
 }
 
