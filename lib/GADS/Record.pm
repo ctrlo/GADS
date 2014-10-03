@@ -23,6 +23,7 @@ use Dancer2::Plugin::DBIC qw(schema resultset rset);
 use GADS::Record;
 use GADS::Util         qw(:all);
 use GADS::Config;
+use GADS::View;
 use String::CamelCase qw(camelize);
 use Ouch;
 use Safe;
@@ -1265,8 +1266,8 @@ sub approve
     rset('Current')->find($r->current_id)->update({ record_id => $r->id })
         or ouch 'dbfail', "Database error when updating current record tracking";
 
-    # Send any alerts
-    GADS::Alert->process($r->current_id, \%columns_changed);
+    # Send any alerts. Not if onboarding ($user will not be set)
+    GADS::Alert->process($r->current_id, \%columns_changed) if $user;
 
 }
     
@@ -1293,16 +1294,16 @@ sub update
     if ($current_id)
     {
         ouch 'nopermission', "No permissions to update an entry"
-            if !$user->{permission}->{update};
+            if $user && !$user->{permission}->{update};
         $old = GADS::Record->current({ current_id => $current_id });
     }
     else
     {
         ouch 'nopermission', "No permissions to add a new entry"
-            if !$user->{permission}->{create};
+            if $user && !$user->{permission}->{create};
     }
 
-    my $noapproval = $user->{permission}->{update_noneed_approval} || $user->{permission}->{approver};
+    my $noapproval = !$user || $user->{permission}->{update_noneed_approval} || $user->{permission}->{approver};
 
     # First loop round: sanitise and see which if any have changed
     my $newvalue; my $changed; my $oldvalue;
@@ -1331,7 +1332,7 @@ sub update
 
         # If field is hidden then use previous value (if normal user)
         my $value;
-        if ($column->{hidden} && !$user->{permission}->{layout})
+        if ($column->{hidden} && $user && !$user->{permission}->{layout})
         {
             $value = item_value($column, $old, {raw => 1})
                 if $old;
@@ -1429,7 +1430,7 @@ sub update
                          : $old ? $old->id : undef;
     my $approval_rs = approval_rs($current_id, $rid, $user) if $need_app;
 
-    unless ($old)
+    if (!$old && $user)
     {
         # New entry, so save record ID to user for retrieval of previous
         # values if needed for another new entry. Use the approval ID id
@@ -1588,7 +1589,7 @@ sub record_rs
     my $record;
     $record->{current_id} = $current_id;
     $record->{created} = \"NOW()";
-    $record->{createdby} = $user->{id};
+    $record->{createdby} = $user->{id} if $user;
     rset('Record')->create($record)
         or ouch 'dbfail', "Failed to create a database record for this update";
 }
@@ -1601,7 +1602,7 @@ sub approval_rs
     $record->{created}    = \"NOW()";
     $record->{record_id}  = $record_id;
     $record->{approval}   = 1;
-    $record->{createdby}  = $user->{id};
+    $record->{createdby}  = $user->{id} if $user;
     rset('Record')->create($record)
         or ouch 'dbfail', "Failed to create a database record for the approval request";
 }
