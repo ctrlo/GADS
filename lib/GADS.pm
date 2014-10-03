@@ -521,7 +521,7 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => sub {
             { danger => 'You do not have permission to edit trees' } )
             unless permission 'layout';
 
-        my $tree = decode_json(param 'data');
+        my $tree = JSON->new->utf8(0)->decode(param 'data');
         GADS::Layout->tree($layout_id, { tree => $tree} );
     }
     header "Cache-Control" => "max-age=0, must-revalidate, private";
