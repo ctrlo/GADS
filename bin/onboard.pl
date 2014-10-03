@@ -36,10 +36,14 @@ GADS::DB->setup;
 my $csv = Text::CSV->new({ binary => 1 }) # should set binary attribute?
     or die "Cannot use CSV: ".Text::CSV->error_diag ();
 
-my $first = <STDIN>;
-$csv->parse($first) or die "Failed to parse initial file line for headings";
+my ($file) = @ARGV;
+$file or die "Usage: $0 filename";
 
-my @f = $csv->fields;
+open my $fh, "<:encoding(utf8)", $file or die "$file: $!";
+
+# Get first row for column headings
+my $row = $csv->getline($fh);
+my @f = @$row;
 
 # First check if fields exist
 my @fields; my $selects;
@@ -84,10 +88,9 @@ foreach my $field (@f)
 
 my @all_bad;
 
-while (<STDIN>)
+while (my $row = $csv->getline($fh))
 {
-    $csv->parse($_) or die "Failed to parse link $_";
-    my @row = $csv->fields
+    my @row = @$row
         or next;
     next unless "@row"; # Skip blank lines
 
@@ -163,6 +166,9 @@ while (<STDIN>)
         };
     }
 }
+
+$csv->eof or $csv->error_diag();
+close $fh;
 
 say STDERR Dumper \@all_bad;
 
