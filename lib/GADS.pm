@@ -337,6 +337,30 @@ any '/account/?:action?/?' => sub {
         }
     }
 
+    if (param 'submit')
+    {
+        # Update of user details
+        my %update = (
+            id           => user->{id},
+            firstname    => param('firstname')    || undef,
+            surname      => param('surname')      || undef,
+            email        => param('email'),
+            telephone    => param('telephone')    || undef,
+            title        => param('title')        || undef,
+            organisation => param('organisation') || undef,
+        );
+
+        eval { user update => %update };
+        if (hug)
+        {
+            messageAdd({ danger => bleep });
+        }
+        else {
+            return forwardHome(
+                { success => "The account details have been updated" }, 'account/detail' );
+        }
+    }
+
     my $data;
 
     if ($action eq 'graph')
@@ -605,16 +629,13 @@ any '/user/?:id?' => sub {
 
     return forwardHome(
         { danger => 'You do not have permission to manage users' } )
-        unless permission('useradmin') || user->{id} == $id;
+        unless permission('useradmin');
 
     # Retrieve conf to get details of defined permissions
     my $conf = Dancer2::Plugin::Auth::Complete->configure;
 
-    # Check normal submit first. We do this now, as it could be a normal
-    # user doing the submit, and we won't allow them much furthe. However,
-    # we need to check that it's not an admin creating a new title or org,
-    # as they should be handled differently. The submit button will still
-    # be triggered on a new org/title creation, if the user has pressed enter
+    # The submit button will still be triggered on a new org/title creation,
+    # if the user has pressed enter, in which case ignore it
     if (param('submit') && !param('neworganisation') && !param('newtitle'))
     {
         my %values = %{params()};
@@ -638,13 +659,8 @@ any '/user/?:id?' => sub {
                 messageAdd({ danger => bleep });
             }
             else {
-                # Forward to the sending page if not users page,
-                # otherwise attempt will be made to send somebody
-                # editing their own account details to the users
-                # page on error
-                my $page   = param('page');
                 return forwardHome(
-                    { danger => bleep }, $page );
+                    { danger => bleep }, '/user' );
             }
         }
         else {
@@ -672,12 +688,6 @@ any '/user/?:id?' => sub {
                 { success => "User has been $action successfully" }, $page );
         }
     }
-
-    # This shouldn't happen for a normal user, but let's
-    # play it safe
-    return forwardHome(
-        { danger => 'You do not have permission to manage users' } )
-        unless permission 'useradmin';
 
     my $users; my $register_requests;
 
