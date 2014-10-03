@@ -27,6 +27,7 @@ use GADS::Schema;
 use GADS::Record;
 use GADS::DB;
 use GADS::Alert;
+use Data::Dumper;
 use Ouch;
 use Text::CSV;
 
@@ -150,7 +151,7 @@ while (<STDIN>)
         eval {GADS::Record->update($input)};
         if (hug)
         {
-            push @bad, $@;
+            push @bad, bleep;
         }
     }
 
@@ -161,6 +162,8 @@ while (<STDIN>)
             row      => $_,
         };
     }
-
 }
+
+say STDERR Dumper \@all_bad;
+
 
