@@ -273,7 +273,9 @@ sub current($$)
         @columns = @{GADS::View->columns({ view_id => $view_id, no_hidden => 1, user => $item->{user} })};
     }
     else {
-        @columns = @{GADS::View->columns({ no_hidden => 1, user => $item->{user} })};
+        my $params = { no_hidden => 1, user => $item->{user} };
+        $params->{remembered_only} = $item->{remembered_only};
+        @columns = @{GADS::View->columns($params)};
     }
     my %cache_cols; # Any column in the view that should be cached
     my $prefetches = []; # Tables to prefetch - data being viewed
@@ -1050,7 +1052,7 @@ sub _process_input_value
         else {
             # Database ID of existing filename, but only if checkbox ticked to include
             # and if one was previously uploaded
-            $value && $savedvalue && $savedvalue->value ? $savedvalue->value->id : undef;
+            $value && $savedvalue ? $savedvalue->id : undef;
         }
     }
     elsif ($column->{type} eq 'tree' || $column->{type} eq 'enum' || $column->{type} eq 'person')
@@ -1058,8 +1060,7 @@ sub _process_input_value
         # First check if the value is valid
         if ($value)
         {
-            ouch 'badval', "ID value of $value is not valid for $column->{name}"
-                unless GADS::View->is_valid_enumval($value, $column);
+            GADS::View->is_valid_enumval($value, $column); # borks on error
         }
         # The values of these in the database reference other tables,
         # so if a value is not input (may be an empty string) then set
@@ -1169,7 +1170,7 @@ sub approve
     foreach my $col (@$columns)
     {
         my $fn = $col->{field};
-        my $recordvalue = $r ? $r->$fn : undef;
+        my $recordvalue = $r && $r->$fn ? $r->$fn->value : undef;
         my $newvalue = _process_input_value($col, $values->{$fn}, $uploads, $recordvalue);
         # This assumes the value was visible in the form. It should be, even if
         # the field was made compulsory after added the initial submission.
@@ -1184,7 +1185,7 @@ sub approve
         next unless $col->{userinput};
         my $fn = $col->{field};
 
-        my $recordvalue = $r ? $r->$fn : undef;
+        my $recordvalue = $r && $r->$fn ? $r->$fn->value : undef;
         my $newvalue = _process_input_value($col, $values->{$fn}, $uploads, $recordvalue);
         if ($col->{type} eq 'file')
         {
@@ -1352,7 +1353,7 @@ sub update
             # stop users updating other fields of the record
             ouch 'missing', qq("$column->{name}" is not optional. Please enter a value.);
         }
-        $newvalue->{$fieldid} = _process_input_value($column, $value, $uploads);
+        $newvalue->{$fieldid} = _process_input_value($column, $value, $uploads, $oldvalue->{$fieldid});
 
         # Keep a track as to whether a value has changed. Keep it undef for new values
         $changed->{$fieldid} = 1 if $old && _changed($column, $oldvalue->{$fieldid}, $newvalue->{$fieldid});

@@ -401,6 +401,7 @@ sub columns
 
     # Whether we have only been asked for file columns
     my $search = $ident->{files} ? { 'me.type' => 'file' } : {};
+    $search->{'me.remember'} = 1 if $ident->{remembered_only};
 
     my $pf = ['enumvals', 'calcs', 'rags', 'file_options', 'display_field' ];
     my @allcols = rset('Layout')->search($search,{
@@ -445,7 +446,7 @@ sub columns
     return \@return;
 }
 
-# Return true if an enum value exists and is not deleted
+# Test to see if an enum value is valid
 sub is_valid_enumval
 {   my ($self, $value, $column) = @_;
 
@@ -462,7 +463,9 @@ sub is_valid_enumval
             layout_id => $column->{id},
             deleted   => 0,
         })->all;
-        if ($found && $column->{end_node_only})
+        ouch 'badval', "ID value of $value is not valid for $column->{name}"
+            if !$found;
+        if ($column->{end_node_only})
         {
             # Check whether this is actually an end node
             ouch 'badparam', qq(Please select an end node for "$column->{name}")
@@ -471,7 +474,6 @@ sub is_valid_enumval
                     parent    => $found->id,
                 })->count);
         }
-        $found ? 1 : 0;
     }
 }
 

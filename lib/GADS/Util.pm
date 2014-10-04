@@ -138,7 +138,7 @@ sub item_value
     {
         if ($raw)
         {
-            return $record->$field && $record->$field->value ? $record->$field->value->id : '';
+            return $record->$field && $record->$field->value ? $record->$field->value->id : $blank;
         }
         my $v = GADS::Record->person($column, $record);
         $v = $encode ? encode_entities($v) : $v;
