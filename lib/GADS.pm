@@ -877,7 +877,8 @@ any '/edit/:id?' => sub {
                 my $v = item_value($column, $previousr, {raw => 1, encoded_entities => 1});
                 if ($column->{fixedvals}) {
                     # Value may no longer be valid. Check it.
-                    $v = undef unless GADS::View->is_valid_enumval($v, $column);
+                    eval {GADS::View->is_valid_enumval($v, $column)}; # Borks on error
+                    $v = undef if hug;
                 }
                 my $field = $column->{field};
                 $record->{$field} = {value => $v} if $column->{remember};

@@ -1058,8 +1058,7 @@ sub _process_input_value
         # First check if the value is valid
         if ($value)
         {
-            ouch 'badval', "ID value of $value is not valid for $column->{name}"
-                unless GADS::View->is_valid_enumval($value, $column);
+            GADS::View->is_valid_enumval($value, $column); # borks on error
         }
         # The values of these in the database reference other tables,
         # so if a value is not input (may be an empty string) then set
