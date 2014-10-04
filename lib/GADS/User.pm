@@ -124,8 +124,14 @@ sub delete
     {
         push @views, $v->id;
     }
+    rset('Filter')->search({ view_id => \@views })->delete
+        or ouch 'dbfail', "There was a database error removing old user view filters";
     rset('ViewLayout')->search({ view_id => \@views })->delete
         or ouch 'dbfail', "There was a database error removing old user view layouts";
+    rset('Sort')->search({ view_id => \@views })->delete
+        or ouch 'dbfail', "There was a database error removing old user view layouts";
+    rset('AlertCache')->search({ view_id => \@views })->delete
+        or ouch 'dbfail', "There was a database error removing old user view alert caches";
     $views->delete
         or ouch 'dbfail', "There was a database error removing old user views";
 
