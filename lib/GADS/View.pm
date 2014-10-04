@@ -401,6 +401,7 @@ sub columns
 
     # Whether we have only been asked for file columns
     my $search = $ident->{files} ? { 'me.type' => 'file' } : {};
+    $search->{'me.remember'} = 1 if $ident->{remembered_only};
 
     my $pf = ['enumvals', 'calcs', 'rags', 'file_options', 'display_field' ];
     my @allcols = rset('Layout')->search($search,{

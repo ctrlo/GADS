@@ -273,7 +273,9 @@ sub current($$)
         @columns = @{GADS::View->columns({ view_id => $view_id, no_hidden => 1, user => $item->{user} })};
     }
     else {
-        @columns = @{GADS::View->columns({ no_hidden => 1, user => $item->{user} })};
+        my $params = { no_hidden => 1, user => $item->{user} };
+        $params->{remembered_only} = $item->{remembered_only};
+        @columns = @{GADS::View->columns($params)};
     }
     my %cache_cols; # Any column in the view that should be cached
     my $prefetches = []; # Tables to prefetch - data being viewed

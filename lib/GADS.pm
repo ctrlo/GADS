@@ -869,7 +869,7 @@ any '/edit/:id?' => sub {
     elsif(my $previous = user->{lastrecord})
     {
         # Prefill previous values, but only those tagged to be remembered
-        my $previousr = GADS::Record->current({ record_id => $previous });
+        my $previousr = GADS::Record->current({ record_id => $previous, remembered_only => 1 });
         foreach my $column (@$all_columns)
         {
             if ($column->{remember})
