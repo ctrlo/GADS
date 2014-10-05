@@ -851,10 +851,13 @@ any '/edit/:id?' => sub {
 
             # For files, we have to retrieve the previous filenames,
             # as we don't know what they were from the submit
-            my %files = GADS::Record->files($id);
-            foreach my $fn (keys %files)
+            if ($id)
             {
-                $record->{$fn} = {value => $files{$fn}};
+                my %files = GADS::Record->files($id);
+                foreach my $fn (keys %files)
+                {
+                    $record->{$fn} = {value => $files{$fn}};
+                }
             }
 
             messageAdd( { danger => $bleep } );
