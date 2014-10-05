@@ -48,7 +48,7 @@ sub files
     foreach my $col (@{GADS::View->columns({ files => 1 })})
     {
         my $f = $col->{field};
-        $files{$f} = $record->$f && $record->$f->value ? $record->$f->value->name : '';
+        $files{$f} = _field($record,$f) && _field($record,$f)->value ? _field($record,$f)->value->name : '';
     }
     %files;
 }
@@ -426,19 +426,19 @@ sub current($$)
     }
 
     my $search = [-and => [@search, @limit]];
-    my @all;
+    my $result;
     if ($item->{record_id})
     {
-        unshift @$prefetches, 'current'; # Add info about related current record
+#        unshift @$prefetches, 'current'; # Add info about related current record
 
         my $select = {
-            prefetch => $prefetches,
-            join     => $joins,
+            prefetch => 'current',
+            join     => [@$prefetches, @$joins],
         };
 
-        @all = rset('Record')->search(
+        $result = rset('Record')->search(
             $search, $select
-        )->all;
+        );
     }
     else {
         # XXX Okay, this is a bit weird - we join current to record to current.
@@ -447,8 +447,8 @@ sub current($$)
         unshift @$prefetches, 'current';
 
         my $select = {
-            prefetch => {'record' => $prefetches},
-            join     => {'record' => $joins},
+            join     => {'record' => [@$prefetches, @$joins] },
+            prefetch => {'record' => 'current'},
             order_by => \@orderby,
         };
 
@@ -470,13 +470,75 @@ sub current($$)
 
         $select->{rows} = $rows if $rows;
         $select->{page} = $page if $page;
-        my $result = rset('Current')->search(
+        $result = rset('Current')->search(
             $search, $select
         );
-
-        @all = map { $_->record } $result->all;
     }
 
+    # XXX Temp hack to try and speed things up. Will the rel
+    # options remove the need for this section of code?
+    my $fields;
+    foreach my $table (@$prefetches)
+    {
+        my $field;
+        if (ref $table eq "HASH")
+        {
+            ($field) = %$table;
+        }
+        else {
+            $field = $table;
+        }
+        $field =~ /field([0-9]+)/
+            or next;
+        my $col = $columns->{$1};
+        if (ref $fields->{$col->{table}} eq 'ARRAY')
+        {
+            push $fields->{$col->{table}}, $col;
+        }
+        else {
+            $fields->{$col->{table}} = [$col];
+        }
+    }
+
+    my @rids = $item->{record_id}
+             ? map { $_->id } $result->all
+             : map { $_->record->id } $result->all;
+
+    my $res;
+    foreach my $type (keys %$fields)
+    {
+        my @fids;
+        foreach my $col (@{$fields->{$type}})
+        {
+            push @fids, $col->{id};
+        }
+        my $pref = $type eq "Enum" || $type eq "Tree" || $type eq "Person" ? {prefetch => 'value'} : {};
+        my @values = rset($type)->search({
+            'me.layout_id' => \@fids,
+            record_id => \@rids,
+        },
+            $pref
+        )->all;
+
+        foreach my $value (@values)
+        {
+            my $f = "field".$value->layout_id;
+            my $r = $value->record_id;
+            $res->{$r}->{$f} = $value;
+        }
+    }
+
+    foreach my $r ($result->all)
+    {
+        my $rr = $item->{record_id} ? $r : $r->record;
+        $res->{$rr->id}->{current}    = $rr->current;
+        $res->{$rr->id}->{current_id} = $rr->current->id;
+        $res->{$rr->id}->{id}         = $rr->id;
+    }
+
+    my @all = $item->{record_id}
+            ? map { $res->{$_->id} } $result->all
+            : map { $res->{$_->record->id} } $result->all;
     wantarray ? @all : pop(@all);
 }
 
@@ -611,7 +673,10 @@ sub _search_construct
     ("$s_table.$s_field" => {$operator, $value});
 }
 
-
+sub _field
+{   my ($record, $field) = @_;
+    $record->{$field};
+}
 
 sub csv
 {
@@ -642,8 +707,8 @@ sub data
     RECORD:
     foreach my $record (@$records)
     {
-        my $serial = config->{gads}->{serial} eq "auto" ? $record->current->id : $record->current->serial;
-        my @rec = ($record->id, $serial);
+        my $serial = config->{gads}->{serial} eq "auto" ? _field($record,'current')->id : _field($record,'current')->serial;
+        my @rec = ($record->{id}, $serial);
 
         foreach my $column (@$columns)
         {
@@ -727,10 +792,10 @@ sub data_calendar
         {
             next unless $d->{from} && $d->{to};
             my $item = {
-                "url"   => "/record/".$record->id,
+                "url"   => "/record/" . _field($record,'id'),
                 "class" => $d->{color},
                 "title" => $title,
-                "id"    => $record->id,
+                "id"    => _field($record,'id'),
                 "start" => $d->{from}*1000,
                 "end"   => $d->{to}*1000,
             };
@@ -746,7 +811,7 @@ sub rag
 
     my $rag   = $column->{rag};
     my $field = $column->{field};
-    my $item  = $record->$field;
+    my $item  = _field($record,$field);
     if (defined $item && !$options->{force_update})
     {
         return $item->value;
@@ -866,7 +931,7 @@ sub calc
 
     my $calc  = $column->{calc};
     my $field = $column->{field};
-    my $item  = $record->$field;
+    my $item  = _field($record,$field);
     if (defined $item && !$options->{force_update})
     {
         return $item->value;
@@ -928,7 +993,7 @@ sub person
 {   my ($class, $column, $record) = @_;
 
     my $field = $column->{field};
-    my $item  = $record->$field;
+    my $item  = _field($record,$field);
 
     return undef unless $item; # Missing value
 
@@ -978,7 +1043,7 @@ sub daterange
 {   my ($class, $column, $record) = @_;
 
     my $field = $column->{field};
-    my $item  = $record->$field;
+    my $item  = _field($record,$field);
 
     return undef unless $item; # Missing value
 
@@ -1170,11 +1235,11 @@ sub approve
     foreach my $col (@$columns)
     {
         my $fn = $col->{field};
-        my $recordvalue = $r && $r->$fn ? $r->$fn->value : undef;
+        my $recordvalue = $r && _field($r,$fn) ? _field($r,$fn)->value : undef;
         my $newvalue = _process_input_value($col, $values->{$fn}, $uploads, $recordvalue);
         # This assumes the value was visible in the form. It should be, even if
         # the field was made compulsory after added the initial submission.
-        if (!$col->{optional} && $r->$fn && _is_blank $col, $newvalue)
+        if (!$col->{optional} && _field($r,$fn) && _is_blank $col, $newvalue)
         {
             ouch 'missing', "Field \"$col->{name}\" is not optional. Please enter a value.";
         }
@@ -1185,7 +1250,7 @@ sub approve
         next unless $col->{userinput};
         my $fn = $col->{field};
 
-        my $recordvalue = $r && $r->$fn ? $r->$fn->value : undef;
+        my $recordvalue = $r && _field($r,$fn) ? _field($r,$fn)->value : undef;
         my $newvalue = _process_input_value($col, $values->{$fn}, $uploads, $recordvalue);
         if ($col->{type} eq 'file')
         {
@@ -1196,9 +1261,9 @@ sub approve
                 # Unlikely, but there is a chance that a previous uploaded
                 # file does not exist to update (if the field has become
                 # mandatory for example). Create one if it doesn't exist
-                if ($r->$fn->value)
+                if (_field($r,$fn)->value)
                 {
-                    $newvalue = $r->$fn->value->update($newvalue)->id;
+                    $newvalue = _field($r,$fn)->value->update($newvalue)->id;
                 }
                 else {
                     $newvalue = rset('Fileval')->create($newvalue)->id;
@@ -1207,10 +1272,10 @@ sub approve
             elsif($newvalue) {
                 # Use the file that was submitted by the originator,
                 # only if not removed by approver
-                if ($r->$fn->value)
+                if (_field($r,$fn)->value)
                 {
                     # If the originator submitted a file
-                    $newvalue = $r->$fn->value->id;
+                    $newvalue = _field($r,$fn)->value->id;
                 }
                 else {
                     # Otherwise he removed it
@@ -1222,7 +1287,7 @@ sub approve
         # See if approver has deleted any fields submitted by originator. $values->{fn}
         # would not exist in which case. Changing it to undef will force it to appear
         # as a submitted field that is now undefined
-        $values->{$fn} = undef if $r->$fn && $r->$fn->value && !exists $values->{$fn};
+        $values->{$fn} = undef if _field($r,$fn) && _field($r,$fn)->value && !exists $values->{$fn};
 
         if (!exists $values->{$fn})
         {
@@ -1232,20 +1297,20 @@ sub approve
         }
 
         # Does a value exist to update?
-        if ($r->$fn)
+        if (_field($r,$fn))
         {
             if (exists $values->{$fn}) # Field submitted on approval form
             {
                 # The value that was originally submitted for approval
-                my $orig_submitted_file = $col->{type} eq 'file' && $r->$fn->value
-                                        ? $r->$fn->value->id
+                my $orig_submitted_file = $col->{type} eq 'file' && _field($r,$fn)->value
+                                        ? _field($r,$fn)->value->id
                                         : undef;
 
                 my $write = _field_write($col, $r, $newvalue);
-                $r->$fn->update($write)
+                _field($r,$fn)->update($write)
                     or ouch 'dbfail', "Database error updating new approved values";
 
-                if (!defined($values->{$fn}) && $orig_submitted_file && !($previous && $previous->$fn && $previous->$fn->value))
+                if (!defined($values->{$fn}) && $orig_submitted_file && !($previous && _field($previous,$fn) && _field($previous,$fn)->value))
                 {
                     # If a value was not submitted in the approval, but there was
                     # a value in the record submitted for approval, and there was
@@ -1317,15 +1382,15 @@ sub update
         my $fieldid = $column->{id};
 
         # Keep a record of all the old values so that we can compare
-        if ($old && $old->$fn)
+        if ($old && _field($old,$fn))
         {
             if ($column->{type} eq "daterange")
             {
 
-                $oldvalue->{$fieldid} = { from => $old->$fn->from, to => $old->$fn->to };
+                $oldvalue->{$fieldid} = { from => _field($old,$fn)->from, to => _field($old,$fn)->to };
             }
             else {
-                $oldvalue->{$fieldid} = $old->$fn->value;
+                $oldvalue->{$fieldid} = _field($old,$fn)->value;
             }
         }
 

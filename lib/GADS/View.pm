@@ -232,6 +232,7 @@ sub _column
             $c->{vtype} = "date" if $c->{return_format} && $c->{return_format} eq "date";
         }
 
+        $c->{table}     = "Calcval";
         $c->{userinput} = 0;
     }
     elsif ($col->type eq 'rag')
@@ -261,6 +262,7 @@ sub _column
             };
         }
 
+        $c->{table}     = "Ragval";
         $c->{userinput} = 0;
     }
     elsif ($col->type eq 'file')
