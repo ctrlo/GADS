@@ -53,7 +53,7 @@
             <div class="form-group">
                 <label for="email">Y-axis:</label>
                 <select class="form-control" name="y_axis_stack">
-                    <option value="count" [% IF edititem.y_axis_stack == "count" %]selected[% END %]>Count total number of discrete values</option>
+                    <option value="count" [% IF edititem.y_axis_stack == "count" %]selected[% END %]>Count total number items</option>
                     <option value="sum" [% IF edititem.y_axis_stack == "sum" %]selected[% END %]>Calculate total sum of field values</option>
                 </select>
             </div>
@@ -87,7 +87,7 @@
             <h4>X-axis grouping</h4>
             <p>Defines the grouping for the x-axis where applicable (date fields only).
             <h4>Y-axis</h4>
-            <p>The Y-axis is based on the selected view (see above). This option configures whether to use the total sum of a particular field (numeric values only), or whether to count the number of discrete items.</p>
+            <p>The Y-axis is based on the selected view (see above). This option configures whether to use the total sum of a particular field (numeric values only), or whether to count the number of items.</p>
             <h4>Group by</h4>
             <p>This is a general grouping of related data items. In the case of a donut graph, this defines the rings. Otherwise, the data being displayed is normally a smaller subset of this grouping option. For example, if countries were being displayed on the graph, this option could be used to group (and colour code) by continent.</p>
             <h4>Stack data</h4>
