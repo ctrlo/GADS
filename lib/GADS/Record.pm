@@ -1509,11 +1509,15 @@ sub update
         $current_id = rset('Current')->create({serial => $serial})->id;
     }
 
-    my $record_rs   = record_rs($current_id, $user) if $need_rec;
+    my $record_rs;
+    $record_rs = record_rs($current_id, $user) if $need_rec;
 
-    my $rid = $record_rs ? $record_rs->id
-                         : $old ? $old->id : undef;
-    my $approval_rs = approval_rs($current_id, $rid, $user) if $need_app;
+    my $rid = $need_rec ? $record_rs->id
+                        : $old
+                        ? _field($old, 'id') : undef;
+
+    my $approval_rs;
+    $approval_rs = approval_rs($current_id, $rid, $user) if $need_app;
 
     if (!$old && $user)
     {
