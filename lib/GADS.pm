@@ -797,7 +797,7 @@ any '/approval/?:id?' => sub {
     my ($items, $page);
     if ($id)
     {
-        $items = GADS::Record->approve($id);
+        $items = GADS::Record->approve(user, $id);
         $page  = 'edit';
     }
     else {

@@ -336,18 +336,19 @@ sub current($$)
         push @limit, @res if @res;
     }
 
+    my $approval = $item->{approval} ? 1 : 0;
     if($item->{record_id}) {
         push @limit, ("me.id" => $item->{record_id});
     }
     elsif ($item->{current_id})
     {
         push @limit, ("me.id"  => $item->{current_id});
-        push @limit, (approval => 0);
     }
     else {
-        push @limit, ("record.record_id" => undef);
-        push @limit, (approval => 0);
+        push @limit, ("record.record_id" => undef)
+            unless $approval;
     }
+    push @limit, (approval => $approval);
 
     my @calcsearch; # The search for fields that may need to be recalculated
     my @search;     # The user search
@@ -427,7 +428,7 @@ sub current($$)
 
     my $search = [-and => [@search, @limit]];
     my $result;
-    if ($item->{record_id})
+    if ($item->{record_id} || $approval)
     {
 #        unshift @$prefetches, 'current'; # Add info about related current record
 
@@ -439,6 +440,11 @@ sub current($$)
         $result = rset('Record')->search(
             $search, $select
         );
+    }
+    elsif ($approval)
+    {
+        # Can't use next statement as searching Current will not
+        # show new records waiting approval
     }
     else {
         # XXX Okay, this is a bit weird - we join current to record to current.
@@ -500,7 +506,7 @@ sub current($$)
         }
     }
 
-    my @rids = $item->{record_id}
+    my @rids = ($item->{record_id} || $approval)
              ? map { $_->id } $result->all
              : map { $_->record->id } $result->all;
 
@@ -530,13 +536,15 @@ sub current($$)
 
     foreach my $r ($result->all)
     {
-        my $rr = $item->{record_id} ? $r : $r->record;
+        my $rr = ($item->{record_id} || $approval) ? $r : $r->record;
         $res->{$rr->id}->{current}    = $rr->current;
         $res->{$rr->id}->{current_id} = $rr->current->id;
+        $res->{$rr->id}->{createdby}  = $rr->createdby;
+        $res->{$rr->id}->{record}     = $rr->record;
         $res->{$rr->id}->{id}         = $rr->id;
     }
 
-    my @all = $item->{record_id}
+    my @all = ($item->{record_id} || $approval)
             ? map { $res->{$_->id} } $result->all
             : map { $res->{$_->record->id} } $result->all;
     wantarray ? @all : pop(@all);
@@ -675,7 +683,7 @@ sub _search_construct
 
 sub _field
 {   my ($record, $field) = @_;
-    $record->{$field};
+    ref $record eq 'HASH' ? $record->{$field} : $record->$field;
 }
 
 sub csv
@@ -1148,7 +1156,7 @@ sub _field_write
 {
     my ($column, $record, $value) = @_;
     my $entry = {
-        record_id => $record->id,
+        record_id => _field($record, 'id'),
         layout_id => $column->{id},
     };
     # Blank cached values to cause update later.
@@ -1213,19 +1221,26 @@ sub approve
 
     # Search for records requiring approval
     my $search->{approval} = 1;
-    $search->{id} = $id if $id; # with ID if required
-    my @r = rset('Record')->search($search)->all;
 
-    return \@r unless $values; # Summary only required
+    my $r;
+    if ($id)
+    {
+        $search->{record_id} = $id; # with ID if required
+        $r = GADS::Record->current($search);
+        return $r unless $values;
+    }
+    else {
+        my @rs = GADS::Record->current($search);
+        return \@rs; # Summary only required
+    }
 
     # $r contains the record with the values in that need approving.
     # $previous contains the associated record from the same data entry,
     # but containing the submitted values that didn't need approving.
     # If all fields need approving (eg new entry) then $previous
     # will not be set
-    my $r = shift @r; # Just the first please
     my $previous;
-    $previous = $r->record if $r->record; # Its related record
+    $previous = _field($r, 'record') if _field($r, 'record'); # Its related record
 
     my $columns = GADS::View->columns; # All fields
     my %columns_changed; # Track which columns have changed
@@ -1327,13 +1342,17 @@ sub approve
                 or ouch 'dbfail', "Failed to create database entry for field ".$col->{name};
         }
     }
-    $r->update({ approval => 0, record_id => undef, approvedby => $user->{id}, created => \"NOW()" })
+
+    # At this point we do not have a resource set to update, just its values
+    # in a hash ref. Therefore, get the resource set
+    my $rs = rset('Record')->find($r->{id});
+    $rs->update({ approval => 0, record_id => undef, approvedby => $user->{id}, created => \"NOW()" })
         or ouch 'dbfail', "Database error when removing approval status from updated record";
-    rset('Current')->find($r->current_id)->update({ record_id => $r->id })
+    rset('Current')->find(_field($r, 'current_id'))->update({ record_id => _field($r, 'id') })
         or ouch 'dbfail', "Database error when updating current record tracking";
 
     # Send any alerts. Not if onboarding ($user will not be set)
-    GADS::Alert->process($r->current_id, \%columns_changed) if $user;
+    GADS::Alert->process(_field($r, 'current_id'), \%columns_changed) if $user;
 
 }
     
