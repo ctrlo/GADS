@@ -223,6 +223,16 @@ sub delete
 {   my ($class, $id) = @_;
     my $item = rset('Layout')->find($id)
         or ouch 'notfound', "Unable to find item with ID $id";
+
+    # First see if any views are conditional on this field
+    if (my @deps = rset('Layout')->search({ display_field => $item->id })->all)
+    {
+        my @depsn = map { $_->name } @deps;
+        my $dep   = join ', ', @depsn;
+        ouch 'baddep', "The following fields are conditional on this field: $dep.
+            Please remove these conditions before deletion.";
+    }
+
     my @graphs = rset('Graph')->search(
         [
             { x_axis => $item->id   },
