@@ -74,7 +74,7 @@ sub _date
 
 sub _field
 {   my ($record, $field) = @_;
-    $record->{$field};
+    ref $record eq 'HASH' ? $record->{$field} : $record->$field;
 }
 
 sub item_value
