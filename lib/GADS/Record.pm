@@ -1705,7 +1705,7 @@ sub _safe_eval
     $cpt->permit_only(qw(null scalar const padany lineseq leaveeval rv2sv pushmark list return enter));
     
     #Comparators
-    $cpt->permit(qw(lt i_lt gt i_gt le i_le ge i_ge eq i_eq ne i_ne ncmp i_ncmp slt sgt sle sge seq sne scmp));
+    $cpt->permit(qw(not lt i_lt gt i_gt le i_le ge i_ge eq i_eq ne i_ne ncmp i_ncmp slt sgt sle sge seq sne scmp));
 
     # XXX fix later? See https://rt.cpan.org/Public/Bug/Display.html?id=89437
     $cpt->permit(qw(rv2gv));
