@@ -44,7 +44,7 @@ sub all
         if ($params->{all})
         {
             my @g;
-            foreach my $g (rset('Graph')->all)
+            foreach my $g (rset('Graph')->search({},{order_by => 'me.title'})->all)
             {
                 my $selected = grep { $_->id == $g->id } @graphs;
                 push @g, {
@@ -58,7 +58,7 @@ sub all
         }
     }
     else {
-        @graphs = rset('Graph')->all unless @graphs;
+        @graphs = rset('Graph')->search({},{order_by => 'me.title'})->all unless @graphs;
     }
 
     \@graphs;
