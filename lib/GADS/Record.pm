@@ -580,7 +580,7 @@ sub update_cache
             my $new = item_value($col, $rec, {force_update => 1});
             $has_change = $new ne $old;
         }
-        push @changed, $rec->current_id if $has_change;
+        push @changed, _field($rec, 'current_id') if $has_change;
     }
 
     my $columns_changed;
