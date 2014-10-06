@@ -210,11 +210,12 @@ sub item_value
     {
         if (_field($record,$field))
         {
-            return unless _field($record,$field)->value;
-            my $filename = _field($record,$field)->value->name;
+            my $file = _field($record,$field)->value or return;
+            return $file->id if $raw;
+            my $filename = $file->name;
             $filename = $encode ? encode_entities($filename) : $filename;
             return $filename if $options->{plain};
-            my $id = _field($record,$field)->value->id;
+            my $id = $file->id;
             return qq(<a href="/file/$id">$filename</a>);
         }
         else {
