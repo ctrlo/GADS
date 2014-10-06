@@ -1,3 +1,4 @@
+[% FILTER collapse %]
 <table class="table table-striped">
     <tr>
         [% IF sort.id == -1 AND sort.type == "asc" %]
@@ -53,6 +54,7 @@
     </tr>
     [% END %]
 </table>
+[% END %]
 <ul class="pagination">
     [% IF subset.page == 1 %]
         <li class="disabled"><span>&laquo;</span></li>
