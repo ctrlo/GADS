@@ -905,8 +905,12 @@ any '/edit/:id?' => sub {
 
 any '/file/:id' => sub {
     my $id = param 'id';
-    my $file = rset('Fileval')->find($id)
-        or return forwardHome( { error => 'File ID $id cannot be found' } );
+    my $file;
+    eval { $file = GADS::Record->file($id, user) };
+    if (hug)
+    {
+        forwardHome({ danger => bleep });
+    }
     send_file( \($file->content), content_type => $file->mimetype, filename => $file->name );
 };
 

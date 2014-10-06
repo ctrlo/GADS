@@ -53,6 +53,21 @@ sub files
     %files;
 }
 
+sub file
+{   my ($self, $id, $user) = @_;
+    $id or ouch 'missing', "No ID provided for file retrieval";
+    my $fileval = rset('Fileval')->find($id)
+        or ouch 'notfound', "File ID $id cannot be found";
+    # Check whether this is hidden and whether the user has access
+    my ($file) = $fileval->files; # In theory can be more than one, but not in practice
+    if ($file->layout->hidden)
+    {
+        ouch 'noperms', "You do not have access to this document"
+            unless $user->{permission}->{layout};
+    }
+    $fileval;
+}
+
 sub _add_jp
 {
     my ($toadd, $prefetches, $joins, $type) = @_;
