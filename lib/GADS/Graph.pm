@@ -279,6 +279,7 @@ sub data
         my $fieldcolval2 = item_value($group_by, $record, { encode_entities => 0 }) if $group_by;
 
         my $key = $y_axis_stack eq 'count' ? $fieldcolval : $fieldcolval2;
+        next unless $key;
         unless (defined $series->{$key})
         {
             # If not defined, zero out the field's values
