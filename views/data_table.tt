@@ -109,27 +109,29 @@
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
-            $(function(){
-                var adjustheight = 60;
-                var moreText = '+ More';
-                var lessText = '- Less';
-                $(".more-less .more-block").each(function(){
-                    if ($(this).height() > adjustheight){
-                        $(this).css('height', adjustheight).css('overflow', 'hidden');
-                        $(this).parent(".more-less").append
-                            ('<a style="cursor:pointer" class="adjust">' + moreText + '</a>');
-                    }
-                });
-                $(".adjust").click(function() {
-                    if ($(this).prev().css('overflow') == 'hidden')
-                    {
-                        $(this).prev().css('height', 'auto').css('overflow', 'visible');
-                        $(this).text(lessText);
-                    }
-                    else {
-                        $(this).prev().css('height', adjustheight).css('overflow', 'hidden');
-                        $(this).text(moreText);
-                    }
+            $(document).ready(function () {
+                $(function(){
+                    var adjustheight = 60;
+                    var moreText = '+ More';
+                    var lessText = '- Less';
+                    $(".more-less .more-block").each(function(){
+                        if ($(this).height() > adjustheight){
+                            $(this).css('height', adjustheight).css('overflow', 'hidden');
+                            $(this).parent(".more-less").append
+                                ('<a style="cursor:pointer" class="adjust">' + moreText + '</a>');
+                        }
+                    });
+                    $(".adjust").click(function() {
+                        if ($(this).prev().css('overflow') == 'hidden')
+                        {
+                            $(this).prev().css('height', 'auto').css('overflow', 'visible');
+                            $(this).text(lessText);
+                        }
+                        else {
+                            $(this).prev().css('height', adjustheight).css('overflow', 'hidden');
+                            $(this).text(moreText);
+                        }
+                    });
                 });
             });
         [% END %]
