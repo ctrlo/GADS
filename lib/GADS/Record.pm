@@ -275,6 +275,9 @@ sub search
 sub current($$)
 {   my ($class, $item) = @_;
 
+    # If no_hidden is true, then do not show hidden fields
+    my $no_hidden = exists $item->{no_hidden} ? $item->{no_hidden} : 1;
+
     # First, add all the columns in the view as a prefetch. During
     # this stage, we keep track of what we've added, so that we
     # can act accordingly during the filters
@@ -285,10 +288,10 @@ sub current($$)
     }
     elsif (my $view_id = $item->{view_id})
     {
-        @columns = @{GADS::View->columns({ view_id => $view_id, no_hidden => 1, user => $item->{user} })};
+        @columns = @{GADS::View->columns({ view_id => $view_id, no_hidden => $no_hidden, user => $item->{user} })};
     }
     else {
-        my $params = { no_hidden => 1, user => $item->{user} };
+        my $params = { no_hidden => $no_hidden, user => $item->{user} };
         $params->{remembered_only} = $item->{remembered_only};
         @columns = @{GADS::View->columns($params)};
     }
@@ -301,10 +304,13 @@ sub current($$)
     {
         # If it's a calculated/rag value, log as prefetch for cached fields
         # in case we need to recalculate them
+        next unless $c->{id}; # Special ID column has no id value
         if (($c->{type} eq 'rag' || $c->{type} eq 'calc') && $c->{$c->{type}})
         {
-            $cache_joins->{$_->{field}} = 1
-                foreach (@{$c->{$c->{type}}->{columns}});
+            foreach (@{$c->{$c->{type}}->{columns}})
+            {
+                $cache_joins->{$_->{field}} = 1 if $_->{id};
+            }
         }
         elsif ($c->{type} eq "date" || $c->{type} eq "daterange")
         {
@@ -340,7 +346,7 @@ sub current($$)
         _add_prefetch ($c->{join}, $prefetches, $joins);
     }
 
-    my $columns = _columns($item->{user}, 1);
+    my $columns = _columns($item->{user}, $no_hidden);
 
     my @limit; # The overall limit, for example reduction by date range or approval field
     # Add any date ranges to the search from above
@@ -449,7 +455,7 @@ sub current($$)
 
         my $select = {
             prefetch => 'current',
-            join     => [@$prefetches, @$joins],
+            join     => [@$joins, @$prefetches],
         };
 
         $result = rset('Record')->search(
@@ -468,7 +474,7 @@ sub current($$)
         unshift @$prefetches, 'current';
 
         my $select = {
-            join     => {'record' => [@$prefetches, @$joins] },
+            join     => {'record' => [@$joins, @$prefetches] },
             prefetch => {'record' => 'current'},
             order_by => \@orderby,
         };
@@ -586,7 +592,7 @@ sub update_cache
     my $columns_changed;
     foreach my $col (@$columns)
     {
-        $columns_changed->{$col->{id}} = $col;
+        $columns_changed->{$col->{id}} = $col if $col->{id};
     }
     GADS::Alert->process(\@changed, $columns_changed);
 }
@@ -937,7 +943,7 @@ sub _write_cache
     # appears to be no cross-database compatability
     eval {
         rset($tablec)->create({
-            record_id => $record->id,
+            record_id => _field($record, 'id'),
             layout_id => $column->{id},
             value     => $value,
         });

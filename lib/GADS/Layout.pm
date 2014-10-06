@@ -486,8 +486,10 @@ sub item
             if ($need_update)
             {
                 # Get records first so that we have old values
-                my $columns = GADS::View->columns({ id => $item->id });
-                my @records = GADS::Record->current({ columns => $columns });
+                my ($calc_col) = @{GADS::View->columns({ id => $item->id })};
+                my $columns = $calc_col->{calc}->{columns};
+                push $columns, $calc_col;
+                my @records = GADS::Record->current({ columns => $columns, no_hidden => 0 });
                 rset('Calcval')->search({ layout_id => $calcr->layout_id })->delete
                     or ouch 'dbfail', "Database error deleting cached values for this calc";
                 GADS::Record->update_cache(\@records, $columns);

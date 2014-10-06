@@ -169,6 +169,7 @@ sub _suffix
 sub _column_id
 {
     {
+        field   => 'current_id',
         type    => 'id',
         name    => 'id',
         suffix  => '',
