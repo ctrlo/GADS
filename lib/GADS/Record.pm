@@ -1542,8 +1542,6 @@ sub update
             next;
         }
 
-        $columns_changed{$fieldid} = $column if $changed->{$fieldid};
-
         my $value = $newvalue->{$fieldid};
 
         # If new file, store it
@@ -1564,6 +1562,8 @@ sub update
             # Need to write all values regardless
             if ($column->{permission} == OPEN || $noapproval)
             {
+                $columns_changed{$fieldid} = $column if $changed->{$fieldid};
+
                 # Write new value
                 $v = $newvalue->{$fieldid};
             }
