@@ -169,8 +169,8 @@ sub data
     my $series;
     my @xlabels; my @ylabels;
 
-    # $fieldgroup is the field to group by
     my $x_axis  = shift GADS::View->columns({ id => $graph->x_axis->id });
+    my $y_axis  = shift GADS::View->columns({ id => $graph->y_axis->id });
     my $group_by;
     $group_by = shift GADS::View->columns({ id => $graph->group_by->id })
         if $graph->group_by;
@@ -207,10 +207,9 @@ sub data
 
     my @colors = ('#FF6961', '#77DD77', '#FFB347', '#AEC6CF', '#FDFD96');
 
-    my @columns = @{GADS::View->columns({ id => $graph->y_axis->id })};
-    push @columns, $x_axis;
+    my @columns = ($x_axis, $y_axis);
     push @columns, $group_by if $group_by;
-    my @records = GADS::Record->current({ columns => \@columns, view_id => $options->{view_id}, user => $options->{user} });
+    my @records = GADS::Record->current({ columns => \@columns, view_id => $options->{view_id}, user => $options->{user}, no_hidden => 0 });
 
     # Go through each record, and count how many unique values
     # there are for the field in question. Then define the key
@@ -264,41 +263,50 @@ sub data
         }
     }
     
-    my ($col) = @columns; # Only one column for a count graph
-    $col or return;
-
     # $fieldcol is the field that is used for each column on the graph
     # (i.e. what is being grouped by)
-    my $fieldcol = "field".$col->{id};
+    my $fieldcol = "field".$y_axis->{id};
 
     # Now go into each record a second time, counting the values for each
     # of the above unique values, and setting the count into the series hash
     foreach my $record (@records)
     {
-        my $fieldcolval  = item_value($col, $record, { encode_entities => 0 }); # The actual value of the field
-        my $fieldcolval2 = item_value($group_by, $record, { encode_entities => 0 }) if $group_by;
+        my $x_value = item_value($x_axis, $record, { encode_entities => 0 }); # The actual value of the field
+        my $y_value = item_value($y_axis, $record, { encode_entities => 0 }); # The actual value of the field
+        my $groupby_val;
+        $groupby_val = item_value($group_by, $record, { encode_entities => 0 }) if $group_by;
 
-        my $key = $y_axis_stack eq 'count' ? $fieldcolval : $fieldcolval2;
+        my $key;
+        if ($graph->type eq "pie")
+        {
+            $key = 1; # Only ever one key for the one ring of a pie
+        }
+        elsif ($graph->type eq "donut")
+        {
+            $key = $groupby_val || 1; # Maybe no grouping will be set
+        }
+        else {
+            $key = $y_axis_stack eq 'count' ? $y_value : $groupby_val;
+        }
         next unless $key;
-        unless (defined $series->{$key})
+        unless ($graph->type eq "pie" || $graph->type eq "donut" || defined $series->{$key})
         {
             # If not defined, zero out the field's values
             my @zero = (0) x $count;
             $series->{$key}->{data} = \@zero;
-            $series->{$key}->{y_group} = $fieldcolval2;
+            $series->{$key}->{y_group} = $groupby_val;
         }
         # Finally increase by one the particlar value count in question
-        my $gval = item_value($x_axis, $record, $dtgroup);
-        my $idx = $xy_values{$gval};
+        my $idx = $xy_values{$x_value};
         if ($y_axis_stack eq 'count')
         {
             $series->{$key}->{data}->[$idx]++;
         }
-        elsif(looks_like_number $fieldcolval) {
-            $series->{$key}->{data}->[$idx] += $fieldcolval if $fieldcolval;
+        elsif(looks_like_number $y_value) {
+            $series->{$key}->{data}->[$idx] += $y_value if $y_value;
         }
         else {
-            $series->{$key}->{data}->[$idx] = 0;
+            $series->{$key}->{data}->[$idx] = 0 unless $series->{$key}->{data}->[$idx];
         }
     }
 
@@ -306,54 +314,79 @@ sub data
                       ? '{ size: 7, style:"x" }'
                       : '{ show: false }';
 
-    # Now work out the Y labels for each point. Go into each data set and
-    # see if there is a value. If there is, set the label, otherwise leave
-    # it blank in order to show no label at that point
-    foreach my $k (keys %$series)
+    my @all_series;
+    if ($graph->type eq "pie" || $graph->type eq "donut")
     {
-        my @row;
-        my $s = $series->{$k}->{data};
-        foreach my $point (@$s)
+        foreach my $k (keys %$series)
         {
-            my $label = $point ? $k : '';
-            push @row, $label;
+            my @points;
+            my $s = $series->{$k}->{data};
+            foreach my $item (keys %xy_values)
+            {
+                my $idx = $xy_values{$item};
+                $item =~ s!'!\\\'!g;
+                push @points, [
+                    "'$item'", $s->[$idx],
+                ] if $s->[$idx]
+            }
+            push @all_series, \@points;
         }
-        my $y_group = $series->{$k}->{y_group} || '';
-        my $showlabel;
-        if (!$y_group || $y_group_values{$y_group}->{defined})
+    }
+    else {
+        # Now work out the Y labels for each point. Go into each data set and
+        # see if there is a value. If there is, set the label, otherwise leave
+        # it blank in order to show no label at that point
+        foreach my $k (keys %$series)
         {
-            $showlabel = 'false';
+            my @row;
+            my $s = $series->{$k}->{data};
+            foreach my $point (@$s)
+            {
+                my $label = $point ? $k : '';
+                push @row, $label;
+            }
+            my $y_group = $series->{$k}->{y_group} || '';
+            my $showlabel;
+            if (!$y_group || $y_group_values{$y_group}->{defined})
+            {
+                $showlabel = 'false';
+            }
+            else {
+                $showlabel = 'true';
+                $y_group_values{$y_group}->{defined} = 1;
+            }
+            $series->{$k}->{label} = {
+                points        => \@row,
+                color         => $y_group_values{$y_group}->{color},
+                showlabel     => $showlabel,
+                showline      => $graph->type eq "scatter" ? 'false' : 'true',
+                markeroptions => $markeroptions,
+                label         => $y_group
+            };
         }
-        else {
-            $showlabel = 'true';
-            $y_group_values{$y_group}->{defined} = 1;
-        }
-        $series->{$k}->{label} = {
-            points        => \@row,
-            color         => $y_group_values{$y_group}->{color},
-            showlabel     => $showlabel,
-            showline      => $graph->type eq "scatter" ? 'false' : 'true',
-            markeroptions => $markeroptions,
-            label         => $y_group
-        };
+
+        # Sort the series by y_group, so that the groupings appear together on the chart
+        @all_series = values $series;
+        @all_series = sort { $a->{y_group} cmp $b->{y_group} } @all_series if $group_by;
     }
 
-    # Sort the series by y_group, so that the groupings appear together on the chart
-    my @series = values $series;
-    @series = sort { $a->{y_group} cmp $b->{y_group} } @series if $group_by;
-
     # Legend is shown for secondary groupings. No point otherwise.
-    my $showlegend = $graph->group_by || $graph->type eq "pie" ? 'true' : false;
+    my $showlegend = $graph->group_by || $graph->type eq "pie" || $graph->type eq "donut" ? 'true' : 'false';
     # Other graph options from graph definition
-    my $stackseries = $graph->stackseries ? 'true' : false;
+    my $stackseries = $graph->stackseries && $graph->type ne "donut" && $graph->type ne "pie" ? 'true' : 'false';
     my $type = $graph->type ? $graph->type : 'line';
+
+    # Escape any quotes for the JS in the template. XXX Should probably
+    # move this code to the template itself
+    @xlabels = map {$_ =~ s!'!\\\'!g; $_} @xlabels;
+    @ylabels = map {$_ =~ s!'!\\\'!g; $_} @ylabels;
 
     # The graph hash
     {
         dbrow       => $graph,
         xlabels     => \@xlabels,
         ylabels     => \@ylabels,
-        series      => \@series,
+        series      => \@all_series,
         showlegend  => $showlegend,
         stackseries => $stackseries,
         type        => $type,

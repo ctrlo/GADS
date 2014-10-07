@@ -24,14 +24,6 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="email">Y-axis:</label>
-                <select class="form-control" name="y_axis">
-                    [% FOREACH column IN all_columns %]
-                        <option value="[% column.id %]" [% IF edititem.y_axis.id == column.id %]selected[% END %]>[% column.name %]</option>
-                    [% END %]
-                </select>
-            </div>
-            <div class="form-group">
                 <label for="email">X-axis:</label>
                 <select class="form-control" name="x_axis">
                     [% FOREACH column IN all_columns %]
@@ -51,7 +43,15 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="email">Y-axis:</label>
+                <label for="email">Y-axis field:</label>
+                <select class="form-control" name="y_axis">
+                    [% FOREACH column IN all_columns %]
+                        <option value="[% column.id %]" [% IF edititem.y_axis.id == column.id %]selected[% END %]>[% column.name %]</option>
+                    [% END %]
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="email">Y-axis values:</label>
                 <select class="form-control" name="y_axis_stack">
                     <option value="count" [% IF edititem.y_axis_stack == "count" %]selected[% END %]>Count total number items</option>
                     <option value="sum" [% IF edititem.y_axis_stack == "sum" %]selected[% END %]>Calculate total sum of field values</option>
@@ -80,14 +80,14 @@
             </div>
         </div>
         <div class="col-md-6">
-            <h4>Based on view</h4>
-            <p>Defines which data view to draw the values from. The first column of the view will be used for the data series. Any filtering on the view will be used to only display that range of data.</p>
             <h4>X-axis</h4>
             <p>Defines the set of values to use for the x-axis. For a donut or pie graph, this defines each segment within a ring. In the case of a date field, they can be grouped together.</p>
             <h4>X-axis grouping</h4>
             <p>Defines the grouping for the x-axis where applicable (date fields only).
-            <h4>Y-axis</h4>
-            <p>The Y-axis is based on the selected view (see above). This option configures whether to use the total sum of a particular field (numeric values only), or whether to count the number of items.</p>
+            <h4>Y-axis field</h4>
+            <p>The Y-axis is the field to use for the y-values of a graph. This is ignored for a donut or pie graph when counting number of items (but not when calculating the sum).</p>
+            <h4>Y-axis value</h4>
+            <p>This option configures whether to use the total sum of a particular field (numeric values only), or whether to count the number of items.</p>
             <h4>Group by</h4>
             <p>This is a general grouping of related data items. In the case of a donut graph, this defines the rings. Otherwise, the data being displayed is normally a smaller subset of this grouping option. For example, if countries were being displayed on the graph, this option could be used to group (and colour code) by continent.</p>
             <h4>Stack data</h4>

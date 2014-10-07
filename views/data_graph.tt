@@ -15,6 +15,7 @@
     <script type="text/javascript">
         var jscode='[% FILTER remove('\n+') %]
             [% FILTER replace('\'', '\\\'') %]
+            [% FILTER replace('\\\\', '\\\\') %]
 [% FOREACH graph IN graphs %]
     [% series = graph.series %]
             $(document).ready(function(){
@@ -25,9 +26,9 @@
                     [% FOREACH s IN series %]
                         [
                             [% IF graph.type == "donut" || graph.type == "pie" %]
-                                [% FOREACH datum IN s.data %]
+                                [% FOREACH datum IN s %]
                                 [
-                                    '[% graph.xlabels.${loop.index} %]', [% datum %]
+                                    [% datum.join(',') %]
                                 ]
                                 [% UNLESS loop.last %],[% END %]
                                 [% END %]
@@ -66,26 +67,28 @@
                                 }
                             },
                         [% END %]
-                        series:[
-                        [% FOREACH row IN series %]
-                            {
-                                showLabel: [% row.label.showlabel %],
-                                showLine: [% row.label.showline %],
-                                markerOptions: [% row.label.markeroptions %],
-                                color: '[% row.label.color %]',
-                                label: '[% row.label.label %]',
-                                pointLabels: {
-                                    labels:[
-                                    [% FOREACH point IN row.label.points %]
-                                        '[% point %]'
-                                        [% UNLESS loop.last %],[% END %]
-                                    [% END %]
-                                    ]
+                        [% UNLESS graph.type == "donut" OR graph.type == "pie" %]
+                            series:[
+                            [% FOREACH row IN series %]
+                                {
+                                    showLabel: [% row.label.showlabel | replace('\'', '\\\'') %],
+                                    showLine: [% row.label.showline | replace('\'', '\\\'') %],
+                                    markerOptions: [% row.label.markeroptions %],
+                                    color: '[% row.label.color %]',
+                                    label: '[% row.label.label | replace('\'', '\\\'') %]',
+                                    pointLabels: {
+                                        labels:[
+                                        [% FOREACH point IN row.label.points %]
+                                            '[% point | replace('\'', '\\\'') %]'
+                                            [% UNLESS loop.last %],[% END %]
+                                        [% END %]
+                                        ]
+                                    }
                                 }
-                            }
-                            [% UNLESS loop.last %],[% END %]
+                                [% UNLESS loop.last %],[% END %]
+                            [% END %]
+                            ],
                         [% END %]
-                        ],
                         [% UNLESS graph.type == "donut" OR graph.type == "pie" %]
                             axes: {
                                 xaxis: {
@@ -113,6 +116,7 @@
                 );
             });
 [% END %]
+            [% END %]
             [% END %]
         [% END %]';
     </script>
