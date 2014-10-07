@@ -9,7 +9,7 @@
                 .jstree({
                     "core" : {
                         "check_callback" : true,
-                        "themes" : { "stripes" : true },
+                        "themes" : { "stripes" : false },
                         'data' : {
                             'url' : function (node) {
                                 return '/tree/[% tree.id %]/[% tree.value %]';

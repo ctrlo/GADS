@@ -37,12 +37,17 @@
                         ]
                         [% UNLESS loop.last %],[% END %]
                     [% END %] ], {
+
+                        seriesColors: [ "#33c2df", "#62ba46", "#ffdd00", "#f16522", "#a6a8ab", "#958c12","#ef669e"],
                         stackSeries: [% graph.stackseries %],
                         [% IF graph.type == "bar" %]
                             seriesDefaults:{
                                 renderer:$.jqplot.BarRenderer,
                                 rendererOptions: {
-                                    barMargin: 30
+
+                                    barMargin: 30,
+                                    shadow: false
+                                    
                                 },
                                 pointLabels: {
                                     show: true
@@ -54,7 +59,8 @@
                                 rendererOptions: {
                                     sliceMargin: 3,
                                     showDataLabels: true,
-                                    dataLabels: 'value'
+                                    dataLabels: 'value',
+                                    shadow: false
                                 }
                             },
                         [% ELSIF graph.type == "pie" %]
@@ -62,7 +68,8 @@
                                 renderer:$.jqplot.PieRenderer,
                                 rendererOptions: {
                                     showDataLabels: true,
-                                    dataLabels: 'value'
+                                    dataLabels: 'value',
+                                    shadow: false
                                 }
                             },
                         [% END %]
@@ -72,7 +79,7 @@
                                 showLabel: [% row.label.showlabel %],
                                 showLine: [% row.label.showline %],
                                 markerOptions: [% row.label.markeroptions %],
-                                color: '[% row.label.color %]',
+                                color: '',
                                 label: '[% row.label.label %]',
                                 pointLabels: {
                                     labels:[
@@ -99,11 +106,13 @@
                             axesDefaults: {
                                 tickRenderer: $.jqplot.CanvasAxisTickRenderer ,
                                 tickOptions: {
-                                  angle: -30,
-                                  fontSize: '10pt'
+                                  angle: 0,
+                                  fontSize: '8pt'
                                 }
+
                             },
                         [% END %]
+                         
                         legend: {
                             show: [% graph.showlegend %],
                             location: 'e',

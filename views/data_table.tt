@@ -1,4 +1,4 @@
-<table class="table table-striped">
+<div class="hscroll"><table class="table table-striped">
     <tr>
         <th>Serial</th>
         [% peopcols = [] %]
@@ -32,7 +32,7 @@
         [% END %]
     </tr>
     [% END %]
-</table>
+</table></div>
 <ul class="pagination">
     [% IF subset.page == 1 %]
         <li class="disabled"><span>&laquo;</span></li>
