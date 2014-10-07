@@ -53,12 +53,8 @@
         [% END %]
     </tr>
     [% END %]
-<<<<<<< HEAD
 </table></div>
-=======
-</table>
 [% END %]
->>>>>>> origin/master
 <ul class="pagination">
     [% IF subset.page == 1 %]
         <li class="disabled"><span>&laquo;</span></li>
