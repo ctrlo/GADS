@@ -45,7 +45,7 @@ __PACKAGE__->table("filter");
 
   data_type: 'integer'
   is_foreign_key: 1
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 layout_id
 
@@ -53,31 +53,15 @@ __PACKAGE__->table("filter");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 value
-
-  data_type: 'varchar'
-  is_nullable: 0
-  size: 45
-
-=head2 operator
-
-  data_type: 'varchar'
-  is_nullable: 0
-  size: 45
-
 =cut
 
 __PACKAGE__->add_columns(
   "id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "view_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "value",
-  { data_type => "varchar", is_nullable => 0, size => 45 },
-  "operator",
-  { data_type => "varchar", is_nullable => 0, size => 45 },
 );
 
 =head1 PRIMARY KEY
@@ -121,17 +105,12 @@ __PACKAGE__->belongs_to(
   "view",
   "GADS::Schema::Result::View",
   { id => "view_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
+  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-08 11:57:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ifGjSkAfWDX+DjWnKF2G7A
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-21 16:43:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:irz1TZL/j4UnE5B0xiIzrg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

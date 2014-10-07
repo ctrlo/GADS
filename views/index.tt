@@ -1,3 +1,2 @@
-<h2>Welcome to the SCAP</h2>
-<p>Some example text</p>
+[% config.homepage_text %]
 

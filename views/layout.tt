@@ -37,6 +37,14 @@
                     <option value="2" [% IF edititem.permission == 2 %]selected[% END %]>Read only</option>
                 </select>
             </div>
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <input type="text" class="form-control" id="description" name="description" value="[% edititem.description | html_entity %]">
+            </div>
+            <div class="form-group">
+                <label for="helptext">User help text:</label>
+                <textarea class="form-control" rows="5" id="helptext" name="helptext">[% edititem.helptext | html_entity %]</textarea>
+            </div>
             <div class="checkbox">
                 <label>
                     <input type="checkbox" name="optional" [% IF edititem.optional %]checked[% END %]>Field is optional
@@ -47,6 +55,35 @@
                     <input type="checkbox" name="remember" [% IF edititem.remember %]checked[% END %]>Remember last value for new entry
                 </label>
             </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="hidden" [% IF edititem.hidden %]checked[% END %]>Field is hidden for normal users
+                </label> (<a href="" data-toggle="modal" data-target="#modalhelp_hidden">?</a>)
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" id="display_condition" name="display_condition" [% IF edititem.display_field %]checked[% END %]>Only display under the following conditions:
+                </label>
+            </div>
+            <div class="form-group" id="display_condition_div" [% UNLESS edititem.display_field %]style="display:none"[% END %]>
+                <div class="row">
+                    <div class="col-md-5">
+                        <select class="form-control" id="display_field" name="display_field">
+                            [% FOREACH field in all_items %]
+                                <option value="[% field.id %]" [% IF edititem.display_field.id == field.id %]selected[% END %]>[% field.name %]</option>
+                            [% END %]
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <p>matches (<a href="" data-toggle="modal" data-target="#modalhelp_match">?</a>)</p>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="display_regex" name="display_regex" value="[% edititem.display_regex | html_entity %]">
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="col-md-6">
             <div id="divtree"
@@ -54,6 +91,13 @@
                     style="display:none"
                 [% END %]
                 >
+                <label for="end_node_only">Node selection:</label>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="end_node_only" [% IF edititem.end_node_only %]checked[% END %]>
+                        Only allow end-nodes to be selected
+                    </label>
+                </div>
                 <label for="enumval">Tree values:</label>
                 <div class="form-group">
                     <button class="btn btn-success btn-sm" onclick="demo_create();" type="button">Create</button>
@@ -67,7 +111,19 @@
                     style="display:none"
                 [% END %]
                 >
-                <label for="enumval">Multiple select values:</label>
+                <div class="col-md-11">
+                    <div class="form-group">
+                        <label for="enumval">Multiple select ordering:</label>
+                        <select class="form-control" name="ordering">
+                            <option value="" [% IF NOT edititem.ordering %]selected[% END %]>As entered</option>
+                            <option value="asc" [% IF edititem.ordering == "asc" %]selected[% END %]>Ascending</option>
+                            <option value="desc" [% IF edititem.ordering == "desc" %]selected[% END %]>Descending</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-11">
+                    <label for="enumval">Multiple select values:</label>
+                </div>
                 <div id="legs">
                     [% FOREACH enumval IN edititem.enumvals %]
                         [% UNLESS enumval.deleted %]
@@ -126,6 +182,13 @@
                 [% END %]
                 >
                 <div class="form-group">
+                    <label for="calc">Return value conversion:</label>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="return_format" [% IF edititem.calc.return_format == "date" %]checked[% END %]>
+                                Convert return value to date format
+                        </label>
+                    </div>
                     <label for="calc">Calculation: (<a href="" data-toggle="modal" data-target="#helpcalc">?</a>)</label>
                     <textarea class="form-control monospace" id="calc" name="calc" rows="10">[% edititem.calc.calc | html_entity %]</textarea>
                 </div>
@@ -137,6 +200,7 @@
         <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
     [% END %]
 </form>
+<p></p>
        <!-- Modal -->
         <div class="modal fade" id="helprag" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -189,6 +253,40 @@
             </div><!-- /.modal-dialog -->
         </div><!-- /.modal -->
        <!-- Modal -->
+        <div class="modal fade" id="modalhelp_match" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">Field permissions</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>[% global.helptext.layout_match %]</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+       <!-- Modal -->
+        <div class="modal fade" id="modalhelp_hidden" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">Hidden fields</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>[% global.helptext.layout_hidden %]</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+       <!-- Modal -->
         <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -222,9 +320,10 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
         <th>Name</th>
         <th>Type</th>
         <th>Permissions</th>
+        <th>Description</th>
         <th>Order</th>
     </tr>
-    [% FOREACH item IN items %]
+    [% FOREACH item IN all_items %]
         <tr>
             <td><a href="/layout/[% item.id %]">Edit</a></td>
             <td>[% item.name | html_entity %]
@@ -246,10 +345,10 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 [% IF item.permission == 2 %]Read only[% END %]
             </td>
             <td>
-                <select class="form-control" id="type" name="order[% item.id %]">
+                <select class="form-control" id="type" name="position[% item.id %]">
                     [% o = 1 %]
-                    [% WHILE o <= items.size %]
-                        <option value="[% o %]" [% IF item.order == o %]selected[% END %]>[% o %]</option>
+                    [% WHILE o <= all_items.size %]
+                        <option value="[% o %]" [% IF item.position == o %]selected[% END %]>[% o %]</option>
                         [% o = o + 1 %]
                     [% END %]
                 </select>
@@ -257,7 +356,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
         </tr>
     [% END %]
 </table>
-<button type="submit" id="submit" name="saveorder" value="submit" class="btn btn-primary">Save order</button>
+<button type="submit" id="submit" name="saveposition" value="submit" class="btn btn-primary">Save order</button>
 <p></p>
 </form>
 [% END %]
@@ -265,6 +364,9 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
+        $('#display_condition').click(function () {
+            $("#display_condition_div").toggle(400);
+        });
         $(document).on("click", "#submit", function() {
             if( !$('#jstree_demo_div').length ) return true;
             if( !$('#jstree_demo_div').is(":visible") ) return true;

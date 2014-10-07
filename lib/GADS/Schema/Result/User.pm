@@ -77,6 +77,12 @@ __PACKAGE__->table("user");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 telephone
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 128
+
 =head2 permission
 
   data_type: 'smallint'
@@ -153,6 +159,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "organisation",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "telephone",
+  { data_type => "varchar", is_nullable => 1, size => 128 },
   "permission",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "password",
@@ -196,6 +204,21 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
+
+=head2 alerts
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Alert>
+
+=cut
+
+__PACKAGE__->has_many(
+  "alerts",
+  "GADS::Schema::Result::Alert",
+  { "foreign.user_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
 
 =head2 lastrecord
 
@@ -333,8 +356,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-12 18:16:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Wg7VIBIKl4AZJw8MNMUxJQ
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-21 16:43:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vlAHrydHWqJ/EOZaUrMi/g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

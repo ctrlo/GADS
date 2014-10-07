@@ -82,3 +82,14 @@ div.circ-small {
     font-family:monospace;
 }
 
+/* Override default calendar image locations */
+#cal-slide-content {
+    padding : 20px;
+    color : #fff;
+    background-image : url("../images/dark_wood.png");
+}
+
+#cal-slide-tick {
+    background-image : url("../images/tick.png")
+}
+

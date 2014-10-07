@@ -1,3 +1,9 @@
+[% global.helptext.layout_hidden = BLOCK %]
+Hidden fields will not be displayed or be editable by normal users.
+Only users with the permission to &quot;administer layout, views and graphs&quot;
+can view the field.
+[% END %]
+
 [% global.helptext.layout_perms = BLOCK %]
 The permissions of the field affect the ability of users to specify
 the values in records, not change any aspect of the layout. Specifically:
@@ -24,11 +30,30 @@ the values in records, not change any aspect of the layout. Specifically:
 </ul>
 [% END %]
 
+[% global.helptext.layout_match = BLOCK %]
+<p>For an exact match, enter the required text. For any other type of
+match, enter a Regular Expression. For example:</p>
+<p>To match any non-blank value:</p>
+<tt><pre>.+</pre></tt>
+<p>To match any of three values "val1", "val2" or "val3 (comment)":</p>
+<tt><pre>(val1|val2|val3 \(comment\))</pre></tt>
+<p>To match a value containing the word "foo":</p>
+<tt><pre>.*foo.*</pre></tt>
+<p>To match anything beginning with "bar":</p>
+<tt><pre>bar.*</pre></tt>
+<p>To match any number:</p>
+<tt><pre>[0-9]+</pre></tt>
+
+[% END %]
+
 [% global.helptext.layout_calc = BLOCK %]
 Calculated fields can be used to automatically generate values based
 on other fields. Basic Perl programming style can be used, with the value that
 is returned being used for the value of the field. Values from other fields
-are used by inserting the field name between square brackets. For example:
+are used by inserting the field name between square brackets. The ID of the
+record can be accessed using [id]. Values in date
+ranges are used by adding the suffix &quot;.from&quot; or &quot;.to&quot;
+to specify the date required. For example:
 
 <tt><pre>
 [% FILTER html %]
@@ -39,6 +64,10 @@ if ([Country] eq "Greece" && [Region] eq "A")
 elsif ([Country] eq "Japan")
 {
     return "Asia"
+}
+elsif ([daterange.from] > CURDATE)
+{
+    return "Started"
 }
 elsif ([Cost] < 10)
 {
@@ -54,7 +83,10 @@ RAG fields can be used to automatically generate colour-coded indicators based
 on other fields. Basic Perl programming style can be used to stipulate the conditions
 for the colour. If none match, the field will be indicated as grey. Values from other
 fields are used by inserting the field name between square brackets, whilst
-&quot;CURDATE&quot; can be used to insert the current date. For example:
+&quot;CURDATE&quot; can be used to insert the current date.  The ID of the
+record can be accessed using [id]. Values in date
+ranges are used by adding the suffix &quot;.from&quot; or &quot;.to&quot;
+to specify the date required. For example:
 
 <tt><pre>[% FILTER html %]
 [Start Date] > CURDATE

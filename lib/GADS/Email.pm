@@ -62,7 +62,10 @@ sub message
             if grep {$_ == $record->id} @$ids;
     }
 
-    my $text = config->{gads}->{message_prefix} ."\n". $params->{text};
+    $params->{text} =~ s/\s+$//;
+    my $text = config->{gads}->{message_prefix}
+             ."\n". $params->{text}
+             ."\n\nMessage sent by: $user->{value} ($user->{email})\n";
 
     my $email = {
         subject  => $params->{subject},

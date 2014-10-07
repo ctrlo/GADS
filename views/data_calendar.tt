@@ -2,7 +2,7 @@
 
     <div style="margin-bottom:25px; margin-top:50px;" class="cal-key">
     [% FOREACH color IN datecolors.pairs %]
-        <div class=" float-left circ-large [% color.value %]"></div><span class="cal-key-label">[% color.key %]</span>
+        <div class=" float-left circ-large [% color.value %]"></div><span class="cal-key-label">[% color.key | html_entity %]</span>
     [% END %]
     </div>
     <div style="clear:both;"></div>
@@ -37,7 +37,7 @@
                 "use strict";
 
                 var options = {
-                        events_source: '/data_calendar',
+                        events_source: '/data_calendar/[% time %]',
                         view: 'month',
                         tmpl_path: 'tmpls/',
                         tmpl_cache: false,

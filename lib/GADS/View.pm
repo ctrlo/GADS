@@ -22,7 +22,8 @@ use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
 use Ouch;
 use String::CamelCase qw(camelize);
-use GADS::Util         qw(:all);
+use GADS::Util        qw(:all);
+use JSON qw(decode_json encode_json);
 schema->storage->debug(1);
 
 use GADS::Schema;
@@ -44,9 +45,85 @@ sub main($$)
     $v->id;
 }
 
+sub _filter_tables
+{   my ($filter, $tables) = @_;
+
+    if (my $rules = $filter->{rules})
+    {
+        # Filter has other nested filters
+        foreach my $rule (@$rules)
+        {
+            _filter_tables($rule, $tables);
+        }
+    }
+    elsif (my $id = $filter->{id}) {
+        $tables->{$filter->{id}} = 1;
+    }
+}
+
 sub view
-{   my ($class, $view_id) = @_;
-    rset('View')->find($view_id);
+{   my ($self, $view_id, $user, $update) = @_;
+    $view_id || $update or return;
+
+    if ($update)
+    {
+        $user or ouch 'usermissing', "User ID needs to be supplied for view when updating";
+
+        # First update selected columns
+        my $params = {
+            view_id => $view_id, # ID returned here in case of new view
+            user    => $user,
+        };
+
+        $self->columns($params, $update);
+        $view_id = $params->{view_id};
+
+        # Pass the view ID back in case it was new
+        $update->{view_id} = $view_id;
+
+        # Then update any sorts
+        $self->sorts($params->{view_id}, $update);
+
+        # Finally update the filter.
+        # First the text based filter, which is the one
+        # actually used:
+        rset('View')->find($view_id)->update({
+            filter => $update->{filter},
+        });
+        # Then the filter table, which we use to query what fields are
+        # applied to a view's filters when doing alerts
+        my @existing = rset('Filter')->search({ view_id => $view_id })->all;
+        my $decoded = decode_json($update->{filter});
+        my $tables = {};
+        _filter_tables $decoded, $tables;
+        foreach my $table (keys $tables)
+        {
+            unless (grep { $_->layout_id == $table } @existing)
+            {
+                rset('Filter')->create({
+                    view_id   => $view_id,
+                    layout_id => $table,
+                });
+            }
+        }
+        # Delete those no longer there
+        my $search = { view_id => $view_id };
+        $search->{layout_id} = { '!=' => [ '-and', keys %$tables ] } if keys %$tables;
+        rset('Filter')->search($search)->delete;
+    }
+
+    my $view = _get_view($view_id, $user->{id}); # Borks on invalid user for view
+    my ($alert) = grep { $user->{id} && $user->{id} == $_->user_id } $view->alerts;
+    my @sorts = $view->sorts;
+    {
+        id      => $view->id,
+        user_id => $view->user_id,
+        name    => $view->name,
+        global  => $view->global,
+        filter  => $view->filter,
+        sorts   => \@sorts,
+        alert   => $alert,
+    }
 }
 
 sub all
@@ -66,21 +143,44 @@ sub delete
 {   my ($class, $id, $user) = @_;
 
     my $view = _get_view($id, $user->{id}); # Borks on an error
-    !$view->global || $user->{permissions}->{admin}
+    !$view->global || $user->{permission}->{layout}
         or ouch 'noperms', "You do not have permission to delete $id";
+    rset('Sort')->search({ view_id => $view->id })->delete
+        or ouch 'dbfail', "There was a database error when deleting the view's sort values";
     rset('ViewLayout')->search({ view_id => $view->id })->delete
         or ouch 'dbfail', "There was a database error when deleting the view's layouts";
     rset('Filter')->search({ view_id => $view->id })->delete
         or ouch 'dbfail', "There was a database error when deleting the view's filters";
+    rset('AlertCache')->search({ view_id => $view->id })->delete
+        or ouch 'dbfail', "There was a database error when deleting the view's alert's caches";
+    rset('Alert')->search({ view_id => $view->id })->delete
+        or ouch 'dbfail', "There was a database error when deleting the view's alerts";
     $view->delete
         or ouch 'dbfail', "There was a database error when deleting the view";
 }
 
-sub _column;
+# Any suffixes that may be valid when creating calc values
+sub _suffix
+{
+    return '(\.from|\.to)' if shift eq 'daterange';
+    return '';
+}
+
+sub _column_id
+{
+    {
+        field   => 'current_id',
+        type    => 'id',
+        name    => 'id',
+        suffix  => '',
+        numeric => 1,
+    };
+}
 
 sub _column
 {
     my $col = shift;
+    my $allcols = shift;
     my $c;
     
     my $field = "field".$col->id;
@@ -95,38 +195,45 @@ sub _column
             my @enums = $col->enumvals;
             $c->{enumvals} = \@enums;
         }
+        $c->{fixedvals} = 1;
     }
     else {
-        $c->{type}    = $col->type;
-        $c->{sprefix} = $field;
-        $c->{join}    = $field;
+        $c->{type}      = $col->type;
+        $c->{sprefix}   = $field;
+        $c->{join}      = $field;
+        $c->{fixedvals} = 0;
     }
 
     $c->{table} = $c->{type} eq 'tree' ? 'Enum' : camelize $c->{type};
+    $c->{vtype} = ""; # Initialise default
 
     if ($col->type eq 'calc')
     {
         my ($calc) = $col->calcs;
         if ($calc) # Calculations defined?
         {
-            my $allcols = shift;
             my @calccols;
             foreach my $acol (@$allcols)
             {
-                next if $acol->type eq 'rag' || $acol->type eq 'calc';
-                my $name = $acol->name;
-                next unless $calc->calc =~ /\[$name\]/i;
+                my $name = $acol->name; my $suffix = _suffix $acol->type;
+                next unless $calc->calc =~ /\Q[$name\E$suffix\Q]/i;
                 my $c = _column($acol);
                 push @calccols, $c;
             }
+            # Also check for special ID column
+            push @calccols, _column_id
+                if $calc->calc =~ /\Q[id]/i;
 
             $c->{calc} = {
                 id      => $calc->id,
                 calc    => $calc->calc,
                 columns => \@calccols,
             };
+            $c->{return_format} = $calc->return_format;
+            $c->{vtype} = "date" if $c->{return_format} && $c->{return_format} eq "date";
         }
 
+        $c->{table}     = "Calcval";
         $c->{userinput} = 0;
     }
     elsif ($col->type eq 'rag')
@@ -134,16 +241,18 @@ sub _column
         my ($rag) = $col->rags;
         if ($rag) # RAG defined?
         {
-            my $allcols = shift;
             my @ragcols;
             foreach my $acol (@$allcols)
             {
-                next if $acol->type eq 'rag' || $acol->type eq 'calc';
-                my $name = $acol->name;
-                next unless $rag->green =~ /\[$name\]/i || $rag->amber =~ /\[$name\]/i || $rag->red =~ /\[$name\]/i;
+                my $name = $acol->name; my $suffix = _suffix $acol->type;
+                my $regex = qr/\Q[$name\E$suffix\Q]/i;
+                next unless $rag->green =~ $regex || $rag->amber =~ $regex || $rag->red =~ $regex;
                 my $c = _column($acol);
                 push @ragcols, $c;
             }
+            # Also check for special ID column
+            push @ragcols, _column_id
+                if $rag->green =~ /\Q[id]/i || $rag->amber =~ /\Q[id]/i || $rag->red =~ /\Q[id]/i;
 
             $c->{rag} = {
                 id      => $rag->id,
@@ -154,6 +263,7 @@ sub _column
             };
         }
 
+        $c->{table}     = "Ragval";
         $c->{userinput} = 0;
     }
     elsif ($col->type eq 'file')
@@ -171,17 +281,41 @@ sub _column
         $c->{userinput} = 1;
     }
 
+    $c->{suffix}  = _suffix $col->type;
+    if ($col->type eq 'daterange' || $col->type eq 'date' || $col->type eq 'intgr')
+    {
+        $c->{numeric} = 1;
+    }
+    else {
+        $c->{numeric} = 0;
+    }
+
+    # See what columns depend on this one
+    my @depends = grep {$_->display_field && $_->display_field->id == $col->id} @$allcols;
+    my @depended_by = map { { id => $_->id, regex => $_->display_regex } } @depends;
+
+    # Virtual type. Will definitely be date for date ;-)
+    $c->{vtype} = 'date' if $c->{type} eq 'date';
+
     my @cached = qw(rag calc person daterange);
-    $c->{hascache}   = grep( /$col->type/, @cached ),
-    $c->{id}         = $col->id,
-    $c->{name}       = $col->name,
-    $c->{remember}   = $col->remember,
-    $c->{permission} = $col->permission,
-    $c->{readonly}   = $col->permission == READONLY ? 1 : 0;
-    $c->{approve}    = $col->permission == APPROVE ? 1 : 0;
-    $c->{open}       = $col->permission == OPEN ? 1 : 0;
-    $c->{optional}   = $col->optional,
-    $c->{field}      = $field,
+    $c->{hascache}      = grep( /^$c->{type}$/, @cached ),
+    $c->{id}            = $col->id,
+    $c->{name}          = $col->name,
+    $c->{remember}      = $col->remember,
+    $c->{ordering}      = $col->ordering,
+    $c->{permission}    = $col->permission,
+    $c->{readonly}      = $col->permission == READONLY ? 1 : 0;
+    $c->{approve}       = $col->permission == APPROVE ? 1 : 0;
+    $c->{open}          = $col->permission == OPEN ? 1 : 0;
+    $c->{optional}      = $col->optional,
+    $c->{hidden}        = $col->hidden,
+    $c->{description}   = $col->description,
+    $c->{display_field} = $col->display_field,
+    $c->{display_regex} = $col->display_regex,
+    $c->{depended_by}   = \@depended_by;
+    $c->{helptext}      = $col->helptext,
+    $c->{end_node_only} = $col->end_node_only,
+    $c->{field}         = $field,
 
     $c;
 }
@@ -204,7 +338,7 @@ sub columns
             $view_id = $ident->{view_id}; # or ouch 'badparam', "Please supply a view ID";
         }
         my $view = _get_view($view_id, $ident->{user}->{id}); # Borks on an error
-        !$view->global || $ident->{user}->{permissions}->{admin}
+        !$view->global || $ident->{user}->{permission}->{layout}
             or ouch 'noperms', "You do not have access to modify view $view_id";
 
         # Will be a scalar if only one value submitted. If so,
@@ -217,19 +351,49 @@ sub columns
 
         foreach my $c (rset('Layout')->all)
         {
+            next if !$ident->{user}->{permission}->{layout} && $c->hidden;
             my $item = { view_id => $view_id, layout_id => $c->id };
             if (grep {$c->id == $_} @colviews)
             {
                 # Column should be in view
-                rset('ViewLayout')->create($item)
-                    unless rset('ViewLayout')->search($item)->count;
+                unless(rset('ViewLayout')->search($item)->count)
+                {
+                    rset('ViewLayout')->create($item);
+                    # Update alert cache with new column
+                    my @alerts = rset('View')->search({
+                        'me.id' => $view_id
+                    },{
+                        columns  => [
+                            { 'me.id'  => \"MAX(me.id)" },
+                            { 'alert_caches.id'  => \"MAX(alert_caches.id)" },
+                            { 'alert_caches.current_id'  => \"MAX(alert_caches.current_id)" },
+                        ],
+                        join     => 'alert_caches',
+                        group_by => 'current_id',
+                    })->all;
+                    my @pop;
+                    foreach my $alert (@alerts)
+                    {
+                        push @pop, map { {
+                            layout_id  => $c->id,
+                            view_id    => $view_id,
+                            current_id => $_->current_id
+                        } } $alert->alert_caches;
+                    }
+                    rset('AlertCache')->populate(\@pop) if @pop;
+                }
             }
             else {
                 rset('ViewLayout')->search($item)->delete;
+                # Also delete alert cache for this column
+                rset('AlertCache')->search({
+                    view_id   => $view_id,
+                    layout_id => $c->id
+                })->delete;
             }
         }
         my $vu;
-        if ($ident->{user}->{permissions}->{admin})
+        if ($ident->{user}->{permission}->{layout})
         {
             $vu->{global} = $update->{global} ? 1 : 0;
         }
@@ -239,11 +403,13 @@ sub columns
     }
 
     # Whether we have only been asked for file columns
-    my $search = $ident->{files} ? { type => 'file' } : {};
+    my $search = $ident->{files} ? { 'me.type' => 'file' } : {};
+    $search->{'me.remember'} = 1 if $ident->{remembered_only};
 
+    my $pf = ['enumvals', 'calcs', 'rags', 'file_options', 'display_field' ];
     my @allcols = rset('Layout')->search($search,{
-        order_by => 'me.order',
-        prefetch => ['enumvals', 'calcs', 'rags' ],
+        order_by => ['me.position', 'enumvals.id'],
+        prefetch => $pf,
     })->all; # Used for calc values
 
     my @cols;
@@ -255,8 +421,8 @@ sub columns
             {
                 'view_id' => $view_id,
             },{
-                order_by => 'layout.order',
-                prefetch => 'layout',
+                order_by => 'layout.position',
+                prefetch => {layout => $pf},
             }
         )->all;
         foreach (@cc)
@@ -276,10 +442,42 @@ sub columns
     my @return;
     foreach my $col (@cols)
     {
+        next if $col->hidden && $ident->{no_hidden} && !$ident->{user}->{permission}->{layout};
         my $c = _column $col, \@allcols;
         push @return, $c;
     }
     return \@return;
+}
+
+# Test to see if an enum value is valid
+sub is_valid_enumval
+{   my ($self, $value, $column) = @_;
+
+    if ($column->{type} eq "person")
+    {
+        rset('User')->search({
+            id      => $value,
+            deleted => 0,
+        })->count ? 1 : 0;
+    }
+    else {
+        my ($found) = rset('Enumval')->search({
+            id        => $value,
+            layout_id => $column->{id},
+            deleted   => 0,
+        })->all;
+        ouch 'badval', "ID value of $value is not valid for $column->{name}"
+            if !$found;
+        if ($column->{end_node_only})
+        {
+            # Check whether this is actually an end node
+            ouch 'badparam', qq(Please select an end node for "$column->{name}")
+                if (rset('Enumval')->search({
+                    layout_id => $column->{id},
+                    parent    => $found->id,
+                })->count);
+        }
+    }
 }
 
 sub _get_view
@@ -297,6 +495,20 @@ sub _get_view
     $view;
 }
 
+sub sort_types
+{
+    [
+        {
+            name        => "asc",
+            description => "Ascending"
+        },
+        {
+            name        => "desc",
+            description => "Descending"
+        },
+    ]
+}
+
 sub filter_types
 {
     [
@@ -307,63 +519,60 @@ sub filter_types
     ]
 }
 
-sub filters
+sub sorts
 {
     my ($class, $view_id, $update) = @_;
 
     if ($update)
     {
-        # Collect all the filters. These can be in a variety of formats. New
+        # Collect all the sorts. These can be in a variety of formats. New
         # ones will be a scalar for a single one or an arrayref for multiples.
         # Existing ones will have a unique field ID. This is maintained to retain
         # the data associated with that entry.
-        my @allfilters;
+        my @allsorts;
         foreach my $v (keys %$update)
         {
-            next unless $v =~ /^filfield(\d+)(new)?/; # For each filter group
-            my $id = $1;
-            my $new = $2 ? 'new' : '';
-            my $op = $update->{"filoperator$id"};
-            ouch 'badparam', "Invalid operator $op"
-                unless grep { $_->{code} eq $op } @{filter_types()};
-            my $filter = {
+            next unless $v =~ /^sortfield(\d+)(new)?/; # For each sort group
+            my $id   = $1;
+            my $new  = $2 ? 'new' : '';
+            my $type = $update->{"sorttype$id"};
+            ouch 'badparam', "Invalid type $type"
+                unless grep { $_->{name} eq $type } @{sort_types()};
+            my $sort = {
                 view_id   => $view_id,
-                layout_id => $update->{"filfield$id$new"},
-                value     => $update->{"filvalue$id"},
-                operator  => $op,
+                layout_id => $update->{"sortfield$id$new"},
+                type      => $type,
             };
             if ($new)
             {
                 # New filter
-                my $f = rset('Filter')->create($filter)
-                    or ouch 'dbfail', "Database error when inserting new filter";
-                push @allfilters, $f->id;
+                my $s = rset('Sort')->create($sort)
+                    or ouch 'dbfail', "Database error when inserting new sort";
+                push @allsorts, $s->id;
             }
             else {
                 # Search on view as well to ensure ID belongs to view
-                my ($f) = rset('Filter')->search({ view_id => $view_id, id => $id })->all;
-                if ($f)
+                my ($s) = rset('Sort')->search({ view_id => $view_id, id => $id })->all;
+                if ($s)
                 {
-                    $f->update($filter);
-                    push @allfilters, $id;
+                    $s->update($sort);
+                    push @allsorts, $id;
                 }
             }
         }
         # Then delete any that no longer exist
-        foreach my $f (rset('Filter')->search({ view_id => $view_id }))
+        foreach my $s (rset('Sort')->search({ view_id => $view_id }))
         {
-            unless (grep {$_ == $f->id} @allfilters)
+            unless (grep {$_ == $s->id} @allsorts)
             {
-                # Don't actually delete, so that old records can still reference the value
-                # Set deleted flag instead
-                $f->delete
-                    or ouch 'dbfail', "Database error when deleting view ".$f->id;
+                $s->delete
+                    or ouch 'dbfail', "Database error when deleting view ".$s->id;
             }
         }
     }
 
-    my @filters;
-    my $filter_r = rset('Filter')->search({
+    my @sorts;
+    my $sort_r = rset('Sort')->search({
         view_id => $view_id
     },{
         prefetch => {
@@ -371,17 +580,16 @@ sub filters
         } 
     });
 
-    foreach my $fil ($filter_r->all)
+    foreach my $sort ($sort_r->all)
     {
-        my $f;
-        $f->{id}       = $fil->id;
-        $f->{operator} = $fil->operator;
-        $f->{value}    = $fil->value;
-        $f->{column}   = _column $fil->layout;
-        push @filters, $f;
+        my $s;
+        $s->{id}     = $sort->id;
+        $s->{type  } = $sort->type;
+        $s->{column} = _column $sort->layout;
+        push @sorts, $s;
     }
 
-    \@filters;
+    \@sorts;
 }
 
 sub fields($)

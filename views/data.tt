@@ -13,7 +13,7 @@
                 <ul id="menu_type" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop_type">
                     <li role="presentation"><a role="menuitem" tabindex="-1" href="?viewtype=table">Table</a></li>
                     <li role="presentation"><a role="menuitem" tabindex="-1" href="?viewtype=graph">Graph</a></li>
-                    <li role="presentation"><a role="menuitem" tabindex="-1" href="?viewtype=calendar">Calender</a></li>
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="?viewtype=calendar">Calendar</a></li>
                 </ul>
             </div>
             <div class="btn-group">
@@ -21,6 +21,15 @@
                         View <span class="caret"></span>
                 </button>
                 <ul id="menu_view" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop_view">
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0">Create new view</a></li>
+                    [% IF v %]
+                        [% IF !v.global OR user.permission.layout %]
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/[% v.id %]">Edit this view</a></li>
+                        [% END %]
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0?clone=[% v.id %]">Clone this view</a></li>
+                        <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_alert">Alert me</a></li>
+                    [% END %]
+                    <li role="presentation" class="divider"></li>
                     [% first = 1 %]
                     [% FOREACH ve IN user.views %]
                         [% IF first AND NOT ve.global %]
@@ -31,24 +40,22 @@
                             [% END %]
                             <li role="presentation" class="dropdown-header">Global views</li>
                         [% END %]
-                        <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?view=[% ve.id %]">[% ve.name | html_entity %]</a></li>
+                        <li role="presentation">
+                            <a role="menuitem" tabindex="-1" href="/data?view=[% ve.id %]">[% ve.name | html_entity %]
+                                [% veid = ve.id %]
+                                [% IF alerts.$veid %]<img src="/images/bell.png">[% END %]
+                            </a>
+                        </li>
                         [% lastv = ve %][% first = 0 %]
                     [% END %]
-                    <li role="presentation" class="divider"></li>
-                    <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0">Create new view</a></li>
                 </ul>
             </div>
-            [% IF v %]
-                <div class="btn-group">
-                    <a href="/view/[% v.id %]" class="btn btn-default" role="button">Customise view</a>
-                </div>
-            [% END %]
-            [% IF user.permissions.create %]
+            [% IF user.permission.create %]
                 <div class="btn-group">
                     <a href="/edit/" class="btn btn-default" role="button">New entry</a>
                 </div>
             [% END %]
-            [% IF viewtype == "table" AND records.size %]
+            [% IF viewtype == "table" AND records.size AND user.permission.download %]
                 <div class="btn-group">
                     <a href="/data?download" class="btn btn-default" role="button">Download</a>
                 </div>
@@ -65,8 +72,8 @@
                             <select class="form-control" name="rows" onchange="this.form.submit()">
                                 <option value="10" [% IF subset.rows == 10 %]selected[% END %]>10</option>
                                 <option value="50" [% IF subset.rows == 50 %]selected[% END %]>50</option>
+                                <option value="100" [% IF subset.rows == 100 %]selected[% END %]>100</option>
                                 <option value="200" [% IF subset.rows == 200 %]selected[% END %]>200</option>
-                                <option value="500" [% IF subset.rows == 500 %]selected[% END %]>500</option>
                             </select>
                         </div>
                     </div>
@@ -83,3 +90,32 @@
     [% INCLUDE 'data_table.tt' %]
 [% END %]
 
+<!-- Modal -->
+[% IF v %]
+    <div class="modal fade" id="modal_alert" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form role="form" method="post">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Configure alert for [% v.name %]</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="frequency">Alert me:</label>
+                        <select class="form-control" name="frequency">
+                            <option value="" [% IF NOT v.alert %]selected[% END %]>Never</option>
+                            <option value="0" [% IF v.alert.frequency == 0 %]selected[% END %]>Instantly</option>
+                            <option value="24" [% IF v.alert.frequency == 24 %]selected[% END %]>Every 24 hours</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" name="alert" value="[% v.id %]" class="btn btn-primary">Submit</button>
+                </div>
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+[% END %]

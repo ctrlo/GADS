@@ -20,6 +20,7 @@ package GADS::Layout;
 
 use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
+use GADS::View;
 use Ouch;
 use String::CamelCase qw(camelize);
 schema->storage->debug(1);
@@ -41,7 +42,7 @@ sub all
             $count++;
         }
     }
-    my @layout = rset('Layout')->search({},{ order_by => 'order' })->all;
+    my @layout = rset('Layout')->search({},{ order_by => 'position' })->all;
     \@layout;
 }
 
@@ -200,6 +201,8 @@ sub tree
         return $item;
     };
 
+    return [] unless $layout_id;
+
     my @all = rset('Enumval')->search({
         layout_id => $layout_id,
         deleted   => 0
@@ -220,6 +223,16 @@ sub delete
 {   my ($class, $id) = @_;
     my $item = rset('Layout')->find($id)
         or ouch 'notfound', "Unable to find item with ID $id";
+
+    # First see if any views are conditional on this field
+    if (my @deps = rset('Layout')->search({ display_field => $item->id })->all)
+    {
+        my @depsn = map { $_->name } @deps;
+        my $dep   = join ', ', @depsn;
+        ouch 'baddep', "The following fields are conditional on this field: $dep.
+            Please remove these conditions before deletion.";
+    }
+
     my @graphs = rset('Graph')->search(
         [
             { x_axis => $item->id   },
@@ -244,6 +257,8 @@ sub delete
         or ouch 'dbfail', "Database error deleting any calcs relating to this item";
     rset('Rag')->search({ layout_id => $item->id })->delete
         or ouch 'dbfail', "Database error deleting any rags relating to this item";
+    rset('AlertCache')->search({ layout_id => $item->id })->delete
+        or ouch 'dbfail', "Database error deleting any alert caches relating to this item";
     my $type = $item->type;
     if ($type eq 'tree')
     {
@@ -272,23 +287,24 @@ sub delete
         or ouch 'dbfail', "Database error deleting item";
 }
 
-sub order
+sub position
 {   my ($class, $params) = @_;
     foreach my $o (keys %$params)
     {
-        next unless $o =~ /order([0-9]+)/;
-        rset('Layout')->find($1)->update({ order => $params->{$o} })
-            or ouch 'dbfail', "There was a database error when updating the order values";
+        next unless $o =~ /position([0-9]+)/;
+        rset('Layout')->find($1)->update({ position => $params->{$o} })
+            or ouch 'dbfail', "There was a database error when updating the position values";
     }
 }
 
 sub item
-{   my ($class, $args) = @_;
+{   my ($self, $args) = @_;
     my $item;
     if($args->{submit})
     {
         my $newitem;
         $newitem->{optional} = $args->{optional} ? 1 : 0;
+        $newitem->{hidden} = $args->{hidden} ? 1 : 0;
         $newitem->{remember} = $args->{remember} ? 1 : 0;
         ($newitem->{name} = $args->{name}) =~ /^[ \S]+$/ # Only normal spaces please
             or ouch 'badvalue', "Please enter a name for item";
@@ -296,6 +312,15 @@ sub item
             or ouch 'badvalue', "Bad type $args->{type} for item";
         ($newitem->{permission} = $args->{permission}) =~ /^[012]$/
             or ouch 'badvalue', "Bad permission $args->{permission} for item";
+        $newitem->{description} = $args->{description};
+        $newitem->{helptext}    = $args->{helptext};
+
+        $newitem->{display_field} = ($args->{display_condition} && grep {$args->{display_field} == $_->id} @{$self->all})
+                                  ? $args->{display_field}
+                                  : undef;
+
+        $newitem->{display_regex} = $args->{display_regex};
+
         my @enumvals;
         if ($args->{type} eq 'enum')
         {
@@ -330,7 +355,18 @@ sub item
                     push @enumvals, $e if $e;
                 }
             }
+
+            # Finally save the ordering value
+            $newitem->{ordering} = $args->{ordering} eq "desc"
+                                 ? "desc"
+                                 : $args->{ordering} eq "asc"
+                                 ? "asc"
+                                 : undef;
+        } elsif ($args->{type} eq "tree")
+        {
+            $newitem->{end_node_only} = $args->{end_node_only} ? 1 : 0;
         }
+            
         if ($args->{id})
         {
             $item = rset('Layout')->find($args->{id})
@@ -399,38 +435,64 @@ sub item
                 green => $args->{green},
             };
             my ($ragr) = rset('Rag')->search({ layout_id => $item->id })->all;
+            my $need_update;
             if ($ragr)
             {
-                # Clear out cached calues. Will be auto-inserted later
-                rset('Ragval')->search({ layout_id => $ragr->layout_id })->delete
-                    or ouch 'dbfail', "Database error deleting cached values for this RAG";
+                # First see if the calculation has changed
+                $need_update =  $ragr->red ne $rag->{red}
+                             || $ragr->amber ne $rag->{amber}
+                             || $ragr->green ne $rag->{green};
                 $ragr->update($rag)
                     or ouch 'dbfail', "Database error updating RAG values";
+                # Clear out cached calues. Will be auto-inserted later
             }
             else {
                 $rag->{layout_id} = $item->id;
                 rset('Rag')->create($rag)
                     or ouch 'dbfail', "Database error creating RAG values";
+                $need_update = 1;
+            }
+            if ($need_update)
+            {
+                # Get records first so that we have old values
+                my $columns = GADS::View->columns({ id => $item->id });
+                my @records = GADS::Record->current({ columns => $columns });
+                rset('Ragval')->search({ layout_id => $ragr->layout_id })->delete
+                    or ouch 'dbfail', "Database error deleting cached values for this calc";
+                GADS::Record->update_cache(\@records, $columns);
             }
         }
         if ($args->{type} eq 'calc')
         {
             my $calc = {
-                calc => $args->{calc},
+                calc          => $args->{calc},
+                return_format => $args->{return_format} ? 'date' : '',
             };
             my ($calcr) = rset('Calc')->search({ layout_id => $item->id })->all;
+            my $need_update;
             if ($calcr)
             {
-                # Clear out cached calues. Will be auto-inserted later
-                rset('Calcval')->search({ layout_id => $calcr->layout_id })->delete
-                    or ouch 'dbfail', "Database error deleting cached values for this calc";
+                # First see if the calculation has changed
+                $need_update = $calcr->calc ne $calc->{calc};
                 $calcr->update($calc)
                     or ouch 'dbfail', "Database error updating calculated formula";
             }
             else {
                 $calc->{layout_id} = $item->id;
-                rset('Calc')->create($calc)
+                $calcr = rset('Calc')->create($calc)
                     or ouch 'dbfail', "Database error creating calculated formula";
+                $need_update = 1;
+            }
+            if ($need_update)
+            {
+                # Get records first so that we have old values
+                my ($calc_col) = @{GADS::View->columns({ id => $item->id })};
+                my $columns = $calc_col->{calc}->{columns};
+                push $columns, $calc_col;
+                my @records = GADS::Record->current({ columns => $columns, no_hidden => 0 });
+                rset('Calcval')->search({ layout_id => $calcr->layout_id })->delete
+                    or ouch 'dbfail', "Database error deleting cached values for this calc";
+                GADS::Record->update_cache(\@records, $columns);
             }
         }
         if ($args->{type} eq 'file')
@@ -452,16 +514,28 @@ sub item
         }
     }
     else {
-        $item = rset('Layout')->find($args->{id})
-            or ouch 'notfound', "Unable to find item with ID $args->{id}";
+        ($item) = rset('Layout')->search({
+            'me.id'  => $args->{id},
+        },{
+            prefetch => ['enumvals', 'calcs', 'rags' ],
+            order_by => 'enumvals.id',
+        })->all;
+        $item or ouch 'notfound', "Unable to find item with ID $args->{id}";
     }
     my $itemhash = {
-        id         => $item->id,
-        name       => $item->name,
-        type       => $item->type,
-        permission => $item->permission,
-        optional   => $item->optional,
-        remember   => $item->remember,
+        id            => $item->id,
+        name          => $item->name,
+        type          => $item->type,
+        ordering      => $item->ordering,
+        permission    => $item->permission,
+        optional      => $item->optional,
+        hidden        => $item->hidden,
+        description   => $item->description,
+        helptext      => $item->helptext,
+        display_field => $item->display_field,
+        display_regex => $item->display_regex,
+        end_node_only => $item->end_node_only,
+        remember      => $item->remember,
     };
 
     if ($item->type eq 'enum' || $item->type eq 'tree')

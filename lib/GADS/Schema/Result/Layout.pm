@@ -71,10 +71,50 @@ __PACKAGE__->table("layout");
   default_value: 0
   is_nullable: 0
 
-=head2 order
+=head2 position
 
   data_type: 'integer'
   is_nullable: 1
+
+=head2 ordering
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 45
+
+=head2 end_node_only
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 description
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 helptext
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 display_field
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 display_regex
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 256
+
+=head2 hidden
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
 
 =cut
 
@@ -91,8 +131,22 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "remember",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
-  "order",
+  "position",
   { data_type => "integer", is_nullable => 1 },
+  "ordering",
+  { data_type => "varchar", is_nullable => 1, size => 45 },
+  "end_node_only",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "description",
+  { data_type => "text", is_nullable => 1 },
+  "helptext",
+  { data_type => "text", is_nullable => 1 },
+  "display_field",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "display_regex",
+  { data_type => "varchar", is_nullable => 1, size => 256 },
+  "hidden",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -108,6 +162,36 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
+
+=head2 alert_caches
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::AlertCache>
+
+=cut
+
+__PACKAGE__->has_many(
+  "alert_caches",
+  "GADS::Schema::Result::AlertCache",
+  { "foreign.layout_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 alerts_send
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::AlertSend>
+
+=cut
+
+__PACKAGE__->has_many(
+  "alerts_send",
+  "GADS::Schema::Result::AlertSend",
+  { "foreign.layout_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
 
 =head2 calcs
 
@@ -167,6 +251,26 @@ __PACKAGE__->has_many(
   "GADS::Schema::Result::Date",
   { "foreign.layout_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 display_field
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Layout>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "display_field",
+  "GADS::Schema::Result::Layout",
+  { id => "display_field" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
 );
 
 =head2 enums
@@ -289,6 +393,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 instances
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Instance>
+
+=cut
+
+__PACKAGE__->has_many(
+  "instances",
+  "GADS::Schema::Result::Instance",
+  { "foreign.sort_layout_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 intgrs
 
 Type: has_many
@@ -301,6 +420,21 @@ __PACKAGE__->has_many(
   "intgrs",
   "GADS::Schema::Result::Intgr",
   { "foreign.layout_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 layouts
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Layout>
+
+=cut
+
+__PACKAGE__->has_many(
+  "layouts",
+  "GADS::Schema::Result::Layout",
+  { "foreign.display_field" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -349,6 +483,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 sorts
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Sort>
+
+=cut
+
+__PACKAGE__->has_many(
+  "sorts",
+  "GADS::Schema::Result::Sort",
+  { "foreign.layout_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 strings
 
 Type: has_many
@@ -380,8 +529,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-25 22:42:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Fdzd1tsIMvPgmIiFyIPWag
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-29 18:45:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:O+NbkZiFOhv/CXgJP8Kxig
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

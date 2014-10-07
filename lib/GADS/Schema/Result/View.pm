@@ -59,6 +59,11 @@ __PACKAGE__->table("view");
   default_value: 0
   is_nullable: 0
 
+=head2 filter
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -70,6 +75,8 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 128 },
   "global",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "filter",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -86,6 +93,36 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 alert_caches
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::AlertCache>
+
+=cut
+
+__PACKAGE__->has_many(
+  "alert_caches",
+  "GADS::Schema::Result::AlertCache",
+  { "foreign.view_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 alerts
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Alert>
+
+=cut
+
+__PACKAGE__->has_many(
+  "alerts",
+  "GADS::Schema::Result::Alert",
+  { "foreign.view_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 filters
 
 Type: has_many
@@ -97,6 +134,21 @@ Related object: L<GADS::Schema::Result::Filter>
 __PACKAGE__->has_many(
   "filters",
   "GADS::Schema::Result::Filter",
+  { "foreign.view_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 sorts
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Sort>
+
+=cut
+
+__PACKAGE__->has_many(
+  "sorts",
+  "GADS::Schema::Result::Sort",
   { "foreign.view_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -137,8 +189,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-25 22:42:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:43v4iHtSI+RMc5J6V0DQ6g
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-21 23:25:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3CFOMP1Nvst3GeoI8Kfvfw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -74,6 +74,23 @@ __PACKAGE__->table("instance");
   data_type: 'text'
   is_nullable: 1
 
+=head2 sort_layout_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 sort_type
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 45
+
+=head2 homepage_text
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -90,6 +107,12 @@ __PACKAGE__->add_columns(
   "email_delete_subject",
   { data_type => "varchar", is_nullable => 1, size => 128 },
   "register_text",
+  { data_type => "text", is_nullable => 1 },
+  "sort_layout_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "sort_type",
+  { data_type => "varchar", is_nullable => 1, size => 45 },
+  "homepage_text",
   { data_type => "text", is_nullable => 1 },
 );
 
@@ -122,9 +145,29 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 sort_layout
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-12 16:13:07
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:o1cu0CCDXFsS0lA4xWDBpg
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Layout>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "sort_layout",
+  "GADS::Schema::Result::Layout",
+  { id => "sort_layout_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-16 23:40:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xk4jHY5YfHt6qQ9UaCqXfg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

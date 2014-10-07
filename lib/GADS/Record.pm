@@ -22,6 +22,8 @@ use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
 use GADS::Record;
 use GADS::Util         qw(:all);
+use GADS::Config;
+use GADS::View;
 use String::CamelCase qw(camelize);
 use Ouch;
 use Safe;
@@ -29,6 +31,8 @@ use DateTime;
 use DateTime::Format::Strptime qw( );
 use Data::Compare;
 use POSIX qw(ceil);
+use JSON qw(decode_json encode_json);
+use Scalar::Util qw(looks_like_number);
 schema->storage->debug(1);
 
 use GADS::Schema;
@@ -44,9 +48,24 @@ sub files
     foreach my $col (@{GADS::View->columns({ files => 1 })})
     {
         my $f = $col->{field};
-        $files{$f} = $record->$f && $record->$f->value ? $record->$f->value->name : '';
+        $files{$f} = _field($record,$f) && _field($record,$f)->value ? _field($record,$f)->value->name : '';
     }
     %files;
+}
+
+sub file
+{   my ($self, $id, $user) = @_;
+    $id or ouch 'missing', "No ID provided for file retrieval";
+    my $fileval = rset('Fileval')->find($id)
+        or ouch 'notfound', "File ID $id cannot be found";
+    # Check whether this is hidden and whether the user has access
+    my ($file) = $fileval->files; # In theory can be more than one, but not in practice
+    if ($file->layout->hidden)
+    {
+        ouch 'noperms', "You do not have access to this document"
+            unless $user->{permission}->{layout};
+    }
+    $fileval;
 }
 
 sub _add_jp
@@ -60,12 +79,16 @@ sub _add_jp
     # labelled _2 etc. In this case, we return index number.
     my %found; my $key;
     ($key) = keys %$toadd if ref $toadd eq 'HASH';
-    foreach my $j (@$prefetches, @$joins)
+    foreach my $j (@$joins, @$prefetches)
     {
         if ($key && ref $j eq 'HASH')
         {
             $found{$key}++;
             return $found{$key} if Compare $toadd, $j;
+        }
+        elsif ($toadd eq $j)
+        {
+            return 1;
         }
     }
     if ($type eq 'join')
@@ -76,6 +99,7 @@ sub _add_jp
     {
         push @$prefetches, $toadd;
     }
+    $found{$key}++ if $key;
     return $key ? $found{$key} : 1;
 }
 
@@ -89,30 +113,204 @@ sub _add_join
     _add_jp @_, 'join';
 }
 
+sub _columns
+{   my ($user, $no_hidden) = @_;
+
+    # A hash of the columns with the ID as a key, in order to
+    # easily look up a column from an ID number. Used by search
+    my $columns;
+    my $options = $no_hidden ? { user => $user, no_hidden => 1 } : {};
+    foreach my $c (@{GADS::View->columns($options)})
+    {
+        $columns->{$c->{id}} = $c;
+    }
+    $columns;
+}
+
+# A function to see if any views have a particular record within
+sub search_views
+{   my ($self, $current_id, @views) = @_;
+
+    return unless @views;
+
+    my $joins = [];
+    my $prefetches = [];
+
+    my $columns = _columns;
+    my @search;
+
+    # XXX This is up for debate. First, do a search with all views in, as it only
+    # requires one SQL query (albeit a big one). If none match, happy days.
+    # If one does match though, we have to redo all the searches individually
+    # to find which one matched. Is this the most efficient way of doing it?
+    foreach my $view (@views)
+    {
+        if (my $filter = $view->filter)
+        {
+            # XXX Do not send alerts for hidden fields
+            my $decoded = decode_json($filter);
+            if (keys %$decoded)
+            {
+                my @s = @{_search_construct($decoded, $columns, $prefetches, $joins)};
+                push @search, \@s;
+            }
+        }
+    }
+
+    my $count = rset('Current')->search({
+        'me.id' => $current_id,
+        '-or'   => \@search,
+    },{
+        join     => {'record' => $joins},
+    })->count;
+
+    my @foundin;
+    if ($count)
+    {
+        foreach my $view (@views)
+        {
+            if (my $filter = $view->filter)
+            {
+                my $decoded = decode_json($filter);
+                if (keys %$decoded)
+                {
+                    my @s = @{_search_construct($decoded, $columns, $prefetches, $joins)};
+                    my @found = rset('Current')->search({
+                        'me.id' => $current_id,
+                        @s,
+                    },{
+                        join     => {'record' => $joins},
+                    })->all;
+                    my @ids = map { $_->id } @found;
+                    push @foundin, {
+                        view => $view,
+                        ids  => \@ids,
+                    } if @found;
+                }
+            }
+        }
+    }
+    @foundin;
+}
+
+sub search
+{   my ($self, $search, $user) = @_;
+
+    $search or return;
+
+    my %results;
+
+    if ($search =~ s/\*/%/g )
+    {
+        $search = { like => $search };
+    }
+
+    my @fields = (
+        { type => 'string', plural => 'strings' },
+        { type => 'int'   , plural => 'intgrs' },
+        { type => 'date'  , plural => 'dates' },
+        { type => 'string', plural => 'dateranges' },
+        { type => 'string', plural => 'ragvals' },
+        { type => 'string', plural => 'calcvals' },
+        { type => 'string', plural => 'enums', sub => 1 },
+        { type => 'string', plural => 'people', sub => 1 },
+    );
+
+    # Set up a date parser
+    my $format = DateTime::Format::Strptime->new(
+         pattern   => '%Y-%m-%d',
+         time_zone => 'local',
+    );
+    foreach my $field (@fields)
+    {
+        next if $field->{type} eq 'int' && !looks_like_number $search;
+        next if $field->{type} eq 'date' &&  !$format->parse_datetime($search);
+
+        my $plural   = $field->{plural};
+        my $s        = $field->{sub} ? 'value.value' : 'value';
+        my $prefetch = $field->{sub}
+                     ? {
+                           'record' => 
+                               {
+                                   $plural => ['value', 'layout']
+                               },
+                       } 
+                     : {
+                           'record' => { $plural => 'layout' },
+                       };
+
+        my @currents = rset('Current')->search({
+            $s => $search,
+        },{
+            prefetch => $prefetch,
+            collapse => 1,
+        })->all;
+
+        foreach my $current (@currents)
+        {
+            my @r;
+            foreach my $string ($current->record->$plural)
+            {
+                my $v = $field->{sub} ? $string->value->value : $string->value;
+                push @r, $string->layout->name. ": ". $v;
+            }
+            my $hl = join(', ', @r);
+            if ($results{$current->id})
+            {
+                $results{$current->id}->{results} .= ", $hl";
+            }
+            else {
+                $results{$current->id} = {
+                    current_id => $current->id,
+                    record_id  => $current->record->id,
+                    results    => $hl,
+                };
+            }
+        }
+    }
+
+    sort {$a->{current_id} <=> $b->{current_id}} values %results;
+}
+
 sub current($$)
 {   my ($class, $item) = @_;
+
+    # If no_hidden is true, then do not show hidden fields
+    my $no_hidden = exists $item->{no_hidden} ? $item->{no_hidden} : 1;
 
     # First, add all the columns in the view as a prefetch. During
     # this stage, we keep track of what we've added, so that we
     # can act accordingly during the filters
     my @columns;
-    if (my $view_id = $item->{view_id})
+    if ($item->{columns})
     {
-        @columns = @{GADS::View->columns({ view_id => $view_id })};
+        @columns = @{$item->{columns}};
+    }
+    elsif (my $view_id = $item->{view_id})
+    {
+        @columns = @{GADS::View->columns({ view_id => $view_id, no_hidden => $no_hidden, user => $item->{user} })};
     }
     else {
-        @columns = @{GADS::View->columns};
+        my $params = { no_hidden => $no_hidden, user => $item->{user} };
+        $params->{remembered_only} = $item->{remembered_only};
+        @columns = @{GADS::View->columns($params)};
     }
     my %cache_cols; # Any column in the view that should be cached
-    push @columns, @{$item->{additional}} if $item->{additional};
-    my @filters; # All the filters for this query
-    my $prefetches = []; my $joins = [];
+    my $prefetches = []; # Tables to prefetch - data being viewed
+    my $joins = [];      # Tables to join - data being searched
+    my $cache_joins;     # Tables that have data needed for calculated fields
+    my @search_date;     # The search criteria to narrow-down by date range
     foreach my $c (@columns)
     {
-        # If it's a calculated/rag value, prefetch the columns in the calc
+        # If it's a calculated/rag value, log as prefetch for cached fields
+        # in case we need to recalculate them
+        next unless $c->{id}; # Special ID column has no id value
         if (($c->{type} eq 'rag' || $c->{type} eq 'calc') && $c->{$c->{type}})
         {
-            push @columns, @{$c->{$c->{type}}->{columns}};
+            foreach (@{$c->{$c->{type}}->{columns}})
+            {
+                $cache_joins->{$_->{field}} = 1 if $_->{id};
+            }
         }
         elsif ($c->{type} eq "date" || $c->{type} eq "daterange")
         {
@@ -121,174 +319,164 @@ sub current($$)
             if (my $to = $item->{to})
             {
                 my $f = {
-                    column   => $c,
-                    operator => 'lt',
+                    id       => $c->{id},
+                    operator => 'less',
                     value    => $to->ymd,
-                    type     => 'and',
                 };
                 push @f, $f;
             }
             if (my $from = $item->{from})
             {
                 my $f = {
-                    column   => $c,
-                    operator => 'gt',
+                    id       => $c->{id},
+                    operator => 'greater',
                     value    => $from->ymd,
-                    type     => 'and',
                 };
                 push @f, $f;
             }
-            push @filters, {value => \@f, type => 'and'} if @f;
+            push @search_date, {
+                condition => "AND",
+                rules     => \@f,
+            } if @f;
         }
         # Flag cache if need be - may need updating
         $cache_cols{$c->{field}} = $c
             if $c->{hascache};
-
-        # Add to the prefetch array. This tracks what's been added
-        # and only adds additional fields as required
+        # We're viewing this, so prefetch all the values
         _add_prefetch ($c->{join}, $prefetches, $joins);
     }
 
-    my $search;
+    my $columns = _columns($item->{user}, $no_hidden);
+
+    my @limit; # The overall limit, for example reduction by date range or approval field
+    # Add any date ranges to the search from above
+    if (@search_date)
+    {
+        # _search_construct returns an array ref, so dereference it first
+        my @res = @{(_search_construct {condition => 'OR', rules => \@search_date}, $columns, $prefetches, $joins)};
+        push @limit, @res if @res;
+    }
+
+    my $approval = $item->{approval} ? 1 : 0;
     if($item->{record_id}) {
-        $search->{"me.id"} = $item->{record_id};
+        push @limit, ("me.id" => $item->{record_id});
     }
     elsif ($item->{current_id})
     {
-        $search->{"me.id"} = $item->{current_id};
-        $search->{approval} = 0;
+        push @limit, ("me.id"  => $item->{current_id});
     }
     else {
-        $search->{"record.record_id"} = undef;
-        $search->{approval} = 0;
+        push @limit, ("record.record_id" => undef)
+            unless $approval;
     }
+    push @limit, (approval => $approval);
 
-    # First see if any cachable fields are missing their cache values.
-    # If so, insert them
-    my %calcsearch = %{$search}; # Only update rows from current result
-    my @cache_cols_join;         # The fields to join
-    my @cache_cols_search;       # The search for undefined values
-    my %cache_cols_done;         # Track whether we have already seen this field
-    foreach my $csearch (values %cache_cols)
+    my @calcsearch; # The search for fields that may need to be recalculated
+    my @search;     # The user search
+    my @orderby;
+    # Configure specific user selected sort. Do it now, as they may
+    # not have view selected
+    my $index_sort = config->{gads}->{serial} eq "auto" ? 'me.id' : 'me.serial';
+    if (my $sort = $item->{sort})
     {
-        # Create the search parameter, looking for undef fields of the column
-        my $sprefix = $csearch->{sprefix};
-        next if $cache_cols_done{$sprefix}; # No need if same cached column already joined
-        push @cache_cols_join, $csearch->{join};
-        push @cache_cols_search, {"$sprefix.value" => undef };
-        $cache_cols_done{$sprefix} = 1;
-    }
-    $calcsearch{'-or'} = \@cache_cols_search if @cache_cols_search;
-    # Find them
-    my @tocache;
-    if ($item->{record_id})
-    {
-        @tocache = rset('Record')->search(
-            \%calcsearch,
-            {
-                join => \@cache_cols_join,
-            }
-        )->all;
-    }
-    else {
-        @tocache = rset('Current')->search(
-            \%calcsearch,
-            {
-                join => {record => \@cache_cols_join},
-            }
-        )->all;
-    }
-    # For any that are found to be empty, update them with a value
-    foreach my $rec (@tocache)
-    {
-        foreach my $col (values %cache_cols)
+        my $type = $sort->{type} eq 'desc' ? '-desc' : '-asc';
+        if ($sort->{id} == -1)
         {
-            # Force creation of the cache value
-            if ($item->{record_id})
+            push @orderby, { $type => $index_sort };
+        }
+        elsif (my $column  = $columns->{$sort->{id}})
+        {
+            if (my $s_table = _table_name($column, $prefetches, $joins))
             {
-                item_value($col, $rec);
-            }
-            else {
-                item_value($col, $rec->record);
+                push @orderby, { $type => "$s_table.value" };
             }
         }
     }
-
     # Now add all the filters as joins (we don't need to prefetch this data). However,
     # the filter might also be a column in the view from before, in which case add
     # it to, or use, the prefetch. We use the tracking variables from above.
-
-    # Add all the view's filters onto any existing ones
-    push @filters, @{GADS::View->filters($item->{view_id})} if $item->{view_id};
-    # Any filters to OR to the overall query. These will probably be date
-    # filters specified above for a subset of results
-    my @or_filters;
-    foreach my $filter (@filters)
+    if (my $view = GADS::View->view($item->{view_id}, $item->{user}))
     {
-        my $field = $filter->{column}->{field};
-
-        # As per the prefix, what we join depends on the type of field
-        my $sprefix = $filter->{column}->{sprefix};
-
-        my @searches = _search_construct $filter, $prefetches, $joins;
-
-        while (@searches)
+        if (my $filter = $view->{filter})
         {
-            my $sfield = shift @searches;
-            my $svalue = shift @searches;
-            $sfield && $svalue or next;
-
-            # Underscore in mysql is special for like
-            $svalue->{'-like'} =~ s/\_/\\\_/g if $svalue->{'-like'};
-
-            if ($sfield eq 'multi')
+            my $decoded = decode_json($filter);
+            # Do 2 loops through all the filters and gather the joins. The reason is that
+            # any extra joins will be added *before* the prefetches, thereby making the
+            # prefetch join numbers unpredictable. By doing an initial run, when we
+            # repeat we will have predictable join numbers.
+            if (keys %$decoded)
             {
-                push @or_filters, $svalue;
+                _search_construct $decoded, $columns, $prefetches, $joins;
+                # Get the user search criteria
+                @search     = @{_search_construct($decoded, $columns, $prefetches, $joins)};
+                # Put together the search to look for undefined calculated fields
+                @calcsearch = @{_search_construct($decoded, $columns, $prefetches, $joins, \%cache_cols)};
             }
-            else {
-                if (ref $search->{$sfield} eq 'ARRAY')
+        }
+        unless ($item->{sort})
+        {
+            foreach my $sort (@{$view->{sorts}})
+            {
+                if (my $column  = $columns->{$sort->layout->id})
                 {
-                    push @{$search->{$sfield}}, $svalue;
-                }
-                elsif ($search->{$sfield})
-                {
-                    $search->{$sfield} = [ -and => $search->{$sfield}, $svalue ];
-                }
-                else {
-                    $search->{$sfield} = $svalue;
+                    my $s_table = _table_name($column, $prefetches, $joins);
+                    my $type = $sort->type eq 'desc' ? '-desc' : '-asc';
+                    push @orderby, { $type => "$s_table.value" };
                 }
             }
         }
     }
-
-    $search->{'-or'} = \@or_filters if @or_filters;
-
-    my @all;
-    if ($item->{record_id})
+    # Default sort
+    unless (@orderby)
     {
-        unshift @$prefetches, 'current'; # Add info about related current record
+        my $config = GADS::Config->conf;
+        my $type = $config->sort_type eq 'desc' ? '-desc' : '-asc';
+        if (my $layout = $config->sort_layout_id)
+        {
+            # Get column afresh rather than from $columns, as the
+            # default sort could be a hidden field
+            if (my $cols = GADS::View->columns({ id => $layout }))
+            {
+                my $column = pop @$cols;
+                my $s_table = _table_name($column, $prefetches, $joins);
+                push @orderby, { $type => "$s_table.value" }
+            }
+        }
+        else {
+            push @orderby, { $type => $index_sort };
+        }
+    }
+
+    my $search = [-and => [@search, @limit]];
+    my $result;
+    if ($item->{record_id} || $approval)
+    {
+#        unshift @$prefetches, 'current'; # Add info about related current record
 
         my $select = {
-            prefetch => $prefetches,
-            join     => $joins,
+            prefetch => 'current',
+            join     => [@$joins, @$prefetches],
         };
 
-        @all = rset('Record')->search(
+        $result = rset('Record')->search(
             $search, $select
-        )->all;
+        );
+    }
+    elsif ($approval)
+    {
+        # Can't use next statement as searching Current will not
+        # show new records waiting approval
     }
     else {
-        my $orderby = config->{gads}->{serial} eq "auto" ? 'me.id' : 'me.serial';
-
         # XXX Okay, this is a bit weird - we join current to record to current.
         # This is because we return records at the end, and it allows current
         # to be used when the record is used. Is there a better way?
         unshift @$prefetches, 'current';
 
         my $select = {
-            prefetch => {'record' => $prefetches},
-            join     => {'record' => $joins},
-            order_by => $orderby,
+            join     => {'record' => [@$joins, @$prefetches] },
+            prefetch => {'record' => 'current'},
+            order_by => \@orderby,
         };
 
         # First count all values from result
@@ -309,14 +497,104 @@ sub current($$)
 
         $select->{rows} = $rows if $rows;
         $select->{page} = $page if $page;
-        my $result = rset('Current')->search(
+        $result = rset('Current')->search(
             $search, $select
         );
-
-        @all = map { $_->record } $result->all;
     }
 
+    # XXX Temp hack to try and speed things up. Will the rel
+    # options remove the need for this section of code?
+    my $fields;
+    foreach my $table (@$prefetches)
+    {
+        my $field;
+        if (ref $table eq "HASH")
+        {
+            ($field) = %$table;
+        }
+        else {
+            $field = $table;
+        }
+        $field =~ /field([0-9]+)/
+            or next;
+        my $col = $columns->{$1};
+        if (ref $fields->{$col->{table}} eq 'ARRAY')
+        {
+            push $fields->{$col->{table}}, $col;
+        }
+        else {
+            $fields->{$col->{table}} = [$col];
+        }
+    }
+
+    my @rids = ($item->{record_id} || $approval)
+             ? map { $_->id } $result->all
+             : map { $_->record->id } $result->all;
+
+    my $res;
+    foreach my $type (keys %$fields)
+    {
+        my @fids;
+        foreach my $col (@{$fields->{$type}})
+        {
+            push @fids, $col->{id};
+        }
+        my $pref = $type eq "Enum" || $type eq "Tree" || $type eq "Person" ? {prefetch => 'value'} : {};
+        my @values = rset($type)->search({
+            'me.layout_id' => \@fids,
+            record_id => \@rids,
+        },
+            $pref
+        )->all;
+
+        foreach my $value (@values)
+        {
+            my $f = "field".$value->layout_id;
+            my $r = $value->record_id;
+            $res->{$r}->{$f} = $value;
+        }
+    }
+
+    foreach my $r ($result->all)
+    {
+        my $rr = ($item->{record_id} || $approval) ? $r : $r->record;
+        $res->{$rr->id}->{current}    = $rr->current;
+        $res->{$rr->id}->{current_id} = $rr->current->id;
+        $res->{$rr->id}->{createdby}  = $rr->createdby;
+        $res->{$rr->id}->{record}     = $rr->record;
+        $res->{$rr->id}->{id}         = $rr->id;
+    }
+
+    my @all = ($item->{record_id} || $approval)
+            ? map { $res->{$_->id} } $result->all
+            : map { $res->{$_->record->id} } $result->all;
     wantarray ? @all : pop(@all);
+}
+
+sub update_cache
+{   my ($self, $records, $columns) = @_;
+
+    my @changed;
+    foreach my $rec (@$records)
+    {
+        my $has_change;
+        foreach my $col (@$columns)
+        {
+            my $field = $col->{field};
+            my $old   = item_value($col, $rec);
+            # Force creation of the cache value
+            my $new = item_value($col, $rec, {force_update => 1});
+            $has_change = $new ne $old;
+        }
+        push @changed, _field($rec, 'current_id') if $has_change;
+    }
+
+    my $columns_changed;
+    foreach my $col (@$columns)
+    {
+        $columns_changed->{$col->{id}} = $col if $col->{id};
+    }
+    GADS::Alert->process(\@changed, $columns_changed);
 }
 
 sub _filter
@@ -337,68 +615,96 @@ sub _filter
     return 0;
 }
 
-sub _search_construct
-{   my ($filter, $prefetches, $joins) = @_;
-
-    my $operator = $filter->{operator};
-    my $value    = $filter->{value};
-    my $column   = $filter->{column};
-    my $type     = $filter->{type};
-
-    if (ref $value eq 'ARRAY')
-    {
-        my @v = map { _search_construct $_, $prefetches, $joins } @$value;
-        my $t = $type eq 'or' ? '-or' : '-and';
-        # Use a hash structure with operator rather than only an array
-        # ref, otherwise the same field with different search values
-        # will get overwritten
-        return ('multi', { $t => \@v });
-    }
-
+sub _table_name
+{   my ($column, $prefetches, $joins) = @_;
     my $jn = _add_join ($column->{join}, $prefetches, $joins);
     my $index = $jn > 1 ? "_$jn" : '';
-    my $sfield   = $column->{sprefix} . $index;
+    $column->{sprefix} . $index;
+}
 
+sub _search_construct
+{   my ($filter, $columns, $prefetches, $joins, $calcnull) = @_;
+
+    if (my $rules = $filter->{rules})
+    {
+        # Filter has other nested filters
+        my @final;
+        foreach my $rule (@$rules)
+        {
+            my @res = _search_construct $rule, $columns, $prefetches, $joins, $calcnull;
+            push @final, @res if @res;
+        }
+        my $condition = $filter->{condition} eq 'OR' ? '-or' : '-and';
+        return [$condition => \@final];
+    }
+
+    my %ops = (
+        equal       => '=',
+        greater     => '>',
+        less        => '<',
+        contains    => '-like',
+        begins_with => '-like',
+        not_equal   => '!=',
+    );
+
+    my $column   = $columns->{$filter->{id}}
+        or return;
+    my $operator = $ops{$filter->{operator}}
+        or ouch 'invop', "Invalid operator $filter->{operator}";
+
+    my $vprefix = $filter->{operator} eq 'contains' ? '%' : '';
+    my $vsuffix = $filter->{operator} =~ /contains|begins_with/ ? '%' : '';
+    
+    my $s_table = _table_name $column, $prefetches, $joins;
+
+    # Is the search looking for missing calculated values?
+    if ($column->{hascache} == 1 && ref $calcnull eq 'HASH')
+    {
+        $calcnull->{$column->{field}} = $column;
+        return;
+    }
+    my $value = $vprefix.$filter->{value}.$vsuffix;
+
+    my $s_field;
     if ($column->{type} eq "daterange")
     {
+        $value = DateTime->now if $filter->{value} eq "CURDATE";
+        
         # If it's a daterange, we have to be intelligent about the way the
         # search is constructed. Greater than, less than, equals all require
         # different values of the date range to be searched
-        if ($operator eq "equal")
+        if ($operator eq "=")
         {
-            ("$sfield.value", { '=', $value});
+            $s_field = "value";
         }
-        elsif ($operator eq "gt")
+        elsif ($operator eq ">")
         {
-            ("$sfield.from", { '>', $value});
+            $s_field = "to";
         }
-        elsif ($operator eq "lt")
+        elsif ($operator eq "<")
         {
-            ("$sfield.to", { '<', $value});
+            $s_field = "from";
         }
-        elsif ($operator eq "contains")
+        elsif ($operator eq "-like")
         {
-            ("$sfield.from", { '<', $value}, 'to', { '>', $value});
+            # Requires 2 searches ANDed together
+            return ('-and' => ["$s_table.from" => { '<=', $value}, "$s_table.to" => { '>=', $value}]);
+        }
+        else {
+            ouch 'invop', "Invalid operator $operator for date range";
         }
     }
     else {
-        if ($operator eq "equal")
-        {
-            ("$sfield.value", { '=', $value});
-        }
-        elsif ($operator eq "gt")
-        {
-            ("$sfield.value", { '>', $value});
-        }
-        elsif ($operator eq "lt")
-        {
-            ("$sfield.value", { '<', $value});
-        }
-        elsif ($operator eq "contains")
-        {
-            ("$sfield.value", { '-like', "%$value%"});
-        }
+        $s_field = "value";
     }
+
+    $value =~ s/\_/\\\_/g if $operator eq '-like';
+    ("$s_table.$s_field" => {$operator, $value});
+}
+
+sub _field
+{   my ($record, $field) = @_;
+    ref $record eq 'HASH' ? $record->{$field} : $record->$field;
 }
 
 sub csv
@@ -425,13 +731,13 @@ sub data
     my ($class, $view_id, $records, $options) = @_;
     my @output;
 
-    my $columns = GADS::View->columns({ view_id => $view_id });
+    my $columns = GADS::View->columns({ view_id => $view_id, no_hidden => 1, user => $options->{user} });
 
     RECORD:
     foreach my $record (@$records)
     {
-        my $serial = config->{gads}->{serial} eq "auto" ? $record->current->id : $record->current->serial;
-        my @rec = ($record->id, $serial);
+        my $serial = config->{gads}->{serial} eq "auto" ? _field($record,'current')->id : _field($record,'current')->serial;
+        my @rec = ($record->{id}, $serial);
 
         foreach my $column (@$columns)
         {
@@ -448,12 +754,22 @@ sub data
 
 sub data_calendar
 {
-    my ($self, $view_id, $from, $to) = @_;
+    my ($self, $view_id, $user, $from, $to) = @_;
 
-    my $fromdt  = DateTime->from_epoch( epoch => ( $from / 1000 ) );
+    # Epochs received from the calendar module are based on the timezone of the local
+    # browser. So in BST, 24th August is requested as 23rd August 23:00. Rather than
+    # trying to convert timezones, we keep things simple and round down any "from"
+    # times and round up any "to" times.
+    my $fromdt  = DateTime->from_epoch( epoch => ( $from / 1000 ) )->truncate( to => 'day');
     my $todt    = DateTime->from_epoch( epoch => ( $to / 1000 ) );
-    my @records = $self->current({ view_id => $view_id, from => $fromdt, to => $todt });
-    my $columns = GADS::View->columns({ view_id => $view_id });
+    if ($todt->hms('') ne '000000')
+    {
+        # If time is after midnight, round down to midnight and add day
+        $todt->set(hour => 0, minute => 0, second => 0);
+        $todt->add(days => 1);
+    }
+    my @records = $self->current({ view_id => $view_id, from => $fromdt, to => $todt, user => $user, no_hidden => 1 });
+    my $columns = GADS::View->columns({ view_id => $view_id, user => $user, no_hidden => 1 });
 
     my @colors = qw/event-important event-success event-warning event-info event-inverse event-special/;
     my @result; my %datecolors;
@@ -462,7 +778,7 @@ sub data_calendar
         my @dates; my @titles;
         foreach my $column (@$columns)
         {
-            if ($column->{type} eq "daterange" || $column->{type} eq "date")
+            if ($column->{type} eq "daterange" || $column->{vtype} eq "date")
             {
                 # Create colour if need be
                 $datecolors{$column->{id}} = shift @colors unless $datecolors{$column->{id}};
@@ -471,7 +787,7 @@ sub data_calendar
                 my $color = $datecolors{$column->{id}};
 
                 # Get item value
-                my $d = item_value($column, $record, {epoch=>1});
+                my $d = item_value($column, $record, {epoch=>1, encode_entites => 1});
 
                 # Push value onto stack
                 if ($column->{type} eq "daterange")
@@ -505,10 +821,10 @@ sub data_calendar
         {
             next unless $d->{from} && $d->{to};
             my $item = {
-                "url"   => "/record/".$record->id,
+                "url"   => "/record/" . _field($record,'id'),
                 "class" => $d->{color},
                 "title" => $title,
-                "id"    => $record->id,
+                "id"    => _field($record,'id'),
                 "start" => $d->{from}*1000,
                 "end"   => $d->{to}*1000,
             };
@@ -520,12 +836,12 @@ sub data_calendar
 }
 
 sub rag
-{   my ($class, $column, $record) = @_;
+{   my ($class, $column, $record, $options) = @_;
 
     my $rag   = $column->{rag};
     my $field = $column->{field};
-    my $item  = $record->$field;
-    if (defined $item)
+    my $item  = _field($record,$field);
+    if (defined $item && !$options->{force_update})
     {
         return $item->value;
     }
@@ -541,10 +857,38 @@ sub rag
         foreach my $col (@{$rag->{columns}})
         {
             my $name = $col->{name};
-            my $value = item_value($col, $record, {epoch => 1});
-            $green =~ s/\[$name\]/$value/gi;
-            $amber =~ s/\[$name\]/$value/gi;
-            $red   =~ s/\[$name\]/$value/gi;
+            my $value = item_value($col, $record, {epoch => 1, plain => 1});
+
+            # If field is numeric but does not have numeric value, then return
+            # grey, otherwise the value will be treated as zero
+            # and will probably return misleading RAG values
+            if ($col->{numeric})
+            {
+                if (
+                       ($col->{type} eq "daterange" && (!$value->{from} || !$value->{to}))
+                    ||  $col->{type} ne "daterange" && !looks_like_number $value
+                )
+                {
+                    _write_rag($record, $column, 'grey');
+                    return 'grey'
+                }
+            }
+
+            if ($col->{type} eq "daterange")
+            {
+                $green =~ s/\[$name\.from\]/$value->{from}/gi;
+                $green =~ s/\[$name\.to\]/$value->{to}/gi;
+                $amber =~ s/\[$name\.from\]/$value->{from}/gi;
+                $amber =~ s/\[$name\.to\]/$value->{to}/gi;
+                $red   =~ s/\[$name\.from\]/$value->{from}/gi;
+                $red   =~ s/\[$name\.to\]/$value->{to}/gi;
+            }
+            else {
+                $value = "\"$value\"" unless $col->{numeric};
+                $green =~ s/\[$name\]/$value/gi;
+                $amber =~ s/\[$name\]/$value/gi;
+                $red   =~ s/\[$name\]/$value/gi;
+            }
         }
 
         # Insert current date if required
@@ -556,27 +900,23 @@ sub rag
         my $okaycount = 0;
         foreach my $code ($green, $amber, $red)
         {
-            $_ = $code;
-            last unless /^[ \S]+$/; # Only allow normal spaces
-            last if /[\[\]]+/; # Do not allow any remaining brackets
-            last if /\\/; # No escapes please
-            s/"[^"]+"//g;
-            m!^([-()*+/0-9<> ]|&&|eq|==)+$! or last;
-            $okaycount++;
+            # If there are still square brackets then something is wrong
+            $okaycount++ if $code !~ /[\[\]]+/;
         }
 
         my $ragvalue;
+        # XXX Log somewhere if this fails
         if ($okaycount == 3)
         {
-            if (_safe_eval "($red)")
+            if ($red && _safe_eval "($red)")
             {
                 $ragvalue = 'red';
             }
-            elsif (_safe_eval "($amber)")
+            elsif ($amber && _safe_eval "($amber)")
             {
                 $ragvalue = 'amber';
             }
-            elsif (_safe_eval "($green)")
+            elsif ($green && _safe_eval "($green)")
             {
                 $ragvalue = 'green';
             }
@@ -587,59 +927,102 @@ sub rag
         else {
             $ragvalue = 'grey';
         }
-        rset('Ragval')->create({
-            record_id => $record->id,
-            layout_id => $column->{id},
-            value     => $ragvalue,
-        });
+        _write_rag($record, $column, $ragvalue);
         $ragvalue;
     }
 }
 
+sub _write_cache
+{   my ($table, $record, $column, $value) = @_;
+
+    my $tablec = camelize $table;
+    # The cache tables have unqiue constraints to prevent
+    # duplicate cache values for the same records. Using an eval
+    # catches any attempts to write duplicate values.
+    # XXX Should table locking be used instead? Currently there
+    # appears to be no cross-database compatability
+    eval {
+        rset($tablec)->create({
+            record_id => _field($record, 'id'),
+            layout_id => $column->{id},
+            value     => $value,
+        });
+    }
+}
+
+sub _write_rag
+{   my ($record, $column, $ragvalue) = @_;
+    _write_cache('ragval', @_);
+}
+
 sub calc
-{   my ($class, $column, $record) = @_;
+{   my ($class, $column, $record, $options) = @_;
 
     my $calc  = $column->{calc};
     my $field = $column->{field};
-    my $item  = $record->$field;
-    if (defined $item)
+    my $item  = _field($record,$field);
+    if (defined $item && !$options->{force_update})
     {
         return $item->value;
     }
     elsif(!$calc)
     {
-        return undef;
+        # Still write cache value, so that the system doesn't keep thinking
+        # that it's missing and trying to regenerate it
+        _write_calc($record, $column, '');
+        return '';
     }
     else {
         my $code = $calc->{calc};
         foreach my $col (@{$calc->{columns}})
         {
             my $name = $col->{name};
-            next unless $code =~ /\[$name\]/i;
+            my $extra = $col->{suffix};
+            next unless $code =~ /\Q[$name\E$extra\Q]/i;
 
-            my $value = item_value($col, $record, {epoch => 1});
-            $value = "\"$value\"" unless $value =~ /^[0-9]+$/;
-            $code =~ s/\[$name\]/$value/gi;
+            my $value = item_value($col, $record, {epoch => 1, plain => 1});
+            if ($col->{type} eq "daterange")
+            {
+                $code =~ s/\[$name\.from\]/$value->{from}/gi;
+                $code =~ s/\[$name\.to\]/$value->{to}/gi;
+            }
+            else {
+                # XXX Is there a q char delimiter that is safe regardless
+                # of input? Backtick is unlikely to be used...
+                if ($col->{numeric})
+                {
+                    $value = $value || 0;
+                }
+                else {
+                    $value = "q`$value`";
+                }
+                $code =~ s/\[$name\]/$value/gi;
+            }
         }
         # Insert current date if required
         my $now = time;
         $code =~ s/CURDATE/$now/g;
 
-        my $value = _safe_eval "$code";
-        rset('Calcval')->create({
-            record_id => $record->id,
-            layout_id => $column->{id},
-            value     => $value,
-        });
+        # If there are still square brackets then something is wrong
+        my $value = $code =~ /[\[\]]+/
+                  ? 'Invalid field names in calc formula'
+                  : _safe_eval "$code";
+
+        _write_calc($record, $column, $value);
         $value;
     }
+}
+
+sub _write_calc
+{   my ($record, $column, $value) = @_;
+    _write_cache('calcval', @_);
 }
 
 sub person
 {   my ($class, $column, $record) = @_;
 
     my $field = $column->{field};
-    my $item  = $record->$field;
+    my $item  = _field($record,$field);
 
     return undef unless $item; # Missing value
 
@@ -650,6 +1033,26 @@ sub person
     else {
         return $class->person_update_value($item->value);
     }
+}
+
+sub person_popover
+{   my ($self, $person) = @_;
+    $person || return;
+    my $value = $person->value;
+    my @details;
+    if (my $e = $person->email)
+    {
+        push @details, qq(Email: <a href='mailto:$e'>$e</a>);
+    }
+    if (my $t = $person->telephone)
+    {
+        push @details, qq(Telephone: $t);
+    }
+    my $details = join '<br>', @details;
+    return qq(<a style="cursor: pointer" class="personpop" data-toggle="popover"
+        title="$value"
+        data-content="$details">$value</a>
+    );
 }
 
 sub person_update_value
@@ -669,7 +1072,7 @@ sub daterange
 {   my ($class, $column, $record) = @_;
 
     my $field = $column->{field};
-    my $item  = $record->$field;
+    my $item  = _field($record,$field);
 
     return undef unless $item; # Missing value
 
@@ -715,8 +1118,10 @@ sub _process_input_value
     elsif ($column->{type} eq 'daterange')
     {
         # Convert to DateTime objects
-        $value or return;
-        my ($from, $to) = split ' to ', $value;
+        # Daterange values will always be 2 values in an arrayref
+        return unless $value;
+        my ($from, $to) = @$value;
+        return unless $from || $to; # No dates entered - blank value
         $from && $to or ouch 'invaliddate', "Please select 2 dates for the date range $column->{name}";
         my $f = _parse_daterange($from, $to, $format);
         $f->{from} or ouch 'invaliddate', "Invalid from date in range: \"$from\" in $column->{name}";
@@ -741,14 +1146,26 @@ sub _process_input_value
         else {
             # Database ID of existing filename, but only if checkbox ticked to include
             # and if one was previously uploaded
-            $value && $savedvalue && $savedvalue->value ? $savedvalue->value->id : undef;
+            $value && $savedvalue ? $savedvalue->id : undef;
         }
     }
     elsif ($column->{type} eq 'tree' || $column->{type} eq 'enum' || $column->{type} eq 'person')
     {
+        # First check if the value is valid
+        if ($value)
+        {
+            GADS::View->is_valid_enumval($value, $column); # borks on error
+        }
         # The values of these in the database reference other tables,
-        # so if a value is not input then set that DB value to undef
+        # so if a value is not input (may be an empty string) then set
+        # that DB value to undef
         $value ? $value : undef;
+    }
+    elsif ($column->{type} eq "intgr")
+    {
+        # Submitted integers will be and empty string
+        # for no value. We want undef
+        !$value && !looks_like_number($value) ? undef : $value;
     }
     else
     {
@@ -760,7 +1177,7 @@ sub _field_write
 {
     my ($column, $record, $value) = @_;
     my $entry = {
-        record_id => $record->id,
+        record_id => _field($record, 'id'),
         layout_id => $column->{id},
     };
     # Blank cached values to cause update later.
@@ -781,33 +1198,95 @@ sub _field_write
     $entry;
 }
 
+sub delete
+{   my ($self, $id, $user) = @_;
+
+    my @records = rset('Record')->search({ current_id => $id })->all;
+
+    foreach my $record (@records)
+    {
+        my $rid = $record->id;
+        rset('Ragval')   ->search({ record_id  => $rid })->delete;
+        rset('Calcval')  ->search({ record_id  => $rid })->delete;
+        rset('Enum')     ->search({ record_id  => $rid })->delete;
+        rset('String')   ->search({ record_id  => $rid })->delete;
+        rset('Intgr')    ->search({ record_id  => $rid })->delete;
+        rset('Daterange')->search({ record_id  => $rid })->delete;
+        rset('Date')     ->search({ record_id  => $rid })->delete;
+        rset('Person')   ->search({ record_id  => $rid })->delete;
+        rset('File')     ->search({ record_id  => $rid })->delete;
+        rset('User')     ->search({ lastrecord => $rid })->update({ lastrecord => undef });
+    }
+    rset('Current')->find($id)->update({ record_id => undef });
+    rset('Record') ->search({ current_id => $id })->update({ record_id => undef });
+    rset('AlertCache')->search({ current_id => $id })->delete;
+    rset('Record') ->search({ current_id => $id })->delete;
+    rset('Current')->find($id)->delete;
+}
+
+sub _is_blank
+{
+    my ($column, $value) = @_;
+    if ($column->{type} eq "intgr")
+    {
+        return !$value && !looks_like_number $value;
+    }
+    else {
+        # Array ref for data ranges (with 2 values within)
+        return !$value || (ref $value eq 'ARRAY' && !(scalar grep {$_} @$value)) ? 1 : 0;
+    }
+}
+
 sub approve
 {   my ($class, $user, $id, $values, $uploads) = @_;
 
     # Search for records requiring approval
     my $search->{approval} = 1;
-    $search->{id} = $id if $id; # with ID if required
-    my @r = rset('Record')->search($search)->all;
 
-    return \@r unless $values; # Summary only required
+    my $r;
+    if ($id)
+    {
+        $search->{record_id} = $id; # with ID if required
+        $r = GADS::Record->current($search);
+        return $r unless $values;
+    }
+    else {
+        my @rs = rset('Record')->search($search)->all;
+        return \@rs; # Summary only required
+    }
 
     # $r contains the record with the values in that need approving.
     # $previous contains the associated record from the same data entry,
     # but containing the submitted values that didn't need approving.
     # If all fields need approving (eg new entry) then $previous
     # will not be set
-    my $r = shift @r; # Just the first please
     my $previous;
-    $previous = $r->record if $r->record; # Its related record
+    $previous = _field($r, 'record') if _field($r, 'record'); # Its related record
 
     my $columns = GADS::View->columns; # All fields
+    my %columns_changed; # Track which columns have changed
+
+    # First check whether anything is missing. Do it now before
+    # we start writing values to the database
+    foreach my $col (@$columns)
+    {
+        my $fn = $col->{field};
+        my $recordvalue = $r && _field($r,$fn) ? _field($r,$fn)->value : undef;
+        my $newvalue = _process_input_value($col, $values->{$fn}, $uploads, $recordvalue);
+        # This assumes the value was visible in the form. It should be, even if
+        # the field was made compulsory after added the initial submission.
+        if (!$col->{optional} && _field($r,$fn) && _is_blank $col, $newvalue)
+        {
+            ouch 'missing', "Field \"$col->{name}\" is not optional. Please enter a value.";
+        }
+    }
 
     foreach my $col (@$columns)
     {
         next unless $col->{userinput};
         my $fn = $col->{field};
 
-        my $recordvalue = $r ? $r->$fn : undef;
+        my $recordvalue = $r && _field($r,$fn) ? _field($r,$fn)->value : undef;
         my $newvalue = _process_input_value($col, $values->{$fn}, $uploads, $recordvalue);
         if ($col->{type} eq 'file')
         {
@@ -818,9 +1297,9 @@ sub approve
                 # Unlikely, but there is a chance that a previous uploaded
                 # file does not exist to update (if the field has become
                 # mandatory for example). Create one if it doesn't exist
-                if ($r->$fn->value)
+                if (_field($r,$fn)->value)
                 {
-                    $newvalue = $r->$fn->value->update($newvalue)->id;
+                    $newvalue = _field($r,$fn)->value->update($newvalue)->id;
                 }
                 else {
                     $newvalue = rset('Fileval')->create($newvalue)->id;
@@ -829,10 +1308,10 @@ sub approve
             elsif($newvalue) {
                 # Use the file that was submitted by the originator,
                 # only if not removed by approver
-                if ($r->$fn->value)
+                if (_field($r,$fn)->value)
                 {
                     # If the originator submitted a file
-                    $newvalue = $r->$fn->value->id;
+                    $newvalue = _field($r,$fn)->value->id;
                 }
                 else {
                     # Otherwise he removed it
@@ -844,59 +1323,58 @@ sub approve
         # See if approver has deleted any fields submitted by originator. $values->{fn}
         # would not exist in which case. Changing it to undef will force it to appear
         # as a submitted field that is now undefined
-        $values->{$fn} = undef if $r->$fn && $r->$fn->value && !exists $values->{$fn};
-
-        # This assumes the value was visible in the form. It should be, even if
-        # the field was made compulsory after added the initial submission.
-        if (!$col->{optional} && !$newvalue)
-        {
-            ouch 'missing', "Field \"$col->{name}\" is not optional. Please enter a value.";
-        }
+        $values->{$fn} = undef if _field($r,$fn) && _field($r,$fn)->value && !exists $values->{$fn};
 
         if (!exists $values->{$fn})
         {
             # Field was not submitted in approval form. Use previously submitted
             # value if it exists
-            $newvalue = $previous->$fn->value
-                if ($previous && $previous->$fn);
+            $newvalue = item_value($col, $previous, {raw => 1});
         }
 
         # Does a value exist to update?
-        if ($r->$fn)
+        if (_field($r,$fn))
         {
-            if (exists $values->{$fn})
+            if (exists $values->{$fn}) # Field submitted on approval form
             {
                 # The value that was originally submitted for approval
-                my $orig_submitted_file = $col->{type} eq 'file' && $r->$fn->value
-                                        ? $r->$fn->value->id
+                my $orig_submitted_file = $col->{type} eq 'file' && _field($r,$fn)->value
+                                        ? _field($r,$fn)->value->id
                                         : undef;
 
                 my $write = _field_write($col, $r, $newvalue);
-                $r->$fn->update($write)
+                _field($r,$fn)->update($write)
                     or ouch 'dbfail', "Database error updating new approved values";
 
-                if (!defined($values->{$fn}) && $orig_submitted_file && !($previous && $previous->$fn && $previous->$fn->value))
+                if (!defined($values->{$fn}) && $orig_submitted_file && !($previous && _field($previous,$fn) && _field($previous,$fn)->value))
                 {
                     # If a value was not submitted in the approval, but there was
                     # a value in the record submitted for approval, and there was
                     # no previous value, then delete the associated file
                     rset('Fileval')->find($orig_submitted_file)->delete; # Otherwise orphaned
                 }
+                $columns_changed{$col->{id}} = $col; # Field has changed by means of being here
             }
         }
         else {
             my $table = $col->{table};
-            rset($table)->create({
-                record_id => $r->id,
-                layout_id => $col->{id},
-                value     => $newvalue,
-            }) or ouch 'dbfail', "Failed to create database entry for appproved field ".$col->{name};
+            my $write = _field_write($col, $r, $newvalue);
+            rset($table)->create($write)
+                or ouch 'dbfail', "Failed to create database entry for field ".$col->{name};
         }
     }
-    $r->update({ approval => 0, record_id => undef, approvedby => $user->{id}, created => \"NOW()" })
+
+    # At this point we do not have a resource set to update, just its values
+    # in a hash ref. Therefore, get the resource set
+    my $rs = rset('Record')->find($r->{id});
+    $rs->update({ approval => 0, record_id => undef, approvedby => $user->{id}, created => \"NOW()" })
         or ouch 'dbfail', "Database error when removing approval status from updated record";
-    rset('Current')->find($r->current_id)->update({ record_id => $r->id })
+    rset('Current')->find(_field($r, 'current_id'))->update({ record_id => _field($r, 'id') })
         or ouch 'dbfail', "Database error when updating current record tracking";
+
+    # Send any alerts. Not if onboarding ($user will not be set)
+    GADS::Alert->process(_field($r, 'current_id'), \%columns_changed) if $user;
+
 }
     
 sub versions($$)
@@ -922,16 +1400,16 @@ sub update
     if ($current_id)
     {
         ouch 'nopermission', "No permissions to update an entry"
-            if !$user->{permissions}->{update};
+            if $user && !$user->{permission}->{update};
         $old = GADS::Record->current({ current_id => $current_id });
     }
     else
     {
         ouch 'nopermission', "No permissions to add a new entry"
-            if !$user->{permissions}->{create};
+            if $user && !$user->{permission}->{create};
     }
 
-    my $noapproval = $user->{permissions}->{update_noneed_approval} || $user->{permissions}->{approver};
+    my $noapproval = !$user || $user->{permission}->{update_noneed_approval} || $user->{permission}->{approver};
 
     # First loop round: sanitise and see which if any have changed
     my $newvalue; my $changed; my $oldvalue;
@@ -940,37 +1418,50 @@ sub update
     my $all_columns = GADS::View->columns;
     foreach my $column (@$all_columns)
     {
-        next unless $column->{userinput};
-
         my $fn      = $column->{field};
         my $fieldid = $column->{id};
 
         # Keep a record of all the old values so that we can compare
-        if ($old && $old->$fn)
+        if ($old && _field($old,$fn))
         {
             if ($column->{type} eq "daterange")
             {
 
-                $oldvalue->{$fieldid} = { from => $old->$fn->from, to => $old->$fn->to };
+                $oldvalue->{$fieldid} = { from => _field($old,$fn)->from, to => _field($old,$fn)->to };
             }
             else {
-                $oldvalue->{$fieldid} = $old->$fn->value;
+                $oldvalue->{$fieldid} = _field($old,$fn)->value;
             }
         }
 
-        my $value = $params->{$fn};
+        next unless $column->{userinput};
 
-        if (!$value && !$column->{optional} && (!$old || ($old && $oldvalue->{$fieldid})))
+        # If field is hidden then use previous value (if normal user)
+        my $value;
+        if ($column->{hidden} && $user && !$user->{permission}->{layout})
+        {
+            $value = item_value($column, $old, {raw => 1})
+                if $old;
+        }
+        else {
+            $value = $params->{$fn};
+        }
+
+        if (
+               _is_blank($column, $value) # New value is blank
+            && !$column->{optional}       # Field is not optional
+            && (!$current_id || !_is_blank($column, $oldvalue->{$fieldid})) # Old value was not blank
+        )
         {
             # Only if a value was set previously, otherwise a field that had no
             # value might be made mandatory, but if it's read-only then that will
             # stop users updating other fields of the record
             ouch 'missing', qq("$column->{name}" is not optional. Please enter a value.);
         }
-        $newvalue->{$fieldid} = _process_input_value($column, $value, $uploads);
+        $newvalue->{$fieldid} = _process_input_value($column, $value, $uploads, $oldvalue->{$fieldid});
 
         # Keep a track as to whether a value has changed. Keep it undef for new values
-        $changed->{$fieldid} = $old ? _changed($column, $oldvalue->{$fieldid}, $newvalue->{$fieldid}) : undef;
+        $changed->{$fieldid} = 1 if $old && _changed($column, $oldvalue->{$fieldid}, $newvalue->{$fieldid});
 
         ouch 'nopermission', "Field ID $fieldid is read only"
             if $changed->{$fieldid} &&
@@ -1039,13 +1530,17 @@ sub update
         $current_id = rset('Current')->create({serial => $serial})->id;
     }
 
-    my $record_rs   = record_rs($current_id, $user) if $need_rec;
+    my $record_rs;
+    $record_rs = record_rs($current_id, $user) if $need_rec;
 
-    my $rid = $record_rs ? $record_rs->id
-                         : $old ? $old->id : undef;
-    my $approval_rs = approval_rs($current_id, $rid, $user) if $need_app;
+    my $rid = $need_rec ? $record_rs->id
+                        : $old
+                        ? _field($old, 'id') : undef;
 
-    unless ($old)
+    my $approval_rs;
+    $approval_rs = approval_rs($current_id, $rid, $user) if $need_app;
+
+    if (!$old && $user)
     {
         # New entry, so save record ID to user for retrieval of previous
         # values if needed for another new entry. Use the approval ID id
@@ -1055,11 +1550,19 @@ sub update
     }
 
     # Write all the values
+    my %columns_changed; my @columns_cached;
     foreach my $column (@$all_columns)
     {
-        next unless $column->{userinput};
-
         my $fieldid = $column->{id};
+
+        if (!$column->{userinput})
+        {
+            # Make a note of cached columns that need updating
+            # Don't write now as we haven't finished creating the record
+            push @columns_cached, $column;
+            next;
+        }
+
         my $value = $newvalue->{$fieldid};
 
         # If new file, store it
@@ -1080,6 +1583,8 @@ sub update
             # Need to write all values regardless
             if ($column->{permission} == OPEN || $noapproval)
             {
+                $columns_changed{$fieldid} = $column if $changed->{$fieldid};
+
                 # Write new value
                 $v = $newvalue->{$fieldid};
             }
@@ -1087,7 +1592,7 @@ sub update
                 # Write old value
                 $v = $oldvalue->{$fieldid};
             }
-            if ($v)
+            unless (_is_blank $column, $v)
             {
                 # Don't create a record for blank values. Doesn't work for
                 # enums and other fields that reference others
@@ -1107,6 +1612,7 @@ sub update
 
     }
 
+
     # Finally update the current record tracking, if we've created a new
     # permanent record
     if ($need_rec)
@@ -1114,6 +1620,21 @@ sub update
         rset('Current')->find($current_id)->update({ record_id => $record_rs->id })
             or ouch 'dbfail', "Database error updating current record tracking";
     }
+
+    # Write cached values
+    foreach my $col (@columns_cached)
+    {
+        # Get old value
+        my $old = $oldvalue->{$col->{id}};
+        # Force new value to be written
+        my $new = item_value($col, $record_rs);
+        # Changed?
+        $columns_changed{$col->{id}} = $col if $old ne $new;
+    }
+
+    # Send any alerts
+    GADS::Alert->process($current_id, \%columns_changed);
+
     1;
 }
 
@@ -1141,7 +1662,7 @@ sub _changed
     return 1 if !$old && $new;
 
     # Return false if both undefined (prevent undefined warnings below)
-    return 0 if !$old && !$new;
+    return 0 if !defined $old && !defined $new;
 
     if ($field->{type} eq 'string')
     {
@@ -1149,6 +1670,8 @@ sub _changed
     }
     elsif($field->{type} eq 'intgr')
     {
+        return 1 if !looks_like_number $old && looks_like_number $new;
+        return 1 if looks_like_number $old && !looks_like_number $new;
         return $old != $new;
     }
     elsif($field->{type} eq 'file')
@@ -1176,7 +1699,7 @@ sub record_rs
     my $record;
     $record->{current_id} = $current_id;
     $record->{created} = \"NOW()";
-    $record->{createdby} = $user->{id};
+    $record->{createdby} = $user->{id} if $user;
     rset('Record')->create($record)
         or ouch 'dbfail', "Failed to create a database record for this update";
 }
@@ -1189,7 +1712,7 @@ sub approval_rs
     $record->{created}    = \"NOW()";
     $record->{record_id}  = $record_id;
     $record->{approval}   = 1;
-    $record->{createdby}  = $user->{id};
+    $record->{createdby}  = $user->{id} if $user;
     rset('Record')->create($record)
         or ouch 'dbfail', "Failed to create a database record for the approval request";
 }
@@ -1203,16 +1726,19 @@ sub _safe_eval
     $cpt->permit_only(qw(null scalar const padany lineseq leaveeval rv2sv pushmark list return enter));
     
     #Comparators
-    $cpt->permit(qw(lt i_lt gt i_gt le i_le ge i_ge eq i_eq ne i_ne ncmp i_ncmp slt sgt sle sge seq sne scmp));
+    $cpt->permit(qw(not lt i_lt gt i_gt le i_le ge i_ge eq i_eq ne i_ne ncmp i_ncmp slt sgt sle sge seq sne scmp));
 
     # XXX fix later? See https://rt.cpan.org/Public/Bug/Display.html?id=89437
     $cpt->permit(qw(rv2gv));
 
-    #Base math
-    #$cpt->permit(qw(preinc i_preinc predec i_predec postinc i_postinc postdec i_postdec int hex oct abs pow multiply i_multiply divide i_divide modulo i_modulo add i_add subtract i_subtract));
+    # Base math
+    $cpt->permit(qw(preinc i_preinc predec i_predec postinc i_postinc postdec i_postdec int hex oct abs pow multiply i_multiply divide i_divide modulo i_modulo add i_add subtract i_subtract));
 
     #Conditionals
     $cpt->permit(qw(cond_expr flip flop andassign orassign and or xor));
+
+    # Concatenation and substr
+    $cpt->permit(qw(concat substr));
 
     #Advanced math
     #$cpt->permit(qw(atan2 sin cos exp log sqrt rand srand));

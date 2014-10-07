@@ -36,6 +36,12 @@
         [% IF page == "data" AND viewtype == "calendar" %]
             <link rel="stylesheet" href="[% url.css %]/calendar.min.css">
         [% END %]
+        [% IF page == "view" %]
+            <link rel="stylesheet" href="[% url.css %]/query-builder.css">
+        [% END %]
+
+        <!-- Custom styles for this template -->
+        <link rel="stylesheet" href="[% url.css %]/local.css">
 
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
@@ -60,30 +66,41 @@
                                 <span class="icon-bar"></span>
                                 <span class="icon-bar"></span>
                             </button>
-                            <a class="navbar-brand" href="[% url.page %]/">SCAP</a>
+                            <a class="navbar-brand" href="[% url.page %]/">Home</a>
                         </div>
                         <div class="collapse navbar-collapse">
                             <ul class="nav navbar-nav">
                                 <li [% IF page=="data" %]class="active"[% END %]><a href="[% url.page %]/data">Data</a></li>
-                                [% IF user.permissions.approver %]
-                                    <li [% IF page=="approval" %]class="active"[% END %]><a href="[% url.page %]/approval/">Approval</a></li>
+                                [% IF user.permission.approver %]
+                                    [% IF approve_waiting %][% count = " (" _ approve_waiting _ ")" %][% END %]
+                                    <li [% IF page=="approval" %]class="active"[% END %]>
+                                        <a href="[% url.page %]/approval/">Approval[% count %]</a>
+                                    </li>
                                 [% END %]
-                                [% IF user.permissions.admin %]
-                                    <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/layout/">Layout</a></li>
-                                    <li [% IF page=="graph" %]class="active"[% END %]><a href="[% url.page %]/graph/">Graphs</a></li>
-                                [% END %]
-                                [% IF user.permissions.admin %]
-                                    <li [% IF page=="user" %]class="active"[% END %]><a href="[% url.page %]/user/">Users</a></li>
-                                [% END %]
+                                <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Configuration <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    [% IF user.permission.layout %]
+                                        <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/layout/">Data Layout</a></li>
+                                        <li [% IF page=="graph" %]class="active"[% END %]><a href="[% url.page %]/graph/">Graphs</a></li>
+                                        <li [% IF page=="config" %]class="active"[% END %]><a href="[% url.page %]/config/">General Settings</a></li>
+                                    [% END %]
+                                    [% IF user.permission.useradmin %]
+                                        <li [% IF page=="user" %]class="active"[% END %]><a href="[% url.page %]/user/">Manage Users</a></li>
+                                    [% END %]
+                                </ul>
+                                </li>
                             </ul>
+                            <form class="navbar-form navbar-left" role="search" action="/search">
+                                <div class="form-group">
+                                    <input type="text" name="search" class="form-control" title="Use * as a wildcard character" placeholder="Use * as wildcard" value="[% search %]">
+                                </div>
+                                <button type="submit" class="btn btn-default">Search</button>
+                            </form>
                             <ul class="nav navbar-nav navbar-right">
                                 <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% user.value %]<b class="caret"></b></a>
                                 <ul class="dropdown-menu">
-                                    <!--
-                                    <li><a href="#">Action</a></li>
-                                    <li><a href="#">Another action</a></li>
-                                    -->
                                     <li><a href="[% url.page %]/account/detail">My details</a></li>
                                     <li><a href="[% url.page %]/account/graph">My graphs</a></li>
                                     <li class="divider"></li>
@@ -118,10 +135,13 @@
         <!-- Placed at the end of the document so the pages load faster -->
         [% IF hostlocal %]
             <script src="[% url.js %]/jquery-1.10.2.min.js"></script>
+            <script src="[% url.js %]/bootstrap.min.js"></script>
+            <script src="[% url.js %]/tooltip.min.js"></script>
         [% ELSE %]
             <script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+            <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+            <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/js/tooltip.min.js"></script>
         [% END %]
-        <script src="[% url.js %]/bootstrap.min.js"></script>
         [% IF page == "edit" OR page == "approval" %]
             <script type="text/javascript" src="[% url.js %]/bootstrap-datepicker.js"></script>
             <script type="text/javascript">
@@ -146,14 +166,25 @@
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasTextRenderer.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasAxisTickRenderer.js"></script>
         [% END %]
+        [% IF page == "view" %]
+            <script type="text/javascript" src="[% url.js %]/underscore-min.js"></script>
+            <script type="text/javascript" src="[% url.js %]/query-builder.js"></script>
+        [% END %]
         [% IF page == "data" AND viewtype == "calendar" %]
             <script type="text/javascript" src="[% url.js %]/underscore-min.js"></script>
             <script type="text/javascript" src="[% url.js %]/calendar.min.js"></script>
         [% END %]
+        [% IF page == "config" %]
+            <script type="text/javascript" src="[% url.js %]/tiny_mce/tiny_mce.js"></script>
+        [% END %]
+
+        <script type="text/javascript" src="[% url.js %]/jquery.placeholder.js"></script>
         <script type="text/javascript">
+            $('.personpop').popover({placement:'auto', html:true});
             if (typeof jscode != 'undefined') {
                 eval(jscode);
             }
+            $('input, text').placeholder();
         </script>
         [% IF page == "layout" OR page == "edit" OR page == "approval" %]
             <script src="[% url.js %]/jstree.min.js"></script>

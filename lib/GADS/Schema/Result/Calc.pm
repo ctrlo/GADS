@@ -52,6 +52,12 @@ __PACKAGE__->table("calc");
   data_type: 'mediumtext'
   is_nullable: 1
 
+=head2 return_format
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 45
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -61,6 +67,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "calc",
   { data_type => "mediumtext", is_nullable => 1 },
+  "return_format",
+  { data_type => "varchar", is_nullable => 1, size => 45 },
 );
 
 =head1 PRIMARY KEY
@@ -98,8 +106,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-16 14:13:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IjICNQvXc/Q28EJcAO5RRg
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-11 23:24:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HThkjKKtwGEhoEk8fnfmwg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

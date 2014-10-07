@@ -1,10 +1,23 @@
         $(document).ready(function () {
             [% FOREACH tree IN trees %]
                 $('#jstree[% tree.id %]')
-                .on('changed.jstree', function (e, data) {
-                    var newval = data.instance.get_node(data.selected[0]).id;
-                    if (typeof newval == 'undefined') { newval = ''; }
-                    document.getElementById('treeval[% tree.id %]').value = newval;
+                .on({
+                    'changed.jstree': function (e, data) {
+                        var newval_id = data.instance.get_node(data.selected[0]).id;
+                        if (typeof newval_id == 'undefined') { newval_id = ''; }
+                        $('#treeval_id[% tree.id %]').val(newval_id);
+                        var newval_text = data.instance.get_node(data.selected[0]).text;
+                        if (typeof newval_text == 'undefined') { newval_text = ''; }
+                        $('#[% tree.id %]').val(newval_text).trigger('change');
+                    }
+                    [% IF tree.end_node_only %],
+                        'select_node.jstree': function (e, data) {
+                            if (data.node.children.length > 0) {
+                                $('#jstree[% tree.id %]').jstree(true).deselect_node(data.node);
+                                $('#jstree[% tree.id %]').jstree(true).toggle_node(data.node);
+                            }
+                        }
+                    [% END %]
                 })
                 .jstree({
                     "core" : {
