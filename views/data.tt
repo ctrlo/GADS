@@ -72,8 +72,8 @@
                             <select class="form-control" name="rows" onchange="this.form.submit()">
                                 <option value="10" [% IF subset.rows == 10 %]selected[% END %]>10</option>
                                 <option value="50" [% IF subset.rows == 50 %]selected[% END %]>50</option>
+                                <option value="100" [% IF subset.rows == 100 %]selected[% END %]>100</option>
                                 <option value="200" [% IF subset.rows == 200 %]selected[% END %]>200</option>
-                                <option value="500" [% IF subset.rows == 500 %]selected[% END %]>500</option>
                             </select>
                         </div>
                     </div>
