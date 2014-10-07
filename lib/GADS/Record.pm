@@ -1251,7 +1251,7 @@ sub approve
         return $r unless $values;
     }
     else {
-        my @rs = GADS::Record->current($search);
+        my @rs = rset('Record')->search($search)->all;
         return \@rs; # Summary only required
     }
 
