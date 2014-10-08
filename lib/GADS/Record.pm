@@ -572,10 +572,22 @@ sub current($$)
 }
 
 sub update_cache
-{   my ($self, $records, $columns) = @_;
+{   my ($self, $columns) = @_;
+
+    my $record_columns_needed = []; # The columns we need to fetch for calculations
+    # First delete old cached values
+    foreach my $col (@$columns)
+    {
+        rset($col->{table})->search({ layout_id => $col->{id} })->delete;
+        my $type = $col->{type} eq 'rag' ? 'rag' : 'calc';
+        push $record_columns_needed, @{$col->{$type}->{columns}};
+    }
+
+    # Get all records needed to update this calculated field
+    my @records = GADS::Record->current({ columns => $record_columns_needed, no_hidden => 0 });
 
     my @changed;
-    foreach my $rec (@$records)
+    foreach my $rec (@records)
     {
         my $has_change;
         foreach my $col (@$columns)
@@ -586,15 +598,27 @@ sub update_cache
             my $new = item_value($col, $rec, {force_update => 1});
             $has_change = $new ne $old;
         }
-        push @changed, rfield($rec, 'current_id') if $has_change;
+        push @changed, $rec if $has_change;
     }
 
     my $columns_changed;
+    my $all_columns = GADS::View->columns;
     foreach my $col (@$columns)
     {
         $columns_changed->{$col->{id}} = $col if $col->{id};
+        # See whether any other calculations refer to this and also
+        # need updating
+        foreach my $c (@$all_columns)
+        {
+            my $depends = ($c->{calc} && $c->{calc}->{columns}) || ($c->{rag} && $c->{rag}->{columns});
+            foreach my $d (@$depends)
+            {
+                $self->update_cache([$c]) if $d->{id} == $col->{id};
+            }
+        }
     }
-    GADS::Alert->process(\@changed, $columns_changed);
+    my @changed_vals = map { rfield $_, 'current_id' } @changed;
+    GADS::Alert->process(\@changed_vals, $columns_changed);
 }
 
 sub _filter

@@ -455,13 +455,8 @@ sub item
             if ($need_update)
             {
                 # Get records first so that we have old values and fields needed for calc
-                my ($rag_col) = @{GADS::View->columns({ id => $item->id })};
-                my $columns = [@{$rag_col->{rag}->{columns}}]; # Copy so as not to effect rag columns value
-                push $columns, $rag_col;
-                my @records = GADS::Record->current({ columns => $columns, no_hidden => 0 });
-                rset('Ragval')->search({ layout_id => $ragr->layout_id })->delete
-                    or ouch 'dbfail', "Database error deleting cached values for this rag";
-                GADS::Record->update_cache(\@records, $columns);
+                my $rag_col = GADS::View->columns({ id => $item->id });
+                GADS::Record->update_cache($rag_col);
             }
         }
         if ($args->{type} eq 'calc')
@@ -488,13 +483,8 @@ sub item
             if ($need_update)
             {
                 # Get records first so that we have old values and fields needed for calc
-                my ($calc_col) = @{GADS::View->columns({ id => $item->id })};
-                my $columns = [@{$calc_col->{calc}->{columns}}]; # Copy so as not to effect rag columns value
-                push $columns, $calc_col;
-                my @records = GADS::Record->current({ columns => $columns, no_hidden => 0 });
-                rset('Calcval')->search({ layout_id => $calcr->layout_id })->delete
-                    or ouch 'dbfail', "Database error deleting cached values for this calc";
-                GADS::Record->update_cache(\@records, $columns);
+                my $calc_col = GADS::View->columns({ id => $item->id });
+                GADS::Record->update_cache($calc_col);
             }
         }
         if ($args->{type} eq 'file')
