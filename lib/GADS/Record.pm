@@ -849,7 +849,7 @@ sub rag
     }
     elsif (!$rag)
     {
-        return 'grey'
+        return 'a_grey'
     }
     else {
         my $green = $rag->{green};
@@ -871,8 +871,8 @@ sub rag
                     ||  $col->{type} ne "daterange" && !looks_like_number $value
                 )
                 {
-                    _write_rag($record, $column, 'grey');
-                    return 'grey'
+                    _write_rag($record, $column, 'a_grey');
+                    return 'a_grey'
                 }
             }
 
@@ -912,22 +912,22 @@ sub rag
         {
             if ($red && _safe_eval "($red)")
             {
-                $ragvalue = 'red';
+                $ragvalue = 'b_red';
             }
             elsif ($amber && _safe_eval "($amber)")
             {
-                $ragvalue = 'amber';
+                $ragvalue = 'c_amber';
             }
             elsif ($green && _safe_eval "($green)")
             {
-                $ragvalue = 'green';
+                $ragvalue = 'd_green';
             }
             else {
-                $ragvalue = 'grey';
+                $ragvalue = 'a_grey';
             }
         }
         else {
-            $ragvalue = 'grey';
+            $ragvalue = 'a_grey';
         }
         _write_rag($record, $column, $ragvalue);
         $ragvalue;
