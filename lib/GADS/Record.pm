@@ -1124,7 +1124,7 @@ sub _process_input_value
         return unless $value;
         my ($from, $to) = @$value;
         return unless $from || $to; # No dates entered - blank value
-        $from && $to or ouch 'invaliddate', "Please select 2 dates for the date range $column->{name}";
+        $from && $to or ouch 'invaliddate', qq(Please select 2 dates for "$column->{name}");
         my $f = _parse_daterange($from, $to, $format);
         $f->{from} or ouch 'invaliddate', "Invalid from date in range: \"$from\" in $column->{name}";
         $f->{to}   or ouch 'invaliddate', "Invalid to date in range: \"$to\" in $column->{name}";
