@@ -69,6 +69,17 @@ __PACKAGE__->table("instance");
   is_nullable: 1
   size: 128
 
+=head2 email_reject_text
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 email_reject_subject
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 128
+
 =head2 register_text
 
   data_type: 'text'
@@ -105,6 +116,10 @@ __PACKAGE__->add_columns(
   "email_delete_text",
   { data_type => "text", is_nullable => 1 },
   "email_delete_subject",
+  { data_type => "varchar", is_nullable => 1, size => 128 },
+  "email_reject_text",
+  { data_type => "text", is_nullable => 1 },
+  "email_reject_subject",
   { data_type => "varchar", is_nullable => 1, size => 128 },
   "register_text",
   { data_type => "text", is_nullable => 1 },
@@ -166,8 +181,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-16 23:40:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xk4jHY5YfHt6qQ9UaCqXfg
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-10-08 09:52:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DKCb4oTr76bv7CUWJ5vxzA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

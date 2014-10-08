@@ -110,6 +110,15 @@ sub delete
     if ($user->{account_request})
     {
         user 'delete' => id => $user_id;
+
+        my ($instance) = rset('Instance')->all;
+        my $email = {
+            subject => $instance->email_reject_subject,
+            emails  => [$user->{email}],
+            text    => $instance->email_reject_text,
+        };
+        GADS::Email->send($email);
+
         return;
     }
 
