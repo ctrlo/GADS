@@ -840,11 +840,23 @@ any '/edit/:id?' => sub {
 
             my $bleep = bleep; # Otherwise it's overwritten
 
+            my %columns = map { $_->{id} => $_ } @$all_columns; # Need this to check column type easily
+
+            my $has_file;
             # Remember previous submitted values in event of error
             foreach my $fn (keys %$params)
             {
                 next unless $fn =~ /^field(\d+)$/;
-                $record->{$fn} = {value => $params->{$fn}};
+                if ($params->{"file$1"})
+                {
+                    $has_file = 1
+                }
+                elsif ($columns{$1}->{type} ne "file")
+                {
+                    # If it's a file field that wasn't submitted,
+                    # then that submitted form value is 1. Ignore.
+                    $record->{$fn} = {value => $params->{$fn}};
+                }
             }
             # For the hidden current_id field
             $record->{current}->{id} = $params->{current_id};
@@ -860,6 +872,7 @@ any '/edit/:id?' => sub {
                 }
             }
 
+            $bleep .= " Please note that you will need to reselect your uploaded files." if $has_file;
             messageAdd( { danger => $bleep } );
         }
         else {

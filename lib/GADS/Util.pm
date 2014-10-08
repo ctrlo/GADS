@@ -111,11 +111,16 @@ sub item_value
         # with the current user
         if (exists $record->{$field}->{value})
         {
+            my $v = $record->{$field}->{value};
             # If the key does it exist, but it's undef, then
             # it's a "blank" person value, in which case return
             # an empty string, so as to set the selection as blank
             # (and not default to current user)
-            return $record->{$field}->{value} // '';
+            return '' if !defined $v;
+            # If an array ref, then it's a date range. Convert to 
+            # something that can be displayed on the form
+            return { from => $v->[0], to => $v->[1] } if ref $v eq "ARRAY";
+            return $record->{$field}->{value};
         }
         else {
             return undef;
