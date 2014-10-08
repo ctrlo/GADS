@@ -97,7 +97,12 @@
         <div class="col-md-12">
     <div class="form-group">
         [% label = dispcol.name | html_entity %]
-        [% UNLESS dispcol.optional %][% label = label _ '*' %][% END %]
+        [% IF dispcol.optional %]
+            [% label_style = 'style="font-weight:normal !important"' %]
+        [% ELSE %]
+            [% label_style = "" %]
+            [% label = label _ '*' %]
+        [% END %]
         [% IF dispcol.description %]
             [% label = label _ " (" _ dispcol.description _ ")" %]
         [% END %]
@@ -106,7 +111,7 @@
                              _ dispcol.id  _ "' data-target='#helptext_modal'>?</a>)" %]
         [% END %]
     [% IF dispcol.type == "enum" %]
-        <label for="[% field %]">
+        <label for="[% field %]" [% label_style %]>
             [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
         </label>
         <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
@@ -128,7 +133,7 @@
         </select>
     [% ELSIF dispcol.type == "tree" %]
         [% trees.push({id = dispcol.id, end_node_only = dispcol.end_node_only, value = value.value}) %]
-        <label for="[% dispcol.id %]">
+        <label for="[% dispcol.id %]" [% label_style %]>
             [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
         </label>
         <div class="form-group">
@@ -137,7 +142,7 @@
         <input type="hidden" name="[% field %]" id="treeval_id[% dispcol.id %]" value="[% value.value %]">
         <input type="hidden" id="[% dispcol.id %]" value="">
     [% ELSIF dispcol.type == "person" %]
-        <label for="[% dispcol.id %]">
+        <label for="[% dispcol.id %]" [% label_style %]>
             [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
         </label>
         <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
@@ -156,7 +161,7 @@
             [% END %]
         </select>
     [% ELSIF dispcol.type == "file" %]
-        <label for="[% dispcol.id %]">
+        <label for="[% dispcol.id %]" [% label_style %]>
             [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
         </label>
         [% IF readonly %]
@@ -172,7 +177,7 @@
             [% END %]
         [% END %]
     [% ELSE %]
-        <label for="[% dispcol.id %]">
+        <label for="[% dispcol.id %]" [% label_style %]>
             [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
         </label>
         [% IF dispcol.type == "daterange" %]
