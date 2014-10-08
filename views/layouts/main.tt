@@ -157,6 +157,8 @@
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.dateAxisRenderer.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasTextRenderer.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasAxisTickRenderer.js"></script>
+            <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasTextRenderer.min.js"></script>
+            <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasAxisLabelRenderer.min.js"></script>
         [% END %]
         [% IF page == "view" %]
             <script type="text/javascript" src="[% url.js %]/underscore-min.js"></script>
