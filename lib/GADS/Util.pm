@@ -22,7 +22,7 @@ my @permissions = qw/
  /;
 
 # push @listconfig, qw(format_email format_from_html format_from_plain format_from_mailto);
-our @EXPORT_OK   = (@permissions);
+our @EXPORT_OK   = (@permissions, 'rfield');
 our %EXPORT_TAGS =
   ( permissions => \@permissions
   , all         => \@EXPORT_OK
@@ -72,7 +72,7 @@ sub _date
     }
 }
 
-sub _field
+sub rfield
 {   my ($record, $field) = @_;
     ref $record eq 'HASH' ? $record->{$field} : $record->$field;
 }
@@ -84,7 +84,7 @@ sub item_value
     return undef unless $record;
 
     # Check for special case of ID
-    return _field($record,'current_id') if $column->{type} eq "id";
+    return rfield($record,'current_id') if $column->{type} eq "id";
 
     my $field = 'field'.$column->{id};
 
@@ -102,7 +102,7 @@ sub item_value
     # XXX This is all starting to get a bit messy. Probably time for
     # a rewrite. If prefilled from previous form submission (with errors)
     # or if remembered values, then values will be in a hash.
-    if (ref _field($record,$field) eq 'HASH')
+    if (ref rfield($record,$field) eq 'HASH')
     {
         return unless $raw;
         # If the key doesn't exist, return undef, as that means
@@ -148,38 +148,38 @@ sub item_value
     {
         if ($raw)
         {
-            return _field($record,$field) && _field($record,$field)->value ? _field($record,$field)->value->id : $blank;
+            return rfield($record,$field) && rfield($record,$field)->value ? rfield($record,$field)->value->id : $blank;
         }
         my $v = GADS::Record->person($column, $record);
         $v = $encode ? encode_entities($v) : $v;
         return $v if $options->{plain};
-        my $person = _field($record,$field) && _field($record,$field)->value ? _field($record,$field)->value : undef;
+        my $person = rfield($record,$field) && rfield($record,$field)->value ? rfield($record,$field)->value : undef;
         return $person ? GADS::Record->person_popover($person) : '';
     }
     elsif ($column->{type} eq "enum" || $column->{type} eq 'tree')
     {
         if ($raw)
         {
-            return _field($record,$field) && _field($record,$field)->value ? _field($record,$field)->value->id : $blank;
+            return rfield($record,$field) && rfield($record,$field)->value ? rfield($record,$field)->value->id : $blank;
         }
-        my $v = _field($record,$field) && _field($record,$field)->value ? _field($record,$field)->value->value : $blank;
+        my $v = rfield($record,$field) && rfield($record,$field)->value ? rfield($record,$field)->value->value : $blank;
         return $encode ? encode_entities($v) : $v;
     }
     elsif ($column->{type} eq "date")
     {
         if ($raw)
         {
-            return _field($record,$field) && _field($record,$field)->value ? _field($record,$field)->value->ymd : undef;
+            return rfield($record,$field) && rfield($record,$field)->value ? rfield($record,$field)->value->ymd : undef;
         }
-        my $date = _field($record,$field) ? _field($record,$field)->value : '';
+        my $date = rfield($record,$field) ? rfield($record,$field)->value : '';
         $date or return '';
 
         return _date $date, $options;
     }
     elsif ($column->{type} eq "daterange")
     {
-        my $date = _field($record,$field) && _field($record,$field)->from && _field($record,$field)->to
-                 ? {from => _field($record,$field)->from, to => _field($record,$field)->to}
+        my $date = rfield($record,$field) && rfield($record,$field)->from && rfield($record,$field)->to
+                 ? {from => rfield($record,$field)->from, to => rfield($record,$field)->to}
                  : undef;
         $date or return;
 
@@ -213,9 +213,9 @@ sub item_value
     }
     elsif ($column->{type} eq "file")
     {
-        if (_field($record,$field))
+        if (rfield($record,$field))
         {
-            my $file = _field($record,$field)->value or return;
+            my $file = rfield($record,$field)->value or return;
             return $file->id if $raw;
             my $filename = $file->name;
             $filename = $encode ? encode_entities($filename) : $filename;
@@ -229,7 +229,7 @@ sub item_value
     }
     elsif ($column->{type} eq "string")
     {
-        my $string = _field($record,$field) ? _field($record,$field)->value : $blank;
+        my $string = rfield($record,$field) ? rfield($record,$field)->value : $blank;
         $string = $encode ? encode_entities($string) : $string;
         return $string if $raw || $options->{plain};
         $string =~ s( ($RE{URI}{HTTP}{-scheme => qr/https?/}) ) (<a href="$1">$1</a>)gx
@@ -237,7 +237,7 @@ sub item_value
         $string;
     }
     else {
-        return _field($record,$field) ? _field($record,$field)->value : $blank;
+        return rfield($record,$field) ? rfield($record,$field)->value : $blank;
     }
 }
 
@@ -252,19 +252,19 @@ sub item_id
     }
     elsif ($column->{type} eq "person")
     {
-        return _field($record,$field) ? _field($record,$field)->value->id : undef;
+        return rfield($record,$field) ? rfield($record,$field)->value->id : undef;
     }
     elsif ($column->{type} eq "enum" || $column->{type} eq 'tree')
     {
-        return _field($record,$field) ? _field($record,$field)->value->id : undef;
+        return rfield($record,$field) ? rfield($record,$field)->value->id : undef;
     }
     elsif ($column->{type} eq "date")
     {
-        return _field($record,$field) ? _field($record,$field)->value->id : undef;
+        return rfield($record,$field) ? rfield($record,$field)->value->id : undef;
     }
     else
     {
-        return _field($record,$field) ? _field($record,$field)->value : undef;
+        return rfield($record,$field) ? rfield($record,$field)->value : undef;
     }
 }
 

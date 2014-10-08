@@ -48,7 +48,7 @@ sub files
     foreach my $col (@{GADS::View->columns({ files => 1 })})
     {
         my $f = $col->{field};
-        $files{$f} = _field($record,$f) && _field($record,$f)->value ? _field($record,$f)->value->name : '';
+        $files{$f} = rfield($record,$f) && rfield($record,$f)->value ? rfield($record,$f)->value->name : '';
     }
     %files;
 }
@@ -586,7 +586,7 @@ sub update_cache
             my $new = item_value($col, $rec, {force_update => 1});
             $has_change = $new ne $old;
         }
-        push @changed, _field($rec, 'current_id') if $has_change;
+        push @changed, rfield($rec, 'current_id') if $has_change;
     }
 
     my $columns_changed;
@@ -704,11 +704,6 @@ sub _search_construct
     ("$s_table.$s_field" => {$operator, $value});
 }
 
-sub _field
-{   my ($record, $field) = @_;
-    ref $record eq 'HASH' ? $record->{$field} : $record->$field;
-}
-
 sub csv
 {
     my ($class, $colnames, $data) = @_;
@@ -738,7 +733,7 @@ sub data
     RECORD:
     foreach my $record (@$records)
     {
-        my $serial = config->{gads}->{serial} eq "auto" ? _field($record,'current')->id : _field($record,'current')->serial;
+        my $serial = config->{gads}->{serial} eq "auto" ? rfield($record,'current')->id : rfield($record,'current')->serial;
         my @rec = ($record->{id}, $serial);
 
         foreach my $column (@$columns)
@@ -823,10 +818,10 @@ sub data_calendar
         {
             next unless $d->{from} && $d->{to};
             my $item = {
-                "url"   => "/record/" . _field($record,'id'),
+                "url"   => "/record/" . rfield($record,'id'),
                 "class" => $d->{color},
                 "title" => $title,
-                "id"    => _field($record,'id'),
+                "id"    => rfield($record,'id'),
                 "start" => $d->{from}*1000,
                 "end"   => $d->{to}*1000,
             };
@@ -842,7 +837,7 @@ sub rag
 
     my $rag   = $column->{rag};
     my $field = $column->{field};
-    my $item  = _field($record,$field);
+    my $item  = rfield($record,$field);
     if (defined $item && !$options->{force_update})
     {
         return $item->value;
@@ -945,7 +940,7 @@ sub _write_cache
     # appears to be no cross-database compatability
     eval {
         rset($tablec)->create({
-            record_id => _field($record, 'id'),
+            record_id => rfield($record, 'id'),
             layout_id => $column->{id},
             value     => $value,
         });
@@ -962,7 +957,7 @@ sub calc
 
     my $calc  = $column->{calc};
     my $field = $column->{field};
-    my $item  = _field($record,$field);
+    my $item  = rfield($record,$field);
     if (defined $item && !$options->{force_update})
     {
         return $item->value;
@@ -1024,7 +1019,7 @@ sub person
 {   my ($class, $column, $record) = @_;
 
     my $field = $column->{field};
-    my $item  = _field($record,$field);
+    my $item  = rfield($record,$field);
 
     return undef unless $item; # Missing value
 
@@ -1074,7 +1069,7 @@ sub daterange
 {   my ($class, $column, $record) = @_;
 
     my $field = $column->{field};
-    my $item  = _field($record,$field);
+    my $item  = rfield($record,$field);
 
     return undef unless $item; # Missing value
 
@@ -1179,7 +1174,7 @@ sub _field_write
 {
     my ($column, $record, $value) = @_;
     my $entry = {
-        record_id => _field($record, 'id'),
+        record_id => rfield($record, 'id'),
         layout_id => $column->{id},
     };
     # Blank cached values to cause update later.
@@ -1263,7 +1258,7 @@ sub approve
     # If all fields need approving (eg new entry) then $previous
     # will not be set
     my $previous;
-    $previous = _field($r, 'record') if _field($r, 'record'); # Its related record
+    $previous = rfield($r, 'record') if rfield($r, 'record'); # Its related record
 
     my $columns = GADS::View->columns; # All fields
     my %columns_changed; # Track which columns have changed
@@ -1273,11 +1268,11 @@ sub approve
     foreach my $col (@$columns)
     {
         my $fn = $col->{field};
-        my $recordvalue = $r && _field($r,$fn) ? _field($r,$fn)->value : undef;
+        my $recordvalue = $r && rfield($r,$fn) ? rfield($r,$fn)->value : undef;
         my $newvalue = _process_input_value($col, $values->{$fn}, $uploads, $recordvalue);
         # This assumes the value was visible in the form. It should be, even if
         # the field was made compulsory after added the initial submission.
-        if (!$col->{optional} && _field($r,$fn) && _is_blank $col, $newvalue)
+        if (!$col->{optional} && rfield($r,$fn) && _is_blank $col, $newvalue)
         {
             ouch 'missing', "Field \"$col->{name}\" is not optional. Please enter a value.";
         }
@@ -1288,7 +1283,7 @@ sub approve
         next unless $col->{userinput};
         my $fn = $col->{field};
 
-        my $recordvalue = $r && _field($r,$fn) ? _field($r,$fn)->value : undef;
+        my $recordvalue = $r && rfield($r,$fn) ? rfield($r,$fn)->value : undef;
         my $newvalue = _process_input_value($col, $values->{$fn}, $uploads, $recordvalue);
         if ($col->{type} eq 'file')
         {
@@ -1299,9 +1294,9 @@ sub approve
                 # Unlikely, but there is a chance that a previous uploaded
                 # file does not exist to update (if the field has become
                 # mandatory for example). Create one if it doesn't exist
-                if (_field($r,$fn)->value)
+                if (rfield($r,$fn)->value)
                 {
-                    $newvalue = _field($r,$fn)->value->update($newvalue)->id;
+                    $newvalue = rfield($r,$fn)->value->update($newvalue)->id;
                 }
                 else {
                     $newvalue = rset('Fileval')->create($newvalue)->id;
@@ -1310,10 +1305,10 @@ sub approve
             elsif($newvalue) {
                 # Use the file that was submitted by the originator,
                 # only if not removed by approver
-                if (_field($r,$fn)->value)
+                if (rfield($r,$fn)->value)
                 {
                     # If the originator submitted a file
-                    $newvalue = _field($r,$fn)->value->id;
+                    $newvalue = rfield($r,$fn)->value->id;
                 }
                 else {
                     # Otherwise he removed it
@@ -1325,7 +1320,7 @@ sub approve
         # See if approver has deleted any fields submitted by originator. $values->{fn}
         # would not exist in which case. Changing it to undef will force it to appear
         # as a submitted field that is now undefined
-        $values->{$fn} = undef if _field($r,$fn) && _field($r,$fn)->value && !exists $values->{$fn};
+        $values->{$fn} = undef if rfield($r,$fn) && rfield($r,$fn)->value && !exists $values->{$fn};
 
         if (!exists $values->{$fn})
         {
@@ -1335,20 +1330,20 @@ sub approve
         }
 
         # Does a value exist to update?
-        if (_field($r,$fn))
+        if (rfield($r,$fn))
         {
             if (exists $values->{$fn}) # Field submitted on approval form
             {
                 # The value that was originally submitted for approval
-                my $orig_submitted_file = $col->{type} eq 'file' && _field($r,$fn)->value
-                                        ? _field($r,$fn)->value->id
+                my $orig_submitted_file = $col->{type} eq 'file' && rfield($r,$fn)->value
+                                        ? rfield($r,$fn)->value->id
                                         : undef;
 
                 my $write = _field_write($col, $r, $newvalue);
-                _field($r,$fn)->update($write)
+                rfield($r,$fn)->update($write)
                     or ouch 'dbfail', "Database error updating new approved values";
 
-                if (!defined($values->{$fn}) && $orig_submitted_file && !($previous && _field($previous,$fn) && _field($previous,$fn)->value))
+                if (!defined($values->{$fn}) && $orig_submitted_file && !($previous && rfield($previous,$fn) && rfield($previous,$fn)->value))
                 {
                     # If a value was not submitted in the approval, but there was
                     # a value in the record submitted for approval, and there was
@@ -1371,11 +1366,11 @@ sub approve
     my $rs = rset('Record')->find($r->{id});
     $rs->update({ approval => 0, record_id => undef, approvedby => $user->{id}, created => \"NOW()" })
         or ouch 'dbfail', "Database error when removing approval status from updated record";
-    rset('Current')->find(_field($r, 'current_id'))->update({ record_id => _field($r, 'id') })
+    rset('Current')->find(rfield($r, 'current_id'))->update({ record_id => rfield($r, 'id') })
         or ouch 'dbfail', "Database error when updating current record tracking";
 
     # Send any alerts. Not if onboarding ($user will not be set)
-    GADS::Alert->process(_field($r, 'current_id'), \%columns_changed) if $user;
+    GADS::Alert->process(rfield($r, 'current_id'), \%columns_changed) if $user;
 
 }
     
@@ -1424,15 +1419,15 @@ sub update
         my $fieldid = $column->{id};
 
         # Keep a record of all the old values so that we can compare
-        if ($old && _field($old,$fn))
+        if ($old && rfield($old,$fn))
         {
             if ($column->{type} eq "daterange")
             {
 
-                $oldvalue->{$fieldid} = { from => _field($old,$fn)->from, to => _field($old,$fn)->to };
+                $oldvalue->{$fieldid} = { from => rfield($old,$fn)->from, to => rfield($old,$fn)->to };
             }
             else {
-                $oldvalue->{$fieldid} = _field($old,$fn)->value;
+                $oldvalue->{$fieldid} = rfield($old,$fn)->value;
             }
         }
 
@@ -1537,7 +1532,7 @@ sub update
 
     my $rid = $need_rec ? $record_rs->id
                         : $old
-                        ? _field($old, 'id') : undef;
+                        ? rfield($old, 'id') : undef;
 
     my $approval_rs;
     $approval_rs = approval_rs($current_id, $rid, $user) if $need_app;

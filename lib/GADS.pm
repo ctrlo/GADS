@@ -948,7 +948,7 @@ any '/record/:id' => sub {
     }
 
     my $record = $id ? GADS::Record->current({ record_id => $id, user => user }) : {};
-    my $versions = $id ? GADS::Record->versions($record->{current}->id) : {};
+    my $versions = $id ? GADS::Record->versions(rvalue($record, 'current')->id) : {};
     my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
     my $output = template 'record' => {
         item_value     => sub {item_value(@_, {encode_entities => 1})},
