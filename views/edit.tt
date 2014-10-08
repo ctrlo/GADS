@@ -104,7 +104,7 @@
             [% label = label _ '*' %]
         [% END %]
         [% IF dispcol.description %]
-            [% label = label _ " (" _ dispcol.description _ ")" %]
+            [% label = label _ ' <span style="font-weight:normal !important">(' _ dispcol.description _ ")</span>" %]
         [% END %]
         [% IF dispcol.helptext %]
             [% label = label _ " (<a data-toggle='modal' href='/helptext/"
