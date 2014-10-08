@@ -132,7 +132,7 @@
                 [% FOR column IN all_columns %]
                     {
                         id: '[% column.id %]',
-                        label: '[% column.name %]',
+                        label: '[% column.name | html_entity %]',
                         [% IF column.type == "intgr" %]
                             type: 'integer',
                         [% ELSE %]
