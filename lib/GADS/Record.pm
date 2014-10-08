@@ -639,12 +639,14 @@ sub _search_construct
     }
 
     my %ops = (
-        equal       => '=',
-        greater     => '>',
-        less        => '<',
-        contains    => '-like',
-        begins_with => '-like',
-        not_equal   => '!=',
+        equal            => '=',
+        greater          => '>',
+        greater_or_equal => '>=',
+        less             => '<',
+        less_or_equal    => '<=',
+        contains         => '-like',
+        begins_with      => '-like',
+        not_equal        => '!=',
     );
 
     my $column   = $columns->{$filter->{id}}
@@ -677,11 +679,11 @@ sub _search_construct
         {
             $s_field = "value";
         }
-        elsif ($operator eq ">")
+        elsif ($operator eq ">" || $operator eq ">=")
         {
             $s_field = "to";
         }
-        elsif ($operator eq "<")
+        elsif ($operator eq "<" || $operator eq "<=")
         {
             $s_field = "from";
         }
