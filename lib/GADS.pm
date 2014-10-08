@@ -18,7 +18,7 @@ use JSON qw(decode_json encode_json);
 use Text::CSV;
 
 set serializer => 'JSON';
-set behind_proxy => 1; # XXX Why doesn't this work in config file
+set behind_proxy => config->{behind_proxy}; # XXX Why doesn't this work in config file
 
 our $VERSION = '0.1';
 
