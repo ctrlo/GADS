@@ -60,7 +60,7 @@ sub file
         or ouch 'notfound', "File ID $id cannot be found";
     # Check whether this is hidden and whether the user has access
     my ($file) = $fileval->files; # In theory can be more than one, but not in practice
-    if ($file->layout->hidden)
+    if ($file && $file->layout->hidden) # Could be unattached document
     {
         ouch 'noperms', "You do not have access to this document"
             unless $user->{permission}->{layout};
