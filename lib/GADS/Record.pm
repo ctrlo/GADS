@@ -929,17 +929,21 @@ sub rag
         # XXX Log somewhere if this fails
         if ($okaycount == 3)
         {
-            if ($red && _safe_eval "($red)")
+            if ($red && eval { _safe_eval "($red)" } )
             {
                 $ragvalue = 'b_red';
             }
-            elsif ($amber && _safe_eval "($amber)")
+            elsif (!hug && $amber && eval { _safe_eval "($amber)" } )
             {
                 $ragvalue = 'c_amber';
             }
-            elsif ($green && _safe_eval "($green)")
+            elsif (!hug && $green && eval { _safe_eval "($green)" } )
             {
                 $ragvalue = 'd_green';
+            }
+            elsif (hug) {
+                # An exception occurred evaluating the code
+                $ragvalue = 'e_purple';
             }
             else {
                 $ragvalue = 'a_grey';
@@ -1027,7 +1031,7 @@ sub calc
         # If there are still square brackets then something is wrong
         my $value = $code =~ /[\[\]]+/
                   ? 'Invalid field names in calc formula'
-                  : _safe_eval "$code";
+                  : eval { _safe_eval "$code" } || bleep;
 
         _write_calc($record, $column, $value);
         $value;
@@ -1768,7 +1772,7 @@ sub _safe_eval
 
     if($@)
     {
-        return $@;
+        die $@;
     }
     else {
         return $ret;

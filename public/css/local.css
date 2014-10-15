@@ -39,6 +39,10 @@ div.circ-small {
     background: gray;
 }
 
+.e_purple {
+    background: purple;
+}
+
 .scrollable-menu {
     height: auto;
     max-height: 400px;
