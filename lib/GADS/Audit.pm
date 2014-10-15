@@ -42,6 +42,7 @@ sub login_success
     rset('Audit')->create({
         user_id     => $user_id,
         description => "Successful login by username $username",
+        type        => 'login_success',
         datetime    => \"NOW()",
     });
 }
@@ -52,6 +53,7 @@ sub logout
     rset('Audit')->create({
         user_id     => $user_id,
         description => "Logout by username $username",
+        type        => 'logout',
         datetime    => \"NOW()",
     });
 }
@@ -61,6 +63,7 @@ sub login_failure
 
     rset('Audit')->create({
         description => "Login failure using username $username",
+        type        => 'login_failure',
         datetime    => \"NOW()",
     });
 }
