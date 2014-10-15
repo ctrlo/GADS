@@ -220,6 +220,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 audits
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Audit>
+
+=cut
+
+__PACKAGE__->has_many(
+  "audits",
+  "GADS::Schema::Result::Audit",
+  { "foreign.user_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 lastrecord
 
 Type: belongs_to
@@ -356,8 +371,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-21 16:43:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vlAHrydHWqJ/EOZaUrMi/g
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-10-15 11:33:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1H/IyXnapZKg8fjjL58Pyg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

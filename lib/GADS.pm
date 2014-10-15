@@ -8,6 +8,7 @@ use GADS::Email;
 use GADS::Graph;
 use GADS::Config;
 use GADS::Alert;
+use GADS::Audit;
 use GADS::DB;
 use GADS::Util         qw(:all);
 use Dancer2::Plugin::Auth::Complete;
@@ -48,9 +49,17 @@ hook before => sub {
 hook before_template => sub {
     my $tokens = shift;
 
-    $tokens->{url}->{css}  = request->base . 'css';
-    $tokens->{url}->{js}   = request->base . 'js';
-    $tokens->{url}->{page} = request->base;
+    # Log to audit
+    my $user = user;
+    my $method = request->method;
+    my $path   = request->path;
+    GADS::Audit->user_action($user->{id}, qq(User $user->{username} made $method request to $path))
+        if $user;
+
+    my $base = request->base;
+    $tokens->{url}->{css}  = "${base}css";
+    $tokens->{url}->{js}   = "${base}js";
+    $tokens->{url}->{page} = $base;
     $tokens->{url}->{page} =~ s!.*/!!; # Remove trailing slash
     $tokens->{hostlocal}   = config->{gads}->{hostlocal};
 
@@ -59,7 +68,7 @@ hook before_template => sub {
     $tokens->{approve_waiting} = scalar @{GADS::Record->approve}
         if permission 'approver';
     $tokens->{messages} = session('messages');
-    $tokens->{user}     = user;
+    $tokens->{user}     = $user;
     session 'messages' => [];
 
 };
@@ -965,6 +974,7 @@ any '/record/:id' => sub {
 any '/login' => sub {
     if (defined param('logout'))
     {
+        GADS::Audit->logout(user->{id}, user->{username}) if user;
         context->destroy_session;
     }
 
@@ -999,9 +1009,11 @@ any '/login' => sub {
     {
         if (login)
         {
+            GADS::Audit->login_success(user->{id}, user->{username});
             forwardHome();
         }
         else {
+            GADS::Audit->login_failure(param 'username');
             messageAdd({ danger => "The username or password was not recognised" });
         }
     }
