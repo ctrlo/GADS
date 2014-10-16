@@ -890,7 +890,7 @@ any '/edit/:id?' => sub {
         }
     }
     elsif($id) {
-        $record = GADS::Record->current({ current_id => $id });
+        $record = GADS::Record->current({ current_id => $id, user => user });
     }
     elsif(my $previous = user->{lastrecord})
     {
