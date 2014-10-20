@@ -192,6 +192,8 @@ sub register
     @new{@fields} = @params{@fields};
     $new{username} = $params->{email};
     $new{account_request} = 1;
+    $new{telephone} or delete $new{telephone};
+    $new{title} or delete $new{title};
     my $newuser = user update => %new;
 
     # Email admins with account request
@@ -201,8 +203,9 @@ sub register
     $text .= "First name: $newuser->{firstname}, ";
     $text .= "surname: $newuser->{surname}, ";
     $text .= "email: $newuser->{email}, ";
-    $text .= "title: ".$newuser->{title}->name.", ";
-    $text .= "telephone: $newuser->{telephone}\n\n";
+    $text .= "title: ".$newuser->{title}->name.", " if $newuser->{title};
+    $text .= "telephone: $newuser->{telephone}" if $newuser->{telephone};
+    $text .= "\n\n";
     $text .= "User notes: $newuser->{account_request_notes}\n";
     my $msg = {
         emails  => \@emails,
