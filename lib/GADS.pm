@@ -1016,6 +1016,7 @@ any '/login' => sub {
 
     my $output  = template 'login' => {
         error         => $error,
+        config        => GADS::Config->conf,
         titles        => GADS::User->titles,
         organisations => GADS::User->organisations,
         register_text => GADS::User->register_text,

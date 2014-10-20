@@ -90,7 +90,11 @@
                             <input type="text" class="form-control" id="surname" name="surname">
                         </div>
                         <div class="form-group">
-                            <label for="title">Title:</label>
+                            <label for="title">Title:
+                                [% IF config.register_title_help %]
+                                    <span style="font-weight:normal !important">[% config.register_title_help %]</span>
+                                [% END %]
+                            </label>
                             <select class="form-control" id="title" name="title">
                                 <option></option>
                                 [% FOREACH title IN titles %]
@@ -99,15 +103,27 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="email">Email:</label>
+                            <label for="email">Email:
+                                [% IF config.register_email_help %]
+                                    <span style="font-weight:normal !important">[% config.register_email_help %]</span>
+                                [% END %]
+                            </label>
                             <input type="text" class="form-control" id="email" name="email">
                         </div>
                         <div class="form-group">
-                            <label for="telephone">Telephone:</label>
+                            <label for="telephone">Telephone:
+                                [% IF config.register_telephone_help %]
+                                    <span style="font-weight:normal !important">[% config.register_telephone_help %]</span>
+                                [% END %]
+                            </label>
                             <input type="text" class="form-control" id="telephone" name="telephone">
                         </div>
                         <div class="form-group">
-                            <label for="title">Organisation:</label>
+                            <label for="title">Organisation:
+                                [% IF config.register_organisation_help %]
+                                    <span style="font-weight:normal !important">[% config.register_organisation_help %]</span>
+                                [% END %]
+                            </label>
                             <select class="form-control" id="organisation" name="organisation">
                                 <option></option>
                                 [% FOREACH organisation IN organisations %]
@@ -116,7 +132,11 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="account_request_notes">Notes:</label>
+                            <label for="account_request_notes">Notes:
+                                [% IF config.register_notes_help %]
+                                    <span style="font-weight:normal !important">[% config.register_notes_help %]</span>
+                                [% END %]
+                            </label>
                             <textarea class="form-control" name="account_request_notes" id="account_request_notes" rows="5"></textarea>
                         </div>
                     </div>
