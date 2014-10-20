@@ -109,10 +109,12 @@ get '/search' => sub {
 
 any '/data' => sub {
 
+    my $user = user;
+
     # Deal with any alert requests
     if (my $alert_view = param 'alert')
     {
-        eval { GADS::Alert->alert($alert_view, param('frequency'), user) };
+        eval { GADS::Alert->alert($alert_view, param('frequency'), $user) };
         if (hug)
         {
             messageAdd({ danger => bleep });
@@ -170,10 +172,11 @@ any '/data' => sub {
         $viewtype = session('viewtype') || 'table';
     }
 
-    my $view_id  = session 'view_id';
+    my $default_view = shift @{$user->{views}};
+    my $view_id  = session('view_id') || $default_view->id;
 
     my $columns;
-    eval { $columns = GADS::View->columns({ view_id => $view_id, user => user, no_hidden => 1 }) };
+    eval { $columns = GADS::View->columns({ view_id => $view_id, user => $user, no_hidden => 1 }) };
     if (hug)
     {
         session 'view_id' => undef;
@@ -184,12 +187,12 @@ any '/data' => sub {
 
     if ($viewtype eq 'graph')
     {
-        my $todraw = GADS::Graph->all({ user => user });
+        my $todraw = GADS::Graph->all({ user => $user });
 
         my @graphs;
         foreach my $g (@$todraw)
         {
-            my $graph = GADS::Graph->data({ graph => $g, view_id => $view_id, user => user });
+            my $graph = GADS::Graph->data({ graph => $g, view_id => $view_id, user => $user });
             push @graphs, $graph if $graph;
         }
 
@@ -228,7 +231,7 @@ any '/data' => sub {
         # @records contains all the information for each required record
         my $get = {
             view_id => $view_id,
-            user    => user,
+            user    => $user,
             rows    => $rows,
             page    => $page,
             sort    => session('sort'),
@@ -238,7 +241,7 @@ any '/data' => sub {
         my $pages = $get->{pages};
         # @output contains just the data itself, which can be sent straight to a CSV
         my $options = defined param('download') ? { plain => 1 } : { encode_entities => 1 };
-        $options->{user} = user;
+        $options->{user} = $user;
         my @output = GADS::Record->data($view_id, \@records, $options);
 
         my @colnames = ('Serial');
@@ -280,7 +283,7 @@ any '/data' => sub {
 
             my $params = params;
 
-            eval { GADS::Email->message($params, \@records, \@ids, user) };
+            eval { GADS::Email->message($params, \@records, \@ids, $user) };
             if (hug)
             {
                 messageAdd({ danger => bleep });
@@ -312,8 +315,8 @@ any '/data' => sub {
         }
     }
 
-    $params->{v}        = GADS::View->view($view_id, user),  # View is reserved TT word
-    $params->{alerts}   = GADS::Alert->all(user->{id});
+    $params->{v}        = GADS::View->view($view_id, $user),  # View is reserved TT word
+    $params->{alerts}   = GADS::Alert->all($user->{id});
     $params->{page}     = 'data';
     template 'data' => $params;
 };
