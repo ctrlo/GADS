@@ -684,13 +684,6 @@ any '/user/?:id?' => sub {
             }
             else {
                 $action = 'created';
-                my $graphs = GADS::Graph->all;
-                my @gadd;
-                foreach my $graph (@$graphs)
-                {
-                    push @gadd, $graph->id;
-                }
-                GADS::User->graphs($newuser, \@gadd);
             }
 
             my $page   = param('page');
