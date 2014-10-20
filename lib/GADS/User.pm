@@ -188,12 +188,13 @@ sub register
     # Prevent "email exists" errors for security
     return if user get => ( email => $params->{email} );
 
-    my @fields = qw(firstname surname email telephone title account_request_notes);
+    my @fields = qw(firstname surname email telephone title organisation account_request_notes);
     @new{@fields} = @params{@fields};
     $new{username} = $params->{email};
     $new{account_request} = 1;
     $new{telephone} or delete $new{telephone};
     $new{title} or delete $new{title};
+    $new{organisation} or delete $new{organisation};
     my $newuser = user update => %new;
 
     # Email admins with account request
@@ -204,7 +205,8 @@ sub register
     $text .= "surname: $newuser->{surname}, ";
     $text .= "email: $newuser->{email}, ";
     $text .= "title: ".$newuser->{title}->name.", " if $newuser->{title};
-    $text .= "telephone: $newuser->{telephone}" if $newuser->{telephone};
+    $text .= "telephone: $newuser->{telephone}, " if $newuser->{telephone};
+    $text .= "organisation: ".$newuser->{organisation}->name.", " if $newuser->{organisation};
     $text .= "\n\n";
     $text .= "User notes: $newuser->{account_request_notes}\n";
     my $msg = {
