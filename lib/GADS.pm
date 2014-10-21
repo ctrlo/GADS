@@ -330,7 +330,7 @@ any '/account/?:action?/?' => sub {
         # See if existing password is correct first
         if (my $newpw = reset_pw 'password' => param('oldpassword'))
         {
-            forwardHome({ success => qq(<h3 class="text-center"><small>Your password has been changed to:</small> $newpw</h3>)}, 'account/detail' );
+            forwardHome({ success => qq(Your password has been changed to: $newpw)}, 'account/detail' );
         }
         else {
             forwardHome({ danger => "The existing password entered is incorrect"}, 'account/detail' );
