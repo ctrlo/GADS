@@ -36,6 +36,17 @@ sub user_action
     });
 }
 
+sub login_change
+{   my ($self, $user_id, $description) = @_;
+
+    rset('Audit')->create({
+        user_id     => $user_id,
+        description => $description,
+        type        => 'login_change',
+        datetime    => \"NOW()",
+    });
+}
+
 sub login_success
 {   my ($self, $user_id, $username) = @_;
 

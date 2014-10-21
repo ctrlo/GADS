@@ -330,6 +330,7 @@ any '/account/?:action?/?' => sub {
         # See if existing password is correct first
         if (my $newpw = reset_pw 'password' => param('oldpassword'))
         {
+            GADS::Audit->login_change(user->{id}, "New password set for user");
             forwardHome({ success => qq(Your password has been changed to: $newpw)}, 'account/detail' );
         }
         else {
@@ -370,6 +371,8 @@ any '/account/?:action?/?' => sub {
             messageAdd({ danger => bleep });
         }
         else {
+            GADS::Audit->login_change(user->{id},
+                "User updated own account details. New (or unchanged) email: $update{email}");
             return forwardHome(
                 { success => "The account details have been updated" }, 'account/detail' );
         }
@@ -684,11 +687,16 @@ any '/user/?:id?' => sub {
 
             my $action;
             if ($id) {
+                GADS::Audit->login_change(user->{id},
+                    "User updated: ID $newuser->{id}, username: $newuser->{username}");
                 $action = 'updated';
             }
             else {
+                GADS::Audit->login_change(user->{id},
+                    "New user created: ID $newuser->{id}, username: $newuser->{username}");
                 $action = 'created';
             }
+
 
             my $page   = param('page');
             return forwardHome(
@@ -708,6 +716,7 @@ any '/user/?:id?' => sub {
                 messageAdd({ danger => bleep });
             }
             else {
+                GADS::Audit->login_change(user->{id}, "Organisation $org created");
                 messageAdd({ success => "The organisation has been created successfully" });
             }
         }
@@ -720,6 +729,7 @@ any '/user/?:id?' => sub {
                 messageAdd({ danger => bleep });
             }
             else {
+                GADS::Audit->login_change(user->{id}, "Title $title created");
                 messageAdd({ success => "The title has been created successfully" });
             }
         }
@@ -732,17 +742,18 @@ any '/user/?:id?' => sub {
             organisation => { id => param('organisation') },
         }];
     }
-    elsif (param 'delete')
+    elsif (my $delete_id = param('delete'))
     {
         return forwardHome(
             { danger => "Cannot delete current logged-in User" } )
-            if user->{id} eq param('delete');
-        eval { GADS::User->delete(param 'delete') };
+            if user->{id} eq $delete_id;
+        eval { GADS::User->delete($delete_id) };
         if (hug)
         {
             messageAdd({ danger => bleep });
         }
         else {
+            GADS::Audit->login_change(user->{id}, "User ID $delete_id deleted");
             return forwardHome(
                 { success => "User has been deleted successfully" }, 'user' );
         }
@@ -982,7 +993,9 @@ any '/login' => sub {
     # Request a password reset
     if (param('resetpwd'))
     {
-        reset_pw('send' => param('emailreset'))
+        my $username = param('emailreset');
+        GADS::Audit->login_change(undef, "Password reset request for $username");
+        reset_pw('send' => $username)
         ? messageAdd( { success => 'An email has been sent to your email address with a link to reset your password' } )
         : messageAdd( { danger => 'Failed to send a password reset link. Did you enter a valid email address?' } );
     }
@@ -998,6 +1011,7 @@ any '/login' => sub {
             $error = bleep;
         }
         else {
+            GADS::Audit->login_change(undef, "New user account request for $params->{email}");
             return forwardHome({ success => "Your account request has been received successfully" });
         }
     }
@@ -1028,9 +1042,12 @@ any '/login' => sub {
 
 get '/resetpw/:code' => sub {
 
-    if (my $password = reset_pw 'code' => param('code'))
+    # Perform check first in order to get user ID for audit
+    if (my $user_id = reset_pw 'check' => param('code'))
     {
         context->destroy_session;
+        GADS::Audit->login_change($user_id, "Password reset performed for user ID $user_id");
+        my $password = reset_pw 'code' => param('code');
         my $output  = template 'login' => {
             password => $password,
             page     => 'login',
