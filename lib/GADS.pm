@@ -662,9 +662,11 @@ any '/user/?:id?' => sub {
         delete $values{title}        unless param 'title';
         $values{username} = $values{email};
 
+        my @audit_permissions;
         foreach my $permission (keys %{$conf->{permissions}})
         {
             $values{permission}->{$permission} = $values{"permission_$permission"} ? 1 : 0;
+            push @audit_permissions, "$permission: $values{permission}->{$permission}";
         }
 
         my $newuser;
@@ -686,14 +688,15 @@ any '/user/?:id?' => sub {
                 if param 'account_request';
 
             my $action;
+            my $audit_perms = join ', ', @audit_permissions;
             if ($id) {
                 GADS::Audit->login_change(user->{id},
-                    "User updated: ID $newuser->{id}, username: $newuser->{username}");
+                    "User updated: ID $newuser->{id}, username: $newuser->{username}; permissions: $audit_perms");
                 $action = 'updated';
             }
             else {
                 GADS::Audit->login_change(user->{id},
-                    "New user created: ID $newuser->{id}, username: $newuser->{username}");
+                    "New user created: ID $newuser->{id}, username: $newuser->{username}; permissions: $audit_perms");
                 $action = 'created';
             }
 
