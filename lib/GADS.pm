@@ -358,6 +358,7 @@ any '/account/?:action?/?' => sub {
             firstname    => param('firstname')    || undef,
             surname      => param('surname')      || undef,
             email        => param('email'),
+            username     => param('email'),
             telephone    => param('telephone')    || undef,
             title        => param('title')        || undef,
             organisation => param('organisation') || undef,
