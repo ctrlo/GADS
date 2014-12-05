@@ -395,7 +395,15 @@ sub columns
         my $vu;
         if ($ident->{user}->{permission}->{layout})
         {
-            $vu->{global} = $update->{global} ? 1 : 0;
+            if ($update->{global})
+            {
+                $vu->{global}  = 1;
+                $vu->{user_id} = undef;
+            }
+            else {
+                $vu->{global}  = 0;
+                $vu->{user_id} = $ident->{user}->{id};
+            }
         }
         $update->{viewname} or ouch 'badvalue', "Please enter a name for the view";
         $vu->{name} = $update->{viewname};
