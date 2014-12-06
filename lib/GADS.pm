@@ -549,8 +549,10 @@ any '/view/:id' => sub {
         }
     }
 
+    my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
     my $output = template 'view' => {
         all_columns  => GADS::View->columns({ user => user, no_hidden => 1 }),
+        autoserial   => $autoserial,
         sorts        => GADS::View->sorts($view_id),
         sort_types   => GADS::View->sort_types,
         ucolumns     => \@ucolumns,

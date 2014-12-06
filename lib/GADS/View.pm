@@ -114,14 +114,14 @@ sub view
 
     my $view = _get_view($view_id, $user->{id}); # Borks on invalid user for view
     my ($alert) = grep { $user->{id} && $user->{id} == $_->user_id } $view->alerts;
-    my @sorts = $view->sorts;
+    my $sorts = $self->sorts($view->id);
     {
         id      => $view->id,
         user_id => $view->user_id,
         name    => $view->name,
         global  => $view->global,
         filter  => $view->filter,
-        sorts   => \@sorts,
+        sorts   => $sorts,
         alert   => $alert,
     }
 }
@@ -546,9 +546,10 @@ sub sorts
             my $type = $update->{"sorttype$id"};
             ouch 'badparam', "Invalid type $type"
                 unless grep { $_->{name} eq $type } @{sort_types()};
+            my $layout_id = $update->{"sortfield$id$new"} || undef;
             my $sort = {
                 view_id   => $view_id,
-                layout_id => $update->{"sortfield$id$new"},
+                layout_id => $layout_id,
                 type      => $type,
             };
             if ($new)
@@ -582,18 +583,15 @@ sub sorts
     my @sorts;
     my $sort_r = rset('Sort')->search({
         view_id => $view_id
-    },{
-        prefetch => {
-            'layout' => 'enumvals'
-        } 
     });
 
     foreach my $sort ($sort_r->all)
     {
         my $s;
+        my $column   = $sort->layout ? _column($sort->layout) : undef;
         $s->{id}     = $sort->id;
-        $s->{type  } = $sort->type;
-        $s->{column} = _column $sort->layout;
+        $s->{type}   = $sort->type;
+        $s->{column} = $column;
         push @sorts, $s;
     }
 

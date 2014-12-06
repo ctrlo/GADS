@@ -175,9 +175,12 @@
             <div class="col-md-4">
                 <p>
                     <select class="form-control" name="sortfield[% sid %][% newf %]">
-                    [% FOR column IN all_columns %]
-                        <option value="[% column.id %]" [% IF sort.column.id == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
-                    [% END %]
+                        [% IF autoserial %]
+                        <option value="" [% UNLESS sort.column.id %]selected[% END %]>ID</option>
+                        [% END %]
+                        [% FOR column IN all_columns %]
+                            <option value="[% column.id %]" [% IF sort.column.id == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                        [% END %]
                     </select>
                 </p>
             </div>

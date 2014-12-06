@@ -417,11 +417,16 @@ sub current($$)
         {
             foreach my $sort (@{$view->{sorts}})
             {
-                if (my $column  = $columns->{$sort->layout->id})
+                if (my $column = $sort->{column})
                 {
                     my $s_table = _table_name($column, $prefetches, $joins);
-                    my $type = $sort->type eq 'desc' ? '-desc' : '-asc';
+                    my $type = $sort->{type} eq 'desc' ? '-desc' : '-asc';
                     push @orderby, { $type => "$s_table.value" };
+                }
+                else {
+                    # No column defined means sort by ID
+                    my $type = $sort->{type} eq 'desc' ? '-desc' : '-asc';
+                    push @orderby, { $type => $index_sort };
                 }
             }
         }
