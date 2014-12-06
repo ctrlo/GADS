@@ -493,6 +493,7 @@ any '/graph/?:id?' => sub {
 any '/view/:id' => sub {
 
     my $view_id = param('id');
+    my @ucolumns; my $view;
 
     if (param 'update')
     {
@@ -501,6 +502,8 @@ any '/view/:id' => sub {
 
         if (hug)
         {
+            $view = $values;
+            @ucolumns = @{delete $view->{column}};
             messageAdd({ danger => bleep });
         }
         else {
@@ -527,19 +530,22 @@ any '/view/:id' => sub {
 
     $view_id = param('clone') if param('clone') && !request->is_post;
 
-    my @ucolumns;
-    my $viewcols;
-    eval { $viewcols = GADS::View->columns({ view_id => $view_id, user => user }) };
-    if (hug)
+    unless ($view)
     {
-        return forwardHome({ danger => bleep });
+        $view = GADS::View->view($view_id, user);
+        my $viewcols;
+        eval { $viewcols = GADS::View->columns({ view_id => $view_id, user => user }) };
+        if (hug)
+        {
+            return forwardHome({ danger => bleep });
+        }
+
+        foreach my $c (@$viewcols)
+        {
+            push @ucolumns, $c->{id};
+        }
     }
 
-    foreach my $c (@$viewcols)
-    {
-        push @ucolumns, $c->{id};
-    }
-    my $view   = GADS::View->view($view_id, user);
     my $output = template 'view' => {
         all_columns  => GADS::View->columns({ user => user, no_hidden => 1 }),
         sorts        => GADS::View->sorts($view_id),
