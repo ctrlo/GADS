@@ -1188,6 +1188,8 @@ sub _process_input_value
     }
     elsif ($column->{type} eq "intgr")
     {
+        ouch 'badparam', "Field \"$column->{name}\" requires an integer value."
+            if $value && !looks_like_number($value);
         # Submitted integers will be and empty string
         # for no value. We want undef
         !$value && !looks_like_number($value) ? undef : $value;
