@@ -31,6 +31,9 @@
         [% IF page == "view" %]
             <link rel="stylesheet" href="[% url.css %]/query-builder.css">
         [% END %]
+        [% IF page == "user" %]
+            <link rel="stylesheet" href="//cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.css">
+        [% END %]
 
         <!-- Custom styles for this template -->
         <link rel="stylesheet" href="[% url.css %]/local.css">
@@ -172,6 +175,10 @@
         [% END %]
         [% IF page == "config" %]
             <script type="text/javascript" src="[% url.js %]/tiny_mce/tiny_mce.js"></script>
+        [% END %]
+        [% IF page == "user" %]
+            <script type="text/javascript" src="//cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+            <script type="text/javascript" src="//cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.js"></script>
         [% END %]
 
         <script type="text/javascript" src="[% url.js %]/jquery.placeholder.js"></script>

@@ -207,43 +207,51 @@
 [% IF register_requests.size %]
     <h4>Active accounts</h4>
 [% END %]
-<table class="table table-striped">
-    <tr>
-        <th>ID</th>
-        <th>Title</th>
-        <th>Surname</th>
-        <th>Firstname</th>
-        <th>Email</th>
-        <th>Organisation</th>
-    </tr>
-    [% FOREACH edituser IN users %]
-        <tr>
-            <td><a href="/user/[% edituser.id %]">[% edituser.id %]</a></td>
-            <td>[% edituser.title.name | html_entity %]</td>
-            <td>[% edituser.surname | html_entity %]</td>
-            <td>[% edituser.firstname | html_entity %]</td>
-            <td>[% edituser.email | html_entity %]</td>
-            <td>[% edituser.organisation.name | html_entity %]</td>
-        </tr>
-    [% END %]
-</table>
-[% IF register_requests.size %]
-    <h4>Account requests</h4>
-    <table class="table table-striped">
+<table class="table table-striped dtable">
+    <thead>
         <tr>
             <th>ID</th>
             <th>Surname</th>
             <th>Firstname</th>
+            <th>Title</th>
             <th>Email</th>
+            <th>Organisation</th>
         </tr>
-        [% FOREACH register_request IN register_requests %]
+    </thead>
+    <tbody>
+        [% FOREACH edituser IN users %]
             <tr>
-                <td><a href="/user/[% register_request.id %]">[% register_request.id %]</a></td>
-                <td>[% register_request.surname | html_entity %]</td>
-                <td>[% register_request.firstname | html_entity %]</td>
-                <td>[% register_request.email | html_entity %]</td>
+                <td><a href="/user/[% edituser.id %]">[% edituser.id %]</a></td>
+                <td>[% edituser.surname | html_entity %]</td>
+                <td>[% edituser.firstname | html_entity %]</td>
+                <td>[% edituser.title.name | html_entity %]</td>
+                <td>[% edituser.email | html_entity %]</td>
+                <td>[% edituser.organisation.name | html_entity %]</td>
             </tr>
         [% END %]
+    </tbody>
+</table>
+[% IF register_requests.size %]
+    <h4>Account requests</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Surname</th>
+                <th>Firstname</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            [% FOREACH register_request IN register_requests %]
+                <tr>
+                    <td><a href="/user/[% register_request.id %]">[% register_request.id %]</a></td>
+                    <td>[% register_request.surname | html_entity %]</td>
+                    <td>[% register_request.firstname | html_entity %]</td>
+                    <td>[% register_request.email | html_entity %]</td>
+                </tr>
+            [% END %]
+        </tbody>
     </table>
 [% END %]
 [% END %]
@@ -257,7 +265,20 @@
             $('#modalneworganisation').on('hidden.bs.modal', function (e) {
                 $('#neworganisation').val("");
             });
-[% END %]
-[% END %]';
+            $(document).ready(function () {
+                $('.dtable').dataTable({
+                    "columnDefs": [
+                        {
+                            "targets": 0,
+                            "orderable": false
+                        }
+                    ],
+                    order: [
+                        [ 1, 'asc' ]
+                    ]
+                });
+            });
+        [% END %]
+    [% END %]';
 </script>
 
