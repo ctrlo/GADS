@@ -128,6 +128,9 @@ any '/data' => sub {
     if (my $view_id = param('view'))
     {
         session 'view_id' => $view_id;
+        # When a new view is selected, unset sort, otherwise it's
+        # not possible to remove a sort once it's been clicked
+        session 'sort'    => undef;
     }
 
     if (my $rows = param('rows'))
