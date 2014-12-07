@@ -241,7 +241,7 @@ sub item_value
     {
         my $v = rfield($record,$field) ? rfield($record,$field)->value : $blank;
         my $formatter = new Number::Format;
-        $v = $formatter->format_number($v) unless $raw;
+        $v = $formatter->format_number($v) if $v && !$raw;
         return $v;
     }
     else {
