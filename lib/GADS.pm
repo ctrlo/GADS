@@ -312,8 +312,14 @@ any '/data' => sub {
                 messageAdd({ danger => bleep });
             }
             else {
-                my $now = DateTime->now();
-                return send_file( \$csv, content_type => 'text/csv', filename => "$now.csv" );
+                my $now    = DateTime->now();
+                my $header;
+                if ($header = config->{gads}->{header})
+                {
+                    $csv       = "$header\n$csv" if $header;
+                    $header    = "-$header" if $header;
+                }
+                return send_file( \$csv, content_type => 'text/csv', filename => "$now$header.csv" );
             }
         }
     }
