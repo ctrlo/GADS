@@ -844,8 +844,8 @@ any '/approval/?:id?' => sub {
 
     my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
     my $output = template $page => {
-        form_value     => sub {item_value(@_, {raw => 1, encode_entities => 1})},
-        item_value     => sub {item_value(@_, {encoded_entities => 1})},
+        form_value     => sub {item_value(@_, {raw => 1, encode_entities => 1, filename => 1})},
+        item_value     => sub {item_value(@_, {encode_entities => 1})},
         person_popover => sub {GADS::Record->person_popover(@_)},
         approves       => $items,
         autoserial     => $autoserial,
@@ -942,7 +942,7 @@ any '/edit/:id?' => sub {
 
     my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
     my $output = template 'edit' => {
-        form_value  => sub {item_value(@_, {raw => 1, encode_entities => 1})},
+        form_value  => sub {item_value(@_, {raw => 1, encode_entities => 1, filename => 1})},
         plain_value => sub {item_value(@_, {plain => 1, encode_entities => 1})},
         record      => $record,
         autoserial  => $autoserial,

@@ -217,10 +217,10 @@ sub item_value
         if (rfield($record,$field))
         {
             my $file = rfield($record,$field)->value or return;
-            return $file->id if $raw;
+            return $file->id if $raw && !$options->{filename};
             my $filename = $file->name;
             $filename = $encode ? encode_entities($filename) : $filename;
-            return $filename if $options->{plain};
+            return $filename if $options->{plain} || $options->{filename};
             my $id = $file->id;
             return qq(<a href="/file/$id">$filename</a>);
         }
