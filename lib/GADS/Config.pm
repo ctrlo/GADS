@@ -31,8 +31,9 @@ sub conf
     if($update)
     {
         my $new->{homepage_text} = $update->{homepage_text};
-        $new->{sort_layout_id} = $update->{sort_layout_id} || undef;
-        $new->{sort_type} = $update->{sort_type} if $update->{sort_type};
+        $new->{homepage_text2}   = $update->{homepage_text2};
+        $new->{sort_layout_id}   = $update->{sort_layout_id} || undef;
+        $new->{sort_type}        = $update->{sort_type} if $update->{sort_type};
         my $c = rset('Instance')->single;
         $c->update($new);
     }

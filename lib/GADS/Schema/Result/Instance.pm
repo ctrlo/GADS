@@ -102,6 +102,11 @@ __PACKAGE__->table("instance");
   data_type: 'text'
   is_nullable: 1
 
+=head2 homepage_text2
+
+  data_type: 'text'
+  is_nullable: 1
+
 =head2 register_title_help
 
   data_type: 'text'
@@ -153,6 +158,8 @@ __PACKAGE__->add_columns(
   "sort_type",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "homepage_text",
+  { data_type => "text", is_nullable => 1 },
+  "homepage_text2",
   { data_type => "text", is_nullable => 1 },
   "register_title_help",
   { data_type => "text", is_nullable => 1 },
@@ -216,8 +223,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-10-21 00:42:14
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HwT+LMK0Chbcd/1PHnoHhQ
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-12-07 17:56:03
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:THqTDUkrB3Nu/lTpsOplNw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

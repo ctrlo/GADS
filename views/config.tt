@@ -28,6 +28,10 @@
                 <label for="homepage_text">Homepage message:</label>
                 <textarea class="form-control" id="homepage_text" name="homepage_text">[% config.homepage_text | html_entity %]</textarea>
             </div>
+            <div class="form-group">
+                <label for="homepage_text2">Homepage message (additional column):</label>
+                <textarea class="form-control" id="homepage_text2" name="homepage_text2">[% config.homepage_text2 | html_entity %]</textarea>
+            </div>
             <button type="submit" name="update" value="update" class="btn btn-primary">Update</button>
             <a href="/" class="btn btn-default">Cancel</a>
         </form>

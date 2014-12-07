@@ -1,2 +1,14 @@
-[% config.homepage_text %]
-
+<div class="row">
+    [% IF config.homepage_text2 %]
+        <div class="col-md-6">
+    [% ELSE %]
+        <div class="col-md-12">
+    [% END %]
+            [% config.homepage_text %]
+        </div>
+    [% IF config.homepage_text2 %]
+        <div class="col-md-6">
+            [% config.homepage_text2 %]
+        </div>
+    [% END %]
+</div>
