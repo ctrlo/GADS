@@ -5,6 +5,7 @@ package GADS::Util;
 use base 'Exporter';
 use Regexp::Common "URI";
 use HTML::Entities;
+use Number::Format;
 
 my @permissions = qw/
   UPDATE
@@ -235,6 +236,13 @@ sub item_value
         $string =~ s( ($RE{URI}{HTTP}{-scheme => qr/https?/}) ) (<a href="$1">$1</a>)gx
             if $string;
         $string;
+    }
+    elsif ($column->{type} eq "intgr")
+    {
+        my $v = rfield($record,$field) ? rfield($record,$field)->value : $blank;
+        my $formatter = new Number::Format;
+        $v = $formatter->format_number($v) unless $raw;
+        return $v;
     }
     else {
         return rfield($record,$field) ? rfield($record,$field)->value : $blank;
