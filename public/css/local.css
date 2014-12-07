@@ -64,3 +64,9 @@ div.circ-small {
     background-image : url("../images/tick.png")
 }
 
+table.floatThead-table {
+    border-top: none;
+    border-bottom: none;
+    background-color: #FFF;
+}
+

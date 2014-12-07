@@ -165,13 +165,17 @@
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasTextRenderer.min.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasAxisLabelRenderer.min.js"></script>
         [% END %]
-        [% IF page == "view" %]
+        [% IF page == "view" OR page == "data" %]
             <script type="text/javascript" src="[% url.js %]/underscore-min.js"></script>
+        [% END %]
+        [% IF page == "view" %]
             <script type="text/javascript" src="[% url.js %]/query-builder.js"></script>
         [% END %]
         [% IF page == "data" AND viewtype == "calendar" %]
-            <script type="text/javascript" src="[% url.js %]/underscore-min.js"></script>
             <script type="text/javascript" src="[% url.js %]/calendar.min.js"></script>
+        [% END %]
+        [% IF page == "data" AND viewtype == "table" %]
+            <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/floatthead/1.2.8/jquery.floatThead-slim.min.js"></script>
         [% END %]
         [% IF page == "config" %]
             <script type="text/javascript" src="[% url.js %]/tiny_mce/tiny_mce.js"></script>
