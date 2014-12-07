@@ -1295,15 +1295,15 @@
 
 			if (new_date < this.dates[i]){
 				// Date being moved earlier/left
-				while (i >= 0 && new_date < this.dates[i]){
-					this.pickers[i--].setUTCDate(new_date);
-				}
+		//		while (i >= 0 && new_date < this.dates[i]){
+		//			this.pickers[i--].setUTCDate(new_date);
+		//		}
 			}
 			else if (new_date > this.dates[i]){
 				// Date being moved later/right
-				while (i < l && new_date > this.dates[i]){
-					this.pickers[i++].setUTCDate(new_date);
-				}
+		//		while (i < l && new_date > this.dates[i]){
+		//			this.pickers[i++].setUTCDate(new_date);
+		//		}
 			}
 			this.updateDates();
 
