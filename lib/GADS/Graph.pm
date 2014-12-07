@@ -50,6 +50,7 @@ sub all
                 push @g, {
                     id          => $g->id,
                     title       => $g->title,
+                    type        => $g->type,
                     description => $g->description,
                     selected    => $selected,
                 };
