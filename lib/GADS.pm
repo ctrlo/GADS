@@ -69,6 +69,7 @@ hook before_template => sub {
         if permission 'approver';
     $tokens->{messages} = session('messages');
     $tokens->{user}     = $user;
+    $tokens->{config}   = config;
     session 'messages' => [];
 
 };

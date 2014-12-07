@@ -3,7 +3,7 @@
         <div class="jumbotron">
             <h1>Welcome!</h1>
             <p>
-                Thank you for visiting the SCAP. Your password has now been set as follows.
+                Thank you for visiting [% config.gads.name %]. Your password has now been set as follows.
                 Please make a secure note of this password now, as it will not be displayed again.
             </p>
             <h3 class="text-center">[% password %]</h3>
