@@ -77,8 +77,8 @@ hook before_template => sub {
 get '/' => sub {
 
     template 'index' => {
-        config => GADS::Config->conf,
-        page   => 'index'
+        instance => GADS::Config->conf,
+        page     => 'index'
     };
 };
 
@@ -438,7 +438,7 @@ any '/config/?' => sub {
     template 'config' => {
         all_columns => GADS::View->columns,
         autoserial  => $autoserial,
-        config      => GADS::Config->conf,
+        instance    => GADS::Config->conf,
         page        => 'config'
     };
 };
@@ -1052,7 +1052,7 @@ any '/login' => sub {
 
     my $output  = template 'login' => {
         error         => $error,
-        config        => GADS::Config->conf,
+        instance      => GADS::Config->conf,
         titles        => GADS::User->titles,
         organisations => GADS::User->organisations,
         register_text => GADS::User->register_text,
