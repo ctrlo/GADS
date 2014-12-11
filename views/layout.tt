@@ -346,6 +346,9 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 [% IF item.permission == 2 %]Read only[% END %]
             </td>
             <td>
+                [% item.description %]
+            </td>
+            <td>
                 <select class="form-control" id="type" name="position[% item.id %]">
                     [% o = 1 %]
                     [% WHILE o <= all_items.size %]
