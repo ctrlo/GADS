@@ -1009,7 +1009,7 @@ any '/login' => sub {
 
     # Don't allow login page to be displayed when logged-in, to prevent
     # user thinking they are logged out when they are not
-    return forwardHome({}, '') if session 'user_id';
+    return forwardHome({}, '') if user;
 
     # Request a password reset
     if (param('resetpwd'))
