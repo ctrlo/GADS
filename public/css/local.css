@@ -56,20 +56,24 @@ div.circ-small {
     display: inline-block;
 }
 
-.red {
+.b_red {
     background: #d9534f;
 }
 
-.amber {
+.c_amber {
     background: #f0ad4e;
 }
 
-.green {
+.d_green {
     background: #5cb85c;
 }
 
-.grey {
+.a_grey {
     background: gray;
+}
+
+.e_purple {
+    background: purple;
 }
 
 .scrollable-menu {
@@ -91,5 +95,11 @@ div.circ-small {
 
 #cal-slide-tick {
     background-image : url("../images/tick.png")
+}
+
+table.floatThead-table {
+    border-top: none;
+    border-bottom: none;
+    background-color: #FFF;
 }
 

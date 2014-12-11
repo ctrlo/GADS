@@ -28,7 +28,11 @@ engines:
 gads:
   name: "App name" # The local name for the application
   serial: "auto"   # Generate serial numbers automatically
+  header: "HEADER"
   hostlocal: 0     # Whether to fetch files such as jquery.js locally
+  message_prefix: >
+    This email has been generated and sent from GADS. Replies
+    will be directed to the sender of the message.
 
 plugins:
   DBIC:

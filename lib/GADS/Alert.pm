@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Alert;
 
 use GADS::Email;
+use GADS::Util qw(:all);
 use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
 schema->storage->debug(1);
@@ -33,7 +34,7 @@ sub _create_cache
 
     unless (@current_ids)
     {
-        @current_ids = map {$_->current_id} GADS::Record->current({ view_id => $view_id });
+        @current_ids = map {rfield($_, 'current_id')} GADS::Record->current({ view_id => $view_id });
     }
     my $columns = GADS::View->columns({ view_id => $view_id });
     my @caches;
@@ -64,6 +65,7 @@ sub alert
             unless $frequency == 0 || $frequency == 24;
     }
     else {
+        $frequency = undef;
         ouch 'badparam', "Frequency value of $frequency is invalid"
             unless !$frequency;
     }
@@ -75,7 +77,7 @@ sub alert
 
     if ($alert)
     {
-        if ($frequency)
+        if (defined $frequency)
         {
             $alert->update({ frequency => $frequency });
         }
@@ -89,7 +91,7 @@ sub alert
             $alert->delete;
         }
     }
-    else {
+    elsif(defined $frequency) {
         # Check whether this view already has alerts. No need for another
         # cache if so.
         my $exists = rset('Alert')->search({ view_id => $view_id })->count;

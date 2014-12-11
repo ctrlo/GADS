@@ -10,6 +10,7 @@
                 [% edititem = items.shift %]
                 <input type="hidden" name="id" value="[% edititem.id %]">
             [% END %]
+            [% IF edititem.type == "rag" OR edititem.type == "calc" %][% noragcalc = 'style="display:none"' %][% END %]
             <div class="form-group">
                 <label for="name">Name:</label>
                 <input type="text" class="form-control" id="name" name="name" value="[% edititem.name | html_entity %]">
@@ -29,9 +30,9 @@
                     <option value="calc" [% IF edititem.type == "calc" %]selected[% END %]>Calculated value</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label for="email">Permissions: (<a href="" data-toggle="modal" data-target="#modalhelp">?</a>)</label>
-                <select class="form-control" name="permission">
+            <div class="form-group noragcalc" [% noragcalc %]>
+                <label for="permissions">Permissions: (<a href="" data-toggle="modal" data-target="#modalhelp">?</a>)</label>
+                <select class="form-control" name="permission" id="permissions">
                     <option value="0" [% IF edititem.permission == 0 %]selected[% END %]>Open access</option>
                     <option value="1" [% IF edititem.permission == 1 %]selected[% END %]>Edit with approval</option>
                     <option value="2" [% IF edititem.permission == 2 %]selected[% END %]>Read only</option>
@@ -45,12 +46,12 @@
                 <label for="helptext">User help text:</label>
                 <textarea class="form-control" rows="5" id="helptext" name="helptext">[% edititem.helptext | html_entity %]</textarea>
             </div>
-            <div class="checkbox">
+            <div class="checkbox noragcalc" [% noragcalc %]>
                 <label>
                     <input type="checkbox" name="optional" [% IF edititem.optional %]checked[% END %]>Field is optional
                 </label>
             </div>
-            <div class="checkbox">
+            <div class="checkbox noragcalc" [% noragcalc %]>
                 <label>
                     <input type="checkbox" name="remember" [% IF edititem.remember %]checked[% END %]>Remember last value for new entry
                 </label>
@@ -60,7 +61,7 @@
                     <input type="checkbox" name="hidden" [% IF edititem.hidden %]checked[% END %]>Field is hidden for normal users
                 </label> (<a href="" data-toggle="modal" data-target="#modalhelp_hidden">?</a>)
             </div>
-            <div class="checkbox">
+            <div class="checkbox noragcalc" [% noragcalc %]>
                 <label>
                     <input type="checkbox" id="display_condition" name="display_condition" [% IF edititem.display_field %]checked[% END %]>Only display under the following conditions:
                 </label>
@@ -450,36 +451,42 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divrag').hide();
                     $('#divcalc').hide();
                     $('#divfile').hide();
+                    $('.noragcalc').show();
                 } else if (val == "enum") {
                     $('#divenum').show();
                     $('#divtree').hide();
                     $('#divrag').hide();
                     $('#divcalc').hide();
                     $('#divfile').hide();
+                    $('.noragcalc').show();
                 } else if (val == "rag") {
                     $('#divrag').show();
                     $('#divtree').hide();
                     $('#divenum').hide();
                     $('#divcalc').hide();
                     $('#divfile').hide();
+                    $('.noragcalc').hide();
                 } else if (val == "calc") {
                     $('#divrag').hide();
                     $('#divtree').hide();
                     $('#divenum').hide();
                     $('#divcalc').show();
                     $('#divfile').hide();
+                    $('.noragcalc').hide();
                 } else if (val == "file") {
                     $('#divrag').hide();
                     $('#divtree').hide();
                     $('#divenum').hide();
                     $('#divcalc').hide();
                     $('#divfile').show();
+                    $('.noragcalc').show();
                 } else {
                     $('#divenum').hide();
                     $('#divtree').hide();
                     $('#divrag').hide();
                     $('#divcalc').hide();
                     $('#divfile').hide();
+                    $('.noragcalc').show();
                 }
             });
         }); 

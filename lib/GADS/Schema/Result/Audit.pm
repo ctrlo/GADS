@@ -1,12 +1,12 @@
 use utf8;
-package GADS::Schema::Result::Sort;
+package GADS::Schema::Result::Audit;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-GADS::Schema::Result::Sort
+GADS::Schema::Result::Audit
 
 =cut
 
@@ -27,11 +27,11 @@ use base 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<sort>
+=head1 TABLE: C<audit>
 
 =cut
 
-__PACKAGE__->table("sort");
+__PACKAGE__->table("audit");
 
 =head1 ACCESSORS
 
@@ -41,16 +41,15 @@ __PACKAGE__->table("sort");
   is_auto_increment: 1
   is_nullable: 0
 
-=head2 view_id
+=head2 user_id
 
   data_type: 'integer'
   is_foreign_key: 1
-  is_nullable: 0
+  is_nullable: 1
 
-=head2 layout_id
+=head2 description
 
-  data_type: 'integer'
-  is_foreign_key: 1
+  data_type: 'text'
   is_nullable: 1
 
 =head2 type
@@ -59,17 +58,29 @@ __PACKAGE__->table("sort");
   is_nullable: 1
   size: 45
 
+=head2 datetime
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
   "id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
-  "view_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "layout_id",
+  "user_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "description",
+  { data_type => "text", is_nullable => 1 },
   "type",
   { data_type => "varchar", is_nullable => 1, size => 45 },
+  "datetime",
+  {
+    data_type => "datetime",
+    datetime_undef_if_invalid => 1,
+    is_nullable => 1,
+  },
 );
 
 =head1 PRIMARY KEY
@@ -86,18 +97,18 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 layout
+=head2 user
 
 Type: belongs_to
 
-Related object: L<GADS::Schema::Result::Layout>
+Related object: L<GADS::Schema::Result::User>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "layout",
-  "GADS::Schema::Result::Layout",
-  { id => "layout_id" },
+  "user",
+  "GADS::Schema::Result::User",
+  { id => "user_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -106,24 +117,9 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 view
 
-Type: belongs_to
-
-Related object: L<GADS::Schema::Result::View>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "view",
-  "GADS::Schema::Result::View",
-  { id => "view_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-12-07 17:56:04
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KWeNlJj04o/Fwyz/dWkdQw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-10-15 13:47:02
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:l2NxZ96guSlLTeTYBwHOKQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

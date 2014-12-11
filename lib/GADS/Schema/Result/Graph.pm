@@ -65,6 +65,12 @@ __PACKAGE__->table("graph");
   is_nullable: 1
   size: 45
 
+=head2 y_axis_label
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 128
+
 =head2 x_axis
 
   data_type: 'integer'
@@ -108,6 +114,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "y_axis_stack",
   { data_type => "varchar", is_nullable => 1, size => 45 },
+  "y_axis_label",
+  { data_type => "varchar", is_nullable => 1, size => 128 },
   "x_axis",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "x_axis_grouping",
@@ -210,8 +218,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-08-25 22:42:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3oxpAvHoqv5jmR9uf7bONw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-10-08 11:39:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1T7slR/8QpEkQQUXZRepTA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

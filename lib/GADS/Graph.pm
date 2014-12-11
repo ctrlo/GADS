@@ -50,6 +50,7 @@ sub all
                 push @g, {
                     id          => $g->id,
                     title       => $g->title,
+                    type        => $g->type,
                     description => $g->description,
                     selected    => $selected,
                 };
@@ -102,6 +103,7 @@ sub graph
         $args->{y_axis_stack} eq 'count' || $args->{y_axis_stack} eq 'sum'
             or ouch 'badvalue', "$args->{y_axis_stack} is an invalid value for Y-axis";
         $newgraph->{y_axis_stack}    = $args->{y_axis_stack};
+        $newgraph->{y_axis_label}    = $args->{y_axis_label};
         $newgraph->{x_axis}          = $args->{x_axis} or ouch 'badvalue', "Please select a field for X-axis";
         if ($args->{x_axis_grouping})
         {

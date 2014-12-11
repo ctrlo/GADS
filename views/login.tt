@@ -3,7 +3,7 @@
         <div class="jumbotron">
             <h1>Welcome!</h1>
             <p>
-                Thank you for visiting the SCAP. Your password has now been set as follows.
+                Thank you for visiting [% config.gads.name %]. Your password has now been set as follows.
                 Please make a secure note of this password now, as it will not be displayed again.
             </p>
             <h3 class="text-center">[% password %]</h3>
@@ -90,24 +90,53 @@
                             <input type="text" class="form-control" id="surname" name="surname">
                         </div>
                         <div class="form-group">
-                            <label for="title">Title:</label>
+                            <label for="title">Title:
+                                [% IF instance.register_title_help %]
+                                    <span style="font-weight:normal !important">[% instance.register_title_help %]</span>
+                                [% END %]
+                            </label>
                             <select class="form-control" id="title" name="title">
                                 <option></option>
                                 [% FOREACH title IN titles %]
-                                    <option value="[% title.id %]" [% IF edituser.title.id == title.id %]selected[% END %]>[% title.name | html_entity %]</option>
+                                    <option value="[% title.id %]">[% title.name | html_entity %]</option>
                                 [% END %]
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="email">Email:</label>
+                            <label for="email">Email:
+                                [% IF instance.register_email_help %]
+                                    <span style="font-weight:normal !important">[% instance.register_email_help %]</span>
+                                [% END %]
+                            </label>
                             <input type="text" class="form-control" id="email" name="email">
                         </div>
                         <div class="form-group">
-                            <label for="telephone">Telephone:</label>
+                            <label for="telephone">Telephone:
+                                [% IF instance.register_telephone_help %]
+                                    <span style="font-weight:normal !important">[% instance.register_telephone_help %]</span>
+                                [% END %]
+                            </label>
                             <input type="text" class="form-control" id="telephone" name="telephone">
                         </div>
                         <div class="form-group">
-                            <label for="account_request_notes">Notes:</label>
+                            <label for="title">Organisation:
+                                [% IF instance.register_organisation_help %]
+                                    <span style="font-weight:normal !important">[% instance.register_organisation_help %]</span>
+                                [% END %]
+                            </label>
+                            <select class="form-control" id="organisation" name="organisation">
+                                <option></option>
+                                [% FOREACH organisation IN organisations %]
+                                    <option value="[% organisation.id %]">[% organisation.name | html_entity %]</option>
+                                [% END %]
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="account_request_notes">Notes:
+                                [% IF instance.register_notes_help %]
+                                    <span style="font-weight:normal !important">[% instance.register_notes_help %]</span>
+                                [% END %]
+                            </label>
                             <textarea class="form-control" name="account_request_notes" id="account_request_notes" rows="5"></textarea>
                         </div>
                     </div>

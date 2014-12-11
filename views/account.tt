@@ -31,10 +31,11 @@
                     <div class="col-md-6">
                         [% FOREACH graph IN data.graphs %]
                             <div class="checkbox">
-                                <label>
+                                <label title="[% graph.description | html_entity %]">
                                     <input type="checkbox" name="graphs" value="[% graph.id %]"
+                                        title="[% graph.description | html_entity %]"
                                         [% IF graph.selected %]checked[% END %]
-                                    >[% graph.title | html_entity %]
+                                    >[% graph.title | html_entity %] ([% graph.type %])
                                 </label>
                             </div>
                         [% END %]

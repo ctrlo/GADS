@@ -100,10 +100,14 @@
                             axes: {
                                 xaxis: {
                                     renderer: $.jqplot.CategoryAxisRenderer,
-                                    ticks: ticks
+                                    ticks: ticks,
+                                    label: "[% graph.dbrow.x_axis.name %]",
+                                    labelRenderer: $.jqplot.CanvasAxisLabelRenderer
                                 },
                                 yaxis: {
-                                    padMin: 0
+                                    padMin: 0,
+                                    label: "[% graph.dbrow.y_axis_label %]",
+                                    labelRenderer: $.jqplot.CanvasAxisLabelRenderer
                                 }
                             },
                             axesDefaults: {

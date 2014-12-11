@@ -1,3 +1,5 @@
+#!/usr/bin/perl
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -16,31 +18,30 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 =cut
 
-package GADS::Config;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
 
 use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
-use Ouch;
-schema->storage->debug(1);
-
 use GADS::Schema;
+use File::Slurp;
+use File::MimeInfo;
+use File::Basename;
 
-sub conf
-{   my ($self, $update) = @_;
+my ($file) = @ARGV;
 
-    if($update)
-    {
-        my $new->{homepage_text} = $update->{homepage_text};
-        $new->{homepage_text2}   = $update->{homepage_text2};
-        $new->{sort_layout_id}   = $update->{sort_layout_id} || undef;
-        $new->{sort_type}        = $update->{sort_type} if $update->{sort_type};
-        my $c = rset('Instance')->single;
-        $c->update($new);
-    }
-    
-    rset('Instance')->single
-        or ouch 'nosite', "No site configured";
-}
+$file or die "Usage: $0 filename";
 
-1;
+my $filename  = fileparse($file);
+my $mime_type = mimetype($file);
+my $bin_data  = read_file($file, binmode => ':raw');
 
+my $f = rset('Fileval')->create({
+    name     => $filename,
+    mimetype => $mime_type,
+    content  => $bin_data,
+});
+
+my $fid = $f->id;
+
+print "File uploaded as ID $fid\n";
