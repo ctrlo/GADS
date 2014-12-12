@@ -274,10 +274,11 @@ sub data
     foreach my $record (@records)
     {
         $dtgroup->{encode_entities} = 0; # Filled with DT options for date, otherwise just need this option
+        $dtgroup->{plain} = 1; # No fancy formatting for values
         my $x_value = item_value($x_axis, $record, $dtgroup); # The actual value of the field
-        my $y_value = item_value($y_axis, $record, { encode_entities => 0 }); # The actual value of the field
+        my $y_value = item_value($y_axis, $record, { encode_entities => 0, plain => 1 }); # The actual value of the field
         my $groupby_val;
-        $groupby_val = item_value($group_by, $record, { encode_entities => 0 }) if $group_by;
+        $groupby_val = item_value($group_by, $record, { encode_entities => 0, plain => 1 }) if $group_by;
 
         my $key;
         if ($graph->type eq "pie")
