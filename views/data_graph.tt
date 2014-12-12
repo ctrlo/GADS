@@ -113,7 +113,7 @@
                             axesDefaults: {
                                 tickRenderer: $.jqplot.CanvasAxisTickRenderer ,
                                 tickOptions: {
-                                  angle: 0,
+                                  angle: -30,
                                   fontSize: '8pt'
                                 }
 

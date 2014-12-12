@@ -3100,7 +3100,7 @@ input[type="button"].btn-block {
   color: #ffffff;
   text-decoration: none;
   outline: 0;
-  background-color: #ffffff;
+  background-color: #33c2df;
 }
 .dropdown-menu > .disabled > a,
 .dropdown-menu > .disabled > a:hover,
@@ -3134,7 +3134,6 @@ input[type="button"].btn-block {
   padding: 3px 20px;
   font-size: 13px;
   line-height: 1.428571429;
-  color: #ffffff;
 }
 .dropdown-backdrop {
   position: fixed;
