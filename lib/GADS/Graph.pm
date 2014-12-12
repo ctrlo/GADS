@@ -289,6 +289,10 @@ sub data
         {
             $key = $groupby_val || 1; # Maybe no grouping will be set
         }
+        elsif ($y_axis_stack eq 'sum' && !$groupby_val)
+        {
+            $key = 1; # Only one series
+        }
         else {
             $key = $y_axis_stack eq 'count' ? $y_value : $groupby_val;
         }
