@@ -61,7 +61,7 @@ my $end = DateTime->new(
       day        => 23,
 );
 
-print "Title,Description,Country,Estimated cost,Actual cost,Number of people,Date range,Date range,Department\n";
+print "Title,Description,Country,Estimated cost,Actual cost,Number of people,Date range,Date range,Point of Contact,Department\n";
 
 for (1..1000)
 {
@@ -75,8 +75,9 @@ for (1..1000)
     my $from       = DateTime::Event::Random->datetime( after => $start, before => $end );
     my $duration   = int(rand(61));
     my $to         = $from->clone->add( days => $duration );
+    my $person     = int(rand(10)) + 1;
     my $department = $department[int(rand(@department))];
 
-    print "$title,$description,$country,$est_cost,$actual_cost,$people,".$from->ymd.",".$to->ymd.",$department\n";
+    print "$title,$description,$country,$est_cost,$actual_cost,$people,".$from->ymd.",".$to->ymd.",$person,$department\n";
 }
 
