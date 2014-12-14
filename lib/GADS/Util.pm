@@ -53,7 +53,7 @@ sub _date
     if ($options->{date_fields})
     {
         my $include;
-        foreach my $k (keys $options->{date_fields})
+        foreach my $k (keys %{$options->{date_fields}})
         {
             $include->{$k} = $date->$k;
         }
@@ -188,7 +188,7 @@ sub item_value
         if ($options->{date_fields})
         {
             my $include_from; my $include_to;
-            foreach my $k (keys $options->{date_fields})
+            foreach my $k (keys %{$options->{date_fields}})
             {
                 $include_from->{$k} = $date->$k;
                 $include_to->{$k}   = $date->$k;
