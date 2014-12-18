@@ -34,7 +34,7 @@ Dancer2::Plugin::Auth::Complete->user_callback( sub {
 hook before => sub {
 
     # Static content
-    return if request->uri =~ m!^/(error|js|css|login|images|fonts|resetpw)!;
+    return if request->uri =~ m!^/(error|js|css|login|images|fonts|resetpw|ping)!;
     return if param 'error';
 
     # Redirect on no session
@@ -80,6 +80,11 @@ get '/' => sub {
         instance => GADS::Config->conf,
         page     => 'index'
     };
+};
+
+get '/ping' => sub {
+    content_type 'text/plain';
+    'alive';
 };
 
 get '/data_calendar/:time' => sub {
