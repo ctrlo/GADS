@@ -1,27 +1,40 @@
 package GADS;
-use Dancer2;
-use GADS::Record;
-use GADS::User;
-use GADS::View;
-use GADS::Layout;
-use GADS::Email;
-use GADS::Graph;
-use GADS::Config;
+
+use DateTime;
 use GADS::Alert;
 use GADS::Audit;
+use GADS::Config;
 use GADS::DB;
+use GADS::Email;
+use GADS::Graph;
+use GADS::Layout;
+use GADS::Record;
+use GADS::User;
 use GADS::Util         qw(:all);
-use Dancer2::Plugin::Auth::Complete;
-use Ouch;
-use DateTime;
+use GADS::View;
 use HTML::Entities;
 use JSON qw(decode_json encode_json);
+use Log::Report mode => 'DEBUG';
 use Text::CSV;
+
+use Dancer2; # Last to stop Moo generating conflicting namespace
+use Dancer2::Plugin::Auth::Complete;
+
+our $VERSION = '0.1';
 
 set serializer => 'JSON';
 set behind_proxy => config->{behind_proxy}; # XXX Why doesn't this work in config file
 
-our $VERSION = '0.1';
+# Callback dispatcher to send error messages to the web browser
+dispatcher CALLBACK => 'error_handler'
+   , callback => \&error_handler;
+
+# And a syslog dispatcher
+dispatcher SYSLOG => 'syslog'
+  , identity => 'infosaas'
+  , facility => 'local0'
+  , flags    => "pid ndelay nowait",
+  , mode     => 'VERBOSE';
 
 Dancer2::Plugin::Auth::Complete->user_callback( sub {
     my ($retuser, $user) = @_;
@@ -30,6 +43,16 @@ Dancer2::Plugin::Auth::Complete->user_callback( sub {
     $retuser->{lastrecord} = $user->lastrecord ? $user->lastrecord->id : undef;
     $retuser;
 });
+
+hook init_error => sub {
+    my $error = shift;
+    # Catch other exceptions. This is hook is called for all errors
+    # not just exceptions (including for example 404s), so check first.
+    # If it's an exception then panic it to get Log::Report
+    # to handle it nicely. If it's another error such as a 404
+    # then exception will not be set.
+    panic $error->{exception} if $error->{exception};
+};
 
 hook before => sub {
 
@@ -120,12 +143,8 @@ any '/data' => sub {
     # Deal with any alert requests
     if (my $alert_view = param 'alert')
     {
-        eval { GADS::Alert->alert($alert_view, param('frequency'), $user) };
-        if (hug)
+        if (process(sub { GADS::Alert->alert($alert_view, param('frequency'), $user) }))
         {
-            messageAdd({ danger => bleep });
-        }
-        else {
             return forwardHome(
                 { success => "The alert has been saved successfully" }, 'data' );
         }
@@ -185,11 +204,9 @@ any '/data' => sub {
     my $view_id  = session('view_id') || ($default_view ? $default_view->id : undef);
 
     my $columns;
-    eval { $columns = GADS::View->columns({ view_id => $view_id, user => $user, no_hidden => 1 }) };
-    if (hug)
+    unless ( process( sub { $columns = GADS::View->columns({ view_id => $view_id, user => $user, no_hidden => 1 }) }))
     {
         session 'view_id' => undef;
-        return forwardHome({ danger => bleep });
     }
 
     my $params; # Variable for the template
@@ -292,12 +309,8 @@ any '/data' => sub {
 
             my $params = params;
 
-            eval { GADS::Email->message($params, \@records, \@ids, $user) };
-            if (hug)
+            if (process( sub { GADS::Email->message($params, \@records, \@ids, $user) }))
             {
-                messageAdd({ danger => bleep });
-            }
-            else {
                 return forwardHome(
                     { success => "The message has been sent successfully" }, 'data' );
             }
@@ -312,12 +325,8 @@ any '/data' => sub {
                 unless @records;
 
             my $csv;
-            eval { $csv = GADS::Record->csv(\@colnames, \@output) };
-            if (hug)
+            if (process( sub { $csv = GADS::Record->csv(\@colnames, \@output) }))
             {
-                messageAdd({ danger => bleep });
-            }
-            else {
                 my $now    = DateTime->now();
                 my $header;
                 if ($header = config->{gads}->{header})
@@ -355,12 +364,8 @@ any '/account/?:action?/?' => sub {
 
     if (param 'graphsubmit')
     {
-        eval { GADS::User->graphs(user, param('graphs')) };
-        if (hug)
+        if (process( sub { GADS::User->graphs(user, param('graphs')) }))
         {
-            messageAdd({ danger => bleep });
-        }
-        else {
             return forwardHome(
                 { success => "The selected graphs have been updated" }, 'account/graph' );
         }
@@ -380,12 +385,8 @@ any '/account/?:action?/?' => sub {
             organisation => param('organisation') || undef,
         );
 
-        eval { user update => %update };
-        if (hug)
+        if (process( sub { user update => %update }))
         {
-            messageAdd({ danger => bleep });
-        }
-        else {
             GADS::Audit->login_change(user->{id},
                 "User updated own account details. New (or unchanged) email: $update{email}");
             return forwardHome(
@@ -428,12 +429,8 @@ any '/config/?' => sub {
     if (param 'update')
     {
         my $params = params;
-        eval { GADS::Config->conf($params)};
-        if (hug)
+        if (process( sub { GADS::Config->conf($params)}))
         {
-            messageAdd({ danger => bleep });
-        }
-        else {
             return forwardHome(
                 { success => "Configuration settings have been updated successfully" } );
         }
@@ -459,12 +456,8 @@ any '/graph/?:id?' => sub {
 
     if (param 'delete')
     {
-        eval { GADS::Graph->delete(param 'id') };
-        if (hug)
+        if (process( sub { GADS::Graph->delete(param 'id') }))
         {
-            messageAdd({ danger => bleep });
-        }
-        else {
             return forwardHome(
                 { success => "The graph has been deleted successfully" }, 'graph' );
         }
@@ -473,12 +466,8 @@ any '/graph/?:id?' => sub {
     if (param 'submit')
     {
         my $values = params;
-        eval { GADS::Graph->graph($values) };
-        if (hug)
+        if(process( sub { GADS::Graph->graph($values) }))
         {
-            messageAdd({ danger => bleep });
-        }
-        else {
             my $action = param('id') ? 'updated' : 'created';
             return forwardHome(
                 { success => "Graph has been $action successfully" }, 'graph' );
@@ -513,31 +502,24 @@ any '/view/:id' => sub {
     if (param 'update')
     {
         my $values = params;
-        eval { GADS::View->view($view_id, user, $values) };
-
-        if (hug)
+        if (process( sub { GADS::View->view($view_id, user, $values) }))
         {
-            $view = $values;
-            @ucolumns = @{delete $view->{column}};
-            messageAdd({ danger => bleep });
-        }
-        else {
             # Set current view to the one created/edited
             session 'view_id' => $values->{view_id};
             return forwardHome(
                 { success => "The view has been updated successfully" }, 'data' );
+        }
+        else {
+            $view = $values;
+            @ucolumns = @{delete $view->{column}};
         }
     }
 
     if (param 'delete')
     {
         session 'view_id' => undef;
-        eval { GADS::View->delete(param('id'), user) };
-        if (hug)
+        if (process( sub { GADS::View->delete(param('id'), user) }))
         {
-            messageAdd({ danger => bleep });
-        }
-        else {
             return forwardHome(
                 { success => "The view has been deleted successfully" }, 'data' );
         }
@@ -549,11 +531,7 @@ any '/view/:id' => sub {
     {
         $view = GADS::View->view($view_id, user);
         my $viewcols;
-        eval { $viewcols = GADS::View->columns({ view_id => $view_id, user => user }) };
-        if (hug)
-        {
-            return forwardHome({ danger => bleep });
-        }
+        process( sub { $viewcols = GADS::View->columns({ view_id => $view_id, user => user }) });
 
         foreach my $c (@$viewcols)
         {
@@ -609,12 +587,8 @@ any '/layout/?:id?' => sub {
 
     if (param 'delete')
     {
-        eval { GADS::Layout->delete(param 'id') };
-        if (hug)
+        if (process( sub { GADS::Layout->delete(param 'id') }))
         {
-            messageAdd({ danger => bleep });
-        }
-        else {
             return forwardHome(
                 { success => "The item has been deleted successfully" }, 'layout' );
         }
@@ -623,12 +597,8 @@ any '/layout/?:id?' => sub {
     if (param 'submit')
     {
         my $values = params;
-        eval { GADS::Layout->item($values) };
-        if (hug)
+        if (process( sub { GADS::Layout->item($values) }))
         {
-            messageAdd({ danger => bleep });
-        }
-        else {
             my $action = param('id') ? 'updated' : 'created';
             return forwardHome(
                 { success => "Item has been $action successfully" }, 'layout' );
@@ -638,12 +608,8 @@ any '/layout/?:id?' => sub {
     if (param 'saveposition')
     {
         my $values = params;
-        eval { GADS::Layout->position($values) };
-        if (hug)
+        if (process( sub { GADS::Layout->position($values) }))
         {
-            messageAdd({ danger => bleep });
-        }
-        else {
             return forwardHome(
                 { success => "The ordering has been saved successfully" }, 'layout' );
         }
@@ -693,19 +659,8 @@ any '/user/?:id?' => sub {
         }
 
         my $newuser;
-        eval { $newuser = user update => %values };
-        if (hug)
+        if (process( sub { $newuser = user update => %values }))
         {
-            if (param('page') eq 'user')
-            {
-                messageAdd({ danger => bleep });
-            }
-            else {
-                return forwardHome(
-                    { danger => bleep }, '/user' );
-            }
-        }
-        else {
             # Delete account request user if this is a new account request
             user delete => id => param('account_request')
                 if param 'account_request';
@@ -723,10 +678,8 @@ any '/user/?:id?' => sub {
                 $action = 'created';
             }
 
-
-            my $page   = param('page');
             return forwardHome(
-                { success => "User has been $action successfully" }, $page );
+                { success => "User has been $action successfully" }, 'user' );
         }
     }
 
@@ -736,12 +689,8 @@ any '/user/?:id?' => sub {
     {
         if (my $org = param 'neworganisation')
         {
-            eval { GADS::User->organisation_new({ name => $org }) };
-            if (hug)
+            if (process( sub { GADS::User->organisation_new({ name => $org })}))
             {
-                messageAdd({ danger => bleep });
-            }
-            else {
                 GADS::Audit->login_change(user->{id}, "Organisation $org created");
                 messageAdd({ success => "The organisation has been created successfully" });
             }
@@ -749,12 +698,8 @@ any '/user/?:id?' => sub {
 
         if (my $title = param 'newtitle')
         {
-            eval { GADS::User->title_new({ name => $title }) };
-            if (hug)
+            if (process( sub { GADS::User->title_new({ name => $title }) }))
             {
-                messageAdd({ danger => bleep });
-            }
-            else {
                 GADS::Audit->login_change(user->{id}, "Title $title created");
                 messageAdd({ success => "The title has been created successfully" });
             }
@@ -773,12 +718,8 @@ any '/user/?:id?' => sub {
         return forwardHome(
             { danger => "Cannot delete current logged-in User" } )
             if user->{id} eq $delete_id;
-        eval { GADS::User->delete($delete_id) };
-        if (hug)
+        if (process( sub { GADS::User->delete($delete_id) }))
         {
-            messageAdd({ danger => bleep });
-        }
-        else {
             GADS::Audit->login_change(user->{id}, "User ID $delete_id deleted");
             return forwardHome(
                 { success => "User has been deleted successfully" }, 'user' );
@@ -826,12 +767,8 @@ any '/approval/?:id?' => sub {
         # Do approval
         my $values  = params;
         my $uploads = request->uploads;
-        eval { GADS::Record->approve(user, $id, $values, $uploads) };
-        if (hug)
+        if (process( sub { GADS::Record->approve(user, $id, $values, $uploads) }))
         {
-            messageAdd({ danger => bleep });
-        }
-        else {
             return forwardHome(
                 { success => 'Record has been successfully approved' }, 'approval' );
         }
@@ -877,11 +814,12 @@ any '/edit/:id?' => sub {
     {
         my $params = params;
         my $uploads = request->uploads;
-        eval { GADS::Record->update($params, user, $uploads) };
-        if (hug)
+        if (process( sub { GADS::Record->update($params, user, $uploads) }))
         {
-
-            my $bleep = bleep; # Otherwise it's overwritten
+            return forwardHome(
+                { success => 'Submission has been completed successfully' }, 'data' );
+        }
+        else {
 
             my %columns = map { $_->{id} => $_ } @$all_columns; # Need this to check column type easily
 
@@ -915,12 +853,7 @@ any '/edit/:id?' => sub {
                 }
             }
 
-            $bleep .= " Please note that you will need to reselect your uploaded files." if $has_file;
-            messageAdd( { danger => $bleep } );
-        }
-        else {
-            return forwardHome(
-                { success => 'Submission has been completed successfully' }, 'data' );
+            messageAdd( { danger => "Please note that you will need to reselect your uploaded files." } ) if $has_file;
         }
     }
     elsif($id) {
@@ -937,8 +870,10 @@ any '/edit/:id?' => sub {
                 my $v = item_value($column, $previousr, {raw => 1, encoded_entities => 1});
                 if ($column->{fixedvals}) {
                     # Value may no longer be valid. Check it.
-                    eval {GADS::View->is_valid_enumval($v, $column)}; # Borks on error
-                    $v = undef if hug;
+                    unless (process( sub {GADS::View->is_valid_enumval($v, $column)})) # Borks on error
+                    {
+                        $v = undef;
+                    }
                 }
                 my $field = $column->{field};
                 $record->{$field} = {value => $v} if $column->{remember};
@@ -962,11 +897,7 @@ any '/edit/:id?' => sub {
 any '/file/:id' => sub {
     my $id = param 'id';
     my $file;
-    eval { $file = GADS::Record->file($id, user) };
-    if (hug)
-    {
-        forwardHome({ danger => bleep });
-    }
+    process (sub { $file = GADS::Record->file($id, user) });
     send_file( \($file->content), content_type => $file->mimetype, filename => $file->name );
 };
 
@@ -979,12 +910,8 @@ any '/record/:id' => sub {
             { danger => 'You do not have permission to delete records' }, 'data' )
             unless permission('delete') || permission('delete_noneed_approval');
 
-        eval { GADS::Record->delete($delete_id, user) };
-        if (hug)
+        if (process( sub { GADS::Record->delete($delete_id, user) }))
         {
-            messageAdd({ danger => bleep });
-        }
-        else {
             return forwardHome(
                 { success => 'Record has been deleted successfully' }, 'data' );
         }
@@ -1031,10 +958,10 @@ any '/login' => sub {
     if (param 'register')
     {
         my $params = params;
-        eval { GADS::User->register($params) };
-        if (hug)
+        try { GADS::User->register($params) };
+        if(my $exception = $@->wasFatal)
         {
-            $error = bleep;
+            $error = $exception->message;
         }
         else {
             GADS::Audit->login_change(undef, "New user account request for $params->{email}");
@@ -1056,7 +983,7 @@ any '/login' => sub {
     }
 
     my $output  = template 'login' => {
-        error         => $error,
+        error         => "$error",
         instance      => GADS::Config->conf,
         titles        => GADS::User->titles,
         organisations => GADS::User->organisations,
@@ -1104,6 +1031,60 @@ sub messageAdd($) {
     my $msgs    = session 'messages';
     push @$msgs, { text => encode_entities($text), type => $type };
     session 'messages' => $msgs;
+}
+
+sub error_handler
+{   my ($disp, $options, $reason, $message) = @_;
+
+    if ($reason =~ /(TRACE|ASSERT|INFO)/)
+    {
+        # Debug info. Log to syslog.
+    }
+    elsif ($reason eq 'NOTICE')
+    {
+        # Notice that something has happened. Not an error.
+        messageAdd({ info => "$message" });
+    }
+    elsif ($reason =~ /(WARNING|MISTAKE)/)
+    {
+        # Non-fatal problem. Show warning.
+        messageAdd({ warning => "$message" });
+    }
+    elsif ($reason eq 'ERROR') {
+        # A user-created error condition that is not recoverable.
+        # This could have already been caught by the process
+        # subroutine, in which case we should continue running
+        # of the program. In all other cases, we should bail
+        # out. With the former, the exception will have been
+        # re-thrown as a non-fatal exception, so check that.
+        exists $options->{is_fatal} && !$options->{is_fatal}
+            ? messageAdd({ danger => "$message" })
+            : forwardHome({ danger => "$message" });
+    }
+    else {
+        # 'FAULT', 'ALERT', 'FAILURE', 'PANIC'
+        # All these are fatal errors. Display error to user, but
+        # forward home so that we can reload. However, don't if
+        # it's a GET request to the home, as it will cause a recursive
+        # loop. In this case, do nothing, and let dancer handle it.
+        forwardHome({ danger => "$message" })
+            unless request->uri eq '/' && request->is_get;
+    }
+}
+
+# This runs a code block and catches errors, which in then
+# handles in a more graceful manner, throwing as required
+sub process
+{
+    my $coderef = shift;
+    try {&$coderef};
+    my $result = $@ ? 0 : 1; # Return true on success
+    if (my $exception = $@->wasFatal)
+    {
+        $exception->throw(to => 'syslog', is_fatal => 0);
+        $exception->throw(to => 'error_handler', is_fatal => 0);
+    }
+    $result;
 }
 
 true;

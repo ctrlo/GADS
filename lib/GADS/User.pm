@@ -18,17 +18,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::User;
 
+use Crypt::SaltedHash;
+use Email::Valid;
+use GADS::Schema;
+use GADS::Util         qw(:all);
+use Log::Report;
+use String::Random;
+
 use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
 use Dancer2::Plugin::Auth::Complete;
-use Ouch;
-use String::Random;
-use Crypt::SaltedHash;
-use Email::Valid;
-schema->storage->debug(1);
-
-use GADS::Schema;
-use GADS::Util         qw(:all);
 
 sub titles
 {
@@ -44,8 +43,7 @@ sub titles
 sub title_new
 {
     my ($class, $params) = @_;
-    rset('Title')->create({ name => $params->{name} })
-        or ouch 'dbfail', "There was a database error when creating the title";
+    rset('Title')->create({ name => $params->{name} });
 }
 
 sub organisations
@@ -62,8 +60,7 @@ sub organisations
 sub organisation_new
 {
     my ($class, $params) = @_;
-    rset('Organisation')->create({ name => $params->{name} })
-        or ouch 'dbfail', "There was a database error when creating the organisation";
+    rset('Organisation')->create({ name => $params->{name} });
 }
 
 sub graphs
@@ -96,8 +93,7 @@ sub graphs
     $search->{graph_id} = {
         '!=' => [ -and => @graphs ]
     } if @graphs;
-    rset('UserGraph')->search($search)->delete
-        or ouch 'dbfail', "There was a database error deleting old graphs";
+    rset('UserGraph')->search($search)->delete;
 }
 
 sub delete
@@ -105,7 +101,7 @@ sub delete
     my ($self, $user_id) = @_;
 
     my $user = user 'get' => id => $user_id, account_request => [0, 1]
-        or ouch 'notfound', "User $user_id not found";
+        or error __x"User {id} not found", id => $user_id;
 
     if ($user->{account_request})
     {
@@ -122,10 +118,8 @@ sub delete
         return;
     }
 
-    rset('UserGraph')->search({ user_id => $user_id })->delete
-        or ouch 'dbfail', "There was a database error when removing old user graphs";
-    rset('Alert')->search({ user_id => $user_id })->delete
-        or ouch 'dbfail', "There was a database error when removing old user alerts";
+    rset('UserGraph')->search({ user_id => $user_id })->delete;
+    rset('Alert')->search({ user_id => $user_id })->delete;
 
     my $views = rset('View')->search({ user_id => $user_id });
     my @views;
@@ -133,16 +127,11 @@ sub delete
     {
         push @views, $v->id;
     }
-    rset('Filter')->search({ view_id => \@views })->delete
-        or ouch 'dbfail', "There was a database error removing old user view filters";
-    rset('ViewLayout')->search({ view_id => \@views })->delete
-        or ouch 'dbfail', "There was a database error removing old user view layouts";
-    rset('Sort')->search({ view_id => \@views })->delete
-        or ouch 'dbfail', "There was a database error removing old user view layouts";
-    rset('AlertCache')->search({ view_id => \@views })->delete
-        or ouch 'dbfail', "There was a database error removing old user view alert caches";
-    $views->delete
-        or ouch 'dbfail', "There was a database error removing old user views";
+    rset('Filter')->search({ view_id => \@views })->delete;
+    rset('ViewLayout')->search({ view_id => \@views })->delete;
+    rset('Sort')->search({ view_id => \@views })->delete;
+    rset('AlertCache')->search({ view_id => \@views })->delete;
+    $views->delete;
 
     user 'update' => (
         id      => $user_id,

@@ -18,12 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Config;
 
+use GADS::Schema;
+use Log::Report;
+
 use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
-use Ouch;
-schema->storage->debug(1);
-
-use GADS::Schema;
 
 sub conf
 {   my ($self, $update) = @_;
@@ -39,7 +38,7 @@ sub conf
     }
     
     rset('Instance')->single
-        or ouch 'nosite', "No site configured";
+        or error __"No site configured";
 }
 
 1;

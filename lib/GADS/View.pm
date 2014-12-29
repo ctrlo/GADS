@@ -18,15 +18,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::View;
 
-use Dancer2 ':script';
-use Dancer2::Plugin::DBIC qw(schema resultset rset);
-use Ouch;
-use String::CamelCase qw(camelize);
+use GADS::Schema;
 use GADS::Util        qw(:all);
 use JSON qw(decode_json encode_json);
-schema->storage->debug(1);
+use Log::Report;
+use String::CamelCase qw(camelize);
 
-use GADS::Schema;
+use Dancer2 ':script';
+use Dancer2::Plugin::DBIC qw(schema resultset rset);
+
+schema->storage->debug(1); # Last module to load so sets for all
 
 sub main($$)
 {   my ($class, $user_id) = @_;
@@ -67,7 +68,7 @@ sub view
 
     if ($update)
     {
-        $user or ouch 'usermissing', "User ID needs to be supplied for view when updating";
+        $user or error __"User ID needs to be supplied for view when updating";
 
         # First update selected columns
         my $params = {
@@ -144,19 +145,13 @@ sub delete
 
     my $view = _get_view($id, $user->{id}); # Borks on an error
     !$view->global || $user->{permission}->{layout}
-        or ouch 'noperms', "You do not have permission to delete $id";
-    rset('Sort')->search({ view_id => $view->id })->delete
-        or ouch 'dbfail', "There was a database error when deleting the view's sort values";
-    rset('ViewLayout')->search({ view_id => $view->id })->delete
-        or ouch 'dbfail', "There was a database error when deleting the view's layouts";
-    rset('Filter')->search({ view_id => $view->id })->delete
-        or ouch 'dbfail', "There was a database error when deleting the view's filters";
-    rset('AlertCache')->search({ view_id => $view->id })->delete
-        or ouch 'dbfail', "There was a database error when deleting the view's alert's caches";
-    rset('Alert')->search({ view_id => $view->id })->delete
-        or ouch 'dbfail', "There was a database error when deleting the view's alerts";
-    $view->delete
-        or ouch 'dbfail', "There was a database error when deleting the view";
+        or error __x"You do not have permission to delete {id}", id => $id;
+    rset('Sort')->search({ view_id => $view->id })->delete;
+    rset('ViewLayout')->search({ view_id => $view->id })->delete;
+    rset('Filter')->search({ view_id => $view->id })->delete;
+    rset('AlertCache')->search({ view_id => $view->id })->delete;
+    rset('Alert')->search({ view_id => $view->id })->delete;
+    $view->delete;
 }
 
 # Any suffixes that may be valid when creating calc values
@@ -330,7 +325,7 @@ sub columns
         {
             my $new = rset('View')->create({
                 user_id => $ident->{user}->{id}
-            }) or ouch 'dbfail', "Database error when inserting new view";
+            });
             $view_id = $new->id;
             $ident->{view_id} = $view_id;
         }
@@ -339,7 +334,7 @@ sub columns
         }
         my $view = _get_view($view_id, $ident->{user}->{id}); # Borks on an error
         !$view->global || $ident->{user}->{permission}->{layout}
-            or ouch 'noperms', "You do not have access to modify view $view_id";
+            or error __x"You do not have access to modify view {id}", id => $view_id;
 
         # Will be a scalar if only one value submitted. If so,
         # convert to array
@@ -405,7 +400,7 @@ sub columns
                 $vu->{user_id} = $ident->{user}->{id};
             }
         }
-        $update->{viewname} or ouch 'badvalue', "Please enter a name for the view";
+        $update->{viewname} or error __"Please enter a name for the view";
         $vu->{name} = $update->{viewname};
         $view->update($vu);
     }
@@ -474,12 +469,12 @@ sub is_valid_enumval
             layout_id => $column->{id},
             deleted   => 0,
         })->all;
-        ouch 'badval', "ID value of $value is not valid for $column->{name}"
+        error __x"ID value of {value} is not valid for {col}", value => $value, col => $column->{name}
             if !$found;
         if ($column->{end_node_only})
         {
             # Check whether this is actually an end node
-            ouch 'badparam', qq(Please select an end node for "$column->{name}")
+            error __x"Please select an end node for '{col}'", col => $column->{name}
                 if (rset('Enumval')->search({
                     layout_id => $column->{id},
                     parent    => $found->id,
@@ -494,12 +489,12 @@ sub _get_view
 
     my $view = rset('View')->find($view_id);
     $view
-        or ouch 'notfound', "Requested view $view_id not found";
+        or error __x"Requested view {id} not found", id => $view_id;
     $view->global
         and return $view; # Anyone has access to this
     return $view unless $user_id;
     $view->user->id != $user_id
-        and ouch 'noperms', "You do not have access to the requested view $view_id";
+        and error __x"You do not have access to the requested view {id}", id => $view_id;
     $view;
 }
 
@@ -544,7 +539,7 @@ sub sorts
             my $id   = $1;
             my $new  = $2 ? 'new' : '';
             my $type = $update->{"sorttype$id"};
-            ouch 'badparam', "Invalid type $type"
+            error __x"Invalid type {type}", type => $type
                 unless grep { $_->{name} eq $type } @{sort_types()};
             my $layout_id = $update->{"sortfield$id$new"} || undef;
             my $sort = {
@@ -556,7 +551,7 @@ sub sorts
             {
                 # New filter
                 my $s = rset('Sort')->create($sort)
-                    or ouch 'dbfail', "Database error when inserting new sort";
+                    or error __"Database error when inserting new sort";
                 push @allsorts, $s->id;
             }
             else {
@@ -574,8 +569,7 @@ sub sorts
         {
             unless (grep {$_ == $s->id} @allsorts)
             {
-                $s->delete
-                    or ouch 'dbfail', "Database error when deleting view ".$s->id;
+                $s->delete;
             }
         }
     }

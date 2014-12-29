@@ -18,12 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Audit;
 
+use GADS::Schema;
+
 use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
-use Ouch;
-schema->storage->debug(1);
-
-use GADS::Schema;
 
 sub user_action
 {   my ($self, $user_id, $description) = @_;

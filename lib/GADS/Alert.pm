@@ -20,12 +20,12 @@ package GADS::Alert;
 
 use GADS::Email;
 use GADS::Util qw(:all);
+use List::MoreUtils qw/ uniq /;
+use Log::Report;
+use Scalar::Util qw(looks_like_number);
+
 use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
-schema->storage->debug(1);
-use Ouch;
-use Scalar::Util qw(looks_like_number);
-use List::MoreUtils qw/ uniq /;
 
 sub _create_cache
 {   my ($alert, @current_ids) = @_;
@@ -61,12 +61,12 @@ sub alert
 
     if (looks_like_number $frequency)
     {
-        ouch 'badparam', "Frequency value of $frequency is invalid"
+        error __x "Frequency value of {frequency} is invalid", frequency => $frequency
             unless $frequency == 0 || $frequency == 24;
     }
     else {
         $frequency = undef;
-        ouch 'badparam', "Frequency value of $frequency is invalid"
+        error __x "Frequency value of {frequency} is invalid", frequency => $frequency
             unless !$frequency;
     }
         

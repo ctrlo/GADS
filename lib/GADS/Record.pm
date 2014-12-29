@@ -18,24 +18,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Record;
 
-use Dancer2 ':script';
-use Dancer2::Plugin::DBIC qw(schema resultset rset);
-use GADS::Record;
-use GADS::Util         qw(:all);
-use GADS::Config;
-use GADS::View;
-use String::CamelCase qw(camelize);
-use Ouch;
-use Safe;
+use Data::Compare;
 use DateTime;
 use DateTime::Format::Strptime qw( );
-use Data::Compare;
-use POSIX qw(ceil);
-use JSON qw(decode_json encode_json);
-use Scalar::Util qw(looks_like_number);
-schema->storage->debug(1);
-
+use GADS::Config;
+use GADS::Record;
 use GADS::Schema;
+use GADS::Util         qw(:all);
+use GADS::View;
+use JSON qw(decode_json encode_json);
+use Log::Report;
+use POSIX qw(ceil);
+use Safe;
+use Scalar::Util qw(looks_like_number);
+use String::CamelCase qw(camelize);
+
+use Dancer2 ':script';
+use Dancer2::Plugin::DBIC qw(schema resultset rset);
 
 sub _safe_eval;
 sub _search_construct;
@@ -55,14 +54,14 @@ sub files
 
 sub file
 {   my ($self, $id, $user) = @_;
-    $id or ouch 'missing', "No ID provided for file retrieval";
+    $id or error __"No ID provided for file retrieval";
     my $fileval = rset('Fileval')->find($id)
-        or ouch 'notfound', "File ID $id cannot be found";
+        or error __x"File ID {id} cannot be found", id => $id;
     # Check whether this is hidden and whether the user has access
     my ($file) = $fileval->files; # In theory can be more than one, but not in practice
     if ($file && $file->layout->hidden) # Could be unattached document
     {
-        ouch 'noperms', "You do not have access to this document"
+        error __"You do not have access to this document"
             unless $user->{permission}->{layout};
     }
     $fileval;
@@ -681,7 +680,7 @@ sub _search_construct
     my $column   = $columns->{$filter->{id}}
         or return;
     my $operator = $ops{$filter->{operator}}
-        or ouch 'invop', "Invalid operator $filter->{operator}";
+        or error __x"Invalid operator {filter}", filter => $filter->{operator};
 
     my $vprefix = $filter->{operator} eq 'contains' ? '%' : '';
     my $vsuffix = $filter->{operator} =~ /contains|begins_with/ ? '%' : '';
@@ -722,7 +721,7 @@ sub _search_construct
             return ('-and' => ["$s_table.from" => { '<=', $value}, "$s_table.to" => { '>=', $value}]);
         }
         else {
-            ouch 'invop', "Invalid operator $operator for date range";
+            error __x"Invalid operator {operator} for date range", operator => $operator;
         }
     }
     else {
@@ -740,13 +739,13 @@ sub csv
     my @colnames = @$colnames;
     my $csv = Text::CSV->new;
     $csv->combine(@colnames)
-        or ouch 'csvfail', "An error occurred producing the CSV headings: ".$csv->error_input;
+        or error __x"An error occurred producing the CSV headings: {err}", err => $csv->error_input;
     my $csvout = $csv->string."\n";
     my $numcols = $#colnames + 1;
     foreach my $line (@$data)
     {
         $csv->combine(@$line[1 .. $numcols])
-            or ouch 'csvfail', "An error occurred producing a line of CSV: ".$csv->error_input;
+            or error __x"An error occurred producing a line of CSV: {err}", err => $csv->error_input;
         $csvout .= $csv->string."\n";
     }
     $csvout;
@@ -938,15 +937,15 @@ sub rag
             {
                 $ragvalue = 'b_red';
             }
-            elsif (!hug && $amber && eval { _safe_eval "($amber)" } )
+            elsif (!$@ && $amber && eval { _safe_eval "($amber)" } )
             {
                 $ragvalue = 'c_amber';
             }
-            elsif (!hug && $green && eval { _safe_eval "($green)" } )
+            elsif (!$@ && $green && eval { _safe_eval "($green)" } )
             {
                 $ragvalue = 'd_green';
             }
-            elsif (hug) {
+            elsif ($@) {
                 # An exception occurred evaluating the code
                 $ragvalue = 'e_purple';
             }
@@ -1036,7 +1035,7 @@ sub calc
         # If there are still square brackets then something is wrong
         my $value = $code =~ /[\[\]]+/
                   ? 'Invalid field names in calc formula'
-                  : eval { _safe_eval "$code" } || bleep;
+                  : try { _safe_eval "$code" } || $@->wasFatal->message;
 
         _write_calc($record, $column, $value);
         $value;
@@ -1143,7 +1142,7 @@ sub _process_input_value
         $value or return; # Do not return empty string for unspecified date
         # Convert to DateTime object if required
         my $new = $format->parse_datetime($value);
-        $new or ouch 'invaliddate', "Invalid date \"$value\" for $column->{name}";
+        $new or error __x"Invalid date '{value}' for {col}", value => $value, col => $column->{name};
     }
     elsif ($column->{type} eq 'daterange')
     {
@@ -1152,10 +1151,10 @@ sub _process_input_value
         return unless $value;
         my ($from, $to) = @$value;
         return unless $from || $to; # No dates entered - blank value
-        $from && $to or ouch 'invaliddate', qq(Please select 2 dates for "$column->{name}");
+        $from && $to or error __x"Please select 2 dates for '{col}'", col => $column->{name};
         my $f = _parse_daterange($from, $to, $format);
-        $f->{from} or ouch 'invaliddate', "Invalid from date in range: \"$from\" in $column->{name}";
-        $f->{to}   or ouch 'invaliddate', "Invalid to date in range: \"$to\" in $column->{name}";
+        $f->{from} or error __x"Invalid from date in range: '{from}' in {col}", from => $from, col => $column->{name};
+        $f->{to}   or error __x"Invalid to date in range: '{to}' in {col}", to => $to, col => $column->{name};
         # Swap dates around if from is after the to
         ($f->{to}, $f->{from}) = ($f->{from}, $f->{to}) if DateTime->compare($f->{from}, $f->{to}) == 1;
         $f;
@@ -1165,7 +1164,7 @@ sub _process_input_value
         # Find the file upload and store for later
         if (my $upload = $uploads->{"file$column->{id}"})
         {
-            ouch 'toobig', "The uploaded file is greater than the maximum size allowed for this field"
+            error __"The uploaded file is greater than the maximum size allowed for this field"
                 if $column->{file_option}->{filesize} && $upload->size > $column->{file_option}->{filesize} * 1024;
             {
                 name     => $upload->filename,
@@ -1193,7 +1192,7 @@ sub _process_input_value
     }
     elsif ($column->{type} eq "intgr")
     {
-        ouch 'badparam', "Field \"$column->{name}\" requires an integer value."
+        error __x"Field '{col}' requires an integer value.", col => $column->{name}
             unless $value =~ /^[0-9]*$/;
         # Submitted integers will be and empty string
         # for no value. We want undef
@@ -1309,7 +1308,7 @@ sub approve
         # the field was made compulsory after added the initial submission.
         if (!$col->{optional} && rfield($r,$fn) && _is_blank $col, $newvalue)
         {
-            ouch 'missing', "Field \"$col->{name}\" is not optional. Please enter a value.";
+            error __x"Field '{col}' is not optional. Please enter a value.", col => $col->{name};
         }
     }
 
@@ -1376,7 +1375,7 @@ sub approve
 
                 my $write = _field_write($col, $r, $newvalue);
                 rfield($r,$fn)->update($write)
-                    or ouch 'dbfail', "Database error updating new approved values";
+                    or error __"Database error updating new approved values";
 
                 if (!defined($values->{$fn}) && $orig_submitted_file && !($previous && rfield($previous,$fn) && rfield($previous,$fn)->value))
                 {
@@ -1391,18 +1390,15 @@ sub approve
         else {
             my $table = $col->{table};
             my $write = _field_write($col, $r, $newvalue);
-            rset($table)->create($write)
-                or ouch 'dbfail', "Failed to create database entry for field ".$col->{name};
+            rset($table)->create($write);
         }
     }
 
     # At this point we do not have a resource set to update, just its values
     # in a hash ref. Therefore, get the resource set
     my $rs = rset('Record')->find($r->{id});
-    $rs->update({ approval => 0, record_id => undef, approvedby => $user->{id}, created => \"NOW()" })
-        or ouch 'dbfail', "Database error when removing approval status from updated record";
-    rset('Current')->find(rfield($r, 'current_id'))->update({ record_id => rfield($r, 'id') })
-        or ouch 'dbfail', "Database error when updating current record tracking";
+    $rs->update({ approval => 0, record_id => undef, approvedby => $user->{id}, created => \"NOW()" });
+    rset('Current')->find(rfield($r, 'current_id'))->update({ record_id => rfield($r, 'id') });
 
     # Send any alerts. Not if onboarding ($user will not be set)
     GADS::Alert->process(rfield($r, 'current_id'), \%columns_changed) if $user;
@@ -1431,13 +1427,13 @@ sub update
     my $old;
     if ($current_id)
     {
-        ouch 'nopermission', "No permissions to update an entry"
+        error __"No permissions to update an entry"
             if $user && !$user->{permission}->{update};
         $old = GADS::Record->current({ current_id => $current_id });
     }
     else
     {
-        ouch 'nopermission', "No permissions to add a new entry"
+        error __"No permissions to add a new entry"
             if $user && !$user->{permission}->{create};
     }
 
@@ -1488,14 +1484,14 @@ sub update
             # Only if a value was set previously, otherwise a field that had no
             # value might be made mandatory, but if it's read-only then that will
             # stop users updating other fields of the record
-            ouch 'missing', qq("$column->{name}" is not optional. Please enter a value.);
+            error __x"'{col}' is not optional. Please enter a value.", col => $column->{name};
         }
         $newvalue->{$fieldid} = _process_input_value($column, $value, $uploads, $oldvalue->{$fieldid});
 
         # Keep a track as to whether a value has changed. Keep it undef for new values
         $changed->{$fieldid} = 1 if $old && _changed($column, $oldvalue->{$fieldid}, $newvalue->{$fieldid});
 
-        ouch 'nopermission', "Field ID $fieldid is read only"
+        error __x"Field ID {id} is read only", id => $fieldid
             if $changed->{$fieldid} &&
             $column->{permission} == READONLY &&
             !$noapproval;
@@ -1557,7 +1553,7 @@ sub update
         if (config->{gads}->{serial} ne "auto")
         {
             $serial = $params->{serial}
-                or ouch 'noserial', "No serial number was supplied";
+                or error __"No serial number was supplied";
         }
         $current_id = rset('Current')->create({serial => $serial})->id;
     }
@@ -1629,8 +1625,7 @@ sub update
                 # Don't create a record for blank values. Doesn't work for
                 # enums and other fields that reference others
                 my $entry = _field_write($column, $record_rs, $v);
-                rset($table)->create($entry)
-                    or ouch 'dbfail', "Failed to create database entry for field ".$column->{name};
+                rset($table)->create($entry);
             }
         }
         if ($approval_rs)
@@ -1638,8 +1633,7 @@ sub update
             # Only need to write values that need approval
             next unless $appfields{$fieldid};
             my $entry = _field_write($column, $approval_rs, $newvalue->{$fieldid});
-            rset($table)->create($entry)
-                or ouch 'dbfail', "Failed to create approval database entry for field ".$column->{name};
+            rset($table)->create($entry);
         }
 
     }
@@ -1649,8 +1643,7 @@ sub update
     # permanent record
     if ($need_rec)
     {
-        rset('Current')->find($current_id)->update({ record_id => $record_rs->id })
-            or ouch 'dbfail', "Database error updating current record tracking";
+        rset('Current')->find($current_id)->update({ record_id => $record_rs->id });
     }
 
     # Write cached values
@@ -1732,8 +1725,7 @@ sub record_rs
     $record->{current_id} = $current_id;
     $record->{created} = \"NOW()";
     $record->{createdby} = $user->{id} if $user;
-    rset('Record')->create($record)
-        or ouch 'dbfail', "Failed to create a database record for this update";
+    rset('Record')->create($record);
 }
 
 sub approval_rs
@@ -1745,8 +1737,7 @@ sub approval_rs
     $record->{record_id}  = $record_id;
     $record->{approval}   = 1;
     $record->{createdby}  = $user->{id} if $user;
-    rset('Record')->create($record)
-        or ouch 'dbfail', "Failed to create a database record for the approval request";
+    rset('Record')->create($record);
 }
 
 sub _safe_eval

@@ -18,14 +18,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Layout;
 
+use GADS::Schema;
+use GADS::View;
+use Log::Report;
+use String::CamelCase qw(camelize);
+
 use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
-use GADS::View;
-use Ouch;
-use String::CamelCase qw(camelize);
-schema->storage->debug(1);
-
-use GADS::Schema;
 
 sub all
 {   my ($class, $new) = @_;
@@ -97,8 +96,7 @@ sub _delete_unused_nodes
             my $haschild = grep {$_->{parent} && $node->{id} == $_->{parent}} @flat;                   # Has (deleted) children
             if ($count || $haschild)
             {
-                rset('Enumval')->find($node->{id})->update({ deleted => 1 })
-                    or ouch 'dbfail', "Database error deleting old tree values";
+                rset('Enumval')->find($node->{id})->update({ deleted => 1 });
             }
             else {
                 rset('Enumval')->find($node->{id})->delete;
@@ -133,7 +131,7 @@ sub tree
             $dbt->update({
                 parent => $parent,
                 value  => $t->{text},
-            }) or ouch 'dbfail', "Database error when updating tree ID $t->{id}";
+            });
         }
         else {
             # new entry
@@ -141,7 +139,7 @@ sub tree
                 layout_id => $layout_id,
                 parent    => $parent,
                 value     => $t->{text},
-            }) or ouch 'dbfail', "Database error when creating new tree value $t->{text}";
+            });
         }
 
         push @$dbids, $dbt->id;
@@ -222,15 +220,15 @@ sub tree
 sub delete
 {   my ($class, $id) = @_;
     my $item = rset('Layout')->find($id)
-        or ouch 'notfound', "Unable to find item with ID $id";
+        or error __x"Unable to find item with ID {id}", id => $id;
 
     # First see if any views are conditional on this field
     if (my @deps = rset('Layout')->search({ display_field => $item->id })->all)
     {
         my @depsn = map { $_->name } @deps;
         my $dep   = join ', ', @depsn;
-        ouch 'baddep', "The following fields are conditional on this field: $dep.
-            Please remove these conditions before deletion.";
+        error __x"The following fields are conditional on this field: {dep}.
+            Please remove these conditions before deletion.", dep => $dep;
     }
 
     my @graphs = rset('Graph')->search(
@@ -243,22 +241,16 @@ sub delete
     if (@graphs)
     {
         my $g = join(q{, }, map{$_->title} @graphs);
-        ouch 'badparam', "The following graphs references this field: $g. Please update them before deletion.";
+        error __x"The following graphs references this field: {graph}. Please update them before deletion."
+            , graph => $g;
     }
-    rset('ViewLayout')->search({ layout_id => $item->id })->delete
-        or ouch 'dbfail', "Database error deleting views containing this item";
-    rset('Filter')->search({ layout_id => $item->id })->delete
-        or ouch 'dbfail', "Database error deleting filters containing this item";
-    rset('Person')->search({ layout_id => $item->id })->delete
-        or ouch 'dbfail', "Database error deleting any people relating to this item";
-    rset('Enum')->search({ layout_id => $item->id })->delete
-        or ouch 'dbfail', "Database error deleting any enums relating to this item";
-    rset('Calc')->search({ layout_id => $item->id })->delete
-        or ouch 'dbfail', "Database error deleting any calcs relating to this item";
-    rset('Rag')->search({ layout_id => $item->id })->delete
-        or ouch 'dbfail', "Database error deleting any rags relating to this item";
-    rset('AlertCache')->search({ layout_id => $item->id })->delete
-        or ouch 'dbfail', "Database error deleting any alert caches relating to this item";
+    rset('ViewLayout')->search({ layout_id => $item->id })->delete;
+    rset('Filter')->search({ layout_id => $item->id })->delete;
+    rset('Person')->search({ layout_id => $item->id })->delete;
+    rset('Enum')->search({ layout_id => $item->id })->delete;
+    rset('Calc')->search({ layout_id => $item->id })->delete;
+    rset('Rag')->search({ layout_id => $item->id })->delete;
+    rset('AlertCache')->search({ layout_id => $item->id })->delete;
     my $type = $item->type;
     if ($type eq 'tree')
     {
@@ -267,24 +259,19 @@ sub delete
     }
     elsif($type eq 'enum')
     {
-        rset('Enumval')->search({ layout_id => $item->id })->delete
-            or ouch 'dbfail', "Database error deleting any enum values relating to this item";
+        rset('Enumval')->search({ layout_id => $item->id })->delete;
     }
     elsif($type eq 'calc')
     {
-        rset('Calcval')->search({ layout_id => $item->id })->delete
-            or ouch 'dbfail', "Database error deleting any calc values relating to this item";
+        rset('Calcval')->search({ layout_id => $item->id })->delete;
     }
     elsif($type eq 'rag')
     {
-        rset('Ragval')->search({ layout_id => $item->id })->delete
-            or ouch 'dbfail', "Database error deleting any rag values relating to this item";
+        rset('Ragval')->search({ layout_id => $item->id })->delete;
     }
     my $table = camelize $type;
-    rset($table)->search({ layout_id => $item->id })->delete
-        or ouch 'dbfail', "Database error deleting data associated with this item";
-    $item->delete
-        or ouch 'dbfail', "Database error deleting item";
+    rset($table)->search({ layout_id => $item->id })->delete;
+    $item->delete;
 }
 
 sub position
@@ -292,8 +279,7 @@ sub position
     foreach my $o (keys %$params)
     {
         next unless $o =~ /position([0-9]+)/;
-        rset('Layout')->find($1)->update({ position => $params->{$o} })
-            or ouch 'dbfail', "There was a database error when updating the position values";
+        rset('Layout')->find($1)->update({ position => $params->{$o} });
     }
 }
 
@@ -307,11 +293,11 @@ sub item
         $newitem->{hidden} = $args->{hidden} ? 1 : 0;
         $newitem->{remember} = $args->{remember} ? 1 : 0;
         ($newitem->{name} = $args->{name}) =~ /^[ \S]+$/ # Only normal spaces please
-            or ouch 'badvalue', "Please enter a name for item";
+            or error __"Please enter a name for item";
         ($newitem->{type}       = $args->{type}) =~ /^(intgr|string|date|daterange|enum|tree|person|rag|calc|file)$/
-            or ouch 'badvalue', "Bad type $args->{type} for item";
+            or error __x"Bad type {type} for item", type => $args->{type};
         ($newitem->{permission} = $args->{permission}) =~ /^[012]$/
-            or ouch 'badvalue', "Bad permission $args->{permission} for item";
+            or error __x"Bad permission {permission} for item", permission => $args->{permission};
         $newitem->{description} = $args->{description};
         $newitem->{helptext}    = $args->{helptext};
 
@@ -327,7 +313,7 @@ sub item
             sub collectenum
             {
                 my ($value, $index) = @_;
-                ouch 'badvalue', "\"$value\" is not a valid value for the multiple select"
+                error __x"'{value}' is not a valid value for the multiple select", value => $value
                     unless $value =~ /^[ \S]+$/;
                 my $p = {
                     index => $index,
@@ -370,9 +356,8 @@ sub item
         if ($args->{id})
         {
             $item = rset('Layout')->find($args->{id})
-                or ouch 'notfound', "Unable to find item with ID $args->{id}";
-            $item = $item->update($newitem)
-                or ouch 'dbfail', "Database error when updating item ID $args->{id}";
+                or error __x"Unable to find item with ID {id}", id => $args->{id};
+            $item = $item->update($newitem);
 
             if ($item->type eq 'enum')
             {
@@ -383,7 +368,7 @@ sub item
                     if ($en->{index})
                     {
                         my $enumval = rset('Enumval')->find($en->{index})
-                            or ouch 'badvalue', "Bad index $en->{index} for multiple select update";
+                            or error __x"Bad index {index} for multiple select update", index => $en->{index};
                         $enumval->update({ value => $en->{value} });
                     }
                     else {
@@ -414,8 +399,7 @@ sub item
         }
         else {
             # No ID - new item
-            $item = rset('Layout')->create($newitem)
-                or ouch 'dbfail', "Database error when creating new item";
+            $item = rset('Layout')->create($newitem);
             foreach my $en (@enumvals)
             {
                 rset('Enumval')->create({ value => $en->{value}, layout_id => $item->id });
@@ -442,14 +426,12 @@ sub item
                 $need_update =  $ragr->red ne $rag->{red}
                              || $ragr->amber ne $rag->{amber}
                              || $ragr->green ne $rag->{green};
-                $ragr->update($rag)
-                    or ouch 'dbfail', "Database error updating RAG values";
+                $ragr->update($rag);
                 # Clear out cached calues. Will be auto-inserted later
             }
             else {
                 $rag->{layout_id} = $item->id;
-                rset('Rag')->create($rag)
-                    or ouch 'dbfail', "Database error creating RAG values";
+                rset('Rag')->create($rag);
                 $need_update = 1;
             }
             if ($need_update)
@@ -471,13 +453,11 @@ sub item
             {
                 # First see if the calculation has changed
                 $need_update = $calcr->calc ne $calc->{calc};
-                $calcr->update($calc)
-                    or ouch 'dbfail', "Database error updating calculated formula";
+                $calcr->update($calc);
             }
             else {
                 $calc->{layout_id} = $item->id;
-                $calcr = rset('Calc')->create($calc)
-                    or ouch 'dbfail', "Database error creating calculated formula";
+                $calcr = rset('Calc')->create($calc);
                 $need_update = 1;
             }
             if ($need_update)
@@ -495,13 +475,11 @@ sub item
             my ($file_option) = rset('FileOption')->search({ layout_id => $item->id })->all;
             if ($file_option)
             {
-                $file_option->update($foption)
-                    or ouch 'dbfail', "Database error updating file size option";
+                $file_option->update($foption);
             }
             else {
                 $foption->{layout_id} = $item->id;
-                rset('FileOption')->create($foption)
-                    or ouch 'dbfail', "Database error creating calculated file size option";
+                rset('FileOption')->create($foption);
             }
         }
     }
@@ -512,7 +490,7 @@ sub item
             prefetch => ['enumvals', 'calcs', 'rags' ],
             order_by => 'enumvals.id',
         })->all;
-        $item or ouch 'notfound', "Unable to find item with ID $args->{id}";
+        $item or error __x"Unable to find item with ID {id}", id => $args->{id};
     }
     my $itemhash = {
         id            => $item->id,

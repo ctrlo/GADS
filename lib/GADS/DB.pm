@@ -18,9 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::DB;
 
+use String::CamelCase qw(camelize);
+
 use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
-use String::CamelCase qw(camelize);
 
 sub setup
 {

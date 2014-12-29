@@ -18,16 +18,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Graph;
 
+use GADS::Schema;
+use GADS::Util    qw(item_value);
+use GADS::View;
+use Log::Report;
+use Scalar::Util qw(looks_like_number);
+
 use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
-use GADS::View;
-use GADS::Util    qw(item_value);
-use Ouch;
-use Scalar::Util qw(looks_like_number);
-# use String::CamelCase qw(camelize);
-schema->storage->debug(1);
-
-use GADS::Schema;
 
 sub all
 {   my ($class, $params) = @_;
@@ -70,11 +68,9 @@ sub delete
     my ($self, $graph_id) = @_;
 
     my $graph = rset('Graph')->find($graph_id)
-        or ouch 'notfound', "Unable to find graph $graph_id";
-    rset('UserGraph')->search({ graph_id => $graph_id })->delete
-        or ouch 'dbfail', "Database error deleting user graphs";
-    rset('Graph')->search({ id => $graph_id })->delete
-        or ouch 'dbfail', "Database error when deleting graph";
+        or error __x"Unable to find graph {id}", id => $graph_id;
+    rset('UserGraph')->search({ graph_id => $graph_id })->delete;
+    rset('Graph')->search({ id => $graph_id })->delete;
 }
 
 sub dategroup
@@ -97,29 +93,29 @@ sub graph
     if($args->{submit})
     {
         my $newgraph;
-        $newgraph->{title}           = $args->{title} or ouch 'badvalue', "Please enter a title";
+        $newgraph->{title}           = $args->{title} or error __"Please enter a title";
         $newgraph->{description}     = $args->{description};
-        $newgraph->{y_axis}          = $args->{y_axis} or ouch 'badvalue', "Please select a Y-axis";
+        $newgraph->{y_axis}          = $args->{y_axis} or error __"Please select a Y-axis";
         $args->{y_axis_stack} eq 'count' || $args->{y_axis_stack} eq 'sum'
-            or ouch 'badvalue', "$args->{y_axis_stack} is an invalid value for Y-axis";
+            or error __x"{yas} is an invalid value for Y-axis", yas => $args->{y_axis_stack};
         $newgraph->{y_axis_stack}    = $args->{y_axis_stack};
         $newgraph->{y_axis_label}    = $args->{y_axis_label};
-        $newgraph->{x_axis}          = $args->{x_axis} or ouch 'badvalue', "Please select a field for X-axis";
+        $newgraph->{x_axis}          = $args->{x_axis} or error __"Please select a field for X-axis";
         if ($args->{x_axis_grouping})
         {
             grep { $args->{x_axis_grouping} eq $_ } keys dategroup
-                or ouch 'badvalue', "$args->{x_axis_grouping} is an invalid value for X-axis grouping";
+                or error __x"{xas} is an invalid value for X-axis grouping", xas => $args->{x_axis_grouping};
         }
         $newgraph->{x_axis_grouping} = $args->{x_axis_grouping};
         $newgraph->{group_by}        = $args->{group_by} ? $args->{group_by} : undef;
         $newgraph->{stackseries}     = $args->{stackseries} ? 1 : 0;
         grep { $args->{type} eq $_ } graphtypes
-            or ouch 'badvalue', "Invalid graph type $newgraph->{type}";
+            or error __x"Invalid graph type {type}", type => $newgraph->{type};
         $newgraph->{type} = $args->{type};
         if ($args->{id})
         {
             my $g = rset('Graph')->find($args->{id})
-                or ouch 'notfound', "Requested graph ID $args->{id} not found";
+                or error __x"Requested graph ID {id} not found", id => $args->{id};
             $g->update($newgraph);
         }
         else {
@@ -137,14 +133,14 @@ sub graph
                     rset('UserGraph')->create({
                         graph_id => $args->{id},
                         user_id  => $user->id,
-                    }) or ouch 'dbfail', "There was an error adding a graph to a user";
+                    });
                 }
             }
         }
     }
     
     rset('Graph')->find($args->{id})
-        or ouch 'notfound', "Unable to find graph ID $args->{id}";
+        or error __x"Unable to find graph ID {id}", id => $args->{id};
 }
 
 
@@ -165,7 +161,7 @@ sub data
         $y_axis_stack = 'sum';
     }
     else {
-        ouch 'badparam', "Unknown graph y_axis_stack value ".$graph->y_axis_stack;
+        error __x"Unknown graph y_axis_stack value {yas}", yas => $graph->y_axis_stack;
     }
 
     my $series;
@@ -195,7 +191,7 @@ sub data
             $date_fields = {year => 1, month => 1, day => 1};
         }
         else {
-            ouch 'badparam', "Unknown grouping for date: ".$graph->x_axis_grouping;
+            error __x"Unknown grouping for date: {group}", group => $graph->x_axis_grouping;
         }
         $dtgroup = {
             date_fields => $date_fields,

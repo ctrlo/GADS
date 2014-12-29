@@ -18,18 +18,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Email;
 
+use Log::Report;
+use Text::Autoformat qw(autoformat break_wrap);
+
 use Dancer2 ':script';
 use Dancer2::Plugin::Emailesque;
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
-schema->storage->debug(1);
-use Text::Autoformat qw(autoformat break_wrap);
-use Ouch;
 
 sub send($)
 {   my ($class, $args) = @_;
 
-    my $emails   = $args->{emails} or ouch 'badparam', "Please specify some recipients to send an email to";
-    my $subject  = $args->{subject} or ouch 'badparam', "Please enter some text for the email";
+    my $emails   = $args->{emails} or error __"Please specify some recipients to send an email to";
+    my $subject  = $args->{subject} or error __"Please enter some text for the email";
     my $reply_to = $args->{reply_to};
     my $message = autoformat $args->{text}, {all => 1, break=>break_wrap};
 
