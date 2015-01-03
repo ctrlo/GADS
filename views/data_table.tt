@@ -116,11 +116,11 @@
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
             $(document).ready(function () {
-                $("#datatable").floatThead(
+                $("#datatable").floatThead({
                     zIndex: function($table){
                         return 1001;
                     }
-                );
+                });
                 var adjustheight = 60;
                 var moreText = '+ More';
                 var lessText = '- Less';
