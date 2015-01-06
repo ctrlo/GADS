@@ -118,7 +118,7 @@
             $(document).ready(function () {
                 $("#datatable").floatThead({
                     zIndex: function($table){
-                        return 1001;
+                        return 999;
                     }
                 });
                 var adjustheight = 60;
