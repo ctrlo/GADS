@@ -1035,7 +1035,8 @@ sub calc
         # If there are still square brackets then something is wrong
         my $value = $code =~ /[\[\]]+/
                   ? 'Invalid field names in calc formula'
-                  : try { _safe_eval "$code" } || $@->wasFatal->message;
+                  : try { _safe_eval "$code" };
+        $value = $@->wasFatal->message if $@;
 
         _write_calc($record, $column, $value);
         $value;
