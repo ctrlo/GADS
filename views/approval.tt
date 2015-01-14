@@ -1,19 +1,15 @@
 <h2>Approve record</h2>
 <p></p>
-[% IF approves.size %]
+[% IF records.size %]
 <table class="table table-striped">
     <tr>
         <th>Serial</th>
         <th>Submitted by</th>
     </tr>
-    [% FOREACH approve IN approves %]
+    [% FOREACH record IN records %]
         <tr>
-            [% IF autoserial %]
-                <td><a href="/approval/[% approve.id %]">[% approve.current.id %]</a></td>
-            [% ELSE %]
-                <td><a href="/approval/[% approve.id %]">[% approve.current.serial | html_entity %]</a></td>
-            [% END %]
-            <td>[% person_popover(approve.createdby) %]</td>
+            <td><a href="/approval/[% record.record_id %]">[% record.current_id %]</a></td>
+            <td>[% record.createdby.html %]</td>
         </tr>
     [% END %]
 </table>

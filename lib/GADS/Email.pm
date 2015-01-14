@@ -19,56 +19,68 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Email;
 
 use Log::Report;
+use Mail::Message;
+use Mail::Transport::Sendmail;
 use Text::Autoformat qw(autoformat break_wrap);
 
-use Dancer2 ':script';
-use Dancer2::Plugin::Emailesque;
-use Dancer2::Plugin::DBIC qw(schema resultset rset);
+use Moo;
 
-sub send($)
-{   my ($class, $args) = @_;
+has message_prefix => (
+    is      => 'rw',
+    coerce  => sub { ($_[0]||"")."\n" },
+);
+
+has text => (
+    is => 'rw',
+);
+
+has subject => (
+    is => 'rw',
+);
+
+sub send
+{   my ($self, $args) = @_;
 
     my $emails   = $args->{emails} or error __"Please specify some recipients to send an email to";
     my $subject  = $args->{subject} or error __"Please enter some text for the email";
     my $reply_to = $args->{reply_to};
-    my $message = autoformat $args->{text}, {all => 1, break=>break_wrap};
+    my $body     = autoformat $args->{text}, {all => 1, break=>break_wrap};
 
-    my $params = {
-        subject  => $subject,
-        message  => $message,
-    };
-    $params->{headers} = {
-        "Reply-to" => $reply_to, # Reply_to in Emailesque is broken
-    } if $reply_to;
+    my $msg = Mail::Message->build(
+        Subject => $subject,
+        data    => $body,
+    );
+    $msg->head->add('Reply-to' => $reply_to) if $reply_to;
+
+    # Start a mailer
+    my $mailer = Mail::Transport::Sendmail->new;
+
     my %done;
     foreach my $email (@$emails)
     {
         next if $done{$email}; # Stop duplicate emails
         $done{$email} = 1;
-        $params->{to} = $email;
-        email $params;
+        $msg->head->set(to => $email);
+        $mailer->send($msg);
     }
 }
 
 sub message
-{
-    my ($self, $params, $records, $ids, $user) = @_;
+{   my ($self, $records, $col_id, $user) = @_;
 
     my @emails;
-    my $field = $params->{peopcol}; # The people field to use
-    foreach my $record (@$records)
+    foreach my $record (@{$records->results})
     {
-        push @emails, $record->$field->value->email
-            if grep {$_ == $record->id} @$ids;
+        my $email = $record->fields->{$col_id}->email;
+        push @emails, $email if $email;
     }
 
-    $params->{text} =~ s/\s+$//;
-    my $text = config->{gads}->{message_prefix}
-             ."\n". $params->{text}
-             ."\n\nMessage sent by: $user->{value} ($user->{email})\n";
+    (my $text = $self->text) =~ s/\s+$//;
+    $text = $self->message_prefix.$text
+             ."\n\nMessage sent by: ".($user->{value}||"")." ($user->{email})\n";
 
     my $email = {
-        subject  => $params->{subject},
+        subject  => $self->subject,
         emails   => \@emails,
         text     => $text,
         reply_to => $user->{email},

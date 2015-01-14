@@ -18,16 +18,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Audit;
 
-use GADS::Schema;
+use Moo;
 
-use Dancer2 ':script';
-use Dancer2::Plugin::DBIC qw(schema resultset rset);
+has schema => (
+    is       => 'rw',
+    required => 1,
+);
+
+has user => (
+    is => 'rw',
+);
 
 sub user_action
-{   my ($self, $user_id, $description) = @_;
+{   my ($self, $description) = @_;
 
-    rset('Audit')->create({
-        user_id     => $user_id,
+    $self->schema->resultset('Audit')->create({
+        user_id     => $self->user->{id},
         description => $description,
         type        => 'user_action',
         datetime    => \"NOW()",
@@ -35,10 +41,10 @@ sub user_action
 }
 
 sub login_change
-{   my ($self, $user_id, $description) = @_;
+{   my ($self, $description) = @_;
 
-    rset('Audit')->create({
-        user_id     => $user_id,
+    $self->schema->resultset('Audit')->create({
+        user_id     => $self->user->{id},
         description => $description,
         type        => 'login_change',
         datetime    => \"NOW()",
@@ -46,21 +52,21 @@ sub login_change
 }
 
 sub login_success
-{   my ($self, $user_id, $username) = @_;
+{   my $self = shift;
 
-    rset('Audit')->create({
-        user_id     => $user_id,
-        description => "Successful login by username $username",
+    $self->schema->resultset('Audit')->create({
+        user_id     => $self->user->{id},
+        description => "Successful login by username ".$self->user->{username},
         type        => 'login_success',
         datetime    => \"NOW()",
     });
 }
 
 sub logout
-{   my ($self, $user_id, $username) = @_;
+{   my ($self, $username) = @_;
 
-    rset('Audit')->create({
-        user_id     => $user_id,
+    $self->schema->resultset('Audit')->create({
+        user_id     => $self->user->{id},
         description => "Logout by username $username",
         type        => 'logout',
         datetime    => \"NOW()",
@@ -70,7 +76,7 @@ sub logout
 sub login_failure
 {   my ($self, $username) = @_;
 
-    rset('Audit')->create({
+    $self->schema->resultset('Audit')->create({
         description => "Login failure using username $username",
         type        => 'login_failure',
         datetime    => \"NOW()",

@@ -6,11 +6,7 @@
             <div class="row">
                 <div class="col-md-6">
                     <select class="form-control" id="sort_layout_id" name="sort_layout_id">
-                        [% IF autoserial %]
-                            <option value="">ID</option>
-                        [% ELSE %]
-                            <option value="">Index</option>
-                        [% END %]
+                        <option value="">ID</option>
                         [% FOREACH column IN all_columns %]
                             <option value="[% column.id %]" [% IF instance.sort_layout_id == column.id %]selected[% END %]>[% column.name %]</option>
                         [% END %]

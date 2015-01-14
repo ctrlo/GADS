@@ -1,10 +1,6 @@
 <h2>
-    [% IF record.current %]
-        [% IF autoserial %]
-            Record ID [% record.current.id %]
-        [% ELSE %]
-            [% record.current.serial %]
-        [% END %]
+    [% IF record.current_id %]
+        Record ID [% record.current_id %]
     [% ELSE %]
         New record
     [% END %]
@@ -13,18 +9,8 @@
 <form role="form" method="post" enctype="multipart/form-data">
     <div class="row">
         <div class="col-md-6">
-            [% IF record.current %]
-                <input type="hidden" name="current_id" value="[% record.current.id %]">
-            [% ELSE %]
-                [% IF approves %]
-                    [% record = approves.pop %]
-                [% END %]
-                [% UNLESS autoserial %]
-                    <div class="form-group">
-                        <label for="serial">Serial*</label>
-                        <input type="text" class="form-control" id="serial" name="serial" value="[% record.current.serial %]">
-                    </div>
-                [% END %]
+            [% IF record.current_id %]
+                <input type="hidden" name="current_id" value="[% record.current_id %]">
             [% END %]
             [% trees = [] %]
             [% jscode = [] %]
@@ -34,13 +20,7 @@
             [% END %]
         </div>
     </div>
-    <button type="submit" name="submit" value="submit" class="btn btn-primary">
-        [% IF approves %]
-            Approve
-        [% ELSE %]
-            Submit
-        [% END %]
-    </button>
+    <button type="submit" name="submit" value="submit" class="btn btn-primary">Submit</button>
     <a href="/data" class="btn btn-default">Cancel</a>
 </form>
 <p></p>
@@ -68,12 +48,13 @@
 [% BLOCK showcol %]
     [% NEXT IF dispcol.type == "rag" OR dispcol.type == "calc" %]
     [% field = 'field' _ dispcol.id %]
+    [% colid = dispcol.id %]
 
     [%# Skip field if it's an approval request but a value not needing approval %]
-    [% NEXT UNLESS (record.$field.defined) OR NOT approves %]
+    [% NEXT IF NOT (record.fields.$colid.defined)  %]
 
-    [% IF approves %]
-        [% oldvalue = item_value(dispcol, record.record) %] [%# All value already entity-encoded %]
+    [% IF existing %]
+        [% oldvalue = existing.fields.$colid.html %] [%# All value already entity-encoded %]
     [% END %]
 
     [%# This is painful. There appears to be no way to undefine a variable in TT,
@@ -85,9 +66,11 @@
     [%# If form_value returns undef, then TT still gives it the value of "".
         Therefore, test the function first for undef, then assign. We rely
         on an undefined value for tests later. %]
-    [% IF form_value(dispcol, record).defined %][% value.value = form_value(dispcol, record) %][% END %]
+    [% IF record.fields.$colid.defined %][% value.value = record.fields.$colid %][% END %]
 
-    [% IF record.current AND dispcol.readonly AND NOT user.permission.update_noneed_approval AND NOT user.permission.approver %]
+    [% editvalue = value.value %]
+
+    [% IF record.current_id AND dispcol.readonly AND NOT user.permission.update_noneed_approval AND NOT user.permission.approver %]
         [% readonly = "readonly" %]
     [% ELSE %]
         [% readonly = "" %]
@@ -112,10 +95,10 @@
         [% END %]
     [% IF dispcol.type == "enum" %]
         <label for="[% field %]" [% label_style %]>
-            [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
+            [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
         </label>
         <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
-            [% IF dispcol.optional OR value.value.deleted OR NOT value.value %]
+            [% IF dispcol.optional OR editvalue.deleted OR NOT editvalue %]
                 <option></option>
             [% END %]
             [% IF dispcol.ordering == "desc" %]
@@ -127,34 +110,34 @@
             [% END %]
             [% FOREACH enumval IN enumvals %]
                 [% UNLESS enumval.deleted %]
-                    <option value="[% enumval.id %]" [% IF value.value == enumval.id %]selected[% END %]>[% enumval.value %]</option>
+                    <option value="[% enumval.id %]" [% IF editvalue.id == enumval.id %]selected[% END %]>[% enumval.value %]</option>
                 [% END %]
             [% END %]
         </select>
     [% ELSIF dispcol.type == "tree" %]
-        [% trees.push({id = dispcol.id, end_node_only = dispcol.end_node_only, value = value.value}) %]
+        [% trees.push({id = dispcol.id, end_node_only = dispcol.end_node_only, value = editvalue}) %]
         <label for="[% dispcol.id %]" [% label_style %]>
-            [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
+            [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
         </label>
         <div class="form-group">
             <div id="jstree[% dispcol.id %]"></div>
         </div>
-        <input type="hidden" name="[% field %]" id="treeval_id[% dispcol.id %]" value="[% value.value %]">
+        <input type="hidden" name="[% field %]" id="treeval_id[% dispcol.id %]" value="[% editvalue.id %]">
         <input type="hidden" id="[% dispcol.id %]" value="">
     [% ELSIF dispcol.type == "person" %]
         <label for="[% dispcol.id %]" [% label_style %]>
-            [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
+            [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
         </label>
         <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
-            [% IF dispcol.optional OR value.value.deleted %]
+            [% IF dispcol.optional OR editvalue.deleted OR NOT editvalue %]
                 <option></option>
             [% END %]
-            [% IF value.value.defined %]
-                [% selected = value.value %]
+            [% IF editvalue.defined %]
+                [% selected = editvalue.id %]
             [% ELSE %]
                 [% selected = user.id %]
             [% END %]
-            [% FOREACH person IN people %]
+            [% FOREACH person IN dispcol.people %]
                 [% UNLESS person.deleted %]
                     <option value="[% person.id %]" [% IF selected == person.id %]selected[% END %]>[% person.surname %], [% person.firstname %]</option>
                 [% END %]
@@ -162,28 +145,26 @@
         </select>
     [% ELSIF dispcol.type == "file" %]
         <label for="[% dispcol.id %]" [% label_style %]>
-            [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
+            [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
         </label>
         [% IF readonly %]
-            <p class="help-block">Current file name: [% value.value %] (read-only field, cannot be updated).</p>
+            <p class="help-block">Current file name: [% editvalue.html %] (read-only field, cannot be updated).</p>
         [% ELSE %]
             <input type="file" id="[% dispcol.id %]" name="[% "file" _ dispcol.id %]">
-            [% IF value.value %]
+            [% IF editvalue %]
                 <p class="help-block">
-                <input type="checkbox" name="[% field %]" value="1" checked>Include file.
-                Current file name: [% value.value %]. Select a new file to replace.</p>
-            [% ELSE %]
-                <input type="hidden" name="[% field %]" value="1">
+                <input type="checkbox" name="[% field %]" value="[% editvalue.id %]" checked>Include file.
+                Current file name: [% editvalue.html %]. Select a new file to replace.</p>
             [% END %]
         [% END %]
     [% ELSE %]
         <label for="[% dispcol.id %]" [% label_style %]>
-            [% label %][% IF oldvalue %] (previously &quot;[% oldvalue %]&quot;)[% END %]
+            [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
         </label>
         [% IF dispcol.type == "daterange" %]
             <div class="input-daterange datepicker" style="padding:0">
-                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline" value="[% value.value.from %]">
-                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline; float:right" value="[% value.value.to %]">
+                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline" value="[% editvalue.from_form %]">
+                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline; float:right" value="[% editvalue.to_form %]">
             </div>
         [% ELSE %]
             [% IF dispcol.type == "date" %]
@@ -192,7 +173,7 @@
                 [% class = "form-control" %]
             [% END %]
             <input type="text" class="[% class %]" id="[% dispcol.id %]"
-                name="[% field %]" value="[% IF record %][% value.value %][% END %]" [% readonly %] >
+                name="[% field %]" value="[% IF record %][% editvalue.html %][% END %]" [% readonly %] >
         [% END %]
     [% END %]
 </div>

@@ -108,6 +108,7 @@ sub alert
 sub process
 {   my ($self, $current_id, $columns) = @_;
 
+    return; # FIXME
     my @col_ids = keys %$columns or return;
 
     my @caches = rset('View')->search({

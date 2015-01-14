@@ -3,31 +3,51 @@ package GADS;
 use DateTime;
 use GADS::Alert;
 use GADS::Audit;
+use GADS::Column;
+use GADS::Column::Calc;
+use GADS::Column::Date;
+use GADS::Column::Daterange;
+use GADS::Column::Enum;
+use GADS::Column::File;
+use GADS::Column::Intgr;
+use GADS::Column::Person;
+use GADS::Column::Rag;
+use GADS::Column::String;
+use GADS::Column::Tree;
 use GADS::Config;
 use GADS::DB;
 use GADS::Email;
 use GADS::Graph;
+use GADS::Graph::Data;
+use GADS::Graphs;
 use GADS::Layout;
 use GADS::Record;
+use GADS::Records;
 use GADS::User;
 use GADS::Util         qw(:all);
 use GADS::View;
+use GADS::Views;
 use HTML::Entities;
 use JSON qw(decode_json encode_json);
 use Log::Report mode => 'DEBUG';
+use String::CamelCase qw(camelize);
 use Text::CSV;
 
 use Dancer2; # Last to stop Moo generating conflicting namespace
 use Dancer2::Plugin::Auth::Complete;
+use Dancer2::Plugin::DBIC qw(schema resultset rset);
+
+schema->storage->debug(1);
 
 our $VERSION = '0.1';
 
-set serializer => 'JSON';
+# set serializer => 'JSON';
 set behind_proxy => config->{behind_proxy}; # XXX Why doesn't this work in config file
 
 # Callback dispatcher to send error messages to the web browser
 dispatcher CALLBACK => 'error_handler'
-   , callback => \&error_handler;
+   , callback => \&error_handler
+   , mode => 'DEBUG';
 
 # And a syslog dispatcher
 dispatcher SYSLOG => 'syslog'
@@ -38,8 +58,6 @@ dispatcher SYSLOG => 'syslog'
 
 Dancer2::Plugin::Auth::Complete->user_callback( sub {
     my ($retuser, $user) = @_;
-    $retuser->{value} = GADS::Record->person_update_value($user);
-    $retuser->{views} = GADS::View->all($user->id);
     $retuser->{lastrecord} = $user->lastrecord ? $user->lastrecord->id : undef;
     $retuser;
 });
@@ -65,7 +83,7 @@ hook before => sub {
 
     # Dynamically generate "virtual" columns for each row of data, based on the
     # configured layout
-    GADS::DB->setup;
+    GADS::DB->setup(schema);
 
 };
 
@@ -76,7 +94,8 @@ hook before_template => sub {
     my $user = user;
     my $method = request->method;
     my $path   = request->path;
-    GADS::Audit->user_action($user->{id}, qq(User $user->{username} made $method request to $path))
+    my $audit  = GADS::Audit->new(schema => schema, user => $user);
+    $audit->user_action(qq(User $user->{username} made $method request to $path))
         if $user;
 
     my $base = request->base;
@@ -88,8 +107,10 @@ hook before_template => sub {
 
     $tokens->{header} = config->{gads}->{header};
 
-    $tokens->{approve_waiting} = scalar @{GADS::Record->approve}
-        if permission 'approver';
+    if (permission 'approver')
+    {
+        $tokens->{approve_waiting} = GADS::Records->approval_count(schema);
+    }
     $tokens->{messages} = session('messages');
     $tokens->{user}     = $user;
     $tokens->{config}   = config;
@@ -99,8 +120,9 @@ hook before_template => sub {
 
 get '/' => sub {
 
+    my $config = GADS::Config->new(schema => schema);
     template 'index' => {
-        instance => GADS::Config->conf,
+        instance => $config,
         page     => 'index'
     };
 };
@@ -115,20 +137,98 @@ get '/data_calendar/:time' => sub {
     # Time variable is used to prevent caching by browser
 
     my $view_id = session 'view_id';
-    my $from    = param 'from';
-    my $to      = param 'to';
+
+    my $fromdt  = DateTime->from_epoch( epoch => ( param('from') / 1000 ) )->truncate( to => 'day'); 
+    my $todt    = DateTime->from_epoch( epoch => ( param('to') / 1000 ) ); 
+
+    my $diff     = $todt->subtract_datetime($fromdt);
+    my $dt_view  = $diff->years
+                 ? 'year'
+                 : $diff->weeks
+                 ? 'week'
+                 : $diff->days
+                 ? 'day'
+                 : 'month'; # Default to month
+
+    # Remember previous day and view. Day is difficult, due to the
+    # timezone issues described above. XXX How to fix?
+    session 'calendar' => {
+        day  => $todt->clone->subtract(days => 1),
+        view => $dt_view,
+    };
+
+    # Epochs received from the calendar module are based on the timezone of the local
+    # browser. So in BST, 24th August is requested as 23rd August 23:00. Rather than
+    # trying to convert timezones, we keep things simple and round down any "from"
+    # times and round up any "to" times.
+    if ($todt->hms('') ne '000000')
+    {
+        # If time is after midnight, round down to midnight and add day
+        $todt->set(hour => 0, minute => 0, second => 0);
+        $todt->add(days => 1);
+    }
+
+    if ($fromdt->hms('') ne '000000')
+    {
+        # If time is after midnight, round down to midnight
+        $fromdt->set(hour => 0, minute => 0, second => 0);
+    }
+
+    my $user    = user;
+    my $layout  = GADS::Layout->new(user => $user, schema => schema);
+    my $views   = GADS::Views->new(user => $user, schema => schema, layout => $layout);
+    my $view    = $views->view(session 'view_id') || $views->default_view; # Can still be undef
+    my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
+    $records->search(
+        view    => $view,
+        from    => $fromdt,
+        to      => $todt,
+    );
 
     header "Cache-Control" => "max-age=0, must-revalidate, private";
-    {
+    content_type 'application/json';
+    encode_json({
         "success" => 1,
-        "result"  => GADS::Record->data_calendar($view_id, user, $from, $to),
-    }
+        "result"  => $records->data_calendar,
+    });
+};
+
+get '/data_graph/:id/:time' => sub {
+
+    my $user    = user;
+    my $id      = param 'id';
+    my $layout  = GADS::Layout->new(user => $user, schema => schema);
+    my $views   = GADS::Views->new(user => $user, schema => schema, layout => $layout);
+    my $view    = $views->view(session 'view_id') || $views->default_view; # Can still be undef
+    my $graph   = GADS::Graph->new(id => $id, schema => schema);
+    my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
+    $records->search(
+        view    => $view,
+        columns => [
+            $graph->x_axis,
+            $graph->y_axis,
+            $graph->group_by,
+        ],
+    );
+
+    my $gdata = GADS::Graph::Data->new(id => $id, records => $records, schema => schema);
+
+    header "Cache-Control" => "max-age=0, must-revalidate, private";
+    content_type 'application/json';
+    encode_json({
+        points  => $gdata->points,
+        labels  => $gdata->labels,
+        xlabels => $gdata->xlabels,
+    });
 };
 
 get '/search' => sub {
 
     my $search = param 'search';
-    my @results = GADS::Record->search($search, user);
+    my $user = user;
+    my $layout = GADS::Layout->new(user => $user, schema => schema);
+    my $records = GADS::Records->new(schema => schema, user => $user, layout => $layout);
+    my @results = $records->search_all_fields($search);
     template 'search' => {
         results => \@results,
         search  => $search,
@@ -163,26 +263,6 @@ any '/data' => sub {
         session 'rows' => int $rows;
     }
 
-    if (my $sort = param('sort'))
-    {
-        my $existing = session 'sort';
-        $sort = int $sort;
-        my $type;
-        if ($existing && $existing->{id} == $sort)
-        {
-            $type = $existing->{type} eq 'asc' ? 'desc' : 'asc';
-        }
-        else {
-            $type = 'asc';
-        }
-        session 'sort' => { type => $type, id => $sort };
-    }
-    elsif (defined param('sort'))
-    {
-        # Provide a way of resetting sort to default
-        session 'sort' => undef;
-    }
-
     if (my $page = param('page'))
     {
         session 'page' => int $page;
@@ -200,40 +280,28 @@ any '/data' => sub {
         $viewtype = session('viewtype') || 'table';
     }
 
-    my $default_view = shift @{$user->{views}};
-    my $view_id  = session('view_id') || ($default_view ? $default_view->id : undef);
-
-    my $columns;
-    unless ( process( sub { $columns = GADS::View->columns({ view_id => $view_id, user => $user, no_hidden => 1 }) }))
-    {
-        session 'view_id' => undef;
-    }
+    my $layout = GADS::Layout->new(user => $user, schema => schema);
+    my $views  = GADS::Views->new(user => $user, schema => schema, layout => $layout);
+    my $view   = $views->view(session 'view_id') || $views->default; # Can still be undef
 
     my $params; # Variable for the template
 
     if ($viewtype eq 'graph')
     {
-        my $todraw = GADS::Graph->all({ user => $user });
-
-        my @graphs;
-        foreach my $g (@$todraw)
-        {
-            my $graph = GADS::Graph->data({ graph => $g, view_id => $view_id, user => $user });
-            push @graphs, $graph if $graph;
-        }
-
         $params = {
-            graphs      => \@graphs,
-            viewtype    => 'graph',
+            graphs   => GADS::Graphs->new(user => $user, schema => schema)->all,
+            viewtype => 'graph',
         };
-
     }
     elsif ($viewtype eq 'calendar')
     {
         # Get details of the view and work out color markers for date fields
         my @colors = qw/event-important event-success event-warning event-info event-inverse event-special/;
         my %datecolors;
-        foreach my $column (@$columns)
+
+        my @columns = $layout->view($view->id);
+
+        foreach my $column (@columns)
         {
             if ($column->{type} eq "daterange" || $column->{type} eq "date")
             {
@@ -242,9 +310,9 @@ any '/data' => sub {
         }
 
         $params = {
+            calendar   => session('calendar'), # Remember previous day viewed
             datecolors => \%datecolors,
             viewtype   => 'calendar',
-            time       => time,
         }
     }
     else {
@@ -254,27 +322,53 @@ any '/data' => sub {
         my $rows = defined param('download') ? undef : session('rows');
         my $page = defined param('download') ? undef : session('page');
 
-        # @records contains all the information for each required record
-        my $get = {
-            view_id => $view_id,
-            user    => $user,
+        my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
+
+        if (defined param('sort'))
+        {
+            my $sort     = int param 'sort';
+            my $existing = session('sort');
+            if (!$existing && @{$view->sorts})
+            {
+                # Get first sort of existing view
+                my $sort = $view->sorts->[0];
+                $existing = {
+                    id => $sort->{layout_id},
+                    type => $sort->{type},
+                };
+            }
+            my $type;
+            if ($existing && $existing->{id} == $sort)
+            {
+                $type = $existing->{type} eq 'desc' ? 'asc' : 'desc';
+            }
+            else {
+                $type = 'asc'; #$existing ? 'asc' : 'desc';
+            }
+            session 'sort' => { type => $type, id => $sort };
+        }
+
+        unless (session 'sort')
+        {
+            # Default sort if not set
+            # Set here in case it's a hidden column
+            my $config = GADS::Config->new(schema => schema);
+            my $sort = {
+                id   => $config->sort_layout_id,
+                type => $config->sort_type,
+            };
+            # session 'sort' => $sort;
+            $records->default_sort($sort);
+        }
+
+        $records->search(
+            view    => $view,
             rows    => $rows,
             page    => $page,
             sort    => session('sort'),
-        };
-
-        my @records = GADS::Record->current($get);
-        my $pages = $get->{pages};
-        # @output contains just the data itself, which can be sent straight to a CSV
-        my $options = defined param('download') ? { plain => 1 } : { encode_entities => 1 };
-        $options->{user} = $user;
-        my @output = GADS::Record->data($view_id, \@records, $options);
-
-        my @colnames = ('Serial');
-        foreach my $column (@$columns)
-        {
-            push @colnames, $column->{name};
-        }
+            format  => (defined param('download') ? {plain => 1} : {encode_entities => 1}),
+        );
+        my $pages = $records->pages;
 
         my $subset = {
             rows  => session('rows'),
@@ -282,34 +376,23 @@ any '/data' => sub {
             page  => $page,
         };
 
-        $params = {
-            sort     => session('sort'),
-            subset   => $subset,
-            records  => \@output,
-            columns  => $columns,
-            viewtype => 'table',
-            rag      => sub { GADS::Record->rag(@_) },
-        };
-
         if (param 'sendemail')
         {
             forwardHome({ danger => "There are no records in this view and therefore nobody to email"}, 'data')
-                unless @records;
+                unless $records->results;
 
             return forwardHome(
                 { danger => 'You do not have permission to send messages' }, 'data' )
                 unless permission 'message';
 
-            # Collect all the actual record IDs, including RAG filters
-            my @ids;
-            foreach my $o (@output)
-            {
-                push @ids, $o->[0];
-            }
-
             my $params = params;
 
-            if (process( sub { GADS::Email->message($params, \@records, \@ids, $user) }))
+            my $email = GADS::Email->new(
+                message_prefix => config->{gads}->{message_prefix},
+                subject        => param('subject'),
+                text           => param('text'),
+            );
+            if (process( sub { $email->message($records, param('peopcol'), $user) }))
             {
                 return forwardHome(
                     { success => "The message has been sent successfully" }, 'data' );
@@ -322,39 +405,49 @@ any '/data' => sub {
                 unless permission 'download';
 
             forwardHome({ danger => "There are no records to download in this view"}, 'data')
-                unless @records;
+                unless $records->results;
 
-            my $csv;
-            if (process( sub { $csv = GADS::Record->csv(\@colnames, \@output) }))
+            my $csv = $records->csv;
+            my $now = DateTime->now();
+            my $header;
+            if ($header = config->{gads}->{header})
             {
-                my $now    = DateTime->now();
-                my $header;
-                if ($header = config->{gads}->{header})
-                {
-                    $csv       = "$header\n$csv" if $header;
-                    $header    = "-$header" if $header;
-                }
-                return send_file( \$csv, content_type => 'text/csv', filename => "$now$header.csv" );
+                $csv       = "$header\n$csv" if $header;
+                $header    = "-$header" if $header;
             }
+            return send_file( \$csv, content_type => 'text/csv', filename => "$now$header.csv" );
+        }
+        else {
+            my @columns = $view ? $layout->view($view->id) : $layout->all;
+            $params = {
+                sort     => $records->sort,
+                subset   => $subset,
+                records  => $records->results,
+                columns  => \@columns,
+                viewtype => 'table',
+            };
         }
     }
 
-    $params->{v}        = GADS::View->view($view_id, $user),  # View is reserved TT word
-    $params->{alerts}   = GADS::Alert->all($user->{id});
-    $params->{page}     = 'data';
+    $params->{v}          = $view,  # View is reserved TT word
+    $params->{user_views} = $views->user_views;
+    $params->{alerts}     = GADS::Alert->all($user->{id});
+    $params->{page}       = 'data';
     template 'data' => $params;
 };
 
 any '/account/?:action?/?' => sub {
 
     my $action = param 'action';
+    my $user   = user;
+    my $audit  = GADS::Audit->new(schema => schema, user => $user);
 
     if (param 'newpassword')
     {
         # See if existing password is correct first
         if (my $newpw = reset_pw 'password' => param('oldpassword'))
         {
-            GADS::Audit->login_change(user->{id}, "New password set for user");
+            $audit->login_change("New password set for user");
             forwardHome({ success => qq(Your password has been changed to: $newpw)}, 'account/detail' );
         }
         else {
@@ -364,7 +457,7 @@ any '/account/?:action?/?' => sub {
 
     if (param 'graphsubmit')
     {
-        if (process( sub { GADS::User->graphs(user, param('graphs')) }))
+        if (process( sub { GADS::User->graphs($user, param('graphs')) }))
         {
             return forwardHome(
                 { success => "The selected graphs have been updated" }, 'account/graph' );
@@ -375,7 +468,7 @@ any '/account/?:action?/?' => sub {
     {
         # Update of user details
         my %update = (
-            id           => user->{id},
+            id           => $user->{id},
             firstname    => param('firstname')    || undef,
             surname      => param('surname')      || undef,
             email        => param('email'),
@@ -387,7 +480,7 @@ any '/account/?:action?/?' => sub {
 
         if (process( sub { user update => %update }))
         {
-            GADS::Audit->login_change(user->{id},
+            $audit->login_change(
                 "User updated own account details. New (or unchanged) email: $update{email}");
             return forwardHome(
                 { success => "The account details have been updated" }, 'account/detail' );
@@ -398,9 +491,10 @@ any '/account/?:action?/?' => sub {
 
     if ($action eq 'graph')
     {
-        $data->{graphs} = GADS::Graph->all({ user => user, all => 1 });
+        my $graphs = GADS::Graphs->new(user => $user, schema => schema);
+        my $all_graphs = $graphs->all;
         template 'account' => {
-            data   => $data,
+            graphs => $all_graphs,
             action => $action,
             page   => 'account',
         };
@@ -409,7 +503,7 @@ any '/account/?:action?/?' => sub {
     {
         template 'user' => {
             edit          => user->{id},
-            users         => [user],
+            users         => [$user],
             titles        => GADS::User->titles,
             organisations => GADS::User->organisations,
             page          => 'account/detail'
@@ -426,21 +520,30 @@ any '/config/?' => sub {
         { danger => 'You do not have permission to edit general settings' } )
         unless permission 'layout';
 
+    my $config = GADS::Config->new(schema => schema);
+
     if (param 'update')
     {
-        my $params = params;
-        if (process( sub { GADS::Config->conf($params)}))
+        $config->homepage_text(param 'homepage_text');
+        $config->homepage_text2(param 'homepage_text2');
+        $config->sort_layout_id(param 'sort_layout_id');
+        $config->sort_type(param 'sort_type');
+
+        if (process( sub { $config->write }))
         {
             return forwardHome(
                 { success => "Configuration settings have been updated successfully" } );
         }
     }
 
-    my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
+    my $layout = GADS::Layout->new(
+        user   => user,
+        schema => schema,
+    );
+    my @all_columns = $layout->all;
     template 'config' => {
-        all_columns => GADS::View->columns,
-        autoserial  => $autoserial,
-        instance    => GADS::Config->conf,
+        all_columns => \@all_columns,
+        instance    => $config,
         page        => 'config'
     };
 };
@@ -448,104 +551,106 @@ any '/config/?' => sub {
 
 any '/graph/?:id?' => sub {
 
-    my $id = param 'id';
-
     return forwardHome(
         { danger => 'You do not have permission to edit graphs' } )
         unless permission 'layout';
 
-    if (param 'delete')
-    {
-        if (process( sub { GADS::Graph->delete(param 'id') }))
-        {
-            return forwardHome(
-                { success => "The graph has been deleted successfully" }, 'graph' );
-        }
-    }
+    my $layout = GADS::Layout->new(user => user, schema => schema);
+    my $params = {
+        layout => $layout,
+        page   => 'graph',
+    };
 
-    if (param 'submit')
+    if (my $id = param 'id')
     {
-        my $values = params;
-        if(process( sub { GADS::Graph->graph($values) }))
-        {
-            my $action = param('id') ? 'updated' : 'created';
-            return forwardHome(
-                { success => "Graph has been $action successfully" }, 'graph' );
-        }
-    }
+        my $graph = GADS::Graph->new(schema => schema, id => $id);
 
-    my $graphs;
-    if ($id)
-    {
-        $graphs = GADS::Graph->graph({ id => $id });
+        if (param 'delete')
+        {
+            if (process( sub { $graph->delete }))
+            {
+                return forwardHome(
+                    { success => "The graph has been deleted successfully" }, 'graph' );
+            }
+        }
+
+        if (param 'submit')
+        {
+            my $values = params;
+            $graph->$_(param $_)
+                foreach (qw/title description type x_axis x_axis_grouping y_axis
+                    y_axis_label y_axis_stack group_by stackseries/);
+            if(process( sub { $graph->write }))
+            {
+                my $action = param('id') ? 'updated' : 'created';
+                return forwardHome(
+                    { success => "Graph has been $action successfully" }, 'graph' );
+            }
+        }
+        $params->{graph} = $graph;
+        $params->{dategroup} = GADS::Graphs->dategroup;
+        $params->{graphtypes} = [GADS::Graphs->types];
     }
     else {
-        $graphs = GADS::Graph->all;
+        my $graphs = GADS::Graphs->new(schema => schema)->all;
+        $params->{graphs} = $graphs;
     }
 
-    my $output  = template 'graph' => {
-        edit        => $id,
-        graphs      => $graphs,
-        dategroup   => GADS::Graph->dategroup,
-        graphtypes  => [GADS::Graph->graphtypes],
-        all_columns => GADS::View->columns,
-        page        => 'graph'
-    };
-    $output;
+    template 'graph' => $params;
 };
 
 any '/view/:id' => sub {
 
     my $view_id = param('id');
-    my @ucolumns; my $view;
+    $view_id = param('clone') if param('clone') && !request->is_post;
+    my @ucolumns; my $view_values;
+
+    my $user = user;
+    my $layout = GADS::Layout->new(
+        user   => $user,
+        schema => schema,
+    );
+    my %vp = (
+        user   => $user,
+        schema => schema,
+        layout => $layout,
+    );
+    $vp{id} = $view_id if $view_id;
+    my $view = GADS::View->new(%vp);
 
     if (param 'update')
     {
-        my $values = params;
-        if (process( sub { GADS::View->view($view_id, user, $values) }))
+        my $params = params;
+        my $columns = ref param('column') ? param('column') : [ param('column') // () ]; # Ensure array
+        $view->columns($columns);
+        $view->global (param('global') ? 1 : 0);
+        $view->name   (param 'name');
+        $view->filter (param 'filter');
+        if (process( sub { $view->write }))
         {
+            $view->set_sorts($params);
             # Set current view to the one created/edited
-            session 'view_id' => $values->{view_id};
+            session 'view_id' => $view->id;
             return forwardHome(
                 { success => "The view has been updated successfully" }, 'data' );
-        }
-        else {
-            $view = $values;
-            @ucolumns = @{delete $view->{column}};
         }
     }
 
     if (param 'delete')
     {
         session 'view_id' => undef;
-        if (process( sub { GADS::View->delete(param('id'), user) }))
+        if (process( sub { $view->delete }))
         {
             return forwardHome(
                 { success => "The view has been deleted successfully" }, 'data' );
         }
     }
 
-    $view_id = param('clone') if param('clone') && !request->is_post;
 
-    unless ($view)
-    {
-        $view = GADS::View->view($view_id, user);
-        my $viewcols;
-        process( sub { $viewcols = GADS::View->columns({ view_id => $view_id, user => user }) });
-
-        foreach my $c (@$viewcols)
-        {
-            push @ucolumns, $c->{id};
-        }
-    }
-
-    my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
+    my @all_columns = $layout->all;
     my $output = template 'view' => {
-        all_columns  => GADS::View->columns({ user => user, no_hidden => 1 }),
-        autoserial   => $autoserial,
-        sorts        => GADS::View->sorts($view_id),
-        sort_types   => GADS::View->sort_types,
-        ucolumns     => \@ucolumns,
+        all_columns  => \@all_columns,
+        sort_types   => $view->sort_types,
         v            => $view, # TT does not like variable "view"
         page         => 'view'
     };
@@ -557,52 +662,111 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => sub {
 
     my ($layout_id, $value) = splat;
 
+    my $tree = GADS::Column::Tree->new(schema => schema);
+
     if (param 'data')
     {
         return forwardHome(
             { danger => 'You do not have permission to edit trees' } )
             unless permission 'layout';
 
-        my $tree = JSON->new->utf8(0)->decode(param 'data');
-        GADS::Layout->tree($layout_id, { tree => $tree} );
+        $tree->id($layout_id);
+        my $newtree = JSON->new->utf8(0)->decode(param 'data');
+        $tree->update($newtree);
     }
     header "Cache-Control" => "max-age=0, must-revalidate, private";
 
     # If record is specified, select the record's value in the returned JSON
-    GADS::Layout->tree(
-        $layout_id,
-        {
-            value => $value,
-        }
-    );
+    $tree->from_id($layout_id);
+    header "Cache-Control" => "max-age=0, must-revalidate, private";
+    content_type 'application/json';
+    encode_json($tree->json($value));
+
 };
 
 any '/layout/?:id?' => sub {
-
-    my $id = param 'id';
 
     return forwardHome(
         { danger => 'You do not have permission to edit the database layout' } )
         unless permission 'layout';
 
-    if (param 'delete')
-    {
-        if (process( sub { GADS::Layout->delete(param 'id') }))
-        {
-            return forwardHome(
-                { success => "The item has been deleted successfully" }, 'layout' );
-        }
-    }
+    my $layout      = GADS::Layout->new(user => user, schema => schema);
+    my @all_columns = $layout->all;
 
-    if (param 'submit')
+    my $params = {
+        page        => 'layout',
+        all_columns => \@all_columns,
+    };
+
+    if (param('id') || param('submit'))
     {
-        my $values = params;
-        if (process( sub { GADS::Layout->item($values) }))
+        my $id = param('id');
+        my $class = (param('type') && grep {param('type') eq $_} GADS::Column::types)
+                  ? param('type')
+                  : rset('Layout')->find($id)->type;
+        $class = "GADS::Column::".camelize($class);
+        my $column = $class->new(schema => schema, user => user, layout => $layout);
+        $column->from_id($id) if $id;
+        
+        if (param 'delete')
         {
-            my $action = param('id') ? 'updated' : 'created';
-            return forwardHome(
-                { success => "Item has been $action successfully" }, 'layout' );
+            if (process( sub { $column->delete }))
+            {
+                return forwardHome(
+                    { success => "The item has been deleted successfully" }, 'layout' );
+            }
         }
+
+        if (param 'submit')
+        {
+            $column->$_(param $_)
+                foreach (qw/name type permission description helptext optional hidden remember/);
+            if (param 'display_condition')
+            {
+                $column->display_field(param 'display_field');
+                $column->display_regex(param 'display_regex');
+            }
+            else {
+                $column->display_field(undef);
+            }
+            if ($column->type eq "file")
+            {
+                $column->filesize(param('filesize') || undef) if $column->type eq "file";
+            }
+            elsif ($column->type eq "rag")
+            {
+                $column->red  (param 'red');
+                $column->amber(param 'amber');
+                $column->green(param 'green');
+            }
+            elsif ($column->type eq "enum")
+            {
+                my $params = params;
+                $column->enumvals_from_form($params);
+                $column->ordering(param('ordering') || undef);
+            }
+            elsif ($column->type eq "calc")
+            {
+                $column->calc(param 'calc');
+                $column->return_type(param 'return_type');
+            }
+            elsif ($column->type eq "tree")
+            {
+                $column->end_node_only(param 'end_node_only');
+            }
+
+            if (process( sub { $column->write }))
+            {
+                my $action = param('id') ? 'updated' : 'created';
+                return forwardHome(
+                    { success => "Item has been $action successfully" }, 'layout' );
+            }
+        }
+        $params->{column} = $column;
+    }
+    elsif (defined param('id'))
+    {
+        $params->{column} = 0; # New
     }
 
     if (param 'saveposition')
@@ -615,19 +779,7 @@ any '/layout/?:id?' => sub {
         }
     }
 
-    my $items;
-    if ($id)
-    {
-        $items = GADS::Layout->item({ id => $id });
-    }
-
-    my $output = template 'layout' => {
-        edit        => $id,
-        all_items   => GADS::Layout->all,
-        items       => $items,
-        page        => 'layout'
-    };
-    $output;
+    template 'layout' => $params;
 };
 
 any '/user/?:id?' => sub {
@@ -636,6 +788,8 @@ any '/user/?:id?' => sub {
     return forwardHome(
         { danger => 'You do not have permission to manage users' } )
         unless permission('useradmin');
+
+    my $audit  = GADS::Audit->new(schema => schema, user => user);
 
     # Retrieve conf to get details of defined permissions
     my $conf = Dancer2::Plugin::Auth::Complete->configure;
@@ -668,12 +822,12 @@ any '/user/?:id?' => sub {
             my $action;
             my $audit_perms = join ', ', @audit_permissions;
             if ($id) {
-                GADS::Audit->login_change(user->{id},
+                $audit->login_change(
                     "User updated: ID $newuser->{id}, username: $newuser->{username}; permissions: $audit_perms");
                 $action = 'updated';
             }
             else {
-                GADS::Audit->login_change(user->{id},
+                $audit->login_change(
                     "New user created: ID $newuser->{id}, username: $newuser->{username}; permissions: $audit_perms");
                 $action = 'created';
             }
@@ -691,7 +845,7 @@ any '/user/?:id?' => sub {
         {
             if (process( sub { GADS::User->organisation_new({ name => $org })}))
             {
-                GADS::Audit->login_change(user->{id}, "Organisation $org created");
+                $audit->login_change("Organisation $org created");
                 messageAdd({ success => "The organisation has been created successfully" });
             }
         }
@@ -700,7 +854,7 @@ any '/user/?:id?' => sub {
         {
             if (process( sub { GADS::User->title_new({ name => $title }) }))
             {
-                GADS::Audit->login_change(user->{id}, "Title $title created");
+                $audit->login_change("Title $title created");
                 messageAdd({ success => "The title has been created successfully" });
             }
         }
@@ -720,7 +874,7 @@ any '/user/?:id?' => sub {
             if user->{id} eq $delete_id;
         if (process( sub { GADS::User->delete($delete_id) }))
         {
-            GADS::Audit->login_change(user->{id}, "User ID $delete_id deleted");
+            $audit->login_change("User ID $delete_id deleted");
             return forwardHome(
                 { success => "User has been deleted successfully" }, 'user' );
         }
@@ -756,47 +910,112 @@ any '/user/?:id?' => sub {
 };
 
 any '/approval/?:id?' => sub {
-    my $id = param 'id';
-
+    my $id   = param 'id';
+    my $user = user;
     return forwardHome(
         { danger => 'You do not have permission to approve records' } )
         unless permission 'approver';
 
+    my $layout = GADS::Layout->new(user => $user, schema => schema);
     if (param 'submit')
     {
-        # Do approval
-        my $values  = params;
+        # Get latest record for this approval
+        my $record = GADS::Record->new(
+            user             => $user,
+            layout           => $layout,
+            schema           => schema,
+            include_approval => 1,
+        );
+        $record->find_current_id(param 'current_id');
         my $uploads = request->uploads;
-        if (process( sub { GADS::Record->approve(user, $id, $values, $uploads) }))
+        foreach my $key (keys %$uploads)
         {
+            next unless $key =~ /^file([0-9]+)/;
+            my $upload = $uploads->{$key};
+            my $col_id = $1;
+            $record->fields->{$col_id}->set_value({
+                name     => $upload->filename,
+                mimetype => $upload->type,
+                content  => $upload->content,
+            });
+        }
+        my $failed;
+        foreach my $col ($layout->all)
+        {
+            if ($col->userinput) # Not calculated fields
+            {
+                # No need to do anything if the file's just been uploaded
+                if (my $newv = param($col->field))
+                {
+                    $failed = !process( sub { $record->fields->{$col->id}->set_value($newv) } ) || $failed;
+                }
+            }
+        }
+        if (!$failed && process( sub { $record->write }))
+        {
+            # If we've been writing to a newer record, then delete the approval
+            if ($record->record_id != $id)
+            {
+                GADS::Record->new(
+                    user      => $user,
+                    layout    => $layout,
+                    schema    => schema,
+                    record_id => $id,
+                )->delete;
+            }
+            else {
+                # Otherwise remove approval flag
+                $record->approval_flag(0);
+            }
             return forwardHome(
                 { success => 'Record has been successfully approved' }, 'approval' );
         }
     }
 
-    my ($items, $page);
+    my $page;
+    my @all_columns = $layout->all;
+    my $params = {
+        all_columns => \@all_columns,
+        page        => 'approval',
+    };
+
     if ($id)
     {
-        $items = GADS::Record->approve(user, $id);
+        # Get the record of values needing approval
+        my $record = GADS::Record->new(
+            user             => $user,
+            init_no_value    => 0,
+            layout           => $layout,
+            include_approval => 1,
+            schema           => schema,
+        );
+        $record->find_record_id($id);
+        $params->{record} = $record;
+
+        # Get existing values for comparison
+        my $existing = GADS::Record->new(
+            user            => $user,
+            layout          => $layout,
+            schema          => schema,
+        );
+        my $found = $existing->find_current_id($record->current_id);
+        $params->{existing} = $existing if $found;
         $page  = 'edit';
     }
     else {
-        $items = GADS::Record->approve;
         $page  = 'approval';
+        my $records = GADS::Records->new(
+            user             => $user,
+            include_approval => 1,
+            layout           => $layout,
+            schema           => schema,
+            columns          => []
+        );
+        $records->search(approval => 1);
+        $params->{records} = $records->results;
     }
 
-    my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
-    my $output = template $page => {
-        form_value     => sub {item_value(@_, {raw => 1, encode_entities => 1, filename => 1})},
-        item_value     => sub {item_value(@_, {encode_entities => 1})},
-        person_popover => sub {GADS::Record->person_popover(@_)},
-        approves       => $items,
-        autoserial     => $autoserial,
-        people         => GADS::User->all,
-        all_columns    => GADS::View->columns,
-        page           => 'approval',
-    };
-    $output;
+    template $page => $params;
 };
 
 get '/helptext/:id?' => sub {
@@ -808,87 +1027,73 @@ get '/helptext/:id?' => sub {
 any '/edit/:id?' => sub {
     my $id = param 'id';
 
-    my $all_columns = GADS::View->columns({ user => user, no_hidden => 1 }),
-    my $record;
+    my $layout = GADS::Layout->new(user => user, schema => schema);
+    my $record = GADS::Record->new(
+        user   => user,
+        layout => $layout,
+        schema => schema,
+    );
+
+    if ($id)
+    {
+        $record->find_current_id($id);
+    }
+
     if (param 'submit')
     {
+        $record->initialise unless $id;
         my $params = params;
         my $uploads = request->uploads;
-        if (process( sub { GADS::Record->update($params, user, $uploads) }))
+        foreach my $key (keys %$uploads)
+        {
+            next unless $key =~ /^file([0-9]+)/;
+            my $upload = $uploads->{$key};
+            my $col_id = $1;
+            $record->fields->{$col_id}->set_value({
+                name     => $upload->filename,
+                mimetype => $upload->type,
+                content  => $upload->content,
+            });
+        }
+        my $failed;
+        foreach my $col ($layout->all)
+        {
+            if ($col->userinput) # Not calculated fields
+            {
+                # No need to do anything if the file's just been uploaded
+                unless (upload "file".$col->id)
+                {
+                    my $newv = param($col->field);
+                    $failed = !process( sub { $record->fields->{$col->id}->set_value($newv) } ) || $failed;
+                }
+            }
+        }
+        if (!$failed && process( sub { $record->write }))
         {
             return forwardHome(
                 { success => 'Submission has been completed successfully' }, 'data' );
         }
-        else {
-
-            my %columns = map { $_->{id} => $_ } @$all_columns; # Need this to check column type easily
-
-            my $has_file;
-            # Remember previous submitted values in event of error
-            foreach my $fn (keys %$params)
-            {
-                next unless $fn =~ /^field(\d+)$/;
-                if ($params->{"file$1"})
-                {
-                    $has_file = 1
-                }
-                elsif ($columns{$1}->{type} ne "file")
-                {
-                    # If it's a file field that wasn't submitted,
-                    # then that submitted form value is 1. Ignore.
-                    $record->{$fn} = {value => $params->{$fn}};
-                }
-            }
-            # For the hidden current_id field
-            $record->{current}->{id} = $params->{current_id};
-
-            # For files, we have to retrieve the previous filenames,
-            # as we don't know what they were from the submit
-            if ($id)
-            {
-                my %files = GADS::Record->files($id);
-                foreach my $fn (keys %files)
-                {
-                    $record->{$fn} = {value => $files{$fn}};
-                }
-            }
-
-            messageAdd( { danger => "Please note that you will need to reselect your uploaded files." } ) if $has_file;
-        }
     }
     elsif($id) {
-        $record = GADS::Record->current({ current_id => $id, user => user });
+        $record->find_current_id($id);
     }
     elsif(my $previous = user->{lastrecord})
     {
         # Prefill previous values, but only those tagged to be remembered
-        my $previousr = GADS::Record->current({ record_id => $previous, remembered_only => 1 });
-        foreach my $column (@$all_columns)
-        {
-            if ($column->{remember})
-            {
-                my $v = item_value($column, $previousr, {raw => 1, encoded_entities => 1});
-                if ($column->{fixedvals}) {
-                    # Value may no longer be valid. Check it.
-                    unless (process( sub {GADS::View->is_valid_enumval($v, $column)})) # Borks on error
-                    {
-                        $v = undef;
-                    }
-                }
-                my $field = $column->{field};
-                $record->{$field} = {value => $v} if $column->{remember};
-            }
-        }
+        my @remember = map {$_->id} $layout->all(remember => 1);
+        $record->columns(\@remember);
+        $record->include_approval(1);
+        $record->find_record_id($previous);
+        $record->current_id(undef);
+    }
+    else {
+        $record->initialise;
     }
 
-    my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
+    my @all_columns = $layout->all;
     my $output = template 'edit' => {
-        form_value  => sub {item_value(@_, {raw => 1, encode_entities => 1, filename => 1})},
-        plain_value => sub {item_value(@_, {plain => 1, encode_entities => 1})},
         record      => $record,
-        autoserial  => $autoserial,
-        people      => GADS::User->all,
-        all_columns => $all_columns,
+        all_columns => \@all_columns,
         page        => 'edit'
     };
     $output;
@@ -904,38 +1109,41 @@ any '/file/:id' => sub {
 any '/record/:id' => sub {
     my $id = param 'id';
 
+    my $layout = GADS::Layout->new(user => user, schema => schema);
+    my $record = GADS::Record->new(
+        user   => user,
+        layout => $layout,
+        schema => schema,
+    );
+    $record->find_record_id($id);
+    my @versions = $record->versions;
+
     if (my $delete_id = param 'delete')
     {
-        return forwardHome(
-            { danger => 'You do not have permission to delete records' }, 'data' )
-            unless permission('delete') || permission('delete_noneed_approval');
-
-        if (process( sub { GADS::Record->delete($delete_id, user) }))
+        if (process( sub { $record->delete_current }))
         {
             return forwardHome(
                 { success => 'Record has been deleted successfully' }, 'data' );
         }
     }
 
-    my $record = $id ? GADS::Record->current({ record_id => $id, user => user }) : {};
-    my $versions = $id ? GADS::Record->versions(rfield($record, 'current')->id) : {};
-    my $autoserial = config->{gads}->{serial} eq "auto" ? 1 : 0;
+    my @columns = $layout->all;
     my $output = template 'record' => {
-        item_value     => sub {item_value(@_, {encode_entities => 1})},
-        person_popover => sub {GADS::Record->person_popover(@_)},
         record         => $record,
-        autoserial     => $autoserial,
-        versions       => $versions,
-        all_columns    => GADS::View->columns({ user => user, no_hidden => 1 }),
+        versions       => \@versions,
+        all_columns    => \@columns,
         page           => 'record'
     };
     $output;
 };
 
 any '/login' => sub {
+
+    my $audit  = GADS::Audit->new(schema => schema);
+
     if (defined param('logout'))
     {
-        GADS::Audit->logout(user->{id}, user->{username}) if user;
+        $audit->logout(user->{id}, user->{username}) if user;
         context->destroy_session;
     }
 
@@ -947,7 +1155,7 @@ any '/login' => sub {
     if (param('resetpwd'))
     {
         my $username = param('emailreset');
-        GADS::Audit->login_change(undef, "Password reset request for $username");
+        $audit->login_change("Password reset request for $username");
         reset_pw('send' => $username)
         ? messageAdd( { success => 'An email has been sent to your email address with a link to reset your password' } )
         : messageAdd( { danger => 'Failed to send a password reset link. Did you enter a valid email address?' } );
@@ -964,7 +1172,7 @@ any '/login' => sub {
             $error = $exception->message;
         }
         else {
-            GADS::Audit->login_change(undef, "New user account request for $params->{email}");
+            $audit->login_change("New user account request for $params->{email}");
             return forwardHome({ success => "Your account request has been received successfully" });
         }
     }
@@ -973,18 +1181,20 @@ any '/login' => sub {
     {
         if (login)
         {
-            GADS::Audit->login_success(user->{id}, user->{username});
+            $audit->user(user);
+            $audit->login_success;
             forwardHome();
         }
         else {
-            GADS::Audit->login_failure(param 'username');
+            $audit->login_failure(param 'username');
             messageAdd({ danger => "The username or password was not recognised" });
         }
     }
 
+    my $config = GADS::Config->new(schema => schema);
     my $output  = template 'login' => {
         error         => "$error",
-        instance      => GADS::Config->conf,
+        instance      => $config,
         titles        => GADS::User->titles,
         organisations => GADS::User->organisations,
         register_text => GADS::User->register_text,
@@ -999,7 +1209,8 @@ get '/resetpw/:code' => sub {
     if (my $user_id = reset_pw 'check' => param('code'))
     {
         context->destroy_session;
-        GADS::Audit->login_change($user_id, "Password reset performed for user ID $user_id");
+        my $audit  = GADS::Audit->new(schema => schema, user => {id => $user_id});
+        $audit->login_change("Password reset performed for user ID $user_id");
         my $password = reset_pw 'code' => param('code');
         my $output  = template 'login' => {
             password => $password,
@@ -1081,8 +1292,7 @@ sub process
     my $result = $@ ? 0 : 1; # Return true on success
     if (my $exception = $@->wasFatal)
     {
-        $exception->throw(to => 'syslog', is_fatal => 0);
-        $exception->throw(to => 'error_handler', is_fatal => 0);
+        $exception->throw(is_fatal => 0);
     }
     $result;
 }
