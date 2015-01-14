@@ -249,7 +249,7 @@ sub _transform_values
         my $value = $original->{$column->field};
         if ($self->columns)
         {
-            next unless grep {$_ == $column->id} @{$self->columns};
+            next unless grep {$_ && $_ == $column->id} @{$self->columns};
         }
         unless ($self->init_no_value)
         {
