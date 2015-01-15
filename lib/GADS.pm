@@ -1197,7 +1197,7 @@ any '/login' => sub {
 
     my $config = GADS::Config->new(schema => schema);
     my $output  = template 'login' => {
-        error         => "".($error|""),
+        error         => "".($error||""),
         instance      => $config,
         titles        => GADS::User->titles,
         organisations => GADS::User->organisations,
