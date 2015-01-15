@@ -43,8 +43,9 @@ sub user_action
 sub login_change
 {   my ($self, $description) = @_;
 
+    my $user_id = $self->user ? $self->user->{id} : undef;
     $self->schema->resultset('Audit')->create({
-        user_id     => $self->user->{id},
+        user_id     => $user_id,
         description => $description,
         type        => 'login_change',
         datetime    => \"NOW()",

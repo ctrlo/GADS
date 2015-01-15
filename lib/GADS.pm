@@ -1143,7 +1143,8 @@ any '/login' => sub {
 
     if (defined param('logout'))
     {
-        $audit->logout(user->{id}, user->{username}) if user;
+        $audit->user(user);
+        $audit->logout(user->{username}) if user;
         context->destroy_session;
     }
 
