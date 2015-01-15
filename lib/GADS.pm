@@ -1041,6 +1041,7 @@ any '/edit/:id?' => sub {
         $record->find_current_id($id);
     }
 
+    my @all_columns = $layout->all;
     if (param 'submit')
     {
         $record->initialise unless $id;
@@ -1086,13 +1087,13 @@ any '/edit/:id?' => sub {
         $record->columns(\@remember);
         $record->include_approval(1);
         $record->find_record_id($previous);
+        $record->columns_retrieved(\@all_columns); # Force all columns to be shown
         $record->current_id(undef);
     }
     else {
         $record->initialise;
     }
 
-    my @all_columns = $layout->all;
     my $output = template 'edit' => {
         record      => $record,
         all_columns => \@all_columns,
