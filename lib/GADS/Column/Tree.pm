@@ -121,7 +121,8 @@ sub _build_tree
 
     my $enumvals;
     my $tree; my @order;
-    foreach my $enumval (values %{$self->_enumvals})
+    my @enumvals = sort {$a->{value} cmp $b->{value}} values %{$self->_enumvals};
+    foreach my $enumval (@enumvals)
     {
         my $parent = $enumval->{parent}; # && $enum->parent->id;
         my $node = Tree::DAG_Node->new();
