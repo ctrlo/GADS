@@ -1104,7 +1104,7 @@ any '/edit/:id?' => sub {
 any '/file/:id' => sub {
     my $id = param 'id';
     my $file;
-    process (sub { $file = GADS::Record->file($id, user) });
+    process (sub { $file = GADS::Datum::File->get_file($id, schema, user) });
     send_file( \($file->content), content_type => $file->mimetype, filename => $file->name );
 };
 

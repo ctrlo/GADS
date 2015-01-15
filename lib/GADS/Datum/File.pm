@@ -92,6 +92,23 @@ has content => (
     },
 );
 
+# Not designed to be used within object. Just send file from ID.
+# XXX Make OO?
+sub get_file
+{   my ($self, $id, $schema, $user) = @_;
+    $id or error __"No ID provided for file retrieval";
+    my $fileval = $schema->resultset('Fileval')->find($id)
+        or error __x"File ID {id} cannot be found", id => $id;
+    # Check whether this is hidden and whether the user has access
+    my ($file) = $fileval->files; # In theory can be more than one, but not in practice (yet)
+    if ($file && $file->layout->hidden) # Could be unattached document
+    {
+        error __"You do not have access to this document"
+            unless $user->{permission}->{layout};
+    }
+    $fileval;
+}
+
 sub as_string
 {   my $self = shift;
     $self->name // "";
