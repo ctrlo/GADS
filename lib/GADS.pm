@@ -1020,8 +1020,10 @@ any '/approval/?:id?' => sub {
 
 get '/helptext/:id?' => sub {
     my $id = param 'id';
-    my $col = GADS::Layout->item({ id => $id });
-    template 'helptext.tt', { column => $col }, { layout => undef };
+    my $layout = GADS::Layout->new(user => user, schema => schema);
+    my $column = GADS::Column->new(schema => schema, user => user, layout => $layout);
+    $column->from_id(param 'id');
+    template 'helptext.tt', { column => $column }, { layout => undef };
 };
 
 any '/edit/:id?' => sub {
