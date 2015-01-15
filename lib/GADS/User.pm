@@ -108,12 +108,12 @@ sub delete
         user 'delete' => id => $user_id;
 
         my ($instance) = rset('Instance')->all;
-        my $email = {
+        my $email = GADS::Email->new;
+        $email->send({
             subject => $instance->email_reject_subject,
             emails  => [$user->{email}],
             text    => $instance->email_reject_text,
-        };
-        GADS::Email->send($email);
+        });
 
         return;
     }
@@ -140,12 +140,12 @@ sub delete
 
     my ($instance) = rset('Instance')->all;
     my $msg        = $instance->email_delete_text;
-    my $email = {
+    my $email = GADS::Email->new;
+    $email->send({
         subject => $instance->email_delete_subject,
         emails  => [$user->{email}],
         text    => $instance->email_delete_text,
-    };
-    GADS::Email->send($email);
+    });
 }
 
 sub all
@@ -198,12 +198,12 @@ sub register
     $text .= "organisation: ".$newuser->{organisation}->name.", " if $newuser->{organisation};
     $text .= "\n\n";
     $text .= "User notes: $newuser->{account_request_notes}\n";
-    my $msg = {
+    my $email = GADS::Email->new;
+    $email->send({
         emails  => \@emails,
         subject => "New account request",
         text    => $text,
-    };
-    GADS::Email->send($msg);
+    });
 }
 
 sub register_text

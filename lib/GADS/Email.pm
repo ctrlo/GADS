@@ -38,6 +38,10 @@ has subject => (
     is => 'rw',
 );
 
+has email_from => (
+    is => 'rw',
+);
+
 sub send
 {   my ($self, $args) = @_;
 
@@ -49,6 +53,7 @@ sub send
     my $msg = Mail::Message->build(
         Subject => $subject,
         data    => $body,
+        From    => $self->email_from,
     );
     $msg->head->add('Reply-to' => $reply_to) if $reply_to;
 
