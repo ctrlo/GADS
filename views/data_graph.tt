@@ -7,7 +7,7 @@
     [% NEXT UNLESS graph.selected %]
     <h3>[% graph.title %]</h3>
     [% IF graph.description %]<p>[% graph.description %]</p>[% END %]
-    <div id="chartdiv[% graph.id %]" style="height:800px;width:800px; "></div>
+    <div id="chartdiv[% graph.id %]" style="height:400px;width:600px; "></div>
     <p></p>
 [% END %]
 
