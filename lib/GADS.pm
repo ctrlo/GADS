@@ -50,11 +50,11 @@ dispatcher CALLBACK => 'error_handler'
    , mode => 'DEBUG';
 
 # And a syslog dispatcher
-dispatcher SYSLOG => 'syslog'
+dispatcher SYSLOG => 'gads'
   , identity => 'infosaas'
   , facility => 'local0'
   , flags    => "pid ndelay nowait",
-  , mode     => 'VERBOSE';
+  , mode     => 'DEBUG';
 
 Dancer2::Plugin::Auth::Complete->user_callback( sub {
     my ($retuser, $user) = @_;
