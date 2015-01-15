@@ -329,10 +329,17 @@ sub delete
     $self->schema->resultset('Filter')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('Person')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('Calc')->search({ layout_id => $self->id })->delete;
+    $self->schema->resultset('Calcval')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('Rag')->search({ layout_id => $self->id })->delete;
+    $self->schema->resultset('Ragval')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('AlertCache')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('Sort')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('Intgr')->search({ layout_id => $self->id })->delete;
+    $self->schema->resultset('String')->search({ layout_id => $self->id })->delete;
+    $self->schema->resultset('Enum')->search({ layout_id => $self->id })->delete;
+    # XXX The following should be done in ::Enum, except it won't be if the column
+    # is not a different type. This may still error due to parents etc
+    $self->schema->resultset('Enumval')->search({ layout_id => $self->id })->delete;
 
     $self->schema->resultset('Instance')->search({ sort_layout_id => $self->id })->update({sort_layout_id => undef});;
     $self->schema->resultset($self->table)->search({ layout_id => $self->id })->delete;
