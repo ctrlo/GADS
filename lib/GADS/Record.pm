@@ -62,6 +62,10 @@ has record => (
 
 # Array ref with column IDs
 has columns => (
+    is      => 'rw',
+);
+
+has columns_retrieved => (
     is => 'rw',
 );
 
@@ -168,6 +172,7 @@ sub _find
     );
 
     my $rinfo = $records->construct_search;
+    $self->columns_retrieved($records->columns_retrieved);
 
     my @search     = @{$rinfo->{search}};
     my @limit      = @{$rinfo->{limit}};
@@ -238,8 +243,8 @@ sub _transform_values
 
     my $original = $self->record or confess "Record data has not been set";
     my $fields;
-    # foreach my $column ($self->layout->all(order_dependencies => 1))
-    foreach my $column (@{$self->columns})
+    #foreach my $column ($self->layout->all(order_dependencies => 1))
+    foreach my $column (@{$self->columns_retrieved})
     {
         my $dependent_values;
         foreach my $dependent (@{$column->depends_on})

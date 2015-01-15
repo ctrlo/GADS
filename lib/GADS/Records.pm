@@ -74,8 +74,8 @@ has columns => (
     is => 'rw',
 );
 
-# Internal value containing the actual columns retrieved
-has _columns => (
+# Value containing the actual columns retrieved
+has columns_retrieved => (
     is => 'rw',
 );
 
@@ -401,13 +401,13 @@ sub search
 
     my @all = $result->all;
     @all = map {GADS::Record->new(
-        schema          => $self->schema,
-        record          => ($self->approval ? $_ : $_->{record}),
-        user            => $self->user,
-        format          => $self->format,
-        layout          => $self->layout,
-        force_update    => $self->force_update,
-        columns         => $self->_columns,
+        schema            => $self->schema,
+        record            => ($self->approval ? $_ : $_->{record}),
+        user              => $self->user,
+        format            => $self->format,
+        layout            => $self->layout,
+        force_update      => $self->force_update,
+        columns_retrieved => $self->columns_retrieved,
     )} @all;
     $self->results(\@all);
 }
@@ -444,7 +444,7 @@ sub construct_search
             order_dependencies => 1,
         );
     }
-    $self->_columns(\@columns);
+    $self->columns_retrieved(\@columns);
 
     my %cache_cols;      # Any column in the view that should be cached
     my $prefetches = []; # Tables to prefetch - data being viewed
@@ -696,7 +696,7 @@ sub csv
 
     # Column names
     my @colnames = ("Serial");
-    push @colnames, map { $_->name } @{$self->_columns};
+    push @colnames, map { $_->name } @{$self->columns_retrieved};
     $csv->combine(@colnames)
         or error __x"An error occurred producing the CSV headings: {err}", err => $csv->error_input;
     my $csvout = $csv->string."\n";
@@ -705,7 +705,7 @@ sub csv
     foreach my $line (@{$self->results})
     {
         my @items = ($line->current_id);
-        push @items, map { $line->fields->{$_->id} } @{$self->_columns};
+        push @items, map { $line->fields->{$_->id} } @{$self->columns_retrieved};
         $csv->combine(@items)
             or error __x"An error occurred producing a line of CSV: {err} {items}",
                 err => "".$csv->error_diag, items => "@items";
@@ -742,7 +742,7 @@ sub data_calendar
 
     # Column names
     my @colnames = ("Serial");
-    push @colnames, map { $_->{name} } @{$self->_columns};
+    push @colnames, map { $_->{name} } @{$self->columns_retrieved};
 
     my @colors = qw/event-important event-success event-warning event-info event-inverse event-special/;
     my @result;
@@ -752,10 +752,10 @@ sub data_calendar
     foreach my $record (@{$self->results})
     {
 #        my @items = ($line->current_id);
-#        push @items, map { $line->fields->{$_->{id}} } @{$self->_columns};
+#        push @items, map { $line->fields->{$_->{id}} } @{$self->columns_retrieved};
 
         my @dates; my @titles;
-        foreach my $column (@{$self->_columns})
+        foreach my $column (@{$self->columns_retrieved})
         {
             if ($column->type eq "daterange" || ($column->return_type && $column->return_type eq "date"))
             {
