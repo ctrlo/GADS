@@ -179,6 +179,8 @@ sub register
 
     my @fields = qw(firstname surname email telephone title organisation account_request_notes);
     @new{@fields} = @params{@fields};
+    $new{firstname} = ucfirst $new{firstname};
+    $new{surname} = ucfirst $new{surname};
     $new{username} = $params->{email};
     $new{account_request} = 1;
     $new{telephone} or delete $new{telephone};
