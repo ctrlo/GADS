@@ -1,14 +1,16 @@
-[% UNLESS graphs.size %]
-<p>No graphs are selected for display. Please use your
-<a href="[% url.page %]/account/graph/">account options</a> to add graphs to this page.</p>
-[% END %]
-
+[% count = 0 %]
 [% FOREACH graph IN graphs %]
     [% NEXT UNLESS graph.selected %]
     <h3>[% graph.title %]</h3>
     [% IF graph.description %]<p>[% graph.description %]</p>[% END %]
     <div id="chartdiv[% graph.id %]" style="height:400px;width:600px; "></div>
     <p></p>
+    [% count = count + 1 %]
+[% END %]
+
+[% UNLESS count %]
+<p>No graphs are selected for display. Please use your
+<a href="[% url.page %]/account/graph/">account options</a> to add graphs to this page.</p>
 [% END %]
 
     <script type="text/javascript">
