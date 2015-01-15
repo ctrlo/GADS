@@ -66,7 +66,6 @@ sub _transform_value
     my $column           = $self->column;
     my $code             = $column->calc;
     my $layout           = $self->layout;
-    my $dependent_values = $self->dependent_values;
 
     if (exists $original->{value} && !$self->force_update)
     {

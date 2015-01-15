@@ -433,7 +433,7 @@ sub construct_search
         my @col_ids = grep {defined $_} @{$self->columns}; # Remove undef column IDs
         my %col_ids;
         @col_ids{@col_ids} = undef;
-        @columns = grep { exists $col_ids{$_->id} } $layout->all;
+        @columns = grep { exists $col_ids{$_->id} } $layout->all(order_dependencies => 1);
     }
     elsif (my $view = $self->view)
     {
