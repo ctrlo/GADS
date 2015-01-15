@@ -772,7 +772,7 @@ any '/layout/?:id?' => sub {
     if (param 'saveposition')
     {
         my $values = params;
-        if (process( sub { GADS::Layout->position($values) }))
+        if (process( sub { $layout->position($values) }))
         {
             return forwardHome(
                 { success => "The ordering has been saved successfully" }, 'layout' );

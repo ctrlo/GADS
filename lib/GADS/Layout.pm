@@ -154,7 +154,7 @@ sub position
     foreach my $o (keys %$params)
     {
         next unless $o =~ /position([0-9]+)/;
-        rset('Layout')->find($1)->update({ position => $params->{$o} });
+        $self->schema->resultset('Layout')->find($1)->update({ position => $params->{$o} });
     }
 }
 
