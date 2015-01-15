@@ -115,7 +115,7 @@ sub _transform_value
 
         # Insert ID if required
         my $current_id = $self->current_id;
-        $code =~ s/\[id\]/$current_id/;
+        $code =~ s/\[id\]/$current_id/g;
 
         # If there are still square brackets then something is wrong
         my $value;

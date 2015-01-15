@@ -486,6 +486,7 @@ sub write
             $dependent_values->{$dependent} = $self->fields->{$dependent};
         }
         my $new = $col->class->new(
+            current_id       => $self->current_id,
             record_id        => $self->record_id,
             column           => $col,
             dependent_values => $dependent_values,
