@@ -104,7 +104,7 @@ sub _transform_value
                     $value = $value || 0;
                 }
                 else {
-                    $value = $value ? "q`$value`" : "";
+                    $value = $value ? "q`$value`" : qq("");
                 }
                 $code =~ s/\[$name\]/$value/gi;
             }
