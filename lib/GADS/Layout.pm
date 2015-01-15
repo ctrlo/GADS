@@ -164,7 +164,7 @@ sub column
 }
 
 sub view
-{   my ($self, $view_id) = @_;
+{   my ($self, $view_id, %options) = @_;
 
     return unless $view_id;
     my $view    = GADS::View->new(
@@ -174,7 +174,7 @@ sub view
         layout => $self,
     );
     my %view_layouts = map { $_ => 1 } @{$view->columns};
-    grep { $view_layouts{$_->{id}} } $self->all;
+    grep { $view_layouts{$_->{id}} } $self->all(%options);
 }
 
 1;

@@ -238,19 +238,15 @@ sub _transform_values
 
     my $original = $self->record or confess "Record data has not been set";
     my $fields;
-    foreach my $column ($self->layout->all(order_dependencies => 1))
+    # foreach my $column ($self->layout->all(order_dependencies => 1))
+    foreach my $column (@{$self->columns})
     {
-        # XXX Only get values for columns displayed or dependend upon
         my $dependent_values;
         foreach my $dependent (@{$column->depends_on})
         {
             $dependent_values->{$dependent} = $fields->{$dependent};
         }
         my $value = $original->{$column->field};
-        if ($self->columns)
-        {
-            next unless grep {$_ && $_ == $column->id} @{$self->columns};
-        }
         unless ($self->init_no_value)
         {
             if (ref $column->join eq 'HASH')

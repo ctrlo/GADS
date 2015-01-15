@@ -407,7 +407,7 @@ sub search
         format          => $self->format,
         layout          => $self->layout,
         force_update    => $self->force_update,
-        columns         => $self->columns,
+        columns         => $self->_columns,
     )} @all;
     $self->results(\@all);
 }
@@ -436,10 +436,13 @@ sub construct_search
     }
     elsif (my $view = $self->view)
     {
-        @columns = $layout->view($view->id);
+        @columns = $layout->view($view->id, order_dependencies => 1);
     }
     else {
-        @columns = $layout->all(remembered_only => $self->remembered_only);
+        @columns = $layout->all(
+            remembered_only    => $self->remembered_only,
+            order_dependencies => 1,
+        );
     }
     $self->_columns(\@columns);
 
