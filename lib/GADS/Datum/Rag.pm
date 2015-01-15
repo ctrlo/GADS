@@ -111,7 +111,11 @@ sub _transform_value
                 $red   =~ s/\[$name\.to\]/$value->{to}/gi;
             }
             else {
-                $value = "\"$value\"" unless $col->{numeric};
+                unless($col->{numeric})
+                {
+                    $value = $value ? $value->as_string : "";
+                    $value = "\"$value\"";
+                }
                 $green =~ s/\[$name\]/$value/gi;
                 $amber =~ s/\[$name\]/$value/gi;
                 $red   =~ s/\[$name\]/$value/gi;
