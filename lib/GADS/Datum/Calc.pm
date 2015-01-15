@@ -89,8 +89,12 @@ sub _transform_value
             }
             elsif ($col->{type} eq "daterange")
             {
-                $code =~ s/\[$name\.from\]/$value->start->epoch/gi;
-                $code =~ s/\[$name\.to\]/$value->to->epoch/gi;
+                $value = {
+                    from => $value->from_dt ? $value->from_dt->epoch : undef,
+                    to   => $value->to_dt   ? $value->to_dt->epoch   : undef,
+                };
+                $code =~ s/\[$name\.from\]/$value->{from}/gi;
+                $code =~ s/\[$name\.to\]/$value->{to}/gi;
             }
             else {
                 # XXX Is there a q char delimiter that is safe regardless

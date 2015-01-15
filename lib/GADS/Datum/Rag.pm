@@ -82,8 +82,8 @@ sub _transform_value
             elsif ($col->type eq "daterange")
             {
                 $value = {
-                    from => $value->from ? $value->from->epoch : undef,
-                    to   => $value->to   ? $value->to->epoch   : undef,
+                    from => $value->from_dt ? $value->from_dt->epoch : undef,
+                    to   => $value->to_dt   ? $value->to_dt->epoch   : undef,
                 };
             }
 
