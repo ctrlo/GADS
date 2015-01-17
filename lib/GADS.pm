@@ -674,6 +674,7 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => sub {
         $tree->id($layout_id);
         my $newtree = JSON->new->utf8(0)->decode(param 'data');
         $tree->update($newtree);
+        return;
     }
     header "Cache-Control" => "max-age=0, must-revalidate, private";
 
