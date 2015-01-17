@@ -30,6 +30,10 @@ has user => (
     is => 'rw',
 );
 
+has layout => (
+    is => 'rw',
+);
+
 has all => (
     is      => 'rw',
     builder => '_all',
@@ -64,7 +68,7 @@ sub _all
     foreach my $grs (@all_graphs)
     {
         my $selected = grep { $_->id == $grs->{id} } @user_graphs;
-        my $graph = GADS::Graph->new(schema => $self->schema);
+        my $graph = GADS::Graph->new(schema => $self->schema, layout => $self->layout);
         $graph->set_values($grs);
         $graph->selected($selected ? 1 : 0);
         push @graphs, $graph;

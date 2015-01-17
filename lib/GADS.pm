@@ -289,7 +289,7 @@ any '/data' => sub {
     if ($viewtype eq 'graph')
     {
         $params = {
-            graphs   => GADS::Graphs->new(user => $user, schema => schema)->all,
+            graphs   => GADS::Graphs->new(user => $user, schema => schema, layout => $layout)->all,
             viewtype => 'graph',
         };
     }

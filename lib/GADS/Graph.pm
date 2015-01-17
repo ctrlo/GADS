@@ -27,6 +27,10 @@ has schema => (
     required => 1,
 );
 
+has layout => (
+    is => 'rw',
+);
+
 # Internal DBIC object of graph
 has _graph => (
     is      => 'rw',
@@ -89,6 +93,13 @@ has x_axis => (
     isa     => Int,
     lazy    => 1,
     builder => sub { $_[0]->_graph && $_[0]->_graph->x_axis->id },
+);
+
+has x_axis_name => (
+    is      => 'rw',
+    isa     => Str,
+    lazy    => 1,
+    builder => sub { $_[0]->layout->column($_[0]->x_axis)->name },
 );
 
 has x_axis_grouping => (

@@ -78,7 +78,7 @@
                                 xaxis: {
                                     renderer: $.jqplot.CategoryAxisRenderer,
                                     ticks: ticks,
-                                    label: "[% graph.x_axis %]",
+                                    label: "[% graph.x_axis_name %]",
                                     labelRenderer: $.jqplot.CanvasAxisLabelRenderer
                                 },
                                 yaxis: {
