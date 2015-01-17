@@ -454,9 +454,9 @@ sub construct_search
     my @search_date;     # The search criteria to narrow-down by date range
     foreach my $c (@columns)
     {
-        # If it's a calculated/rag value, log as prefetch for cached fields
-        # in case we need to recalculate them
-        # XXX No longer needed?
+        # XXX We used to prefetch all fields depended on by calculated fields.
+        # However, this could get quite expensive, and it shouldn't be needed
+        # anyway.
 #        next unless $c->id; # Special ID column has no id value
 #        if (($c->type eq 'rag' || $c->type eq 'calc') && $c->{$c->{type}})
 #        {
