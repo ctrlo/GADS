@@ -126,6 +126,7 @@ sub _transform_value
         if ($code =~ /[\[\]]+/)
         {
             $value = 'Invalid field names in calc formula';
+            assert "Invalid field names in calc formula. Remaining code: $code";
         }
         else {
             try { $value = $self->safe_eval("$code") };
