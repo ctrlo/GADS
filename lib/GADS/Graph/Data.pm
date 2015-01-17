@@ -85,14 +85,7 @@ sub _build_data
         my $xval = $record->fields->{$x_axis->id};
         if ($x_axis->return_type && $x_axis->return_type eq 'date')
         {
-            if ($x_axis->type eq 'calc')
-            {
-                $xval = DateTime->from_epoch(epoch => $xval);
-            }
-            else {
-                $xval = $xval->value;
-            }
-            $xval = _group_date($xval, $self->x_axis_grouping);
+            $xval = _group_date($xval->value, $self->x_axis_grouping);
         }
         next unless $xval;
 
@@ -156,14 +149,7 @@ sub _build_data
         my $x_value     = $record->fields->{$x_axis->id};
         if ($x_axis->return_type && $x_axis->return_type eq 'date')
         {
-            if ($x_axis->type eq 'calc')
-            {
-                $x_value = DateTime->from_epoch(epoch => $x_value);
-            }
-            else {
-                $x_value = $x_value->value;
-            }
-            $x_value = _group_date($x_value, $self->x_axis_grouping);
+            $x_value = _group_date($x_value->value, $self->x_axis_grouping);
         }
         next unless $x_value;
         my $y_value     = $record->fields->{$y_axis->id};

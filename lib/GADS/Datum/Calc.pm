@@ -52,12 +52,16 @@ has layout => (
 
 sub as_string
 {   my $self = shift;
-    $self->value // "";
+    my $value = $self->value;
+    $value = $value->ymd if ref $value eq 'DateTime';
+    $value // "";
 }
 
 sub as_integer
 {   my $self = shift;
-    int ($self->value // 0);
+    my $value = $self->value;
+    $value = $value->epoch if ref $value eq 'DateTime';
+    int ($value // 0);
 }
 
 sub _transform_value
@@ -67,9 +71,11 @@ sub _transform_value
     my $code             = $column->calc;
     my $layout           = $self->layout;
 
+    my $value;
+
     if (exists $original->{value} && !$self->force_update)
     {
-        return $original->{value};
+        $value = $original->{value};
     }
     elsif (!$code)
     {
@@ -78,34 +84,34 @@ sub _transform_value
     else {
         foreach my $col_id (@{$column->{depends_on}})
         {
-            my $col   = $layout->column($col_id);
-            my $name  = $col->{name};
-            my $value = $self->dependent_values->{$col_id};
+            my $col    = $layout->column($col_id);
+            my $name   = $col->name;
+            my $dvalue = $self->dependent_values->{$col_id};
 
-            if ($col->{type} eq "date")
+            if ($dvalue && $col->type eq "date")
             {
-                $value = $value->value->epoch if $col->{type} eq "date";
+                $dvalue = $dvalue->value->epoch;
             }
-            elsif ($col->{type} eq "daterange")
+            elsif ($dvalue && $col->type eq "daterange")
             {
-                $value = {
-                    from => $value->from_dt ? $value->from_dt->epoch : undef,
-                    to   => $value->to_dt   ? $value->to_dt->epoch   : undef,
+                $dvalue = {
+                    from => $dvalue->from_dt ? $dvalue->from_dt->epoch : undef,
+                    to   => $dvalue->to_dt   ? $dvalue->to_dt->epoch   : undef,
                 };
-                $code =~ s/\[$name\.from\]/$value->{from}/gi;
-                $code =~ s/\[$name\.to\]/$value->{to}/gi;
+                $code =~ s/\[$name\.from\]/$dvalue->{from}/gi;
+                $code =~ s/\[$name\.to\]/$dvalue->{to}/gi;
             }
             else {
                 # XXX Is there a q char delimiter that is safe regardless
                 # of input? Backtick is unlikely to be used...
-                if ($col->{numeric})
+                if ($col->numeric)
                 {
-                    $value = $value || 0;
+                    $dvalue = $dvalue || 0;
                 }
                 else {
-                    $value = $value ? "q`$value`" : qq("");
+                    $dvalue = $dvalue ? "q`$dvalue`" : qq("");
                 }
-                $code =~ s/\[$name\]/$value/gi;
+                $code =~ s/\[$name\]/$dvalue/gi;
             }
         }
         # Insert current date if required
@@ -117,7 +123,6 @@ sub _transform_value
         $code =~ s/\[id\]/$current_id/g;
 
         # If there are still square brackets then something is wrong
-        my $value;
         if ($code =~ /[\[\]]+/)
         {
             $value = 'Invalid field names in calc formula';
@@ -128,8 +133,17 @@ sub _transform_value
         }
 
         $self->_write_calc($value);
-        $value;
     }
+    if ($value && $column->return_type eq "date")
+    {
+        try { $value = DateTime->from_epoch(epoch => $value) };
+        if (my $exception = $@->wasFatal)
+        {
+            $value = undef;
+            assert "$@";
+        }
+    }
+    $value;
 }
 
 sub _write_calc
