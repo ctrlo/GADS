@@ -84,23 +84,23 @@ has original => (
 
 after build_values => sub {
     my ($self, $original) = @_;
-    $self->end_node_only($original->{end_node_only});
-};
-
-after 'build_values' => sub {
-    my ($self, $original) = @_;
+    trace "Entering after build_values";
     $self->table('Enum');
     $self->original($original);
+    $self->end_node_only($original->{end_node_only});
+    trace "Exiting after build_values";
 };
 
 after 'write' => sub {
     my $self = shift;
+    trace "Entering write";
     my $newitem = { end_node_only => $self->end_node_only };
     $self->schema->resultset('Layout')->find($self->id)->update($newitem);
 };
 
 before 'delete' => sub {
     my $self = shift;
+    trace "Entering delete";
     $self->schema->resultset('Enum')->search({ layout_id => $self->id })->delete;
     $self->_enumvals({});
     $self->_delete_unused_nodes(purge => 1);
@@ -109,6 +109,9 @@ before 'delete' => sub {
 # Get a single node value
 sub node
 {   my ($self, $id) = @_;
+
+    trace "Entering node";
+
     $id or return;
     {
         node  => $self->_nodes->{$id},
@@ -118,6 +121,8 @@ sub node
 
 sub _build_tree
 {   my $self = shift;
+
+    trace "Entering _build_tree";
 
     my $enumvals;
     my $tree; my @order;
@@ -161,6 +166,9 @@ sub _build_tree
 
 sub json
 {   my ($self, $selected) = @_;
+
+    trace "Entering json";
+
     my $stash = {
         tree => {
             text => "root"
@@ -201,6 +209,8 @@ sub json
 
 sub _delete_unused_nodes
 {   my ($self, %options) = @_;
+
+    trace "Entering _delete_unused_nodes";
 
     my $node_rs = $self->schema->resultset('Enumval')->search({
         layout_id => $self->id,
@@ -272,11 +282,14 @@ sub _delete_unused_nodes
             }
         }
     }
+
+    trace "Exiting _delete_unused_nodes";
 }
 
 sub update
 {   my ($self, $tree) = @_;
 
+    trace "Entering update";
 
     my $dbids = {}; # Array of all database IDs. We'll delete any no longer existant after update
 
@@ -288,11 +301,15 @@ sub update
 
     $self->_enumvals($dbids);
     $self->_delete_unused_nodes;
+
+    trace "Exiting update";
 }
 
 sub _update
 {
     my ($self, $t, $dbids) = @_;
+
+    trace "Entering _update";
 
     my $parent = $t->{parent} || '#';
     $parent = undef if $parent eq '#'; # Hash is top of tree (no parent)
