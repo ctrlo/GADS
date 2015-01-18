@@ -20,7 +20,7 @@
             [% END %]
         </div>
     </div>
-    <button type="submit" name="submit" value="submit" class="btn btn-primary">Submit</button>
+    <button type="submit" name="submit" value="submit" class="btn btn-primary" onclick="window.onbeforeunload = null;">Submit</button>
     <a href="/data" class="btn btn-default">Cancel</a>
 </form>
 <p></p>
@@ -238,3 +238,22 @@
     [% END %]
 [% END %]
 
+<script type="text/javascript">
+    var jscode='[% FILTER remove('\n+') %]
+        [% FILTER replace('\'', '\\\'') %]
+            $(document).ready(function () {
+                var confirmOnPageExit = function (e) 
+                {
+                    e = e || window.event;
+                    var message = 'Please note that any changes will be lost.';
+                    if (e) 
+                    {
+                        e.returnValue = message;
+                    }
+                    return message;
+                };
+                window.onbeforeunload = confirmOnPageExit;
+            });
+        [% END %]
+    [% END %]';
+</script>
