@@ -36,11 +36,24 @@
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
-        $(document).on('hidden.bs.modal', function (e) {
-            $(e.target).removeData('bs.modal');
-        });
-        [% INCLUDE tree.tt %]
-        [% jscode.join('') %]
+        $(document).ready(function () {
+            $(document).on('hidden.bs.modal', function (e) {
+                $(e.target).removeData('bs.modal');
+            });
+            var confirmOnPageExit = function (e) 
+            {
+                e = e || window.event;
+                var message = 'Please note that any changes will be lost.';
+                if (e) 
+                {
+                    e.returnValue = message;
+                }
+                return message;
+            };
+            window.onbeforeunload = confirmOnPageExit;
+            [% INCLUDE tree.tt %]
+            [% jscode.join('') %]
+        }); 
 [% END %]
 [% END %]';
 </script>
@@ -237,23 +250,3 @@
         </div>
     [% END %]
 [% END %]
-
-<script type="text/javascript">
-    var jscode='[% FILTER remove('\n+') %]
-        [% FILTER replace('\'', '\\\'') %]
-            $(document).ready(function () {
-                var confirmOnPageExit = function (e) 
-                {
-                    e = e || window.event;
-                    var message = 'Please note that any changes will be lost.';
-                    if (e) 
-                    {
-                        e.returnValue = message;
-                    }
-                    return message;
-                };
-                window.onbeforeunload = confirmOnPageExit;
-            });
-        [% END %]
-    [% END %]';
-</script>
