@@ -53,10 +53,12 @@
                 [% ELSE %]
                     <p>[% value %]</p>
                 [% END %]
-            </tr>
+                </td>
             [% END %]
-        </tbody>
-    </table>
+        </tr>
+        [% END %]
+    </tbody>
+</table>
 </div>
 [% END %]
 <ul class="pagination">
