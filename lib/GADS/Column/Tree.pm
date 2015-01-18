@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Column::Tree;
 
-use HTML::Entities;
 use Log::Report;
 use String::CamelCase qw(camelize);
 use Tree::DAG_Node;
@@ -189,7 +188,7 @@ sub json
                 }
                 else {
                     my $parent = $options->{stash}->{last_node}->{$depth-1};
-                    my $text = encode_entities $self->_enumvals->{$node->name}->{value};
+                    my $text = $self->_enumvals->{$node->name}->{value};
                     $parent->{children} = [] unless $parent->{children};
                     my $leaf = {
                         text => $text,

@@ -418,6 +418,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
             $('#jstree_demo_div').jstree({
                 "core" : {
                     "check_callback" : true,
+                    "force_text" : true,
                     "themes" : { "stripes" : true },
                     'data' : {
                         'url' : function (node) {
