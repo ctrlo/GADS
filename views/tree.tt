@@ -22,10 +22,11 @@
                 .jstree({
                     "core" : {
                         "check_callback" : true,
-                        "themes" : { "stripes" : false },
+                        "force_text" : true,
+                        "themes" : { "stripes" : true },
                         'data' : {
                             'url' : function (node) {
-                                return '/tree' + new Date().getTime() + '/[% tree.id %]/[% tree.value %]';
+                                return '/tree' + new Date().getTime() + '/[% tree.id %]/[% tree.value.id %]';
                             },
                             'data' : function (node) {
                                 return { 'id' : node.id };

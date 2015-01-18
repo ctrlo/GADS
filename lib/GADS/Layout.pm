@@ -18,541 +18,145 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Layout;
 
-use Dancer2 ':script';
-use Dancer2::Plugin::DBIC qw(schema resultset rset);
-use GADS::View;
-use Ouch;
+use Algorithm::Dependency::Ordered;
+use Algorithm::Dependency::Source::HoA;
+use GADS::Column;
+use GADS::Column::Calc;
+use GADS::Column::Date;
+use GADS::Column::Daterange;
+use GADS::Column::Enum;
+use GADS::Column::File;
+use GADS::Column::Intgr;
+use GADS::Column::Person;
+use GADS::Column::Rag;
+use GADS::Column::String;
+use GADS::Column::Tree;
+use Log::Report;
 use String::CamelCase qw(camelize);
-schema->storage->debug(1);
 
-use GADS::Schema;
+use Moo;
+
+has schema => (
+    is       => 'rw',
+    required => 1,
+);
+
+has user => (
+    is       => 'rw',
+    required => 1,
+);
+
+has columns => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => '_build_columns',
+);
+
+has columns_index => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        my @columns = @{$self->columns};
+        my %columns = map { $_->{id} => $_ } @columns;
+        \%columns;
+    },
+);
+
+# Instantiate new class. This builds a list of all
+# columns, so that it's cached for any later function
+sub _build_columns
+{   my $self = shift;
+
+    my $cols_rs = $self->schema->resultset('Layout')->search({},{
+        order_by => ['me.position', 'enumvals.id'],
+        join     => 'enumvals',
+        prefetch => ['calcs', 'rags' ],
+    });
+
+    $cols_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+
+    my @allcols = $cols_rs->all;
+
+    my @return;
+    foreach my $col (@allcols)
+    {
+        my $class = "GADS::Column::".camelize $col->{type};
+        my $column = $class->new(set_values => $col, schema => $self->schema);
+        push @return, $column;
+    }
+
+    # Now that we have all columns built, we need to tag on dependent cols
+    foreach my $col (@return)
+    {
+        # And also any columns that are children (in the layout)
+        my @depends = grep {$_->display_field && $_->display_field == $col->id} @return;
+        my @depended_by = map { { id => $_->id, regex => $_->display_regex } } @depends;
+        $col->depended_by(\@depended_by);
+    }
+
+    \@return;
+}
 
 sub all
-{   my ($class, $new) = @_;
-    if ($new)
-    {
-        my $count = 0;
-        foreach my $v (@{$new->{id}})
-        {
-            my $field;
-            $field->{name} = $new->{name}[$count];
-            $field->{type} = $new->{type}[$count];
-            $field->{permission} = $new->{permission}[$count];
-            rset('Layout')->find($v)->update($field);
-            $count++;
-        }
-    }
-    my @layout = rset('Layout')->search({},{ order_by => 'position' })->all;
-    \@layout;
+{   my ($self, %options) = @_;
+
+    my $type = $options{type};
+
+    my $include_hidden = $options{include_hidden} || $self->user->{permission}->{layout} ? 1 : 0;
+
+    my @columns = @{$self->columns};
+    @columns = $self->_order_dependencies(@columns) if $options{order_dependencies};
+    @columns = grep { $_->type eq $type } @columns if $type;
+    @columns = grep { $_->remember == $options{remember} } @columns if defined $options{remember};
+    @columns = grep { !$_->hidden } @columns unless $include_hidden;
+    @columns = grep { $_->userinput == $options{userinput} } @columns if defined $options{userinput};
+    @columns;
 }
 
-sub _delete_unused_nodes
-{
-    my ($layout_id, $dbids) = @_;
+# Order the columns in the order that the calculated values depend
+# on other columns
+sub _order_dependencies
+{   my ($self, @columns) = @_;
 
-    my @top = rset('Enumval')->search({
-        layout_id => $layout_id,
-        parent    => undef
-    })->all;
+    my %deps = map {
+        $_->id => $_->depends_on;
+    } @columns;
 
-    sub _flat
-    {
-        my ($start, $flat, $level) = @_;
-        push @$flat, { id => $start->id, level => $level, deleted => $start->deleted, parent => $start->parent ? $start->parent->id : undef };
-        # See if it has any children
-        my @children = rset('Enumval')->search({ parent => $start->id })->all;
-        foreach my $child (@children)
-        {
-            _flat($child, $flat, $level + 1);
-        }
-    };
-
-    # Now collect all the nodes in a flat structure. We can only delete
-    # from the children up, otherwise there are relationship constraints.
-    # We actually only delete nodes that aren't referenced anywhere, in
-    # order to keep data integrity for old records
-    my @flat;
-    foreach (@top)
-    {
-        _flat $_, \@flat, 0;
-    }
-    @flat = sort { $b->{level} <=> $a->{level} } @flat;
-
-    # Do the actual deletion if they don't exist
-    foreach my $node (@flat)
-    {
-        next if $node->{deleted}; # Already deleted
-        if (grep {$node->{id} == $_} @$dbids)
-        {
-            # Current node still exists, but its parent doesn't
-            # Move current node to the top by undefing the parent
-            if ($node->{parent} && not grep {$node->{parent} == $_} @$dbids)
-            {
-                rset('Enumval')->find($node->{id})->update({ parent => undef });
-            }
-        }
-        else
-        {
-            my $count = rset('Enum')->search({ layout_id => $layout_id, value => $node->{id} })->count; # In use somewhere
-            my $haschild = grep {$_->{parent} && $node->{id} == $_->{parent}} @flat;                   # Has (deleted) children
-            if ($count || $haschild)
-            {
-                rset('Enumval')->find($node->{id})->update({ deleted => 1 })
-                    or ouch 'dbfail', "Database error deleting old tree values";
-            }
-            else {
-                rset('Enumval')->find($node->{id})->delete;
-            }
-        }
-    }
-}
-
-sub _collate;
-
-sub tree
-{   my ($class, $layout_id, $args) = @_;
-
-    sub update
-    {
-        my ($layout_id, $t, $dbids) = @_;
-
-        my $parent = $t->{parent} || '#';
-        $parent = undef if $parent eq '#'; # Hash is top of tree (no parent)
-
-        my $dbt;
-        if ($t->{id} =~ /^[0-9]+$/)
-        {
-            # existing entry
-            ($dbt) = rset('Enumval')->search({
-                layout_id => $layout_id,
-                id        => $t->{id},
-            })->all;
-        }
-        if ($dbt)
-        {
-            $dbt->update({
-                parent => $parent,
-                value  => $t->{text},
-            }) or ouch 'dbfail', "Database error when updating tree ID $t->{id}";
-        }
-        else {
-            # new entry
-            $dbt = rset('Enumval')->create({
-                layout_id => $layout_id,
-                parent    => $parent,
-                value     => $t->{text},
-            }) or ouch 'dbfail', "Database error when creating new tree value $t->{text}";
-        }
-
-        push @$dbids, $dbt->id;
-
-        foreach my $child (@{$t->{children}})
-        {
-            $child->{parent} = $dbt->id;
-            update($layout_id, $child, $dbids);
-        }
-    };
-
-    # Update tree if new value provided
-    if (my $tree = $args->{tree})
-    {
-        my $dbids = []; # Array of all database IDs. We'll delete any no longer existant after update
-
-        # Do any updates
-        foreach my $t (@$tree)
-        {
-            update $layout_id, $t, $dbids;
-        }
-
-        _delete_unused_nodes($layout_id, $dbids);
-    }
-
-    my $selected;
-    if (my $value = $args->{value})
-    {
-        # Specify which record's value to initially select
-        $selected = $value;
-    }
-
-    sub _collate
-    {
-        my ($start, $selected, $all) = @_;
-
-        # See if it has any children
-        my @children = grep
-        {
-            my $p = $_->get_column('parent');
-            $p && $p == $start->id;
-        }
-        @$all;
-
-        my @cc;
-        foreach my $child (@children)
-        {
-            push @cc, _collate($child, $selected, $all);
-        }
-        my $sbool = $selected && $selected == $start->id ? 1 : 0;
-        my $item = {
-            id       => $start->id,
-            text     => $start->value,
-            state => {selected => \$sbool},
-        };
-        $item->{children} = \@cc if @cc;
-        return $item;
-    };
-
-    return [] unless $layout_id;
-
-    my @all = rset('Enumval')->search({
-        layout_id => $layout_id,
-        deleted   => 0
-    },{
-        order_by  => 'value'
-    })->all;
-
-    my @top = grep { not defined $_->get_column('parent') } @all;
-    my @tree;
-    foreach (@top)
-    {
-        push @tree, _collate($_, $selected, \@all);
-    }
-    \@tree;
-}
-
-sub delete
-{   my ($class, $id) = @_;
-    my $item = rset('Layout')->find($id)
-        or ouch 'notfound', "Unable to find item with ID $id";
-
-    # First see if any views are conditional on this field
-    if (my @deps = rset('Layout')->search({ display_field => $item->id })->all)
-    {
-        my @depsn = map { $_->name } @deps;
-        my $dep   = join ', ', @depsn;
-        ouch 'baddep', "The following fields are conditional on this field: $dep.
-            Please remove these conditions before deletion.";
-    }
-
-    my @graphs = rset('Graph')->search(
-        [
-            { x_axis => $item->id   },
-            { y_axis => $item->id   },
-            { group_by => $item->id },
-        ]
-    )->all;
-    if (@graphs)
-    {
-        my $g = join(q{, }, map{$_->title} @graphs);
-        ouch 'badparam', "The following graphs references this field: $g. Please update them before deletion.";
-    }
-    rset('ViewLayout')->search({ layout_id => $item->id })->delete
-        or ouch 'dbfail', "Database error deleting views containing this item";
-    rset('Filter')->search({ layout_id => $item->id })->delete
-        or ouch 'dbfail', "Database error deleting filters containing this item";
-    rset('Person')->search({ layout_id => $item->id })->delete
-        or ouch 'dbfail', "Database error deleting any people relating to this item";
-    rset('Enum')->search({ layout_id => $item->id })->delete
-        or ouch 'dbfail', "Database error deleting any enums relating to this item";
-    rset('Calc')->search({ layout_id => $item->id })->delete
-        or ouch 'dbfail', "Database error deleting any calcs relating to this item";
-    rset('Rag')->search({ layout_id => $item->id })->delete
-        or ouch 'dbfail', "Database error deleting any rags relating to this item";
-    rset('AlertCache')->search({ layout_id => $item->id })->delete
-        or ouch 'dbfail', "Database error deleting any alert caches relating to this item";
-    my $type = $item->type;
-    if ($type eq 'tree')
-    {
-        _delete_unused_nodes($item->id, []);
-        $type = 'enum';
-    }
-    elsif($type eq 'enum')
-    {
-        rset('Enumval')->search({ layout_id => $item->id })->delete
-            or ouch 'dbfail', "Database error deleting any enum values relating to this item";
-    }
-    elsif($type eq 'calc')
-    {
-        rset('Calcval')->search({ layout_id => $item->id })->delete
-            or ouch 'dbfail', "Database error deleting any calc values relating to this item";
-    }
-    elsif($type eq 'rag')
-    {
-        rset('Ragval')->search({ layout_id => $item->id })->delete
-            or ouch 'dbfail', "Database error deleting any rag values relating to this item";
-    }
-    my $table = camelize $type;
-    rset($table)->search({ layout_id => $item->id })->delete
-        or ouch 'dbfail', "Database error deleting data associated with this item";
-    $item->delete
-        or ouch 'dbfail', "Database error deleting item";
+    my $source = Algorithm::Dependency::Source::HoA->new(\%deps);
+    my $dep = Algorithm::Dependency::Ordered->new(source => $source)
+        or die 'Failed to set up dependency algorithm';
+    my @order = @{$dep->schedule_all};
+    map { $self->columns_index->{$_} } @order;
 }
 
 sub position
-{   my ($class, $params) = @_;
+{   my ($self, $params) = @_;
     foreach my $o (keys %$params)
     {
         next unless $o =~ /position([0-9]+)/;
-        rset('Layout')->find($1)->update({ position => $params->{$o} })
-            or ouch 'dbfail', "There was a database error when updating the position values";
+        $self->schema->resultset('Layout')->find($1)->update({ position => $params->{$o} });
     }
 }
 
-sub item
-{   my ($self, $args) = @_;
-    my $item;
-    if($args->{submit})
-    {
-        my $newitem;
-        $newitem->{optional} = $args->{optional} ? 1 : 0;
-        $newitem->{hidden} = $args->{hidden} ? 1 : 0;
-        $newitem->{remember} = $args->{remember} ? 1 : 0;
-        ($newitem->{name} = $args->{name}) =~ /^[ \S]+$/ # Only normal spaces please
-            or ouch 'badvalue', "Please enter a name for item";
-        ($newitem->{type}       = $args->{type}) =~ /^(intgr|string|date|daterange|enum|tree|person|rag|calc|file)$/
-            or ouch 'badvalue', "Bad type $args->{type} for item";
-        ($newitem->{permission} = $args->{permission}) =~ /^[012]$/
-            or ouch 'badvalue', "Bad permission $args->{permission} for item";
-        $newitem->{description} = $args->{description};
-        $newitem->{helptext}    = $args->{helptext};
+sub column
+{   my ($self, $id) = @_;
+    $self->columns_index->{$id};
+}
 
-        $newitem->{display_field} = ($args->{display_condition} && grep {$args->{display_field} == $_->id} @{$self->all})
-                                  ? $args->{display_field}
-                                  : undef;
+sub view
+{   my ($self, $view_id, %options) = @_;
 
-        $newitem->{display_regex} = $args->{display_regex};
-
-        my @enumvals;
-        if ($args->{type} eq 'enum')
-        {
-            sub collectenum
-            {
-                my ($value, $index) = @_;
-                ouch 'badvalue', "\"$value\" is not a valid value for the multiple select"
-                    unless $value =~ /^[ \S]+$/;
-                my $p = {
-                    index => $index,
-                    value => $value,
-                };
-                return $p;
-            };
-            # Collect all the enum values. These can be in a variety of formats. New
-            # ones will be a scalar for a single one or an arrayref for multiples.
-            # Existing ones will have a unique field ID. This is maintained to retain
-            # the data associated with that entry.
-            foreach my $v (keys %$args)
-            {
-                next unless $v =~ /^enumval(\d*)/;
-                if (ref $args->{$v} eq 'ARRAY')
-                {
-                    foreach my $w (@{$args->{$v}})
-                    {
-                        my $e = collectenum($w, 0);
-                        push @enumvals, $e if $e;
-                    }
-                }
-                else {
-                    my $e = collectenum($args->{$v}, $1);
-                    push @enumvals, $e if $e;
-                }
-            }
-
-            # Finally save the ordering value
-            $newitem->{ordering} = $args->{ordering} eq "desc"
-                                 ? "desc"
-                                 : $args->{ordering} eq "asc"
-                                 ? "asc"
-                                 : undef;
-        } elsif ($args->{type} eq "tree")
-        {
-            $newitem->{end_node_only} = $args->{end_node_only} ? 1 : 0;
-        }
-            
-        if ($args->{id})
-        {
-            $item = rset('Layout')->find($args->{id})
-                or ouch 'notfound', "Unable to find item with ID $args->{id}";
-            $item = $item->update($newitem)
-                or ouch 'dbfail', "Database error when updating item ID $args->{id}";
-
-            if ($item->type eq 'enum')
-            {
-                # Trees are dealt with separately using AJAX calls
-                # First insert and update values
-                foreach my $en (@enumvals)
-                {
-                    if ($en->{index})
-                    {
-                        my $enumval = rset('Enumval')->find($en->{index})
-                            or ouch 'badvalue', "Bad index $en->{index} for multiple select update";
-                        $enumval->update({ value => $en->{value} });
-                    }
-                    else {
-                        my $new = rset('Enumval')->create({ value => $en->{value}, layout_id => $item->id });
-                        $en->{index} = $new->id;
-                    }
-                }
-                # Then delete any that no longer exist
-                my @dbids = map {$_->{index}} @enumvals;
-                _delete_unused_nodes($item->id, \@dbids);
-                #foreach my $en ($item->enumvals->all)
-                #{
-                #    unless (grep {$_->{index} == $en->id} @enumvals)
-                #    {
-                #        # Don't actually delete if old records still reference the value
-                #        # Set deleted flag instead
-                #        if (rset('Enum')->search({ layout_id => $item->id, value => $en->id })->count)
-                #        {
-                #            $en->update({ deleted => 1 })
-                #                or ouch 'dbfail', "Database error when deleting multiple select value $en->{value}";
-                #        }
-                #        else {
-                #            $en->delete;
-                #        }
-                #    }
-                #}
-            }
-        }
-        else {
-            # No ID - new item
-            $item = rset('Layout')->create($newitem)
-                or ouch 'dbfail', "Database error when creating new item";
-            foreach my $en (@enumvals)
-            {
-                rset('Enumval')->create({ value => $en->{value}, layout_id => $item->id });
-            }
-            if ($args->{type} eq 'tree')
-            {
-                # For new items of a tree, the nodes will have already been inserted
-                # but with a layout_id of null. Now is the time to update them
-                rset('Enumval')->search({ layout_id => undef })->update({ layout_id => $item->id });
-            }
-        }
-        if ($args->{type} eq 'rag')
-        {
-            my $rag = {
-                red   => $args->{red},
-                amber => $args->{amber},
-                green => $args->{green},
-            };
-            my ($ragr) = rset('Rag')->search({ layout_id => $item->id })->all;
-            my $need_update;
-            if ($ragr)
-            {
-                # First see if the calculation has changed
-                $need_update =  $ragr->red ne $rag->{red}
-                             || $ragr->amber ne $rag->{amber}
-                             || $ragr->green ne $rag->{green};
-                $ragr->update($rag)
-                    or ouch 'dbfail', "Database error updating RAG values";
-                # Clear out cached calues. Will be auto-inserted later
-            }
-            else {
-                $rag->{layout_id} = $item->id;
-                rset('Rag')->create($rag)
-                    or ouch 'dbfail', "Database error creating RAG values";
-                $need_update = 1;
-            }
-            if ($need_update)
-            {
-                # Get records first so that we have old values and fields needed for calc
-                my $rag_col = GADS::View->columns({ id => $item->id });
-                GADS::Record->update_cache($rag_col);
-            }
-        }
-        if ($args->{type} eq 'calc')
-        {
-            my $calc = {
-                calc          => $args->{calc},
-                return_format => $args->{return_format} ? 'date' : '',
-            };
-            my ($calcr) = rset('Calc')->search({ layout_id => $item->id })->all;
-            my $need_update;
-            if ($calcr)
-            {
-                # First see if the calculation has changed
-                $need_update = $calcr->calc ne $calc->{calc};
-                $calcr->update($calc)
-                    or ouch 'dbfail', "Database error updating calculated formula";
-            }
-            else {
-                $calc->{layout_id} = $item->id;
-                $calcr = rset('Calc')->create($calc)
-                    or ouch 'dbfail', "Database error creating calculated formula";
-                $need_update = 1;
-            }
-            if ($need_update)
-            {
-                # Get records first so that we have old values and fields needed for calc
-                my $calc_col = GADS::View->columns({ id => $item->id });
-                GADS::Record->update_cache($calc_col);
-            }
-        }
-        if ($args->{type} eq 'file')
-        {
-            my $foption = {
-                filesize => (int($args->{filesize}) || undef),
-            };
-            my ($file_option) = rset('FileOption')->search({ layout_id => $item->id })->all;
-            if ($file_option)
-            {
-                $file_option->update($foption)
-                    or ouch 'dbfail', "Database error updating file size option";
-            }
-            else {
-                $foption->{layout_id} = $item->id;
-                rset('FileOption')->create($foption)
-                    or ouch 'dbfail', "Database error creating calculated file size option";
-            }
-        }
-    }
-    else {
-        ($item) = rset('Layout')->search({
-            'me.id'  => $args->{id},
-        },{
-            prefetch => ['enumvals', 'calcs', 'rags' ],
-            order_by => 'enumvals.id',
-        })->all;
-        $item or ouch 'notfound', "Unable to find item with ID $args->{id}";
-    }
-    my $itemhash = {
-        id            => $item->id,
-        name          => $item->name,
-        type          => $item->type,
-        ordering      => $item->ordering,
-        permission    => $item->permission,
-        optional      => $item->optional,
-        hidden        => $item->hidden,
-        description   => $item->description,
-        helptext      => $item->helptext,
-        display_field => $item->display_field,
-        display_regex => $item->display_regex,
-        end_node_only => $item->end_node_only,
-        remember      => $item->remember,
-    };
-
-    if ($item->type eq 'enum' || $item->type eq 'tree')
-    {
-            my @enumvals = $item->enumvals;
-            $itemhash->{enumvals} = \@enumvals;
-    }
-    elsif ($item->type eq 'rag')
-    {
-        my ($rag) = rset('Rag')->search({ layout_id => $item->id });
-        $itemhash->{rag} = $rag;
-    }
-    elsif ($item->type eq 'calc')
-    {
-        my ($calc) = rset('Calc')->search({ layout_id => $item->id });
-        $itemhash->{calc} = $calc;
-    }
-    elsif ($item->type eq 'file')
-    {
-        my ($file_option) = rset('FileOption')->search({ layout_id => $item->id });
-        $itemhash->{file_option} = $file_option;
-    }
-    $itemhash;
+    return unless $view_id;
+    my $view    = GADS::View->new(
+        user   => $self->{user},
+        id     => $view_id,
+        schema => $self->schema,
+        layout => $self,
+    );
+    my %view_layouts = map { $_ => 1 } @{$view->columns};
+    grep { $view_layouts{$_->{id}} } $self->all(%options);
 }
 
 1;
-
 

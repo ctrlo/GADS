@@ -423,6 +423,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 layout_depend_layouts
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::LayoutDepend>
+
+=cut
+
+__PACKAGE__->has_many(
+  "layout_depend_layouts",
+  "GADS::Schema::Result::LayoutDepend",
+  { "foreign.layout_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 layouts
 
 Type: has_many
@@ -435,6 +450,21 @@ __PACKAGE__->has_many(
   "layouts",
   "GADS::Schema::Result::Layout",
   { "foreign.display_field" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 layouts_depend_depends_on
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::LayoutDepend>
+
+=cut
+
+__PACKAGE__->has_many(
+  "layouts_depend_depends_on",
+  "GADS::Schema::Result::LayoutDepend",
+  { "foreign.depends_on" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -529,8 +559,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-29 18:45:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:O+NbkZiFOhv/CXgJP8Kxig
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-18 11:44:43
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wSTwLDuNYOcLxe43j3Gmbw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

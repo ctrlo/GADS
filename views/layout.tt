@@ -2,76 +2,75 @@
 
 <h2>Edit layout</h2>
 
-[% IF edit.defined %]
+[% IF column.defined %]
 <form role="form" method="post">
     <div class="row">
         <div class="col-md-6">
-            [% IF edit %]
-                [% edititem = items.shift %]
-                <input type="hidden" name="id" value="[% edititem.id %]">
+            [% IF column.id %]
+                <input type="hidden" name="id" value="[% column.id %]">
             [% END %]
-            [% IF edititem.type == "rag" OR edititem.type == "calc" %][% noragcalc = 'style="display:none"' %][% END %]
+            [% IF column.type == "rag" OR column.type == "calc" %][% noragcalc = 'style="display:none"' %][% END %]
             <div class="form-group">
                 <label for="name">Name:</label>
-                <input type="text" class="form-control" id="name" name="name" value="[% edititem.name | html_entity %]">
+                <input type="text" class="form-control" id="name" name="name" value="[% column.name | html_entity %]">
             </div>
             <div class="form-group">
                 <label for="type">Type:</label>
                 <select class="form-control" id="type" name="type">
-                    <option value="string" [% IF edititem.type == "string" %]selected[% END %]>String</option>
-                    <option value="intgr" [% IF edititem.type == "intgr" %]selected[% END %]>Integer</option>
-                    <option value="date" [% IF edititem.type == "date" %]selected[% END %]>Date</option>
-                    <option value="daterange" [% IF edititem.type == "daterange" %]selected[% END %]>Date range</option>
-                    <option value="enum" [% IF edititem.type == "enum" %]selected[% END %]>Multiple select</option>
-                    <option value="tree" [% IF edititem.type == "tree" %]selected[% END %]>Tree</option>
-                    <option value="file" [% IF edititem.type == "file" %]selected[% END %]>Document</option>
-                    <option value="person" [% IF edititem.type == "person" %]selected[% END %]>Person</option>
-                    <option value="rag" [% IF edititem.type == "rag" %]selected[% END %]>RedAmberGreen status (RAG)</option>
-                    <option value="calc" [% IF edititem.type == "calc" %]selected[% END %]>Calculated value</option>
+                    <option value="string" [% IF column.type == "string" %]selected[% END %]>String</option>
+                    <option value="intgr" [% IF column.type == "intgr" %]selected[% END %]>Integer</option>
+                    <option value="date" [% IF column.type == "date" %]selected[% END %]>Date</option>
+                    <option value="daterange" [% IF column.type == "daterange" %]selected[% END %]>Date range</option>
+                    <option value="enum" [% IF column.type == "enum" %]selected[% END %]>Multiple select</option>
+                    <option value="tree" [% IF column.type == "tree" %]selected[% END %]>Tree</option>
+                    <option value="file" [% IF column.type == "file" %]selected[% END %]>Document</option>
+                    <option value="person" [% IF column.type == "person" %]selected[% END %]>Person</option>
+                    <option value="rag" [% IF column.type == "rag" %]selected[% END %]>RedAmberGreen status (RAG)</option>
+                    <option value="calc" [% IF column.type == "calc" %]selected[% END %]>Calculated value</option>
                 </select>
             </div>
             <div class="form-group noragcalc" [% noragcalc %]>
                 <label for="permissions">Permissions: (<a href="" data-toggle="modal" data-target="#modalhelp">?</a>)</label>
                 <select class="form-control" name="permission" id="permissions">
-                    <option value="0" [% IF edititem.permission == 0 %]selected[% END %]>Open access</option>
-                    <option value="1" [% IF edititem.permission == 1 %]selected[% END %]>Edit with approval</option>
-                    <option value="2" [% IF edititem.permission == 2 %]selected[% END %]>Read only</option>
+                    <option value="0" [% IF column.permission == 0 %]selected[% END %]>Open access</option>
+                    <option value="1" [% IF column.permission == 1 %]selected[% END %]>Edit with approval</option>
+                    <option value="2" [% IF column.permission == 2 %]selected[% END %]>Read only</option>
                 </select>
             </div>
             <div class="form-group">
                 <label for="description">Description:</label>
-                <input type="text" class="form-control" id="description" name="description" value="[% edititem.description | html_entity %]">
+                <input type="text" class="form-control" id="description" name="description" value="[% column.description | html_entity %]">
             </div>
             <div class="form-group">
                 <label for="helptext">User help text:</label>
-                <textarea class="form-control" rows="5" id="helptext" name="helptext">[% edititem.helptext | html_entity %]</textarea>
+                <textarea class="form-control" rows="5" id="helptext" name="helptext">[% column.helptext | html_entity %]</textarea>
             </div>
             <div class="checkbox noragcalc" [% noragcalc %]>
                 <label>
-                    <input type="checkbox" name="optional" [% IF edititem.optional %]checked[% END %]>Field is optional
+                    <input type="checkbox" name="optional" [% IF column.optional %]checked[% END %]>Field is optional
                 </label>
             </div>
             <div class="checkbox noragcalc" [% noragcalc %]>
                 <label>
-                    <input type="checkbox" name="remember" [% IF edititem.remember %]checked[% END %]>Remember last value for new entry
+                    <input type="checkbox" name="remember" [% IF column.remember %]checked[% END %]>Remember last value for new entry
                 </label>
             </div>
             <div class="checkbox">
                 <label>
-                    <input type="checkbox" name="hidden" [% IF edititem.hidden %]checked[% END %]>Field is hidden for normal users
+                    <input type="checkbox" name="hidden" [% IF column.hidden %]checked[% END %]>Field is hidden for normal users
                 </label> (<a href="" data-toggle="modal" data-target="#modalhelp_hidden">?</a>)
             </div>
             <div class="checkbox noragcalc" [% noragcalc %]>
                 <label>
-                    <input type="checkbox" id="display_condition" name="display_condition" [% IF edititem.display_field %]checked[% END %]>Only display under the following conditions:
+                    <input type="checkbox" id="display_condition" name="display_condition" [% IF column.display_field %]checked[% END %]>Only display under the following conditions:
                 </label>
             </div>
-            <div class="form-group" id="display_condition_div" [% UNLESS edititem.display_field %]style="display:none"[% END %]>
+            <div class="form-group" id="display_condition_div" [% UNLESS column.display_field %]style="display:none"[% END %]>
                 <div class="row">
                     <div class="col-md-5">
                         <select class="form-control" id="display_field" name="display_field">
-                            [% FOREACH field in all_items %]
-                                <option value="[% field.id %]" [% IF edititem.display_field.id == field.id %]selected[% END %]>[% field.name %]</option>
+                            [% FOREACH field in all_columns %]
+                                <option value="[% field.id %]" [% IF column.display_field.id == field.id %]selected[% END %]>[% field.name %]</option>
                             [% END %]
                         </select>
                     </div>
@@ -80,7 +79,7 @@
                     </div>
                     <div class="col-md-5">
                         <div class="form-group">
-                            <input type="text" class="form-control" id="display_regex" name="display_regex" value="[% edititem.display_regex | html_entity %]">
+                            <input type="text" class="form-control" id="display_regex" name="display_regex" value="[% column.display_regex | html_entity %]">
                         </div>
                     </div>
                 </div>
@@ -88,14 +87,14 @@
         </div>
         <div class="col-md-6">
             <div id="divtree"
-                [% IF edititem.type != "tree" %]
+                [% IF column.type != "tree" %]
                     style="display:none"
                 [% END %]
                 >
                 <label for="end_node_only">Node selection:</label>
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" name="end_node_only" [% IF edititem.end_node_only %]checked[% END %]>
+                        <input type="checkbox" name="end_node_only" [% IF column.end_node_only %]checked[% END %]>
                         Only allow end-nodes to be selected
                     </label>
                 </div>
@@ -108,7 +107,7 @@
                 </div>
             </div>
             <div id="divenum"
-                [% IF edititem.type != "enum" %]
+                [% IF column.type != "enum" %]
                     style="display:none"
                 [% END %]
                 >
@@ -116,9 +115,9 @@
                     <div class="form-group">
                         <label for="enumval">Multiple select ordering:</label>
                         <select class="form-control" name="ordering">
-                            <option value="" [% IF NOT edititem.ordering %]selected[% END %]>As entered</option>
-                            <option value="asc" [% IF edititem.ordering == "asc" %]selected[% END %]>Ascending</option>
-                            <option value="desc" [% IF edititem.ordering == "desc" %]selected[% END %]>Descending</option>
+                            <option value="" [% IF NOT column.ordering %]selected[% END %]>As entered</option>
+                            <option value="asc" [% IF column.ordering == "asc" %]selected[% END %]>Ascending</option>
+                            <option value="desc" [% IF column.ordering == "desc" %]selected[% END %]>Descending</option>
                         </select>
                     </div>
                 </div>
@@ -126,7 +125,7 @@
                     <label for="enumval">Multiple select values:</label>
                 </div>
                 <div id="legs">
-                    [% FOREACH enumval IN edititem.enumvals %]
+                    [% FOREACH enumval IN column.enumvals %]
                         [% UNLESS enumval.deleted %]
                             <div class="request-row">
                                     <div class="col-md-11">
@@ -148,37 +147,37 @@
                 </div>
             </div>
             <div id="divfile"
-                [% IF edititem.type != "file" %]
+                [% IF column.type != "file" %]
                     style="display:none"
                 [% END %]
                 >
                 <div class="form-group">
                     <label for="filesize">Maximum file size (KB):</label>
                     <input type="text" class="form-control" name="filesize" id="filesize"
-                        value="[% edititem.file_option.filesize %]" placeholder="Leave blank for no limit">
+                        value="[% column.filesize %]" placeholder="Leave blank for no limit">
                 </div>
             </div>
             <div id="divrag"
-                [% IF edititem.type != "rag" %]
+                [% IF column.type != "rag" %]
                     style="display:none"
                 [% END %]
                 >
                 <h4>RAG conditions: <small>(<a href="" data-toggle="modal" data-target="#helprag">?</a>)</small></h4>
                 <div class="form-group">
                     <label for="red">Red:</label>
-                    <input type="text" class="form-control" name="red" id="red" value="[% edititem.rag.red | html_entity %]">
+                    <input type="text" class="form-control" name="red" id="red" value="[% column.red | html_entity %]">
                 </div>
                 <div class="form-group">
                     <label for="amber">Amber:</label>
-                    <input type="text" class="form-control" name="amber" id="amber" value="[% edititem.rag.amber | html_entity %]">
+                    <input type="text" class="form-control" name="amber" id="amber" value="[% column.amber | html_entity %]">
                 </div>
                 <div class="form-group">
                     <label for="green">Green:</label>
-                    <input type="text" class="form-control" name="green" id="green" value="[% edititem.rag.green | html_entity %]">
+                    <input type="text" class="form-control" name="green" id="green" value="[% column.green | html_entity %]">
                 </div>
             </div>
             <div id="divcalc"
-                [% IF edititem.type != "calc" %]
+                [% IF column.type != "calc" %]
                     style="display:none"
                 [% END %]
                 >
@@ -186,18 +185,21 @@
                     <label for="calc">Return value conversion:</label>
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" name="return_format" [% IF edititem.calc.return_format == "date" %]checked[% END %]>
-                                Convert return value to date format
+                            <select class="form-control" name="return_type">
+                                <option value="string" [% IF column.return_type == "string" %]selected[% END %]>String</option>
+                                <option value="date" [% IF column.return_type == "date" %]selected[% END %]>Date</option>
+                                <option value="integer" [% IF column.return_type == "integer" %]selected[% END %]>Integer</option>
+                            </select>
                         </label>
                     </div>
                     <label for="calc">Calculation: (<a href="" data-toggle="modal" data-target="#helpcalc">?</a>)</label>
-                    <textarea class="form-control monospace" id="calc" name="calc" rows="10">[% edititem.calc.calc | html_entity %]</textarea>
+                    <textarea class="form-control monospace" id="calc" name="calc" rows="10">[% column.calc | html_entity %]</textarea>
                 </div>
             </div>
         </div>
     </div>
-    <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">[% IF edititem.id %]Update[% ELSE %]Create[% END %]</button>
-    [% IF edit %]
+    <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">[% IF column.id %]Update[% ELSE %]Create[% END %]</button>
+    [% IF column.id %]
         <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
     [% END %]
 </form>
@@ -324,35 +326,35 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
         <th>Description</th>
         <th>Order</th>
     </tr>
-    [% FOREACH item IN all_items %]
+    [% FOREACH column IN all_columns %]
         <tr>
-            <td><a href="/layout/[% item.id %]">Edit</a></td>
-            <td>[% item.name | html_entity %]
+            <td><a href="/layout/[% column.id %]">Edit</a></td>
+            <td>[% column.name | html_entity %]
             <td>
-                [% IF item.type == "string" %]Text[% END %]
-                [% IF item.type == "intgr" %]Integer[% END %]
-                [% IF item.type == "date" %]Date[% END %]
-                [% IF item.type == "daterange" %]Date range[% END %]
-                [% IF item.type == "enum" %]Select[% END %]
-                [% IF item.type == "tree" %]Tree[% END %]
-                [% IF item.type == "file" %]File[% END %]
-                [% IF item.type == "person" %]Person[% END %]
-                [% IF item.type == "rag" %]RedAmberGreen (RAG) status[% END %]
-                [% IF item.type == "calc" %]Calculated value[% END %]
+                [% IF column.type == "string" %]Text[% END %]
+                [% IF column.type == "intgr" %]Integer[% END %]
+                [% IF column.type == "date" %]Date[% END %]
+                [% IF column.type == "daterange" %]Date range[% END %]
+                [% IF column.type == "enum" %]Select[% END %]
+                [% IF column.type == "tree" %]Tree[% END %]
+                [% IF column.type == "file" %]File[% END %]
+                [% IF column.type == "person" %]Person[% END %]
+                [% IF column.type == "rag" %]RedAmberGreen (RAG) status[% END %]
+                [% IF column.type == "calc" %]Calculated value[% END %]
             </td>
             <td>
-                [% IF item.permission == 0 %]Open access[% END %]
-                [% IF item.permission == 1 %]Edit with approval[% END %]
-                [% IF item.permission == 2 %]Read only[% END %]
+                [% IF column.permission == 0 %]Open access[% END %]
+                [% IF column.permission == 1 %]Edit with approval[% END %]
+                [% IF column.permission == 2 %]Read only[% END %]
             </td>
             <td>
-                [% item.description %]
+                [% column.description %]
             </td>
             <td>
-                <select class="form-control" id="type" name="position[% item.id %]">
+                <select class="form-control" id="type" name="position[% column.id %]">
                     [% o = 1 %]
-                    [% WHILE o <= all_items.size %]
-                        <option value="[% o %]" [% IF item.position == o %]selected[% END %]>[% o %]</option>
+                    [% WHILE o <= all_columns.size %]
+                        <option value="[% o %]" [% IF column.position == o %]selected[% END %]>[% o %]</option>
                         [% o = o + 1 %]
                     [% END %]
                 </select>
@@ -379,7 +381,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
             $.ajax({
                 async: false,
                 type: "POST",
-                url: "/tree/[% edititem.id %]",
+                url: "/tree/[% column.id %]",
                 data: {'data': mytext }
             }).done(function( data ) {
                 alert( "Tree has been updated" );
@@ -416,10 +418,11 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
             $('#jstree_demo_div').jstree({
                 "core" : {
                     "check_callback" : true,
+                    "force_text" : true,
                     "themes" : { "stripes" : true },
                     'data' : {
                         'url' : function (node) {
-                            return '/tree' + new Date().getTime() + '/[% edititem.id %]?' ;
+                            return '/tree' + new Date().getTime() + '/[% column.id %]?' ;
                         },
                         'data' : function (node) {
                             return { 'id' : node.id };

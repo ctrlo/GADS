@@ -31,7 +31,7 @@
                     [% END %]
                     <li role="presentation" class="divider"></li>
                     [% first = 1 %]
-                    [% FOREACH ve IN user.views %]
+                    [% FOREACH ve IN user_views %]
                         [% IF first AND NOT ve.global %]
                             <li role="presentation" class="dropdown-header">Personal views</li>
                         [% ELSIF (first AND NOT ve.gloabl) OR (lastv AND ve.global != lastv.global) %]

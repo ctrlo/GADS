@@ -100,7 +100,7 @@ while (my $row = $csv->getline($fh))
     foreach my $col (@row)
     {
         my $f = $fields[$count];
-        say STDERR "Going to process $col into field $f->{name}";
+        say STDOUT "Going to process $col into field $f->{name}";
         if ($f->{type} eq "enum" || $f->{type} eq "tree")
         {
             # Get enum ID value
@@ -162,7 +162,7 @@ while (my $row = $csv->getline($fh))
     {
         push @all_bad, {
             problems => \@bad,
-            row      => $_,
+            row      => "@row",
         };
     }
 }

@@ -18,28 +18,116 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Config;
 
-use Dancer2 ':script';
-use Dancer2::Plugin::DBIC qw(schema resultset rset);
-use Ouch;
-schema->storage->debug(1);
+use Log::Report;
 
-use GADS::Schema;
+use Moo;
 
-sub conf
-{   my ($self, $update) = @_;
+has schema => (
+    is       => 'rw',
+    required => 1,
+);
 
-    if($update)
-    {
-        my $new->{homepage_text} = $update->{homepage_text};
-        $new->{homepage_text2}   = $update->{homepage_text2};
-        $new->{sort_layout_id}   = $update->{sort_layout_id} || undef;
-        $new->{sort_type}        = $update->{sort_type} if $update->{sort_type};
-        my $c = rset('Instance')->single;
-        $c->update($new);
-    }
-    
-    rset('Instance')->single
-        or ouch 'nosite', "No site configured";
+has homepage_text => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->_conf->homepage_text;
+    },
+);
+
+has homepage_text2 => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->_conf->homepage_text2;
+    },
+);
+
+has sort_layout_id => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->_conf->sort_layout_id;
+    },
+);
+
+has sort_type => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->_conf->sort_type;
+    },
+);
+
+has register_title_help => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->_conf->register_title_help;
+    },
+);
+
+has register_email_help => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->_conf->register_email_help;
+    },
+);
+
+has register_telephone_help => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->_conf->register_telephone_help;
+    },
+);
+
+has register_organisation_help => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->_conf->register_organisation_help;
+    },
+);
+
+has register_notes_help => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->_conf->register_notes_help;
+    },
+);
+
+has _conf => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        my ($conf) = $self->schema->resultset('Instance')->search->all;
+        $conf;
+    },
+);
+
+sub write
+{   my $self = shift;
+    my $new = {
+        homepage_text  => $self->homepage_text,
+        homepage_text2 => $self->homepage_text2,
+        sort_layout_id => $self->sort_layout_id,
+        sort_type      => $self->sort_type,
+    };
+
+    $self->_conf->update($new);
 }
 
 1;

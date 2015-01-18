@@ -5,7 +5,7 @@
             <form role="form" method="post">
                 <div class="row">
                     <div class="col-md-6">
-                        [% FOREACH graph IN data.graphs %]
+                        [% FOREACH graph IN graphs %]
                             <div class="checkbox">
                                 <label>
                                     <input type="checkbox" name="graphs" value="[% graph.id %]"
@@ -29,7 +29,7 @@
             <form role="form" method="post">
                 <div class="row">
                     <div class="col-md-6">
-                        [% FOREACH graph IN data.graphs %]
+                        [% FOREACH graph IN graphs %]
                             <div class="checkbox">
                                 <label title="[% graph.description | html_entity %]">
                                     <input type="checkbox" name="graphs" value="[% graph.id %]"

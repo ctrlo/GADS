@@ -1,9 +1,5 @@
 <h2>
-    [% IF autoserial %]
-        Record ID [% record.current.id %]
-    [% ELSE %]
-        [% record.current.serial %]
-    [% END %]
+    Record ID [% record.current_id %]
 </h2>
 <div class="dropdown">
     <a id="drop4" class="btn btn-primary" role="button" data-toggle="dropdown" href="#">Version history <b class="caret"></b></a>
@@ -28,14 +24,15 @@
 <table class="table table-striped">
     <tr>
         <th>Last updated by</th>
-        <td>[% person_popover(record.createdby) %]</td>
+        <td>[% record.createdby.html %]</td>
     </tr>
     [% FOREACH col IN all_columns %]
         [% NEXT IF col.type == "rag" OR col.type == "calc" %]
         <tr>
             <th>[% col.name | html_entity %]</th>
             <td>
-                [% item_value(col, record) %] [%# will be returned with html entities encoded %]
+               [% colid = col.id %]
+               [% record.fields.$colid.html %]
             </td>
         </tr>
     [% END %]

@@ -18,14 +18,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::DB;
 
-use Dancer2 ':script';
-use Dancer2::Plugin::DBIC qw(schema resultset rset);
 use String::CamelCase qw(camelize);
 
 sub setup
-{
+{   my ($class, $schema) = @_;
 
-    my $layout_rs = rset('Layout');
+    my $layout_rs = $schema->resultset('Layout');
     my @cols = $layout_rs->all;
 
     foreach my $col (@cols)
@@ -42,7 +40,7 @@ sub setup
 
         # Temporary hack
         # very inefficient and needs to go away when the rel options show up
-        my $rec_class = schema->class('Record');
+        my $rec_class = $schema->class('Record');
         $rec_class->might_have(
             $colname => camelize($coltype),
             sub {
@@ -54,8 +52,8 @@ sub setup
                 };
             }
         );
-        schema->unregister_source('Record');
-        schema->register_class(Record => $rec_class);
+        $schema->unregister_source('Record');
+        $schema->register_class(Record => $rec_class);
     }
 
 }

@@ -1,42 +1,41 @@
 <h2>Graphs</h2>
-[% IF edit.defined %]
+[% IF graph.defined %]
 <form role="form" method="post">
     <div class="row">
         <div class="col-md-6">
-            [% IF edit %]
-                [% edititem = graphs.shift %]
-                <input type="hidden" name="id" value="[% edititem.id %]">
+            [% IF graph.id %]
+                <input type="hidden" name="id" value="[% graph.id %]">
             [% END %]
             <div class="form-group">
                 <label for="firstname">Title:</label>
-                <input type="text" name="title" class="form-control" name="name" value="[% edititem.title | html_entity %]">
+                <input type="text" name="title" class="form-control" name="name" value="[% graph.title | html_entity %]">
             </div>
             <div class="form-group">
                 <label for="firstname">Description:</label>
-                <textarea class="form-control" name="description" rows="3">[% edititem.description | html_entity %]</textarea>
+                <textarea class="form-control" name="description" rows="3">[% graph.description | html_entity %]</textarea>
             </div>
             <div class="form-group">
                 <label for="email">Type:</label>
                 <select class="form-control" name="type">
                     [% FOREACH graphtype IN graphtypes %]
-                        <option value="[% graphtype %]" [% IF edititem.type == graphtype %]selected[% END %]>[% graphtype.ucfirst %]</option>
+                        <option value="[% graphtype %]" [% IF graph.type == graphtype %]selected[% END %]>[% graphtype.ucfirst %]</option>
                     [% END %]
                 </select>
             </div>
             <div class="form-group">
                 <label for="email">X-axis:</label>
                 <select class="form-control" name="x_axis">
-                    [% FOREACH column IN all_columns %]
-                        <option value="[% column.id %]" [% IF edititem.x_axis.id == column.id %]selected[% END %]>[% column.name %]</option>
+                    [% FOREACH column IN layout.all %]
+                        <option value="[% column.id %]" [% IF graph.x_axis == column.id %]selected[% END %]>[% column.name %]</option>
                     [% END %]
                 </select>
             </div>
             <div class="form-group">
                 <label for="email">X-axis grouping (optional):</label>
                 <select class="form-control" name="x_axis_grouping">
-                    <option value="" [% UNLESS edititem.x_axis_grouping %]selected[% END %]></option>
+                    <option value="" [% UNLESS graph.x_axis_grouping %]selected[% END %]></option>
                     [% FOREACH dg IN dategroup.pairs %]
-                        <option value="[% dg.key %]" [% IF edititem.x_axis_grouping == dg.key %]selected[% END %]>
+                        <option value="[% dg.key %]" [% IF graph.x_axis_grouping == dg.key %]selected[% END %]>
                             [% dg.key %]
                         </option>
                     [% END %]
@@ -45,35 +44,35 @@
             <div class="form-group">
                 <label for="email">Y-axis field:</label>
                 <select class="form-control" name="y_axis">
-                    [% FOREACH column IN all_columns %]
-                        <option value="[% column.id %]" [% IF edititem.y_axis.id == column.id %]selected[% END %]>[% column.name %]</option>
+                    [% FOREACH column IN layout.all %]
+                        <option value="[% column.id %]" [% IF graph.y_axis == column.id %]selected[% END %]>[% column.name %]</option>
                     [% END %]
                 </select>
             </div>
             <div class="form-group">
                 <label for="y_axis_label">Y-axis label:</label>
-                <input type="text" id="y_axis_label" class="form-control" name="y_axis_label" value="[% edititem.y_axis_label %]">
+                <input type="text" id="y_axis_label" class="form-control" name="y_axis_label" value="[% graph.y_axis_label %]">
             </div>
             <div class="form-group">
                 <label for="email">Y-axis values:</label>
                 <select class="form-control" name="y_axis_stack">
-                    <option value="count" [% IF edititem.y_axis_stack == "count" %]selected[% END %]>Count total number items</option>
-                    <option value="sum" [% IF edititem.y_axis_stack == "sum" %]selected[% END %]>Calculate total sum of field values</option>
+                    <option value="count" [% IF graph.y_axis_stack == "count" %]selected[% END %]>Count total number items</option>
+                    <option value="sum" [% IF graph.y_axis_stack == "sum" %]selected[% END %]>Calculate total sum of field values</option>
                 </select>
             </div>
             <div class="form-group">
                 <label for="email">Group by (optional):</label>
                 <select class="form-control" name="group_by">
-                    <option value="0" [% UNLESS edititem.group_by.id %]selected[% END %]></option>
-                    [% FOREACH column IN all_columns %]
-                        <option value="[% column.id %]" [% IF edititem.group_by.id == column.id %]selected[% END %]>[% column.name %]</option>
+                    <option value="" [% UNLESS graph.group_by.id %]selected[% END %]></option>
+                    [% FOREACH column IN layout.all %]
+                        <option value="[% column.id %]" [% IF graph.group_by == column.id %]selected[% END %]>[% column.name %]</option>
                     [% END %]
                 </select>
             </div>
             <div class="form-group">
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" name="stackseries" value="1" [% IF edititem.stackseries %]checked[% END %]>Stack data within same series
+                        <input type="checkbox" name="stackseries" value="1" [% IF graph.stackseries %]checked[% END %]>Stack data within same series
                     </label>
                 </div>
                 <div class="checkbox">
@@ -100,8 +99,8 @@
             <p>This option will cause different data items for the same x value to be stacked on top of each other, rather than displayed side-by-side.</p>
         </div>
     </div>
-    <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">[% IF edititem.id %]Update[% ELSE %]Create[% END %]</button>
-    [% IF edit %]
+    <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">[% IF graph.id %]Update[% ELSE %]Create[% END %]</button>
+    [% IF graph %]
         <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
     [% END %]
 </form>
@@ -127,9 +126,9 @@
                 <td><a href="/graph/[% graph.id %]">Edit</a></td>
                 <td>[% graph.title | html_entity %]
                 <td>[% graph.type.ucfirst %]</td>
-                <td>[% graph.x_axis.name | html_entity %]</td>
-                <td>[% graph.y_axis.name | html_entity %]</td>
-                <td>[% graph.group_by.name | html_entity %]</td>
+                <td>[% layout.column(graph.x_axis).name | html_entity %]</td>
+                <td>[% layout.column(graph.y_axis).name | html_entity %]</td>
+                <td>[% layout.column(graph.group_by).name | html_entity %]</td>
             </tr>
         [% END %]
     </table>

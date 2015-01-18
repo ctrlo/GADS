@@ -4,8 +4,8 @@
     <div class="row">
         <div class="col-md-6">
             <div class="form-group">
-                <label for="viewname">View name:</label>
-                <input type="text" class="form-control" id="viewname" name="viewname" value="[% v.name | html_entity %]">
+                <label for="name">View name:</label>
+                <input type="text" class="form-control" id="name" name="name" value="[% v.name | html_entity %]">
             </div>
             [% IF user.permission.layout %]
                 <div class="checkbox">
@@ -21,7 +21,7 @@
                     <td>
                         <input class="col_check" type="checkbox" name="column" value="[% column.id %]"
                             [% id = column.id %]
-                            [% IF ucolumns.grep("^$id\$").size %]checked[% END %]
+                            [% IF v.columns.grep("^$id\$").size %]checked[% END %]
                         >
                     </td>
                     <td>[% column.name | html_entity %]</td>
@@ -61,7 +61,7 @@
             <input id="filter" type="hidden" name="filter" value="[% v.filter %]">
             <label for="sorts">Sorting:</label>
             <div id="sorts">
-                [% FOREACH sort IN sorts %]
+                [% FOREACH sort IN v.sorts %]
                     [% PROCESS sortrow %]
                 [% END %]
                 <div class="sort-add">
@@ -179,7 +179,7 @@
                         <option value="" [% UNLESS sort.column.id %]selected[% END %]>ID</option>
                         [% END %]
                         [% FOR column IN all_columns %]
-                            <option value="[% column.id %]" [% IF sort.column.id == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                            <option value="[% column.id %]" [% IF sort.layout_id == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
                         [% END %]
                     </select>
                 </p>

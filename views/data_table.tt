@@ -1,59 +1,57 @@
 [% FILTER collapse %]
 <div class="hscroll">
-    <table class="table table-striped" id="datatable">
-        <thead>
-            <tr>
-                [% IF sort.id == -1 AND sort.type == "asc" %]
+<table class="table table-striped" id="datatable">
+    <thead>
+        <tr>
+            [% IF NOT sort.id AND sort.type == "asc" %]
+                [% st = "&#9650;" %]
+            [% ELSIF NOT sort.id %]
+                [% st = "&#9660;" %]
+            [% ELSE %]
+                [% st = "" %]
+            [% END %]
+            <th><a href="?sort=" style="color:black">Serial[% st %]</a></th>
+            [% peopcols = [] %]
+            [% FOREACH col IN columns %]
+                [% IF sort.id == col.id AND sort.type == "asc" %]
                     [% st = "&#9650;" %]
-                [% ELSIF sort.id == -1 %]
+                [% ELSIF sort.id == col.id %]
                     [% st = "&#9660;" %]
                 [% ELSE %]
                     [% st = "" %]
                 [% END %]
-                <th><a href="?sort=-1" style="color:black">Serial[% st %]</a></th>
-                [% peopcols = [] %]
-                [% FOREACH col IN columns %]
-                    [% IF sort.id == col.id AND sort.type == "asc" %]
-                        [% st = "&#9650;" %]
-                    [% ELSIF sort.id == col.id %]
-                        [% st = "&#9660;" %]
-                    [% ELSE %]
-                        [% st = "" %]
+                <th><a href="?sort=[% col.id %]" style="color:black">[% col.name | html_entity %][% IF col.id == sort.id %][% st %]</a>[% END %]
+                    [% IF col.type == "person" AND user.permission.message AND records.size %]
+                        [% peopcols.push(col.id) %]
+                        <a href="" data-toggle="modal" data-target="#peopcol[% peopfield %]">
+                            <img src="/images/envw.png">
+                        </a>
                     [% END %]
-                    <th><a href="?sort=[% col.id %]" style="color:black">[% col.name | html_entity %][% IF col.id == sort.id %][% st %]</a>[% END %]
-                        [% IF col.type == "person" AND user.permission.message AND records.size %]
-                            [% peopfield = "field" _ col.id %]
-                            [% peopcols.push(peopfield) %]
-                            <a href="" data-toggle="modal" data-target="#peopcol[% peopfield %]">
-                                <img src="/images/envw.png">
-                            </a>
-                        [% END %]
-                    </th>
-                [% END %]
-            </tr>
-        </thead>
-        <tbody>
-            [% FOREACH record IN records %]
-            <tr>
-                <td><a href="/record/[% record.shift %]">[% record.shift %]</a></td>
-                [% FOREACH item IN record %]
-                    <td>
-                    [% li = loop.index %]
-                    [% IF columns.$li.type == "rag" %]
-                        <div class="circ-large
-                            [% item %]
-                            ">
+                </th>
+            [% END %]
+        </tr>
+    </thead>
+    <tbody>
+        [% FOREACH record IN records %]
+        <tr>
+            <td><a href="/record/[% record.record_id %]">[% record.current_id %]</a></td>
+            [% FOREACH column IN columns %]
+                [% colid = column.id %]
+                [% value = record.fields.$colid.html %]
+                <td>
+                [% IF column.type == "rag" %]
+                    <div class="circ-large
+                        [% value %]
+                        ">
+                    </div>
+                [% ELSIF column.type == "string" %]
+                    <div class="more-less">
+                        <div class="more-block">
+                            <p>[% value %]</p>
                         </div>
-                    [% ELSIF columns.$li.type == "string" %]
-                        <div class="more-less">
-                            <div class="more-block">
-                                <p>[% item %]</p>
-                            </div>
-                        </div>
-                    [% ELSE %]
-                        <p>[% item %]</p>
-                    [% END %]
-                    </td>
+                    </div>
+                [% ELSE %]
+                    <p>[% value %]</p>
                 [% END %]
             </tr>
             [% END %]
@@ -118,7 +116,11 @@
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
             $(document).ready(function () {
-                $("#datatable").floatThead();
+                $("#datatable").floatThead({
+                    zIndex: function($table){
+                        return 999;
+                    }
+                });
                 var adjustheight = 60;
                 var moreText = '+ More';
                 var lessText = '- Less';
