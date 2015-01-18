@@ -130,7 +130,11 @@ sub _transform_value
         }
         else {
             try { $value = $self->safe_eval("$code") };
-            $value = $@->wasFatal->message if $@;
+            if ($@)
+            {
+                $value = $@->wasFatal->message;
+                assert "Failed to eval calc. Code was: $code";
+            }
         }
 
         $self->_write_calc($value);
