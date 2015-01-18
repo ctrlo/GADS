@@ -85,8 +85,19 @@ after 'write' => sub {
         $need_update = 1;
     }
 
-    # Update cached values
-    $self->update_cached('Ragval') if $need_update;
+    if ($need_update)
+    {
+        my @depends_on;
+        foreach my $col ($self->layout->all)
+        {
+            my $name  = $col->name; my $suffix = $col->suffix;
+            my $regex = qr/\Q[$name\E$suffix\Q]/i;
+            push @depends_on, $col->id
+                if $self->green =~ $regex || $self->amber =~ $regex || $self->red =~ $regex;
+        }
+        $self->depends_on(\@depends_on);
+        $self->update_cached('Ragval');
+    }
 };
 
 1;
