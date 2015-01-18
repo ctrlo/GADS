@@ -52,6 +52,17 @@ has columns => (
     builder => '_build_columns',
 );
 
+has columns_index => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        my @columns = @{$self->columns};
+        my %columns = map { $_->{id} => $_ } @columns;
+        \%columns;
+    },
+);
+
 # Instantiate new class. This builds a list of all
 # columns, so that it's cached for any later function
 sub _build_columns
@@ -112,9 +123,7 @@ sub _build_columns
         $col->depended_by(\@depended_by);
     }
 
-
-    my %columns = map { $_->{id} => $_ } @return; # Allow easier retrieval
-    \%columns;
+    \@return;
 }
 
 sub all
@@ -124,7 +133,7 @@ sub all
 
     my $include_hidden = $options{include_hidden} || $self->user->{permission}->{layout} ? 1 : 0;
 
-    my @columns = sort {($a->position||0) <=> ($b->position||0)} values %{$self->columns};
+    my @columns = @{$self->columns};
     @columns = $self->_order_dependencies(@columns) if $options{order_dependencies};
     @columns = grep { $_->type eq $type } @columns if $type;
     @columns = grep { $_->remember == $options{remember} } @columns if defined $options{remember};
@@ -146,7 +155,7 @@ sub _order_dependencies
     my $dep = Algorithm::Dependency::Ordered->new(source => $source)
         or die 'Failed to set up dependency algorithm';
     my @order = @{$dep->schedule_all};
-    map { $self->columns->{$_} } @order;
+    map { $self->columns_index->{$_} } @order;
 }
 
 sub position
@@ -160,7 +169,7 @@ sub position
 
 sub column
 {   my ($self, $id) = @_;
-    $self->columns->{$id};
+    $self->columns_index->{$id};
 }
 
 sub view
