@@ -82,7 +82,7 @@ sub _transform_value
         return;
     }
     else {
-        foreach my $col_id (@{$column->{depends_on}})
+        foreach my $col_id (@{$column->depends_on})
         {
             my $col    = $layout->column($col_id);
             my $name   = $col->name;

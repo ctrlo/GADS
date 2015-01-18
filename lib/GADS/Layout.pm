@@ -86,37 +86,9 @@ sub _build_columns
         push @return, $column;
     }
 
-    # XXX Probably a more efficient algorithm for this
     # Now that we have all columns built, we need to tag on dependent cols
     foreach my $col (@return)
     {
-        unless ($col->userinput)
-        {
-            # Check a calculated value exists for this field
-            next if $col->type eq "calc" && !$col->calc;
-            next if $col->type eq "rag" && !($col->green || $col->amber || $col->red);
-
-            my @depends_on;
-            foreach (@return)
-            {
-                my $name  = $_->name; my $suffix = $_->suffix;
-                my $regex = qr/\Q[$name\E$suffix\Q]/i;
-
-                if ($col->type eq "calc")
-                {
-                    next unless $col->calc =~ $regex;
-                }
-                elsif ($col->type eq "rag") {
-                    next unless $col->green =~ $regex || $col->amber =~ $regex || $col->red =~ $regex;
-                }
-                else {
-                    die "I don't know what to do with a none-user input field of ".$col->type;
-                }
-                push @depends_on, $_->id;
-            }
-            $col->depends_on(\@depends_on);
-        }
-
         # And also any columns that are children (in the layout)
         my @depends = grep {$_->display_field && $_->display_field == $col->id} @return;
         my @depended_by = map { { id => $_->id, regex => $_->display_regex } } @depends;
@@ -148,7 +120,7 @@ sub _order_dependencies
 {   my ($self, @columns) = @_;
 
     my %deps = map {
-        $_->id => ($_->depends_on || []);
+        $_->id => $_->depends_on;
     } @columns;
 
     my $source = Algorithm::Dependency::Source::HoA->new(\%deps);

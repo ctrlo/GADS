@@ -43,7 +43,7 @@ sub update_cached
         schema       => $self->schema,
         force_update => 1,
     );
-    my $depends = $layout->column($self->id)->depends_on;
+    my $depends = $self->depends_on;
     $records->search(
         columns => [@{$depends},$self->id],
     );

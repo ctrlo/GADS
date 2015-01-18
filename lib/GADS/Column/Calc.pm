@@ -75,7 +75,18 @@ after 'write' => sub {
         $need_update = 1;
     }
 
-    $self->update_cached('Calcval') if $need_update;
+    if ($need_update)
+    {
+        my @depends_on;
+        foreach my $col ($self->layout->all)
+        {
+            my $name  = $col->name; my $suffix = $col->suffix;
+            push @depends_on, $col->id
+                if $self->calc =~ /\Q[$name\E$suffix\Q]/;
+        }
+        $self->depends_on(\@depends_on);
+        $self->update_cached('Calcval');
+    }
 };
 
 1;

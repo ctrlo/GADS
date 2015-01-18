@@ -225,12 +225,6 @@ has field => (
     builder => sub { "field".$_[0]->id },
 );
 
-has depends_on => (
-    is      => 'rw',
-    isa     => Maybe[ArrayRef],
-    default => sub { [] },
-);
-
 has class => (
     is      => 'ro',
     isa     => Str,
@@ -249,6 +243,33 @@ has class => (
             calc      => 'GADS::Datum::Calc',
         );
         $classes{$_[0]->type};
+    },
+);
+
+has depends_on => (
+    is      => 'rw',
+    isa     => ArrayRef,
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        return [] if $self->userinput;
+        my @depends = $self->schema->resultset('LayoutDepend')->search({
+            layout_id => $self->id,
+        })->all;
+        [ map {$_->depends_on} @depends ];
+    },
+    trigger => sub {
+        my ($self, $new) = @_;
+        $self->schema->resultset('LayoutDepend')->search({
+            layout_id => $self->id
+        })->delete;
+        foreach (@$new)
+        {
+            $self->schema->resultset('LayoutDepend')->create({
+                layout_id  => $self->id,
+                depends_on => $_,
+            });
+        }
     },
 );
 
