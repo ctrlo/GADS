@@ -158,9 +158,12 @@ any '/aup' => sub {
     }
 
     template aup => {
-        aup  => config->{gads}->{aup},
         page => 'aup',
     };
+};
+
+get '/aup_text' => sub {
+    template 'aup_text', {}, { layout => undef };
 };
 
 any '/user_status' => sub {
