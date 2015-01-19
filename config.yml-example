@@ -16,8 +16,6 @@ charset: "UTF-8"
 
 template: "template_toolkit"
 
-serializer: "JSON"
-
 session: "YAML"
 
 engines:
@@ -27,7 +25,6 @@ engines:
 
 gads:
   name: "App name" # The local name for the application
-  serial: "auto"   # Generate serial numbers automatically
   header: "HEADER"
   hostlocal: 0     # Whether to fetch files such as jquery.js locally
   message_prefix: >
@@ -54,7 +51,7 @@ plugins:
     schema:
       table: user
       fields:
-        details: [firstname, surname, title, organisation, telephone, lastrecord, account_request, account_request_notes]
+        details: [firstname, surname, title, organisation, telephone, lastrecord, account_request, account_request_notes, value, aup_accepted]
         key: id
         permissions: permission
         username: username
