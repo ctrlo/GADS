@@ -16,8 +16,6 @@ charset: "UTF-8"
 
 template: "template_toolkit"
 
-serializer: "JSON"
-
 session: "YAML"
 
 engines:
@@ -27,12 +25,16 @@ engines:
 
 gads:
   name: "App name" # The local name for the application
-  serial: "auto"   # Generate serial numbers automatically
   header: "HEADER"
   hostlocal: 0     # Whether to fetch files such as jquery.js locally
+  email_from: '"GADS" <user@example.com>' # Emails are sent from this
+  aup: 1
   message_prefix: >
     This email has been generated and sent from GADS. Replies
     will be directed to the sender of the message.
+  user_status_message: >
+    You must accept that you will treat this system with
+    respect. And be gentle please.
 
 plugins:
   DBIC:
@@ -46,15 +48,11 @@ plugins:
         PrintError: 1
         quote_names: 1
         mysql_enable_utf8: 1 # or  pg_enable_utf8: 1
-  Emailesque:
-    from: '"GADS" <user@example.com>' # Emails are sent from this
-    driver: sendmail
-    type: text
   Auth::Complete:
     schema:
       table: user
       fields:
-        details: [firstname, surname, title, organisation, telephone, lastrecord, account_request, account_request_notes]
+        details: [firstname, surname, title, organisation, telephone, lastrecord, account_request, account_request_notes, value, aup_accepted]
         key: id
         permissions: permission
         username: username
@@ -64,6 +62,8 @@ plugins:
         password: password
         pw_last_changed: pwchanged
         pw_reset_code: resetpw
+        lastlogin: lastlogin
+    timeout: 7200
     permissions:
       update:
         value: 1

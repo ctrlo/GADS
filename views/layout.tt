@@ -103,6 +103,8 @@
                     <button class="btn btn-success btn-sm" onclick="demo_create();" type="button">Create</button>
                     <button class="btn btn-warning btn-sm" onclick="demo_rename();" type="button">Rename</button>
                     <button class="btn btn-danger btn-sm" onclick="demo_delete();" type="button">Delete</button>
+                    <button class="btn btn-info btn-sm" onclick="$('#jstree_demo_div').jstree('open_all');" type="button">Expand</button>
+                    <button class="btn btn-info btn-sm" onclick="$('#jstree_demo_div').jstree('close_all');" type="button">Collapse</button>
                     <div id="jstree_demo_div"></div>
                 </div>
             </div>

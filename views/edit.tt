@@ -20,7 +20,7 @@
             [% END %]
         </div>
     </div>
-    <button type="submit" name="submit" value="submit" class="btn btn-primary">Submit</button>
+    <button type="submit" name="submit" value="submit" class="btn btn-primary" onclick="window.onbeforeunload = null;">Submit</button>
     <a href="/data" class="btn btn-default">Cancel</a>
 </form>
 <p></p>
@@ -36,11 +36,24 @@
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
-        $(document).on('hidden.bs.modal', function (e) {
-            $(e.target).removeData('bs.modal');
-        });
-        [% INCLUDE tree.tt %]
-        [% jscode.join('') %]
+        $(document).ready(function () {
+            $(document).on('hidden.bs.modal', function (e) {
+                $(e.target).removeData('bs.modal');
+            });
+            var confirmOnPageExit = function (e) 
+            {
+                e = e || window.event;
+                var message = 'Please note that any changes will be lost.';
+                if (e) 
+                {
+                    e.returnValue = message;
+                }
+                return message;
+            };
+            window.onbeforeunload = confirmOnPageExit;
+            [% INCLUDE tree.tt %]
+            [% jscode.join('') %]
+        }); 
 [% END %]
 [% END %]';
 </script>
@@ -120,6 +133,8 @@
             [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
         </label>
         <div class="form-group">
+            <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('open_all');">Expand all</a> |
+            <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('close_all');">Collapse all</a>
             <div id="jstree[% dispcol.id %]"></div>
         </div>
         <input type="hidden" name="[% field %]" id="treeval_id[% dispcol.id %]" value="[% editvalue.id %]">
@@ -237,4 +252,3 @@
         </div>
     [% END %]
 [% END %]
-

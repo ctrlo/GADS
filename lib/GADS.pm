@@ -85,6 +85,19 @@ hook before => sub {
     # configured layout
     GADS::DB->setup(schema);
 
+    if (config->{gads}->{aup})
+    {
+        # Redirect if AUP not signed
+        my $aup_date     = user->{aup_accepted};
+        my $aup_accepted = $aup_date && DateTime->compare( $aup_date, DateTime->now->subtract(months => 12) ) > 0;
+        redirect '/aup' unless $aup_accepted || request->uri =~ m!^/aup!;
+    }
+
+    if (config->{gads}->{user_status} && !session('status_accepted'))
+    {
+        # Redirect to user status page if required and not seen this session
+        redirect '/user_status' unless request->uri =~ m!^/(user_status|aup)!;
+    }
 };
 
 hook before_template => sub {
@@ -130,6 +143,42 @@ get '/' => sub {
 get '/ping' => sub {
     content_type 'text/plain';
     'alive';
+};
+
+any '/aup' => sub {
+
+    if (param 'accepted')
+    {
+        my %user = (
+            id           => user->{id},
+            aup_accepted => DateTime->now,
+        );
+        user update => %user;
+        redirect '/';
+    }
+
+    template aup => {
+        page => 'aup',
+    };
+};
+
+get '/aup_text' => sub {
+    template 'aup_text', {}, { layout => undef };
+};
+
+any '/user_status' => sub {
+
+    if (param 'accepted')
+    {
+        session 'status_accepted' => 1;
+        redirect '/';
+    }
+
+    template user_status => {
+        lastlogin => user->{lastlogin},
+        message   => config->{gads}->{user_status_message},
+        page      => 'user_status',
+    };
 };
 
 get '/data_calendar/:time' => sub {
