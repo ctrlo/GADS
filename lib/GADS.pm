@@ -90,13 +90,13 @@ hook before => sub {
         # Redirect if AUP not signed
         my $aup_date     = user->{aup_accepted};
         my $aup_accepted = $aup_date && DateTime->compare( $aup_date, DateTime->now->subtract(months => 12) ) > 0;
-        redirect '/aup' unless $aup_accepted || request->uri =~ m!/aup!;
+        redirect '/aup' unless $aup_accepted || request->uri =~ m!^/aup!;
     }
 
     if (config->{gads}->{user_status} && !session('status_accepted'))
     {
         # Redirect to user status page if required and not seen this session
-        redirect '/user_status' unless request->uri =~ m!/user_status!;
+        redirect '/user_status' unless request->uri =~ m!^/(user_status|aup)!;
     }
 };
 
