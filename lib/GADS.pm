@@ -92,6 +92,12 @@ hook before => sub {
         my $aup_accepted = $aup_date && DateTime->compare( $aup_date, DateTime->now->subtract(months => 12) ) > 0;
         redirect '/aup' unless $aup_accepted || request->uri =~ m!/aup!;
     }
+
+    if (config->{gads}->{user_status} && !session('status_accepted'))
+    {
+        # Redirect to user status page if required and not seen this session
+        redirect '/user_status' unless request->uri =~ m!/user_status!;
+    }
 };
 
 hook before_template => sub {
@@ -154,6 +160,21 @@ any '/aup' => sub {
     template aup => {
         aup  => config->{gads}->{aup},
         page => 'aup',
+    };
+};
+
+any '/user_status' => sub {
+
+    if (param 'accepted')
+    {
+        session 'status_accepted' => 1;
+        redirect '/';
+    }
+
+    template user_status => {
+        lastlogin => user->{lastlogin},
+        message   => config->{gads}->{user_status_message},
+        page      => 'user_status',
     };
 };
 

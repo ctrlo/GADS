@@ -30,6 +30,9 @@ gads:
   message_prefix: >
     This email has been generated and sent from GADS. Replies
     will be directed to the sender of the message.
+  user_status_message: >
+    You must accept that you will treat this system with
+    respect. And be gentle please.
 
 plugins:
   DBIC:
@@ -61,6 +64,7 @@ plugins:
         password: password
         pw_last_changed: pwchanged
         pw_reset_code: resetpw
+        lastlogin: lastlogin
     permissions:
       update:
         value: 1
