@@ -85,6 +85,13 @@ hook before => sub {
     # configured layout
     GADS::DB->setup(schema);
 
+    if (config->{gads}->{aup})
+    {
+        # Redirect if AUP not signed
+        my $aup_date     = user->{aup_accepted};
+        my $aup_accepted = $aup_date && DateTime->compare( $aup_date, DateTime->now->subtract(months => 12) ) > 0;
+        redirect '/aup' unless $aup_accepted || request->uri =~ m!/aup!;
+    }
 };
 
 hook before_template => sub {
@@ -130,6 +137,24 @@ get '/' => sub {
 get '/ping' => sub {
     content_type 'text/plain';
     'alive';
+};
+
+any '/aup' => sub {
+
+    if (param 'accepted')
+    {
+        my %user = (
+            id           => user->{id},
+            aup_accepted => DateTime->now,
+        );
+        user update => %user;
+        redirect '/';
+    }
+
+    template aup => {
+        aup  => config->{gads}->{aup},
+        page => 'aup',
+    };
 };
 
 get '/data_calendar/:time' => sub {

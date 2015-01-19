@@ -142,6 +142,12 @@ __PACKAGE__->table("user");
   data_type: 'text'
   is_nullable: 1
 
+=head2 aup_accepted
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -189,6 +195,12 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 1 },
   "account_request_notes",
   { data_type => "text", is_nullable => 1 },
+  "aup_accepted",
+  {
+    data_type => "datetime",
+    datetime_undef_if_invalid => 1,
+    is_nullable => 1,
+  },
 );
 
 =head1 PRIMARY KEY
@@ -371,8 +383,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-06 03:17:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:R1BjEbrKYsNsCmRuK0XU6A
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-19 18:18:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pzyVuZn3ChnmtxM/zDcZyg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -1,0 +1,5 @@
+<iframe width="80%" height="400px" src="[% aup %]"></iframe>
+<form method="post">
+    <input type="submit" name="accepted" value="I accept">
+</form>
+
