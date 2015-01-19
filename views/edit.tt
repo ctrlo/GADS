@@ -133,6 +133,8 @@
             [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
         </label>
         <div class="form-group">
+            <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('open_all');">Expand all</a> |
+            <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('close_all');">Collapse all</a>
             <div id="jstree[% dispcol.id %]"></div>
         </div>
         <input type="hidden" name="[% field %]" id="treeval_id[% dispcol.id %]" value="[% editvalue.id %]">
