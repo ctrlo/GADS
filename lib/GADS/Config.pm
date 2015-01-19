@@ -21,6 +21,7 @@ package GADS::Config;
 use Log::Report;
 
 use Moo;
+use MooX::Types::MooseLike::Base qw(:all);
 
 has schema => (
     is       => 'rw',
@@ -47,7 +48,9 @@ has homepage_text2 => (
 
 has sort_layout_id => (
     is      => 'rw',
+    isa     => Maybe[Int],
     lazy    => 1,
+    coerce  => sub { $_[0]||undef },
     builder => sub {
         my $self = shift;
         $self->_conf->sort_layout_id;
