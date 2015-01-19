@@ -248,7 +248,7 @@ get '/data_graph/:id/:time' => sub {
     my $id      = param 'id';
     my $layout  = GADS::Layout->new(user => $user, schema => schema);
     my $views   = GADS::Views->new(user => $user, schema => schema, layout => $layout);
-    my $view    = $views->view(session 'view_id') || $views->default_view; # Can still be undef
+    my $view    = $views->view(session 'view_id') || $views->default; # Can still be undef
     my $graph   = GADS::Graph->new(id => $id, schema => schema);
     my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
     $records->search(
