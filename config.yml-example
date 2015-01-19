@@ -65,6 +65,7 @@ plugins:
         pw_last_changed: pwchanged
         pw_reset_code: resetpw
         lastlogin: lastlogin
+    timeout: 7200
     permissions:
       update:
         value: 1
