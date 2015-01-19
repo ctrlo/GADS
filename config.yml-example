@@ -27,6 +27,7 @@ gads:
   name: "App name" # The local name for the application
   header: "HEADER"
   hostlocal: 0     # Whether to fetch files such as jquery.js locally
+  email_from: '"GADS" <user@example.com>' # Emails are sent from this
   message_prefix: >
     This email has been generated and sent from GADS. Replies
     will be directed to the sender of the message.
@@ -46,10 +47,6 @@ plugins:
         PrintError: 1
         quote_names: 1
         mysql_enable_utf8: 1 # or  pg_enable_utf8: 1
-  Emailesque:
-    from: '"GADS" <user@example.com>' # Emails are sent from this
-    driver: sendmail
-    type: text
   Auth::Complete:
     schema:
       table: user
