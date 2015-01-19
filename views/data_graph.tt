@@ -88,6 +88,7 @@
                                 }
                             },
                             axesDefaults: {
+                                min: 0,
                                 tickRenderer: $.jqplot.CanvasAxisTickRenderer ,
                                 tickOptions: {
                                   angle: -30,
