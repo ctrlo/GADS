@@ -352,9 +352,9 @@ any '/data' => sub {
 
         foreach my $column (@columns)
         {
-            if ($column->{type} eq "daterange" || $column->{type} eq "date")
+            if ($column->type eq "daterange" || ($column->return_type && $column->return_type eq "date"))
             {
-                $datecolors{$column->{name}} = shift @colors;
+                $datecolors{$column->name} = shift @colors;
             }
         }
 
