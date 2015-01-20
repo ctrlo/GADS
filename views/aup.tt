@@ -1,5 +1,5 @@
 <iframe width="80%" height="400px" src="/aup_text"></iframe>
 <form method="post">
-    <input type="submit" name="accepted" value="I accept">
+    <button type="submit" name="accepted" value="accepted" class="btn btn-primary">I accept</button>
 </form>
 
