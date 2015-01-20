@@ -1224,7 +1224,7 @@ any '/login' => sub {
         try { GADS::User->register($params) };
         if(my $exception = $@->wasFatal)
         {
-            $error = $exception->message;
+            $error = $exception->message->toString;
         }
         else {
             $audit->login_change("New user account request for $params->{email}");
