@@ -175,7 +175,7 @@ any '/user_status' => sub {
     }
 
     template user_status => {
-        lastlogin => user->{lastlogin},
+        lastlogin => session('last_login'),
         message   => config->{gads}->{user_status_message},
         page      => 'user_status',
     };
