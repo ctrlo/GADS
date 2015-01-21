@@ -63,7 +63,7 @@
                             rendererOptions: {
                                 sliceMargin: 3,
                                 showDataLabels: true,
-                                dataLabels: 'value'
+                                dataLabels: 'value',
                                 shadow: false
                             }
                         },
@@ -72,7 +72,7 @@
                             renderer:$.jqplot.PieRenderer,
                             rendererOptions: {
                                 showDataLabels: true,
-                                dataLabels: 'value'
+                                dataLabels: 'value',
                                 shadow: false
                             }
                         },
