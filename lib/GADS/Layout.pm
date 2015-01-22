@@ -119,6 +119,8 @@ sub all
 sub _order_dependencies
 {   my ($self, @columns) = @_;
 
+    return unless @columns;
+
     my %deps = map {
         $_->id => $_->depends_on;
     } @columns;
