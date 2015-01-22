@@ -37,7 +37,11 @@
             <link rel="stylesheet" href="[% url.css %]/query-builder.css">
         [% END %]
         [% IF page == "user" %]
-            <link rel="stylesheet" href="//cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.css">
+            [% IF hostlocal %]
+                <link rel="stylesheet" href="[% url.css %]/dataTables.bootstrap.css">
+            [% ELSE %]
+                <link rel="stylesheet" href="//cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.css">
+            [% END %]
         [% END %]
 
         <!-- Custom styles for this template -->
@@ -180,14 +184,23 @@
             <script type="text/javascript" src="[% url.js %]/calendar.min.js"></script>
         [% END %]
         [% IF page == "data" AND viewtype == "table" %]
-            <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/floatthead/1.2.8/jquery.floatThead-slim.min.js"></script>
+            [% IF hostlocal %]
+                <script type="text/javascript" src="[% url.js %]/jquery.floatThead-slim.min.js"></script>
+            [% ELSE %]
+                <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/floatthead/1.2.8/jquery.floatThead-slim.min.js"></script>
+            [% END %]
         [% END %]
         [% IF page == "config" %]
             <script type="text/javascript" src="[% url.js %]/tiny_mce/tiny_mce.js"></script>
         [% END %]
         [% IF page == "user" %]
-            <script type="text/javascript" src="//cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
-            <script type="text/javascript" src="//cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.js"></script>
+            [% IF hostlocal %]
+                <script type="text/javascript" src="[% url.js %]/jquery.dataTables.min.js"></script>
+                <script type="text/javascript" src="[% url.js %]/dataTables.bootstrap.js"></script>
+            [% ELSE %]
+                <script type="text/javascript" src="//cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+                <script type="text/javascript" src="//cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.js"></script>
+            [% END %]
         [% END %]
 
         <script type="text/javascript" src="[% url.js %]/jquery.placeholder.js"></script>
