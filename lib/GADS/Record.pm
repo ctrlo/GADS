@@ -502,7 +502,7 @@ sub write
     }
 
     # Send any alerts
-    GADS::Alert->process($self->current_id, \%columns_changed);
+    # GADS::Alert->process($self->current_id, \%columns_changed);
 }
 
 sub _field_write
