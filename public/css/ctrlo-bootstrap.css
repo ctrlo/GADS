@@ -439,7 +439,7 @@ select.input-lg {
 	background:url(carat.png);
 	background-repeat:no-repeat;
 	background-position:top left;
-	color:transparent;
+	border-top: 0px;
 	margin-left:10px;
 	margin-right:-10px;
 	margin-top:-5px;
