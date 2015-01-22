@@ -557,7 +557,7 @@ select.input-group-sm>.form-control,select.input-group-sm>.input-group-addon,sel
 	max-height:340px;
 }
 .navbar-brand {
-	padding:14.5px 0px;
+	padding:14.5px 14.5px 14.5px 0px;
 	font-size:19px;
 	line-height:21px;
 }
