@@ -464,7 +464,7 @@ select.input-lg {
 }
 .dropdown-header {
 	font-size:13px;
-	color:#ffffff;
+/*	color:#ffffff; */
 }
 .btn-group>.btn:focus,.btn-group-vertical>.btn:focus {
 	outline:none;
