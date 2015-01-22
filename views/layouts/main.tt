@@ -24,9 +24,6 @@
         <link rel="stylesheet" href="[% url.css %]/bootstrap.min.css">
 
         <!-- Custom styles for this template -->
-        <link rel="stylesheet" href="[% url.css %]/local.css">
-
-        <!-- Custom styles for this template -->
         <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap.css">
 
         [% IF page == "layout" OR page == "edit" OR page == "approval" %]
