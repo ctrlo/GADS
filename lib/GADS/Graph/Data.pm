@@ -19,7 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Graph::Data;
 
 use Scalar::Util qw(looks_like_number);
-    use JSON qw(decode_json encode_json);
+use JSON qw(decode_json encode_json);
+
 use Moo;
 
 extends 'GADS::Graph';
@@ -273,7 +274,7 @@ sub _group_date
          ? DateTime->new(year => $val->year, month => $val->month)->epoch
          : $grouping eq 'day'
          ? DateTime->new(year => $val->year, month => $val->month, day => $val->month)->epoch
-         : error(__("Invalid graph grouping"));
+         : $val->epoch
 }
 
 1;

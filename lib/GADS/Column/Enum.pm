@@ -85,6 +85,12 @@ sub enumval
     $self->_enumvals_index->{$id};
 }
 
+sub random
+{   my $self = shift;
+    my %hash = %{$self->_enumvals_index};
+    $hash{(keys %hash)[rand keys %hash]}->{value};
+}
+
 sub enumvals_from_form
 {   my ($self, $original) = @_;
 

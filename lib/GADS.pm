@@ -611,9 +611,11 @@ any '/graph/?:id?' => sub {
         page   => 'graph',
     };
 
-    if (my $id = param 'id')
+    my $id = param 'id';
+    if (defined $id)
     {
-        my $graph = GADS::Graph->new(schema => schema, id => $id);
+        my $graph = GADS::Graph->new(schema => schema);
+        $graph->id($id) if $id;
 
         if (param 'delete')
         {

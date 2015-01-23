@@ -71,14 +71,14 @@ has id => (
 
 has title => (
     is      => 'rw',
-    isa     => Str,
+    isa     => Maybe[Str],
     lazy    => 1,
     builder => sub { $_[0]->_graph && $_[0]->_graph->title },
 );
 
 has description => (
     is      => 'rw',
-    isa     => Str,
+    isa     => Maybe[Str],
     lazy    => 1,
     builder => sub { $_[0]->_graph && $_[0]->_graph->description },
 );
@@ -90,14 +90,14 @@ has addgraphusers => (
 
 has x_axis => (
     is      => 'rw',
-    isa     => Int,
+    isa     => Maybe[Int],
     lazy    => 1,
     builder => sub { $_[0]->_graph && $_[0]->_graph->x_axis->id },
 );
 
 has x_axis_name => (
     is      => 'rw',
-    isa     => Str,
+    isa     => Maybe[Str],
     lazy    => 1,
     builder => sub { $_[0]->layout->column($_[0]->x_axis)->name },
 );
@@ -116,6 +116,7 @@ has x_axis_grouping => (
 has type => (
     is      => 'rw',
     isa     => sub {
+        return unless $_[0];
         grep { $_[0] eq $_ } GADS::Graphs->types
             or error __x"Invalid graph type {type}", type => $_[0];
     },
@@ -135,12 +136,13 @@ has stackseries => (
     is      => 'rw',
     isa     => Bool,
     lazy    => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
     builder => sub { $_[0]->_graph && $_[0]->_graph->stackseries },
 );
 
 has y_axis => (
     is      => 'rw',
-    isa     => Int,
+    isa     => Maybe[Int],
     lazy    => 1,
     builder => sub { $_[0]->_graph && $_[0]->_graph->y_axis->id },
 );
@@ -155,8 +157,9 @@ has y_axis_label => (
 has y_axis_stack => (
     is      => 'rw',
     isa     => sub {
+        return unless $_[0];
         error __x"{yas} is an invalid value for Y-axis", yas => $_[0]
-            unless $_[0] && ($_[0] eq 'count' || $_[0] eq 'sum');
+            unless $_[0] eq 'count' || $_[0] eq 'sum';
     },
     lazy    => 1,
     builder => sub { $_[0]->_graph && $_[0]->_graph->y_axis_stack },
