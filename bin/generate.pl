@@ -3,51 +3,38 @@
 use strict;
 use warnings;
 
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+
+use Dancer2 ':script';
+use Dancer2::Plugin::DBIC qw(schema resultset rset);
 use DateTime::Event::Random;
+use GADS::DB;
+use GADS::Layout;
+use Text::CSV;
 
-my @title = (
-    "Driver Safety",
-    "Fire Safety Training",
-    "DSE and Office Ergonomics",
-    "Risk Management",
-    "First Aid at Work",
-    "Infection Control",
-    "Stress at Work",
-    "Food Hygiene Professional",
-    "Slips Trips Falls",
-    "Manual Handling and Risk Assessment",
-    "Infection Control"
-);
+GADS::DB->setup(schema);
 
-my @country = qw(
-    China
-    India
-    Japan
-    Mongolia
-    Nepal
-    Oman
-    Pakistan
-    Thailand
-    Yemen
-    Austria
-    Bulgaria
-    Finland
-    France
-    Germany
-    Greece
-    Ireland
-    Italy
-    Netherlands
-    Sweden
-    Switzerland
-    UK
-);
+my $csv = Text::CSV->new ( { binary => 1 } )  # should set binary attribute.
+    or die "Cannot use CSV: ".Text::CSV->error_diag ();
 
-my @department = qw(
-    Finance
-    Marketing
-    Engineering
-);
+my $layout = GADS::Layout->new(user => undef, schema => schema);
+
+my @row; my @columns;
+foreach my $col ($layout->all)
+{
+    next if $col->type eq "file" || !$col->userinput;
+    if ($col->type eq "daterange")
+    {
+        push @row, ($col->name, $col->name);
+    }
+    else {
+        push @row, $col->name;
+    }
+    push @columns, $col;
+}
+
+my @rows = (\@row);
 
 my $start = DateTime->new(
       year       => 2013,
@@ -61,23 +48,40 @@ my $end = DateTime->new(
       day        => 23,
 );
 
-print "Title,Description,Country,Estimated cost,Actual cost,Number of people,Date range,Date range,Point of Contact,Department\n";
-
 for (1..1000)
 {
-    my $title       = $title[int(rand(@title))];
-    my $description = "$title training course";
-    my $country     = $country[int(rand(@country))];
-    my $est_cost    = int(rand(100000));
-    my $actual_cost = int(rand(100000));
-    my $people      = int(rand(11));
-
-    my $from       = DateTime::Event::Random->datetime( after => $start, before => $end );
-    my $duration   = int(rand(61));
-    my $to         = $from->clone->add( days => $duration );
-    my $person     = int(rand(10)) + 1;
-    my $department = $department[int(rand(@department))];
-
-    print "$title,$description,$country,$est_cost,$actual_cost,$people,".$from->ymd.",".$to->ymd.",$person,$department\n";
+    my @row;
+    foreach my $column (@columns)
+    {
+        next if $column->type eq "file" || !$column->userinput;
+        if ($column->type eq "enum" || $column->type eq "tree")
+        {
+            push @row, $column->random;
+        }
+        elsif ($column->type eq "intgr")
+        {
+            push @row, int(rand(100000));
+        }
+        elsif ($column->type eq "date")
+        {
+            push @row, DateTime::Event::Random->datetime( after => $start, before => $end )->ymd;
+        }
+        elsif ($column->type eq "daterange")
+        {
+            my $date1 = DateTime::Event::Random->datetime( after => $start, before => $end );
+            my $date2 = DateTime::Event::Random->datetime( after => $start, before => $end );
+            ($date2, $date1) = ($date1, $date2) if DateTime->compare($date1, $date2) > 0;
+            push @row, ($date1->ymd, $date2->ymd);
+        }
+        else {
+            push @row, "String text";
+        }
+    }
+    push @rows, \@row;
 }
+
+$csv->eol ("\n");
+open my $fh, ">:encoding(utf8)", "new.csv" or die "new.csv: $!";
+$csv->print ($fh, $_) for @rows;
+close $fh or die "new.csv: $!";
 
