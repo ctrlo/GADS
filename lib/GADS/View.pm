@@ -267,7 +267,7 @@ sub write
 sub delete
 {   my $self = shift;
 
-    !$self->writable
+    $self->writable
         or error __x"You do not have permission to delete {id}", id => $self->id;
     my $view = $self->_view;
     $self->schema->resultset('Sort')->search({ view_id => $view->id })->delete;
