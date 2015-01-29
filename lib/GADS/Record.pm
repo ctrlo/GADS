@@ -305,15 +305,17 @@ sub write
     if ($self->new_entry)
     {
         error __"No permissions to add a new entry"
-            unless $self->user->{permission}->{create};
+            if $self->user && !$self->user->{permission}->{create};
     }
     else
     {
         error __"No permissions to update an entry"
-            unless $self->user->{permission}->{update};
+            if $self->user && !$self->user->{permission}->{update};
     }
 
-    my $noapproval = $self->user->{permission}->{update_noneed_approval} || $self->user->{permission}->{approver};
+    my $noapproval = !$self->user
+                   || $self->user->{permission}->{update_noneed_approval}
+                   || $self->user->{permission}->{approver};
 
     # First loop round: sanitise and see which if any have changed
     my %appfields; # Any fields that need approval
@@ -394,12 +396,14 @@ sub write
         $self->current_id($id);
     }
 
+    my $user_id = $self->user ? $self->user->{id} : undef;
+
     if ($need_rec)
     {
         my $id = $self->schema->resultset('Record')->create({
             current_id => $self->current_id,
             created    => DateTime->now,
-            createdby  => $self->user->{id},
+            createdby  => $user_id,
         })->id;
         $self->record_id_old($self->record_id) if $self->record_id;
         $self->record_id($id);
@@ -412,12 +416,12 @@ sub write
             created    => DateTime->now,
             record_id  => $self->record_id,
             approval   => 1,
-            createdby  => $self->user->{id},
+            createdby  => $user_id,
         })->id;
         $self->approval_id($id);
     }
 
-    if ($self->new_entry)
+    if ($self->new_entry && $user_id)
     {
         # New entry, so save record ID to user for retrieval of previous
         # values if needed for another new entry. Use the approval ID id
@@ -498,7 +502,7 @@ sub write
     }
 
     # Send any alerts
-    GADS::Alert->process($self->current_id, \%columns_changed);
+    # GADS::Alert->process($self->current_id, \%columns_changed);
 }
 
 sub _field_write
@@ -556,7 +560,9 @@ sub delete_current
 {   my $self = shift;
 
     error __"You do not have permission to delete records"
-        unless $self->user->{permission}->{delete} || $self->user->{permission}->{delete_noneed_approval};
+        unless !$self->user
+             || $self->user->{permission}->{delete}
+             || $self->user->{permission}->{delete_noneed_approval};
 
     my $id = $self->current_id
         or panic __"No current_id specified for delete";

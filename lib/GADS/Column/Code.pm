@@ -23,8 +23,15 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
+has write_cache => (
+    is      => 'rw',
+    default => 1,
+);
+
 sub update_cached
 {   my ($self, $table) = @_;
+
+    return unless $self->write_cache;
 
     $self->schema->resultset($table)->search({
         layout_id => $self->id,

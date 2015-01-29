@@ -23,15 +23,14 @@ use lib "$FindBin::Bin/../lib";
 
 use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
-use GADS::Schema;
-use GADS::Record;
-use GADS::DB;
-use GADS::Alert;
 use Data::Dumper;
-use Ouch;
+use GADS::DB;
+use GADS::Layout;
+use GADS::Record;
+use Log::Report;
 use Text::CSV;
 
-GADS::DB->setup;
+GADS::DB->setup(schema);
 
 my $csv = Text::CSV->new({ binary => 1 }) # should set binary attribute?
     or die "Cannot use CSV: ".Text::CSV->error_diag ();
@@ -87,6 +86,8 @@ foreach my $field (@f)
 }
 
 my @all_bad;
+
+my $layout = GADS::Layout->new(user => undef, schema => schema);
 
 while (my $row = $csv->getline($fh))
 {
@@ -151,10 +152,30 @@ while (my $row = $csv->getline($fh))
     unless (@bad)
     {
         # Insert record into DB. May still be problems
-        eval {GADS::Record->update($input)};
-        if (hug)
+        my $record = GADS::Record->new(
+            user   => undef,
+            layout => $layout,
+            schema => schema,
+        );
+        $record->initialise;
+        my $failed;
+        foreach my $col ($layout->all)
         {
-            push @bad, bleep;
+            if ($col->userinput) # Not calculated fields
+            {
+                my $newv = $input->{$col->field};
+                try { $record->fields->{$col->id}->set_value($newv) };
+                if ($@)
+                {
+                    push @bad, $@;
+                    $failed = 1;
+                }
+            }
+        }
+        if (!$failed)
+        {
+            try { $record->write };
+            push @bad, $@ if $@;
         }
     }
 
@@ -171,5 +192,3 @@ $csv->eof or $csv->error_diag();
 close $fh;
 
 say STDERR Dumper \@all_bad;
-
-

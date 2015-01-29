@@ -103,7 +103,8 @@ sub all
 
     my $type = $options{type};
 
-    my $include_hidden = $options{include_hidden} || $self->user->{permission}->{layout} ? 1 : 0;
+    my $include_hidden = $options{include_hidden}
+                      || ($self->user && $self->user->{permission}->{layout}) ? 1 : 0;
 
     my @columns = @{$self->columns};
     @columns = $self->_order_dependencies(@columns) if $options{order_dependencies};
@@ -118,6 +119,8 @@ sub all
 # on other columns
 sub _order_dependencies
 {   my ($self, @columns) = @_;
+
+    return unless @columns;
 
     my %deps = map {
         $_->id => $_->depends_on;

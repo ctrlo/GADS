@@ -285,6 +285,12 @@ sub _delete_unused_nodes
     trace "Exiting _delete_unused_nodes";
 }
 
+sub random
+{   my $self = shift;
+    my %hash = %{$self->_enumvals};
+    $hash{(keys %hash)[rand keys %hash]}->{value};
+}
+
 sub update
 {   my ($self, $tree) = @_;
 
