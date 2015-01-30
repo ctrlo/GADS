@@ -1351,6 +1351,9 @@ sub process
     {
         $exception->throw(is_fatal => 0);
     }
+    else {
+        $@->reportAll;
+    }
     $result;
 }
 
