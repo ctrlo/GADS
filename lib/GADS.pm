@@ -730,7 +730,7 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => sub {
     header "Cache-Control" => "max-age=0, must-revalidate, private";
 
     # If record is specified, select the record's value in the returned JSON
-    $tree->from_id($layout_id);
+    $tree->from_id($layout_id) if $layout_id; # Blank for new trees
     header "Cache-Control" => "max-age=0, must-revalidate, private";
     content_type 'application/json';
     encode_json($tree->json($value));
