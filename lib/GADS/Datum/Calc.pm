@@ -92,11 +92,12 @@ sub _transform_value
             {
                 $dvalue = $dvalue->value->epoch;
             }
-            elsif ($dvalue && $col->type eq "daterange")
+            elsif ($col->type eq "daterange")
             {
+                # Return value will eventually be undef if code returns blank string
                 $dvalue = {
-                    from => $dvalue->from_dt ? $dvalue->from_dt->epoch : undef,
-                    to   => $dvalue->to_dt   ? $dvalue->to_dt->epoch   : undef,
+                    from => $dvalue && $dvalue->from_dt ? $dvalue->from_dt->epoch : "",
+                    to   => $dvalue && $dvalue->to_dt   ? $dvalue->to_dt->epoch   : "",
                 };
                 $code =~ s/\[$name\.from\]/$dvalue->{from}/gi;
                 $code =~ s/\[$name\.to\]/$dvalue->{to}/gi;
