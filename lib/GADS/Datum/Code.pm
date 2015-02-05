@@ -68,7 +68,7 @@ sub safe_eval
     $cpt->permit(qw(rv2gv));
 
     # Base math
-    $cpt->permit(qw(preinc i_preinc predec i_predec postinc i_postinc postdec i_postdec int hex oct abs pow multiply i_multiply divide i_divide modulo i_modulo add i_add subtract i_subtract));
+    $cpt->permit(qw(preinc i_preinc predec i_predec postinc i_postinc postdec i_postdec int hex oct abs pow multiply i_multiply divide i_divide modulo i_modulo add i_add subtract i_subtract negate i_negate));
 
     #Conditionals
     $cpt->permit(qw(cond_expr flip flop andassign orassign and or xor));
