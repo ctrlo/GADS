@@ -218,7 +218,7 @@ sub search_views
         }
     }
 
-    my $count = rset('Current')->search({
+    my $count = $self->schema->resultset('Current')->search({
         'me.id' => $current_id,
         '-or'   => \@search,
     },{
@@ -236,7 +236,7 @@ sub search_views
                 if (keys %$decoded)
                 {
                     my @s = @{_search_construct($decoded, $self->layout, $prefetches, $joins)};
-                    my @found = rset('Current')->search({
+                    my @found = $self->schema->resultset('Current')->search({
                         'me.id' => $current_id,
                         @s,
                     },{

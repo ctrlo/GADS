@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::View;
 
+use GADS::Alert;
 use GADS::Schema;
 use JSON qw(decode_json encode_json);
 use Log::Report;
@@ -82,6 +83,15 @@ has filter => (
     is      => 'rw',
     lazy    => 1,
     builder => sub { $_[0]->_view && $_[0]->_view->filter },
+    trigger => sub {
+        my ($self, $value) = @_;
+        $self->filter_changed(1)
+            if $self->_view->filter ne $value;
+    },
+);
+
+has filter_changed => (
+    is => 'rw',
 );
 
 has sorts => (
@@ -187,7 +197,19 @@ sub write
     {
         $self->writable
             or error __x"You do not have access to modify view {id}", id => $self->id;
-        $self->_view->update($vu)
+        $self->_view->update($vu);
+
+        # Update any alert caches for new filter
+        if ($self->filter_changed)
+        {
+            my $alert = GADS::Alert->new(
+                user      => $self->user,
+                layout    => $self->layout,
+                schema    => $self->schema,
+                view_id   => $self->id,
+            );
+            $alert->update_cache;
+        }
     }
     else {
         $self->id($self->schema->resultset('View')->create($vu)->id);

@@ -22,6 +22,7 @@ use Carp qw(confess);
 use DateTime;
 use DateTime::Format::Strptime qw( );
 use DBIx::Class::ResultClass::HashRefInflator;
+use GADS::AlertSend;
 use GADS::Datum::Calc;
 use GADS::Datum::Date;
 use GADS::Datum::Daterange;
@@ -58,6 +59,10 @@ has user => (
 
 has record => (
     is      => 'rw',
+);
+
+has base_url => (
+    is  => 'rw',
 );
 
 # Array ref with column IDs
@@ -432,7 +437,7 @@ sub write
 
 
     # Write all the values
-    my %columns_changed; my @columns_cached;
+    my @columns_changed; my @columns_cached;
     foreach my $column ($self->layout->all)
     {
         next unless $column->userinput;
@@ -444,7 +449,7 @@ sub write
             # Need to write all values regardless
             if ($column->permission == OPEN || $noapproval)
             {
-                $columns_changed{$column->id} = $column if $datum->changed;
+                push @columns_changed, $column if $datum->changed;
 
                 # Write new value
                 $self->_field_write($column, $datum);
@@ -498,11 +503,19 @@ sub write
             layout           => $self->layout,
         );
         # Changed?
-        $columns_changed{$col->{id}} = $col if $old ne $new->as_string;
+        push @columns_changed, $col if $old ne $new->as_string;
     }
 
     # Send any alerts
-    # GADS::Alert->process($self->current_id, \%columns_changed);
+    my $alert_send = GADS::AlertSend->new(
+        layout      => $self->layout,
+        schema      => $self->schema,
+        user        => $self->user,
+        base_url    => $self->base_url,
+        current_ids => [$self->current_id],
+        columns     => \@columns_changed,
+    );
+    $alert_send->process;
 }
 
 sub _field_write
