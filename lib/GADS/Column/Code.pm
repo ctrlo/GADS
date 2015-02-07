@@ -61,7 +61,7 @@ sub update_cached
         user         => $self->user,
         layout       => $layout,
         schema       => $self->schema,
-        force_update => 1,
+        force_update => [ $self->id ],
     );
     my $depends = $self->depends_on;
     $records->search(

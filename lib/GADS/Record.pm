@@ -266,6 +266,9 @@ sub _transform_values
 
         # FIXME Don't collect file content in sql query
         delete $value->{value}->{content} if $column->type eq "file";
+        my $force_update = (
+            $self->force_update && grep { $_ == $column->id } @{$self->force_update}
+        ) ? 1 : 0;
         $fields->{$column->id} = $column->class->new(
             record_id        => $self->record_id,
             current_id       => $self->current_id,
@@ -275,7 +278,7 @@ sub _transform_values
             schema           => $self->schema,
             layout           => $self->layout,
             datetime_parser  => $self->schema->storage->datetime_parser,
-            force_update     => $self->force_update,
+            force_update     => $force_update,
         );
     }
     $fields;
