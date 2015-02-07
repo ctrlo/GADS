@@ -86,7 +86,7 @@ sub update_cached
         user        => $self->user,
         base_url    => $self->base_url,
         current_ids => \@changed,
-        columns     => [$self],
+        columns     => [$self->id],
     );
     $alert_send->process;
 };

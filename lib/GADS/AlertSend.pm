@@ -63,12 +63,10 @@ has columns => (
 sub process
 {   my $self = shift;
 
-    my @col_ids = map {$_->id} @{$self->columns} or return;
-
     # First see what views this record should be in. We use this to
     # see if it's dropped out or been added to any views
     my @all_views = $self->schema->resultset('View')->search({
-        'view_layouts.layout_id' => \@col_ids,
+        'view_layouts.layout_id' => $self->columns,
     },{
         prefetch => 'view_layouts',
     })->all;
@@ -125,7 +123,7 @@ sub process
 
     my @caches = $self->schema->resultset('View')->search({
         'alert_caches.current_id' => $self->current_ids,
-        'alert_caches.layout_id'  => \@col_ids,
+        'alert_caches.layout_id'  => $self->columns,
     }, {
         prefetch => ['alert_caches', {'alerts' => 'user'} ],
         collapse => 1,
@@ -141,12 +139,13 @@ sub process
         my @emails = map { $_->user->email } grep { $_->frequency == 0 } $cache->alerts;
         if (@emails)
         {
-            my @cids;
+            my @cids; my @columns;
             foreach my $i ($cache->alert_caches)
             {
                 push @cids, $i->current_id;
+                push @columns, $self->layout->column($i->layout_id)->name;
             }
-            $self->_send_alert('changed', \@cids, $cache, \@emails, $self->columns);
+            $self->_send_alert('changed', \@cids, $cache, \@emails, \@columns);
         }
 
         # And those to be sent later
@@ -155,7 +154,7 @@ sub process
             my @later = map { {alert_id => $_->id, current_id => $cuid} } grep { $_->frequency > 0 } $cache->alerts;
             foreach my $later (@later)
             {
-                foreach my $col_id (@col_ids)
+                foreach my $col_id (@{$self->columns})
                 {
                     $later->{layout_id} = $col_id;
                     # Unique constraint. Catch any exceptions. This is also
@@ -181,22 +180,23 @@ sub process
             prefetch => 'view_layouts',
         })->all;
         my @view_columns = map { $_->layout_id } $vrs->view_layouts;
-        foreach my $current_id (@{$found->{ids}})
+        # The alert caches that already exist for these IDs
+        my @e = $self->schema->resultset('AlertCache')->search({
+            view_id    => $view->id,
+            current_id => [ '-and', @{$found->{ids}} ],
+        })->all;
+        my %already_there = map { $_->current_id => 1 } @e;
+        foreach my $cid (@{$found->{ids}})
         {
-            # See if it was originally in the views
-            my @acs = $now_in_views{$view->id}->{view}->alert_caches;
-            my $found = grep { $_->current_id == $current_id } @acs;
-            if (!$found)
+            next if $already_there{$cid};
+            push @current_ids, $cid;
+            foreach my $col_id (@view_columns)
             {
-                push @current_ids, $current_id;
-                foreach my $col_id (@view_columns)
-                {
-                    push @to_add, {
-                        layout_id  => $col_id,
-                        view_id    => $view->id,
-                        current_id => $current_id,
-                    };
-                }
+                push @to_add, {
+                    layout_id  => $col_id,
+                    view_id    => $view->id,
+                    current_id => $cid,
+                };
             }
         }
         push @arrived, {
@@ -252,7 +252,7 @@ sub _send_alert
     if ($action eq "changed")
     {
         # Individual fields to notify
-        my $cnames = join ', ', map { $_->name } @{$columns};
+        my $cnames = join ', ', @{$columns};
         if (@current_ids > 1)
         {
             my $ids = join ', ', uniq @current_ids;

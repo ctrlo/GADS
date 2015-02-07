@@ -452,7 +452,7 @@ sub write
             # Need to write all values regardless
             if ($column->permission == OPEN || $noapproval)
             {
-                push @columns_changed, $column if $datum->changed;
+                push @columns_changed, $column->id if $datum->changed;
 
                 # Write new value
                 $self->_field_write($column, $datum);
@@ -506,7 +506,7 @@ sub write
             layout           => $self->layout,
         );
         # Changed?
-        push @columns_changed, $col if $old ne $new->as_string;
+        push @columns_changed, $col->id if $old ne $new->as_string;
     }
 
     # Send any alerts
