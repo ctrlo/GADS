@@ -86,6 +86,7 @@ sub process
     # Compare that to the cache of what it was in before
     my @original = $self->schema->resultset('View')->search({
         'alert_caches.current_id' => $self->current_ids,
+        'alert_caches.layout_id'  => $self->columns,
     },{
         select   => [ 'me.id', 'me.name', { max => 'alert_caches.current_id' } ],
         as       => [ 'me.id', 'me.name', 'alert_caches.current_id' ],
