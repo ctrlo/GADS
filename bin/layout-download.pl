@@ -32,7 +32,7 @@ GADS::DB->setup(schema);
 my $layout = GADS::Layout->new(user => undef, schema => schema);
 
 my @write;
-foreach my $column ($layout->all)
+foreach my $column ($layout->all(include_hidden => 1))
 {
     say STDERR "Exporting ".$column->name;
     my $col = {
