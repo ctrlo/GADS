@@ -7,10 +7,43 @@ a.normal {
     color: #222222;
 }
 
+.float-right {
+    float:right;
+}
+.float-left {
+    float:left;
+}
+
+.pull-right-ctrlo{
+    float: right;
+    width:500px;
+}
+
+.event{
+    border-radius:0px !important;
+}
+.cal-title{
+    display: inline-block;
+    width: 200px;
+    float: left;
+    margin-left: 15px;
+}
+.cal-key{
+    display: inline-block;
+    width: 500px;
+    float: left;
+    margin-left: 15px;
+}
+.cal-key-label{
+    display: inline-block;
+    float: left;
+    margin-right: 15px;
+    margin-left: 5px;
+}
 div.circ-large {
     width: 20px;
     height: 20px;
-    border-radius: 10px;
+    border-radius: 0px;
     font-size: 20px;
     behavior: url(/js/PIE.htc);
 }
