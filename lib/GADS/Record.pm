@@ -304,7 +304,7 @@ sub initialise
 }
 
 sub write
-{   my $self = shift;
+{   my ($self, %options) = @_;
 
     $self->new_entry(1) unless $self->current_id;
 
@@ -510,15 +510,18 @@ sub write
     }
 
     # Send any alerts
-    my $alert_send = GADS::AlertSend->new(
-        layout      => $self->layout,
-        schema      => $self->schema,
-        user        => $self->user,
-        base_url    => $self->base_url,
-        current_ids => [$self->current_id],
-        columns     => \@columns_changed,
-    );
-    $alert_send->process;
+    unless ($options{no_alerts})
+    {
+        my $alert_send = GADS::AlertSend->new(
+            layout      => $self->layout,
+            schema      => $self->schema,
+            user        => $self->user,
+            base_url    => $self->base_url,
+            current_ids => [$self->current_id],
+            columns     => \@columns_changed,
+        );
+        $alert_send->process;
+    }
 }
 
 sub _field_write

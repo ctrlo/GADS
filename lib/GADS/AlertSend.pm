@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::AlertSend;
 
 use GADS::Email;
+use GADS::Records;
 use GADS::Util qw(:all);
 use List::MoreUtils qw/ uniq /;
 use Log::Report;

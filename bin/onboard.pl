@@ -205,7 +205,7 @@ while (my $row = $csv->getline($fh))
         }
         if (!$failed)
         {
-            try { $record->write };
+            try { $record->write(no_alerts => 1) };
             push @bad, $@ if $@;
         }
     }
