@@ -85,25 +85,25 @@ sub process
         'alert_caches.current_id' => $self->current_ids,
         'alert_caches.layout_id'  => $self->columns,
     },{
-        select   => [ 'me.id', 'me.name', { max => 'alert_caches.current_id' } ],
-        as       => [ 'me.id', 'me.name', 'alert_caches.current_id' ],
         prefetch => ['alert_caches', {'alerts' => 'user'} ],
-        group_by => 'alert_caches.current_id',
     })->all;
 
     # Look at all the views it was in
     my @gone; my @to_delete;
     foreach my $view (@original)
     {
+        my %now_in_cache = map { $_ => undef } @{$now_in_views{$view->id}->{ids}};
+        my %current_id_done; # There will be multiple current_ids, as cannot use GROUP BY
         my @current_ids;
         foreach my $cache ($view->alert_caches)
         {
+            next if exists $current_id_done{$cache->current_id};
             # See if it's still in the views
-            my $found = grep { $cache->current_id } @{$now_in_views{$view->id}->{ids}};
-            if (!$found)
+            if (exists $now_in_cache{$cache->current_id})
             {
                 push @current_ids, $cache->current_id;
             }
+            $current_id_done{$cache->current_id} = undef;
         }
         # Needed in different formats for different uses
         if (@current_ids)
