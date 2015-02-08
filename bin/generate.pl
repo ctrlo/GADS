@@ -54,7 +54,7 @@ for (1..1000)
     foreach my $column (@columns)
     {
         next if $column->type eq "file" || !$column->userinput;
-        if ($column->type eq "enum" || $column->type eq "tree")
+        if ($column->type eq "enum" || $column->type eq "tree" || $column->type eq "person")
         {
             push @row, $column->random;
         }

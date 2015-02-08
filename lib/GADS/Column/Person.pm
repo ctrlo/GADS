@@ -33,6 +33,17 @@ has people => (
     },
 );
 
+has people_hash => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        my @all = @{$self->people};
+        my %all = map { $_->id => $_ } @all;
+        \%all;
+    },
+);
+
 after build_values => sub {
     my ($self, $original) = @_;
 
@@ -43,6 +54,12 @@ after build_values => sub {
         $self->file_options({ filesize => $file_option->{filesize} });
     }
 };
+
+sub random
+{   my $self = shift;
+    my %hash = %{$self->people_hash};
+    $hash{(keys %hash)[rand keys %hash]}->value;
+}
 
 1;
 
