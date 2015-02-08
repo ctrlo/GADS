@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -CS
 
 =pod
 GADS - Globally Accessible Data Store
@@ -29,14 +29,21 @@ use GADS::Layout;
 use GADS::Record;
 use Log::Report;
 use Text::CSV;
+use Getopt::Long qw(:config pass_through);
+
+my ($take_first_enum, $ignore_incomplete_dateranges);
+GetOptions (
+    'take-first-enum' => \$take_first_enum,
+    'ignore-imcomplete-dateranges' => \$ignore_incomplete_dateranges,
+) or exit;
+
+my ($file) = @ARGV;
+$file or die "Usage: $0 [--take-first-enum] [--ignore-incomplete-dateranges] filename";
 
 GADS::DB->setup(schema);
 
 my $csv = Text::CSV->new({ binary => 1 }) # should set binary attribute?
     or die "Cannot use CSV: ".Text::CSV->error_diag ();
-
-my ($file) = @ARGV;
-$file or die "Usage: $0 filename";
 
 open my $fh, "<:encoding(utf8)", $file or die "$file: $!";
 
@@ -66,15 +73,35 @@ foreach my $field (@f)
         my @vals = rset('Enumval')->search({ layout_id => $f->id, deleted => 0 })->all;
         foreach my $v (@vals)
         {
+            my $text = lc $v->value;
             # See if it already exists - possible multiple values
-            if (exists $selects->{$f->id}->{$v->value})
+            if (exists $selects->{$f->id}->{$text})
             {
-                my $existing = $selects->{$f->id}->{$v->value};
+                next if $take_first_enum;
+                my $existing = $selects->{$f->id}->{$text};
                 my @existing = ref $existing eq "ARRAY" ? @$existing : ($existing);
-                $selects->{$f->id}->{$v->value} = [@existing, $v->id];
+                $selects->{$f->id}->{$text} = [@existing, $v->id];
             }
             else {
-                $selects->{$f->id}->{$v->value} = $v->id;
+                $selects->{$f->id}->{$text} = $v->id;
+            }
+        }
+    }
+    elsif ($f->type eq "person")
+    {
+        my @vals = rset('User')->search({ deleted => 0 })->all;
+        foreach my $v (@vals)
+        {
+            my $text = lc $v->value;
+            # See if it already exists - possible multiple values
+            if (exists $selects->{$f->id}->{$text})
+            {
+                my $existing = $selects->{$f->id}->{$text};
+                my @existing = ref $existing eq "ARRAY" ? @$existing : ($existing);
+                $selects->{$f->id}->{$text} = [@existing, $v->id];
+            }
+            else {
+                $selects->{$f->id}->{$text} = $v->id;
             }
         }
     }
@@ -102,7 +129,7 @@ while (my $row = $csv->getline($fh))
     {
         my $f = $fields[$count];
         say STDOUT "Going to process $col into field $f->{name}";
-        if ($f->{type} eq "enum" || $f->{type} eq "tree")
+        if ($f->{type} eq "enum" || $f->{type} eq "tree" || $f->{type} eq "person")
         {
             # Get enum ID value
             if (!$col)
@@ -111,14 +138,14 @@ while (my $row = $csv->getline($fh))
                 $input->{$f->{field}} = $col;
             }
             else {
-                if (ref $selects->{$f->{id}}->{$col} eq "ARRAY")
+                if (ref $selects->{$f->{id}}->{lc $col} eq "ARRAY")
                 {
                     push @bad, qq(Multiple instances of enum value "$col" for "$f->{name}");
                 }
-                elsif (exists $selects->{$f->{id}}->{$col})
+                elsif (exists $selects->{$f->{id}}->{lc $col})
                 {
                     # okay
-                    $input->{$f->{field}} = $selects->{$f->{id}}->{$col};
+                    $input->{$f->{field}} = $selects->{$f->{id}}->{lc $col};
                 }
                 else {
                     push @bad, qq(Invalid enum value "$col" for "$f->{name}");
@@ -164,10 +191,14 @@ while (my $row = $csv->getline($fh))
             if ($col->userinput) # Not calculated fields
             {
                 my $newv = $input->{$col->field};
-                try { $record->fields->{$col->id}->set_value($newv) };
-                if ($@)
+                if ($col->type eq "daterange" && $ignore_incomplete_dateranges)
                 {
-                    push @bad, $@;
+                    $newv = ['',''] if !($newv->[0] && $newv->[1]);
+                }
+                try { $record->fields->{$col->id}->set_value($newv) };
+                if (my $exception = $@->wasFatal)
+                {
+                    push @bad, $exception->message->toString;
                     $failed = 1;
                 }
             }
