@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Column::Code;
 
+use GADS::AlertSend;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 
@@ -28,10 +29,22 @@ has write_cache => (
     default => 1,
 );
 
+has base_url => (
+    is => 'rw',
+);
+
 sub update_cached
 {   my ($self, $table) = @_;
 
     return unless $self->write_cache;
+
+    # First get all old values, to see if changed
+    my @existing = $self->schema->resultset($table)->search({
+        layout_id => $self->id,
+    },{
+        prefetch => 'record',
+    })->all;
+    my %old = map { $_->record->current_id => $_->value } @existing;
 
     $self->schema->resultset($table)->search({
         layout_id => $self->id,
@@ -48,15 +61,34 @@ sub update_cached
         user         => $self->user,
         layout       => $layout,
         schema       => $self->schema,
-        force_update => 1,
+        force_update => [ $self->id ],
     );
     my $depends = $self->depends_on;
     $records->search(
         columns => [@{$depends},$self->id],
     );
     # Force an update on each row
-    foreach (@{$records->results})
-    { $_->fields->{$self->id}->value }
+    $_->fields->{$self->id}->value
+        foreach (@{$records->results});
+
+    # Now get new values, and see what's changed
+    @existing = $self->schema->resultset($table)->search({
+        layout_id => $self->id,
+    },{
+        prefetch => 'record',
+    })->all;
+    my %new = map { $_->record->current_id => $_->value } @existing;
+    my @changed = grep { !(exists $old{$_}) || $old{$_} ne $new{$_} } keys %new;
+    # Send any alerts
+    my $alert_send = GADS::AlertSend->new(
+        layout      => $self->layout,
+        schema      => $self->schema,
+        user        => $self->user,
+        base_url    => $self->base_url,
+        current_ids => \@changed,
+        columns     => [$self->id],
+    );
+    $alert_send->process;
 };
 
 1;

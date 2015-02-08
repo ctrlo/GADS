@@ -259,24 +259,26 @@
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
-            $('#modalnewtitle').on('hidden.bs.modal', function (e) {
-                $('#newtitle').val("");
-            });
-            $('#modalneworganisation').on('hidden.bs.modal', function (e) {
-                $('#neworganisation').val("");
-            });
             $(document).ready(function () {
-                $('.dtable').dataTable({
-                    "columnDefs": [
-                        {
-                            "targets": 0,
-                            "orderable": false
-                        }
-                    ],
-                    order: [
-                        [ 1, 'asc' ]
-                    ]
+                $('#modalnewtitle').on('hidden.bs.modal', function (e) {
+                    $('#newtitle').val("");
                 });
+                $('#modalneworganisation').on('hidden.bs.modal', function (e) {
+                    $('#neworganisation').val("");
+                });
+                [% IF NOT edit.defined %]
+                    $('.dtable').dataTable({
+                        "columnDefs": [
+                            {
+                                "targets": 0,
+                                "orderable": false
+                            }
+                        ],
+                        order: [
+                            [ 1, 'asc' ]
+                        ]
+                    });
+                [% END %]
             });
         [% END %]
     [% END %]';

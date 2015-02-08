@@ -16,10 +16,15 @@
         <meta name="author" content="">
         <link rel="shortcut icon" href="../../assets/ico/favicon.ico">
 
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
+
         <title>Globally Accessible Data Store [% page %]</title>
 
         <!-- Bootstrap core CSS -->
         <link rel="stylesheet" href="[% url.css %]/bootstrap.min.css">
+
+        <!-- Custom styles for this template -->
+        <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap.css">
 
         [% IF page == "layout" OR page == "edit" OR page == "approval" %]
         <link rel="stylesheet" href="[% url.css %]/jstree.min.css" />
@@ -51,7 +56,7 @@
     </head>
 
     <body>
-
+        <div id="wrapper">
         [% IF header %]
             <p class="text-center">[% header %]</p>
         [% END %]
@@ -209,6 +214,7 @@
         [% IF page == "layout" OR page == "edit" OR page == "approval" %]
             <script src="[% url.js %]/jstree.min.js"></script>
         [% END %]
+    </div>
     </body>
 </html>
 

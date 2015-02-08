@@ -175,7 +175,7 @@ any '/user_status' => sub {
     }
 
     template user_status => {
-        lastlogin => user->{lastlogin},
+        lastlogin => session('last_login'),
         message   => config->{gads}->{user_status_message},
         page      => 'user_status',
     };
@@ -287,12 +287,20 @@ get '/search' => sub {
 
 any '/data' => sub {
 
-    my $user = user;
+    my $user   = user;
+    my $layout = GADS::Layout->new(user => $user, schema => schema);
 
     # Deal with any alert requests
     if (my $alert_view = param 'alert')
     {
-        if (process(sub { GADS::Alert->alert($alert_view, param('frequency'), $user) }))
+        my $alert = GADS::Alert->new(
+            user      => $user,
+            layout    => $layout,
+            schema    => schema,
+            frequency => param('frequency'),
+            view_id   => $alert_view,
+        );
+        if (process(sub { $alert->write }))
         {
             return forwardHome(
                 { success => "The alert has been saved successfully" }, 'data' );
@@ -329,7 +337,6 @@ any '/data' => sub {
         $viewtype = session('viewtype') || 'table';
     }
 
-    my $layout = GADS::Layout->new(user => $user, schema => schema);
     my $views  = GADS::Views->new(user => $user, schema => schema, layout => $layout);
     my $view   = $views->view(session 'view_id') || $views->default; # Can still be undef
 
@@ -479,9 +486,16 @@ any '/data' => sub {
         }
     }
 
+    # Get all alerts
+    my $alert = GADS::Alert->new(
+        user      => $user,
+        layout    => $layout,
+        schema    => schema,
+    );
+
     $params->{v}          = $view,  # View is reserved TT word
     $params->{user_views} = $views->user_views;
-    $params->{alerts}     = GADS::Alert->all($user->{id});
+    $params->{alerts}     = $alert->all;
     $params->{page}       = 'data';
     template 'data' => $params;
 };
@@ -791,6 +805,7 @@ any '/layout/?:id?' => sub {
                 $column->red  (param 'red');
                 $column->amber(param 'amber');
                 $column->green(param 'green');
+                $column->base_url(request->base); # For alerts
             }
             elsif ($column->type eq "enum")
             {
@@ -802,6 +817,7 @@ any '/layout/?:id?' => sub {
             {
                 $column->calc(param 'calc');
                 $column->return_type(param 'return_type');
+                $column->base_url(request->base); # For alerts
             }
             elsif ($column->type eq "tree")
             {
@@ -977,6 +993,7 @@ any '/approval/?:id?' => sub {
             user             => $user,
             layout           => $layout,
             schema           => schema,
+            base_url         => request->base,
             include_approval => 1,
         );
         $record->find_current_id(param 'current_id');
@@ -1084,9 +1101,10 @@ any '/edit/:id?' => sub {
 
     my $layout = GADS::Layout->new(user => user, schema => schema);
     my $record = GADS::Record->new(
-        user   => user,
-        layout => $layout,
-        schema => schema,
+        user     => user,
+        layout   => $layout,
+        schema   => schema,
+        base_url => request->base,
     );
 
     if ($id)

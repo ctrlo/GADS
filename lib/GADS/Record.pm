@@ -22,6 +22,7 @@ use Carp qw(confess);
 use DateTime;
 use DateTime::Format::Strptime qw( );
 use DBIx::Class::ResultClass::HashRefInflator;
+use GADS::AlertSend;
 use GADS::Datum::Calc;
 use GADS::Datum::Date;
 use GADS::Datum::Daterange;
@@ -58,6 +59,10 @@ has user => (
 
 has record => (
     is      => 'rw',
+);
+
+has base_url => (
+    is  => 'rw',
 );
 
 # Array ref with column IDs
@@ -261,6 +266,9 @@ sub _transform_values
 
         # FIXME Don't collect file content in sql query
         delete $value->{value}->{content} if $column->type eq "file";
+        my $force_update = (
+            $self->force_update && grep { $_ == $column->id } @{$self->force_update}
+        ) ? 1 : 0;
         $fields->{$column->id} = $column->class->new(
             record_id        => $self->record_id,
             current_id       => $self->current_id,
@@ -270,7 +278,7 @@ sub _transform_values
             schema           => $self->schema,
             layout           => $self->layout,
             datetime_parser  => $self->schema->storage->datetime_parser,
-            force_update     => $self->force_update,
+            force_update     => $force_update,
         );
     }
     $fields;
@@ -432,7 +440,7 @@ sub write
 
 
     # Write all the values
-    my %columns_changed; my @columns_cached;
+    my @columns_changed; my @columns_cached;
     foreach my $column ($self->layout->all)
     {
         next unless $column->userinput;
@@ -444,7 +452,7 @@ sub write
             # Need to write all values regardless
             if ($column->permission == OPEN || $noapproval)
             {
-                $columns_changed{$column->id} = $column if $datum->changed;
+                push @columns_changed, $column->id if $datum->changed;
 
                 # Write new value
                 $self->_field_write($column, $datum);
@@ -498,11 +506,19 @@ sub write
             layout           => $self->layout,
         );
         # Changed?
-        $columns_changed{$col->{id}} = $col if $old ne $new->as_string;
+        push @columns_changed, $col->id if $old ne $new->as_string;
     }
 
     # Send any alerts
-    # GADS::Alert->process($self->current_id, \%columns_changed);
+    my $alert_send = GADS::AlertSend->new(
+        layout      => $self->layout,
+        schema      => $self->schema,
+        user        => $self->user,
+        base_url    => $self->base_url,
+        current_ids => [$self->current_id],
+        columns     => \@columns_changed,
+    );
+    $alert_send->process;
 }
 
 sub _field_write
