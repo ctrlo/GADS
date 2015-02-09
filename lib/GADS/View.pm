@@ -86,7 +86,7 @@ has filter => (
     trigger => sub {
         my ($self, $value) = @_;
         $self->filter_changed(1)
-            if $self->_view->filter ne $value;
+            if $self->_view && $self->_view->filter ne $value;
     },
 );
 
