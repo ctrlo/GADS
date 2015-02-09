@@ -175,10 +175,11 @@ sub process
         # Get all the columns for this view. Can't use current view object
         # as it only contains the filtered columns
         my ($vrs) = $self->schema->resultset('View')->search({
-            'me.id' => $view->id,
+            'me.id'     => $view->id,
+            'alerts.id' => { '!=' => undef },
         },{
-            prefetch => 'view_layouts',
-        })->all;
+            prefetch => ['view_layouts', 'alerts'],
+        })->all or next;
         my @view_columns = map { $_->layout_id } $vrs->view_layouts;
         # The alert caches that already exist for these IDs
         my @e = $self->schema->resultset('AlertCache')->search({
