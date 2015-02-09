@@ -327,6 +327,8 @@ sub filter_types
 sub _get_sorts
 {   my $self = shift;
 
+    return [] unless $self->_view;
+
     my @sorts;
     foreach my $sort ($self->_view->sorts->all)
     {
