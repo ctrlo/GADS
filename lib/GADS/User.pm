@@ -139,13 +139,15 @@ sub delete
     );
 
     my ($instance) = rset('Instance')->all;
-    my $msg        = $instance->email_delete_text;
-    my $email = GADS::Email->new;
-    $email->send({
-        subject => $instance->email_delete_subject,
-        emails  => [$user->{email}],
-        text    => $instance->email_delete_text,
-    });
+    if (my $msg = $instance->email_delete_text)
+    {
+        my $email = GADS::Email->new;
+        $email->send({
+            subject => $instance->email_delete_subject || "Account deleted",
+            emails  => [$user->{email}],
+            text    => $msg,
+        });
+    }
 }
 
 sub all
