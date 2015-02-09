@@ -100,7 +100,7 @@ sub process
         {
             next if exists $current_id_done{$cache->current_id};
             # See if it's still in the views
-            if (exists $now_in_cache{$cache->current_id})
+            if (!exists $now_in_cache{$cache->current_id})
             {
                 push @current_ids, $cache->current_id;
             }
