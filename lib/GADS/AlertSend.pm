@@ -223,7 +223,7 @@ sub _gone_arrived
             if ($alert->frequency)
             {
                 # send later
-                foreach my $cuid ($item->{current_ids})
+                foreach my $cuid (@{$item->{current_ids}})
                 {
                     eval {
                         # Unique constraint on table. Catch
