@@ -59,6 +59,12 @@ __PACKAGE__->table("alert_send");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 status
+
+  data_type: 'char'
+  is_nullable: 1
+  size: 7
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -70,6 +76,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "current_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "status",
+  { data_type => "char", is_nullable => 1, size => 7 },
 );
 
 =head1 PRIMARY KEY
@@ -86,7 +94,7 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<all>
+=head2 C<alert_send_all>
 
 =over 4
 
@@ -96,11 +104,16 @@ __PACKAGE__->set_primary_key("id");
 
 =item * L</current_id>
 
+=item * L</status>
+
 =back
 
 =cut
 
-__PACKAGE__->add_unique_constraint("all", ["layout_id", "alert_id", "current_id"]);
+__PACKAGE__->add_unique_constraint(
+  "alert_send_all",
+  ["layout_id", "alert_id", "current_id", "status"],
+);
 
 =head1 RELATIONS
 
@@ -155,8 +168,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-06 03:17:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YmR1vj91r8hcUFM+TwzR3Q
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-02-11 09:59:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cLw/ZKi8LN+f4Y1+ow25fA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
