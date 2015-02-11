@@ -339,8 +339,9 @@ any '/data' => sub {
         $viewtype = session('viewtype') || 'table';
     }
 
-    my $views  = GADS::Views->new(user => $user, schema => schema, layout => $layout);
-    my $view   = $views->view(session('view_id') || $user->{lastview}->id) || $views->default; # Can still be undef
+    my $views      = GADS::Views->new(user => $user, schema => schema, layout => $layout);
+    my $saved_view = $user->{lastview} ? $user->{lastview}->id : undef;
+    my $view       = $views->view(session('view_id') || $saved_view) || $views->default; # Can still be undef
 
     my $params; # Variable for the template
 
