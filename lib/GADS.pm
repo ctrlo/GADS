@@ -310,6 +310,8 @@ any '/data' => sub {
     if (my $view_id = param('view'))
     {
         session 'view_id' => $view_id;
+        # Save to databse for next login
+        user update => (id => $user->{id}, lastview => $view_id);
         # When a new view is selected, unset sort, otherwise it's
         # not possible to remove a sort once it's been clicked
         session 'sort'    => undef;
@@ -338,7 +340,7 @@ any '/data' => sub {
     }
 
     my $views  = GADS::Views->new(user => $user, schema => schema, layout => $layout);
-    my $view   = $views->view(session 'view_id') || $views->default; # Can still be undef
+    my $view   = $views->view(session('view_id') || $user->{lastview}->id) || $views->default; # Can still be undef
 
     my $params; # Variable for the template
 

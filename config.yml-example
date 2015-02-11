@@ -52,7 +52,7 @@ plugins:
     schema:
       table: user
       fields:
-        details: [firstname, surname, title, organisation, telephone, lastrecord, account_request, account_request_notes, value, aup_accepted]
+        details: [firstname, surname, title, organisation, telephone, lastrecord, lastview, account_request, account_request_notes, value, aup_accepted]
         key: id
         permissions: permission
         username: username

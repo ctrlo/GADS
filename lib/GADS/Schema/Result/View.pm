@@ -173,6 +173,21 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 users
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::User>
+
+=cut
+
+__PACKAGE__->has_many(
+  "users",
+  "GADS::Schema::Result::User",
+  { "foreign.lastview" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 view_layouts
 
 Type: has_many
@@ -189,8 +204,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-06 03:17:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pLjH0t4RL/SaMdbf7bU1DQ
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-02-11 12:20:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:auNbZLQesfr+obGkeDLbNQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

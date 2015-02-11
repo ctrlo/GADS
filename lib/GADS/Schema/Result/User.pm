@@ -125,6 +125,12 @@ __PACKAGE__->table("user");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 lastview
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =head2 value
 
   data_type: 'varchar'
@@ -188,6 +194,8 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
   },
   "lastrecord",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "lastview",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "value",
   { data_type => "varchar", is_nullable => 1, size => 1024 },
@@ -259,6 +267,26 @@ __PACKAGE__->belongs_to(
   "lastrecord",
   "GADS::Schema::Result::Record",
   { id => "lastrecord" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 lastview
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::View>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "lastview",
+  "GADS::Schema::Result::View",
+  { id => "lastview" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -383,8 +411,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-19 18:18:14
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pzyVuZn3ChnmtxM/zDcZyg
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-02-11 12:20:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dXYFcQoNblcOBnksAauCGg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
