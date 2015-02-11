@@ -134,7 +134,7 @@ sub _set_text
 
     # There used to be code here to update the cached value
     # if required. Now all removed to controller
-    $self->text($value);
+    $self->text($value || "");
 }
 
 sub html
