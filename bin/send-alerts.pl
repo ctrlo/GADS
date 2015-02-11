@@ -34,7 +34,12 @@ sub _send
 
     my $text = "This email contains details of any changes in views that you have asked to be alerted to.\n\n";
     $text .= join "\n\n", @notifications; # <sigh> 2 CRs to fix Outlook piss-poor wrapping
-    GADS::Email->send({ emails => [$email], subject => qq(Changes in your views), text => $text })
+    my $email_send = GADS::Email->new;
+    $email_send->send({
+        emails  => [$email],
+        subject => "Changes in your views",
+        text    => $text,
+    });
 }
 
 sub _do_columns
@@ -82,9 +87,17 @@ foreach my $row (@rows)
             push @columns, $row->layout->name;
         }
     }
-    else {
+    elsif ($row->status eq 'gone')
+    {
+        push @notifications, _do_columns $last_current_id, \@columns if @columns;
+        push @notifications, "* Record $current_id has now disappeared from the view";
+    }
+    elsif ($row->status eq 'arrived') {
         push @notifications, _do_columns $last_current_id, \@columns if @columns;
         push @notifications, "* Record $current_id is now in the view";
+    }
+    else {
+        # XXX Throw error
     }
 
     $last_alert_id   = $row->alert_id;
