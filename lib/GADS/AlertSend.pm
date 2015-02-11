@@ -151,7 +151,8 @@ sub process
         # And those to be sent later
         foreach my $cuid (@{$self->current_ids})
         {
-            my @later = map { {alert_id => $_->id, current_id => $cuid} } grep { $_->frequency > 0 } $cache->alerts;
+            my @later = map { {alert_id => $_->id, current_id => $cuid, status => 'changed' } }
+                grep { $_->frequency > 0 } $cache->alerts;
             foreach my $later (@later)
             {
                 foreach my $col_id (@{$self->columns})
@@ -230,6 +231,7 @@ sub _gone_arrived
                         $self->schema->resultset('AlertSend')->create({
                             alert_id   => $alert->id,
                             current_id => $cuid,
+                            status     => $action,
                         });
                     }
                 }
