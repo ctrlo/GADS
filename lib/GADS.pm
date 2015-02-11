@@ -533,6 +533,7 @@ any '/account/?:action?/?' => sub {
 
     if (param 'submit')
     {
+        my $params = params;
         # Update of user details
         my %update = (
             id           => $user->{id},
@@ -543,6 +544,7 @@ any '/account/?:action?/?' => sub {
             telephone    => param('telephone')    || undef,
             title        => param('title')        || undef,
             organisation => param('organisation') || undef,
+            value        => _user_value($params),
         );
 
         if (process( sub { user update => %update }))
@@ -876,6 +878,7 @@ any '/user/?:id?' => sub {
         delete $values{organisation} unless param 'organisation';
         delete $values{title}        unless param 'title';
         $values{username} = $values{email};
+        $values{value}    = _user_value(\%values);
 
         my @audit_permissions;
         foreach my $permission (keys %{$conf->{permissions}})
@@ -1376,6 +1379,15 @@ sub process
         $@->reportAll;
     }
     $result;
+}
+
+sub _user_value
+{   my $user = shift;
+    return unless $user;
+    my $firstname = $user->{firstname} || '';
+    my $surname   = $user->{surname}   || '';
+    my $value     = "$surname, $firstname";
+    $value;
 }
 
 true;

@@ -132,21 +132,8 @@ has id => (
 sub _set_text
 {   my ($self, $value) = @_;
 
-    unless ($value)
-    {
-        # Update cached value field if not present
-        my $firstname = $self->firstname || '';
-        my $surname   = $self->surname || '';
-        $value      = "$surname, $firstname";
-
-        if ($self->id)
-        {
-            $self->schema->resultset('User')->find($self->id)->update({
-                value     => $value,
-            });
-        }
-    }
-
+    # There used to be code here to update the cached value
+    # if required. Now all removed to controller
     $self->text($value);
 }
 
