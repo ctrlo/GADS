@@ -49,11 +49,10 @@
                         seriesDefaults:{
                             renderer:$.jqplot.BarRenderer,
                             rendererOptions: {
-                                barMargin: 30,
                                 shadow: false
                             },
                             pointLabels: {
-                                show: true,
+                                show: false,
                                 hideZeros: true
                             }
                         },
