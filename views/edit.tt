@@ -154,7 +154,7 @@
             [% END %]
             [% FOREACH person IN dispcol.people %]
                 [% UNLESS person.deleted %]
-                    <option value="[% person.id %]" [% IF selected == person.id %]selected[% END %]>[% person.surname %], [% person.firstname %]</option>
+                    <option value="[% person.id %]" [% IF selected == person.id %]selected[% END %]>[% person.value %]</option>
                 [% END %]
             [% END %]
         </select>
