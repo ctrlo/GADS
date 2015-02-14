@@ -218,6 +218,8 @@ sub search_views
         }
     }
 
+    return unless @search;
+
     my $count = $self->schema->resultset('Current')->search({
         'me.id' => $current_id,
         '-or'   => \@search,
