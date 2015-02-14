@@ -20,7 +20,7 @@
             [% END %]
         </div>
     </div>
-    <button type="submit" name="submit" value="submit" class="btn btn-primary" onclick="window.onbeforeunload = null;">Submit</button>
+    <button type="submit" id="submit_button" name="submit" value="submit" class="btn btn-primary">Submit</button>
     <a href="/data" class="btn btn-default">Cancel</a>
 </form>
 <p></p>
@@ -51,6 +51,9 @@
                 return message;
             };
             window.onbeforeunload = confirmOnPageExit;
+            $("#submit_button").click( function() {
+                window.onbeforeunload = null;
+            });
             [% INCLUDE tree.tt %]
             [% jscode.join('') %]
         }); 
