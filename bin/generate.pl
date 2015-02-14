@@ -56,7 +56,7 @@ for (1..1000)
         next if $column->type eq "file" || !$column->userinput;
         if ($column->type eq "enum" || $column->type eq "tree" || $column->type eq "person")
         {
-            push @row, $column->random;
+            push @row, ($column->random || "");
         }
         elsif ($column->type eq "intgr")
         {

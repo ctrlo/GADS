@@ -88,6 +88,7 @@ sub enumval
 sub random
 {   my $self = shift;
     my %hash = %{$self->_enumvals_index};
+    return unless %hash;
     $hash{(keys %hash)[rand keys %hash]}->{value};
 }
 
