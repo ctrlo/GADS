@@ -6,64 +6,66 @@
 <p>
     <div class="row">
         <div class="col-md-8">
-            <div class="btn-group" role="group">
-                <a href="?viewtype=table" class="btn btn-default" title="View as table">
-                    <i class="fa fa-list fa-lg use-icon-font"></i>
-                    <img src="/images/icon-data-list.png" class="use-icon-png" style="display:none">
-                </a>
-                <a href="?viewtype=graph"class="btn btn-default" title="View as chart">
-                    <i class="fa fa-area-chart fa-lg use-icon-font"></i>
-                    <img src="/images/icon-data-chart.png" class="use-icon-png" style="display:none">
-                </a>
-                <a href="?viewtype=calendar" class="btn btn-default" title="View on calendar">
-                    <i class="fa fa-calendar fa-lg use-icon-font"></i>
-                    <img src="/images/icon-data-calendar.png" class="use-icon-png" style="display:none">
-                </a>
-            </div>
-            <div class="btn-group">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                        View <span class="caret"></span>
-                </button>
-                <ul id="menu_view" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop_view">
-                    <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0">Create new view</a></li>
-                    [% IF v %]
-                        [% IF !v.global OR user.permission.layout %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/[% v.id %]">Edit this view</a></li>
-                        [% END %]
-                        <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0?clone=[% v.id %]">Clone this view</a></li>
-                        <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_alert">Alert me</a></li>
-                    [% END %]
-                    <li role="presentation" class="divider"></li>
-                    [% first = 1 %]
-                    [% FOREACH ve IN user_views %]
-                        [% IF first AND NOT ve.global %]
-                            <li role="presentation" class="dropdown-header">Personal views</li>
-                        [% ELSIF (first AND NOT ve.gloabl) OR (lastv AND ve.global != lastv.global) %]
-                            [% UNLESS first %]
-                                <li role="presentation" class="divider"></li>
+            <div class="btn-toolbar" role="toolbar">
+                <div class="btn-group" role="group">
+                    <a href="?viewtype=table" class="btn btn-default" title="View as table">
+                        <i class="fa fa-list fa-lg use-icon-font"></i>
+                        <img src="/images/icon-data-list.png" class="use-icon-png" style="display:none">
+                    </a>
+                    <a href="?viewtype=graph" class="btn btn-default" title="View as chart">
+                        <i class="fa fa-area-chart fa-lg use-icon-font"></i>
+                        <img src="/images/icon-data-chart.png" class="use-icon-png" style="display:none">
+                    </a>
+                    <a href="?viewtype=calendar" class="btn btn-default" title="View on calendar">
+                        <i class="fa fa-calendar fa-lg use-icon-font"></i>
+                        <img src="/images/icon-data-calendar.png" class="use-icon-png" style="display:none">
+                    </a>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                            View <span class="caret"></span>
+                    </button>
+                    <ul id="menu_view" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop_view">
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0">Create new view</a></li>
+                        [% IF v %]
+                            [% IF !v.global OR user.permission.layout %]
+                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/[% v.id %]">Edit this view</a></li>
                             [% END %]
-                            <li role="presentation" class="dropdown-header">Global views</li>
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0?clone=[% v.id %]">Clone this view</a></li>
+                            <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_alert">Alert me</a></li>
                         [% END %]
-                        <li role="presentation">
-                            <a role="menuitem" tabindex="-1" href="/data?view=[% ve.id %]">[% ve.name | html_entity %]
-                                [% veid = ve.id %]
-                                [% IF alerts.$veid %]<img src="/images/bell.png">[% END %]
-                            </a>
-                        </li>
-                        [% lastv = ve %][% first = 0 %]
-                    [% END %]
-                </ul>
+                        <li role="presentation" class="divider"></li>
+                        [% first = 1 %]
+                        [% FOREACH ve IN user_views %]
+                            [% IF first AND NOT ve.global %]
+                                <li role="presentation" class="dropdown-header">Personal views</li>
+                            [% ELSIF (first AND NOT ve.gloabl) OR (lastv AND ve.global != lastv.global) %]
+                                [% UNLESS first %]
+                                    <li role="presentation" class="divider"></li>
+                                [% END %]
+                                <li role="presentation" class="dropdown-header">Global views</li>
+                            [% END %]
+                            <li role="presentation">
+                                <a role="menuitem" tabindex="-1" href="/data?view=[% ve.id %]">[% ve.name | html_entity %]
+                                    [% veid = ve.id %]
+                                    [% IF alerts.$veid %]<img src="/images/bell.png">[% END %]
+                                </a>
+                            </li>
+                            [% lastv = ve %][% first = 0 %]
+                        [% END %]
+                    </ul>
+                </div>
+                [% IF user.permission.create %]
+                    <div class="btn-group">
+                        <a href="/edit/" class="btn btn-default" role="button">New entry</a>
+                    </div>
+                [% END %]
+                [% IF viewtype == "table" AND records.size AND user.permission.download %]
+                    <div class="btn-group">
+                        <a href="/data?download" class="btn btn-default" role="button">Download</a>
+                    </div>
+                [% END %]
             </div>
-            [% IF user.permission.create %]
-                <div class="btn-group">
-                    <a href="/edit/" class="btn btn-default" role="button">New entry</a>
-                </div>
-            [% END %]
-            [% IF viewtype == "table" AND records.size AND user.permission.download %]
-                <div class="btn-group">
-                    <a href="/data?download" class="btn btn-default" role="button">Download</a>
-                </div>
-            [% END %]
         </div>
         [% IF viewtype == "table" %]
             <div class="col-md-4">
