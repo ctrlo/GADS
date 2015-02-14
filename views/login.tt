@@ -24,7 +24,7 @@
                         </div>
                         <span class="button-checkbox">
                             <button type="button" class="btn" data-color="info">Remember Me</button>
-                            <input type="checkbox" name="remember" id="remember" [% IF username %]checked="checked"[% END %] class="hidden">
+                            <input type="checkbox" name="remember_me" id="remember" [% IF username %]checked="checked"[% END %] class="hidden">
                             <a href="" class="btn btn-link pull-right" data-toggle="modal" data-target="#myModal">Reset Password</a>
                         </span>
                         <hr>

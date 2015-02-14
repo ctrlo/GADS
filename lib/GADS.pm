@@ -1262,6 +1262,13 @@ any '/login' => sub {
     {
         if (login)
         {
+            if (param 'remember_me')
+            {
+                cookie 'remember_me' => param('username') if param('remember_me');
+            }
+            else {
+                cookie remember_me => '', expires => '-1d' if cookie 'remember_me';
+            }
             $audit->user(user);
             $audit->login_success;
             forwardHome();
@@ -1276,6 +1283,7 @@ any '/login' => sub {
     my $output  = template 'login' => {
         error         => "".($error||""),
         instance      => $config,
+        username      => cookie('remember_me'),
         titles        => GADS::User->titles,
         organisations => GADS::User->organisations,
         register_text => GADS::User->register_text,
