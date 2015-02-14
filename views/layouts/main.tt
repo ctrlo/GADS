@@ -17,6 +17,7 @@
         <link rel="shortcut icon" href="../../assets/ico/favicon.ico">
 
         <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
 
         <title>Globally Accessible Data Store [% page %]</title>
 
@@ -189,6 +190,9 @@
             [% ELSE %]
                 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/floatthead/1.2.8/jquery.floatThead-slim.min.js"></script>
             [% END %]
+        [% END %]
+        [% IF page == "data" %]
+            <script type='text/javascript' src='[% url.js %]/fontdetect.min.js'></script>
         [% END %]
         [% IF page == "config" %]
             <script type="text/javascript" src="[% url.js %]/tiny_mce/tiny_mce.js"></script>

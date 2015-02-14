@@ -6,15 +6,19 @@
 <p>
     <div class="row">
         <div class="col-md-8">
-            <div class="btn-group">
-                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-                        Display format <span class="caret"></span>
-                </button>
-                <ul id="menu_type" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop_type">
-                    <li role="presentation"><a role="menuitem" tabindex="-1" href="?viewtype=table">Table</a></li>
-                    <li role="presentation"><a role="menuitem" tabindex="-1" href="?viewtype=graph">Graph</a></li>
-                    <li role="presentation"><a role="menuitem" tabindex="-1" href="?viewtype=calendar">Calendar</a></li>
-                </ul>
+            <div class="btn-group" role="group">
+                <a href="?viewtype=table" class="btn btn-default" title="View as table">
+                    <i class="fa fa-list fa-lg use-icon-font"></i>
+                    <img src="/images/icon-data-list.png" class="use-icon-png" style="display:none">
+                </a>
+                <a href="?viewtype=graph"class="btn btn-default" title="View as chart">
+                    <i class="fa fa-area-chart fa-lg use-icon-font"></i>
+                    <img src="/images/icon-data-chart.png" class="use-icon-png" style="display:none">
+                </a>
+                <a href="?viewtype=calendar" class="btn btn-default" title="View on calendar">
+                    <i class="fa fa-calendar fa-lg use-icon-font"></i>
+                    <img src="/images/icon-data-calendar.png" class="use-icon-png" style="display:none">
+                </a>
             </div>
             <div class="btn-group">
                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">

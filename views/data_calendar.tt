@@ -101,6 +101,10 @@
                 });
                 $('#events-modal .modal-header, #events-modal .modal-footer').click(function(e){
                 });
+                if (!FontDetect.isFontLoaded('14px/1 FontAwesome')) {
+                    $( ".use-icon-font" ).hide();
+                    $( ".use-icon-png" ).show();
+                }
             [% END %]
         [% END %]';
     </script>

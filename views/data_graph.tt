@@ -17,6 +17,10 @@
         var jscode='[% FILTER remove('\n+') %]
             [% FILTER replace('\'', '\\\'') %]
             $(document).ready(function(){
+                if (!FontDetect.isFontLoaded('14px/1 FontAwesome')) {
+                    $( ".use-icon-font" ).hide();
+                    $( ".use-icon-png" ).show();
+                }
                 var ajaxDataRenderer = function(url, plot) {
                     var ret = null;
                     $.ajax({
