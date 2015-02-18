@@ -212,7 +212,7 @@ sub search_views
             my $decoded = decode_json($filter);
             if (keys %$decoded)
             {
-                my @s = @{_search_construct($decoded, $self->layout, $prefetches, $joins)};
+                my @s = @{$self->_search_construct($decoded, $self->layout, $prefetches, $joins)};
                 push @search, \@s;
             }
         }
@@ -237,7 +237,7 @@ sub search_views
                 my $decoded = decode_json($filter);
                 if (keys %$decoded)
                 {
-                    my @s = @{_search_construct($decoded, $self->layout, $prefetches, $joins)};
+                    my @s = @{$self->_search_construct($decoded, $self->layout, $prefetches, $joins)};
                     my @found = $self->schema->resultset('Current')->search({
                         'me.id' => $current_id,
                         @s,
@@ -507,7 +507,7 @@ sub construct_search
     if (@search_date)
     {
         # _search_construct returns an array ref, so dereference it first
-        my @res = @{(_search_construct {condition => 'OR', rules => \@search_date}, $layout, $prefetches, $joins)};
+        my @res = @{($self->_search_construct({condition => 'OR', rules => \@search_date}, $layout, $prefetches, $joins))};
         push @limit, @res if @res;
     }
 
@@ -547,11 +547,11 @@ sub construct_search
             # repeat we will have predictable join numbers.
             if (keys %$decoded)
             {
-                _search_construct $decoded, $layout, $prefetches, $joins;
+                $self->_search_construct($decoded, $layout, $prefetches, $joins);
                 # Get the user search criteria
-                @search     = @{_search_construct($decoded, $layout, $prefetches, $joins)};
+                @search     = @{$self->_search_construct($decoded, $layout, $prefetches, $joins)};
                 # Put together the search to look for undefined calculated fields
-                @calcsearch = @{_search_construct($decoded, $layout, $prefetches, $joins, \%cache_cols)};
+                @calcsearch = @{$self->_search_construct($decoded, $layout, $prefetches, $joins, \%cache_cols)};
             }
         }
         unless ($self->sort)
@@ -618,7 +618,7 @@ sub _table_name
 }
 
 sub _search_construct
-{   my ($filter, $layout, $prefetches, $joins, $calcnull) = @_;
+{   my ($self, $filter, $layout, $prefetches, $joins, $calcnull) = @_;
 
     if (my $rules = $filter->{rules})
     {
@@ -626,7 +626,7 @@ sub _search_construct
         my @final;
         foreach my $rule (@$rules)
         {
-            my @res = _search_construct $rule, $layout, $prefetches, $joins, $calcnull;
+            my @res = $self->_search_construct($rule, $layout, $prefetches, $joins, $calcnull);
             push @final, @res if @res;
         }
         my $condition = $filter->{condition} eq 'OR' ? '-or' : '-and';
@@ -687,6 +687,12 @@ sub _search_construct
     }
     else {
         $s_field = "value";
+    }
+
+    if ($column->type eq "person")
+    {
+        my $curuser = $self->user->{value};
+        $value =~ s/\[CURUSER\]/$curuser/g;
     }
 
     $value =~ s/\_/\\\_/g if $operator eq '-like';
