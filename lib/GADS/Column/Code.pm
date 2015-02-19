@@ -78,7 +78,12 @@ sub update_cached
         prefetch => 'record',
     })->all;
     my %new = map { $_->record->current_id => $_->value } @existing;
-    my @changed = grep { !(exists $old{$_}) || $old{$_} ne $new{$_} } keys %new;
+    my @changed = grep {
+        !(exists $old{$_})
+        || !defined $old{$_} && defined $new{$_}
+        || defined $old{$_} && !defined $new{$_}
+        || (defined $old{$_} && defined $new{$_} && $old{$_} ne $new{$_})
+    } keys %new;
     # Send any alerts
     my $alert_send = GADS::AlertSend->new(
         layout      => $self->layout,
