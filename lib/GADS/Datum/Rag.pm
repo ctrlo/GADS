@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Datum::Rag;
 
-use Scalar::Util qw(looks_like_number);
 use Moo;
 use namespace::clean;
 
