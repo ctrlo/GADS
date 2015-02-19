@@ -82,7 +82,7 @@ after 'write' => sub {
         {
             my $name  = $col->name; my $suffix = $col->suffix;
             push @depends_on, $col->id
-                if $self->calc =~ /\Q[$name\E$suffix\Q]/;
+                if $self->calc =~ /\Q[$name\E($suffix)?\Q]/;
         }
         $self->depends_on(\@depends_on);
         $self->update_cached('Calcval');

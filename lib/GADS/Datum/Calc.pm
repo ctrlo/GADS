@@ -85,52 +85,7 @@ sub _transform_value
         foreach my $col_id (@{$column->depends_on})
         {
             my $col    = $layout->column($col_id);
-            my $name   = $col->name;
-            my $dvalue = $self->dependent_values->{$col_id};
-
-            if ($dvalue && $col->type eq "date")
-            {
-                $dvalue = $dvalue->value->epoch;
-                $code =~ s/\[$name\]/$dvalue/gi;
-            }
-            elsif ($col->type eq "daterange")
-            {
-                # Return value will eventually be undef if code returns blank string
-                $dvalue = {
-                    from => $dvalue && $dvalue->from_dt ? $dvalue->from_dt->epoch : "",
-                    to   => $dvalue && $dvalue->to_dt   ? $dvalue->to_dt->epoch   : "",
-                };
-                $code =~ s/\[$name\.from\]/$dvalue->{from}/gi;
-                $code =~ s/\[$name\.to\]/$dvalue->{to}/gi;
-            }
-            elsif ($col->type eq "tree")
-            {
-                if ($code =~ /\[$name\.level([0-9]+)\]/)
-                {
-                    my $level      = $1;
-                    my @ancestors  = $dvalue->id ? $col->node($dvalue->id)->{node}->{node}->ancestors : ();
-                    my $level_node = $ancestors[$level] ? $ancestors[$level]->name : undef;
-                    $dvalue        = $level_node ? $col->node($level_node)->{value} : undef;
-                    $dvalue        = $dvalue ? "q`$dvalue`" : qq("");
-                    $code =~ s/\[$name\.level$level\]/$dvalue/gi;
-                }
-                else {
-                    $dvalue = $dvalue ? "q`$dvalue`" : qq("");
-                    $code =~ s/\[$name\]/$dvalue/gi;
-                }
-            }
-            else {
-                # XXX Is there a q char delimiter that is safe regardless
-                # of input? Backtick is unlikely to be used...
-                if ($col->numeric)
-                {
-                    $dvalue = $dvalue || 0;
-                }
-                else {
-                    $dvalue = $dvalue ? "q`$dvalue`" : qq("");
-                }
-                $code =~ s/\[$name\]/$dvalue/gi;
-            }
+            $code = $self->sub_values($col, $code);
         }
         # Insert current date if required
         my $now = time;

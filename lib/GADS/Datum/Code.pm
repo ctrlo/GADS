@@ -53,6 +53,67 @@ sub write_cache
     $value;
 }
 
+sub sub_values
+{   my ($self, $col, $code) = @_;
+
+    my $dvalue = $self->dependent_values->{$col->id};
+    my $name   = $col->name;
+
+    if ($dvalue && $col->type eq "date")
+    {
+        $dvalue = $dvalue->value->epoch;
+        $code =~ s/\Q[$name]/$dvalue/gi;
+    }
+    elsif ($col->type eq "daterange")
+    {
+        # Return value will eventually be undef if code returns blank string
+        $dvalue = {
+            from => $dvalue && $dvalue->from_dt ? $dvalue->from_dt->epoch : "",
+            to   => $dvalue && $dvalue->to_dt   ? $dvalue->to_dt->epoch   : "",
+        };
+        # The following code returns if a substitution of a blank value was made
+        # This will become a grey value for RAG fields
+        $code =~ s/\Q[$name.from]/$dvalue->{from}/gi
+            && $self->column->type eq "rag" && !$dvalue->{from} && return;
+        $code =~ s/\Q[$name.to]/$dvalue->{to}/gi
+            && $self->column->type eq "rag" && !$dvalue->{to} && return;
+    }
+    elsif ($col->type eq "tree")
+    {
+        if ($code =~ /\Q[$name.level\E([0-9]+)\]/)
+        {
+            my $level      = $1;
+            my @ancestors  = $dvalue->id ? $col->node($dvalue->id)->{node}->{node}->ancestors : ();
+            my $level_node = $ancestors[$level] ? $ancestors[$level]->name : undef;
+            $dvalue        = $level_node ? $col->node($level_node)->{value} : undef;
+            $dvalue        = $dvalue ? "q`$dvalue`" : qq("");
+            $code =~ s/\Q[$name.level$level]/$dvalue/gi;
+        }
+        else {
+            $dvalue = $dvalue ? "q`$dvalue`" : qq("");
+            $code =~ s/\Q[$name]/$dvalue/gi;
+        }
+    }
+    else {
+        # XXX Is there a q char delimiter that is safe regardless
+        # of input? Backtick is unlikely to be used...
+        if ($col->numeric)
+        {
+            # If field is numeric but does not have numeric value, then return
+            # grey, otherwise the value will be treated as zero
+            # and will probably return misleading RAG values
+            return if $self->column->type eq "rag" && !looks_like_number $dvalue;
+            $dvalue = $dvalue || 0;
+        }
+        else {
+            $dvalue = $dvalue ? "q`$dvalue`" : qq("");
+        }
+        $code =~ s/\Q[$name]/$dvalue/gi;
+    }
+
+    $code;
+}
+
 sub safe_eval
 {
     my($self, $expr) = @_;

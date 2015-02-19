@@ -71,55 +71,11 @@ sub _transform_value
 
         foreach my $col_id (@{$column->depends_on})
         {
-            my $col   = $layout->column($col_id);
-            my $name  = $col->name;
-            my $value = $self->dependent_values->{$col_id};
-
-            if ($col->type eq "date")
-            {
-                $value = $value->value->epoch if $col->type eq "date";
-            }
-            elsif ($col->type eq "daterange")
-            {
-                $value = {
-                    from => $value->from_dt ? $value->from_dt->epoch : undef,
-                    to   => $value->to_dt   ? $value->to_dt->epoch   : undef,
-                };
-            }
-
-            # If field is numeric but does not have numeric value, then return
-            # grey, otherwise the value will be treated as zero
-            # and will probably return misleading RAG values
-            if ($col->numeric)
-            {
-                if (
-                       ($col->type eq "daterange" && (!$value->{from} || !$value->{to}))
-                    ||  $col->type ne "daterange" && !looks_like_number $value
-                )
-                {
-                    return $self->_write_rag('a_grey');
-                }
-            }
-
-            if ($col->type eq "daterange")
-            {
-                $green =~ s/\[$name\.from\]/$value->{from}/gi;
-                $green =~ s/\[$name\.to\]/$value->{to}/gi;
-                $amber =~ s/\[$name\.from\]/$value->{from}/gi;
-                $amber =~ s/\[$name\.to\]/$value->{to}/gi;
-                $red   =~ s/\[$name\.from\]/$value->{from}/gi;
-                $red   =~ s/\[$name\.to\]/$value->{to}/gi;
-            }
-            else {
-                unless($col->{numeric})
-                {
-                    $value = $value ? $value->as_string : "";
-                    $value = "\"$value\"";
-                }
-                $green =~ s/\[$name\]/$value/gi;
-                $amber =~ s/\[$name\]/$value/gi;
-                $red   =~ s/\[$name\]/$value/gi;
-            }
+            my $col = $layout->column($col_id);
+            $green  = $self->sub_values($col, $green);
+            $amber  = $self->sub_values($col, $amber);
+            $red    = $self->sub_values($col, $red);
+            $green && $amber && $red or return $self->_write_rag('a_grey');
         }
 
         # Insert current date if required
