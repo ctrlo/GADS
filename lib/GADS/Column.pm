@@ -214,7 +214,11 @@ has suffix => (
     isa  => Str,
     lazy => 1,
     builder => sub {
-        $_[0]->type eq 'daterange' ? '(\.from|\.to)' : '';
+        $_[0]->type eq 'daterange'
+        ? '(\.from|\.to)'
+        : $_[0]->type eq 'tree'
+        ? '\.level[0-9]+'
+        : '';
     },
 );
 

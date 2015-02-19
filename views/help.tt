@@ -53,7 +53,9 @@ is returned being used for the value of the field. Values from other fields
 are used by inserting the field name between square brackets. The ID of the
 record can be accessed using [id]. Values in date
 ranges are used by adding the suffix &quot;.from&quot; or &quot;.to&quot;
-to specify the date required. For example:
+to specify the date required. Upper levels of a tree value can be specified
+using &quot;levelX&quot;, where X is the level required, starting at 0 for the
+top level. For example:
 
 <tt><pre>
 [% FILTER html %]
@@ -68,6 +70,10 @@ elsif ([Country] eq "Japan")
 elsif ([daterange.from] > CURDATE)
 {
     return "Started"
+}
+elsif ([tree.level1] eq "next level")
+{
+    return "Next from top"
 }
 elsif ([Cost] < 10)
 {

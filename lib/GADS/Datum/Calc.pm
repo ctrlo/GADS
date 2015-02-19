@@ -102,6 +102,22 @@ sub _transform_value
                 $code =~ s/\[$name\.from\]/$dvalue->{from}/gi;
                 $code =~ s/\[$name\.to\]/$dvalue->{to}/gi;
             }
+            elsif ($col->type eq "tree")
+            {
+                if ($code =~ /\[$name\.level([0-9]+)\]/)
+                {
+                    my $level      = $1;
+                    my @ancestors  = $dvalue->id ? $col->node($dvalue->id)->{node}->{node}->ancestors : ();
+                    my $level_node = $ancestors[$level] ? $ancestors[$level]->name : undef;
+                    $dvalue        = $level_node ? $col->node($level_node)->{value} : undef;
+                    $dvalue        = $dvalue ? "q`$dvalue`" : qq("");
+                    $code =~ s/\[$name\.level$level\]/$dvalue/gi;
+                }
+                else {
+                    $dvalue = $dvalue ? "q`$dvalue`" : qq("");
+                    $code =~ s/\[$name\]/$dvalue/gi;
+                }
+            }
             else {
                 # XXX Is there a q char delimiter that is safe regardless
                 # of input? Backtick is unlikely to be used...
