@@ -122,7 +122,7 @@ sub _transform_value
             }
         }
         else {
-            $ragvalue = 'a_grey';
+            $ragvalue = 'a_purple';
         }
         return $self->_write_rag($ragvalue);
     }
