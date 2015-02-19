@@ -121,7 +121,7 @@ sub _transform_value
             }
         }
         else {
-            $ragvalue = 'a_purple';
+            $ragvalue = 'e_purple';
         }
         return $self->_write_rag($ragvalue);
     }
