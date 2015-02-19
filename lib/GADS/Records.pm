@@ -704,8 +704,9 @@ sub csv
     my $csv  = Text::CSV::Encoded->new({ encoding  => undef });
 
     # Column names
+    my @columns = $self->view ? $self->layout->view($self->view->id) : $self->layout->all;
     my @colnames = ("Serial");
-    push @colnames, map { $_->name } @{$self->columns_retrieved};
+    push @colnames, map { $_->name } @columns;
     $csv->combine(@colnames)
         or error __x"An error occurred producing the CSV headings: {err}", err => $csv->error_input;
     my $csvout = $csv->string."\n";
