@@ -91,6 +91,7 @@ sub _transform_value
             if ($dvalue && $col->type eq "date")
             {
                 $dvalue = $dvalue->value->epoch;
+                $code =~ s/\[$name\]/$dvalue/gi;
             }
             elsif ($col->type eq "daterange")
             {
