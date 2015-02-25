@@ -31,11 +31,12 @@ use Log::Report;
 use Text::CSV;
 use Getopt::Long qw(:config pass_through);
 
-my ($take_first_enum, $ignore_incomplete_dateranges, $dry_run, $force);
+my ($take_first_enum, $ignore_incomplete_dateranges, $dry_run, $ignore_string_zeros, $force);
 GetOptions (
     'take-first-enum'              => \$take_first_enum,
     'ignore-imcomplete-dateranges' => \$ignore_incomplete_dateranges,
     'dry-run'                      => \$dry_run,
+    'ignore-string-zeros'          => \$ignore_string_zeros,
     'force=s'                      => \$force,
 ) or exit;
 
@@ -44,7 +45,8 @@ die "Invalid option '$force' supplied to --force"
     if $force && $force ne 'mandatory';
 
 my ($file) = @ARGV;
-$file or die "Usage: $0 [--take-first-enum] [--ignore-incomplete-dateranges] [--dry-run] [--force=mandatory] filename";
+$file or die "Usage: $0 [--take-first-enum] [--ignore-incomplete-dateranges]
+    [--ignore-string-zeros] [--dry-run] [--force=mandatory] filename";
 
 GADS::DB->setup(schema);
 
@@ -173,6 +175,11 @@ while (my $row = $csv->getline($fh))
             else {
                 $input->{$f->{field}} = [$col];
             }
+        }
+        elsif ($f->{type} eq "string")
+        {
+            # Option to ignore zeros in text fields
+            $input->{$f->{field}} = $ignore_string_zeros && $col eq '0' ? '' : $col;
         }
         else {
             $input->{$f->{field}} = $col;
