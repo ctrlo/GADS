@@ -139,9 +139,10 @@ blockquote footer,blockquote small,blockquote .small {
 address {
 	margin-bottom:21px;
 }
+/*
 code,kbd,pre,samp {
 	font-family:Monaco;
-}
+}*/
 code {
 	white-space:nowrap;
 	border-radius:0px;
