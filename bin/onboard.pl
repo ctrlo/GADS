@@ -31,14 +31,20 @@ use Log::Report;
 use Text::CSV;
 use Getopt::Long qw(:config pass_through);
 
-my ($take_first_enum, $ignore_incomplete_dateranges);
+my ($take_first_enum, $ignore_incomplete_dateranges, $dry_run, $force);
 GetOptions (
-    'take-first-enum' => \$take_first_enum,
+    'take-first-enum'              => \$take_first_enum,
     'ignore-imcomplete-dateranges' => \$ignore_incomplete_dateranges,
+    'dry-run'                      => \$dry_run,
+    'force=s'                      => \$force,
 ) or exit;
 
+
+die "Invalid option '$force' supplied to --force"
+    if $force && $force ne 'mandatory';
+
 my ($file) = @ARGV;
-$file or die "Usage: $0 [--take-first-enum] [--ignore-incomplete-dateranges] filename";
+$file or die "Usage: $0 [--take-first-enum] [--ignore-incomplete-dateranges] [--dry-run] [--force=mandatory] filename";
 
 GADS::DB->setup(schema);
 
@@ -205,7 +211,7 @@ while (my $row = $csv->getline($fh))
         }
         if (!$failed)
         {
-            try { $record->write(no_alerts => 1) };
+            try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force) };
             push @bad, $@ if $@;
         }
     }

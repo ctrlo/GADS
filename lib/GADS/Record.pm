@@ -325,6 +325,8 @@ sub write
                    || $self->user->{permission}->{update_noneed_approval}
                    || $self->user->{permission}->{approver};
 
+    my $force_mandatory = $options{force} && $options{force} eq 'mandatory' ? 1 : 0;
+
     # First loop round: sanitise and see which if any have changed
     my %appfields; # Any fields that need approval
     my ($need_app, $need_rec); # Whether a new approval_rs or record_rs needs to be created
@@ -334,7 +336,7 @@ sub write
         my $datum = $self->fields->{$column->id};
 
         # Check for blank value
-        if (!$column->optional && $datum->blank)
+        if (!$column->optional && $datum->blank && !$force_mandatory)
         {
             # Only warn if it was previously blank, otherwise it might
             # be a read-only field for this user
@@ -395,6 +397,9 @@ sub write
 
     # Anything to update?
     return unless $need_app || $need_rec;
+
+    # Dummy run?
+    return if $options{dry_run};
 
     # New record?
     if ($self->new_entry)
