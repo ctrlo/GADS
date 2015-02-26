@@ -47,7 +47,7 @@ has set_value => (
             !$value || $self->column->node($value)
                 or error __x"'{int}' is not a valid tree node ID for '{col}'"
                     , int => $value, col => $self->column->name;
-            $self->column->node($value)->{node}->{deleted}
+            $value && $self->column->node($value)->{node}->{deleted}
                 and error __x"Node '{int}' has been deleted and can therefore not be used"
                     , int => $value;
             $value = undef if !$value; # Can be empty string, generating warnings
