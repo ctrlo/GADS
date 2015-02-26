@@ -186,7 +186,8 @@ sub json
                     # Starting out at root
                     $options->{stash}->{last_node}->{$depth} = $stash->{tree};
                 }
-                else {
+                elsif (!$self->_enumvals->{$node->name}->{deleted}) # Ignore deleted nodes
+                {
                     my $parent = $options->{stash}->{last_node}->{$depth-1};
                     my $text = $self->_enumvals->{$node->name}->{value};
                     $parent->{children} = [] unless $parent->{children};
@@ -288,7 +289,13 @@ sub _delete_unused_nodes
 sub random
 {   my $self = shift;
     my %hash = %{$self->_enumvals};
-    $hash{(keys %hash)[rand keys %hash]}->{value};
+    my $value;
+    while (!$value)
+    {
+        my $node = $hash{(keys %hash)[rand keys %hash]};
+        $value = $node->{value} unless $node->{deleted};
+    }
+    $value;
 }
 
 sub update

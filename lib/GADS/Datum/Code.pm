@@ -84,10 +84,22 @@ sub sub_values
         if ($code =~ /\Q[$name.level\E([0-9]+)\]/)
         {
             my $level      = $1;
-            my @ancestors  = $dvalue && $dvalue->id ? $col->node($dvalue->id)->{node}->{node}->ancestors : ();
-            my $level_node = $ancestors[$level] ? $ancestors[$level]->name : undef;
-            $dvalue        = $level_node ? $col->node($level_node)->{value} : undef;
-            $dvalue        = $dvalue ? "q`$dvalue`" : qq("");
+            if ($dvalue && $dvalue->deleted)
+            {
+                $dvalue = "Orphan node (deleted)";
+            }
+            elsif ($dvalue)
+            {
+                my @ancestors  = $dvalue->id ? $col->node($dvalue->id)->{node}->{node}->ancestors : ();
+                my $get_level  = $level + 1; # Root is first, add one to ignore
+                my $level_node = @ancestors == $get_level - 1 # Return current node if it's that level
+                               ? $dvalue->id
+                               : $ancestors[-$get_level] # Otherwise check it exists
+                               ? $ancestors[-$get_level]->name
+                               : undef;
+                $dvalue        = $level_node ? $col->node($level_node)->{value} : undef;
+            }
+            $dvalue = $dvalue ? "q`$dvalue`" : qq("");
             $code =~ s/\Q[$name.level$level]/$dvalue/gi;
         }
         else {
