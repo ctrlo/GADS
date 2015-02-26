@@ -140,7 +140,7 @@ while (my $row = $csv->getline($fh))
         if ($f->{type} eq "enum" || $f->{type} eq "tree" || $f->{type} eq "person")
         {
             # Get enum ID value
-            if (!$col)
+            if ($col eq "")
             {
                 # Blank value. Insertion will handle non-optional fields
                 $input->{$f->{field}} = $col;
