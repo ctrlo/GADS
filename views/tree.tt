@@ -6,6 +6,7 @@
                         if (typeof newval_id == 'undefined') { newval_id = ''; }
                         $('#treeval_id[% tree.id %]').val(newval_id);
                         var newval_text = data.instance.get_node(data.selected[0]).text;
+                        newval_text = data.instance.get_path(data.selected[0], '#');
                         if (typeof newval_text == 'undefined') { newval_text = ''; }
                         $('#[% tree.id %]').val(newval_text).trigger('change');
                     }

@@ -32,7 +32,9 @@ the values in records, not change any aspect of the layout. Specifically:
 
 [% global.helptext.layout_match = BLOCK %]
 <p>For an exact match, enter the required text. For any other type of
-match, enter a Regular Expression. For example:</p>
+match, enter a Regular Expression (see examples below). Values of tree
+nodes are rendered as their full path, concatenated with a hash (for
+example "Level 1#Level 2#Node value").</p>
 <p>To match any non-blank value:</p>
 <tt><pre>.+</pre></tt>
 <p>To match any of three values "val1", "val2" or "val3 (comment)":</p>
@@ -43,6 +45,8 @@ match, enter a Regular Expression. For example:</p>
 <tt><pre>bar.*</pre></tt>
 <p>To match any number:</p>
 <tt><pre>[0-9]+</pre></tt>
+<p>To match only the node value of a tree, not including its path:</p>
+<tt><pre>(.*#)?Node name</pre></tt>
 
 [% END %]
 
