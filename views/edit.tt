@@ -1,4 +1,3 @@
-[% USE JSON.Escape %]
 <h2>
     [% IF record.current_id %]
         Record ID [% record.current_id %]
@@ -227,19 +226,19 @@
             [% ELSE %]
                 [% js_valget = '$(this).val()' %]
             [% END %]
-            [% jsonstr.value = depends.regex %]
             [% jscode.push('
-                $("#' _ col.id  _ '").change( function () {
-                    var val = ' _ js_valget _ ';
-                    var regex = JSON.parse(\'' _ jsonstr.json.replace('\\\\', '\\\\\\\\') _ '\');
-                    var re = new RegExp("^" + regex.value + "$");
-                    if (re.test(val)) {
-                        $("#' _ divid _ '").show()
+                $.get("/display_regex/' _ depends.id _ '", function(data){
+                    $("#' _ col.id  _ '").change( function () {
+                        var val = ' _ js_valget _ ';
+                        var re = new RegExp("^" + data + "$");
+                        if (re.test(val)) {
+                            $("#' _ divid _ '").show()
                         } else {
-                        $("#' _ divid _ '").hide()
-                    }
-                } );')
-            %]
+                            $("#' _ divid _ '").hide()
+                        }
+                    });
+                });
+            ') %]
         [% END %]
 
         <div class="row">
