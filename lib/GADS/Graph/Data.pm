@@ -224,14 +224,7 @@ sub _build_data
         # it blank in order to show no label at that point
         foreach my $k (keys %$series)
         {
-            my @row;
-            my $s = $series->{$k}->{data};
-            foreach my $point (@$s)
-            {
-                my $label = $point ? $k : '';
-                push @row, $label;
-            }
-            my $y_group = $series->{$k}->{y_group} || '';
+            my $y_group = $series->{$k}->{y_group} || '&lt;blank value&gt;';
             my $showlabel;
             if (!$y_group || $y_group_values{$y_group}->{defined})
             {
