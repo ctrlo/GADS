@@ -105,7 +105,7 @@ sub _transform_value
             try { $value = $self->safe_eval("$code") };
             if ($@)
             {
-                $value = $@->wasFatal->message;
+                $value = $@->wasFatal->message->toString;
                 assert "Failed to eval calc. Code was: $code";
             }
         }
