@@ -136,6 +136,7 @@ while (my $row = $csv->getline($fh))
     foreach my $col (@row)
     {
         my $f = $fields[$count];
+        $col =~ s/\s+$//;
         say STDOUT "Going to process $col into field $f->{name}";
         if ($f->{type} eq "enum" || $f->{type} eq "tree" || $f->{type} eq "person")
         {
