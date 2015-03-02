@@ -84,7 +84,7 @@ sub _build_data
     foreach my $record (@{$self->records->results})
     {
         my $xval = $record->fields->{$x_axis->id};
-        if ($x_axis->return_type && $x_axis->return_type eq 'date')
+        if ($xval && $x_axis->return_type && $x_axis->return_type eq 'date')
         {
             $xval = _group_date($xval->value, $self->x_axis_grouping);
         }
