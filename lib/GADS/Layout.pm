@@ -104,7 +104,12 @@ sub all
     my $type = $options{type};
 
     my $include_hidden = $options{include_hidden}
-                      || ($self->user && $self->user->{permission}->{layout}) ? 1 : 0;
+                      || (  !$self->user
+                          ? 1
+                          : $self->user->{permission}->{layout} 
+                          ? 1 
+                          : 0 
+                      );
 
     my @columns = @{$self->columns};
     @columns = $self->_order_dependencies(@columns) if $options{order_dependencies};
