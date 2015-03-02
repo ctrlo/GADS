@@ -31,13 +31,14 @@ use Log::Report;
 use Text::CSV;
 use Getopt::Long qw(:config pass_through);
 
-my ($take_first_enum, $ignore_incomplete_dateranges, $dry_run, $ignore_string_zeros, $force);
+my ($take_first_enum, $ignore_incomplete_dateranges, $dry_run, $ignore_string_zeros, $force, $invalid_csv);
 GetOptions (
     'take-first-enum'              => \$take_first_enum,
     'ignore-imcomplete-dateranges' => \$ignore_incomplete_dateranges,
     'dry-run'                      => \$dry_run,
     'ignore-string-zeros'          => \$ignore_string_zeros,
     'force=s'                      => \$force,
+    'invalid-csv=s'                => \$invalid_csv,
 ) or exit;
 
 
@@ -46,7 +47,7 @@ die "Invalid option '$force' supplied to --force"
 
 my ($file) = @ARGV;
 $file or die "Usage: $0 [--take-first-enum] [--ignore-incomplete-dateranges]
-    [--ignore-string-zeros] [--dry-run] [--force=mandatory] filename";
+    [--ignore-string-zeros] [--dry-run] [--force=mandatory] [--invalid-csv=failed.csv] filename";
 
 GADS::DB->setup(schema);
 
@@ -123,6 +124,18 @@ foreach my $field (@f)
 my @all_bad;
 
 my $layout = GADS::Layout->new(user => undef, schema => schema);
+
+# Open CSV to output bad lines in
+my $fh_invalid;
+if ($invalid_csv)
+{
+    open $fh_invalid, ">", $invalid_csv or die "Failed to create $invalid_csv: $!";
+    # open $fh_invalid, ">:encoding(utf8)", $invalid_csv or die "Failed to create $invalid_csv: $!";
+    my @field_names = map { $_->{name} } @fields;
+    push @field_names, "Errors";
+    $csv->print($fh_invalid, \@field_names);
+    print $fh_invalid "\n";
+}
 
 while (my $row = $csv->getline($fh))
 {
@@ -230,10 +243,19 @@ while (my $row = $csv->getline($fh))
             problems => \@bad,
             row      => "@row",
         };
+        if ($invalid_csv)
+        {
+            push @$row, @bad;
+            $csv->print($fh_invalid, $row);
+            print $fh_invalid "\n";
+        }
     }
 }
 
 $csv->eof or $csv->error_diag();
 close $fh;
+if ($invalid_csv) {
+    close $fh_invalid or die "$invalid_csv: $!";
+}
 
 say STDERR Dumper \@all_bad;
