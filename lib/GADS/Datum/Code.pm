@@ -82,9 +82,10 @@ sub sub_values
     elsif ($col->type eq "tree" && $code =~ /\Q[$name.level\E([0-9]+)\]/)
     {
         my $level      = $1;
+        my $rvalue;
         if ($dvalue && $dvalue->deleted)
         {
-            $dvalue = "Orphan node (deleted)";
+            $rvalue = "Orphan node (deleted)";
         }
         elsif ($dvalue)
         {
@@ -95,10 +96,10 @@ sub sub_values
                            : $ancestors[-$get_level] # Otherwise check it exists
                            ? $ancestors[-$get_level]->name
                            : undef;
-            $dvalue        = $level_node ? $col->node($level_node)->{value} : undef;
+            $rvalue        = $level_node ? $col->node($level_node)->{value} : undef;
         }
-        $dvalue = $dvalue ? "q`$dvalue`" : qq("");
-        $code =~ s/\Q[$name.level$level]/$dvalue/gi;
+        $rvalue = $rvalue ? "q`$rvalue`" : qq("");
+        $code =~ s/\Q[$name.level$level]/$rvalue/gi;
     }
 
     # Possible for tree values to have both a level (above code) or be on
