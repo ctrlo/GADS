@@ -107,6 +107,9 @@ sub _transform_value
         # XXX Log somewhere if this fails
         if ($okaycount == 3)
         {
+            trace "Red code is: $red";
+            trace "Amber code is: $red";
+            trace "Green code is: $red";
             if ($red && try { $self->safe_eval("($red)") } )
             {
                 $ragvalue = 'b_red';
