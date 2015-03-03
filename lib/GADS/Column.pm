@@ -229,6 +229,13 @@ has field => (
     builder => sub { "field".$_[0]->id },
 );
 
+has value_field => (
+    is      => 'rw',
+    isa     => Str,
+    lazy    => 1,
+    default => 'value',
+);
+
 has class => (
     is      => 'ro',
     isa     => Str,
@@ -306,7 +313,7 @@ sub build_values
     $self->display_regex($original->{display_regex});
     
     # XXX Move to Column::Enum, Tree and Person classes?
-    if ($self->type eq 'enum' || $self->type eq 'tree' || $self->type eq 'person')
+    if ($self->type eq 'enum' || $self->type eq 'tree' || $self->type eq 'person' || $self->type eq 'file')
     {
         $self->sprefix('value');
         $self->join({$self->field => 'value'});

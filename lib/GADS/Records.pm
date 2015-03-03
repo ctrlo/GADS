@@ -290,7 +290,7 @@ sub search_all_fields
         next if $field->{type} eq 'date' &&  !$format->parse_datetime($search);
 
         my $plural   = $field->{plural};
-        my $s        = $field->{sub} ? 'value.value' : 'value';
+        my $s        = $field->{sub} ? 'value.'.$field->value_field : 'value';
         my $prefetch = $field->{sub}
                      ? {
                            'record' => 
@@ -527,7 +527,7 @@ sub construct_search
         {
             if (my $s_table = _table_name($column, $prefetches, $joins))
             {
-                push @orderby, { $type => "$s_table.value" };
+                push @orderby, { $type => "$s_table.".$column->value_field };
             }
         }
     }
@@ -563,7 +563,7 @@ sub construct_search
                     my $column  = $layout->column($col_id);
                     my $s_table = _table_name($column, $prefetches, $joins);
                     my $type    = $sort->{type} eq 'desc' ? '-desc' : '-asc';
-                    push @orderby, { $type => "$s_table.value" };
+                    push @orderby, { $type => "$s_table.".$column->value_field };
                 }
                 else {
                     # No column defined means sort by ID
@@ -587,7 +587,7 @@ sub construct_search
         {
             my $col     = $self->layout->column($col_id);
             my $s_table = _table_name($col, $prefetches, $joins);
-            push @orderby, { "-$type" => "$s_table.value" };
+            push @orderby, { "-$type" => "$s_table.".$col->value_field };
             $self->sort({
                 id   => $col_id,
                 type => $type,
