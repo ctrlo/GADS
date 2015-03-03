@@ -79,35 +79,32 @@ sub sub_values
         $code =~ s/\Q[$name.to]/$dvalue->{to}/gi
             && $self->column->type eq "rag" && !$dvalue->{to} && return;
     }
-    elsif ($col->type eq "tree")
+    elsif ($col->type eq "tree" && $code =~ /\Q[$name.level\E([0-9]+)\]/)
     {
-        if ($code =~ /\Q[$name.level\E([0-9]+)\]/)
+        my $level      = $1;
+        if ($dvalue && $dvalue->deleted)
         {
-            my $level      = $1;
-            if ($dvalue && $dvalue->deleted)
-            {
-                $dvalue = "Orphan node (deleted)";
-            }
-            elsif ($dvalue)
-            {
-                my @ancestors  = $dvalue->id ? $col->node($dvalue->id)->{node}->{node}->ancestors : ();
-                my $get_level  = $level + 1; # Root is first, add one to ignore
-                my $level_node = @ancestors == $get_level - 1 # Return current node if it's that level
-                               ? $dvalue->id
-                               : $ancestors[-$get_level] # Otherwise check it exists
-                               ? $ancestors[-$get_level]->name
-                               : undef;
-                $dvalue        = $level_node ? $col->node($level_node)->{value} : undef;
-            }
-            $dvalue = $dvalue ? "q`$dvalue`" : qq("");
-            $code =~ s/\Q[$name.level$level]/$dvalue/gi;
+            $dvalue = "Orphan node (deleted)";
         }
-        else {
-            $dvalue = $dvalue ? "q`$dvalue`" : qq("");
-            $code =~ s/\Q[$name]/$dvalue/gi;
+        elsif ($dvalue)
+        {
+            my @ancestors  = $dvalue->id ? $col->node($dvalue->id)->{node}->{node}->ancestors : ();
+            my $get_level  = $level + 1; # Root is first, add one to ignore
+            my $level_node = @ancestors == $get_level - 1 # Return current node if it's that level
+                           ? $dvalue->id
+                           : $ancestors[-$get_level] # Otherwise check it exists
+                           ? $ancestors[-$get_level]->name
+                           : undef;
+            $dvalue        = $level_node ? $col->node($level_node)->{value} : undef;
         }
+        $dvalue = $dvalue ? "q`$dvalue`" : qq("");
+        $code =~ s/\Q[$name.level$level]/$dvalue/gi;
     }
-    else {
+
+    # Possible for tree values to have both a level (above code) or be on
+    # their own (below code)
+    unless ($col->type eq "date" || $col->type eq "daterange")
+    {
         # XXX Is there a q char delimiter that is safe regardless
         # of input? Backtick is unlikely to be used...
         if ($col->numeric)
