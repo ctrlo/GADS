@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Datum::Rag;
 
+use Log::Report;
 use Moo;
 use namespace::clean;
 
@@ -93,7 +94,13 @@ sub _transform_value
         foreach my $code ($green, $amber, $red)
         {
             # If there are still square brackets then something is wrong
-            $okaycount++ if $code !~ /[\[\]]+/;
+            if ($code =~ /[\[\]]+/)
+            {
+                assert "Invalid field names in rag condition. Remaining code: $code";
+            }
+            else {
+                $okaycount++;
+            }
         }
 
         my $ragvalue;
