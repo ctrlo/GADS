@@ -107,21 +107,23 @@ sub _transform_value
         # XXX Log somewhere if this fails
         if ($okaycount == 3)
         {
-            if ($red && eval { $self->safe_eval("($red)") } )
+            if ($red && try { $self->safe_eval("($red)") } )
             {
                 $ragvalue = 'b_red';
             }
-            elsif (!$@ && $amber && eval { $self->safe_eval("($amber)") } )
+            elsif (!$@ && $amber && try { $self->safe_eval("($amber)") } )
             {
                 $ragvalue = 'c_amber';
             }
-            elsif (!$@ && $green && eval { $self->safe_eval("($green)") } )
+            elsif (!$@ && $green && try { $self->safe_eval("($green)") } )
             {
                 $ragvalue = 'd_green';
             }
             elsif ($@) {
                 # An exception occurred evaluating the code
                 $ragvalue = 'e_purple';
+                my $error = $@->wasFatal->message->toString;
+                assert "Failed to eval rag. Code was: $error";
             }
             else {
                 $ragvalue = 'a_grey';
