@@ -101,7 +101,7 @@ has full_path => (
         push @path, $_->{value}
             foreach @{$self->ancestors};
         my $path = join '#', @path;
-        return "$path#".$self->text;
+        return $path ? "$path#".$self->text : $self->text;
     },
 );
 
