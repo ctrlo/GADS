@@ -1196,8 +1196,9 @@ any '/file/:id' => sub {
     send_file( \($file->content), content_type => $file->mimetype, filename => $file->name );
 };
 
-any '/record/:id' => sub {
-    my $id = param 'id';
+any qr{/(record|history)/([0-9]+)} => sub {
+
+    my ($action, $id) = splat;
 
     my $layout = GADS::Layout->new(user => user, schema => schema);
     my $record = GADS::Record->new(
@@ -1205,7 +1206,11 @@ any '/record/:id' => sub {
         layout => $layout,
         schema => schema,
     );
-    $record->find_record_id($id);
+
+      $action eq 'history'
+    ? $record->find_record_id($id)
+    : $record->find_current_id($id);
+
     my @versions = $record->versions;
 
     if (my $delete_id = param 'delete')

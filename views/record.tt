@@ -10,7 +10,7 @@
         [% ELSE %]
         [% selected = "" %]
         [% END %]
-        <li role="presentation"><a role="menuitem" tabindex="-1" href="/record/[% version.id %]">[% version.created %]</a></li>
+        <li role="presentation"><a role="menuitem" tabindex="-1" href="/history/[% version.id %]">[% version.created %]</a></li>
         [% END %]
     </ul>
     [% IF user.permission.update %]

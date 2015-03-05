@@ -831,10 +831,10 @@ sub data_calendar
         {
             next unless $d->{from} && $d->{to};
             my $item = {
-                "url"   => "/record/" . $record->record_id,
+                "url"   => "/record/" . $record->current_id,
                 "class" => $d->{color},
                 "title" => $title,
-                "id"    => $record->record_id,
+                "id"    => $record->current_id,
                 "start" => $d->{from}*1000,
                 "end"   => $d->{to}*1000,
             };

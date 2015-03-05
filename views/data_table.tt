@@ -34,7 +34,7 @@
     <tbody>
         [% FOREACH record IN records %]
         <tr>
-            <td><a href="/record/[% record.record_id %]">[% record.current_id %]</a></td>
+            <td><a href="/record/[% record.current_id %]">[% record.current_id %]</a></td>
             [% FOREACH column IN columns %]
                 [% colid = column.id %]
                 [% value = record.fields.$colid.html %]
