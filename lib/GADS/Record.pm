@@ -217,6 +217,7 @@ sub _find
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
     my ($record) = $result->all;
+    $record or error __"Requested record not found";
     $record = $record->{record} if $find{current_id};
     $self->record($record);
 }
