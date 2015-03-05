@@ -74,6 +74,37 @@ has id => (
     trigger   => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
 );
 
+has ancestors => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        my $node = $self->column->node($self->id);
+        my @ancestors = $node->{node} ? $node->{node}->{node}->ancestors : ();
+        my @return;
+        foreach my $anc (@ancestors)
+        {
+            my $node     = $self->column->node($anc->name);
+            my $dag_node = $node->{node}->{node};
+            push @return, $node if $dag_node && defined $dag_node->mother; # Do not add root node
+        }
+        \@return;
+    },
+);
+
+has full_path => (
+    is => 'rw',
+    lazy => 1,
+    builder => sub {
+        my $self = shift;
+        my @path;
+        push @path, $_->{value}
+            foreach @{$self->ancestors};
+        my $path = join '#', @path;
+        return "$path#".$self->text;
+    },
+);
+
 has deleted => (
     is => 'rw',
 );

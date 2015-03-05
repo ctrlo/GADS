@@ -243,10 +243,14 @@
 
         <div class="row">
             <div class="col-md-11 col-md-offset-1">
+                [% IF col.type == "tree" %]
+                    [% textval = record.fields.$cid.full_path  %]
+                [% ELSE %]
+                    [% textval = record.fields.$cid.as_string  %]
+                [% END %]
                 [% FOREACH c IN col.depended_by %]
                     [% FOREACH cc IN all_columns %]
                         [% IF cc.id == c.id %]
-                            [% textval =  plain_value(col, record) %]
                             <div id="depend[% col.id %]_[% cc.id %]" [% UNLESS textval.match(c.regex) %]style="display:none" [% END %]>
                                 [% INCLUDE do_col parent = col col = cc %]
                             </div>
