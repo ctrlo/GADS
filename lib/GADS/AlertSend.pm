@@ -292,7 +292,7 @@ sub _send_alert
     foreach my $cid (@current_ids)
     {
         my $base = $self->base_url;
-        $text  .= "$base$cid\n";
+        $text  .= $base."record/$cid\n";
     }
     my $email = GADS::Email->new;
     $email->send({
