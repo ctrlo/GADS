@@ -297,6 +297,9 @@ sub delete
     $self->schema->resultset('Filter')->search({ view_id => $view->id })->delete;
     $self->schema->resultset('AlertCache')->search({ view_id => $view->id })->delete;
     $self->schema->resultset('Alert')->search({ view_id => $view->id })->delete;
+    $self->schema->resultset('User')->search({ lastview => $view->id })->update({
+        lastview => undef,
+    });
     $view->delete;
 }
 
