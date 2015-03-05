@@ -3,12 +3,13 @@
                 .on({
                     'changed.jstree': function (e, data) {
                         var newval_id = data.instance.get_node(data.selected[0]).id;
-                        if (typeof newval_id == 'undefined') { newval_id = ''; }
+                        if (typeof newval_id == 'undefined') {
+                            newval_id = '';
+                        } else {
+                            var newval_text = data.instance.get_path(data.selected[0], '#');
+                            $('#[% tree.id %]').val(newval_text).trigger('change');
+                        }
                         $('#treeval_id[% tree.id %]').val(newval_id);
-                        var newval_text = data.instance.get_node(data.selected[0]).text;
-                        newval_text = data.instance.get_path(data.selected[0], '#');
-                        if (typeof newval_text == 'undefined') { newval_text = ''; }
-                        $('#[% tree.id %]').val(newval_text).trigger('change');
                     }
                     [% IF tree.end_node_only %],
                         'select_node.jstree': function (e, data) {
