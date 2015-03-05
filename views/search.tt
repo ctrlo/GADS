@@ -4,7 +4,7 @@
         [% FOREACH result IN results %]
             <tr>
                 <td>
-                    <a href="/record/[% result.record_id %]">[% result.current_id %]</a>
+                    <a href="/record/[% result.current_id %]">[% result.current_id %]</a>
                 </td>
                 <td>
                     [% result.results %]
