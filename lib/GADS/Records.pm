@@ -190,7 +190,7 @@ sub _add_join
 
 # A function to see if any views have a particular record within
 sub search_views
-{   my ($self, $current_id, @views) = @_;
+{   my ($self, $current_ids, @views) = @_;
 
     return unless @views;
 
@@ -198,7 +198,7 @@ sub search_views
     my $prefetches = [];
 
     my $columns = $self->layout->all;
-    my @search;
+    my @search; my $found_in_a_view;
 
     # XXX This is up for debate. First, do a search with all views in, as it only
     # requires one SQL query (albeit a big one). If none match, happy days.
@@ -206,50 +206,57 @@ sub search_views
     # to find which one matched. Is this the most efficient way of doing it?
     foreach my $view (@views)
     {
-        if (my $filter = $view->filter)
+        my $filter  = $view->filter || '{}';
+        my $decoded = decode_json($filter);
+        # XXX Do not send alerts for hidden fields
+        if (keys %$decoded)
         {
-            # XXX Do not send alerts for hidden fields
-            my $decoded = decode_json($filter);
-            if (keys %$decoded)
-            {
-                my @s = @{$self->_search_construct($decoded, $self->layout, $prefetches, $joins)};
-                push @search, \@s;
-            }
+            my @s = @{$self->_search_construct($decoded, $self->layout, $prefetches, $joins)};
+            push @search, \@s;
+        }
+        else {
+            # The view has no filter, so it must contain the record.
+            # Skip straight to the next step.
+            $found_in_a_view = 1;
+            last;
         }
     }
 
-    return unless @search;
+    my $search       = { 'me.id' => $current_ids }; # Array ref
+    $search->{'-or'} = \@search if @search;
 
-    my $count = $self->schema->resultset('Current')->search({
-        'me.id' => $current_id,
-        '-or'   => \@search,
-    },{
+    $found_in_a_view ||= $self->schema->resultset('Current')->search($search,{
         join     => {'record' => $joins},
     })->count;
 
     my @foundin;
-    if ($count)
+    if ($found_in_a_view)
     {
         foreach my $view (@views)
         {
-            if (my $filter = $view->filter)
+            my $filter  = $view->filter || '{}';
+            my $decoded = decode_json($filter);
+            if (keys %$decoded)
             {
-                my $decoded = decode_json($filter);
-                if (keys %$decoded)
-                {
-                    my @s = @{$self->_search_construct($decoded, $self->layout, $prefetches, $joins)};
-                    my @found = $self->schema->resultset('Current')->search({
-                        'me.id' => $current_id,
-                        @s,
-                    },{
-                        join     => {'record' => $joins},
-                    })->all;
-                    my @ids = map { $_->id } @found;
-                    push @foundin, {
-                        view => $view,
-                        ids  => \@ids,
-                    } if @found;
-                }
+                my @s = @{$self->_search_construct($decoded, $self->layout, $prefetches, $joins)};
+                my @found = $self->schema->resultset('Current')->search({
+                    'me.id' => $current_ids, # Array ref
+                    @s,
+                },{
+                    join     => {'record' => $joins},
+                })->all;
+                my @ids = map { $_->id } @found;
+                push @foundin, {
+                    view => $view,
+                    ids  => \@ids,
+                } if @found;
+            }
+            else {
+                # No filter, definitely in view
+                push @foundin, {
+                    view => $view,
+                    ids  => $current_ids, # Array ref
+                };
             }
         }
     }
