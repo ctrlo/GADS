@@ -724,7 +724,7 @@ sub csv
     foreach my $line (@{$self->results})
     {
         my @items = ($line->current_id);
-        push @items, map { $line->fields->{$_->id} } @{$self->columns_retrieved};
+        push @items, map { $line->fields->{$_->id} } @columns;
         $csv->combine(@items)
             or error __x"An error occurred producing a line of CSV: {err} {items}",
                 err => "".$csv->error_diag, items => "@items";
