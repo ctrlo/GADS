@@ -277,6 +277,7 @@ sub search_all_fields
         { type => 'string', plural => 'calcvals' },
         { type => 'string', plural => 'enums', sub => 1 },
         { type => 'string', plural => 'people', sub => 1 },
+        { type => 'file'  , plural => 'files', sub => 1, value_field => 'name' },
     );
 
     # Set up a date parser
@@ -286,21 +287,22 @@ sub search_all_fields
     );
     foreach my $field (@fields)
     {
-        next if $field->type eq 'int' && !looks_like_number $search;
-        next if $field->type eq 'date' &&  !$format->parse_datetime($search);
+        next if $field->{type} eq 'int' && !looks_like_number $search;
+        next if $field->{type} eq 'date' &&  !$format->parse_datetime($search);
 
-        my $plural   = $field->plural;
-        my $s        = $field->sub ? 'value.'.$field->value_field : 'value';
-        my $prefetch = $field->sub
-                     ? {
-                           'record' => 
-                               {
-                                   $plural => ['value', 'layout']
-                               },
-                       } 
-                     : {
-                           'record' => { $plural => 'layout' },
-                       };
+        my $plural      = $field->{plural};
+        my $value_field = $field->{value_field} || 'value';
+        my $s           = $field->{sub} ? "value.$value_field" : 'value';
+        my $prefetch    = $field->{sub}
+                        ? {
+                              'record' => 
+                                  {
+                                      $plural => ['value', 'layout']
+                                  },
+                          } 
+                        : {
+                              'record' => { $plural => 'layout' },
+                          };
 
         my $search_hash = {
             $s => $search,
@@ -316,7 +318,7 @@ sub search_all_fields
             my @r;
             foreach my $string ($current->record->$plural)
             {
-                my $v = $field->sub ? $string->value->value : $string->value;
+                my $v = $field->{sub} ? $string->value->$value_field : $string->value;
                 push @r, $string->layout->name. ": ". $v;
             }
             my $hl = join(', ', @r);
