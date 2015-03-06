@@ -20,7 +20,7 @@ package GADS::View;
 
 use GADS::Alert;
 use GADS::Schema;
-use JSON qw(decode_json encode_json);
+use JSON qw(decode_json);
 use Log::Report;
 use String::CamelCase qw(camelize);
 
@@ -81,6 +81,9 @@ has name => (
 
 has filter => (
     is      => 'rw',
+    isa     => sub {
+        decode_json($_[0]); # Will die on error
+    },
     lazy    => 1,
     builder => sub { $_[0]->_view && $_[0]->_view->filter },
     trigger => sub {
