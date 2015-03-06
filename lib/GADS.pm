@@ -185,8 +185,6 @@ get '/data_calendar/:time' => sub {
 
     # Time variable is used to prevent caching by browser
 
-    my $view_id = session 'view_id';
-
     my $fromdt  = DateTime->from_epoch( epoch => ( param('from') / 1000 ) )->truncate( to => 'day'); 
     my $todt    = DateTime->from_epoch( epoch => ( param('to') / 1000 ) ); 
 
@@ -225,8 +223,8 @@ get '/data_calendar/:time' => sub {
 
     my $user    = user;
     my $layout  = GADS::Layout->new(user => $user, schema => schema);
-    my $views   = GADS::Views->new(user => $user, schema => schema, layout => $layout);
-    my $view    = $views->view(session 'view_id') || $views->default; # Can still be undef
+    my $view    = current_view($user, $layout);
+
     my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
     $records->search(
         view    => $view,
@@ -247,8 +245,7 @@ get '/data_graph/:id/:time' => sub {
     my $user    = user;
     my $id      = param 'id';
     my $layout  = GADS::Layout->new(user => $user, schema => schema);
-    my $views   = GADS::Views->new(user => $user, schema => schema, layout => $layout);
-    my $view    = $views->view(session 'view_id') || $views->default; # Can still be undef
+    my $view    = current_view($user, $layout);
     my $graph   = GADS::Graph->new(id => $id, schema => schema);
     my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
     $records->search(
@@ -1327,6 +1324,15 @@ get '/resetpw/:code' => sub {
             { danger => "The requested authorisation code could not be processed" }, 'login'
         );
     }
+};
+
+sub current_view {
+    my ($user, $layout) = @_;
+
+    my $views      = GADS::Views->new(user => $user, schema => schema, layout => $layout);
+    my $saved_view = $user->{lastview} ? $user->{lastview}->id : undef;
+    my $view       = $views->view(session('view_id') || $saved_view) || $views->default; # Can still be undef
+    $view;
 };
 
 sub forwardHome {
