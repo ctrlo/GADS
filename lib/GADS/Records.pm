@@ -477,7 +477,7 @@ sub construct_search
 #            }
 #        }
 #
-        if ($c->{type} eq "date" || $c->{type} eq "daterange")
+        if ($c->type eq "date" || $c->type eq "daterange")
         {
             # Apply any date filters if required
             my @f;
