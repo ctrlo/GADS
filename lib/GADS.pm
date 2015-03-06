@@ -185,20 +185,22 @@ get '/data_calendar/:time' => sub {
 
     # Time variable is used to prevent caching by browser
 
-    my $fromdt  = DateTime->from_epoch( epoch => ( param('from') / 1000 ) )->truncate( to => 'day'); 
+    my $fromdt  = DateTime->from_epoch( epoch => ( param('from') / 1000 ) );
     my $todt    = DateTime->from_epoch( epoch => ( param('to') / 1000 ) ); 
 
+    # Attempt to find period requested. Sometimes the duration is
+    # slightly less than expected, hence the multiple tests
     my $diff     = $todt->subtract_datetime($fromdt);
-    my $dt_view  = $diff->years
+    my $dt_view  = ($diff->months >= 11 || $diff->years)
                  ? 'year'
-                 : $diff->weeks
+                 : ($diff->weeks > 1 || $diff->months)
+                 ? 'month'
+                 : ($diff->days >= 6 || $diff->weeks)
                  ? 'week'
-                 : $diff->days
-                 ? 'day'
-                 : 'month'; # Default to month
+                 : 'day'; # Default to month
 
-    # Remember previous day and view. Day is difficult, due to the
-    # timezone issues described above. XXX How to fix?
+    # Attempt to remember day viewed. This is difficult, due to the
+    # timezone issues described below. XXX How to fix?
     session 'calendar' => {
         day  => $todt->clone->subtract(days => 1),
         view => $dt_view,
@@ -208,6 +210,7 @@ get '/data_calendar/:time' => sub {
     # browser. So in BST, 24th August is requested as 23rd August 23:00. Rather than
     # trying to convert timezones, we keep things simple and round down any "from"
     # times and round up any "to" times.
+    $fromdt->truncate( to => 'day'); 
     if ($todt->hms('') ne '000000')
     {
         # If time is after midnight, round down to midnight and add day
