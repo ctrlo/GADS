@@ -147,7 +147,7 @@ sub _build_data
     my $series;
     foreach my $record (@{$self->records->results})
     {
-        my $x_value     = $record->fields->{$x_axis->id};
+        my $x_value = $record->fields->{$x_axis->id} or next;
         if ($x_axis->return_type && $x_axis->return_type eq 'date')
         {
             $x_value = _group_date($x_value->value, $self->x_axis_grouping);
