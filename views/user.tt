@@ -12,6 +12,12 @@
                 <input type="hidden" name="account_request" value="[% edituser.id %]">
             [% END %]
             <input type="hidden" name="page" value="[% page %]">
+            [% IF edituser.account_request_notes %]
+                <div class="form-group">
+                    <label for="notes">Notes:</label>
+                    <p>[% edituser.account_request_notes %]</p>
+                </div>
+            [% END %]
             <div class="form-group">
                 <label for="firstname">Firstname:</label>
                 <input type="text" class="form-control" id="firstname" name="firstname" value="[% edituser.firstname | html_entity %]">
