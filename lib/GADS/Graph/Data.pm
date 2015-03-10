@@ -116,7 +116,7 @@ sub _build_data
 
     my @xlabels = sort keys %xy_values;
     my $count = 0;
-    if ($datemin && $datemax)
+    if ($self->x_axis_grouping && $datemin && $datemax)
     {
         @xlabels = ();
         my $inc = DateTime->from_epoch( epoch => $datemin );
