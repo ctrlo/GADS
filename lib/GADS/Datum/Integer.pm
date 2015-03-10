@@ -67,8 +67,9 @@ sub as_string
 }
 
 sub as_integer
-{   my $self = shift;
-    int ($self->value // 0);
+{   my ($self, $other) = @_;
+    my $int  = int ($self->value // 0);
+    $int + ($other || 0);
 }
 
 1;
