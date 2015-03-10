@@ -30,21 +30,22 @@ has set_value => (
     required => 1,
     trigger  => sub {
         my ($self, $value) = @_;
-        if (defined $self->value)
+        if ($self->has_value)
         {
             # Previous value
             $self->changed(1) if $self->value ne $value;
             $self->oldvalue($self->value);
         }
         $self->value(
-            ref $value ? $value->{value} : $value
+            (ref $value ? $value->{value} : $value) || ""
         );
     },
 );
 
 has value => (
-    is      => 'rw',
-    trigger => sub { $_[0]->blank($_[1] ? 0 : 1) },
+    is        => 'rw',
+    trigger   => sub { $_[0]->blank($_[1] ? 0 : 1) },
+    predicate => 1,
 );
 
 sub as_string
