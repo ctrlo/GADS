@@ -241,7 +241,7 @@
 </table>
 [% IF register_requests.size %]
     <h4>Account requests</h4>
-    <table class="table table-striped">
+    <table class="table table-striped dtable">
         <thead>
             <tr>
                 <th>ID</th>
