@@ -85,7 +85,7 @@ has filter => (
         decode_json($_[0]); # Will die on error
     },
     lazy    => 1,
-    builder => sub { $_[0]->_view && $_[0]->_view->filter },
+    builder => sub { ($_[0]->_view && $_[0]->_view->filter) || '{}' },
     trigger => sub {
         my ($self, $value) = @_;
         $self->filter_changed(1)
