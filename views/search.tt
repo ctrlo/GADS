@@ -7,7 +7,7 @@
                     <a href="/record/[% result.current_id %]">[% result.current_id %]</a>
                 </td>
                 <td>
-                    [% result.results %]
+                    [% result.results | html_entity %]
                 </td>
             </tr>
         [% END %]
