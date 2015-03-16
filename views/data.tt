@@ -12,7 +12,7 @@
                         <i class="fa fa-list fa-lg use-icon-font"></i>
                         <img src="/images/icon-data-list.png" class="use-icon-png" style="display:none">
                     </a>
-                    <a href="?viewtype=graph" class="btn btn-default" title="View as chart">
+                    <a href="?viewtype=graph" class="btn btn-default" title="View as graph">
                         <i class="fa fa-area-chart fa-lg use-icon-font"></i>
                         <img src="/images/icon-data-chart.png" class="use-icon-png" style="display:none">
                     </a>
