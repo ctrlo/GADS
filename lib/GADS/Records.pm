@@ -285,6 +285,7 @@ sub search_all_fields
         { type => 'string', plural => 'enums', sub => 1 },
         { type => 'string', plural => 'people', sub => 1 },
         { type => 'file'  , plural => 'files', sub => 1, value_field => 'name' },
+        { type => 'current_id' },
     );
 
     # Set up a date parser
@@ -294,13 +295,17 @@ sub search_all_fields
     );
     foreach my $field (@fields)
     {
-        next if $field->{type} eq 'int' && !looks_like_number $search;
+        next if ($field->{type} eq 'int' || $field->{type} eq 'current_id')
+            && !looks_like_number $search;
         next if $field->{type} eq 'date' &&  !$format->parse_datetime($search);
 
+        # These aren't really needed for current_id, but no harm
         my $plural      = $field->{plural};
         my $value_field = $field->{value_field} || 'value';
         my $s           = $field->{sub} ? "value.$value_field" : 'value';
-        my $prefetch    = $field->{sub}
+        my $prefetch    = $field->{type} eq 'current_id'
+                        ? undef
+                        : $field->{sub}
                         ? {
                               'record' => 
                                   {
@@ -311,9 +316,9 @@ sub search_all_fields
                               'record' => { $plural => 'layout' },
                           };
 
-        my $search_hash = {
-            $s => $search,
-        };
+        my $search_hash = $field->{type} eq 'current_id'
+                        ? { id => $search }
+                        : { $s => $search };
         $search_hash->{'layout.hidden'} = 0 unless $self->user->{permission}->{layout};
         my @currents = $self->schema->resultset('Current')->search($search_hash,{
             prefetch => $prefetch,
@@ -323,10 +328,16 @@ sub search_all_fields
         foreach my $current (@currents)
         {
             my @r;
-            foreach my $string ($current->record->$plural)
+            if ($field->{type} eq 'current_id')
             {
-                my $v = $field->{sub} ? $string->value->$value_field : $string->value;
-                push @r, $string->layout->name. ": ". $v;
+                push @r, "ID: ".$current->id;
+            }
+            else {
+                foreach my $string ($current->record->$plural)
+                {
+                    my $v = $field->{sub} ? $string->value->$value_field : $string->value;
+                    push @r, $string->layout->name. ": ". $v;
+                }
             }
             my $hl = join(', ', @r);
             if ($results{$current->id})
