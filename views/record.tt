@@ -27,12 +27,19 @@
         <td>[% record.createdby.html %]</td>
     </tr>
     [% FOREACH col IN all_columns %]
-        [% NEXT IF col.type == "rag" OR col.type == "calc" %]
         <tr>
             <th>[% col.name | html_entity %]</th>
             <td>
-               [% colid = col.id %]
-               [% record.fields.$colid.html %]
+                [% colid = col.id %]
+                [% value = record.fields.$colid.html %]
+                [% IF col.type == "rag" %]
+                    <div class="circ-large
+                        [% value %]
+                        ">
+                    </div>
+                [% ELSE %]
+                    [% value %]
+                [% END %]
             </td>
         </tr>
     [% END %]
