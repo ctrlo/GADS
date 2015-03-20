@@ -23,7 +23,7 @@
                 <th><a href="?sort=[% col.id %]" style="color:black">[% col.name | html_entity %][% IF col.id == sort.id %][% st %]</a>[% END %]
                     [% IF col.type == "person" AND user.permission.message AND records.size %]
                         [% peopcols.push(col.id) %]
-                        <a href="" data-toggle="modal" data-target="#peopcol[% peopfield %]">
+                        <a href="" data-toggle="modal" data-target="#peopcol[% col.id %]">
                             <img src="/images/envw.png">
                         </a>
                     [% END %]
