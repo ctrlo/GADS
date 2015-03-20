@@ -67,14 +67,15 @@ sub sub_values
     }
     elsif ($col->type eq "daterange")
     {
-        # Return value will eventually be undef if code returns blank string
+        # Return empty strings for missing values, otherwise eval fails after
+        # substitutions have been made
         $dvalue = {
-            from  => $dvalue && $dvalue->from_dt   ? $dvalue->from_dt->epoch : "",
-            to    => $dvalue && $dvalue->to_dt     ? $dvalue->to_dt->epoch   : "",
-            value => $dvalue && $dvalue->as_string ? $dvalue->as_string      : "",
+            from  => $dvalue && $dvalue->from_dt   ? $dvalue->from_dt->epoch    : qq(""),
+            to    => $dvalue && $dvalue->to_dt     ? $dvalue->to_dt->epoch      : qq(""),
+            value => $dvalue && $dvalue->as_string ? '"'.$dvalue->as_string.'"' : qq(""),
         };
         # First try subbing in full value
-        $code =~ s/\Q[$name.value]/"$dvalue->{value}"/gi;
+        $code =~ s/\Q[$name.value]/$dvalue->{value}/gi;
         # The following code returns if a substitution of a blank value was made
         # This will become a grey value for RAG fields
         $code =~ s/\Q[$name.from]/$dvalue->{from}/gi
