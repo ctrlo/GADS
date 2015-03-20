@@ -69,9 +69,12 @@ sub sub_values
     {
         # Return value will eventually be undef if code returns blank string
         $dvalue = {
-            from => $dvalue && $dvalue->from_dt ? $dvalue->from_dt->epoch : "",
-            to   => $dvalue && $dvalue->to_dt   ? $dvalue->to_dt->epoch   : "",
+            from  => $dvalue && $dvalue->from_dt   ? $dvalue->from_dt->epoch : "",
+            to    => $dvalue && $dvalue->to_dt     ? $dvalue->to_dt->epoch   : "",
+            value => $dvalue && $dvalue->as_string ? $dvalue->as_string      : "",
         };
+        # First try subbing in full value
+        $code =~ s/\Q[$name.value]/"$dvalue->{value}"/gi;
         # The following code returns if a substitution of a blank value was made
         # This will become a grey value for RAG fields
         $code =~ s/\Q[$name.from]/$dvalue->{from}/gi
