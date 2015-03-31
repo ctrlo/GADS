@@ -54,8 +54,8 @@ sub write_cache
     $value;
 }
 
-sub _sub_date
-{   my ($code, $field, $date) = @_;
+sub sub_date
+{   my ($self, $code, $field, $date) = @_;
     my $subs = 0; # Number of substitutions made
     # Try epoch, year, month and day
     my $epoch = $date ? $date->epoch : qq("");
@@ -77,7 +77,7 @@ sub sub_values
 
     if ($dvalue && $col->type eq "date")
     {
-        $code = _sub_date($code, $name, $dvalue->value);
+        $code = $self->sub_date($code, $name, $dvalue->value);
     }
     elsif ($col->type eq "daterange")
     {
@@ -93,9 +93,9 @@ sub sub_values
         # The following code returns if a substitution of a blank value was made
         # This will become a grey value for RAG fields
         my $subs;
-        ($code, $subs) = _sub_date($code, "$name.from", $dvalue->{from});
+        ($code, $subs) = $self->sub_date($code, "$name.from", $dvalue->{from});
         return if $self->column->type eq "rag" && $subs && !$dvalue->{from};
-        ($code, $subs) = _sub_date($code, "$name.to", $dvalue->{to});
+        ($code, $subs) = $self->sub_date($code, "$name.to", $dvalue->{to});
         return if $self->column->type eq "rag" && $subs && !$dvalue->{to};
     }
     elsif ($col->type eq "tree" && $code =~ /\Q[$name.level\E([0-9]+)\]/)
