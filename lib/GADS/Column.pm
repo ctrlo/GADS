@@ -215,7 +215,7 @@ has suffix => (
     lazy => 1,
     builder => sub {
         $_[0]->type eq 'daterange'
-        ? '(\.from|\.to)'
+        ? '(\.from|\.to)?(\.year|\.month|\.day)'
         : $_[0]->type eq 'tree'
         ? '\.level[0-9]+'
         : '';

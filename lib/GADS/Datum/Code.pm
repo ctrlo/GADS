@@ -54,6 +54,21 @@ sub write_cache
     $value;
 }
 
+sub _sub_date
+{   my ($code, $field, $date) = @_;
+    my $subs = 0; # Number of substitutions made
+    # Try epoch, year, month and day
+    my $epoch = $date ? $date->epoch : qq("");
+    $subs += $code =~ s/\Q[$field]/$epoch/gi;
+    my $year = $date ? $date->year : qq("");
+    $subs += $code =~ s/\Q[$field.year]/$year/gi;
+    my $month = $date ? $date->month : qq("");
+    $subs += $code =~ s/\Q[$field.month]/$month/gi;
+    my $day = $date ? $date->day : qq("");
+    $subs += $code =~ s/\Q[$field.day]/$day/gi;
+    wantarray ? ($code, $subs) : $code;
+}
+
 sub sub_values
 {   my ($self, $col, $code) = @_;
 
@@ -62,26 +77,26 @@ sub sub_values
 
     if ($dvalue && $col->type eq "date")
     {
-        $dvalue = $dvalue->value->epoch;
-        $code =~ s/\Q[$name]/$dvalue/gi;
+        $code = _sub_date($code, $name, $dvalue->value);
     }
     elsif ($col->type eq "daterange")
     {
         # Return empty strings for missing values, otherwise eval fails after
         # substitutions have been made
         $dvalue = {
-            from  => $dvalue && $dvalue->from_dt   ? $dvalue->from_dt->epoch    : qq(""),
-            to    => $dvalue && $dvalue->to_dt     ? $dvalue->to_dt->epoch      : qq(""),
-            value => $dvalue && $dvalue->as_string ? '"'.$dvalue->as_string.'"' : qq(""),
+            from  => $dvalue ? $dvalue->from_dt    : undef,
+            to    => $dvalue ? $dvalue->to_dt      : undef,
+            value => $dvalue ? '"'.$dvalue->as_string.'"' : qq(""),
         };
         # First try subbing in full value
         $code =~ s/\Q[$name.value]/$dvalue->{value}/gi;
         # The following code returns if a substitution of a blank value was made
         # This will become a grey value for RAG fields
-        $code =~ s/\Q[$name.from]/$dvalue->{from}/gi
-            && $self->column->type eq "rag" && !$dvalue->{from} && return;
-        $code =~ s/\Q[$name.to]/$dvalue->{to}/gi
-            && $self->column->type eq "rag" && !$dvalue->{to} && return;
+        my $subs;
+        ($code, $subs) = _sub_date($code, "$name.from", $dvalue->{from});
+        return if $self->column->type eq "rag" && $subs && !$dvalue->{from};
+        ($code, $subs) = _sub_date($code, "$name.to", $dvalue->{to});
+        return if $self->column->type eq "rag" && $subs && !$dvalue->{to};
     }
     elsif ($col->type eq "tree" && $code =~ /\Q[$name.level\E([0-9]+)\]/)
     {
