@@ -57,7 +57,7 @@
                 </div>
                 [% IF user.permission.create %]
                     <div class="btn-group">
-                        <a href="/edit/" class="btn btn-default" role="button">New entry</a>
+                        <a href="/edit/" class="btn btn-default" role="button">New record</a>
                     </div>
                 [% END %]
                 [% IF viewtype == "table" AND records.size AND user.permission.download %]

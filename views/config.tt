@@ -28,7 +28,7 @@
                 <label for="homepage_text2">Homepage message (optional additional column):</label>
                 <textarea class="form-control" id="homepage_text2" name="homepage_text2">[% instance.homepage_text2 | html_entity %]</textarea>
             </div>
-            <button type="submit" name="update" value="update" class="btn btn-primary">Update</button>
+            <button type="submit" name="update" value="update" class="btn btn-primary">Save</button>
             <a href="/" class="btn btn-default">Cancel</a>
         </form>
     </div>

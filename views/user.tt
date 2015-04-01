@@ -81,7 +81,7 @@
                     </div>
                 [% END %]
             [% END %]
-            <button type="submit" name="submit" value="submit" class="btn btn-primary">[% IF edituser.id %]Update[% ELSE %]Create[% END %]</button>
+            <button type="submit" name="submit" value="submit" class="btn btn-primary">[% IF edituser.id %]Save[% ELSE %]Save[% END %]</button>
             [% IF page == "user" AND edituser.id %]
                 [% IF edituser.account_request %]
                     <button type="submit" name="delete" value="[% edituser.id %]" class="btn btn-default">Reject</button>
