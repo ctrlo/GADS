@@ -62,14 +62,14 @@ sub sub_date
     # Try epoch, year, month and day
     $field =~ /^(\[?)(.*?)(\]?)$/;
     my ($begin, $name, $end) = ($1 || "", $2, $3 || "");
-    my $epoch = $date ? $date->epoch : qq("");
-    $subs += $code =~ s/\Q$begin$name$end/$epoch/gi;
     my $year = $date ? $date->year : qq("");
     $subs += $code =~ s/\Q$begin$name.year$end/$year/gi;
     my $month = $date ? $date->month : qq("");
     $subs += $code =~ s/\Q$begin$name.month$end/$month/gi;
     my $day = $date ? $date->day : qq("");
     $subs += $code =~ s/\Q$begin$name.day$end/$day/gi;
+    my $epoch = $date ? $date->epoch : qq("");
+    $subs += $code =~ s/\Q$begin$name$end/$epoch/gi;
     wantarray ? ($code, $subs) : $code;
 }
 
