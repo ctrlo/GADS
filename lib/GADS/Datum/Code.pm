@@ -21,6 +21,7 @@ package GADS::Datum::Code;
 use String::CamelCase qw(camelize); 
 use Safe;
 use Scalar::Util qw(looks_like_number);
+use Log::Report;
 use Moo;
 use namespace::clean;
 
@@ -56,28 +57,33 @@ sub write_cache
 
 sub sub_date
 {   my ($self, $code, $field, $date) = @_;
+    trace "Entering sub_date";
     my $subs = 0; # Number of substitutions made
     # Try epoch, year, month and day
+    $field =~ /^(\[?)(.*?)(\]?)$/;
+    my ($begin, $name, $end) = ($1 || "", $2, $3 || "");
     my $epoch = $date ? $date->epoch : qq("");
-    $subs += $code =~ s/\Q[$field]/$epoch/gi;
+    $subs += $code =~ s/\Q$begin$name$end/$epoch/gi;
     my $year = $date ? $date->year : qq("");
-    $subs += $code =~ s/\Q[$field.year]/$year/gi;
+    $subs += $code =~ s/\Q$begin$name.year$end/$year/gi;
     my $month = $date ? $date->month : qq("");
-    $subs += $code =~ s/\Q[$field.month]/$month/gi;
+    $subs += $code =~ s/\Q$begin$name.month$end/$month/gi;
     my $day = $date ? $date->day : qq("");
-    $subs += $code =~ s/\Q[$field.day]/$day/gi;
+    $subs += $code =~ s/\Q$begin$name.day$end/$day/gi;
     wantarray ? ($code, $subs) : $code;
 }
 
 sub sub_values
 {   my ($self, $col, $code) = @_;
 
+    trace "Entering sub_values";
+
     my $dvalue = $self->dependent_values->{$col->id};
     my $name   = $col->name;
 
     if ($dvalue && $col->type eq "date")
     {
-        $code = $self->sub_date($code, $name, $dvalue->value);
+        $code = $self->sub_date($code, "[$name]", $dvalue->value);
     }
     elsif ($col->type eq "daterange")
     {
@@ -93,9 +99,9 @@ sub sub_values
         # The following code returns if a substitution of a blank value was made
         # This will become a grey value for RAG fields
         my $subs;
-        ($code, $subs) = $self->sub_date($code, "$name.from", $dvalue->{from});
+        ($code, $subs) = $self->sub_date($code, "[$name.from]", $dvalue->{from});
         return if $self->column->type eq "rag" && $subs && !$dvalue->{from};
-        ($code, $subs) = $self->sub_date($code, "$name.to", $dvalue->{to});
+        ($code, $subs) = $self->sub_date($code, "[$name.to]", $dvalue->{to});
         return if $self->column->type eq "rag" && $subs && !$dvalue->{to};
     }
     elsif ($col->type eq "tree" && $code =~ /\Q[$name.level\E([0-9]+)\]/)
