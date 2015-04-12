@@ -27,7 +27,6 @@ use String::Random;
 
 use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
-use Dancer2::Plugin::Auth::Complete;
 
 sub titles
 {
@@ -98,20 +97,24 @@ sub graphs
 
 sub delete
 {
-    my ($self, $user_id) = @_;
+    my ($self, $user_id, %options) = @_;
 
-    my $user = user 'get' => id => $user_id, account_request => [0, 1]
-        or error __x"User {id} not found", id => $user_id;
+    my ($user) = rset('User')->search({
+        id => $user_id,
+        deleted => 0,
+    })->all;
+    $user or error __x"User {id} not found", id => $user_id;
 
-    if ($user->{account_request})
+    if ($user->account_request)
     {
-        user 'delete' => id => $user_id;
+        $user->delete;
 
+        return unless $options{send_reject_email};
         my ($instance) = rset('Instance')->all;
         my $email = GADS::Email->new;
         $email->send({
             subject => $instance->email_reject_subject,
-            emails  => [$user->{email}],
+            emails  => [$user->email],
             text    => $instance->email_reject_text,
         });
 
@@ -133,10 +136,7 @@ sub delete
     rset('AlertCache')->search({ view_id => \@views })->delete;
     $views->delete;
 
-    user 'update' => (
-        id      => $user_id,
-        deleted => 1,
-    );
+    $user->update({ deleted => 1 });
 
     my ($instance) = rset('Instance')->all;
     if (my $msg = $instance->email_delete_text)
@@ -144,7 +144,7 @@ sub delete
         my $email = GADS::Email->new;
         $email->send({
             subject => $instance->email_delete_subject || "Account deleted",
-            emails  => [$user->{email}],
+            emails  => [$user->email],
             text    => $msg,
         });
     }
@@ -163,6 +163,40 @@ sub all
     \@users;
 }
 
+# XXX Possible temporary function, until available in DPAE
+sub get_user
+{   my ($self, %search) = @_;
+    %search = map { "me.".$_ => $search{$_} } keys(%search);
+    $search{deleted} = 0;
+    my ($user) = rset('User')->search(\%search, {prefetch => 'user_permissions'})->all;
+    $user or return;
+    my $return = {
+        id              => $user->id,
+        firstname       => $user->firstname,
+        surname         => $user->surname,
+        email           => $user->email,
+        username        => $user->username,
+        title           => $user->title ? $user->title->id : undef,
+        organisation    => $user->organisation ? $user->organisation->id : undef,
+        telephone       => $user->telephone,
+        account_request => $user->account_request,
+    };
+    if ($user->user_permissions)
+    {
+        my %perms = map { $_->permission->name => 1 } $user->user_permissions;
+        $return->{permission} = \%perms;
+    }
+    $return;
+}
+
+sub permissions
+{   my ($self) = @_;
+    my @permissions = rset('Permission')->search({},{
+        order_by => 'order',
+    })->all;
+    \@permissions;
+}
+
 sub register_requests
 {
     my @users = rset('User')->search({ account_request => 1 })->all;
@@ -176,9 +210,6 @@ sub register
     my %new;
     my %params = %$params;
 
-    # Prevent "email exists" errors for security
-    return if user get => ( email => $params->{email} );
-
     my @fields = qw(firstname surname email telephone title organisation account_request_notes);
     @new{@fields} = @params{@fields};
     $new{firstname} = ucfirst $new{firstname};
@@ -188,20 +219,20 @@ sub register
     $new{telephone} or delete $new{telephone};
     $new{title} or delete $new{title};
     $new{organisation} or delete $new{organisation};
-    my $newuser = user update => %new;
+    my $user = rset('User')->create(\%new);
 
     # Email admins with account request
     my $admins = $self->all({ admins => 1 });
     my @emails = map { $_->email } @$admins;
     my $text = "A new account request has been received from the following person:\n\n";
-    $text .= "First name: $newuser->{firstname}, ";
-    $text .= "surname: $newuser->{surname}, ";
-    $text .= "email: $newuser->{email}, ";
-    $text .= "title: ".$newuser->{title}->name.", " if $newuser->{title};
-    $text .= "telephone: $newuser->{telephone}, " if $newuser->{telephone};
-    $text .= "organisation: ".$newuser->{organisation}->name.", " if $newuser->{organisation};
+    $text .= "First name: $new{firstname}, ";
+    $text .= "surname: $new{surname}, ";
+    $text .= "email: $new{email}, ";
+    $text .= "title: ".$user->title->name.", " if $user->title;
+    $text .= "telephone: $new{telephone}, " if $new{telephone};
+    $text .= "organisation: ".$user->organisation->name.", " if $user->organisation;
     $text .= "\n\n";
-    $text .= "User notes: $newuser->{account_request_notes}\n";
+    $text .= "User notes: $new{account_request_notes}\n";
     my $email = GADS::Email->new;
     $email->send({
         emails  => \@emails,

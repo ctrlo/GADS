@@ -111,7 +111,7 @@
                                     <li><a href="[% url.page %]/account/detail">My details</a></li>
                                     <li><a href="[% url.page %]/account/graph">My graphs</a></li>
                                     <li class="divider"></li>
-                                    <li><a href="[% url.page %]/login?logout">Logout</a></li>
+                                    <li><a href="[% url.page %]/logout">Logout</a></li>
                                 </ul>
                                 </li>
                             </ul>

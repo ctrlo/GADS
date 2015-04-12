@@ -11,9 +11,10 @@
         <div class="col-md-6">
             <form role="form" method="post" style="display: inline"> <!-- Prevent reset password button line break -->
             [% IF edituser.account_request %]
-                <input type="hidden" name="account_request" value="[% edituser.id %]">
+                <input type="hidden" name="account_request" value="1">
             [% END %]
             <input type="hidden" name="page" value="[% page %]">
+            <input type="hidden" name="username" value="[% edituser.username %]">
             [% IF edituser.account_request_notes %]
                 <div class="form-group">
                     <label for="notes">Notes:</label>
@@ -48,7 +49,7 @@
                         <option></option>
                     [% END %]
                     [% FOREACH title IN titles %]
-                        <option value="[% title.id %]" [% IF edituser.title.id == title.id %]selected[% END %]>[% title.name | html_entity %]</option>
+                        <option value="[% title.id %]" [% IF edituser.title == title.id %]selected[% END %]>[% title.name | html_entity %]</option>
                     [% END %]
                 </select>
             </div>
@@ -65,18 +66,18 @@
                     [% END %]
                     [% FOREACH organisation IN organisations %]
                         <option value="[% organisation.id %]"
-                            [% IF edituser.organisation.id == organisation.id %]selected[% END %]>[% organisation.name | html_entity %]
+                            [% IF edituser.organisation == organisation.id %]selected[% END %]>[% organisation.name | html_entity %]
                         </option>
                     [% END %]
                 </select>
             </div>
             [% IF page == "user" %]
                 [% FOREACH permission IN permissions %]
-                    [% key = permission.keys.first %]
+                    [% key = permission.name %]
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" name="permission_[% key %]"
-                                [% IF edituser.permission.$key %]checked[% END %]>[% permission.$key.description %]
+                            <input type="checkbox" name="permission" value="[% permission.id %]"
+                                [% IF edituser.permission.$key %]checked[% END %]>[% permission.description %]
                         </label>
                     </div>
                 [% END %]

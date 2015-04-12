@@ -395,6 +395,36 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 user_groups
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::UserGroup>
+
+=cut
+
+__PACKAGE__->has_many(
+  "user_groups",
+  "GADS::Schema::Result::UserGroup",
+  { "foreign.user_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 user_permissions
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::UserPermission>
+
+=cut
+
+__PACKAGE__->has_many(
+  "user_permissions",
+  "GADS::Schema::Result::UserPermission",
+  { "foreign.user_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 views
 
 Type: has_many
@@ -411,8 +441,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-02-11 12:20:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dXYFcQoNblcOBnksAauCGg
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-02-15 12:46:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tvXsPorQiQNcseVZrE41gw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

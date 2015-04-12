@@ -438,6 +438,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 layout_groups
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::LayoutGroup>
+
+=cut
+
+__PACKAGE__->has_many(
+  "layout_groups",
+  "GADS::Schema::Result::LayoutGroup",
+  { "foreign.layout_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 layouts
 
 Type: has_many
@@ -559,8 +574,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-18 11:44:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wSTwLDuNYOcLxe43j3Gmbw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-02-15 11:41:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kuNlfbk70L4JEUupx/xDfA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
