@@ -70,6 +70,7 @@ hook init_error => sub {
 
 hook before => sub {
 
+    return if request->uri =~ m!^/(error|js|css|login|images|fonts|resetpw|ping)!;
     return if param 'error';
 
     # Dynamically generate "virtual" columns for each row of data, based on the
