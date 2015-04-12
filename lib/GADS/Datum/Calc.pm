@@ -89,8 +89,7 @@ sub _transform_value
             $code = $self->sub_values($col, $code);
         }
         # Insert current date if required
-        my $now = time;
-        $code =~ s/CURDATE/$now/g;
+        $code = $self->sub_date($code, 'CURDATE', DateTime->now);
 
         # Insert ID if required
         my $current_id = $self->current_id;

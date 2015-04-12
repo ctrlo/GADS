@@ -48,7 +48,10 @@
                         location: 'e',
                         placement: 'outside'
                     },
-                    seriesColors: [ "#33c2df", "#62ba46", "#ffdd00", "#f16522", "#a6a8ab", "#958c12","#ef669e"],
+                    seriesColors: [ "#34C3E0", "#62BB46", "#FFDD00", "#D1D3D4",
+                        "#F99D1C", "#F0679E", "#2C4269", "#7F3F98", "#1C75BC",
+                        "#EF4136", "#2BB673"
+                    ],
                     [% IF graph.type == "bar" %]
                         seriesDefaults:{
                             renderer:$.jqplot.BarRenderer,

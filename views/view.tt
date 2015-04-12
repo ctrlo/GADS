@@ -77,9 +77,9 @@
     </div>
     <button id="saveview" type="submit" name="update" value="update" class="btn btn-primary" onclick="UpdateFilter()">
         [% IF v.id %]
-            Update
+            Save
         [% ELSE %]
-            Create
+            Save
         [% END %]
     </button>
     [% IF v.id %]

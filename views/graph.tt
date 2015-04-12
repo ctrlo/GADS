@@ -99,7 +99,7 @@
             <p>This option will cause different data items for the same x value to be stacked on top of each other, rather than displayed side-by-side.</p>
         </div>
     </div>
-    <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">[% IF graph.id %]Update[% ELSE %]Create[% END %]</button>
+    <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">[% IF graph.id %]Save[% ELSE %]Save[% END %]</button>
     [% IF graph %]
         <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
     [% END %]

@@ -20,7 +20,7 @@
             [% END %]
         </div>
     </div>
-    <button type="submit" id="submit_button" name="submit" value="submit" class="btn btn-primary">Submit</button>
+    <button type="submit" id="submit_button" name="submit" value="submit" class="btn btn-primary">Save</button>
     <a href="/data" class="btn btn-default">Cancel</a>
 </form>
 <p></p>

@@ -200,7 +200,7 @@
             </div>
         </div>
     </div>
-    <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">[% IF column.id %]Update[% ELSE %]Create[% END %]</button>
+    <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">[% IF column.id %]Save[% ELSE %]Save[% END %]</button>
     [% IF column.id %]
         <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
     [% END %]

@@ -91,7 +91,7 @@ after 'write' => sub {
         foreach my $col ($self->layout->all)
         {
             my $name  = $col->name; my $suffix = $col->suffix;
-            my $regex = qr/\Q[$name\E($suffix)?\Q]/i;
+            my $regex = qr/\Q[$name\E$suffix\Q]/i;
             push @depends_on, $col->id
                 if $self->green =~ $regex || $self->amber =~ $regex || $self->red =~ $regex;
         }

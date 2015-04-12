@@ -21,6 +21,7 @@ package GADS::Datum::Code;
 use String::CamelCase qw(camelize); 
 use Safe;
 use Scalar::Util qw(looks_like_number);
+use Log::Report;
 use Moo;
 use namespace::clean;
 
@@ -54,30 +55,54 @@ sub write_cache
     $value;
 }
 
+sub sub_date
+{   my ($self, $code, $field, $date) = @_;
+    trace "Entering sub_date";
+    my $subs = 0; # Number of substitutions made
+    # Try epoch, year, month and day
+    $field =~ /^(\[?)(.*?)(\]?)$/;
+    my ($begin, $name, $end) = ($1 || "", $2, $3 || "");
+    my $year = $date ? $date->year : qq("");
+    $subs += $code =~ s/\Q$begin$name.year$end/$year/gi;
+    my $month = $date ? $date->month : qq("");
+    $subs += $code =~ s/\Q$begin$name.month$end/$month/gi;
+    my $day = $date ? $date->day : qq("");
+    $subs += $code =~ s/\Q$begin$name.day$end/$day/gi;
+    my $epoch = $date ? $date->epoch : qq("");
+    $subs += $code =~ s/\Q$begin$name$end/$epoch/gi;
+    wantarray ? ($code, $subs) : $code;
+}
+
 sub sub_values
 {   my ($self, $col, $code) = @_;
+
+    trace "Entering sub_values";
 
     my $dvalue = $self->dependent_values->{$col->id};
     my $name   = $col->name;
 
     if ($dvalue && $col->type eq "date")
     {
-        $dvalue = $dvalue->value->epoch;
-        $code =~ s/\Q[$name]/$dvalue/gi;
+        $code = $self->sub_date($code, "[$name]", $dvalue->value);
     }
     elsif ($col->type eq "daterange")
     {
-        # Return value will eventually be undef if code returns blank string
+        # Return empty strings for missing values, otherwise eval fails after
+        # substitutions have been made
         $dvalue = {
-            from => $dvalue && $dvalue->from_dt ? $dvalue->from_dt->epoch : "",
-            to   => $dvalue && $dvalue->to_dt   ? $dvalue->to_dt->epoch   : "",
+            from  => $dvalue ? $dvalue->from_dt    : undef,
+            to    => $dvalue ? $dvalue->to_dt      : undef,
+            value => $dvalue ? '"'.$dvalue->as_string.'"' : qq(""),
         };
+        # First try subbing in full value
+        $code =~ s/\Q[$name.value]/$dvalue->{value}/gi;
         # The following code returns if a substitution of a blank value was made
         # This will become a grey value for RAG fields
-        $code =~ s/\Q[$name.from]/$dvalue->{from}/gi
-            && $self->column->type eq "rag" && !$dvalue->{from} && return;
-        $code =~ s/\Q[$name.to]/$dvalue->{to}/gi
-            && $self->column->type eq "rag" && !$dvalue->{to} && return;
+        my $subs;
+        ($code, $subs) = $self->sub_date($code, "[$name.from]", $dvalue->{from});
+        return if $self->column->type eq "rag" && $subs && !$dvalue->{from};
+        ($code, $subs) = $self->sub_date($code, "[$name.to]", $dvalue->{to});
+        return if $self->column->type eq "rag" && $subs && !$dvalue->{to};
     }
     elsif ($col->type eq "tree" && $code =~ /\Q[$name.level\E([0-9]+)\]/)
     {
