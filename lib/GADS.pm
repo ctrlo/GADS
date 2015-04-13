@@ -333,9 +333,7 @@ any '/data' => require_login sub {
         $viewtype = session('viewtype') || 'table';
     }
 
-    my $views      = GADS::Views->new(user => $user, schema => schema, layout => $layout);
-    my $saved_view = $user->{lastview} ? $user->{lastview} : undef;
-    my $view       = $views->view(session('view_id') || $saved_view) || $views->default; # Can still be undef
+    my $view       = current_view($user, $layout);
 
     my $params; # Variable for the template
 
@@ -352,7 +350,7 @@ any '/data' => require_login sub {
         my @colors = qw/event-important event-success event-warning event-info event-inverse event-special/;
         my %datecolors;
 
-        my @columns = $layout->view($view->id);
+        my @columns = $view ? $layout->view($view->id) : $layout->all;
 
         foreach my $column (@columns)
         {
@@ -489,6 +487,8 @@ any '/data' => require_login sub {
         layout    => $layout,
         schema    => schema,
     );
+
+    my $views      = GADS::Views->new(user => $user, schema => schema, layout => $layout);
 
     $params->{v}          = $view,  # View is reserved TT word
     $params->{user_views} = $views->user_views;
