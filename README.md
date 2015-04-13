@@ -25,6 +25,7 @@ psql -U postgres gads < sql/schema.sql
 ```
 insert into instance (name) values ('GADS');
 insert into "user" (email,username,firstname,surname,value) values ('me@example.com','me@example.com','Joe','Bloggs','Bloggs, Jo');
-\copy permission (name,description,"order") FROM 'sql/permissions.csv' DELIMITER ',' CSV HEADER;
+\copy permission (name,description,"order") FROM 'sql/permissions.csv' DELIMITER ',' CSV;
+insert into user_permission (user_id,permission_id) values (1,1);
 ```
 
