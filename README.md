@@ -12,3 +12,19 @@ GADS provides a much more user-friendly interface and makes the data easier to m
 - Basic graph functionality
 - Red/Amber/Green calculated status indicators for values
 
+# Installation
+
+## PostgreSQL
+
+```
+create user gads with password 'xxx';
+create database gads owner gads;
+psql -U postgres gads < sql/schema.sql
+```
+
+```
+insert into instance (name) values ('GADS');
+insert into "user" (email,username,firstname,surname,value) values ('me@example.com','me@example.com','Joe','Bloggs','Bloggs, Jo');
+\copy permission (name,description,"order") FROM 'sql/permissions.csv' DELIMITER ',' CSV HEADER;
+```
+

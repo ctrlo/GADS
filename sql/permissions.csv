@@ -1,0 +1,11 @@
+useradmin,User can manage other user accounts,8
+download,User can download data,9
+layout,"User can administer layout, views and graphs",10
+message,User can send messages,11
+update,User can update records,1
+update_noneed_approval,User does not need approval when updating records,2
+create,User can create new records,3
+create_noneed_approval,User does not need approval when creating new records,4
+delete,User can delete records,5
+delete_noneed_approval,User does not need approval when deleting records,6
+approver,User can approve changes,7
