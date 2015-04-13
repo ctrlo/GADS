@@ -1385,7 +1385,7 @@ sub current_view {
     my ($user, $layout) = @_;
 
     my $views      = GADS::Views->new(user => $user, schema => schema, layout => $layout);
-    my $saved_view = $user->{lastview} ? $user->{lastview}->id : undef;
+    my $saved_view = $user->{lastview};
     my $view       = $views->view(session('view_id') || $saved_view) || $views->default; # Can still be undef
     $view;
 };
