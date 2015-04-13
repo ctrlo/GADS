@@ -29,3 +29,12 @@ insert into "user" (email,username,firstname,surname,value) values ('me@example.
 insert into user_permission (user_id,permission_id) values (1,1);
 ```
 
+## Import data
+```
+bin/layout-download.pl > ~/layout.yaml
+bin/layout-import.pl ~/layout.yaml
+bin/generate.pl
+bin/onboard.pl new.csv
+bin/onboard.pl --take-first-enum new.csv
+```
+
