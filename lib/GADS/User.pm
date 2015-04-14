@@ -153,13 +153,15 @@ sub delete
 sub all
 {
     my ($self, $args) = @_;
-    my @search = (
+    my $search = {
         deleted         => 0,
         account_request => 0,
-    );
-    my $adminval = config->{plugins}->{'Auth::Complete'}->{permissions}->{useradmin}->{value};
-    push @search, \[ "permission & ? > 0", $adminval ] if $args->{admins};
-    my @users = rset('User')->search({ -and => \@search }, { order_by => 'surname' })->all;
+    };
+    $search->{'permission.name'} = 'useradmin' if $args->{admins};
+    my @users = rset('User')->search($search,{
+        join     => { user_permissions => 'permission' },
+        order_by => 'surname'
+    })->all;
     \@users;
 }
 
