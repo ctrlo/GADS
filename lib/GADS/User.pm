@@ -160,7 +160,8 @@ sub all
     $search->{'permission.name'} = 'useradmin' if $args->{admins};
     my @users = rset('User')->search($search,{
         join     => { user_permissions => 'permission' },
-        order_by => 'surname'
+        order_by => 'surname',
+        collapse => 1,
     })->all;
     \@users;
 }
