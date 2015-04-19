@@ -157,7 +157,7 @@ sub view
 
     return unless $view_id;
     my $view    = GADS::View->new(
-        user   => $self->{user},
+        user   => $self->user,
         id     => $view_id,
         schema => $self->schema,
         layout => $self,
