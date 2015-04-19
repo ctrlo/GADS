@@ -93,6 +93,7 @@
                                         [% END %]
                                         [% IF user.permission.useradmin %]
                                             <li [% IF page=="user" %]class="active"[% END %]><a href="[% url.page %]/user/">Manage Users</a></li>
+                                            <li [% IF page=="group" %]class="active"[% END %]><a href="[% url.page %]/group/">Manage Groups</a></li>
                                         [% END %]
                                     </ul>
                                     </li>

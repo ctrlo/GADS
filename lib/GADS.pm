@@ -20,9 +20,12 @@ use GADS::Email;
 use GADS::Graph;
 use GADS::Graph::Data;
 use GADS::Graphs;
+use GADS::Group;
+use GADS::Groups;
 use GADS::Layout;
 use GADS::Record;
 use GADS::Records;
+use GADS::Type::Permissions;
 use GADS::User;
 use GADS::Util         qw(:all);
 use GADS::View;
@@ -75,9 +78,10 @@ hook before => sub {
 
     # Dynamically generate "virtual" columns for each row of data, based on the
     # configured layout
+    my $user = logged_in_user;
     GADS::DB->setup(schema);
 
-    if (config->{gads}->{aup} && logged_in_user)
+    if (config->{gads}->{aup} && $user)
     {
         # Redirect if AUP not signed
         my $aup_accepted;
@@ -350,7 +354,9 @@ any '/data' => require_login sub {
         my @colors = qw/event-important event-success event-warning event-info event-inverse event-special/;
         my %datecolors;
 
-        my @columns = $view ? $layout->view($view->id) : $layout->all;
+        my @columns = $view
+            ? $layout->view($view->id, user_can_read => 1)
+            : $layout->all(user_can_read => 1);
 
         foreach my $column (@columns)
         {
@@ -470,7 +476,9 @@ any '/data' => require_login sub {
             return send_file( \$csv, content_type => 'text/csv', filename => "$now$header.csv" );
         }
         else {
-            my @columns = $view ? $layout->view($view->id) : $layout->all;
+            my @columns = $view
+                ? $layout->view($view->id, user_can_read => 1)
+                : $layout->all(user_can_read => 1);
             $params = {
                 sort     => $records->sort,
                 subset   => $subset,
@@ -655,6 +663,49 @@ any '/graph/?:id?' => require_role layout => sub {
     template 'graph' => $params;
 };
 
+any '/group/?:id?' => require_role useradmin => sub {
+
+    my $id = param 'id';
+    my $group = GADS::Group->new(schema => schema);
+    $group->from_id($id);
+
+    if (param 'submit')
+    {
+        $group->name(param 'name');
+
+        if (process(sub {$group->write}))
+        {
+            my $action = param('id') ? 'updated' : 'created';
+            return forwardHome(
+                { success => "Group has been $action successfully" }, '/group' );
+        }
+    }
+
+    if (param 'delete')
+    {
+        if (process(sub {$group->delete}))
+        {
+            return forwardHome(
+                { success => "The group has been deleted successfully" }, '/group' );
+        }
+    }
+
+    my $params = {
+        page => 'group'
+    };
+
+    if (defined $id)
+    {
+        # id will be 0 for new group
+        $params->{group} = $group;
+    }
+    else {
+        my $groups = GADS::Groups->new(schema => schema);
+        $params->{groups} = $groups->all;
+    }
+    template 'group' => $params;
+};
+
 any '/view/:id' => require_login sub {
 
     my $view_id = param('id');
@@ -702,10 +753,8 @@ any '/view/:id' => require_login sub {
         }
     }
 
-
-    my @all_columns = $layout->all;
     my $output = template 'view' => {
-        all_columns  => \@all_columns,
+        all_columns  => [$layout->all(user_can_read => 1)],
         sort_types   => $view->sort_types,
         v            => $view, # TT does not like variable "view"
         page         => 'view'
@@ -752,7 +801,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
         all_columns => \@all_columns,
     };
 
-    if (param('id') || param('submit'))
+    if (param('id') || param('submit') || param('update_perms'))
     {
         my $id = param('id');
         my $class = (param('type') && grep {param('type') eq $_} GADS::Column::types)
@@ -762,6 +811,13 @@ any '/layout/?:id?' => require_role 'layout' => sub {
         my $column = $class->new(schema => schema, user => $user, layout => $layout);
         $column->from_id($id) if $id;
         
+        # Update of permissions?
+        if (param 'update_perms')
+        {
+            my $permissions = ref param('permissions') eq 'ARRAY' ? param('permissions') : [param('permissions') || ()];
+            $column->set_permissions(param('group_id'), $permissions);
+        }
+
         if (param 'delete')
         {
             if (process( sub { $column->delete }))
@@ -774,7 +830,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
         if (param 'submit')
         {
             $column->$_(param $_)
-                foreach (qw/name type permission description helptext optional hidden remember/);
+                foreach (qw/name type permission description helptext optional remember/);
             if (param 'display_condition')
             {
                 $column->display_field(param 'display_field');
@@ -819,10 +875,14 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             }
         }
         $params->{column} = $column;
+        $params->{groups} = GADS::Groups->new(schema => schema);
+        $params->{permissions} = [GADS::Type::Permissions->all];
     }
     elsif (defined param('id'))
     {
         $params->{column} = 0; # New
+        $params->{groups} = GADS::Groups->new(schema => schema);
+        $params->{permissions} = [GADS::Type::Permissions->all];
     }
 
     if (param 'saveposition')
@@ -902,6 +962,9 @@ any '/user/?:id?' => require_role useradmin => sub {
         }
         if ($result)
         {
+            # Add groups to user
+            my @groups = ref param('groups') ? @{param('groups')} : (param('groups') || ());
+            GADS::User->groups($user, \@groups);
             my $action;
             my $audit_perms = join ', ', keys %{$newuser->{permission}};
             if ($id) {
@@ -977,6 +1040,7 @@ any '/user/?:id?' => require_role useradmin => sub {
     my $output = template 'user' => {
         edit              => $id,
         users             => $users,
+        groups            => GADS::Groups->new(schema => schema)->all,
         register_requests => $register_requests,
         titles            => GADS::User->titles,
         organisations     => GADS::User->organisations,
@@ -1119,7 +1183,6 @@ any '/edit/:id?' => require_login sub {
         $record->find_current_id($id);
     }
 
-    my @all_columns = $layout->all;
     if (param 'submit')
     {
         $record->initialise unless $id;
@@ -1130,14 +1193,26 @@ any '/edit/:id?' => require_login sub {
             next unless $key =~ /^file([0-9]+)/;
             my $upload = $uploads->{$key};
             my $col_id = $1;
-            $record->fields->{$col_id}->set_value({
-                name     => $upload->filename,
-                mimetype => $upload->type,
-                content  => $upload->content,
-            });
+            my $filecol = $layout->column($col_id);
+            if ($filecol->user_can('write'))
+            {
+                $record->fields->{$col_id}->set_value({
+                    name     => $upload->filename,
+                    mimetype => $upload->type,
+                    content  => $upload->content,
+                });
+            }
+            else {
+                messageAdd({ danger => __x("You do not have permission to edit {name}"),
+                    name => $filecol->name });
+            }
         }
         my $failed;
-        foreach my $col ($layout->all)
+        # We actually only need the write columns for this. The read-only
+        # columns can be ignored, but if we do write them, an error will be
+        # thrown to the user if they've been changed. This is better than
+        # just silently ignoring them, IMHO.
+        foreach my $col ($layout->all(user_can_readwrite => 1))
         {
             if ($col->userinput) # Not calculated fields
             {
@@ -1165,16 +1240,21 @@ any '/edit/:id?' => require_login sub {
         $record->columns(\@remember);
         $record->include_approval(1);
         $record->find_record_id($previous);
-        $record->columns_retrieved(\@all_columns); # Force all columns to be shown
+        $record->columns_retrieved([$layout->all(user_can_readwrite => 1)]); # Force all columns to be shown
         $record->current_id(undef);
     }
     else {
         $record->initialise;
     }
 
+    foreach my $col ($layout->all(user_can_write => 1))
+    {
+        $record->fields->{$col->id}->set_value("")
+            if !$col->user_can('read');
+    }
     my $output = template 'edit' => {
         record      => $record,
-        all_columns => \@all_columns,
+        all_columns => [$layout->all(user_can_readwrite => 1)],
         page        => 'edit'
     };
     $output;
@@ -1224,7 +1304,7 @@ any qr{/(record|history)/([0-9]+)} => require_login sub {
         }
     }
 
-    my @columns = $layout->all;
+    my @columns = $layout->all(user_can_read => 1);
     my $output = template 'record' => {
         record         => $record,
         versions       => \@versions,

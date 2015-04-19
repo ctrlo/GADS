@@ -84,6 +84,24 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<index4>
+
+=over 4
+
+=item * L</layout_id>
+
+=item * L</group_id>
+
+=item * L</permission>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("index4", ["layout_id", "group_id", "permission"]);
+
 =head1 RELATIONS
 
 =head2 group
@@ -117,8 +135,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-02-15 11:41:42
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jb9K26RhqtUlivPKt2Y+iA
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-04-20 00:09:24
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k3dFIL/cnUqlVGBunhvJQw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

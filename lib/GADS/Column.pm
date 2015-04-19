@@ -20,6 +20,7 @@ package GADS::Column;
 
 use Log::Report;
 use String::CamelCase qw(camelize);
+use GADS::Type::Permission;
 use GADS::Util qw(:all);
 
 use Moo;
@@ -38,6 +39,19 @@ has schema => (
 # Needed for update of cached columns
 has user => (
     is => 'rw',
+);
+
+# All permissions for this column
+has permissions => (
+    is  => 'lazy',
+    isa => HashRef,
+);
+
+# The permissions the logged-in user has
+has user_permissions => (
+    is      => 'rw',
+    isa     => ArrayRef,
+    default => sub { [] },
 );
 
 # Needed for update of cached columns
@@ -133,15 +147,6 @@ has remember => (
     coerce => sub { $_[0] ? 1 : 0 },
 );
 
-has permission => (
-    is  => 'rw',
-    isa => sub {
-        $_[0] =~ /^[012]$/
-            or error __x"Bad permission {permission} for item", permission => $$_[0];
-    },
-    default => 0,
-);
-
 has userinput => (
     is      => 'rw',
     isa     => Bool,
@@ -154,31 +159,7 @@ has numeric => (
     isa => Bool,
 );
 
-has readonly => (
-    is      => 'ro',
-    lazy    => 1,
-    builder => sub { $_[0]->permission == READONLY ? 1 : 0 },
-);
-
-has approve => (
-    is      => 'ro',
-    lazy    => 1,
-    builder => sub { $_[0]->permission == APPROVE ? 1 : 0 },
-);
-
-has open => (
-    is      => 'ro',
-    lazy    => 1,
-    builder => sub { $_[0]->permission == OPEN ? 1 : 0 },
-);
-
 has optional => (
-    is     => 'rw',
-    isa    => Bool,
-    coerce => sub { $_[0] ? 1 : 0 },
-);
-
-has hidden => (
     is     => 'rw',
     isa    => Bool,
     coerce => sub { $_[0] ? 1 : 0 },
@@ -295,6 +276,22 @@ has hascache => (
     },
 );
 
+sub _build_permissions
+{   my $self = shift;
+    my @all = $self->schema->resultset('LayoutGroup')->search({
+        layout_id => $self->id,
+    });
+    my %perms;
+    foreach my $p (@all)
+    {
+        $perms{$p->group_id} ||= [];
+        push @{$perms{$p->group_id}}, GADS::Type::Permission->new(
+            short => $p->permission
+        );
+    }
+    \%perms;
+}
+
 sub build_values
 {   my ($self, $original) = @_;
 
@@ -302,11 +299,9 @@ sub build_values
     $self->name($original->{name});
     $self->optional($original->{optional});
     $self->remember($original->{remember});
-    $self->hidden($original->{hidden});
     $self->position($original->{position});
     $self->helptext($original->{helptext});
     $self->description($original->{description});
-    $self->permission($original->{permission});
     $self->field("field$original->{id}");
     $self->type($original->{type});
     $self->display_field($original->{display_field});
@@ -370,6 +365,7 @@ sub delete
     $self->schema->resultset('String')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('Enum')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('LayoutDepend')->search({ layout_id => $self->id })->delete;
+    $self->schema->resultset('LayoutGroup')->search({ layout_id => $self->id })->delete;
     # XXX The following should be done in ::Enum, except it won't be if the column
     # is not a different type. This may still error due to parents etc
     $self->schema->resultset('Enumval')->search({ layout_id => $self->id })->delete;
@@ -387,10 +383,8 @@ sub write
         or error __"Please enter a name for item";
     $newitem->{type} = $self->type
         or error __"Please select a type for the item";
-    $newitem->{permission}    = $self->permission;
     $newitem->{optional}      = $self->optional;
     $newitem->{remember}      = $self->remember;
-    $newitem->{hidden}        = $self->hidden;
     $newitem->{description}   = $self->description;
     $newitem->{helptext}      = $self->helptext;
     $newitem->{display_field} = $self->display_field;
@@ -404,6 +398,36 @@ sub write
         my $id = $self->schema->resultset('Layout')->create($newitem)->id;
         $self->id($id);
     }
+}
+
+sub user_can
+{   my ($self, $permission) = @_;
+    return 1 if grep { $_ eq $permission } @{$self->user_permissions};
+    if ($permission eq 'write') # shortcut
+    {
+        return 1 if grep { $_ eq 'write_new' || $_ eq 'write_existing' }
+            @{$self->user_permissions};
+    }
+    0;
+}
+
+sub set_permissions
+{   my ($self, $group_id, $permissions) = @_;
+    foreach my $permission (@$permissions)
+    {
+        # Unique constraint on table. Catch existing.
+        eval {
+            $self->schema->resultset('LayoutGroup')->create({
+                layout_id  => $self->id,
+                group_id   => $group_id,
+                permission => $permission,
+            });
+        }
+    }
+    # Delete those no longer there
+    my $search = { group_id => $group_id, layout_id => $self->id };
+    $search->{permission} = { '!=' => [ '-and', @$permissions ] } if @$permissions;
+    $self->schema->resultset('LayoutGroup')->search($search)->delete;
 }
 
 1;

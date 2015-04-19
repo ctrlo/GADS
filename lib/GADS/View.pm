@@ -221,7 +221,7 @@ sub write
     my $schema = $self->schema;
     my @colviews = @{$self->columns};
 
-    foreach my $c ($self->layout->all)
+    foreach my $c ($self->layout->all(user_can_read => 1))
     {
         my $item = { view_id => $self->id, layout_id => $c->id };
         if (grep {$c->id == $_} @colviews)
@@ -254,21 +254,22 @@ sub write
                 $schema->resultset('AlertCache')->populate(\@pop) if @pop;
             }
         }
-        else {
-            $schema->resultset('ViewLayout')->search($item)->delete;
-            # Also delete alert cache for this column
-            $schema->resultset('AlertCache')->search({
-                view_id   => $self->id,
-                layout_id => $c->id
-            })->delete;
-        }
     }
+
+    # Delete any no longer needed
+    my $search = {view_id => $self->id};
+    $search->{'-not'} = {'layout_id' => \@colviews} if @colviews;
+    $self->schema->resultset('ViewLayout')->search($search)->delete;
+    $self->schema->resultset('AlertCache')->search($search)->delete;
 
     # Then update any sorts
     # $self->sorts($values);
 
     # Then update the filter table, which we use to query what fields are
-    # applied to a view's filters when doing alerts
+    # applied to a view's filters when doing alerts.
+    # We don't sanitise the columns the user has visible at this point -
+    # there is not much point, as they could be removed later anyway. We
+    # do this during the processing of the alerts and filters elsewhere.
     my @existing = $self->schema->resultset('Filter')->search({ view_id => $self->id })->all;
     my $decoded = decode_json($self->filter);
     my $tables = {};
@@ -284,7 +285,7 @@ sub write
         }
     }
     # Delete those no longer there
-    my $search = { view_id => $self->id };
+    $search = { view_id => $self->id };
     $search->{layout_id} = { '!=' => [ '-and', keys %$tables ] } if keys %$tables;
     $self->schema->resultset('Filter')->search($search)->delete;
 }

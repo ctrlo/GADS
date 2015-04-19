@@ -101,7 +101,9 @@ sub get_file
         or error __x"File ID {id} cannot be found", id => $id;
     # Check whether this is hidden and whether the user has access
     my ($file) = $fileval->files; # In theory can be more than one, but not in practice (yet)
-    if ($file && $file->layout->hidden) # Could be unattached document
+    # if ($file && $file->layout->hidden) # Could be unattached document
+    # XXX Need to check if user has view access
+    if ($file) # Could be unattached document
     {
         error __"You do not have access to this document"
             unless $user->{permission}->{layout};

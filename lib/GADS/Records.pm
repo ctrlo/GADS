@@ -110,11 +110,6 @@ has format => (
     is => 'rw',
 );
 
-has include_hidden => (
-    is      => 'rw',
-    default => 0,
-);
-
 has default_sort => (
     is => 'rw',
 );
@@ -319,7 +314,8 @@ sub search_all_fields
         my $search_hash = $field->{type} eq 'current_id'
                         ? { id => $search }
                         : { $s => $search };
-        $search_hash->{'layout.hidden'} = 0 unless $self->user->{permission}->{layout};
+        my @columns_can_view = map {$_->id} $self->layout->all(user_can_read => 1);
+        $search_hash->{'layout.id'} = \@columns_can_view;
         my @currents = $self->schema->resultset('Current')->search($search_hash,{
             prefetch => $prefetch,
             collapse => 1,
@@ -459,7 +455,7 @@ sub construct_search
     }
     elsif (my $view = $self->view)
     {
-        @columns = $layout->view($view->id, order_dependencies => 1);
+        @columns = $layout->view($view->id, order_dependencies => 1, user_has_read => 1);
     }
     else {
         @columns = $layout->all(
@@ -664,7 +660,7 @@ sub _search_construct
         not_equal        => '!=',
     );
 
-    my $column   = $layout->column($filter->{id})
+    my $column   = $layout->column($filter->{id}, permission => 'read')
         or return;
     my $operator = $ops{$filter->{operator}}
         or error __x"Invalid operator {filter}", filter => $filter->{operator};
@@ -724,7 +720,9 @@ sub csv
     my $csv  = Text::CSV::Encoded->new({ encoding  => undef });
 
     # Column names
-    my @columns = $self->view ? $self->layout->view($self->view->id) : $self->layout->all;
+    my @columns = $self->view
+        ? $self->layout->view($self->view->id, user_can_read => 1)
+        : $self->layout->all(user_can_read => 1);
     my @colnames = ("Serial");
     push @colnames, map { $_->name } @columns;
     $csv->combine(@colnames)
@@ -789,6 +787,8 @@ sub data_calendar
         {
             if ($column->type eq "daterange" || ($column->return_type && $column->return_type eq "date"))
             {
+                next unless $column->user_has('read');
+
                 # Create colour if need be
                 $datecolors{$column->id} = shift @colors unless $datecolors{$column->id};
 

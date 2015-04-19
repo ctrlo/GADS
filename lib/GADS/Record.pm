@@ -316,15 +316,6 @@ sub write
         error __"No permissions to add a new entry"
             if $self->user && !$self->user->{permission}->{create};
     }
-    else
-    {
-        error __"No permissions to update an entry"
-            if $self->user && !$self->user->{permission}->{update};
-    }
-
-    my $noapproval = !$self->user
-                   || $self->user->{permission}->{update_noneed_approval}
-                   || $self->user->{permission}->{approver};
 
     my $force_mandatory = $options{force} && $options{force} eq 'mandatory' ? 1 : 0;
 
@@ -346,50 +337,23 @@ sub write
                 : error __x"'{col}' is not optional. Please enter a value.", col => $column->{name};
         }
 
-        error __x"Field {name} is read only", name => $column->name
-            if $datum->changed && $column->permission == READONLY && !$noapproval;
+        error __x"You do not have permission to edit field {name}", name => $column->name
+            if $datum->changed && !$column->user_can('write_existing');
 
-        if (!$self->new_entry && $datum->changed)
+        error __x"You do not have permission to add data to field {name}", name => $column->name
+            if $self->new_entry && !$datum->blank && !$column->user_can('write_new');
+
+        if ($self->new_entry || $datum->changed)
         {
             # Update to record and the field has changed
-            if ($column->approve)
+            # Approval needed?
+            if ($column->user_can('write_no_approval'))
             {
-                # Field needs approval
-                if ($noapproval)
-                {
-                    # User has permission to not need approval
-                    $need_rec = 1;
-                }
-                else {
-                    # This needs an approval record
-                    $need_app = 1;
-                    $appfields{$column->id} = 1;
-                }
-            }
-            else {
-                # Field can be updated openly (OPEN)
+                # User has permission to not need approval
                 $need_rec = 1;
             }
-        }
-        if ($self->new_entry)
-        {
-            # New record
-            if ($noapproval)
-            {
-                # User has permission to create new without approval
-                if (($column->permission == APPROVE || $column->permission == READONLY)
-                    && !$noapproval)
-                {
-                    # But field needs permission
-                    $need_app = 1;
-                    $appfields{$column->id} = 1;
-                }
-                else {
-                    $need_rec = 1;
-                }
-            }
             else {
-                # Whole record creation needs approval
+                # This needs an approval record
                 $need_app = 1;
                 $appfields{$column->id} = 1;
             }
@@ -456,7 +420,7 @@ sub write
         {
             my $v;
             # Need to write all values regardless
-            if ($column->permission == OPEN || $noapproval)
+            if ($column->user_can('write_no_approval'))
             {
                 push @columns_changed, $column->id if $datum->changed;
 

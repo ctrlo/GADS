@@ -55,7 +55,6 @@ sub setup
         $schema->unregister_source('Record');
         $schema->register_class(Record => $rec_class);
     }
-
 }
 
 1;

@@ -71,7 +71,7 @@ sub _build_columns
     my $cols_rs = $self->schema->resultset('Layout')->search({},{
         order_by => ['me.position', 'enumvals.id'],
         join     => 'enumvals',
-        prefetch => ['calcs', 'rags' ],
+        prefetch => ['calcs', 'rags'],
     });
 
     $cols_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
@@ -86,14 +86,38 @@ sub _build_columns
         push @return, $column;
     }
 
-    # Now that we have all columns built, we need to tag on dependent cols
+    # Construct a hash with all the permissions for the different columns
+    my $perms_rs = $self->schema->resultset('User')->search({
+        'me.id' => $self->user->{id},
+    }, {
+        prefetch => { user_groups => { group => 'layout_groups' } },
+    });
+    $perms_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    my %perms;
+    my ($user_perms) = $perms_rs->all; # The overall user. Only one due to query.
+    foreach my $group (@{$user_perms->{user_groups}}) # For each group the user has
+    {
+        foreach my $layout_group (@{$group->{group}->{layout_groups}}) # For each column in that group
+        {
+            # Push the actual permission onto an array
+            $perms{$layout_group->{layout_id}} ||= [];
+            push @{$perms{$layout_group->{layout_id}}}, $layout_group->{permission};
+        }
+    }
+
+    # Now that we have everything built, we need to tag on dependent cols and permissions
     foreach my $col (@return)
     {
         # And also any columns that are children (in the layout)
         my @depends = grep {$_->display_field && $_->display_field == $col->id} @return;
         my @depended_by = map { { id => $_->id, regex => $_->display_regex } } @depends;
         $col->depended_by(\@depended_by);
+        if (my $perms = $perms{$col->id})
+        {
+            $col->user_permissions($perms);
+        }
     }
+
 
     \@return;
 }
@@ -103,20 +127,15 @@ sub all
 
     my $type = $options{type};
 
-    my $include_hidden = $options{include_hidden}
-                      || (  !$self->user
-                          ? 1
-                          : $self->user->{permission}->{layout} 
-                          ? 1 
-                          : 0 
-                      );
-
     my @columns = @{$self->columns};
     @columns = $self->_order_dependencies(@columns) if $options{order_dependencies};
     @columns = grep { $_->type eq $type } @columns if $type;
     @columns = grep { $_->remember == $options{remember} } @columns if defined $options{remember};
-    @columns = grep { !$_->hidden } @columns unless $include_hidden;
     @columns = grep { $_->userinput == $options{userinput} } @columns if defined $options{userinput};
+    @columns = grep { $_->user_can('read') } @columns if $options{user_can_read};
+    @columns = grep { $_->user_can('write') } @columns if $options{user_can_write};
+    @columns = grep { $_->user_can('approve') } @columns if $options{user_can_approve};
+    @columns = grep { $_->user_can('write') || $_->user_can('read') } @columns if $options{user_can_readwrite};
     @columns;
 }
 
@@ -148,8 +167,10 @@ sub position
 }
 
 sub column
-{   my ($self, $id) = @_;
-    $self->columns_index->{$id};
+{   my ($self, $id, %options) = @_;
+    my $column = $self->columns_index->{$id};
+    return if $options{permission} && !$column->user_can($options{permission});
+    $column;
 }
 
 sub view
