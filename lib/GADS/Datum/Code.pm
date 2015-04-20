@@ -142,7 +142,9 @@ sub sub_values
             $dvalue = $dvalue || 0;
         }
         else {
-            $dvalue = $dvalue ? "q`$dvalue`" : qq("");
+            # Quote for the eval, unless it looks like a number
+            $dvalue = $dvalue ? "q`$dvalue`" : qq("")
+                unless looks_like_number $dvalue;
         }
         $code =~ s/\Q[$name]/$dvalue/gi;
     }
