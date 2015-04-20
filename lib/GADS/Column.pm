@@ -411,10 +411,20 @@ sub user_can
     0;
 }
 
+# Whether a particular user ID has a permission for this column
+sub user_id_can
+{   my ($self, $user_id, $permission) = @_;
+    my $perms = $self->layout->get_user_perms($user_id)->{$self->id}
+        or return;
+    grep { $_ eq $permission } @$perms;
+}
+
 sub set_permissions
 {   my ($self, $group_id, $permissions) = @_;
+    my $has_read;
     foreach my $permission (@$permissions)
     {
+        $has_read = 1 if $permission eq 'read';
         # Unique constraint on table. Catch existing.
         eval {
             $self->schema->resultset('LayoutGroup')->create({
@@ -424,10 +434,38 @@ sub set_permissions
             });
         }
     }
+
+    # Before we do the catch-all delete, see if there is currently a
+    # read permission there which is about to be removed.
+    my $read_removed = !$has_read && $self->schema->resultset('LayoutGroup')->search({
+        group_id   => $group_id,
+        layout_id  => $self->id,
+        permission => 'read',
+    })->count;
+
     # Delete those no longer there
     my $search = { group_id => $group_id, layout_id => $self->id };
     $search->{permission} = { '!=' => [ '-and', @$permissions ] } if @$permissions;
     $self->schema->resultset('LayoutGroup')->search($search)->delete;
+
+    # See if any read permissions have been removed. If so, we need
+    # to remove them from the relevant filters. The views themselves don't
+    # matter, as they won't be shown anyway
+    if ($read_removed)
+    {
+        foreach my $sort ($self->schema->resultset('Sort')->search({
+            layout_id      => $self->id,
+            'view.user_id' => { '!=' => undef },
+        }, {
+            prefetch => 'view',
+        })->all)
+        {
+            # For each sort on this column, which no longer has read.
+            # See if user attached to this view still has access with
+            # another group
+            $sort->delete unless $self->user_id_can($sort->view->user_id, 'read');
+        }
+    }
 }
 
 1;

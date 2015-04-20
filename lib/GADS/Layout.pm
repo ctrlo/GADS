@@ -94,9 +94,31 @@ sub _build_columns
         push @return, $column;
     }
 
+    my ($perms, $overall_permissions) = $self->get_user_perms($self->user->{id});
+    $self->user_permissions($overall_permissions);
+
+    # Now that we have everything built, we need to tag on dependent cols and permissions
+    foreach my $col (@return)
+    {
+        # And also any columns that are children (in the layout)
+        my @depends = grep {$_->display_field && $_->display_field == $col->id} @return;
+        my @depended_by = map { { id => $_->id, regex => $_->display_regex } } @depends;
+        $col->depended_by(\@depended_by);
+        if (my $perm = $perms->{$col->id})
+        {
+            $col->user_permissions($perm);
+        }
+    }
+
+
+    \@return;
+}
+
+sub get_user_perms
+{   my ($self, $user_id) = @_;
     # Construct a hash with all the permissions for the different columns
     my $perms_rs = $self->schema->resultset('User')->search({
-        'me.id' => $self->user->{id},
+        'me.id' => $user_id,
     }, {
         prefetch => { user_groups => { group => 'layout_groups' } },
     });
@@ -114,23 +136,7 @@ sub _build_columns
             $overall_permissions{$layout_group->{permission}} = 1;
         }
     }
-    $self->user_permissions(\%overall_permissions);
-
-    # Now that we have everything built, we need to tag on dependent cols and permissions
-    foreach my $col (@return)
-    {
-        # And also any columns that are children (in the layout)
-        my @depends = grep {$_->display_field && $_->display_field == $col->id} @return;
-        my @depended_by = map { { id => $_->id, regex => $_->display_regex } } @depends;
-        $col->depended_by(\@depended_by);
-        if (my $perms = $perms{$col->id})
-        {
-            $col->user_permissions($perms);
-        }
-    }
-
-
-    \@return;
+    wantarray ? (\%perms, \%overall_permissions) : \%perms;
 }
 
 sub all
