@@ -375,6 +375,9 @@ sub set_sorts
         error __x"Invalid type {type}", type => $type
             unless grep { $_->{name} eq $type } @{sort_types()};
         my $layout_id = $update->{"sortfield$id$new"} || undef;
+        # Check column is valid and user has access
+        error __x"Invalid field ID {id} in sort", id => $layout_id
+            unless $self->layout->column($layout_id)->user_can('read');
         my $sort = {
             view_id   => $self->id,
             layout_id => $layout_id,
