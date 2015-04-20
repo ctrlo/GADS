@@ -157,6 +157,7 @@ sub BUILD
     }
 }
 
+# Recursively find all tables in a nested filter
 sub _filter_tables
 {   my ($filter, $tables) = @_;
 
@@ -195,6 +196,17 @@ sub write
 
     $vu->{name} = $self->name or error __"Please enter a name for the view";
     $vu->{filter} = $self->filter;
+    my $decoded = decode_json($self->filter);
+
+    # Get all the columns in the filter. Check whether the user has
+    # access to them.
+    my $tables_in_filter = {};
+    _filter_tables $decoded, $tables_in_filter;
+    foreach my $table (keys %$tables_in_filter)
+    {
+        error __x"Invalid field ID {id} in filter", id => $table
+            unless $self->layout->column($table)->user_can('read');
+    }
 
     if ($self->id)
     {
@@ -271,10 +283,7 @@ sub write
     # there is not much point, as they could be removed later anyway. We
     # do this during the processing of the alerts and filters elsewhere.
     my @existing = $self->schema->resultset('Filter')->search({ view_id => $self->id })->all;
-    my $decoded = decode_json($self->filter);
-    my $tables = {};
-    _filter_tables $decoded, $tables;
-    foreach my $table (keys $tables)
+    foreach my $table (keys $tables_in_filter)
     {
         unless (grep { $_->layout_id == $table } @existing)
         {
@@ -286,7 +295,7 @@ sub write
     }
     # Delete those no longer there
     $search = { view_id => $self->id };
-    $search->{layout_id} = { '!=' => [ '-and', keys %$tables ] } if keys %$tables;
+    $search->{layout_id} = { '!=' => [ '-and', keys %$tables_in_filter ] } if keys %$tables_in_filter;
     $self->schema->resultset('Filter')->search($search)->delete;
 }
 
