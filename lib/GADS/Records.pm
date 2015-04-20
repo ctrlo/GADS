@@ -206,7 +206,7 @@ sub search_views
         # XXX Do not send alerts for hidden fields
         if (keys %$decoded)
         {
-            my @s = @{$self->_search_construct($decoded, $self->layout, $prefetches, $joins)};
+            my @s = @{$self->_search_construct($decoded, $self->layout, $prefetches, $joins, 1)};
             push @search, \@s;
         }
         else {
@@ -233,7 +233,7 @@ sub search_views
             my $decoded = decode_json($filter);
             if (keys %$decoded)
             {
-                my @s = @{$self->_search_construct($decoded, $self->layout, $prefetches, $joins)};
+                my @s = @{$self->_search_construct($decoded, $self->layout, $prefetches, $joins, 1)};
                 my @found = $self->schema->resultset('Current')->search({
                     'me.id' => $current_ids, # Array ref
                     @s,
@@ -633,8 +633,12 @@ sub _table_name
     $column->{sprefix} . $index;
 }
 
+# $ignore_perms means to ignore any permissions on the column being
+# processed. For example, if the current user is updating a record,
+# we want to process columns that the user doesn't have access to
+# for things like alerts, but not for their normal viewing.
 sub _search_construct
-{   my ($self, $filter, $layout, $prefetches, $joins, $calcnull) = @_;
+{   my ($self, $filter, $layout, $prefetches, $joins, $ignore_perms) = @_;
 
     if (my $rules = $filter->{rules})
     {
@@ -642,7 +646,7 @@ sub _search_construct
         my @final;
         foreach my $rule (@$rules)
         {
-            my @res = $self->_search_construct($rule, $layout, $prefetches, $joins, $calcnull);
+            my @res = $self->_search_construct($rule, $layout, $prefetches, $joins, $ignore_perms);
             push @final, @res if @res;
         }
         my $condition = $filter->{condition} eq 'OR' ? '-or' : '-and';
@@ -660,7 +664,8 @@ sub _search_construct
         not_equal        => '!=',
     );
 
-    my $column   = $layout->column($filter->{id}, permission => 'read')
+    my %permission = $ignore_perms ? () : (permission => 'read');
+    my $column   = $layout->column($filter->{id}, %permission)
         or return;
     my $operator = $ops{$filter->{operator}}
         or error __x"Invalid operator {filter}", filter => $filter->{operator};
