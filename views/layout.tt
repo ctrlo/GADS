@@ -340,12 +340,14 @@
                     <div class="modal-body">
                         <div class="form-group" id="modal_permissions-group_div">
                             <input type="hidden" name="group_id" id="modal_permissions-group_id" value="">
-                            <label for="modal_permissions-group_select">Group:</label>
-                            <select class="form-control" id="modal_permissions-group_select" name="group_id">
-                                [% FOR group IN groups.all %]
-                                    <option value="[% group.id %]">[% group.name %]</option>
-                                [% END %]
-                            </select>
+                            <div id="modal_permissions-group_select_div">
+                                <label for="modal_permissions-group_select">Group:</label>
+                                <select class="form-control" id="modal_permissions-group_select" name="group_id">
+                                    [% FOR group IN groups.all %]
+                                        <option value="[% group.id %]">[% group.name %]</option>
+                                    [% END %]
+                                </select>
+                            </div>
                         </div>
                         <p>Users in this group can:</p>
                         [% FOR perm IN permissions %]
@@ -428,9 +430,11 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 $('#modal_permissions-group_id').val(group_id);
                 $('#modal_permissions-group_id').attr('name', 'group_id');
                 $('#modal_permissions-group_select').attr('name', 'group_id_temp');
+                $('#modal_permissions-group_select_div').hide();
             } else {
                 $('#modal_permissions-group_select').attr('name', 'group_id');
                 $('#modal_permissions-group_id').attr('name', 'group_id_temp');
+                $('#modal_permissions-group_select_div').show();
             }
             [% FOR perm IN permissions %]
                 if (button.data('[% perm.short %]')) {
