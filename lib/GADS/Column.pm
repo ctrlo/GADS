@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Column;
 
+use JSON qw(decode_json encode_json);
 use Log::Report;
 use String::CamelCase qw(camelize);
 use GADS::Type::Permission;
@@ -449,10 +450,11 @@ sub set_permissions
     $self->schema->resultset('LayoutGroup')->search($search)->delete;
 
     # See if any read permissions have been removed. If so, we need
-    # to remove them from the relevant filters. The views themselves don't
-    # matter, as they won't be shown anyway
+    # to remove them from the relevant filters and sorts. The views themselves
+    # don't matter, as they won't be shown anyway.
     if ($read_removed)
     {
+        # First the sorts
         foreach my $sort ($self->schema->resultset('Sort')->search({
             layout_id      => $self->id,
             'view.user_id' => { '!=' => undef },
@@ -465,7 +467,53 @@ sub set_permissions
             # another group
             $sort->delete unless $self->user_id_can($sort->view->user_id, 'read');
         }
+        # Then the filters
+        foreach my $filter ($self->schema->resultset('Filter')->search({
+            layout_id      => $self->id,
+            'view.user_id' => { '!=' => undef },
+        }, {
+            prefetch => 'view',
+        })->all)
+        {
+            # For each sort on this column, which no longer has read.
+            # See if user attached to this view still has access with
+            # another group
+            unless ($self->user_id_can($filter->view->user_id, 'read'))
+            {
+                # Filter cache
+                $filter->delete;
+                # Alert cache
+                $self->schema->resultset('AlertCache')->search({
+                    layout_id => $self->id,
+                    view_id   => $filter->view_id,
+                })->delete;
+                # Column in the view
+                $self->schema->resultset('ViewLayout')->search({
+                    layout_id => $self->id,
+                    view_id   => $filter->view_id,
+                })->delete;
+                # And the JSON filter itself
+                my $filter_dec = decode_json $filter->view->filter;
+                _filter_remove_colid($filter_dec, $self->id);
+                # An AND with empty rules causes JSON filter to have JS error
+                $filter_dec = {} unless @{$filter_dec->{rules}};
+                my $filter_enc = encode_json $filter_dec;
+                $filter->view->update({ filter => $filter_enc });
+            }
+        }
     }
+}
+
+# Recursively find all tables in a nested filter
+sub _filter_remove_colid
+{   my ($filter, $colid) = @_;
+
+    if (my $rules = $filter->{rules})
+    {
+        # Filter has other nested filters
+        @$rules = grep { _filter_remove_colid($_, $colid) } @$rules;
+    }
+    $colid == $filter->{id} ? 0 : 1;
 }
 
 1;
