@@ -37,28 +37,6 @@
                 <label for="helptext">User help text:</label>
                 <textarea class="form-control" rows="5" id="helptext" name="helptext">[% column.helptext | html_entity %]</textarea>
             </div>
-            <div class="form-group">
-                <label>Permissions: (<a href="" data-toggle="modal" data-target="#modalhelp_groups">?</a>)</label>
-                <a href="" data-toggle="modal" data-target="#modal_permissions" data-title="Add new group">Add new group</a>
-                [% IF column.permissions.size %]
-                    [% FOREACH permission IN column.permissions.pairs %]
-                        [% group = groups.group(permission.key) %]
-                        <p>
-                            <a href="" data-toggle="modal"
-                                data-target="#modal_permissions"
-                                data-title="Permissions for [% group.name %]"
-                                data-group_id="[% group.id %]"
-                                [% FOR p IN permission.value %]
-                                    data-[% p.short %]="1"
-                                [% END %]
-                                >[% group.name %]</a>
-                        ([% permission.value.join(', ') %])
-                        </p>
-                    [% END %]
-                [% ELSE %]
-                    <p>No groups have permission rights for this field</p>
-                [% END %]
-            </div>
             <div class="checkbox noragcalc" [% noragcalc %]>
                 <label>
                     <input type="checkbox" name="optional" [% IF column.optional %]checked[% END %]>Field is optional
@@ -93,6 +71,37 @@
                     </div>
                 </div>
             </div>
+            <hr>
+            <h4>Permissions <small>(<a href="" data-toggle="modal" data-target="#modalhelp_groups">?</a>)</small></h4>
+                <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_permissions" data-title="Add new group">Add new group</a>
+                [% IF column.permissions.size %]
+                    <table class="table table-condensed">
+                        [% FOREACH permission IN column.permissions.pairs %]
+                            <tr>
+                                <th>Group</th>
+                                <th>Permssions</th>
+                            </tr>
+                            [% group = groups.group(permission.key) %]
+                            <tr>
+                                <td>
+                                <a href="" data-toggle="modal"
+                                    data-target="#modal_permissions"
+                                    data-title="Permissions for [% group.name %]"
+                                    data-group_id="[% group.id %]"
+                                    [% FOR p IN permission.value %]
+                                        data-[% p.short %]="1"
+                                    [% END %]
+                                    >[% group.name %]</a>
+                                </td>
+                                <td>
+                                    [% permission.value.join(', ') %]
+                                </td>
+                            </tr>
+                        [% END %]
+                    </table>
+                [% ELSE %]
+                    <p>No groups have permission rights for this field</p>
+                [% END %]
         </div>
         <div class="col-md-6">
             <div id="divtree"
