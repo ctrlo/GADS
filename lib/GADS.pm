@@ -965,7 +965,7 @@ any '/user/?:id?' => require_role useradmin => sub {
         {
             # Add groups to user
             my @groups = ref param('groups') ? @{param('groups')} : (param('groups') || ());
-            GADS::User->groups($user, \@groups);
+            GADS::User->groups($newuser, \@groups);
             my $action;
             my $audit_perms = join ', ', keys %{$newuser->{permission}};
             if ($id) {
