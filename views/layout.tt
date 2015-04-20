@@ -76,11 +76,11 @@
                 <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_permissions" data-title="Add new group">Add new group</a>
                 [% IF column.permissions.size %]
                     <table class="table table-condensed">
+                        <tr>
+                            <th>Group</th>
+                            <th>Permssions</th>
+                        </tr>
                         [% FOREACH permission IN column.permissions.pairs %]
-                            <tr>
-                                <th>Group</th>
-                                <th>Permssions</th>
-                            </tr>
                             [% group = groups.group(permission.key) %]
                             <tr>
                                 <td>
