@@ -86,7 +86,7 @@
 
     [% editvalue = value.value %]
 
-    [% IF record.current_id AND dispcol.readonly AND NOT user.permission.update_noneed_approval AND NOT user.permission.approver %]
+    [% IF NOT dispcol.user_can("write") %]
         [% readonly = "readonly" %]
     [% ELSE %]
         [% readonly = "" %]

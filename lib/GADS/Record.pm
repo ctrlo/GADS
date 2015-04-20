@@ -314,7 +314,7 @@ sub write
     if ($self->new_entry)
     {
         error __"No permissions to add a new entry"
-            if $self->user && !$self->user->{permission}->{create};
+            unless $self->layout->user_can('write_new');
     }
 
     my $force_mandatory = $options{force} && $options{force} eq 'mandatory' ? 1 : 0;
@@ -337,11 +337,16 @@ sub write
                 : error __x"'{col}' is not optional. Please enter a value.", col => $column->{name};
         }
 
-        error __x"You do not have permission to edit field {name}", name => $column->name
-            if $datum->changed && !$column->user_can('write_existing');
+        if ($self->new_entry)
+        {
+            error __x"You do not have permission to add data to field {name}", name => $column->name
+                if !$datum->blank && !$column->user_can('write_new');
+        }
+        elsif ($datum->changed && !$column->user_can('write_existing'))
+        {
+            error __x"You do not have permission to edit field {name}", name => $column->name;
+        }
 
-        error __x"You do not have permission to add data to field {name}", name => $column->name
-            if $self->new_entry && !$datum->blank && !$column->user_can('write_new');
 
         if ($self->new_entry || $datum->changed)
         {
@@ -425,6 +430,12 @@ sub write
                 push @columns_changed, $column->id if $datum->changed;
 
                 # Write new value
+                $self->_field_write($column, $datum);
+            }
+            elsif ($self->new_entry) {
+                # Write value. It's a new entry and the user doesn't have
+                # write access to this field. This will write the blank
+                # value. We know it's definitely blank, as we checked above.
                 $self->_field_write($column, $datum);
             }
             else {

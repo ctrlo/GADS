@@ -498,10 +498,11 @@ any '/data' => require_login sub {
 
     my $views      = GADS::Views->new(user => $user, schema => schema, layout => $layout);
 
-    $params->{v}          = $view,  # View is reserved TT word
-    $params->{user_views} = $views->user_views;
-    $params->{alerts}     = $alert->all;
-    $params->{page}       = 'data';
+    $params->{v}               = $view,  # View is reserved TT word
+    $params->{user_views}      = $views->user_views;
+    $params->{alerts}          = $alert->all;
+    $params->{page}            = 'data';
+    $params->{user_can_create} = $layout->user_can('write_new');
     template 'data' => $params;
 };
 
@@ -830,7 +831,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
         if (param 'submit')
         {
             $column->$_(param $_)
-                foreach (qw/name type permission description helptext optional remember/);
+                foreach (qw/name type description helptext optional remember/);
             if (param 'display_condition')
             {
                 $column->display_field(param 'display_field');
@@ -1178,6 +1179,10 @@ any '/edit/:id?' => require_login sub {
         base_url => request->base,
     );
 
+    my @columns_to_show = $id
+        ? $layout->all(user_can_readwrite => 1)
+        : $layout->all(user_can_write_new => 1);
+
     if ($id)
     {
         $record->find_current_id($id);
@@ -1212,7 +1217,7 @@ any '/edit/:id?' => require_login sub {
         # columns can be ignored, but if we do write them, an error will be
         # thrown to the user if they've been changed. This is better than
         # just silently ignoring them, IMHO.
-        foreach my $col ($layout->all(user_can_readwrite => 1))
+        foreach my $col (@columns_to_show)
         {
             if ($col->userinput) # Not calculated fields
             {
@@ -1240,7 +1245,7 @@ any '/edit/:id?' => require_login sub {
         $record->columns(\@remember);
         $record->include_approval(1);
         $record->find_record_id($previous);
-        $record->columns_retrieved([$layout->all(user_can_readwrite => 1)]); # Force all columns to be shown
+        $record->columns_retrieved(\@columns_to_show); # Force all columns to be shown
         $record->current_id(undef);
     }
     else {
@@ -1254,7 +1259,7 @@ any '/edit/:id?' => require_login sub {
     }
     my $output = template 'edit' => {
         record      => $record,
-        all_columns => [$layout->all(user_can_readwrite => 1)],
+        all_columns => \@columns_to_show,
         page        => 'edit'
     };
     $output;
@@ -1307,6 +1312,7 @@ any qr{/(record|history)/([0-9]+)} => require_login sub {
     my @columns = $layout->all(user_can_read => 1);
     my $output = template 'record' => {
         record         => $record,
+        user_can_edit  => $layout->user_can('write_existing'),
         versions       => \@versions,
         all_columns    => \@columns,
         page           => 'record'

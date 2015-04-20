@@ -35,6 +35,7 @@ use Log::Report;
 use String::CamelCase qw(camelize);
 
 use Moo;
+use MooX::Types::MooseLike::Base qw/:all/;
 
 has schema => (
     is       => 'rw',
@@ -50,6 +51,13 @@ has columns => (
     is      => 'rw',
     lazy    => 1,
     builder => '_build_columns',
+);
+
+# The permissions the logged-in user has, for the whole data set
+has user_permissions => (
+    is      => 'rw',
+    isa     => HashRef,
+    default => sub { {} },
 );
 
 has columns_index => (
@@ -93,8 +101,9 @@ sub _build_columns
         prefetch => { user_groups => { group => 'layout_groups' } },
     });
     $perms_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
-    my %perms;
     my ($user_perms) = $perms_rs->all; # The overall user. Only one due to query.
+    my %perms; # Hash of different columns and their permissions
+    my %overall_permissions; # Flat structure of all user permissions for whole layout
     foreach my $group (@{$user_perms->{user_groups}}) # For each group the user has
     {
         foreach my $layout_group (@{$group->{group}->{layout_groups}}) # For each column in that group
@@ -102,8 +111,10 @@ sub _build_columns
             # Push the actual permission onto an array
             $perms{$layout_group->{layout_id}} ||= [];
             push @{$perms{$layout_group->{layout_id}}}, $layout_group->{permission};
+            $overall_permissions{$layout_group->{permission}} = 1;
         }
     }
+    $self->user_permissions(\%overall_permissions);
 
     # Now that we have everything built, we need to tag on dependent cols and permissions
     foreach my $col (@return)
@@ -135,6 +146,7 @@ sub all
     @columns = grep { $_->user_can('read') } @columns if $options{user_can_read};
     @columns = grep { $_->user_can('write') } @columns if $options{user_can_write};
     @columns = grep { $_->user_can('approve') } @columns if $options{user_can_approve};
+    @columns = grep { $_->user_can('write_new') } @columns if $options{user_can_write_new};
     @columns = grep { $_->user_can('write') || $_->user_can('read') } @columns if $options{user_can_readwrite};
     @columns;
 }
@@ -185,6 +197,14 @@ sub view
     );
     my %view_layouts = map { $_ => 1 } @{$view->columns};
     grep { $view_layouts{$_->{id}} } $self->all(%options);
+}
+
+# XXX Should move this into a user class at some point.
+# Returns what a user can do to the whole data set. Individual
+# permissions for columns are contained in the column class.
+sub user_can
+{   my ($self, $permission) = @_;
+    $self->user_permissions->{$permission};
 }
 
 1;

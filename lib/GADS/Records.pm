@@ -646,7 +646,7 @@ sub _search_construct
             push @final, @res if @res;
         }
         my $condition = $filter->{condition} eq 'OR' ? '-or' : '-and';
-        return [$condition => \@final];
+        return @final ? [$condition => \@final] : [];
     }
 
     my %ops = (
