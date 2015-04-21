@@ -1183,7 +1183,7 @@ any '/edit/:id?' => require_login sub {
     );
 
     my @columns_to_show = $id
-        ? $layout->all(user_can_readwrite => 1)
+        ? $layout->all(user_can_readwrite_existing => 1)
         : $layout->all(user_can_write_new => 1);
 
     if ($id)

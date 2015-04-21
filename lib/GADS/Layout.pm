@@ -153,7 +153,7 @@ sub all
     @columns = grep { $_->user_can('write') } @columns if $options{user_can_write};
     @columns = grep { $_->user_can('approve') } @columns if $options{user_can_approve};
     @columns = grep { $_->user_can('write_new') } @columns if $options{user_can_write_new};
-    @columns = grep { $_->user_can('write') || $_->user_can('read') } @columns if $options{user_can_readwrite};
+    @columns = grep { $_->user_can('write_existing') || $_->user_can('read') } @columns if $options{user_can_readwrite_existing};
     @columns;
 }
 
