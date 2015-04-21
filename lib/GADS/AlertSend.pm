@@ -136,16 +136,21 @@ sub process
         push @view_ids, $cache->id;
 
         # Any emails that need to be sent instantly
-        my @emails = map { $_->user->email } grep { $_->frequency == 0 } $cache->alerts;
-        if (@emails)
+        my @users = map { $_->user } grep { $_->frequency == 0 } $cache->alerts;
+        foreach my $user (@users)
         {
+            # For each user of this alert, check they have read access
+            # to the field in question, and send accordingly
             my @cids; my @columns;
             foreach my $i ($cache->alert_caches)
             {
+                my $col_id = $i->layout_id;
+                next unless $self->layout->column($col_id)->user_id_can($user->id, 'read');
                 push @cids, $i->current_id;
                 push @columns, $self->layout->column($i->layout_id)->name;
             }
-            $self->_send_alert('changed', \@cids, $cache, \@emails, \@columns);
+            $self->_send_alert('changed', \@cids, $cache, [$user->email], \@columns)
+                if @cids;
         }
 
         # And those to be sent later

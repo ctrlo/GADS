@@ -90,7 +90,7 @@ sub _build_columns
     foreach my $col (@allcols)
     {
         my $class = "GADS::Column::".camelize $col->{type};
-        my $column = $class->new(set_values => $col, schema => $self->schema);
+        my $column = $class->new(set_values => $col, schema => $self->schema, layout => $self);
         push @return, $column;
     }
 
