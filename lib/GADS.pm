@@ -2,6 +2,7 @@ package GADS;
 
 use DateTime;
 use GADS::Alert;
+use GADS::Approval;
 use GADS::Audit;
 use GADS::Column;
 use GADS::Column::Calc;
@@ -121,9 +122,16 @@ hook before_template => sub {
 
     $tokens->{header} = config->{gads}->{header};
 
-    if (user_has_role 'approver')
+    my $layout = GADS::Layout->new(user => $user, schema => schema);
+    if ($layout->user_can('approve_new') || $layout->user_can('approve_existing'))
     {
-        $tokens->{approve_waiting} = GADS::Records->approval_count(schema);
+        my $approval = GADS::Approval->new(
+            schema => schema,
+            user   => $user,
+            layout => $layout
+        );
+        $tokens->{user_can_approve} = 1;
+        $tokens->{approve_waiting} = $approval->count;
     }
     $tokens->{messages} = session('messages');
     $tokens->{user}     = $user;
@@ -1054,11 +1062,28 @@ any '/user/?:id?' => require_role useradmin => sub {
     $output;
 };
 
-any '/approval/?:id?' => require_role approver => sub {
+any '/approval/?:id?' => require_login sub {
     my $id   = param 'id';
     my $user = logged_in_user;
 
     my $layout = GADS::Layout->new(user => $user, schema => schema);
+
+    # If we're viewing or approving an individual record, first
+    # see if it's a new record or edit of existing. This affects
+    # permissions
+    my $approval_of_new = $id
+        ? GADS::Record->new(
+            user               => $user,
+            layout             => $layout,
+            schema             => schema,
+            include_approval   => 1,
+            record_id          => $id,
+        )->approval_of_new
+        : 0;
+
+    my @columns_to_show = $approval_of_new ? $layout->all(user_can_approve_new => 1)
+        : $layout->all(user_can_approve_existing => 1);
+
     if (param 'submit')
     {
         # Get latest record for this approval
@@ -1066,10 +1091,19 @@ any '/approval/?:id?' => require_role approver => sub {
             user             => $user,
             layout           => $layout,
             schema           => schema,
+            approval_id      => $id,
+            doing_approval   => 1,
             base_url         => request->base,
-            include_approval => 1,
         );
-        $record->find_current_id(param 'current_id');
+        # See if the record exists as a "normal" entry. In the case
+        # of an approval for a new record, this will not be the case,
+        # so catch the resulting exception, and create a new record,
+        # but set the current ID.
+        unless (try { $record->find_current_id(param 'current_id') })
+        {
+            $record->current_id(param 'current_id');
+            $record->initialise;
+        }
         my $uploads = request->uploads;
         foreach my $key (keys %$uploads)
         {
@@ -1083,7 +1117,7 @@ any '/approval/?:id?' => require_role approver => sub {
             });
         }
         my $failed;
-        foreach my $col ($layout->all)
+        foreach my $col (@columns_to_show)
         {
             if ($col->userinput) # Not calculated fields
             {
@@ -1096,29 +1130,14 @@ any '/approval/?:id?' => require_role approver => sub {
         }
         if (!$failed && process( sub { $record->write }))
         {
-            # If we've been writing to a newer record, then delete the approval
-            if ($record->record_id != $id)
-            {
-                GADS::Record->new(
-                    user      => $user,
-                    layout    => $layout,
-                    schema    => schema,
-                    record_id => $id,
-                )->delete;
-            }
-            else {
-                # Otherwise remove approval flag
-                $record->approval_flag(0);
-            }
             return forwardHome(
                 { success => 'Record has been successfully approved' }, 'approval' );
         }
     }
 
     my $page;
-    my @all_columns = $layout->all;
     my $params = {
-        all_columns => \@all_columns,
+        all_columns => \@columns_to_show,
         page        => 'approval',
     };
 
@@ -1136,26 +1155,26 @@ any '/approval/?:id?' => require_role approver => sub {
         $params->{record} = $record;
 
         # Get existing values for comparison
-        my $existing = GADS::Record->new(
-            user            => $user,
-            layout          => $layout,
-            schema          => schema,
-        );
-        my $found = $existing->find_current_id($record->current_id);
-        $params->{existing} = $existing if $found;
+        unless ($approval_of_new)
+        {
+            my $existing = GADS::Record->new(
+                user            => $user,
+                layout          => $layout,
+                schema          => schema,
+            );
+            $existing->find_current_id($record->current_id);
+            $params->{existing} = $existing;
+        }
         $page  = 'edit';
     }
     else {
         $page  = 'approval';
-        my $records = GADS::Records->new(
-            user             => $user,
-            include_approval => 1,
-            layout           => $layout,
-            schema           => schema,
-            columns          => []
+        my $approval = GADS::Approval->new(
+            schema => schema,
+            user   => $user,
+            layout => $layout
         );
-        $records->search(approval => 1);
-        $params->{records} = $records->results;
+        $params->{records} = $approval->records;
     }
 
     template $page => $params;
@@ -1248,7 +1267,29 @@ any '/edit/:id?' => require_login sub {
         $record->columns(\@remember);
         $record->include_approval(1);
         $record->find_record_id($previous);
+        # Values will be missing in approval records. Do not populate these
+        # values with blanks, instead we will check in a moment if they
+        # are missing, and if so fill them with the main record's value
+        $record->init_no_value(0);
         $record->columns_retrieved(\@columns_to_show); # Force all columns to be shown
+        if ($record->approval_flag)
+        {
+            # The last edited record was one for approval. This will
+            # be missing values, so get its associated main record,
+            # and use the values for that too.
+            my $related = GADS::Record->new(
+                user     => $user,
+                layout   => $layout,
+                schema   => schema,
+                base_url => request->base,
+            );
+            $related->find_record_id($record->approval_record_id);
+            foreach my $col (@columns_to_show)
+            {
+                $record->fields->{$col->id} = $related->fields->{$col->id}
+                    unless defined $record->fields->{$col->id};
+            }
+        }
         $record->current_id(undef);
     }
     else {

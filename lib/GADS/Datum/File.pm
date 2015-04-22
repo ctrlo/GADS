@@ -59,7 +59,7 @@ has set_value => (
             $self->changed(1) if (!defined($self->id) && defined $value)
                 || (!defined($value) && defined $self->id)
                 || (defined $self->id && defined $value && $self->id != $value);
-            $self->oldvalue($self->id);
+            $self->oldvalue($self->clone);
         }
         $self->id($new_id);
     },
@@ -91,6 +91,13 @@ has content => (
         $self->schema->resultset('Fileval')->find($self->id)->content;
     },
 );
+
+around 'clone' => sub {
+    my $orig = shift;
+    my $self = shift;
+    $orig->($self, 'name' => $self->name, mimetype => $self->mimetype);
+};
+
 
 # Not designed to be used within object. Just send file from ID.
 # XXX Make OO?

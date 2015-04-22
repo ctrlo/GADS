@@ -56,5 +56,19 @@ sub html
     encode_entities $self->as_string;
 }
 
+sub clone
+{   my ($self, @extra) = @_;
+    # This will be called from a child class, in which case @extra can specify
+    # additional attributes specific to that class
+    ref($self)->new(
+        column     => $self->column,
+        record_id  => $self->record_id,
+        current_id => $self->current_id,
+        column     => $self->column,
+        blank      => $self->blank,
+        @extra
+    );
+}
+
 1;
 

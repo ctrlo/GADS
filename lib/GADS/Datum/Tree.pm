@@ -27,7 +27,6 @@ extends 'GADS::Datum';
 
 has set_value => (
     is       => 'rw',
-    required => 1,
     trigger  => sub {
         my ($self, $value) = @_;
         my $first_time = 1 unless $self->has_id;
@@ -62,7 +61,7 @@ has set_value => (
             $self->changed(1) if (!defined($self->id) && defined $value)
                 || (!defined($value) && defined $self->id)
                 || (defined $self->id && defined $value && $self->id != $value);
-            $self->oldvalue($self->id);
+            $self->oldvalue($self->clone);
         }
         $self->id($new_id);
     },
@@ -112,6 +111,15 @@ has deleted => (
 has text => (
     is        => 'rw',
 );
+
+around 'clone' => sub {
+    my $orig = shift;
+    my $self = shift;
+    $orig->($self,
+        id      => $self->id,
+        deleted => $self->deleted,
+    );
+};
 
 sub as_string
 {   my $self = shift;

@@ -133,11 +133,6 @@ sub _default_sort
     }
 }
 
-sub approval_count
-{   my ($class, $schema) = @_;
-    $schema->resultset('Record')->search({ approval => 1 })->count;
-}
-
 sub _add_jp
 {
     my ($toadd, $prefetches, $joins, $type) = @_;

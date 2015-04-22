@@ -55,9 +55,9 @@ has columns => (
 
 # The permissions the logged-in user has, for the whole data set
 has user_permissions => (
-    is      => 'rw',
-    isa     => HashRef,
-    default => sub { {} },
+    is        => 'rw',
+    isa       => HashRef,
+    predicate => 1,
 );
 
 has columns_index => (
@@ -151,9 +151,10 @@ sub all
     @columns = grep { $_->userinput == $options{userinput} } @columns if defined $options{userinput};
     @columns = grep { $_->user_can('read') } @columns if $options{user_can_read};
     @columns = grep { $_->user_can('write') } @columns if $options{user_can_write};
-    @columns = grep { $_->user_can('approve') } @columns if $options{user_can_approve};
     @columns = grep { $_->user_can('write_new') } @columns if $options{user_can_write_new};
     @columns = grep { $_->user_can('write_existing') || $_->user_can('read') } @columns if $options{user_can_readwrite_existing};
+    @columns = grep { $_->user_can('approve_new') } @columns if $options{user_can_approve_new};
+    @columns = grep { $_->user_can('approve_existing') } @columns if $options{user_can_approve_existing};
     @columns;
 }
 
@@ -210,6 +211,17 @@ sub view
 # permissions for columns are contained in the column class.
 sub user_can
 {   my ($self, $permission) = @_;
+    if (!$self->has_user_permissions)
+    {
+        # Full layout has not been built. Shortcut to just a simple
+        # SQL query instead
+        return $self->schema->resultset('UserGroup')->search({
+            user_id    => $self->user->{id},
+            permission => $permission,
+        },{
+            join => { group => 'layout_groups' },
+        })->count;
+    }
     $self->user_permissions->{$permission};
 }
 

@@ -58,7 +58,6 @@ has user_permissions => (
 # Needed for update of cached columns
 has layout => (
     is       => 'ro',
-    required => 1,
 );
 
 has from_id => (

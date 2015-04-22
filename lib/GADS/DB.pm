@@ -55,6 +55,22 @@ sub setup
         $schema->unregister_source('Record');
         $schema->register_class(Record => $rec_class);
     }
+
+    my $rec_class = $schema->class('Record');
+    $rec_class->might_have(
+        record_previous => 'Record',
+        sub {
+            my $args = shift;
+
+            return {
+                "$args->{foreign_alias}.current_id"  => { -ident => "$args->{self_alias}.current_id" },
+                "$args->{foreign_alias}.id" => { '<' => \"$args->{self_alias}.id" },
+            };
+        }
+    );
+    $schema->unregister_source('Record');
+    $schema->register_class(Record => $rec_class);
+
 }
 
 1;

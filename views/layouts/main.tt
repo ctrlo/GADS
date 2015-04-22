@@ -76,7 +76,7 @@
                         <div class="collapse navbar-collapse">
                             <ul class="nav navbar-nav">
                                 <li [% IF page=="data" %]class="active"[% END %]><a href="[% url.page %]/data">Data</a></li>
-                                [% IF user.permission.approver %]
+                                [% IF user_can_approve %]
                                     [% IF approve_waiting %][% count = " (" _ approve_waiting _ ")" %][% END %]
                                     <li [% IF page=="approval" %]class="active"[% END %]>
                                         <a href="[% url.page %]/approval/">Approval[% count %]</a>

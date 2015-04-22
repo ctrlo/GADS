@@ -86,7 +86,7 @@
 
     [% editvalue = value.value %]
 
-    [% IF NOT dispcol.user_can("write") %]
+    [% IF NOT dispcol.user_can("write") AND page != "approval" %]
         [% readonly = "readonly" %]
     [% ELSE %]
         [% readonly = "" %]

@@ -27,14 +27,13 @@ extends 'GADS::Datum';
 
 has set_value => (
     is       => 'rw',
-    required => 1,
     trigger  => sub {
         my ($self, $value) = @_;
         if ($self->has_value)
         {
             # Previous value
             $self->changed(1) if $self->value ne $value;
-            $self->oldvalue($self->value);
+            $self->oldvalue($self->clone);
         }
         $self->value(
             (ref $value ? $value->{value} : $value) || ""
@@ -47,6 +46,12 @@ has value => (
     trigger   => sub { $_[0]->blank($_[1] ? 0 : 1) },
     predicate => 1,
 );
+
+around 'clone' => sub {
+    my $orig = shift;
+    my $self = shift;
+    $orig->($self, value => $self->value);
+};
 
 sub as_string
 {   my $self = shift;
