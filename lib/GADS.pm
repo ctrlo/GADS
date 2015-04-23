@@ -1287,6 +1287,7 @@ any '/edit/:id?' => require_login sub {
             $related->find_record_id($record->approval_record_id);
             foreach my $col (@columns_to_show)
             {
+                next unless $col->remember;
                 $record->fields->{$col->id} = $related->fields->{$col->id}
                     unless defined $record->fields->{$col->id};
             }
