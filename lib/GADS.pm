@@ -1221,18 +1221,11 @@ any '/edit/:id?' => require_login sub {
             my $upload = $uploads->{$key};
             my $col_id = $1;
             my $filecol = $layout->column($col_id);
-            if ($filecol->user_can('write'))
-            {
-                $record->fields->{$col_id}->set_value({
-                    name     => $upload->filename,
-                    mimetype => $upload->type,
-                    content  => $upload->content,
-                });
-            }
-            else {
-                messageAdd({ danger => __x("You do not have permission to edit {name}"),
-                    name => $filecol->name });
-            }
+            $record->fields->{$col_id}->set_value({
+                name     => $upload->filename,
+                mimetype => $upload->type,
+                content  => $upload->content,
+            });
         }
         my $failed;
         # We actually only need the write columns for this. The read-only

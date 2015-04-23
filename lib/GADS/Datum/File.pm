@@ -21,7 +21,7 @@ package GADS::Datum::File;
 use Moo;
 use namespace::clean;
 
-use overload '""' => \&as_string;
+use overload 'bool' => sub { 1 }, '""' => 'as_string', fallback => 1;
 
 extends 'GADS::Datum';
 
@@ -98,7 +98,7 @@ has content => (
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
-    $orig->($self, 'name' => $self->name, mimetype => $self->mimetype);
+    $orig->($self, id => $self->id, name => $self->name, mimetype => $self->mimetype);
 };
 
 

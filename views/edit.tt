@@ -174,7 +174,7 @@
             <p class="help-block">Current file name: [% editvalue.html %] (read-only field, cannot be updated).</p>
         [% ELSE %]
             <input type="file" id="[% dispcol.id %]" name="[% "file" _ dispcol.id %]">
-            [% IF editvalue %]
+            [% IF editvalue.has_value %]
                 <p class="help-block">
                 <input type="checkbox" name="[% field %]" value="[% editvalue.id %]" checked>Include file.
                 Current file name: [% editvalue.html %]. Select a new file to replace.</p>
