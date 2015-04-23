@@ -34,7 +34,12 @@
     <tbody>
         [% FOREACH record IN records %]
         <tr>
-            <td><a href="/record/[% record.current_id %]">[% record.current_id %]</a></td>
+            <td>
+                <a href="/record/[% record.current_id %]">[% record.current_id %]</a>
+                [% IF user_can_edit %]
+                    (<a href="/edit/[% record.current_id %]">Edit</a>)
+                [% END %]
+            </td>
             [% FOREACH column IN columns %]
                 [% colid = column.id %]
                 [% value = record.fields.$colid.html %]

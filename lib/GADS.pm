@@ -491,11 +491,12 @@ any '/data' => require_login sub {
                 ? $layout->view($view->id, user_can_read => 1)
                 : $layout->all(user_can_read => 1);
             $params = {
-                sort     => $records->sort,
-                subset   => $subset,
-                records  => $records->results,
-                columns  => \@columns,
-                viewtype => 'table',
+                user_can_edit => $layout->user_can('write_existing'),
+                sort          => $records->sort,
+                subset        => $subset,
+                records       => $records->results,
+                columns       => \@columns,
+                viewtype      => 'table',
             };
         }
     }
