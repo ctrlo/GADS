@@ -79,7 +79,7 @@ has set_value => (
                 $self->oldvalue($self->clone);
             }
         }
-        $self->id($new_id);
+        $self->id($new_id) if $new_id;
     },
 );
 
@@ -118,6 +118,9 @@ has id => (
     predicate => 1,
     trigger   => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
 );
+
+# Make up for missing predicated value property
+sub has_value { $_[0]->has_id }
 
 around 'clone' => sub {
     my $orig = shift;

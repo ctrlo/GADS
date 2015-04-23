@@ -44,7 +44,7 @@ has changed => (
 has blank => (
     is      => 'rw',
     isa     => Bool,
-    default => 0,
+    default => 1,
 );
 
 has oldvalue => (

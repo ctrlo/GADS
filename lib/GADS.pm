@@ -1267,10 +1267,6 @@ any '/edit/:id?' => require_login sub {
         $record->columns(\@remember);
         $record->include_approval(1);
         $record->find_record_id($previous);
-        # Values will be missing in approval records. Do not populate these
-        # values with blanks, instead we will check in a moment if they
-        # are missing, and if so fill them with the main record's value
-        $record->init_no_value(0);
         $record->columns_retrieved(\@columns_to_show); # Force all columns to be shown
         if ($record->approval_flag)
         {
@@ -1287,9 +1283,10 @@ any '/edit/:id?' => require_login sub {
             $related->find_record_id($record->approval_record_id);
             foreach my $col (@columns_to_show)
             {
-                next unless $col->remember;
+                # See if the record above had a value. If not, fill with the
+                # approval record's value
                 $record->fields->{$col->id} = $related->fields->{$col->id}
-                    unless defined $record->fields->{$col->id};
+                    if !$record->fields->{$col->id}->has_value && $col->remember;
             }
         }
         $record->current_id(undef);

@@ -38,7 +38,7 @@ has set_value => (
     trigger  => sub {
         my ($self, $value) = @_;
 
-        if ($self->value_done)
+        if ($self->has_value)
         {
             $self->oldvalue($self->clone);
             my $newvalue = $self->_parse_dt($value); # DB parser needed for this. Will be set second time
@@ -51,7 +51,7 @@ has set_value => (
         }
         else {
             $self->_init_value($value);
-            $self->value_done(1);
+            $self->has_value(1) if defined $value;
         }
     },
 );
@@ -106,7 +106,7 @@ has schema => (
 
 # Can't use predicate, as value may not have been built on
 # second time it's set
-has value_done => (
+has has_value => (
     is => 'rw',
 );
 

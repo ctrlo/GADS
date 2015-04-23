@@ -73,6 +73,9 @@ has id => (
     trigger   => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
 );
 
+# Make up for missing predicated value property
+sub has_value { $_[0]->has_id }
+
 has ancestors => (
     is      => 'rw',
     lazy    => 1,

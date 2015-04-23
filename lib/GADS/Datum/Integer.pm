@@ -50,7 +50,7 @@ has set_value => (
                 || (defined $self->value && defined $value && $self->value != $value);
             $self->oldvalue($self->clone);
         }
-        $self->value($value);
+        $self->value($value) if defined $value;
     },
 );
 

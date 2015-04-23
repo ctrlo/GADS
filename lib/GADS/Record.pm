@@ -256,8 +256,6 @@ sub _find
     $record = $record->{record} if $find{current_id};
     if ($self->_set_approval_flag($record->{approval}))
     {
-        $self->_set_approval_record_id($record->{id}); # Related record if this is approval record
-    } else {
         $self->_set_approval_record_id($record->{record_id}); # Related record if this is approval record
     }
     $self->record($record);
@@ -542,7 +540,8 @@ sub write
             # Only need to write values that need approval
             next unless $appfields{$column->id};
             $self->_field_write($column, $datum, approval => 1)
-                if $datum->changed;
+                if ($self->new_entry && !$datum->blank)
+                    || (!$self->new_entry && $datum->changed);
         }
 
     }
