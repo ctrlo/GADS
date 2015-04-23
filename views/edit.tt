@@ -86,7 +86,12 @@
 
     [% editvalue = value.value %]
 
-    [% IF NOT dispcol.user_can("write") AND page != "approval" %]
+    [% IF (
+              (record.current_id AND !dispcol.user_can("write_existing"))
+              OR (!record.current_id AND !dispcol.user_can("write_new"))
+          )
+       AND page != "approval" 
+    %]
         [% readonly = "readonly" %]
     [% ELSE %]
         [% readonly = "" %]
