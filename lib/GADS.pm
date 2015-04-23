@@ -284,6 +284,10 @@ get '/search' => require_login sub {
     my $layout = GADS::Layout->new(user => $user, schema => schema);
     my $records = GADS::Records->new(schema => schema, user => $user, layout => $layout);
     my @results = $records->search_all_fields($search);
+
+    # Redirect to record if only one result
+    redirect "/record/$results[0]->{current_id}"
+        if @results == 1;
     template 'search' => {
         results => \@results,
         search  => $search,
