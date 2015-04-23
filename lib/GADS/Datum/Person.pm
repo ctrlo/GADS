@@ -24,7 +24,7 @@ use Log::Report;
 use Moo;
 use namespace::clean;
 
-use overload '""' => \&as_string;
+use overload 'bool' => sub { 1 }, '""'  => 'as_string', fallback => 1;
 
 extends 'GADS::Datum';
 
