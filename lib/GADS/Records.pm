@@ -310,7 +310,8 @@ sub search_all_fields
                         ? { id => $search }
                         : { $s => $search };
         my @columns_can_view = map {$_->id} $self->layout->all(user_can_read => 1);
-        $search_hash->{'layout.id'} = \@columns_can_view;
+        $search_hash->{'layout.id'} = \@columns_can_view
+            unless $field->{type} eq 'current_id';
         my @currents = $self->schema->resultset('Current')->search($search_hash,{
             prefetch => $prefetch,
             collapse => 1,
