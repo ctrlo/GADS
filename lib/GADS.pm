@@ -123,7 +123,7 @@ hook before_template => sub {
     $tokens->{header} = config->{gads}->{header};
 
     my $layout = GADS::Layout->new(user => $user, schema => schema);
-    if ($layout->user_can('approve_new') || $layout->user_can('approve_existing'))
+    if ($user && ($layout->user_can('approve_new') || $layout->user_can('approve_existing')))
     {
         my $approval = GADS::Approval->new(
             schema => schema,
