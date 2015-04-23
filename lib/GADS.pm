@@ -1278,10 +1278,11 @@ any '/edit/:id?' => require_login sub {
             # be missing values, so get its associated main record,
             # and use the values for that too.
             my $related = GADS::Record->new(
-                user     => $user,
-                layout   => $layout,
-                schema   => schema,
-                base_url => request->base,
+                user             => $user,
+                layout           => $layout,
+                schema           => schema,
+                include_approval => 1,
+                base_url         => request->base,
             );
             $related->find_record_id($record->approval_record_id);
             foreach my $col (@columns_to_show)
