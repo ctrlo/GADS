@@ -20,11 +20,14 @@
             [% END %]
         </div>
     </div>
-    <button type="submit" id="submit_button" name="submit" value="submit" class="btn btn-primary">Save</button>
-    <a href="/data" class="btn btn-default">Cancel</a>
+    <div style="height:55px;"></div>
+    <nav class="navbar navbar-default navbar-fixed-bottom" style="min-height:55px">
+        <div class="container">
+            <button type="submit" id="submit_button" name="submit" value="submit" class="btn btn-primary">Save</button>
+            <a href="/data" class="btn btn-default">Cancel</a>
+        </div>
+    </nav>
 </form>
-<p></p>
-
        <!-- Modal -->
         <div class="modal fade" id="helptext_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog">
