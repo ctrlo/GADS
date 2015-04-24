@@ -34,5 +34,10 @@
                             }
                         }
                     },
+                    [% IF readonly %]
+                    "plugins" : ['conditionalselect'], "conditionalselect" : function (node) {
+                        return false;
+                    }
+                    [% END %]
                 });
             [% END %]

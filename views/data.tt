@@ -55,7 +55,7 @@
                         [% END %]
                     </ul>
                 </div>
-                [% IF user.permission.create %]
+                [% IF user_can_create %]
                     <div class="btn-group">
                         <a href="/edit/" class="btn btn-default" role="button">New record</a>
                     </div>

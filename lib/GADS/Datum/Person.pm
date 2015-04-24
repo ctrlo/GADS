@@ -24,7 +24,7 @@ use Log::Report;
 use Moo;
 use namespace::clean;
 
-use overload '""' => \&as_string;
+use overload 'bool' => sub { 1 }, '""'  => 'as_string', fallback => 1;
 
 extends 'GADS::Datum';
 
@@ -32,7 +32,6 @@ my @user_fields = qw(firstname surname email telephone id);
 
 has set_value => (
     is       => 'rw',
-    required => 1,
     trigger  => sub {
         my ($self, $value) = @_;
         my $first_time = 1 unless $self->has_id;
@@ -77,19 +76,10 @@ has set_value => (
                 }
                 $self->_set_text($person ? $person->value : undef);
                 $self->changed(1);
-                $self->oldvalue($self->id);
+                $self->oldvalue($self->clone);
             }
         }
-        $self->id($new_id);
-    },
-);
-
-has value => (
-    is       => 'rw',
-    lazy     => 1,
-    builder  => sub {
-        my $self = shift;
-        $self->_transform_value($self->set_value);
+        $self->id($new_id) if $new_id || $self->init_no_value;
     },
 );
 
@@ -128,6 +118,23 @@ has id => (
     predicate => 1,
     trigger   => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
 );
+
+# Make up for missing predicated value property
+sub has_value { $_[0]->has_id }
+
+around 'clone' => sub {
+    my $orig = shift;
+    my $self = shift;
+    $orig->($self,
+        id        => $self->id,
+        email     => $self->email,
+        schema    => $self->schema,
+        firstname => $self->firstname,
+        surname   => $self->surname,
+        telephone => $self->telephone,
+        text      => $self->text,
+    );
+};
 
 sub _set_text
 {   my ($self, $value) = @_;

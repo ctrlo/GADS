@@ -95,6 +95,31 @@ sub graphs
     rset('UserGraph')->search($search)->delete;
 }
 
+sub groups
+{
+    my ($class, $user, $groups) = @_;
+
+    foreach my $g (@$groups)
+    {
+        my $item = {
+            user_id  => $user->{id},
+            group_id => $g,
+        };
+
+        unless(rset('UserGroup')->search($item)->count)
+        {
+            rset('UserGroup')->create($item);
+        }
+    }
+
+    # Delete any groups that no longer exist
+    my $search = { user_id => $user->{id} };
+    $search->{group_id} = {
+        '!=' => [ -and => @$groups ]
+    } if @$groups;
+    rset('UserGroup')->search($search)->delete;
+}
+
 sub delete
 {
     my ($self, $user_id, %options) = @_;
@@ -171,7 +196,9 @@ sub get_user
 {   my ($self, %search) = @_;
     %search = map { "me.".$_ => $search{$_} } keys(%search);
     $search{deleted} = 0;
-    my ($user) = rset('User')->search(\%search, {prefetch => 'user_permissions'})->all;
+    my ($user) = rset('User')->search(\%search, {
+        prefetch => ['user_permissions', 'user_groups'],
+    })->all;
     $user or return;
     my $return = {
         id                    => $user->id,
@@ -189,6 +216,11 @@ sub get_user
     {
         my %perms = map { $_->permission->name => 1 } $user->user_permissions;
         $return->{permission} = \%perms;
+    }
+    if ($user->user_groups)
+    {
+        my %groups = map { $_->group->id => 1 } $user->user_groups;
+        $return->{groups} = \%groups;
     }
     $return;
 }

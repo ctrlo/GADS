@@ -76,7 +76,7 @@
                         <div class="collapse navbar-collapse">
                             <ul class="nav navbar-nav">
                                 <li [% IF page=="data" %]class="active"[% END %]><a href="[% url.page %]/data">Data</a></li>
-                                [% IF user.permission.approver %]
+                                [% IF user_can_approve %]
                                     [% IF approve_waiting %][% count = " (" _ approve_waiting _ ")" %][% END %]
                                     <li [% IF page=="approval" %]class="active"[% END %]>
                                         <a href="[% url.page %]/approval/">Approval[% count %]</a>
@@ -93,6 +93,7 @@
                                         [% END %]
                                         [% IF user.permission.useradmin %]
                                             <li [% IF page=="user" %]class="active"[% END %]><a href="[% url.page %]/user/">Manage Users</a></li>
+                                            <li [% IF page=="group" %]class="active"[% END %]><a href="[% url.page %]/group/">Manage Groups</a></li>
                                         [% END %]
                                     </ul>
                                     </li>
@@ -217,6 +218,7 @@
         </script>
         [% IF page == "layout" OR page == "edit" OR page == "approval" %]
             <script src="[% url.js %]/jstree.min.js"></script>
+            <script src="[% url.js %]/jstree-misc.js"></script>
         [% END %]
     </div>
     </body>

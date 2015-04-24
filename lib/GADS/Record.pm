@@ -61,6 +61,13 @@ has record => (
     is      => 'rw',
 );
 
+# Should be set true if we are processing an approval
+has doing_approval => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
 has base_url => (
     is  => 'rw',
 );
@@ -98,6 +105,13 @@ has approval_id => (
     is => 'rw',
 );
 
+# Whether this is an approval record for a new entry.
+# Used when checking permissions for approving
+has approval_of_new => (
+    is  => 'lazy',
+    isa => Bool,
+);
+
 # Whether to initialise fields that have no value
 has init_no_value => (
     is      => 'rw',
@@ -105,13 +119,16 @@ has init_no_value => (
     default => 1,
 );
 
-# Add / Remove approval flag
+# Whether this is a record for approval
 has approval_flag => (
-    is      => 'rw',
-    trigger => sub {
-        my ($self, $value) = @_;
-        $self->schema->resultset('Record')->find($self->record_id)->update({approval => $value});
-    }
+    is  => 'rwp',
+    isa => Bool,
+);
+
+# The associated record if this is a record for approval
+has approval_record_id => (
+    is  => 'rwp',
+    isa => Maybe[Int],
 );
 
 has include_approval => (
@@ -154,6 +171,24 @@ has createdby => (
 has force_update => (
     is => 'rw',
 );
+
+sub _build_approval_of_new
+{   my $self = shift;
+    # record_id could either be an approval record itself, or
+    # a record. If it's an approval record, get its record
+    my $record_id = $self->approval_id || $self->record_id;
+
+    my ($record) = $self->schema->resultset('Record')->search({
+        id       => $record_id,
+    })->all;
+    $record = $record->record if $record->record; # Approval
+    $self->schema->resultset('Record')->search({
+        'me.id' => $record->id,
+        'record_previous.id'       => undef,
+    },{
+        join => 'record_previous',
+    })->count;
+}
 
 sub find_record_id
 {   my ($self, $record_id) = @_;
@@ -219,6 +254,10 @@ sub _find
     my ($record) = $result->all;
     $record or error __"Requested record not found";
     $record = $record->{record} if $find{current_id};
+    if ($self->_set_approval_flag($record->{approval}))
+    {
+        $self->_set_approval_record_id($record->{record_id}); # Related record if this is approval record
+    }
     $self->record($record);
 }
 
@@ -258,14 +297,8 @@ sub _transform_values
             $dependent_values->{$dependent} = $fields->{$dependent};
         }
         my $value = $original->{$column->field};
-        unless ($self->init_no_value)
-        {
-            if (ref $column->join eq 'HASH')
-                 { next unless defined $value->{value}; }
-            else { next unless defined $value; }
-        }
 
-        # FIXME Don't collect file content in sql query
+        # FIXME XXX Don't collect file content in sql query
         delete $value->{value}->{content} if $column->type eq "file";
         my $force_update = (
             $self->force_update && grep { $_ == $column->id } @{$self->force_update}
@@ -276,6 +309,7 @@ sub _transform_values
             set_value        => $original->{$column->field},
             column           => $column,
             dependent_values => $dependent_values,
+            init_no_value    => $self->init_no_value,
             schema           => $self->schema,
             layout           => $self->layout,
             datetime_parser  => $self->schema->storage->datetime_parser,
@@ -304,6 +338,12 @@ sub initialise
     $self->fields($fields);
 }
 
+sub approver_can_action_column
+{   my ($self, $column) = @_;
+    $self->approval_of_new && $column->user_can('approve_new')
+      || !$self->approval_of_new && $column->user_can('approve_existing')
+}
+
 sub write
 {   my ($self, %options) = @_;
 
@@ -314,17 +354,8 @@ sub write
     if ($self->new_entry)
     {
         error __"No permissions to add a new entry"
-            if $self->user && !$self->user->{permission}->{create};
+            unless $self->layout->user_can('write_new');
     }
-    else
-    {
-        error __"No permissions to update an entry"
-            if $self->user && !$self->user->{permission}->{update};
-    }
-
-    my $noapproval = !$self->user
-                   || $self->user->{permission}->{update_noneed_approval}
-                   || $self->user->{permission}->{approver};
 
     my $force_mandatory = $options{force} && $options{force} eq 'mandatory' ? 1 : 0;
 
@@ -346,50 +377,56 @@ sub write
                 : error __x"'{col}' is not optional. Please enter a value.", col => $column->{name};
         }
 
-        error __x"Field {name} is read only", name => $column->name
-            if $datum->changed && $column->permission == READONLY && !$noapproval;
-
-        if (!$self->new_entry && $datum->changed)
+        if ($self->doing_approval && $self->approval_of_new)
         {
-            # Update to record and the field has changed
-            if ($column->approve)
+            error __x"You do not have permission to approve new values of new records"
+                if !$datum->blank && !$column->user_can('approve_new');
+        }
+        elsif ($self->doing_approval)
+        {
+            error __x"You do not have permission to approve edits of existing records"
+                if $datum->changed && !$column->user_can('approve_existing');
+        }
+        elsif ($self->new_entry)
+        {
+            error __x"You do not have permission to add data to field {name}", name => $column->name
+                if !$datum->blank && !$column->user_can('write_new');
+        }
+        elsif ($datum->changed && !$column->user_can('write_existing'))
+        {
+            error __x"You do not have permission to edit field {name}", name => $column->name;
+        }
+
+        if ($self->doing_approval)
+        {
+            # See if the user has something that could be approved
+            $need_rec = 1 if $self->approver_can_action_column($column);
+        }
+        elsif ($self->new_entry)
+        {
+            # New record. Approval needed?
+            if ($column->user_can('write_new_no_approval'))
             {
-                # Field needs approval
-                if ($noapproval)
-                {
-                    # User has permission to not need approval
-                    $need_rec = 1;
-                }
-                else {
-                    # This needs an approval record
-                    $need_app = 1;
-                    $appfields{$column->id} = 1;
-                }
-            }
-            else {
-                # Field can be updated openly (OPEN)
+                # User has permission to not need approval
                 $need_rec = 1;
             }
+            else {
+                # This needs an approval record
+                $need_app = 1;
+                $appfields{$column->id} = 1;
+            }
         }
-        if ($self->new_entry)
+        elsif ($datum->changed)
         {
-            # New record
-            if ($noapproval)
+            # Update to record and the field has changed
+            # Approval needed?
+            if ($column->user_can('write_existing_no_approval'))
             {
-                # User has permission to create new without approval
-                if (($column->permission == APPROVE || $column->permission == READONLY)
-                    && !$noapproval)
-                {
-                    # But field needs permission
-                    $need_app = 1;
-                    $appfields{$column->id} = 1;
-                }
-                else {
-                    $need_rec = 1;
-                }
+                # User has permission to not need approval
+                $need_rec = 1;
             }
             else {
-                # Whole record creation needs approval
+                # This needs an approval record
                 $need_app = 1;
                 $appfields{$column->id} = 1;
             }
@@ -455,29 +492,63 @@ sub write
         if ($need_rec) # For new records, only set if user has create permissions without approval
         {
             my $v;
-            # Need to write all values regardless
-            if ($column->permission == OPEN || $noapproval)
+            # Need to write all values regardless. This will either be the
+            # updated and approved value, if updated before arriving here,
+            # or the existing value otherwise
+            if ($self->doing_approval)
             {
-                push @columns_changed, $column->id if $datum->changed;
-
-                # Write new value
+                # Leave records where they are unless this user can
+                # action the approval
+                next unless $self->approver_can_action_column($column);
                 $self->_field_write($column, $datum);
+                # And delete value in approval record
+                $self->schema->resultset($column->table)->search({
+                    record_id => $self->approval_id,
+                    layout_id => $column->id,
+                })->delete;
             }
             else {
-                # Write old value
-                $self->_field_write($column, $datum, old => 1);
+                if (
+                    ($self->new_entry && $column->user_can('write_new_no_approval'))
+                    || (!$self->new_entry && $column->user_can('write_existing_no_approval'))
+                )
+                {
+                    push @columns_changed, $column->id if $datum->changed;
+
+                    # Write new value
+                    $self->_field_write($column, $datum);
+                }
+                elsif ($self->new_entry) {
+                    # Write value. It's a new entry and the user doesn't have
+                    # write access to this field. This will write a blank
+                    # value.
+                    $self->_field_write($column);
+                }
+                elsif ($column->user_can('write'))
+                {
+                    # Approval required, write original value
+                    $self->_field_write($column, $datum, old => 1);
+                }
+                else {
+                    # Value won't have changed. Write current value (old
+                    # value will not be set if it hasn't been updated)
+                    # Write old value
+                    $self->_field_write($column, $datum);
+                }
             }
         }
         if ($need_app)
         {
             # Only need to write values that need approval
             next unless $appfields{$column->id};
-            $self->_field_write($column, $datum, approval => 1);
+            $self->_field_write($column, $datum, approval => 1)
+                if ($self->new_entry && !$datum->blank)
+                    || (!$self->new_entry && $datum->changed);
         }
 
     }
 
-    # Finally update the current record tracking, if we've created a new
+    # Update the current record tracking, if we've created a new
     # permanent record, or a new record requiring approval
     if ($need_rec)
     {
@@ -492,6 +563,29 @@ sub write
         });
     }
 
+    # If this is an approval, see if there is anything left to approve
+    # in this record. If not, delete the stub record.
+    if ($self->doing_approval)
+    {
+        my $remaining = $self->schema->resultset('String')->search({ record_id => $self->approval_id })->count
+          || $self->schema->resultset('Intgr')->search({ record_id => $self->approval_id })->count
+          || $self->schema->resultset('Person')->search({ record_id => $self->approval_id })->count
+          || $self->schema->resultset('Date')->search({ record_id => $self->approval_id })->count
+          || $self->schema->resultset('Daterange')->search({ record_id => $self->approval_id })->count
+          || $self->schema->resultset('File')->search({ record_id => $self->approval_id })->count
+          || $self->schema->resultset('Enum')->search({ record_id => $self->approval_id })->count;
+        if (!$remaining)
+        {
+            # Nothing left for this approval record. Is there a last_record flag?
+            # If so, change that to the main record's flag instead.
+            my ($user) = $self->schema->resultset('User')->search({
+                lastrecord => $self->approval_id,
+            })->all;
+            $user->update({ lastrecord => $self->record_id }) if $user;
+            $self->schema->resultset('Record')->find($self->approval_id)->delete;
+        }
+    }
+
     # Write cached values
     foreach my $col ($self->layout->all(userinput => 0))
     {
@@ -501,7 +595,10 @@ sub write
         my $dependent_values;
         foreach my $dependent (@{$col->depends_on})
         {
-            $dependent_values->{$dependent} = $self->fields->{$dependent};
+            $dependent_values->{$dependent}
+                = $appfields{$dependent}
+                ? $self->fields->{$dependent}->oldvalue
+                : $self->fields->{$dependent};
         }
         my $new = $col->class->new(
             current_id       => $self->current_id,
@@ -535,40 +632,29 @@ sub _field_write
 
     if ($column->userinput)
     {
+        my $datum_write = $options{old} ? $datum->oldvalue : $datum;
         my $table = $column->table;
-        if ($options{old})
+        my $entry = {
+            layout_id => $column->id,
+        };
+        $entry->{record_id} = $options{approval} ? $self->approval_id : $self->record_id;
+        if ($datum_write) # Possible that we're writing a blank value
         {
-            # Copy old table value
-            my $old_rs = $self->schema->resultset($table)->search({
-                record_id => $self->record_id_old,
-                layout_id => $column->id,
-            });
-            $old_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
-            my ($old_row) = $old_rs->all;
-            delete $old_row->{id};
-            $old_row->{record_id} = $self->record_id;
-            $self->schema->resultset($table)->create($old_row);
-        }
-        else {
-            my $entry = {
-                layout_id => $column->id,
-            };
-            $entry->{record_id} = $options{approval} ? $self->approval_id : $self->record_id;
             if ($column->type eq "daterange")
             {
-                $entry->{from}  = $datum->from_dt;
-                $entry->{to}    = $datum->to_dt;
-                $entry->{value} = $datum->as_string;
+                $entry->{from}  = $datum_write->from_dt;
+                $entry->{to}    = $datum_write->to_dt;
+                $entry->{value} = $datum_write->as_string;
             }
             elsif ($column->type =~ /(file|enum|tree|person)/)
             {
-                $entry->{value} = $datum->id;
+                $entry->{value} = $datum_write->id;
             }
             else {
-                $entry->{value} = $datum->value;
+                $entry->{value} = $datum_write->value;
             }
-            $self->schema->resultset($table)->create($entry);
         }
+        $self->schema->resultset($table)->create($entry);
     }
 }
 

@@ -13,7 +13,7 @@
         <li role="presentation"><a role="menuitem" tabindex="-1" href="/history/[% version.id %]">[% version.created %]</a></li>
         [% END %]
     </ul>
-    [% IF user.permission.update %]
+    [% IF user_can_edit %]
         <a href="/edit/[% record.current_id %]" class="btn btn-default" role="button">Edit</a>
     [% END %]
     [% IF user.permission.delete || user.permission.delete_noneed_approval %]

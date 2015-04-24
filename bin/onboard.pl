@@ -151,6 +151,13 @@ while (my $row = $csv->getline($fh))
         my $f = $fields[$count];
         $col =~ s/\s+$//;
         say STDOUT "Going to process $col into field $f->{name}";
+        if ($f->{id} == 118) {
+            # IDT course name. Exists in act type?
+            if ($selects->{36}->{lc $col})
+            {
+                push @bad, qq(IDT Tier 3 course name "$col" exists as sub activity type);
+            }
+        }
         if ($f->{type} eq "enum" || $f->{type} eq "tree" || $f->{type} eq "person")
         {
             # Get enum ID value

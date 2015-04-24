@@ -157,6 +157,7 @@ sub BUILD
     }
 }
 
+# Recursively find all tables in a nested filter
 sub _filter_tables
 {   my ($filter, $tables) = @_;
 
@@ -195,6 +196,17 @@ sub write
 
     $vu->{name} = $self->name or error __"Please enter a name for the view";
     $vu->{filter} = $self->filter;
+    my $decoded = decode_json($self->filter);
+
+    # Get all the columns in the filter. Check whether the user has
+    # access to them.
+    my $tables_in_filter = {};
+    _filter_tables $decoded, $tables_in_filter;
+    foreach my $table (keys %$tables_in_filter)
+    {
+        error __x"Invalid field ID {id} in filter", id => $table
+            unless $self->layout->column($table)->user_can('read');
+    }
 
     if ($self->id)
     {
@@ -221,7 +233,7 @@ sub write
     my $schema = $self->schema;
     my @colviews = @{$self->columns};
 
-    foreach my $c ($self->layout->all)
+    foreach my $c ($self->layout->all(user_can_read => 1))
     {
         my $item = { view_id => $self->id, layout_id => $c->id };
         if (grep {$c->id == $_} @colviews)
@@ -254,26 +266,24 @@ sub write
                 $schema->resultset('AlertCache')->populate(\@pop) if @pop;
             }
         }
-        else {
-            $schema->resultset('ViewLayout')->search($item)->delete;
-            # Also delete alert cache for this column
-            $schema->resultset('AlertCache')->search({
-                view_id   => $self->id,
-                layout_id => $c->id
-            })->delete;
-        }
     }
+
+    # Delete any no longer needed
+    my $search = {view_id => $self->id};
+    $search->{'-not'} = {'layout_id' => \@colviews} if @colviews;
+    $self->schema->resultset('ViewLayout')->search($search)->delete;
+    $self->schema->resultset('AlertCache')->search($search)->delete;
 
     # Then update any sorts
     # $self->sorts($values);
 
     # Then update the filter table, which we use to query what fields are
-    # applied to a view's filters when doing alerts
+    # applied to a view's filters when doing alerts.
+    # We don't sanitise the columns the user has visible at this point -
+    # there is not much point, as they could be removed later anyway. We
+    # do this during the processing of the alerts and filters elsewhere.
     my @existing = $self->schema->resultset('Filter')->search({ view_id => $self->id })->all;
-    my $decoded = decode_json($self->filter);
-    my $tables = {};
-    _filter_tables $decoded, $tables;
-    foreach my $table (keys $tables)
+    foreach my $table (keys $tables_in_filter)
     {
         unless (grep { $_->layout_id == $table } @existing)
         {
@@ -284,8 +294,8 @@ sub write
         }
     }
     # Delete those no longer there
-    my $search = { view_id => $self->id };
-    $search->{layout_id} = { '!=' => [ '-and', keys %$tables ] } if keys %$tables;
+    $search = { view_id => $self->id };
+    $search->{layout_id} = { '!=' => [ '-and', keys %$tables_in_filter ] } if keys %$tables_in_filter;
     $self->schema->resultset('Filter')->search($search)->delete;
 }
 
@@ -365,6 +375,9 @@ sub set_sorts
         error __x"Invalid type {type}", type => $type
             unless grep { $_->{name} eq $type } @{sort_types()};
         my $layout_id = $update->{"sortfield$id$new"} || undef;
+        # Check column is valid and user has access
+        error __x"Invalid field ID {id} in sort", id => $layout_id
+            unless $self->layout->column($layout_id)->user_can('read');
         my $sort = {
             view_id   => $self->id,
             layout_id => $layout_id,

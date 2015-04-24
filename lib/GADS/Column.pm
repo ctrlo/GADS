@@ -18,8 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Column;
 
+use JSON qw(decode_json encode_json);
 use Log::Report;
 use String::CamelCase qw(camelize);
+use GADS::Type::Permission;
 use GADS::Util qw(:all);
 
 use Moo;
@@ -40,9 +42,22 @@ has user => (
     is => 'rw',
 );
 
+# All permissions for this column
+has permissions => (
+    is  => 'lazy',
+    isa => HashRef,
+);
+
+# The permissions the logged-in user has
+has user_permissions => (
+    is      => 'rw',
+    isa     => ArrayRef,
+    default => sub { [] },
+);
+
 # Needed for update of cached columns
 has layout => (
-    is => 'rw',
+    is       => 'ro',
 );
 
 has from_id => (
@@ -133,15 +148,6 @@ has remember => (
     coerce => sub { $_[0] ? 1 : 0 },
 );
 
-has permission => (
-    is  => 'rw',
-    isa => sub {
-        $_[0] =~ /^[012]$/
-            or error __x"Bad permission {permission} for item", permission => $$_[0];
-    },
-    default => 0,
-);
-
 has userinput => (
     is      => 'rw',
     isa     => Bool,
@@ -154,31 +160,7 @@ has numeric => (
     isa => Bool,
 );
 
-has readonly => (
-    is      => 'ro',
-    lazy    => 1,
-    builder => sub { $_[0]->permission == READONLY ? 1 : 0 },
-);
-
-has approve => (
-    is      => 'ro',
-    lazy    => 1,
-    builder => sub { $_[0]->permission == APPROVE ? 1 : 0 },
-);
-
-has open => (
-    is      => 'ro',
-    lazy    => 1,
-    builder => sub { $_[0]->permission == OPEN ? 1 : 0 },
-);
-
 has optional => (
-    is     => 'rw',
-    isa    => Bool,
-    coerce => sub { $_[0] ? 1 : 0 },
-);
-
-has hidden => (
     is     => 'rw',
     isa    => Bool,
     coerce => sub { $_[0] ? 1 : 0 },
@@ -295,6 +277,22 @@ has hascache => (
     },
 );
 
+sub _build_permissions
+{   my $self = shift;
+    my @all = $self->schema->resultset('LayoutGroup')->search({
+        layout_id => $self->id,
+    });
+    my %perms;
+    foreach my $p (@all)
+    {
+        $perms{$p->group_id} ||= [];
+        push @{$perms{$p->group_id}}, GADS::Type::Permission->new(
+            short => $p->permission
+        );
+    }
+    \%perms;
+}
+
 sub build_values
 {   my ($self, $original) = @_;
 
@@ -302,11 +300,9 @@ sub build_values
     $self->name($original->{name});
     $self->optional($original->{optional});
     $self->remember($original->{remember});
-    $self->hidden($original->{hidden});
     $self->position($original->{position});
     $self->helptext($original->{helptext});
     $self->description($original->{description});
-    $self->permission($original->{permission});
     $self->field("field$original->{id}");
     $self->type($original->{type});
     $self->display_field($original->{display_field});
@@ -370,6 +366,7 @@ sub delete
     $self->schema->resultset('String')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('Enum')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('LayoutDepend')->search({ layout_id => $self->id })->delete;
+    $self->schema->resultset('LayoutGroup')->search({ layout_id => $self->id })->delete;
     # XXX The following should be done in ::Enum, except it won't be if the column
     # is not a different type. This may still error due to parents etc
     $self->schema->resultset('Enumval')->search({ layout_id => $self->id })->delete;
@@ -387,10 +384,8 @@ sub write
         or error __"Please enter a name for item";
     $newitem->{type} = $self->type
         or error __"Please select a type for the item";
-    $newitem->{permission}    = $self->permission;
     $newitem->{optional}      = $self->optional;
     $newitem->{remember}      = $self->remember;
-    $newitem->{hidden}        = $self->hidden;
     $newitem->{description}   = $self->description;
     $newitem->{helptext}      = $self->helptext;
     $newitem->{display_field} = $self->display_field;
@@ -404,6 +399,121 @@ sub write
         my $id = $self->schema->resultset('Layout')->create($newitem)->id;
         $self->id($id);
     }
+}
+
+sub user_can
+{   my ($self, $permission) = @_;
+    return 1 if grep { $_ eq $permission } @{$self->user_permissions};
+    if ($permission eq 'write') # shortcut
+    {
+        return 1 if grep { $_ eq 'write_new' || $_ eq 'write_existing' }
+            @{$self->user_permissions};
+    }
+    0;
+}
+
+# Whether a particular user ID has a permission for this column
+sub user_id_can
+{   my ($self, $user_id, $permission) = @_;
+    my $perms = $self->layout->get_user_perms($user_id)->{$self->id}
+        or return;
+    grep { $_ eq $permission } @$perms;
+}
+
+sub set_permissions
+{   my ($self, $group_id, $permissions) = @_;
+    my $has_read;
+    foreach my $permission (@$permissions)
+    {
+        $has_read = 1 if $permission eq 'read';
+        # Unique constraint on table. Catch existing.
+        eval {
+            $self->schema->resultset('LayoutGroup')->create({
+                layout_id  => $self->id,
+                group_id   => $group_id,
+                permission => $permission,
+            });
+        }
+    }
+
+    # Before we do the catch-all delete, see if there is currently a
+    # read permission there which is about to be removed.
+    my $read_removed = !$has_read && $self->schema->resultset('LayoutGroup')->search({
+        group_id   => $group_id,
+        layout_id  => $self->id,
+        permission => 'read',
+    })->count;
+
+    # Delete those no longer there
+    my $search = { group_id => $group_id, layout_id => $self->id };
+    $search->{permission} = { '!=' => [ '-and', @$permissions ] } if @$permissions;
+    $self->schema->resultset('LayoutGroup')->search($search)->delete;
+
+    # See if any read permissions have been removed. If so, we need
+    # to remove them from the relevant filters and sorts. The views themselves
+    # don't matter, as they won't be shown anyway.
+    if ($read_removed)
+    {
+        # First the sorts
+        foreach my $sort ($self->schema->resultset('Sort')->search({
+            layout_id      => $self->id,
+            'view.user_id' => { '!=' => undef },
+        }, {
+            prefetch => 'view',
+        })->all)
+        {
+            # For each sort on this column, which no longer has read.
+            # See if user attached to this view still has access with
+            # another group
+            $sort->delete unless $self->user_id_can($sort->view->user_id, 'read');
+        }
+        # Then the filters
+        foreach my $filter ($self->schema->resultset('Filter')->search({
+            layout_id      => $self->id,
+            'view.user_id' => { '!=' => undef },
+        }, {
+            prefetch => 'view',
+        })->all)
+        {
+            # For each sort on this column, which no longer has read.
+            # See if user attached to this view still has access with
+            # another group
+            unless ($self->user_id_can($filter->view->user_id, 'read'))
+            {
+                # Filter cache
+                $filter->delete;
+                # Alert cache
+                $self->schema->resultset('AlertCache')->search({
+                    layout_id => $self->id,
+                    view_id   => $filter->view_id,
+                })->delete;
+                # Column in the view
+                $self->schema->resultset('ViewLayout')->search({
+                    layout_id => $self->id,
+                    view_id   => $filter->view_id,
+                })->delete;
+                # And the JSON filter itself
+                my $filter_dec = decode_json $filter->view->filter;
+                _filter_remove_colid($filter_dec, $self->id);
+                # An AND with empty rules causes JSON filter to have JS error
+                $filter_dec = {} unless @{$filter_dec->{rules}};
+                my $filter_enc = encode_json $filter_dec;
+                $filter->view->update({ filter => $filter_enc });
+            }
+        }
+    }
+}
+
+# Recursively find all tables in a nested filter
+sub _filter_remove_colid
+{   my ($filter, $colid) = @_;
+
+    if (my $rules = $filter->{rules})
+    {
+        # Filter has other nested filters
+        @$rules = grep { _filter_remove_colid($_, $colid) } @$rules;
+    }
+    $colid == $filter->{id} ? 0 : 1;
 }
 
 1;

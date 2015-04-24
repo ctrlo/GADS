@@ -37,23 +37,21 @@ has datetime_parser => (
 # that needs to be done at build stage as a lazy
 has set_value => (
     is       => 'rw',
-    required => 1,
     trigger  => sub {
         my ($self, $value) = @_;
 
-        if ($self->value_done)
+        if ($self->has_value)
         {
-            my $oldvalue = $self->value; # Not set with new value yet
-            $self->oldvalue($oldvalue);
+            $self->oldvalue($self->clone);
             my $newvalue = $self->_to_dt($value); # DB parser needed for this. Will be set second time
-            my $old = $oldvalue ? $oldvalue->epoch : 0;
+            my $old = $self->oldvalue ? $self->oldvalue->value->epoch : 0;
             my $new = $newvalue ? $newvalue->epoch : 0; 
             $self->changed(1) if $old != $new;
             $self->value($newvalue);
         }
         else {
             $self->_init_value($value);
-            $self->value_done(1);
+            $self->has_value(1) if defined $value || $self->init_no_value;
         }
     },
 );
@@ -79,9 +77,15 @@ has _init_value => (
 
 # Can't use predicate, as value may not have been built on
 # second time it's set
-has value_done => (
+has has_value => (
     is => 'rw',
 );
+
+around 'clone' => sub {
+    my $orig = shift;
+    my $self = shift;
+    $orig->($self, 'datetime_parser' => $self->datetime_parser, value => $self->value);
+};
 
 sub _to_dt
 {   my ($self, $value) = @_;

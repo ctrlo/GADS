@@ -35,6 +35,7 @@ use Log::Report;
 use String::CamelCase qw(camelize);
 
 use Moo;
+use MooX::Types::MooseLike::Base qw/:all/;
 
 has schema => (
     is       => 'rw',
@@ -50,6 +51,13 @@ has columns => (
     is      => 'rw',
     lazy    => 1,
     builder => '_build_columns',
+);
+
+# The permissions the logged-in user has, for the whole data set
+has user_permissions => (
+    is        => 'rw',
+    isa       => HashRef,
+    predicate => 1,
 );
 
 has columns_index => (
@@ -71,7 +79,7 @@ sub _build_columns
     my $cols_rs = $self->schema->resultset('Layout')->search({},{
         order_by => ['me.position', 'enumvals.id'],
         join     => 'enumvals',
-        prefetch => ['calcs', 'rags' ],
+        prefetch => ['calcs', 'rags'],
     });
 
     $cols_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
@@ -82,20 +90,53 @@ sub _build_columns
     foreach my $col (@allcols)
     {
         my $class = "GADS::Column::".camelize $col->{type};
-        my $column = $class->new(set_values => $col, schema => $self->schema);
+        my $column = $class->new(set_values => $col, schema => $self->schema, layout => $self);
         push @return, $column;
     }
 
-    # Now that we have all columns built, we need to tag on dependent cols
+    my ($perms, $overall_permissions) = $self->get_user_perms($self->user->{id});
+    $self->user_permissions($overall_permissions);
+
+    # Now that we have everything built, we need to tag on dependent cols and permissions
     foreach my $col (@return)
     {
         # And also any columns that are children (in the layout)
         my @depends = grep {$_->display_field && $_->display_field == $col->id} @return;
         my @depended_by = map { { id => $_->id, regex => $_->display_regex } } @depends;
         $col->depended_by(\@depended_by);
+        if (my $perm = $perms->{$col->id})
+        {
+            $col->user_permissions($perm);
+        }
     }
 
+
     \@return;
+}
+
+sub get_user_perms
+{   my ($self, $user_id) = @_;
+    # Construct a hash with all the permissions for the different columns
+    my $perms_rs = $self->schema->resultset('User')->search({
+        'me.id' => $user_id,
+    }, {
+        prefetch => { user_groups => { group => 'layout_groups' } },
+    });
+    $perms_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    my ($user_perms) = $perms_rs->all; # The overall user. Only one due to query.
+    my %perms; # Hash of different columns and their permissions
+    my %overall_permissions; # Flat structure of all user permissions for whole layout
+    foreach my $group (@{$user_perms->{user_groups}}) # For each group the user has
+    {
+        foreach my $layout_group (@{$group->{group}->{layout_groups}}) # For each column in that group
+        {
+            # Push the actual permission onto an array
+            $perms{$layout_group->{layout_id}} ||= [];
+            push @{$perms{$layout_group->{layout_id}}}, $layout_group->{permission};
+            $overall_permissions{$layout_group->{permission}} = 1;
+        }
+    }
+    wantarray ? (\%perms, \%overall_permissions) : \%perms;
 }
 
 sub all
@@ -103,20 +144,17 @@ sub all
 
     my $type = $options{type};
 
-    my $include_hidden = $options{include_hidden}
-                      || (  !$self->user
-                          ? 1
-                          : $self->user->{permission}->{layout} 
-                          ? 1 
-                          : 0 
-                      );
-
     my @columns = @{$self->columns};
     @columns = $self->_order_dependencies(@columns) if $options{order_dependencies};
     @columns = grep { $_->type eq $type } @columns if $type;
     @columns = grep { $_->remember == $options{remember} } @columns if defined $options{remember};
-    @columns = grep { !$_->hidden } @columns unless $include_hidden;
     @columns = grep { $_->userinput == $options{userinput} } @columns if defined $options{userinput};
+    @columns = grep { $_->user_can('read') } @columns if $options{user_can_read};
+    @columns = grep { $_->user_can('write') } @columns if $options{user_can_write};
+    @columns = grep { $_->user_can('write_new') } @columns if $options{user_can_write_new};
+    @columns = grep { $_->user_can('write_existing') || $_->user_can('read') } @columns if $options{user_can_readwrite_existing};
+    @columns = grep { $_->user_can('approve_new') } @columns if $options{user_can_approve_new};
+    @columns = grep { $_->user_can('approve_existing') } @columns if $options{user_can_approve_existing};
     @columns;
 }
 
@@ -148,8 +186,10 @@ sub position
 }
 
 sub column
-{   my ($self, $id) = @_;
-    $self->columns_index->{$id};
+{   my ($self, $id, %options) = @_;
+    my $column = $self->columns_index->{$id};
+    return if $options{permission} && !$column->user_can($options{permission});
+    $column;
 }
 
 sub view
@@ -157,13 +197,32 @@ sub view
 
     return unless $view_id;
     my $view    = GADS::View->new(
-        user   => $self->{user},
+        user   => $self->user,
         id     => $view_id,
         schema => $self->schema,
         layout => $self,
     );
     my %view_layouts = map { $_ => 1 } @{$view->columns};
     grep { $view_layouts{$_->{id}} } $self->all(%options);
+}
+
+# XXX Should move this into a user class at some point.
+# Returns what a user can do to the whole data set. Individual
+# permissions for columns are contained in the column class.
+sub user_can
+{   my ($self, $permission) = @_;
+    if (!$self->has_user_permissions)
+    {
+        # Full layout has not been built. Shortcut to just a simple
+        # SQL query instead
+        return $self->schema->resultset('UserGroup')->search({
+            user_id    => $self->user->{id},
+            permission => $permission,
+        },{
+            join => { group => 'layout_groups' },
+        })->count;
+    }
+    $self->user_permissions->{$permission};
 }
 
 1;

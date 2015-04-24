@@ -29,14 +29,6 @@
                     <option value="calc" [% IF column.type == "calc" %]selected[% END %]>Calculated value</option>
                 </select>
             </div>
-            <div class="form-group noragcalc" [% noragcalc %]>
-                <label for="permissions">Permissions: (<a href="" data-toggle="modal" data-target="#modalhelp">?</a>)</label>
-                <select class="form-control" name="permission" id="permissions">
-                    <option value="0" [% IF column.permission == 0 %]selected[% END %]>Open access</option>
-                    <option value="1" [% IF column.permission == 1 %]selected[% END %]>Edit with approval</option>
-                    <option value="2" [% IF column.permission == 2 %]selected[% END %]>Read only</option>
-                </select>
-            </div>
             <div class="form-group">
                 <label for="description">Description:</label>
                 <input type="text" class="form-control" id="description" name="description" value="[% column.description | html_entity %]">
@@ -54,11 +46,6 @@
                 <label>
                     <input type="checkbox" name="remember" [% IF column.remember %]checked[% END %]>Remember last value for new entry
                 </label>
-            </div>
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" name="hidden" [% IF column.hidden %]checked[% END %]>Field is hidden for normal users
-                </label> (<a href="" data-toggle="modal" data-target="#modalhelp_hidden">?</a>)
             </div>
             <div class="checkbox noragcalc" [% noragcalc %]>
                 <label>
@@ -84,6 +71,37 @@
                     </div>
                 </div>
             </div>
+            <hr>
+            <h4>Permissions <small>(<a href="" data-toggle="modal" data-target="#modalhelp_groups">?</a>)</small></h4>
+                <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_permissions" data-title="Add new group">Add new group</a>
+                [% IF column.permissions.size %]
+                    <table class="table table-condensed">
+                        <tr>
+                            <th>Group</th>
+                            <th>Permssions</th>
+                        </tr>
+                        [% FOREACH permission IN column.permissions.pairs %]
+                            [% group = groups.group(permission.key) %]
+                            <tr>
+                                <td>
+                                <a href="" data-toggle="modal"
+                                    data-target="#modal_permissions"
+                                    data-title="Permissions for [% group.name %]"
+                                    data-group_id="[% group.id %]"
+                                    [% FOR p IN permission.value %]
+                                        data-[% p.short %]="1"
+                                    [% END %]
+                                    >[% group.name %]</a>
+                                </td>
+                                <td>
+                                    [% permission.value.join(', ') %]
+                                </td>
+                            </tr>
+                        [% END %]
+                    </table>
+                [% ELSE %]
+                    <p>No groups have permission rights for this field</p>
+                [% END %]
         </div>
         <div class="col-md-6">
             <div id="divtree"
@@ -275,15 +293,15 @@
             </div><!-- /.modal-dialog -->
         </div><!-- /.modal -->
        <!-- Modal -->
-        <div class="modal fade" id="modalhelp_hidden" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal fade" id="modalhelp_groups" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="myModalLabel">Hidden fields</h4>
+                        <h4 class="modal-title" id="myModalLabel">Permissions</h4>
                     </div>
                     <div class="modal-body">
-                        <p>[% global.helptext.layout_hidden %]</p>
+                        <p>[% global.helptext.layout_groups %]</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -311,6 +329,43 @@
                 </div><!-- /.modal-content -->
             </div><!-- /.modal-dialog -->
         </div><!-- /.modal -->
+        <div class="modal fade" id="modal_permissions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form role="form" method="post" enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="modal_permissions-title">Permissions for group</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group" id="modal_permissions-group_div">
+                            <input type="hidden" name="group_id" id="modal_permissions-group_id" value="">
+                            <div id="modal_permissions-group_select_div">
+                                <label for="modal_permissions-group_select">Group:</label>
+                                <select class="form-control" id="modal_permissions-group_select" name="group_id">
+                                    [% FOR group IN groups.all %]
+                                        <option value="[% group.id %]">[% group.name %]</option>
+                                    [% END %]
+                                </select>
+                            </div>
+                        </div>
+                        <p>Users in this group can:</p>
+                        [% FOR perm IN permissions %]
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="permissions" value="[% perm.short %]" id="modal_permissions-[% perm.short %]">[% perm %]
+                                </label>
+                            </div>
+                        [% END %]
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button type="submit" name="update_perms" value="submit" class="btn btn-primary">Save</button>
+                    </div>
+                    </form>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
 [% ELSE %]
 <p>The layout defines the fields that form the overall dataset. Use this page to add, delete
 and edit fields. Each field's permissions can be individually defined; full details of the
@@ -324,7 +379,6 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
         <th></th>
         <th>Name</th>
         <th>Type</th>
-        <th>Permissions</th>
         <th>Description</th>
         <th>Order</th>
     </tr>
@@ -343,11 +397,6 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 [% IF column.type == "person" %]Person[% END %]
                 [% IF column.type == "rag" %]RedAmberGreen (RAG) status[% END %]
                 [% IF column.type == "calc" %]Calculated value[% END %]
-            </td>
-            <td>
-                [% IF column.permission == 0 %]Open access[% END %]
-                [% IF column.permission == 1 %]Edit with approval[% END %]
-                [% IF column.permission == 2 %]Read only[% END %]
             </td>
             <td>
                 [% column.description %]
@@ -372,6 +421,29 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
+        $('#modal_permissions').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var title = button.data('title');
+            $('#modal_permissions-title').text(title);
+            var group_id = button.data('group_id');
+            if (group_id) {
+                $('#modal_permissions-group_id').val(group_id);
+                $('#modal_permissions-group_id').attr('name', 'group_id');
+                $('#modal_permissions-group_select').attr('name', 'group_id_temp');
+                $('#modal_permissions-group_select_div').hide();
+            } else {
+                $('#modal_permissions-group_select').attr('name', 'group_id');
+                $('#modal_permissions-group_id').attr('name', 'group_id_temp');
+                $('#modal_permissions-group_select_div').show();
+            }
+            [% FOR perm IN permissions %]
+                if (button.data('[% perm.short %]')) {
+                    $('#modal_permissions-[% perm.short %]').prop("checked", true );
+                } else {
+                    $('#modal_permissions-[% perm.short %]').prop("checked", false );
+                }
+            [% END %]
+        });
         $('#display_condition').click(function () {
             $("#display_condition_div").toggle(400);
         });

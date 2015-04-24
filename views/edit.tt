@@ -20,11 +20,14 @@
             [% END %]
         </div>
     </div>
-    <button type="submit" id="submit_button" name="submit" value="submit" class="btn btn-primary">Save</button>
-    <a href="/data" class="btn btn-default">Cancel</a>
+    <div style="height:55px;"></div>
+    <nav class="navbar navbar-default navbar-fixed-bottom" style="min-height:55px">
+        <div class="container">
+            <button type="submit" id="submit_button" name="submit" value="submit" class="btn btn-primary">Save</button>
+            <a href="/data" class="btn btn-default">Cancel</a>
+        </div>
+    </nav>
 </form>
-<p></p>
-
        <!-- Modal -->
         <div class="modal fade" id="helptext_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -67,7 +70,7 @@
     [% colid = dispcol.id %]
 
     [%# Skip field if it's an approval request but a value not needing approval %]
-    [% NEXT IF NOT (record.fields.$colid.defined)  %]
+    [% NEXT IF NOT (record.fields.$colid.has_value)  %]
 
     [% IF existing %]
         [% oldvalue = existing.fields.$colid.html %] [%# All value already entity-encoded %]
@@ -86,7 +89,12 @@
 
     [% editvalue = value.value %]
 
-    [% IF record.current_id AND dispcol.readonly AND NOT user.permission.update_noneed_approval AND NOT user.permission.approver %]
+    [% IF (
+              (record.current_id AND !dispcol.user_can("write_existing"))
+              OR (!record.current_id AND !dispcol.user_can("write_new"))
+          )
+       AND page != "approval" 
+    %]
         [% readonly = "readonly" %]
     [% ELSE %]
         [% readonly = "" %]
@@ -131,7 +139,7 @@
             [% END %]
         </select>
     [% ELSIF dispcol.type == "tree" %]
-        [% trees.push({id = dispcol.id, end_node_only = dispcol.end_node_only, value = editvalue}) %]
+        [% trees.push({id = dispcol.id, end_node_only = dispcol.end_node_only, value = editvalue, readonly = readonly }) %]
         <label for="[% dispcol.id %]" [% label_style %]>
             [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
         </label>
@@ -169,7 +177,7 @@
             <p class="help-block">Current file name: [% editvalue.html %] (read-only field, cannot be updated).</p>
         [% ELSE %]
             <input type="file" id="[% dispcol.id %]" name="[% "file" _ dispcol.id %]">
-            [% IF editvalue %]
+            [% IF editvalue.id %]
                 <p class="help-block">
                 <input type="checkbox" name="[% field %]" value="[% editvalue.id %]" checked>Include file.
                 Current file name: [% editvalue.html %]. Select a new file to replace.</p>
@@ -181,8 +189,8 @@
         </label>
         [% IF dispcol.type == "daterange" %]
             <div class="input-daterange datepicker" style="padding:0">
-                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline" value="[% editvalue.from_form %]">
-                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline; float:right" value="[% editvalue.to_form %]">
+                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline" value="[% editvalue.from_form %]" [% readonly %]>
+                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline; float:right" value="[% editvalue.to_form %]" [% readonly %]>
             </div>
         [% ELSE %]
             [% IF dispcol.type == "date" %]

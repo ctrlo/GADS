@@ -2,6 +2,7 @@ package GADS;
 
 use DateTime;
 use GADS::Alert;
+use GADS::Approval;
 use GADS::Audit;
 use GADS::Column;
 use GADS::Column::Calc;
@@ -20,9 +21,12 @@ use GADS::Email;
 use GADS::Graph;
 use GADS::Graph::Data;
 use GADS::Graphs;
+use GADS::Group;
+use GADS::Groups;
 use GADS::Layout;
 use GADS::Record;
 use GADS::Records;
+use GADS::Type::Permissions;
 use GADS::User;
 use GADS::Util         qw(:all);
 use GADS::View;
@@ -75,9 +79,10 @@ hook before => sub {
 
     # Dynamically generate "virtual" columns for each row of data, based on the
     # configured layout
+    my $user = logged_in_user;
     GADS::DB->setup(schema);
 
-    if (config->{gads}->{aup} && logged_in_user)
+    if (config->{gads}->{aup} && $user)
     {
         # Redirect if AUP not signed
         my $aup_accepted;
@@ -117,9 +122,16 @@ hook before_template => sub {
 
     $tokens->{header} = config->{gads}->{header};
 
-    if (user_has_role 'approver')
+    my $layout = GADS::Layout->new(user => $user, schema => schema);
+    if ($user && ($layout->user_can('approve_new') || $layout->user_can('approve_existing')))
     {
-        $tokens->{approve_waiting} = GADS::Records->approval_count(schema);
+        my $approval = GADS::Approval->new(
+            schema => schema,
+            user   => $user,
+            layout => $layout
+        );
+        $tokens->{user_can_approve} = 1;
+        $tokens->{approve_waiting} = $approval->count;
     }
     $tokens->{messages} = session('messages');
     $tokens->{user}     = $user;
@@ -272,6 +284,10 @@ get '/search' => require_login sub {
     my $layout = GADS::Layout->new(user => $user, schema => schema);
     my $records = GADS::Records->new(schema => schema, user => $user, layout => $layout);
     my @results = $records->search_all_fields($search);
+
+    # Redirect to record if only one result
+    redirect "/record/$results[0]->{current_id}"
+        if @results == 1;
     template 'search' => {
         results => \@results,
         search  => $search,
@@ -350,7 +366,9 @@ any '/data' => require_login sub {
         my @colors = qw/event-important event-success event-warning event-info event-inverse event-special/;
         my %datecolors;
 
-        my @columns = $view ? $layout->view($view->id) : $layout->all;
+        my @columns = $view
+            ? $layout->view($view->id, user_can_read => 1)
+            : $layout->all(user_can_read => 1);
 
         foreach my $column (@columns)
         {
@@ -378,6 +396,9 @@ any '/data' => require_login sub {
         if (defined param('sort'))
         {
             my $sort     = int param 'sort';
+            # Check user has access
+            forwardHome({ danger => "Invalid column ID for sort" }, '/data')
+                unless $layout->column($sort)->user_can('read');
             my $existing = session('sort');
             if (!$existing && @{$view->sorts})
             {
@@ -470,13 +491,16 @@ any '/data' => require_login sub {
             return send_file( \$csv, content_type => 'text/csv', filename => "$now$header.csv" );
         }
         else {
-            my @columns = $view ? $layout->view($view->id) : $layout->all;
+            my @columns = $view
+                ? $layout->view($view->id, user_can_read => 1)
+                : $layout->all(user_can_read => 1);
             $params = {
-                sort     => $records->sort,
-                subset   => $subset,
-                records  => $records->results,
-                columns  => \@columns,
-                viewtype => 'table',
+                user_can_edit => $layout->user_can('write_existing'),
+                sort          => $records->sort,
+                subset        => $subset,
+                records       => $records->results,
+                columns       => \@columns,
+                viewtype      => 'table',
             };
         }
     }
@@ -490,10 +514,11 @@ any '/data' => require_login sub {
 
     my $views      = GADS::Views->new(user => $user, schema => schema, layout => $layout);
 
-    $params->{v}          = $view,  # View is reserved TT word
-    $params->{user_views} = $views->user_views;
-    $params->{alerts}     = $alert->all;
-    $params->{page}       = 'data';
+    $params->{v}               = $view,  # View is reserved TT word
+    $params->{user_views}      = $views->user_views;
+    $params->{alerts}          = $alert->all;
+    $params->{page}            = 'data';
+    $params->{user_can_create} = $layout->user_can('write_new');
     template 'data' => $params;
 };
 
@@ -655,6 +680,49 @@ any '/graph/?:id?' => require_role layout => sub {
     template 'graph' => $params;
 };
 
+any '/group/?:id?' => require_role useradmin => sub {
+
+    my $id = param 'id';
+    my $group = GADS::Group->new(schema => schema);
+    $group->from_id($id);
+
+    if (param 'submit')
+    {
+        $group->name(param 'name');
+
+        if (process(sub {$group->write}))
+        {
+            my $action = param('id') ? 'updated' : 'created';
+            return forwardHome(
+                { success => "Group has been $action successfully" }, '/group' );
+        }
+    }
+
+    if (param 'delete')
+    {
+        if (process(sub {$group->delete}))
+        {
+            return forwardHome(
+                { success => "The group has been deleted successfully" }, '/group' );
+        }
+    }
+
+    my $params = {
+        page => 'group'
+    };
+
+    if (defined $id)
+    {
+        # id will be 0 for new group
+        $params->{group} = $group;
+    }
+    else {
+        my $groups = GADS::Groups->new(schema => schema);
+        $params->{groups} = $groups->all;
+    }
+    template 'group' => $params;
+};
+
 any '/view/:id' => require_login sub {
 
     my $view_id = param('id');
@@ -702,10 +770,8 @@ any '/view/:id' => require_login sub {
         }
     }
 
-
-    my @all_columns = $layout->all;
     my $output = template 'view' => {
-        all_columns  => \@all_columns,
+        all_columns  => [$layout->all(user_can_read => 1)],
         sort_types   => $view->sort_types,
         v            => $view, # TT does not like variable "view"
         page         => 'view'
@@ -752,7 +818,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
         all_columns => \@all_columns,
     };
 
-    if (param('id') || param('submit'))
+    if (param('id') || param('submit') || param('update_perms'))
     {
         my $id = param('id');
         my $class = (param('type') && grep {param('type') eq $_} GADS::Column::types)
@@ -762,6 +828,13 @@ any '/layout/?:id?' => require_role 'layout' => sub {
         my $column = $class->new(schema => schema, user => $user, layout => $layout);
         $column->from_id($id) if $id;
         
+        # Update of permissions?
+        if (param 'update_perms')
+        {
+            my $permissions = ref param('permissions') eq 'ARRAY' ? param('permissions') : [param('permissions') || ()];
+            $column->set_permissions(param('group_id'), $permissions);
+        }
+
         if (param 'delete')
         {
             if (process( sub { $column->delete }))
@@ -774,7 +847,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
         if (param 'submit')
         {
             $column->$_(param $_)
-                foreach (qw/name type permission description helptext optional hidden remember/);
+                foreach (qw/name type description helptext optional remember/);
             if (param 'display_condition')
             {
                 $column->display_field(param 'display_field');
@@ -819,10 +892,14 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             }
         }
         $params->{column} = $column;
+        $params->{groups} = GADS::Groups->new(schema => schema);
+        $params->{permissions} = [GADS::Type::Permissions->all];
     }
     elsif (defined param('id'))
     {
         $params->{column} = 0; # New
+        $params->{groups} = GADS::Groups->new(schema => schema);
+        $params->{permissions} = [GADS::Type::Permissions->all];
     }
 
     if (param 'saveposition')
@@ -902,6 +979,9 @@ any '/user/?:id?' => require_role useradmin => sub {
         }
         if ($result)
         {
+            # Add groups to user
+            my @groups = ref param('groups') ? @{param('groups')} : (param('groups') || ());
+            GADS::User->groups($newuser, \@groups);
             my $action;
             my $audit_perms = join ', ', keys %{$newuser->{permission}};
             if ($id) {
@@ -977,6 +1057,7 @@ any '/user/?:id?' => require_role useradmin => sub {
     my $output = template 'user' => {
         edit              => $id,
         users             => $users,
+        groups            => GADS::Groups->new(schema => schema)->all,
         register_requests => $register_requests,
         titles            => GADS::User->titles,
         organisations     => GADS::User->organisations,
@@ -986,11 +1067,28 @@ any '/user/?:id?' => require_role useradmin => sub {
     $output;
 };
 
-any '/approval/?:id?' => require_role approver => sub {
+any '/approval/?:id?' => require_login sub {
     my $id   = param 'id';
     my $user = logged_in_user;
 
     my $layout = GADS::Layout->new(user => $user, schema => schema);
+
+    # If we're viewing or approving an individual record, first
+    # see if it's a new record or edit of existing. This affects
+    # permissions
+    my $approval_of_new = $id
+        ? GADS::Record->new(
+            user               => $user,
+            layout             => $layout,
+            schema             => schema,
+            include_approval   => 1,
+            record_id          => $id,
+        )->approval_of_new
+        : 0;
+
+    my @columns_to_show = $approval_of_new ? $layout->all(user_can_approve_new => 1)
+        : $layout->all(user_can_approve_existing => 1);
+
     if (param 'submit')
     {
         # Get latest record for this approval
@@ -998,10 +1096,19 @@ any '/approval/?:id?' => require_role approver => sub {
             user             => $user,
             layout           => $layout,
             schema           => schema,
+            approval_id      => $id,
+            doing_approval   => 1,
             base_url         => request->base,
-            include_approval => 1,
         );
-        $record->find_current_id(param 'current_id');
+        # See if the record exists as a "normal" entry. In the case
+        # of an approval for a new record, this will not be the case,
+        # so catch the resulting exception, and create a new record,
+        # but set the current ID.
+        unless (try { $record->find_current_id(param 'current_id') })
+        {
+            $record->current_id(param 'current_id');
+            $record->initialise;
+        }
         my $uploads = request->uploads;
         foreach my $key (keys %$uploads)
         {
@@ -1015,7 +1122,7 @@ any '/approval/?:id?' => require_role approver => sub {
             });
         }
         my $failed;
-        foreach my $col ($layout->all)
+        foreach my $col (@columns_to_show)
         {
             if ($col->userinput) # Not calculated fields
             {
@@ -1028,29 +1135,14 @@ any '/approval/?:id?' => require_role approver => sub {
         }
         if (!$failed && process( sub { $record->write }))
         {
-            # If we've been writing to a newer record, then delete the approval
-            if ($record->record_id != $id)
-            {
-                GADS::Record->new(
-                    user      => $user,
-                    layout    => $layout,
-                    schema    => schema,
-                    record_id => $id,
-                )->delete;
-            }
-            else {
-                # Otherwise remove approval flag
-                $record->approval_flag(0);
-            }
             return forwardHome(
                 { success => 'Record has been successfully approved' }, 'approval' );
         }
     }
 
     my $page;
-    my @all_columns = $layout->all;
     my $params = {
-        all_columns => \@all_columns,
+        all_columns => \@columns_to_show,
         page        => 'approval',
     };
 
@@ -1068,26 +1160,26 @@ any '/approval/?:id?' => require_role approver => sub {
         $params->{record} = $record;
 
         # Get existing values for comparison
-        my $existing = GADS::Record->new(
-            user            => $user,
-            layout          => $layout,
-            schema          => schema,
-        );
-        my $found = $existing->find_current_id($record->current_id);
-        $params->{existing} = $existing if $found;
+        unless ($approval_of_new)
+        {
+            my $existing = GADS::Record->new(
+                user            => $user,
+                layout          => $layout,
+                schema          => schema,
+            );
+            $existing->find_current_id($record->current_id);
+            $params->{existing} = $existing;
+        }
         $page  = 'edit';
     }
     else {
         $page  = 'approval';
-        my $records = GADS::Records->new(
-            user             => $user,
-            include_approval => 1,
-            layout           => $layout,
-            schema           => schema,
-            columns          => []
+        my $approval = GADS::Approval->new(
+            schema => schema,
+            user   => $user,
+            layout => $layout
         );
-        $records->search(approval => 1);
-        $params->{records} = $records->results;
+        $params->{records} = $approval->records;
     }
 
     template $page => $params;
@@ -1114,12 +1206,15 @@ any '/edit/:id?' => require_login sub {
         base_url => request->base,
     );
 
+    my @columns_to_show = $id
+        ? $layout->all(user_can_readwrite_existing => 1)
+        : $layout->all(user_can_write_new => 1);
+
     if ($id)
     {
         $record->find_current_id($id);
     }
 
-    my @all_columns = $layout->all;
     if (param 'submit')
     {
         $record->initialise unless $id;
@@ -1130,6 +1225,7 @@ any '/edit/:id?' => require_login sub {
             next unless $key =~ /^file([0-9]+)/;
             my $upload = $uploads->{$key};
             my $col_id = $1;
+            my $filecol = $layout->column($col_id);
             $record->fields->{$col_id}->set_value({
                 name     => $upload->filename,
                 mimetype => $upload->type,
@@ -1137,7 +1233,11 @@ any '/edit/:id?' => require_login sub {
             });
         }
         my $failed;
-        foreach my $col ($layout->all)
+        # We actually only need the write columns for this. The read-only
+        # columns can be ignored, but if we do write them, an error will be
+        # thrown to the user if they've been changed. This is better than
+        # just silently ignoring them, IMHO.
+        foreach my $col (@columns_to_show)
         {
             if ($col->userinput) # Not calculated fields
             {
@@ -1164,17 +1264,44 @@ any '/edit/:id?' => require_login sub {
         my @remember = map {$_->id} $layout->all(remember => 1);
         $record->columns(\@remember);
         $record->include_approval(1);
+        $record->init_no_value(0);
         $record->find_record_id($previous);
-        $record->columns_retrieved(\@all_columns); # Force all columns to be shown
+        $record->columns_retrieved(\@columns_to_show); # Force all columns to be shown
+        if ($record->approval_flag)
+        {
+            # The last edited record was one for approval. This will
+            # be missing values, so get its associated main record,
+            # and use the values for that too.
+            my $related = GADS::Record->new(
+                user             => $user,
+                layout           => $layout,
+                schema           => schema,
+                include_approval => 1,
+                base_url         => request->base,
+            );
+            $related->find_record_id($record->approval_record_id);
+            foreach my $col (@columns_to_show)
+            {
+                # See if the record above had a value. If not, fill with the
+                # approval record's value
+                $record->fields->{$col->id} = $related->fields->{$col->id}
+                    if !$record->fields->{$col->id}->has_value && $col->remember;
+            }
+        }
         $record->current_id(undef);
     }
     else {
         $record->initialise;
     }
 
+    foreach my $col ($layout->all(user_can_write => 1))
+    {
+        $record->fields->{$col->id}->set_value("")
+            if !$col->user_can('read');
+    }
     my $output = template 'edit' => {
         record      => $record,
-        all_columns => \@all_columns,
+        all_columns => \@columns_to_show,
         page        => 'edit'
     };
     $output;
@@ -1224,9 +1351,10 @@ any qr{/(record|history)/([0-9]+)} => require_login sub {
         }
     }
 
-    my @columns = $layout->all;
+    my @columns = $layout->all(user_can_read => 1);
     my $output = template 'record' => {
         record         => $record,
+        user_can_edit  => $layout->user_can('write_existing'),
         versions       => \@versions,
         all_columns    => \@columns,
         page           => 'record'

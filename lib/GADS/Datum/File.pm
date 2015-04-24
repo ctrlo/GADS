@@ -21,7 +21,7 @@ package GADS::Datum::File;
 use Moo;
 use namespace::clean;
 
-use overload '""' => \&as_string;
+use overload 'bool' => sub { 1 }, '""' => 'as_string', fallback => 1;
 
 extends 'GADS::Datum';
 
@@ -59,9 +59,9 @@ has set_value => (
             $self->changed(1) if (!defined($self->id) && defined $value)
                 || (!defined($value) && defined $self->id)
                 || (defined $self->id && defined $value && $self->id != $value);
-            $self->oldvalue($self->id);
+            $self->oldvalue($self->clone);
         }
-        $self->id($new_id);
+        $self->id($new_id) if $new_id || $self->init_no_value;
     },
 );
 
@@ -70,6 +70,9 @@ has id => (
     predicate => 1,
     trigger   => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
 );
+
+# Make up for missing predicated value property
+sub has_value { $_[0]->has_id }
 
 has name => (
     is => 'rw',
@@ -92,6 +95,13 @@ has content => (
     },
 );
 
+around 'clone' => sub {
+    my $orig = shift;
+    my $self = shift;
+    $orig->($self, id => $self->id, name => $self->name, mimetype => $self->mimetype);
+};
+
+
 # Not designed to be used within object. Just send file from ID.
 # XXX Make OO?
 sub get_file
@@ -101,7 +111,9 @@ sub get_file
         or error __x"File ID {id} cannot be found", id => $id;
     # Check whether this is hidden and whether the user has access
     my ($file) = $fileval->files; # In theory can be more than one, but not in practice (yet)
-    if ($file && $file->layout->hidden) # Could be unattached document
+    # if ($file && $file->layout->hidden) # Could be unattached document
+    # XXX Need to check if user has view access
+    if ($file) # Could be unattached document
     {
         error __"You do not have access to this document"
             unless $user->{permission}->{layout};

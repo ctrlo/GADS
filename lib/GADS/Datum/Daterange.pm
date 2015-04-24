@@ -35,18 +35,15 @@ has datetime_parser => (
 
 has set_value => (
     is       => 'rw',
-    required => 1,
     trigger  => sub {
         my ($self, $value) = @_;
 
-        if ($self->value_done)
+        if ($self->has_value)
         {
-
-            my $oldvalue = $self->value; # Not set with new value yet
-            $self->oldvalue($oldvalue);
+            $self->oldvalue($self->clone);
             my $newvalue = $self->_parse_dt($value); # DB parser needed for this. Will be set second time
-            my $from_old = $oldvalue ? $oldvalue->start->epoch : 0;
-            my $to_old   = $oldvalue ? $oldvalue->end->epoch   : 0;
+            my $from_old = $self->oldvalue ? $self->oldvalue->start->epoch : 0;
+            my $to_old   = $self->oldvalue ? $self->oldvalue->end->epoch   : 0;
             my $from_new = $newvalue ? $newvalue->start->epoch : 0;
             my $to_new   = $newvalue ? $newvalue->end->epoch   : 0;
             $self->changed(1) if $from_old != $from_new || $to_old != $to_new;
@@ -54,7 +51,7 @@ has set_value => (
         }
         else {
             $self->_init_value($value);
-            $self->value_done(1);
+            $self->has_value(1) if defined $value || $self->init_no_value;
         }
     },
 );
@@ -109,9 +106,20 @@ has schema => (
 
 # Can't use predicate, as value may not have been built on
 # second time it's set
-has value_done => (
+has has_value => (
     is => 'rw',
 );
+
+around 'clone' => sub {
+    my $orig = shift;
+    my $self = shift;
+    $orig->(
+        $self,
+        datetime_parser => $self->datetime_parser,
+        value           => $self->value,
+        schema          => $self->schema,
+    );
+};
 
 sub _parse_dt
 {   my ($self, $original) = @_;

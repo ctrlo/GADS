@@ -110,11 +110,6 @@ has format => (
     is => 'rw',
 );
 
-has include_hidden => (
-    is      => 'rw',
-    default => 0,
-);
-
 has default_sort => (
     is => 'rw',
 );
@@ -136,11 +131,6 @@ sub _default_sort
     else {
         { -asc => 'id' };
     }
-}
-
-sub approval_count
-{   my ($class, $schema) = @_;
-    $schema->resultset('Record')->search({ approval => 1 })->count;
 }
 
 sub _add_jp
@@ -211,7 +201,7 @@ sub search_views
         # XXX Do not send alerts for hidden fields
         if (keys %$decoded)
         {
-            my @s = @{$self->_search_construct($decoded, $self->layout, $prefetches, $joins)};
+            my @s = @{$self->_search_construct($decoded, $self->layout, $prefetches, $joins, 1)};
             push @search, \@s;
         }
         else {
@@ -238,7 +228,7 @@ sub search_views
             my $decoded = decode_json($filter);
             if (keys %$decoded)
             {
-                my @s = @{$self->_search_construct($decoded, $self->layout, $prefetches, $joins)};
+                my @s = @{$self->_search_construct($decoded, $self->layout, $prefetches, $joins, 1)};
                 my @found = $self->schema->resultset('Current')->search({
                     'me.id' => $current_ids, # Array ref
                     @s,
@@ -319,7 +309,9 @@ sub search_all_fields
         my $search_hash = $field->{type} eq 'current_id'
                         ? { id => $search }
                         : { $s => $search };
-        $search_hash->{'layout.hidden'} = 0 unless $self->user->{permission}->{layout};
+        my @columns_can_view = map {$_->id} $self->layout->all(user_can_read => 1);
+        $search_hash->{'layout.id'} = \@columns_can_view
+            unless $field->{type} eq 'current_id';
         my @currents = $self->schema->resultset('Current')->search($search_hash,{
             prefetch => $prefetch,
             collapse => 1,
@@ -459,7 +451,7 @@ sub construct_search
     }
     elsif (my $view = $self->view)
     {
-        @columns = $layout->view($view->id, order_dependencies => 1);
+        @columns = $layout->view($view->id, order_dependencies => 1, user_has_read => 1);
     }
     else {
         @columns = $layout->all(
@@ -637,8 +629,12 @@ sub _table_name
     $column->{sprefix} . $index;
 }
 
+# $ignore_perms means to ignore any permissions on the column being
+# processed. For example, if the current user is updating a record,
+# we want to process columns that the user doesn't have access to
+# for things like alerts, but not for their normal viewing.
 sub _search_construct
-{   my ($self, $filter, $layout, $prefetches, $joins, $calcnull) = @_;
+{   my ($self, $filter, $layout, $prefetches, $joins, $ignore_perms) = @_;
 
     if (my $rules = $filter->{rules})
     {
@@ -646,11 +642,11 @@ sub _search_construct
         my @final;
         foreach my $rule (@$rules)
         {
-            my @res = $self->_search_construct($rule, $layout, $prefetches, $joins, $calcnull);
+            my @res = $self->_search_construct($rule, $layout, $prefetches, $joins, $ignore_perms);
             push @final, @res if @res;
         }
         my $condition = $filter->{condition} eq 'OR' ? '-or' : '-and';
-        return [$condition => \@final];
+        return @final ? [$condition => \@final] : [];
     }
 
     my %ops = (
@@ -664,7 +660,8 @@ sub _search_construct
         not_equal        => '!=',
     );
 
-    my $column   = $layout->column($filter->{id})
+    my %permission = $ignore_perms ? () : (permission => 'read');
+    my $column   = $layout->column($filter->{id}, %permission)
         or return;
     my $operator = $ops{$filter->{operator}}
         or error __x"Invalid operator {filter}", filter => $filter->{operator};
@@ -724,7 +721,9 @@ sub csv
     my $csv  = Text::CSV::Encoded->new({ encoding  => undef });
 
     # Column names
-    my @columns = $self->view ? $self->layout->view($self->view->id) : $self->layout->all;
+    my @columns = $self->view
+        ? $self->layout->view($self->view->id, user_can_read => 1)
+        : $self->layout->all(user_can_read => 1);
     my @colnames = ("Serial");
     push @colnames, map { $_->name } @columns;
     $csv->combine(@colnames)
@@ -789,6 +788,8 @@ sub data_calendar
         {
             if ($column->type eq "daterange" || ($column->return_type && $column->return_type eq "date"))
             {
+                next unless $column->user_can('read');
+
                 # Create colour if need be
                 $datecolors{$column->id} = shift @colors unless $datecolors{$column->id};
 

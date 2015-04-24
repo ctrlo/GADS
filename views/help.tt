@@ -1,7 +1,5 @@
-[% global.helptext.layout_hidden = BLOCK %]
-Hidden fields will not be displayed or be editable by normal users.
-Only users with the permission to &quot;administer layout, views and graphs&quot;
-can view the field.
+[% global.helptext.layout_groups = BLOCK %]
+XXX Help text will appear here
 [% END %]
 
 [% global.helptext.layout_perms = BLOCK %]
