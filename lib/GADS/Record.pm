@@ -524,9 +524,16 @@ sub write
                     # value.
                     $self->_field_write($column);
                 }
-                else {
-                    # Write old value
+                elsif ($column->user_can('write'))
+                {
+                    # Approval required, write original value
                     $self->_field_write($column, $datum, old => 1);
+                }
+                else {
+                    # Value won't have changed. Write current value (old
+                    # value will not be set if it hasn't been updated)
+                    # Write old value
+                    $self->_field_write($column, $datum);
                 }
             }
         }
