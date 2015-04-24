@@ -189,8 +189,8 @@
         </label>
         [% IF dispcol.type == "daterange" %]
             <div class="input-daterange datepicker" style="padding:0">
-                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline" value="[% editvalue.from_form %]">
-                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline; float:right" value="[% editvalue.to_form %]">
+                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline" value="[% editvalue.from_form %]" [% readonly %]>
+                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline; float:right" value="[% editvalue.to_form %]" [% readonly %]>
             </div>
         [% ELSE %]
             [% IF dispcol.type == "date" %]
