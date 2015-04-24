@@ -63,7 +63,7 @@ has set_value => (
                 || (defined $self->id && defined $value && $self->id != $value);
             $self->oldvalue($self->clone);
         }
-        $self->id($new_id) || $self->init_no_value;
+        $self->id($new_id) if defined $new_id || $self->init_no_value;
     },
 );
 
