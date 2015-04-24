@@ -37,7 +37,7 @@ has set_value => (
         }
         $self->value(
             (ref $value ? $value->{value} : $value) || ""
-        ) if defined $value;
+        ) if defined $value || $self->init_no_value;
     },
 );
 

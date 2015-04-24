@@ -79,7 +79,7 @@ has set_value => (
                 $self->oldvalue($self->clone);
             }
         }
-        $self->id($new_id) if $new_id;
+        $self->id($new_id) if $new_id || $self->init_no_value;
     },
 );
 

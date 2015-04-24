@@ -47,6 +47,11 @@ has blank => (
     default => 1,
 );
 
+has init_no_value => (
+    is  => 'rw',
+    isa => Bool,
+);
+
 has oldvalue => (
     is  => 'rw',
 );

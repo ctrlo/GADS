@@ -70,7 +70,7 @@
     [% colid = dispcol.id %]
 
     [%# Skip field if it's an approval request but a value not needing approval %]
-    [% NEXT IF NOT (record.fields.$colid.defined)  %]
+    [% NEXT IF NOT (record.fields.$colid.has_value)  %]
 
     [% IF existing %]
         [% oldvalue = existing.fields.$colid.html %] [%# All value already entity-encoded %]
@@ -177,7 +177,7 @@
             <p class="help-block">Current file name: [% editvalue.html %] (read-only field, cannot be updated).</p>
         [% ELSE %]
             <input type="file" id="[% dispcol.id %]" name="[% "file" _ dispcol.id %]">
-            [% IF editvalue.has_value %]
+            [% IF editvalue.id %]
                 <p class="help-block">
                 <input type="checkbox" name="[% field %]" value="[% editvalue.id %]" checked>Include file.
                 Current file name: [% editvalue.html %]. Select a new file to replace.</p>

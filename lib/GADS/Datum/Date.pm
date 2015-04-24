@@ -51,7 +51,7 @@ has set_value => (
         }
         else {
             $self->_init_value($value);
-            $self->has_value(1) if defined $value;
+            $self->has_value(1) if defined $value || $self->init_no_value;
         }
     },
 );

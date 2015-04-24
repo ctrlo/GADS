@@ -297,14 +297,8 @@ sub _transform_values
             $dependent_values->{$dependent} = $fields->{$dependent};
         }
         my $value = $original->{$column->field};
-        unless ($self->init_no_value)
-        {
-            if (ref $column->join eq 'HASH')
-                 { next unless defined $value->{value}; }
-            else { next unless defined $value; }
-        }
 
-        # FIXME Don't collect file content in sql query
+        # FIXME XXX Don't collect file content in sql query
         delete $value->{value}->{content} if $column->type eq "file";
         my $force_update = (
             $self->force_update && grep { $_ == $column->id } @{$self->force_update}
@@ -315,6 +309,7 @@ sub _transform_values
             set_value        => $original->{$column->field},
             column           => $column,
             dependent_values => $dependent_values,
+            init_no_value    => $self->init_no_value,
             schema           => $self->schema,
             layout           => $self->layout,
             datetime_parser  => $self->schema->storage->datetime_parser,

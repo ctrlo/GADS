@@ -1264,6 +1264,7 @@ any '/edit/:id?' => require_login sub {
         my @remember = map {$_->id} $layout->all(remember => 1);
         $record->columns(\@remember);
         $record->include_approval(1);
+        $record->init_no_value(0);
         $record->find_record_id($previous);
         $record->columns_retrieved(\@columns_to_show); # Force all columns to be shown
         if ($record->approval_flag)
