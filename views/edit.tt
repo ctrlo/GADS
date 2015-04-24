@@ -155,10 +155,10 @@
             [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
         </label>
         <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
-            [% IF dispcol.optional OR editvalue.deleted OR NOT editvalue %]
+            [% IF dispcol.optional OR editvalue.deleted OR NOT editvalue.id %]
                 <option></option>
             [% END %]
-            [% IF editvalue.defined %]
+            [% IF editvalue.id %]
                 [% selected = editvalue.id %]
             [% ELSE %]
                 [% selected = user.id %]
