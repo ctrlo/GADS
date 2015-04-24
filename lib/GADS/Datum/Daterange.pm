@@ -113,7 +113,12 @@ has has_value => (
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
-    $orig->($self, 'datetime_parser' => $self->datetime_parser, value => $self->value);
+    $orig->(
+        $self,
+        datetime_parser => $self->datetime_parser,
+        value           => $self->value,
+        schema          => $self->schema,
+    );
 };
 
 sub _parse_dt
