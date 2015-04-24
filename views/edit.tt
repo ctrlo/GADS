@@ -70,7 +70,7 @@
     [% colid = dispcol.id %]
 
     [%# Skip field if it's an approval request but a value not needing approval %]
-    [% NEXT IF NOT (record.fields.$colid.has_value)  %]
+    [% NEXT IF page == "approval" AND NOT (record.fields.$colid.has_value)  %]
 
     [% IF existing %]
         [% oldvalue = existing.fields.$colid.html %] [%# All value already entity-encoded %]
