@@ -139,7 +139,7 @@
             [% END %]
         </select>
     [% ELSIF dispcol.type == "tree" %]
-        [% trees.push({id = dispcol.id, end_node_only = dispcol.end_node_only, value = editvalue}) %]
+        [% trees.push({id = dispcol.id, end_node_only = dispcol.end_node_only, value = editvalue, readonly = readonly }) %]
         <label for="[% dispcol.id %]" [% label_style %]>
             [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
         </label>

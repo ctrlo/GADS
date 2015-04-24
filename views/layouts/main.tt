@@ -218,6 +218,7 @@
         </script>
         [% IF page == "layout" OR page == "edit" OR page == "approval" %]
             <script src="[% url.js %]/jstree.min.js"></script>
+            <script src="[% url.js %]/jstree-misc.js"></script>
         [% END %]
     </div>
     </body>
