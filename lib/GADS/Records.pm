@@ -788,7 +788,7 @@ sub data_calendar
         {
             if ($column->type eq "daterange" || ($column->return_type && $column->return_type eq "date"))
             {
-                next unless $column->user_has('read');
+                next unless $column->user_can('read');
 
                 # Create colour if need be
                 $datecolors{$column->id} = shift @colors unless $datecolors{$column->id};
