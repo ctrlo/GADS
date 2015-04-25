@@ -143,10 +143,12 @@
         <!-- Placed at the end of the document so the pages load faster -->
         [% IF hostlocal %]
             <script src="[% url.js %]/jquery-1.10.2.min.js"></script>
+            <script src="[% url.js %]/jquery-ui.min.js"></script>
             <script src="[% url.js %]/bootstrap.min.js"></script>
             <script src="[% url.js %]/tooltip.min.js"></script>
         [% ELSE %]
             <script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+            <script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
             <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
             <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/js/tooltip.min.js"></script>
         [% END %]

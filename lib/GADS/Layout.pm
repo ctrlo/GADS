@@ -177,11 +177,12 @@ sub _order_dependencies
 }
 
 sub position
-{   my ($self, $params) = @_;
-    foreach my $o (keys %$params)
+{   my ($self, $position) = @_;
+    my $count;
+    foreach my $id (@$position)
     {
-        next unless $o =~ /position([0-9]+)/;
-        $self->schema->resultset('Layout')->find($1)->update({ position => $params->{$o} });
+        $count++;
+        $self->schema->resultset('Layout')->find($id)->update({ position => $count });
     }
 }
 

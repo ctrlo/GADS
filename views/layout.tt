@@ -370,20 +370,24 @@
 <p>The layout defines the fields that form the overall dataset. Use this page to add, delete
 and edit fields. Each field's permissions can be individually defined; full details of the
 available permissions are detailed in the <a href="[% url.page %]/user/">Users menu</a>.</p>
+<p>Note: drag and drop rows (and click Save order) to reorder the columns.</p>
 <p>
     <a href="/layout/0" class="btn btn-default" role="button">Create item</a>
 </p>
 <form role="form" method="post">
 <table class="table table-striped">
-    <tr>
-        <th></th>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Order</th>
-    </tr>
-    [% FOREACH column IN all_columns %]
+    <thead>
         <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody id="sortable">
+        [% FOREACH column IN all_columns %]
+        <tr>
+            <input type="hidden" name="position" value="[% column.id %]">
             <td><a href="/layout/[% column.id %]">Edit</a></td>
             <td>[% column.name | html_entity %]
             <td>
@@ -401,17 +405,9 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
             <td>
                 [% column.description %]
             </td>
-            <td>
-                <select class="form-control" id="type" name="position[% column.id %]">
-                    [% o = 1 %]
-                    [% WHILE o <= all_columns.size %]
-                        <option value="[% o %]" [% IF column.position == o %]selected[% END %]>[% o %]</option>
-                        [% o = o + 1 %]
-                    [% END %]
-                </select>
-            </td>
         </tr>
-    [% END %]
+        [% END %]
+    </tbody>
 </table>
 <button type="submit" id="submit" name="saveposition" value="submit" class="btn btn-primary">Save order</button>
 <p></p>
@@ -421,47 +417,6 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
-        $('#modal_permissions').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget);
-            var title = button.data('title');
-            $('#modal_permissions-title').text(title);
-            var group_id = button.data('group_id');
-            if (group_id) {
-                $('#modal_permissions-group_id').val(group_id);
-                $('#modal_permissions-group_id').attr('name', 'group_id');
-                $('#modal_permissions-group_select').attr('name', 'group_id_temp');
-                $('#modal_permissions-group_select_div').hide();
-            } else {
-                $('#modal_permissions-group_select').attr('name', 'group_id');
-                $('#modal_permissions-group_id').attr('name', 'group_id_temp');
-                $('#modal_permissions-group_select_div').show();
-            }
-            [% FOR perm IN permissions %]
-                if (button.data('[% perm.short %]')) {
-                    $('#modal_permissions-[% perm.short %]').prop("checked", true );
-                } else {
-                    $('#modal_permissions-[% perm.short %]').prop("checked", false );
-                }
-            [% END %]
-        });
-        $('#display_condition').click(function () {
-            $("#display_condition_div").toggle(400);
-        });
-        $(document).on("click", "#submit", function() {
-            if( !$('#jstree_demo_div').length ) return true;
-            if( !$('#jstree_demo_div').is(":visible") ) return true;
-            var v =$("#jstree_demo_div").jstree(true).get_json('#', { 'flat': false });
-            var mytext = JSON.stringify(v);
-            $.ajax({
-                async: false,
-                type: "POST",
-                url: "/tree/[% column.id %]",
-                data: {'data': mytext }
-            }).done(function( data ) {
-                alert( "Tree has been updated" );
-            });
-            return true;
-        });
         function demo_delete() {
             var ref = $('#jstree_demo_div').jstree(true),
                 sel = ref.get_selected();
@@ -489,6 +444,49 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
             ref.edit(sel);
         };
         $(document).ready(function () {
+            $('#sortable').sortable();
+            $('#sortable').disableSelection();
+            $('#modal_permissions').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var title = button.data('title');
+                $('#modal_permissions-title').text(title);
+                var group_id = button.data('group_id');
+                if (group_id) {
+                    $('#modal_permissions-group_id').val(group_id);
+                    $('#modal_permissions-group_id').attr('name', 'group_id');
+                    $('#modal_permissions-group_select').attr('name', 'group_id_temp');
+                    $('#modal_permissions-group_select_div').hide();
+                } else {
+                    $('#modal_permissions-group_select').attr('name', 'group_id');
+                    $('#modal_permissions-group_id').attr('name', 'group_id_temp');
+                    $('#modal_permissions-group_select_div').show();
+                }
+                [% FOR perm IN permissions %]
+                    if (button.data('[% perm.short %]')) {
+                        $('#modal_permissions-[% perm.short %]').prop("checked", true );
+                    } else {
+                        $('#modal_permissions-[% perm.short %]').prop("checked", false );
+                    }
+                [% END %]
+            });
+            $('#display_condition').click(function () {
+                $("#display_condition_div").toggle(400);
+            });
+            $(document).on("click", "#submit", function() {
+                if( !$('#jstree_demo_div').length ) return true;
+                if( !$('#jstree_demo_div').is(":visible") ) return true;
+                var v =$("#jstree_demo_div").jstree(true).get_json('#', { 'flat': false });
+                var mytext = JSON.stringify(v);
+                $.ajax({
+                    async: false,
+                    type: "POST",
+                    url: "/tree/[% column.id %]",
+                    data: {'data': mytext }
+                }).done(function( data ) {
+                    alert( "Tree has been updated" );
+                });
+                return true;
+            });
             $('#jstree_demo_div').jstree({
                 "core" : {
                     "check_callback" : true,

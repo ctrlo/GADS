@@ -904,8 +904,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
 
     if (param 'saveposition')
     {
-        my $values = params;
-        if (process( sub { $layout->position($values) }))
+        if (process( sub { $layout->position(param('position')) }))
         {
             return forwardHome(
                 { success => "The ordering has been saved successfully" }, 'layout' );
