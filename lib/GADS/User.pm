@@ -201,15 +201,16 @@ sub get_user
     })->all;
     $user or return;
     my $return = {
-        id              => $user->id,
-        firstname       => $user->firstname,
-        surname         => $user->surname,
-        email           => $user->email,
-        username        => $user->username,
-        title           => $user->title ? $user->title->id : undef,
-        organisation    => $user->organisation ? $user->organisation->id : undef,
-        telephone       => $user->telephone,
-        account_request => $user->account_request,
+        id                    => $user->id,
+        firstname             => $user->firstname,
+        surname               => $user->surname,
+        email                 => $user->email,
+        username              => $user->username,
+        title                 => $user->title ? $user->title->id : undef,
+        organisation          => $user->organisation ? $user->organisation->id : undef,
+        telephone             => $user->telephone,
+        account_request       => $user->account_request,
+        account_request_notes => $user->account_request_notes,
     };
     if ($user->user_permissions)
     {
