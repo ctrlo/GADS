@@ -45,7 +45,7 @@ foreach my $column (@$import)
     my $new = $class->new(schema => schema, user => undef, layout => $layout);
     
     $new->$_($column->{$_})
-        foreach (qw/name type permission description helptext optional hidden remember/);
+        foreach (qw/name type description helptext optional remember/);
     if ($column->{display_condition})
     {
         $new->display_field($column->{display_field});
