@@ -32,14 +32,13 @@ GADS::DB->setup(schema);
 my $layout = GADS::Layout->new(user => undef, schema => schema);
 
 my @write;
-foreach my $column ($layout->all(include_hidden => 1))
+foreach my $column ($layout->all)
 {
     say STDERR "Exporting ".$column->name;
     my $col = {
         name          => $column->name,
         type          => $column->type,
         return_type   => $column->return_type,
-        permission    => $column->permission,
         optional      => $column->optional,
         remember      => $column->remember,
         position      => $column->position,
@@ -48,7 +47,6 @@ foreach my $column ($layout->all(include_hidden => 1))
         helptext      => $column->helptext,
         display_field => $column->display_field,
         display_regex => $column->display_regex,
-        hidden        => $column->hidden,
     };
     if ($column->type eq "tree")
     {
