@@ -160,7 +160,7 @@
             [% END %]
             [% IF editvalue.id %]
                 [% selected = editvalue.id %]
-            [% ELSE %]
+            [% ELSIF NOT record.current_id %] [%# default to current user for new records only %]
                 [% selected = user.id %]
             [% END %]
             [% FOREACH person IN dispcol.people %]
