@@ -398,7 +398,7 @@ any '/data' => require_login sub {
             my $sort     = int param 'sort';
             # Check user has access
             forwardHome({ danger => "Invalid column ID for sort" }, '/data')
-                unless $layout->column($sort)->user_can('read');
+                unless !$sort || ($layout->column($sort) && $layout->column($sort)->user_can('read'));
             my $existing = session('sort');
             if (!$existing && @{$view->sorts})
             {
