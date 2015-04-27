@@ -94,8 +94,12 @@ sub _build_columns
         push @return, $column;
     }
 
-    my ($perms, $overall_permissions) = $self->get_user_perms($self->user->{id});
-    $self->user_permissions($overall_permissions);
+    my ($perms, $overall_permissions);
+    if ($self->user)
+    {
+        ($perms, $overall_permissions) = $self->get_user_perms($self->user->{id});
+        $self->user_permissions($overall_permissions);
+    }
 
     # Now that we have everything built, we need to tag on dependent cols and permissions
     foreach my $col (@return)
@@ -104,9 +108,12 @@ sub _build_columns
         my @depends = grep {$_->display_field && $_->display_field == $col->id} @return;
         my @depended_by = map { { id => $_->id, regex => $_->display_regex } } @depends;
         $col->depended_by(\@depended_by);
-        if (my $perm = $perms->{$col->id})
+        if ($perms)
         {
-            $col->user_permissions($perm);
+            if (my $perm = $perms->{$col->id})
+            {
+                $col->user_permissions($perm);
+            }
         }
     }
 
