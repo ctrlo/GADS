@@ -77,7 +77,7 @@ sub _build__records
         join => [
             {
                 'record' => {
-                    'record' => 'record_previous',
+                    'record' => ['record_previous', 'createdby'],
                 },
             },
             {
@@ -88,7 +88,26 @@ sub _build__records
                 },
             },
         ],
-        prefetch => {'record' => 'createdby'},
+        select => [
+            { max => 'record.id' },
+            { max => 'record.current_id' },
+            { max => 'createdby.id' },
+            { max => 'createdby.firstname' },
+            { max => 'createdby.surname' },
+            { max => 'createdby.email' },
+            { max => 'createdby.telephone' },
+            { max => 'createdby.value' },
+        ],
+        as => [qw/
+            record.id
+            record.current_id
+            createdby.id
+            createdby.firstname
+            createdby.surname
+            createdby.email
+            createdby.telephone
+            createdby.value
+        /],
         group_by => 'record.id',
         result_class => 'DBIx::Class::ResultClass::HashRefInflator',
     };
@@ -135,8 +154,9 @@ sub _build__records
             current_id => $record->{record}->{current_id},
             createdby  => GADS::Datum::Person->new(
                 record_id => $record->{record}->{id},
-                set_value => {value => $record->{record}->{createdby}},
+                set_value => {value => $record->{createdby}},
                 schema    => $self->schema,
+                layout    => $self->layout,
             ),
         };
     }
