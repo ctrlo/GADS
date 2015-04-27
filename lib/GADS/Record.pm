@@ -497,10 +497,11 @@ sub write
             # or the existing value otherwise
             if ($self->doing_approval)
             {
+                # Write value regardless (either new approved or existing)
+                $self->_field_write($column, $datum);
                 # Leave records where they are unless this user can
                 # action the approval
                 next unless $self->approver_can_action_column($column);
-                $self->_field_write($column, $datum);
                 # And delete value in approval record
                 $self->schema->resultset($column->table)->search({
                     record_id => $self->approval_id,
