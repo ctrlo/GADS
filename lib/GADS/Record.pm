@@ -380,7 +380,7 @@ sub write
         if ($self->doing_approval && $self->approval_of_new)
         {
             error __x"You do not have permission to approve new values of new records"
-                if !$datum->blank && !$column->user_can('approve_new');
+                if $datum->changed && !$column->user_can('approve_new');
         }
         elsif ($self->doing_approval)
         {
