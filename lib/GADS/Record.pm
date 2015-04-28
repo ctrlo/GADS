@@ -588,7 +588,7 @@ sub write
     }
 
     # Write cached values
-    foreach my $col ($self->layout->all(userinput => 0))
+    foreach my $col ($self->layout->all(userinput => 0, order_dependencies => 1))
     {
         # Get old value
         my $old = defined $self->fields->{$col->id} ? $self->fields->{$col->id}->as_string : "";
@@ -609,6 +609,7 @@ sub write
             schema           => $self->schema,
             layout           => $self->layout,
         );
+        $self->fields->{$col->id} = $new;
         # Changed?
         push @columns_changed, $col->id if $old ne $new->as_string;
     }
