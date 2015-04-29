@@ -181,7 +181,7 @@ any '/user_status' => require_login sub {
     }
 
     template user_status => {
-        lastlogin => session('last_login'),
+        lastlogin => logged_in_user_lastlogin,
         message   => config->{gads}->{user_status_message},
         page      => 'user_status',
     };
