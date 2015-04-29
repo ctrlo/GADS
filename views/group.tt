@@ -37,10 +37,13 @@
                 <td><a href="/group/[% group.id %]">Edit&nbsp;name</a></td>
                 <td>[% group.name | html_entity %]</td>
                 <td>
-                    [% FOREACH col_id IN group.columns.keys %]
-                        <strong>[% layout.column(col_id).name %]</strong>
-                        ([% group.columns.$col_id.join(', ') %])
-                        <br>
+                    [% FOREACH column IN layout.all %]
+                        [% col_id = column.id %]
+                        [% IF group.columns.$col_id %]
+                            <strong>[% layout.column(col_id).name %]</strong>
+                            ([% group.columns.$col_id.join(', ') %])
+                            <br>
+                        [% END %]
                     [% END %]
                 </td>
             </tr>
