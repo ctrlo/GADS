@@ -61,6 +61,7 @@ plugins:
   Auth::Extensible:
     no_default_pages: 1
     no_login_handler: 1
+    record_lastlogin: 1
     mailer:
       module: Mail::Message
       options:
@@ -77,6 +78,8 @@ plugins:
         user_roles_table: user_permission
         roles_role_column: name
         roles_key: permission
+        password_expiry_days: 60
+        users_pwchanged_column: pwchanged
         users_pwresetcode_column: resetpw
         encryption_algorithm: SHA-512
         user_valid_conditions:
