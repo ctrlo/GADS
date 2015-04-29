@@ -100,6 +100,12 @@ hook before => sub {
         # Redirect to user status page if required and not seen this session
         redirect '/user_status' unless request->uri =~ m!^/(user_status|aup)!;
     }
+    elsif (logged_in_user_password_expired)
+    {
+        # Redirect to user details page if password expired
+        forwardHome({ danger => "Your password has expired. Please use the Change password button
+            below to set a new password." }, 'account/detail') unless request->uri eq '/account/detail';
+    }
 };
 
 hook before_template => sub {
