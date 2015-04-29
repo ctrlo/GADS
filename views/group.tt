@@ -30,11 +30,19 @@
         <tr>
             <th></th>
             <th>Name</th>
+            <th>Permissions</th>
         </tr>
         [% FOREACH group IN groups %]
             <tr>
-                <td><a href="/group/[% group.id %]">Edit</a></td>
-                <td>[% group.name | html_entity %]
+                <td><a href="/group/[% group.id %]">Edit&nbsp;name</a></td>
+                <td>[% group.name | html_entity %]</td>
+                <td>
+                    [% FOREACH col_id IN group.columns.keys %]
+                        <strong>[% layout.column(col_id).name %]</strong>
+                        ([% group.columns.$col_id.join(', ') %])
+                        <br>
+                    [% END %]
+                </td>
             </tr>
         [% END %]
     </table>

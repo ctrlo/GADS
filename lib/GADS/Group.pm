@@ -37,6 +37,11 @@ has name => (
     isa => Str,
 );
 
+has columns => (
+    is  => 'lazy',
+    isa => HashRef,
+);
+
 # Internal DBIC object of group
 has _rset => (
     is      => 'rwp',
@@ -56,6 +61,22 @@ sub _build__rset
         $self->_set_id($rset->id);
     }
     $rset;
+}
+
+sub _build_columns
+{   my $self = shift;
+    my @perms = $self->schema->resultset('LayoutGroup')->search({
+        group_id => $self->id,
+    })->all;
+    my %columns;
+    foreach my $perm (@perms)
+    {
+        $columns{$perm->layout_id} ||= [];
+        push @{$columns{$perm->layout_id}}, GADS::Type::Permission->new(
+            short => $perm->permission,
+        );
+    }
+    \%columns;
 }
 
 # Populate from the database by role ID

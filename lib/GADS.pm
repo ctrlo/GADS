@@ -689,7 +689,8 @@ any '/graph/?:id?' => require_role layout => sub {
 any '/group/?:id?' => require_role useradmin => sub {
 
     my $id = param 'id';
-    my $group = GADS::Group->new(schema => schema);
+    my $group  = GADS::Group->new(schema => schema);
+    my $layout = GADS::Layout->new(user => logged_in_user, schema => schema);
     $group->from_id($id);
 
     if (param 'submit')
@@ -725,6 +726,7 @@ any '/group/?:id?' => require_role useradmin => sub {
     else {
         my $groups = GADS::Groups->new(schema => schema);
         $params->{groups} = $groups->all;
+        $params->{layout} = $layout;
     }
     template 'group' => $params;
 };
