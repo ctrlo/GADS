@@ -21,6 +21,7 @@ package GADS::Column;
 use JSON qw(decode_json encode_json);
 use Log::Report;
 use String::CamelCase qw(camelize);
+use GADS::DB;
 use GADS::Type::Permission;
 use GADS::Util qw(:all);
 
@@ -399,6 +400,8 @@ sub write
         my $id = $self->schema->resultset('Layout')->create($newitem)->id;
         $self->id($id);
     }
+
+    GADS::DB->add_column($self->schema, $self);
 }
 
 sub user_can
