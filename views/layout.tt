@@ -118,12 +118,16 @@
                 </div>
                 <label for="enumval">Tree values:</label>
                 <div class="form-group">
-                    <button class="btn btn-success btn-sm" onclick="demo_create();" type="button">Create</button>
-                    <button class="btn btn-warning btn-sm" onclick="demo_rename();" type="button">Rename</button>
-                    <button class="btn btn-danger btn-sm" onclick="demo_delete();" type="button">Delete</button>
-                    <button class="btn btn-info btn-sm" onclick="$('#jstree_demo_div').jstree('open_all');" type="button">Expand</button>
-                    <button class="btn btn-info btn-sm" onclick="$('#jstree_demo_div').jstree('close_all');" type="button">Collapse</button>
-                    <div id="jstree_demo_div"></div>
+                    [% IF column.id %]
+                        <button class="btn btn-success btn-sm" onclick="demo_create();" type="button">Create</button>
+                        <button class="btn btn-warning btn-sm" onclick="demo_rename();" type="button">Rename</button>
+                        <button class="btn btn-danger btn-sm" onclick="demo_delete();" type="button">Delete</button>
+                        <button class="btn btn-info btn-sm" onclick="$('#jstree_demo_div').jstree('open_all');" type="button">Expand</button>
+                        <button class="btn btn-info btn-sm" onclick="$('#jstree_demo_div').jstree('close_all');" type="button">Collapse</button>
+                        <div id="jstree_demo_div"></div>
+                    [% ELSE %]
+                        <p>To create your tree, please save this field first, and then edit it.</p>
+                    [% END %]
                 </div>
             </div>
             <div id="divenum"
