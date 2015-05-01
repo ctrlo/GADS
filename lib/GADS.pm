@@ -100,6 +100,12 @@ hook before => sub {
         # Redirect to user status page if required and not seen this session
         redirect '/user_status' unless request->uri =~ m!^/(user_status|aup)!;
     }
+    elsif (logged_in_user_password_expired)
+    {
+        # Redirect to user details page if password expired
+        forwardHome({ danger => "Your password has expired. Please use the Change password button
+            below to set a new password." }, 'account/detail') unless request->uri eq '/account/detail';
+    }
 };
 
 hook before_template => sub {
@@ -181,7 +187,7 @@ any '/user_status' => require_login sub {
     }
 
     template user_status => {
-        lastlogin => session('last_login'),
+        lastlogin => logged_in_user_lastlogin,
         message   => config->{gads}->{user_status_message},
         page      => 'user_status',
     };
@@ -683,7 +689,8 @@ any '/graph/?:id?' => require_role layout => sub {
 any '/group/?:id?' => require_role useradmin => sub {
 
     my $id = param 'id';
-    my $group = GADS::Group->new(schema => schema);
+    my $group  = GADS::Group->new(schema => schema);
+    my $layout = GADS::Layout->new(user => logged_in_user, schema => schema);
     $group->from_id($id);
 
     if (param 'submit')
@@ -719,6 +726,7 @@ any '/group/?:id?' => require_role useradmin => sub {
     else {
         my $groups = GADS::Groups->new(schema => schema);
         $params->{groups} = $groups->all;
+        $params->{layout} = $layout;
     }
     template 'group' => $params;
 };

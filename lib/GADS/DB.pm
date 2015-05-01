@@ -27,33 +27,7 @@ sub setup
     my @cols = $layout_rs->all;
 
     foreach my $col (@cols)
-    {
-        my $coltype = $col->type eq "tree"
-                    ? 'enum'
-                    : $col->type eq "calc"
-                    ? 'calcval'
-                    : $col->type eq "rag"
-                    ? 'ragval'
-                    : $col->type;
-
-        my $colname = "field".$col->id;
-
-        # Temporary hack
-        # very inefficient and needs to go away when the rel options show up
-        my $rec_class = $schema->class('Record');
-        $rec_class->might_have(
-            $colname => camelize($coltype),
-            sub {
-                my $args = shift;
-
-                return {
-                    "$args->{foreign_alias}.record_id" => { -ident => "$args->{self_alias}.id" },
-                    "$args->{foreign_alias}.layout_id" => $col->id,
-                };
-            }
-        );
-        $schema->unregister_source('Record');
-        $schema->register_class(Record => $rec_class);
+    {   $class->add_column($schema, $col);
     }
 
     my $rec_class = $schema->class('Record');
@@ -71,6 +45,36 @@ sub setup
     $schema->unregister_source('Record');
     $schema->register_class(Record => $rec_class);
 
+}
+
+sub add_column
+{   my ($class, $schema, $col) = @_;
+    my $coltype = $col->type eq "tree"
+                ? 'enum'
+                : $col->type eq "calc"
+                ? 'calcval'
+                : $col->type eq "rag"
+                ? 'ragval'
+                : $col->type;
+
+    my $colname = "field".$col->id;
+
+    # Temporary hack
+    # very inefficient and needs to go away when the rel options show up
+    my $rec_class = $schema->class('Record');
+    $rec_class->might_have(
+        $colname => camelize($coltype),
+        sub {
+            my $args = shift;
+
+            return {
+                "$args->{foreign_alias}.record_id" => { -ident => "$args->{self_alias}.id" },
+                "$args->{foreign_alias}.layout_id" => $col->id,
+            };
+        }
+    );
+    $schema->unregister_source('Record');
+    $schema->register_class(Record => $rec_class);
 }
 
 1;
