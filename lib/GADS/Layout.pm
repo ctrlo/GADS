@@ -60,6 +60,12 @@ has user_permissions => (
     predicate => 1,
 );
 
+has user_permission_override => (
+    is      => 'rw',
+    isa     => Bool,
+    default => 0,
+);
+
 has columns_index => (
     is      => 'rw',
     lazy    => 1,
@@ -90,7 +96,12 @@ sub _build_columns
     foreach my $col (@allcols)
     {
         my $class = "GADS::Column::".camelize $col->{type};
-        my $column = $class->new(set_values => $col, schema => $self->schema, layout => $self);
+        my $column = $class->new(
+            set_values               => $col,
+            user_permission_override => $self->user_permission_override,
+            schema                   => $self->schema,
+            layout                   => $self
+        );
         push @return, $column;
     }
 
@@ -219,6 +230,7 @@ sub view
 # permissions for columns are contained in the column class.
 sub user_can
 {   my ($self, $permission) = @_;
+    return 1 if $self->user_permission_override;
     if (!$self->has_user_permissions)
     {
         # Full layout has not been built. Shortcut to just a simple

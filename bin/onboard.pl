@@ -123,7 +123,11 @@ foreach my $field (@f)
 
 my @all_bad;
 
-my $layout = GADS::Layout->new(user => undef, schema => schema);
+my $layout = GADS::Layout->new(
+    user                     => undef,
+    schema                   => schema,
+    user_permission_override => 1
+);
 
 # Open CSV to output bad lines in
 my $fh_invalid;

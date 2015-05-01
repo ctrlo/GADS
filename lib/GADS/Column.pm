@@ -55,6 +55,12 @@ has user_permissions => (
     default => sub { [] },
 );
 
+has user_permission_override => (
+    is      => 'rw',
+    isa     => Bool,
+    default => 0,
+);
+
 # Needed for update of cached columns
 has layout => (
     is       => 'ro',
@@ -403,6 +409,7 @@ sub write
 
 sub user_can
 {   my ($self, $permission) = @_;
+    return 1 if $self->user_permission_override;
     return 1 if grep { $_ eq $permission } @{$self->user_permissions};
     if ($permission eq 'write') # shortcut
     {
