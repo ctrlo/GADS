@@ -733,6 +733,10 @@ any '/group/?:id?' => require_role useradmin => sub {
 
 any '/view/:id' => require_login sub {
 
+    return forwardHome(
+        { danger => 'You do not have permission to edit views' }, 'data' )
+        unless user_has_role 'view_create';
+
     my $view_id = param('id');
     $view_id = param('clone') if param('clone') && !request->is_post;
     my @ucolumns; my $view_values;

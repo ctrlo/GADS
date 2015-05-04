@@ -26,12 +26,16 @@
                             View <span class="caret"></span>
                     </button>
                     <ul id="menu_view" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop_view">
-                        <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0">Create new view</a></li>
+                        [% IF user.permission.view_create %]
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0">Create new view</a></li>
+                        [% END %]
                         [% IF v %]
-                            [% IF !v.global OR user.permission.layout %]
-                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/[% v.id %]">Edit this view</a></li>
+                            [% IF user.permission.view_create %]
+                                [% IF !v.global OR user.permission.layout %]
+                                    <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/[% v.id %]">Edit this view</a></li>
+                                [% END %]
+                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0?clone=[% v.id %]">Clone this view</a></li>
                             [% END %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0?clone=[% v.id %]">Clone this view</a></li>
                             <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_alert">Alert me</a></li>
                         [% END %]
                         <li role="presentation" class="divider"></li>
