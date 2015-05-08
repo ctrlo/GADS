@@ -17,6 +17,7 @@ use GADS::Column::String;
 use GADS::Column::Tree;
 use GADS::Config;
 use GADS::DB;
+use GADS::DBICProfiler;
 use GADS::Email;
 use GADS::Graph;
 use GADS::Graph::Data;
@@ -43,6 +44,7 @@ use Dancer2; # Last to stop Moo generating conflicting namespace
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
 use Dancer2::Plugin::Auth::Extensible;
 
+schema->storage->debugobj(new GADS::DBICProfiler);
 schema->storage->debug(1);
 
 our $VERSION = '0.1';
