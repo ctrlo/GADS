@@ -244,7 +244,7 @@ sub _build_data
         }
 
         # Sort the series by y_group, so that the groupings appear together on the chart
-        my @all_series = values $series;
+        my @all_series = values %$series;
         @all_series    = sort { $a->{y_group} cmp $b->{y_group} } @all_series if $group_by;
         @points        = map { $_->{data} } @all_series;
         @labels        = map { $_->{label} } @all_series;

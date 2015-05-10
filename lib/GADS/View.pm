@@ -283,7 +283,7 @@ sub write
     # there is not much point, as they could be removed later anyway. We
     # do this during the processing of the alerts and filters elsewhere.
     my @existing = $self->schema->resultset('Filter')->search({ view_id => $self->id })->all;
-    foreach my $table (keys $tables_in_filter)
+    foreach my $table (keys %$tables_in_filter)
     {
         unless (grep { $_->layout_id == $table } @existing)
         {
