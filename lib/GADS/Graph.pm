@@ -106,7 +106,7 @@ has x_axis_grouping => (
     is      => 'rw',
     isa     => sub {
         return unless $_[0];
-        grep { $_[0] eq $_ } keys GADS::Graphs->new->dategroup
+        grep { $_[0] eq $_ } keys %{GADS::Graphs->new->dategroup}
             or error __x"{xas} is an invalid value for X-axis grouping", xas => $_[0];
     },
     lazy    => 1,
