@@ -142,6 +142,7 @@
         <label for="[% dispcol.id %]" [% label_style %]>
             [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
         </label>
+        <input type="hidden" name="[% field %]" id="treeval_id[% dispcol.id %]" value="[% editvalue.id %]">
         [% IF readonly %]
             <div class="form-group">
                 [% editvalue.html %]
@@ -153,7 +154,6 @@
                 <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('close_all');">Collapse all</a>
                 <div id="jstree[% dispcol.id %]"></div>
             </div>
-            <input type="hidden" name="[% field %]" id="treeval_id[% dispcol.id %]" value="[% editvalue.id %]">
             <input type="hidden" id="[% dispcol.id %]" value="">
         [% END %]
     [% ELSIF dispcol.type == "person" %]
