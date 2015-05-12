@@ -45,7 +45,6 @@ div.circ-large {
     height: 20px;
     border-radius: 0px;
     font-size: 20px;
-    behavior: url(/js/PIE.htc);
 }
 
 div.circ-small {
