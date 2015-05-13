@@ -410,7 +410,11 @@ any '/data' => require_login sub {
             );
 
             my $png= $mech->content_as_png();
-            return send_file( \$png, content_type => 'image/png', filename => "test.png" );
+            return send_file(
+                \$png,
+                content_type => 'image/png',
+                filename     => "graph".$graph->id.".png",
+            );
         }
         elsif (my $csv = param('csv'))
         {
