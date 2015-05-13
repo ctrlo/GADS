@@ -412,6 +412,21 @@ any '/data' => require_login sub {
             my $png= $mech->content_as_png();
             return send_file( \$png, content_type => 'image/png', filename => "test.png" );
         }
+        elsif (my $csv = param('csv'))
+        {
+            my $graph = GADS::Graph->new(
+                layout => $layout,
+                schema => schema
+            );
+            $graph->id($csv);
+            my $gdata       = _data_graph($csv);
+            my $csv_content = $gdata->csv;
+            return send_file(
+                \$csv_content,
+                content_type => 'text/csv',
+                filename     => "graph".$graph->id.".csv",
+            );
+        }
         else {
             $params->{graphs} = GADS::Graphs->new(user => $user, schema => schema, layout => $layout)->all;
         }

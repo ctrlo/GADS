@@ -7,7 +7,7 @@
         <h3>[% graph.title %]</h3>
         [% IF graph.description %]<p>[% graph.description %]</p>[% END %]
         <div id="chartdiv[% graph.id %]" style="height:400px;width:600px; "></div>
-        <p><a href="?png=[% graph.id %]">PNG</a></p>
+        <p><a href="?png=[% graph.id %]">PNG</a> | <a href="?csv=[% graph.id %]">CSV</a></p>
         [% count = count + 1 %]
     [% END %]
 

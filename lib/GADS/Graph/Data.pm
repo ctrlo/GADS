@@ -20,6 +20,7 @@ package GADS::Graph::Data;
 
 use Scalar::Util qw(looks_like_number);
 use JSON qw(decode_json encode_json);
+use Text::CSV::Encoded;
 
 use Moo;
 
@@ -60,6 +61,47 @@ has _data => (
     lazy    => 1,
     builder => sub { $_[0]->_build_data },
 );
+
+has csv => (
+    is => 'lazy',
+);
+
+sub _build_csv
+{   my $self = shift;
+    my $csv = Text::CSV::Encoded->new({ encoding  => undef });
+
+    my $csvout = "";
+    my $rows;
+    if ($self->type eq "pie" || $self->type eq "donut")
+    {
+        foreach my $ring (@{$self->points})
+        {
+            foreach my $segment (@{$ring})
+            {
+                my $name = $segment->[0];
+                $rows->{$name} ||= [];
+                push @{$rows->{$name}}, $segment->[1];
+            }
+        }
+    }
+    else {
+        foreach my $series (@{$self->points})
+        {
+            foreach my $x (@{$self->xlabels})
+            {
+                $rows->{$x} ||= [];
+                my $value = shift @$series;
+                push @{$rows->{$x}}, $value;
+            }
+        }
+    }
+    foreach my $row (keys %$rows)
+    {
+        $csv->combine($row, @{$rows->{$row}});
+        $csvout .= $csv->string."\n";
+    }
+    $csvout;
+}
 
 sub _build_data
 {   my $self = shift;
