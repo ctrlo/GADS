@@ -377,7 +377,8 @@ any '/data' => require_login sub {
         {
             $params->{scheme}       = 'http';
             $params->{single_graph} = 1;
-            $params->{base}         = 'file:///root/GADS/public/';
+            my $public              = path(setting('appdir'), 'public');
+            $params->{base}         = "file://$public/";
             my $graph_html          = template 'data_graph' => $params;
             my ($fh, $filename)     = tempfile(SUFFIX => '.html');
             print $fh $graph_html;
