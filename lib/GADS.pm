@@ -1,6 +1,7 @@
 package GADS;
 
 use DateTime;
+use File::Temp qw/ tempfile /;
 use GADS::Alert;
 use GADS::Approval;
 use GADS::Audit;
@@ -39,6 +40,7 @@ use Log::Report mode => 'DEBUG';
 use String::CamelCase qw(camelize);
 use String::Random;
 use Text::CSV;
+use WWW::Mechanize::PhantomJS;
 
 use Dancer2; # Last to stop Moo generating conflicting namespace
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
@@ -121,11 +123,12 @@ hook before_template => sub {
     $audit->user_action(qq(User $user->{username} made $method request to $path))
         if $user;
 
-    my $base = request->base;
+    my $base = $tokens->{base} || request->base;
     $tokens->{url}->{css}  = "${base}css";
     $tokens->{url}->{js}   = "${base}js";
     $tokens->{url}->{page} = $base;
     $tokens->{url}->{page} =~ s!.*/!!; # Remove trailing slash
+    $tokens->{scheme}    ||= request->scheme; # May already be set for phantomjs requests
     $tokens->{hostlocal}   = config->{gads}->{hostlocal};
 
     $tokens->{header} = config->{gads}->{header};
@@ -257,10 +260,9 @@ get '/data_calendar/:time' => require_login sub {
     });
 };
 
-get '/data_graph/:id/:time' => require_login sub {
-
+sub _data_graph
+{   my $id = shift;
     my $user    = logged_in_user;
-    my $id      = param 'id';
     my $layout  = GADS::Layout->new(user => $user, schema => schema);
     my $view    = current_view($user, $layout);
     my $graph   = GADS::Graph->new(id => $id, schema => schema);
@@ -273,8 +275,13 @@ get '/data_graph/:id/:time' => require_login sub {
             $graph->group_by,
         ],
     );
+    GADS::Graph::Data->new(id => $id, records => $records, schema => schema);
+}
 
-    my $gdata = GADS::Graph::Data->new(id => $id, records => $records, schema => schema);
+get '/data_graph/:id/:time' => require_login sub {
+
+    my $id      = param 'id';
+    my $gdata = _data_graph($id);
 
     header "Cache-Control" => "max-age=0, must-revalidate, private";
     content_type 'application/json';
@@ -359,14 +366,55 @@ any '/data' => require_login sub {
 
     my $view       = current_view($user, $layout);
 
-    my $params; # Variable for the template
+    my $params = {
+        page => 'data',
+    }; # Variable for the template
 
     if ($viewtype eq 'graph')
     {
-        $params = {
-            graphs   => GADS::Graphs->new(user => $user, schema => schema, layout => $layout)->all,
-            viewtype => 'graph',
-        };
+        $params->{viewtype} = 'graph';
+        if (my $png = param('png'))
+        {
+            $params->{scheme}       = 'http';
+            $params->{single_graph} = 1;
+            $params->{base}         = 'file:///root/GADS/public/';
+            my $graph_html          = template 'data_graph' => $params;
+            my ($fh, $filename)     = tempfile(SUFFIX => '.html');
+            print $fh $graph_html;
+            close $fh;
+            my $mech = WWW::Mechanize::PhantomJS->new;
+            $mech->get_local($filename);
+            unlink $filename;
+            my $gdata = _data_graph($png);
+            my $json  = encode_json {
+                points  => $gdata->points,
+                labels  => $gdata->labels,
+                xlabels => $gdata->xlabels,
+            };
+            my $graph = GADS::Graph->new(
+                layout => $layout,
+                schema => schema
+            );
+            $graph->id($png);
+            my $options_in = encode_json {
+                type         => $graph->type,
+                x_axis_name  => $graph->x_axis_name,
+                y_axis_label => $graph->y_axis_label,
+                stackseries  => $graph->stackseries,
+                showlegend   => \$graph->showlegend,
+                id           => $png,
+            };
+
+            $mech->eval_in_page('(function(plotData, options_in){do_plot_json(plotData, options_in)})(arguments[0],arguments[1]);',
+                $json, $options_in
+            );
+
+            my $png= $mech->content_as_png();
+            return send_file( \$png, content_type => 'image/png', filename => "test.png" );
+        }
+        else {
+            $params->{graphs} = GADS::Graphs->new(user => $user, schema => schema, layout => $layout)->all;
+        }
     }
     elsif ($viewtype eq 'calendar')
     {
@@ -525,7 +573,6 @@ any '/data' => require_login sub {
     $params->{v}               = $view,  # View is reserved TT word
     $params->{user_views}      = $views->user_views;
     $params->{alerts}          = $alert->all;
-    $params->{page}            = 'data';
     $params->{user_can_create} = $layout->user_can('write_new');
     template 'data' => $params;
 };

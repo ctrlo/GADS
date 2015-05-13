@@ -1,16 +1,20 @@
-[% count = 0 %]
-[% FOREACH graph IN graphs %]
-    [% NEXT UNLESS graph.selected %]
-    <h3>[% graph.title %]</h3>
-    [% IF graph.description %]<p>[% graph.description %]</p>[% END %]
-    <div id="chartdiv[% graph.id %]" style="height:400px;width:600px; "></div>
-    <p></p>
-    [% count = count + 1 %]
-[% END %]
+[% IF single_graph %]
+    <div id="chartdiv" style="height:400px;width:600px; "></div>
+[% ELSE %]
+    [% count = 0 %]
+    [% FOREACH graph IN graphs %]
+        [% NEXT UNLESS graph.selected %]
+        <h3>[% graph.title %]</h3>
+        [% IF graph.description %]<p>[% graph.description %]</p>[% END %]
+        <div id="chartdiv[% graph.id %]" style="height:400px;width:600px; "></div>
+        <p><a href="?png=[% graph.id %]">PNG</a></p>
+        [% count = count + 1 %]
+    [% END %]
 
-[% UNLESS count %]
-<p>No graphs are selected for display. Please use your
-<a href="[% url.page %]/account/graph/">account options</a> to add graphs to this page.</p>
+    [% UNLESS count %]
+    <p>No graphs are selected for display. Please use your
+    <a href="[% url.page %]/account/graph/">account options</a> to add graphs to this page.</p>
+    [% END %]
 [% END %]
 
     <script type="text/javascript">
@@ -98,42 +102,44 @@
                     "#F99D1C", "#F0679E", "#2C4269", "#7F3F98", "#1C75BC",
                     "#EF4136", "#2BB673"
                 ];
-                $.jqplot('chartdiv' + options_in.id, plotData.points, plotOptions);
+                $.jqplot('chartdiv' [% UNLESS single_graph %]+ options_in.id[% END %], plotData.points, plotOptions);
             };
-            $(document).ready(function(){
-                if (!FontDetect.isFontLoaded('14px/1 FontAwesome')) {
-                    $( ".use-icon-font" ).hide();
-                    $( ".use-icon-png" ).show();
-                }
-                var ajaxDataRenderer = function(url, plot) {
-                    var ret = null;
-                    $.ajax({
-                        async: false,
-                        url: url,
-                        dataType:'json',
-                        success: function(data) {
-                            ret = data;
-                        }
-                    });
-                    return ret;
-                };
-                $.jqplot.config.enablePlugins = true;
-                [% FOREACH graph IN graphs %]
-                    [% NEXT UNLESS graph.selected %]
-                    var time = (new Date).getTime();
-                    var jsonurl = "/data_graph/[% graph.id %]/" + time;
-                    var plotData = ajaxDataRenderer(jsonurl);
-                    var options_in = {
-                        type: "[% graph.type %]",
-                        x_axis_name: "[% graph.x_axis_name %]",
-                        y_axis_label: "[% graph.y_axis_label %]",
-                        stackseries: [% graph.stackseries %],
-                        showlegend: [% graph.showlegend %],
-                        id: [% graph.id %]
+            [% UNLESS single_graph %]
+                $(document).ready(function(){
+                    if (!FontDetect.isFontLoaded('14px/1 FontAwesome')) {
+                        $( ".use-icon-font" ).hide();
+                        $( ".use-icon-png" ).show();
+                    }
+                    var ajaxDataRenderer = function(url, plot) {
+                        var ret = null;
+                        $.ajax({
+                            async: false,
+                            url: url,
+                            dataType:'json',
+                            success: function(data) {
+                                ret = data;
+                            }
+                        });
+                        return ret;
                     };
-                    do_plot(plotData, options_in);
-                [% END %]
-            });
+                    $.jqplot.config.enablePlugins = true;
+                    [% FOREACH graph IN graphs %]
+                        [% NEXT UNLESS graph.selected %]
+                        var time = (new Date).getTime();
+                        var jsonurl = "/data_graph/[% graph.id %]/" + time;
+                        var plotData = ajaxDataRenderer(jsonurl);
+                        var options_in = {
+                            type: "[% graph.type %]",
+                            x_axis_name: "[% graph.x_axis_name %]",
+                            y_axis_label: "[% graph.y_axis_label %]",
+                            stackseries: [% graph.stackseries %],
+                            showlegend: [% IF graph.showlegend %]true[% ELSE %]false[% END %],
+                            id: [% graph.id %]
+                        };
+                        do_plot(plotData, options_in);
+                    [% END %]
+                });
+            [% END %]
             [% END %]
         [% END %]';
     </script>

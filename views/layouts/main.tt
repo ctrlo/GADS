@@ -16,7 +16,7 @@
         <meta name="author" content="">
         <link rel="shortcut icon" href="../../assets/ico/favicon.ico">
 
-        <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
+        <link href='[% scheme %]://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
         <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
 
         <title>Globally Accessible Data Store [% page %]</title>
@@ -25,7 +25,9 @@
         <link rel="stylesheet" href="[% url.css %]/bootstrap.min.css">
 
         <!-- Custom styles for this template -->
-        <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap.css">
+        [% UNLESS single_graph %]
+            <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap.css">
+        [% END %]
 
         [% IF page == "layout" OR page == "edit" OR page == "approval" %]
         <link rel="stylesheet" href="[% url.css %]/jstree.min.css" />
@@ -41,7 +43,7 @@
             [% IF hostlocal %]
                 <link rel="stylesheet" href="[% url.css %]/dataTables.bootstrap.css">
             [% ELSE %]
-                <link rel="stylesheet" href="//cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.css">
+                <link rel="stylesheet" href="[% scheme %]://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.css">
             [% END %]
         [% END %]
 
@@ -50,19 +52,19 @@
 
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
-        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <script src="[% scheme %]://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="[% scheme %]://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
         <![endif]-->
 
     </head>
 
     <body>
         <div id="wrapper">
-        [% IF header %]
+        [% IF header AND NOT single_graph %]
             <p class="text-center">[% header %]</p>
         [% END %]
         <div class="container-fluid">
-            [% UNLESS page == "login" %]
+            [% UNLESS page == "login" OR single_graph %]
                 <div class="navbar navbar-default" role="navigation">
                         <div class="navbar-header">
                             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -147,10 +149,10 @@
             <script src="[% url.js %]/bootstrap.min.js"></script>
             <script src="[% url.js %]/tooltip.min.js"></script>
         [% ELSE %]
-            <script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
-            <script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
-            <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-            <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/js/tooltip.min.js"></script>
+            <script src="[% scheme %]://code.jquery.com/jquery-1.10.2.min.js"></script>
+            <script src="[% scheme %]://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+            <script src="[% scheme %]://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+            <script src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/js/tooltip.min.js"></script>
         [% END %]
         [% IF page == "edit" OR page == "approval" %]
             <script type="text/javascript" src="[% url.js %]/bootstrap-datepicker.js"></script>
@@ -191,7 +193,7 @@
             [% IF hostlocal %]
                 <script type="text/javascript" src="[% url.js %]/jquery.floatThead-slim.min.js"></script>
             [% ELSE %]
-                <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/floatthead/1.2.8/jquery.floatThead-slim.min.js"></script>
+                <script type="text/javascript" src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/floatthead/1.2.8/jquery.floatThead-slim.min.js"></script>
             [% END %]
         [% END %]
         [% IF page == "data" %]
@@ -205,8 +207,8 @@
                 <script type="text/javascript" src="[% url.js %]/jquery.dataTables.min.js"></script>
                 <script type="text/javascript" src="[% url.js %]/dataTables.bootstrap.js"></script>
             [% ELSE %]
-                <script type="text/javascript" src="//cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
-                <script type="text/javascript" src="//cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.js"></script>
+                <script type="text/javascript" src="[% scheme %]://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+                <script type="text/javascript" src="[% scheme %]://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.js"></script>
             [% END %]
         [% END %]
 
