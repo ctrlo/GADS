@@ -346,6 +346,18 @@ sub delete
             Please remove these conditions before deletion.", dep => $dep;
     }
 
+    # Next see if any calculated fields are dependent on this
+    if (my @deps = $self->schema->resultset('LayoutDepend')->search({
+            depends_on => $self->id
+        })->all
+    )
+    {
+        my @depsn = map { $_->layout->name } @deps;
+        my $dep   = join ', ', @depsn;
+        error __x"The following fields contain this field in their formula: {dep}.
+            Please remove these before deletion.", dep => $dep;
+    }
+
     if (my @graphs = $self->schema->resultset('Graph')->search(
             [
                 { x_axis => $self->id   },
