@@ -49,12 +49,6 @@ has points => (
     builder => sub { $_[0]->_data->{points} },
 );
 
-has showlegend => (
-    is      => 'rw',
-    lazy    => 1,
-    builder => sub { $_[0]->_data->{showlegend} },
-);
-
 # Function to fill out the series of data that will be plotted on a graph
 has _data => (
     is      => 'rw',
@@ -76,28 +70,38 @@ sub _build_csv
     {
         foreach my $ring (@{$self->points})
         {
+            my $count = 0;
             foreach my $segment (@{$ring})
             {
                 my $name = $segment->[0];
-                $rows->{$name} ||= [];
-                push @{$rows->{$name}}, $segment->[1];
+                $rows->[$count] ||= [$name];
+                push @{$rows->[$count]}, $segment->[1];
+                $count++;
             }
         }
     }
     else {
         foreach my $series (@{$self->points})
         {
+            my $count = 0;
             foreach my $x (@{$self->xlabels})
             {
-                $rows->{$x} ||= [];
+                $rows->[$count] ||= [$x];
                 my $value = shift @$series;
-                push @{$rows->{$x}}, $value;
+                push @{$rows->[$count]}, $value;
+                $count++;
             }
         }
     }
-    foreach my $row (keys %$rows)
+    if ($self->group_by)
     {
-        $csv->combine($row, @{$rows->{$row}});
+        my @row = map {$_->{label}} @{$self->labels};
+        $csv->combine("", @row);
+        $csvout .= $csv->string."\n";
+    }
+    foreach my $row (@$rows)
+    {
+        $csv->combine(@$row);
         $csvout .= $csv->string."\n";
     }
     $csvout;
