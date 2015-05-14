@@ -287,7 +287,7 @@ get '/data_graph/:id/:time' => require_login sub {
     content_type 'application/json';
     encode_json({
         points  => $gdata->points,
-        labels  => $gdata->labels,
+        labels  => $gdata->labels_encoded,
         xlabels => $gdata->xlabels,
     });
 };
@@ -389,7 +389,7 @@ any '/data' => require_login sub {
             my $gdata = _data_graph($png);
             my $json  = encode_json {
                 points  => $gdata->points,
-                labels  => $gdata->labels,
+                labels  => $gdata->labels_encoded,
                 xlabels => $gdata->xlabels,
             };
             my $graph = GADS::Graph->new(

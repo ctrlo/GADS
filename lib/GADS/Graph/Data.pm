@@ -18,9 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Graph::Data;
 
-use Scalar::Util qw(looks_like_number);
+use HTML::Entities;
 use JSON qw(decode_json encode_json);
 use Text::CSV::Encoded;
+use Scalar::Util qw(looks_like_number);
 
 use Moo;
 
@@ -41,6 +42,16 @@ has labels => (
     is      => 'rw',
     lazy    => 1,
     builder => sub { $_[0]->_data->{labels} },
+);
+
+has labels_encoded => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my @labels = @{$_[0]->_data->{labels}};
+        @labels = map { $_->{label} = encode_entities $_->{label}; $_ } @labels;
+        \@labels;
+    },
 );
 
 has points => (
@@ -270,7 +281,7 @@ sub _build_data
         # it blank in order to show no label at that point
         foreach my $k (keys %$series)
         {
-            my $y_group = $series->{$k}->{y_group} || '&lt;blank value&gt;';
+            my $y_group = $series->{$k}->{y_group} || '<blank value>';
             my $showlabel;
             if (!$y_group || $y_group_values{$y_group}->{defined})
             {
