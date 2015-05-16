@@ -75,30 +75,6 @@ has _init_value => (
     is => 'rw',
 );
 
-has from_form => (
-    is      => 'rw',
-    lazy    => 1,
-    builder => sub { $_[0]->value && $_[0]->value->start->ymd },
-);
-
-has to_form => (
-    is      => 'rw',
-    lazy    => 1,
-    builder => sub { $_[0]->value && $_[0]->value->end->ymd },
-);
-
-has from_dt => (
-    is      => 'rw',
-    lazy    => 1,
-    builder => sub { $_[0]->value && $_[0]->value->start },
-);
-
-has to_dt => (
-    is      => 'rw',
-    lazy    => 1,
-    builder => sub { $_[0]->value && $_[0]->value->end },
-);
-
 has schema => (
     is       => 'rw',
     required => 1,
@@ -120,6 +96,26 @@ around 'clone' => sub {
         schema          => $self->schema,
     );
 };
+
+sub from_form
+{   my $self = shift;
+    $self->value && $self->value->start->ymd;
+}
+
+sub to_form
+{   my $self = shift;
+    $self->value && $self->value->end->ymd;
+}
+
+sub from_dt
+{   my $self = shift;
+    $self->value && $self->value->start;
+}
+
+sub to_dt
+{   my $self = shift;
+    $self->value && $self->value->end;
+}
 
 sub _parse_dt
 {   my ($self, $original) = @_;

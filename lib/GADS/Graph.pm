@@ -42,7 +42,8 @@ has _graph => (
         },{
             prefetch => [qw/x_axis y_axis group_by/],
         })->all;
-        $graph;
+        $graph
+            or error __x"Requested graph ID {id} not found", id => $self->id;
     },
 );
 
@@ -106,7 +107,7 @@ has x_axis_grouping => (
     is      => 'rw',
     isa     => sub {
         return unless $_[0];
-        grep { $_[0] eq $_ } keys GADS::Graphs->new->dategroup
+        grep { $_[0] eq $_ } keys %{GADS::Graphs->new->dategroup}
             or error __x"{xas} is an invalid value for X-axis grouping", xas => $_[0];
     },
     lazy    => 1,
@@ -167,11 +168,12 @@ has y_axis_stack => (
 
 has showlegend => (
     is      => 'rw',
+    isa     => Bool,
     lazy    => 1,
     builder => sub {
         my $graph = $_[0]->_graph or return;
         # Legend is shown for secondary groupings. No point otherwise.
-        $graph->group_by || $graph->type eq "pie" || $graph->type eq "donut" ? 'true' : 'false';
+        $graph->group_by || $graph->type eq "pie" || $graph->type eq "donut" ? 1 : 0;
     },
 );
 

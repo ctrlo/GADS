@@ -195,7 +195,7 @@ while (my $row = $csv->getline($fh))
             }
             if (exists $input->{$f->{field}})
             {
-                push $input->{$f->{field}}, $col;
+                push @{$input->{$f->{field}}}, $col;
             }
             else {
                 $input->{$f->{field}} = [$col];

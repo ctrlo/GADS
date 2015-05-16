@@ -448,8 +448,9 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
             ref.edit(sel);
         };
         $(document).ready(function () {
-            $('#sortable').sortable();
-            $('#sortable').disableSelection();
+            $('#sortable').sortable({
+                cancel: "a"
+            });
             $('#modal_permissions').on('show.bs.modal', function (event) {
                 var button = $(event.relatedTarget);
                 var title = button.data('title');

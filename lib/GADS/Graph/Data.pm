@@ -18,8 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Graph::Data;
 
-use Scalar::Util qw(looks_like_number);
+use HTML::Entities;
 use JSON qw(decode_json encode_json);
+use Text::CSV::Encoded;
+use Scalar::Util qw(looks_like_number);
 
 use Moo;
 
@@ -42,16 +44,20 @@ has labels => (
     builder => sub { $_[0]->_data->{labels} },
 );
 
+has labels_encoded => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my @labels = @{$_[0]->_data->{labels}};
+        @labels = map { $_->{label} = encode_entities $_->{label}; $_ } @labels;
+        \@labels;
+    },
+);
+
 has points => (
     is      => 'rw',
     lazy    => 1,
     builder => sub { $_[0]->_data->{points} },
-);
-
-has showlegend => (
-    is      => 'rw',
-    lazy    => 1,
-    builder => sub { $_[0]->_data->{showlegend} },
 );
 
 # Function to fill out the series of data that will be plotted on a graph
@@ -60,6 +66,57 @@ has _data => (
     lazy    => 1,
     builder => sub { $_[0]->_build_data },
 );
+
+has csv => (
+    is => 'lazy',
+);
+
+sub _build_csv
+{   my $self = shift;
+    my $csv = Text::CSV::Encoded->new({ encoding  => undef });
+
+    my $csvout = "";
+    my $rows;
+    if ($self->type eq "pie" || $self->type eq "donut")
+    {
+        foreach my $ring (@{$self->points})
+        {
+            my $count = 0;
+            foreach my $segment (@{$ring})
+            {
+                my $name = $segment->[0];
+                $rows->[$count] ||= [$name];
+                push @{$rows->[$count]}, $segment->[1];
+                $count++;
+            }
+        }
+    }
+    else {
+        foreach my $series (@{$self->points})
+        {
+            my $count = 0;
+            foreach my $x (@{$self->xlabels})
+            {
+                $rows->[$count] ||= [$x];
+                my $value = shift @$series;
+                push @{$rows->[$count]}, $value;
+                $count++;
+            }
+        }
+    }
+    if ($self->group_by)
+    {
+        my @row = map {$_->{label}} @{$self->labels};
+        $csv->combine("", @row);
+        $csvout .= $csv->string."\n";
+    }
+    foreach my $row (@$rows)
+    {
+        $csv->combine(@$row);
+        $csvout .= $csv->string."\n";
+    }
+    $csvout;
+}
 
 sub _build_data
 {   my $self = shift;
@@ -224,7 +281,7 @@ sub _build_data
         # it blank in order to show no label at that point
         foreach my $k (keys %$series)
         {
-            my $y_group = $series->{$k}->{y_group} || '&lt;blank value&gt;';
+            my $y_group = $series->{$k}->{y_group} || '<blank value>';
             my $showlabel;
             if (!$y_group || $y_group_values{$y_group}->{defined})
             {
@@ -244,7 +301,7 @@ sub _build_data
         }
 
         # Sort the series by y_group, so that the groupings appear together on the chart
-        my @all_series = values $series;
+        my @all_series = values %$series;
         @all_series    = sort { $a->{y_group} cmp $b->{y_group} } @all_series if $group_by;
         @points        = map { $_->{data} } @all_series;
         @labels        = map { $_->{label} } @all_series;

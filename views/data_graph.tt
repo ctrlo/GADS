@@ -1,123 +1,145 @@
-[% count = 0 %]
-[% FOREACH graph IN graphs %]
-    [% NEXT UNLESS graph.selected %]
-    <h3>[% graph.title %]</h3>
-    [% IF graph.description %]<p>[% graph.description %]</p>[% END %]
-    <div id="chartdiv[% graph.id %]" style="height:400px;width:600px; "></div>
-    <p></p>
-    [% count = count + 1 %]
-[% END %]
+[% IF single_graph %]
+    <div id="chartdiv" style="height:400px;width:600px; "></div>
+[% ELSE %]
+    [% count = 0 %]
+    [% FOREACH graph IN graphs %]
+        [% NEXT UNLESS graph.selected %]
+        <h3>[% graph.title %]</h3>
+        [% IF graph.description %]<p>[% graph.description %]</p>[% END %]
+        <div id="chartdiv[% graph.id %]" style="height:400px;width:600px; "></div>
+        <p><a href="?png=[% graph.id %]">PNG</a> | <a href="?csv=[% graph.id %]">CSV</a></p>
+        [% count = count + 1 %]
+    [% END %]
 
-[% UNLESS count %]
-<p>No graphs are selected for display. Please use your
-<a href="[% url.page %]/account/graph/">account options</a> to add graphs to this page.</p>
+    [% UNLESS count %]
+    <p>No graphs are selected for display. Please use your
+    <a href="[% url.page %]/account/graph/">account options</a> to add graphs to this page.</p>
+    [% END %]
 [% END %]
 
     <script type="text/javascript">
         var jscode='[% FILTER remove('\n+') %]
             [% FILTER replace('\'', '\\\'') %]
-            $(document).ready(function(){
-                if (!FontDetect.isFontLoaded('14px/1 FontAwesome')) {
-                    $( ".use-icon-font" ).hide();
-                    $( ".use-icon-png" ).show();
-                }
-                var ajaxDataRenderer = function(url, plot) {
-                    var ret = null;
-                    $.ajax({
-                        async: false,
-                        url: url,
-                        dataType:'json',
-                        success: function(data) {
-                            ret = data;
-                        }
-                    });
-                   return ret;
-                };
-                $.jqplot.config.enablePlugins = true;
-                [% FOREACH graph IN graphs %]
-                [% NEXT UNLESS graph.selected %]
-                var time = (new Date).getTime();
-                var jsonurl = "/data_graph/[% graph.id %]/" + time;
-                var plotData = ajaxDataRenderer(jsonurl);
+            function do_plot_json(plotData, options_in) {
+                plotData = JSON.parse(plotData);
+                options_in = JSON.parse(options_in);
+                do_plot(plotData, options_in);
+            };
+            function do_plot (plotData, options_in) {
                 var ticks = plotData.xlabels;
-                $.jqplot('chartdiv[% graph.id %]', plotData.points, {
-                    stackSeries: [% IF graph.stackseries %]true[% ELSE %]false[% END %],
-                    legend: {
-                        renderer:$.jqplot.EnhancedLegendRenderer,
-                        show: [% graph.showlegend %],
-                        location: 'e',
-                        placement: 'outside'
-                    },
-                    seriesColors: [ "#34C3E0", "#62BB46", "#FFDD00", "#D1D3D4",
-                        "#F99D1C", "#F0679E", "#2C4269", "#7F3F98", "#1C75BC",
-                        "#EF4136", "#2BB673"
-                    ],
-                    [% IF graph.type == "bar" %]
-                        seriesDefaults:{
-                            renderer:$.jqplot.BarRenderer,
-                            rendererOptions: {
-                                shadow: false
-                            },
-                            pointLabels: {
-                                show: false,
-                                hideZeros: true
-                            }
+                var seriesDefaults;
+                var plotOptions = {};
+                if (options_in.type == "bar") {
+                    plotOptions.seriesDefaults = {
+                        renderer:$.jqplot.BarRenderer,
+                        rendererOptions: {
+                            shadow: false
                         },
-                    [% ELSIF graph.type == "donut" %]
-                        seriesDefaults:{
-                            renderer:$.jqplot.DonutRenderer,
-                            rendererOptions: {
-                                sliceMargin: 3,
-                                showDataLabels: true,
-                                dataLabels: 'value',
-                                shadow: false
-                            }
+                        pointLabels: {
+                            show: false,
+                            hideZeros: true
+                        }
+                    };
+                } else if (options_in.type == "donut") {
+                    plotOptions.seriesDefaults = {
+                        renderer:$.jqplot.DonutRenderer,
+                        rendererOptions: {
+                            sliceMargin: 3,
+                            showDataLabels: true,
+                            dataLabels: 'value',
+                            shadow: false
+                        }
+                    };
+                } else if (options_in.type == "pie") {
+                    plotOptions.seriesDefaults = {
+                        renderer:$.jqplot.PieRenderer,
+                        rendererOptions: {
+                            showDataLabels: true,
+                            dataLabels: 'value',
+                            shadow: false
+                        }
+                    };
+                } else {
+                    plotOptions.seriesDefaults = {
+                        pointLabels: {
+                            show: false
+                        }
+                    };
+                }
+                if (options_in.type != "donut" && options_in.type != "pie") {
+                    plotOptions.series = plotData.labels;
+                    plotOptions.axes = {
+                        xaxis: {
+                            renderer: $.jqplot.CategoryAxisRenderer,
+                            ticks: ticks,
+                            label: options_in.x_axis_name,
+                            labelRenderer: $.jqplot.CanvasAxisLabelRenderer
                         },
-                    [% ELSIF graph.type == "pie" %]
-                        seriesDefaults:{
-                            renderer:$.jqplot.PieRenderer,
-                            rendererOptions: {
-                                showDataLabels: true,
-                                dataLabels: 'value',
-                                shadow: false
-                            }
-                        },
-                    [% ELSE %]
-                        seriesDefaults:{
-                            pointLabels: {
-                                show: false
-                            }
-                        },
-                    [% END %]
-                        [% UNLESS graph.type == "donut" OR graph.type == "pie" %]
-                            series: plotData.labels,
-                            axes: {
-                                xaxis: {
-                                    renderer: $.jqplot.CategoryAxisRenderer,
-                                    ticks: ticks,
-                                    label: "[% graph.x_axis_name %]",
-                                    labelRenderer: $.jqplot.CanvasAxisLabelRenderer
-                                },
-                                yaxis: {
-                                    padMin: 0,
-                                    label: "[% graph.y_axis_label %]",
-                                    labelRenderer: $.jqplot.CanvasAxisLabelRenderer
-                                }
-                            },
-                            axesDefaults: {
-                                min: 0,
-                                tickRenderer: $.jqplot.CanvasAxisTickRenderer ,
-                                tickOptions: {
-                                  angle: -30,
-                                  fontSize: '8pt'
-                                }
+                        yaxis: {
+                            padMin: 0,
+                            label: options_in.y_axis_label,
+                            labelRenderer: $.jqplot.CanvasAxisLabelRenderer
+                        }
+                    };
+                    plotOptions.axesDefaults = {
+                        min: 0,
+                        tickRenderer: $.jqplot.CanvasAxisTickRenderer ,
+                        tickOptions: {
+                          angle: -30,
+                          fontSize: '8pt'
+                        }
 
-                            },
-                        [% END %]
+                    };
+                }
+                plotOptions.stackSeries = options_in.stackseries;
+                plotOptions.legend = {
+                    renderer:$.jqplot.EnhancedLegendRenderer,
+                    show: options_in.showlegend,
+                    location: 'e',
+                    placement: 'outside'
+                };
+                plotOptions.seriesColors = [ "#34C3E0", "#62BB46", "#FFDD00", "#D1D3D4",
+                    "#F99D1C", "#F0679E", "#2C4269", "#7F3F98", "#1C75BC",
+                    "#EF4136", "#2BB673"
+                ];
+                $.jqplot('chartdiv' [% UNLESS single_graph %]+ options_in.id[% END %], plotData.points, plotOptions);
+            };
+            [% UNLESS single_graph %]
+                $(document).ready(function(){
+                    if (!FontDetect.isFontLoaded('14px/1 FontAwesome')) {
+                        $( ".use-icon-font" ).hide();
+                        $( ".use-icon-png" ).show();
                     }
-                );
-[% END %]
-            });
+                    var ajaxDataRenderer = function(url, plot) {
+                        var ret = null;
+                        $.ajax({
+                            async: false,
+                            url: url,
+                            dataType:'json',
+                            success: function(data) {
+                                ret = data;
+                            }
+                        });
+                        return ret;
+                    };
+                    $.jqplot.config.enablePlugins = true;
+                    [% FOREACH graph IN graphs %]
+                        [% NEXT UNLESS graph.selected %]
+                        var time = (new Date).getTime();
+                        var jsonurl = "/data_graph/[% graph.id %]/" + time;
+                        var plotData = ajaxDataRenderer(jsonurl);
+                        var options_in = {
+                            type: "[% graph.type %]",
+                            x_axis_name: "[% graph.x_axis_name %]",
+                            y_axis_label: "[% graph.y_axis_label %]",
+                            stackseries: [% graph.stackseries %],
+                            showlegend: [% IF graph.showlegend %]true[% ELSE %]false[% END %],
+                            id: [% graph.id %]
+                        };
+                        do_plot(plotData, options_in);
+                    [% END %]
+                });
+            [% END %]
             [% END %]
         [% END %]';
     </script>
