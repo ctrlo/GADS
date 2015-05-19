@@ -67,6 +67,28 @@ after build_values => sub {
 
 after 'write' => sub {
     my $self = shift;
+
+    # Trees are dealt with separately using AJAX calls
+    # First insert and update values
+    foreach my $en (@{$self->enumvals})
+    {
+        if ($en->{id})
+        {
+            my $enumval = $self->schema->resultset('Enumval')->find($en->{id})
+                or error __x"Bad ID {id} for multiple select update", id => $en->{id};
+            $enumval->update({ value => $en->{value} });
+        }
+        else {
+            my $new = $self->schema->resultset('Enumval')->create({ value => $en->{value}, layout_id => $self->id });
+            $en->{id} = $new->id;
+        }
+    }
+
+    # And set it again, as new values with have their ID now
+    $self->enumvals($self->enumvals); # Set this for retrieval in form on error
+
+    # Then delete any that no longer exist
+    $self->_delete_unused_nodes;
     my $newitem = { ordering => $self->ordering };
     $self->schema->resultset('Layout')->find($self->id)->update($newitem);
 };
@@ -128,29 +150,7 @@ sub enumvals_from_form
         }
     }
 
-    $self->enumvals(\@enumvals); # Set this for retrieval in form on error
-
-    # Trees are dealt with separately using AJAX calls
-    # First insert and update values
-    foreach my $en (@enumvals)
-    {
-        if ($en->{id})
-        {
-            my $enumval = $self->schema->resultset('Enumval')->find($en->{id})
-                or error __x"Bad ID {id} for multiple select update", id => $en->{id};
-            $enumval->update({ value => $en->{value} });
-        }
-        else {
-            my $new = $self->schema->resultset('Enumval')->create({ value => $en->{value}, layout_id => $self->id });
-            $en->{id} = $new->id;
-        }
-    }
-
-    # And set it again, as new values with have their ID now
-    $self->enumvals(\@enumvals); # Set this for retrieval in form on error
-
-    # Then delete any that no longer exist
-    $self->_delete_unused_nodes;
+    $self->enumvals(\@enumvals);
 }
    
 sub _delete_unused_nodes
