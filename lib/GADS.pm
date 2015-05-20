@@ -454,11 +454,9 @@ any '/data' => require_login sub {
             }
         }
 
-        $params = {
-            calendar   => session('calendar'), # Remember previous day viewed
-            datecolors => \%datecolors,
-            viewtype   => 'calendar',
-        }
+        $params->{calendar}   = session('calendar'); # Remember previous day viewed
+        $params->{datecolors} = \%datecolors;
+        $params->{viewtype}   = 'calendar';
     }
     else {
         session 'rows' => 50 unless session 'rows';
