@@ -21,6 +21,10 @@
                     [% st = "" %]
                 [% END %]
                 <th><a href="?sort=[% col.id %]" style="color:black">[% col.name | html_entity %][% IF col.id == sort.id %][% st %]</a>[% END %]
+                    [% IF col.helptext %]
+                        (<a data-toggle="modal" href="/helptext/[% col.id %]" data-target="#helptext_modal">?</a>)
+                    [% END %]
+
                     [% IF col.type == "person" AND user.permission.message AND records.size %]
                         [% peopcols.push(col.id) %]
                         <a href="" data-toggle="modal" data-target="#peopcol[% col.id %]">
@@ -84,6 +88,14 @@
     [% END %]
 </ul>
 
+<!-- Help text Modal -->
+<div class="modal fade" id="helptext_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
 [% FOREACH peopcol IN peopcols %]
     <!-- Modal -->
     <div class="modal fade" id="peopcol[% peopcol %]" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -123,6 +135,9 @@
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
             $(document).ready(function () {
+                $(document).on('hidden.bs.modal', function (e) {
+                    $(e.target).removeData('bs.modal');
+                });
                 $("#datatable").floatThead({
                     zIndex: function($table){
                         return 999;
