@@ -358,54 +358,34 @@ sub _get_sorts
 }
 
 sub set_sorts
-{   my ($self, $update) = @_;
+{   my ($self, $sortfield, $sorttype) = @_;
+
+    my $schema = $self->schema;
+    # Delete all old ones first
+    $schema->resultset('Sort')->search({ view_id => $self->id })->delete;
 
     # Collect all the sorts. These can be in a variety of formats. New
     # ones will be a scalar for a single one or an arrayref for multiples.
     # Existing ones will have a unique field ID. This is maintained to retain
     # the data associated with that entry.
-    my $schema = $self->schema;
+    my @fields = ref $sortfield ? @$sortfield : ($sortfield // ()); # Allow empty string for ID
+    my @types  = ref $sorttype  ? @$sorttype  : ($sorttype  || ());
     my @allsorts;
-    foreach my $v (keys %$update)
+    foreach my $layout_id (@fields)
     {
-        next unless $v =~ /^sortfield(\d+)(new)?/; # For each sort group
-        my $id   = $1;
-        my $new  = $2 ? 'new' : '';
-        my $type = $update->{"sorttype$id"};
+        my $type = shift @types;
         error __x"Invalid type {type}", type => $type
             unless grep { $_->{name} eq $type } @{sort_types()};
-        my $layout_id = $update->{"sortfield$id$new"} || undef;
         # Check column is valid and user has access
         error __x"Invalid field ID {id} in sort", id => $layout_id
-            unless $self->layout->column($layout_id)->user_can('read');
+            if $layout_id && !$self->layout->column($layout_id)->user_can('read');
         my $sort = {
             view_id   => $self->id,
-            layout_id => $layout_id,
+            layout_id => ($layout_id || undef), # ID will be empty string
             type      => $type,
         };
-        if ($new)
-        {
-            # New filter
-            my $s = $schema->resultset('Sort')->create($sort);
-            push @allsorts, $s->id;
-        }
-        else {
-            # Search on view as well to ensure ID belongs to view
-            my ($s) = $schema->resultset('Sort')->search({ view_id => $self->id, id => $id })->all;
-            if ($s)
-            {
-                $s->update($sort);
-                push @allsorts, $id;
-            }
-        }
-    }
-    # Then delete any that no longer exist
-    foreach my $s ($schema->resultset('Sort')->search({ view_id => $self->id }))
-    {
-        unless (grep {$_ == $s->id} @allsorts)
-        {
-            $s->delete;
-        }
+        my $s = $schema->resultset('Sort')->create($sort);
+        push @allsorts, $s->id;
     }
     $self->sorts($self->_get_sorts);
 }

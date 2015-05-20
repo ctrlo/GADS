@@ -833,7 +833,7 @@ any '/view/:id' => require_login sub {
         $view->filter (param 'filter');
         if (process( sub { $view->write }))
         {
-            $view->set_sorts($params);
+            $view->set_sorts($params->{sortfield}, $params->{sorttype});
             # Set current view to the one created/edited
             session 'view_id' => $view->id;
             return forwardHome(

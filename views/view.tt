@@ -120,11 +120,9 @@
                 if (c < 1) return;
                 $(this).parents('.request-row').remove();
             });
-            var count = 0;
             $('div#sorts').on('click','.add', function(){
-                count++;
                 $(this).parents('.sort-add').before( '
-                    [% PROCESS sortrow newf='new' sortid='\' + count + \'' %]
+                    [% PROCESS sortrow %]
                 ' );
             });
         }); 
@@ -170,15 +168,12 @@
 </script>
 
 [% BLOCK sortrow %]
-    [% IF sortid %][% sid = sortid %][% ELSE %][% sid = sort.id %][% END %]
     <div class="row">
         <div class="request-row">
             <div class="col-md-4">
                 <p>
-                    <select class="form-control" name="sortfield[% sid %][% newf %]">
-                        [% IF autoserial %]
+                    <select class="form-control" name="sortfield">
                         <option value="" [% UNLESS sort.column.id %]selected[% END %]>ID</option>
-                        [% END %]
                         [% FOR column IN all_columns %]
                             <option value="[% column.id %]" [% IF sort.layout_id == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
                         [% END %]
@@ -187,7 +182,7 @@
             </div>
             <div class="col-md-4">
                 <p>
-                    <select class="form-control" name="sorttype[% sid %]">
+                    <select class="form-control" name="sorttype">
                         [% FOREACH st IN sort_types %]
                             <option value="[% st.name %]" [% IF sort.type == st.name %]selected[% END %]>[% st.description %]</option>
                         [% END %]
