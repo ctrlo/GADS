@@ -75,16 +75,18 @@
             </div>
         </div>
     </div>
-    <button id="saveview" type="submit" name="update" value="update" class="btn btn-primary" onclick="UpdateFilter()">
-        [% IF v.id %]
-            Save
-        [% ELSE %]
-            Save
-        [% END %]
-    </button>
-    [% IF v.id %]
-        <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
-    [% END %]
+    <div style="height:55px;"></div>
+    <nav class="navbar navbar-default navbar-fixed-bottom" style="min-height:55px">
+        <div class="container">
+            <p></p>
+            <button id="saveview" type="submit" name="update" value="update" class="btn btn-primary" onclick="UpdateFilter()">
+                Save
+            </button>
+            [% IF v.id %]
+                <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
+            [% END %]
+        </div>
+    </nav>
 </form>
        <!-- Modal -->
         <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
