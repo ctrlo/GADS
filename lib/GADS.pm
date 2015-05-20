@@ -1531,7 +1531,7 @@ any '/login' => sub {
             session logged_in_user_realm => $realm;
             if (param 'remember_me')
             {
-                cookie 'remember_me' => param('username') if param('remember_me');
+                cookie 'remember_me' => param('username'), expires => '60d' if param('remember_me');
             }
             else {
                 cookie remember_me => '', expires => '-1d' if cookie 'remember_me';
