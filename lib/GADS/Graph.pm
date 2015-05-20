@@ -37,6 +37,7 @@ has _graph => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
+        $self->id or return;
         my ($graph) = $self->schema->resultset('Graph')->search({
             'me.id' => $self->id
         },{
