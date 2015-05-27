@@ -175,7 +175,7 @@ sub _build_data
     }
     else {
         # Showing several columns, so show each as its own x-axis value
-        $xy_values{$_->name} = 1
+        $xy_values{$_->id} = 1
             foreach @x;
     }
 
@@ -210,6 +210,13 @@ sub _build_data
             $count++;
         }
     }
+
+    if (!$x_axis)
+    {
+        # x labels will just be field ID numbers. Translate to
+        # field names
+        @xlabels = map { $layout->column($_)->name } @xlabels;
+    }
     
     # Now go into each record a second time, counting the values for each
     # of the above unique values, and setting the count into the series hash.
@@ -220,7 +227,7 @@ sub _build_data
     {
         foreach my $x (@x)
         {
-            my $x_value = $x_axis ? $record->fields->{$x->id} : $x->name
+            my $x_value = $x_axis ? $record->fields->{$x->id} : $x->id
                 or next;
             if ($x_axis && $x_axis->return_type && $x_axis->return_type eq 'date')
             {
@@ -267,6 +274,35 @@ sub _build_data
             }
             else {
                 $series->{$key}->{data}->[$idx] = 0 unless $series->{$key}->{data}->[$idx];
+            }
+        }
+    }
+
+    # If this graph is measuring against a metric, recalculate against that
+    if (my $metric_group_id = $self->metric_group_id)
+    {
+        # Get set of metrics
+        my @metrics = $self->schema->resultset('Metric')->search({
+            metric_group_id => $metric_group_id,
+        })->all;
+        my $metrics;
+
+        # Put all the metrics in an easy to search hash ref
+        foreach my $metric (@metrics)
+        {
+            $metrics->{$metric->y_axis_value}->{$metric->get_column('x_axis_field')} = $metric->target;
+        }
+
+        # Now go into each data item and recalculate against the metric
+        my %indices = reverse %xy_values;
+        foreach my $line (keys %$series)
+        {
+            my @data = @{$series->{$line}->{data}};
+            for my $i (0 .. $#data)
+            {
+                my $x_id   = $indices{$i};
+                my $target = $metrics->{$line}->{$x_id};
+                $series->{$line}->{data}->[$i] = $target ? int ($data[$i] * 100 / $target ) : 0;
             }
         }
     }

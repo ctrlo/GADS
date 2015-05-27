@@ -101,6 +101,12 @@ __PACKAGE__->table("graph");
   is_nullable: 1
   size: 45
 
+=head2 metric_group_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -126,6 +132,8 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "type",
   { data_type => "varchar", is_nullable => 1, size => 45 },
+  "metric_group_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -154,6 +162,26 @@ __PACKAGE__->belongs_to(
   "group_by",
   "GADS::Schema::Result::Layout",
   { id => "group_by" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 metric_group
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::MetricGroup>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "metric_group",
+  "GADS::Schema::Result::MetricGroup",
+  { id => "metric_group_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -218,8 +246,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-06 03:17:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2o9Cx9cXe4LNr7U5Fd59Kw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-05-27 15:43:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:20XRPUffqEeL7VqNtZcXGQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

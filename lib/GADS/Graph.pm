@@ -180,6 +180,13 @@ has showlegend => (
     },
 );
 
+has metric_group_id => (
+    is      => 'rw',
+    isa     => Maybe[Int],
+    lazy    => 1,
+    builder => sub { $_[0]->_graph && $_[0]->_graph->metric_group_id },
+);
+
 # Whether a user has the graph selected. Used by GADS::Graphs
 has selected => (
     is  => 'rw',
