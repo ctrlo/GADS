@@ -401,7 +401,7 @@ any '/data' => require_login sub {
                 type         => $graph->type,
                 x_axis_name  => $graph->x_axis_name,
                 y_axis_label => $graph->y_axis_label,
-                stackseries  => $graph->stackseries,
+                stackseries  => \$graph->stackseries,
                 showlegend   => \$graph->showlegend,
                 id           => $png,
             };
