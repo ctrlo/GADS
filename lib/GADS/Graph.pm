@@ -94,14 +94,16 @@ has x_axis => (
     is      => 'rw',
     isa     => Maybe[Int],
     lazy    => 1,
-    builder => sub { $_[0]->_graph && $_[0]->_graph->x_axis->id },
+    coerce  => sub { $_[0] || undef }, # Empty string from form
+    builder => sub { $_[0]->_graph && $_[0]->_graph->x_axis && $_[0]->_graph->x_axis->id },
 );
 
+# X-axis is undef for graph showing all columns in view
 has x_axis_name => (
     is      => 'rw',
     isa     => Maybe[Str],
     lazy    => 1,
-    builder => sub { $_[0]->layout->column($_[0]->x_axis)->name },
+    builder => sub { $_[0]->x_axis ? $_[0]->layout->column($_[0]->x_axis)->name : "" },
 );
 
 has x_axis_grouping => (
@@ -203,7 +205,7 @@ sub write
     $newgraph->{y_axis}          = $self->y_axis or error __"Please select a Y-axis";
     $newgraph->{y_axis_stack}    = $self->y_axis_stack or error __"A valid is required for Y-xis stacking";
     $newgraph->{y_axis_label}    = $self->y_axis_label;
-    $newgraph->{x_axis}          = $self->x_axis or error __"Please select a field for X-axis";
+    $newgraph->{x_axis}          = $self->x_axis;
     $newgraph->{x_axis_grouping} = $self->x_axis_grouping;
     $newgraph->{group_by}        = $self->group_by;
     $newgraph->{stackseries}     = $self->stackseries;

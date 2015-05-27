@@ -124,7 +124,7 @@ sub _build_data
     # XXX A lot of this would probably be better done by the database...
 
     my $layout   = $self->records->layout;
-    my $x_axis   = $layout->column($self->x_axis);
+    my $x_axis   = $self->x_axis ? $layout->column($self->x_axis) : undef;
     my $y_axis   = $layout->column($self->y_axis);
     my $group_by = $self->group_by && $layout->column($self->group_by);
 
@@ -133,36 +133,50 @@ sub _build_data
 
     my @colors = ('#FF6961', '#77DD77', '#FFB347', '#AEC6CF', '#FDFD96');
 
-    # Go through each record, and count how many unique values
-    # there are for the field in question. Then define the key
-    # of the xy_values hash using the index count
+    # The view of this graph
+    my $view    = $self->records->view;
+    # All the x values from the records. May only be one, or may be lots if
+    # not defined in the graph
+    my @x       = ($x_axis) || $self->records->layout->view($view->id, user_has_read => 1);
+
     my %xy_values; my %y_group_values;
     my ($datemin, $datemax);
-    foreach my $record (@{$self->records->results})
+    if ($x_axis)
     {
-        my $xval = $record->fields->{$x_axis->id};
-        if ($xval && $x_axis->return_type && $x_axis->return_type eq 'date')
+        # Go through each record, and count how many unique values
+        # there are for the field in question. Then define the key
+        # of the xy_values hash using the index count
+        foreach my $record (@{$self->records->results})
         {
-            $xval = _group_date($xval->value, $self->x_axis_grouping);
-        }
-        next unless $xval;
+            my $xval = $record->fields->{$x_axis->id};
+            if ($xval && $x_axis->return_type && $x_axis->return_type eq 'date')
+            {
+                $xval = _group_date($xval->value, $self->x_axis_grouping);
+            }
+            next unless $xval;
 
-        my $gval = $group_by && $record->fields->{$group_by->id};
+            my $gval = $group_by && $record->fields->{$group_by->id};
 
-        if (!defined $xy_values{$xval})
-        {
-            $xy_values{"$xval"} = 1;
+            if (!defined $xy_values{$xval})
+            {
+                $xy_values{"$xval"} = 1;
+            }
+            if ($group_by && !defined $y_group_values{$gval})
+            {
+                $y_group_values{$gval} = { color => $colors[$y_group_index], defined => 0 };
+                $y_group_index++;
+            }
+            if ($x_axis->return_type && $x_axis->return_type eq 'date')
+            {
+                $datemin = $xval if !defined $datemin || $datemin > $xval;
+                $datemax = $xval if !defined $datemax || $datemax < $xval;
+            }
         }
-        if ($group_by && !defined $y_group_values{$gval})
-        {
-            $y_group_values{$gval} = { color => $colors[$y_group_index], defined => 0 };
-            $y_group_index++;
-        }
-        if ($x_axis->return_type && $x_axis->return_type eq 'date')
-        {
-            $datemin = $xval if !defined $datemin || $datemin > $xval;
-            $datemax = $xval if !defined $datemax || $datemax < $xval;
-        }
+    }
+    else {
+        # Showing several columns, so show each as its own x-axis value
+        $xy_values{$_->name} = 1
+            foreach @x;
     }
 
     my $dg = {
@@ -204,53 +218,56 @@ sub _build_data
     my $series;
     foreach my $record (@{$self->records->results})
     {
-        my $x_value = $record->fields->{$x_axis->id} or next;
-        if ($x_axis->return_type && $x_axis->return_type eq 'date')
+        foreach my $x (@x)
         {
-            $x_value = _group_date($x_value->value, $self->x_axis_grouping);
-        }
-        next unless $x_value;
-        my $y_value     = $record->fields->{$y_axis->id};
-        my $groupby_val = $group_by && $record->fields->{$group_by->id};
+            my $x_value = $x_axis ? $record->fields->{$x->id} : $x->name
+                or next;
+            if ($x_axis && $x_axis->return_type && $x_axis->return_type eq 'date')
+            {
+                $x_value = _group_date($x_value->value, $self->x_axis_grouping);
+            }
+            next unless $x_value;
 
-        my $key;
-        if ($self->type eq "pie")
-        {
-            $key = 1; # Only ever one key for the one ring of a pie
-        }
-        elsif ($self->type eq "donut")
-        {
-            $key = $groupby_val || 1; # Maybe no grouping will be set
-        }
-        elsif (!$groupby_val)
-        {
-            $key = 1; # Only one series
-        }
-        else {
-            # XXX Not sure why this line of code was written. Possibly leaves a bug
-            # $key = $self->y_axis_stack eq 'count' ? $x_value : $groupby_val;
-            $key = $groupby_val;
-            
-        }
+            my $y_value     = $x_axis ? $record->fields->{$y_axis->id} : $record->fields->{$x->id};
+            my $groupby_val = $group_by && $record->fields->{$group_by->id};
 
-        unless ($self->type eq "pie" || $self->type eq "donut" || defined $series->{$key})
-        {
-            # If not defined, zero out the field's values
-            my @zero = (0) x $count;
-            $series->{$key}->{data} = \@zero;
-            $series->{$key}->{y_group} = "$groupby_val" if $group_by;
-        }
-        # Finally increase by one the particlar value count in question
-        my $idx = $xy_values{$x_value};
-        if ($self->y_axis_stack eq 'count')
-        {
-            $series->{$key}->{data}->[$idx]++;
-        }
-        elsif(looks_like_number $y_value) {
-            $series->{$key}->{data}->[$idx] += $y_value if $y_value;
-        }
-        else {
-            $series->{$key}->{data}->[$idx] = 0 unless $series->{$key}->{data}->[$idx];
+            my $key;
+            if ($self->type eq "pie")
+            {
+                $key = 1; # Only ever one key for the one ring of a pie
+            }
+            elsif ($self->type eq "donut")
+            {
+                $key = $groupby_val || 1; # Maybe no grouping will be set
+            }
+            elsif (!$groupby_val)
+            {
+                $key = 1; # Only one series
+            }
+            else {
+                # XXX Not sure why this line of code was written. Possibly leaves a bug
+                $key = $groupby_val;
+            }
+
+            unless ($self->type eq "pie" || $self->type eq "donut" || defined $series->{$key})
+            {
+                # If not defined, zero out the field's values
+                my @zero = (0) x $count;
+                $series->{$key}->{data} = \@zero;
+                $series->{$key}->{y_group} = "$groupby_val" if $group_by;
+            }
+            # Finally increase by one the particlar value count in question
+            my $idx = $xy_values{$x_value};
+            if ($self->y_axis_stack eq 'count')
+            {
+                $series->{$key}->{data}->[$idx]++;
+            }
+            elsif(looks_like_number $y_value) {
+                $series->{$key}->{data}->[$idx] += $y_value if $y_value;
+            }
+            else {
+                $series->{$key}->{data}->[$idx] = 0 unless $series->{$key}->{data}->[$idx];
+            }
         }
     }
 
