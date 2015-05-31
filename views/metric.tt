@@ -1,0 +1,188 @@
+<h2>Metrics</h2>
+[% IF metricgroup.defined %]
+<form role="form" method="post">
+    <div class="row">
+        <div class="col-md-6">
+            [% IF metricgroup.id %]
+                <input type="hidden" name="id" value="[% metricgroup.id %]">
+            [% END %]
+            <div class="input-group">
+                <input type="text" name="name" class="form-control" name="name" placeholder="Enter name" value="[% metricgroup.name | html_entity %]">
+                <span class="input-group-btn">
+                    <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">
+                        [% IF metricgroup.id %]Save name[% ELSE %]Create[% END %]
+                    </button>
+                </span>
+            </div>
+            <p>
+            </p>
+            [% IF metricgroup.id %]
+                <p>
+                    <a class="btn btn-default" href="" data-toggle="modal"
+                                data-target="#modal_metric"
+                                data-metric_id=""
+                                data-x_axis_field=""
+                                data-y_axis_value=""
+                                data-target_value=""
+                                >Add item
+                    </a>
+                    <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_delete">Delete group</a>
+                </p>
+                <table class="table table-striped">
+                    <tr>
+                        <th></th>
+                        <th>X-axis value</th>
+                        <th>Y-axis grouping value</th>
+                        <th>Target</th>
+                    </tr>
+                    [% FOREACH metric IN metricgroup.metrics %]
+                        <tr>
+                            <td><a href="" data-toggle="modal"
+                                        data-target="#modal_metric"
+                                        data-metric_id="[% metric.id %]"
+                                        data-x_axis_value="[% metric.x_axis_value %]"
+                                        data-y_axis_grouping_value="[% metric.y_axis_grouping_value %]"
+                                        data-target_value="[% metric.target %]"
+                                        >Edit</a>
+                            </td>
+                            <td>[% metric.x_axis_value | html_entity %]</td>
+                            <td>[% metric.y_axis_grouping_value | html_entity %]</td>
+                            <td>[% metric.target | html_entity %]</td>
+                        </tr>
+                    [% END %]
+                </table>
+            [% END %]
+        </div>
+            <div class="col-md-6">
+                <h4>Metrics help</h4>
+                <p>
+                    Use this page to define a set of metrics to plot graphs against.
+                    Each metric must have an x-axis value and a target y-axis value
+                    for that point. Once a set of metrics is applied to a graph, each
+                    point in that graph will be converted to a percentage as compared
+                    to the relevant metric.
+                </p>
+                <p>
+                    For graphs that use a y-axis grouping, it is also necessary to define
+                    which y-axis grouping is to be used for each x-axis data point.
+                </p>
+                <dl>
+                    <dt>X-axis value</dt>
+                    <dd>This is the value of the x-axis to apply this metric to. Note that if using a
+                        date for the x-axis, then this value must be entered as unixtime, having grouped
+                        as applicable. For example, if grouping by month, then May 2015 would be entered
+                        as 1430438400. Use an online unixtime convertor to calculate the required values.</dd>
+                    <dt>Y-axis grouping value</dt>
+                    <dd>This is the value of the group within the x-axis value to apply this metric to.
+                        This only applies to graphs that have a &quot;group by&quot; defined.
+                    </dd>
+                    <dt>Target</dt>
+                    <dd>This is the target value to compare the y-axis value to. The original
+                        y-axis value will be compared to this value, and the result displayed
+                        on the graph as a releative percentage.
+                    </dd>
+                </dl>
+            </div>
+
+    </div>
+</form>
+<p></p>
+[% ELSE %]
+    <p>Use this page to create, delete and edit metrics. Metrics are used to measure
+    values on graphs against defined values. When a graph is configured to use a metric,
+    the standard absolute values on the graphs will be replaced by percentage values,
+    calculated by comparing the absolute value with the relevant metric.
+    </p>
+    <p>
+        <a href="/metric/0" class="btn btn-default" role="button">Create new metric</a>
+    </p>
+    <table class="table table-striped">
+        <tr>
+            <th></th>
+            <th>Name</th>
+        </tr>
+        [% FOREACH metric IN metrics %]
+            <tr>
+                <td><a href="/metric/[% metric.id %]">Edit</a></td>
+                <td>[% metric.name | html_entity %]
+            </tr>
+        [% END %]
+    </table>
+[% END %]
+
+<!-- Modal -->
+<div class="modal fade" id="modal_delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form role="form" method="post" enctype="multipart/form-data">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Are you sure?</h4>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this group of metrics? All items will be deleted.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="submit" name="delete_all" value="delete" class="btn btn-primary">Confirm deletion</button>
+            </div>
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div class="modal fade" id="modal_metric" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form role="form" method="post" enctype="multipart/form-data">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="modal_permissions-title">Metric details</h4>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="metric_id" id="metric_id" value="">
+                <div class="form-group">
+                    <label for="x_axis_value">X-axis value:</label>
+                    <input type="text" name="x_axis_value" class="form-control" id="x_axis_value" value="">
+                </div>
+                <div class="form-group">
+                    <label for="y_axis_grouping_value">Y-axis grouping value:</label>
+                    <input type="text" name="y_axis_grouping_value" class="form-control" id="y_axis_grouping_value" value="">
+                </div>
+                <div class="form-group">
+                    <label for="target_value">Target value:</label>
+                    <input type="text" name="target" class="form-control" id="target_value" value="">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" name="update_metric" value="submit" class="btn btn-primary">Save</button>
+                <button type="submit" name="delete_metric" id="delete_metric" value="submit" class="btn btn-default">Delete</button>
+            </div>
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<script type="text/javascript">
+    var jscode='[% FILTER remove('\n+') %]
+        [% FILTER replace('\'', '\\\'') %]
+            $('#modal_metric').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var metric_id = button.data('metric_id');
+                $('#metric_id').val(metric_id);
+                if (metric_id) {
+                    $('#delete_metric').show();
+                } else {
+                    $('#delete_metric').hide();
+                }
+                var target_value = button.data('target_value');
+                $('#target_value').val(target_value);
+                var x_axis_value = button.data('x_axis_value');
+                $('#x_axis_value').val(x_axis_value);
+                var y_axis_grouping_value = button.data('y_axis_grouping_value');
+                $('#y_axis_grouping_value').val(y_axis_grouping_value);
+            });
+        [% END %]
+    [% END %]';
+</script>
+

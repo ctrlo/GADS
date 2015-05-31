@@ -184,7 +184,8 @@ has metric_group_id => (
     is      => 'rw',
     isa     => Maybe[Int],
     lazy    => 1,
-    builder => sub { $_[0]->_graph && $_[0]->_graph->metric_group_id },
+    coerce  => sub { $_[0] || undef }, # blank string from form
+    builder => sub { $_[0]->_graph && $_[0]->_graph->get_column('metric_group') },
 );
 
 # Whether a user has the graph selected. Used by GADS::Graphs
@@ -215,6 +216,7 @@ sub write
     $newgraph->{x_axis}          = $self->x_axis;
     $newgraph->{x_axis_grouping} = $self->x_axis_grouping;
     $newgraph->{group_by}        = $self->group_by;
+    $newgraph->{metric_group}    = $self->metric_group_id;
     $newgraph->{stackseries}     = $self->stackseries;
     $newgraph->{type}            = $self->type;
 

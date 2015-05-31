@@ -283,14 +283,15 @@ sub _build_data
     {
         # Get set of metrics
         my @metrics = $self->schema->resultset('Metric')->search({
-            metric_group_id => $metric_group_id,
+            metric_group => $metric_group_id,
         })->all;
         my $metrics;
 
         # Put all the metrics in an easy to search hash ref
         foreach my $metric (@metrics)
         {
-            $metrics->{$metric->y_axis_value}->{$metric->get_column('x_axis_field')} = $metric->target;
+            my $y_axis_grouping_value = $metric->y_axis_grouping_value || 1;
+            $metrics->{$y_axis_grouping_value}->{$metric->x_axis_value} = $metric->target;
         }
 
         # Now go into each data item and recalculate against the metric
@@ -300,8 +301,9 @@ sub _build_data
             my @data = @{$series->{$line}->{data}};
             for my $i (0 .. $#data)
             {
-                my $x_id   = $indices{$i};
-                my $target = $metrics->{$line}->{$x_id};
+                my $x = $indices{$i};
+                $x    = $layout->column($x)->name unless $x_axis;
+                my $target = $metrics->{$line}->{$x};
                 $series->{$line}->{data}->[$i] = $target ? int ($data[$i] * 100 / $target ) : 0;
             }
         }

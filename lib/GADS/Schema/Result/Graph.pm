@@ -101,7 +101,7 @@ __PACKAGE__->table("graph");
   is_nullable: 1
   size: 45
 
-=head2 metric_group_id
+=head2 metric_group
 
   data_type: 'integer'
   is_foreign_key: 1
@@ -132,7 +132,7 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "type",
   { data_type => "varchar", is_nullable => 1, size => 45 },
-  "metric_group_id",
+  "metric_group",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
@@ -181,7 +181,7 @@ Related object: L<GADS::Schema::Result::MetricGroup>
 __PACKAGE__->belongs_to(
   "metric_group",
   "GADS::Schema::Result::MetricGroup",
-  { id => "metric_group_id" },
+  { id => "metric_group" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -246,8 +246,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-05-27 15:43:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:20XRPUffqEeL7VqNtZcXGQ
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-05-31 15:15:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ie0uGp97l/HDZPxPwICsww
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

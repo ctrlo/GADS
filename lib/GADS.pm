@@ -26,6 +26,8 @@ use GADS::Graphs;
 use GADS::Group;
 use GADS::Groups;
 use GADS::Layout;
+use GADS::MetricGroup;
+use GADS::MetricGroups;
 use GADS::Record;
 use GADS::Records;
 use GADS::Type::Permissions;
@@ -733,7 +735,7 @@ any '/graph/?:id?' => require_role layout => sub {
             my $values = params;
             $graph->$_(param $_)
                 foreach (qw/title description type x_axis x_axis_grouping y_axis
-                    y_axis_label y_axis_stack group_by stackseries/);
+                    y_axis_label y_axis_stack group_by stackseries metric_group_id/);
             if(process( sub { $graph->write }))
             {
                 my $action = param('id') ? 'updated' : 'created';
@@ -741,9 +743,10 @@ any '/graph/?:id?' => require_role layout => sub {
                     { success => "Graph has been $action successfully" }, 'graph' );
             }
         }
-        $params->{graph} = $graph;
-        $params->{dategroup} = GADS::Graphs->dategroup;
-        $params->{graphtypes} = [GADS::Graphs->types];
+        $params->{graph}         = $graph;
+        $params->{dategroup}     = GADS::Graphs->dategroup;
+        $params->{graphtypes}    = [GADS::Graphs->types];
+        $params->{metric_groups} = GADS::MetricGroups->new(schema => schema)->all;
     }
     else {
         my $graphs = GADS::Graphs->new(schema => schema)->all;
@@ -751,6 +754,81 @@ any '/graph/?:id?' => require_role layout => sub {
     }
 
     template 'graph' => $params;
+};
+
+any '/metric/?:id?' => require_role layout => sub {
+
+    my $layout = GADS::Layout->new(user => logged_in_user, schema => schema);
+    my $params = {
+        layout => $layout,
+        page   => 'metric',
+    };
+
+    my $id = param 'id';
+    if (defined $id)
+    {
+        my $metricgroup = GADS::MetricGroup->new(
+            schema => schema,
+            id     => $id,
+        );
+
+        if (param 'delete_all')
+        {
+            if (process( sub { $metricgroup->delete }))
+            {
+                return forwardHome(
+                    { success => "The metric has been deleted successfully" }, 'metric' );
+            }
+        }
+
+        # Delete an individual item from a group
+        if (param 'delete_metric')
+        {
+            if (process( sub { $metricgroup->delete_metric(param 'metric_id') }))
+            {
+                return forwardHome(
+                    { success => "The metric has been deleted successfully" }, "metric/$id" );
+            }
+        }
+
+        if (param 'submit')
+        {
+            $metricgroup->name(param 'name');
+            if(process( sub { $metricgroup->write }))
+            {
+                my $action = param('id') ? 'updated' : 'created';
+                return forwardHome(
+                    { success => "Metric has been $action successfully" }, 'metric' );
+            }
+        }
+
+        # Update/create an individual item in a group
+        if (param 'update_metric')
+        {
+            my $metric = GADS::Metric->new(
+                id                    => param('metric_id') || undef,
+                metric_group_id       => $id,
+                x_axis_value          => param('x_axis_value'),
+                y_axis_grouping_value => param('y_axis_grouping_value'),
+                target                => param('target'),
+                schema                => schema,
+            );
+            if(process( sub { $metric->write }))
+            {
+                my $action = param('id') ? 'updated' : 'created';
+                return forwardHome(
+                    { success => "Metric has been $action successfully" }, "metric/$id" );
+            }
+        }
+
+        $params->{metricgroup} = $metricgroup;
+    }
+    else {
+        my $metrics = GADS::MetricGroups->new(schema => schema)->all;
+        $params->{metrics} = $metrics;
+    }
+
+    template 'metric' => $params;
 };
 
 any '/group/?:id?' => require_role useradmin => sub {

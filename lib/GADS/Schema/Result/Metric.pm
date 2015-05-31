@@ -41,29 +41,24 @@ __PACKAGE__->table("metric");
   is_auto_increment: 1
   is_nullable: 0
 
-=head2 metric_group_id
-
-  data_type: 'integer'
-  is_nullable: 0
-
-=head2 x_axis_field
+=head2 metric_group
 
   data_type: 'integer'
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 y_axis_field
+=head2 x_axis_value
 
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 0
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 256
 
 =head2 target
 
   data_type: 'integer'
   is_nullable: 1
 
-=head2 y_axis_value
+=head2 y_axis_grouping_value
 
   data_type: 'varchar'
   is_nullable: 1
@@ -74,15 +69,13 @@ __PACKAGE__->table("metric");
 __PACKAGE__->add_columns(
   "id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
-  "metric_group_id",
-  { data_type => "integer", is_nullable => 0 },
-  "x_axis_field",
+  "metric_group",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "y_axis_field",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "x_axis_value",
+  { data_type => "varchar", is_nullable => 1, size => 256 },
   "target",
   { data_type => "integer", is_nullable => 1 },
-  "y_axis_value",
+  "y_axis_grouping_value",
   { data_type => "varchar", is_nullable => 1, size => 256 },
 );
 
@@ -100,39 +93,24 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 x_axis_field
+=head2 metric_group
 
 Type: belongs_to
 
-Related object: L<GADS::Schema::Result::Layout>
+Related object: L<GADS::Schema::Result::MetricGroup>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "x_axis_field",
-  "GADS::Schema::Result::Layout",
-  { id => "x_axis_field" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
-);
-
-=head2 y_axis_field
-
-Type: belongs_to
-
-Related object: L<GADS::Schema::Result::Layout>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "y_axis_field",
-  "GADS::Schema::Result::Layout",
-  { id => "y_axis_field" },
+  "metric_group",
+  "GADS::Schema::Result::MetricGroup",
+  { id => "metric_group" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-05-27 12:17:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:E3ycQEZQu76b7Pi1q11VsA
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-05-28 08:58:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ws41kqioQXDr2RJUmS6QYQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

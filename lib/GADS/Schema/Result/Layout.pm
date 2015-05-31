@@ -363,6 +363,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 graph_x_axes
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Graph>
+
+=cut
+
+__PACKAGE__->has_many(
+  "graph_x_axes",
+  "GADS::Schema::Result::Graph",
+  { "foreign.x_axis" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 graph_y_axes
 
 Type: has_many
@@ -375,21 +390,6 @@ __PACKAGE__->has_many(
   "graph_y_axes",
   "GADS::Schema::Result::Graph",
   { "foreign.y_axis" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 graphs_x_axis
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Graph>
-
-=cut
-
-__PACKAGE__->has_many(
-  "graphs_x_axis",
-  "GADS::Schema::Result::Graph",
-  { "foreign.x_axis" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -480,36 +480,6 @@ __PACKAGE__->has_many(
   "layouts_depend_depends_on",
   "GADS::Schema::Result::LayoutDepend",
   { "foreign.depends_on" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 metric_x_axis_fields
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Metric>
-
-=cut
-
-__PACKAGE__->has_many(
-  "metric_x_axis_fields",
-  "GADS::Schema::Result::Metric",
-  { "foreign.x_axis_field" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 metric_y_axis_fields
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Metric>
-
-=cut
-
-__PACKAGE__->has_many(
-  "metric_y_axis_fields",
-  "GADS::Schema::Result::Metric",
-  { "foreign.y_axis_field" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -604,8 +574,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-05-27 15:43:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bfUNTvxKbV/ieMiTCpiwDw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-05-31 15:15:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:T3YPLxyoCM/bSitbwY9+hg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -81,13 +81,28 @@ Related object: L<GADS::Schema::Result::Graph>
 __PACKAGE__->has_many(
   "graphs",
   "GADS::Schema::Result::Graph",
-  { "foreign.metric_group_id" => "self.id" },
+  { "foreign.metric_group" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 metrics
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Metric>
+
+=cut
+
+__PACKAGE__->has_many(
+  "metrics",
+  "GADS::Schema::Result::Metric",
+  { "foreign.metric_group" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-05-27 15:43:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bNPgYvK7BuEChve48sqTRA
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-05-31 15:15:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5hYqMBh2xBYqLsinjlQ4sg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
