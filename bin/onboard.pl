@@ -206,6 +206,10 @@ while (my $row = $csv->getline($fh))
             # Option to ignore zeros in text fields
             $input->{$f->{field}} = $ignore_string_zeros && $col eq '0' ? '' : $col;
         }
+        elsif ($f->{type} eq "intgr")
+        {
+            $input->{$f->{field}} = sprintf "%.0f", $col;
+        }
         else {
             $input->{$f->{field}} = $col;
         }
