@@ -185,7 +185,8 @@ sub _build_data
         year  => '%Y',
     };
 
-    my @xlabels = sort keys %xy_values;
+    my @xlabels;
+
     my $count = 0;
     if ($self->x_axis_grouping && $datemin && $datemax)
     {
@@ -201,21 +202,25 @@ sub _build_data
             $count++;
         }
     }
-    else
+    elsif ($x_axis)
     {
         # Generate unique index numbers for all the x-values
+        @xlabels = sort keys %xy_values;
         foreach my $l (@xlabels)
         {
             $xy_values{$l} = $count;
             $count++;
         }
     }
-
-    if (!$x_axis)
-    {
+    else {
         # x labels will just be field ID numbers. Translate to
         # field names
-        @xlabels = map { $layout->column($_)->name } @xlabels;
+        @xlabels = map { $_->name } @x;
+        foreach my $l (@x)
+        {
+            $xy_values{$l->id} = $count;
+            $count++;
+        }
     }
     
     # Now go into each record a second time, counting the values for each
