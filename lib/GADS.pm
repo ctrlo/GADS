@@ -570,14 +570,12 @@ any '/data' => require_login sub {
             my @columns = $view
                 ? $layout->view($view->id, user_can_read => 1)
                 : $layout->all(user_can_read => 1);
-            $params = {
-                user_can_edit => $layout->user_can('write_existing'),
-                sort          => $records->sort,
-                subset        => $subset,
-                records       => $records->results,
-                columns       => \@columns,
-                viewtype      => 'table',
-            };
+            $params->{user_can_edit} = $layout->user_can('write_existing');
+            $params->{sort}          = $records->sort;
+            $params->{subset}        = $subset;
+            $params->{records}       = $records->results;
+            $params->{columns}       = \@columns;
+            $params->{viewtype}      = 'table';
         }
     }
 
