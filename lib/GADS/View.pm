@@ -309,7 +309,14 @@ sub delete
     $self->schema->resultset('ViewLayout')->search({ view_id => $view->id })->delete;
     $self->schema->resultset('Filter')->search({ view_id => $view->id })->delete;
     $self->schema->resultset('AlertCache')->search({ view_id => $view->id })->delete;
-    $self->schema->resultset('Alert')->search({ view_id => $view->id })->delete;
+    my @alerts = $self->schema->resultset('Alert')->search({ view_id => $view->id })->all;
+    my @alert_ids = map { $_->id } @alerts;
+    $self->schema->resultset('AlertSend')->search({
+        alert_id => \@alert_ids,
+    })->delete;
+    $self->schema->resultset('Alert')->search({
+        id => \@alert_ids,
+    })->delete;
     $self->schema->resultset('User')->search({ lastview => $view->id })->update({
         lastview => undef,
     });
