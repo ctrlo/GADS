@@ -156,6 +156,7 @@ sub write
             unless ($self->schema->resultset('Alert')->search({ view_id => $alert->view_id })->count > 1)
             {
                 # Delete cache if not
+                $self->schema->resultset('AlertSend')->search({ alert_id => $alert->id })->delete;
                 $self->schema->resultset('AlertCache')->search({ view_id => $alert->view_id })->delete;
             }
             $alert->delete;
