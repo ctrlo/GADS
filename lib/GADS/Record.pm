@@ -694,7 +694,8 @@ sub delete_current
     $self->schema->resultset('Current')->find($id)->update({ record_id => undef });
     $self->schema->resultset('Record') ->search({ current_id => $id })->update({ record_id => undef });
     $self->schema->resultset('AlertCache')->search({ current_id => $id })->delete;
-    $self->schema->resultset('Record') ->search({ current_id => $id })->delete;
+    $self->schema->resultset('Record')->search({ current_id => $id })->delete;
+    $self->schema->resultset('AlertSend')->search({ current_id => $id })->delete;
     $self->schema->resultset('Current')->find($id)->delete;
     $guard->commit;
 }
