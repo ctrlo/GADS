@@ -21,7 +21,7 @@ package GADS::Datum::String;
 use Moo;
 use namespace::clean;
 
-use overload '""' => \&as_string;
+use overload '""'  => 'as_string', '0+' => 'as_integer', fallback => 1;
 
 extends 'GADS::Datum';
 
@@ -57,6 +57,12 @@ around 'clone' => sub {
 sub as_string
 {   my $self = shift;
     $self->value // "";
+}
+
+sub as_integer
+{   my $self = shift;
+    no warnings 'numeric';
+    int ($self->value // 0);
 }
 
 1;
