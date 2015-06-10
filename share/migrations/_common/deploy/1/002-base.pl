@@ -3,8 +3,10 @@ use warnings;
 use DBIx::Class::Migration::RunScript;
  
 migrate {
- 
-    my $permission_rs = shift->schema->resultset('Permission');
+
+    my $schema = shift->schema;
+
+    my $permission_rs = $schema->resultset('Permission');
 
     $permission_rs->populate
     ([
@@ -38,6 +40,23 @@ migrate {
             order       => 7,
         },
     ]);
- 
+
+    my $user = $schema->resultset('User')->create({
+        username => 'info@ctrlo.com',
+        email    => 'info@ctrlo.com',
+    });
+
+    my ($useradmin) = $schema->resultset('Permission')->search({
+        name => 'useradmin',
+    });
+
+    $schema->resultset('UserPermission')->create({
+        user_id       => $user->id,
+        permission_id => $useradmin->id,
+    });
+
+    $schema->resultset('Instance')->create({
+        name => 'GADS',
+    });
 };
 

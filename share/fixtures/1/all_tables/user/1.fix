@@ -1,0 +1,28 @@
+$HASH1 = {
+           account_request
+                     => 0,
+           account_request_notes
+                     => undef,
+           aup_accepted
+                     => undef,
+           deleted   => 0,
+           email     => 'info@ctrlo.com',
+           firstname => undef,
+           id        => 1,
+           lastlogin => undef,
+           lastrecord
+                     => undef,
+           lastview  => undef,
+           organisation
+                     => undef,
+           password  => undef,
+           permission
+                     => 0,
+           pwchanged => undef,
+           resetpw   => undef,
+           surname   => undef,
+           telephone => undef,
+           title     => undef,
+           username  => 'info@ctrlo.com',
+           value     => undef
+         };
