@@ -1,0 +1,169 @@
+$VAR1 = {
+          'might_have' => {
+                            'fetch' => 0
+                          },
+          'sets' => [
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Filter'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Fileval'
+                      },
+                      {
+                        'class' => 'Graph',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'File',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'Calcval',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'LayoutDepend'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Permission'
+                      },
+                      {
+                        'class' => 'Organisation',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'ViewLayout',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'UserGroup',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'Title',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'AlertCache',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'View'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'User'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Enumval'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'LayoutGroup'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Metric'
+                      },
+                      {
+                        'class' => 'Record',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'UserPermission',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'AlertSend'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Daterange'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Instance'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Person'
+                      },
+                      {
+                        'class' => 'Group',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'FileOption',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'Ragval',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Intgr'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Calc'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Audit'
+                      },
+                      {
+                        'class' => 'Date',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'String'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'UserGraph'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Rag'
+                      },
+                      {
+                        'class' => 'Current',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Enum'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Alert'
+                      },
+                      {
+                        'class' => 'MetricGroup',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'class' => 'Sort',
+                        'quantity' => 'all'
+                      },
+                      {
+                        'quantity' => 'all',
+                        'class' => 'Layout'
+                      }
+                    ],
+          'belongs_to' => {
+                            'fetch' => 0
+                          },
+          'has_many' => {
+                          'fetch' => 0
+                        }
+        };
