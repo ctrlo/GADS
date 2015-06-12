@@ -372,6 +372,15 @@ sub delete
             , graph => $g;
     }
 
+    # Remove this column from any filters defined on views
+    foreach my $filter ($self->schema->resultset('Filter')->search({
+        layout_id      => $self->id,
+    })->all)
+    {
+        my $filtered = _filter_remove_colid($self, $filter->view->filter);
+        $filter->view->update({ filter => $filtered });
+    };
+
     $self->schema->resultset('ViewLayout')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('Filter')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('Person')->search({ layout_id => $self->id })->delete;
@@ -515,25 +524,30 @@ sub set_permissions
                     view_id   => $filter->view_id,
                 })->delete;
                 # And the JSON filter itself
-                my $filter_dec = decode_json $filter->view->filter;
-                _filter_remove_colid($filter_dec, $self->id);
-                # An AND with empty rules causes JSON filter to have JS error
-                $filter_dec = {} unless @{$filter_dec->{rules}};
-                my $filter_enc = encode_json $filter_dec;
-                $filter->view->update({ filter => $filter_enc });
+                my $filtered = _filter_remove_colid($self, $filter->view->filter);
+                $filter->view->update({ filter => $filtered });
             }
         }
     }
 }
 
-# Recursively find all tables in a nested filter
 sub _filter_remove_colid
+{   my ($self, $json) = @_;
+    my $filter_dec = decode_json $json;
+    _filter_remove_colid_decoded($filter_dec, $self->id);
+    # An AND with empty rules causes JSON filter to have JS error
+    $filter_dec = {} unless @{$filter_dec->{rules}};
+    encode_json $filter_dec;
+}
+
+# Recursively find all tables in a nested filter
+sub _filter_remove_colid_decoded
 {   my ($filter, $colid) = @_;
 
     if (my $rules = $filter->{rules})
     {
         # Filter has other nested filters
-        @$rules = grep { _filter_remove_colid($_, $colid) } @$rules;
+        @$rules = grep { _filter_remove_colid_decoded($_, $colid) } @$rules;
     }
     $colid == $filter->{id} ? 0 : 1;
 }

@@ -1436,6 +1436,7 @@ any '/edit/:id?' => require_login sub {
             $related->find_record_id($record->approval_record_id);
             foreach my $col (@columns_to_show)
             {
+                next unless $col->userinput;
                 # See if the record above had a value. If not, fill with the
                 # approval record's value
                 $record->fields->{$col->id} = $related->fields->{$col->id}
