@@ -20,7 +20,6 @@ package GADS::Datum::Code;
 
 use String::CamelCase qw(camelize); 
 use Safe;
-use Scalar::Util qw(looks_like_number);
 use Log::Report;
 use Moo;
 use namespace::clean;
@@ -138,13 +137,14 @@ sub sub_values
             # If field is numeric but does not have numeric value, then return
             # grey, otherwise the value will be treated as zero
             # and will probably return misleading RAG values
-            return if $self->column->type eq "rag" && !looks_like_number $dvalue;
-            $dvalue = $dvalue || 0;
+            no warnings 'numeric', 'uninitialized';
+            $dvalue .= ""; # Stringify
+            return if $self->column->type eq "rag" && $dvalue eq '';
+            $dvalue = int $dvalue;
         }
         else {
-            # Quote for the eval, unless it looks like a number
-            $dvalue = $dvalue ? "q`$dvalue`" : qq("")
-                unless looks_like_number $dvalue;
+            # Quote for the eval
+            $dvalue = $dvalue ? "q`$dvalue`" : qq("");
         }
         $code =~ s/\Q[$name]/$dvalue/gi;
     }

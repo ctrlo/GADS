@@ -328,7 +328,7 @@ sub build_values
     }
 
     $self->table(camelize $self->type);
-    $self->numeric($self->type eq 'daterange' || $self->type eq 'date' || $self->type eq 'intgr');
+    $self->numeric($self->type eq 'date' || $self->type eq 'intgr');
 }
 
 sub delete

@@ -22,7 +22,7 @@ use DateTime;
 use Moo;
 use namespace::clean;
 
-use overload '""' => \&as_string;
+use overload 'bool' => sub { 1 }, '""'  => 'as_string', '0+' => 'as_integer', fallback => 1;
 
 extends 'GADS::Datum';
 
@@ -105,6 +105,12 @@ sub as_string
 {   my $self = shift;
     return "" unless $self->value;
     $self->value->ymd;
+}
+
+sub as_integer
+{   my $self = shift;
+    return 0 unless $self->value;
+    $self->value->epoch;
 }
 
 1;
