@@ -50,6 +50,7 @@ use Dancer2::Plugin::Auth::Extensible;
 
 schema->storage->debugobj(new GADS::DBICProfiler);
 schema->storage->debug(1);
+schema->exception_action(sub { panic @_ }); # There should never be exceptions from DBIC
 
 our $VERSION = '0.1';
 
