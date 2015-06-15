@@ -274,7 +274,7 @@ sub _build_data
             {
                 $series->{$key}->{data}->[$idx]++;
             }
-            elsif(looks_like_number $y_value) {
+            elsif($y_axis->numeric) {
                 $series->{$key}->{data}->[$idx] += $y_value if $y_value;
             }
             else {

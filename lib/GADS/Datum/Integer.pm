@@ -22,8 +22,7 @@ use Log::Report;
 use Moo;
 use namespace::clean;
 
-use overload '""' => \&as_string;
-use overload "+" => \&as_integer;
+use overload 'bool' => sub { 1 }, '""'  => 'as_string', '0+' => 'as_integer', fallback => 1;
 
 extends 'GADS::Datum';
 
@@ -72,9 +71,8 @@ sub as_string
 }
 
 sub as_integer
-{   my ($self, $other) = @_;
+{   my $self = shift;
     my $int  = int ($self->value // 0);
-    $int + ($other || 0);
 }
 
 1;

@@ -1,0 +1,31 @@
+$HASH1 = {
+           email_delete_subject
+                            => undef,
+           email_delete_text
+                            => undef,
+           email_reject_subject
+                            => undef,
+           email_reject_text
+                            => undef,
+           email_welcome_subject
+                            => undef,
+           email_welcome_text
+                            => undef,
+           homepage_text    => undef,
+           homepage_text2   => undef,
+           id               => 1,
+           name             => 'GADS',
+           register_email_help
+                            => undef,
+           register_notes_help
+                            => undef,
+           register_organisation_help
+                            => undef,
+           register_telephone_help
+                            => undef,
+           register_text    => undef,
+           register_title_help
+                            => undef,
+           sort_layout_id   => undef,
+           sort_type        => undef
+         };

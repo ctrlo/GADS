@@ -38,6 +38,7 @@ after 'build_values' => sub {
     {
         $self->calc($calc->{calc});
         $self->return_type($calc->{return_format});
+        $self->numeric($self->return_type eq 'integer' || $self->return_type eq 'date');
     }
     $self->table("Calcval");
     $self->userinput(0);

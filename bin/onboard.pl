@@ -208,7 +208,7 @@ while (my $row = $csv->getline($fh))
         }
         elsif ($f->{type} eq "intgr")
         {
-            $input->{$f->{field}} = sprintf "%.0f", $col;
+            $input->{$f->{field}} = sprintf "%.0f", $col if $col;
         }
         else {
             $input->{$f->{field}} = $col;
@@ -248,7 +248,7 @@ while (my $row = $csv->getline($fh))
         if (!$failed)
         {
             try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force) };
-            push @bad, $@ if $@;
+            push @bad, "$@" if $@;
         }
     }
 
