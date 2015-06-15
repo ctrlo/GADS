@@ -197,6 +197,8 @@ sub search_views
     foreach my $view (@views)
     {
         my $filter  = $view->filter || '{}';
+        my $view_id = $view->id;
+        trace qq(About to decode filter for view ID $view_id);
         my $decoded = decode_json($filter);
         # XXX Do not send alerts for hidden fields
         if (keys %$decoded)
@@ -225,6 +227,8 @@ sub search_views
         foreach my $view (@views)
         {
             my $filter  = $view->filter || '{}';
+            my $view_id = $view->id;
+            trace qq(About to decode filter for view ID $view_id);
             my $decoded = decode_json($filter);
             if (keys %$decoded)
             {
