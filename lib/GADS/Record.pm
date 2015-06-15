@@ -347,6 +347,8 @@ sub approver_can_action_column
 sub write
 {   my ($self, %options) = @_;
 
+    my $guard = $self->schema->txn_scope_guard;
+
     $self->new_entry(1) unless $self->current_id;
 
     # Create a new overall record if it's new, otherwise
@@ -627,6 +629,8 @@ sub write
         );
         $alert_send->process;
     }
+
+    $guard->commit;
 }
 
 sub _field_write
