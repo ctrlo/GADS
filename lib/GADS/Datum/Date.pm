@@ -44,7 +44,7 @@ has set_value => (
         {
             $self->oldvalue($self->clone);
             my $newvalue = $self->_to_dt($value); # DB parser needed for this. Will be set second time
-            my $old = $self->oldvalue ? $self->oldvalue->value->epoch : 0;
+            my $old = $self->oldvalue && $self->oldvalue->value ? $self->oldvalue->value->epoch : 0;
             my $new = $newvalue ? $newvalue->epoch : 0; 
             $self->changed(1) if $old != $new;
             $self->value($newvalue);
