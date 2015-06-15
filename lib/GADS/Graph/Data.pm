@@ -241,6 +241,7 @@ sub _build_data
             next unless $x_value;
 
             my $y_value     = $x_axis ? $record->fields->{$y_axis->id} : $record->fields->{$x->id};
+            my $y_field     = $x_axis ? $y_axis : $x; # The field of the y axis value
             my $groupby_val = $group_by && $record->fields->{$group_by->id};
 
             my $key;
@@ -274,7 +275,7 @@ sub _build_data
             {
                 $series->{$key}->{data}->[$idx]++;
             }
-            elsif($y_axis->numeric) {
+            elsif($y_field->numeric) {
                 $series->{$key}->{data}->[$idx] += $y_value if $y_value;
             }
             else {
