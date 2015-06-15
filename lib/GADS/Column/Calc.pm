@@ -57,7 +57,7 @@ after 'write' => sub {
         layout_id => $self->id,
     })->all;
 
-    my $need_update;
+    my $need_update; my $no_alert_send;
     if ($calcr)
     {
         # First see if the calculation has changed
@@ -73,7 +73,8 @@ after 'write' => sub {
             layout_id     => $self->id,
             return_format => $self->return_type,
         });
-        $need_update = 1;
+        $need_update   = 1;
+        $no_alert_send = 1; # Don't send alerts on all new values
     }
 
     if ($need_update)
@@ -86,7 +87,7 @@ after 'write' => sub {
                 if $self->calc =~ /\Q[$name\E$suffix\Q]/i;
         }
         $self->depends_on(\@depends_on);
-        $self->update_cached('Calcval');
+        $self->update_cached('Calcval', $no_alert_send);
     }
 };
 

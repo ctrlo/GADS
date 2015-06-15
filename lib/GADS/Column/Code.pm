@@ -34,7 +34,7 @@ has base_url => (
 );
 
 sub update_cached
-{   my ($self, $table) = @_;
+{   my ($self, $table, $no_alert_send) = @_;
 
     return unless $self->write_cache;
 
@@ -70,6 +70,8 @@ sub update_cached
     # Force an update on each row
     $_->fields->{$self->id}->value
         foreach (@{$records->results});
+
+    return if $no_alert_send; # E.g. new column, don't want to alert on all
 
     # Now get new values, and see what's changed
     @existing = $self->schema->resultset($table)->search({
