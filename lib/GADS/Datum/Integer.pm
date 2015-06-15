@@ -38,7 +38,7 @@ has set_value => (
         }
         elsif (defined $value) {
             # User input
-            $value =~ /^[0-9]*$/ or error __x"'{int}' is not a valid integer for '{col}'"
+            $value =~ /^-?[0-9]*$/ or error __x"'{int}' is not a valid integer for '{col}'"
                 , int => $value, col => $self->column->name;
             $value = undef if !$value && $value !~ /^0+$/; # Can be empty string, generating warnings
         }
