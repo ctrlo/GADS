@@ -616,6 +616,11 @@ sub write
         push @columns_changed, $col->id if $old ne $new->as_string;
     }
 
+    # Alerts can cause SQL errors, due to the unique constraints
+    # on the alert cache columns. Therefore, commit what we've
+    # done so far, and don't do alerts in a transaction
+    $guard->commit;
+
     # Send any alerts
     unless ($options{no_alerts})
     {
@@ -629,8 +634,6 @@ sub write
         );
         $alert_send->process;
     }
-
-    $guard->commit;
 }
 
 sub _field_write
