@@ -165,7 +165,9 @@ sub process
                     $later->{layout_id} = $col_id;
                     # Unique constraint. Catch any exceptions. This is also
                     # why we probably can't do all these with one call to populate()
-                    eval { $self->schema->resultset('AlertSend')->create($later) }
+                    try { $self->schema->resultset('AlertSend')->create($later) };
+                    # Log any messages from try block, but only as trace
+                    $@->reportAll(reason => 'TRACE');
                 }
             }
         }
@@ -230,7 +232,7 @@ sub _gone_arrived
                 # send later
                 foreach my $cuid (@{$item->{current_ids}})
                 {
-                    eval {
+                    try {
                         # Unique constraint on table. Catch
                         # any exceptions
                         $self->schema->resultset('AlertSend')->create({
@@ -238,7 +240,9 @@ sub _gone_arrived
                             current_id => $cuid,
                             status     => $action,
                         });
-                    }
+                    };
+                    # Log any messages from try block, but only as trace
+                    $@->reportAll(reason => 'TRACE');
                 }
             }
             else {

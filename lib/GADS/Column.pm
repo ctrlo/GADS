@@ -458,13 +458,15 @@ sub set_permissions
     {
         $has_read = 1 if $permission eq 'read';
         # Unique constraint on table. Catch existing.
-        eval {
+        try {
             $self->schema->resultset('LayoutGroup')->create({
                 layout_id  => $self->id,
                 group_id   => $group_id,
                 permission => $permission,
             });
-        }
+        };
+        # Log any messages from try block, but only as trace
+        $@->reportAll(reason => 'TRACE');
     }
 
     # Before we do the catch-all delete, see if there is currently a
