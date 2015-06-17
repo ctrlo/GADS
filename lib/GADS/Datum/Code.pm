@@ -105,25 +105,29 @@ sub sub_values
     }
     elsif ($col->type eq "tree" && $code =~ /\Q[$name.level\E([0-9]+)\]/)
     {
-        my $level      = $1;
-        my $rvalue;
-        if ($dvalue && $dvalue->deleted)
+        # Need to loop round in case more than one level
+        while ($code =~ /\Q[$name.level\E([0-9]+)\]/)
         {
-            $rvalue = "Orphan node (deleted)";
+            my $level = $1;
+            my $rvalue;
+            if ($dvalue && $dvalue->deleted)
+            {
+                $rvalue = "Orphan node (deleted)";
+            }
+            elsif ($dvalue)
+            {
+                my @ancestors  = $dvalue->id ? $col->node($dvalue->id)->{node}->{node}->ancestors : ();
+                my $get_level  = $level + 1; # Root is first, add one to ignore
+                my $level_node = @ancestors == $get_level - 1 # Return current node if it's that level
+                               ? $dvalue->id
+                               : $ancestors[-$get_level] # Otherwise check it exists
+                               ? $ancestors[-$get_level]->name
+                               : undef;
+                $rvalue        = $level_node ? $col->node($level_node)->{value} : undef;
+            }
+            $rvalue = $rvalue ? "q`$rvalue`" : qq("");
+            $code =~ s/\Q[$name.level$level]/$rvalue/gi;
         }
-        elsif ($dvalue)
-        {
-            my @ancestors  = $dvalue->id ? $col->node($dvalue->id)->{node}->{node}->ancestors : ();
-            my $get_level  = $level + 1; # Root is first, add one to ignore
-            my $level_node = @ancestors == $get_level - 1 # Return current node if it's that level
-                           ? $dvalue->id
-                           : $ancestors[-$get_level] # Otherwise check it exists
-                           ? $ancestors[-$get_level]->name
-                           : undef;
-            $rvalue        = $level_node ? $col->node($level_node)->{value} : undef;
-        }
-        $rvalue = $rvalue ? "q`$rvalue`" : qq("");
-        $code =~ s/\Q[$name.level$level]/$rvalue/gi;
     }
 
     # Possible for tree values to have both a level (above code) or be on
