@@ -149,6 +149,7 @@ sub delete
     rset('UserGraph')->search({ user_id => $user_id })->delete;
     rset('Alert')->search({ user_id => $user_id })->delete;
 
+    $user->update({ lastview => undef });
     my $views = rset('View')->search({ user_id => $user_id });
     my @views;
     foreach my $v ($views->all)
