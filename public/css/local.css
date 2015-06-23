@@ -102,3 +102,10 @@ table.floatThead-table {
     background-color: #FFF;
 }
 
+@media print
+{
+    div{
+        page-break-inside: avoid;
+    }
+}
+
