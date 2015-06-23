@@ -131,8 +131,6 @@ sub _build_data
     # $y_group_index used to count y_group unique values
     my $y_group_index = 0;
 
-    my @colors = ('#FF6961', '#77DD77', '#FFB347', '#AEC6CF', '#FDFD96');
-
     # The view of this graph
     my $view    = $self->records->view;
     # All the x values from the records. May only be one, or may be lots if
@@ -163,7 +161,7 @@ sub _build_data
             }
             if ($group_by && !defined $y_group_values{$gval})
             {
-                $y_group_values{$gval} = { color => $colors[$y_group_index], defined => 0 };
+                $y_group_values{$gval} = { defined => 0 };
                 $y_group_index++;
             }
             if ($x_axis->return_type && $x_axis->return_type eq 'date')
@@ -337,13 +335,26 @@ sub _build_data
         }
     }
     else {
+        my %colors = (
+            "34C3E0" => 1,
+            "62BB46" => 1,
+            "FFDD00" => 1,
+            "D1D3D4" => 1,
+            "F99D1C" => 1,
+            "F0679E" => 1,
+            "2C4269" => 1,
+            "7F3F98" => 1,
+            "1C75BC" => 1,
+            "EF4136" => 1,
+            "2BB673" => 1,
+        );
         # Now work out the Y labels for each point. Go into each data set and
         # see if there is a value. If there is, set the label, otherwise leave
         # it blank in order to show no label at that point
         foreach my $k (keys %$series)
         {
             my $y_group = $series->{$k}->{y_group} || '<blank value>';
-            my $showlabel;
+            my ($showlabel, $color);
             if (!$y_group || $y_group_values{$y_group}->{defined})
             {
                 $showlabel = 'false';
@@ -351,9 +362,25 @@ sub _build_data
             else {
                 $showlabel = 'true';
                 $y_group_values{$y_group}->{defined} = 1;
+                my $guard = $self->schema->txn_scope_guard;
+                my $existing = $self->schema->resultset('GraphColor')->find($y_group, { key => 'ux_graph_color_name' });
+                if ($existing)
+                {
+                    $color = $existing->color;
+                }
+                else {
+                    ($color) = keys %colors;
+                    $self->schema->resultset('GraphColor')->create({
+                        name  => $y_group,
+                        color => $color,
+                    });
+                }
+                $guard->commit;
+                delete $colors{$color};
+                $color = "#$color";
             }
             $series->{$k}->{label} = {
-                color         => $y_group_values{$y_group}->{color},
+                color         => $color,
                 showlabel     => $showlabel,
                 showline      => $self->type eq "scatter" ? 'false' : 'true',
                 markeroptions => $markeroptions,

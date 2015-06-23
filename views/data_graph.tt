@@ -100,10 +100,6 @@
                     location: 'e',
                     placement: 'outside'
                 };
-                plotOptions.seriesColors = [ "#34C3E0", "#62BB46", "#FFDD00", "#D1D3D4",
-                    "#F99D1C", "#F0679E", "#2C4269", "#7F3F98", "#1C75BC",
-                    "#EF4136", "#2BB673"
-                ];
                 $.jqplot('chartdiv' [% UNLESS single_graph %]+ options_in.id[% END %], plotData.points, plotOptions);
             };
             [% UNLESS single_graph %]
