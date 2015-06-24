@@ -385,11 +385,14 @@ sub _build_data
                     $self->schema->resultset('GraphColor')->create({
                         name  => $y_group,
                         color => $color,
-                    });
+                    }) if $color; # May have run out of colours
                 }
                 $guard->commit;
-                delete $colors{$color};
-                $color = "#$color";
+                if ($color)
+                {
+                    delete $colors{$color};
+                    $color = "#$color";
+                }
             }
             $series->{$k}->{label} = {
                 color         => $color,
