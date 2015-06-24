@@ -347,6 +347,18 @@ sub _build_data
             "1C75BC" => 1,
             "EF4136" => 1,
             "2BB673" => 1,
+            "51417B" => 1,
+            "F26522" => 1,
+            "8C8C8C" => 1,
+            "97CEDD" => 1,
+            "DCDD20" => 1,
+            "4D4C4C" => 1,
+            "447CBF" => 1,
+            "F5C316" => 1,
+            "007B45" => 1,
+            "F37970" => 1,
+            "4B0F44" => 1,
+            "EE2D72" => 1,
         );
         # Now work out the Y labels for each point. Go into each data set and
         # see if there is a value. If there is, set the label, otherwise leave
