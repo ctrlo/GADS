@@ -1660,7 +1660,8 @@ get '/resetpw/:code' => sub {
     }
     else {
         return forwardHome(
-            { danger => "The requested authorisation code could not be processed" }, 'login'
+            { danger => qq(The password reset code is not valid. Please request a new one
+                using the "Reset Password" link) }, 'login'
         );
     }
 };
