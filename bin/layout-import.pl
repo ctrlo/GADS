@@ -101,7 +101,10 @@ foreach my $column (@{$import->{columns}})
     }
 }
 
-foreach my $view (@{$import->{views}})
+# Reload new layout
+$layout = GADS::Layout->new(user => undef, schema => schema, user_permission_override => 1);
+
+foreach my $v(@{$import->{views}})
 {
     my $view = GADS::View->new(
         user   => undef,
@@ -109,11 +112,11 @@ foreach my $view (@{$import->{views}})
         layout => $layout,
     );
 
-    $view->columns($view->{columns});
+    $view->columns($v->{columns});
     $view->global(1);
-    $view->name($view->{name});
-    $view->filter($view->{filter});
+    $view->name($v->{name});
+    $view->filter($v->{filter});
     $view->write;
-    $view->set_sorts($view->{sorts}->{fields}, $view->{sorts}->{types});
+    $view->set_sorts($v->{sorts}->{fields}, $v->{sorts}->{types});
 }
 

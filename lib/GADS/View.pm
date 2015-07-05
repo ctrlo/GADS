@@ -178,7 +178,7 @@ sub write
 {   my $self = shift;
 
     my $vu;
-    if ($self->user->{permission}->{layout})
+    if ($self->global || $self->user->{permission}->{layout})
     {
         if ($self->global)
         {
