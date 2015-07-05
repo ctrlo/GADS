@@ -1,13 +1,25 @@
 <div class="container">
-    [% IF password %]
+    [% IF reset_code %]
         <div class="jumbotron">
-            <h1>Welcome!</h1>
-            <p>
-                Thank you for visiting [% config.gads.name %]. Your password has now been set as follows.
-                Please make a secure note of this password now, as it will not be displayed again.
-            </p>
-            <h3 class="text-center">[% password %]</h3>
-            <p class="text-right"><a class="btn btn-primary btn-lg" href="[% url.page %]/login" role="button">Login</a></p>
+            [% IF password %]
+                <h1>Welcome!</h1>
+                <p>
+                    Thank you for visiting [% config.gads.name %]. Please click the icon below to reveal your password.
+                    Please make a secure note of this password now, as it will not be displayed again.
+                </p>
+                <form>
+                    <div class="form-group">
+                        <input id="password" class="form-control form-control-static" type="password" value="[% password %]" data-toggle="password" readonly style="cursor: text" data-placement="before">
+                    </div>
+                </form>
+                <p class="text-right"><a class="btn btn-primary btn-lg" href="[% url.page %]/login" role="button">Login</a></p>
+            [% ELSE %]
+                <h2>New password</h2>
+                <p></p>
+                <form method="post">
+                    <input type="submit" name="execute_reset" class="btn btn-lg btn-block" value="Please click here to continue the password retrieval process">
+                </form>
+            [% END %]
         </div>
     [% ELSE %]
         <div class="row" style="margin-top:20px">

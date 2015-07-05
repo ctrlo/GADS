@@ -1641,22 +1641,28 @@ any '/logout' => sub {
     forwardHome();
 };
 
-get '/resetpw/:code' => sub {
+any '/resetpw/:code' => sub {
 
     # Perform check first in order to get user ID for audit
     if (my $username = user_password code => param('code'))
     {
-        context->destroy_session;
-        my $user   = GADS::User->get_user(username => $username, account_request => 0);
-        my $audit  = GADS::Audit->new(schema => schema, user => $user);
-        $audit->login_change("Password reset performed for user ID $user->{id}");
-        my $password = _random_pw();
-        user_password code => param('code'), new_password => $password;
+        my $new_password;
+
+        if (param 'execute_reset')
+        {
+            context->destroy_session;
+            my $user   = GADS::User->get_user(username => $username, account_request => 0);
+            my $audit  = GADS::Audit->new(schema => schema, user => $user);
+            $audit->login_change("Password reset performed for user ID $user->{id}");
+            $new_password = _random_pw();
+            user_password code => param('code'), new_password => $new_password;
+        }
         my $output  = template 'login' => {
-            password => $password,
-            page     => 'login',
+            reset_code => 1,
+            password   => $new_password,
+            page       => 'login',
         };
-        $output;
+        return $output;
     }
     else {
         return forwardHome(
