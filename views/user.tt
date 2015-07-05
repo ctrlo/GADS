@@ -87,14 +87,20 @@
                 <label>
                     Groups:
                 </label>
-                [% FOREACH group IN groups %]
-                    [% key = group.id %]
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" name="groups" value="[% group.id %]"
-                                [% IF edituser.groups.$key %]checked[% END %]>[% group.name %]
-                        </label>
-                    </div>
+                [% IF groups.size %]
+                    [% FOREACH group IN groups %]
+                        [% key = group.id %]
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="groups" value="[% group.id %]"
+                                    [% IF edituser.groups.$key %]checked[% END %]>[% group.name %]
+                            </label>
+                        </div>
+                    [% END %]
+                [% ELSE %]
+                    <p>No groups have been created yet. Groups can be
+                    created in the <a href="/group">Manage Groups</a> menu.
+                    </p>
                 [% END %]
             [% END %]
             <button type="submit" name="submit" value="submit" class="btn btn-primary">[% IF edituser.id %]Save[% ELSE %]Save[% END %]</button>
