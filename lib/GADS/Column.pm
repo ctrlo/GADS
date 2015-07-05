@@ -94,6 +94,12 @@ has id => (
     isa => Int,
 );
 
+# Used to force a database ID on creation (used in layout import)
+has set_id => (
+    is  => 'rw',
+    isa => Maybe[Int],
+);
+
 has name => (
     is  => 'rw',
     isa => Str,
@@ -424,6 +430,7 @@ sub write
         $self->schema->resultset('Layout')->find($self->id)->update($newitem);
     }
     else {
+        $newitem->{id} = $self->set_id if $self->set_id;
         my $id = $self->schema->resultset('Layout')->create($newitem)->id;
         $self->id($id);
     }

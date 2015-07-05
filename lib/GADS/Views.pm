@@ -20,6 +20,7 @@ package GADS::Views;
 
 use Log::Report;
 use Moo;
+use MooX::Types::MooseLike::Base qw/ArrayRef HashRef/;
 
 has user => (
     is       => 'rw',
@@ -37,6 +38,11 @@ has user_views => (
     builder => sub { $_[0]->_user_views },
 );
 
+has global => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
 # Only required a full view is retrieved
 has layout => (
     is => 'rw',
@@ -46,13 +52,22 @@ sub _user_views
 {   my $self = shift;
     my @views = $self->schema->resultset('View')->search({
         -or => [
-            user_id => $self->user->{id},
+            user_id => $self->user ? $self->user->{id} : undef,
             global  => 1,
         ]
     },{
             order_by => ['global', 'name'],
     })->all;
     \@views;
+}
+
+sub _build_global
+{   my $self = shift;
+    my @views = $self->schema->resultset('View')->search({
+        global => 1,
+    })->all;
+    my @global = map { $self->view($_->id) } @views;
+    \@global;
 }
 
 # Default user view

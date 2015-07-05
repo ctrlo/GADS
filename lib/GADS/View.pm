@@ -138,9 +138,9 @@ has writable => (
 # Validate what access the user has
 sub BUILD
 {   my $self = shift;
-    if (!$self->has_id)
+    if (!$self->has_id || !$self->user)
     {
-        # New view, therefore writable
+        # New view or no user defined, therefore writable
         $self->writable(1);
     }
     elsif ($self->global)

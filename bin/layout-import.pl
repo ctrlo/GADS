@@ -38,7 +38,7 @@ GADS::DB->setup(schema);
 my $layout = GADS::Layout->new(user => undef, schema => schema);
 
 my @write;
-foreach my $column (@$import)
+foreach my $column (@{$import->{columns}})
 {
     my $class = $column->{type};
     $class = "GADS::Column::".camelize($class);
@@ -46,6 +46,7 @@ foreach my $column (@$import)
     
     $new->$_($column->{$_})
         foreach (qw/name type description helptext optional remember/);
+    $new->set_id($column->{id}) if $column->{id};
     if ($column->{display_condition})
     {
         $new->display_field($column->{display_field});
@@ -90,7 +91,7 @@ foreach my $column (@$import)
         foreach my $enum (@{$column->{enumvals}})
         {
             next if $enum->{deleted};
-            push $submit->{enumval}, $enum->{value};
+            push @{$submit->{enumval}}, $enum->{value};
         }
         $new->enumvals_from_form($submit);
     }
@@ -98,5 +99,21 @@ foreach my $column (@$import)
     {
         $new->update($column->{json});
     }
+}
+
+foreach my $view (@{$import->{views}})
+{
+    my $view = GADS::View->new(
+        user   => undef,
+        schema => schema,
+        layout => $layout,
+    );
+
+    $view->columns($view->{columns});
+    $view->global(1);
+    $view->name($view->{name});
+    $view->filter($view->{filter});
+    $view->write;
+    $view->set_sorts($view->{sorts}->{fields}, $view->{sorts}->{types});
 }
 

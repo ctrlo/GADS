@@ -25,17 +25,19 @@ use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
 use GADS::DB;
 use GADS::Layout;
+use GADS::Views;
 use YAML;
 
 GADS::DB->setup(schema);
 
 my $layout = GADS::Layout->new(user => undef, schema => schema);
 
-my @write;
+my @columns;
 foreach my $column ($layout->all)
 {
     say STDERR "Exporting ".$column->name;
     my $col = {
+        id            => $column->id,
         name          => $column->name,
         type          => $column->type,
         return_type   => $column->return_type,
@@ -72,8 +74,36 @@ foreach my $column ($layout->all)
         $col->{amber} = $column->amber;
         $col->{red} = $column->red;
     }
-    push @write, $col;
+    push @columns, $col;
 }
 
-print Dump \@write;
+my $views  = GADS::Views->new(user => undef, schema => schema, layout => $layout);
+
+my @views;
+foreach my $v (@{$views->global})
+{
+    say STDERR "Exporting view ".$v->name;
+    my @sort_fields;
+    my @sort_types;
+    foreach my $s (@{$v->sorts})
+    {
+        push @sort_fields, $s->{layout_id};
+        push @sort_types, $s->{type};
+    }
+    my $view = {
+        name          => $v->name,
+        filter        => $v->filter,
+        columns       => $v->columns,
+        sorts         => {
+            fields => \@sort_fields,
+            types  => \@sort_types,
+        },
+    };
+    push @views, $view;
+}
+
+print Dump {
+    columns => \@columns,
+    views   => \@views,
+};
 
