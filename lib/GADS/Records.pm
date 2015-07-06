@@ -182,7 +182,7 @@ sub _add_join
 sub search_views
 {   my ($self, $current_ids, @views) = @_;
 
-    return unless @views;
+    return unless @views && @$current_ids;
 
     my $joins = [];
     my $prefetches = [];
