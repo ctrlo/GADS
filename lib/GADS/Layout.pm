@@ -206,7 +206,8 @@ sub position
 
 sub column
 {   my ($self, $id, %options) = @_;
-    my $column = $self->columns_index->{$id};
+    my $column = $self->columns_index->{$id}
+        or return; # Column does not exist
     return if $options{permission} && !$column->user_can($options{permission});
     $column;
 }
