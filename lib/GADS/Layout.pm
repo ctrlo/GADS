@@ -60,6 +60,14 @@ has user_permissions => (
     predicate => 1,
 );
 
+# The permissions for all users, as a cache, for multiple
+# requests to get_user_perms
+has user_permissions_cache => (
+    is      => 'rw',
+    isa     => HashRef,
+    default => sub { {} },
+);
+
 has user_permission_override => (
     is      => 'rw',
     isa     => Bool,
@@ -134,27 +142,33 @@ sub _build_columns
 
 sub get_user_perms
 {   my ($self, $user_id) = @_;
-    # Construct a hash with all the permissions for the different columns
-    my $perms_rs = $self->schema->resultset('User')->search({
-        'me.id' => $user_id,
-    }, {
-        prefetch => { user_groups => { group => 'layout_groups' } },
-    });
-    $perms_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
-    my ($user_perms) = $perms_rs->all; # The overall user. Only one due to query.
-    my %perms; # Hash of different columns and their permissions
-    my %overall_permissions; # Flat structure of all user permissions for whole layout
-    foreach my $group (@{$user_perms->{user_groups}}) # For each group the user has
+    my $cache = $self->user_permissions_cache;
+    unless ($cache->{$user_id})
     {
-        foreach my $layout_group (@{$group->{group}->{layout_groups}}) # For each column in that group
+        # Construct a hash with all the permissions for the different columns
+        my $perms_rs = $self->schema->resultset('User')->search({
+            'me.id' => $user_id,
+        }, {
+            prefetch => { user_groups => { group => 'layout_groups' } },
+        });
+        $perms_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+        my ($user_perms) = $perms_rs->all; # The overall user. Only one due to query.
+        my %perms; # Hash of different columns and their permissions
+        my %overall_permissions; # Flat structure of all user permissions for whole layout
+        foreach my $group (@{$user_perms->{user_groups}}) # For each group the user has
         {
-            # Push the actual permission onto an array
-            $perms{$layout_group->{layout_id}} ||= [];
-            push @{$perms{$layout_group->{layout_id}}}, $layout_group->{permission};
-            $overall_permissions{$layout_group->{permission}} = 1;
+            foreach my $layout_group (@{$group->{group}->{layout_groups}}) # For each column in that group
+            {
+                # Push the actual permission onto an array
+                $perms{$layout_group->{layout_id}} ||= [];
+                push @{$perms{$layout_group->{layout_id}}}, $layout_group->{permission};
+                $overall_permissions{$layout_group->{permission}} = 1;
+            }
         }
+        $cache->{$user_id}->{perms} = \%perms;
+        $cache->{$user_id}->{overall_permissions} = \%overall_permissions;
     }
-    wantarray ? (\%perms, \%overall_permissions) : \%perms;
+    wantarray ? ($cache->{$user_id}->{perms}, $cache->{$user_id}->{overall_permissions}) : $cache->{$user_id}->{perms};
 }
 
 sub all
