@@ -30,6 +30,7 @@ gads:
   hostlocal: 0     # Whether to fetch files such as jquery.js locally
   email_from: '"GADS" <user@example.com>' # Emails are sent from this
   aup: 1
+  url: https://example.com # Used for URLs in overnight email alerts
   # aup_accept: I accept these terms # Use to change default accept button
   message_prefix: >
     This email has been generated and sent from GADS. Replies

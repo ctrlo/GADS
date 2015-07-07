@@ -712,7 +712,9 @@ sub _search_construct
 
     if ($column->type eq "person")
     {
-        my $curuser = $self->user->{value};
+        my $curuser = $self->user && $self->user->{value}
+            or warning "FIXME: user not set for filter";
+        $curuser ||= "";
         $value =~ s/\[CURUSER\]/$curuser/g;
     }
 
