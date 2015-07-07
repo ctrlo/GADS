@@ -1469,16 +1469,6 @@ any '/edit/:id?' => require_login sub {
     $output;
 };
 
-# Simple method to get the dependent regex expression for a column.
-# It's a lot easier sending as a separate request, than trying
-# to encode into the main page (with multiple escapes etc)
-get '/display_regex/:id?' => require_login sub {
-    my $user   = logged_in_user;
-    my $layout = GADS::Layout->new(user => $user, schema => schema);
-    my $column = $layout->column(param 'id') or return;
-    $column->display_regex;
-};
-
 any '/file/:id' => require_login sub {
     my $id = param 'id';
     my $file;

@@ -241,16 +241,15 @@
                 [% js_valget = '$(this).val()' %]
             [% END %]
             [% jscode.push('
-                $.get("/display_regex/' _ depends.id _ '", function(data){
-                    $("#' _ col.id  _ '").change( function () {
-                        var val = ' _ js_valget _ ';
-                        var re = new RegExp("^" + data + "$");
-                        if (re.test(val)) {
-                            $("#' _ divid _ '").show()
-                        } else {
-                            $("#' _ divid _ '").hide()
-                        }
-                    });
+                $("#' _ col.id  _ '").change( function () {
+                    var val = ' _ js_valget _ ';
+                    var data = decodeBase64("' _ depends.regex_b64 _ '");
+                    var re = new RegExp("^" + data + "$");
+                    if (re.test(val)) {
+                        $("#' _ divid _ '").show()
+                    } else {
+                        $("#' _ divid _ '").hide()
+                    }
                 });
             ') %]
         [% END %]

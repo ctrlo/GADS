@@ -157,6 +157,7 @@
         [% END %]
         [% IF page == "edit" OR page == "approval" %]
             <script type="text/javascript" src="[% url.js %]/bootstrap-datepicker.js"></script>
+            <script type="text/javascript" src="[% url.js %]/base64decode.js"></script>
             <script type="text/javascript">
                 $(document).ready(function() {
                     $('.datepicker').datepicker({format: "yyyy-mm-dd", autoclose: true});

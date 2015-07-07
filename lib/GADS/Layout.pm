@@ -32,6 +32,7 @@ use GADS::Column::Rag;
 use GADS::Column::String;
 use GADS::Column::Tree;
 use Log::Report;
+use MIME::Base64;
 use String::CamelCase qw(camelize);
 
 use Moo;
@@ -125,7 +126,13 @@ sub _build_columns
     {
         # And also any columns that are children (in the layout)
         my @depends = grep {$_->display_field && $_->display_field == $col->id} @return;
-        my @depended_by = map { { id => $_->id, regex => $_->display_regex } } @depends;
+        my @depended_by = map {
+            {
+                id        => $_->id,
+                regex     => $_->display_regex,
+                regex_b64 => encode_base64($_->display_regex),
+            }
+        } @depends;
         $col->depended_by(\@depended_by);
         if ($perms)
         {
