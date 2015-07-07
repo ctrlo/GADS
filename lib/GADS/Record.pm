@@ -632,7 +632,9 @@ sub write
             current_ids => [$self->current_id],
             columns     => \@columns_changed,
         );
+        fork and return;
         $alert_send->process;
+        exit;
     }
 }
 
