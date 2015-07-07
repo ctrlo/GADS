@@ -15,6 +15,7 @@
     </ul>
     [% IF user_can_edit %]
         <a href="/edit/[% record.current_id %]" class="btn btn-default" role="button">Edit</a>
+        <a href="/edit/?from=[% record.current_id %]" class="btn btn-default" role="button">Clone</a>
     [% END %]
     [% IF user.permission.delete || user.permission.delete_noneed_approval %]
         <a href="" data-toggle="modal" data-target="#modaldelete" class="btn btn-default" role="button">Delete</a>

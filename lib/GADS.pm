@@ -1413,6 +1413,12 @@ any '/edit/:id?' => require_login sub {
     elsif($id) {
         $record->find_current_id($id);
     }
+    elsif (my $from = param('from'))
+    {
+        $record->find_current_id($from);
+        $record->current_id(undef);
+        $record->record_id(undef);
+    }
     elsif(my $previous = $user->{lastrecord})
     {
         # Prefill previous values, but only those tagged to be remembered
