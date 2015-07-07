@@ -79,9 +79,9 @@ sub _transform_value
         }
 
         # Insert current date if required
-        $green = $self->sub_date($green, 'CURDATE', DateTime->now);
-        $amber = $self->sub_date($amber, 'CURDATE', DateTime->now);
-        $red   = $self->sub_date($red, 'CURDATE', DateTime->now);
+        $green = $self->sub_date($green, 'CURDATE', DateTime->now->truncate(to => 'day'));
+        $amber = $self->sub_date($amber, 'CURDATE', DateTime->now->truncate(to => 'day'));
+        $red   = $self->sub_date($red, 'CURDATE', DateTime->now->truncate(to => 'day'));
 
         # Insert ID if required
         my $current_id = $self->current_id;
