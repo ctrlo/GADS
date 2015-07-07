@@ -192,7 +192,7 @@ sub process
         # The alert caches that already exist for these IDs
         my @e = $self->schema->resultset('AlertCache')->search({
             view_id    => $view->id,
-            current_id => [ '-and', @{$found->{ids}} ],
+            current_id => $found->{ids},
         })->all;
         my %already_there = map { $_->current_id => 1 } @e;
         foreach my $cid (@{$found->{ids}})
