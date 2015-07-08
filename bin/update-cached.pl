@@ -37,7 +37,7 @@ my @calcs = schema->resultset('Layout')->search({
 foreach my $calc (@calcs)
 {
     my $column = $layout->column($calc->id);
-    $column->base_url('https://dev.ctrlo.com');
+    $column->base_url(config->{gads}->{url});
     $column->update_cached('Calcval');
 }
 

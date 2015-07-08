@@ -670,7 +670,7 @@ sub _search_construct
     my $operator = $ops{$filter->{operator}}
         or error __x"Invalid operator {filter}", filter => $filter->{operator};
 
-    my $vprefix = $filter->{operator} eq 'contains' ? '%' : '';
+    my $vprefix = $filter->{operator} eq 'contains' ? '' : '';
     my $vsuffix = $filter->{operator} =~ /contains|begins_with/ ? '%' : '';
     
     my $s_table = _table_name $column, $prefetches, $joins;
