@@ -8,8 +8,8 @@
 
 \usepackage{supertabular}
 \usepackage{comment}
-\excludecomment{admin}
-% \includecomment{admin}
+% \excludecomment{admin}
+\includecomment{admin}
 
 \begin{document}
 
@@ -340,8 +340,40 @@ Before you set your change alert, you may need to \hyperref[subsec:personalview]
 \item Once you have selected the field type and completed the relevant options for that field you can add a \textbf{Description} which all users will see displayed next to the field. 
 \item You can also add \textbf{User help text}. This is displayed when a user clicks on the question mark (?) next to the field name. 
 \item Tick the box if you want the field to be optional.
-\item Set the permissions for which user groups can view this data field.
 \item Click \textbf{Save} to create the new data field. 
+\item Go back into the newly created field by clicking \textbf{Edit} next to its name in the list.
+\item Under \textbf{Permissions} set which user groups can view and edit this data field by clicking on the \textbf{Add new group} button. You must \hyperref[sec:usergroups]{add at least one user group} here, otherwise the field will be invisible to all users. For more information see \hyperref[subsec:setfieldperms]{Set permissions for data fields}.
+\end{enumerate}
+
+\subsection[set permissions on a data field]{set permissions on a data field}
+\label{subsec:setfieldperms}
+By using the GADS groups functionality, you can set who can view, add, edit or approve changes to specific data fields according to the user group(s) they belong to. For each data field you can specify what members of each user group are allowed to do on that field.
+
+To set permissions on a data field, there are two steps:
+
+\textbf{The first step is to set up your groups.}
+
+\begin{enumerate}
+    \item Click the \textbf{Admin} tab in the top navigation.
+    \item Select \textbf{Manage Groups} from the dropdown menu.
+    \item Click the \textbf{Create new group} button.
+    \item Give the group a name and click \textbf{Save}.
+
+\begin{notebox}
+NOTE: When you set up a new user you should allocate them to one of the groups you have created. If they are not allocated to a group, they will not be able to see or edit any data fields on which you have set group permissions.
+\end{notebox}
+
+\textbf{Then you need to set the groups’ permissions on the data field.}
+
+    \item \hyperref[subsec:addfield]{Add a new data field}.
+    \item Under \textbf{Permissions} on the data field screen, click \textbf{Add new group}.
+    \item For each new group you can select what users of that group can do on that field i.e. Read values; Enter values for new records; Edit values of existing records; Approve values in new records; Approve values in existing records; Enter values for new records without requiring approval; Edit values of existing records without requiring approval.
+    \item Click \textbf{Save}.
+
+\begin{notebox}
+NOTE: If you do not define the permissions for a group on a data field then it will automatically hide that field from everyone in that group. 
+\end{notebox}
+
 \end{enumerate}
 
 \subsection[control when a field is displayed]{control when a field is displayed}
@@ -502,6 +534,36 @@ Any changes you make to the order of the fields will affect all your users.
 \item Scroll down to the bottom of the Edit data field screen and click the \textbf{Delete button}.
 \item To confirm you want to delete the field, click the \textbf{Delete} button in the pop-up box that appears on your screen. \textbf{IMPORTANT: Once you delete a field you will lose all the data stored in that field}. 
 \end{enumerate}
+
+\clearpage\section[PERMISSIONS: Seting permissions]{PERMISSIONS: Setting permissions}
+GADS enables very fine control over exactly what data users can add, delete, view and update. You control what users are able to do and see on the GADS system in two ways:
+\begin{enumerate}
+    \item You control what data fields they can view, edit and approve changes on via their membership of user groups – See: \hyperref[subsec:setfieldperms]{Set permissions on a data field}.
+    \item You control everything else they can do on the system (i.e delete records, download data, manage user accounts, administer layouts, views and graphs, etc. via their individual user permissions – See: \hyperref[subsec:userperms]{Set the permissions for a user}).
+\end{enumerate}
+
+\clearpage\section[USER GROUPS]{USER GROUPS}
+\label{sec:usergroups}
+
+\subsection[set up a new user group]{set up a new user group}
+\begin{enumerate}
+    \item Click the \textbf{Admin} tab in the top navigation.
+    \item Select \textbf{Manage Groups} from the dropdown menu.
+    \item Click the \textbf{Create new group} button
+    \item Give the group a name and click \textbf{Save}.
+\end{enumerate}
+\begin{notebox}
+NOTE: There are no system-wide field permissions associated with groups. You need to specify the permissions that each group has for each data field. You can see an overview of a group’s permissions across all fields by going to Admin > Manage Groups
+\end{notebox}
+
+\subsection[delete a user group]{delete a user group}
+\begin{enumerate}
+    \item Click the \textbf{Admin} tab in the top navigation.
+    \item Select \textbf{Manage Groups} from the dropdown menu.
+    \item Click the \textbf{Edit name} link next to the group you want to delete.
+    \item Click the \textbf{Delete} button and then \textbf{Confirm deletion} on the pop up box.
+\end{enumerate}
+
 \clearpage\section[GRAPHS: Set up]{GRAPHS: Set up}
 \subsection[create a new graph ]{create a new graph }
 Only users with permission to configure the system itself can create graphs. Other users can control the data that is included in the graphs through creating personalised views of the data. See: \hyperref[subsec:viewgraph]{View data as a graph}
@@ -592,6 +654,42 @@ NOTE: If you change your email address this will become your new username when y
 \end{tipbox}
 
 \bigskip
+
+\subsection[set the permissions for a user]{set the permissions for a user}
+\label{subsec:userperms}
+You can set permissions for each user on the system. If a user has no permissions they can only view data, and add and remove the graphs displayed on their personal page. To set user permissions:
+\begin{enumerate}
+    \item Click the \textbf{Admin} tab in the top navigation and select \textbf{Manage users}.
+    \item Click on the \textbf{ID number} of the user you wish to edit.
+    \item Use the tick boxes under the Permissions section to set what the user is able to do.
+    \item Click \textbf{Save}.
+\end{enumerate}
+
+\begin{notebox}
+    NOTE: Permissions explained
+\end{notebox}
+
+\begin{flushleft}
+\tablefirsthead{}
+\tablehead{}
+\tabletail{}
+\tablelasttail{}
+\begin{supertabular}{|m{3.046cm}|m{10.915cm}|}
+\hline
+User can delete records &
+This permission allows a user to permanently delete records, including their version history \ \\\hline
+User can manage other user accounts &
+This permission allows a user to manage user accounts on the system, including the configuration of permissions \\\hline
+User can download data &
+This permission allows a user to download data in CSV format \\\hline
+User can administer layout, views and graphs &
+This permission allows a user to configure the system itself, including the configuration of the layout and graphs, and the creation of global views \\\hline
+User can send messages &
+This permission allows a user to send messages to users, using the messaging capability in the tabular data view \ \\\hline
+User can create, modify and delete views &
+This allows a user to create, modify or delete views. Unless the user has the administer layout permission, the views can only be personal views. \ \\\hline
+\end{supertabular}
+\end{flushleft}
 
 \subsection[approve a new user ]{approve a new user }
 If you are an administrator responsible for approving new users you will receive an email alert when a new user requests a user account. To approve the request:
