@@ -32,6 +32,7 @@ use Safe;
 use Scalar::Util qw(looks_like_number);
 use Text::CSV::Encoded;
 use Moo;
+use MooX::Types::MooseLike::Base qw(:all);
 
 # Preferably this is passed in to prevent extra
 # DB reads, but loads it if it isn't
@@ -88,12 +89,15 @@ has page => (
     is => 'rw',
 );
 
-has approval => (
-    is => 'rw',
-);
-
 has include_approval => (
     is      => 'rw',
+    default => 0,
+);
+
+# Whether to prefetch related records along with the main resultset
+has prefetch_related => (
+    is      => 'rw',
+    isa     => Bool,
     default => 0,
 );
 
@@ -385,8 +389,9 @@ sub search
     # to be used when the record is used. Is there a better way?
     unshift @$prefetches, ('current', 'createdby', 'approvedby');
 
+    my $currents = $self->prefetch_related ? { currents => {record => $prefetches} } : 'currents';
     my $select = {
-        prefetch => $root_table eq 'Record' ? $prefetches : {'record' => $prefetches},
+        prefetch => $root_table eq 'Record' ? $prefetches : [ {'record' => $prefetches}, $currents ],
         join     => $root_table eq 'Record' ? $joins : {'record' => $joins},
         order_by => \@orderby,
     };
@@ -413,19 +418,67 @@ sub search
         $search, $select
     );
 
-
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
-    my @all = $result->all;
-    @all = map {GADS::Record->new(
-        schema            => $self->schema,
-        record            => ($self->approval ? $_ : $_->{record}),
-        user              => $self->user,
-        format            => $self->format,
-        layout            => $self->layout,
-        force_update      => $self->force_update,
-        columns_retrieved => $self->columns_retrieved,
-    )} @all;
+    # This messy code is to reorder the results slightly, so that
+    # related records appear below their parent record
+    my @all_ids;
+    my %all; my %is_related;
+    foreach my $rec ($result->all)
+    {
+        push @all_ids, $rec->{id};
+        my @related = map { $_->{id} } @{$rec->{currents}};
+        if ($self->prefetch_related)
+        {
+            push @all_ids, @related;
+            foreach (@{$rec->{currents}})
+            {
+                $all{$_->{id}} //= GADS::Record->new(
+                    schema            => $self->schema,
+                    record            => $_->{record},
+                    parent_id         => $_->{parent_id},
+                    user              => $self->user,
+                    format            => $self->format,
+                    layout            => $self->layout,
+                    force_update      => $self->force_update,
+                    columns_retrieved => $self->columns_retrieved,
+                );
+            }
+        }
+        map { $is_related{$_} = undef } @related;
+        $all{$rec->{id}} = GADS::Record->new(
+            schema            => $self->schema,
+            record            => $rec->{record},
+            related_records   => \@related,
+            parent_id         => $rec->{parent_id},
+            user              => $self->user,
+            format            => $self->format,
+            layout            => $self->layout,
+            force_update      => $self->force_update,
+            columns_retrieved => $self->columns_retrieved,
+        );
+    }
+    my @all; my %done;
+    foreach my $rec_id (@all_ids)
+    {
+        next unless $all{$rec_id};
+        unless (exists $is_related{$rec_id} || exists $done{$rec_id})
+        {
+            push @all, $all{$rec_id};
+            $done{$rec_id} = undef;
+        }
+        foreach (@{$all{$rec_id}->related_records})
+        {
+            next if $done{$_} || !$all{$_};
+            foreach my $col (@{$self->columns_retrieved})
+            {
+                $all{$_}->fields->{$col->id} //= $all{$rec_id}->fields->{$col->id};
+            }
+            push @all, $all{$_};
+            $done{$_} = undef;
+        }
+    }
+
     $self->results(\@all);
 }
 
@@ -524,8 +577,6 @@ sub construct_search
         my @res = @{($self->_search_construct({condition => 'OR', rules => \@search_date}, $layout, $prefetches, $joins))};
         push @limit, @res if @res;
     }
-
-    push @limit, {approval => 0} unless $self->include_approval;
 
     # Configure specific user selected sort. Do it now, as they may
     # not have view selected
@@ -676,7 +727,7 @@ sub _search_construct
     my $s_table = _table_name $column, $prefetches, $joins;
 
     my $value = $filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty'
-              ? [ undef, "" ]
+              ? [ -and => undef, "" ]
               : $vprefix.$filter->{value}.$vsuffix;
 
     my $s_field;

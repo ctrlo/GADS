@@ -1,8 +1,19 @@
 <h2>
     Record ID [% record.current_id %]
+    [% IF record.parent_id %]
+        <small>(related to <a href="/record/[% record.parent_id %]">record [% record.parent_id %]</a>)</small>
+    [% END %]
 </h2>
-<div class="dropdown">
-    <a id="drop4" class="btn btn-primary" role="button" data-toggle="dropdown" href="#">Version history <b class="caret"></b></a>
+[% IF record.related_records.size %]
+    <h4>Related records</h4>
+    <ul>
+        [% FOREACH rec IN record.related_records %]
+        <li><a href="/record/[% rec %]">[% rec %]</a></li>
+        [% END %]
+    </ul>
+[% END %]
+<div class="btn-group">
+    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#">Version history <b class="caret"></b></button>
     <ul id="menu1" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop4">
         [% FOREACH version IN versions %]
         [% IF version.id == record.id %]
@@ -13,12 +24,22 @@
         <li role="presentation"><a role="menuitem" tabindex="-1" href="/history/[% version.id %]">[% version.created %]</a></li>
         [% END %]
     </ul>
+</div>
+<div class="btn-group">
     [% IF user_can_edit %]
-        <a href="/edit/[% record.current_id %]" class="btn btn-default" role="button">Edit</a>
-        <a href="/edit/?from=[% record.current_id %]" class="btn btn-default" role="button">Clone</a>
-    [% END %]
-    [% IF user.permission.delete || user.permission.delete_noneed_approval %]
-        <a href="" data-toggle="modal" data-target="#modaldelete" class="btn btn-default" role="button">Delete</a>
+
+        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">Action <b class="caret"></b></button>
+            <ul class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="edit_action">
+                <li role="presentation"><a role="menuitem" href="/edit/[% record.current_id %]">Edit</a></li>
+                <li role="presentation"><a role="menuitem" href="/edit/?from=[% record.current_id %]">Clone new</a></li>
+                [% IF user.permission.create_related %]
+                    <li role="presentation"><a role="menuitem" href="/edit/?related=[% record.current_id %]">Create related</a></li>
+                [% END %]
+                [% IF user.permission.delete || user.permission.delete_noneed_approval %]
+                    <li role="presentation"><a role="menuitem" data-toggle="modal" data-target="#modaldelete">Delete</a></li>
+                [% END %]
+            </ul>
+        </li>
     [% END %]
 </div>
 <p></p>
@@ -28,10 +49,11 @@
         <td>[% record.createdby.html %]</td>
     </tr>
     [% FOREACH col IN all_columns %]
+        [% colid = col.id %]
         <tr>
+            [% NEXT IF record.parent_id AND NOT (record.fields.$colid.has_value OR NOT col.userinput) %]
             <th>[% col.name | html_entity %]</th>
             <td>
-                [% colid = col.id %]
                 [% value = record.fields.$colid.html %]
                 [% IF col.type == "rag" %]
                     <div class="circ-large

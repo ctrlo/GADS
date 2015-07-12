@@ -1,6 +1,11 @@
 <h2>
     [% IF record.current_id %]
         Record ID [% record.current_id %]
+        [% IF record.parent_id %]
+            <small>(related to record [% record.parent_id %])</small>
+        [% END %]
+    [% ELSIF related %]
+        Create record related to [% related %]
     [% ELSE %]
         New record
     [% END %]
@@ -11,6 +16,9 @@
         <div class="col-md-6">
             [% IF record.current_id %]
                 <input type="hidden" name="current_id" value="[% record.current_id %]">
+            [% END %]
+            [% IF related %]
+                <input type="hidden" name="related" value="[% related %]">
             [% END %]
             [% trees = [] %]
             [% jscode = [] %]
@@ -71,6 +79,8 @@
 
     [%# Skip field if it's an approval request but a value not needing approval %]
     [% NEXT IF page == "approval" AND NOT (record.fields.$colid.has_value)  %]
+    [%# Skip if it's a related record and the value doesn't exist %]
+    [% NEXT IF record.parent_id AND NOT (record.fields.$colid.has_value) AND NOT user.permission.create_related %]
 
     [% IF existing %]
         [% oldvalue = existing.fields.$colid.html %] [%# All value already entity-encoded %]
@@ -107,7 +117,7 @@
         [% IF dispcol.optional %]
             [% label_style = 'style="font-weight:normal !important"' %]
         [% ELSE %]
-            [% label_style = "" %]
+            [% label_style = 'style="font-weight:bold !important"' %]
             [% label = label _ '*' %]
         [% END %]
         [% IF dispcol.description %]
@@ -117,9 +127,19 @@
             [% label = label _ " (<a data-toggle='modal' href='/helptext/"
                              _ dispcol.id  _ "' data-target='#helptext_modal'>?</a>)" %]
         [% END %]
-        <label for="[% dispcol.id %]" [% label_style %]>
-            [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
-        </label>
+        [% IF related AND user.permission.create_related %]
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="related_inc" value="[% dispcol.id %]"
+                        [% IF record.fields.$colid.has_value %]checked[% END %]
+                    > <span [% label_style %]>[% label %]</span> (tick to include)
+                </label>
+            </div>
+        [% ELSE %]
+            <label for="[% dispcol.id %]" [% label_style %]>
+                [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
+            </label>
+        [% END %]
     [% IF dispcol.type == "enum" %]
         <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
             [% IF dispcol.optional OR editvalue.deleted OR NOT editvalue %]

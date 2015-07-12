@@ -269,7 +269,12 @@ sub _data_graph
     my $layout  = GADS::Layout->new(user => $user, schema => schema);
     my $view    = current_view($user, $layout);
     my $graph   = GADS::Graph->new(id => $id, schema => schema);
-    my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
+    my $records = GADS::Records->new(
+        user             => $user,
+        layout           => $layout,
+        schema           => schema,
+        prefetch_related => 1,
+    );
     # Columns is either the x-axis, or if not defined, all the columns in the view
     my @columns = ($graph->y_axis, $graph->group_by);
     push @columns,
@@ -1372,7 +1377,7 @@ any '/edit/:id?' => require_login sub {
 
     if (param 'submit')
     {
-        $record->initialise unless $id;
+        $record->initialise unless $id || param('related');
         my $params = params;
         my $uploads = request->uploads;
         foreach my $key (keys %$uploads)
@@ -1388,19 +1393,68 @@ any '/edit/:id?' => require_login sub {
             });
         }
         my $failed;
-        # We actually only need the write columns for this. The read-only
-        # columns can be ignored, but if we do write them, an error will be
-        # thrown to the user if they've been changed. This is better than
-        # just silently ignoring them, IMHO.
-        foreach my $col (@columns_to_show)
+        if (my $related = param 'related')
         {
-            if ($col->userinput) # Not calculated fields
+            if ($id && !user_has_role('create_related'))
             {
-                # No need to do anything if the file's just been uploaded
-                unless (upload "file".$col->id)
+                # Edit of existing related record
+                foreach my $field (keys %{$record->fields})
                 {
-                    my $newv = param($col->field);
-                    $failed = !process( sub { $record->fields->{$col->id}->set_value($newv) } ) || $failed;
+                    my $newv = param("field$field");
+                    $failed = !process( sub { $record->fields->{$field}->set_value($newv) } ) || $failed;
+                }
+            }
+            else {
+                error __"You do not have permission to create or change the fields of related records"
+                    unless user_has_role('create_related');
+                # New related record or edit by someone who can add/remove fields
+                $record->parent_id($related);
+                my @related = ref(param 'related_inc') ? @{param 'related_inc'} : (param('related_inc') || ());
+                $record->fields({}) unless $id;
+                my %has_id;
+                foreach my $col (@related)
+                {
+                    $has_id{$col} = undef;
+                    my $newv = param("field$col");
+                    if ($id && !defined($record->fields->{$col}))
+                    {
+                        $record->fields->{$col} = $record->initialise_field($col);
+                        # This is a new value for a new field. Normally this wouldn't
+                        # be flagged as changed, but we need to do so to force record
+                        # to update
+                        $record->fields->{$col}->changed(1);
+                    }
+                    elsif (!$id)
+                    {
+                        $record->fields->{$col} = $record->initialise_field($col);
+                    }
+                    $failed = !process( sub { $record->fields->{$col}->set_value($newv) } ) || $failed;
+                }
+                foreach (keys %{$record->fields})
+                {
+                    unless (exists $has_id{$_})
+                    {
+                        delete $record->fields->{$_};
+                        $record->changed(1);
+                    }
+                }
+            }
+        }
+        else {
+            # We actually only need the write columns for this. The read-only
+            # columns can be ignored, but if we do write them, an error will be
+            # thrown to the user if they've been changed. This is better than
+            # just silently ignoring them, IMHO.
+            foreach my $col (@columns_to_show)
+            {
+                if ($col->userinput) # Not calculated fields
+                {
+                    # No need to do anything if the file's just been uploaded
+                    unless (upload "file".$col->id)
+                    {
+                        my $newv = param($col->field);
+                        $failed = !process( sub { $record->fields->{$col->id}->set_value($newv) } ) || $failed;
+                    }
                 }
             }
         }
@@ -1461,8 +1515,16 @@ any '/edit/:id?' => require_login sub {
         $record->fields->{$col->id}->set_value("")
             if !$col->user_can('read');
     }
+
+    my $related = param('related') && user_has_role('create_related')
+        ? int(param 'related')
+        : $record->parent_id
+        ? $record->parent_id
+        : undef;
+
     my $output = template 'edit' => {
         record      => $record,
+        related     => $related,
         all_columns => \@columns_to_show,
         page        => 'edit'
     };

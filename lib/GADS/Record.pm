@@ -101,6 +101,26 @@ has record_id_old => (
     is => 'rw',
 );
 
+# The ID of the parent record that this is related to, in the
+# case of a related record
+has parent_id => (
+    is      => 'rw',
+    isa     => Maybe[Int],
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        my $current = $self->schema->resultset('Current')->find($self->current_id)
+            or return;
+        $current->parent_id;
+    },
+);
+
+has related_records => (
+    is      => 'rwp',
+    isa     => ArrayRef,
+    default => sub { [] },
+);
+
 has approval_id => (
     is => 'rw',
 );
@@ -133,6 +153,15 @@ has approval_record_id => (
 
 has include_approval => (
     is => 'rw',
+);
+
+# A way of forcing the write function to know that this record
+# has changed. For example, if removing a field from a related
+# record, which would otherwise go unnoticed
+has changed => (
+    is      => 'rw',
+    isa     => Bool,
+    default => 0,
 );
 
 has current_id => (
@@ -208,16 +237,15 @@ sub _find
         layout           => $self->layout,
         schema           => $self->schema,
         columns          => $self->columns,
-        include_approval => $self->include_approval,
     );
 
     my $rinfo = $records->construct_search;
     $self->columns_retrieved($records->columns_retrieved);
 
-    my @search     = @{$rinfo->{search}};
     my @limit      = @{$rinfo->{limit}};
     my $prefetches = $rinfo->{prefetches};
     my $joins      = $rinfo->{joins};
+    my @search     = @{$rinfo->{search}};
 
     unshift @$prefetches, ('current', 'createdby', 'approvedby'); # Add info about related current record
 
@@ -226,13 +254,27 @@ sub _find
     {
         push @limit, ("me.id" => $record_id);
         $root_table = 'Record';
+        unless ($self->include_approval)
+        {
+            push @search, (
+                {'me.approval' => 0},
+                {'me.record_id' => undef},
+            );
+        }
     }
     elsif (my $current_id = $find{current_id})
     {
         push @limit, ("me.id" => $current_id);
-        $prefetches = {'record' => $prefetches};
+        $prefetches = ['currents', {'record' => $prefetches}];
         $joins      = {'record' => $joins};
         $root_table = 'Current';
+        unless ($self->include_approval)
+        {
+            push @search, (
+                {'record.approval' => 0},
+                {'record.record_id' => undef},
+            );
+        }
     }
     else {
         confess "record_id or current_id needs to be passed to _find";
@@ -253,7 +295,13 @@ sub _find
 
     my ($record) = $result->all;
     $record or error __"Requested record not found";
-    $record = $record->{record} if $find{current_id};
+    if ($find{current_id})
+    {
+        $self->parent_id($record->{parent_id});
+        my @related_records = map { $_->{id} } @{$record->{currents}};
+        $self->_set_related_records(\@related_records);
+        $record = $record->{record};
+    }
     if ($self->_set_approval_flag($record->{approval}))
     {
         $self->_set_approval_record_id($record->{record_id}); # Related record if this is approval record
@@ -287,7 +335,7 @@ sub _transform_values
 {   my $self = shift;
 
     my $original = $self->record or confess "Record data has not been set";
-    my $fields;
+    my $fields = {};
     #foreach my $column ($self->layout->all(order_dependencies => 1))
     foreach my $column (@{$self->columns_retrieved})
     {
@@ -297,6 +345,7 @@ sub _transform_values
             $dependent_values->{$dependent} = $fields->{$dependent};
         }
         my $value = $original->{$column->field};
+        next if $self->parent_id && !defined $value;
 
         # FIXME XXX Don't collect file content in sql query
         delete $value->{value}->{content} if $column->type eq "file";
@@ -326,16 +375,23 @@ sub initialise
     foreach my $column ($self->layout->all)
     {
         next unless $column->userinput;
-        $fields->{$column->id} = $column->class->new(
-            record_id        => $self->record_id,
-            set_value        => undef,
-            column           => $column,
-            schema           => $self->schema,
-            layout           => $self->layout,
-            datetime_parser  => $self->schema->storage->datetime_parser,
-        );
+        $fields->{$column->id} = $self->initialise_field($column->id);
     }
     $self->fields($fields);
+}
+
+sub initialise_field
+{   my ($self, $id) = @_;
+    my $layout = $self->layout;
+    my $column = $layout->column($id);
+    $column->class->new(
+        record_id        => $self->record_id,
+        set_value        => undef,
+        column           => $column,
+        schema           => $self->schema,
+        layout           => $self->layout,
+        datetime_parser  => $self->schema->storage->datetime_parser,
+    );
 }
 
 sub approver_can_action_column
@@ -364,13 +420,15 @@ sub write
     # First loop round: sanitise and see which if any have changed
     my %appfields; # Any fields that need approval
     my ($need_app, $need_rec); # Whether a new approval_rs or record_rs needs to be created
+    $need_rec = 1 if $self->changed;
     foreach my $column ($self->layout->all)
     {
         next unless $column->userinput;
-        my $datum = $self->fields->{$column->id};
+        my $datum = $self->fields->{$column->id}
+            or next; # Will not be set for related records
 
         # Check for blank value
-        if (!$column->optional && $datum->blank && !$force_mandatory)
+        if (!$self->parent_id && !$column->optional && $datum->blank && !$force_mandatory)
         {
             # Only warn if it was previously blank, otherwise it might
             # be a read-only field for this user
@@ -444,8 +502,10 @@ sub write
     # New record?
     if ($self->new_entry)
     {
-        my $serial;
-        my $id = $self->schema->resultset('Current')->create({serial => $serial})->id;
+        my $current = {
+            parent_id => $self->parent_id,
+        };
+        my $id = $self->schema->resultset('Current')->create($current)->id;
         $self->current_id($id);
     }
 
@@ -490,6 +550,7 @@ sub write
     {
         next unless $column->userinput;
         my $datum = $self->fields->{$column->id};
+        next if $self->parent_id && !$datum; # Don't write all values if this is a related record
 
         if ($need_rec) # For new records, only set if user has create permissions without approval
         {

@@ -151,7 +151,7 @@ sub _build_data
             {
                 $xval = _group_date($xval->value, $self->x_axis_grouping);
             }
-            next unless $xval;
+            next unless $xval && "$xval";
 
             my $gval = $group_by && $record->fields->{$group_by->id};
 
@@ -236,7 +236,7 @@ sub _build_data
             {
                 $x_value = _group_date($x_value->value, $self->x_axis_grouping);
             }
-            next unless $x_value;
+            next unless "$x_value";
 
             my $y_value     = $x_axis ? $record->fields->{$y_axis->id} : $record->fields->{$x->id};
             my $y_field     = $x_axis ? $y_axis : $x; # The field of the y axis value
