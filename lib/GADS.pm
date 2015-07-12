@@ -1411,7 +1411,7 @@ any '/edit/:id?' => require_login sub {
         }
     }
     elsif($id) {
-        $record->find_current_id($id);
+        # Do nothing, record already loaded
     }
     elsif (my $from = param('from'))
     {
