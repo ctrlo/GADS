@@ -721,7 +721,11 @@ sub _search_construct
     }
 
     $value =~ s/\_/\\\_/g if $operator eq '-like';
-    ("$s_table.$s_field" => {$operator, $value});
+    my $sq = {$operator => $value};
+    # By default SQL will not include NULL values for not equals.
+    # Let's include them
+    $sq = [ $sq, undef ] if $filter->{operator} eq 'not_equal';
+    ("$s_table.$s_field" => $sq);
 }
 
 sub csv
