@@ -369,16 +369,14 @@ sub search
     my $joins      = $rinfo->{joins};
 
     my $root_table;
-    if ($options{approval})
+    unless ($self->include_approval)
     {
-        push @search, {'me.approval' => 1}; # "me" is record table
-        $root_table = 'Record';
+        push @search, (
+            {'record.approval' => 0},
+            {'record.record_id' => undef},
+        );
     }
-    else {
-        push @search, {'record.approval' => 0};
-        push @search, {'record.record_id' => undef};
-        $root_table = 'Current';
-    }
+    $root_table = 'Current';
 
     my $search = [-and => [@search, @limit]];
 
