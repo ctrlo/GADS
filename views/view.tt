@@ -154,6 +154,8 @@
                     {type: 'greater',          accept_values: true,  apply_to: ['string', 'number', 'datetime']},
                     {type: 'greater_or_equal', accept_values: true,  apply_to: ['string', 'number', 'datetime']},
                     {type: 'begins_with',      accept_values: true,  apply_to: ['string']},
+                    {type: 'is_empty',         accept_values: false, apply_to: ['string', 'number', 'datetime']},
+                    {type: 'is_not_empty',     accept_values: false, apply_to: ['string', 'number', 'datetime']}
                 ]
 
         });

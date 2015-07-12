@@ -660,6 +660,8 @@ sub _search_construct
         contains         => '-like',
         begins_with      => '-like',
         not_equal        => '!=',
+        is_empty         => '=',
+        is_not_empty     => '!=',
     );
 
     my %permission = $ignore_perms ? () : (permission => 'read');
@@ -673,7 +675,9 @@ sub _search_construct
     
     my $s_table = _table_name $column, $prefetches, $joins;
 
-    my $value = $vprefix.$filter->{value}.$vsuffix;
+    my $value = $filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty'
+              ? [ undef, "" ]
+              : $vprefix.$filter->{value}.$vsuffix;
 
     my $s_field;
     if ($column->type eq "daterange")
