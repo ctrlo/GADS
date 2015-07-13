@@ -428,23 +428,6 @@ sub search
     {
         push @all_ids, $rec->{id};
         my @related = map { $_->{id} } @{$rec->{currents}};
-        if ($self->prefetch_related)
-        {
-            push @all_ids, @related;
-            foreach (@{$rec->{currents}})
-            {
-                $all{$_->{id}} //= GADS::Record->new(
-                    schema            => $self->schema,
-                    record            => $_->{record},
-                    parent_id         => $_->{parent_id},
-                    user              => $self->user,
-                    format            => $self->format,
-                    layout            => $self->layout,
-                    force_update      => $self->force_update,
-                    columns_retrieved => $self->columns_retrieved,
-                );
-            }
-        }
         map { $is_related{$_} = undef } @related;
         $all{$rec->{id}} = GADS::Record->new(
             schema            => $self->schema,
@@ -458,6 +441,37 @@ sub search
             columns_retrieved => $self->columns_retrieved,
         );
     }
+
+    # Now get any related records that weren't picked up the first time.
+    # First any children of main records retrieved
+    my @need = grep { !exists $all{$_} } keys %is_related;
+    # Then any parents of children retrieved
+    push @need, grep { $_ && !exists $all{$_} } map { $all{$_}->parent_id } @all_ids;
+    delete $select->{rows}; # No pagination required - all records please
+    delete $select->{page};
+    my $additional = $self->schema->resultset($root_table)->search({
+        'me.id' => \@need,
+    }, $select );
+
+    $additional->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    foreach my $rec ($additional->all)
+    {
+        push @all_ids, $rec->{id};
+        my @related = map { $_->{id} } @{$rec->{currents}};
+        map { $is_related{$_} = undef } @related;
+        $all{$rec->{id}} = GADS::Record->new(
+            schema            => $self->schema,
+            record            => $rec->{record},
+            related_records   => \@related,
+            parent_id         => $rec->{parent_id},
+            user              => $self->user,
+            format            => $self->format,
+            layout            => $self->layout,
+            force_update      => $self->force_update,
+            columns_retrieved => $self->columns_retrieved,
+        );
+    }
+
     my @all; my %done;
     foreach my $rec_id (@all_ids)
     {
@@ -469,7 +483,7 @@ sub search
         }
         foreach (@{$all{$rec_id}->related_records})
         {
-            next if $done{$_} || !$all{$_};
+            next if exists $done{$_} || !$all{$_};
             foreach my $col (@{$self->columns_retrieved})
             {
                 $all{$_}->fields->{$col->id} //= $all{$rec_id}->fields->{$col->id};
