@@ -45,7 +45,7 @@ foreach my $column (@{$import->{columns}})
     my $new = $class->new(schema => schema, user => undef, layout => $layout);
     
     $new->$_($column->{$_})
-        foreach (qw/name type description helptext optional remember/);
+        foreach (qw/name type description helptext optional remember position/);
     $new->set_id($column->{id}) if $column->{id};
     if ($column->{display_condition})
     {
