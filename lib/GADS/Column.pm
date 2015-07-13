@@ -424,6 +424,8 @@ sub write
     $newitem->{helptext}      = $self->helptext;
     $newitem->{display_field} = $self->display_field;
     $newitem->{display_regex} = $self->display_regex;
+    $newitem->{position}      = $self->position
+        if $self->position; # Used on layout import
    
     if ($self->id)
     {
