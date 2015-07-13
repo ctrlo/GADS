@@ -81,8 +81,6 @@ foreach my $column (@{$import->{columns}})
         $new->end_node_only($column->{end_node_only});
     }
 
-    $new->write;
-
     if ($column->{type} eq "enum")
     {
         my $submit = {
@@ -95,7 +93,10 @@ foreach my $column (@{$import->{columns}})
         }
         $new->enumvals_from_form($submit);
     }
-    elsif ($column->{type} eq "tree")
+
+    $new->write;
+
+    if ($column->{type} eq "tree")
     {
         $new->update($column->{json});
     }
