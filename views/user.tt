@@ -300,12 +300,6 @@
                 });
                 [% IF NOT edit.defined %]
                     $('.dtable').dataTable({
-                        "columnDefs": [
-                            {
-                                "targets": 0,
-                                "orderable": false
-                            }
-                        ],
                         order: [
                             [ 1, 'asc' ]
                         ]
