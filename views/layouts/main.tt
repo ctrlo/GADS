@@ -39,7 +39,7 @@
         [% IF page == "view" %]
             <link rel="stylesheet" href="[% url.css %]/query-builder.css">
         [% END %]
-        [% IF page == "user" %]
+        [% IF page == "user" OR page == "account" %]
             [% IF hostlocal %]
                 <link rel="stylesheet" href="[% url.css %]/dataTables.bootstrap.css">
             [% ELSE %]
@@ -205,7 +205,7 @@
         [% IF page == "config" %]
             <script type="text/javascript" src="[% url.js %]/tiny_mce/tiny_mce.js"></script>
         [% END %]
-        [% IF page == "user" %]
+        [% IF page == "user" OR page == "account" %]
             [% IF hostlocal %]
                 <script type="text/javascript" src="[% url.js %]/jquery.dataTables.min.js"></script>
                 <script type="text/javascript" src="[% url.js %]/dataTables.bootstrap.js"></script>

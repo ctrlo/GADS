@@ -23,26 +23,58 @@
 [% ELSE %]
     <h2>Graphs</h2>
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-12">
             <p>Use this page to configure what graphs are displayed on your home page. New
             graphs can only be added by an administrator.</p>
             <form role="form" method="post">
-                <div class="row">
-                    <div class="col-md-6">
+                <table class="table table-striped dtable">
+                    <thead>
+                        <tr>
+                            <td>Select</th>
+                            <th>Name</th>
+                        </tr>
+                    </thead>
+                    </body>
                         [% FOREACH graph IN graphs %]
+                            <tr>
+                                <td>
                             <div class="checkbox">
-                                <label title="[% graph.description | html_entity %]">
                                     <input type="checkbox" name="graphs" value="[% graph.id %]"
-                                        title="[% graph.description | html_entity %]"
                                         [% IF graph.selected %]checked[% END %]
-                                    >[% graph.title | html_entity %] ([% graph.type %])
+                                    >
                                 </label>
                             </div>
+                                </td>
+                                <td>
+                                    [% graph.title | html_entity %] ([% graph.type %])
+                                </td>
+                            </tr>
                         [% END %]
-                    </div>
-                </div>
+                </table>
                 <button type="submit" id="submit" name="graphsubmit" value="submit" class="btn btn-primary">Save</button>
             </form>
         </div>
     </div>
 [% END %]
+
+<script type="text/javascript">
+    var jscode='[% FILTER remove('\n+') %]
+        [% FILTER replace('\'', '\\\'') %]
+            $(document).ready(function () {
+                    $('.dtable').dataTable({
+                        "columnDefs": [
+                            {
+                                "targets": 0,
+                                "orderable": false
+                            }
+                        ],
+                        "pageLength": 50,
+                        order: [
+                            [ 1, 'asc' ]
+                        ]
+                    });
+            });
+        [% END %]
+    [% END %]';
+</script>
+
