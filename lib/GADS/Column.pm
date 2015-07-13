@@ -558,7 +558,7 @@ sub _filter_remove_colid_decoded
         # Filter has other nested filters
         @$rules = grep { _filter_remove_colid_decoded($_, $colid) } @$rules;
     }
-    $colid == $filter->{id} ? 0 : 1;
+    $filter->{id} && $colid == $filter->{id} ? 0 : 1;
 }
 
 1;
