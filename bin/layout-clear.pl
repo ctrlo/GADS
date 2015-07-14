@@ -38,3 +38,12 @@ foreach my $column (@all)
     $column->delete;
 }
 
+say STDERR "Deleting views...";
+rset('User')->update({ lastview => undef });
+rset('ViewLayout')->delete;
+rset('Sort')->delete;
+rset('AlertSend')->delete;
+rset('Alert')->delete;
+rset('AlertCache')->delete;
+rset('View')->delete;
+
