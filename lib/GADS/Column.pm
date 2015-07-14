@@ -65,6 +65,7 @@ has user_permission_override => (
 # Needed for update of cached columns
 has layout => (
     is       => 'ro',
+    weak_ref => 1,
 );
 
 has from_id => (
