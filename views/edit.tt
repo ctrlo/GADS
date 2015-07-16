@@ -168,7 +168,8 @@
             [% trees.push({id = dispcol.id, end_node_only = dispcol.end_node_only, value = editvalue }) %]
             <div class="form-group">
                 <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('open_all');">Expand all</a> |
-                <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('close_all');">Collapse all</a>
+                <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('close_all');">Collapse all</a> |
+                <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('refresh');">Reload</a>
                 <div id="jstree[% dispcol.id %]"></div>
             </div>
             <input type="hidden" id="[% dispcol.id %]" value="">
