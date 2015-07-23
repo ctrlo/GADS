@@ -1,6 +1,7 @@
 #!/usr/bin/env perl
 use Dancer2;
 use FindBin '$RealBin';
+use Plack::Builder;
 use Plack::Handler::FCGI;
 
 # For some reason Apache SetEnv directives dont propagate
@@ -9,9 +10,10 @@ use Plack::Handler::FCGI;
 set apphandler => 'PSGI';
 set environment => 'production';
 
-my $psgi = path($RealBin, '..', 'bin', 'app.pl');
+my $psgi = path($RealBin, '..', 'bin', 'app.psgi');
 my $app = do($psgi);
 die "Unable to read startup script: $@" if $@;
+
 my $server = Plack::Handler::FCGI->new(nproc => 5, detach => 1);
 
 $server->run($app);
