@@ -155,19 +155,27 @@ sub _build_data
 
             my $gval = $group_by && $record->fields->{$group_by->id};
 
-            if (!defined $xy_values{$xval})
+            my @xvals = $x_axis->type eq 'daterange'
+                      ? _group_dates($xval, $self->x_axis_grouping)
+                      : ($xval);
+
+            foreach my $x (@xvals)
             {
-                $xy_values{"$xval"} = 1;
-            }
-            if ($group_by && !defined $y_group_values{$gval})
-            {
-                $y_group_values{$gval} = { defined => 0 };
-                $y_group_index++;
-            }
-            if ($x_axis->return_type && $x_axis->return_type eq 'date')
-            {
-                $datemin = $xval if !defined $datemin || $datemin > $xval;
-                $datemax = $xval if !defined $datemax || $datemax < $xval;
+                $x = $x->epoch if ref $x eq 'DateTime';
+                if (!defined $xy_values{"$x"})
+                {
+                    $xy_values{"$x"} = 1;
+                }
+                if ($group_by && !defined $y_group_values{$gval})
+                {
+                    $y_group_values{$gval} = { defined => 0 };
+                    $y_group_index++;
+                }
+                if (($x_axis->return_type && $x_axis->return_type eq 'date') || $x_axis->type eq 'daterange')
+                {
+                    $datemin = $x if !defined $datemin || $datemin > $x;
+                    $datemax = $x if !defined $datemax || $datemax < $x;
+                }
             }
         }
     }
@@ -234,9 +242,12 @@ sub _build_data
                 or next;
             if ($x_axis && $x_axis->return_type && $x_axis->return_type eq 'date')
             {
-                $x_value = _group_date($x_value->value, $self->x_axis_grouping);
+                $x_value = _group_date($x_value->value, $self->x_axis_grouping)->epoch;
             }
             next unless "$x_value";
+            my @x_values = $x_axis && $x_axis->type eq 'daterange'
+                         ? map { $_->epoch } _group_dates($x_value, $self->x_axis_grouping)
+                         : ($x_value);
 
             my $y_value     = $x_axis ? $record->fields->{$y_axis->id} : $record->fields->{$x->id};
             my $y_field     = $x_axis ? $y_axis : $x; # The field of the y axis value
@@ -256,7 +267,6 @@ sub _build_data
                 $key = 1; # Only one series
             }
             else {
-                # XXX Not sure why this line of code was written. Possibly leaves a bug
                 $key = $groupby_val;
             }
 
@@ -268,16 +278,19 @@ sub _build_data
                 $series->{$key}->{y_group} = "$groupby_val" if $group_by;
             }
             # Finally increase by one the particlar value count in question
-            my $idx = $xy_values{$x_value};
-            if ($self->y_axis_stack eq 'count')
+            foreach my $xv (@x_values)
             {
-                $series->{$key}->{data}->[$idx]++;
-            }
-            elsif($y_field->numeric) {
-                $series->{$key}->{data}->[$idx] += $y_value if $y_value;
-            }
-            else {
-                $series->{$key}->{data}->[$idx] = 0 unless $series->{$key}->{data}->[$idx];
+                my $idx = $xy_values{$xv};
+                if ($self->y_axis_stack eq 'count')
+                {
+                    $series->{$key}->{data}->[$idx]++;
+                }
+                elsif($y_field->numeric) {
+                    $series->{$key}->{data}->[$idx] += $y_value if $y_value;
+                }
+                else {
+                    $series->{$key}->{data}->[$idx] = 0 unless $series->{$key}->{data}->[$idx];
+                }
             }
         }
     }
@@ -422,12 +435,26 @@ sub _group_date
 {   my ($val, $grouping) = @_;
     $val or return;
     $grouping eq 'year'
-         ? DateTime->new(year => $val->year)->epoch
+         ? DateTime->new(year => $val->year)
          : $grouping eq 'month'
-         ? DateTime->new(year => $val->year, month => $val->month)->epoch
+         ? DateTime->new(year => $val->year, month => $val->month)
          : $grouping eq 'day'
-         ? DateTime->new(year => $val->year, month => $val->month, day => $val->month)->epoch
-         : $val->epoch
+         ? DateTime->new(year => $val->year, month => $val->month, day => $val->month)
+         : $val
+}
+
+sub _group_dates
+{   my ($val, $grouping) = @_;
+    $val or return;
+    my $start  = _group_date($val->from_dt, $grouping);
+    my @return = ($start);
+    my $range  = $val->from_dt->clone;
+    while ($range->epoch < _group_date($val->to_dt, $grouping)->epoch)
+    {
+        $range->add($grouping."s" => 1);
+        push @return, _group_date($range, $grouping);
+    }
+    @return;
 }
 
 1;
