@@ -202,6 +202,51 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 graphs
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Graph>
+
+=cut
+
+__PACKAGE__->has_many(
+  "graphs",
+  "GADS::Schema::Result::Graph",
+  { "foreign.instance_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 layouts
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Layout>
+
+=cut
+
+__PACKAGE__->has_many(
+  "layouts",
+  "GADS::Schema::Result::Layout",
+  { "foreign.instance_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 metric_groups
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::MetricGroup>
+
+=cut
+
+__PACKAGE__->has_many(
+  "metric_groups",
+  "GADS::Schema::Result::MetricGroup",
+  { "foreign.instance_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 sort_layout
 
 Type: belongs_to
@@ -222,9 +267,24 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 views
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-06 03:17:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UTqO+87XYp6IFr+1wt8wQw
+Type: has_many
+
+Related object: L<GADS::Schema::Result::View>
+
+=cut
+
+__PACKAGE__->has_many(
+  "views",
+  "GADS::Schema::Result::View",
+  { "foreign.instance_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-07-24 21:26:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5Dv1SX7rbyIqMJlrfgemeg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

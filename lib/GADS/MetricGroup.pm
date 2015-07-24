@@ -28,12 +28,31 @@ has schema => (
     required => 1,
 );
 
+has instance_id => (
+    is       => 'ro',
+    isa      => Int,
+    required => 1,
+);
+
 has id => (
     is => 'rwp',
 );
 
 has metrics => (
     is  => 'lazy',
+);
+
+has _rset => (
+    is      => 'ro',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        my ($mg) = $self->schema->resultset('MetricGroup')->search({
+            id          => $self->id,
+            instance_id => $self->instance_id,
+        })->all;
+        $mg;
+    },
 );
 
 has name => (
@@ -43,7 +62,7 @@ has name => (
     builder => sub {
         my $self = shift;
         $self->id or return;
-        $self->schema->resultset('MetricGroup')->find($self->id)->name;
+        $self->_rset->name;
     },
 );
 
@@ -54,7 +73,9 @@ sub _build_metrics
 
     my @all = $self->schema->resultset('Metric')->search({
         metric_group => $self->id,
+        instance_id  => $self->instance_id, # Safety check
     },{
+        join     => 'metric_group',
         order_by => [qw/x_axis_value y_axis_grouping_value/],
     });
     foreach my $metric (@all)
@@ -78,13 +99,14 @@ sub write
 
     if ($self->id)
     {
-        $self->schema->resultset('MetricGroup')->find($self->id)->update({
+        $self->_rset->update({
             name => $name,
         });
     }
     else {
         my $rset = $self->schema->resultset('MetricGroup')->create({
-            name => $name,
+            name        => $name,
+            instance_id => $self->instance_id,
         });
         $self->_set_id($rset->id);
     }
@@ -108,9 +130,7 @@ sub delete
         metric_group => $self->id,
     })->delete;
 
-    $self->schema->resultset('MetricGroup')->search({
-        id => $self->id,
-    })->delete;
+    $self->_rset->delete;
 }
 
 # Delete a single metric within a group

@@ -20,7 +20,7 @@ package GADS::Views;
 
 use Log::Report;
 use Moo;
-use MooX::Types::MooseLike::Base qw/ArrayRef HashRef/;
+use MooX::Types::MooseLike::Base qw/ArrayRef HashRef Int/;
 
 has user => (
     is       => 'rw',
@@ -29,6 +29,12 @@ has user => (
 
 has schema => (
     is       => 'rw',
+    required => 1,
+);
+
+has instance_id => (
+    is       => 'ro',
+    isa      => Int,
     required => 1,
 );
 
@@ -54,7 +60,8 @@ sub _user_views
         -or => [
             user_id => $self->user ? $self->user->{id} : undef,
             global  => 1,
-        ]
+        ],
+        instance_id => $self->instance_id,
     },{
             order_by => ['global', 'name'],
     })->all;
@@ -84,10 +91,11 @@ sub view
     my $layout = $self->layout or die "layout needs to be defined to retrieve view";
     # Try to create a view using the ID. Don't bork if it fails
     my $view    = try { GADS::View->new(
-        user   => $self->user,
-        id     => $view_id,
-        schema => $self->schema,
-        layout => $self->layout,
+        user        => $self->user,
+        id          => $view_id,
+        instance_id => $self->instance_id,
+        schema      => $self->schema,
+        layout      => $self->layout,
     ); };
     $view;
 }

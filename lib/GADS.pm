@@ -16,7 +16,6 @@ use GADS::Column::Person;
 use GADS::Column::Rag;
 use GADS::Column::String;
 use GADS::Column::Tree;
-use GADS::Config;
 use GADS::DB;
 use GADS::DBICProfiler;
 use GADS::Email;
@@ -25,6 +24,8 @@ use GADS::Graph::Data;
 use GADS::Graphs;
 use GADS::Group;
 use GADS::Groups;
+use GADS::Instance;
+use GADS::Instances;
 use GADS::Layout;
 use GADS::MetricGroup;
 use GADS::MetricGroups;
@@ -113,13 +114,33 @@ hook before => sub {
         forwardHome({ danger => "Your password has expired. Please use the Change password button
             below to set a new password." }, 'account/detail') unless request->uri eq '/account/detail';
     }
+    if ($user)
+    {
+        if (my $instance_id = param('instance'))
+        {
+            my $instances = GADS::Instances->new(schema => schema);
+            session 'instance_id' => $instance_id
+                if grep { $_->id == $instance_id } @{$instances->all};
+        }
+        elsif (!session('instance_id'))
+        {
+            my $instances = GADS::Instances->new(schema => schema);
+            session instance_id => $instances->all->[0]->id;
+        }
+        my $layout = GADS::Layout->new(
+            user        => $user,
+            schema      => schema,
+            instance_id => session('instance_id')
+        );
+        var 'layout' => $layout;
+    }
 };
 
 hook before_template => sub {
     my $tokens = shift;
 
     # Log to audit
-    my $user = logged_in_user;
+    my $user   = logged_in_user;
     my $method = request->method;
     my $path   = request->path;
     my $audit  = GADS::Audit->new(schema => schema, user => $user);
@@ -136,7 +157,7 @@ hook before_template => sub {
 
     $tokens->{header} = config->{gads}->{header};
 
-    my $layout = GADS::Layout->new(user => $user, schema => schema);
+    my $layout = var 'layout';
     if ($user && ($layout->user_can('approve_new') || $layout->user_can('approve_existing')))
     {
         my $approval = GADS::Approval->new(
@@ -147,16 +168,19 @@ hook before_template => sub {
         $tokens->{user_can_approve} = 1;
         $tokens->{approve_waiting} = $approval->count;
     }
-    $tokens->{messages} = session('messages');
-    $tokens->{user}     = $user;
-    $tokens->{config}   = config;
+    $tokens->{instances} = GADS::Instances->new(schema => schema)->all;
+    $tokens->{messages}  = session('messages');
+    $tokens->{user}      = $user;
+    $tokens->{config}    = config;
     session 'messages' => [];
-
 };
 
 get '/' => require_login sub {
 
-    my $config = GADS::Config->new(schema => schema);
+    my $config = GADS::Instance->new(
+        id     => session('instance_id'),
+        schema => schema,
+    );
     template 'index' => {
         instance => $config,
         page     => 'index'
@@ -245,7 +269,7 @@ get '/data_calendar/:time' => require_login sub {
     }
 
     my $user    = logged_in_user;
-    my $layout  = GADS::Layout->new(user => $user, schema => schema);
+    my $layout  = var 'layout';
     my $view    = current_view($user, $layout);
 
     my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
@@ -266,7 +290,7 @@ get '/data_calendar/:time' => require_login sub {
 sub _data_graph
 {   my $id = shift;
     my $user    = logged_in_user;
-    my $layout  = GADS::Layout->new(user => $user, schema => schema);
+    my $layout  = var 'layout';
     my $view    = current_view($user, $layout);
     my $graph   = GADS::Graph->new(id => $id, schema => schema);
     my $records = GADS::Records->new(
@@ -302,9 +326,9 @@ get '/data_graph/:id/:time' => require_login sub {
 
 get '/search' => require_login sub {
 
-    my $search = param 'search';
-    my $user = logged_in_user;
-    my $layout = GADS::Layout->new(user => $user, schema => schema);
+    my $search  = param 'search';
+    my $user    = logged_in_user;
+    my $layout  = var 'layout';
     my $records = GADS::Records->new(schema => schema, user => $user, layout => $layout);
     my @results = $records->search_all_fields($search);
 
@@ -321,7 +345,7 @@ get '/search' => require_login sub {
 any '/data' => require_login sub {
 
     my $user   = logged_in_user;
-    my $layout = GADS::Layout->new(user => $user, schema => schema);
+    my $layout = var 'layout';
 
     # Deal with any alert requests
     if (my $alert_view = param 'alert')
@@ -506,7 +530,10 @@ any '/data' => require_login sub {
         {
             # Default sort if not set
             # Set here in case it's a hidden column
-            my $config = GADS::Config->new(schema => schema);
+            my $config = GADS::Instance->new(
+                id     => session('instance_id'),
+                schema => schema,
+            );
             my $sort = {
                 id   => $config->sort_layout_id,
                 type => $config->sort_type,
@@ -592,7 +619,12 @@ any '/data' => require_login sub {
         schema    => schema,
     );
 
-    my $views      = GADS::Views->new(user => $user, schema => schema, layout => $layout);
+    my $views      = GADS::Views->new(
+        user        => $user,
+        schema      => schema,
+        layout      => $layout,
+        instance_id => session('instance_id'),
+    );
 
     $params->{v}               = $view,  # View is reserved TT word
     $params->{user_views}      = $views->user_views;
@@ -682,7 +714,10 @@ any '/account/?:action?/?' => require_login sub {
 
 any '/config/?' => require_role layout => sub {
 
-    my $config = GADS::Config->new(schema => schema);
+    my $config = GADS::Instance->new(
+        id     => session('instance_id'),
+        schema => schema,
+    );
 
     if (param 'update')
     {
@@ -698,10 +733,7 @@ any '/config/?' => require_role layout => sub {
         }
     }
 
-    my $layout = GADS::Layout->new(
-        user   => logged_in_user,
-        schema => schema,
-    );
+    my $layout      = var 'layout';
     my @all_columns = $layout->all;
     template 'config' => {
         all_columns => \@all_columns,
@@ -713,7 +745,7 @@ any '/config/?' => require_role layout => sub {
 
 any '/graph/?:id?' => require_role layout => sub {
 
-    my $layout = GADS::Layout->new(user => logged_in_user, schema => schema);
+    my $layout = var 'layout';
     my $params = {
         layout => $layout,
         page   => 'graph',
@@ -750,10 +782,13 @@ any '/graph/?:id?' => require_role layout => sub {
         $params->{graph}         = $graph;
         $params->{dategroup}     = GADS::Graphs->dategroup;
         $params->{graphtypes}    = [GADS::Graphs->types];
-        $params->{metric_groups} = GADS::MetricGroups->new(schema => schema)->all;
+        $params->{metric_groups} = GADS::MetricGroups->new(
+            schema      => schema,
+            instance_id => session('instance_id'),
+        )->all;
     }
     else {
-        my $graphs = GADS::Graphs->new(schema => schema)->all;
+        my $graphs = GADS::Graphs->new(schema => schema, layout => $layout)->all;
         $params->{graphs} = $graphs;
     }
 
@@ -762,7 +797,7 @@ any '/graph/?:id?' => require_role layout => sub {
 
 any '/metric/?:id?' => require_role layout => sub {
 
-    my $layout = GADS::Layout->new(user => logged_in_user, schema => schema);
+    my $layout = var 'layout';
     my $params = {
         layout => $layout,
         page   => 'metric',
@@ -772,8 +807,9 @@ any '/metric/?:id?' => require_role layout => sub {
     if (defined $id)
     {
         my $metricgroup = GADS::MetricGroup->new(
-            schema => schema,
-            id     => $id,
+            schema      => schema,
+            id          => $id,
+            instance_id => session('instance_id'),
         );
 
         if (param 'delete_all')
@@ -828,7 +864,10 @@ any '/metric/?:id?' => require_role layout => sub {
         $params->{metricgroup} = $metricgroup;
     }
     else {
-        my $metrics = GADS::MetricGroups->new(schema => schema)->all;
+        my $metrics = GADS::MetricGroups->new(
+            schema      => schema,
+            instance_id => session('instance_id'),
+        )->all;
         $params->{metrics} = $metrics;
     }
 
@@ -839,7 +878,7 @@ any '/group/?:id?' => require_role useradmin => sub {
 
     my $id = param 'id';
     my $group  = GADS::Group->new(schema => schema);
-    my $layout = GADS::Layout->new(user => logged_in_user, schema => schema);
+    my $layout = var 'layout';
     $group->from_id($id);
 
     if (param 'submit')
@@ -890,15 +929,13 @@ any '/view/:id' => require_login sub {
     $view_id = param('clone') if param('clone') && !request->is_post;
     my @ucolumns; my $view_values;
 
-    my $user = logged_in_user;
-    my $layout = GADS::Layout->new(
-        user   => $user,
-        schema => schema,
-    );
+    my $user   = logged_in_user;
+    my $layout = var 'layout';
     my %vp = (
-        user   => $user,
-        schema => schema,
-        layout => $layout,
+        user        => $user,
+        schema      => schema,
+        layout      => $layout,
+        instance_id => session('instance_id'),
     );
     $vp{id} = $view_id if $view_id;
     my $view = GADS::View->new(%vp);
@@ -971,7 +1008,7 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => require_login sub {
 any '/layout/?:id?' => require_role 'layout' => sub {
 
     my $user        = logged_in_user;
-    my $layout      = GADS::Layout->new(user => $user, schema => schema);
+    my $layout      = var 'layout';
     my @all_columns = $layout->all;
 
     my $params = {
@@ -986,7 +1023,11 @@ any '/layout/?:id?' => require_role 'layout' => sub {
                   ? param('type')
                   : rset('Layout')->find($id)->type;
         $class = "GADS::Column::".camelize($class);
-        my $column = $class->new(schema => schema, user => $user, layout => $layout);
+        my $column = $class->new(
+            schema => schema,
+            user   => $user,
+            layout => $layout
+        );
         $column->from_id($id) if $id;
         
         # Update of permissions?
@@ -1231,7 +1272,7 @@ any '/approval/?:id?' => require_login sub {
     my $id   = param 'id';
     my $user = logged_in_user;
 
-    my $layout = GADS::Layout->new(user => $user, schema => schema);
+    my $layout = var 'layout';
 
     # If we're viewing or approving an individual record, first
     # see if it's a new record or edit of existing. This affects
@@ -1348,7 +1389,7 @@ any '/approval/?:id?' => require_login sub {
 get '/helptext/:id?' => require_login sub {
     my $id     = param 'id';
     my $user   = logged_in_user;
-    my $layout = GADS::Layout->new(user => $user, schema => schema);
+    my $layout = var 'layout';
     my $column = GADS::Column->new(schema => schema, user => $user, layout => $layout);
     $column->from_id(param 'id');
     template 'helptext.tt', { column => $column }, { layout => undef };
@@ -1358,7 +1399,7 @@ any '/edit/:id?' => require_login sub {
     my $id = param 'id';
 
     my $user   = logged_in_user;
-    my $layout = GADS::Layout->new(user => $user, schema => schema);
+    my $layout = var 'layout';
     my $record = GADS::Record->new(
         user     => $user,
         layout   => $layout,
@@ -1543,7 +1584,7 @@ any qr{/(record|history)/([0-9]+)} => require_login sub {
     my ($action, $id) = splat;
 
     my $user   = logged_in_user;
-    my $layout = GADS::Layout->new(user => $user, schema => schema);
+    my $layout = var 'layout';
     my $record = GADS::Record->new(
         user   => $user,
         layout => $layout,
@@ -1681,7 +1722,10 @@ any '/login' => sub {
         }
     }
 
-    my $config = GADS::Config->new(schema => schema);
+    my $config = GADS::Instance->new(
+        id     => config->{gads}->{login_instance} || 1,
+        schema => schema,
+    );
     my $output  = template 'login' => {
         error         => "".($error||""),
         instance      => $config,
@@ -1733,7 +1777,12 @@ any '/resetpw/:code' => sub {
 sub current_view {
     my ($user, $layout) = @_;
 
-    my $views      = GADS::Views->new(user => $user, schema => schema, layout => $layout);
+    my $views      = GADS::Views->new(
+        user        => $user,
+        schema      => schema,
+        layout      => $layout,
+        instance_id => session('instance_id'),
+    );
     my $saved_view = $user->{lastview};
     my $view       = $views->view(session('view_id') || $saved_view) || $views->default; # Can still be undef
     $view;

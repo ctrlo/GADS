@@ -218,7 +218,10 @@ sub search_views
         }
     }
 
-    my $search       = { 'me.id' => $current_ids }; # Array ref
+    my $search       = {
+        'me.id'          => $current_ids, # Array ref
+        'me.instance_id' => $self->layout->instance_id,
+    };
     $search->{'-or'} = \@search if @search;
 
     $found_in_a_view ||= $self->schema->resultset('Current')->search($search,{
@@ -238,7 +241,8 @@ sub search_views
             {
                 my @s = @{$self->_search_construct($decoded, $self->layout, $prefetches, $joins, 1)};
                 my @found = $self->schema->resultset('Current')->search({
-                    'me.id' => $current_ids, # Array ref
+                    'me.id'          => $current_ids, # Array ref
+                    'me.instance_id' => $self->layout->instance_id,
                     @s,
                 },{
                     join     => {'record' => $joins},
@@ -320,6 +324,7 @@ sub search_all_fields
         my @columns_can_view = map {$_->id} $self->layout->all(user_can_read => 1);
         $search_hash->{'layout.id'} = \@columns_can_view
             unless $field->{type} eq 'current_id';
+        $search_hash->{'me.instance_id'} = $self->layout->instance_id;
         my @currents = $self->schema->resultset('Current')->search($search_hash,{
             prefetch => $prefetch,
             collapse => 1,
@@ -376,10 +381,12 @@ sub search
     unless ($self->include_approval)
     {
         push @search, (
-            {'record.approval' => 0},
-            {'record.record_id' => undef},
+            { 'record.approval'  => 0 },
+            { 'record.record_id' => undef },
         );
     }
+    push @search, { 'me.instance_id'   => $self->layout->instance_id };
+
     $root_table = 'Current';
 
     my $search = [-and => [@search, @limit]];

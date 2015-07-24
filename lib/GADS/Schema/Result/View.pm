@@ -64,6 +64,12 @@ __PACKAGE__->table("view");
   data_type: 'text'
   is_nullable: 1
 
+=head2 instance_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -77,6 +83,8 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "filter",
   { data_type => "text", is_nullable => 1 },
+  "instance_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -136,6 +144,26 @@ __PACKAGE__->has_many(
   "GADS::Schema::Result::Filter",
   { "foreign.view_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 instance
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Instance>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "instance",
+  "GADS::Schema::Result::Instance",
+  { id => "instance_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
 );
 
 =head2 sorts
@@ -204,8 +232,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-02-11 12:20:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:auNbZLQesfr+obGkeDLbNQ
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-07-24 16:22:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LTQrg33ObqxljwmabGLphQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -107,6 +107,12 @@ __PACKAGE__->table("graph");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 instance_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -133,6 +139,8 @@ __PACKAGE__->add_columns(
   "type",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "metric_group",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "instance_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
@@ -162,6 +170,26 @@ __PACKAGE__->belongs_to(
   "group_by",
   "GADS::Schema::Result::Layout",
   { id => "group_by" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 instance
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Instance>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "instance",
+  "GADS::Schema::Result::Instance",
+  { id => "instance_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -246,8 +274,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-05-31 15:15:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ie0uGp97l/HDZPxPwICsww
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-07-24 16:22:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qi/rbDh2GLTn0x6MULZSsw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

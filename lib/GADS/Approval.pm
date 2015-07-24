@@ -63,10 +63,14 @@ sub _build__records
 
     # First short-cut and see if it is worth continuing
     return {} unless $self->schema->resultset('Record')->search({
-        approval => 1,
+        approval              => 1,
+        'current.instance_id' => $self->layout->instance_id,
+    }, {
+        join => 'current',
     })->count;
 
     my $search = {
+        'current.instance_id'      => $self->layout->instance_id,
         'record.approval'          => 1,
         'layout_groups.permission' => 'approve_new',
         'user_id'                  => $self->user->{id},
@@ -76,9 +80,12 @@ sub _build__records
     my $options = {
         join => [
             {
-                'record' => {
-                    'record' => ['record_previous', 'createdby'],
-                },
+                'record' => [
+                    'current',
+                    {
+                        'record' => ['record_previous', 'createdby'],
+                    },
+                ],
             },
             {
                 'layout' => {
@@ -126,6 +133,7 @@ sub _build__records
     }
 
     $search = {
+        'current.instance_id'      => $self->layout->instance_id,
         'record.approval'          => 1,
         'layout_groups.permission' => 'approve_existing',
         'user_id'                  => $self->user->{id},

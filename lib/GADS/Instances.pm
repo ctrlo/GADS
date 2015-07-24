@@ -1,5 +1,5 @@
 =pod
-GADS - Globally Accessible Data Store
+GADS
 Copyright (C) 2015 Ctrl O Ltd
 
 This program is free software: you can redistribute it and/or modify
@@ -16,9 +16,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 =cut
 
-package GADS::MetricGroups;
+package GADS::Instances;
 
-use Log::Report;
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
 
@@ -27,38 +26,19 @@ has schema => (
     required => 1,
 );
 
-has instance_id => (
-    is       => 'ro',
-    isa      => Int,
-    required => 1,
-);
-
 has all => (
-    is      => 'lazy',
+    is => 'lazy',
 );
 
 sub _build_all
 {   my $self = shift;
-
-    my @metrics;
-
-    my @all = $self->schema->resultset('MetricGroup')->search(
-    {
-        instance_id => $self->instance_id,
-    },{
-        order_by => 'me.name',
+    my $instance_rs = $self->schema->resultset('Instance')->search({},{
+        order_by => ['me.name'],
     });
-    foreach my $metric (@all)
-    {
-        push @metrics, {
-            id   => $metric->id,
-            name => $metric->name,
-        };
-    }
-
-    \@metrics;
+    $instance_rs->result_class('GADS::Instance');
+    my @all = $instance_rs->all;
+    \@all;
 }
 
 1;
-
 

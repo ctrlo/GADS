@@ -48,6 +48,12 @@ has user => (
     required => 1,
 );
 
+has instance_id => (
+    is       => 'ro',
+    isa      => Int,
+    required => 1,
+);
+
 has columns => (
     is      => 'rw',
     lazy    => 1,
@@ -91,7 +97,10 @@ has columns_index => (
 sub _build_columns
 {   my $self = shift;
 
-    my $cols_rs = $self->schema->resultset('Layout')->search({},{
+    my $cols_rs = $self->schema->resultset('Layout')->search(
+    {
+        instance_id => $self->instance_id,
+    },{
         order_by => ['me.position', 'enumvals.id'],
         join     => 'enumvals',
         prefetch => ['calcs', 'rags'],
@@ -238,10 +247,11 @@ sub view
 
     return unless $view_id;
     my $view    = GADS::View->new(
-        user   => $self->user,
-        id     => $view_id,
-        schema => $self->schema,
-        layout => $self,
+        user        => $self->user,
+        id          => $view_id,
+        schema      => $self->schema,
+        layout      => $self,
+        instance_id => $self->instance_id,
     );
     my %view_layouts = map { $_ => 1 } @{$view->columns};
     grep { $view_layouts{$_->{id}} } $self->all(%options);

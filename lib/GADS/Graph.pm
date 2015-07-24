@@ -180,6 +180,8 @@ has showlegend => (
     },
 );
 
+# XXX This could potentially be a metric ID from another instance. This
+# doesn't really matter, but would be tidier if it was fixed.
 has metric_group_id => (
     is      => 'rw',
     isa     => Maybe[Int],
@@ -219,6 +221,7 @@ sub write
     $newgraph->{metric_group}    = $self->metric_group_id;
     $newgraph->{stackseries}     = $self->stackseries;
     $newgraph->{type}            = $self->type;
+    $newgraph->{instance_id}     = $self->layout->instance_id;
 
     if (my $graph = $self->_graph)
     {

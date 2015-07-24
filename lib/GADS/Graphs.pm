@@ -53,6 +53,7 @@ sub _all
         # Get which graphs the user has first
         @user_graphs = $self->schema->resultset('Graph')->search({
             'user_graphs.user_id' => $user->{id},
+            instance_id           => $self->instance_id,
         },{
             join => 'user_graphs',
         })->all;
@@ -60,7 +61,10 @@ sub _all
 
     # Now get all graphs, and use the previous query to see
     # if the user has this graph
-    my $all_rs = $self->schema->resultset('Graph')->search({},{
+    my $all_rs = $self->schema->resultset('Graph')->search(
+    {
+        instance_id => $self->layout->instance_id,
+    },{
         order_by => 'me.title',
     });
     $all_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');

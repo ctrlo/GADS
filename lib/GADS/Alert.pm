@@ -72,10 +72,11 @@ has view_id => (
         # Check that user has access to this view (borks on no access)
         # XXX Check it does bork
         my $view    = GADS::View->new(
-            user   => $self->user,
-            id     => $view_id,
-            schema => $self->schema,
-            layout => $self->layout,
+            user        => $self->user,
+            id          => $view_id,
+            schema      => $self->schema,
+            layout      => $self->layout,
+            instance_id => $self->layout->instance_id,
         );
     },
 );

@@ -257,8 +257,9 @@ sub _find
         unless ($self->include_approval)
         {
             push @search, (
-                {'me.approval' => 0},
-                {'me.record_id' => undef},
+                { 'me.approval'         => 0 },
+                { 'me.record_id'        => undef },
+                { 'current.instance_id' => $self->layout->instance_id },
             );
         }
     }
@@ -275,6 +276,7 @@ sub _find
                 {'record.record_id' => undef},
             );
         }
+        push @search, { 'me.instance_id' => $self->layout->instance_id };
     }
     else {
         confess "record_id or current_id needs to be passed to _find";
@@ -503,7 +505,8 @@ sub write
     if ($self->new_entry)
     {
         my $current = {
-            parent_id => $self->parent_id,
+            parent_id   => $self->parent_id,
+            instance_id => $self->layout->instance_id,
         };
         my $id = $self->schema->resultset('Current')->create($current)->id;
         $self->current_id($id);
@@ -749,6 +752,12 @@ sub delete_current
 
     my $id = $self->current_id
         or panic __"No current_id specified for delete";
+
+    $self->schema->resultset('Current')->search({
+        id => $id,
+        instance_id => $self->layout->instance_id,
+    })->count
+        or error "Invalid ID $id";
 
     my @records = $self->schema->resultset('Record')->search({
         current_id => $id

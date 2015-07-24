@@ -43,6 +43,12 @@ has schema => (
     required => 1,
 );
 
+has instance_id => (
+    is       => 'ro',
+    isa      => Int,
+    required => 1,
+);
+
 has layout => (
     is       => 'rw',
     required => 1,
@@ -55,7 +61,8 @@ has _view => (
     builder => sub {
         my $self = shift;
         my ($view) = $self->schema->resultset('View')->search({
-            'me.id' => $self->id
+            'me.id'          => $self->id,
+            'me.instance_id' => $self->instance_id,
         },{
             prefetch => ['sorts', 'alerts'],
         })->all;
@@ -194,8 +201,9 @@ sub write
         $vu->{user_id} = $self->user->{id};
     }
 
-    $vu->{name} = $self->name or error __"Please enter a name for the view";
-    $vu->{filter} = $self->filter;
+    $vu->{name}        = $self->name or error __"Please enter a name for the view";
+    $vu->{filter}      = $self->filter;
+    $vu->{instance_id} = $self->instance_id;
     my $decoded = decode_json($self->filter);
 
     # Get all the columns in the filter. Check whether the user has

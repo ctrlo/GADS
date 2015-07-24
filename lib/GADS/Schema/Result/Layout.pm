@@ -116,6 +116,12 @@ __PACKAGE__->table("layout");
   default_value: 0
   is_nullable: 0
 
+=head2 instance_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -147,6 +153,8 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 256 },
   "hidden",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "instance_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -393,6 +401,26 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 instance
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Instance>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "instance",
+  "GADS::Schema::Result::Instance",
+  { id => "instance_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
 =head2 instances
 
 Type: has_many
@@ -574,8 +602,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-07-12 12:24:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CMEVxrAQwTE4Lw1WWTH7iQ
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-07-24 21:26:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IZkpBBXkpbzaqtonrosJ8g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
