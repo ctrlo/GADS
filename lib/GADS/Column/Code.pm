@@ -53,8 +53,9 @@ sub update_cached
     # Need to refresh layout for updated calculation. Also
     # need it for the dependent fields
     my $layout = GADS::Layout->new(
-        user   => $self->user,
-        schema => $self->schema,
+        instance_id => $self->layout->instance_id,
+        user        => $self->user,
+        schema      => $self->schema,
     );
 
     my $records = GADS::Records->new(
