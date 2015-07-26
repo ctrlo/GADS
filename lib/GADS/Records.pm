@@ -544,18 +544,6 @@ sub construct_search
     my @search_date;     # The search criteria to narrow-down by date range
     foreach my $c (@columns)
     {
-        # XXX We used to prefetch all fields depended on by calculated fields.
-        # However, this could get quite expensive, and it shouldn't be needed
-        # anyway.
-#        next unless $c->id; # Special ID column has no id value
-#        if (($c->type eq 'rag' || $c->type eq 'calc') && $c->{$c->{type}})
-#        {
-#            foreach (@{$c->{$c->{type}}->{columns}})
-#            {
-#                $cache_joins->{$_->{field}} = 1 if $_->{id};
-#            }
-#        }
-#
         if ($c->type eq "date" || $c->type eq "daterange")
         {
             # Apply any date filters if required
@@ -563,7 +551,7 @@ sub construct_search
             if (my $to = $self->to)
             {
                 my $f = {
-                    id       => $c->{id},
+                    id       => $c->id,
                     operator => 'less',
                     value    => $to->ymd,
                 };
@@ -572,7 +560,7 @@ sub construct_search
             if (my $from = $self->from)
             {
                 my $f = {
-                    id       => $c->{id},
+                    id       => $c->id,
                     operator => 'greater',
                     value    => $from->ymd,
                 };
@@ -584,10 +572,10 @@ sub construct_search
             } if @f;
         }
         # Flag cache if need be - may need updating
-        $cache_cols{$c->{field}} = $c
-            if $c->{hascache};
+        $cache_cols{$c->field} = $c
+            if $c->hascache;
         # We're viewing this, so prefetch all the values
-        _add_prefetch ($c->{join}, $prefetches, $joins);
+        _add_prefetch ($c->join, $prefetches, $joins);
     }
 
     my @limit; # The overall limit, for example reduction by date range or approval field
