@@ -68,12 +68,18 @@ has layout => (
     weak_ref => 1,
 );
 
+has instance_id => (
+    is  => 'lazy',
+    isa => Int,
+);
+
 has from_id => (
     is      => 'rw',
     trigger => sub {
         my ($self, $value) = @_;
         my $cols_rs = $self->schema->resultset('Layout')->search({
-            'me.id' => $value,
+            'me.id'          => $value,
+            'me.instance_id' => $self->instance_id,
         },{
             order_by => ['me.position', 'enumvals.id'],
             prefetch => ['enumvals', 'calcs', 'rags', 'file_options' ],
@@ -81,6 +87,7 @@ has from_id => (
 
         $cols_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
         my ($col) = $cols_rs->all;
+        $col or error __x"Field ID {id} not found", id => $value;
         $self->set_values($col);
     },
 );
@@ -305,6 +312,13 @@ sub _build_permissions
         );
     }
     \%perms;
+}
+
+sub _build_instance_id
+{   my $self = shift;
+    $self->layout
+        or panic "layout is not set - specify instance_id on creation instead?";
+    $self->layout->instance_id;
 }
 
 sub build_values

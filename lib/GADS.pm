@@ -982,7 +982,10 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => require_login sub {
 
     my ($layout_id, $value) = splat;
 
-    my $tree = GADS::Column::Tree->new(schema => schema);
+    my $tree = GADS::Column::Tree->new(
+        instance_id => session('instance_id'),
+        schema      => schema,
+    );
 
     if (param 'data')
     {
