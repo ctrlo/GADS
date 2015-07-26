@@ -108,9 +108,10 @@ sub _create_cache
 {   my $self = shift;
 
     my $views   = GADS::Views->new(
-        user   => $self->user,
-        schema => $self->schema,
-        layout => $self->layout,
+        user        => $self->user,
+        schema      => $self->schema,
+        layout      => $self->layout,
+        instance_id => $self->layout->instance_id,
     );
     my $records = GADS::Records->new(
         user   => $self->user,
