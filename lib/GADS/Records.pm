@@ -253,6 +253,16 @@ sub _add_linked_join
     $self->_add_jp(@_, 'linked_join');
 }
 
+# Shortcut to generate the required joining hash for a DBIC search
+sub linked_hash
+{   my $self = shift;
+    {
+        linked => {
+            record => $self->linked_prefetches,
+        },
+    };
+}
+
 # A function to see if any views have a particular record within
 sub search_views
 {   my ($self, $current_ids, @views) = @_;
@@ -463,7 +473,9 @@ sub search
     # XXX Okay, this is a bit weird - we join current to record to current.
     # This is because we return records at the end, and it allows current
     # to be used when the record is used. Is there a better way?
-    unshift @$prefetches, ('current', 'createdby', 'approvedby');
+    my $linked  = $self->linked_hash;
+    my $current = $root_table eq 'Record' ? { current => $linked } : 'current';
+    unshift @$prefetches, ($current, 'createdby', 'approvedby');
 
     my $currents = $self->prefetch_related ? { currents => {record => $prefetches} } : 'currents';
     my $select = {
@@ -472,21 +484,13 @@ sub search
                 'record' => $prefetches
             },
             $currents,
-            {
-                linked => {
-                    record => $self->linked_prefetches,
-                },
-            },
+            $linked,
         ],
         join     => $root_table eq 'Record' ? $joins : [
             {
                 'record' => $joins
             },
-            {
-                linked => {
-                    record => $self->linked_joins,
-                },
-            },
+            $linked,
         ],
         '+select' => $self->plus_select,
         order_by  => $self->order_by,

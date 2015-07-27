@@ -221,6 +221,11 @@ has force_update => (
     is => 'rw',
 );
 
+has is_historic => (
+    is  => 'lazy',
+    isa => Bool,
+);
+
 sub _build_approval_of_new
 {   my $self = shift;
     # record_id could either be an approval record itself, or
@@ -237,6 +242,12 @@ sub _build_approval_of_new
     },{
         join => 'record_previous',
     })->count;
+}
+
+sub _build_is_historic
+{   my $self = shift;
+    my $current_rec_id = $self->record->{current}->{record_id};
+    $current_rec_id && $current_rec_id != $self->record_id;
 }
 
 sub find_record_id
@@ -267,11 +278,17 @@ sub _find
     my $joins      = $records->joins;
     my @search     = @{$rinfo->{search}};
 
-    unshift @$prefetches, ('current', 'createdby', 'approvedby'); # Add info about related current record
 
     my $root_table;
     if (my $record_id = $find{record_id})
     {
+        unshift @$prefetches, (
+            {
+                'current' => $records->linked_hash
+            },
+            'createdby',
+            'approvedby'
+        ); # Add info about related current record
         push @limit, ("me.id" => $record_id);
         $root_table = 'Record';
         unless ($self->include_approval)
@@ -286,7 +303,14 @@ sub _find
     elsif (my $current_id = $find{current_id})
     {
         push @limit, ("me.id" => $current_id);
-        $prefetches = ['currents', {'record' => $prefetches}];
+        unshift @$prefetches, ('current', 'createdby', 'approvedby'); # Add info about related current record
+        $prefetches = [
+            $records->linked_hash,
+            'currents',
+            {
+                'record' => $prefetches,
+            },
+        ];
         $joins      = {'record' => $joins};
         $root_table = 'Current';
         unless ($self->include_approval)
@@ -321,9 +345,18 @@ sub _find
     {
         $self->linked_id($record->{linked_id});
         $self->parent_id($record->{parent_id});
+        $self->linked_record($record->{linked}->{record});
         my @related_records = map { $_->{id} } @{$record->{currents}};
         $self->_set_related_records(\@related_records);
         $record = $record->{record};
+    }
+    else {
+        $self->linked_id($record->{current}->{linked_id});
+        # Add the whole linked record. If we are building a historic record,
+        # then this will not be used. Instead the values will be replaced
+        # with the actual values of that record, which may or may not have
+        # values
+        $self->linked_record($record->{current}->{linked}->{record});
     }
     if ($self->_set_approval_flag($record->{approval}))
     {
@@ -370,7 +403,7 @@ sub _transform_values
         }
         my $value = $original->{$column->field};
         $value = $self->linked_record && $self->linked_record->{$column->link_parent->field}
-            if $self->linked_id && $column->link_parent;
+            if $self->linked_id && $column->link_parent && !$self->is_historic;
         next if $self->parent_id && !defined $value;
 
         # FIXME XXX Don't collect file content in sql query
