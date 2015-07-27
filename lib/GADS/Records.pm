@@ -126,6 +126,29 @@ has linked_joins => (
     default => sub { [] },
 );
 
+has plus_select => (
+    is      => 'rw',
+    isa     => ArrayRef,
+    default => sub { [] },
+);
+
+has order_by => (
+    is      => 'rw',
+    isa     => ArrayRef,
+    default => sub { [] },
+);
+
+has order_by_count => (
+    is      => 'rw',
+    isa     => Int,
+    default => 0,
+);
+
+sub order_by_inc
+{   my $self = shift;
+    $self->order_by_count($self->order_by_count + 1);
+}
+
 has sort => (
     is => 'rw',
 );
@@ -420,7 +443,6 @@ sub search
 
     my @search     = @{$rinfo->{search}};
     my @limit      = @{$rinfo->{limit}};
-    my @orderby    = @{$rinfo->{orderby}};
     my $prefetches = $self->prefetches;
     my $joins      = $self->joins;
 
@@ -466,7 +488,8 @@ sub search
                 },
             },
         ],
-        order_by => \@orderby,
+        '+select' => $self->plus_select,
+        order_by  => $self->order_by,
     };
 
     # First count all values from result
@@ -660,20 +683,16 @@ sub construct_search
 
     # Configure specific user selected sort. Do it now, as they may
     # not have view selected
-    my @orderby;
     if (my $sort = $self->sort)
     {
         my $type = $sort->{type} eq 'desc' ? '-desc' : '-asc';
         if (!$sort->{id})
         {
-            push @orderby, { $type => 'me.id' };
+            push @{$self->order_by}, { $type => 'me.id' };
         }
         elsif (my $column = $layout->column($sort->{id}))
         {
-            if (my $s_table = $self->_table_name($column))
-            {
-                push @orderby, { $type => "$s_table.".$column->value_field };
-            }
+            $self->add_sort($column, $type);
         }
     }
     # Now add all the filters as joins (we don't need to prefetch this data). However,
@@ -706,14 +725,13 @@ sub construct_search
                 if (my $col_id = $sort->{layout_id})
                 {
                     my $column  = $layout->column($col_id);
-                    my $s_table = $self->_table_name($column);
                     my $type    = $sort->{type} eq 'desc' ? '-desc' : '-asc';
-                    push @orderby, { $type => "$s_table.".$column->value_field };
+                    $self->add_sort($column, $type);
                 }
                 else {
                     # No column defined means sort by ID
                     my $type = $sort->{type} eq 'desc' ? '-desc' : '-asc';
-                    push @orderby, { $type => 'me.id' };
+                    push @{$self->order_by}, { $type => 'me.id' };
                 }
                 # Add the first sort column to the object for retrieval later
                 $self->sort({
@@ -724,22 +742,21 @@ sub construct_search
         }
     }
     # Default sort
-    unless (@orderby)
+    unless (@{$self->order_by})
     {
         my $default_sort = $self->default_sort;
         my $type         = $default_sort->{type} && $default_sort->{type} eq 'desc' ? 'desc' : 'asc';
         if (my $col_id = $default_sort->{id})
         {
             my $col     = $self->layout->column($col_id);
-            my $s_table = $self->_table_name($col);
-            push @orderby, { "-$type" => "$s_table.".$col->value_field };
+            $self->add_sort($col, "-$type");
             $self->sort({
                 id   => $col_id,
                 type => $type,
             });
         }
         else {
-            push @orderby, { "-$type" => 'me.id' };
+            push @{$self->order_by}, { "-$type" => 'me.id' };
             $self->sort({
                 type => $type,
             });
@@ -749,7 +766,6 @@ sub construct_search
     {
         search     => \@search,
         limit      => \@limit,
-        orderby    => \@orderby,
     }
 }
 
@@ -765,6 +781,34 @@ sub _table_name_linked
     my $jn = $self->_add_linked_join ($column->join);
     my $index = $jn > 1 ? "_$jn" : '';
     $column->sprefix . $index;
+}
+
+sub add_sort
+{   my ($self, $column, $type) = @_;
+
+    my $s_table = $self->_table_name($column);
+    $self->order_by_inc;
+    my $sort_name = "sort_".$self->order_by_count;
+    if ($column->link_parent)
+    {
+        push @{$self->plus_select}, {
+            concat => [
+                "$s_table.".$column->value_field,
+                $self->_table_name_linked($column->link_parent).".".$column->value_field,
+            ],
+            -as    => $sort_name,
+        };
+    }
+    else {
+        push @{$self->plus_select}, {
+            # XXX Not sure how to do this without concat
+            concat => "$s_table.".$column->value_field,
+            -as    => $sort_name,
+        }
+    }
+    push @{$self->order_by}, {
+        $type => $sort_name,
+    };
 }
 
 # $ignore_perms means to ignore any permissions on the column being
