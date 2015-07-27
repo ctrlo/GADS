@@ -114,7 +114,13 @@ has joins => (
 );
 
 # Same as prefetches, but linked fields
-has linked => (
+has linked_prefetches => (
+    is      => 'rw',
+    isa     => ArrayRef,
+    default => sub { [] },
+);
+
+has linked_joins => (
     is      => 'rw',
     isa     => ArrayRef,
     default => sub { [] },
@@ -159,9 +165,10 @@ sub _default_sort
 sub _add_jp
 {   my ($self, $toadd, $type) = @_;
 
-    my $prefetches = $self->prefetches;
-    my $joins      = $self->joins;
-    my $linked     = $self->linked;
+    my $prefetches        = $self->prefetches;
+    my $joins             = $self->joins;
+    my $linked_prefetches = $self->linked_prefetches;
+    my $linked_joins      = $self->linked_joins;
 
     # Process a join, prefetch or linked field. We see if we've already done it
     # first before adding. If the join criteria is a hash (ie joining a field
@@ -170,7 +177,7 @@ sub _add_jp
     # number.
     my %found; my $key;
     ($key) = keys %$toadd if ref $toadd eq 'HASH';
-    foreach my $j (@$joins, @$prefetches, @$linked)
+    foreach my $j (@$joins, @$prefetches, @$linked_joins, @$linked_prefetches)
     {
         if ($key && ref $j eq 'HASH')
         {
@@ -191,9 +198,13 @@ sub _add_jp
     {
         push @$prefetches, $toadd;
     }
-    elsif ($type eq 'linked')
+    elsif ($type eq 'linked_join')
     {
-        push @$linked, $toadd;
+        push @$linked_joins, $toadd;
+    }
+    elsif ($type eq 'linked_prefetch')
+    {
+        push @$linked_prefetches, $toadd;
     }
     $found{$key}++ if $key;
     return $key ? $found{$key} : 1;
@@ -209,9 +220,14 @@ sub _add_join
     $self->_add_jp(@_, 'join');
 }
 
-sub _add_linked
+sub _add_linked_prefetch
 {   my $self = shift;
-    $self->_add_jp(@_, 'linked');
+    $self->_add_jp(@_, 'linked_prefetch');
+}
+
+sub _add_linked_join
+{   my $self = shift;
+    $self->_add_jp(@_, 'linked_join');
 }
 
 # A function to see if any views have a particular record within
@@ -436,11 +452,20 @@ sub search
             $currents,
             {
                 linked => {
-                    record => $self->linked,
+                    record => $self->linked_prefetches,
                 },
             },
         ],
-        join     => $root_table eq 'Record' ? $joins : {'record' => $joins},
+        join     => $root_table eq 'Record' ? $joins : [
+            {
+                'record' => $joins
+            },
+            {
+                linked => {
+                    record => $self->linked_joins,
+                },
+            },
+        ],
         order_by => \@orderby,
     };
 
@@ -515,6 +540,7 @@ sub search
             linked_record     => $rec->{linked}->{record},
             related_records   => \@related,
             parent_id         => $rec->{parent_id},
+            linked_id         => $rec->{linked_id},
             user              => $self->user,
             format            => $self->format,
             layout            => $self->layout,
@@ -620,7 +646,7 @@ sub construct_search
             if $c->hascache;
         # We're viewing this, so prefetch all the values
         $self->_add_prefetch($c->join);
-        $self->_add_linked($c->link_parent->join) if $c->link_parent;
+        $self->_add_linked_prefetch($c->link_parent->join) if $c->link_parent;
     }
 
     my @limit; # The overall limit, for example reduction by date range or approval field
@@ -734,15 +760,19 @@ sub _table_name
     $column->sprefix . $index;
 }
 
+sub _table_name_linked
+{   my ($self, $column) = @_;
+    my $jn = $self->_add_linked_join ($column->join);
+    my $index = $jn > 1 ? "_$jn" : '';
+    $column->sprefix . $index;
+}
+
 # $ignore_perms means to ignore any permissions on the column being
 # processed. For example, if the current user is updating a record,
 # we want to process columns that the user doesn't have access to
 # for things like alerts, but not for their normal viewing.
 sub _search_construct
 {   my ($self, $filter, $layout, $ignore_perms) = @_;
-
-    my $prefetches = $self->prefetches;
-    my $joins      = $self->joins;
 
     if (my $rules = $filter->{rules})
     {
@@ -839,7 +869,7 @@ sub _search_construct
         (
             -or => [
                 "$s_table.$s_field" => $sq,
-                $self->_table_name($column->link_parent).".$s_field" => $sq,
+                $self->_table_name_linked($column->link_parent).".$s_field" => $sq,
             ],
         );
     }
