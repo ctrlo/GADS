@@ -61,6 +61,11 @@ has record => (
     is      => 'rw',
 );
 
+# The parent linked record, if applicable
+has linked_record => (
+    is      => 'rw',
+);
+
 # Should be set true if we are processing an approval
 has doing_approval => (
     is      => 'ro',
@@ -99,6 +104,21 @@ has record_id => (
 
 has record_id_old => (
     is => 'rw',
+);
+
+# The ID of the parent record that this is related to, in the
+# case of a linked record
+has linked_id => (
+    is      => 'rw',
+    isa     => Maybe[Int],
+    lazy    => 1,
+    coerce  => sub { $_[0] || undef }, # empty string from form submit
+    builder => sub {
+        my $self = shift;
+        my $current = $self->schema->resultset('Current')->find($self->current_id)
+            or return;
+        $current->linked_id;
+    },
 );
 
 # The ID of the parent record that this is related to, in the
@@ -243,8 +263,8 @@ sub _find
     $self->columns_retrieved($records->columns_retrieved);
 
     my @limit      = @{$rinfo->{limit}};
-    my $prefetches = $rinfo->{prefetches};
-    my $joins      = $rinfo->{joins};
+    my $prefetches = $records->prefetches;
+    my $joins      = $records->joins;
     my @search     = @{$rinfo->{search}};
 
     unshift @$prefetches, ('current', 'createdby', 'approvedby'); # Add info about related current record
@@ -299,6 +319,7 @@ sub _find
     $record or error __"Requested record not found";
     if ($find{current_id})
     {
+        $self->linked_id($record->{linked_id});
         $self->parent_id($record->{parent_id});
         my @related_records = map { $_->{id} } @{$record->{currents}};
         $self->_set_related_records(\@related_records);
@@ -337,6 +358,7 @@ sub _transform_values
 {   my $self = shift;
 
     my $original = $self->record or confess "Record data has not been set";
+
     my $fields = {};
     #foreach my $column ($self->layout->all(order_dependencies => 1))
     foreach my $column (@{$self->columns_retrieved})
@@ -347,6 +369,8 @@ sub _transform_values
             $dependent_values->{$dependent} = $fields->{$dependent};
         }
         my $value = $original->{$column->field};
+        $value = $self->linked_record->{$column->link_parent->field}
+            if $self->linked_id && $column->link_parent;
         next if $self->parent_id && !defined $value;
 
         # FIXME XXX Don't collect file content in sql query
@@ -357,7 +381,7 @@ sub _transform_values
         $fields->{$column->id} = $column->class->new(
             record_id        => $self->record_id,
             current_id       => $self->current_id,
-            set_value        => $original->{$column->field},
+            set_value        => $value,
             column           => $column,
             dependent_values => $dependent_values,
             init_no_value    => $self->init_no_value,
@@ -402,6 +426,12 @@ sub approver_can_action_column
       || !$self->approval_of_new && $column->user_can('approve_existing')
 }
 
+sub write_linked_id
+{   my $self = shift;
+    my $current = $self->schema->resultset('Current')->find($self->current_id);
+    $current->update({ linked_id => $self->linked_id });
+}
+
 sub write
 {   my ($self, %options) = @_;
 
@@ -430,7 +460,7 @@ sub write
             or next; # Will not be set for related records
 
         # Check for blank value
-        if (!$self->parent_id && !$column->optional && $datum->blank && !$force_mandatory)
+        if (!$self->parent_id && !$self->linked_id && !$column->optional && $datum->blank && !$force_mandatory)
         {
             # Only warn if it was previously blank, otherwise it might
             # be a read-only field for this user
@@ -506,6 +536,7 @@ sub write
     {
         my $current = {
             parent_id   => $self->parent_id,
+            linked_id   => $self->linked_id,
             instance_id => $self->layout->instance_id,
         };
         my $id = $self->schema->resultset('Current')->create($current)->id;
@@ -553,7 +584,7 @@ sub write
     {
         next unless $column->userinput;
         my $datum = $self->fields->{$column->id};
-        next if $self->parent_id && !$datum; # Don't write all values if this is a related record
+        next if ($self->parent_id || $self->linked_id) && !$datum; # Don't write all values if this is a related/linked record
 
         if ($need_rec) # For new records, only set if user has create permissions without approval
         {

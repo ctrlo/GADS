@@ -35,6 +35,9 @@
                 [% IF user.permission.create_related %]
                     <li role="presentation"><a role="menuitem" href="/edit/?related=[% record.current_id %]">Create related</a></li>
                 [% END %]
+                [% IF user.permission.link %]
+                    <li role="presentation"><a role="menuitem" href="/link/[% record.current_id %]">Link record</a></li>
+                [% END %]
                 [% IF user.permission.delete || user.permission.delete_noneed_approval %]
                     <li role="presentation"><a role="menuitem" data-toggle="modal" data-target="#modaldelete">Delete</a></li>
                 [% END %]

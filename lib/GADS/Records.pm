@@ -101,6 +101,25 @@ has prefetch_related => (
     default => 0,
 );
 
+has prefetches => (
+    is      => 'rw',
+    isa     => ArrayRef,
+    default => sub { [] },
+);
+
+has joins => (
+    is      => 'rw',
+    isa     => ArrayRef,
+    default => sub { [] },
+);
+
+# Same as prefetches, but linked fields
+has linked => (
+    is      => 'rw',
+    isa     => ArrayRef,
+    default => sub { [] },
+);
+
 has sort => (
     is => 'rw',
 );
@@ -138,17 +157,20 @@ sub _default_sort
 }
 
 sub _add_jp
-{
-    my ($toadd, $prefetches, $joins, $type) = @_;
+{   my ($self, $toadd, $type) = @_;
 
-    # Process a join or prefetch. We see if we've already done
-    # it first before adding. If the join criteria is a hash
-    # (ie joining a field and then a value table), then we count
-    # the number of value joins, as these will subsequntyly be
-    # labelled _2 etc. In this case, we return index number.
+    my $prefetches = $self->prefetches;
+    my $joins      = $self->joins;
+    my $linked     = $self->linked;
+
+    # Process a join, prefetch or linked field. We see if we've already done it
+    # first before adding. If the join criteria is a hash (ie joining a field
+    # and then a value table), then we count the number of value joins, as
+    # these will subsequently be labelled _2 etc. In this case, we return index
+    # number.
     my %found; my $key;
     ($key) = keys %$toadd if ref $toadd eq 'HASH';
-    foreach my $j (@$joins, @$prefetches)
+    foreach my $j (@$joins, @$prefetches, @$linked)
     {
         if ($key && ref $j eq 'HASH')
         {
@@ -160,6 +182,7 @@ sub _add_jp
             return 1;
         }
     }
+
     if ($type eq 'join')
     {
         push @$joins, $toadd;
@@ -168,18 +191,27 @@ sub _add_jp
     {
         push @$prefetches, $toadd;
     }
+    elsif ($type eq 'linked')
+    {
+        push @$linked, $toadd;
+    }
     $found{$key}++ if $key;
     return $key ? $found{$key} : 1;
 }
 
 sub _add_prefetch
-{
-    _add_jp @_, 'prefetch';
+{   my $self = shift;
+    $self->_add_jp(@_, 'prefetch');
 }
 
 sub _add_join
-{
-    _add_jp @_, 'join';
+{   my $self = shift;
+    $self->_add_jp(@_, 'join');
+}
+
+sub _add_linked
+{   my $self = shift;
+    $self->_add_jp(@_, 'linked');
 }
 
 # A function to see if any views have a particular record within
@@ -187,9 +219,6 @@ sub search_views
 {   my ($self, $current_ids, @views) = @_;
 
     return unless @views && @$current_ids;
-
-    my $joins = [];
-    my $prefetches = [];
 
     my $columns = $self->layout->all;
     my @search; my $found_in_a_view;
@@ -207,7 +236,7 @@ sub search_views
         # XXX Do not send alerts for hidden fields
         if (keys %$decoded)
         {
-            my @s = @{$self->_search_construct($decoded, $self->layout, $prefetches, $joins, 1)};
+            my @s = @{$self->_search_construct($decoded, $self->layout, 1)};
             push @search, \@s;
         }
         else {
@@ -217,6 +246,8 @@ sub search_views
             last;
         }
     }
+
+    my $joins = $self->joins;
 
     my $search       = {
         'me.id'          => $current_ids, # Array ref
@@ -239,7 +270,7 @@ sub search_views
             my $decoded = decode_json($filter);
             if (keys %$decoded)
             {
-                my @s = @{$self->_search_construct($decoded, $self->layout, $prefetches, $joins, 1)};
+                my @s = @{$self->_search_construct($decoded, $self->layout, 1)};
                 my @found = $self->schema->resultset('Current')->search({
                     'me.id'          => $current_ids, # Array ref
                     'me.instance_id' => $self->layout->instance_id,
@@ -374,8 +405,8 @@ sub search
     my @search     = @{$rinfo->{search}};
     my @limit      = @{$rinfo->{limit}};
     my @orderby    = @{$rinfo->{orderby}};
-    my $prefetches = $rinfo->{prefetches};
-    my $joins      = $rinfo->{joins};
+    my $prefetches = $self->prefetches;
+    my $joins      = $self->joins;
 
     my $root_table;
     unless ($self->include_approval)
@@ -398,7 +429,17 @@ sub search
 
     my $currents = $self->prefetch_related ? { currents => {record => $prefetches} } : 'currents';
     my $select = {
-        prefetch => $root_table eq 'Record' ? $prefetches : [ {'record' => $prefetches}, $currents ],
+        prefetch => $root_table eq 'Record' ? $prefetches : [
+            {
+                'record' => $prefetches
+            },
+            $currents,
+            {
+                linked => {
+                    record => $self->linked,
+                },
+            },
+        ],
         join     => $root_table eq 'Record' ? $joins : {'record' => $joins},
         order_by => \@orderby,
     };
@@ -439,8 +480,10 @@ sub search
         $all{$rec->{id}} = GADS::Record->new(
             schema            => $self->schema,
             record            => $rec->{record},
+            linked_record     => $rec->{linked}->{record},
             related_records   => \@related,
             parent_id         => $rec->{parent_id},
+            linked_id         => $rec->{linked_id},
             user              => $self->user,
             format            => $self->format,
             layout            => $self->layout,
@@ -469,6 +512,7 @@ sub search
         $all{$rec->{id}} = GADS::Record->new(
             schema            => $self->schema,
             record            => $rec->{record},
+            linked_record     => $rec->{linked}->{record},
             related_records   => \@related,
             parent_id         => $rec->{parent_id},
             user              => $self->user,
@@ -537,11 +581,11 @@ sub construct_search
     }
     $self->columns_retrieved(\@columns);
 
-    my %cache_cols;      # Any column in the view that should be cached
-    my $prefetches = []; # Tables to prefetch - data being viewed
-    my $joins = [];      # Tables to join - data being searched
-    my $cache_joins;     # Tables that have data needed for calculated fields
-    my @search_date;     # The search criteria to narrow-down by date range
+    my %cache_cols;                     # Any column in the view that should be cached
+    my $prefetches = $self->prefetches; # Tables to prefetch - data being viewed
+    my $joins      = $self->joins;      # Tables to join - data being searched
+    my $cache_joins;                    # Tables that have data needed for calculated fields
+    my @search_date;                    # The search criteria to narrow-down by date range
     foreach my $c (@columns)
     {
         if ($c->type eq "date" || $c->type eq "daterange")
@@ -575,7 +619,8 @@ sub construct_search
         $cache_cols{$c->field} = $c
             if $c->hascache;
         # We're viewing this, so prefetch all the values
-        _add_prefetch ($c->join, $prefetches, $joins);
+        $self->_add_prefetch($c->join);
+        $self->_add_linked($c->link_parent->join) if $c->link_parent;
     }
 
     my @limit; # The overall limit, for example reduction by date range or approval field
@@ -583,7 +628,7 @@ sub construct_search
     if (@search_date)
     {
         # _search_construct returns an array ref, so dereference it first
-        my @res = @{($self->_search_construct({condition => 'OR', rules => \@search_date}, $layout, $prefetches, $joins))};
+        my @res = @{($self->_search_construct({condition => 'OR', rules => \@search_date}, $layout))};
         push @limit, @res if @res;
     }
 
@@ -599,7 +644,7 @@ sub construct_search
         }
         elsif (my $column = $layout->column($sort->{id}))
         {
-            if (my $s_table = _table_name($column, $prefetches, $joins))
+            if (my $s_table = $self->_table_name($column))
             {
                 push @orderby, { $type => "$s_table.".$column->value_field };
             }
@@ -621,11 +666,11 @@ sub construct_search
             # repeat we will have predictable join numbers.
             if (keys %$decoded)
             {
-                $self->_search_construct($decoded, $layout, $prefetches, $joins);
+                $self->_search_construct($decoded, $layout);
                 # Get the user search criteria
-                @search     = @{$self->_search_construct($decoded, $layout, $prefetches, $joins)};
+                @search     = @{$self->_search_construct($decoded, $layout)};
                 # Put together the search to look for undefined calculated fields
-                @calcsearch = @{$self->_search_construct($decoded, $layout, $prefetches, $joins, \%cache_cols)};
+                @calcsearch = @{$self->_search_construct($decoded, $layout, \%cache_cols)};
             }
         }
         unless ($self->sort)
@@ -635,7 +680,7 @@ sub construct_search
                 if (my $col_id = $sort->{layout_id})
                 {
                     my $column  = $layout->column($col_id);
-                    my $s_table = _table_name($column, $prefetches, $joins);
+                    my $s_table = $self->_table_name($column);
                     my $type    = $sort->{type} eq 'desc' ? '-desc' : '-asc';
                     push @orderby, { $type => "$s_table.".$column->value_field };
                 }
@@ -660,7 +705,7 @@ sub construct_search
         if (my $col_id = $default_sort->{id})
         {
             my $col     = $self->layout->column($col_id);
-            my $s_table = _table_name($col, $prefetches, $joins);
+            my $s_table = $self->_table_name($col);
             push @orderby, { "-$type" => "$s_table.".$col->value_field };
             $self->sort({
                 id   => $col_id,
@@ -679,16 +724,14 @@ sub construct_search
         search     => \@search,
         limit      => \@limit,
         orderby    => \@orderby,
-        prefetches => $prefetches,
-        joins      => $joins,
     }
 }
 
 sub _table_name
-{   my ($column, $prefetches, $joins) = @_;
-    my $jn = _add_join ($column->{join}, $prefetches, $joins);
+{   my ($self, $column) = @_;
+    my $jn = $self->_add_join ($column->join);
     my $index = $jn > 1 ? "_$jn" : '';
-    $column->{sprefix} . $index;
+    $column->sprefix . $index;
 }
 
 # $ignore_perms means to ignore any permissions on the column being
@@ -696,7 +739,10 @@ sub _table_name
 # we want to process columns that the user doesn't have access to
 # for things like alerts, but not for their normal viewing.
 sub _search_construct
-{   my ($self, $filter, $layout, $prefetches, $joins, $ignore_perms) = @_;
+{   my ($self, $filter, $layout, $ignore_perms) = @_;
+
+    my $prefetches = $self->prefetches;
+    my $joins      = $self->joins;
 
     if (my $rules = $filter->{rules})
     {
@@ -704,7 +750,7 @@ sub _search_construct
         my @final;
         foreach my $rule (@$rules)
         {
-            my @res = $self->_search_construct($rule, $layout, $prefetches, $joins, $ignore_perms);
+            my @res = $self->_search_construct($rule, $layout, $ignore_perms);
             push @final, @res if @res;
         }
         my $condition = $filter->{condition} eq 'OR' ? '-or' : '-and';
@@ -733,7 +779,7 @@ sub _search_construct
     my $vprefix = $filter->{operator} eq 'contains' ? '' : '';
     my $vsuffix = $filter->{operator} =~ /contains|begins_with/ ? '%' : '';
     
-    my $s_table = _table_name $column, $prefetches, $joins;
+    my $s_table = $self->_table_name($column);
 
     my $value = $filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty'
               ? [ -and => undef, "" ]
@@ -785,7 +831,18 @@ sub _search_construct
     # By default SQL will not include NULL values for not equals.
     # Let's include them
     $sq = [ $sq, undef ] if $filter->{operator} eq 'not_equal';
-    ("$s_table.$s_field" => $sq);
+    if (!$column->link_parent)
+    {
+        ("$s_table.$s_field" => $sq);
+    }
+    else {
+        (
+            -or => [
+                "$s_table.$s_field" => $sq,
+                $self->_table_name($column->link_parent).".$s_field" => $sq,
+            ],
+        );
+    }
 }
 
 sub csv

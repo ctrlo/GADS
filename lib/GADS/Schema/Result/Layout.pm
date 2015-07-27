@@ -122,6 +122,12 @@ __PACKAGE__->table("layout");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 link_parent
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -154,6 +160,8 @@ __PACKAGE__->add_columns(
   "hidden",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "instance_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "link_parent",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
@@ -371,21 +379,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 graph_x_axes
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Graph>
-
-=cut
-
-__PACKAGE__->has_many(
-  "graph_x_axes",
-  "GADS::Schema::Result::Graph",
-  { "foreign.x_axis" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 graph_y_axes
 
 Type: has_many
@@ -398,6 +391,21 @@ __PACKAGE__->has_many(
   "graph_y_axes",
   "GADS::Schema::Result::Graph",
   { "foreign.y_axis" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 graphs_x_axis
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Graph>
+
+=cut
+
+__PACKAGE__->has_many(
+  "graphs_x_axis",
+  "GADS::Schema::Result::Graph",
+  { "foreign.x_axis" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -481,6 +489,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 layout_link_parents
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Layout>
+
+=cut
+
+__PACKAGE__->has_many(
+  "layout_link_parents",
+  "GADS::Schema::Result::Layout",
+  { "foreign.link_parent" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 layouts
 
 Type: has_many
@@ -509,6 +532,26 @@ __PACKAGE__->has_many(
   "GADS::Schema::Result::LayoutDepend",
   { "foreign.depends_on" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 link_parent
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Layout>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "link_parent",
+  "GADS::Schema::Result::Layout",
+  { id => "link_parent" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
 );
 
 =head2 people
@@ -602,8 +645,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-07-24 21:26:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IZkpBBXkpbzaqtonrosJ8g
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-07-26 20:26:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:msze7aawCafYsaJ1lGEpmA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

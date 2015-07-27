@@ -54,6 +54,11 @@ has instance_id => (
     required => 1,
 );
 
+has name => (
+    is  => 'lazy',
+    isa => Str,
+);
+
 has columns => (
     is      => 'rw',
     lazy    => 1,
@@ -99,11 +104,11 @@ sub _build_columns
 
     my $cols_rs = $self->schema->resultset('Layout')->search(
     {
-        instance_id => $self->instance_id,
+        'me.instance_id' => $self->instance_id,
     },{
         order_by => ['me.position', 'enumvals.id'],
         join     => 'enumvals',
-        prefetch => ['calcs', 'rags'],
+        prefetch => ['calcs', 'rags', 'link_parent'],
     });
 
     $cols_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
@@ -154,6 +159,12 @@ sub _build_columns
 
 
     \@return;
+}
+
+sub _build_name
+{   my $self = shift;
+    my $instance = $self->schema->resultset('Instance')->find($self->instance_id);
+    $instance->name;
 }
 
 sub get_user_perms

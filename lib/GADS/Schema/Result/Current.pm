@@ -65,6 +65,12 @@ __PACKAGE__->table("current");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 linked_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -77,6 +83,8 @@ __PACKAGE__->add_columns(
   "parent_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "instance_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "linked_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
@@ -139,6 +147,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 currents_linked
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Current>
+
+=cut
+
+__PACKAGE__->has_many(
+  "currents_linked",
+  "GADS::Schema::Result::Current",
+  { "foreign.linked_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 instance
 
 Type: belongs_to
@@ -151,6 +174,26 @@ __PACKAGE__->belongs_to(
   "instance",
   "GADS::Schema::Result::Instance",
   { id => "instance_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 linked
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Current>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "linked",
+  "GADS::Schema::Result::Current",
+  { id => "linked_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -215,8 +258,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-07-12 14:09:19
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PgvwTKOEURfb8TS0FFXSxg
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-07-26 20:26:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sEFKpBLFTZOkHrfEiz09Lw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

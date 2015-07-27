@@ -212,6 +212,16 @@ has helptext => (
     isa => Maybe[Str],
 );
 
+has link_parent => (
+    is     => 'rw',
+);
+
+has link_parent_id => (
+    is     => 'rw',
+    isa    => Maybe[Int],
+    coerce => sub { $_[0] || undef }, # String from form submit
+);
+
 has suffix => (
     is   => 'rw',
     isa  => Str,
@@ -324,6 +334,21 @@ sub _build_instance_id
 sub build_values
 {   my ($self, $original) = @_;
 
+    my $link_parent = $original->{link_parent};
+    if (ref $link_parent)
+    {
+        my $class = "GADS::Column::".camelize $link_parent->{type};
+        my $column = $class->new(
+            set_values               => $link_parent,
+            user_permission_override => $self->user_permission_override,
+            schema                   => $self->schema,
+            layout                   => $self->layout,
+        );
+        $self->link_parent($column);
+    }
+    else {
+        $self->link_parent_id($original->{link_parent});
+    }
     $self->id($original->{id});
     $self->name($original->{name});
     $self->optional($original->{optional});
@@ -437,6 +462,7 @@ sub write
     $newitem->{remember}      = $self->remember;
     $newitem->{description}   = $self->description;
     $newitem->{helptext}      = $self->helptext;
+    $newitem->{link_parent}   = $self->link_parent_id;
     $newitem->{display_field} = $self->display_field;
     $newitem->{display_regex} = $self->display_regex;
     $newitem->{instance_id}   = $self->layout->instance_id;

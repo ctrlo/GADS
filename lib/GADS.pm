@@ -1021,6 +1021,22 @@ any '/layout/?:id?' => require_role 'layout' => sub {
 
     if (param('id') || param('submit') || param('update_perms'))
     {
+        # Get all layouts of all instances for field linking
+        my $instances = GADS::Instances->new(schema => schema);
+        my @instances;
+        foreach my $instance (@{$instances->all})
+        {
+            # Ignore current instance
+            next if $instance->id == session('instance_id');
+            my $layout = GADS::Layout->new(
+                user        => $user,
+                schema      => schema,
+                instance_id => $instance->id,
+            );
+            push @instances, $layout;
+        }
+        $params->{instance_layouts} = [@instances];
+
         my $id = param('id');
         my $class = (param('type') && grep {param('type') eq $_} GADS::Column::types)
                   ? param('type')
@@ -1052,7 +1068,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
         if (param 'submit')
         {
             $column->$_(param $_)
-                foreach (qw/name type description helptext optional remember/);
+                foreach (qw/name type description helptext optional remember link_parent_id/);
             if (param 'display_condition')
             {
                 $column->display_field(param 'display_field');
@@ -1396,6 +1412,39 @@ get '/helptext/:id?' => require_login sub {
     my $column = GADS::Column->new(schema => schema, user => $user, layout => $layout);
     $column->from_id(param 'id');
     template 'helptext.tt', { column => $column }, { layout => undef };
+};
+
+any '/link/:id?' => require_role link => sub {
+    my $id = param 'id';
+
+    my $layout = var 'layout';
+    my $record = GADS::Record->new(
+        user     => logged_in_user,
+        layout   => $layout,
+        schema   => schema,
+        base_url => request->base,
+    );
+
+    if ($id)
+    {
+        $record->find_current_id($id);
+    }
+
+    if (param 'submit')
+    {
+        $record->initialise && $record->write unless $id;
+        $record->linked_id(param 'linked_id');
+        if (process( sub { $record->write_linked_id }))
+        {
+            return forwardHome(
+                { success => 'Record has been linked successfully' }, 'data' );
+        }
+    }
+
+    template 'link' => {
+        record      => $record,
+        page        => 'link',
+    };
 };
 
 any '/edit/:id?' => require_login sub {
