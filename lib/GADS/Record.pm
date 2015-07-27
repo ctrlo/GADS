@@ -369,7 +369,7 @@ sub _transform_values
             $dependent_values->{$dependent} = $fields->{$dependent};
         }
         my $value = $original->{$column->field};
-        $value = $self->linked_record->{$column->link_parent->field}
+        $value = $self->linked_record && $self->linked_record->{$column->link_parent->field}
             if $self->linked_id && $column->link_parent;
         next if $self->parent_id && !defined $value;
 
