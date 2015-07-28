@@ -973,8 +973,9 @@ sub data
     @output;
 }
 
-sub data_calendar
-{   my $self = shift;
+# Base function for calendar and timeline
+sub data_time
+{   my ($self, $type) = @_;
 
     # Column names
     my @colnames = ("Serial");
@@ -982,14 +983,11 @@ sub data_calendar
 
     my @colors = qw/event-important event-success event-warning event-info event-inverse event-special/;
     my @result;
-     my %datecolors;
+    my %datecolors;
 
     # All the data values
     foreach my $record (@{$self->results})
     {
-#        my @items = ($line->current_id);
-#        push @items, map { $line->fields->{$_->{id}} } @{$self->columns_retrieved};
-
         my @dates; my @titles;
         foreach my $column (@{$self->columns_retrieved})
         {
@@ -1014,20 +1012,20 @@ sub data_calendar
                     # the required range will have been retrieved. Don't bother
                     # adding them
                     push @dates, {
-                        from  => $d->from_dt->epoch,
-                        to    => $d->to_dt->epoch,
+                        from  => $d->from_dt,
+                        to    => $d->to_dt,
                         color => $color,
-                    } if DateTime->compare($self->to, $d->from_dt) >= 0
-                      && DateTime->compare($d->to_dt, $self->from) >= 0;
+                    } if (!$self->to || DateTime->compare($self->to, $d->from_dt) >= 0)
+                      && (!$self->from || DateTime->compare($d->to_dt, $self->from) >= 0);
                 }
                 else {
                     $d->value or next;
                     push @dates, {
-                        from  => $d->value->epoch,
-                        to    => $d->value->epoch,
+                        from  => $d->value,
+                        to    => $d->value,
                         color => $color,
-                    } if DateTime->compare($d->value, $self->from) >= 0
-                      && DateTime->compare($self->to, $d->value) >= 0;
+                    } if (!$self->from || DateTime->compare($d->value, $self->from) >= 0)
+                      && (!$self->to || DateTime->compare($self->to, $d->value) >= 0);
                 }
             }
             else {
@@ -1041,7 +1039,7 @@ sub data_calendar
 
         # Create title label
         my $title = join ' - ', @titles;
-        if (length $title > 90)
+        if ($type eq 'calendar' && length $title > 90)
         {
             $title = substr($title, 0, 86).'...';
         }
@@ -1049,19 +1047,36 @@ sub data_calendar
         foreach my $d (@dates)
         {
             next unless $d->{from} && $d->{to};
-            my $item = {
+            my $item = $type eq 'calendar' ?
+            {
                 "url"   => "/record/" . $record->current_id,
                 "class" => $d->{color},
                 "title" => $title,
                 "id"    => $record->current_id,
-                "start" => $d->{from}*1000,
-                "end"   => $d->{to}*1000,
+                "start" => $d->{from}->epoch*1000,
+                "end"   => $d->{to}->epoch*1000,
+            } :
+            {
+                "content" => $title,
+                "id"    => $record->current_id,
+                "start" => $d->{from}->ymd,
+                "end"   => $d->{to}->ymd,
             };
             push @result, $item;
         }
     }
 
     \@result;
+}
+
+sub data_calendar
+{   my $self = shift;
+    $self->data_time('calendar');
+}
+
+sub data_timeline
+{   my $self = shift;
+    $self->data_time('timeline');
 }
 
 1;

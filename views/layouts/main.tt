@@ -36,6 +36,13 @@
         [% IF page == "data" AND viewtype == "calendar" %]
             <link rel="stylesheet" href="[% url.css %]/calendar.min.css">
         [% END %]
+        [% IF page == "data" AND viewtype == "timeline" %]
+            [% IF hostlocal %]
+                <link rel="stylesheet" href="[% url.css %]/vis.min.css">
+            [% ELSE %]
+                <link rel="stylesheet" href="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/vis/4.7.0/vis.min.css">
+            [% END %]
+        [% END %]
         [% IF page == "view" %]
             <link rel="stylesheet" href="[% url.css %]/query-builder.css">
         [% END %]
@@ -161,12 +168,14 @@
         [% END %]
         [% IF page == "edit" OR page == "approval" %]
             <script type="text/javascript" src="[% url.js %]/bootstrap-datepicker.js"></script>
-            <script type="text/javascript" src="[% url.js %]/base64decode.js"></script>
             <script type="text/javascript">
                 $(document).ready(function() {
                     $('.datepicker').datepicker({format: "yyyy-mm-dd", autoclose: true});
                 });
             </script>
+        [% END %]
+        [% IF page == "edit" OR page == "approval" OR (page == "data" AND viewtype == "timeline") %]
+            <script type="text/javascript" src="[% url.js %]/base64decode.js"></script>
         [% END %]
         [% IF page == "login" %]
             <script type="text/javascript" src="[% url.js %]/bootstrap-show-password.js"></script>
@@ -195,6 +204,13 @@
         [% END %]
         [% IF page == "data" AND viewtype == "calendar" %]
             <script type="text/javascript" src="[% url.js %]/calendar.min.js"></script>
+        [% END %]
+        [% IF page == "data" AND viewtype == "timeline" %]
+            [% IF hostlocal %]
+                <script type="text/javascript" src="[% url.js %]/vis.min.js"></script>
+            [% ELSE %]
+                <script type="text/javascript" src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/vis/4.7.0/vis.min.js"></script>
+            [% END %]
         [% END %]
         [% IF page == "data" AND viewtype == "table" %]
             [% IF hostlocal %]

@@ -1,0 +1,18 @@
+<div id="visualization"></div>
+<p></p>
+
+<script type="text/javascript">
+    var jscode='[% FILTER remove('\n+') %]
+        [% FILTER replace('\'', '\\\'') %]
+            var container = document.getElementById('visualization');
+
+            var base64 = '[% records %]';
+            var json = decodeBase64(base64);
+            var items = new vis.DataSet(JSON.parse(json));
+
+            var options = {};
+
+            var timeline = new vis.Timeline(container, items, options);
+        [% END %]
+    [% END %]';
+</script>
