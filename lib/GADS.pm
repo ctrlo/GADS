@@ -1065,7 +1065,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             {
                 my $action = param('id') ? 'updated' : 'created';
                 return forwardHome(
-                    { success => "Item has been $action successfully" }, 'layout' );
+                    { success => "Item has been $action successfully" }, "layout/".$column->id );
             }
         }
         $params->{column} = $column;
