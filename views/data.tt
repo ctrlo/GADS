@@ -16,6 +16,10 @@
                         <i class="fa fa-area-chart fa-lg use-icon-font"></i>
                         <img src="/images/icon-data-chart.png" class="use-icon-png" style="display:none">
                     </a>
+                    <a href="?viewtype=timeline" class="btn btn-default" title="View on timeline">
+                        <i class="fa fa-tasks fa-lg use-icon-font"></i>
+                        <img src="/images/icon-data-tasks.png" class="use-icon-png" style="display:none">
+                    </a>
                     <a href="?viewtype=calendar" class="btn btn-default" title="View on calendar">
                         <i class="fa fa-calendar fa-lg use-icon-font"></i>
                         <img src="/images/icon-data-calendar.png" class="use-icon-png" style="display:none">
@@ -97,6 +101,8 @@
     [% INCLUDE 'data_graph.tt' %]
 [% ELSIF viewtype == "calendar" %]
     [% INCLUDE 'data_calendar.tt' %]
+[% ELSIF viewtype == "timeline" %]
+    [% INCLUDE 'data_timeline.tt' %]
 [% ELSE %]
     [% INCLUDE 'data_table.tt' %]
 [% END %]

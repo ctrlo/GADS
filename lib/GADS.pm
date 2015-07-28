@@ -39,6 +39,7 @@ use Email::Valid;
 use HTML::Entities;
 use JSON qw(decode_json encode_json);
 use Log::Report mode => 'DEBUG';
+use MIME::Base64;
 use String::CamelCase qw(camelize);
 use String::Random;
 use Text::CSV;
@@ -363,7 +364,7 @@ any '/data' => require_login sub {
     my $viewtype;
     if ($viewtype = param('viewtype'))
     {
-        if ($viewtype eq 'graph' || $viewtype eq 'table' || $viewtype eq 'calendar')
+        if ($viewtype eq 'graph' || $viewtype eq 'table' || $viewtype eq 'calendar' || $viewtype eq 'timeline')
         {
             session 'viewtype' => $viewtype;
         }
@@ -465,6 +466,19 @@ any '/data' => require_login sub {
         $params->{calendar}   = session('calendar'); # Remember previous day viewed
         $params->{datecolors} = \%datecolors;
         $params->{viewtype}   = 'calendar';
+    }
+    elsif ($viewtype eq 'timeline')
+    {
+        my $view    = current_view($user, $layout);
+
+        my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
+        $records->search(
+            view    => $view,
+        );
+        my $json = encode_json($records->data_timeline);
+        my $base64 = encode_base64($json);
+        $params->{records}    = $base64;
+        $params->{viewtype}   = 'timeline';
     }
     else {
         session 'rows' => 50 unless session 'rows';
