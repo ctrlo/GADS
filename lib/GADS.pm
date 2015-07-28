@@ -474,6 +474,8 @@ any '/data' => require_login sub {
         my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
         $records->search(
             view    => $view,
+            rows    => 50, # Default to small subset for performance
+            page    => 1,
         );
         my $json = encode_json($records->data_timeline);
         my $base64 = encode_base64($json);
