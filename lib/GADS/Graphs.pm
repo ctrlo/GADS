@@ -53,7 +53,7 @@ sub _all
         # Get which graphs the user has first
         @user_graphs = $self->schema->resultset('Graph')->search({
             'user_graphs.user_id' => $user->{id},
-            instance_id           => $self->instance_id,
+            instance_id           => $self->layout->instance_id,
         },{
             join => 'user_graphs',
         })->all;
