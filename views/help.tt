@@ -1,5 +1,33 @@
 [% global.helptext.layout_groups = BLOCK %]
-XXX Help text will appear here
+<p>Permissions allow you to specify the access a user has to this field.
+Using these settings, you can assign everything from full access for a
+particular group of users, to preventing other users knowing that the field
+even exists. By default, no groups are assigned to a field, meaning that
+no users can view it (including full administrators).</p>
+
+<p>Only groups can be used to assign permissions, so a group must first be
+created and users added to that group. A new permission can then be created
+for the group, specifying the access that the group has.</p>
+
+<p>Permissions that can be applied are as follows:</p>
+<h5>Read values</h5>
+<p>User can see the field and its data.</p>
+<h5>Enter values for new records</h5>
+<p>User can enter data for this field when creating a new record.</p>
+<h5>Edit values of existing records</h5>
+<p>User can edit values of this field in existing records.</p>
+<h5>Approve values in new records</h5>
+<p>If requiring approval for data edits from some users, this permission
+allows other users to approve the values for new records.</p>
+<h5>Approve values in existing records</h5>
+<p>If requiring approval for data edits from some users, this permission
+allows other users to approve the values for existing records.</p>
+<h5>Enter values for new records without requiring approval</h5>
+Allows users to enter values for new records, without requiring those
+values to be approved.</p>
+<h5>Edit values of existing records without requiring approval</h5>
+Allows users to edit values in existing records, without requiring those
+values to be approved.</p>
 [% END %]
 
 [% global.helptext.layout_perms = BLOCK %]
