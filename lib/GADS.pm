@@ -498,6 +498,8 @@ any '/data' => require_login sub {
         my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
         $records->search(
             view    => $view,
+            rows    => 50, # Default to small subset for performance
+            page    => 1,
         );
         my $json = encode_json($records->data_timeline);
         my $base64 = encode_base64($json);
@@ -1123,7 +1125,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             {
                 my $action = param('id') ? 'updated' : 'created';
                 return forwardHome(
-                    { success => "Item has been $action successfully" }, 'layout' );
+                    { success => "Item has been $action successfully" }, "layout/".$column->id );
             }
         }
         $params->{column} = $column;
