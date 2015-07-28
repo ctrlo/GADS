@@ -995,6 +995,13 @@ sub data_time
             {
                 next unless $column->user_can('read');
 
+                if (@dates)
+                {
+                    trace __x"Record ID {id} already exists in timeline. Not going to add again.",
+                        id => $record->current_id;
+                    next;
+                }
+
                 # Create colour if need be
                 $datecolors{$column->id} = shift @colors unless $datecolors{$column->id};
 
