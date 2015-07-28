@@ -917,22 +917,28 @@ sub data_time
         foreach my $d (@dates)
         {
             next unless $d->{from} && $d->{to};
-            my $item = $type eq 'calendar' ?
+            if ($type eq 'calendar')
             {
-                "url"   => "/record/" . $record->current_id,
-                "class" => $d->{color},
-                "title" => $title,
-                "id"    => $record->current_id,
-                "start" => $d->{from}->epoch*1000,
-                "end"   => $d->{to}->epoch*1000,
-            } :
-            {
-                "content" => $title,
-                "id"    => $record->current_id,
-                "start" => $d->{from}->ymd,
-                "end"   => $d->{to}->ymd,
-            };
-            push @result, $item;
+                my $item = {
+                    "url"   => "/record/" . $record->current_id,
+                    "class" => $d->{color},
+                    "title" => $title,
+                    "id"    => $record->current_id,
+                    "start" => $d->{from}->epoch*1000,
+                    "end"   => $d->{to}->epoch*1000,
+                };
+                push @result, $item;
+            }
+            else {
+                my $item = {
+                    "content" => $title,
+                    "id"    => $record->current_id,
+                    "start" => $d->{from}->ymd,
+                };
+                $item->{end} = $d->{to}->ymd
+                    if $d->{from}->epoch != $d->{to}->epoch;
+                push @result, $item;
+            }
         }
     }
 
