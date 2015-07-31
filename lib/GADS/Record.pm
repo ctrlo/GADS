@@ -537,6 +537,8 @@ sub write
             }
             else {
                 # This needs an approval record
+                trace __x"Approval needed because of no immediate write access to column {id}",
+                    id => $column->id;
                 $need_app = 1;
                 $appfields{$column->id} = 1;
             }
@@ -548,6 +550,8 @@ sub write
             if ($column->user_can('write_existing_no_approval'))
             {
                 # User has permission to not need approval
+                trace __x"Approval needed because of no immediate write access to column {id}",
+                    id => $column->id;
                 $need_rec = 1;
             }
             else {
