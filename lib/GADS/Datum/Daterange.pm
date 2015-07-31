@@ -24,8 +24,6 @@ use Log::Report;
 use Moo;
 use namespace::clean;
 
-use overload '""' => \&as_string;
-
 extends 'GADS::Datum';
 
 has datetime_parser => (

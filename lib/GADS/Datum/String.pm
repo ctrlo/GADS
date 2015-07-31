@@ -21,8 +21,6 @@ package GADS::Datum::String;
 use Moo;
 use namespace::clean;
 
-use overload 'bool' => sub { 1 }, '""'  => 'as_string', '0+' => 'as_integer', fallback => 1;
-
 extends 'GADS::Datum';
 
 has set_value => (

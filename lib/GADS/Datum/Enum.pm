@@ -22,8 +22,6 @@ use Log::Report;
 use Moo;
 use namespace::clean;
 
-use overload '""' => \&as_string;
-
 extends 'GADS::Datum';
 
 has set_value => (
@@ -86,6 +84,11 @@ around 'clone' => sub {
 sub as_string
 {   my $self = shift;
     $self->text // "";
+}
+
+sub as_integer
+{   my $self = shift;
+    $self->id // 0;
 }
 
 1;

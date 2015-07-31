@@ -21,8 +21,6 @@ package GADS::Datum::File;
 use Moo;
 use namespace::clean;
 
-use overload 'bool' => sub { 1 }, '""' => 'as_string', fallback => 1;
-
 extends 'GADS::Datum';
 
 has set_value => (
@@ -124,6 +122,11 @@ sub get_file
 sub as_string
 {   my $self = shift;
     $self->name // "";
+}
+
+sub as_integer
+{   my $self = shift;
+    $self->id // 0;
 }
 
 sub html

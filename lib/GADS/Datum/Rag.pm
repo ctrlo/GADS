@@ -22,8 +22,6 @@ use Log::Report;
 use Moo;
 use namespace::clean;
 
-use overload '""' => \&as_string;
-
 extends 'GADS::Datum::Code';
 
 has set_value => (

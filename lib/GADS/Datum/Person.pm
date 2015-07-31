@@ -24,8 +24,6 @@ use Log::Report;
 use Moo;
 use namespace::clean;
 
-use overload 'bool' => sub { 1 }, '""'  => 'as_string', fallback => 1;
-
 extends 'GADS::Datum';
 
 my @user_fields = qw(firstname surname email telephone id);
@@ -167,6 +165,11 @@ sub html
 sub as_string
 {   my $self = shift;
     $self->text // "";
+}
+
+sub as_integer
+{   my $self = shift;
+    $self->id // 0;
 }
 
 1;
