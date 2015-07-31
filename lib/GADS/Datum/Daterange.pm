@@ -141,6 +141,12 @@ sub _parse_dt
     $return;
 }
 
+sub as_integer
+{   my $self = shift;
+    $self->value; # Force update of values
+    $self->value && $self->value->start ? $self->value->start->epoch : 0;
+}
+
 sub as_string
 {   my $self = shift;
     $self->value; # Force update of values
