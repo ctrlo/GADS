@@ -144,7 +144,7 @@
         [% END %]
     [% IF dispcol.type == "enum" %]
         <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
-            [% IF dispcol.optional OR editvalue.deleted OR NOT editvalue %]
+            [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) %]
                 <option></option>
             [% END %]
             [% IF dispcol.ordering == "desc" %]
@@ -178,7 +178,7 @@
         [% END %]
     [% ELSIF dispcol.type == "person" %]
         <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
-            [% IF dispcol.optional OR editvalue.deleted OR NOT editvalue.id %]
+            [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) %]
                 <option></option>
             [% END %]
             [% IF editvalue.id %]
