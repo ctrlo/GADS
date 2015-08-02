@@ -141,6 +141,7 @@ sub _parse_dt
     $return;
 }
 
+# XXX Why is this needed? Error when creating new record otherwise
 sub as_integer
 {   my $self = shift;
     $self->value; # Force update of values

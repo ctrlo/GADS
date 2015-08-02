@@ -141,6 +141,24 @@ sub _write_rag
     $self->write_cache('ragval', @_);
 }
 
+# XXX Why is this needed? Error when creating new record otherwise
+sub as_integer
+{   my $self = shift;
+    !$self->value
+        ? 0
+        : $self->value eq 'a_grey'
+        ? 1
+        : $self->value eq 'b_red'
+        ? 2
+        : $self->value eq 'b_amber'
+        ? 3
+        : $self->value eq 'b_green'
+        ? 4
+        : $self->value eq 'b_purple'
+        ? -1
+        : -2;
+}
+
 sub as_string
 {   my $self = shift;
     $self->value // "";
