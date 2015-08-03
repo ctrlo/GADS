@@ -48,6 +48,11 @@ has user => (
     required => 1,
 );
 
+has config => (
+    is       => 'ro',
+    required => 1,
+);
+
 has instance_id => (
     is       => 'ro',
     isa      => Int,

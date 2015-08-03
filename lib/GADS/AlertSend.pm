@@ -303,7 +303,7 @@ sub _send_alert
         my $base = $self->base_url;
         $text  .= $base."record/$cid\n";
     }
-    my $email = GADS::Email->new;
+    my $email = GADS::Email->new(config => $self->layout->config);
     $email->send({
         subject => qq(Changes in view "$view_name"),
         emails  => $emails,

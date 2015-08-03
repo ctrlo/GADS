@@ -33,6 +33,7 @@ use GADS::Record;
 use GADS::Records;
 use GADS::Type::Permissions;
 use GADS::User;
+use GADS::Users;
 use GADS::Util         qw(:all);
 use GADS::View;
 use GADS::Views;
@@ -131,6 +132,7 @@ hook before => sub {
         my $layout = GADS::Layout->new(
             user        => $user,
             schema      => schema,
+            config      => config,
             instance_id => session('instance_id')
         );
         var 'layout' => $layout;
@@ -670,7 +672,8 @@ any '/account/?:action?/?' => require_login sub {
 
     if (param 'graphsubmit')
     {
-        if (process( sub { GADS::User->graphs($user, param('graphs')) }))
+        my $usero = GADS::User->new(config => config, schema => schema, user_id => $user->{id});
+        if (process( sub { $usero->graphs(param('graphs')) }))
         {
             return forwardHome(
                 { success => "The selected graphs have been updated" }, 'account/graph' );
@@ -715,11 +718,12 @@ any '/account/?:action?/?' => require_login sub {
     }
     elsif ($action eq 'detail')
     {
+        my $users = GADS::Users(schema => schema);
         template 'user' => {
             edit          => $user->{id},
             users         => [$user],
-            titles        => GADS::User->titles,
-            organisations => GADS::User->organisations,
+            titles        => $users->titles,
+            organisations => $users->organisations,
             page          => 'account/detail'
         };
     }
@@ -1047,6 +1051,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             my $layout = GADS::Layout->new(
                 user        => $user,
                 schema      => schema,
+                config      => config,
                 instance_id => $instance->id,
             );
             push @instances, $layout;
@@ -1155,6 +1160,7 @@ any '/user/?:id?' => require_role useradmin => sub {
     my $id = param 'id';
 
     my $user   = logged_in_user;
+    my $userso = GADS::Users->new(schema => schema);
     my $audit  = GADS::Audit->new(schema => schema, user => $user);
     my $users;
 
@@ -1166,10 +1172,11 @@ any '/user/?:id?' => require_role useradmin => sub {
         {
             # Check user doesn't already exist
             my $email = param('email');
+            my $usero = GADS::User->new(schema => schema, config => config);
             return forwardHome({ danger => "User $email already exists" }, 'user' )
-                if GADS::User->get_user(email => $email, account_request => 0);
+                if $usero->get_user(email => $email, account_request => 0);
         }
-        my %all_permissions = map { $_->id => $_->name } @{GADS::User->permissions};
+        my %all_permissions = map { $_->id => $_->name } @{$userso->permissions};
         my @permissions = ref param('permission') ? @{param('permission')} : (param('permission') || ());
         my %permissions = map { $all_permissions{$_} => 1 } @permissions;
         my %values = (
@@ -1207,7 +1214,8 @@ any '/user/?:id?' => require_role useradmin => sub {
                 messageAdd({ danger => "Please enter a valid email address for the new user" });
             }
             else {
-                GADS::User->delete($id)
+                my $usero = GADS::User->new(schema => schema, config => config, user_id => $id);
+                $usero->delete
                     if param 'account_request';
                 $result = process( sub { $newuser = create_user %values, realm => 'dbic', email_welcome => 1 });
                 $id = 0; # Previous ID now deleted
@@ -1217,7 +1225,8 @@ any '/user/?:id?' => require_role useradmin => sub {
         {
             # Add groups to user
             my @groups = ref param('groups') ? @{param('groups')} : (param('groups') || ());
-            GADS::User->groups($newuser, \@groups);
+            my $usero = GADS::User->new(schema => schema, config => config, user_id => $newuser->{id});
+            $usero->groups(\@groups);
             my $action;
             my $audit_perms = join ', ', keys %{$newuser->{permission}};
             if ($id) {
@@ -1244,7 +1253,7 @@ any '/user/?:id?' => require_role useradmin => sub {
     {
         if (my $org = param 'neworganisation')
         {
-            if (process( sub { GADS::User->organisation_new({ name => $org })}))
+            if (process( sub { $userso->organisation_new({ name => $org })}))
             {
                 $audit->login_change("Organisation $org created");
                 messageAdd({ success => "The organisation has been created successfully" });
@@ -1253,7 +1262,7 @@ any '/user/?:id?' => require_role useradmin => sub {
 
         if (my $title = param 'newtitle')
         {
-            if (process( sub { GADS::User->title_new({ name => $title }) }))
+            if (process( sub { $userso->title_new({ name => $title }) }))
             {
                 $audit->login_change("Title $title created");
                 messageAdd({ success => "The title has been created successfully" });
@@ -1273,7 +1282,8 @@ any '/user/?:id?' => require_role useradmin => sub {
         return forwardHome(
             { danger => "Cannot delete current logged-in User" } )
             if logged_in_user->{id} eq $delete_id;
-        if (process( sub { GADS::User->delete($delete_id, send_reject_email => 1) }))
+        my $usero = GADS::User->new(schema => schema, config => config, user_id => $delete_id);
+        if (process( sub { $usero->delete(send_reject_email => 1) }))
         {
             $audit->login_change("User ID $delete_id deleted");
             return forwardHome(
@@ -1283,11 +1293,12 @@ any '/user/?:id?' => require_role useradmin => sub {
 
     if ($id)
     {
-        $users = [ GADS::User->get_user(id => $id) ] if !$users;
+        my $usero = GADS::User->new(schema => schema, config => config);
+        $users = [ $usero->get_user(id => $id) ] if !$users;
     }
     elsif (!defined $id) {
-        $users             = GADS::User->all;
-        $register_requests = GADS::User->register_requests;
+        $users             = $userso->all;
+        $register_requests = $userso->register_requests;
     }
 
     my $output = template 'user' => {
@@ -1295,9 +1306,9 @@ any '/user/?:id?' => require_role useradmin => sub {
         users             => $users,
         groups            => GADS::Groups->new(schema => schema)->all,
         register_requests => $register_requests,
-        titles            => GADS::User->titles,
-        organisations     => GADS::User->organisations,
-        permissions       => GADS::User->permissions,
+        titles            => $userso->titles,
+        organisations     => $userso->organisations,
+        permissions       => $userso->permissions,
         page              => 'user'
     };
     $output;
@@ -1761,11 +1772,12 @@ any '/login' => sub {
     }
 
     my $error;
+    my $users = GADS::Users->new(schema => schema, config => config);
 
     if (param 'register')
     {
         my $params = params;
-        try { GADS::User->register($params) };
+        try { $users->register($params) };
         if(my $exception = $@->wasFatal)
         {
             $error = $exception->message->toString;
@@ -1802,17 +1814,17 @@ any '/login' => sub {
         }
     }
 
-    my $config = GADS::Instance->new(
+    my $instance = GADS::Instance->new(
         id     => config->{gads}->{login_instance} || 1,
         schema => schema,
     );
     my $output  = template 'login' => {
         error         => "".($error||""),
-        instance      => $config,
+        instance      => $instance,
         username      => cookie('remember_me'),
-        titles        => GADS::User->titles,
-        organisations => GADS::User->organisations,
-        register_text => GADS::User->register_text,
+        titles        => $users->titles,
+        organisations => $users->organisations,
+        register_text => $instance->register_text,
         page          => 'login',
     };
     $output;
@@ -1825,6 +1837,10 @@ any '/logout' => sub {
 
 any '/resetpw/:code' => sub {
 
+    # Strange things happen if running this code when already logged in.
+    # Log the existing user out first
+    app->destroy_session if logged_in_user;
+
     # Perform check first in order to get user ID for audit
     if (my $username = user_password code => param('code'))
     {
@@ -1833,7 +1849,8 @@ any '/resetpw/:code' => sub {
         if (param 'execute_reset')
         {
             context->destroy_session;
-            my $user   = GADS::User->get_user(username => $username, account_request => 0);
+            my $usero  = GADS::User->new(schema => schema, config => config);
+            my $user   = $usero->get_user(username => $username, account_request => 0);
             my $audit  = GADS::Audit->new(schema => schema, user => $user);
             $audit->login_change("Password reset performed for user ID $user->{id}");
             $new_password = _random_pw();

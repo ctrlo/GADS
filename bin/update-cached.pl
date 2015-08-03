@@ -28,7 +28,7 @@ use GADS::Layout;
 
 GADS::DB->setup(schema);
 
-my $layout = GADS::Layout->new(user => undef, schema => schema);
+my $layout = GADS::Layout->new(user => undef, schema => schema, config => config);
 
 my @calcs = schema->resultset('Layout')->search({
     type => 'calc',

@@ -46,6 +46,30 @@ has name => (
     builder => sub { $_[0]->_rset && $_[0]->_rset->name; },
 );
 
+has email_delete_text => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->_rset && $_[0]->_rset->email_delete_text; },
+);
+
+has email_delete_subject => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->_rset && $_[0]->_rset->email_delete_subject; },
+);
+
+has email_reject_text => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->_rset && $_[0]->_rset->email_reject_text; },
+);
+
+has email_reject_subject => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->_rset && $_[0]->_rset->email_reject_subject; },
+);
+
 has homepage_text => (
     is      => 'rw',
     lazy    => 1,
@@ -70,6 +94,12 @@ has sort_type => (
     is      => 'rw',
     lazy    => 1,
     builder => sub { $_[0]->_rset && $_[0]->_rset->sort_type; },
+);
+
+has register_text => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->_rset && $_[0]->_rset->register_text; },
 );
 
 has register_title_help => (

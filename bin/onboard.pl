@@ -126,6 +126,7 @@ my @all_bad;
 my $layout = GADS::Layout->new(
     user                     => undef,
     schema                   => schema,
+    config                   => config,
     user_permission_override => 1
 );
 

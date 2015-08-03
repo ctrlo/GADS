@@ -55,6 +55,7 @@ sub update_cached
     my $layout = GADS::Layout->new(
         instance_id => $self->layout->instance_id,
         user        => $self->user,
+        config      => $self->layout->config,
         schema      => $self->schema,
     );
 

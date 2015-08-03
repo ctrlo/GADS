@@ -18,53 +18,42 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::User;
 
-use Crypt::SaltedHash;
 use Email::Valid;
-use GADS::Schema;
-use GADS::Util         qw(:all);
+use GADS::Instance;
 use Log::Report;
-use String::Random;
 
-use Dancer2 ':script';
-use Dancer2::Plugin::DBIC qw(schema resultset rset);
+use Moo;
+use MooX::Types::MooseLike::Base qw(:all);
 
-sub titles
-{
-    my @titles = rset('Title')->search(
-        {},
-        {
-            order_by => 'name',
-        }
-    )->all;
-    \@titles;
-}
+has schema => (
+    is       => 'ro',
+    required => 1,
+);
 
-sub title_new
-{
-    my ($class, $params) = @_;
-    rset('Title')->create({ name => $params->{name} });
-}
+has config => (
+    is       => 'ro',
+    required => 1,
+);
 
-sub organisations
-{
-    my @organisations = rset('Organisation')->search(
-        {},
-        {
-            order_by => 'name',
-        }
-    )->all;
-    \@organisations;
-}
+has instance => (
+    is => 'lazy',
+);
 
-sub organisation_new
-{
-    my ($class, $params) = @_;
-    rset('Organisation')->create({ name => $params->{name} });
+has user_id => (
+    is  => 'ro',
+    isa => Int,
+);
+
+sub _build_instance
+{   my $self = shift;
+    GADS::Instance->new(
+        id     => $self->config->{gads}->{login_instance} || 1,
+        schema => $self->schema,
+    );
 }
 
 sub graphs
-{
-    my ($class, $user, $graphs) = @_;
+{   my ($self, $graphs) = @_;
 
     # Will be a scalar if only one value submitted. If so,
     # convert to array
@@ -77,119 +66,99 @@ sub graphs
     foreach my $g (@graphs)
     {
         my $item = {
-            user_id  => $user->{id},
+            user_id  => $self->user_id,
             graph_id => $g,
         };
 
-        unless(rset('UserGraph')->search($item)->count)
+        unless($self->schema->resultset('UserGraph')->search($item)->count)
         {
-            rset('UserGraph')->create($item);
+            $self->schema->resultset('UserGraph')->create($item);
         }
     }
 
     # Delete any graphs that no longer exist
-    my $search = { user_id => $user->{id} };
+    my $search = { user_id => $self->user_id };
     $search->{graph_id} = {
         '!=' => [ -and => @graphs ]
     } if @graphs;
-    rset('UserGraph')->search($search)->delete;
+    $self->schema->resultset('UserGraph')->search($search)->delete;
 }
 
 sub groups
-{
-    my ($class, $user, $groups) = @_;
+{   my ($self, $groups) = @_;
 
     foreach my $g (@$groups)
     {
         my $item = {
-            user_id  => $user->{id},
+            user_id  => $self->user_id,
             group_id => $g,
         };
 
-        unless(rset('UserGroup')->search($item)->count)
+        unless($self->schema->resultset('UserGroup')->search($item)->count)
         {
-            rset('UserGroup')->create($item);
+            $self->schema->resultset('UserGroup')->create($item);
         }
     }
 
     # Delete any groups that no longer exist
-    my $search = { user_id => $user->{id} };
+    my $search = { user_id => $self->user_id };
     $search->{group_id} = {
         '!=' => [ -and => @$groups ]
     } if @$groups;
-    rset('UserGroup')->search($search)->delete;
+    $self->schema->resultset('UserGroup')->search($search)->delete;
 }
 
 sub delete
-{
-    my ($self, $user_id, %options) = @_;
+{   my ($self, %options) = @_;
 
-    my ($user) = rset('User')->search({
-        id => $user_id,
+    my ($user) = $self->schema->resultset('User')->search({
+        id => $self->user_id,
         deleted => 0,
     })->all;
-    $user or error __x"User {id} not found", id => $user_id;
+    $user or error __x"User {id} not found", id => $self->user_id;
 
     if ($user->account_request)
     {
         $user->delete;
 
         return unless $options{send_reject_email};
-        my ($instance) = rset('Instance')->all;
-        my $email = GADS::Email->new;
+        my $email = GADS::Email->new(config => $self->config);
         $email->send({
-            subject => $instance->email_reject_subject,
+            subject => $self->instance->email_reject_subject,
             emails  => [$user->email],
-            text    => $instance->email_reject_text,
+            text    => $self->instance->email_reject_text,
         });
 
         return;
     }
 
-    rset('UserGraph')->search({ user_id => $user_id })->delete;
-    rset('Alert')->search({ user_id => $user_id })->delete;
+    $self->schema->resultset('UserGraph')->search({ user_id => $self->user_id })->delete;
+    $self->schema->resultset('Alert')->search({ user_id => $self->user_id })->delete;
 
     $user->update({ lastview => undef });
-    my $views = rset('View')->search({ user_id => $user_id });
+    my $views = $self->schema->resultset('View')->search({ user_id => $self->user_id });
     my @views;
     foreach my $v ($views->all)
     {
         push @views, $v->id;
     }
-    rset('Filter')->search({ view_id => \@views })->delete;
-    rset('ViewLayout')->search({ view_id => \@views })->delete;
-    rset('Sort')->search({ view_id => \@views })->delete;
-    rset('AlertCache')->search({ view_id => \@views })->delete;
+    $self->schema->resultset('Filter')->search({ view_id => \@views })->delete;
+    $self->schema->resultset('ViewLayout')->search({ view_id => \@views })->delete;
+    $self->schema->resultset('Sort')->search({ view_id => \@views })->delete;
+    $self->schema->resultset('AlertCache')->search({ view_id => \@views })->delete;
     $views->delete;
 
     $user->update({ deleted => 1 });
 
-    my ($instance) = rset('Instance')->all;
-    if (my $msg = $instance->email_delete_text)
+    if (my $msg = $self->instance->email_delete_text)
     {
-        my $email = GADS::Email->new;
+        my $email = GADS::Email->new(config => $self->config);
         $email->send({
-            subject => $instance->email_delete_subject || "Account deleted",
+            subject => $self->instance->email_delete_subject || "Account deleted",
             emails  => [$user->email],
             text    => $msg,
         });
     }
-}
-
-sub all
-{
-    my ($self, $args) = @_;
-    my $search = {
-        deleted         => 0,
-        account_request => 0,
-    };
-    $search->{'permission.name'} = 'useradmin' if $args->{admins};
-    my @users = rset('User')->search($search,{
-        join     => { user_permissions => 'permission' },
-        order_by => 'surname',
-        collapse => 1,
-    })->all;
-    \@users;
 }
 
 # XXX Possible temporary function, until available in DPAE
@@ -197,7 +166,7 @@ sub get_user
 {   my ($self, %search) = @_;
     %search = map { "me.".$_ => $search{$_} } keys(%search);
     $search{deleted} = 0;
-    my ($user) = rset('User')->search(\%search, {
+    my ($user) = $self->schema->resultset('User')->search(\%search, {
         prefetch => ['user_permissions', 'user_groups'],
     })->all;
     $user or return;
@@ -224,64 +193,6 @@ sub get_user
         $return->{groups} = \%groups;
     }
     $return;
-}
-
-sub permissions
-{   my ($self) = @_;
-    my @permissions = rset('Permission')->search({},{
-        order_by => 'order',
-    })->all;
-    \@permissions;
-}
-
-sub register_requests
-{
-    my @users = rset('User')->search({ account_request => 1 })->all;
-    \@users;
-}
-
-sub register
-{
-    my ($self, $params) = @_;
-
-    my %new;
-    my %params = %$params;
-
-    my @fields = qw(firstname surname email telephone title organisation account_request_notes);
-    @new{@fields} = @params{@fields};
-    $new{firstname} = ucfirst $new{firstname};
-    $new{surname} = ucfirst $new{surname};
-    $new{username} = $params->{email};
-    $new{account_request} = 1;
-    $new{telephone} or delete $new{telephone};
-    $new{title} or delete $new{title};
-    $new{organisation} or delete $new{organisation};
-    my $user = rset('User')->create(\%new);
-
-    # Email admins with account request
-    my $admins = $self->all({ admins => 1 });
-    my @emails = map { $_->email } @$admins;
-    my $text = "A new account request has been received from the following person:\n\n";
-    $text .= "First name: $new{firstname}, ";
-    $text .= "surname: $new{surname}, ";
-    $text .= "email: $new{email}, ";
-    $text .= "title: ".$user->title->name.", " if $user->title;
-    $text .= "telephone: $new{telephone}, " if $new{telephone};
-    $text .= "organisation: ".$user->organisation->name.", " if $user->organisation;
-    $text .= "\n\n";
-    $text .= "User notes: $new{account_request_notes}\n";
-    my $email = GADS::Email->new;
-    $email->send({
-        emails  => \@emails,
-        subject => "New account request",
-        text    => $text,
-    });
-}
-
-sub register_text
-{
-    my ($instance) = rset('Instance')->all;
-    $instance->register_text;
 }
 
 1;

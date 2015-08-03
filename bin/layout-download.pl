@@ -30,7 +30,7 @@ use YAML;
 
 GADS::DB->setup(schema);
 
-my $layout = GADS::Layout->new(user => undef, schema => schema);
+my $layout = GADS::Layout->new(user => undef, schema => schema, config => config);
 
 my @columns;
 foreach my $column ($layout->all)

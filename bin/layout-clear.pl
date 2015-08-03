@@ -28,7 +28,7 @@ use GADS::Layout;
 
 GADS::DB->setup(schema);
 
-my $layout = GADS::Layout->new(user => undef, schema => schema);
+my $layout = GADS::Layout->new(user => undef, schema => schema, config => config);
 
 my @columns;
 my @all = reverse $layout->all(order_dependencies => 1);

@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Column::Person;
 
 use Log::Report;
-use GADS::User;
+use GADS::Users;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 
@@ -29,7 +29,8 @@ has people => (
     is      => 'rw',
     lazy    => 1,
     builder => sub {
-        GADS::User->all,
+        my $self = shift;
+        GADS::Users->new(schema => $self->schema)->all;
     },
 );
 

@@ -34,7 +34,7 @@ sub _send
 
     my $text = "This email contains details of any changes in views that you have asked to be alerted to.\n\n";
     $text .= join "\n\n", @notifications; # <sigh> 2 CRs to fix Outlook piss-poor wrapping
-    my $email_send = GADS::Email->new;
+    my $email_send = GADS::Email->new(config => config);
     $email_send->send({
         emails  => [$email],
         subject => "Changes in your views",

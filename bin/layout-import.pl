@@ -35,7 +35,7 @@ my $import = LoadFile($file);
 
 GADS::DB->setup(schema);
 
-my $layout = GADS::Layout->new(user => undef, schema => schema);
+my $layout = GADS::Layout->new(user => undef, schema => schema, config => config);
 
 my @write;
 foreach my $column (@{$import->{columns}})
@@ -103,7 +103,7 @@ foreach my $column (@{$import->{columns}})
 }
 
 # Reload new layout
-$layout = GADS::Layout->new(user => undef, schema => schema, user_permission_override => 1);
+$layout = GADS::Layout->new(user => undef, schema => schema, user_permission_override => 1, config => config);
 
 foreach my $v(@{$import->{views}})
 {

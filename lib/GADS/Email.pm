@@ -38,9 +38,19 @@ has subject => (
     is => 'rw',
 );
 
-has email_from => (
-    is => 'rw',
+has config => (
+    is       => 'ro',
+    required => 1,
 );
+
+has email_from => (
+    is => 'lazy',
+);
+
+sub _build_email_from
+{   my $self = shift;
+    $self->config->{gads}->{email_from};
+}
 
 sub send
 {   my ($self, $args) = @_;
