@@ -708,7 +708,11 @@ any '/account/?:action?/?' => require_login sub {
 
     if ($action eq 'graph')
     {
-        my $graphs = GADS::Graphs->new(user => $user, schema => schema);
+        my $graphs = GADS::Graphs->new(
+            user   => $user,
+            schema => schema,
+            layout => var('layout')
+        );
         my $all_graphs = $graphs->all;
         template 'account' => {
             graphs => $all_graphs,
