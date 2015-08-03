@@ -133,7 +133,10 @@ sub delete
     }
 
     $self->schema->resultset('UserGraph')->search({ user_id => $self->user_id })->delete;
-    $self->schema->resultset('Alert')->search({ user_id => $self->user_id })->delete;
+    my $alerts = $self->schema->resultset('Alert')->search({ user_id => $self->user_id });
+    my @alert_sends = map { $_->id } $alerts->all;
+    $self->schema->resultset('AlertSend')->search({ alert_id => \@alert_sends })->delete;
+    $alerts->delete;
 
     $user->update({ lastview => undef });
     my $views = $self->schema->resultset('View')->search({ user_id => $self->user_id });
