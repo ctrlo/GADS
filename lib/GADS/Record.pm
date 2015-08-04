@@ -115,6 +115,7 @@ has linked_id => (
     coerce  => sub { $_[0] || undef }, # empty string from form submit
     builder => sub {
         my $self = shift;
+        $self->current_id or return;
         my $current = $self->schema->resultset('Current')->find($self->current_id)
             or return;
         $current->linked_id;
@@ -129,6 +130,7 @@ has parent_id => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
+        $self->current_id or return;
         my $current = $self->schema->resultset('Current')->find($self->current_id)
             or return;
         $current->parent_id;
