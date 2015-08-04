@@ -722,7 +722,7 @@ any '/account/?:action?/?' => require_login sub {
     }
     elsif ($action eq 'detail')
     {
-        my $users = GADS::Users(schema => schema);
+        my $users = GADS::Users->new(schema => schema);
         template 'user' => {
             edit          => $user->{id},
             users         => [$user],
