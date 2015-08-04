@@ -31,7 +31,10 @@ use Log::Report;
 use Text::CSV;
 use Getopt::Long qw(:config pass_through);
 
-my ($take_first_enum, $ignore_incomplete_dateranges, $dry_run, $ignore_string_zeros, $force, $invalid_csv);
+my ($take_first_enum, $ignore_incomplete_dateranges,
+    $dry_run, $ignore_string_zeros, $force,
+    $invalid_csv, $instance_id);
+
 GetOptions (
     'take-first-enum'              => \$take_first_enum,
     'ignore-imcomplete-dateranges' => \$ignore_incomplete_dateranges,
@@ -39,11 +42,15 @@ GetOptions (
     'ignore-string-zeros'          => \$ignore_string_zeros,
     'force=s'                      => \$force,
     'invalid-csv=s'                => \$invalid_csv,
+    'instance-id=s'                => \$instance_id,
 ) or exit;
 
 
 die "Invalid option '$force' supplied to --force"
     if $force && $force ne 'mandatory';
+
+die "Need --instance-id to be specified"
+    unless $instance_id;
 
 my ($file) = @ARGV;
 $file or die "Usage: $0 [--take-first-enum] [--ignore-incomplete-dateranges]
@@ -127,6 +134,7 @@ my $layout = GADS::Layout->new(
     user                     => undef,
     schema                   => schema,
     config                   => config,
+    instance_id              => $instance_id,
     user_permission_override => 1
 );
 
