@@ -24,31 +24,42 @@ use lib "$FindBin::Bin/../lib";
 use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
 use GADS::DB;
+use GADS::Instances;
 use GADS::Layout;
 
 GADS::DB->setup(schema);
 
-my $layout = GADS::Layout->new(user => undef, schema => schema, config => config);
+my $instances = GADS::Instances->new(schema => schema);
 
-my @calcs = schema->resultset('Layout')->search({
-    type => 'calc',
-})->all;
-
-foreach my $calc (@calcs)
+foreach my $instance (@{$instances->all})
 {
-    my $column = $layout->column($calc->id);
-    $column->base_url(config->{gads}->{url});
-    $column->update_cached('Calcval');
-}
+    my $layout = GADS::Layout->new(
+        user        => undef,
+        instance_id => $instance->id,
+        schema      => schema,
+        config      => config,
+    );
 
-my @rags = schema->resultset('Layout')->search({
-    type => 'rag',
-})->all;
+    my @calcs = schema->resultset('Layout')->search({
+        type => 'calc',
+    })->all;
 
-foreach my $rag (@rags)
-{
-    my $column = $layout->column($rag->id);
-    $column->base_url(config->{gads}->{url});
-    $column->update_cached('Ragval');
+    foreach my $calc (@calcs)
+    {
+        my $column = $layout->column($calc->id);
+        $column->base_url(config->{gads}->{url});
+        $column->update_cached('Calcval');
+    }
+
+    my @rags = schema->resultset('Layout')->search({
+        type => 'rag',
+    })->all;
+
+    foreach my $rag (@rags)
+    {
+        my $column = $layout->column($rag->id);
+        $column->base_url(config->{gads}->{url});
+        $column->update_cached('Ragval');
+    }
 }
 
