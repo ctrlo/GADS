@@ -18,7 +18,12 @@ GADS::DB->setup(schema);
 my $csv = Text::CSV->new ( { binary => 1 } )  # should set binary attribute.
     or die "Cannot use CSV: ".Text::CSV->error_diag ();
 
-my $layout = GADS::Layout->new(user => undef, schema => schema, config => config);
+my $layout = GADS::Layout->new(
+    user        => undef,
+    schema      => schema,
+    config      => config,
+    instance_id => 1,
+);
 
 my @row; my @columns;
 foreach my $col ($layout->all)
