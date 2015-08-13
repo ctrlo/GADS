@@ -256,11 +256,19 @@ sub _add_linked_join
 # Shortcut to generate the required joining hash for a DBIC search
 sub linked_hash
 {   my $self = shift;
+    if (@{$self->linked_prefetches})
     {
-        linked => {
-            record => $self->linked_prefetches,
-        },
-    };
+        {
+            linked => {
+                record => $self->linked_prefetches,
+            },
+        };
+    }
+    else {
+        {
+            linked => 'record',
+        }
+    }
 }
 
 # A function to see if any views have a particular record within
