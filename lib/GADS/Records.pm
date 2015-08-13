@@ -457,12 +457,11 @@ sub search
     #}
     #push @limit, (approval => $approval);
 
-    my $rinfo = $self->construct_search(%options);
-
+    my $prefetches = $self->prefetches([]);
+    my $joins      = $self->joins([]);
+    my $rinfo      = $self->construct_search(%options);
     my @search     = @{$rinfo->{search}};
     my @limit      = @{$rinfo->{limit}};
-    my $prefetches = $self->prefetches;
-    my $joins      = $self->joins;
 
     my $root_table;
     unless ($self->include_approval)
