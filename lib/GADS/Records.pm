@@ -557,31 +557,35 @@ sub search
     my @need = grep { !exists $all{$_} } keys %is_related;
     # Then any parents of children retrieved
     push @need, grep { $_ && !exists $all{$_} } map { $all{$_}->parent_id } @all_ids;
-    delete $select->{rows}; # No pagination required - all records please
-    delete $select->{page};
-    my $additional = $self->schema->resultset($root_table)->search({
-        'me.id' => \@need,
-    }, $select );
 
-    $additional->result_class('DBIx::Class::ResultClass::HashRefInflator');
-    foreach my $rec ($additional->all)
+    if (@need) # Only if any to retrieve
     {
-        push @all_ids, $rec->{id};
-        my @related = map { $_->{id} } @{$rec->{currents}};
-        map { $is_related{$_} = undef } @related;
-        $all{$rec->{id}} = GADS::Record->new(
-            schema            => $self->schema,
-            record            => $rec->{record},
-            linked_record     => $rec->{linked}->{record},
-            related_records   => \@related,
-            parent_id         => $rec->{parent_id},
-            linked_id         => $rec->{linked_id},
-            user              => $self->user,
-            format            => $self->format,
-            layout            => $self->layout,
-            force_update      => $self->force_update,
-            columns_retrieved => $self->columns_retrieved,
-        );
+        delete $select->{rows}; # No pagination required - all records please
+        delete $select->{page};
+        my $additional = $self->schema->resultset($root_table)->search({
+            'me.id' => \@need,
+        }, $select );
+
+        $additional->result_class('DBIx::Class::ResultClass::HashRefInflator');
+        foreach my $rec ($additional->all)
+        {
+            push @all_ids, $rec->{id};
+            my @related = map { $_->{id} } @{$rec->{currents}};
+            map { $is_related{$_} = undef } @related;
+            $all{$rec->{id}} = GADS::Record->new(
+                schema            => $self->schema,
+                record            => $rec->{record},
+                linked_record     => $rec->{linked}->{record},
+                related_records   => \@related,
+                parent_id         => $rec->{parent_id},
+                linked_id         => $rec->{linked_id},
+                user              => $self->user,
+                format            => $self->format,
+                layout            => $self->layout,
+                force_update      => $self->force_update,
+                columns_retrieved => $self->columns_retrieved,
+            );
+        }
     }
 
     my @all; my %done;
