@@ -870,9 +870,16 @@ sub _search_construct
     
     my $s_table = $self->_table_name($column);
 
-    my $value = $filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty'
-              ? [ -and => undef, "" ]
-              : $vprefix.$filter->{value}.$vsuffix;
+    my $value;
+    if ($filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty')
+    {
+        $value = $column->type eq 'calc' || $column->type eq 'string'
+            ? [ -and => undef, "" ]
+            : undef;
+    }
+    else {
+        $value = $vprefix.$filter->{value}.$vsuffix;
+    }
 
     my $s_field;
     if ($column->type eq "daterange")
