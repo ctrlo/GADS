@@ -64,7 +64,7 @@ sub as_integer
     int ($self->value // 0);
 }
 
-sub html
+sub html_withlinks
 {   my $self = shift;
     my $string = $self->as_string;
     text2html(

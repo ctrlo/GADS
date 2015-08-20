@@ -47,7 +47,7 @@
             </td>
             [% FOREACH column IN columns %]
                 [% colid = column.id %]
-                [% value = record.fields.$colid.html %]
+                [% value = record.fields.$colid %]
                 <td>
                 [% IF column.type == "rag" %]
                     <div class="circ-large
@@ -57,11 +57,11 @@
                 [% ELSIF column.type == "string" %]
                     <div class="more-less">
                         <div class="more-block">
-                            <p>[% value %]</p>
+                            <p>[% value.html_withlinks %]</p>
                         </div>
                     </div>
                 [% ELSE %]
-                    <p>[% value %]</p>
+                    <p>[% value.html %]</p>
                 [% END %]
                 </td>
             [% END %]

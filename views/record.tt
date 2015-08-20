@@ -65,6 +65,8 @@
                     </div>
                 [% ELSIF col.type == "file" AND value.mimetype.match('^image/') %]
                     <img src="/file/[% value.id %]">
+                [% ELSIF col.type == "string" %]
+                    [% value.html_withlinks %]
                 [% ELSE %]
                     [% value.html %]
                 [% END %]
