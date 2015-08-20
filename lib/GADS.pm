@@ -1051,7 +1051,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
         all_columns => \@all_columns,
     };
 
-    if (param('id') || param('submit') || param('update_perms'))
+    if (defined param('id'))
     {
         # Get all layouts of all instances for field linking
         my $instances = GADS::Instances->new(schema => schema);
@@ -1069,6 +1069,10 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             push @instances, $layout;
         }
         $params->{instance_layouts} = [@instances];
+    }
+
+    if (param('id') || param('submit') || param('update_perms'))
+    {
 
         my $id = param('id');
         my $class = (param('type') && grep {param('type') eq $_} GADS::Column::types)
