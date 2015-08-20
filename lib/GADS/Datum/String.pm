@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Datum::String;
 
+use HTML::FromText;
 use Moo;
 use namespace::clean;
 
@@ -61,6 +62,17 @@ sub as_integer
 {   my $self = shift;
     no warnings 'numeric';
     int ($self->value // 0);
+}
+
+sub html
+{   my $self = shift;
+    my $string = $self->as_string;
+    text2html(
+        $string,
+        urls      => 1,
+        email     => 1,
+        metachars => 1,
+    );
 }
 
 1;
