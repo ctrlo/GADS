@@ -34,15 +34,21 @@
                 <input type="text" class="form-control" id="description" name="description" value="[% column.description | html_entity %]">
             </div>
             <div class="form-group">
-                <label for="link_parent_id">Linked to:</label>
-                <select class="form-control" id="link_parent_id" name="link_parent_id">
-                    <option value="">&lt;Not linked&gt;</option>
-                    [% FOREACH l IN instance_layouts %]
-                        [% FOREACH c IN l.all %]
-                            <option value="[% c.id %]" [% IF column.link_parent_id == c.id %]selected[% END %]>[% l.name %] - [% c.name %]</option>
+                <label for="link_parent_id">Linked to field in other datasheet:</label>
+                [% IF instance_layouts.size %]
+                    <select class="form-control" id="link_parent_id" name="link_parent_id">
+                        <option value="">&lt;Not linked&gt;</option>
+                        [% FOREACH l IN instance_layouts %]
+                            [% FOREACH c IN l.all %]
+                                <option value="[% c.id %]" [% IF column.link_parent_id == c.id %]selected[% END %]>[% l.name %] - [% c.name %]</option>
+                            [% END %]
                         [% END %]
-                    [% END %]
-                </select>
+                    </select>
+                [% ELSE %]
+                    <select class="form-control" id="link_parent_id" name="link_parent_id" disabled readonly>
+                        <option value="">&lt;No other datasheets exist&gt;</option>
+                    </select>
+                [% END %]
             </div>
             <div class="form-group">
                 <label for="helptext">User help text:</label>
