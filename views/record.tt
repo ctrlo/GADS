@@ -57,14 +57,16 @@
             [% NEXT IF record.parent_id AND NOT (record.fields.$colid.has_value OR NOT col.userinput) %]
             <th>[% col.name | html_entity %]</th>
             <td>
-                [% value = record.fields.$colid.html %]
+                [% value = record.fields.$colid %]
                 [% IF col.type == "rag" %]
                     <div class="circ-large
                         [% value %]
                         ">
                     </div>
+                [% ELSIF col.type == "file" AND value.mimetype.match('^image/') %]
+                    <img src="/file/[% value.id %]">
                 [% ELSE %]
-                    [% value %]
+                    [% value.html %]
                 [% END %]
             </td>
         </tr>
