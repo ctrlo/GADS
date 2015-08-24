@@ -874,7 +874,7 @@ sub _search_construct
     if ($filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty')
     {
         $value = $column->type eq 'calc' || $column->type eq 'string'
-            ? [ -and => undef, "" ]
+            ? [ -or => undef, "" ]
             : undef;
     }
     else {
