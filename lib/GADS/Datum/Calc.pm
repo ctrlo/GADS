@@ -55,11 +55,11 @@ sub as_string
 }
 
 sub as_integer
-{   my ($self, $other) = @_;
+{   my $self = shift;
     my $value = $self->value;
     $value = $value->epoch if ref $value eq 'DateTime';
-    my $int = int ($value // 0);
-    $int + ($other || 0);
+    no warnings 'numeric';
+    int ($value || 0);
 }
 
 sub _transform_value
