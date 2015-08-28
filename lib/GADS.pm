@@ -1252,6 +1252,10 @@ any '/user/?:id?' => require_role useradmin => sub {
                 $usero->delete
                     if param 'account_request';
                 $result = process( sub { $newuser = create_user %values, realm => 'dbic', email_welcome => 1 });
+                # Check for success - DPAE does not currently call exceptions
+                return forwardHome(
+                    { danger => "Failed to create user. Does the email address already exist?" }, 'user'
+                ) unless $newuser;
                 $id = 0; # Previous ID now deleted
             }
         }
