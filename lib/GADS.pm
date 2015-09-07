@@ -60,8 +60,8 @@ use HTML::Entities;
 use JSON qw(decode_json encode_json);
 use Log::Report mode => 'DEBUG';
 use MIME::Base64;
+use Session::Token;
 use String::CamelCase qw(camelize);
-use String::Random;
 use Text::CSV;
 use WWW::Mechanize::PhantomJS;
 
@@ -2001,12 +2001,26 @@ sub process
     $result;
 }
 
+# Implementation of String::Random with better entropy
+sub _token_template {
+   my (%m) = @_;
+
+   %m = map { $_ => Session::Token->new(alphabet => $m{$_}, length => 1) } keys %m;
+
+   return sub {
+     my $v = shift;
+     $v =~ s/(.)/$m{$1}->get/eg;
+     return $v;
+   };
+}
+
 sub _random_pw
-{
-    my $foo = new String::Random;
-    $foo->{'v'} = [ 'a', 'e', 'i', 'o', 'u' ];
-    $foo->{'i'} = [ 'b'..'d', 'f'..'h', 'j'..'n', 'p'..'t', 'v'..'z' ];
-    scalar $foo->randpattern("iviiviivi");
+{   my $foo = _token_template(
+        v => [ 'a', 'e', 'i', 'o', 'u' ],
+        i => [ 'b'..'d', 'f'..'h', 'j'..'n', 'p'..'t', 'v'..'z' ],
+    );
+
+    $foo->("iviiviivi");
 }
 
 sub _user_value
