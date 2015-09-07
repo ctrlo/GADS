@@ -1976,7 +1976,10 @@ sub error_handler
         # forward home so that we can reload. However, don't if
         # it's a GET request to the home, as it will cause a recursive
         # loop. In this case, do nothing, and let dancer handle it.
-        forwardHome({ danger => "$message" })
+        my $m = config->{show_errors}
+            ? "$message"
+            : "An unexpected error has occurred.";
+        forwardHome({ danger => $m })
             unless request->uri eq '/' && request->is_get;
     }
 }
