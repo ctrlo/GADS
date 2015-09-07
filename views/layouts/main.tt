@@ -117,10 +117,10 @@
                             </form>
                             <ul class="nav navbar-nav navbar-right">
                                 <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% user.value %]<b class="caret"></b></a>
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% user.value | html_entity %]<b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     [% FOREACH instance IN instances %]
-                                        <li><a href="?instance=[% instance.id %]">[% instance.name %]</a></li>
+                                        <li><a href="?instance=[% instance.id %]">[% instance.name | html_entity %]</a></li>
                                     [% END %]
                                     <li class="divider"></li>
                                     <li><a href="[% url.page %]/account/detail">My details</a></li>
@@ -174,7 +174,7 @@
                 });
             </script>
         [% END %]
-        [% IF page == "edit" OR page == "approval" OR (page == "data" AND viewtype == "timeline") %]
+        [% IF page == "edit" OR page == "approval" OR page == "view" OR (page == "data" AND viewtype == "timeline") %]
             <script type="text/javascript" src="[% url.js %]/base64decode.js"></script>
         [% END %]
         [% IF page == "login" %]

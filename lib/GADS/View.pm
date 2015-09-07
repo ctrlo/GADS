@@ -22,6 +22,7 @@ use GADS::Alert;
 use GADS::Schema;
 use JSON qw(decode_json);
 use Log::Report;
+use MIME::Base64;
 use String::CamelCase qw(camelize);
 
 use Moo;
@@ -99,6 +100,11 @@ has filter => (
             if $self->_view && $self->_view->filter ne $value;
     },
 );
+
+sub filter_base64
+{   my $self = shift;
+    encode_base64($self->filter);
+}
 
 has filter_changed => (
     is => 'rw',

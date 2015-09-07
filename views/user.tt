@@ -80,7 +80,7 @@
                     <div class="checkbox">
                         <label>
                             <input type="checkbox" name="permission" value="[% permission.id %]"
-                                [% IF edituser.permission.$key %]checked[% END %]>[% permission.description %]
+                                [% IF edituser.permission.$key %]checked[% END %]>[% permission.description | html_entity %]
                         </label>
                     </div>
                 [% END %]

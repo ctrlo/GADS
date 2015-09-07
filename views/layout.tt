@@ -74,7 +74,7 @@
                     <div class="col-md-5">
                         <select class="form-control" id="display_field" name="display_field">
                             [% FOREACH field in all_columns %]
-                                <option value="[% field.id %]" [% IF column.display_field == field.id %]selected[% END %]>[% field.name %]</option>
+                                <option value="[% field.id %]" [% IF column.display_field == field.id %]selected[% END %]>[% field.name | html_entity %]</option>
                             [% END %]
                         </select>
                     </div>
@@ -429,7 +429,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 [% IF column.type == "calc" %]Calculated value[% END %]
             </td>
             <td>
-                [% column.description %]
+                [% column.description | html_entity %]
             </td>
         </tr>
         [% END %]

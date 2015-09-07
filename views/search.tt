@@ -13,7 +13,7 @@
         [% END %]
     </table>
 [% ELSIF search %]
-    <p>No results found for &quot;[% search %]&quot;</p>
+    <p>No results found for &quot;[% search | html_entity %]&quot;</p>
 [% ELSE %]
     <p>Please enter a search term</p>
 [% END %]
