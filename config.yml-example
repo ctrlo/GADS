@@ -23,6 +23,7 @@ engines:
     YAML:
       session_dir: "/tmp/dancer-sessions"
       cookie_duration: 3600
+      is_secure: 1
 
 gads:
   name: "App name" # The local name for the application
