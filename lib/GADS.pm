@@ -392,7 +392,9 @@ any '/data' => require_login sub {
         update_current_user lastview => $view_id;
         # When a new view is selected, unset sort, otherwise it's
         # not possible to remove a sort once it's been clicked
-        session 'sort'    => undef;
+        session 'sort' => undef;
+        # Also reset page number to 1
+        session 'page' => undef;
     }
 
     if (my $rows = param('rows'))
