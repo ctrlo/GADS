@@ -195,6 +195,7 @@
         </select>
     [% ELSIF dispcol.type == "file" %]
         [% IF readonly %]
+            <input type="hidden" name="[% field %]" value="[% editvalue.id %]">
             <p class="help-block">Current file name: [% editvalue.html %] (read-only field, cannot be updated).</p>
         [% ELSE %]
             <input type="file" id="[% dispcol.id %]" name="[% "file" _ dispcol.id %]">
