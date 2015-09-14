@@ -195,14 +195,19 @@
         </select>
     [% ELSIF dispcol.type == "file" %]
         [% IF readonly %]
-            <input type="hidden" name="[% field %]" value="[% editvalue.id %]">
-            <p class="help-block">Current file name: [% editvalue.html %] (read-only field, cannot be updated).</p>
+            [% IF editvalue.id %]
+                <input type="hidden" name="[% field %]" value="[% editvalue.id %]">
+                <p class="help-block">Current file name: [% editvalue.html %] (read-only field, cannot be updated).</p>
+            [% ELSE %]
+                <p class="help-block">No current file (read-only field, cannot be updated).</p>
+            [% END %]
         [% ELSE %]
             <input type="file" id="[% dispcol.id %]" name="[% "file" _ dispcol.id %]">
             [% IF editvalue.id %]
                 <p class="help-block">
-                <input type="checkbox" name="[% field %]" value="[% editvalue.id %]" checked>Include file.
-                Current file name: [% editvalue.html %]. Select a new file to replace.</p>
+                    <input type="checkbox" name="[% field %]" value="[% editvalue.id %]" checked>Include file.
+                    Current file name: [% editvalue.html %]. Select a new file to replace.
+                </p>
             [% END %]
         [% END %]
     [% ELSE %]
