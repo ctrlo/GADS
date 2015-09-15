@@ -16,8 +16,13 @@
         <meta name="author" content="">
         <link rel="shortcut icon" href="../../assets/ico/favicon.ico">
 
-        <link href='[% scheme %]://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
-        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        [% IF hostlocal %]
+            <link rel="stylesheet" href="[% url.css %]/font-awesome.min.css">
+            <!-- <link href='[% scheme %]://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'> -->
+        [% ELSE %]
+            <link href='[% scheme %]://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
+            <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        [% END %]
 
         <title>Globally Accessible Data Store [% page %]</title>
 
