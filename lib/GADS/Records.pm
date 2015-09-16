@@ -873,8 +873,9 @@ sub _search_construct
     my $value;
     if ($filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty')
     {
+        my $comb = $filter->{operator} eq 'is_empty' ? '-or' : '-and';
         $value = $column->type eq 'calc' || $column->type eq 'string'
-            ? [ -or => undef, "" ]
+            ? [ $comb => undef, "" ]
             : undef;
     }
     else {
