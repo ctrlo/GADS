@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Datum::Person;
 
 use DateTime;
+use HTML::Entities;
 use Log::Report;
 use Moo;
 use namespace::clean;
@@ -147,14 +148,16 @@ sub html
     return unless $self->id;
     if (my $e = $self->email)
     {
+        $e = encode_entities $e;
         push @details, qq(Email: <a href='mailto:$e'>$e</a>);
     }
     if (my $t = $self->telephone)
     {
+        $t = encode_entities $t;
         push @details, qq(Telephone: $t);
     }
-    my $details = join '<br>', @details;
-    my $text = $self->text;
+    my $details = join '<br>', map {encode_entities $_} @details;
+    my $text = encode_entities $self->text;
     return qq(<a style="cursor: pointer" class="personpop" data-toggle="popover"
         title="$text"
         data-content="$details">$text</a>
