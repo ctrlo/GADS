@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Audit;
 
+use DateTime;
 use Moo;
 
 has schema => (
@@ -36,7 +37,7 @@ sub user_action
         user_id     => $self->user->{id},
         description => $description,
         type        => 'user_action',
-        datetime    => \"NOW()",
+        datetime    => DateTime->now,
     });
 }
 
@@ -48,7 +49,7 @@ sub login_change
         user_id     => $user_id,
         description => $description,
         type        => 'login_change',
-        datetime    => \"NOW()",
+        datetime    => DateTime->now,
     });
 }
 
@@ -59,7 +60,7 @@ sub login_success
         user_id     => $self->user->{id},
         description => "Successful login by username ".$self->user->{username},
         type        => 'login_success',
-        datetime    => \"NOW()",
+        datetime    => DateTime->now,
     });
 }
 
@@ -70,7 +71,7 @@ sub logout
         user_id     => $self->user->{id},
         description => "Logout by username $username",
         type        => 'logout',
-        datetime    => \"NOW()",
+        datetime    => DateTime->now,
     });
 }
 
@@ -80,7 +81,7 @@ sub login_failure
     $self->schema->resultset('Audit')->create({
         description => "Login failure using username $username",
         type        => 'login_failure',
-        datetime    => \"NOW()",
+        datetime    => DateTime->now,
     });
 }
 
