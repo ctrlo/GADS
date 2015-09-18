@@ -55,9 +55,8 @@ __PACKAGE__->table("string");
 
 =head2 value
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 512
 
 =cut
 
@@ -69,7 +68,7 @@ __PACKAGE__->add_columns(
   "layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "value",
-  { data_type => "varchar", is_nullable => 1, size => 512 },
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -117,9 +116,13 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-06 03:17:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yAPIkeBUf4W6rL6LMdKazg
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-18 12:17:45
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:T1IGOK3PHYAIYbUbV/HcGw
 
+sub sqlt_deploy_hook {
+    my ($self, $sqlt_table) = @_;
+    $sqlt_table->add_index(name => 'string_idx_value', fields => [ { name => 'value', size => 64 } ]);
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

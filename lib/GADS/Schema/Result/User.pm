@@ -133,9 +133,8 @@ __PACKAGE__->table("user");
 
 =head2 value
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 1024
 
 =head2 account_request
 
@@ -198,7 +197,7 @@ __PACKAGE__->add_columns(
   "lastview",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "value",
-  { data_type => "varchar", is_nullable => 1, size => 1024 },
+  { data_type => "text", is_nullable => 1 },
   "account_request",
   { data_type => "smallint", default_value => 0, is_nullable => 1 },
   "account_request_notes",
@@ -441,9 +440,13 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-02-15 12:46:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tvXsPorQiQNcseVZrE41gw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-18 12:17:45
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cHfT2WrfHn9a7pGZclXVBw
 
+sub sqlt_deploy_hook {
+    my ($self, $sqlt_table) = @_;
+    $sqlt_table->add_index(name => 'user_idx_value', fields => [ { name => 'value', size => 64 } ]);
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

@@ -106,9 +106,8 @@ __PACKAGE__->table("layout");
 
 =head2 display_regex
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 256
 
 =head2 hidden
 
@@ -156,7 +155,7 @@ __PACKAGE__->add_columns(
   "display_field",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "display_regex",
-  { data_type => "varchar", is_nullable => 1, size => 256 },
+  { data_type => "text", is_nullable => 1 },
   "hidden",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "instance_id",
@@ -645,8 +644,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-07-26 20:26:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:msze7aawCafYsaJ1lGEpmA
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-18 12:27:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:p93I65Z1bRN2azH8OV3T+A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
