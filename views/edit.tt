@@ -157,7 +157,7 @@
             [% END %]
             [% FOREACH enumval IN enumvals %]
                 [% UNLESS enumval.deleted %]
-                    <option value="[% enumval.id %]" [% IF editvalue.id == enumval.id %]selected[% END %]>[% enumval.value %]</option>
+                    <option value="[% enumval.id %]" [% IF editvalue.id == enumval.id %]selected[% END %]>[% enumval.value | html_entity %]</option>
                 [% END %]
             [% END %]
         </select>
@@ -189,7 +189,7 @@
             [% END %]
             [% FOREACH person IN dispcol.people %]
                 [% UNLESS person.deleted %]
-                    <option value="[% person.id %]" [% IF selected == person.id %]selected[% END %]>[% person.value %]</option>
+                    <option value="[% person.id %]" [% IF selected == person.id %]selected[% END %]>[% person.value | html_entity %]</option>
                 [% END %]
             [% END %]
         </select>
@@ -213,8 +213,8 @@
     [% ELSE %]
         [% IF dispcol.type == "daterange" %]
             <div class="input-daterange datepicker" style="padding:0">
-                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline" value="[% editvalue.from_form %]" [% readonly %]>
-                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline; float:right" value="[% editvalue.to_form %]" [% readonly %]>
+                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline" value="[% editvalue.from_form | html_entity %]" [% readonly %]>
+                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline; float:right" value="[% editvalue.to_form | html_entity %]" [% readonly %]>
             </div>
         [% ELSE %]
             [% IF dispcol.type == "date" %]
