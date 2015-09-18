@@ -49,9 +49,8 @@ __PACKAGE__->table("permission");
 
 =head2 description
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 1024
 
 =head2 order
 
@@ -66,7 +65,7 @@ __PACKAGE__->add_columns(
   "name",
   { data_type => "varchar", is_nullable => 0, size => 128 },
   "description",
-  { data_type => "varchar", is_nullable => 1, size => 1024 },
+  { data_type => "text", is_nullable => 1 },
   "order",
   { data_type => "integer", is_nullable => 1 },
 );
@@ -101,8 +100,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-03-01 20:11:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Wx1el3vxmX+eLJRD6ZbaEw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-18 12:17:45
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JcI4rvB0yPlTuJx1AcVVSA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

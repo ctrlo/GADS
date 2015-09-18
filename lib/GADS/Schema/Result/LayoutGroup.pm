@@ -138,6 +138,10 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-04-20 00:09:24
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k3dFIL/cnUqlVGBunhvJQw
 
+sub sqlt_deploy_hook {
+    my ($self, $sqlt_table) = @_;
+    $sqlt_table->add_index(name => 'layout_group_idx_permission', fields => ['permission']);
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

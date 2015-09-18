@@ -49,21 +49,18 @@ __PACKAGE__->table("rag");
 
 =head2 red
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 256
 
 =head2 amber
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 256
 
 =head2 green
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 256
 
 =cut
 
@@ -73,11 +70,11 @@ __PACKAGE__->add_columns(
   "layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "red",
-  { data_type => "varchar", is_nullable => 1, size => 256 },
+  { data_type => "text", is_nullable => 1 },
   "amber",
-  { data_type => "varchar", is_nullable => 1, size => 256 },
+  { data_type => "text", is_nullable => 1 },
   "green",
-  { data_type => "varchar", is_nullable => 1, size => 256 },
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -110,8 +107,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-06 03:17:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RsLBQlKeYBhF4Hzi61iS1A
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-18 12:17:45
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6qncV0JKMKK+adqarO2qYQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -120,6 +120,10 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-06 03:17:44
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GRud1V5q7W4xpKY8lgUloA
 
+sub sqlt_deploy_hook {
+    my ($self, $sqlt_table) = @_;
+    $sqlt_table->add_index(name => 'date_idx_value', fields => ['value']);
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
