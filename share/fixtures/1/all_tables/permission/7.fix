@@ -1,7 +1,0 @@
-$HASH1 = {
-           description
-                  => 'User can create, modify and delete views',
-           id     => 7,
-           name   => 'view_create',
-           order  => 7
-         };
