@@ -765,9 +765,20 @@ sub write
             current_ids => [$self->current_id],
             columns     => \@columns_changed,
         );
-        fork and return;
-        $alert_send->process;
-        exit;
+
+        if (my $kid = fork)
+        {
+            waitpid($kid, 0); # let the child die
+        }
+        else {
+            if (my $grandkid = fork) {
+                exit 0; # the child dies here
+            }
+            else {
+                $alert_send->process; # This takes a long time
+                exit 0; # grandchild dies here
+            }
+        }
     }
 }
 
