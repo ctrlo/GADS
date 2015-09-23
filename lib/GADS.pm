@@ -1619,12 +1619,12 @@ any '/edit/:id?' => require_login sub {
             # just silently ignoring them, IMHO.
             foreach my $col (@columns_to_show)
             {
-                if ($col->userinput) # Not calculated fields
+                my $newv = param($col->field);
+                if ($col->userinput && defined $newv) # Not calculated fields
                 {
                     # No need to do anything if the file's just been uploaded
                     unless (upload "file".$col->id)
                     {
-                        my $newv = param($col->field);
                         $failed = !process( sub { $record->fields->{$col->id}->set_value($newv) } ) || $failed;
                     }
                 }
