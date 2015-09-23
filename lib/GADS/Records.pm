@@ -332,18 +332,17 @@ sub search_views
             if (keys %$decoded)
             {
                 my @s = @{$self->_search_construct($decoded, $self->layout, 1)};
-                my @found = $self->schema->resultset('Current')->search({
+                my @ids = $self->schema->resultset('Current')->search({
                     'me.id'          => $current_ids, # Array ref
                     'me.instance_id' => $self->layout->instance_id,
                     @s,
                 },{
                     join     => {'record' => $joins},
-                })->all;
-                my @ids = map { $_->id } @found;
+                })->get_column('id')->all;
                 push @foundin, {
                     view => $view,
                     ids  => \@ids,
-                } if @found;
+                } if @ids;
             }
             else {
                 # No filter, definitely in view
