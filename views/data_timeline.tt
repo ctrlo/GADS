@@ -9,10 +9,16 @@
             var base64 = '[% records %]';
             var json = decodeBase64(base64);
             var items = new vis.DataSet(JSON.parse(json));
+            var groups = '[% groups %]';
+            var json_group = decodeBase64(groups);
+            var groups = JSON.parse(json_group);
 
             var options = {};
 
             var timeline = new vis.Timeline(container, items, options);
+            if (groups.length > 0) {
+                timeline.setGroups(groups);
+            }
         [% END %]
     [% END %]';
 </script>
