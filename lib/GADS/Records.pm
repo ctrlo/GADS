@@ -307,9 +307,13 @@ sub search_views
     my $joins = $self->joins;
 
     my $search       = {
-        'me.id'          => $current_ids, # Array ref
         'me.instance_id' => $self->layout->instance_id,
     };
+    my $total_count = $self->schema->resultset('Current')->search({
+        instance_id => $self->layout->instance_id,
+        record_id   => { '!=' => undef } # Not sure why, but some IDs have no record. Bug?
+    })->count;
+    $search->{'me.id'} = $current_ids unless @$current_ids == $total_count; # Array ref
     $search->{'-or'} = \@search if @search;
 
     $found_in_a_view ||= $self->schema->resultset('Current')->search($search,{
