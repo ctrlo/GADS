@@ -1140,9 +1140,10 @@ sub data_time
                     "content" => $title,
                     "id"      => $record->current_id,
                     "start"   => $d->{from}->ymd,
-                    "style"   => qq(background-color: $item_color),
                     "group"   => $item_group,
                 };
+                $item->{style} = qq(background-color: $item_color)
+                    if $item_color;
                 $item->{end} = $d->{to}->ymd
                     if $d->{from}->epoch != $d->{to}->epoch;
                 push @result, $item;
