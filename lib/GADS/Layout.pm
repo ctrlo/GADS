@@ -269,7 +269,8 @@ sub view
         layout      => $self,
         instance_id => $self->instance_id,
     );
-    my %view_layouts = map { $_ => 1 } @{$view->columns};
+    my @columns_extra = $options{columns_extra} ? @{$options{columns_extra}} : ();
+    my %view_layouts = map { $_ => 1 } (@{$view->columns}, @columns_extra);
     grep { $view_layouts{$_->{id}} } $self->all(%options);
 }
 

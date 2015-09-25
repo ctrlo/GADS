@@ -516,17 +516,32 @@ any '/data' => require_login sub {
     elsif ($viewtype eq 'timeline')
     {
         my $view    = current_view($user, $layout);
-
         my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
+        if (param 'tl_update')
+        {
+            session 'tl_options' => {
+                label => param('tl_label'),
+                group => param('tl_group'),
+                color => param('tl_color'),
+            };
+        }
+        my @extra;
+        my $tl_options = session('tl_options') || {};
+        push @extra, $tl_options->{label} if $tl_options->{label};
+        push @extra, $tl_options->{group} if $tl_options->{group};
+        push @extra, $tl_options->{color} if $tl_options->{color};
         $records->search(
-            view    => $view,
-            rows    => 50, # Default to small subset for performance
-            page    => 1,
+            view          => $view,
+            columns_extra => [@extra],
+            rows          => 50, # Default to small subset for performance
+            page          => 1,
         );
-        my $json = encode_json($records->data_timeline);
-        my $base64 = encode_base64($json);
-        $params->{records}    = $base64;
-        $params->{viewtype}   = 'timeline';
+        my ($items, $groups) = $records->data_timeline(%{$tl_options});
+        $params->{records}      = encode_base64(encode_json($items));
+        $params->{groups}       = encode_base64(encode_json($groups));
+        $params->{tl_options}   = $tl_options;
+        $params->{columns_read} = [$layout->all(user_can_read => 1)];
+        $params->{viewtype}     = 'timeline';
     }
     else {
         session 'rows' => 50 unless session 'rows';

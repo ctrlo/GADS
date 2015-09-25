@@ -76,6 +76,11 @@ has columns => (
     is => 'rw',
 );
 
+# Array ref with any additional column IDs requested
+has columns_extra => (
+    is => 'rw',
+);
+
 # Value containing the actual columns retrieved
 has columns_retrieved => (
     is => 'rw',
@@ -638,7 +643,12 @@ sub construct_search
     }
     elsif (my $view = $self->view)
     {
-        @columns = $layout->view($view->id, order_dependencies => 1, user_has_read => 1);
+        @columns = $layout->view(
+            $view->id,
+            order_dependencies => 1,
+            user_has_read      => 1,
+            columns_extra      => $self->columns_extra,
+        );
     }
     else {
         @columns = $layout->all(
@@ -1001,15 +1011,19 @@ sub data
 
 # Base function for calendar and timeline
 sub data_time
-{   my ($self, $type) = @_;
-
-    # Column names
-    my @colnames = ("Serial");
-    push @colnames, map { $_->{name} } @{$self->columns_retrieved};
+{   my ($self, $type, %options) = @_;
 
     my @colors = qw/event-important event-success event-warning event-info event-inverse event-special/;
     my @result;
     my %datecolors;
+    my %timeline_groups;
+    my $group_count;
+
+    # Need a Graph::Data instance to get relevant colors
+    my $graph = GADS::Graph::Data->new(
+        schema  => $self->schema,
+        records => undef,
+    );
 
     # All the data values
     foreach my $record (@{$self->results})
@@ -1063,10 +1077,39 @@ sub data_time
             }
             else {
                 next if $column->type eq "rag";
+                # Check if the user has selected only one label
+                next if $options{label} && $options{label} != $column->id;
                 # Not a date value, push onto title
                 # Don't want full HTML, which includes hyperlinks etc
                 my $v = encode_entities($record->fields->{$column->id}->as_string);
                 push @titles, $v if $v;
+            }
+        }
+        if (my $label = $options{label})
+        {
+            @titles = (encode_entities $record->fields->{$label}->as_string)
+                if $record->fields->{$label};
+        }
+        my $item_color;
+        if (my $color = $options{color})
+        {
+            if ($record->fields->{$color})
+            {
+                my $val = $record->fields->{$color}->as_string;
+                $item_color = $graph->get_color($val);
+            }
+        }
+        my $item_group;
+        if (my $group = $options{group})
+        {
+            if ($record->fields->{$group})
+            {
+                my $val = $record->fields->{$group}->as_string;
+                unless ($item_group = $timeline_groups{$val})
+                {
+                    $item_group = ++$group_count;
+                    $timeline_groups{$val} = $item_group;
+                }
             }
         }
 
@@ -1095,9 +1138,12 @@ sub data_time
             else {
                 my $item = {
                     "content" => $title,
-                    "id"    => $record->current_id,
-                    "start" => $d->{from}->ymd,
+                    "id"      => $record->current_id,
+                    "start"   => $d->{from}->ymd,
+                    "group"   => $item_group,
                 };
+                $item->{style} = qq(background-color: $item_color)
+                    if $item_color;
                 $item->{end} = $d->{to}->ymd
                     if $d->{from}->epoch != $d->{to}->epoch;
                 push @result, $item;
@@ -1105,7 +1151,14 @@ sub data_time
         }
     }
 
-    \@result;
+    my @groups = map {
+        {
+            id      => $timeline_groups{$_},
+            content => $_,
+        }
+    } keys %timeline_groups;
+
+    wantarray ? (\@result, \@groups) : \@result;
 }
 
 sub data_calendar
@@ -1115,7 +1168,7 @@ sub data_calendar
 
 sub data_timeline
 {   my $self = shift;
-    $self->data_time('timeline');
+    $self->data_time('timeline', @_);
 }
 
 1;

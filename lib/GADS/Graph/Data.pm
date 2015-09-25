@@ -71,6 +71,37 @@ has csv => (
     is => 'lazy',
 );
 
+has _colors => (
+    is      => 'ro',
+    default => sub {
+        {
+            "34C3E0" => 1,
+            "62BB46" => 1,
+            "FFDD00" => 1,
+            "D1D3D4" => 1,
+            "F99D1C" => 1,
+            "F0679E" => 1,
+            "2C4269" => 1,
+            "7F3F98" => 1,
+            "1C75BC" => 1,
+            "EF4136" => 1,
+            "2BB673" => 1,
+            "51417B" => 1,
+            "F26522" => 1,
+            "8C8C8C" => 1,
+            "97CEDD" => 1,
+            "DCDD20" => 1,
+            "4D4C4C" => 1,
+            "447CBF" => 1,
+            "F5C316" => 1,
+            "007B45" => 1,
+            "F37970" => 1,
+            "4B0F44" => 1,
+            "EE2D72" => 1,
+        },
+    },
+);
+
 sub _build_csv
 {   my $self = shift;
     my $csv = Text::CSV::Encoded->new({ encoding  => undef });
@@ -116,6 +147,31 @@ sub _build_csv
         $csvout .= $csv->string."\n";
     }
     $csvout;
+}
+
+sub get_color
+{   my ($self, $value) = @_;
+    my $guard = $self->schema->txn_scope_guard;
+    my $existing = $self->schema->resultset('GraphColor')->find($value, { key => 'ux_graph_color_name' });
+    my $color;
+    if ($existing)
+    {
+        $color = $existing->color;
+    }
+    else {
+        ($color) = keys %{$self->_colors};
+        $self->schema->resultset('GraphColor')->create({
+            name  => $value,
+            color => $color,
+        }) if $color; # May have run out of colours
+    }
+    $guard->commit;
+    if ($color)
+    {
+        delete $self->_colors->{$color};
+        $color = "#$color";
+    }
+    $color;
 }
 
 sub _build_data
@@ -348,31 +404,6 @@ sub _build_data
         }
     }
     else {
-        my %colors = (
-            "34C3E0" => 1,
-            "62BB46" => 1,
-            "FFDD00" => 1,
-            "D1D3D4" => 1,
-            "F99D1C" => 1,
-            "F0679E" => 1,
-            "2C4269" => 1,
-            "7F3F98" => 1,
-            "1C75BC" => 1,
-            "EF4136" => 1,
-            "2BB673" => 1,
-            "51417B" => 1,
-            "F26522" => 1,
-            "8C8C8C" => 1,
-            "97CEDD" => 1,
-            "DCDD20" => 1,
-            "4D4C4C" => 1,
-            "447CBF" => 1,
-            "F5C316" => 1,
-            "007B45" => 1,
-            "F37970" => 1,
-            "4B0F44" => 1,
-            "EE2D72" => 1,
-        );
         # Now work out the Y labels for each point. Go into each data set and
         # see if there is a value. If there is, set the label, otherwise leave
         # it blank in order to show no label at that point
@@ -387,25 +418,7 @@ sub _build_data
             else {
                 $showlabel = 'true';
                 $y_group_values{$y_group}->{defined} = 1;
-                my $guard = $self->schema->txn_scope_guard;
-                my $existing = $self->schema->resultset('GraphColor')->find($y_group, { key => 'ux_graph_color_name' });
-                if ($existing)
-                {
-                    $color = $existing->color;
-                }
-                else {
-                    ($color) = keys %colors;
-                    $self->schema->resultset('GraphColor')->create({
-                        name  => $y_group,
-                        color => $color,
-                    }) if $color; # May have run out of colours
-                }
-                $guard->commit;
-                if ($color)
-                {
-                    delete $colors{$color};
-                    $color = "#$color";
-                }
+                $color = $self->get_color($y_group);
             }
             $series->{$k}->{label} = {
                 color         => $color,
