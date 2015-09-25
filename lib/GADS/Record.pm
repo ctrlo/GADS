@@ -35,6 +35,7 @@ use GADS::Datum::String;
 use GADS::Datum::Tree;
 use GADS::Util         qw(:all);
 use Log::Report;
+use POSIX ();
 
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
@@ -772,11 +773,11 @@ sub write
         }
         else {
             if (my $grandkid = fork) {
-                exit 0; # the child dies here
+                POSIX::_exit(0); # the child dies here
             }
             else {
                 $alert_send->process; # This takes a long time
-                exit 0; # grandchild dies here
+                POSIX::_exit(0); # grandchild dies here
             }
         }
     }
