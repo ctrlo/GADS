@@ -85,7 +85,7 @@ CREATE TABLE "calcval" (
   "id" serial NOT NULL,
   "record_id" integer NOT NULL,
   "layout_id" integer NOT NULL,
-  "value" text,
+  "value" citext,
   PRIMARY KEY ("id"),
   CONSTRAINT "calcval_ux_record_layout" UNIQUE ("record_id", "layout_id")
 );
@@ -167,7 +167,7 @@ CREATE INDEX "enum_idx_value" on "enum" ("value");
 CREATE TABLE "enumval" (
   "id" serial NOT NULL,
   "enum_id" integer,
-  "value" text,
+  "value" citext,
   "layout_id" integer,
   "deleted" smallint DEFAULT 0 NOT NULL,
   "parent" integer,
@@ -510,7 +510,7 @@ CREATE TABLE "string" (
   "id" serial NOT NULL,
   "record_id" integer NOT NULL,
   "layout_id" integer NOT NULL,
-  "value" text,
+  "value" citext,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "string_idx_layout_id" on "string" ("layout_id");
@@ -535,8 +535,8 @@ CREATE TABLE "user" (
   "id" serial NOT NULL,
   "firstname" character varying(45),
   "surname" character varying(45),
-  "email" character varying(45),
-  "username" character varying(45),
+  "email" citext,
+  "username" citext,
   "title" integer,
   "organisation" integer,
   "telephone" character varying(128),
@@ -548,7 +548,7 @@ CREATE TABLE "user" (
   "lastlogin" timestamp,
   "lastrecord" integer,
   "lastview" integer,
-  "value" text,
+  "value" citext,
   "account_request" smallint DEFAULT 0,
   "account_request_notes" text,
   "aup_accepted" timestamp,
