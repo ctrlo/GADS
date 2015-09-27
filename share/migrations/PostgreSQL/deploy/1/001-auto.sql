@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Fri Sep 18 13:50:38 2015
+-- Created on Sun Sep 27 16:01:40 2015
 -- 
 ;
 --
@@ -87,7 +87,7 @@ CREATE TABLE "calcval" (
   "layout_id" integer NOT NULL,
   "value" text,
   PRIMARY KEY ("id"),
-  CONSTRAINT "index4" UNIQUE ("record_id", "layout_id")
+  CONSTRAINT "calcval_ux_record_layout" UNIQUE ("record_id", "layout_id")
 );
 CREATE INDEX "calcval_idx_layout_id" on "calcval" ("layout_id");
 CREATE INDEX "calcval_idx_record_id" on "calcval" ("record_id");
@@ -370,7 +370,7 @@ CREATE TABLE "layout_group" (
   "group_id" integer NOT NULL,
   "permission" character varying(45) NOT NULL,
   PRIMARY KEY ("id"),
-  CONSTRAINT "index4" UNIQUE ("layout_id", "group_id", "permission")
+  CONSTRAINT "layout_group_ux_layout_group_permission" UNIQUE ("layout_id", "group_id", "permission")
 );
 CREATE INDEX "layout_group_idx_group_id" on "layout_group" ("group_id");
 CREATE INDEX "layout_group_idx_layout_id" on "layout_group" ("layout_id");
@@ -463,7 +463,7 @@ CREATE TABLE "ragval" (
   "layout_id" integer NOT NULL,
   "value" character varying(16),
   PRIMARY KEY ("id"),
-  CONSTRAINT "index4" UNIQUE ("record_id", "layout_id")
+  CONSTRAINT "ragval_ux_record_layout" UNIQUE ("record_id", "layout_id")
 );
 CREATE INDEX "ragval_idx_layout_id" on "ragval" ("layout_id");
 CREATE INDEX "ragval_idx_record_id" on "ragval" ("record_id");

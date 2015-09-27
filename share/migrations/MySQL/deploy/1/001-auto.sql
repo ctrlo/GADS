@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Fri Sep 18 13:50:37 2015
+-- Created on Sun Sep 27 16:01:39 2015
 -- 
 ;
 SET foreign_key_checks=0;
@@ -91,7 +91,7 @@ CREATE TABLE `calcval` (
   INDEX `calcval_idx_record_id` (`record_id`),
   INDEX `calcval_idx_value` (`value`(64)),
   PRIMARY KEY (`id`),
-  UNIQUE `index4` (`record_id`, `layout_id`),
+  UNIQUE `calcval_ux_record_layout` (`record_id`, `layout_id`),
   CONSTRAINT `calcval_fk_layout_id` FOREIGN KEY (`layout_id`) REFERENCES `layout` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `calcval_fk_record_id` FOREIGN KEY (`record_id`) REFERENCES `record` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB;
@@ -374,7 +374,7 @@ CREATE TABLE `layout_group` (
   INDEX `layout_group_idx_layout_id` (`layout_id`),
   INDEX `layout_group_idx_permission` (`permission`),
   PRIMARY KEY (`id`),
-  UNIQUE `index4` (`layout_id`, `group_id`, `permission`),
+  UNIQUE `layout_group_ux_layout_group_permission` (`layout_id`, `group_id`, `permission`),
   CONSTRAINT `layout_group_fk_group_id` FOREIGN KEY (`group_id`) REFERENCES `group` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `layout_group_fk_layout_id` FOREIGN KEY (`layout_id`) REFERENCES `layout` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB;
@@ -461,7 +461,7 @@ CREATE TABLE `ragval` (
   INDEX `ragval_idx_record_id` (`record_id`),
   INDEX `ragval_idx_value` (`value`),
   PRIMARY KEY (`id`),
-  UNIQUE `index4` (`record_id`, `layout_id`),
+  UNIQUE `ragval_ux_record_layout` (`record_id`, `layout_id`),
   CONSTRAINT `ragval_fk_layout_id` FOREIGN KEY (`layout_id`) REFERENCES `layout` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `ragval_fk_record_id` FOREIGN KEY (`record_id`) REFERENCES `record` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB;

@@ -85,7 +85,7 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<index4>
+=head2 C<calcval_ux_record_layout>
 
 =over 4
 
@@ -97,7 +97,7 @@ __PACKAGE__->set_primary_key("id");
 
 =cut
 
-__PACKAGE__->add_unique_constraint("index4", ["record_id", "layout_id"]);
+__PACKAGE__->add_unique_constraint("calcval_ux_record_layout", ["record_id", "layout_id"]);
 
 =head1 RELATIONS
 
@@ -132,8 +132,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-18 12:17:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zcNH+8cnOkRMKeIMZurAPA
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-27 15:59:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bG36H6v6Ld5uHnjerwSiLg
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;

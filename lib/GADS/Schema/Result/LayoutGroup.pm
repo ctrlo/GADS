@@ -86,7 +86,7 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<index4>
+=head2 C<layout_group_ux_layout_group_permission>
 
 =over 4
 
@@ -100,7 +100,10 @@ __PACKAGE__->set_primary_key("id");
 
 =cut
 
-__PACKAGE__->add_unique_constraint("index4", ["layout_id", "group_id", "permission"]);
+__PACKAGE__->add_unique_constraint(
+  "layout_group_ux_layout_group_permission",
+  ["layout_id", "group_id", "permission"],
+);
 
 =head1 RELATIONS
 
@@ -135,8 +138,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-04-20 00:09:24
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k3dFIL/cnUqlVGBunhvJQw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-27 15:59:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:auJPR1e9SsHA+KgOfQdWbg
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;

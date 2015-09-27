@@ -557,7 +557,7 @@ schema:
             - record_id
             - layout_id
           match_type: ''
-          name: index4
+          name: calcval_ux_record_layout
           on_delete: ''
           on_update: ''
           options: []
@@ -2608,7 +2608,7 @@ schema:
             - group_id
             - permission
           match_type: ''
-          name: index4
+          name: layout_group_ux_layout_group_permission
           on_delete: ''
           on_update: ''
           options: []
@@ -3180,7 +3180,7 @@ schema:
             - record_id
             - layout_id
           match_type: ''
-          name: index4
+          name: ragval_ux_record_layout
           on_delete: ''
           on_update: ''
           options: []
