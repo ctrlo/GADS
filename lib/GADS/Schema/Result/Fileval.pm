@@ -48,9 +48,8 @@ __PACKAGE__->table("fileval");
 
 =head2 mimetype
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 45
 
 =head2 content
 
@@ -65,7 +64,7 @@ __PACKAGE__->add_columns(
   "name",
   { data_type => "text", is_nullable => 1 },
   "mimetype",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
+  { data_type => "text", is_nullable => 1 },
   "content",
   { data_type => "longblob", is_nullable => 1 },
 );
@@ -100,8 +99,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:06:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ojSj7uqbXQAz4egMIDiiqg
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 11:44:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PU7S8+gpJJsWBN42O913HA
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;

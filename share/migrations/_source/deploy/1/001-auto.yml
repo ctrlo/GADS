@@ -1471,7 +1471,7 @@ schema:
           size:
             - 0
         mimetype:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -1479,7 +1479,7 @@ schema:
           name: mimetype
           order: 3
           size:
-            - 45
+            - 0
         name:
           data_type: text
           default_value: ~

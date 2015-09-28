@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Mon Sep 28 11:22:25 2015
+-- Created on Mon Sep 28 11:45:04 2015
 -- 
 ;
 SET foreign_key_checks=0;
@@ -213,7 +213,7 @@ CREATE TABLE `file_option` (
 CREATE TABLE `fileval` (
   `id` bigint NOT NULL auto_increment,
   `name` text NULL,
-  `mimetype` varchar(45) NULL,
+  `mimetype` text NULL,
   `content` longblob NULL,
   INDEX `fileval_idx_name` (`name`(64)),
   PRIMARY KEY (`id`)

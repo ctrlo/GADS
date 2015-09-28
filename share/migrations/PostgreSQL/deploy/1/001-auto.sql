@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Mon Sep 28 11:22:26 2015
+-- Created on Mon Sep 28 11:45:05 2015
 -- 
 ;
 --
@@ -209,7 +209,7 @@ CREATE INDEX "file_option_idx_layout_id" on "file_option" ("layout_id");
 CREATE TABLE "fileval" (
   "id" bigserial NOT NULL,
   "name" text,
-  "mimetype" character varying(45),
+  "mimetype" text,
   "content" bytea,
   PRIMARY KEY ("id")
 );
