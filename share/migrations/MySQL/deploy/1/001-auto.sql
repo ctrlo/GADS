@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Mon Sep 28 11:17:06 2015
+-- Created on Mon Sep 28 11:22:25 2015
 -- 
 ;
 SET foreign_key_checks=0;
@@ -100,7 +100,6 @@ CREATE TABLE `calcval` (
 --
 CREATE TABLE `current` (
   `id` bigint NOT NULL auto_increment,
-  `serial` varchar(45) NULL,
   `record_id` bigint NULL,
   `parent_id` bigint NULL,
   `instance_id` integer NULL,

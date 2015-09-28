@@ -378,6 +378,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 graph_x_axes
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Graph>
+
+=cut
+
+__PACKAGE__->has_many(
+  "graph_x_axes",
+  "GADS::Schema::Result::Graph",
+  { "foreign.x_axis" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 graph_y_axes
 
 Type: has_many
@@ -390,21 +405,6 @@ __PACKAGE__->has_many(
   "graph_y_axes",
   "GADS::Schema::Result::Graph",
   { "foreign.y_axis" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 graphs_x_axis
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Graph>
-
-=cut
-
-__PACKAGE__->has_many(
-  "graphs_x_axis",
-  "GADS::Schema::Result::Graph",
-  { "foreign.x_axis" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -644,8 +644,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:25:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:apaiOe7/W6DO5U09JFcsHQ
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 11:21:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3PGMy1dkROKzbcnIYceXGw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Mon Sep 28 11:17:07 2015
+-- Created on Mon Sep 28 11:22:26 2015
 -- 
 ;
 --
@@ -99,7 +99,6 @@ CREATE INDEX "calcval_idx_value" on "calcval" ("value");
 --
 CREATE TABLE "current" (
   "id" bigserial NOT NULL,
-  "serial" character varying(45),
   "record_id" bigint,
   "parent_id" bigint,
   "instance_id" integer,

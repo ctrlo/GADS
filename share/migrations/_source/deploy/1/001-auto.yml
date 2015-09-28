@@ -737,7 +737,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: instance_id
-          order: 5
+          order: 4
           size:
             - 0
         linked_id:
@@ -747,7 +747,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: linked_id
-          order: 6
+          order: 5
           size:
             - 0
         parent_id:
@@ -757,7 +757,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: parent_id
-          order: 4
+          order: 3
           size:
             - 0
         record_id:
@@ -767,19 +767,9 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: record_id
-          order: 3
-          size:
-            - 0
-        serial:
-          data_type: varchar
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: serial
           order: 2
           size:
-            - 45
+            - 0
       indices:
         - fields:
             - instance_id
