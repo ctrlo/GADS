@@ -37,7 +37,7 @@ __PACKAGE__->table("current");
 
 =head2 id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_auto_increment: 1
   is_nullable: 0
 
@@ -49,13 +49,13 @@ __PACKAGE__->table("current");
 
 =head2 record_id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_foreign_key: 1
   is_nullable: 1
 
 =head2 parent_id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_foreign_key: 1
   is_nullable: 1
 
@@ -67,7 +67,7 @@ __PACKAGE__->table("current");
 
 =head2 linked_id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_foreign_key: 1
   is_nullable: 1
 
@@ -75,17 +75,17 @@ __PACKAGE__->table("current");
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
   "serial",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "record_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "parent_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "instance_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "linked_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -258,8 +258,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-07-26 20:26:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sEFKpBLFTZOkHrfEiz09Lw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:06:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ctikEMNjjqLl1Ycuh7QYfg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

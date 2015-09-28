@@ -65,7 +65,7 @@ schema:
           size:
             - 0
         user_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -75,7 +75,7 @@ schema:
           size:
             - 0
         view_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -153,7 +153,7 @@ schema:
           type: FOREIGN KEY
       fields:
         current_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -163,7 +163,7 @@ schema:
           size:
             - 0
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -184,7 +184,7 @@ schema:
           size:
             - 0
         view_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -292,7 +292,7 @@ schema:
           size:
             - 0
         current_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -302,7 +302,7 @@ schema:
           size:
             - 0
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -400,7 +400,7 @@ schema:
           size:
             - 0
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -441,7 +441,7 @@ schema:
           size:
             - 0
         user_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -592,7 +592,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -613,7 +613,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -720,7 +720,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -741,7 +741,7 @@ schema:
           size:
             - 0
         linked_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -751,7 +751,7 @@ schema:
           size:
             - 0
         parent_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -761,7 +761,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -846,7 +846,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -867,7 +867,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -957,7 +957,7 @@ schema:
           size:
             - 0
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -978,7 +978,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -1091,7 +1091,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -1112,7 +1112,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -1198,17 +1198,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: deleted
-          order: 5
-          size:
-            - 0
-        enum_id:
-          data_type: integer
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: enum_id
-          order: 2
+          order: 4
           size:
             - 0
         id:
@@ -1229,7 +1219,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: layout_id
-          order: 4
+          order: 3
           size:
             - 0
         parent:
@@ -1239,7 +1229,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: parent
-          order: 6
+          order: 5
           size:
             - 0
         value:
@@ -1249,7 +1239,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: value
-          order: 3
+          order: 2
           size:
             - 0
       indices:
@@ -1327,7 +1317,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -1348,7 +1338,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -1358,7 +1348,7 @@ schema:
           size:
             - 0
         value:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -1480,7 +1470,7 @@ schema:
           size:
             - 0
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -1562,7 +1552,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -1583,7 +1573,7 @@ schema:
           size:
             - 0
         view_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -1884,7 +1874,7 @@ schema:
           size:
             - 6
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -2208,7 +2198,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -2229,7 +2219,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -3013,7 +3003,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -3034,7 +3024,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -3044,7 +3034,7 @@ schema:
           size:
             - 0
         value:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -3215,7 +3205,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -3236,7 +3226,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -3352,7 +3342,7 @@ schema:
           size:
             - 0
         approvedby:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -3372,7 +3362,7 @@ schema:
           size:
             - 0
         createdby:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -3382,7 +3372,7 @@ schema:
           size:
             - 0
         current_id:
-          data_type: integer
+          data_type: bigint
           default_value: 0
           is_nullable: 0
           is_primary_key: 0
@@ -3392,7 +3382,7 @@ schema:
           size:
             - 0
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -3403,7 +3393,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -3509,7 +3499,7 @@ schema:
           size:
             - 45
         view_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -3574,7 +3564,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -3595,7 +3585,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -3772,8 +3762,8 @@ schema:
           size:
             - 0
         deleted:
-          data_type: smallint
-          default_value: 0
+          data_type: datetime
+          default_value: ~
           is_nullable: 0
           is_primary_key: 0
           is_unique: 0
@@ -3802,7 +3792,7 @@ schema:
           size:
             - 45
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -3823,7 +3813,7 @@ schema:
           size:
             - 0
         lastrecord:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -3833,7 +3823,7 @@ schema:
           size:
             - 0
         lastview:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -4024,7 +4014,7 @@ schema:
           size:
             - 0
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -4035,7 +4025,7 @@ schema:
           size:
             - 0
         user_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -4110,7 +4100,7 @@ schema:
           size:
             - 0
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -4121,7 +4111,7 @@ schema:
           size:
             - 0
         user_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -4186,7 +4176,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -4207,7 +4197,7 @@ schema:
           size:
             - 0
         user_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -4292,7 +4282,7 @@ schema:
           size:
             - 0
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -4323,7 +4313,7 @@ schema:
           size:
             - 128
         user_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -4419,7 +4409,7 @@ schema:
           size:
             - 0
         view_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0

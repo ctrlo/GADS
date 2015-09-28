@@ -37,7 +37,7 @@ __PACKAGE__->table("fileval");
 
 =head2 id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_auto_increment: 1
   is_nullable: 0
 
@@ -61,7 +61,7 @@ __PACKAGE__->table("fileval");
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
   "name",
   { data_type => "text", is_nullable => 1 },
   "mimetype",
@@ -100,8 +100,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-18 12:17:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JsHASv0qfe8w0vBhnrW3Lw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:06:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ojSj7uqbXQAz4egMIDiiqg
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;

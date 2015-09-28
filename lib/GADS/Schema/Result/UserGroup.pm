@@ -37,13 +37,13 @@ __PACKAGE__->table("user_group");
 
 =head2 id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_auto_increment: 1
   is_nullable: 0
 
 =head2 user_id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_foreign_key: 1
   is_nullable: 0
 
@@ -57,9 +57,9 @@ __PACKAGE__->table("user_group");
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
   "user_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
   "group_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
@@ -109,8 +109,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-02-15 11:41:42
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r59HNIyydgf31nSLRB4quA
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:06:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:upcjX9CmoFuCXkF86+a66w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

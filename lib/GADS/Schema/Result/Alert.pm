@@ -43,13 +43,13 @@ __PACKAGE__->table("alert");
 
 =head2 view_id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_foreign_key: 1
   is_nullable: 0
 
 =head2 user_id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_foreign_key: 1
   is_nullable: 0
 
@@ -65,9 +65,9 @@ __PACKAGE__->add_columns(
   "id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "view_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
   "user_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
   "frequency",
   { data_type => "integer", default_value => 0, is_nullable => 0 },
 );
@@ -132,8 +132,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-06 03:17:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JmClfMA9b6l0+axqjSGWuQ
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:06:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iAHVIRY1Lv9f8RbQOVQCGw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

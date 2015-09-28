@@ -37,13 +37,13 @@ __PACKAGE__->table("file");
 
 =head2 id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_auto_increment: 1
   is_nullable: 0
 
 =head2 record_id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_foreign_key: 1
   is_nullable: 1
 
@@ -55,7 +55,7 @@ __PACKAGE__->table("file");
 
 =head2 value
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_foreign_key: 1
   is_nullable: 1
 
@@ -63,13 +63,13 @@ __PACKAGE__->table("file");
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
   "record_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "value",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -147,8 +147,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-06 03:17:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KRaYzjxihQmMcK9rrlM6Ow
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:06:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wjZgbAJV3L/coCRu7P3QEQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

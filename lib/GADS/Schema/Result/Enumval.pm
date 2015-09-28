@@ -41,11 +41,6 @@ __PACKAGE__->table("enumval");
   is_auto_increment: 1
   is_nullable: 0
 
-=head2 enum_id
-
-  data_type: 'integer'
-  is_nullable: 1
-
 =head2 value
 
   data_type: 'text'
@@ -74,8 +69,6 @@ __PACKAGE__->table("enumval");
 __PACKAGE__->add_columns(
   "id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
-  "enum_id",
-  { data_type => "integer", is_nullable => 1 },
   "value",
   { data_type => "text", is_nullable => 1 },
   "layout_id",
@@ -171,8 +164,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-18 12:17:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yYcWNEZpLz/rJMA03iMgWQ
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:06:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4v1Z5p4xRHxb+33sxH8+9w
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;

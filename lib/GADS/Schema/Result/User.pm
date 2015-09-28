@@ -37,7 +37,7 @@ __PACKAGE__->table("user");
 
 =head2 id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_auto_increment: 1
   is_nullable: 0
 
@@ -109,8 +109,8 @@ __PACKAGE__->table("user");
 
 =head2 deleted
 
-  data_type: 'smallint'
-  default_value: 0
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
   is_nullable: 0
 
 =head2 lastlogin
@@ -121,13 +121,13 @@ __PACKAGE__->table("user");
 
 =head2 lastrecord
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_foreign_key: 1
   is_nullable: 1
 
 =head2 lastview
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_foreign_key: 1
   is_nullable: 1
 
@@ -157,7 +157,7 @@ __PACKAGE__->table("user");
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
   "firstname",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "surname",
@@ -185,7 +185,11 @@ __PACKAGE__->add_columns(
   "resetpw",
   { data_type => "varchar", is_nullable => 1, size => 32 },
   "deleted",
-  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  {
+    data_type => "datetime",
+    datetime_undef_if_invalid => 1,
+    is_nullable => 0,
+  },
   "lastlogin",
   {
     data_type => "datetime",
@@ -193,9 +197,9 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
   },
   "lastrecord",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "lastview",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "value",
   { data_type => "text", is_nullable => 1 },
   "account_request",
@@ -440,8 +444,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-18 12:17:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cHfT2WrfHn9a7pGZclXVBw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:06:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v6jYJUuQBY0fLNpLLl/jrA
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;

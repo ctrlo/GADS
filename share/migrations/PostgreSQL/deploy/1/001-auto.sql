@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Sun Sep 27 16:01:40 2015
+-- Created on Mon Sep 28 09:09:34 2015
 -- 
 ;
 --
@@ -8,8 +8,8 @@
 --
 CREATE TABLE "alert" (
   "id" serial NOT NULL,
-  "view_id" integer NOT NULL,
-  "user_id" integer NOT NULL,
+  "view_id" bigint NOT NULL,
+  "user_id" bigint NOT NULL,
   "frequency" integer DEFAULT 0 NOT NULL,
   PRIMARY KEY ("id")
 );
@@ -23,8 +23,8 @@ CREATE INDEX "alert_idx_view_id" on "alert" ("view_id");
 CREATE TABLE "alert_cache" (
   "id" serial NOT NULL,
   "layout_id" integer NOT NULL,
-  "view_id" integer NOT NULL,
-  "current_id" integer NOT NULL,
+  "view_id" bigint NOT NULL,
+  "current_id" bigint NOT NULL,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "alert_cache_idx_current_id" on "alert_cache" ("current_id");
@@ -39,7 +39,7 @@ CREATE TABLE "alert_send" (
   "id" serial NOT NULL,
   "layout_id" integer,
   "alert_id" integer NOT NULL,
-  "current_id" integer NOT NULL,
+  "current_id" bigint NOT NULL,
   "status" character(7),
   PRIMARY KEY ("id"),
   CONSTRAINT "alert_send_all" UNIQUE ("layout_id", "alert_id", "current_id", "status")
@@ -54,7 +54,7 @@ CREATE INDEX "alert_send_idx_layout_id" on "alert_send" ("layout_id");
 --
 CREATE TABLE "audit" (
   "id" serial NOT NULL,
-  "user_id" integer,
+  "user_id" bigint,
   "type" character varying(45),
   "datetime" timestamp,
   "method" character varying(45),
@@ -83,7 +83,7 @@ CREATE INDEX "calc_idx_layout_id" on "calc" ("layout_id");
 --
 CREATE TABLE "calcval" (
   "id" serial NOT NULL,
-  "record_id" integer NOT NULL,
+  "record_id" bigint NOT NULL,
   "layout_id" integer NOT NULL,
   "value" citext,
   PRIMARY KEY ("id"),
@@ -100,10 +100,10 @@ CREATE INDEX "calcval_idx_value" on "calcval" ("value");
 CREATE TABLE "current" (
   "id" serial NOT NULL,
   "serial" character varying(45),
-  "record_id" integer,
-  "parent_id" integer,
+  "record_id" bigint,
+  "parent_id" bigint,
   "instance_id" integer,
-  "linked_id" integer,
+  "linked_id" bigint,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "current_idx_instance_id" on "current" ("instance_id");
@@ -117,7 +117,7 @@ CREATE INDEX "current_idx_record_id" on "current" ("record_id");
 --
 CREATE TABLE "date" (
   "id" serial NOT NULL,
-  "record_id" integer NOT NULL,
+  "record_id" bigint NOT NULL,
   "layout_id" integer NOT NULL,
   "value" date,
   PRIMARY KEY ("id")
@@ -132,7 +132,7 @@ CREATE INDEX "date_idx_value" on "date" ("value");
 --
 CREATE TABLE "daterange" (
   "id" serial NOT NULL,
-  "record_id" integer NOT NULL,
+  "record_id" bigint NOT NULL,
   "layout_id" integer NOT NULL,
   "from" date,
   "to" date,
@@ -151,7 +151,7 @@ CREATE INDEX "daterange_idx_value" on "daterange" ("value");
 --
 CREATE TABLE "enum" (
   "id" serial NOT NULL,
-  "record_id" integer,
+  "record_id" bigint,
   "layout_id" integer,
   "value" integer,
   PRIMARY KEY ("id")
@@ -166,7 +166,6 @@ CREATE INDEX "enum_idx_value" on "enum" ("value");
 --
 CREATE TABLE "enumval" (
   "id" serial NOT NULL,
-  "enum_id" integer,
   "value" citext,
   "layout_id" integer,
   "deleted" smallint DEFAULT 0 NOT NULL,
@@ -183,9 +182,9 @@ CREATE INDEX "enumval_idx_value" on "enumval" ("value");
 --
 CREATE TABLE "file" (
   "id" serial NOT NULL,
-  "record_id" integer,
+  "record_id" bigint,
   "layout_id" integer,
-  "value" integer,
+  "value" bigint,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "file_idx_layout_id" on "file" ("layout_id");
@@ -223,7 +222,7 @@ CREATE INDEX "fileval_idx_name" on "fileval" ("name");
 --
 CREATE TABLE "filter" (
   "id" serial NOT NULL,
-  "view_id" integer NOT NULL,
+  "view_id" bigint NOT NULL,
   "layout_id" integer NOT NULL,
   PRIMARY KEY ("id")
 );
@@ -311,7 +310,7 @@ CREATE INDEX "instance_idx_sort_layout_id" on "instance" ("sort_layout_id");
 --
 CREATE TABLE "intgr" (
   "id" serial NOT NULL,
-  "record_id" integer NOT NULL,
+  "record_id" bigint NOT NULL,
   "layout_id" integer NOT NULL,
   "value" integer,
   PRIMARY KEY ("id")
@@ -430,9 +429,9 @@ CREATE TABLE "permission" (
 --
 CREATE TABLE "person" (
   "id" serial NOT NULL,
-  "record_id" integer,
+  "record_id" bigint,
   "layout_id" integer,
-  "value" integer,
+  "value" bigint,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "person_idx_layout_id" on "person" ("layout_id");
@@ -459,7 +458,7 @@ CREATE INDEX "rag_idx_layout_id" on "rag" ("layout_id");
 --
 CREATE TABLE "ragval" (
   "id" serial NOT NULL,
-  "record_id" integer NOT NULL,
+  "record_id" bigint NOT NULL,
   "layout_id" integer NOT NULL,
   "value" character varying(16),
   PRIMARY KEY ("id"),
@@ -476,10 +475,10 @@ CREATE INDEX "ragval_idx_value" on "ragval" ("value");
 CREATE TABLE "record" (
   "id" serial NOT NULL,
   "created" timestamp NOT NULL,
-  "current_id" integer DEFAULT 0 NOT NULL,
-  "createdby" integer,
-  "approvedby" integer,
-  "record_id" integer,
+  "current_id" bigint DEFAULT 0 NOT NULL,
+  "createdby" bigint,
+  "approvedby" bigint,
+  "record_id" bigint,
   "approval" smallint DEFAULT 0 NOT NULL,
   PRIMARY KEY ("id")
 );
@@ -494,7 +493,7 @@ CREATE INDEX "record_idx_record_id" on "record" ("record_id");
 --
 CREATE TABLE "sort" (
   "id" serial NOT NULL,
-  "view_id" integer NOT NULL,
+  "view_id" bigint NOT NULL,
   "layout_id" integer,
   "type" character varying(45),
   PRIMARY KEY ("id")
@@ -508,7 +507,7 @@ CREATE INDEX "sort_idx_view_id" on "sort" ("view_id");
 --
 CREATE TABLE "string" (
   "id" serial NOT NULL,
-  "record_id" integer NOT NULL,
+  "record_id" bigint NOT NULL,
   "layout_id" integer NOT NULL,
   "value" citext,
   PRIMARY KEY ("id")
@@ -544,10 +543,10 @@ CREATE TABLE "user" (
   "password" character varying(128),
   "pwchanged" timestamp,
   "resetpw" character varying(32),
-  "deleted" smallint DEFAULT 0 NOT NULL,
+  "deleted" timestamp NOT NULL,
   "lastlogin" timestamp,
-  "lastrecord" integer,
-  "lastview" integer,
+  "lastrecord" bigint,
+  "lastview" bigint,
   "value" citext,
   "account_request" smallint DEFAULT 0,
   "account_request_notes" text,
@@ -566,7 +565,7 @@ CREATE INDEX "user_idx_value" on "user" ("value");
 --
 CREATE TABLE "user_graph" (
   "id" serial NOT NULL,
-  "user_id" integer NOT NULL,
+  "user_id" bigint NOT NULL,
   "graph_id" integer NOT NULL,
   PRIMARY KEY ("id")
 );
@@ -579,7 +578,7 @@ CREATE INDEX "user_graph_idx_user_id" on "user_graph" ("user_id");
 --
 CREATE TABLE "user_group" (
   "id" serial NOT NULL,
-  "user_id" integer NOT NULL,
+  "user_id" bigint NOT NULL,
   "group_id" integer NOT NULL,
   PRIMARY KEY ("id")
 );
@@ -592,7 +591,7 @@ CREATE INDEX "user_group_idx_user_id" on "user_group" ("user_id");
 --
 CREATE TABLE "user_permission" (
   "id" serial NOT NULL,
-  "user_id" integer NOT NULL,
+  "user_id" bigint NOT NULL,
   "permission_id" integer NOT NULL,
   PRIMARY KEY ("id")
 );
@@ -605,7 +604,7 @@ CREATE INDEX "user_permission_idx_user_id" on "user_permission" ("user_id");
 --
 CREATE TABLE "view" (
   "id" serial NOT NULL,
-  "user_id" integer,
+  "user_id" bigint,
   "name" character varying(128),
   "global" smallint DEFAULT 0 NOT NULL,
   "filter" text,
@@ -621,7 +620,7 @@ CREATE INDEX "view_idx_user_id" on "view" ("user_id");
 --
 CREATE TABLE "view_layout" (
   "id" serial NOT NULL,
-  "view_id" integer NOT NULL,
+  "view_id" bigint NOT NULL,
   "layout_id" integer NOT NULL,
   "order" integer,
   PRIMARY KEY ("id")

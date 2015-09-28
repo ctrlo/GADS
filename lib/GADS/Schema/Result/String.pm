@@ -37,13 +37,13 @@ __PACKAGE__->table("string");
 
 =head2 id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_auto_increment: 1
   is_nullable: 0
 
 =head2 record_id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_foreign_key: 1
   is_nullable: 0
 
@@ -62,9 +62,9 @@ __PACKAGE__->table("string");
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
   "record_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
   "layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "value",
@@ -116,8 +116,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-18 12:17:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:T1IGOK3PHYAIYbUbV/HcGw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:06:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:N4fOIJornCcjgcVGsJOr9A
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;

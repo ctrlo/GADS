@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Sun Sep 27 16:01:39 2015
+-- Created on Mon Sep 28 09:09:33 2015
 -- 
 ;
 SET foreign_key_checks=0;
@@ -9,8 +9,8 @@ SET foreign_key_checks=0;
 --
 CREATE TABLE `alert` (
   `id` integer NOT NULL auto_increment,
-  `view_id` integer NOT NULL,
-  `user_id` integer NOT NULL,
+  `view_id` bigint NOT NULL,
+  `user_id` bigint NOT NULL,
   `frequency` integer NOT NULL DEFAULT 0,
   INDEX `alert_idx_user_id` (`user_id`),
   INDEX `alert_idx_view_id` (`view_id`),
@@ -22,10 +22,10 @@ CREATE TABLE `alert` (
 -- Table: `alert_cache`
 --
 CREATE TABLE `alert_cache` (
-  `id` integer NOT NULL auto_increment,
+  `id` bigint NOT NULL auto_increment,
   `layout_id` integer NOT NULL,
-  `view_id` integer NOT NULL,
-  `current_id` integer NOT NULL,
+  `view_id` bigint NOT NULL,
+  `current_id` bigint NOT NULL,
   INDEX `alert_cache_idx_current_id` (`current_id`),
   INDEX `alert_cache_idx_layout_id` (`layout_id`),
   INDEX `alert_cache_idx_view_id` (`view_id`),
@@ -38,10 +38,10 @@ CREATE TABLE `alert_cache` (
 -- Table: `alert_send`
 --
 CREATE TABLE `alert_send` (
-  `id` integer NOT NULL auto_increment,
+  `id` bigint NOT NULL auto_increment,
   `layout_id` integer NULL,
   `alert_id` integer NOT NULL,
-  `current_id` integer NOT NULL,
+  `current_id` bigint NOT NULL,
   `status` char(7) NULL,
   INDEX `alert_send_idx_alert_id` (`alert_id`),
   INDEX `alert_send_idx_current_id` (`current_id`),
@@ -56,8 +56,8 @@ CREATE TABLE `alert_send` (
 -- Table: `audit`
 --
 CREATE TABLE `audit` (
-  `id` integer NOT NULL auto_increment,
-  `user_id` integer NULL,
+  `id` bigint NOT NULL auto_increment,
+  `user_id` bigint NULL,
   `type` varchar(45) NULL,
   `datetime` datetime NULL,
   `method` varchar(45) NULL,
@@ -83,8 +83,8 @@ CREATE TABLE `calc` (
 -- Table: `calcval`
 --
 CREATE TABLE `calcval` (
-  `id` integer NOT NULL auto_increment,
-  `record_id` integer NOT NULL,
+  `id` bigint NOT NULL auto_increment,
+  `record_id` bigint NOT NULL,
   `layout_id` integer NOT NULL,
   `value` text NULL,
   INDEX `calcval_idx_layout_id` (`layout_id`),
@@ -99,12 +99,12 @@ CREATE TABLE `calcval` (
 -- Table: `current`
 --
 CREATE TABLE `current` (
-  `id` integer NOT NULL auto_increment,
+  `id` bigint NOT NULL auto_increment,
   `serial` varchar(45) NULL,
-  `record_id` integer NULL,
-  `parent_id` integer NULL,
+  `record_id` bigint NULL,
+  `parent_id` bigint NULL,
   `instance_id` integer NULL,
-  `linked_id` integer NULL,
+  `linked_id` bigint NULL,
   INDEX `current_idx_instance_id` (`instance_id`),
   INDEX `current_idx_linked_id` (`linked_id`),
   INDEX `current_idx_parent_id` (`parent_id`),
@@ -119,8 +119,8 @@ CREATE TABLE `current` (
 -- Table: `date`
 --
 CREATE TABLE `date` (
-  `id` integer NOT NULL auto_increment,
-  `record_id` integer NOT NULL,
+  `id` bigint NOT NULL auto_increment,
+  `record_id` bigint NOT NULL,
   `layout_id` integer NOT NULL,
   `value` date NULL,
   INDEX `date_idx_layout_id` (`layout_id`),
@@ -134,8 +134,8 @@ CREATE TABLE `date` (
 -- Table: `daterange`
 --
 CREATE TABLE `daterange` (
-  `id` integer NOT NULL auto_increment,
-  `record_id` integer NOT NULL,
+  `id` bigint NOT NULL auto_increment,
+  `record_id` bigint NOT NULL,
   `layout_id` integer NOT NULL,
   `from` date NULL,
   `to` date NULL,
@@ -153,8 +153,8 @@ CREATE TABLE `daterange` (
 -- Table: `enum`
 --
 CREATE TABLE `enum` (
-  `id` integer NOT NULL auto_increment,
-  `record_id` integer NULL,
+  `id` bigint NOT NULL auto_increment,
+  `record_id` bigint NULL,
   `layout_id` integer NULL,
   `value` integer NULL,
   INDEX `enum_idx_layout_id` (`layout_id`),
@@ -170,7 +170,6 @@ CREATE TABLE `enum` (
 --
 CREATE TABLE `enumval` (
   `id` integer NOT NULL auto_increment,
-  `enum_id` integer NULL,
   `value` text NULL,
   `layout_id` integer NULL,
   `deleted` smallint NOT NULL DEFAULT 0,
@@ -186,10 +185,10 @@ CREATE TABLE `enumval` (
 -- Table: `file`
 --
 CREATE TABLE `file` (
-  `id` integer NOT NULL auto_increment,
-  `record_id` integer NULL,
+  `id` bigint NOT NULL auto_increment,
+  `record_id` bigint NULL,
   `layout_id` integer NULL,
-  `value` integer NULL,
+  `value` bigint NULL,
   INDEX `file_idx_layout_id` (`layout_id`),
   INDEX `file_idx_record_id` (`record_id`),
   INDEX `file_idx_value` (`value`),
@@ -213,7 +212,7 @@ CREATE TABLE `file_option` (
 -- Table: `fileval`
 --
 CREATE TABLE `fileval` (
-  `id` integer NOT NULL auto_increment,
+  `id` bigint NOT NULL auto_increment,
   `name` text NULL,
   `mimetype` varchar(45) NULL,
   `content` longblob NULL,
@@ -224,8 +223,8 @@ CREATE TABLE `fileval` (
 -- Table: `filter`
 --
 CREATE TABLE `filter` (
-  `id` integer NOT NULL auto_increment,
-  `view_id` integer NOT NULL,
+  `id` bigint NOT NULL auto_increment,
+  `view_id` bigint NOT NULL,
   `layout_id` integer NOT NULL,
   INDEX `filter_idx_layout_id` (`layout_id`),
   INDEX `filter_idx_view_id` (`view_id`),
@@ -266,7 +265,7 @@ CREATE TABLE `graph` (
 -- Table: `graph_color`
 --
 CREATE TABLE `graph_color` (
-  `id` integer NOT NULL auto_increment,
+  `id` bigint NOT NULL auto_increment,
   `name` varchar(128) NULL,
   `color` char(6) NULL,
   PRIMARY KEY (`id`),
@@ -310,8 +309,8 @@ CREATE TABLE `instance` (
 -- Table: `intgr`
 --
 CREATE TABLE `intgr` (
-  `id` integer NOT NULL auto_increment,
-  `record_id` integer NOT NULL,
+  `id` bigint NOT NULL auto_increment,
+  `record_id` bigint NOT NULL,
   `layout_id` integer NOT NULL,
   `value` integer NULL,
   INDEX `intgr_idx_layout_id` (`layout_id`),
@@ -424,10 +423,10 @@ CREATE TABLE `permission` (
 -- Table: `person`
 --
 CREATE TABLE `person` (
-  `id` integer NOT NULL auto_increment,
-  `record_id` integer NULL,
+  `id` bigint NOT NULL auto_increment,
+  `record_id` bigint NULL,
   `layout_id` integer NULL,
-  `value` integer NULL,
+  `value` bigint NULL,
   INDEX `person_idx_layout_id` (`layout_id`),
   INDEX `person_idx_record_id` (`record_id`),
   INDEX `person_idx_value` (`value`),
@@ -453,8 +452,8 @@ CREATE TABLE `rag` (
 -- Table: `ragval`
 --
 CREATE TABLE `ragval` (
-  `id` integer NOT NULL auto_increment,
-  `record_id` integer NOT NULL,
+  `id` bigint NOT NULL auto_increment,
+  `record_id` bigint NOT NULL,
   `layout_id` integer NOT NULL,
   `value` varchar(16) NULL,
   INDEX `ragval_idx_layout_id` (`layout_id`),
@@ -469,12 +468,12 @@ CREATE TABLE `ragval` (
 -- Table: `record`
 --
 CREATE TABLE `record` (
-  `id` integer NOT NULL auto_increment,
+  `id` bigint NOT NULL auto_increment,
   `created` datetime NOT NULL,
-  `current_id` integer NOT NULL DEFAULT 0,
-  `createdby` integer NULL,
-  `approvedby` integer NULL,
-  `record_id` integer NULL,
+  `current_id` bigint NOT NULL DEFAULT 0,
+  `createdby` bigint NULL,
+  `approvedby` bigint NULL,
+  `record_id` bigint NULL,
   `approval` smallint NOT NULL DEFAULT 0,
   INDEX `record_idx_approvedby` (`approvedby`),
   INDEX `record_idx_createdby` (`createdby`),
@@ -491,7 +490,7 @@ CREATE TABLE `record` (
 --
 CREATE TABLE `sort` (
   `id` integer NOT NULL auto_increment,
-  `view_id` integer NOT NULL,
+  `view_id` bigint NOT NULL,
   `layout_id` integer NULL,
   `type` varchar(45) NULL,
   INDEX `sort_idx_layout_id` (`layout_id`),
@@ -504,8 +503,8 @@ CREATE TABLE `sort` (
 -- Table: `string`
 --
 CREATE TABLE `string` (
-  `id` integer NOT NULL auto_increment,
-  `record_id` integer NOT NULL,
+  `id` bigint NOT NULL auto_increment,
+  `record_id` bigint NOT NULL,
   `layout_id` integer NOT NULL,
   `value` text NULL,
   INDEX `string_idx_layout_id` (`layout_id`),
@@ -527,7 +526,7 @@ CREATE TABLE `title` (
 -- Table: `user`
 --
 CREATE TABLE `user` (
-  `id` integer NOT NULL auto_increment,
+  `id` bigint NOT NULL auto_increment,
   `firstname` varchar(45) NULL,
   `surname` varchar(45) NULL,
   `email` varchar(45) NULL,
@@ -539,10 +538,10 @@ CREATE TABLE `user` (
   `password` varchar(128) NULL,
   `pwchanged` datetime NULL,
   `resetpw` varchar(32) NULL,
-  `deleted` smallint NOT NULL DEFAULT 0,
+  `deleted` datetime NOT NULL,
   `lastlogin` datetime NULL,
-  `lastrecord` integer NULL,
-  `lastview` integer NULL,
+  `lastrecord` bigint NULL,
+  `lastview` bigint NULL,
   `value` text NULL,
   `account_request` smallint NULL DEFAULT 0,
   `account_request_notes` text NULL,
@@ -562,8 +561,8 @@ CREATE TABLE `user` (
 -- Table: `user_graph`
 --
 CREATE TABLE `user_graph` (
-  `id` integer NOT NULL auto_increment,
-  `user_id` integer NOT NULL,
+  `id` bigint NOT NULL auto_increment,
+  `user_id` bigint NOT NULL,
   `graph_id` integer NOT NULL,
   INDEX `user_graph_idx_graph_id` (`graph_id`),
   INDEX `user_graph_idx_user_id` (`user_id`),
@@ -575,8 +574,8 @@ CREATE TABLE `user_graph` (
 -- Table: `user_group`
 --
 CREATE TABLE `user_group` (
-  `id` integer NOT NULL auto_increment,
-  `user_id` integer NOT NULL,
+  `id` bigint NOT NULL auto_increment,
+  `user_id` bigint NOT NULL,
   `group_id` integer NOT NULL,
   INDEX `user_group_idx_group_id` (`group_id`),
   INDEX `user_group_idx_user_id` (`user_id`),
@@ -588,8 +587,8 @@ CREATE TABLE `user_group` (
 -- Table: `user_permission`
 --
 CREATE TABLE `user_permission` (
-  `id` integer NOT NULL auto_increment,
-  `user_id` integer NOT NULL,
+  `id` bigint NOT NULL auto_increment,
+  `user_id` bigint NOT NULL,
   `permission_id` integer NOT NULL,
   INDEX `user_permission_idx_permission_id` (`permission_id`),
   INDEX `user_permission_idx_user_id` (`user_id`),
@@ -601,8 +600,8 @@ CREATE TABLE `user_permission` (
 -- Table: `view`
 --
 CREATE TABLE `view` (
-  `id` integer NOT NULL auto_increment,
-  `user_id` integer NULL,
+  `id` bigint NOT NULL auto_increment,
+  `user_id` bigint NULL,
   `name` varchar(128) NULL,
   `global` smallint NOT NULL DEFAULT 0,
   `filter` text NULL,
@@ -618,7 +617,7 @@ CREATE TABLE `view` (
 --
 CREATE TABLE `view_layout` (
   `id` integer NOT NULL auto_increment,
-  `view_id` integer NOT NULL,
+  `view_id` bigint NOT NULL,
   `layout_id` integer NOT NULL,
   `order` integer NULL,
   INDEX `view_layout_idx_layout_id` (`layout_id`),
