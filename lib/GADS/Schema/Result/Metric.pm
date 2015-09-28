@@ -54,7 +54,7 @@ __PACKAGE__->table("metric");
 
 =head2 target
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_nullable: 1
 
 =head2 y_axis_grouping_value
@@ -72,7 +72,7 @@ __PACKAGE__->add_columns(
   "x_axis_value",
   { data_type => "text", is_nullable => 1 },
   "target",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "bigint", is_nullable => 1 },
   "y_axis_grouping_value",
   { data_type => "text", is_nullable => 1 },
 );
@@ -107,8 +107,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-18 12:17:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZsvBkOf3r/p7zYWFUDu2Hg
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 12:39:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:E1Ub8t171UkKp73sw/PVlw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

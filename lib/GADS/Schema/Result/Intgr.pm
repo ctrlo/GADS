@@ -55,7 +55,7 @@ __PACKAGE__->table("intgr");
 
 =head2 value
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_nullable: 1
 
 =cut
@@ -68,7 +68,7 @@ __PACKAGE__->add_columns(
   "layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "value",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "bigint", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -116,8 +116,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:06:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:el4R/aAFEJfR6YIJc+in/g
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 12:39:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RHfCJxZIihyIQECi/cApXA
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;

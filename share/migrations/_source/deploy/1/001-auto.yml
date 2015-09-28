@@ -1778,7 +1778,7 @@ schema:
           size:
             - 0
         y_axis_label:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -1786,7 +1786,7 @@ schema:
           name: y_axis_label
           order: 6
           size:
-            - 128
+            - 0
         y_axis_stack:
           data_type: varchar
           default_value: ~
@@ -1957,7 +1957,7 @@ schema:
           type: FOREIGN KEY
       fields:
         email_delete_subject:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -1965,7 +1965,7 @@ schema:
           name: email_delete_subject
           order: 6
           size:
-            - 128
+            - 0
         email_delete_text:
           data_type: text
           default_value: ~
@@ -1977,7 +1977,7 @@ schema:
           size:
             - 0
         email_reject_subject:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -1985,7 +1985,7 @@ schema:
           name: email_reject_subject
           order: 8
           size:
-            - 128
+            - 0
         email_reject_text:
           data_type: text
           default_value: ~
@@ -1997,7 +1997,7 @@ schema:
           size:
             - 0
         email_welcome_subject:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -2005,7 +2005,7 @@ schema:
           name: email_welcome_subject
           order: 4
           size:
-            - 128
+            - 0
         email_welcome_text:
           data_type: text
           default_value: ~
@@ -2056,7 +2056,7 @@ schema:
           name: name
           order: 2
           size:
-            - 45
+            - 256
         register_email_help:
           data_type: text
           default_value: ~
@@ -2219,7 +2219,7 @@ schema:
           size:
             - 0
         value:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -2393,7 +2393,7 @@ schema:
           size:
             - 0
         name:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -2401,7 +2401,7 @@ schema:
           name: name
           order: 2
           size:
-            - 45
+            - 0
         optional:
           data_type: smallint
           default_value: 0
@@ -2732,7 +2732,7 @@ schema:
           size:
             - 0
         target:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -3728,7 +3728,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: account_request
-          order: 18
+          order: 17
           size:
             - 0
         account_request_notes:
@@ -3738,7 +3738,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: account_request_notes
-          order: 19
+          order: 18
           size:
             - 0
         aup_accepted:
@@ -3748,7 +3748,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: aup_accepted
-          order: 20
+          order: 19
           size:
             - 0
         deleted:
@@ -3758,7 +3758,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: deleted
-          order: 13
+          order: 12
           size:
             - 0
         email:
@@ -3770,7 +3770,7 @@ schema:
           name: email
           order: 4
           size:
-            - 45
+            - 256
         firstname:
           data_type: varchar
           default_value: ~
@@ -3780,7 +3780,7 @@ schema:
           name: firstname
           order: 2
           size:
-            - 45
+            - 128
         id:
           data_type: bigint
           default_value: ~
@@ -3799,7 +3799,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: lastlogin
-          order: 14
+          order: 13
           size:
             - 0
         lastrecord:
@@ -3809,7 +3809,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: lastrecord
-          order: 15
+          order: 14
           size:
             - 0
         lastview:
@@ -3819,7 +3819,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: lastview
-          order: 16
+          order: 15
           size:
             - 0
         organisation:
@@ -3839,19 +3839,9 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: password
-          order: 10
-          size:
-            - 128
-        permission:
-          data_type: smallint
-          default_value: 0
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 0
-          name: permission
           order: 9
           size:
-            - 0
+            - 128
         pwchanged:
           data_type: datetime
           default_value: ~
@@ -3859,7 +3849,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: pwchanged
-          order: 11
+          order: 10
           size:
             - 0
         resetpw:
@@ -3869,7 +3859,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: resetpw
-          order: 12
+          order: 11
           size:
             - 32
         surname:
@@ -3881,7 +3871,7 @@ schema:
           name: surname
           order: 3
           size:
-            - 45
+            - 128
         telephone:
           data_type: varchar
           default_value: ~
@@ -3911,7 +3901,7 @@ schema:
           name: username
           order: 5
           size:
-            - 45
+            - 256
         value:
           data_type: text
           default_value: ~
@@ -3919,7 +3909,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: value
-          order: 17
+          order: 16
           size:
             - 0
       indices:

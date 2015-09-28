@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Mon Sep 28 11:45:05 2015
+-- Created on Mon Sep 28 12:40:33 2015
 -- 
 ;
 --
@@ -238,7 +238,7 @@ CREATE TABLE "graph" (
   "description" text,
   "y_axis" integer,
   "y_axis_stack" character varying(45),
-  "y_axis_label" character varying(128),
+  "y_axis_label" text,
   "x_axis" integer,
   "x_axis_grouping" character varying(45),
   "group_by" integer,
@@ -282,13 +282,13 @@ CREATE TABLE "group" (
 --
 CREATE TABLE "instance" (
   "id" serial NOT NULL,
-  "name" character varying(45),
+  "name" character varying(256),
   "email_welcome_text" text,
-  "email_welcome_subject" character varying(128),
+  "email_welcome_subject" text,
   "email_delete_text" text,
-  "email_delete_subject" character varying(128),
+  "email_delete_subject" text,
   "email_reject_text" text,
-  "email_reject_subject" character varying(128),
+  "email_reject_subject" text,
   "register_text" text,
   "sort_layout_id" integer,
   "sort_type" character varying(45),
@@ -311,7 +311,7 @@ CREATE TABLE "intgr" (
   "id" bigserial NOT NULL,
   "record_id" bigint NOT NULL,
   "layout_id" integer NOT NULL,
-  "value" integer,
+  "value" bigint,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "intgr_idx_layout_id" on "intgr" ("layout_id");
@@ -324,7 +324,7 @@ CREATE INDEX "intgr_idx_value" on "intgr" ("value");
 --
 CREATE TABLE "layout" (
   "id" serial NOT NULL,
-  "name" character varying(45),
+  "name" text,
   "type" character varying(45),
   "permission" integer DEFAULT 0 NOT NULL,
   "optional" smallint DEFAULT 0 NOT NULL,
@@ -382,7 +382,7 @@ CREATE TABLE "metric" (
   "id" serial NOT NULL,
   "metric_group" integer NOT NULL,
   "x_axis_value" text,
-  "target" integer,
+  "target" bigint,
   "y_axis_grouping_value" text,
   PRIMARY KEY ("id")
 );
@@ -531,14 +531,13 @@ CREATE TABLE "title" (
 --
 CREATE TABLE "user" (
   "id" bigserial NOT NULL,
-  "firstname" character varying(45),
-  "surname" character varying(45),
+  "firstname" character varying(128),
+  "surname" character varying(128),
   "email" citext,
   "username" citext,
   "title" integer,
   "organisation" integer,
   "telephone" character varying(128),
-  "permission" smallint DEFAULT 0 NOT NULL,
   "password" character varying(128),
   "pwchanged" timestamp,
   "resetpw" character varying(32),

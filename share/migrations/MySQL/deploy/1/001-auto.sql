@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Mon Sep 28 11:45:04 2015
+-- Created on Mon Sep 28 12:40:31 2015
 -- 
 ;
 SET foreign_key_checks=0;
@@ -240,7 +240,7 @@ CREATE TABLE `graph` (
   `description` text NULL,
   `y_axis` integer NULL,
   `y_axis_stack` varchar(45) NULL,
-  `y_axis_label` varchar(128) NULL,
+  `y_axis_label` text NULL,
   `x_axis` integer NULL,
   `x_axis_grouping` varchar(45) NULL,
   `group_by` integer NULL,
@@ -283,13 +283,13 @@ CREATE TABLE `group` (
 --
 CREATE TABLE `instance` (
   `id` integer NOT NULL auto_increment,
-  `name` varchar(45) NULL,
+  `name` text NULL,
   `email_welcome_text` text NULL,
-  `email_welcome_subject` varchar(128) NULL,
+  `email_welcome_subject` text NULL,
   `email_delete_text` text NULL,
-  `email_delete_subject` varchar(128) NULL,
+  `email_delete_subject` text NULL,
   `email_reject_text` text NULL,
-  `email_reject_subject` varchar(128) NULL,
+  `email_reject_subject` text NULL,
   `register_text` text NULL,
   `sort_layout_id` integer NULL,
   `sort_type` varchar(45) NULL,
@@ -311,7 +311,7 @@ CREATE TABLE `intgr` (
   `id` bigint NOT NULL auto_increment,
   `record_id` bigint NOT NULL,
   `layout_id` integer NOT NULL,
-  `value` integer NULL,
+  `value` bigint NULL,
   INDEX `intgr_idx_layout_id` (`layout_id`),
   INDEX `intgr_idx_record_id` (`record_id`),
   INDEX `intgr_idx_value` (`value`),
@@ -324,7 +324,7 @@ CREATE TABLE `intgr` (
 --
 CREATE TABLE `layout` (
   `id` integer NOT NULL auto_increment,
-  `name` varchar(45) NULL,
+  `name` text NULL,
   `type` varchar(45) NULL,
   `permission` integer NOT NULL DEFAULT 0,
   `optional` smallint NOT NULL DEFAULT 0,
@@ -383,7 +383,7 @@ CREATE TABLE `metric` (
   `id` integer NOT NULL auto_increment,
   `metric_group` integer NOT NULL,
   `x_axis_value` text NULL,
-  `target` integer NULL,
+  `target` bigint NULL,
   `y_axis_grouping_value` text NULL,
   INDEX `metric_idx_metric_group` (`metric_group`),
   PRIMARY KEY (`id`),
@@ -526,14 +526,13 @@ CREATE TABLE `title` (
 --
 CREATE TABLE `user` (
   `id` bigint NOT NULL auto_increment,
-  `firstname` varchar(45) NULL,
-  `surname` varchar(45) NULL,
-  `email` varchar(45) NULL,
-  `username` varchar(45) NULL,
+  `firstname` varchar(128) NULL,
+  `surname` varchar(128) NULL,
+  `email` text NULL,
+  `username` text NULL,
   `title` integer NULL,
   `organisation` integer NULL,
   `telephone` varchar(128) NULL,
-  `permission` smallint NOT NULL DEFAULT 0,
   `password` varchar(128) NULL,
   `pwchanged` datetime NULL,
   `resetpw` varchar(32) NULL,

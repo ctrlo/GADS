@@ -45,25 +45,25 @@ __PACKAGE__->table("user");
 
   data_type: 'varchar'
   is_nullable: 1
-  size: 45
+  size: 128
 
 =head2 surname
 
   data_type: 'varchar'
   is_nullable: 1
-  size: 45
+  size: 128
 
 =head2 email
 
   data_type: 'varchar'
   is_nullable: 1
-  size: 45
+  size: 256
 
 =head2 username
 
   data_type: 'varchar'
   is_nullable: 1
-  size: 45
+  size: 256
 
 =head2 title
 
@@ -82,12 +82,6 @@ __PACKAGE__->table("user");
   data_type: 'varchar'
   is_nullable: 1
   size: 128
-
-=head2 permission
-
-  data_type: 'smallint'
-  default_value: 0
-  is_nullable: 0
 
 =head2 password
 
@@ -159,21 +153,19 @@ __PACKAGE__->add_columns(
   "id",
   { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
   "firstname",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
+  { data_type => "varchar", is_nullable => 1, size => 128 },
   "surname",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
+  { data_type => "varchar", is_nullable => 1, size => 128 },
   "email",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
+  { data_type => "varchar", is_nullable => 1, size => 256 },
   "username",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
+  { data_type => "varchar", is_nullable => 1, size => 256 },
   "title",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "organisation",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "telephone",
   { data_type => "varchar", is_nullable => 1, size => 128 },
-  "permission",
-  { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "password",
   { data_type => "varchar", is_nullable => 1, size => 128 },
   "pwchanged",
@@ -444,8 +436,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:25:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:12XeeMPQYSds+TqOppXXOA
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 12:39:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FkYTO52/Ix9zwtAPzKJwHg
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
