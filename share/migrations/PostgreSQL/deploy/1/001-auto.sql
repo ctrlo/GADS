@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Mon Sep 28 09:09:34 2015
+-- Created on Mon Sep 28 09:26:32 2015
 -- 
 ;
 --
@@ -543,7 +543,7 @@ CREATE TABLE "user" (
   "password" character varying(128),
   "pwchanged" timestamp,
   "resetpw" character varying(32),
-  "deleted" timestamp NOT NULL,
+  "deleted" timestamp,
   "lastlogin" timestamp,
   "lastrecord" bigint,
   "lastview" bigint,

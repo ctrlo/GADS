@@ -111,7 +111,7 @@ __PACKAGE__->table("user");
 
   data_type: 'datetime'
   datetime_undef_if_invalid: 1
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 lastlogin
 
@@ -188,7 +188,7 @@ __PACKAGE__->add_columns(
   {
     data_type => "datetime",
     datetime_undef_if_invalid => 1,
-    is_nullable => 0,
+    is_nullable => 1,
   },
   "lastlogin",
   {
@@ -444,8 +444,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:06:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v6jYJUuQBY0fLNpLLl/jrA
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:25:56
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:12XeeMPQYSds+TqOppXXOA
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;

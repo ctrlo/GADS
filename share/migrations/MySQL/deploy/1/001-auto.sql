@@ -1,6 +1,6 @@
 -- 
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Mon Sep 28 09:09:33 2015
+-- Created on Mon Sep 28 09:26:31 2015
 -- 
 ;
 SET foreign_key_checks=0;
@@ -538,7 +538,7 @@ CREATE TABLE `user` (
   `password` varchar(128) NULL,
   `pwchanged` datetime NULL,
   `resetpw` varchar(32) NULL,
-  `deleted` datetime NOT NULL,
+  `deleted` datetime NULL,
   `lastlogin` datetime NULL,
   `lastrecord` bigint NULL,
   `lastview` bigint NULL,

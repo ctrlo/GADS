@@ -1,30 +1,27 @@
 {
-   "has_many" : {
-      "fetch" : 0
-   },
    "sets" : [
       {
          "quantity" : "all",
-         "class" : "String"
+         "class" : "Record"
       },
       {
-         "quantity" : "all",
-         "class" : "Rag"
-      },
-      {
-         "class" : "File",
+         "class" : "UserGraph",
          "quantity" : "all"
       },
       {
          "quantity" : "all",
-         "class" : "LayoutGroup"
+         "class" : "AlertSend"
+      },
+      {
+         "class" : "Person",
+         "quantity" : "all"
       },
       {
          "quantity" : "all",
-         "class" : "Person"
+         "class" : "Fileval"
       },
       {
-         "class" : "Audit",
+         "class" : "LayoutGroup",
          "quantity" : "all"
       },
       {
@@ -32,96 +29,20 @@
          "class" : "Calc"
       },
       {
-         "quantity" : "all",
-         "class" : "MetricGroup"
+         "class" : "Daterange",
+         "quantity" : "all"
       },
       {
-         "class" : "ViewLayout",
+         "class" : "FileOption",
          "quantity" : "all"
       },
       {
          "quantity" : "all",
-         "class" : "Graph"
+         "class" : "LayoutDepend"
       },
       {
          "quantity" : "all",
-         "class" : "Group"
-      },
-      {
-         "class" : "Enum",
-         "quantity" : "all"
-      },
-      {
-         "class" : "Calcval",
-         "quantity" : "all"
-      },
-      {
-         "quantity" : "all",
-         "class" : "User"
-      },
-      {
-         "class" : "Layout",
-         "quantity" : "all"
-      },
-      {
-         "quantity" : "all",
-         "class" : "FileOption"
-      },
-      {
-         "quantity" : "all",
-         "class" : "Fileval"
-      },
-      {
-         "quantity" : "all",
-         "class" : "UserGraph"
-      },
-      {
-         "quantity" : "all",
-         "class" : "Enumval"
-      },
-      {
-         "quantity" : "all",
-         "class" : "Date"
-      },
-      {
-         "class" : "View",
-         "quantity" : "all"
-      },
-      {
-         "class" : "Organisation",
-         "quantity" : "all"
-      },
-      {
-         "class" : "UserPermission",
-         "quantity" : "all"
-      },
-      {
-         "quantity" : "all",
-         "class" : "Alert"
-      },
-      {
-         "quantity" : "all",
-         "class" : "Sort"
-      },
-      {
-         "class" : "Permission",
-         "quantity" : "all"
-      },
-      {
-         "class" : "UserGroup",
-         "quantity" : "all"
-      },
-      {
-         "quantity" : "all",
-         "class" : "GraphColor"
-      },
-      {
-         "class" : "Filter",
-         "quantity" : "all"
-      },
-      {
-         "class" : "Metric",
-         "quantity" : "all"
+         "class" : "Current"
       },
       {
          "class" : "Ragval",
@@ -129,42 +50,121 @@
       },
       {
          "quantity" : "all",
-         "class" : "Title"
+         "class" : "Calcval"
       },
       {
-         "quantity" : "all",
-         "class" : "AlertSend"
-      },
-      {
-         "class" : "Intgr",
+         "class" : "Organisation",
          "quantity" : "all"
       },
       {
          "quantity" : "all",
-         "class" : "Daterange"
+         "class" : "Metric"
+      },
+      {
+         "class" : "UserPermission",
+         "quantity" : "all"
+      },
+      {
+         "class" : "View",
+         "quantity" : "all"
+      },
+      {
+         "class" : "String",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Enumval"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Title"
+      },
+      {
+         "class" : "Sort",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Permission",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Rag"
+      },
+      {
+         "class" : "GraphColor",
+         "quantity" : "all"
       },
       {
          "quantity" : "all",
          "class" : "AlertCache"
       },
       {
-         "class" : "Record",
+         "class" : "Group",
          "quantity" : "all"
       },
       {
-         "class" : "Current",
+         "quantity" : "all",
+         "class" : "Layout"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Filter"
+      },
+      {
+         "class" : "ViewLayout",
          "quantity" : "all"
+      },
+      {
+         "class" : "Enum",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "UserGroup"
       },
       {
          "class" : "Instance",
          "quantity" : "all"
       },
       {
-         "class" : "LayoutDepend",
+         "class" : "Date",
          "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "File"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Intgr"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Audit"
+      },
+      {
+         "class" : "MetricGroup",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Graph"
+      },
+      {
+         "class" : "User",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Alert"
       }
    ],
    "belongs_to" : {
+      "fetch" : 0
+   },
+   "has_many" : {
       "fetch" : 0
    },
    "might_have" : {
