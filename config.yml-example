@@ -86,5 +86,5 @@ plugins:
         users_pwresetcode_column: resetpw
         encryption_algorithm: SHA-512
         user_valid_conditions:
-          deleted: 0
+          deleted: ~
           account_request: 0

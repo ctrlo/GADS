@@ -67,7 +67,7 @@ has register_requests => (
 sub _build_all
 {   my $self = shift;
     my $search = {
-        deleted         => 0,
+        deleted         => undef,
         account_request => 0,
     };
     my @users = $self->schema->resultset('User')->search($search,{
@@ -81,7 +81,7 @@ sub _build_all
 sub _build_all_admins
 {   my $self = shift;
     my $search = {
-        deleted           => 0,
+        deleted           => undef,
         account_request   => 0,
         'permission.name' => 'useradmin',
     };

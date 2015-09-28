@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::User;
 
+use DateTime;
 use Email::Valid;
 use GADS::Instance;
 use Log::Report;
@@ -112,8 +113,8 @@ sub delete
 {   my ($self, %options) = @_;
 
     my ($user) = $self->schema->resultset('User')->search({
-        id => $self->user_id,
-        deleted => 0,
+        id      => $self->user_id,
+        deleted => undef,
     })->all;
     $user or error __x"User {id} not found", id => $self->user_id;
 
@@ -151,7 +152,7 @@ sub delete
     $self->schema->resultset('AlertCache')->search({ view_id => \@views })->delete;
     $views->delete;
 
-    $user->update({ deleted => 1 });
+    $user->update({ deleted => DateTime->now });
 
     if (my $msg = $self->instance->email_delete_text)
     {
@@ -168,7 +169,7 @@ sub delete
 sub get_user
 {   my ($self, %search) = @_;
     %search = map { "me.".$_ => $search{$_} } keys(%search);
-    $search{deleted} = 0;
+    $search{deleted} = undef;
     my ($user) = $self->schema->resultset('User')->search(\%search, {
         prefetch => ['user_permissions', 'user_groups'],
     })->all;
