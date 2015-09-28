@@ -110,6 +110,14 @@ hook before => sub {
     my $user = logged_in_user;
     GADS::DB->setup(schema);
 
+    # Log to audit
+    my $method = request->method;
+    my $path   = request->path;
+    my $audit  = GADS::Audit->new(schema => schema, user => $user);
+    my $description = qq(User $user->{username} made $method request to $path);
+    $audit->user_action(description => $description, url => $path, method => $method)
+        if $user;
+
     if (config->{gads}->{aup} && $user)
     {
         # Redirect if AUP not signed
@@ -160,13 +168,7 @@ hook before => sub {
 hook before_template => sub {
     my $tokens = shift;
 
-    # Log to audit
     my $user   = logged_in_user;
-    my $method = request->method;
-    my $path   = request->path;
-    my $audit  = GADS::Audit->new(schema => schema, user => $user);
-    $audit->user_action(qq(User $user->{username} made $method request to $path))
-        if $user;
 
     my $base = $tokens->{base} || request->base;
     $tokens->{url}->{css}  = "${base}css";
@@ -1761,6 +1763,31 @@ any qr{/(record|history)/([0-9]+)} => require_login sub {
         page           => 'record'
     };
     $output;
+};
+
+any '/audit/?' => require_role audit => sub {
+
+    my $audit = GADS::Audit->new(schema => schema);
+    my $users = GADS::Users->new(schema => schema, config => config);
+
+    if (param 'audit_filtering')
+    {
+        session 'audit_filtering' => {
+            method => param('method'),
+            type   => param('type'),
+            user   => param('user'),
+            from   => param('from'),
+            to     => param('to'),
+        }
+    }
+
+    template 'audit' => {
+        logs        => $audit->logs(session 'audit_filtering'),
+        users       => $users,
+        filtering   => session('audit_filtering'),
+        audit_types => GADS::Audit::audit_types,
+        page        => 'audit',
+    };
 };
 
 sub reset_text {

@@ -37,7 +37,7 @@ has set_value => (
         if (ref $value)
         {
             # From database, with user table joined
-            if ($value = $value->{value})
+            if ($value = $value->{value} || $value->{user})
             {
                 $new_id = $value->{id};
                 foreach my $f (@user_fields)

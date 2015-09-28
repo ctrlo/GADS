@@ -110,6 +110,9 @@
                                             <li [% IF page=="user" %]class="active"[% END %]><a href="[% url.page %]/user/">Manage Users</a></li>
                                             <li [% IF page=="group" %]class="active"[% END %]><a href="[% url.page %]/group/">Manage Groups</a></li>
                                         [% END %]
+                                        [% IF user.permission.audit %]
+                                            <li [% IF page=="audit" %]class="active"[% END %]><a href="[% url.page %]/audit/">Audit logs</a></li>
+                                        [% END %]
                                     </ul>
                                     </li>
                                 [% END %]
@@ -171,7 +174,7 @@
             <script src="[% scheme %]://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
             <script src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/js/tooltip.min.js"></script>
         [% END %]
-        [% IF page == "edit" OR page == "approval" %]
+        [% IF page == "edit" OR page == "approval" OR page == "audit" %]
             <script type="text/javascript" src="[% url.js %]/bootstrap-datepicker.js"></script>
             <script type="text/javascript">
                 $(document).ready(function() {

@@ -1,0 +1,77 @@
+<h2>Audit logs</h2>
+<p>
+    <a href="" data-toggle="modal" data-target="#modal_filter" class="btn btn-default">Filtering...</a>
+</p>
+
+<table class="table table-striped">
+    <tr>
+        <th>ID</th>
+        <th>User</th>
+        <th>Type</th>
+        <th>Time</th>
+        <th>Description</th>
+    </tr>
+    [% FOREACH log IN logs %]
+        <tr>
+            <td>[% log.id %]</td>
+            <td>[% log.user.text | html_entity %]</td>
+            <td>[% log.type %]</td>
+            <td>[% log.datetime %]</td>
+            <td>[% log.description %]</td>
+        </tr>
+    [% END %]
+</table>
+
+<div class="modal fade" id="modal_filter" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form role="form" method="post">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="modal_filter-title">Filtering</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="method">Method</label>
+                    <select class="form-control" id="method" name="method">
+                        <option value="" [% IF filtering.method == "" %]selected[% END %]>&lt;Ignore&gt;</option>
+                        <option value="get" [% IF filtering.method == "get" %]selected[% END %]>Only GET requests</option>
+                        <option value="post" [% IF filtering.method == "post" %]selected[% END %]>Only POST requests</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="type">Type [% filtering.audit_type %]</label>
+                    <select class="form-control" id="type" name="type">
+                        <option value="" [% UNLESS filtering.type %]selected[% END %]>&lt;Ignore&gt;</option>
+                        [% FOREACH audit_type IN audit_types %]
+                            <option value="[% audit_type %]" [% IF filtering.type == audit_type %]selected[% END %]>[% audit_type %]</option>
+                        [% END %]
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="user">User [% filtering.user %]</label>
+                    <select class="form-control" id="user" name="user">
+                        <option value="" [% UNLESS filtering.user %]selected[% END %]>&lt;Ignore&gt;</option>
+                        [% FOREACH u IN users.all %]
+                            <option value="[% u.id %]" [% IF filtering.user == u.id %]selected[% END %]>[% u.value | html_entity %]</option>
+                        [% END %]
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="from">From</label>
+                    <input type="text" class="form-control datepicker" id="from"
+                        name="from" value="[% filtering.from %]">
+                </div>
+                <div class="form-group">
+                    <label for="to">To</label>
+                    <input type="text" class="form-control datepicker" id="to"
+                        name="to" value="[% filtering.to %]">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" name="audit_filtering" value="submit" class="btn btn-primary">Update</button>
+            </div>
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
