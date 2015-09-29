@@ -561,7 +561,7 @@ any '/data' => require_login sub {
             forwardHome({ danger => "Invalid column ID for sort" }, '/data')
                 unless !$sort || ($layout->column($sort) && $layout->column($sort)->user_can('read'));
             my $existing = session('sort');
-            if (!$existing && @{$view->sorts})
+            if (!$existing && $view && @{$view->sorts})
             {
                 # Get first sort of existing view
                 my $sort = $view->sorts->[0];
