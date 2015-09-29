@@ -192,7 +192,7 @@ sub _build_data
     # All the x values from the records. May only be one, or may be lots if
     # not defined in the graph
     my @x       = ($x_axis)
-        || ($view && $self->records->layout->view($view->id, user_has_read => 1))
+        || ($view && $self->records->layout->view($view->id, user_can_read => 1))
         || $layout->all(user_can_read => 1);
 
     my %xy_values; my %y_group_values;
