@@ -325,7 +325,7 @@ sub _data_graph
     # Columns is either the x-axis, or if not defined, all the columns in the view
     my @columns = ($graph->y_axis, $graph->group_by);
     push @columns,
-        $graph->x_axis || @{$view->columns};
+        $graph->x_axis || ($view && @{$view->columns}) || $layout->all(user_can_read => 1);
     $records->search(
         view    => $view,
         columns => \@columns,
