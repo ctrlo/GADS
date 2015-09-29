@@ -122,7 +122,7 @@ hook before => sub {
     {
         # Redirect if AUP not signed
         my $aup_accepted;
-        if (my $aup_date = logged_in_user->{aup_accepted})
+        if (my $aup_date = $user->{aup_accepted})
         {
             my $db_parser   = schema->storage->datetime_parser;
             my $aup_date_dt = $db_parser->parse_datetime($aup_date);
