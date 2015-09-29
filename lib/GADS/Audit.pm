@@ -37,7 +37,7 @@ sub user_action
 {   my ($self, %options) = @_;
 
     $self->schema->resultset('Audit')->create({
-        user_id     => $self->user->{id},
+        user_id     => $self->user ? $self->user->{id} : undef,
         description => $options{description},
         type        => 'user_action',
         method      => $options{method},
