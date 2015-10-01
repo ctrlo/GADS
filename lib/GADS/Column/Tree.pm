@@ -28,6 +28,11 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
+sub DESTROY
+{   my $self = shift;
+    $self->_root->delete_tree if $self->_has_tree;
+}
+
 has end_node_only => (
     is     => 'rw',
     isa    => Bool,
@@ -71,9 +76,10 @@ has _enumvals => (
 # The whole tree, constructed here so that it only
 # needs to be done once
 has _tree => (
-    is => 'rw',
-    lazy => 1,
-    builder => sub { $_[0]->_build_tree },
+    is        => 'rw',
+    lazy      => 1,
+    builder   => 1,
+    predicate => 1,
 );
 
 # The original values hash
@@ -118,7 +124,7 @@ sub node
     }
 }
 
-sub _build_tree
+sub _build__tree
 {   my $self = shift;
 
     trace "Entering _build_tree";
