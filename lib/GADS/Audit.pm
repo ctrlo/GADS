@@ -123,8 +123,10 @@ sub logs
     });
     $rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my @logs = $rs->all;
-    $_->{user} = GADS::Datum::Person->new(schema => $self->schema, set_value => $_)
-        foreach @logs;
+    $_->{user} = GADS::Datum::Person->new(
+        schema    => $self->schema,
+        set_value => {value => $_->{user}}
+    ) foreach @logs;
     \@logs;
 }
 
