@@ -302,7 +302,9 @@ sub _build_data
                 or next;
             if ($x_axis && $x_axis->return_type && $x_axis->return_type eq 'date')
             {
-                $x_value = _group_date($x_value->value, $self->x_axis_grouping)->epoch;
+                $x_value = _group_date($x_value->value, $self->x_axis_grouping)
+                    or next;
+                $x_value = $x_value->epoch;
             }
             next unless "$x_value";
             my @x_values = $x_axis && $x_axis->type eq 'daterange'
