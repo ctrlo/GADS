@@ -458,7 +458,7 @@ sub _group_date
          : $grouping eq 'month'
          ? DateTime->new(year => $val->year, month => $val->month)
          : $grouping eq 'day'
-         ? DateTime->new(year => $val->year, month => $val->month, day => $val->month)
+         ? DateTime->new(year => $val->year, month => $val->month, day => $val->day)
          : $val
 }
 
