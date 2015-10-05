@@ -134,7 +134,7 @@
             <div class="checkbox">
                 <label>
                     <input type="checkbox" name="related_inc" value="[% dispcol.id %]"
-                        [% IF record.fields.$colid.has_value %]checked[% END %]
+                        [% IF record.current_id AND record.fields.$colid.has_value %]checked[% END %]
                     > <span [% label_style %]>[% label %]</span> (tick to include)
                 </label>
             </div>
