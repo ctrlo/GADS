@@ -323,9 +323,15 @@ sub _data_graph
         prefetch_related => 1,
     );
     # Columns is either the x-axis, or if not defined, all the columns in the view
-    my @columns = ($graph->y_axis, $graph->group_by);
-    push @columns,
-        $graph->x_axis || ($view && @{$view->columns}) || $layout->all(user_can_read => 1);
+    my @columns = $graph->x_axis
+        ? ($graph->x_axis, $graph->y_axis)
+        : $view
+        ? @{$view->columns}
+        : $layout->all(user_can_read => 1);
+
+    push @columns, $graph->group_by if $graph->group_by;
+
+
     $records->search(
         view    => $view,
         columns => \@columns,
