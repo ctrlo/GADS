@@ -1717,6 +1717,11 @@ any '/edit/:id?' => require_login sub {
         ? $record->parent_id
         : undef;
 
+    notice __"Please tick the fields that will have their own values for this related record "
+        ."(at least one must be ticked). Any fields that are not ticked will inherit their "
+        ."value from the parent."
+            if param('related');
+
     my $output = template 'edit' => {
         record      => $record,
         related     => $related,
