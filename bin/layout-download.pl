@@ -30,7 +30,15 @@ use YAML;
 
 GADS::DB->setup(schema);
 
-my $layout = GADS::Layout->new(user => undef, schema => schema, config => config);
+my $instance_id = $ARGV[0]
+    or die "Please supply instance_id as first command line argument";
+
+my $layout = GADS::Layout->new(
+    user        => undef,
+    schema      => schema,
+    config      => config,
+    instance_id => $instance_id,
+);
 
 my @columns;
 foreach my $column ($layout->all)
@@ -77,12 +85,17 @@ foreach my $column ($layout->all)
     push @columns, $col;
 }
 
-my $views  = GADS::Views->new(user => undef, schema => schema, layout => $layout);
+my $views  = GADS::Views->new(
+    user        => undef,
+    schema      => schema,
+    layout      => $layout,
+    instance_id => $instance_id,
+);
 
 my @views;
 foreach my $v (@{$views->global})
 {
-    say STDERR "Exporting view ".$v->name;
+    say STDERR "Exporting view ".$v->id.$v->name;
     my @sort_fields;
     my @sort_types;
     foreach my $s (@{$v->sorts})

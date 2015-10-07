@@ -28,21 +28,32 @@ use GADS::Layout;
 use String::CamelCase qw(camelize);
 use YAML qw/LoadFile/;
 
-my ($file) = @ARGV;
-$file or die "Usage: $0 filename";
+my ($instance_id, $file) = @ARGV;
+$file && $instance_id
+    or die "Usage: $0 layout_id filename";
 
 my $import = LoadFile($file);
 
 GADS::DB->setup(schema);
 
-my $layout = GADS::Layout->new(user => undef, schema => schema, config => config);
+my $layout = GADS::Layout->new(
+    user        => undef,
+    schema      => schema,
+    config      => config,
+    instance_id => $instance_id,
+);
 
 my @write;
 foreach my $column (@{$import->{columns}})
 {
     my $class = $column->{type};
     $class = "GADS::Column::".camelize($class);
-    my $new = $class->new(schema => schema, user => undef, layout => $layout);
+    my $new = $class->new(
+        schema      => schema,
+        user        => undef,
+        layout      => $layout,
+        instance_id => $instance_id,
+    );
     
     $new->$_($column->{$_})
         foreach (qw/name type description helptext optional remember position/);
@@ -103,14 +114,21 @@ foreach my $column (@{$import->{columns}})
 }
 
 # Reload new layout
-$layout = GADS::Layout->new(user => undef, schema => schema, user_permission_override => 1, config => config);
+$layout = GADS::Layout->new(
+    user                     => undef,
+    schema                   => schema,
+    user_permission_override => 1,
+    config                   => config,
+    instance_id              => $instance_id,
+);
 
 foreach my $v(@{$import->{views}})
 {
     my $view = GADS::View->new(
-        user   => undef,
-        schema => schema,
-        layout => $layout,
+        user        => undef,
+        schema      => schema,
+        layout      => $layout,
+        instance_id => $instance_id,
     );
 
     $view->columns($v->{columns});
