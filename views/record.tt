@@ -54,7 +54,7 @@
     [% FOREACH col IN all_columns %]
         [% colid = col.id %]
         <tr>
-            [% NEXT IF record.parent_id AND NOT (record.fields.$colid.has_value OR NOT col.userinput) %]
+            [% NEXT IF record.parent_id AND NOT (record.fields.$colid.has_value) %]
             <th>[% col.name | html_entity %]</th>
             <td>
                 [% value = record.fields.$colid %]
