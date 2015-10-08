@@ -250,8 +250,8 @@
 
     [%# Then add all the columns that depend on it. Put them in a JS code array,
         which gets output at the end of this templte. Each of these is in its own div %]
-    [% IF col.depended_by.size %]
-        [% FOREACH depends IN dispcol.depended_by %]
+    [% IF col.display_depended_by.size %]
+        [% FOREACH depends IN dispcol.display_depended_by %]
             [% divid = "depend" _ dispcol.id _ "_" _ depends.id %]
             [% IF col.type == "enum" || col.type == "person" %]
                 [% js_valget = '$("option:selected", $(this)).text()' %]
@@ -279,7 +279,7 @@
                 [% ELSE %]
                     [% textval = record.fields.$cid.as_string  %]
                 [% END %]
-                [% FOREACH c IN col.depended_by %]
+                [% FOREACH c IN col.display_depended_by %]
                     [% FOREACH cc IN all_columns %]
                         [% IF cc.id == c.id %]
                             <div id="depend[% col.id %]_[% cc.id %]" [% UNLESS textval.match(c.regex) %]style="display:none" [% END %]>
