@@ -492,6 +492,17 @@ sub write
             unless $self->layout->user_can('write_new');
     }
 
+    if ($self->parent_id)
+    {
+        # Check whether this is an attempt to create a related of
+        # a related record
+        error __"Cannot create a related record for an existing related record"
+            if $self->schema->resultset('Current')->search({
+                id        => $self->parent_id,
+                parent_id => { '!=' => undef },
+            })->count;
+    }
+
     my $force_mandatory = $options{force} && $options{force} eq 'mandatory' ? 1 : 0;
 
     # First loop round: sanitise and see which if any have changed
