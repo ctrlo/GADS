@@ -24,6 +24,7 @@ WriteMakefile(
         'Dancer2::Plugin::DBIC'                     => 0,
         'Data::Compare'                             => 0,
         'DateTime'                                  => 0,
+        'DateTime::Event::Random'                   => 0,
         'DateTime::Format::Strptime'                => 0,
         'DateTime::Span'                            => 0,
         'DBIx::Class::Migration'                    => 0,
