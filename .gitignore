@@ -14,3 +14,4 @@ META.yml
 MYMETA.*
 nytprof.out
 pm_to_blib
+*.swp
