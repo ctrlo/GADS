@@ -720,20 +720,6 @@ sub construct_search
         push @limit, @res if @res;
     }
 
-    # Configure specific user selected sort. Do it now, as they may
-    # not have view selected
-    if (my $sort = $self->sort)
-    {
-        my $type = $sort->{type} eq 'desc' ? '-desc' : '-asc';
-        if (!$sort->{id})
-        {
-            push @{$self->order_by}, { $type => 'me.id' };
-        }
-        elsif (my $column = $layout->column($sort->{id}))
-        {
-            $self->add_sort($column, $type);
-        }
-    }
     # Now add all the filters as joins (we don't need to prefetch this data). However,
     # the filter might also be a column in the view from before, in which case add
     # it to, or use, the prefetch. We use the tracking variables from above.
@@ -778,6 +764,23 @@ sub construct_search
                     type => $sort->{type},
                 }) unless $self->sort;
             }
+        }
+    }
+    # Configure specific user selected sort, if applicable. This needs to be done
+    # after the filters have been added, otherwise the filters could add additonal
+    # joins which will put the value_x columns out of kilter. A user selected
+    # column will always be in a prefetch, so it's not possible for the reverse
+    # to happen
+    if (my $sort = $self->sort)
+    {
+        my $type = $sort->{type} eq 'desc' ? '-desc' : '-asc';
+        if (!$sort->{id})
+        {
+            push @{$self->order_by}, { $type => 'me.id' };
+        }
+        elsif (my $column = $layout->column($sort->{id}))
+        {
+            $self->add_sort($column, $type);
         }
     }
     # Default sort
