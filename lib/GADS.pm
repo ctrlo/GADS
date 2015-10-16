@@ -1651,6 +1651,11 @@ any '/edit/:id?' => require_login sub {
                         $failed = !process( sub { $record->fields->{$col->id}->set_value($newv) } ) || $failed;
                     }
                 }
+                elsif ($col->type eq 'file')
+                {
+                    # Not defined file field. Must have been removed.
+                    $failed = !process( sub { $record->fields->{$col->id}->set_value(undef) } ) || $failed;
+                }
             }
         }
         if (!$failed && process( sub { $record->write }))
