@@ -58,7 +58,6 @@ use GADS::Views;
 use Email::Valid;
 use HTML::Entities;
 use JSON qw(decode_json encode_json);
-use Log::Report mode => 'DEBUG';
 use MIME::Base64;
 use Session::Token;
 use String::CamelCase qw(camelize);
@@ -68,6 +67,7 @@ use WWW::Mechanize::PhantomJS;
 use Dancer2; # Last to stop Moo generating conflicting namespace
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
 use Dancer2::Plugin::Auth::Extensible;
+use Dancer2::Plugin::LogReport 1.09;
 
 schema->storage->debugobj(new GADS::DBICProfiler);
 schema->storage->debug(1);
@@ -77,28 +77,6 @@ our $VERSION = '0.1';
 
 # set serializer => 'JSON';
 set behind_proxy => config->{behind_proxy}; # XXX Why doesn't this work in config file
-
-# Callback dispatcher to send error messages to the web browser
-dispatcher CALLBACK => 'error_handler'
-   , callback => \&error_handler
-   , mode => 'DEBUG';
-
-# And a syslog dispatcher
-dispatcher SYSLOG => 'gads'
-  , identity => 'gads'
-  , facility => 'local0'
-  , flags    => "pid ndelay nowait"
-  , mode     => 'DEBUG';
-
-hook init_error => sub {
-    my $error = shift;
-    # Catch other exceptions. This is hook is called for all errors
-    # not just exceptions (including for example 404s), so check first.
-    # If it's an exception then panic it to get Log::Report
-    # to handle it nicely. If it's another error such as a 404
-    # then exception will not be set.
-    panic $error->{exception} if $error->{exception};
-};
 
 hook before => sub {
 
@@ -1256,7 +1234,7 @@ any '/user/?:id?' => require_role useradmin => sub {
         {
             if (!Email::Valid->address(param('email')))
             {
-                messageAdd({ danger => "Please enter a valid email address for the new user" });
+                report {is_fatal=>0}, ERROR => "Please enter a valid email address for the new user";
             }
             else {
                 $result = process( sub { $newuser = update_user param('username'), realm => 'dbic', %values });
@@ -1266,11 +1244,11 @@ any '/user/?:id?' => require_role useradmin => sub {
             # Delete account request user if this is a new account request
             if (!param('email'))
             {
-                messageAdd({ danger => "An email address must be specified for the new user" });
+                report {is_fatal => 0}, ERROR => __"An email address must be specified for the new user";
             }
             elsif (!Email::Valid->address(param('email')))
             {
-                messageAdd({ danger => "Please enter a valid email address for the new user" });
+                report {is_fatal => 0}, ERROR => __"Please enter a valid email address for the new user";
             }
             else {
                 my $usero = GADS::User->new(schema => schema, config => config, user_id => $id);
@@ -1319,7 +1297,7 @@ any '/user/?:id?' => require_role useradmin => sub {
             if (process( sub { $userso->organisation_new({ name => $org })}))
             {
                 $audit->login_change("Organisation $org created");
-                messageAdd({ success => "The organisation has been created successfully" });
+                success __"The organisation has been created successfully";
             }
         }
 
@@ -1328,7 +1306,7 @@ any '/user/?:id?' => require_role useradmin => sub {
             if (process( sub { $userso->title_new({ name => $title }) }))
             {
                 $audit->login_change("Title $title created");
-                messageAdd({ success => "The title has been created successfully" });
+                success __"The title has been created successfully";
             }
         }
 
@@ -1865,8 +1843,8 @@ any '/login' => sub {
         my $username = param('emailreset');
         $audit->login_change("Password reset request for $username");
         defined password_reset_send(username => $username)
-        ? messageAdd( { success => 'An email has been sent to your email address with a link to reset your password' } )
-        : messageAdd( { danger => 'Failed to send a password reset link. Did you enter a valid email address?' } );
+        ? success(__('An email has been sent to your email address with a link to reset your password'))
+        : report({is_fatal => 0}, ERROR => 'Failed to send a password reset link. Did you enter a valid email address?');
     }
 
     my $error;
@@ -1910,7 +1888,7 @@ any '/login' => sub {
         }
         else {
             $audit->login_failure(param 'username');
-            messageAdd({ danger => "The username or password was not recognised" });
+            report {is_fatal=>0}, ERROR => "The username or password was not recognised";
         }
     }
 
@@ -1988,79 +1966,17 @@ sub current_view {
 sub forwardHome {
     if (my $message = shift)
     {
-        messageAdd($message);
+        my ($type) = keys %$message;
+        if ($type eq 'danger')
+        {
+            report {is_fatal=>0}, ERROR => $message->{$type};
+        }
+        else {
+            success $message->{$type};
+        }
     }
     my $page = shift || '';
     redirect "/$page";
-}
-
-sub messageAdd($) {
-    my $message = shift;
-    return unless keys %$message;
-    my $text    = ( values %$message )[0];
-    my $type    = ( keys %$message )[0];
-    my $msgs    = session 'messages';
-    push @$msgs, { text => encode_entities($text), type => $type };
-    session 'messages' => $msgs;
-}
-
-sub error_handler
-{   my ($disp, $options, $reason, $message) = @_;
-
-    if ($reason =~ /(TRACE|ASSERT|INFO)/)
-    {
-        # Debug info. Log to syslog.
-    }
-    elsif ($reason eq 'NOTICE')
-    {
-        # Notice that something has happened. Not an error.
-        messageAdd({ info => "$message" });
-    }
-    elsif ($reason =~ /(WARNING|MISTAKE)/)
-    {
-        # Non-fatal problem. Show warning.
-        messageAdd({ warning => "$message" });
-    }
-    elsif ($reason eq 'ERROR') {
-        # A user-created error condition that is not recoverable.
-        # This could have already been caught by the process
-        # subroutine, in which case we should continue running
-        # of the program. In all other cases, we should bail
-        # out. With the former, the exception will have been
-        # re-thrown as a non-fatal exception, so check that.
-        exists $options->{is_fatal} && !$options->{is_fatal}
-            ? messageAdd({ danger => "$message" })
-            : forwardHome({ danger => "$message" });
-    }
-    else {
-        # 'FAULT', 'ALERT', 'FAILURE', 'PANIC'
-        # All these are fatal errors. Display error to user, but
-        # forward home so that we can reload. However, don't if
-        # it's a GET request to the home, as it will cause a recursive
-        # loop. In this case, do nothing, and let dancer handle it.
-        my $m = config->{show_errors}
-            ? "$message"
-            : "An unexpected error has occurred.";
-        forwardHome({ danger => $m })
-            unless request->uri eq '/' && request->is_get;
-    }
-}
-
-# This runs a code block and catches errors, which in then
-# handles in a more graceful manner, throwing as required
-sub process
-{
-    my $coderef = shift;
-    try {&$coderef};
-    my $result = $@ ? 0 : 1; # Return true on success
-    if (my $exception = $@->wasFatal)
-    {
-        $exception->throw(is_fatal => 0);
-    }
-    else {
-        $@->reportAll;
-    }
-    $result;
 }
 
 # Implementation of String::Random with better entropy

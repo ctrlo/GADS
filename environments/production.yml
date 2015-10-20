@@ -4,7 +4,7 @@
 log: "warning"
 
 # log message to a file in logs/
-logger: "file"
+#logger: "file"
 
 # don't consider warnings critical
 warnings: 0
@@ -15,3 +15,14 @@ show_errors: 0
 # cache route resolution for maximum performance
 route_cache: 1
 
+engines:
+  logger:
+    LogReport:
+      app_name: GADS
+      dispatchers:
+        default:
+          type: SYSLOG
+          identity: GADS
+          facility: local0
+          flags: "pid ndelay nowait"
+          mode: NORMAL

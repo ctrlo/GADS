@@ -145,13 +145,8 @@
             [% END %]
 
             [% FOR message IN messages %]
-                [% IF message.type %]
-                    [% msgtype = message.type %]
-                [% ELSE %]
-                    [% msgtype = "info" %]
-                [% END %]
-                <div class="alert alert-[% msgtype %]">
-                [% message.text %]
+                <div class="alert alert-[% message.bootstrap_color %]">
+                    [% message.toString | html_entity %]
                 </div>
             [% END %]
 
