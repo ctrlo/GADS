@@ -25,6 +25,8 @@ use Text::Autoformat qw(autoformat break_wrap);
 
 use Moo;
 
+with 'MooX::Singleton';
+
 has message_prefix => (
     is => 'lazy',
 );

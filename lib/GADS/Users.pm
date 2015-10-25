@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Users;
 
 use Email::Valid;
+use GADS::Email;
 use GADS::Instance;
 use Log::Report;
 
@@ -170,7 +171,7 @@ sub register
     $text .= "User notes: $new{account_request_notes}\n";
     my $config = $self->config
         or panic "Config needs to be defined";
-    my $email = GADS::Email->new(config => $config);
+    my $email = GADS::Email->instance;
     $email->send({
         emails  => \@emails,
         subject => "New account request",

@@ -78,6 +78,10 @@ our $VERSION = '0.1';
 # set serializer => 'JSON';
 set behind_proxy => config->{behind_proxy}; # XXX Why doesn't this work in config file
 
+GADS::Email->instance(
+    config => config,
+);
+
 hook before => sub {
 
     return if request->uri =~ m!^/(error|js|css|login|images|fonts|resetpw|ping)!;
@@ -605,13 +609,8 @@ any '/data' => require_login sub {
                 { danger => 'You do not have permission to send messages' }, 'data' )
                 unless user_has_role 'message';
 
-            my $params = params;
-
-            my $email = GADS::Email->new(
-                config         => config,
-            );
-
-            my $args = {
+            my $email  = GADS::Email->instance;
+            my $args   = {
                 subject => param('subject'),
                 text    => param('text'),
             };

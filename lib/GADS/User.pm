@@ -20,6 +20,7 @@ package GADS::User;
 
 use DateTime;
 use Email::Valid;
+use GADS::Email;
 use GADS::Instance;
 use Log::Report;
 
@@ -123,7 +124,7 @@ sub delete
         $user->delete;
 
         return unless $options{send_reject_email};
-        my $email = GADS::Email->new(config => $self->config);
+        my $email = GADS::Email->instance;
         $email->send({
             subject => $self->instance->email_reject_subject,
             emails  => [$user->email],
@@ -156,7 +157,7 @@ sub delete
 
     if (my $msg = $self->instance->email_delete_text)
     {
-        my $email = GADS::Email->new(config => $self->config);
+        my $email = GADS::Email->instance;
         $email->send({
             subject => $self->instance->email_delete_subject || "Account deleted",
             emails  => [$user->email],
