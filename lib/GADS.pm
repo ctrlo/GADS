@@ -510,7 +510,6 @@ any '/data' => require_login sub {
     }
     elsif ($viewtype eq 'timeline')
     {
-        my $view    = current_view($user, $layout);
         my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
         if (param 'tl_update')
         {
