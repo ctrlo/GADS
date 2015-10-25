@@ -19,6 +19,7 @@
                 <div class="form-group">
                     <label for="notes">Notes:</label>
                     <p>[% edituser.account_request_notes %]</p>
+                    <input type="hidden" name="account_request_notes" value="[% edituser.account_request_notes %]"</input>
                 </div>
             [% END %]
             <div class="form-group">

@@ -32,24 +32,51 @@ has schema => (
     required => 1,
 );
 
-has config => (
-    is       => 'ro',
-    required => 1,
-);
-
 has instance => (
     is => 'lazy',
 );
 
-has user_id => (
-    is  => 'ro',
-    isa => Int,
+has id => (
+    is        => 'lazy',
+    isa       => Maybe[Int],
+    predicate => 1,
+);
+
+sub _build_id
+{   my $self = shift;
+    my @params = grep {my $h = "has_$_"; $self->$h} qw/username email account_request/;
+    my %search = map { "me.".$_ => $_ } @params;
+    $search{deleted} = undef;
+    my @users = $self->schema->resultset('User')->search(\%search, {
+        prefetch => ['user_permissions', 'user_groups'],
+    })->all;
+    @users == 1 or return;
+    $users[0]->id;
+}
+
+has username => (
+    is        => 'ro',
+    usa       => Str,
+    predicate => 1,
+);
+
+has email => (
+    is        => 'ro',
+    usa       => Str,
+    predicate => 1,
+);
+
+has account_request => (
+    is        => 'ro',
+    usa       => Bool,
+    predicate => 1,
 );
 
 sub _build_instance
 {   my $self = shift;
+    my $config = GADS::Config->instance;
     GADS::Instance->new(
-        id     => $self->config->{gads}->{login_instance} || 1,
+        id     => $config->login_instance,
         schema => $self->schema,
     );
 }
@@ -68,7 +95,7 @@ sub graphs
     foreach my $g (@graphs)
     {
         my $item = {
-            user_id  => $self->user_id,
+            user_id  => $self->id,
             graph_id => $g,
         };
 
@@ -79,7 +106,7 @@ sub graphs
     }
 
     # Delete any graphs that no longer exist
-    my $search = { user_id => $self->user_id };
+    my $search = { user_id => $self->id };
     $search->{graph_id} = {
         '!=' => [ -and => @graphs ]
     } if @graphs;
@@ -92,7 +119,7 @@ sub groups
     foreach my $g (@$groups)
     {
         my $item = {
-            user_id  => $self->user_id,
+            user_id  => $self->id,
             group_id => $g,
         };
 
@@ -103,7 +130,7 @@ sub groups
     }
 
     # Delete any groups that no longer exist
-    my $search = { user_id => $self->user_id };
+    my $search = { user_id => $self->id };
     $search->{group_id} = {
         '!=' => [ -and => @$groups ]
     } if @$groups;
@@ -114,10 +141,10 @@ sub delete
 {   my ($self, %options) = @_;
 
     my ($user) = $self->schema->resultset('User')->search({
-        id      => $self->user_id,
+        id      => $self->id,
         deleted => undef,
     })->all;
-    $user or error __x"User {id} not found", id => $self->user_id;
+    $user or error __x"User {id} not found", id => $self->id;
 
     if ($user->account_request)
     {
@@ -134,14 +161,14 @@ sub delete
         return;
     }
 
-    $self->schema->resultset('UserGraph')->search({ user_id => $self->user_id })->delete;
-    my $alerts = $self->schema->resultset('Alert')->search({ user_id => $self->user_id });
+    $self->schema->resultset('UserGraph')->search({ user_id => $self->id })->delete;
+    my $alerts = $self->schema->resultset('Alert')->search({ user_id => $self->id });
     my @alert_sends = map { $_->id } $alerts->all;
     $self->schema->resultset('AlertSend')->search({ alert_id => \@alert_sends })->delete;
     $alerts->delete;
 
     $user->update({ lastview => undef });
-    my $views = $self->schema->resultset('View')->search({ user_id => $self->user_id });
+    my $views = $self->schema->resultset('View')->search({ user_id => $self->id });
     my @views;
     foreach my $v ($views->all)
     {
@@ -168,13 +195,10 @@ sub delete
 
 # XXX Possible temporary function, until available in DPAE
 sub get_user
-{   my ($self, %search) = @_;
-    %search = map { "me.".$_ => $search{$_} } keys(%search);
-    $search{deleted} = undef;
-    my ($user) = $self->schema->resultset('User')->search(\%search, {
-        prefetch => ['user_permissions', 'user_groups'],
-    })->all;
-    $user or return;
+{   my $self = shift;
+    $self->id or return;
+    my $user = $self->schema->resultset('User')->find($self->id)
+        or return;
     my $return = {
         id                    => $user->id,
         firstname             => $user->firstname,

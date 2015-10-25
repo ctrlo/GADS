@@ -34,6 +34,7 @@ use GADS::Column::Person;
 use GADS::Column::Rag;
 use GADS::Column::String;
 use GADS::Column::Tree;
+use GADS::Config;
 use GADS::DB;
 use GADS::DBICProfiler;
 use GADS::Email;
@@ -77,6 +78,10 @@ our $VERSION = '0.1';
 
 # set serializer => 'JSON';
 set behind_proxy => config->{behind_proxy}; # XXX Why doesn't this work in config file
+
+GADS::Config->instance(
+    config => config,
+);
 
 GADS::Email->instance(
     config => config,
@@ -700,7 +705,7 @@ any '/account/?:action?/?' => require_login sub {
 
     if (param 'graphsubmit')
     {
-        my $usero = GADS::User->new(config => config, schema => schema, user_id => $user->{id});
+        my $usero = GADS::User->new(config => config, schema => schema, id => $user->{id});
         if (process( sub { $usero->graphs(param('graphs')) }))
         {
             return forwardHome(
@@ -1211,22 +1216,23 @@ any '/user/?:id?' => require_role useradmin => sub {
         {
             # Check user doesn't already exist
             my $email = param('email');
-            my $usero = GADS::User->new(schema => schema, config => config);
+            my $usero = GADS::User->new(schema => schema, email => $email, account_request => 0);
             return forwardHome({ danger => "User $email already exists" }, 'user' )
-                if $usero->get_user(email => $email, account_request => 0);
+                if $usero->get_user;
         }
         my %all_permissions = map { $_->id => $_->name } @{$userso->permissions};
         my @permissions = ref param('permission') ? @{param('permission')} : (param('permission') || ());
         my %permissions = map { $all_permissions{$_} => 1 } @permissions;
         my %values = (
-            firstname       => param('firstname'),
-            surname         => param('surname'),
-            email           => param('email'),
-            username        => param('email'),
-            telephone       => param('telephone'),
-            title           => param('title') || undef,
-            organisation    => param('organisation') || undef,
-            permission      => \%permissions,
+            firstname             => param('firstname'),
+            surname               => param('surname'),
+            email                 => param('email'),
+            username              => param('email'),
+            telephone             => param('telephone'),
+            title                 => param('title') || undef,
+            organisation          => param('organisation') || undef,
+            account_request_notes => param('account_request_notes'),
+            permission            => \%permissions,
         );
 
         $values{value} = _user_value(\%values);
@@ -1253,7 +1259,7 @@ any '/user/?:id?' => require_role useradmin => sub {
                 report {is_fatal => 0}, ERROR => __"Please enter a valid email address for the new user";
             }
             else {
-                my $usero = GADS::User->new(schema => schema, config => config, user_id => $id);
+                my $usero = GADS::User->new(schema => schema, config => config, id => $id);
                 $usero->delete
                     if param 'account_request';
                 $result = process( sub { $newuser = create_user %values, realm => 'dbic', email_welcome => 1 });
@@ -1268,7 +1274,7 @@ any '/user/?:id?' => require_role useradmin => sub {
         {
             # Add groups to user
             my @groups = ref param('groups') ? @{param('groups')} : (param('groups') || ());
-            my $usero = GADS::User->new(schema => schema, config => config, user_id => $newuser->{id});
+            my $usero = GADS::User->new(schema => schema, config => config, id => $newuser->{id});
             $usero->groups(\@groups);
             my $action;
             my $audit_perms = join ', ', keys %{$newuser->{permission}};
@@ -1325,7 +1331,7 @@ any '/user/?:id?' => require_role useradmin => sub {
         return forwardHome(
             { danger => "Cannot delete current logged-in User" } )
             if logged_in_user->{id} eq $delete_id;
-        my $usero = GADS::User->new(schema => schema, config => config, user_id => $delete_id);
+        my $usero = GADS::User->new(schema => schema, config => config, id => $delete_id);
         if (process( sub { $usero->delete(send_reject_email => 1) }))
         {
             $audit->login_change("User ID $delete_id deleted");
@@ -1336,8 +1342,8 @@ any '/user/?:id?' => require_role useradmin => sub {
 
     if ($id)
     {
-        my $usero = GADS::User->new(schema => schema, config => config);
-        $users = [ $usero->get_user(id => $id) ] if !$users;
+        my $usero = GADS::User->new(schema => schema, id => $id);
+        $users = [ $usero->get_user ] if !$users;
     }
     elsif (!defined $id) {
         $users             = $userso->all;
@@ -1929,8 +1935,8 @@ any '/resetpw/:code' => sub {
         if (param 'execute_reset')
         {
             context->destroy_session;
-            my $usero  = GADS::User->new(schema => schema, config => config);
-            my $user   = $usero->get_user(username => $username, account_request => 0);
+            my $usero  = GADS::User->new(schema => schema, username => $username, account_request => 0);
+            my $user   = $usero->get_user;
             my $audit  = GADS::Audit->new(schema => schema, user => $user);
             $audit->login_change("Password reset performed for user ID $user->{id}");
             $new_password = _random_pw();
