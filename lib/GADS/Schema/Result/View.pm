@@ -201,6 +201,21 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 user_limits_to_view
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::User>
+
+=cut
+
+__PACKAGE__->has_many(
+  "user_limits_to_view",
+  "GADS::Schema::Result::User",
+  { "foreign.limit_to_view" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 users
 
 Type: has_many
@@ -232,8 +247,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:06:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IpItfnKHfwszB/CVmjuo1w
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-10-25 18:24:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Jo5Nra7zGvx9YCYawyzYGg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

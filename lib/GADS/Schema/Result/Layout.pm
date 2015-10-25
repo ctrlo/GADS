@@ -108,12 +108,6 @@ __PACKAGE__->table("layout");
   data_type: 'text'
   is_nullable: 1
 
-=head2 hidden
-
-  data_type: 'smallint'
-  default_value: 0
-  is_nullable: 0
-
 =head2 instance_id
 
   data_type: 'integer'
@@ -155,8 +149,6 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "display_regex",
   { data_type => "text", is_nullable => 1 },
-  "hidden",
-  { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "instance_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "link_parent",
@@ -233,6 +225,51 @@ Related object: L<GADS::Schema::Result::Calcval>
 __PACKAGE__->has_many(
   "calcvals",
   "GADS::Schema::Result::Calcval",
+  { "foreign.layout_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 curval_fields_children
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::CurvalField>
+
+=cut
+
+__PACKAGE__->has_many(
+  "curval_fields_children",
+  "GADS::Schema::Result::CurvalField",
+  { "foreign.child_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 curval_fields_parents
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::CurvalField>
+
+=cut
+
+__PACKAGE__->has_many(
+  "curval_fields_parents",
+  "GADS::Schema::Result::CurvalField",
+  { "foreign.parent_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 curvals
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Curval>
+
+=cut
+
+__PACKAGE__->has_many(
+  "curvals",
+  "GADS::Schema::Result::Curval",
   { "foreign.layout_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -377,21 +414,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 graph_x_axes
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Graph>
-
-=cut
-
-__PACKAGE__->has_many(
-  "graph_x_axes",
-  "GADS::Schema::Result::Graph",
-  { "foreign.x_axis" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 graph_y_axes
 
 Type: has_many
@@ -404,6 +426,21 @@ __PACKAGE__->has_many(
   "graph_y_axes",
   "GADS::Schema::Result::Graph",
   { "foreign.y_axis" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 graphs_x_axis
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Graph>
+
+=cut
+
+__PACKAGE__->has_many(
+  "graphs_x_axis",
+  "GADS::Schema::Result::Graph",
+  { "foreign.x_axis" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -643,8 +680,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 12:39:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tDdek4cosQ62sNXsT7kWNw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-10-25 20:07:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zzX54ZXlR7mVN947+fgKLg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

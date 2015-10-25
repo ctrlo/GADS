@@ -154,6 +154,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 curvals
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Curval>
+
+=cut
+
+__PACKAGE__->has_many(
+  "curvals",
+  "GADS::Schema::Result::Curval",
+  { "foreign.value" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 instance
 
 Type: belongs_to
@@ -250,8 +265,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 11:21:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2CqiB5FWHjp5ESXeJWvlrA
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-10-25 19:57:49
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ges3oWMsHAT4hi55wuFq6w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

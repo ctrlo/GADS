@@ -205,6 +205,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 curvals
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Curval>
+
+=cut
+
+__PACKAGE__->has_many(
+  "curvals",
+  "GADS::Schema::Result::Curval",
+  { "foreign.record_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 dateranges
 
 Type: has_many
@@ -376,8 +391,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:06:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MU7Ab3oytCJis6C00Ho+Zw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-10-25 19:57:49
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5zlQzxdIyJwz2CA24TyZEA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

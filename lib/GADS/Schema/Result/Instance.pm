@@ -43,9 +43,8 @@ __PACKAGE__->table("instance");
 
 =head2 name
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 256
 
 =head2 email_welcome_text
 
@@ -135,7 +134,7 @@ __PACKAGE__->add_columns(
   "id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "name",
-  { data_type => "varchar", is_nullable => 1, size => 256 },
+  { data_type => "text", is_nullable => 1 },
   "email_welcome_text",
   { data_type => "text", is_nullable => 1 },
   "email_welcome_subject",
@@ -280,8 +279,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 12:39:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Y306DiIMl5sAn1f+rVDEwA
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-10-25 17:18:15
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8j3z5zzAZy+QcK6CMfA1XA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

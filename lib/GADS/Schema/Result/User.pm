@@ -55,15 +55,13 @@ __PACKAGE__->table("user");
 
 =head2 email
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 256
 
 =head2 username
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 256
 
 =head2 title
 
@@ -147,6 +145,12 @@ __PACKAGE__->table("user");
   datetime_undef_if_invalid: 1
   is_nullable: 1
 
+=head2 limit_to_view
+
+  data_type: 'bigint'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -157,9 +161,9 @@ __PACKAGE__->add_columns(
   "surname",
   { data_type => "varchar", is_nullable => 1, size => 128 },
   "email",
-  { data_type => "varchar", is_nullable => 1, size => 256 },
+  { data_type => "text", is_nullable => 1 },
   "username",
-  { data_type => "varchar", is_nullable => 1, size => 256 },
+  { data_type => "text", is_nullable => 1 },
   "title",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "organisation",
@@ -204,6 +208,8 @@ __PACKAGE__->add_columns(
     datetime_undef_if_invalid => 1,
     is_nullable => 1,
   },
+  "limit_to_view",
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -282,6 +288,26 @@ __PACKAGE__->belongs_to(
   "lastview",
   "GADS::Schema::Result::View",
   { id => "lastview" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 limit_to_view
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::View>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "limit_to_view",
+  "GADS::Schema::Result::View",
+  { id => "limit_to_view" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -436,12 +462,14 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 12:39:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FkYTO52/Ix9zwtAPzKJwHg
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-10-25 18:24:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9uCXsR3VNP5awtBAd3M8Jw
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
     $sqlt_table->add_index(name => 'user_idx_value', fields => [ { name => 'value', size => 64 } ]);
+    $sqlt_table->add_index(name => 'user_idx_email', fields => [ { name => 'email', size => 64 } ]);
+    $sqlt_table->add_index(name => 'user_idx_username', fields => [ { name => 'username', size => 64 } ]);
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
