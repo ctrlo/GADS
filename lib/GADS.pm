@@ -608,12 +608,15 @@ any '/data' => require_login sub {
             my $params = params;
 
             my $email = GADS::Email->new(
-                subject        => param('subject'),
-                text           => param('text'),
                 config         => config,
             );
 
-            if (process( sub { $email->message($records, param('peopcol'), $user) }))
+            my $args = {
+                subject => param('subject'),
+                text    => param('text'),
+            };
+
+            if (process( sub { $email->message($args, $records, param('peopcol'), $user) }))
             {
                 return forwardHome(
                     { success => "The message has been sent successfully" }, 'data' );

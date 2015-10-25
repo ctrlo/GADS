@@ -26,17 +26,13 @@ use Text::Autoformat qw(autoformat break_wrap);
 use Moo;
 
 has message_prefix => (
-    is      => 'rw',
-    coerce  => sub { ($_[0]||"")."\n" },
+    is => 'lazy',
 );
 
-has text => (
-    is => 'rw',
-);
-
-has subject => (
-    is => 'rw',
-);
+sub _build_message_prefix
+{   my $self = shift;
+    $self->config->{gads}->{message_prefix} || "";
+}
 
 has config => (
     is       => 'ro',
@@ -81,7 +77,7 @@ sub send
 }
 
 sub message
-{   my ($self, $records, $col_id, $user) = @_;
+{   my ($self, $args, $records, $col_id, $user) = @_;
 
     my @emails;
     foreach my $record (@{$records->results})
@@ -90,12 +86,12 @@ sub message
         push @emails, $email if $email;
     }
 
-    (my $text = $self->text) =~ s/\s+$//;
+    (my $text = $args->{text}) =~ s/\s+$//;
     $text = $self->message_prefix.$text
              ."\n\nMessage sent by: ".($user->{value}||"")." ($user->{email})\n";
 
     my $email = {
-        subject  => $self->subject,
+        subject  => $args->{subject},
         emails   => \@emails,
         text     => $text,
         reply_to => $user->{email},
