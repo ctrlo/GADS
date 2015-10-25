@@ -146,6 +146,9 @@ sub register
     my %new;
     my %params = %$params;
 
+    error __"Please enter a valid email address"
+        unless Email::Valid->address($params{email});
+
     my @fields = qw(firstname surname email telephone title organisation account_request_notes);
     @new{@fields} = @params{@fields};
     $new{firstname} = ucfirst $new{firstname};
