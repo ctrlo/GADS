@@ -25,6 +25,7 @@ use GADS::Approval;
 use GADS::Audit;
 use GADS::Column;
 use GADS::Column::Calc;
+use GADS::Column::Curval;
 use GADS::Column::Date;
 use GADS::Column::Daterange;
 use GADS::Column::Enum;
@@ -1094,7 +1095,10 @@ any '/layout/?:id?' => require_role 'layout' => sub {
                 config      => config,
                 instance_id => $instance->id,
             );
-            push @instances, $layout;
+            push @instances, {
+                instance => $instance,
+                layout   => $layout,
+            };
         }
         $params->{instance_layouts} = [@instances];
     }
@@ -1168,6 +1172,12 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             elsif ($column->type eq "tree")
             {
                 $column->end_node_only(param 'end_node_only');
+            }
+            elsif ($column->type eq "curval")
+            {
+                $column->refers_to_instance(param 'refers_to_instance');
+                my $curval_fields = ref param('curval_fields') ? param('curval_fields') : [param('curval_fields')||()];
+                $column->curval_fields($curval_fields);
             }
 
             if (process( sub { $column->write }))

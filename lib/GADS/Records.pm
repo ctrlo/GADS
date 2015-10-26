@@ -62,7 +62,7 @@ has limit_to_view => (
 
 sub _build_limit_to_view
 {   my $self = shift;
-    my $limit_to_view = $self->user->{limit_to_view} or return;
+    my $limit_to_view = $self->user && $self->user->{limit_to_view} or return;
     GADS::View->new(
         user        => undef, # In case user does not have access
         id          => $limit_to_view,

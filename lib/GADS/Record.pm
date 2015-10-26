@@ -24,6 +24,7 @@ use DateTime::Format::Strptime qw( );
 use DBIx::Class::ResultClass::HashRefInflator;
 use GADS::AlertSend;
 use GADS::Datum::Calc;
+use GADS::Datum::Curval;
 use GADS::Datum::Date;
 use GADS::Datum::Daterange;
 use GADS::Datum::Enum;
@@ -918,7 +919,7 @@ sub _field_write
                 $entry->{to}    = $datum_write->to_dt;
                 $entry->{value} = $datum_write->as_string;
             }
-            elsif ($column->type =~ /(file|enum|tree|person)/)
+            elsif ($column->type =~ /(file|enum|tree|person|curval)/)
             {
                 $entry->{value} = $datum_write->id;
             }

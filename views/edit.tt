@@ -161,6 +161,18 @@
                 [% END %]
             [% END %]
         </select>
+    [% ELSIF dispcol.type == "curval" %]
+        <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
+            [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
+                <option></option>
+            [% END %]
+            [% enumvals = dispcol.values %]
+            [% FOREACH enumval IN enumvals %]
+                [% UNLESS enumval.deleted %]
+                    <option value="[% enumval.id %]" [% IF editvalue.id == enumval.id %]selected[% END %]>[% enumval.value | html_entity %]</option>
+                [% END %]
+            [% END %]
+        </select>
     [% ELSIF dispcol.type == "tree" %]
         <input type="hidden" name="[% field %]" id="treeval_id[% dispcol.id %]" value="[% editvalue.id %]">
         [% IF readonly %]

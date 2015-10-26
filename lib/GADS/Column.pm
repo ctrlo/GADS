@@ -31,7 +31,7 @@ use MooX::Types::MooseLike::Base qw/:all/;
 use namespace::clean; # Otherwise Enum clashes with MooseLike
 
 sub types
-{ qw(date daterange string intgr person tree enum file rag calc) }
+{ qw(date daterange string intgr person tree enum file rag calc curval) }
 
 has schema => (
     is       => 'rw',
@@ -265,6 +265,7 @@ has class => (
             file      => 'GADS::Datum::File',
             rag       => 'GADS::Datum::Rag',
             calc      => 'GADS::Datum::Calc',
+            curval    => 'GADS::Datum::Curval',
         );
         $classes{$_[0]->type};
     },
