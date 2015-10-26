@@ -1248,7 +1248,6 @@ any '/user/?:id?' => require_role useradmin => sub {
             }
         }
         else {
-            # Delete account request user if this is a new account request
             if (!param('email'))
             {
                 report {is_fatal => 0}, ERROR => __"An email address must be specified for the new user";
@@ -1259,6 +1258,7 @@ any '/user/?:id?' => require_role useradmin => sub {
             }
             else {
                 my $usero = GADS::User->new(schema => schema, config => config, id => $id);
+                # Delete account request user if this is a new account request
                 $usero->delete
                     if param 'account_request';
                 $result = process( sub { $newuser = create_user %values, realm => 'dbic', email_welcome => 1 });
