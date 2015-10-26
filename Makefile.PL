@@ -32,6 +32,7 @@ WriteMakefile(
         'HTML::FromText'                            => 0,
         'Log::Report'                               => 0,
         'Mail::Message'                             => 0,
+        'MooX::Singleton'                           => 0,
         'namespace::clean'                          => 0,
         'Session::Token'                            => 0,
         'String::CamelCase'                         => 0,
