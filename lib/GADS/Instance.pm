@@ -131,6 +131,23 @@ has register_notes_help => (
     lazy    => 1,
     builder => sub { $_[0]->_rset && $_[0]->_rset->register_notes_help; },
 );
+
+has global_view_summary => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_global_view_summary
+{   my $self = shift;
+    my @views = $self->schema->resultset('View')->search({
+        global      => 1,
+        instance_id => $self->id,
+    },{
+        order_by => 'me.name',
+    })->all;
+    \@views;
+}
+
 sub inflate_result {
     my $data   = $_[2];
     my $schema = $_[1]->schema;

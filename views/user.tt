@@ -73,6 +73,24 @@
                 </select>
             </div>
             [% IF page == "user" %]
+                <div class="form-group">
+                    <label for="limit_to_view">
+                        Limit user's data to only records in:
+                        (<a data-toggle="modal" data-target="#modalneworganisation" href="">create</a>)
+                    </label>
+                    <select class="form-control" id="limit_to_view" name="limit_to_view">
+                        <option></option>
+                        [% FOREACH instance IN instances %]
+                            [% FOREACH v IN instance.global_view_summary %]
+                                <option value="[% v.id %]"
+                                    [% IF edituser.limit_to_view == v.id %]selected[% END %]>[% instance.name _ ': ' _ v.name | html_entity %]
+                                </option>
+                            [% END %]
+                        [% END %]
+                    </select>
+                </div>
+            [% END %]
+            [% IF page == "user" %]
                 <label>
                     Permissions:
                 </label>

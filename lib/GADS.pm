@@ -1232,6 +1232,7 @@ any '/user/?:id?' => require_role useradmin => sub {
             title                 => param('title') || undef,
             organisation          => param('organisation') || undef,
             account_request_notes => param('account_request_notes'),
+            limit_to_view         => param('limit_to_view') || undef,
             permission            => \%permissions,
         );
 

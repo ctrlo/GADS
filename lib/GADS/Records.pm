@@ -54,6 +54,24 @@ has view => (
     is => 'rw',
 );
 
+# Whether to limit any results to only those
+# in a specific view
+has limit_to_view => (
+    is => 'lazy',
+);
+
+sub _build_limit_to_view
+{   my $self = shift;
+    my $limit_to_view = $self->user->{limit_to_view} or return;
+    GADS::View->new(
+        user        => $self->user,
+        id          => $limit_to_view,
+        schema      => $self->schema,
+        layout      => $self->layout,
+        instance_id => $self->layout->instance_id,
+    );
+}
+
 has from => (
     is => 'rw',
 );
@@ -397,6 +415,26 @@ sub search_all_fields
          pattern   => '%Y-%m-%d',
          time_zone => 'local',
     );
+
+    my @columns_can_view = map {$_->id} $self->layout->all(user_can_read => 1);
+    # Applies to all types of fields being searched
+    my @basic_search = (
+        {
+            'me.instance_id' => $self->layout->instance_id,
+        },
+    );
+    # Only search limited view if configured for user
+    if (my $view = $self->limit_to_view)
+    {
+        if (my $filter = $view->filter)
+        {
+            my $decoded = decode_json($filter);
+            if (keys %$decoded)
+            {
+                push @basic_search, @{$self->_search_construct($decoded, $self->layout)};
+            }
+        }
+    }
     foreach my $field (@fields)
     {
         next if ($field->{type} eq 'int' || $field->{type} eq 'current_id')
@@ -406,7 +444,7 @@ sub search_all_fields
         # These aren't really needed for current_id, but no harm
         my $plural      = $field->{plural};
         my $value_field = $field->{value_field} || 'value';
-        my $s           = $field->{sub} ? "value.$value_field" : 'value';
+        my $s           = $field->{sub} ? "value.$value_field" : "$plural.$value_field";
         my $prefetch    = $field->{type} eq 'current_id'
                         ? undef
                         : $field->{sub}
@@ -420,14 +458,13 @@ sub search_all_fields
                               'record' => { $plural => 'layout' },
                           };
 
-        my $search_hash = $field->{type} eq 'current_id'
-                        ? { id => $search }
-                        : { $s => $search };
-        my @columns_can_view = map {$_->id} $self->layout->all(user_can_read => 1);
-        $search_hash->{'layout.id'} = \@columns_can_view
+        my @search = @basic_search;
+        push @search,
+            $field->{type} eq 'current_id' ? { id => $search } : { $s => $search };
+        push @search, { 'layout.id' => \@columns_can_view }
             unless $field->{type} eq 'current_id';
-        $search_hash->{'me.instance_id'} = $self->layout->instance_id;
-        my @currents = $self->schema->resultset('Current')->search($search_hash,{
+        my @currents = $self->schema->resultset('Current')->search({ -and => \@search},{
+            join => { record => $self->joins},
             prefetch => $prefetch,
             collapse => 1,
         })->all;
@@ -763,6 +800,23 @@ sub construct_search
                     id   => $sort->{layout_id},
                     type => $sort->{type},
                 }) unless $self->sort;
+            }
+        }
+    }
+    if (my $view = $self->limit_to_view)
+    {
+        if (my $filter = $view->filter)
+        {
+            my $decoded = decode_json($filter);
+            # Do 2 loops through all the filters and gather the joins. The reason is that
+            # any extra joins will be added *before* the prefetches, thereby making the
+            # prefetch join numbers unpredictable. By doing an initial run, when we
+            # repeat we will have predictable join numbers.
+            if (keys %$decoded)
+            {
+                $self->_search_construct($decoded, $layout);
+                # Get the user search criteria
+                push @search, @{$self->_search_construct($decoded, $layout)};
             }
         }
     }

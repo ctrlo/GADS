@@ -210,6 +210,7 @@ sub get_user
         telephone             => $user->telephone,
         account_request       => $user->account_request,
         account_request_notes => $user->account_request_notes,
+        limit_to_view         => $user->get_column('limit_to_view'),
     };
     if ($user->user_permissions)
     {
