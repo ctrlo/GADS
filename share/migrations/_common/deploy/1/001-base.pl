@@ -62,14 +62,13 @@ migrate {
         email    => 'info@ctrlo.com',
     });
 
-    my ($useradmin) = $schema->resultset('Permission')->search({
-        name => 'useradmin',
-    });
-
-    $schema->resultset('UserPermission')->create({
-        user_id       => $user->id,
-        permission_id => $useradmin->id,
-    });
+    foreach my $perm ($schema->resultset('Permission')->all)
+    {
+        $schema->resultset('UserPermission')->create({
+            user_id       => $user->id,
+            permission_id => $perm->id,
+        });
+    }
 
     $schema->resultset('Instance')->create({
         name => 'GADS',
