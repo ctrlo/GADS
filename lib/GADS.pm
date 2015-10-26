@@ -127,7 +127,8 @@ hook before => sub {
     {
         # Redirect to user details page if password expired
         forwardHome({ danger => "Your password has expired. Please use the Change password button
-            below to set a new password." }, 'account/detail') unless request->uri eq '/account/detail';
+            below to set a new password." }, 'account/detail')
+                unless request->uri eq '/account/detail' || request->uri eq '/logout';
     }
     if ($user)
     {
