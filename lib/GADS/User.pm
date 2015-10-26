@@ -45,7 +45,7 @@ has id => (
 sub _build_id
 {   my $self = shift;
     my @params = grep {my $h = "has_$_"; $self->$h} qw/username email account_request/;
-    my %search = map { "me.".$_ => $_ } @params;
+    my %search = map { "me.".$_ => $self->$_ } @params;
     $search{deleted} = undef;
     my @users = $self->schema->resultset('User')->search(\%search, {
         prefetch => ['user_permissions', 'user_groups'],
