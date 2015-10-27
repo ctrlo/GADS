@@ -211,7 +211,7 @@
                         <label for="curval_instance">Columns to show:</label>
                         [% FOREACH instance IN instance_layouts %]
                             <div id="instance_fields_[% instance.instance.id %]" class="instance_fields"
-                                [% IF instance.instance.id != rti %]
+                                [% IF rti AND instance.instance.id != rti %]
                                     style="display:none"
                                 [% END %]
                                 >
@@ -471,6 +471,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 [% IF column.type == "person" %]Person[% END %]
                 [% IF column.type == "rag" %]RedAmberGreen (RAG) status[% END %]
                 [% IF column.type == "calc" %]Calculated value[% END %]
+                [% IF column.type == "curval" %]Record from other instance[% END %]
             </td>
             <td>
                 [% column.description | html_entity %]

@@ -84,7 +84,8 @@ sub _build_values
 {   my $self = shift;
 
     # Not the normal request layout
-    my $layout = $self->_layout_from_instance;
+    my $layout = $self->_layout_from_instance
+        or return []; # No layout or fields set
 
     my $records = GADS::Records->new(
         user             => undef,
@@ -167,6 +168,7 @@ before 'delete' => sub {
 
 sub _layout_from_instance
 {   my $self = shift;
+    $self->refers_to_instance or return;
     GADS::Layout->new(
         user        => undef, # Allow all columns
         schema      => $self->schema,
