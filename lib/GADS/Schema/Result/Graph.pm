@@ -43,15 +43,13 @@ __PACKAGE__->table("graph");
 
 =head2 title
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 1024
 
 =head2 description
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 5012
 
 =head2 y_axis
 
@@ -67,9 +65,8 @@ __PACKAGE__->table("graph");
 
 =head2 y_axis_label
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 128
 
 =head2 x_axis
 
@@ -119,15 +116,15 @@ __PACKAGE__->add_columns(
   "id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "title",
-  { data_type => "varchar", is_nullable => 1, size => 1024 },
+  { data_type => "text", is_nullable => 1 },
   "description",
-  { data_type => "varchar", is_nullable => 1, size => 5012 },
+  { data_type => "text", is_nullable => 1 },
   "y_axis",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "y_axis_stack",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "y_axis_label",
-  { data_type => "varchar", is_nullable => 1, size => 128 },
+  { data_type => "text", is_nullable => 1 },
   "x_axis",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "x_axis_grouping",
@@ -274,8 +271,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-07-24 16:22:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qi/rbDh2GLTn0x6MULZSsw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 12:39:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RnnmZ1HrV48Cpss4G9Vn9A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

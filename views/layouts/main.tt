@@ -16,8 +16,13 @@
         <meta name="author" content="">
         <link rel="shortcut icon" href="../../assets/ico/favicon.ico">
 
-        <link href='[% scheme %]://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
-        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        [% IF hostlocal %]
+            <link rel="stylesheet" href="[% url.css %]/font-awesome.min.css">
+            <!-- <link href='[% scheme %]://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'> -->
+        [% ELSE %]
+            <link href='[% scheme %]://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
+            <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        [% END %]
 
         <title>Globally Accessible Data Store [% page %]</title>
 
@@ -105,6 +110,9 @@
                                             <li [% IF page=="user" %]class="active"[% END %]><a href="[% url.page %]/user/">Manage Users</a></li>
                                             <li [% IF page=="group" %]class="active"[% END %]><a href="[% url.page %]/group/">Manage Groups</a></li>
                                         [% END %]
+                                        [% IF user.permission.audit %]
+                                            <li [% IF page=="audit" %]class="active"[% END %]><a href="[% url.page %]/audit/">Audit logs</a></li>
+                                        [% END %]
                                     </ul>
                                     </li>
                                 [% END %]
@@ -117,10 +125,10 @@
                             </form>
                             <ul class="nav navbar-nav navbar-right">
                                 <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% user.value %]<b class="caret"></b></a>
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% user.value | html_entity %]<b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     [% FOREACH instance IN instances %]
-                                        <li><a href="?instance=[% instance.id %]">[% instance.name %]</a></li>
+                                        <li><a href="?instance=[% instance.id %]">[% instance.name | html_entity %]</a></li>
                                     [% END %]
                                     <li class="divider"></li>
                                     <li><a href="[% url.page %]/account/detail">My details</a></li>
@@ -137,13 +145,8 @@
             [% END %]
 
             [% FOR message IN messages %]
-                [% IF message.type %]
-                    [% msgtype = message.type %]
-                [% ELSE %]
-                    [% msgtype = "info" %]
-                [% END %]
-                <div class="alert alert-[% msgtype %]">
-                [% message.text %]
+                <div class="alert alert-[% message.bootstrap_color %]">
+                    [% message.toString | html_entity %]
                 </div>
             [% END %]
 
@@ -166,7 +169,7 @@
             <script src="[% scheme %]://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
             <script src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/js/tooltip.min.js"></script>
         [% END %]
-        [% IF page == "edit" OR page == "approval" %]
+        [% IF page == "edit" OR page == "approval" OR page == "audit" %]
             <script type="text/javascript" src="[% url.js %]/bootstrap-datepicker.js"></script>
             <script type="text/javascript">
                 $(document).ready(function() {
@@ -174,7 +177,7 @@
                 });
             </script>
         [% END %]
-        [% IF page == "edit" OR page == "approval" OR (page == "data" AND viewtype == "timeline") %]
+        [% IF page == "edit" OR page == "approval" OR page == "view" OR (page == "data" AND viewtype == "timeline") %]
             <script type="text/javascript" src="[% url.js %]/base64decode.js"></script>
         [% END %]
         [% IF page == "login" %]

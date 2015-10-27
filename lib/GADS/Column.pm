@@ -31,7 +31,7 @@ use MooX::Types::MooseLike::Base qw/:all/;
 use namespace::clean; # Otherwise Enum clashes with MooseLike
 
 sub types
-{ qw(date daterange string intgr person tree enum file rag calc) }
+{ qw(date daterange string intgr person tree enum file rag calc curval) }
 
 has schema => (
     is       => 'rw',
@@ -202,7 +202,7 @@ has display_regex => (
     isa => Maybe[Str],
 );
 
-has depended_by => (
+has display_depended_by => (
     is  => 'rw',
     isa => ArrayRef,
 );
@@ -265,11 +265,13 @@ has class => (
             file      => 'GADS::Datum::File',
             rag       => 'GADS::Datum::Rag',
             calc      => 'GADS::Datum::Calc',
+            curval    => 'GADS::Datum::Curval',
         );
         $classes{$_[0]->type};
     },
 );
 
+# Which fields this column depends on
 has depends_on => (
     is      => 'rw',
     isa     => ArrayRef,
@@ -280,7 +282,7 @@ has depends_on => (
         my @depends = $self->schema->resultset('LayoutDepend')->search({
             layout_id => $self->id,
         })->all;
-        [ map {$_->depends_on} @depends ];
+        [ map {$_->get_column('depends_on')} @depends ];
     },
     trigger => sub {
         my ($self, $new) = @_;
@@ -296,6 +298,20 @@ has depends_on => (
         }
     },
 );
+
+# Which columns depend on this field
+has depended_by => (
+    is      => 'lazy',
+    isa     => ArrayRef,
+);
+
+sub _build_depended_by
+{   my $self = shift;
+    my @depended = $self->schema->resultset('LayoutDepend')->search({
+        depends_on => $self->id,
+    })->all;
+    [ map {$_->get_column('layout_id')} @depended ];
+}
 
 has hascache => (
     is      => 'rw',
@@ -393,12 +409,9 @@ sub delete
     }
 
     # Next see if any calculated fields are dependent on this
-    if (my @deps = $self->schema->resultset('LayoutDepend')->search({
-            depends_on => $self->id
-        })->all
-    )
+    if (@{$self->depended_by})
     {
-        my @depsn = map { $_->layout->name } @deps;
+        my @depsn = map { $self->layout->column($_)->name } @{$self->depended_by};
         my $dep   = join ', ', @depsn;
         error __x"The following fields contain this field in their formula: {dep}.
             Please remove these before deletion.", dep => $dep;

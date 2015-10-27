@@ -85,11 +85,6 @@ has description => (
     builder => sub { $_[0]->_graph && $_[0]->_graph->description },
 );
 
-has addgraphusers => (
-    is      => 'rw',
-    isa     => Bool,
-);
-
 has x_axis => (
     is      => 'rw',
     isa     => Maybe[Int],
@@ -229,24 +224,6 @@ sub write
     }
     else {
         $self->_graph($self->schema->resultset('Graph')->create($newgraph));
-    }
-
-    # Add to all users default graphs if needed
-    if ($self->addgraphusers)
-    {
-        my @existing = $self->schema->resultset('UserGraph')->search({
-            graph_id => $self->id,
-        })->all;
-        foreach my $user (@{GADS::User->all})
-        {
-            unless (grep { $_->user_id == $user->id } @existing)
-            {
-                $self->schema->resultset('UserGraph')->create({
-                    graph_id => $self->id,
-                    user_id  => $user->id,
-                });
-            }
-        }
     }
 }
 

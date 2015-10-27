@@ -37,21 +37,19 @@ __PACKAGE__->table("fileval");
 
 =head2 id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_auto_increment: 1
   is_nullable: 0
 
 =head2 name
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 256
 
 =head2 mimetype
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 45
 
 =head2 content
 
@@ -62,11 +60,11 @@ __PACKAGE__->table("fileval");
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
   "name",
-  { data_type => "varchar", is_nullable => 1, size => 256 },
+  { data_type => "text", is_nullable => 1 },
   "mimetype",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
+  { data_type => "text", is_nullable => 1 },
   "content",
   { data_type => "longblob", is_nullable => 1 },
 );
@@ -101,9 +99,13 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-06 03:17:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:or3uv94aUa7AvbaH473lKQ
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 11:44:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PU7S8+gpJJsWBN42O913HA
 
+sub sqlt_deploy_hook {
+    my ($self, $sqlt_table) = @_;
+    $sqlt_table->add_index(name => 'fileval_idx_name', fields => [ { name => 'name', size => 64 } ]);
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

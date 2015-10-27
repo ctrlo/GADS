@@ -1,3 +1,21 @@
+=pod
+GADS - Globally Accessible Data Store
+Copyright (C) 2015 Ctrl O Ltd
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+=cut
+
 package GADS;
 
 use DateTime;
@@ -7,6 +25,7 @@ use GADS::Approval;
 use GADS::Audit;
 use GADS::Column;
 use GADS::Column::Calc;
+use GADS::Column::Curval;
 use GADS::Column::Date;
 use GADS::Column::Daterange;
 use GADS::Column::Enum;
@@ -16,6 +35,7 @@ use GADS::Column::Person;
 use GADS::Column::Rag;
 use GADS::Column::String;
 use GADS::Column::Tree;
+use GADS::Config;
 use GADS::DB;
 use GADS::DBICProfiler;
 use GADS::Email;
@@ -40,16 +60,16 @@ use GADS::Views;
 use Email::Valid;
 use HTML::Entities;
 use JSON qw(decode_json encode_json);
-use Log::Report mode => 'DEBUG';
 use MIME::Base64;
+use Session::Token;
 use String::CamelCase qw(camelize);
-use String::Random;
 use Text::CSV;
 use WWW::Mechanize::PhantomJS;
 
 use Dancer2; # Last to stop Moo generating conflicting namespace
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
 use Dancer2::Plugin::Auth::Extensible;
+use Dancer2::Plugin::LogReport 1.09;
 
 schema->storage->debugobj(new GADS::DBICProfiler);
 schema->storage->debug(1);
@@ -60,27 +80,13 @@ our $VERSION = '0.1';
 # set serializer => 'JSON';
 set behind_proxy => config->{behind_proxy}; # XXX Why doesn't this work in config file
 
-# Callback dispatcher to send error messages to the web browser
-dispatcher CALLBACK => 'error_handler'
-   , callback => \&error_handler
-   , mode => 'DEBUG';
+GADS::Config->instance(
+    config => config,
+);
 
-# And a syslog dispatcher
-dispatcher SYSLOG => 'gads'
-  , identity => 'gads'
-  , facility => 'local0'
-  , flags    => "pid ndelay nowait"
-  , mode     => 'DEBUG';
-
-hook init_error => sub {
-    my $error = shift;
-    # Catch other exceptions. This is hook is called for all errors
-    # not just exceptions (including for example 404s), so check first.
-    # If it's an exception then panic it to get Log::Report
-    # to handle it nicely. If it's another error such as a 404
-    # then exception will not be set.
-    panic $error->{exception} if $error->{exception};
-};
+GADS::Email->instance(
+    config => config,
+);
 
 hook before => sub {
 
@@ -92,11 +98,19 @@ hook before => sub {
     my $user = logged_in_user;
     GADS::DB->setup(schema);
 
+    # Log to audit
+    my $method = request->method;
+    my $path   = request->path;
+    my $audit  = GADS::Audit->new(schema => schema, user => $user);
+    my $description = qq(User $user->{username} made $method request to $path);
+    $audit->user_action(description => $description, url => $path, method => $method)
+        if $user;
+
     if (config->{gads}->{aup} && $user)
     {
         # Redirect if AUP not signed
         my $aup_accepted;
-        if (my $aup_date = logged_in_user->{aup_accepted})
+        if (my $aup_date = $user->{aup_accepted})
         {
             my $db_parser   = schema->storage->datetime_parser;
             my $aup_date_dt = $db_parser->parse_datetime($aup_date);
@@ -114,7 +128,8 @@ hook before => sub {
     {
         # Redirect to user details page if password expired
         forwardHome({ danger => "Your password has expired. Please use the Change password button
-            below to set a new password." }, 'account/detail') unless request->uri eq '/account/detail';
+            below to set a new password." }, 'account/detail')
+                unless request->uri eq '/account/detail' || request->uri eq '/logout';
     }
     if ($user)
     {
@@ -142,13 +157,7 @@ hook before => sub {
 hook before_template => sub {
     my $tokens = shift;
 
-    # Log to audit
     my $user   = logged_in_user;
-    my $method = request->method;
-    my $path   = request->path;
-    my $audit  = GADS::Audit->new(schema => schema, user => $user);
-    $audit->user_action(qq(User $user->{username} made $method request to $path))
-        if $user;
 
     my $base = $tokens->{base} || request->base;
     $tokens->{url}->{css}  = "${base}css";
@@ -303,9 +312,15 @@ sub _data_graph
         prefetch_related => 1,
     );
     # Columns is either the x-axis, or if not defined, all the columns in the view
-    my @columns = ($graph->y_axis, $graph->group_by);
-    push @columns,
-        $graph->x_axis || @{$view->columns};
+    my @columns = $graph->x_axis
+        ? ($graph->x_axis, $graph->y_axis)
+        : $view
+        ? @{$view->columns}
+        : $layout->all(user_can_read => 1);
+
+    push @columns, $graph->group_by if $graph->group_by;
+
+
     $records->search(
         view    => $view,
         columns => \@columns,
@@ -374,7 +389,9 @@ any '/data' => require_login sub {
         update_current_user lastview => $view_id;
         # When a new view is selected, unset sort, otherwise it's
         # not possible to remove a sort once it's been clicked
-        session 'sort'    => undef;
+        session 'sort' => undef;
+        # Also reset page number to 1
+        session 'page' => undef;
     }
 
     if (my $rows = param('rows'))
@@ -495,18 +512,32 @@ any '/data' => require_login sub {
     }
     elsif ($viewtype eq 'timeline')
     {
-        my $view    = current_view($user, $layout);
-
         my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
+        if (param 'tl_update')
+        {
+            session 'tl_options' => {
+                label => param('tl_label'),
+                group => param('tl_group'),
+                color => param('tl_color'),
+            };
+        }
+        my @extra;
+        my $tl_options = session('tl_options') || {};
+        push @extra, $tl_options->{label} if $tl_options->{label};
+        push @extra, $tl_options->{group} if $tl_options->{group};
+        push @extra, $tl_options->{color} if $tl_options->{color};
         $records->search(
-            view    => $view,
-            rows    => 50, # Default to small subset for performance
-            page    => 1,
+            view          => $view,
+            columns_extra => [@extra],
+            rows          => 50, # Default to small subset for performance
+            page          => 1,
         );
-        my $json = encode_json($records->data_timeline);
-        my $base64 = encode_base64($json);
-        $params->{records}    = $base64;
-        $params->{viewtype}   = 'timeline';
+        my ($items, $groups) = $records->data_timeline(%{$tl_options});
+        $params->{records}      = encode_base64(encode_json($items));
+        $params->{groups}       = encode_base64(encode_json($groups));
+        $params->{tl_options}   = $tl_options;
+        $params->{columns_read} = [$layout->all(user_can_read => 1)];
+        $params->{viewtype}     = 'timeline';
     }
     else {
         session 'rows' => 50 unless session 'rows';
@@ -524,7 +555,7 @@ any '/data' => require_login sub {
             forwardHome({ danger => "Invalid column ID for sort" }, '/data')
                 unless !$sort || ($layout->column($sort) && $layout->column($sort)->user_can('read'));
             my $existing = session('sort');
-            if (!$existing && @{$view->sorts})
+            if (!$existing && $view && @{$view->sorts})
             {
                 # Get first sort of existing view
                 my $sort = $view->sorts->[0];
@@ -584,15 +615,13 @@ any '/data' => require_login sub {
                 { danger => 'You do not have permission to send messages' }, 'data' )
                 unless user_has_role 'message';
 
-            my $params = params;
+            my $email  = GADS::Email->instance;
+            my $args   = {
+                subject => param('subject'),
+                text    => param('text'),
+            };
 
-            my $email = GADS::Email->new(
-                message_prefix => config->{gads}->{message_prefix},
-                email_from     => config->{gads}->{email_from},
-                subject        => param('subject'),
-                text           => param('text'),
-            );
-            if (process( sub { $email->message($records, param('peopcol'), $user) }))
+            if (process( sub { $email->message($args, $records, param('peopcol'), $user) }))
             {
                 return forwardHome(
                     { success => "The message has been sent successfully" }, 'data' );
@@ -677,7 +706,7 @@ any '/account/?:action?/?' => require_login sub {
 
     if (param 'graphsubmit')
     {
-        my $usero = GADS::User->new(config => config, schema => schema, user_id => $user->{id});
+        my $usero = GADS::User->new(config => config, schema => schema, id => $user->{id});
         if (process( sub { $usero->graphs(param('graphs')) }))
         {
             return forwardHome(
@@ -1066,7 +1095,10 @@ any '/layout/?:id?' => require_role 'layout' => sub {
                 config      => config,
                 instance_id => $instance->id,
             );
-            push @instances, $layout;
+            push @instances, {
+                instance => $instance,
+                layout   => $layout,
+            };
         }
         $params->{instance_layouts} = [@instances];
     }
@@ -1141,6 +1173,12 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             {
                 $column->end_node_only(param 'end_node_only');
             }
+            elsif ($column->type eq "curval")
+            {
+                $column->refers_to_instance(param 'refers_to_instance');
+                my $curval_fields = ref param('curval_fields') ? param('curval_fields') : [param('curval_fields')||()];
+                $column->curval_fields($curval_fields);
+            }
 
             if (process( sub { $column->write }))
             {
@@ -1188,22 +1226,24 @@ any '/user/?:id?' => require_role useradmin => sub {
         {
             # Check user doesn't already exist
             my $email = param('email');
-            my $usero = GADS::User->new(schema => schema, config => config);
+            my $usero = GADS::User->new(schema => schema, email => $email, account_request => 0);
             return forwardHome({ danger => "User $email already exists" }, 'user' )
-                if $usero->get_user(email => $email, account_request => 0);
+                if $usero->get_user;
         }
         my %all_permissions = map { $_->id => $_->name } @{$userso->permissions};
         my @permissions = ref param('permission') ? @{param('permission')} : (param('permission') || ());
         my %permissions = map { $all_permissions{$_} => 1 } @permissions;
         my %values = (
-            firstname       => param('firstname'),
-            surname         => param('surname'),
-            email           => param('email'),
-            username        => param('email'),
-            telephone       => param('telephone'),
-            title           => param('title') || undef,
-            organisation    => param('organisation') || undef,
-            permission      => \%permissions,
+            firstname             => param('firstname'),
+            surname               => param('surname'),
+            email                 => param('email'),
+            username              => param('email'),
+            telephone             => param('telephone'),
+            title                 => param('title') || undef,
+            organisation          => param('organisation') || undef,
+            account_request_notes => param('account_request_notes'),
+            limit_to_view         => param('limit_to_view') || undef,
+            permission            => \%permissions,
         );
 
         $values{value} = _user_value(\%values);
@@ -1213,27 +1253,31 @@ any '/user/?:id?' => require_role useradmin => sub {
         {
             if (!Email::Valid->address(param('email')))
             {
-                messageAdd({ danger => "Please enter a valid email address for the new user" });
+                report {is_fatal=>0}, ERROR => "Please enter a valid email address for the new user";
             }
             else {
                 $result = process( sub { $newuser = update_user param('username'), realm => 'dbic', %values });
             }
         }
         else {
-            # Delete account request user if this is a new account request
             if (!param('email'))
             {
-                messageAdd({ danger => "An email address must be specified for the new user" });
+                report {is_fatal => 0}, ERROR => __"An email address must be specified for the new user";
             }
             elsif (!Email::Valid->address(param('email')))
             {
-                messageAdd({ danger => "Please enter a valid email address for the new user" });
+                report {is_fatal => 0}, ERROR => __"Please enter a valid email address for the new user";
             }
             else {
-                my $usero = GADS::User->new(schema => schema, config => config, user_id => $id);
+                my $usero = GADS::User->new(schema => schema, config => config, id => $id);
+                # Delete account request user if this is a new account request
                 $usero->delete
                     if param 'account_request';
                 $result = process( sub { $newuser = create_user %values, realm => 'dbic', email_welcome => 1 });
+                # Check for success - DPAE does not currently call exceptions
+                return forwardHome(
+                    { danger => "Failed to create user. Does the email address already exist?" }, 'user'
+                ) unless $newuser;
                 $id = 0; # Previous ID now deleted
             }
         }
@@ -1241,7 +1285,7 @@ any '/user/?:id?' => require_role useradmin => sub {
         {
             # Add groups to user
             my @groups = ref param('groups') ? @{param('groups')} : (param('groups') || ());
-            my $usero = GADS::User->new(schema => schema, config => config, user_id => $newuser->{id});
+            my $usero = GADS::User->new(schema => schema, config => config, id => $newuser->{id});
             $usero->groups(\@groups);
             my $action;
             my $audit_perms = join ', ', keys %{$newuser->{permission}};
@@ -1272,7 +1316,7 @@ any '/user/?:id?' => require_role useradmin => sub {
             if (process( sub { $userso->organisation_new({ name => $org })}))
             {
                 $audit->login_change("Organisation $org created");
-                messageAdd({ success => "The organisation has been created successfully" });
+                success __"The organisation has been created successfully";
             }
         }
 
@@ -1281,7 +1325,7 @@ any '/user/?:id?' => require_role useradmin => sub {
             if (process( sub { $userso->title_new({ name => $title }) }))
             {
                 $audit->login_change("Title $title created");
-                messageAdd({ success => "The title has been created successfully" });
+                success __"The title has been created successfully";
             }
         }
 
@@ -1298,7 +1342,7 @@ any '/user/?:id?' => require_role useradmin => sub {
         return forwardHome(
             { danger => "Cannot delete current logged-in User" } )
             if logged_in_user->{id} eq $delete_id;
-        my $usero = GADS::User->new(schema => schema, config => config, user_id => $delete_id);
+        my $usero = GADS::User->new(schema => schema, config => config, id => $delete_id);
         if (process( sub { $usero->delete(send_reject_email => 1) }))
         {
             $audit->login_change("User ID $delete_id deleted");
@@ -1309,8 +1353,8 @@ any '/user/?:id?' => require_role useradmin => sub {
 
     if ($id)
     {
-        my $usero = GADS::User->new(schema => schema, config => config);
-        $users = [ $usero->get_user(id => $id) ] if !$users;
+        my $usero = GADS::User->new(schema => schema, id => $id);
+        $users = [ $usero->get_user ] if !$users;
     }
     elsif (!defined $id) {
         $users             = $userso->all;
@@ -1595,14 +1639,19 @@ any '/edit/:id?' => require_login sub {
             # just silently ignoring them, IMHO.
             foreach my $col (@columns_to_show)
             {
-                if ($col->userinput) # Not calculated fields
+                my $newv = param($col->field);
+                if ($col->userinput && defined $newv) # Not calculated fields
                 {
                     # No need to do anything if the file's just been uploaded
                     unless (upload "file".$col->id)
                     {
-                        my $newv = param($col->field);
                         $failed = !process( sub { $record->fields->{$col->id}->set_value($newv) } ) || $failed;
                     }
+                }
+                elsif ($col->type eq 'file')
+                {
+                    # Not defined file field. Must have been removed.
+                    $failed = !process( sub { $record->fields->{$col->id}->set_value(undef) } ) || $failed;
                 }
             }
         }
@@ -1670,6 +1719,11 @@ any '/edit/:id?' => require_login sub {
         ? $record->parent_id
         : undef;
 
+    notice __"Please tick the fields that will have their own values for this related record "
+        ."(at least one must be ticked). Any fields that are not ticked will inherit their "
+        ."value from the parent."
+            if param('related');
+
     my $output = template 'edit' => {
         record      => $record,
         related     => $related,
@@ -1722,6 +1776,31 @@ any qr{/(record|history)/([0-9]+)} => require_login sub {
         page           => 'record'
     };
     $output;
+};
+
+any '/audit/?' => require_role audit => sub {
+
+    my $audit = GADS::Audit->new(schema => schema);
+    my $users = GADS::Users->new(schema => schema, config => config);
+
+    if (param 'audit_filtering')
+    {
+        session 'audit_filtering' => {
+            method => param('method'),
+            type   => param('type'),
+            user   => param('user'),
+            from   => param('from'),
+            to     => param('to'),
+        }
+    }
+
+    template 'audit' => {
+        logs        => $audit->logs(session 'audit_filtering'),
+        users       => $users,
+        filtering   => session('audit_filtering'),
+        audit_types => GADS::Audit::audit_types,
+        page        => 'audit',
+    };
 };
 
 sub reset_text {
@@ -1783,8 +1862,8 @@ any '/login' => sub {
         my $username = param('emailreset');
         $audit->login_change("Password reset request for $username");
         defined password_reset_send(username => $username)
-        ? messageAdd( { success => 'An email has been sent to your email address with a link to reset your password' } )
-        : messageAdd( { danger => 'Failed to send a password reset link. Did you enter a valid email address?' } );
+        ? success(__('An email has been sent to your email address with a link to reset your password'))
+        : report({is_fatal => 0}, ERROR => 'Failed to send a password reset link. Did you enter a valid email address?');
     }
 
     my $error;
@@ -1814,7 +1893,9 @@ any '/login' => sub {
             session logged_in_user_realm => $realm;
             if (param 'remember_me')
             {
-                cookie 'remember_me' => param('username'), expires => '60d' if param('remember_me');
+                my $secure = request->scheme eq 'https' ? 1 : 0;
+                cookie 'remember_me' => param('username'), expires => '60d',
+                    secure => $secure, http_only => 1 if param('remember_me');
             }
             else {
                 cookie remember_me => '', expires => '-1d' if cookie 'remember_me';
@@ -1826,7 +1907,7 @@ any '/login' => sub {
         }
         else {
             $audit->login_failure(param 'username');
-            messageAdd({ danger => "The username or password was not recognised" });
+            report {is_fatal=>0}, ERROR => "The username or password was not recognised";
         }
     }
 
@@ -1865,8 +1946,8 @@ any '/resetpw/:code' => sub {
         if (param 'execute_reset')
         {
             context->destroy_session;
-            my $usero  = GADS::User->new(schema => schema, config => config);
-            my $user   = $usero->get_user(username => $username, account_request => 0);
+            my $usero  = GADS::User->new(schema => schema, username => $username, account_request => 0);
+            my $user   = $usero->get_user;
             my $audit  = GADS::Audit->new(schema => schema, user => $user);
             $audit->login_change("Password reset performed for user ID $user->{id}");
             $new_password = _random_pw();
@@ -1904,84 +1985,39 @@ sub current_view {
 sub forwardHome {
     if (my $message = shift)
     {
-        messageAdd($message);
+        my ($type) = keys %$message;
+        if ($type eq 'danger')
+        {
+            report {is_fatal=>0}, ERROR => $message->{$type};
+        }
+        else {
+            success $message->{$type};
+        }
     }
     my $page = shift || '';
     redirect "/$page";
 }
 
-sub messageAdd($) {
-    my $message = shift;
-    return unless keys %$message;
-    my $text    = ( values %$message )[0];
-    my $type    = ( keys %$message )[0];
-    my $msgs    = session 'messages';
-    push @$msgs, { text => encode_entities($text), type => $type };
-    session 'messages' => $msgs;
-}
+# Implementation of String::Random with better entropy
+sub _token_template {
+   my (%m) = @_;
 
-sub error_handler
-{   my ($disp, $options, $reason, $message) = @_;
+   %m = map { $_ => Session::Token->new(alphabet => $m{$_}, length => 1) } keys %m;
 
-    if ($reason =~ /(TRACE|ASSERT|INFO)/)
-    {
-        # Debug info. Log to syslog.
-    }
-    elsif ($reason eq 'NOTICE')
-    {
-        # Notice that something has happened. Not an error.
-        messageAdd({ info => "$message" });
-    }
-    elsif ($reason =~ /(WARNING|MISTAKE)/)
-    {
-        # Non-fatal problem. Show warning.
-        messageAdd({ warning => "$message" });
-    }
-    elsif ($reason eq 'ERROR') {
-        # A user-created error condition that is not recoverable.
-        # This could have already been caught by the process
-        # subroutine, in which case we should continue running
-        # of the program. In all other cases, we should bail
-        # out. With the former, the exception will have been
-        # re-thrown as a non-fatal exception, so check that.
-        exists $options->{is_fatal} && !$options->{is_fatal}
-            ? messageAdd({ danger => "$message" })
-            : forwardHome({ danger => "$message" });
-    }
-    else {
-        # 'FAULT', 'ALERT', 'FAILURE', 'PANIC'
-        # All these are fatal errors. Display error to user, but
-        # forward home so that we can reload. However, don't if
-        # it's a GET request to the home, as it will cause a recursive
-        # loop. In this case, do nothing, and let dancer handle it.
-        forwardHome({ danger => "$message" })
-            unless request->uri eq '/' && request->is_get;
-    }
-}
-
-# This runs a code block and catches errors, which in then
-# handles in a more graceful manner, throwing as required
-sub process
-{
-    my $coderef = shift;
-    try {&$coderef};
-    my $result = $@ ? 0 : 1; # Return true on success
-    if (my $exception = $@->wasFatal)
-    {
-        $exception->throw(is_fatal => 0);
-    }
-    else {
-        $@->reportAll;
-    }
-    $result;
+   return sub {
+     my $v = shift;
+     $v =~ s/(.)/$m{$1}->get/eg;
+     return $v;
+   };
 }
 
 sub _random_pw
-{
-    my $foo = new String::Random;
-    $foo->{'v'} = [ 'a', 'e', 'i', 'o', 'u' ];
-    $foo->{'i'} = [ 'b'..'d', 'f'..'h', 'j'..'n', 'p'..'t', 'v'..'z' ];
-    scalar $foo->randpattern("iviiviivi");
+{   my $foo = _token_template(
+        v => [ 'a', 'e', 'i', 'o', 'u' ],
+        i => [ 'b'..'d', 'f'..'h', 'j'..'n', 'p'..'t', 'v'..'z' ],
+    );
+
+    $foo->("iviiviivi");
 }
 
 sub _user_value

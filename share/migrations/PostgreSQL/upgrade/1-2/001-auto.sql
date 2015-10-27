@@ -1,86 +1,80 @@
--- Convert schema '/home/abeverley/git/GADS/share/migrations/_source/deploy/1/001-auto.yml' to '/home/abeverley/git/GADS/share/migrations/_source/deploy/2/001-auto.yml':;
+-- Convert schema '/root/GADS/share/migrations/_source/deploy/1/001-auto.yml' to '/root/GADS/share/migrations/_source/deploy/2/001-auto.yml':;
 
 ;
 BEGIN;
 
 ;
-CREATE TABLE "graph_color" (
-  "id" serial NOT NULL,
-  "name" character varying(128),
-  "color" character(6),
-  PRIMARY KEY ("id"),
-  CONSTRAINT "ux_graph_color_name" UNIQUE ("name")
+CREATE TABLE "curval" (
+  "id" bigserial NOT NULL,
+  "record_id" bigint,
+  "layout_id" integer,
+  "value" bigint,
+  PRIMARY KEY ("id")
 );
+CREATE INDEX "curval_idx_layout_id" on "curval" ("layout_id");
+CREATE INDEX "curval_idx_record_id" on "curval" ("record_id");
+CREATE INDEX "curval_idx_value" on "curval" ("value");
 
 ;
-ALTER TABLE current ADD COLUMN parent_id integer;
+CREATE TABLE "curval_fields" (
+  "id" serial NOT NULL,
+  "parent_id" integer NOT NULL,
+  "child_id" integer NOT NULL,
+  PRIMARY KEY ("id")
+);
+CREATE INDEX "curval_fields_idx_child_id" on "curval_fields" ("child_id");
+CREATE INDEX "curval_fields_idx_parent_id" on "curval_fields" ("parent_id");
 
 ;
-ALTER TABLE current ADD COLUMN linked_id integer;
+ALTER TABLE "curval" ADD CONSTRAINT "curval_fk_layout_id" FOREIGN KEY ("layout_id")
+  REFERENCES "layout" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
-CREATE INDEX current_idx_linked_id on current (linked_id);
+ALTER TABLE "curval" ADD CONSTRAINT "curval_fk_record_id" FOREIGN KEY ("record_id")
+  REFERENCES "record" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
-CREATE INDEX current_idx_parent_id on current (parent_id);
+ALTER TABLE "curval" ADD CONSTRAINT "curval_fk_value" FOREIGN KEY ("value")
+  REFERENCES "current" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
-ALTER TABLE current ADD CONSTRAINT current_fk_linked_id FOREIGN KEY (linked_id)
-  REFERENCES current (id) ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
+ALTER TABLE "curval_fields" ADD CONSTRAINT "curval_fields_fk_child_id" FOREIGN KEY ("child_id")
+  REFERENCES "layout" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
-ALTER TABLE current ADD CONSTRAINT current_fk_parent_id FOREIGN KEY (parent_id)
-  REFERENCES current (id) ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
+ALTER TABLE "curval_fields" ADD CONSTRAINT "curval_fields_fk_parent_id" FOREIGN KEY ("parent_id")
+  REFERENCES "layout" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
-ALTER TABLE graph ADD COLUMN instance_id integer;
+ALTER TABLE calcval ADD COLUMN value_text citext;
 
 ;
-CREATE INDEX graph_idx_instance_id on graph (instance_id);
+ALTER TABLE calcval ADD COLUMN value_int bigint;
 
 ;
-ALTER TABLE graph ADD CONSTRAINT graph_fk_instance_id FOREIGN KEY (instance_id)
-  REFERENCES instance (id) ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
+ALTER TABLE calcval ADD COLUMN value_date date;
 
 ;
-ALTER TABLE layout ADD COLUMN instance_id integer;
+ALTER TABLE instance ALTER COLUMN name TYPE text;
 
 ;
-ALTER TABLE layout ADD COLUMN link_parent integer;
+ALTER TABLE layout DROP COLUMN hidden;
 
 ;
-CREATE INDEX layout_idx_instance_id on layout (instance_id);
+ALTER TABLE "user" ADD COLUMN limit_to_view bigint;
 
 ;
-CREATE INDEX layout_idx_link_parent on layout (link_parent);
+CREATE INDEX user_idx_limit_to_view on "user" (limit_to_view);
 
 ;
-ALTER TABLE layout ADD CONSTRAINT layout_fk_instance_id FOREIGN KEY (instance_id)
-  REFERENCES instance (id) ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
+CREATE INDEX user_idx_email on "user" (email);
 
 ;
-ALTER TABLE layout ADD CONSTRAINT layout_fk_link_parent FOREIGN KEY (link_parent)
-  REFERENCES layout (id) ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
+CREATE INDEX user_idx_username on "user" (username);
 
 ;
-ALTER TABLE metric_group ADD COLUMN instance_id integer;
-
-;
-CREATE INDEX metric_group_idx_instance_id on metric_group (instance_id);
-
-;
-ALTER TABLE metric_group ADD CONSTRAINT metric_group_fk_instance_id FOREIGN KEY (instance_id)
-  REFERENCES instance (id) ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
-
-;
-ALTER TABLE view ADD COLUMN instance_id integer;
-
-;
-CREATE INDEX view_idx_instance_id on view (instance_id);
-
-;
-ALTER TABLE view ADD CONSTRAINT view_fk_instance_id FOREIGN KEY (instance_id)
-  REFERENCES instance (id) ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
+ALTER TABLE "user" ADD CONSTRAINT user_fk_limit_to_view FOREIGN KEY (limit_to_view)
+  REFERENCES view (id) ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
 

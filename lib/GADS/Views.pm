@@ -71,7 +71,8 @@ sub _user_views
 sub _build_global
 {   my $self = shift;
     my @views = $self->schema->resultset('View')->search({
-        global => 1,
+        global      => 1,
+        instance_id => $self->instance_id,
     })->all;
     my @global = map { $self->view($_->id) } @views;
     \@global;

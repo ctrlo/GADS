@@ -54,6 +54,24 @@ has view => (
     is => 'rw',
 );
 
+# Whether to limit any results to only those
+# in a specific view
+has limit_to_view => (
+    is => 'lazy',
+);
+
+sub _build_limit_to_view
+{   my $self = shift;
+    my $limit_to_view = $self->user && $self->user->{limit_to_view} or return;
+    GADS::View->new(
+        user        => undef, # In case user does not have access
+        id          => $limit_to_view,
+        schema      => $self->schema,
+        layout      => $self->layout,
+        instance_id => $self->layout->instance_id,
+    );
+}
+
 has from => (
     is => 'rw',
 );
@@ -73,6 +91,11 @@ has remembered_only => (
 
 # Array ref with column IDs
 has columns => (
+    is => 'rw',
+);
+
+# Array ref with any additional column IDs requested
+has columns_extra => (
     is => 'rw',
 );
 
@@ -99,6 +122,12 @@ has prefetch_related => (
     is      => 'rw',
     isa     => Bool,
     default => 0,
+);
+
+has retrieve_related => (
+    is      => 'rw',
+    isa     => Bool,
+    default => 1,
 );
 
 has prefetches => (
@@ -307,9 +336,13 @@ sub search_views
     my $joins = $self->joins;
 
     my $search       = {
-        'me.id'          => $current_ids, # Array ref
         'me.instance_id' => $self->layout->instance_id,
     };
+    my $total_count = $self->schema->resultset('Current')->search({
+        instance_id => $self->layout->instance_id,
+        record_id   => { '!=' => undef } # Not sure why, but some IDs have no record. Bug?
+    })->count;
+    $search->{'me.id'} = $current_ids unless @$current_ids == $total_count; # Array ref
     $search->{'-or'} = \@search if @search;
 
     $found_in_a_view ||= $self->schema->resultset('Current')->search($search,{
@@ -328,18 +361,17 @@ sub search_views
             if (keys %$decoded)
             {
                 my @s = @{$self->_search_construct($decoded, $self->layout, 1)};
-                my @found = $self->schema->resultset('Current')->search({
+                my @ids = $self->schema->resultset('Current')->search({
                     'me.id'          => $current_ids, # Array ref
                     'me.instance_id' => $self->layout->instance_id,
                     @s,
                 },{
                     join     => {'record' => $joins},
-                })->all;
-                my @ids = map { $_->id } @found;
+                })->get_column('id')->all;
                 push @foundin, {
                     view => $view,
                     ids  => \@ids,
-                } if @found;
+                } if @ids;
             }
             else {
                 # No filter, definitely in view
@@ -383,6 +415,26 @@ sub search_all_fields
          pattern   => '%Y-%m-%d',
          time_zone => 'local',
     );
+
+    my @columns_can_view = map {$_->id} $self->layout->all(user_can_read => 1);
+    # Applies to all types of fields being searched
+    my @basic_search = (
+        {
+            'me.instance_id' => $self->layout->instance_id,
+        },
+    );
+    # Only search limited view if configured for user
+    if (my $view = $self->limit_to_view)
+    {
+        if (my $filter = $view->filter)
+        {
+            my $decoded = decode_json($filter);
+            if (keys %$decoded)
+            {
+                push @basic_search, @{$self->_search_construct($decoded, $self->layout)};
+            }
+        }
+    }
     foreach my $field (@fields)
     {
         next if ($field->{type} eq 'int' || $field->{type} eq 'current_id')
@@ -392,7 +444,7 @@ sub search_all_fields
         # These aren't really needed for current_id, but no harm
         my $plural      = $field->{plural};
         my $value_field = $field->{value_field} || 'value';
-        my $s           = $field->{sub} ? "value.$value_field" : 'value';
+        my $s           = $field->{sub} ? "value.$value_field" : "$plural.$value_field";
         my $prefetch    = $field->{type} eq 'current_id'
                         ? undef
                         : $field->{sub}
@@ -406,14 +458,13 @@ sub search_all_fields
                               'record' => { $plural => 'layout' },
                           };
 
-        my $search_hash = $field->{type} eq 'current_id'
-                        ? { id => $search }
-                        : { $s => $search };
-        my @columns_can_view = map {$_->id} $self->layout->all(user_can_read => 1);
-        $search_hash->{'layout.id'} = \@columns_can_view
+        my @search = @basic_search;
+        push @search,
+            $field->{type} eq 'current_id' ? { id => $search } : { $s => $search };
+        push @search, { 'layout.id' => \@columns_can_view }
             unless $field->{type} eq 'current_id';
-        $search_hash->{'me.instance_id'} = $self->layout->instance_id;
-        my @currents = $self->schema->resultset('Current')->search($search_hash,{
+        my @currents = $self->schema->resultset('Current')->search({ -and => \@search},{
+            join => { record => $self->joins},
             prefetch => $prefetch,
             collapse => 1,
         })->all;
@@ -457,11 +508,12 @@ sub search
     #}
     #push @limit, (approval => $approval);
 
-    my $prefetches = $self->prefetches([]);
-    my $joins      = $self->joins([]);
-    my $rinfo      = $self->construct_search(%options);
-    my @search     = @{$rinfo->{search}};
-    my @limit      = @{$rinfo->{limit}};
+    my $prefetches  = $self->prefetches([]);
+    my $joins       = $self->joins([]);
+    my $current_ids = delete $options{current_ids},
+    my $rinfo       = $self->construct_search(%options);
+    my @search      = @{$rinfo->{search}};
+    my @limit       = @{$rinfo->{limit}};
 
     my $root_table;
     unless ($self->include_approval)
@@ -471,7 +523,8 @@ sub search
             { 'record.record_id' => undef },
         );
     }
-    push @search, { 'me.instance_id'   => $self->layout->instance_id };
+    push @search, { 'me.id'          => $current_ids} if $current_ids;
+    push @search, { 'me.instance_id' => $self->layout->instance_id };
 
     $root_table = 'Current';
 
@@ -551,39 +604,42 @@ sub search
         );
     }
 
-    # Now get any related records that weren't picked up the first time.
-    # First any children of main records retrieved
-    my @need = grep { !exists $all{$_} } keys %is_related;
-    # Then any parents of children retrieved
-    push @need, grep { $_ && !exists $all{$_} } map { $all{$_}->parent_id } @all_ids;
-
-    if (@need) # Only if any to retrieve
+    if ($self->retrieve_related)
     {
-        delete $select->{rows}; # No pagination required - all records please
-        delete $select->{page};
-        my $additional = $self->schema->resultset($root_table)->search({
-            'me.id' => \@need,
-        }, $select );
+        # Now get any related records that weren't picked up the first time.
+        # First any children of main records retrieved
+        my @need = grep { !exists $all{$_} } keys %is_related;
+        # Then any parents of children retrieved
+        push @need, grep { $_ && !exists $all{$_} } map { $all{$_}->parent_id } @all_ids;
 
-        $additional->result_class('DBIx::Class::ResultClass::HashRefInflator');
-        foreach my $rec ($additional->all)
+        if (@need) # Only if any to retrieve
         {
-            push @all_ids, $rec->{id};
-            my @related = map { $_->{id} } @{$rec->{currents}};
-            map { $is_related{$_} = undef } @related;
-            $all{$rec->{id}} = GADS::Record->new(
-                schema            => $self->schema,
-                record            => $rec->{record},
-                linked_record     => $rec->{linked}->{record},
-                related_records   => \@related,
-                parent_id         => $rec->{parent_id},
-                linked_id         => $rec->{linked_id},
-                user              => $self->user,
-                format            => $self->format,
-                layout            => $self->layout,
-                force_update      => $self->force_update,
-                columns_retrieved => $self->columns_retrieved,
-            );
+            delete $select->{rows}; # No pagination required - all records please
+            delete $select->{page};
+            my $additional = $self->schema->resultset($root_table)->search({
+                'me.id' => \@need,
+            }, $select );
+
+            $additional->result_class('DBIx::Class::ResultClass::HashRefInflator');
+            foreach my $rec ($additional->all)
+            {
+                push @all_ids, $rec->{id};
+                my @related = map { $_->{id} } @{$rec->{currents}};
+                map { $is_related{$_} = undef } @related;
+                $all{$rec->{id}} = GADS::Record->new(
+                    schema            => $self->schema,
+                    record            => $rec->{record},
+                    linked_record     => $rec->{linked}->{record},
+                    related_records   => \@related,
+                    parent_id         => $rec->{parent_id},
+                    linked_id         => $rec->{linked_id},
+                    user              => $self->user,
+                    format            => $self->format,
+                    layout            => $self->layout,
+                    force_update      => $self->force_update,
+                    columns_retrieved => $self->columns_retrieved,
+                );
+            }
         }
     }
 
@@ -635,7 +691,12 @@ sub construct_search
     }
     elsif (my $view = $self->view)
     {
-        @columns = $layout->view($view->id, order_dependencies => 1, user_has_read => 1);
+        @columns = $layout->view(
+            $view->id,
+            order_dependencies => 1,
+            user_can_read      => 1,
+            columns_extra      => $self->columns_extra,
+        );
     }
     else {
         @columns = $layout->all(
@@ -696,20 +757,6 @@ sub construct_search
         push @limit, @res if @res;
     }
 
-    # Configure specific user selected sort. Do it now, as they may
-    # not have view selected
-    if (my $sort = $self->sort)
-    {
-        my $type = $sort->{type} eq 'desc' ? '-desc' : '-asc';
-        if (!$sort->{id})
-        {
-            push @{$self->order_by}, { $type => 'me.id' };
-        }
-        elsif (my $column = $layout->column($sort->{id}))
-        {
-            $self->add_sort($column, $type);
-        }
-    }
     # Now add all the filters as joins (we don't need to prefetch this data). However,
     # the filter might also be a column in the view from before, in which case add
     # it to, or use, the prefetch. We use the tracking variables from above.
@@ -754,6 +801,40 @@ sub construct_search
                     type => $sort->{type},
                 }) unless $self->sort;
             }
+        }
+    }
+    if (my $view = $self->limit_to_view)
+    {
+        if (my $filter = $view->filter)
+        {
+            my $decoded = decode_json($filter);
+            # Do 2 loops through all the filters and gather the joins. The reason is that
+            # any extra joins will be added *before* the prefetches, thereby making the
+            # prefetch join numbers unpredictable. By doing an initial run, when we
+            # repeat we will have predictable join numbers.
+            if (keys %$decoded)
+            {
+                $self->_search_construct($decoded, $layout);
+                # Get the user search criteria
+                push @search, @{$self->_search_construct($decoded, $layout)};
+            }
+        }
+    }
+    # Configure specific user selected sort, if applicable. This needs to be done
+    # after the filters have been added, otherwise the filters could add additonal
+    # joins which will put the value_x columns out of kilter. A user selected
+    # column will always be in a prefetch, so it's not possible for the reverse
+    # to happen
+    if (my $sort = $self->sort)
+    {
+        my $type = $sort->{type} eq 'desc' ? '-desc' : '-asc';
+        if (!$sort->{id})
+        {
+            push @{$self->order_by}, { $type => 'me.id' };
+        }
+        elsif (my $column = $layout->column($sort->{id}))
+        {
+            $self->add_sort($column, $type);
         }
     }
     # Default sort
@@ -873,8 +954,9 @@ sub _search_construct
     my $value;
     if ($filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty')
     {
+        my $comb = $filter->{operator} eq 'is_empty' ? '-or' : '-and';
         $value = $column->type eq 'calc' || $column->type eq 'string'
-            ? [ -and => undef, "" ]
+            ? [ $comb => undef, "" ]
             : undef;
     }
     else {
@@ -909,6 +991,10 @@ sub _search_construct
         else {
             error __x"Invalid operator {operator} for date range", operator => $operator;
         }
+    }
+    elsif ($column->type eq "file")
+    {
+        $s_field = "name";
     }
     else {
         $s_field = "value";
@@ -993,15 +1079,19 @@ sub data
 
 # Base function for calendar and timeline
 sub data_time
-{   my ($self, $type) = @_;
-
-    # Column names
-    my @colnames = ("Serial");
-    push @colnames, map { $_->{name} } @{$self->columns_retrieved};
+{   my ($self, $type, %options) = @_;
 
     my @colors = qw/event-important event-success event-warning event-info event-inverse event-special/;
     my @result;
     my %datecolors;
+    my %timeline_groups;
+    my $group_count;
+
+    # Need a Graph::Data instance to get relevant colors
+    my $graph = GADS::Graph::Data->new(
+        schema  => $self->schema,
+        records => undef,
+    );
 
     # All the data values
     foreach my $record (@{$self->results})
@@ -1055,10 +1145,39 @@ sub data_time
             }
             else {
                 next if $column->type eq "rag";
+                # Check if the user has selected only one label
+                next if $options{label} && $options{label} != $column->id;
                 # Not a date value, push onto title
                 # Don't want full HTML, which includes hyperlinks etc
                 my $v = encode_entities($record->fields->{$column->id}->as_string);
                 push @titles, $v if $v;
+            }
+        }
+        if (my $label = $options{label})
+        {
+            @titles = (encode_entities $record->fields->{$label}->as_string)
+                if $record->fields->{$label};
+        }
+        my $item_color;
+        if (my $color = $options{color})
+        {
+            if ($record->fields->{$color})
+            {
+                my $val = $record->fields->{$color}->as_string;
+                $item_color = $graph->get_color($val);
+            }
+        }
+        my $item_group;
+        if (my $group = $options{group})
+        {
+            if ($record->fields->{$group})
+            {
+                my $val = $record->fields->{$group}->as_string;
+                unless ($item_group = $timeline_groups{$val})
+                {
+                    $item_group = ++$group_count;
+                    $timeline_groups{$val} = $item_group;
+                }
             }
         }
 
@@ -1087,9 +1206,12 @@ sub data_time
             else {
                 my $item = {
                     "content" => $title,
-                    "id"    => $record->current_id,
-                    "start" => $d->{from}->ymd,
+                    "id"      => $record->current_id,
+                    "start"   => $d->{from}->ymd,
+                    "group"   => $item_group,
                 };
+                $item->{style} = qq(background-color: $item_color)
+                    if $item_color;
                 $item->{end} = $d->{to}->ymd
                     if $d->{from}->epoch != $d->{to}->epoch;
                 push @result, $item;
@@ -1097,7 +1219,14 @@ sub data_time
         }
     }
 
-    \@result;
+    my @groups = map {
+        {
+            id      => $timeline_groups{$_},
+            content => $_,
+        }
+    } keys %timeline_groups;
+
+    wantarray ? (\@result, \@groups) : \@result;
 }
 
 sub data_calendar
@@ -1107,7 +1236,7 @@ sub data_calendar
 
 sub data_timeline
 {   my $self = shift;
-    $self->data_time('timeline');
+    $self->data_time('timeline', @_);
 }
 
 1;

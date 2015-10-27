@@ -1,32 +1,27 @@
-package GADS::DBICProfiler;
 use strict;
+use warnings;
 
-use Log::Report;
-
+package GADS::DBICProfiler;
 use base 'DBIx::Class::Storage::Statistics';
- 
-use Time::HiRes qw(time);
- 
-my $start;
- 
-sub query_start {
-  my $self = shift();
-  my $sql = shift();
-  my @params = @_;
- 
-  trace "Executing SQL: $sql: ".join(', ', @params);
-  $start = time();
-}
- 
-sub query_end {
-  my $self = shift();
-  my $sql = shift();
-  my @params = @_;
- 
-  my $elapsed = sprintf("%0.4f", time() - $start);
-  trace "Execution took $elapsed seconds.";
-  $start = undef;
-}
- 
-1;
 
+use Log::Report;#  import => 'trace';
+use Time::HiRes  qw(time);
+
+my $start;
+
+sub print($) { trace $_[1] }
+
+sub query_start(@)
+{   my $self = shift;
+    $self->SUPER::query_start(@_);
+    $start   = time;
+}
+
+sub query_end(@)
+{   my $self = shift;
+    $self->SUPER::query_end(@_);
+    # warning sprintf "execution took %0.4f seconds elapse", time-$start;
+    trace __x"execution took {e%0.4f} seconds elapse", e => time-$start;
+}
+
+1;

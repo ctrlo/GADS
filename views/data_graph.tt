@@ -5,8 +5,8 @@
     [% FOREACH graph IN graphs %]
         [% NEXT UNLESS graph.selected %]
         <div>
-            <h3>[% graph.title %]</h3>
-            [% IF graph.description %]<p>[% graph.description %]</p>[% END %]
+            <h3>[% graph.title | html_entity %]</h3>
+            [% IF graph.description %]<p>[% graph.description | html_entity %]</p>[% END %]
             <div id="chartdiv[% graph.id %]" style="height:400px;width:600px; "></div>
             <p><a href="?png=[% graph.id %]">PNG</a> | <a href="?csv=[% graph.id %]">CSV</a></p>
         </div>

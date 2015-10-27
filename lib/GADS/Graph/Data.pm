@@ -71,6 +71,37 @@ has csv => (
     is => 'lazy',
 );
 
+has _colors => (
+    is      => 'ro',
+    default => sub {
+        {
+            "34C3E0" => 1,
+            "62BB46" => 1,
+            "FFDD00" => 1,
+            "D1D3D4" => 1,
+            "F99D1C" => 1,
+            "F0679E" => 1,
+            "2C4269" => 1,
+            "7F3F98" => 1,
+            "1C75BC" => 1,
+            "EF4136" => 1,
+            "2BB673" => 1,
+            "51417B" => 1,
+            "F26522" => 1,
+            "8C8C8C" => 1,
+            "97CEDD" => 1,
+            "DCDD20" => 1,
+            "4D4C4C" => 1,
+            "447CBF" => 1,
+            "F5C316" => 1,
+            "007B45" => 1,
+            "F37970" => 1,
+            "4B0F44" => 1,
+            "EE2D72" => 1,
+        },
+    },
+);
+
 sub _build_csv
 {   my $self = shift;
     my $csv = Text::CSV::Encoded->new({ encoding  => undef });
@@ -118,6 +149,31 @@ sub _build_csv
     $csvout;
 }
 
+sub get_color
+{   my ($self, $value) = @_;
+    my $guard = $self->schema->txn_scope_guard;
+    my $existing = $self->schema->resultset('GraphColor')->find($value, { key => 'ux_graph_color_name' });
+    my $color;
+    if ($existing)
+    {
+        $color = $existing->color;
+    }
+    else {
+        ($color) = keys %{$self->_colors};
+        $self->schema->resultset('GraphColor')->create({
+            name  => $value,
+            color => $color,
+        }) if $color; # May have run out of colours
+    }
+    $guard->commit;
+    if ($color)
+    {
+        delete $self->_colors->{$color};
+        $color = "#$color";
+    }
+    $color;
+}
+
 sub _build_data
 {   my $self = shift;
 
@@ -135,7 +191,11 @@ sub _build_data
     my $view    = $self->records->view;
     # All the x values from the records. May only be one, or may be lots if
     # not defined in the graph
-    my @x       = ($x_axis) || $self->records->layout->view($view->id, user_has_read => 1);
+    my @x = $x_axis
+        ? ($x_axis)
+        : $view
+        ? $self->records->layout->view($view->id, user_can_read => 1)
+        : $layout->all(user_can_read => 1);
 
     my %xy_values; my %y_group_values;
     my ($datemin, $datemax);
@@ -242,7 +302,9 @@ sub _build_data
                 or next;
             if ($x_axis && $x_axis->return_type && $x_axis->return_type eq 'date')
             {
-                $x_value = _group_date($x_value->value, $self->x_axis_grouping)->epoch;
+                $x_value = _group_date($x_value->value, $self->x_axis_grouping)
+                    or next;
+                $x_value = $x_value->epoch;
             }
             next unless "$x_value";
             my @x_values = $x_axis && $x_axis->type eq 'daterange'
@@ -348,31 +410,6 @@ sub _build_data
         }
     }
     else {
-        my %colors = (
-            "34C3E0" => 1,
-            "62BB46" => 1,
-            "FFDD00" => 1,
-            "D1D3D4" => 1,
-            "F99D1C" => 1,
-            "F0679E" => 1,
-            "2C4269" => 1,
-            "7F3F98" => 1,
-            "1C75BC" => 1,
-            "EF4136" => 1,
-            "2BB673" => 1,
-            "51417B" => 1,
-            "F26522" => 1,
-            "8C8C8C" => 1,
-            "97CEDD" => 1,
-            "DCDD20" => 1,
-            "4D4C4C" => 1,
-            "447CBF" => 1,
-            "F5C316" => 1,
-            "007B45" => 1,
-            "F37970" => 1,
-            "4B0F44" => 1,
-            "EE2D72" => 1,
-        );
         # Now work out the Y labels for each point. Go into each data set and
         # see if there is a value. If there is, set the label, otherwise leave
         # it blank in order to show no label at that point
@@ -387,25 +424,7 @@ sub _build_data
             else {
                 $showlabel = 'true';
                 $y_group_values{$y_group}->{defined} = 1;
-                my $guard = $self->schema->txn_scope_guard;
-                my $existing = $self->schema->resultset('GraphColor')->find($y_group, { key => 'ux_graph_color_name' });
-                if ($existing)
-                {
-                    $color = $existing->color;
-                }
-                else {
-                    ($color) = keys %colors;
-                    $self->schema->resultset('GraphColor')->create({
-                        name  => $y_group,
-                        color => $color,
-                    }) if $color; # May have run out of colours
-                }
-                $guard->commit;
-                if ($color)
-                {
-                    delete $colors{$color};
-                    $color = "#$color";
-                }
+                $color = $self->get_color($y_group);
             }
             $series->{$k}->{label} = {
                 color         => $color,
@@ -439,7 +458,7 @@ sub _group_date
          : $grouping eq 'month'
          ? DateTime->new(year => $val->year, month => $val->month)
          : $grouping eq 'day'
-         ? DateTime->new(year => $val->year, month => $val->month, day => $val->month)
+         ? DateTime->new(year => $val->year, month => $val->month, day => $val->day)
          : $val
 }
 

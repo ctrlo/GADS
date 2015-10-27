@@ -18,7 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::User;
 
+use DateTime;
 use Email::Valid;
+use GADS::Email;
 use GADS::Instance;
 use Log::Report;
 
@@ -30,24 +32,51 @@ has schema => (
     required => 1,
 );
 
-has config => (
-    is       => 'ro',
-    required => 1,
-);
-
 has instance => (
     is => 'lazy',
 );
 
-has user_id => (
-    is  => 'ro',
-    isa => Int,
+has id => (
+    is        => 'lazy',
+    isa       => Maybe[Int],
+    predicate => 1,
+);
+
+sub _build_id
+{   my $self = shift;
+    my @params = grep {my $h = "has_$_"; $self->$h} qw/username email account_request/;
+    my %search = map { "me.".$_ => $self->$_ } @params;
+    $search{deleted} = undef;
+    my @users = $self->schema->resultset('User')->search(\%search, {
+        prefetch => ['user_permissions', 'user_groups'],
+    })->all;
+    @users == 1 or return;
+    $users[0]->id;
+}
+
+has username => (
+    is        => 'ro',
+    usa       => Str,
+    predicate => 1,
+);
+
+has email => (
+    is        => 'ro',
+    usa       => Str,
+    predicate => 1,
+);
+
+has account_request => (
+    is        => 'ro',
+    usa       => Bool,
+    predicate => 1,
 );
 
 sub _build_instance
 {   my $self = shift;
+    my $config = GADS::Config->instance;
     GADS::Instance->new(
-        id     => $self->config->{gads}->{login_instance} || 1,
+        id     => $config->login_instance,
         schema => $self->schema,
     );
 }
@@ -66,7 +95,7 @@ sub graphs
     foreach my $g (@graphs)
     {
         my $item = {
-            user_id  => $self->user_id,
+            user_id  => $self->id,
             graph_id => $g,
         };
 
@@ -77,7 +106,7 @@ sub graphs
     }
 
     # Delete any graphs that no longer exist
-    my $search = { user_id => $self->user_id };
+    my $search = { user_id => $self->id };
     $search->{graph_id} = {
         '!=' => [ -and => @graphs ]
     } if @graphs;
@@ -90,7 +119,7 @@ sub groups
     foreach my $g (@$groups)
     {
         my $item = {
-            user_id  => $self->user_id,
+            user_id  => $self->id,
             group_id => $g,
         };
 
@@ -101,7 +130,7 @@ sub groups
     }
 
     # Delete any groups that no longer exist
-    my $search = { user_id => $self->user_id };
+    my $search = { user_id => $self->id };
     $search->{group_id} = {
         '!=' => [ -and => @$groups ]
     } if @$groups;
@@ -112,17 +141,17 @@ sub delete
 {   my ($self, %options) = @_;
 
     my ($user) = $self->schema->resultset('User')->search({
-        id => $self->user_id,
-        deleted => 0,
+        id      => $self->id,
+        deleted => undef,
     })->all;
-    $user or error __x"User {id} not found", id => $self->user_id;
+    $user or error __x"User {id} not found", id => $self->id;
 
     if ($user->account_request)
     {
         $user->delete;
 
         return unless $options{send_reject_email};
-        my $email = GADS::Email->new(config => $self->config);
+        my $email = GADS::Email->instance;
         $email->send({
             subject => $self->instance->email_reject_subject,
             emails  => [$user->email],
@@ -132,14 +161,14 @@ sub delete
         return;
     }
 
-    $self->schema->resultset('UserGraph')->search({ user_id => $self->user_id })->delete;
-    my $alerts = $self->schema->resultset('Alert')->search({ user_id => $self->user_id });
+    $self->schema->resultset('UserGraph')->search({ user_id => $self->id })->delete;
+    my $alerts = $self->schema->resultset('Alert')->search({ user_id => $self->id });
     my @alert_sends = map { $_->id } $alerts->all;
     $self->schema->resultset('AlertSend')->search({ alert_id => \@alert_sends })->delete;
     $alerts->delete;
 
     $user->update({ lastview => undef });
-    my $views = $self->schema->resultset('View')->search({ user_id => $self->user_id });
+    my $views = $self->schema->resultset('View')->search({ user_id => $self->id });
     my @views;
     foreach my $v ($views->all)
     {
@@ -151,11 +180,11 @@ sub delete
     $self->schema->resultset('AlertCache')->search({ view_id => \@views })->delete;
     $views->delete;
 
-    $user->update({ deleted => 1 });
+    $user->update({ deleted => DateTime->now });
 
     if (my $msg = $self->instance->email_delete_text)
     {
-        my $email = GADS::Email->new(config => $self->config);
+        my $email = GADS::Email->instance;
         $email->send({
             subject => $self->instance->email_delete_subject || "Account deleted",
             emails  => [$user->email],
@@ -166,13 +195,10 @@ sub delete
 
 # XXX Possible temporary function, until available in DPAE
 sub get_user
-{   my ($self, %search) = @_;
-    %search = map { "me.".$_ => $search{$_} } keys(%search);
-    $search{deleted} = 0;
-    my ($user) = $self->schema->resultset('User')->search(\%search, {
-        prefetch => ['user_permissions', 'user_groups'],
-    })->all;
-    $user or return;
+{   my $self = shift;
+    $self->id or return;
+    my $user = $self->schema->resultset('User')->find($self->id)
+        or return;
     my $return = {
         id                    => $user->id,
         firstname             => $user->firstname,
@@ -184,6 +210,7 @@ sub get_user
         telephone             => $user->telephone,
         account_request       => $user->account_request,
         account_request_notes => $user->account_request_notes,
+        limit_to_view         => $user->get_column('limit_to_view'),
     };
     if ($user->user_permissions)
     {

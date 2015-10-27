@@ -32,7 +32,7 @@
             <ul class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="edit_action">
                 <li role="presentation"><a role="menuitem" href="/edit/[% record.current_id %]">Edit</a></li>
                 <li role="presentation"><a role="menuitem" href="/edit/?from=[% record.current_id %]">Clone new</a></li>
-                [% IF user.permission.create_related %]
+                [% IF user.permission.create_related AND NOT record.parent_id %]
                     <li role="presentation"><a role="menuitem" href="/edit/?related=[% record.current_id %]">Create related</a></li>
                 [% END %]
                 [% IF user.permission.link %]
@@ -54,7 +54,7 @@
     [% FOREACH col IN all_columns %]
         [% colid = col.id %]
         <tr>
-            [% NEXT IF record.parent_id AND NOT (record.fields.$colid.has_value OR NOT col.userinput) %]
+            [% NEXT IF record.parent_id AND NOT (record.fields.$colid.has_value) %]
             <th>[% col.name | html_entity %]</th>
             <td>
                 [% value = record.fields.$colid %]

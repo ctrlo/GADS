@@ -105,7 +105,7 @@ foreach my $field (@f)
     }
     elsif ($f->type eq "person")
     {
-        my @vals = rset('User')->search({ deleted => 0, account_request => 0 })->all;
+        my @vals = rset('User')->search({ deleted => undef, account_request => 0 })->all;
         foreach my $v (@vals)
         {
             my $text = lc $v->value;

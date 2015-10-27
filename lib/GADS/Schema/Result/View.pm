@@ -37,13 +37,13 @@ __PACKAGE__->table("view");
 
 =head2 id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_auto_increment: 1
   is_nullable: 0
 
 =head2 user_id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_foreign_key: 1
   is_nullable: 1
 
@@ -74,9 +74,9 @@ __PACKAGE__->table("view");
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
   "user_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "name",
   { data_type => "varchar", is_nullable => 1, size => 128 },
   "global",
@@ -201,6 +201,21 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 user_limits_to_view
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::User>
+
+=cut
+
+__PACKAGE__->has_many(
+  "user_limits_to_view",
+  "GADS::Schema::Result::User",
+  { "foreign.limit_to_view" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 users
 
 Type: has_many
@@ -232,8 +247,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-07-24 16:22:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LTQrg33ObqxljwmabGLphQ
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-10-25 18:24:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Jo5Nra7zGvx9YCYawyzYGg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

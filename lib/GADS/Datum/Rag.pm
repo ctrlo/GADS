@@ -25,16 +25,25 @@ use namespace::clean;
 extends 'GADS::Datum::Code';
 
 has set_value => (
-    is       => 'rw',
+    is      => 'rw',
+    trigger => sub {
+        my $self = shift;
+        $self->_set_has_value(1);
+    },
 );
 
 has value => (
     is       => 'rw',
     lazy     => 1,
-    builder => sub {
+    clearer  => 1,
+    builder  => sub {
         my $self = shift;
         $self->_transform_value($self->set_value);
     },
+);
+
+has has_value => (
+    is => 'rwp',
 );
 
 has dependent_values => (

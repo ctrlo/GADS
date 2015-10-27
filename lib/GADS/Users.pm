@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Users;
 
 use Email::Valid;
+use GADS::Email;
 use GADS::Instance;
 use Log::Report;
 
@@ -67,7 +68,7 @@ has register_requests => (
 sub _build_all
 {   my $self = shift;
     my $search = {
-        deleted         => 0,
+        deleted         => undef,
         account_request => 0,
     };
     my @users = $self->schema->resultset('User')->search($search,{
@@ -81,7 +82,7 @@ sub _build_all
 sub _build_all_admins
 {   my $self = shift;
     my $search = {
-        deleted           => 0,
+        deleted           => undef,
         account_request   => 0,
         'permission.name' => 'useradmin',
     };
@@ -145,6 +146,9 @@ sub register
     my %new;
     my %params = %$params;
 
+    error __"Please enter a valid email address"
+        unless Email::Valid->address($params{email});
+
     my @fields = qw(firstname surname email telephone title organisation account_request_notes);
     @new{@fields} = @params{@fields};
     $new{firstname} = ucfirst $new{firstname};
@@ -170,7 +174,7 @@ sub register
     $text .= "User notes: $new{account_request_notes}\n";
     my $config = $self->config
         or panic "Config needs to be defined";
-    my $email = GADS::Email->new(config => $config);
+    my $email = GADS::Email->instance;
     $email->send({
         emails  => \@emails,
         subject => "New account request",

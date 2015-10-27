@@ -128,6 +128,7 @@ sub _build__records
         push @records, $self->schema->resultset('Daterange')->search($search, $options)->all;
         push @records, $self->schema->resultset('Intgr')->search($search, $options)->all;
         push @records, $self->schema->resultset('Enum')->search($search, $options)->all;
+        push @records, $self->schema->resultset('Curval')->search($search, $options)->all;
         push @records, $self->schema->resultset('File')->search($search, $options)->all;
         push @records, $self->schema->resultset('Person')->search($search, $options)->all;
     }
@@ -147,6 +148,7 @@ sub _build__records
         push @records, $self->schema->resultset('Daterange')->search($search, $options)->all;
         push @records, $self->schema->resultset('Intgr')->search($search, $options)->all;
         push @records, $self->schema->resultset('Enum')->search($search, $options)->all;
+        push @records, $self->schema->resultset('Curval')->search($search, $options)->all;
         push @records, $self->schema->resultset('File')->search($search, $options)->all;
         push @records, $self->schema->resultset('Person')->search($search, $options)->all;
     }

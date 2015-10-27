@@ -1,7 +1,0 @@
-$HASH1 = {
-           description
-                  => 'User can delete records',
-           id     => 1,
-           name   => 'delete',
-           order  => 1
-         };

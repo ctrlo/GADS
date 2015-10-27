@@ -37,13 +37,13 @@ __PACKAGE__->table("calcval");
 
 =head2 id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_auto_increment: 1
   is_nullable: 0
 
 =head2 record_id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_foreign_key: 1
   is_nullable: 0
 
@@ -55,21 +55,42 @@ __PACKAGE__->table("calcval");
 
 =head2 value
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 2048
+
+=head2 value_text
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 value_int
+
+  data_type: 'bigint'
+  is_nullable: 1
+
+=head2 value_date
+
+  data_type: 'date'
+  datetime_undef_if_invalid: 1
+  is_nullable: 1
 
 =cut
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
   "record_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
   "layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "value",
-  { data_type => "varchar", is_nullable => 1, size => 2048 },
+  { data_type => "text", is_nullable => 1 },
+  "value_text",
+  { data_type => "text", is_nullable => 1 },
+  "value_int",
+  { data_type => "bigint", is_nullable => 1 },
+  "value_date",
+  { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -86,7 +107,7 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<index4>
+=head2 C<calcval_ux_record_layout>
 
 =over 4
 
@@ -98,7 +119,7 @@ __PACKAGE__->set_primary_key("id");
 
 =cut
 
-__PACKAGE__->add_unique_constraint("index4", ["record_id", "layout_id"]);
+__PACKAGE__->add_unique_constraint("calcval_ux_record_layout", ["record_id", "layout_id"]);
 
 =head1 RELATIONS
 
@@ -133,9 +154,13 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-06 03:17:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9Q6FozujWFYdZSMFWkh+kw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-10-25 20:07:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rFz21dP3viUapo9Tsp/ULA
 
+sub sqlt_deploy_hook {
+    my ($self, $sqlt_table) = @_;
+    $sqlt_table->add_index(name => 'calcval_idx_value', fields => [ { name => 'value', size => 64 } ]);
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

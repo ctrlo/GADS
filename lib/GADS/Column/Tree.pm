@@ -28,6 +28,11 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
+sub DESTROY
+{   my $self = shift;
+    $self->_root->delete_tree if $self->_has_tree;
+}
+
 has end_node_only => (
     is     => 'rw',
     isa    => Bool,
@@ -54,26 +59,45 @@ has _nodes => (
 # _tree once it's built. Contains the enumvals with
 # their actual values in, but no tree relationship info
 has _enumvals => (
-    is      => 'rw',
-    lazy    => 1,
-    builder => sub {
-        my $self = shift;
-        my $enumrs = $self->schema->resultset('Enumval')->search({
-            layout_id => $self->id,
-            deleted   => 0,
-        });
-        $enumrs->result_class('DBIx::Class::ResultClass::HashRefInflator');
-        my %enumvals = map {$_->{id} => $_} $enumrs->all;
-        \%enumvals;
-    },
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
 );
+
+sub _build__enumvals
+{   my $self = shift;
+    my $enumrs = $self->schema->resultset('Enumval')->search({
+        layout_id => $self->id,
+        deleted   => 0,
+    },{
+        order_by => 'me.value',
+    });
+    $enumrs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    my @enumvals = $enumrs->all;
+    \@enumvals;
+}
+
+has _enumvals_index => (
+    is      => 'rwp',
+    isa     => HashRef,
+    lazy    => 1,
+    builder => 1,
+    clearer => 1,
+);
+
+sub _build__enumvals_index
+{   my $self = shift;
+    my %enumvals = map {$_->{id} => $_} @{$self->_enumvals};
+    \%enumvals;
+}
 
 # The whole tree, constructed here so that it only
 # needs to be done once
 has _tree => (
-    is => 'rw',
-    lazy => 1,
-    builder => sub { $_[0]->_build_tree },
+    is        => 'rw',
+    lazy      => 1,
+    builder   => 1,
+    predicate => 1,
 );
 
 # The original values hash
@@ -101,7 +125,8 @@ before 'delete' => sub {
     my $self = shift;
     trace "Entering delete";
     $self->schema->resultset('Enum')->search({ layout_id => $self->id })->delete;
-    $self->_enumvals({});
+    $self->_clear_enumvals;
+    $self->_clear_enumvals_index;
     $self->_delete_unused_nodes(purge => 1);
 };
 
@@ -114,18 +139,18 @@ sub node
     $id or return;
     {
         node  => $self->_nodes->{$id},
-        value => $self->_enumvals->{$id}->{value},
+        value => $self->_enumvals_index->{$id}->{value},
     }
 }
 
-sub _build_tree
+sub _build__tree
 {   my $self = shift;
 
     trace "Entering _build_tree";
 
     my $enumvals;
     my $tree; my @order;
-    my @enumvals = sort {$a->{value} cmp $b->{value}} values %{$self->_enumvals};
+    my @enumvals = @{$self->_enumvals};
     foreach my $enumval (@enumvals)
     {
         my $parent = $enumval->{parent}; # && $enum->parent->id;
@@ -186,10 +211,10 @@ sub json
                     # Starting out at root
                     $options->{stash}->{last_node}->{$depth} = $stash->{tree};
                 }
-                elsif (!$self->_enumvals->{$node->name}->{deleted}) # Ignore deleted nodes
+                elsif (!$self->_enumvals_index->{$node->name}->{deleted}) # Ignore deleted nodes
                 {
                     my $parent = $options->{stash}->{last_node}->{$depth-1};
-                    my $text = $self->_enumvals->{$node->name}->{value};
+                    my $text = $self->_enumvals_index->{$node->name}->{value};
                     $parent->{children} = [] unless $parent->{children};
                     my $leaf = {
                         text => $text,
@@ -212,6 +237,8 @@ sub _delete_unused_nodes
 
     trace "Entering _delete_unused_nodes";
 
+    # Get all ones currently in database. This will be different to
+    # the ones currently in _enumvals_index
     my $node_rs = $self->schema->resultset('Enumval')->search({
         layout_id => $self->id,
     });
@@ -252,10 +279,10 @@ sub _delete_unused_nodes
     foreach my $node (@flat)
     {
         next if !$options{purge} && $node->{deleted}; # Already deleted
-        if ($self->_enumvals->{$node->{id}})
+        if ($self->_enumvals_index->{$node->{id}})
         {
             # Node in use somewhere
-            if ($node->{parent} && !$self->_enumvals->{$node->{parent}})
+            if ($node->{parent} && !$self->_enumvals_index->{$node->{parent}})
             {
                 # Current node still exists, but its parent doesn't
                 # Move current node to the top by undefing the parent
@@ -279,6 +306,8 @@ sub _delete_unused_nodes
             }
             else {
                 $self->schema->resultset('Enumval')->find($node->{id})->delete;
+                # Remove from flattened list
+                @flat = grep {$_->{id} != $node->{id}} @flat;
             }
         }
     }
@@ -288,7 +317,7 @@ sub _delete_unused_nodes
 
 sub random
 {   my $self = shift;
-    my %hash = %{$self->_enumvals};
+    my %hash = %{$self->_enumvals_index};
     my $value;
     while (!$value)
     {
@@ -303,23 +332,26 @@ sub update
 
     trace "Entering update";
 
-    my $dbids = {}; # Array of all database IDs. We'll delete any no longer existant after update
+    # Create a new hash ref with our new tree structure in. We'll copy
+    # the new nodes into it as we go, and then compare it to the old
+    # one after to know which ones to delete from the database
+    my $new_tree = {};
 
     # Do any updates
     foreach my $t (@$tree)
     {
-        $self->_update($t, $dbids);
+        $self->_update($t, $new_tree);
     }
 
-    $self->_enumvals($dbids);
+    $self->_set__enumvals_index($new_tree);
+    $self->_clear_enumvals; # Array shouldn't be used now, but clear in case
     $self->_delete_unused_nodes;
 
     trace "Exiting update";
 }
 
 sub _update
-{
-    my ($self, $t, $dbids) = @_;
+{   my ($self, $t, $new_tree) = @_;
 
     trace "Entering _update";
 
@@ -330,7 +362,7 @@ sub _update
     if ($t->{id} =~ /^[0-9]+$/)
     {
         # existing entry
-        $dbt = $self->_enumvals->{$t->{id}};
+        $dbt = $self->_enumvals_index->{$t->{id}};
     }
     if ($dbt)
     {
@@ -341,6 +373,7 @@ sub _update
                 value  => $t->{text},
             });
         }
+        $new_tree->{$dbt->{id}} = $dbt;
     }
     else {
         # new entry
@@ -351,18 +384,14 @@ sub _update
         };
         my $id = $self->schema->resultset('Enumval')->create($dbt)->id;
         $dbt->{id} = $id;
-        # Add to existing cache. XXX More efficient way?
-        my $cache = $self->_enumvals;
-        $cache->{$id} = $dbt;
-        $self->_enumvals($cache);
+        # Add to existing cache.
+        $new_tree->{$id} = $dbt;
     }
-
-    $dbids->{$dbt->{id}} = { id => $dbt->{id} }; # Simulate normal enumval data from DB
 
     foreach my $child (@{$t->{children}})
     {
         $child->{parent} = $dbt->{id};
-        $self->_update($child, $dbids);
+        $self->_update($child, $new_tree);
     }
 };
 

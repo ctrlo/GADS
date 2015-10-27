@@ -59,7 +59,7 @@
 
             <label>Filters:</label>
             <div id="builder"></div>
-            <input id="filter" type="hidden" name="filter" value="[% v.filter %]">
+            <input id="filter" type="hidden" name="filter" value="[% v.filter | html_entity %]">
             <label for="sorts">Sorting:</label>
             <div id="sorts">
                 [% FOREACH sort IN v.sorts %]
@@ -165,8 +165,9 @@
         };
         [% IF v.filter AND NOT v.filter.match('^[{}\s]*$') %]
             $( document ).ready(function() {
+                var data = decodeBase64('[% v.filter_base64 %]');
                 $('#builder').queryBuilder('setRules', 
-                    [% v.filter %]
+                    JSON.parse(data)
                 );
             });
         [% END %]

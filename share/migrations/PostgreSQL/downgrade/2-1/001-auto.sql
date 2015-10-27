@@ -1,73 +1,49 @@
--- Convert schema '/home/abeverley/git/GADS/share/migrations/_source/deploy/2/001-auto.yml' to '/home/abeverley/git/GADS/share/migrations/_source/deploy/1/001-auto.yml':;
+-- Convert schema '/root/GADS/share/migrations/_source/deploy/2/001-auto.yml' to '/root/GADS/share/migrations/_source/deploy/1/001-auto.yml':;
 
 ;
 BEGIN;
 
 ;
-ALTER TABLE current DROP CONSTRAINT current_fk_linked_id;
+ALTER TABLE calcval DROP COLUMN value_text;
 
 ;
-ALTER TABLE current DROP CONSTRAINT current_fk_parent_id;
+ALTER TABLE calcval DROP COLUMN value_int;
 
 ;
-DROP INDEX current_idx_linked_id;
+ALTER TABLE calcval DROP COLUMN value_date;
 
 ;
-DROP INDEX current_idx_parent_id;
+ALTER TABLE instance ALTER COLUMN name TYPE character varying(256);
 
 ;
-ALTER TABLE current DROP COLUMN parent_id;
+ALTER TABLE layout ADD COLUMN hidden smallint DEFAULT 0 NOT NULL;
 
 ;
-ALTER TABLE current DROP COLUMN linked_id;
+ALTER TABLE user DROP CONSTRAINT user_fk_limit_to_view;
 
 ;
-ALTER TABLE graph DROP CONSTRAINT graph_fk_instance_id;
+DROP INDEX user_idx_limit_to_view;
 
 ;
-DROP INDEX graph_idx_instance_id;
+DROP INDEX user_idx_email;
 
 ;
-ALTER TABLE graph DROP COLUMN instance_id;
+DROP INDEX user_idx_username;
 
 ;
-ALTER TABLE layout DROP CONSTRAINT layout_fk_instance_id;
+ALTER TABLE user DROP COLUMN limit_to_view;
 
 ;
-ALTER TABLE layout DROP CONSTRAINT layout_fk_link_parent;
+ALTER TABLE user ALTER COLUMN email TYPE character varying(256);
 
 ;
-DROP INDEX layout_idx_instance_id;
+ALTER TABLE user ALTER COLUMN username TYPE character varying(256);
 
 ;
-DROP INDEX layout_idx_link_parent;
+DROP TABLE curval CASCADE;
 
 ;
-ALTER TABLE layout DROP COLUMN instance_id;
-
-;
-ALTER TABLE layout DROP COLUMN link_parent;
-
-;
-ALTER TABLE metric_group DROP CONSTRAINT metric_group_fk_instance_id;
-
-;
-DROP INDEX metric_group_idx_instance_id;
-
-;
-ALTER TABLE metric_group DROP COLUMN instance_id;
-
-;
-ALTER TABLE view DROP CONSTRAINT view_fk_instance_id;
-
-;
-DROP INDEX view_idx_instance_id;
-
-;
-ALTER TABLE view DROP COLUMN instance_id;
-
-;
-DROP TABLE graph_color CASCADE;
+DROP TABLE curval_fields CASCADE;
 
 ;
 

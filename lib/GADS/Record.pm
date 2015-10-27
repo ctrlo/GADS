@@ -24,6 +24,7 @@ use DateTime::Format::Strptime qw( );
 use DBIx::Class::ResultClass::HashRefInflator;
 use GADS::AlertSend;
 use GADS::Datum::Calc;
+use GADS::Datum::Curval;
 use GADS::Datum::Date;
 use GADS::Datum::Daterange;
 use GADS::Datum::Enum;
@@ -35,6 +36,7 @@ use GADS::Datum::String;
 use GADS::Datum::Tree;
 use GADS::Util         qw(:all);
 use Log::Report;
+use POSIX ();
 
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
@@ -140,7 +142,16 @@ has parent_id => (
 has related_records => (
     is      => 'rwp',
     isa     => ArrayRef,
-    default => sub { [] },
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        return [] if $self->parent_id;
+        my @children = $self->schema->resultset('Current')->search({
+            parent_id => $self->current_id,
+        })->all;
+        @children = map { $_->get_column('id') } @children;
+        \@children;
+    },
 );
 
 has approval_id => (
@@ -482,6 +493,17 @@ sub write
             unless $self->layout->user_can('write_new');
     }
 
+    if ($self->parent_id)
+    {
+        # Check whether this is an attempt to create a related of
+        # a related record
+        error __"Cannot create a related record for an existing related record"
+            if $self->schema->resultset('Current')->search({
+                id        => $self->parent_id,
+                parent_id => { '!=' => undef },
+            })->count;
+    }
+
     my $force_mandatory = $options{force} && $options{force} eq 'mandatory' ? 1 : 0;
 
     # First loop round: sanitise and see which if any have changed
@@ -563,6 +585,9 @@ sub write
         }
     }
 
+    error __"Please select at least one field to include in the related record"
+        if !($need_app || $need_rec) && $self->parent_id;
+
     # Anything to update?
     return unless $need_app || $need_rec;
 
@@ -617,7 +642,8 @@ sub write
 
 
     # Write all the values
-    my @columns_changed; my @columns_cached;
+    my %columns_changed = ($self->current_id => []);
+    my @columns_cached;
     foreach my $column ($self->layout->all)
     {
         next unless $column->userinput;
@@ -649,7 +675,7 @@ sub write
                     || (!$self->new_entry && $column->user_can('write_existing_no_approval'))
                 )
                 {
-                    push @columns_changed, $column->id if $datum->changed;
+                    push @{$columns_changed{$self->current_id}}, $column->id if $datum->changed;
 
                     # Write new value
                     $self->_field_write($column, $datum);
@@ -723,19 +749,53 @@ sub write
     }
 
     # Write cached values
+    #
+    my $parent; # Entire parent record, if applicable and needed
+
+    # Which updated columns may affect children records.
+    # This contains all the items in the parent record which are calculated
+    # values and may have changed as a result of their dependent values
+    # changing. Each item is a hashref with the calculated value (or otherwise)
+    # as the key col_id, and which changed values it depends on as the key depends_on.
+    my @update_children;
+
     foreach my $col ($self->layout->all(userinput => 0, order_dependencies => 1))
     {
+        # Whether to write the calculated value for a child record.
+        # If the record does not contain any of its own values for
+        # a particular calculated value, then don't bother to write it.
+        my $write_child_calc;
+
         # Get old value
         my $old = defined $self->fields->{$col->id} ? $self->fields->{$col->id}->as_string : "";
         # Force new value to be written
         my $dependent_values;
         foreach my $dependent (@{$col->depends_on})
         {
+            $write_child_calc = 1
+                if exists $self->fields->{$dependent}; # Unique value for this child's calc
+
+            # Get parent values if needed (calc field depends on them)
+            if ($self->parent_id && !exists $self->fields->{$dependent} && !$parent)
+            {
+                $parent = GADS::Record->new(
+                    user   => $self->user,
+                    layout => $self->layout,
+                    schema => $self->schema,
+                );
+                $parent->find_current_id($self->parent_id);
+            }
+
             $dependent_values->{$dependent}
-                = $appfields{$dependent}
+                = $parent && !exists $self->fields->{$dependent}
+                ? $parent->fields->{$dependent}
+                : $appfields{$dependent}
                 ? $self->fields->{$dependent}->oldvalue
                 : $self->fields->{$dependent};
+            push @update_children, { col_id => $col->id, depends_on => $dependent }
+                if $dependent_values->{$dependent}->changed;
         }
+        next if $self->parent_id && !$write_child_calc;
         my $new = $col->class->new(
             current_id       => $self->current_id,
             record_id        => $self->record_id,
@@ -746,7 +806,60 @@ sub write
         );
         $self->fields->{$col->id} = $new;
         # Changed?
-        push @columns_changed, $col->id if $old ne $new->as_string;
+        push @{$columns_changed{$self->current_id}}, $col->id if $old ne $new->as_string;
+    }
+
+    # Do we need to update any related records that rely on the
+    # values of this parent record?
+    if (@update_children)
+    {
+        my $records = GADS::Records->new(
+            user   => $self->user,
+            layout => $self->layout,
+            schema => $self->schema,
+        );
+        # @retrieve is all the values to retrieve for the child record.
+        # It includes the calculated values in the record and the
+        # dependent values of that calc value. We can then see if any
+        # don't exist, which means their value is taken from the parent.
+        my @retrieve = map {
+            $_->{col_id},
+            @{$self->layout->column($_->{col_id})->depends_on}
+        } @update_children;
+        $records->search(
+            columns          => \@retrieve,
+            current_ids      => $self->related_records,
+            retrieve_related => 0,
+        );
+        foreach my $r (@{$records->results})
+        {
+            # See if this child record contains any of its own values that
+            # will affect calculated values in the same record.
+            if (grep {exists $r->fields->{$_->{col_id}} && !exists $r->fields->{$_->{depends_on}}} @update_children)
+            {
+                # If it does, delete and update the calc values
+                foreach my $c (@update_children)
+                {
+                    my $col       = $self->layout->column($c->{col_id});
+                    my $old_value = $r->fields->{$col->id}->value;
+                    my $table     = $col->table;
+                    $self->schema->resultset($table)->search({
+                        record_id => $r->record_id,
+                        layout_id => $col->id,
+                    })->delete;
+                    my $new_value = $r->fields->{$col->id};
+                    $new_value->force_update(1);
+                    my %dep_values = map {
+                        $_ => exists $r->fields->{$_} ? $r->fields->{$_} : $self->fields->{$_}
+                    } @{$col->depends_on};
+                    # Add dependent values to item
+                    $new_value->dependent_values(\%dep_values);
+                    # Force update and check for change at same time
+                    push @{$columns_changed{$r->current_id}}, $col->id
+                        if $old_value ne $new_value->value;
+                }
+            }
+        }
     }
 
     # Alerts can cause SQL errors, due to the unique constraints
@@ -757,17 +870,33 @@ sub write
     # Send any alerts
     unless ($options{no_alerts})
     {
-        my $alert_send = GADS::AlertSend->new(
-            layout      => $self->layout,
-            schema      => $self->schema,
-            user        => $self->user,
-            base_url    => $self->base_url,
-            current_ids => [$self->current_id],
-            columns     => \@columns_changed,
-        );
-        fork and return;
-        $alert_send->process;
-        exit;
+        # Possibly not the best way to do alerts, but certainly the
+        # simplest. Spin up a new alert sender for each changed record
+        foreach my $cid (keys %columns_changed)
+        {
+            my $alert_send = GADS::AlertSend->new(
+                layout      => $self->layout,
+                schema      => $self->schema,
+                user        => $self->user,
+                base_url    => $self->base_url,
+                current_ids => [$cid],
+                columns     => $columns_changed{$cid},
+            );
+
+            if (my $kid = fork)
+            {
+                waitpid($kid, 0); # let the child die
+            }
+            else {
+                if (my $grandkid = fork) {
+                    POSIX::_exit(0); # the child dies here
+                }
+                else {
+                    $alert_send->process; # This takes a long time
+                    POSIX::_exit(0); # grandchild dies here
+                }
+            }
+        }
     }
 }
 
@@ -790,7 +919,7 @@ sub _field_write
                 $entry->{to}    = $datum_write->to_dt;
                 $entry->{value} = $datum_write->as_string;
             }
-            elsif ($column->type =~ /(file|enum|tree|person)/)
+            elsif ($column->type =~ /(file|enum|tree|person|curval)/)
             {
                 $entry->{value} = $datum_write->id;
             }

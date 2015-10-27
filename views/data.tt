@@ -78,6 +78,11 @@
                         <a href="/data?download" class="btn btn-default" role="button">Download</a>
                     </div>
                 [% END %]
+                [% IF viewtype == "timeline" %]
+                    <div class="btn-group">
+                        <a class="btn btn-default" data-toggle="modal" data-target="#modal_timeline" role="button">Timeline options...</a>
+                    </div>
+                [% END %]
             </div>
         </div>
         [% IF viewtype == "table" %]
@@ -120,7 +125,7 @@
                 <form role="form" method="post">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title" id="myModalLabel">Configure alert for [% v.name %]</h4>
+                    <h4 class="modal-title" id="myModalLabel">Configure alert for [% v.name | html_entity %]</h4>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
@@ -135,6 +140,54 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                     <button type="submit" name="alert" value="[% v.id %]" class="btn btn-primary">Submit</button>
+                </div>
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+[% END %]
+<!-- Modal -->
+[% IF viewtype == "timeline" %]
+    <div class="modal fade" id="modal_timeline" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form role="form" method="post">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Timeline view options</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="tl_label">Show label as field:</label>
+                        <select class="form-control" name="tl_label">
+                            <option value="" [% IF NOT tl_options.label %]selected[% END %]>&lt;All fields&gt;</option>
+                            [% FOREACH column IN columns_read %]
+                                <option value="[% column.id %]" [% IF tl_options.label == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                            [% END %]
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tl_group">Group by field:</label>
+                        <select class="form-control" name="tl_group">
+                            <option value="" [% IF NOT tl_options.group %]selected[% END %]>&lt;All fields&gt;</option>
+                            [% FOREACH column IN columns_read %]
+                                <option value="[% column.id %]" [% IF tl_options.group == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                            [% END %]
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tl_color">Colour by field:</label>
+                        <select class="form-control" name="tl_color">
+                            <option value="" [% IF NOT tl_options.color %]selected[% END %]>&lt;All fields&gt;</option>
+                            [% FOREACH column IN columns_read %]
+                                <option value="[% column.id %]" [% IF tl_options.color == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                            [% END %]
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" name="tl_update" value="update" class="btn btn-primary">Update</button>
                 </div>
                 </form>
             </div><!-- /.modal-content -->

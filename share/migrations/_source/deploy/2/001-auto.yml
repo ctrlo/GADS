@@ -65,7 +65,7 @@ schema:
           size:
             - 0
         user_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -75,7 +75,7 @@ schema:
           size:
             - 0
         view_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -153,7 +153,7 @@ schema:
           type: FOREIGN KEY
       fields:
         current_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -163,7 +163,7 @@ schema:
           size:
             - 0
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -184,7 +184,7 @@ schema:
           size:
             - 0
         view_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -292,7 +292,7 @@ schema:
           size:
             - 0
         current_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -302,7 +302,7 @@ schema:
           size:
             - 0
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -386,7 +386,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: datetime
-          order: 5
+          order: 4
           size:
             - 0
         description:
@@ -396,11 +396,11 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: description
-          order: 3
+          order: 7
           size:
             - 0
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -410,6 +410,16 @@ schema:
           order: 1
           size:
             - 0
+        method:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: method
+          order: 5
+          size:
+            - 45
         type:
           data_type: varchar
           default_value: ~
@@ -417,11 +427,21 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: type
-          order: 4
+          order: 3
           size:
             - 45
+        url:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: url
+          order: 6
+          size:
+            - 0
         user_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -537,7 +557,7 @@ schema:
             - record_id
             - layout_id
           match_type: ''
-          name: index4
+          name: calcval_ux_record_layout
           on_delete: ''
           on_update: ''
           options: []
@@ -572,7 +592,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -593,7 +613,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -603,7 +623,7 @@ schema:
           size:
             - 0
         value:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -611,7 +631,37 @@ schema:
           name: value
           order: 4
           size:
-            - 2048
+            - 0
+        value_date:
+          data_type: date
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value_date
+          order: 7
+          size:
+            - 0
+        value_int:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value_int
+          order: 6
+          size:
+            - 0
+        value_text:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value_text
+          order: 5
+          size:
+            - 0
       indices:
         - fields:
             - layout_id
@@ -621,6 +671,12 @@ schema:
         - fields:
             - record_id
           name: calcval_idx_record_id
+          options: []
+          type: NORMAL
+        - fields:
+            - name: value
+              size: 64
+          name: calcval_idx_value
           options: []
           type: NORMAL
       name: calcval
@@ -694,7 +750,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -711,49 +767,39 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: instance_id
-          order: 5
+          order: 4
           size:
             - 0
         linked_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
           is_unique: 0
           name: linked_id
-          order: 6
+          order: 5
           size:
             - 0
         parent_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
           is_unique: 0
           name: parent_id
-          order: 4
+          order: 3
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
           is_unique: 0
           name: record_id
-          order: 3
-          size:
-            - 0
-        serial:
-          data_type: varchar
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: serial
           order: 2
           size:
-            - 45
+            - 0
       indices:
         - fields:
             - instance_id
@@ -778,6 +824,206 @@ schema:
       name: current
       options: []
       order: 7
+    curval:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: curval_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - record_id
+          match_type: ''
+          name: curval_fk_record_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: record
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - value
+          match_type: ''
+          name: curval_fk_value
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: current
+          type: FOREIGN KEY
+      fields:
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: layout_id
+          order: 3
+          size:
+            - 0
+        record_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: record_id
+          order: 2
+          size:
+            - 0
+        value:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value
+          order: 4
+          size:
+            - 0
+      indices:
+        - fields:
+            - layout_id
+          name: curval_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - record_id
+          name: curval_idx_record_id
+          options: []
+          type: NORMAL
+        - fields:
+            - value
+          name: curval_idx_value
+          options: []
+          type: NORMAL
+      name: curval
+      options: []
+      order: 8
+    curval_fields:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - child_id
+          match_type: ''
+          name: curval_fields_fk_child_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - parent_id
+          match_type: ''
+          name: curval_fields_fk_parent_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+      fields:
+        child_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: child_id
+          order: 3
+          size:
+            - 0
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        parent_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: parent_id
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - child_id
+          name: curval_fields_idx_child_id
+          options: []
+          type: NORMAL
+        - fields:
+            - parent_id
+          name: curval_fields_idx_parent_id
+          options: []
+          type: NORMAL
+      name: curval_fields
+      options: []
+      order: 9
     date:
       constraints:
         - deferrable: 1
@@ -820,7 +1066,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -841,7 +1087,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -871,9 +1117,14 @@ schema:
           name: date_idx_record_id
           options: []
           type: NORMAL
+        - fields:
+            - value
+          name: date_idx_value
+          options: []
+          type: NORMAL
       name: date
       options: []
-      order: 8
+      order: 10
     daterange:
       constraints:
         - deferrable: 1
@@ -926,7 +1177,7 @@ schema:
           size:
             - 0
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -947,7 +1198,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -987,9 +1238,24 @@ schema:
           name: daterange_idx_record_id
           options: []
           type: NORMAL
+        - fields:
+            - from
+          name: daterange_idx_from
+          options: []
+          type: NORMAL
+        - fields:
+            - to
+          name: daterange_idx_to
+          options: []
+          type: NORMAL
+        - fields:
+            - value
+          name: daterange_idx_value
+          options: []
+          type: NORMAL
       name: daterange
       options: []
-      order: 9
+      order: 11
     enum:
       constraints:
         - deferrable: 1
@@ -1045,7 +1311,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -1066,7 +1332,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -1103,7 +1369,7 @@ schema:
           type: NORMAL
       name: enum
       options: []
-      order: 10
+      order: 12
     enumval:
       constraints:
         - deferrable: 1
@@ -1152,17 +1418,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: deleted
-          order: 5
-          size:
-            - 0
-        enum_id:
-          data_type: integer
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: enum_id
-          order: 2
+          order: 4
           size:
             - 0
         id:
@@ -1183,7 +1439,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: layout_id
-          order: 4
+          order: 3
           size:
             - 0
         parent:
@@ -1193,19 +1449,19 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: parent
-          order: 6
+          order: 5
           size:
             - 0
         value:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
           is_unique: 0
           name: value
-          order: 3
+          order: 2
           size:
-            - 256
+            - 0
       indices:
         - fields:
             - layout_id
@@ -1217,9 +1473,15 @@ schema:
           name: enumval_idx_parent
           options: []
           type: NORMAL
+        - fields:
+            - name: value
+              size: 64
+          name: enumval_idx_value
+          options: []
+          type: NORMAL
       name: enumval
       options: []
-      order: 11
+      order: 13
     file:
       constraints:
         - deferrable: 1
@@ -1275,7 +1537,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -1296,7 +1558,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -1306,7 +1568,7 @@ schema:
           size:
             - 0
         value:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -1333,7 +1595,7 @@ schema:
           type: NORMAL
       name: file
       options: []
-      order: 12
+      order: 14
     file_option:
       constraints:
         - deferrable: 1
@@ -1401,7 +1663,7 @@ schema:
           type: NORMAL
       name: file_option
       options: []
-      order: 13
+      order: 15
     fileval:
       constraints:
         - deferrable: 1
@@ -1428,7 +1690,7 @@ schema:
           size:
             - 0
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -1439,7 +1701,7 @@ schema:
           size:
             - 0
         mimetype:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -1447,9 +1709,9 @@ schema:
           name: mimetype
           order: 3
           size:
-            - 45
+            - 0
         name:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -1457,11 +1719,17 @@ schema:
           name: name
           order: 2
           size:
-            - 256
-      indices: []
+            - 0
+      indices:
+        - fields:
+            - name: name
+              size: 64
+          name: fileval_idx_name
+          options: []
+          type: NORMAL
       name: fileval
       options: []
-      order: 14
+      order: 16
     filter:
       constraints:
         - deferrable: 1
@@ -1504,7 +1772,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -1525,7 +1793,7 @@ schema:
           size:
             - 0
         view_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -1547,7 +1815,7 @@ schema:
           type: NORMAL
       name: filter
       options: []
-      order: 15
+      order: 17
     graph:
       constraints:
         - deferrable: 1
@@ -1629,7 +1897,7 @@ schema:
           type: FOREIGN KEY
       fields:
         description:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -1637,7 +1905,7 @@ schema:
           name: description
           order: 3
           size:
-            - 5012
+            - 0
         group_by:
           data_type: integer
           default_value: ~
@@ -1690,7 +1958,7 @@ schema:
           size:
             - 0
         title:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -1698,7 +1966,7 @@ schema:
           name: title
           order: 2
           size:
-            - 1024
+            - 0
         type:
           data_type: varchar
           default_value: ~
@@ -1740,7 +2008,7 @@ schema:
           size:
             - 0
         y_axis_label:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -1748,7 +2016,7 @@ schema:
           name: y_axis_label
           order: 6
           size:
-            - 128
+            - 0
         y_axis_stack:
           data_type: varchar
           default_value: ~
@@ -1787,7 +2055,7 @@ schema:
           type: NORMAL
       name: graph
       options: []
-      order: 16
+      order: 18
     graph_color:
       constraints:
         - deferrable: 1
@@ -1826,7 +2094,7 @@ schema:
           size:
             - 6
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -1849,7 +2117,7 @@ schema:
       indices: []
       name: graph_color
       options: []
-      order: 17
+      order: 19
     group:
       constraints:
         - deferrable: 1
@@ -1889,7 +2157,7 @@ schema:
       indices: []
       name: group
       options: []
-      order: 18
+      order: 20
     instance:
       constraints:
         - deferrable: 1
@@ -1919,7 +2187,7 @@ schema:
           type: FOREIGN KEY
       fields:
         email_delete_subject:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -1927,7 +2195,7 @@ schema:
           name: email_delete_subject
           order: 6
           size:
-            - 128
+            - 0
         email_delete_text:
           data_type: text
           default_value: ~
@@ -1939,7 +2207,7 @@ schema:
           size:
             - 0
         email_reject_subject:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -1947,7 +2215,7 @@ schema:
           name: email_reject_subject
           order: 8
           size:
-            - 128
+            - 0
         email_reject_text:
           data_type: text
           default_value: ~
@@ -1959,7 +2227,7 @@ schema:
           size:
             - 0
         email_welcome_subject:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -1967,7 +2235,7 @@ schema:
           name: email_welcome_subject
           order: 4
           size:
-            - 128
+            - 0
         email_welcome_text:
           data_type: text
           default_value: ~
@@ -2010,7 +2278,7 @@ schema:
           size:
             - 0
         name:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -2018,7 +2286,7 @@ schema:
           name: name
           order: 2
           size:
-            - 45
+            - 0
         register_email_help:
           data_type: text
           default_value: ~
@@ -2107,7 +2375,7 @@ schema:
           type: NORMAL
       name: instance
       options: []
-      order: 19
+      order: 21
     intgr:
       constraints:
         - deferrable: 1
@@ -2150,7 +2418,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -2171,7 +2439,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -2181,7 +2449,7 @@ schema:
           size:
             - 0
         value:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -2201,9 +2469,14 @@ schema:
           name: intgr_idx_record_id
           options: []
           type: NORMAL
+        - fields:
+            - value
+          name: intgr_idx_value
+          options: []
+          type: NORMAL
       name: intgr
       options: []
-      order: 20
+      order: 22
     layout:
       constraints:
         - deferrable: 1
@@ -2279,7 +2552,7 @@ schema:
           size:
             - 0
         display_regex:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -2287,7 +2560,7 @@ schema:
           name: display_regex
           order: 13
           size:
-            - 256
+            - 0
         end_node_only:
           data_type: smallint
           default_value: 0
@@ -2308,16 +2581,6 @@ schema:
           order: 11
           size:
             - 0
-        hidden:
-          data_type: smallint
-          default_value: 0
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 0
-          name: hidden
-          order: 14
-          size:
-            - 0
         id:
           data_type: integer
           default_value: ~
@@ -2336,7 +2599,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: instance_id
-          order: 15
+          order: 14
           size:
             - 0
         link_parent:
@@ -2346,11 +2609,11 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: link_parent
-          order: 16
+          order: 15
           size:
             - 0
         name:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -2358,7 +2621,7 @@ schema:
           name: name
           order: 2
           size:
-            - 45
+            - 0
         optional:
           data_type: smallint
           default_value: 0
@@ -2437,7 +2700,7 @@ schema:
           type: NORMAL
       name: layout
       options: []
-      order: 21
+      order: 23
     layout_depend:
       constraints:
         - deferrable: 1
@@ -2523,7 +2786,7 @@ schema:
           type: NORMAL
       name: layout_depend
       options: []
-      order: 22
+      order: 24
     layout_group:
       constraints:
         - deferrable: 1
@@ -2545,7 +2808,7 @@ schema:
             - group_id
             - permission
           match_type: ''
-          name: index4
+          name: layout_group_ux_layout_group_permission
           on_delete: ''
           on_update: ''
           options: []
@@ -2631,9 +2894,14 @@ schema:
           name: layout_group_idx_layout_id
           options: []
           type: NORMAL
+        - fields:
+            - permission
+          name: layout_group_idx_permission
+          options: []
+          type: NORMAL
       name: layout_group
       options: []
-      order: 23
+      order: 25
     metric:
       constraints:
         - deferrable: 1
@@ -2684,7 +2952,7 @@ schema:
           size:
             - 0
         target:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -2694,7 +2962,7 @@ schema:
           size:
             - 0
         x_axis_value:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -2702,9 +2970,9 @@ schema:
           name: x_axis_value
           order: 3
           size:
-            - 256
+            - 0
         y_axis_grouping_value:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -2712,7 +2980,7 @@ schema:
           name: y_axis_grouping_value
           order: 5
           size:
-            - 256
+            - 0
       indices:
         - fields:
             - metric_group
@@ -2721,7 +2989,7 @@ schema:
           type: NORMAL
       name: metric
       options: []
-      order: 24
+      order: 26
     metric_group:
       constraints:
         - deferrable: 1
@@ -2772,7 +3040,7 @@ schema:
           size:
             - 0
         name:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -2780,7 +3048,7 @@ schema:
           name: name
           order: 2
           size:
-            - 256
+            - 0
       indices:
         - fields:
             - instance_id
@@ -2789,7 +3057,7 @@ schema:
           type: NORMAL
       name: metric_group
       options: []
-      order: 25
+      order: 27
     organisation:
       constraints:
         - deferrable: 1
@@ -2829,7 +3097,7 @@ schema:
       indices: []
       name: organisation
       options: []
-      order: 26
+      order: 28
     permission:
       constraints:
         - deferrable: 1
@@ -2846,7 +3114,7 @@ schema:
           type: PRIMARY KEY
       fields:
         description:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -2854,7 +3122,7 @@ schema:
           name: description
           order: 3
           size:
-            - 1024
+            - 0
         id:
           data_type: integer
           default_value: ~
@@ -2889,7 +3157,7 @@ schema:
       indices: []
       name: permission
       options: []
-      order: 27
+      order: 29
     person:
       constraints:
         - deferrable: 1
@@ -2945,7 +3213,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -2966,7 +3234,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -2976,7 +3244,7 @@ schema:
           size:
             - 0
         value:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -3003,7 +3271,7 @@ schema:
           type: NORMAL
       name: person
       options: []
-      order: 28
+      order: 30
     rag:
       constraints:
         - deferrable: 1
@@ -3033,7 +3301,7 @@ schema:
           type: FOREIGN KEY
       fields:
         amber:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -3041,9 +3309,9 @@ schema:
           name: amber
           order: 4
           size:
-            - 256
+            - 0
         green:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -3051,7 +3319,7 @@ schema:
           name: green
           order: 5
           size:
-            - 256
+            - 0
         id:
           data_type: integer
           default_value: ~
@@ -3074,7 +3342,7 @@ schema:
           size:
             - 0
         red:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -3082,7 +3350,7 @@ schema:
           name: red
           order: 3
           size:
-            - 256
+            - 0
       indices:
         - fields:
             - layout_id
@@ -3091,7 +3359,7 @@ schema:
           type: NORMAL
       name: rag
       options: []
-      order: 29
+      order: 31
     ragval:
       constraints:
         - deferrable: 1
@@ -3112,7 +3380,7 @@ schema:
             - record_id
             - layout_id
           match_type: ''
-          name: index4
+          name: ragval_ux_record_layout
           on_delete: ''
           on_update: ''
           options: []
@@ -3147,7 +3415,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -3168,7 +3436,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -3186,7 +3454,7 @@ schema:
           name: value
           order: 4
           size:
-            - 2048
+            - 16
       indices:
         - fields:
             - layout_id
@@ -3198,9 +3466,14 @@ schema:
           name: ragval_idx_record_id
           options: []
           type: NORMAL
+        - fields:
+            - value
+          name: ragval_idx_value
+          options: []
+          type: NORMAL
       name: ragval
       options: []
-      order: 30
+      order: 32
     record:
       constraints:
         - deferrable: 1
@@ -3279,7 +3552,7 @@ schema:
           size:
             - 0
         approvedby:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -3299,7 +3572,7 @@ schema:
           size:
             - 0
         createdby:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -3309,7 +3582,7 @@ schema:
           size:
             - 0
         current_id:
-          data_type: integer
+          data_type: bigint
           default_value: 0
           is_nullable: 0
           is_primary_key: 0
@@ -3319,7 +3592,7 @@ schema:
           size:
             - 0
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -3330,7 +3603,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -3362,7 +3635,7 @@ schema:
           type: NORMAL
       name: record
       options: []
-      order: 31
+      order: 33
     sort:
       constraints:
         - deferrable: 1
@@ -3436,7 +3709,7 @@ schema:
           size:
             - 45
         view_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -3458,7 +3731,7 @@ schema:
           type: NORMAL
       name: sort
       options: []
-      order: 32
+      order: 34
     string:
       constraints:
         - deferrable: 1
@@ -3501,7 +3774,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -3522,7 +3795,7 @@ schema:
           size:
             - 0
         record_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -3532,7 +3805,7 @@ schema:
           size:
             - 0
         value:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -3540,7 +3813,7 @@ schema:
           name: value
           order: 4
           size:
-            - 512
+            - 0
       indices:
         - fields:
             - layout_id
@@ -3552,9 +3825,15 @@ schema:
           name: string_idx_record_id
           options: []
           type: NORMAL
+        - fields:
+            - name: value
+              size: 64
+          name: string_idx_value
+          options: []
+          type: NORMAL
       name: string
       options: []
-      order: 33
+      order: 35
     title:
       constraints:
         - deferrable: 1
@@ -3594,7 +3873,7 @@ schema:
       indices: []
       name: title
       options: []
-      order: 34
+      order: 36
     user:
       constraints:
         - deferrable: 1
@@ -3638,6 +3917,19 @@ schema:
         - deferrable: 1
           expression: ''
           fields:
+            - limit_to_view
+          match_type: ''
+          name: user_fk_limit_to_view
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: view
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
             - organisation
           match_type: ''
           name: user_fk_organisation
@@ -3669,7 +3961,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: account_request
-          order: 18
+          order: 17
           size:
             - 0
         account_request_notes:
@@ -3679,7 +3971,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: account_request_notes
-          order: 19
+          order: 18
           size:
             - 0
         aup_accepted:
@@ -3689,21 +3981,21 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: aup_accepted
-          order: 20
+          order: 19
           size:
             - 0
         deleted:
-          data_type: smallint
-          default_value: 0
-          is_nullable: 0
+          data_type: datetime
+          default_value: ~
+          is_nullable: 1
           is_primary_key: 0
           is_unique: 0
           name: deleted
-          order: 13
+          order: 12
           size:
             - 0
         email:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -3711,7 +4003,7 @@ schema:
           name: email
           order: 4
           size:
-            - 45
+            - 0
         firstname:
           data_type: varchar
           default_value: ~
@@ -3721,9 +4013,9 @@ schema:
           name: firstname
           order: 2
           size:
-            - 45
+            - 128
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -3740,27 +4032,37 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: lastlogin
-          order: 14
+          order: 13
           size:
             - 0
         lastrecord:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
           is_unique: 0
           name: lastrecord
-          order: 15
+          order: 14
           size:
             - 0
         lastview:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
           is_unique: 0
           name: lastview
-          order: 16
+          order: 15
+          size:
+            - 0
+        limit_to_view:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: limit_to_view
+          order: 20
           size:
             - 0
         organisation:
@@ -3780,19 +4082,9 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: password
-          order: 10
-          size:
-            - 128
-        permission:
-          data_type: smallint
-          default_value: 0
-          is_nullable: 0
-          is_primary_key: 0
-          is_unique: 0
-          name: permission
           order: 9
           size:
-            - 0
+            - 128
         pwchanged:
           data_type: datetime
           default_value: ~
@@ -3800,7 +4092,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: pwchanged
-          order: 11
+          order: 10
           size:
             - 0
         resetpw:
@@ -3810,7 +4102,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: resetpw
-          order: 12
+          order: 11
           size:
             - 32
         surname:
@@ -3822,7 +4114,7 @@ schema:
           name: surname
           order: 3
           size:
-            - 45
+            - 128
         telephone:
           data_type: varchar
           default_value: ~
@@ -3844,7 +4136,7 @@ schema:
           size:
             - 0
         username:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -3852,17 +4144,17 @@ schema:
           name: username
           order: 5
           size:
-            - 45
+            - 0
         value:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
           is_unique: 0
           name: value
-          order: 17
+          order: 16
           size:
-            - 1024
+            - 0
       indices:
         - fields:
             - lastrecord
@@ -3875,6 +4167,11 @@ schema:
           options: []
           type: NORMAL
         - fields:
+            - limit_to_view
+          name: user_idx_limit_to_view
+          options: []
+          type: NORMAL
+        - fields:
             - organisation
           name: user_idx_organisation
           options: []
@@ -3884,9 +4181,27 @@ schema:
           name: user_idx_title
           options: []
           type: NORMAL
+        - fields:
+            - name: value
+              size: 64
+          name: user_idx_value
+          options: []
+          type: NORMAL
+        - fields:
+            - name: email
+              size: 64
+          name: user_idx_email
+          options: []
+          type: NORMAL
+        - fields:
+            - name: username
+              size: 64
+          name: user_idx_username
+          options: []
+          type: NORMAL
       name: user
       options: []
-      order: 35
+      order: 37
     user_graph:
       constraints:
         - deferrable: 1
@@ -3939,7 +4254,7 @@ schema:
           size:
             - 0
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -3950,7 +4265,7 @@ schema:
           size:
             - 0
         user_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -3972,7 +4287,7 @@ schema:
           type: NORMAL
       name: user_graph
       options: []
-      order: 36
+      order: 38
     user_group:
       constraints:
         - deferrable: 1
@@ -4025,7 +4340,7 @@ schema:
           size:
             - 0
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -4036,7 +4351,7 @@ schema:
           size:
             - 0
         user_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -4058,7 +4373,7 @@ schema:
           type: NORMAL
       name: user_group
       options: []
-      order: 37
+      order: 39
     user_permission:
       constraints:
         - deferrable: 1
@@ -4101,7 +4416,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -4122,7 +4437,7 @@ schema:
           size:
             - 0
         user_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -4144,7 +4459,7 @@ schema:
           type: NORMAL
       name: user_permission
       options: []
-      order: 38
+      order: 40
     view:
       constraints:
         - deferrable: 1
@@ -4207,7 +4522,7 @@ schema:
           size:
             - 0
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -4238,7 +4553,7 @@ schema:
           size:
             - 128
         user_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -4260,7 +4575,7 @@ schema:
           type: NORMAL
       name: view
       options: []
-      order: 39
+      order: 41
     view_layout:
       constraints:
         - deferrable: 1
@@ -4334,7 +4649,7 @@ schema:
           size:
             - 0
         view_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
@@ -4356,7 +4671,7 @@ schema:
           type: NORMAL
       name: view_layout
       options: []
-      order: 40
+      order: 42
   triggers: {}
   views: {}
 translator:
@@ -4372,6 +4687,8 @@ translator:
       - Calc
       - Calcval
       - Current
+      - Curval
+      - CurvalField
       - Date
       - Daterange
       - Enum

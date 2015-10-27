@@ -18,6 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Audit;
 
+use DateTime;
+use GADS::Datum::Person;
 use Moo;
 
 has schema => (
@@ -29,14 +31,18 @@ has user => (
     is => 'rw',
 );
 
+sub audit_types{ [qw/user_action login_change login_success logout login_failure/] };
+
 sub user_action
-{   my ($self, $description) = @_;
+{   my ($self, %options) = @_;
 
     $self->schema->resultset('Audit')->create({
-        user_id     => $self->user->{id},
-        description => $description,
+        user_id     => $self->user ? $self->user->{id} : undef,
+        description => $options{description},
         type        => 'user_action',
-        datetime    => \"NOW()",
+        method      => $options{method},
+        url         => $options{url},
+        datetime    => DateTime->now,
     });
 }
 
@@ -48,7 +54,7 @@ sub login_change
         user_id     => $user_id,
         description => $description,
         type        => 'login_change',
-        datetime    => \"NOW()",
+        datetime    => DateTime->now,
     });
 }
 
@@ -59,7 +65,7 @@ sub login_success
         user_id     => $self->user->{id},
         description => "Successful login by username ".$self->user->{username},
         type        => 'login_success',
-        datetime    => \"NOW()",
+        datetime    => DateTime->now,
     });
 }
 
@@ -70,7 +76,7 @@ sub logout
         user_id     => $self->user->{id},
         description => "Logout by username $username",
         type        => 'logout',
-        datetime    => \"NOW()",
+        datetime    => DateTime->now,
     });
 }
 
@@ -80,8 +86,48 @@ sub login_failure
     $self->schema->resultset('Audit')->create({
         description => "Login failure using username $username",
         type        => 'login_failure',
-        datetime    => \"NOW()",
+        datetime    => DateTime->now,
     });
+}
+
+sub logs
+{   my ($self, $filtering) = @_;
+
+    my $format = DateTime::Format::Strptime->new(
+         pattern   => '%Y-%m-%d',
+         time_zone => 'local',
+    );
+
+    my $dtf  = $self->schema->storage->datetime_parser;
+    my $to   = $filtering->{to} ? $format->parse_datetime($filtering->{to}) : DateTime->now;
+    my $from = $filtering->{from} ? $format->parse_datetime($filtering->{from}) : $to->clone->subtract(days => 7);
+
+    my $search = {
+        datetime => {
+            -between => [
+                $dtf->format_datetime($from),
+                $dtf->format_datetime($to),
+            ],
+        },
+    };
+
+    $search->{method}  = uc $filtering->{method} if $filtering->{method};
+    $search->{type}    = $filtering->{type} if $filtering->{type};
+    $search->{user_id} = $filtering->{user} if $filtering->{user};
+
+    my $rs   = $self->schema->resultset('Audit')->search($search,{
+        prefetch => 'user',
+        order_by => {
+            -desc => 'datetime',
+        },
+    });
+    $rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    my @logs = $rs->all;
+    $_->{user} = GADS::Datum::Person->new(
+        schema    => $self->schema,
+        set_value => {value => $_->{user}}
+    ) foreach @logs;
+    \@logs;
 }
 
 1;

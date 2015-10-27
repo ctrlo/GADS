@@ -26,15 +26,24 @@ extends 'GADS::Datum::Code';
 
 has set_value => (
     is       => 'rw',
+    trigger  => sub {
+        my $self = shift;
+        $self->_set_has_value(1);
+    },
 );
 
 has value => (
     is       => 'rw',
     lazy     => 1,
-    builder => sub {
+    clearer  => 1,
+    builder  => sub {
         my $self = shift;
         $self->_transform_value($self->set_value);
     },
+);
+
+has has_value => (
+    is => 'rwp',
 );
 
 has dependent_values => (
@@ -55,11 +64,11 @@ sub as_string
 }
 
 sub as_integer
-{   my ($self, $other) = @_;
+{   my $self = shift;
     my $value = $self->value;
     $value = $value->epoch if ref $value eq 'DateTime';
-    my $int = int ($value // 0);
-    $int + ($other || 0);
+    no warnings 'numeric';
+    int ($value || 0);
 }
 
 sub _transform_value

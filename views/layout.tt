@@ -27,6 +27,7 @@
                     <option value="person" [% IF column.type == "person" %]selected[% END %]>Person</option>
                     <option value="rag" [% IF column.type == "rag" %]selected[% END %]>RedAmberGreen status (RAG)</option>
                     <option value="calc" [% IF column.type == "calc" %]selected[% END %]>Calculated value</option>
+                    <option value="curval" [% IF column.type == "curval" %]selected[% END %]>Record from other instance</option>
                 </select>
             </div>
             <div class="form-group">
@@ -39,7 +40,7 @@
                     <select class="form-control" id="link_parent_id" name="link_parent_id">
                         <option value="">&lt;Not linked&gt;</option>
                         [% FOREACH l IN instance_layouts %]
-                            [% FOREACH c IN l.all %]
+                            [% FOREACH c IN l.layout.all %]
                                 <option value="[% c.id %]" [% IF column.link_parent_id == c.id %]selected[% END %]>[% l.name %] - [% c.name %]</option>
                             [% END %]
                         [% END %]
@@ -74,7 +75,7 @@
                     <div class="col-md-5">
                         <select class="form-control" id="display_field" name="display_field">
                             [% FOREACH field in all_columns %]
-                                <option value="[% field.id %]" [% IF column.display_field == field.id %]selected[% END %]>[% field.name %]</option>
+                                <option value="[% field.id %]" [% IF column.display_field == field.id %]selected[% END %]>[% field.name | html_entity %]</option>
                             [% END %]
                         </select>
                     </div>
@@ -190,6 +191,49 @@
                             </div>
                     </div>
                 </div>
+            </div>
+            <div id="divcurval"
+                [% IF column.type != "curval" %]
+                    style="display:none"
+                [% END %]
+                >
+                [% IF instance_layouts.size %]
+                    [% rti = column.refers_to_instance %]
+                    <div class="form-group">
+                        <label for="refers_to_instance">Instance to select from:</label>
+                        <select class="form-control" id="refers_to_instance" name="refers_to_instance">
+                            [% FOREACH instance IN instance_layouts %]
+                                <option value="[% instance.instance.id %]" [% IF rti == instance.instance.id %]selected[% END %]>[% instance.instance.name | html_entity %]</option>
+                            [% END %]
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="curval_instance">Columns to show:</label>
+                        [% FOREACH instance IN instance_layouts %]
+                            <div id="instance_fields_[% instance.instance.id %]" class="instance_fields"
+                                [% IF instance.instance.id != rti %]
+                                    style="display:none"
+                                [% END %]
+                                >
+                                [% FOREACH c IN instance.layout.all %]
+                                    [% checked = "" %]
+                                    [% IF instance.instance.id == rti AND column.has_curval_field(c.id) %]
+                                        [% checked = "checked" %]
+                                    [% END %]
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="curval_fields" value="[% c.id %]" [% checked %]>[% c.name %]
+                                        </label>
+                                    </div>
+                                [% END %]
+                            </div>
+                        [% END %]
+                    </div>
+                [% ELSE %]
+                    <div class="alert alert-info">
+                        No other instances are available to select data from
+                    </div>
+                [% END %]
             </div>
             <div id="divfile"
                 [% IF column.type != "file" %]
@@ -429,7 +473,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 [% IF column.type == "calc" %]Calculated value[% END %]
             </td>
             <td>
-                [% column.description %]
+                [% column.description | html_entity %]
             </td>
         </tr>
         [% END %]
@@ -546,6 +590,11 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     </div>
                 ' );
             });
+            $('#refers_to_instance').change(function(){
+                var divid = '#instance_fields_' + $(this).val();
+                $('.instance_fields').hide();
+                $(divid).show();
+            });
             $('#type').change(function(){
                 $('#divenum').hide();
                 $('#divtree').show();
@@ -556,6 +605,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divrag').hide();
                     $('#divcalc').hide();
                     $('#divfile').hide();
+                    $('#divcurval').hide();
                     $('.noragcalc').show();
                 } else if (val == "enum") {
                     $('#divenum').show();
@@ -563,6 +613,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divrag').hide();
                     $('#divcalc').hide();
                     $('#divfile').hide();
+                    $('#divcurval').hide();
                     $('.noragcalc').show();
                 } else if (val == "rag") {
                     $('#divrag').show();
@@ -570,6 +621,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divenum').hide();
                     $('#divcalc').hide();
                     $('#divfile').hide();
+                    $('#divcurval').hide();
                     $('.noragcalc').hide();
                 } else if (val == "calc") {
                     $('#divrag').hide();
@@ -577,6 +629,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divenum').hide();
                     $('#divcalc').show();
                     $('#divfile').hide();
+                    $('#divcurval').hide();
                     $('.noragcalc').hide();
                 } else if (val == "file") {
                     $('#divrag').hide();
@@ -584,13 +637,23 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divenum').hide();
                     $('#divcalc').hide();
                     $('#divfile').show();
+                    $('#divcurval').hide();
                     $('.noragcalc').show();
+                } else if (val == "curval") {
+                    $('#divrag').hide();
+                    $('#divtree').hide();
+                    $('#divenum').hide();
+                    $('#divcalc').hide();
+                    $('#divfile').hide();
+                    $('#divcurval').show();
+                    $('.noragcalc').hide();
                 } else {
                     $('#divenum').hide();
                     $('#divtree').hide();
                     $('#divrag').hide();
                     $('#divcalc').hide();
                     $('#divfile').hide();
+                    $('#divcurval').hide();
                     $('.noragcalc').show();
                 }
             });

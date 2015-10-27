@@ -43,9 +43,8 @@ __PACKAGE__->table("layout");
 
 =head2 name
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 45
 
 =head2 type
 
@@ -106,15 +105,8 @@ __PACKAGE__->table("layout");
 
 =head2 display_regex
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 256
-
-=head2 hidden
-
-  data_type: 'smallint'
-  default_value: 0
-  is_nullable: 0
 
 =head2 instance_id
 
@@ -134,7 +126,7 @@ __PACKAGE__->add_columns(
   "id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "name",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
+  { data_type => "text", is_nullable => 1 },
   "type",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "permission",
@@ -156,9 +148,7 @@ __PACKAGE__->add_columns(
   "display_field",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "display_regex",
-  { data_type => "varchar", is_nullable => 1, size => 256 },
-  "hidden",
-  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  { data_type => "text", is_nullable => 1 },
   "instance_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "link_parent",
@@ -235,6 +225,51 @@ Related object: L<GADS::Schema::Result::Calcval>
 __PACKAGE__->has_many(
   "calcvals",
   "GADS::Schema::Result::Calcval",
+  { "foreign.layout_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 curval_fields_children
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::CurvalField>
+
+=cut
+
+__PACKAGE__->has_many(
+  "curval_fields_children",
+  "GADS::Schema::Result::CurvalField",
+  { "foreign.child_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 curval_fields_parents
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::CurvalField>
+
+=cut
+
+__PACKAGE__->has_many(
+  "curval_fields_parents",
+  "GADS::Schema::Result::CurvalField",
+  { "foreign.parent_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 curvals
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Curval>
+
+=cut
+
+__PACKAGE__->has_many(
+  "curvals",
+  "GADS::Schema::Result::Curval",
   { "foreign.layout_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -645,8 +680,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-07-26 20:26:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:msze7aawCafYsaJ1lGEpmA
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-10-25 20:07:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zzX54ZXlR7mVN947+fgKLg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

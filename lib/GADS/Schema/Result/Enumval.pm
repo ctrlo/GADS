@@ -41,16 +41,10 @@ __PACKAGE__->table("enumval");
   is_auto_increment: 1
   is_nullable: 0
 
-=head2 enum_id
-
-  data_type: 'integer'
-  is_nullable: 1
-
 =head2 value
 
-  data_type: 'varchar'
+  data_type: 'text'
   is_nullable: 1
-  size: 256
 
 =head2 layout_id
 
@@ -75,10 +69,8 @@ __PACKAGE__->table("enumval");
 __PACKAGE__->add_columns(
   "id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
-  "enum_id",
-  { data_type => "integer", is_nullable => 1 },
   "value",
-  { data_type => "varchar", is_nullable => 1, size => 256 },
+  { data_type => "text", is_nullable => 1 },
   "layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "deleted",
@@ -172,9 +164,13 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-06 03:17:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zOgWKJvXSgwTUPlzuaXpzA
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:06:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4v1Z5p4xRHxb+33sxH8+9w
 
+sub sqlt_deploy_hook {
+    my ($self, $sqlt_table) = @_;
+    $sqlt_table->add_index(name => 'enumval_idx_value', fields => [ { name => 'value', size => 64 } ]);
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

@@ -37,19 +37,14 @@ __PACKAGE__->table("audit");
 
 =head2 id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_auto_increment: 1
   is_nullable: 0
 
 =head2 user_id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_foreign_key: 1
-  is_nullable: 1
-
-=head2 description
-
-  data_type: 'text'
   is_nullable: 1
 
 =head2 type
@@ -64,15 +59,29 @@ __PACKAGE__->table("audit");
   datetime_undef_if_invalid: 1
   is_nullable: 1
 
+=head2 method
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 45
+
+=head2 url
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 description
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
   "user_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "description",
-  { data_type => "text", is_nullable => 1 },
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "type",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "datetime",
@@ -81,6 +90,12 @@ __PACKAGE__->add_columns(
     datetime_undef_if_invalid => 1,
     is_nullable => 1,
   },
+  "method",
+  { data_type => "varchar", is_nullable => 1, size => 45 },
+  "url",
+  { data_type => "text", is_nullable => 1 },
+  "description",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -118,8 +133,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-06 03:17:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rI/qypb7FHubu+9a7vHZDQ
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:06:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:u/I2SdQbAClgWLcxeIIVkA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

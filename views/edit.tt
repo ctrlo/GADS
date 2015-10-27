@@ -123,7 +123,8 @@
             [% label = label _ '*' %]
         [% END %]
         [% IF dispcol.description %]
-            [% label = label _ ' <span style="font-weight:normal !important">(' _ dispcol.description _ ")</span>" %]
+            [% desc = dispcol.description | html_entity %]
+            [% label = label _ ' <span style="font-weight:normal !important">(' _ desc _ ")</span>" %]
         [% END %]
         [% IF dispcol.helptext %]
             [% label = label _ " (<a data-toggle='modal' href='/helptext/"
@@ -133,7 +134,7 @@
             <div class="checkbox">
                 <label>
                     <input type="checkbox" name="related_inc" value="[% dispcol.id %]"
-                        [% IF record.fields.$colid.has_value %]checked[% END %]
+                        [% IF record.current_id AND record.fields.$colid.has_value %]checked[% END %]
                     > <span [% label_style %]>[% label %]</span> (tick to include)
                 </label>
             </div>
@@ -156,7 +157,19 @@
             [% END %]
             [% FOREACH enumval IN enumvals %]
                 [% UNLESS enumval.deleted %]
-                    <option value="[% enumval.id %]" [% IF editvalue.id == enumval.id %]selected[% END %]>[% enumval.value %]</option>
+                    <option value="[% enumval.id %]" [% IF editvalue.id == enumval.id %]selected[% END %]>[% enumval.value | html_entity %]</option>
+                [% END %]
+            [% END %]
+        </select>
+    [% ELSIF dispcol.type == "curval" %]
+        <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
+            [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
+                <option></option>
+            [% END %]
+            [% enumvals = dispcol.values %]
+            [% FOREACH enumval IN enumvals %]
+                [% UNLESS enumval.deleted %]
+                    <option value="[% enumval.id %]" [% IF editvalue.id == enumval.id %]selected[% END %]>[% enumval.value | html_entity %]</option>
                 [% END %]
             [% END %]
         </select>
@@ -188,26 +201,32 @@
             [% END %]
             [% FOREACH person IN dispcol.people %]
                 [% UNLESS person.deleted %]
-                    <option value="[% person.id %]" [% IF selected == person.id %]selected[% END %]>[% person.value %]</option>
+                    <option value="[% person.id %]" [% IF selected == person.id %]selected[% END %]>[% person.value | html_entity %]</option>
                 [% END %]
             [% END %]
         </select>
     [% ELSIF dispcol.type == "file" %]
         [% IF readonly %]
-            <p class="help-block">Current file name: [% editvalue.html %] (read-only field, cannot be updated).</p>
+            [% IF editvalue.id %]
+                <input type="hidden" name="[% field %]" value="[% editvalue.id %]">
+                <p class="help-block">Current file name: [% editvalue.html %] (read-only field, cannot be updated).</p>
+            [% ELSE %]
+                <p class="help-block">No current file (read-only field, cannot be updated).</p>
+            [% END %]
         [% ELSE %]
             <input type="file" id="[% dispcol.id %]" name="[% "file" _ dispcol.id %]">
             [% IF editvalue.id %]
                 <p class="help-block">
-                <input type="checkbox" name="[% field %]" value="[% editvalue.id %]" checked>Include file.
-                Current file name: [% editvalue.html %]. Select a new file to replace.</p>
+                    <input type="checkbox" name="[% field %]" value="[% editvalue.id %]" checked>Include file.
+                    Current file name: [% editvalue.html %]. Select a new file to replace.
+                </p>
             [% END %]
         [% END %]
     [% ELSE %]
         [% IF dispcol.type == "daterange" %]
             <div class="input-daterange datepicker" style="padding:0">
-                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline" value="[% editvalue.from_form %]" [% readonly %]>
-                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline; float:right" value="[% editvalue.to_form %]" [% readonly %]>
+                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline" value="[% editvalue.from_form | html_entity %]" [% readonly %]>
+                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline; float:right" value="[% editvalue.to_form | html_entity %]" [% readonly %]>
             </div>
         [% ELSE %]
             [% IF dispcol.type == "date" %]
@@ -243,8 +262,8 @@
 
     [%# Then add all the columns that depend on it. Put them in a JS code array,
         which gets output at the end of this templte. Each of these is in its own div %]
-    [% IF col.depended_by.size %]
-        [% FOREACH depends IN dispcol.depended_by %]
+    [% IF col.display_depended_by.size %]
+        [% FOREACH depends IN dispcol.display_depended_by %]
             [% divid = "depend" _ dispcol.id _ "_" _ depends.id %]
             [% IF col.type == "enum" || col.type == "person" %]
                 [% js_valget = '$("option:selected", $(this)).text()' %]
@@ -272,7 +291,7 @@
                 [% ELSE %]
                     [% textval = record.fields.$cid.as_string  %]
                 [% END %]
-                [% FOREACH c IN col.depended_by %]
+                [% FOREACH c IN col.display_depended_by %]
                     [% FOREACH cc IN all_columns %]
                         [% IF cc.id == c.id %]
                             <div id="depend[% col.id %]_[% cc.id %]" [% UNLESS textval.match(c.regex) %]style="display:none" [% END %]>

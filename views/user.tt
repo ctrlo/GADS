@@ -3,7 +3,7 @@
 [% IF edituser.account_request %]
     <h2>New account request</h2>
 [% ELSIF edituser.id %]
-    <h2>User - [% edituser.value %]</h2>
+    <h2>User - [% edituser.value | html_entity %]</h2>
 [% ELSE %]
     <h2>New user</h2>
 [% END %]
@@ -19,6 +19,7 @@
                 <div class="form-group">
                     <label for="notes">Notes:</label>
                     <p>[% edituser.account_request_notes %]</p>
+                    <input type="hidden" name="account_request_notes" value="[% edituser.account_request_notes %]"</input>
                 </div>
             [% END %]
             <div class="form-group">
@@ -72,6 +73,24 @@
                 </select>
             </div>
             [% IF page == "user" %]
+                <div class="form-group">
+                    <label for="limit_to_view">
+                        Limit user's data to only records in:
+                        (<a data-toggle="modal" data-target="#modalneworganisation" href="">create</a>)
+                    </label>
+                    <select class="form-control" id="limit_to_view" name="limit_to_view">
+                        <option></option>
+                        [% FOREACH instance IN instances %]
+                            [% FOREACH v IN instance.global_view_summary %]
+                                <option value="[% v.id %]"
+                                    [% IF edituser.limit_to_view == v.id %]selected[% END %]>[% instance.name _ ': ' _ v.name | html_entity %]
+                                </option>
+                            [% END %]
+                        [% END %]
+                    </select>
+                </div>
+            [% END %]
+            [% IF page == "user" %]
                 <label>
                     Permissions:
                 </label>
@@ -80,7 +99,7 @@
                     <div class="checkbox">
                         <label>
                             <input type="checkbox" name="permission" value="[% permission.id %]"
-                                [% IF edituser.permission.$key %]checked[% END %]>[% permission.description %]
+                                [% IF edituser.permission.$key %]checked[% END %]>[% permission.description | html_entity %]
                         </label>
                     </div>
                 [% END %]

@@ -37,7 +37,7 @@ __PACKAGE__->table("alert_send");
 
 =head2 id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_auto_increment: 1
   is_nullable: 0
 
@@ -55,7 +55,7 @@ __PACKAGE__->table("alert_send");
 
 =head2 current_id
 
-  data_type: 'integer'
+  data_type: 'bigint'
   is_foreign_key: 1
   is_nullable: 0
 
@@ -69,13 +69,13 @@ __PACKAGE__->table("alert_send");
 
 __PACKAGE__->add_columns(
   "id",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
   "layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "alert_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "current_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
   "status",
   { data_type => "char", is_nullable => 1, size => 7 },
 );
@@ -168,8 +168,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-02-11 09:59:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cLw/ZKi8LN+f4Y1+ow25fA
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 09:06:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ErQJr1eWVYZ2ZwvDK2XeQg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

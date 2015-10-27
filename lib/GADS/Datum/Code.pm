@@ -27,7 +27,11 @@ use namespace::clean;
 extends 'GADS::Datum';
 
 has force_update => (
-    is => 'rw',
+    is      => 'rw',
+    trigger => sub {
+        my $self = shift;
+        $self->clear_value;
+    },
 );
 
 has schema => (
