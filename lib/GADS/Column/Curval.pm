@@ -52,6 +52,9 @@ has curval_fields => (
         my $self = shift;
         my @curval_fields = $self->schema->resultset('CurvalField')->search({
             parent_id => $self->id,
+        }, {
+            join     => 'child',
+            order_by => 'child.position',
         })->all;
         [map { $_->child_id } @curval_fields];
     },
@@ -100,10 +103,9 @@ sub _build_values
     );
 
     my @values;
-    my @cols = @{$records->columns_retrieved};
     foreach my $r (@{$records->results})
     {
-        my $text = join ", ", map { $r->fields->{$_->id} } @cols;
+        my $text = join ", ", map { $r->fields->{$_} } @{$self->curval_fields};
         push @values, {
             id    => $r->current_id,
             value => $text,
