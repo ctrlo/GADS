@@ -27,7 +27,7 @@
                     <option value="person" [% IF column.type == "person" %]selected[% END %]>Person</option>
                     <option value="rag" [% IF column.type == "rag" %]selected[% END %]>RedAmberGreen status (RAG)</option>
                     <option value="calc" [% IF column.type == "calc" %]selected[% END %]>Calculated value</option>
-                    <option value="curval" [% IF column.type == "curval" %]selected[% END %]>Record from other instance</option>
+                    <option value="curval" [% IF column.type == "curval" %]selected[% END %]>Record from other data sheet</option>
                 </select>
             </div>
             <div class="form-group">
@@ -471,7 +471,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 [% IF column.type == "person" %]Person[% END %]
                 [% IF column.type == "rag" %]RedAmberGreen (RAG) status[% END %]
                 [% IF column.type == "calc" %]Calculated value[% END %]
-                [% IF column.type == "curval" %]Record from other instance[% END %]
+                [% IF column.type == "curval" %]Record from other data sheet[% END %]
             </td>
             <td>
                 [% column.description | html_entity %]
