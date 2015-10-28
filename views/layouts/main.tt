@@ -204,6 +204,7 @@
         [% END %]
         [% IF page == "view" %]
             <script type="text/javascript" src="[% url.js %]/query-builder.js"></script>
+            <script type="text/javascript" src="[% url.js %]/bootstrap3-typeahead.min.js"></script>
         [% END %]
         [% IF page == "data" AND viewtype == "calendar" %]
             <script type="text/javascript" src="[% url.js %]/calendar.min.js"></script>

@@ -62,5 +62,10 @@ sub random
     $hash{(keys %hash)[rand keys %hash]}->value;
 }
 
+sub resultset_for_values
+{   my $self = shift;
+    return $self->schema->resultset('User');
+}
+
 1;
 

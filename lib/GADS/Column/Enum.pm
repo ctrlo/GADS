@@ -180,5 +180,10 @@ sub _delete_unused_nodes
     }
 }
 
+sub resultset_for_values
+{   my $self = shift;
+    return $self->schema->resultset('Enumval')->search({ layout_id => $self->id });
+}
+
 1;
 
