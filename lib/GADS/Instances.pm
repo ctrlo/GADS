@@ -40,5 +40,12 @@ sub _build_all
     \@all;
 }
 
+sub is_valid
+{   my ($self, $id) = @_;
+    grep { $_->id == $id } @{$self->all}
+        or return;
+    $id; # Return ID to make testing easier
+}
+
 1;
 

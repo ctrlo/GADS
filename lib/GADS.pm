@@ -144,11 +144,17 @@ hook before => sub {
             my $instances = GADS::Instances->new(schema => schema);
             session instance_id => $instances->all->[0]->id;
         }
+        # Instance ID can be overriden using the parameter "oi". This is
+        # a bit hacky, but it allows (for example) the session instance to
+        # be one sheet, but then a linked record to be viewed from another
+        # sheet. This is used in the links for the Curval column type
+        my $override_instance = param('oi')
+            && GADS::Instances->new(schema => schema)->is_valid(param 'oi');
         my $layout = GADS::Layout->new(
             user        => $user,
             schema      => schema,
             config      => config,
-            instance_id => session('instance_id')
+            instance_id => $override_instance || session('instance_id'),
         );
         var 'layout' => $layout;
     }

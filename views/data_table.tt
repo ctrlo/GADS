@@ -54,7 +54,7 @@
                         [% value %]
                         ">
                     </div>
-                [% ELSIF column.type == "string" %]
+                [% ELSIF column.type == "string" OR column.type == "curval" %]
                     <div class="more-less">
                         <div class="more-block">
                             <p>[% value.html_withlinks %]</p>
