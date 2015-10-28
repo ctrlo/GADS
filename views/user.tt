@@ -76,7 +76,6 @@
                 <div class="form-group">
                     <label for="limit_to_view">
                         Limit user's data to only records in:
-                        (<a data-toggle="modal" data-target="#modalneworganisation" href="">create</a>)
                     </label>
                     <select class="form-control" id="limit_to_view" name="limit_to_view">
                         <option></option>
