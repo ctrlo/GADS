@@ -179,7 +179,13 @@ sub order_by_inc
 }
 
 has sort => (
-    is => 'rw',
+    is     => 'rw',
+    isa    => Maybe[ArrayRef],
+    coerce => sub {
+        return unless $_[0];
+        # Allow single sorts, or several in an array
+        ref $_[0] eq 'ARRAY' ? $_[0] : [ $_[0] ],
+    },
 );
 
 has schema => (
@@ -827,14 +833,18 @@ sub construct_search
     # to happen
     if (my $sort = $self->sort)
     {
-        my $type = $sort->{type} eq 'desc' ? '-desc' : '-asc';
-        if (!$sort->{id})
+        my @sorts;
+        foreach my $s (@$sort)
         {
-            push @{$self->order_by}, { $type => 'me.id' };
-        }
-        elsif (my $column = $layout->column($sort->{id}))
-        {
-            $self->add_sort($column, $type);
+            my $type = $s->{type} && $s->{type} eq 'desc' ? '-desc' : '-asc';
+            if (!$s->{id})
+            {
+                push @{$self->order_by}, { $type => 'me.id' };
+            }
+            elsif (my $column = $layout->column($s->{id}))
+            {
+                $self->add_sort($column, $type);
+            }
         }
     }
     # Default sort

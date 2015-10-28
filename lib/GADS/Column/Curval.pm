@@ -95,6 +95,8 @@ sub _build_values
 
     $records->search(
         columns => $self->curval_fields,
+        # Sort on all columns displayed as the Curval
+        sort    => [ map { { id => $_ } } @{$self->curval_fields} ],
     );
 
     my @values;
