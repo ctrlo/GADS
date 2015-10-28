@@ -55,14 +55,20 @@ $ bin/app.pl
 ```
 create user gads with password 'xxx';
 create database gads owner gads;
-psql -U postgres gads < sql/schema.sql
+# Switch to gads database
+CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
+DBIC_MIGRATION_USERNAME=gads DBIC_MIGRATION_PASSWORD=mysecret \
+    dbic-migration -Ilib --schema_class='GADS::Schema' \
+    --dsn='dbi:Pg:database=gads5' --dbic_connect_attrs \
+    quote_names=1 install
 ```
 
+## Other useful dbic-migration commands
 ```
-insert into instance (name) values ('GADS');
-insert into "user" (email,username,firstname,surname,value) values ('me@example.com','me@example.com','Joe','Bloggs','Bloggs, Jo');
-\copy permission (name,description,"order") FROM 'sql/permissions.csv' DELIMITER ',' CSV;
-insert into user_permission (user_id,permission_id) values (1,1);
+# Dump all data to fixtures
+... dump_all_sets --fixture_sets all_tables
+# Load all fixture data
+... populate --fixture_set all_tables
 ```
 
 ## Import data
