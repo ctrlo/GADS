@@ -14,6 +14,10 @@ GADS provides a much more user-friendly interface and makes the data easier to m
 
 # Installation
 
+Note: required fixtures for database (user permissions list etc) are currently
+only deployed when installing version 1 of the database. Therefore, install
+version 1 (```install --to_version 1```) and then upgrade (```upgrade```).
+
 ```
 git clone https://github.com/ctrlo/GADS.git
 
