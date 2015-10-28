@@ -143,6 +143,31 @@
                         [% ELSE %]
                             type: 'string',
                         [% END %]
+                        [%
+                            column_type = column.type;
+                            IF column_type == 'enum'
+                                OR column_type == 'person'
+                                OR column_type == 'tree';
+                        %]
+                        onAfterCreateRuleInput: function($rule, filter) {
+                            var $ruleInput = $( '#' + $rule.attr('id') + ' .rule-value-container input');
+                            $ruleInput.attr('autocomplete', 'off');
+                            $ruleInput.typeahead({
+                                delay: 100,
+                                matcher: function () { return true; },
+                                sorter: function (items) { return items; },
+                                source: function (query, process) {
+                                    return $.ajax({
+                                        type: 'GET',
+                                        url: '/match/layout/[% column.id | uri %]',
+                                        data: { q: query },
+                                        success: function(result) { process(result) },
+                                        dataType: 'json'
+                                    });
+                                }
+                            });
+                        }
+                        [% END %]
                     },
                 [% END %] 
                 ],

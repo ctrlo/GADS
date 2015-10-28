@@ -618,5 +618,25 @@ sub _filter_remove_colid_decoded
     $filter->{id} && $colid == $filter->{id} ? 0 : 1;
 }
 
+sub values_beginning_with
+{   my ($self, $match_string) = @_;
+
+    my $resultset = $self->resultset_for_values;
+    my @value;
+    if ($resultset) {
+        $match_string =~ s/([_%])/\\$1/g;
+        my $match_result = $resultset->search(
+            { value => { -like => "${match_string}%" } },
+            { rows  => 10 },
+        );
+        # TODO: Don't assume values live in a "value" column.  Given
+        # that subclasses such as ::Enum and ::Tree don't know their
+        # results come from ::Enumval, this requires more knowledge
+        # about relationships than we currently have.
+        @value = $match_result->get_column('value')->all;
+    }
+    return @value;
+}
+
 1;
 

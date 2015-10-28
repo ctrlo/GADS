@@ -1968,6 +1968,16 @@ any '/resetpw/:code' => sub {
     }
 };
 
+get '/match/layout/:layout_id' => require_login sub {
+    my $query = param('q');
+    my $layout_id = param('layout_id');
+
+    my $column = var('layout')->column($layout_id, permission => 'read');
+
+    content_type 'application/json';
+    to_json [ $column->values_beginning_with($query) ];
+};
+
 sub current_view {
     my ($user, $layout) = @_;
 
