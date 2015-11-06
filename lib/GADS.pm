@@ -312,10 +312,10 @@ sub _data_graph
     my $view    = current_view($user, $layout);
     my $graph   = GADS::Graph->new(id => $id, schema => schema);
     my $records = GADS::Records->new(
-        user             => $user,
-        layout           => $layout,
-        schema           => schema,
-        prefetch_related => 1,
+        user              => $user,
+        layout            => $layout,
+        schema            => schema,
+        prefetch_children => 1,
     );
     # Columns is either the x-axis, or if not defined, all the columns in the view
     my @columns = $graph->x_axis
@@ -1575,7 +1575,7 @@ any '/edit/:id?' => require_login sub {
 
     if (param 'submit')
     {
-        $record->initialise unless $id || param('related');
+        $record->initialise unless $id || param('child');
         my $params = params;
         my $uploads = request->uploads;
         foreach my $key (keys %$uploads)
@@ -1591,11 +1591,11 @@ any '/edit/:id?' => require_login sub {
             });
         }
         my $failed;
-        if (my $related = param 'related')
+        if (my $child = param 'child')
         {
-            if ($id && !user_has_role('create_related'))
+            if ($id && !user_has_role('create_child'))
             {
-                # Edit of existing related record
+                # Edit of existing child record
                 foreach my $field (keys %{$record->fields})
                 {
                     my $newv = param("field$field");
@@ -1603,14 +1603,14 @@ any '/edit/:id?' => require_login sub {
                 }
             }
             else {
-                error __"You do not have permission to create or change the fields of related records"
-                    unless user_has_role('create_related');
-                # New related record or edit by someone who can add/remove fields
-                $record->parent_id($related);
-                my @related = ref(param 'related_inc') ? @{param 'related_inc'} : (param('related_inc') || ());
+                error __"You do not have permission to create or change the fields of child records"
+                    unless user_has_role('create_child');
+                # New child record or edit by someone who can add/remove fields
+                $record->parent_id($child);
+                my @child_inc = ref(param 'child_inc') ? @{param 'child_inc'} : (param('child_inc') || ());
                 $record->fields({}) unless $id;
                 my %has_id;
-                foreach my $col (@related)
+                foreach my $col (@child_inc)
                 {
                     $has_id{$col} = undef;
                     my $newv = param("field$col");
@@ -1690,20 +1690,20 @@ any '/edit/:id?' => require_login sub {
             # The last edited record was one for approval. This will
             # be missing values, so get its associated main record,
             # and use the values for that too.
-            my $related = GADS::Record->new(
+            my $child = GADS::Record->new(
                 user             => $user,
                 layout           => $layout,
                 schema           => schema,
                 include_approval => 1,
                 base_url         => request->base,
             );
-            $related->find_record_id($record->approval_record_id);
+            $child->find_record_id($record->approval_record_id);
             foreach my $col (@columns_to_show)
             {
                 next unless $col->userinput;
                 # See if the record above had a value. If not, fill with the
                 # approval record's value
-                $record->fields->{$col->id} = $related->fields->{$col->id}
+                $record->fields->{$col->id} = $child->fields->{$col->id}
                     if !$record->fields->{$col->id}->has_value && $col->remember;
             }
         }
@@ -1719,20 +1719,20 @@ any '/edit/:id?' => require_login sub {
             if !$col->user_can('read');
     }
 
-    my $related = param('related') && user_has_role('create_related')
-        ? int(param 'related')
+    my $child = param('child') && user_has_role('create_child')
+        ? int(param 'child')
         : $record->parent_id
         ? $record->parent_id
         : undef;
 
-    notice __"Please tick the fields that will have their own values for this related record "
+    notice __"Please tick the fields that will have their own values for this child record "
         ."(at least one must be ticked). Any fields that are not ticked will inherit their "
         ."value from the parent."
-            if param('related');
+            if param('child');
 
     my $output = template 'edit' => {
         record      => $record,
-        related     => $related,
+        child       => $child,
         all_columns => \@columns_to_show,
         page        => 'edit'
     };

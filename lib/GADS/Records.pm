@@ -117,14 +117,14 @@ has include_approval => (
     default => 0,
 );
 
-# Whether to prefetch related records along with the main resultset
-has prefetch_related => (
+# Whether to prefetch child records along with the main resultset
+has prefetch_children => (
     is      => 'rw',
     isa     => Bool,
     default => 0,
 );
 
-has retrieve_related => (
+has retrieve_children => (
     is      => 'rw',
     isa     => Bool,
     default => 1,
@@ -543,7 +543,7 @@ sub search
     my $current = $root_table eq 'Record' ? { current => $linked } : 'current';
     unshift @$prefetches, ($current, 'createdby', 'approvedby');
 
-    my $currents = $self->prefetch_related ? { currents => {record => $prefetches} } : 'currents';
+    my $currents = $self->prefetch_children ? { currents => {record => $prefetches} } : 'currents';
     my $select = {
         prefetch => $root_table eq 'Record' ? $prefetches : [
             {
@@ -587,19 +587,19 @@ sub search
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
     # This messy code is to reorder the results slightly, so that
-    # related records appear below their parent record
+    # child records appear below their parent record
     my @all_ids;
-    my %all; my %is_related;
+    my %all; my %is_child;
     foreach my $rec ($result->all)
     {
         push @all_ids, $rec->{id};
-        my @related = map { $_->{id} } @{$rec->{currents}};
-        map { $is_related{$_} = undef } @related;
+        my @children = map { $_->{id} } @{$rec->{currents}};
+        map { $is_child{$_} = undef } @children;
         $all{$rec->{id}} = GADS::Record->new(
             schema            => $self->schema,
             record            => $rec->{record},
             linked_record     => $rec->{linked}->{record},
-            related_records   => \@related,
+            child_records     => \@children,
             parent_id         => $rec->{parent_id},
             linked_id         => $rec->{linked_id},
             user              => $self->user,
@@ -610,11 +610,11 @@ sub search
         );
     }
 
-    if ($self->retrieve_related)
+    if ($self->retrieve_children)
     {
-        # Now get any related records that weren't picked up the first time.
+        # Now get any child records that weren't picked up the first time.
         # First any children of main records retrieved
-        my @need = grep { !exists $all{$_} } keys %is_related;
+        my @need = grep { !exists $all{$_} } keys %is_child;
         # Then any parents of children retrieved
         push @need, grep { $_ && !exists $all{$_} } map { $all{$_}->parent_id } @all_ids;
 
@@ -630,13 +630,13 @@ sub search
             foreach my $rec ($additional->all)
             {
                 push @all_ids, $rec->{id};
-                my @related = map { $_->{id} } @{$rec->{currents}};
-                map { $is_related{$_} = undef } @related;
+                my @children = map { $_->{id} } @{$rec->{currents}};
+                map { $is_child{$_} = undef } @children;
                 $all{$rec->{id}} = GADS::Record->new(
                     schema            => $self->schema,
                     record            => $rec->{record},
                     linked_record     => $rec->{linked}->{record},
-                    related_records   => \@related,
+                    child_records     => \@children,
                     parent_id         => $rec->{parent_id},
                     linked_id         => $rec->{linked_id},
                     user              => $self->user,
@@ -653,12 +653,12 @@ sub search
     foreach my $rec_id (@all_ids)
     {
         next unless $all{$rec_id};
-        unless (exists $is_related{$rec_id} || exists $done{$rec_id})
+        unless (exists $is_child{$rec_id} || exists $done{$rec_id})
         {
             push @all, $all{$rec_id};
             $done{$rec_id} = undef;
         }
-        foreach (@{$all{$rec_id}->related_records})
+        foreach (@{$all{$rec_id}->child_records})
         {
             next if exists $done{$_} || !$all{$_};
             foreach my $col (@{$self->columns_retrieved})

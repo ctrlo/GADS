@@ -1,13 +1,13 @@
 <h2>
     Record ID [% record.current_id %]
     [% IF record.parent_id %]
-        <small>(related to <a href="/record/[% record.parent_id %]">record [% record.parent_id %]</a>)</small>
+        <small>(child of <a href="/record/[% record.parent_id %]">record [% record.parent_id %]</a>)</small>
     [% END %]
 </h2>
-[% IF record.related_records.size %]
-    <h4>Related records</h4>
+[% IF record.child_records.size %]
+    <h4>Child records</h4>
     <ul>
-        [% FOREACH rec IN record.related_records %]
+        [% FOREACH rec IN record.child_records %]
         <li><a href="/record/[% rec %]">[% rec %]</a></li>
         [% END %]
     </ul>
@@ -32,8 +32,8 @@
             <ul class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="edit_action">
                 <li role="presentation"><a role="menuitem" href="/edit/[% record.current_id %]">Edit</a></li>
                 <li role="presentation"><a role="menuitem" href="/edit/?from=[% record.current_id %]">Clone new</a></li>
-                [% IF user.permission.create_related AND NOT record.parent_id %]
-                    <li role="presentation"><a role="menuitem" href="/edit/?related=[% record.current_id %]">Create related</a></li>
+                [% IF user.permission.create_child AND NOT record.parent_id %]
+                    <li role="presentation"><a role="menuitem" href="/edit/?child=[% record.current_id %]">Create child</a></li>
                 [% END %]
                 [% IF user.permission.link %]
                     <li role="presentation"><a role="menuitem" href="/link/[% record.current_id %]">Link record</a></li>

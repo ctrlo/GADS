@@ -124,8 +124,8 @@ has linked_id => (
     },
 );
 
-# The ID of the parent record that this is related to, in the
-# case of a related record
+# The ID of the parent record that this is a child to, in the
+# case of a child record
 has parent_id => (
     is      => 'rw',
     isa     => Maybe[Int],
@@ -139,7 +139,7 @@ has parent_id => (
     },
 );
 
-has related_records => (
+has child_records => (
     is      => 'rwp',
     isa     => ArrayRef,
     lazy    => 1,
@@ -189,7 +189,7 @@ has include_approval => (
 );
 
 # A way of forcing the write function to know that this record
-# has changed. For example, if removing a field from a related
+# has changed. For example, if removing a field from a child
 # record, which would otherwise go unnoticed
 has changed => (
     is      => 'rw',
@@ -359,8 +359,8 @@ sub _find
         $self->linked_id($record->{linked_id});
         $self->parent_id($record->{parent_id});
         $self->linked_record($record->{linked}->{record});
-        my @related_records = map { $_->{id} } @{$record->{currents}};
-        $self->_set_related_records(\@related_records);
+        my @child_records = map { $_->{id} } @{$record->{currents}};
+        $self->_set_child_records(\@child_records);
         $record = $record->{record};
     }
     else {
@@ -495,9 +495,9 @@ sub write
 
     if ($self->parent_id)
     {
-        # Check whether this is an attempt to create a related of
-        # a related record
-        error __"Cannot create a related record for an existing related record"
+        # Check whether this is an attempt to create a child of
+        # a child record
+        error __"Cannot create a child record for an existing child record"
             if $self->schema->resultset('Current')->search({
                 id        => $self->parent_id,
                 parent_id => { '!=' => undef },
@@ -514,7 +514,7 @@ sub write
     {
         next unless $column->userinput;
         my $datum = $self->fields->{$column->id}
-            or next; # Will not be set for related records
+            or next; # Will not be set for child records
 
         # Check for blank value
         if (!$self->parent_id && !$self->linked_id && !$column->optional && $datum->blank && !$force_mandatory)
@@ -585,7 +585,7 @@ sub write
         }
     }
 
-    error __"Please select at least one field to include in the related record"
+    error __"Please select at least one field to include in the child record"
         if !($need_app || $need_rec) && $self->parent_id;
 
     # Anything to update?
@@ -648,7 +648,7 @@ sub write
     {
         next unless $column->userinput;
         my $datum = $self->fields->{$column->id};
-        next if ($self->parent_id || $self->linked_id) && !$datum; # Don't write all values if this is a related/linked record
+        next if ($self->parent_id || $self->linked_id) && !$datum; # Don't write all values if this is a child/linked record
 
         if ($need_rec) # For new records, only set if user has create permissions without approval
         {
@@ -809,7 +809,7 @@ sub write
         push @{$columns_changed{$self->current_id}}, $col->id if $old ne $new->as_string;
     }
 
-    # Do we need to update any related records that rely on the
+    # Do we need to update any child records that rely on the
     # values of this parent record?
     if (@update_children)
     {
@@ -827,9 +827,9 @@ sub write
             @{$self->layout->column($_->{col_id})->depends_on}
         } @update_children;
         $records->search(
-            columns          => \@retrieve,
-            current_ids      => $self->related_records,
-            retrieve_related => 0,
+            columns           => \@retrieve,
+            current_ids       => $self->child_records,
+            retrieve_children => 0,
         );
         foreach my $r (@{$records->results})
         {

@@ -2,10 +2,10 @@
     [% IF record.current_id %]
         Record ID [% record.current_id %]
         [% IF record.parent_id %]
-            <small>(related to record [% record.parent_id %])</small>
+            <small>(child of record [% record.parent_id %])</small>
         [% END %]
-    [% ELSIF related %]
-        Create record related to [% related %]
+    [% ELSIF child %]
+        Create child record of [% child %]
     [% ELSE %]
         New record
     [% END %]
@@ -17,8 +17,8 @@
             [% IF record.current_id %]
                 <input type="hidden" name="current_id" value="[% record.current_id %]">
             [% END %]
-            [% IF related %]
-                <input type="hidden" name="related" value="[% related %]">
+            [% IF child %]
+                <input type="hidden" name="child" value="[% child %]">
             [% END %]
             [% trees = [] %]
             [% jscode = [] %]
@@ -79,8 +79,8 @@
 
     [%# Skip field if it's an approval request but a value not needing approval %]
     [% NEXT IF page == "approval" AND NOT (record.fields.$colid.has_value)  %]
-    [%# Skip if it's a related record and the value doesn't exist %]
-    [% NEXT IF record.parent_id AND NOT (record.fields.$colid.has_value) AND NOT user.permission.create_related %]
+    [%# Skip if it's a child record and the value doesn't exist %]
+    [% NEXT IF record.parent_id AND NOT (record.fields.$colid.has_value) AND NOT user.permission.create_child %]
     [%# Skip if it's a linked record and the value is linked %]
     [% NEXT IF record.linked_id AND dispcol.link_parent %]
 
@@ -130,10 +130,10 @@
             [% label = label _ " (<a data-toggle='modal' href='/helptext/"
                              _ dispcol.id  _ "' data-target='#helptext_modal'>?</a>)" %]
         [% END %]
-        [% IF related AND user.permission.create_related %]
+        [% IF child AND user.permission.create_child %]
             <div class="checkbox">
                 <label>
-                    <input type="checkbox" name="related_inc" value="[% dispcol.id %]"
+                    <input type="checkbox" name="child_inc" value="[% dispcol.id %]"
                         [% IF record.current_id AND record.fields.$colid.has_value %]checked[% END %]
                     > <span [% label_style %]>[% label %]</span> (tick to include)
                 </label>

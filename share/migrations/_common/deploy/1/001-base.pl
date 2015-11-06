@@ -43,8 +43,8 @@ migrate {
             description => 'User can create, modify and delete views',
             order       => 7,
         },{
-            name        => 'create_related',
-            description => 'User can create related records and edit fields of existing related records',
+            name        => 'create_child',
+            description => 'User can create child records and edit fields of existing child records',
             order       => 8,
         },{
             name        => 'link',
