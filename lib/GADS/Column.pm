@@ -626,8 +626,8 @@ sub values_beginning_with
     if ($resultset) {
         $match_string =~ s/([_%])/\\$1/g;
         my $match_result = $resultset->search(
-            { value => { -like => "${match_string}%" } },
-            { rows  => 10 },
+            { 'me.value' => { -like => "${match_string}%" } },
+            { rows       => 10 },
         );
         # TODO: Don't assume values live in a "value" column.  Given
         # that subclasses such as ::Enum and ::Tree don't know their

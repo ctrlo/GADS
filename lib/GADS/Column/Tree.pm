@@ -397,7 +397,20 @@ sub _update
 
 sub resultset_for_values
 {   my $self = shift;
-    return $self->schema->resultset('Enumval')->search({ layout_id => $self->id });
+    if ($self->end_node_only)
+    {
+        $self->schema->resultset('Enumval')->search({
+            'me.layout_id' => $self->id,
+            'enumvals.id'  => undef,
+        },{
+            join => 'enumvals',
+        });
+    }
+    else {
+        $self->schema->resultset('Enumval')->search({
+            layout_id => $self->id,
+        });
+    }
 }
 
 1;
