@@ -401,6 +401,7 @@ sub resultset_for_values
     {
         $self->schema->resultset('Enumval')->search({
             'me.layout_id' => $self->id,
+            'me.deleted'   => 0,
             'enumvals.id'  => undef,
         },{
             join => 'enumvals',
@@ -409,6 +410,7 @@ sub resultset_for_values
     else {
         $self->schema->resultset('Enumval')->search({
             layout_id => $self->id,
+            deleted   => 0,
         });
     }
 }
