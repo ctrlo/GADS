@@ -1214,9 +1214,10 @@ sub data_time
                 push @result, $item;
             }
             else {
+                my $cid = $record->current_id;
                 my $item = {
-                    "content" => $title,
-                    "id"      => $record->current_id,
+                    "content" => qq(<a href="/record/$cid" style="color:inherit;">$title</a>),
+                    "id"      => $cid,
                     "start"   => $d->{from}->ymd,
                     "group"   => $item_group,
                 };
