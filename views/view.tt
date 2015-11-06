@@ -147,6 +147,7 @@
                             column_type = column.type;
                             IF column_type == 'enum'
                                 OR column_type == 'person'
+                                OR column_type == 'calc'
                                 OR column_type == 'tree';
                         %]
                         onAfterCreateRuleInput: function($rule, filter) {

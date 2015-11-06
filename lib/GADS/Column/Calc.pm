@@ -91,5 +91,14 @@ after 'write' => sub {
     }
 };
 
+sub resultset_for_values
+{   my $self = shift;
+    return $self->schema->resultset('Calcval')->search({
+        layout_id => $self->id,
+    },{
+        group_by  => 'value',
+    });
+}
+
 1;
 
