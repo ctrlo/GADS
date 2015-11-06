@@ -1168,13 +1168,13 @@ sub data_time
             @titles = (encode_entities $record->fields->{$label}->as_string)
                 if $record->fields->{$label};
         }
-        my $item_color;
+        my $item_color; my $color_key = '';
         if (my $color = $options{color})
         {
             if ($record->fields->{$color})
             {
-                my $val = $record->fields->{$color}->as_string;
-                $item_color = $graph->get_color($val);
+                $color_key = $record->fields->{$color}->as_string;
+                $item_color = $graph->get_color($color_key);
             }
         }
         my $item_group;
@@ -1216,7 +1216,7 @@ sub data_time
             else {
                 my $cid = $record->current_id;
                 my $item = {
-                    "content" => qq(<a href="/record/$cid" style="color:inherit;">$title</a>),
+                    "content" => qq(<a title="$color_key" href="/record/$cid" style="color:inherit;">$title</a>),
                     "id"      => $cid,
                     "start"   => $d->{from}->ymd,
                     "group"   => $item_group,
