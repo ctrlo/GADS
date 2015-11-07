@@ -643,7 +643,7 @@ sub values_beginning_with
         # that subclasses such as ::Enum and ::Tree don't know their
         # results come from ::Enumval, this requires more knowledge
         # about relationships than we currently have.
-        @value = $match_result->get_column('value')->all;
+        @value = $match_result->get_column('me.value')->all;
     }
     return @value;
 }
