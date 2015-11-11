@@ -79,6 +79,18 @@ sub _build_all
     \@users;
 }
 
+sub all_in_org
+{   my ($self, $org_id) = @_;
+    my $search = {
+    };
+    my @users = $self->schema->resultset('User')->search({
+        deleted         => undef,
+        account_request => 0,
+        organisation    => $org_id,
+    })->all;
+    \@users;
+}
+
 sub _build_all_admins
 {   my $self = shift;
     my $search = {

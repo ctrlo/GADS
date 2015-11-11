@@ -625,9 +625,11 @@ any '/data' => require_login sub {
             my $args   = {
                 subject => param('subject'),
                 text    => param('text'),
+                records => $records,
+                col_id  => param('peopcol'),
             };
 
-            if (process( sub { $email->message($args, $records, param('peopcol'), $user) }))
+            if (process( sub { $email->message($args, $user) }))
             {
                 return forwardHome(
                     { success => "The message has been sent successfully" }, 'data' );
@@ -1223,6 +1225,25 @@ any '/user/?:id?' => require_role useradmin => sub {
     my $userso = GADS::Users->new(schema => schema);
     my $audit  = GADS::Audit->new(schema => schema, user => $user);
     my $users;
+
+    if (param 'sendemail')
+    {
+        my @emails = param('email_organisation')
+                   ? (map { $_->email } @{$userso->all_in_org(param 'email_organisation')})
+                   : (map { $_->email } @{$userso->all});
+        my $email  = GADS::Email->instance;
+        my $args   = {
+            subject => param('email_subject'),
+            text    => param('email_text'),
+            emails  => \@emails,
+        };
+
+        if (process( sub { $email->message($args, logged_in_user) }))
+        {
+            return forwardHome(
+                { success => "The message has been sent successfully" }, 'user' );
+        }
+    }
 
     # The submit button will still be triggered on a new org/title creation,
     # if the user has pressed enter, in which case ignore it

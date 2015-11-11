@@ -251,6 +251,7 @@
 [% ELSE %]
 <p>
     <a href="/user/0" class="btn btn-default" role="button">Create user</a>
+    <a href="" data-toggle="modal" data-target="#modal-email" class="btn btn-default" role="button">Email users</a>
 </p>
 [% IF register_requests.size %]
     <h4>Active accounts</h4>
@@ -305,6 +306,49 @@
     </table>
 [% END %]
 [% END %]
+
+<!-- Modal -->
+<div class="modal fade" id="modal-email" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form class="form-horizontal" role="form" method="post">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Send an email</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="email_organisation" class="col-sm-2 control-label">Users in:</label>
+                    <div class="col-sm-10">
+                        <select class="form-control" id="email_organisation" name="email_organisation">
+                            <option value="">&lt;All users&gt;</option>
+                            [% FOREACH org IN organisations %]
+                                <option value="[% org.id %]">[% org.name | html_entity %]</option>
+                            [% END %]
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="email_subject" class="col-sm-2 control-label">Subject</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" name="email_subject" id="email_subject" placeholder="Subject">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="email_text" class="col-sm-2 control-label">Message</label>
+                    <div class="col-sm-10">
+                        <textarea class="form-control" id="email_text" name="email_text" rows="10"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="submit" name="sendemail" value="sendemail" class="btn btn-primary">Send email</button>
+            </div>
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]

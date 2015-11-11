@@ -79,14 +79,22 @@ sub send
 }
 
 sub message
-{   my ($self, $args, $records, $col_id, $user) = @_;
+{   my ($self, $args, $user) = @_;
 
     my @emails;
-    foreach my $record (@{$records->results})
+
+    if ($args->{records} && $args->{col_id})
     {
-        my $email = $record->fields->{$col_id}->email;
-        push @emails, $email if $email;
+        foreach my $record (@{$args->{records}->results})
+        {
+            my $email = $record->fields->{$args->{col_id}}->email;
+            push @emails, $email if $email;
+        }
     }
+
+    push @emails, @{$args->{emails}} if $args->{emails};
+
+    @emails or return;
 
     (my $text = $args->{text}) =~ s/\s+$//;
     $text = $self->message_prefix.$text
