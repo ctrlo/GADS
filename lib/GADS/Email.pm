@@ -20,6 +20,7 @@ package GADS::Email;
 
 use Log::Report;
 use Mail::Message;
+use Mail::Message::Body::String;
 use Mail::Transport::Sendmail;
 use Text::Autoformat qw(autoformat break_wrap);
 
@@ -56,12 +57,30 @@ sub send
     my $emails   = $args->{emails} or error __"Please specify some recipients to send an email to";
     my $subject  = $args->{subject} or error __"Please enter some text for the email";
     my $reply_to = $args->{reply_to};
-    my $body     = autoformat $args->{text}, {all => 1, break=>break_wrap};
+
+    my @parts;
+
+    push @parts, Mail::Message::Body::String->new(
+        mime_type   => 'text/plain',
+        disposition => 'inline',
+        data        => autoformat($args->{text}, {all => 1, break=>break_wrap}),
+    ) if $args->{text};
+
+    push @parts, Mail::Message::Body::String->new(
+        mime_type   => 'text/html',
+        disposition => 'inline',
+        data        => $args->{html},
+    ) if $args->{html};
+
+    @parts or panic "No plain or HTML email text supplied";
+
+    my $content_type = @parts > 1 ? 'multipart/alternative' : $parts[0]->type;
 
     my $msg = Mail::Message->build(
-        Subject => $subject,
-        data    => $body,
-        From    => $self->email_from,
+        Subject        => $subject,
+        From           => $self->email_from,
+        'Content-Type' => $content_type,
+        attach         => \@parts,
     );
     $msg->head->add('Reply-to' => $reply_to) if $reply_to;
 
