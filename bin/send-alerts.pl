@@ -21,11 +21,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 
-use Dancer2 ':script';
-use Dancer2::Plugin::DBIC qw(schema resultset rset);
 use GADS::Schema;
 use GADS::Alert;
 use GADS::Email;
+use Dancer2 ':script';
+use Dancer2::Plugin::DBIC qw(schema resultset rset);
+use Dancer2::Plugin::LogReport mode => 'NORMAL';
 
 my $url = config->{gads}->{url};
 $url =~ s!/$!!; # Remove trailing slash
