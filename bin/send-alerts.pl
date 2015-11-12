@@ -52,7 +52,7 @@ sub _do_columns
 
 my @rows = rset('AlertSend')->search({}, {
     join     => { alert => 'user' },
-    order_by => qw/ user.id alert_id current_id /
+    order_by => [qw/ user.id alert_id current_id /],
 })->all;
 
 my ($last_current_id, $last_alert_id, $last_user);
