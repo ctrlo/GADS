@@ -27,27 +27,43 @@ use GADS::Schema;
 use GADS::Alert;
 use GADS::Email;
 
+my $url = config->{gads}->{url};
+$url =~ s!/$!!; # Remove trailing slash
+
 sub _send
 {   my ($email, @notifications) = @_;
 
     @notifications or return;
 
     my $text = "This email contains details of any changes in views that you have asked to be alerted to.\n\n";
-    $text .= join "\n\n", @notifications; # <sigh> 2 CRs to fix Outlook piss-poor wrapping
+    my $html = "<p>This email contains details of any changes in views that you have asked to be alerted to.</p>";
+    $text .= join "\n", map { $_->{text} } @notifications;
+    $html .= join "\n", map { $_->{html} } @notifications;
     my $email_send = GADS::Email->new(config => config);
+
     $email_send->send({
         emails  => [$email],
         subject => "Changes in your views",
         text    => $text,
+        html    => $html,
     });
 }
 
+sub _id_link
+{   qq(<a href="$url/record/$_[0]">record $_[0]</a>)
+}
+
 sub _do_columns
-{   my ($current_id, $columns) = @_;
-    my $notification = "* The following columns have changed in record $current_id: ".join(', ',@$columns)
-        if @$columns;
-    @$columns = ();
-    $notification;
+{   my ($current_id, @columns) = @_;
+    @columns or return;
+    my $cols = join ', ', @columns;
+    my $notification = "* The following columns have changed in record $current_id: $cols";
+    my $link = _id_link($current_id);
+    my $notification_html = qq(<li>The following columns have changed in $link: $cols</li>);
+    {
+        text => $notification,
+        html => $notification_html,
+    };
 }
 
 my @rows = rset('AlertSend')->search({}, {
@@ -63,38 +79,47 @@ foreach my $row (@rows)
 
     if (defined $last_user && $last_user->id != $row->alert->user_id)
     {
-        push @notifications, _do_columns $last_current_id, \@columns if @columns;
+        push @notifications, _do_columns($last_current_id, @columns);
         _send $last_user->email, @notifications;
         @notifications = ();
     }
 
     if (!defined $last_alert_id || $last_alert_id != $row->alert_id)
     {
-        push @notifications, _do_columns $last_current_id, \@columns if @columns;
-        push @notifications, '' if @notifications; # blank line separater
+        push @notifications, _do_columns($last_current_id, @columns);
+        push @notifications, { text => '', html => '</ul><p></p>' } if @notifications; # blank line separater
         my $view_name = $row->alert->view->name;
-        push @notifications, qq(The following are changes in the view "$view_name":);
+        push @notifications, {
+            text => qq(The following are changes in the view "$view_name":),
+            html => qq(<p>The following are changes in the view "$view_name":</p><ul>),
+        };
     }
 
-    if (my $lid = $row->layout_id)
+    if (defined $last_current_id && $last_current_id != $row->current_id && @columns)
     {
-        if (defined $last_current_id && $last_current_id != $row->current_id && @columns)
-        {
-            my $current_id = $row->current_id;
-            push @notifications, _do_columns $last_current_id, \@columns if @columns;
-        }
-        else {
-            push @columns, $row->layout->name;
-        }
+        my $current_id = $row->current_id;
+        push @notifications, _do_columns($last_current_id, @columns);
+        @columns = ();
+    }
+
+    if ($row->status eq 'changed')
+    {
+        push @columns, $row->layout->name;
     }
     elsif ($row->status eq 'gone')
     {
-        push @notifications, _do_columns $last_current_id, \@columns if @columns;
-        push @notifications, "* Record $current_id has now disappeared from the view";
+        my $link = _id_link($current_id);
+        push @notifications, {
+            text => "* Record $current_id has now disappeared from the view",
+            html => "<li>Record $link has disappeared from the view</li>",
+        };
     }
     elsif ($row->status eq 'arrived') {
-        push @notifications, _do_columns $last_current_id, \@columns if @columns;
-        push @notifications, "* Record $current_id is now in the view";
+        my $link = _id_link($current_id);
+        push @notifications, {
+            text => "* Record $current_id is now in the view",
+            html => "<li>Record $link is now in the view</li>",
+        };
     }
     else {
         # XXX Throw error
@@ -107,6 +132,7 @@ foreach my $row (@rows)
     $row->delete;
 }
 
-push @notifications, _do_columns $last_current_id, \@columns if @columns;
+push @notifications, _do_columns($last_current_id, @columns);
+push @notifications, { text => '', html => '</ul><p></p>' } if @notifications; # blank line separater
 _send $last_user->email, @notifications if $last_user;
 
