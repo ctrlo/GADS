@@ -31,6 +31,13 @@
                 var ticks = plotData.xlabels;
                 var seriesDefaults;
                 var plotOptions = {};
+                var showmarker = (options_in.type == "line" ? true : false);
+                plotOptions.highlighter =  {
+                    showMarker: showmarker,
+                    tooltipContentEditor: function(str, pointIndex, index, plot){
+                       return  plot._plotData[pointIndex][index][1];
+                    },
+                };
                 if (options_in.type == "bar") {
                     plotOptions.seriesDefaults = {
                         renderer:$.jqplot.BarRenderer,
