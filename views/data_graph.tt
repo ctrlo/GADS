@@ -42,7 +42,8 @@
                     plotOptions.seriesDefaults = {
                         renderer:$.jqplot.BarRenderer,
                         rendererOptions: {
-                            shadow: false
+                            shadow: false,
+                            fillToZero: true
                         },
                         pointLabels: {
                             show: false,
@@ -91,7 +92,6 @@
                         }
                     };
                     plotOptions.axesDefaults = {
-                        min: 0,
                         tickRenderer: $.jqplot.CanvasAxisTickRenderer ,
                         tickOptions: {
                           angle: -30,
