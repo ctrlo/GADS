@@ -1002,12 +1002,8 @@ sub _search_construct
             error __x"Invalid operator {operator} for date range", operator => $operator;
         }
     }
-    elsif ($column->type eq "file")
-    {
-        $s_field = "name";
-    }
     else {
-        $s_field = "value";
+        $s_field = $column->value_field;
     }
 
     if ($column->type eq "person")

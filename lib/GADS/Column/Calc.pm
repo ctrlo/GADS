@@ -39,6 +39,13 @@ after 'build_values' => sub {
         $self->calc($calc->{calc});
         $self->return_type($calc->{return_format});
         $self->numeric($self->return_type eq 'integer' || $self->return_type eq 'date');
+        $self->value_field(
+            $self->return_type eq 'date'
+            ? 'value_date'
+            : $self->return_type eq 'integer'
+            ? 'value_int'
+            : 'value_text'
+        );
     }
     $self->table("Calcval");
     $self->userinput(0);
@@ -61,7 +68,8 @@ after 'write' => sub {
     if ($calcr)
     {
         # First see if the calculation has changed
-        $need_update = $calcr->calc ne $self->calc;
+        $need_update = $calcr->calc ne $self->calc
+            || $calcr->return_format ne $self->return_type;
         $calcr->update({
             calc          => $self->calc,
             return_format => $self->return_type,

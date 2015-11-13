@@ -71,6 +71,10 @@ sub as_integer
     int ($value || 0);
 }
 
+sub _parse_date
+{   $_[1] or return;
+    $_[0]->schema->storage->datetime_parser->parse_date($_[1]);
+}
 sub _transform_value
 {   my ($self, $original) = @_;
 
@@ -80,9 +84,14 @@ sub _transform_value
 
     my $value;
 
-    if (exists $original->{value} && !$self->force_update)
+    if (ref $original && !$self->force_update)
     {
-        $value = $original->{value};
+        my $return_type = $column->return_type;
+        $value = $return_type eq 'date'
+               ? $self->_parse_date($original->{value_date})
+               : $return_type eq 'integer'
+               ? $original->{value_int}
+               : $original->{value_text};
     }
     elsif (!$code)
     {
@@ -104,7 +113,9 @@ sub _transform_value
         # If there are still square brackets then something is wrong
         if ($code =~ /[\[\]]+/)
         {
-            $value = 'Invalid field names in calc formula';
+            $value = $column->return_type eq 'date'
+                   ? undef
+                   : 'Invalid field names in calc formula';
             assert "Invalid field names in calc formula. Remaining code: $code";
         }
         else {
@@ -114,18 +125,19 @@ sub _transform_value
                 $value = $@->wasFatal->message->toString;
                 assert "Failed to eval calc. Code was: $code";
             }
+            # Convert to date if required
+            if ($column->return_type eq "date")
+            {
+                try { $value = DateTime->from_epoch(epoch => $value) };
+                if (my $exception = $@->wasFatal)
+                {
+                    $value = undef;
+                    assert "$@";
+                }
+            }
         }
 
         $self->_write_calc($value);
-    }
-    if ($value && $column->return_type eq "date")
-    {
-        try { $value = DateTime->from_epoch(epoch => $value) };
-        if (my $exception = $@->wasFatal)
-        {
-            $value = undef;
-            assert "$@";
-        }
     }
     $value;
 }

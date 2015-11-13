@@ -46,12 +46,16 @@ sub write_cache
     # The cache tables have unqiue constraints to prevent
     # duplicate cache values for the same records. Using an eval
     # catches any attempts to write duplicate values.
+    my $values = {
+        record_id => $self->record_id,
+        layout_id => $self->column->{id},
+    };
+    my $return_type = $self->column->return_type;
+    $values->{value_date} = $value if $return_type eq 'date';
+    $values->{value_int}  = $value if $return_type eq 'integer';
+    $values->{value_text} = $value if $return_type eq 'string';
     try {
-        $self->schema->resultset($tablec)->create({
-            record_id => $self->record_id,
-            layout_id => $self->column->{id},
-            value     => $value,
-        });
+        $self->schema->resultset($tablec)->create($values);
     };
     # Log any messages from try block, but only as trace
     $@->reportAll(reason => 'TRACE');
