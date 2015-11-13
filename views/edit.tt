@@ -51,6 +51,14 @@
             $(document).on('hidden.bs.modal', function (e) {
                 $(e.target).removeData('bs.modal');
             });
+            $('.input-daterange input.from').each(function (){
+                $(this).on('changeDate', function(e) {
+                    var toDatepicker = $(this).parents('.input-daterange').find('.datepicker.to');
+                    if (!toDatepicker.val()) {
+                        toDatepicker.datepicker('update', $(this).datepicker('getDate'));
+                    }
+                });
+            });
             var confirmOnPageExit = function (e) 
             {
                 e = e || window.event;
@@ -225,9 +233,9 @@
     [% ELSE %]
         [% IF dispcol.type == "daterange" %]
             <div class="input-group input-daterange">
-                    <input type="text" name="[% field %]" class="form-control datepicker" value="[% editvalue.from_form | html_entity %]" [% readonly %]>
+                    <input type="text" name="[% field %]" class="form-control datepicker from" value="[% editvalue.from_form | html_entity %]" [% readonly %]>
                     <span class="input-group-addon">to</span>
-                    <input type="text" name="[% field %]" class="form-control datepicker" value="[% editvalue.to_form | html_entity %]" [% readonly %]>
+                    <input type="text" name="[% field %]" class="form-control datepicker to" value="[% editvalue.to_form | html_entity %]" [% readonly %]>
             </div>
         [% ELSE %]
             [% IF dispcol.type == "date" %]
