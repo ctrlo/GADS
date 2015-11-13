@@ -3,6 +3,7 @@
 <table class="table table-striped" id="datatable">
     <thead>
         <tr>
+            [% sort = sort.shift %]
             [% IF NOT sort.id AND sort.type == "asc" %]
                 [% st = "&#9650;" %]
             [% ELSIF NOT sort.id %]
