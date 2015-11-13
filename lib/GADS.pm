@@ -299,9 +299,10 @@ get '/data_calendar/:time' => require_login sub {
 
     header "Cache-Control" => "max-age=0, must-revalidate, private";
     content_type 'application/json';
+    my $data = $records->data_calendar;
     encode_json({
         "success" => 1,
-        "result"  => $records->data_calendar,
+        "result"  => $data,
     });
 };
 
