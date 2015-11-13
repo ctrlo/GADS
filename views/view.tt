@@ -143,6 +143,16 @@
                         [% ELSE %]
                             type: 'string',
                         [% END %]
+                        [% IF column.type == "rag" %]
+                            input: 'select',
+                            values: {
+                                'b_red': 'Red',
+                                'c_amber': 'Amber',
+                                'd_green': 'Green',
+                                'a_grey': 'Grey',
+                                'e_purple': 'Purple'
+                            },
+                        [% END %]
                         [%
                             column_type = column.type;
                             IF column_type == 'enum'
