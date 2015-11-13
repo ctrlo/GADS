@@ -1,4 +1,16 @@
 [% FILTER collapse %]
+[% IF subset.pages > 1 %]
+    [% IF subset.page == subset.pages %]
+        <a class="disabled btn btn-default pull-right" href="?page=[% subset.page + 1 %]">&raquo;</a>
+    [% ELSE %]
+        <a class="btn btn-default pull-right" href="?page=[% subset.page + 1 %]">&raquo;</a>
+    [% END %]
+    [% IF subset.page == 1 %]
+        <a class="disabled btn btn-default pull-right" href="?page=[% subset.page - 1 %]">&laquo;</a>
+    [% ELSE %]
+        <a class="btn btn-default pull-right" href="?page=[% subset.page - 1 %]">&laquo;</a>
+    [% END %]
+[% END %]
 <div class="hscroll">
 <table class="table table-striped" id="datatable">
     <thead>
