@@ -50,14 +50,14 @@ html {
   border-top: 5px solid #33c2df; 
   margin-left: auto; 
   margin-right: auto; 
-  margin-top: 20px;
 }
 .hscroll{
   overflow-x: visible;
   margin-right: 20px;
 }
 body {
-	font-weight:100;
+  margin-top: 20px;
+  font-weight:100;
 }
 a {
 	background:transparent;

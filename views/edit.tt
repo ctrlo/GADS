@@ -224,9 +224,10 @@
         [% END %]
     [% ELSE %]
         [% IF dispcol.type == "daterange" %]
-            <div class="input-daterange datepicker" style="padding:0">
-                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline" value="[% editvalue.from_form | html_entity %]" [% readonly %]>
-                    <input type="text" name="[% field %]" class="form-control" style="width:48%; display:inline; float:right" value="[% editvalue.to_form | html_entity %]" [% readonly %]>
+            <div class="input-group input-daterange">
+                    <input type="text" name="[% field %]" class="form-control datepicker" value="[% editvalue.from_form | html_entity %]" [% readonly %]>
+                    <span class="input-group-addon">to</span>
+                    <input type="text" name="[% field %]" class="form-control datepicker" value="[% editvalue.to_form | html_entity %]" [% readonly %]>
             </div>
         [% ELSE %]
             [% IF dispcol.type == "date" %]

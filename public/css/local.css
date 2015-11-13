@@ -85,8 +85,6 @@ div.circ-small {
     font-family:monospace;
 }
 
-.datepicker {z-index: 1151 !important;}
-
 /* Override default calendar image locations */
 #cal-slide-content {
     padding : 20px;

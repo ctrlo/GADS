@@ -36,7 +36,7 @@
 
         [% IF page == "layout" OR page == "edit" OR page == "approval" %]
         <link rel="stylesheet" href="[% url.css %]/jstree.min.css" />
-        <link rel="stylesheet" href="[% url.css %]/datepicker.css" />
+        <link rel="stylesheet" href="[% url.css %]/bootstrap-datepicker.min.css" />
         [% END %]
         [% IF page == "data" AND viewtype == "calendar" %]
             <link rel="stylesheet" href="[% url.css %]/calendar.min.css">
