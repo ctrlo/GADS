@@ -62,6 +62,11 @@
         <!-- Custom styles for this template -->
         <link rel="stylesheet" href="[% url.css %]/local.css">
 
+        [% IF user.stylesheet %]
+            <!-- Custom styles for this user -->
+            <link rel="stylesheet" href="[% url.css %]/[% user.stylesheet %]">
+        [% END %]
+
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
         <script src="[% scheme %]://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>

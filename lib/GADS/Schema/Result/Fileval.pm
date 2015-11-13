@@ -99,8 +99,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-09-28 11:44:14
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PU7S8+gpJJsWBN42O913HA
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rlMu7281zlfOq81F66pZsA
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;

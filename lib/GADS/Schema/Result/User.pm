@@ -151,6 +151,11 @@ __PACKAGE__->table("user");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 stylesheet
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -210,6 +215,8 @@ __PACKAGE__->add_columns(
   },
   "limit_to_view",
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
+  "stylesheet",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -462,8 +469,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-10-25 18:24:14
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9uCXsR3VNP5awtBAd3M8Jw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:n5UUh5zm88/612YMaRdiCw
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
