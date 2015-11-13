@@ -1685,7 +1685,7 @@ any '/edit/:id?' => require_login sub {
         if (!$failed && process( sub { $record->write }))
         {
             return forwardHome(
-                { success => 'Submission has been completed successfully' }, 'data' );
+                { success => 'Submission has been completed successfully for record ID '.$record->current_id }, 'data' );
         }
     }
     elsif($id) {
