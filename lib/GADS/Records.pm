@@ -710,7 +710,9 @@ sub construct_search
             order_dependencies => 1,
         );
     }
-    $self->columns_retrieved(\@columns);
+    my %columns_retrieved = map { $_->id => undef } @columns;
+    my @columns_retrieved = grep { exists $columns_retrieved{$_->id} } $layout->all;
+    $self->columns_retrieved(\@columns_retrieved);
 
     my %cache_cols;                     # Any column in the view that should be cached
     my $prefetches = $self->prefetches; # Tables to prefetch - data being viewed
