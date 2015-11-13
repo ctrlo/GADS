@@ -52,7 +52,13 @@
                                 </tr>
                             [% END %]
                     </table>
-                    <button type="submit" id="submit" name="graphsubmit" value="submit" class="btn btn-primary">Save</button>
+                    <div style="height:55px;"></div>
+                    <nav class="navbar navbar-default navbar-fixed-bottom" style="min-height:55px">
+                        <div class="container">
+                            <button type="submit" id="submit" name="graphsubmit" value="submit" class="btn btn-primary">Save</button>
+                        </div>
+                    </nav>
+
                 </form>
             [% ELSIF user.permission.layout %]
                 <p>
