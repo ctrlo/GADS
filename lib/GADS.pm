@@ -1222,9 +1222,10 @@ any '/layout/?:id?' => require_role 'layout' => sub {
 any '/user/?:id?' => require_role useradmin => sub {
     my $id = param 'id';
 
-    my $user   = logged_in_user;
-    my $userso = GADS::Users->new(schema => schema);
-    my $audit  = GADS::Audit->new(schema => schema, user => $user);
+    my $user            = logged_in_user;
+    my $userso          = GADS::Users->new(schema => schema);
+    my %all_permissions = map { $_->id => $_->name } @{$userso->permissions};
+    my $audit           = GADS::Audit->new(schema => schema, user => $user);
     my $users;
 
     if (param 'sendemail')
@@ -1258,7 +1259,6 @@ any '/user/?:id?' => require_role useradmin => sub {
             return forwardHome({ danger => "User $email already exists" }, 'user' )
                 if $usero->get_user;
         }
-        my %all_permissions = map { $_->id => $_->name } @{$userso->permissions};
         my @permissions = ref param('permission') ? @{param('permission')} : (param('permission') || ());
         my %permissions = map { $all_permissions{$_} => 1 } @permissions;
         my %values = (
@@ -1357,12 +1357,23 @@ any '/user/?:id?' => require_role useradmin => sub {
             }
         }
 
+        # Remember values of user creation in progress.
+        # XXX This is a mess (repeated code from above). Need to get
+        # DPAE to use a user object
+        my @permissions = ref param('permission') ? @{param('permission')} : (param('permission') || ());
+        my %permissions = map { $all_permissions{$_} => 1 } @permissions;
+        my @groups      = ref param('groups') ? @{param('groups')} : (param('groups') || ());
+        my %groups      = map { $_ => 1 } @groups;
         $users = [{
-            firstname    => param('firstname'),
-            surname      => param('surname'),
-            email        => param('email'),
-            title        => { id => param('title') },
-            organisation => { id => param('organisation') },
+            firstname     => param('firstname'),
+            surname       => param('surname'),
+            email         => param('email'),
+            telephone     => param('telephone'),
+            title         => { id => param('title') },
+            organisation  => { id => param('organisation') },
+            limit_to_view => param('limit_to_view'),
+            permission    => \%permissions,
+            groups        => \%groups,
         }];
     }
     elsif (my $delete_id = param('delete'))
