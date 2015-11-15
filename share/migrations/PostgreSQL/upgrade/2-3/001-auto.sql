@@ -4,7 +4,7 @@
 BEGIN;
 
 ;
-ALTER TABLE user ADD COLUMN stylesheet text;
+ALTER TABLE "user" ADD COLUMN stylesheet text;
 
 ;
 
