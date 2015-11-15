@@ -46,14 +46,12 @@ sub write_cache
     # The cache tables have unqiue constraints to prevent
     # duplicate cache values for the same records. Using an eval
     # catches any attempts to write duplicate values.
+    my $vfield = $self->column->value_field;
     my $values = {
         record_id => $self->record_id,
         layout_id => $self->column->{id},
+        $vfield   => $value,
     };
-    my $return_type = $self->column->return_type;
-    $values->{value_date} = $value if $return_type eq 'date';
-    $values->{value_int}  = $value if $return_type eq 'integer';
-    $values->{value_text} = $value if $return_type eq 'string';
     try {
         $self->schema->resultset($tablec)->create($values);
     };
