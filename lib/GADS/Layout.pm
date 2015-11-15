@@ -22,6 +22,7 @@ use Algorithm::Dependency::Ordered;
 use Algorithm::Dependency::Source::HoA;
 use GADS::Column;
 use GADS::Column::Calc;
+use GADS::Column::Curval;
 use GADS::Column::Date;
 use GADS::Column::Daterange;
 use GADS::Column::Enum;
