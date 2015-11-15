@@ -35,6 +35,7 @@ migrate {
                 if $return_format eq 'date' && $newval;
             $row->update({
                 value   => $newval,
+                $oldcol => undef,
             });
         }
     }
