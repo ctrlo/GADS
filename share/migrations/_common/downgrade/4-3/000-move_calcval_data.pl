@@ -29,6 +29,8 @@ migrate {
         foreach my $row ($schema->resultset('Calcval')->search({ layout_id => $calc->layout_id }))
         {
             my $newval = $row->$oldcol || '';
+            $newval =~ s/\.?0+//
+                if $return_format eq 'numeric';
             $newval = $dtf->parse_date($newval)->epoch
                 if $return_format eq 'date' && $newval;
             $row->update({
