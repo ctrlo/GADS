@@ -623,27 +623,24 @@ sub values_beginning_with
 
     my $resultset = $self->resultset_for_values;
     my @value;
+    my $value_field = 'me.'.$self->value_field;
     if ($resultset) {
         $match_string =~ s/([_%])/\\$1/g;
         my $match_result = $resultset->search(
             {
-                'me.value' => {
+                $value_field => {
                     -like => "${match_string}%",
                 },
             },
             {
                 rows   => 10,
                 select => {
-                    max => 'value',
-                    -as => 'value'
+                    max => $value_field,
+                    -as => $value_field,
                 }
             },
         );
-        # TODO: Don't assume values live in a "value" column.  Given
-        # that subclasses such as ::Enum and ::Tree don't know their
-        # results come from ::Enumval, this requires more knowledge
-        # about relationships than we currently have.
-        @value = $match_result->get_column('me.value')->all;
+        @value = $match_result->get_column($value_field)->all;
     }
     return @value;
 }
