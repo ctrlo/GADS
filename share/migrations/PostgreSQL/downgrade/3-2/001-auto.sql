@@ -4,7 +4,7 @@
 BEGIN;
 
 ;
-ALTER TABLE user DROP COLUMN stylesheet;
+ALTER TABLE "user" DROP COLUMN stylesheet;
 
 ;
 
