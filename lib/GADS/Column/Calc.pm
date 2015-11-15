@@ -113,7 +113,7 @@ sub resultset_for_values
         layout_id => $self->id,
     },{
         group_by  => 'value',
-    });
+    }) if $self->return_type eq 'string';
 }
 
 1;
