@@ -41,26 +41,11 @@ foreach my $instance (@{$instances->all})
         config      => config,
     );
 
-    my @calcs = schema->resultset('Layout')->search({
-        type => 'calc',
-    })->all;
-
-    foreach my $calc (@calcs)
+    foreach my $column ($layout->all)
     {
-        my $column = $layout->column($calc->id);
+        next if $column->userinput;
         $column->base_url(config->{gads}->{url});
         $column->update_cached('Calcval');
-    }
-
-    my @rags = schema->resultset('Layout')->search({
-        type => 'rag',
-    })->all;
-
-    foreach my $rag (@rags)
-    {
-        my $column = $layout->column($rag->id);
-        $column->base_url(config->{gads}->{url});
-        $column->update_cached('Ragval');
     }
 }
 
