@@ -278,6 +278,7 @@
                                 <option value="string" [% IF column.return_type == "string" %]selected[% END %]>String</option>
                                 <option value="date" [% IF column.return_type == "date" %]selected[% END %]>Date</option>
                                 <option value="integer" [% IF column.return_type == "integer" %]selected[% END %]>Integer</option>
+                                <option value="numeric" [% IF column.return_type == "numeric" %]selected[% END %]>Decimal</option>
                             </select>
                         </label>
                     </div>

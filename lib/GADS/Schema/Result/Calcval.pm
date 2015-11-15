@@ -74,6 +74,12 @@ __PACKAGE__->table("calcval");
   datetime_undef_if_invalid: 1
   is_nullable: 1
 
+=head2 value_numeric
+
+  data_type: 'decimal'
+  is_nullable: 1
+  size: [20,5]
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -91,6 +97,8 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", is_nullable => 1 },
   "value_date",
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
+  "value_numeric",
+  { data_type => "decimal", is_nullable => 1, size => [20, 5] },
 );
 
 =head1 PRIMARY KEY
@@ -154,8 +162,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iSykEdUiAeEkMvbRKvPApQ
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-15 18:21:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wonuz4f9ht5Fjx7rJa++mA
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;

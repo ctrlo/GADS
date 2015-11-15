@@ -126,7 +126,7 @@ has return_type => (
     is      => 'rw',
     isa => sub {
         return unless $_[0];
-        $_[0] =~ /(string|date|integer)/
+        $_[0] =~ /(string|date|integer|numeric)/
             or error __x"Bad return type {type}", type => $_[0];
     },
     lazy    => 1,

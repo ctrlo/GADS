@@ -30,6 +30,11 @@ has calc => (
     isa => Str,
 );
 
+has decimal_places => (
+    is  => 'rw',
+    isa => Maybe[Int],
+);
+
 after 'build_values' => sub {
     my ($self, $original) = @_;
 
@@ -38,12 +43,15 @@ after 'build_values' => sub {
     {
         $self->calc($calc->{calc});
         $self->return_type($calc->{return_format});
-        $self->numeric($self->return_type eq 'integer' || $self->return_type eq 'date');
+        $self->decimal_places($calc->{decimal_places});
+        $self->numeric($self->return_type eq 'integer' || $self->return_type eq 'date' || $self->return_type eq 'numeric');
         $self->value_field(
             $self->return_type eq 'date'
             ? 'value_date'
             : $self->return_type eq 'integer'
             ? 'value_int'
+            : $self->return_type eq 'numeric'
+            ? 'value_numeric'
             : 'value_text'
         );
     }

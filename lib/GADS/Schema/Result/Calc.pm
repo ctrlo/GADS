@@ -58,6 +58,11 @@ __PACKAGE__->table("calc");
   is_nullable: 1
   size: 45
 
+=head2 decimal_places
+
+  data_type: 'smallint'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -69,6 +74,8 @@ __PACKAGE__->add_columns(
   { data_type => "mediumtext", is_nullable => 1 },
   "return_format",
   { data_type => "varchar", is_nullable => 1, size => 45 },
+  "decimal_places",
+  { data_type => "smallint", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -106,8 +113,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-01-06 03:17:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:d6TBOrjoRv4SgAP3xGGdew
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-15 21:49:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZI4l6K9kr5QpJ5g+bvcvRg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

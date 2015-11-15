@@ -58,9 +58,19 @@ has layout => (
 
 sub as_string
 {   my $self = shift;
-    my $value = $self->value;
+    my $value = $self->value // "";
     $value = $value->ymd if ref $value eq 'DateTime';
-    $value // "";
+    if ($self->column->return_type eq 'numeric')
+    {
+        if (my $dc = $self->column->decimal_places)
+        {
+            $value = sprintf("%.${dc}f", $value)
+        }
+        else {
+            $value =~ s/\.?0+$//;
+        }
+    }
+    $value;
 }
 
 sub as_integer
@@ -86,12 +96,10 @@ sub _transform_value
 
     if (ref $original && !$self->force_update)
     {
-        my $return_type = $column->return_type;
-        $value = $return_type eq 'date'
-               ? $self->_parse_date($original->{value_date})
-               : $return_type eq 'integer'
-               ? $original->{value_int}
-               : $original->{value_text};
+        my $v  = $original->{$column->value_field};
+        $value = $column->return_type eq 'date'
+               ? $self->_parse_date($v)
+               : $v;
     }
     elsif (!$code)
     {
