@@ -54,6 +54,7 @@ after 'build_values' => sub {
             ? 'value_numeric'
             : 'value_text'
         );
+        $self->string_storage(1) if $self->return_type eq 'string';
     }
     $self->table("Calcval");
     $self->userinput(0);

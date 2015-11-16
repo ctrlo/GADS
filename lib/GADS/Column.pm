@@ -181,6 +181,14 @@ has numeric => (
     isa => Bool,
 );
 
+# Whether the data is stored as a string. If so, we need to check for both
+# empty string and null values to test if empty
+has string_storage => (
+    is      => 'rw',
+    isa     => Bool,
+    default => 0,
+);
+
 has optional => (
     is     => 'rw',
     isa    => Bool,

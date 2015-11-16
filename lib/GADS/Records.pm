@@ -973,7 +973,7 @@ sub _search_construct
     if ($filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty')
     {
         my $comb = $filter->{operator} eq 'is_empty' ? '-or' : '-and';
-        $value = $column->type eq 'calc' || $column->type eq 'string'
+        $value = $column->string_storage
             ? [ $comb => undef, "" ]
             : undef;
     }

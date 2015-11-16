@@ -24,5 +24,10 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
+after 'build_values' => sub {
+    my ($self, $original) = @_;
+    $self->string_storage(1);
+};
+
 1;
 
