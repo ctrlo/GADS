@@ -113,7 +113,7 @@ sub resultset_for_values
     return $self->schema->resultset('Calcval')->search({
         layout_id => $self->id,
     },{
-        group_by  => 'value',
+        group_by  => 'me.'.$self->value_field,
     }) if $self->return_type eq 'string';
 }
 
