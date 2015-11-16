@@ -904,7 +904,11 @@ sub write
                     POSIX::_exit(0); # the child dies here
                 }
                 else {
-                    $alert_send->process; # This takes a long time
+                    # We must catch exceptions here, otherwise we
+                    # will never reap the process.
+                    try { $alert_send->process } hide => 'ALL'; # This takes a long time
+                    my $success = $@->died ? 0 : 1;
+                    $@->reportAll(is_fatal => 0);
                     POSIX::_exit(0); # grandchild dies here
                 }
             }
