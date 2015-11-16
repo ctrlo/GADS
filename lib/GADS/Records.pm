@@ -99,8 +99,15 @@ has columns_extra => (
     is => 'rw',
 );
 
-# Value containing the actual columns retrieved
-has columns_retrieved => (
+# Value containing the actual columns retrieved.
+# In "normal order" as per layout.
+has columns_retrieved_no => (
+    is => 'rw',
+);
+
+# Value containing the actual columns retrieved.
+# In "dependent order", needed for calcvals
+has columns_retrieved_do => (
     is => 'rw',
 );
 
@@ -596,17 +603,18 @@ sub search
         my @children = map { $_->{id} } @{$rec->{currents}};
         map { $is_child{$_} = undef } @children;
         $all{$rec->{id}} = GADS::Record->new(
-            schema            => $self->schema,
-            record            => $rec->{record},
-            linked_record     => $rec->{linked}->{record},
-            child_records     => \@children,
-            parent_id         => $rec->{parent_id},
-            linked_id         => $rec->{linked_id},
-            user              => $self->user,
-            format            => $self->format,
-            layout            => $self->layout,
-            force_update      => $self->force_update,
-            columns_retrieved => $self->columns_retrieved,
+            schema               => $self->schema,
+            record               => $rec->{record},
+            linked_record        => $rec->{linked}->{record},
+            child_records        => \@children,
+            parent_id            => $rec->{parent_id},
+            linked_id            => $rec->{linked_id},
+            user                 => $self->user,
+            format               => $self->format,
+            layout               => $self->layout,
+            force_update         => $self->force_update,
+            columns_retrieved_no => $self->columns_retrieved_no,
+            columns_retrieved_do => $self->columns_retrieved_do,
         );
     }
 
@@ -633,17 +641,18 @@ sub search
                 my @children = map { $_->{id} } @{$rec->{currents}};
                 map { $is_child{$_} = undef } @children;
                 $all{$rec->{id}} = GADS::Record->new(
-                    schema            => $self->schema,
-                    record            => $rec->{record},
-                    linked_record     => $rec->{linked}->{record},
-                    child_records     => \@children,
-                    parent_id         => $rec->{parent_id},
-                    linked_id         => $rec->{linked_id},
-                    user              => $self->user,
-                    format            => $self->format,
-                    layout            => $self->layout,
-                    force_update      => $self->force_update,
-                    columns_retrieved => $self->columns_retrieved,
+                    schema               => $self->schema,
+                    record               => $rec->{record},
+                    linked_record        => $rec->{linked}->{record},
+                    child_records        => \@children,
+                    parent_id            => $rec->{parent_id},
+                    linked_id            => $rec->{linked_id},
+                    user                 => $self->user,
+                    format               => $self->format,
+                    layout               => $self->layout,
+                    force_update         => $self->force_update,
+                    columns_retrieved_no => $self->columns_retrieved_no,
+                    columns_retrieved_do => $self->columns_retrieved_do,
                 );
             }
         }
@@ -661,7 +670,7 @@ sub search
         foreach (@{$all{$rec_id}->child_records})
         {
             next if exists $done{$_} || !$all{$_};
-            foreach my $col (@{$self->columns_retrieved})
+            foreach my $col (@{$self->columns_retrieved_no})
             {
                 $all{$_}->fields->{$col->id} //= $all{$rec_id}->fields->{$col->id};
             }
@@ -710,9 +719,10 @@ sub construct_search
             order_dependencies => 1,
         );
     }
+    $self->columns_retrieved_do(\@columns);
     my %columns_retrieved = map { $_->id => undef } @columns;
-    my @columns_retrieved = grep { exists $columns_retrieved{$_->id} } $layout->all;
-    $self->columns_retrieved(\@columns_retrieved);
+    my @columns_retrieved_no = grep { exists $columns_retrieved{$_->id} } $layout->all;
+    $self->columns_retrieved_no(\@columns_retrieved_no);
 
     my %cache_cols;                     # Any column in the view that should be cached
     my $prefetches = $self->prefetches; # Tables to prefetch - data being viewed
@@ -1101,7 +1111,7 @@ sub data_time
     foreach my $record (@{$self->results})
     {
         my @dates; my @titles;
-        foreach my $column (@{$self->columns_retrieved})
+        foreach my $column (@{$self->columns_retrieved_no})
         {
             if ($column->type eq "daterange" || ($column->return_type && $column->return_type eq "date"))
             {

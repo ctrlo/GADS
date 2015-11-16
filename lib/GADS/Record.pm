@@ -84,7 +84,17 @@ has columns => (
     is      => 'rw',
 );
 
-has columns_retrieved => (
+# XXX Can we not reference the parent Records entry somehow
+# or vice-versa?
+# Value containing the actual columns retrieved.
+# In "normal order" as per layout.
+has columns_retrieved_no => (
+    is => 'rw',
+);
+
+# Value containing the actual columns retrieved.
+# In "dependent order", needed for calcvals
+has columns_retrieved_do => (
     is => 'rw',
 );
 
@@ -284,7 +294,8 @@ sub _find
     );
 
     my $rinfo = $records->construct_search;
-    $self->columns_retrieved($records->columns_retrieved);
+    $self->columns_retrieved_do($records->columns_retrieved_do);
+    $self->columns_retrieved_no($records->columns_retrieved_no);
 
     my @limit      = @{$rinfo->{limit}};
     my $prefetches = $records->prefetches;
@@ -406,8 +417,9 @@ sub _transform_values
     my $original = $self->record or confess "Record data has not been set";
 
     my $fields = {};
-    #foreach my $column ($self->layout->all(order_dependencies => 1))
-    foreach my $column (@{$self->columns_retrieved})
+    # We must fo these columns in dependent order, otherwise the
+    # column values may not exist for the calc values.
+    foreach my $column (@{$self->columns_retrieved_do})
     {
         my $dependent_values;
         foreach my $dependent (@{$column->depends_on})
