@@ -908,11 +908,7 @@ sub add_sort
         };
     }
     else {
-        push @{$self->plus_select}, {
-            # XXX Not sure how to do this without concat
-            concat => "$s_table.".$column->value_field,
-            -as    => $sort_name,
-        }
+        $sort_name = "$s_table.".$column->value_field;
     }
     push @{$self->order_by}, {
         $type => $sort_name,
