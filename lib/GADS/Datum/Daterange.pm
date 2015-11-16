@@ -134,10 +134,11 @@ sub _parse_dt
     error __x"Please enter 2 date values for '{col}'", col => $self->column->name
         if $from xor $to;
 
+    return unless $from && $to;
+
     error __x"Start date must be before the end date for '{col}'", col => $self->column->name
         if DateTime->compare($from, $to) == 1;
 
-    return unless $from && $to;
     my $return = DateTime::Span->from_datetimes(start => $from, end => $to);
 
     my $string = $self->_as_string($return);
