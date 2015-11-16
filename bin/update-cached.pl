@@ -45,7 +45,7 @@ foreach my $instance (@{$instances->all})
     {
         next if $column->userinput;
         $column->base_url(config->{gads}->{url});
-        $column->update_cached('Calcval');
+        $column->update_cached($column->table);
     }
 }
 
