@@ -413,14 +413,14 @@ sub search_all_fields
     # XXX These really need to be pulled from the various Column classes
     my @fields = (
         { type => 'string', plural => 'strings' },
-        { type => 'int'   , plural => 'intgrs' },
+        { type => 'number', plural => 'intgrs' },
         { type => 'date'  , plural => 'dates' },
         { type => 'string', plural => 'dateranges' },
         { type => 'string', plural => 'ragvals' },
         { type => 'string', plural => 'calcvals', value_field => 'value_text' },
-        { type => 'string', plural => 'calcvals', value_field => 'value_numeric' },
-        { type => 'string', plural => 'calcvals', value_field => 'value_int' },
-        { type => 'string', plural => 'calcvals', value_field => 'value_date' },
+        { type => 'number', plural => 'calcvals', value_field => 'value_numeric' },
+        { type => 'number', plural => 'calcvals', value_field => 'value_int' },
+        { type => 'date'  , plural => 'calcvals', value_field => 'value_date' },
         { type => 'string', plural => 'enums', sub => 1 },
         { type => 'string', plural => 'people', sub => 1 },
         { type => 'file'  , plural => 'files', sub => 1, value_field => 'name' },
@@ -454,7 +454,7 @@ sub search_all_fields
     }
     foreach my $field (@fields)
     {
-        next if ($field->{type} eq 'int' || $field->{type} eq 'current_id')
+        next if ($field->{type} eq 'number' || $field->{type} eq 'current_id')
             && !looks_like_number $search;
         next if $field->{type} eq 'date' &&  !$format->parse_datetime($search);
 
