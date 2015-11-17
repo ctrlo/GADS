@@ -53,11 +53,6 @@ __PACKAGE__->table("calcval");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 value
-
-  data_type: 'text'
-  is_nullable: 1
-
 =head2 value_text
 
   data_type: 'text'
@@ -89,8 +84,6 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
   "layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "value",
-  { data_type => "text", is_nullable => 1 },
   "value_text",
   { data_type => "text", is_nullable => 1 },
   "value_int",
@@ -162,12 +155,15 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-15 18:21:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wonuz4f9ht5Fjx7rJa++mA
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-17 14:35:44
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2FPXESLMis7e83MaYx493Q
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
-    $sqlt_table->add_index(name => 'calcval_idx_value', fields => [ { name => 'value', size => 64 } ]);
+    $sqlt_table->add_index(name => 'calcval_idx_value_text', fields => [ { name => 'value_text', size => 64 } ]);
+    $sqlt_table->add_index(name => 'calcval_idx_value_numeric', fields => [ 'value_numeric' ]);
+    $sqlt_table->add_index(name => 'calcval_idx_value_int', fields => [ 'value_int' ]);
+    $sqlt_table->add_index(name => 'calcval_idx_value_date', fields => [ 'value_date' ]);
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -410,13 +410,17 @@ sub search_all_fields
         $search = { like => $search };
     }
 
+    # XXX These really need to be pulled from the various Column classes
     my @fields = (
         { type => 'string', plural => 'strings' },
         { type => 'int'   , plural => 'intgrs' },
         { type => 'date'  , plural => 'dates' },
         { type => 'string', plural => 'dateranges' },
         { type => 'string', plural => 'ragvals' },
-        { type => 'string', plural => 'calcvals' },
+        { type => 'string', plural => 'calcvals', value_field => 'value_text' },
+        { type => 'string', plural => 'calcvals', value_field => 'value_numeric' },
+        { type => 'string', plural => 'calcvals', value_field => 'value_int' },
+        { type => 'string', plural => 'calcvals', value_field => 'value_date' },
         { type => 'string', plural => 'enums', sub => 1 },
         { type => 'string', plural => 'people', sub => 1 },
         { type => 'file'  , plural => 'files', sub => 1, value_field => 'name' },
@@ -492,7 +496,7 @@ sub search_all_fields
             else {
                 foreach my $string ($current->record->$plural)
                 {
-                    my $v = $field->{sub} ? $string->value->$value_field : $string->value;
+                    my $v = $field->{sub} ? $string->value->$value_field : $string->$value_field;
                     push @r, $string->layout->name. ": ". $v;
                 }
             }
