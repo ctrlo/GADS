@@ -271,7 +271,7 @@ sub _send_alert
     if ($action eq "changed")
     {
         # Individual fields to notify
-        my $cnames = join ', ', @{$columns};
+        my $cnames = join ', ', uniq @{$columns};
         if (@current_ids > 1)
         {
             my $ids = join ', ', uniq @current_ids;
