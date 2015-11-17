@@ -34,7 +34,7 @@ has base_url => (
 );
 
 sub update_cached
-{   my ($self, $table, $no_alert_send) = @_;
+{   my ($self, $table, $no_alert_send, $value_field_old) = @_;
 
     return unless $self->write_cache;
 
@@ -44,7 +44,8 @@ sub update_cached
     },{
         prefetch => 'record',
     })->all;
-    my %old = map { $_->record->current_id => $_->value } @existing;
+    $value_field_old ||= $self->value_field;
+    my %old = map { $_->record->current_id => $_->$value_field_old } @existing;
 
     $self->schema->resultset($table)->search({
         layout_id => $self->id,
@@ -81,7 +82,8 @@ sub update_cached
     },{
         prefetch => 'record',
     })->all;
-    my %new = map { $_->record->current_id => $_->value } @existing;
+    my $value_field_new = $self->value_field;
+    my %new = map { $_->record->current_id => $_->$value_field_new } @existing;
     my @changed = grep {
         !(exists $old{$_})
         || !defined $old{$_} && defined $new{$_}

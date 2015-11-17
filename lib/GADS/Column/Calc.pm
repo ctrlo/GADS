@@ -35,6 +35,18 @@ has decimal_places => (
     isa => Maybe[Int],
 );
 
+# Convert return format to database column field
+sub _format_to_field
+{   my $return_type = shift;
+    $return_type eq 'date'
+    ? 'value_date'
+    : $return_type eq 'integer'
+    ? 'value_int'
+    : $return_type eq 'numeric'
+    ? 'value_numeric'
+    : 'value_text'
+}
+
 after 'build_values' => sub {
     my ($self, $original) = @_;
 
@@ -45,15 +57,7 @@ after 'build_values' => sub {
         $self->return_type($calc->{return_format});
         $self->decimal_places($calc->{decimal_places});
         $self->numeric($self->return_type eq 'integer' || $self->return_type eq 'date' || $self->return_type eq 'numeric');
-        $self->value_field(
-            $self->return_type eq 'date'
-            ? 'value_date'
-            : $self->return_type eq 'integer'
-            ? 'value_int'
-            : $self->return_type eq 'numeric'
-            ? 'value_numeric'
-            : 'value_text'
-        );
+        $self->value_field(_format_to_field $self->return_type);
         $self->string_storage(1) if $self->return_type eq 'string';
     }
     $self->table("Calcval");
@@ -73,9 +77,10 @@ after 'write' => sub {
         layout_id => $self->id,
     })->all;
 
-    my $need_update; my $no_alert_send;
+    my $need_update; my $no_alert_send; my $value_field_old;
     if ($calcr)
     {
+        $value_field_old = _format_to_field $calcr->return_format;
         # First see if the calculation has changed
         $need_update = $calcr->calc ne $self->calc
             || $calcr->return_format ne $self->return_type;
@@ -104,7 +109,7 @@ after 'write' => sub {
                 if $self->calc =~ /\Q[$name\E$suffix\Q]/i;
         }
         $self->depends_on(\@depends_on);
-        $self->update_cached('Calcval', $no_alert_send);
+        $self->update_cached('Calcval', $no_alert_send, $value_field_old);
     }
 };
 
