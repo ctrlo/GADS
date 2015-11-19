@@ -137,6 +137,14 @@ has retrieve_children => (
     default => 1,
 );
 
+# Whether to fill in missing values of children from parent.
+# XXX Is interpolate the correct word??!
+has interpolate_children => (
+    is      => 'rw',
+    isa     => Bool,
+    default => 1,
+);
+
 has prefetches => (
     is      => 'rw',
     isa     => ArrayRef,
@@ -676,9 +684,13 @@ sub search
         foreach (@{$all{$rec_id}->child_records})
         {
             next if exists $done{$_} || !$all{$_};
-            foreach my $col (@{$self->columns_retrieved_no})
+            # If required, fill-in missing values of children.
+            if ($self->interpolate_children)
             {
-                $all{$_}->fields->{$col->id} //= $all{$rec_id}->fields->{$col->id};
+                foreach my $col (@{$self->columns_retrieved_no})
+                {
+                    $all{$_}->fields->{$col->id} //= $all{$rec_id}->fields->{$col->id};
+                }
             }
             push @all, $all{$_};
             $done{$_} = undef;
@@ -1119,6 +1131,10 @@ sub data_time
         my @dates; my @titles;
         foreach my $column (@{$self->columns_retrieved_no})
         {
+            # Get item value
+            my $d = $record->fields->{$column->id}
+                or next;
+
             if ($column->type eq "daterange" || ($column->return_type && $column->return_type eq "date"))
             {
                 next unless $column->user_can('read');
@@ -1135,9 +1151,6 @@ sub data_time
 
                 # Set colour
                 my $color = $datecolors{$column->id};
-
-                # Get item value
-                my $d = $record->fields->{$column->id};
 
                 # Push value onto stack
                 if ($column->type eq "daterange")
@@ -1171,7 +1184,7 @@ sub data_time
                 next if $options{label} && $options{label} != $column->id;
                 # Not a date value, push onto title
                 # Don't want full HTML, which includes hyperlinks etc
-                my $v = encode_entities($record->fields->{$column->id}->as_string);
+                my $v = encode_entities($d->as_string);
                 push @titles, $v if $v;
             }
         }

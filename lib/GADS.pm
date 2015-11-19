@@ -290,7 +290,12 @@ get '/data_calendar/:time' => require_login sub {
     my $layout  = var 'layout';
     my $view    = current_view($user, $layout);
 
-    my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
+    my $records = GADS::Records->new(
+        user                 => $user,
+        layout               => $layout,
+        schema               => schema,
+        interpolate_children => 0,
+    );
     $records->search(
         view    => $view,
         from    => $fromdt,
@@ -519,7 +524,12 @@ any '/data' => require_login sub {
     }
     elsif ($viewtype eq 'timeline')
     {
-        my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
+        my $records = GADS::Records->new(
+            user                 => $user,
+            layout               => $layout,
+            schema               => schema,
+            interpolate_children => 0,
+        );
         if (param 'tl_update')
         {
             session 'tl_options' => {
