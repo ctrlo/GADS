@@ -999,11 +999,13 @@ sub _search_construct
         $value = $vprefix.$filter->{value}.$vsuffix;
     }
 
+    my $dtf = $self->schema->storage->datetime_parser;
+    $value = $dtf->format_date(DateTime->now)
+        if $filter->{value} eq "CURDATE";
+
     my $s_field;
     if ($column->type eq "daterange")
     {
-        $value = DateTime->now if $filter->{value} eq "CURDATE";
-        
         # If it's a daterange, we have to be intelligent about the way the
         # search is constructed. Greater than, less than, equals all require
         # different values of the date range to be searched
