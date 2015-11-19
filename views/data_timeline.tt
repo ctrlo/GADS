@@ -26,7 +26,7 @@
                         return {
                             column: val.column,
                             from: val.start.toISOString().substring(0, 10),
-                            to:   val.end.toISOString().substring(0, 10)
+                            to:   (val.end || val.start).toISOString().substring(0, 10)
                         };
                     }
                 );
