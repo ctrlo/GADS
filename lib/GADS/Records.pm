@@ -1126,9 +1126,11 @@ sub data_time
     );
 
     # All the data values
+    my $multiple_dates;
     foreach my $record (@{$self->results})
     {
         my @dates; my @titles;
+        my $had_date_col; # Used to detect multiple date columns in this view
         foreach my $column (@{$self->columns_retrieved_no})
         {
             # Get item value
@@ -1137,6 +1139,8 @@ sub data_time
 
             if ($column->type eq "daterange" || ($column->return_type && $column->return_type eq "date"))
             {
+                $multiple_dates = 1 if $had_date_col;
+                $had_date_col = 1;
                 next unless $column->user_can('read');
 
                 # Create colour if need be
@@ -1220,7 +1224,7 @@ sub data_time
         {
             next unless $d->{from} && $d->{to};
             my $column = $self->layout->column($d->{column})->name;
-            my $title_item = @dates > 1 ? "$title ($column)" : $title;
+            my $title_item = $multiple_dates ? "$title ($column)" : $title;
             if ($type eq 'calendar')
             {
                 my $item = {
