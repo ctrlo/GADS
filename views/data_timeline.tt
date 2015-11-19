@@ -4,6 +4,7 @@
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
+        ( function () {
             var container = document.getElementById('visualization');
 
             var base64 = '[% records %]';
@@ -12,13 +13,118 @@
             var groups = '[% groups %]';
             var json_group = decodeBase64(groups);
             var groups = JSON.parse(json_group);
+            var changed = {};
 
-            var options = {};
+            var save_elem_sel    = '#submit_button',
+                cancel_elem_sel  = '#cancel_button',
+                changed_elem_sel = '#visualization_changes',
+                hidden_input_sel = '#changed_data';
+
+            function before_submit (e) {
+                var submit_data = _.mapObject( changed,
+                    function( val, key ) {
+                        return {
+                            column: val.column,
+                            from: val.start.toISOString().substring(0, 10),
+                            to:   val.end.toISOString().substring(0, 10)
+                        };
+                    }
+                );
+                $(window).off('beforeunload');
+
+                [%-# Store the data as JSON on the form %]
+                var submit_json = JSON.stringify(submit_data);
+                var data_field = $(hidden_input_sel);
+                data_field.attr('value', submit_json );
+            }
+
+            function on_move (item, callback) {
+                changed[item.id] = item;
+
+                var save_button = $( save_elem_sel );
+                if ( save_button.is(':hidden') ) {
+                    $(window).bind('beforeunload', function(e) {
+                        var error_msg = 'If you leave this page your changes will be lost.';
+                        if (e) {
+                            e.returnValue = error_msg;
+                        }
+                        return error_msg;
+                    });
+
+                    save_button.closest('form').css('display', 'block');
+                }
+
+                var changed_item = $('<li>' + item.title + '</li>');
+                $( changed_elem_sel ).append(changed_item);
+
+                return callback(item);
+            }
+
+            function snap_to_day (datetime, scale, step) {
+                return new Date (
+                    datetime.getFullYear(),
+                    datetime.getMonth(),
+                    datetime.getDay()
+                );
+            }
+
+            [%-# Set up form button behaviour %]
+            $( save_elem_sel ).bind( 'click', before_submit );
+            $( cancel_elem_sel ).bind( 'click', function (e) {
+                $(window).off('beforeunload');
+            });
+
+            [%-# See http://visjs.org/docs/timeline/#Editing_Items %]
+            var options = {
+                editable: {
+                    add:         false,
+                    updateTime:  true,
+                    updateGroup: false,
+                    remove:      false
+                },
+                onMove: on_move,
+                snap:   snap_to_day
+            };
 
             var timeline = new vis.Timeline(container, items, options);
             if (groups.length > 0) {
                 timeline.setGroups(groups);
             }
+        } )();
         [% END %]
     [% END %]';
 </script>
+
+<form role="form" method="post" enctype="multipart/form-data" style="display: none" action="/edits">
+    <input type="hidden" name="q" id="changed_data"></input>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div style="height:55px;"></div>
+            <nav class="navbar navbar-default navbar-fixed-bottom" style="min-height:55px">
+                <div class="container">
+                    <button type="submit" id="submit_button" name="submit" value="submit" class="btn btn-primary">Save</button>
+                    <a href="/data" id="cancel_button" class="btn btn-default">Cancel</a>
+                    <span style="padding-left: 35px">You have <a data-toggle="modal" data-target="#modal_changed_items" href="">unsaved changes</a>.</span>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+</form>
+
+<div class="modal fade" role="dialog" id="modal_changed_items" tabindex="-1" aria-labelledby="changed_items_title">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="changed_items_title">Unsaved Changes</h4>
+            </div>
+            <ul class="modal-body" id="visualization_changes">
+            </ul>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

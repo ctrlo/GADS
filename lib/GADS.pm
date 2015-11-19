@@ -1585,6 +1585,47 @@ any '/link/:id?' => require_role link => sub {
     };
 };
 
+post '/edits' => require_login sub {
+    my $user   = logged_in_user;
+    my $layout = var 'layout';
+
+    my $records = eval { from_json param('q') };
+    if ($@) {
+        status 'bad_request';
+        return 'Request body must contain JSON';
+    }
+
+    my @id_failed;
+    while ( my($id, $values) = each %$records ) {
+        my $record = GADS::Record->new(
+            user     => $user,
+            layout   => $layout,
+            schema   => schema,
+            base_url => request->base,
+        );
+
+        $record->find_current_id($id);
+        $record->fields->{ $values->{column} }->set_value({
+            from    => $values->{from},
+            to      => $values->{to},
+        });
+
+        # TODO: How can we determine whether write() succeeds or fails?
+        #$record->write || push( @id_failed, $id );
+        $record->write;
+    }
+
+    if (@id_failed) {
+        my $pluralised = ( @id_failed > 1 ) ? 'records' : 'record';
+        return forwardHome(
+            { danger => "Updating $pluralised @id_failed failed" }, 'data' );
+    }
+    else {
+        return forwardHome(
+            { success => 'Submission has been completed successfully' }, 'data' );
+    }
+};
+
 any '/edit/:id?' => require_login sub {
     my $id = param 'id';
 
