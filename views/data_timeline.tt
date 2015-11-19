@@ -120,8 +120,10 @@
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title" id="changed_items_title">Unsaved Changes</h4>
             </div>
-            <ul class="modal-body" id="visualization_changes">
-            </ul>
+            <div class="modal-body">
+                <ul class="modal-body" id="visualization_changes">
+                </ul>
+            </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
