@@ -25,6 +25,7 @@
                     function( val, key ) {
                         return {
                             column: val.column,
+                            current_id: val.current_id,
                             from: val.start.toISOString().substring(0, 10),
                             to:   (val.end || val.start).toISOString().substring(0, 10)
                         };

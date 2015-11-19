@@ -1139,13 +1139,6 @@ sub data_time
             {
                 next unless $column->user_can('read');
 
-                if (@dates)
-                {
-                    trace __x"Record ID {id} already exists in timeline. Not going to add again.",
-                        id => $record->current_id;
-                    next;
-                }
-
                 # Create colour if need be
                 $datecolors{$column->id} = shift @colors unless $datecolors{$column->id};
 
@@ -1226,12 +1219,14 @@ sub data_time
         foreach my $d (@dates)
         {
             next unless $d->{from} && $d->{to};
+            my $column = $self->layout->column($d->{column})->name;
+            my $title_item = @dates > 1 ? "$title ($column)" : $title;
             if ($type eq 'calendar')
             {
                 my $item = {
                     "url"   => "/record/" . $record->current_id,
                     "class" => $d->{color},
-                    "title" => $title,
+                    "title" => $title_item,
                     "id"    => $record->current_id,
                     "start" => $d->{from}->epoch*1000,
                     "end"   => $d->{to}->epoch*1000,
@@ -1241,12 +1236,13 @@ sub data_time
             else {
                 my $cid = $record->current_id;
                 my $item = {
-                    "content" => qq(<a title="$color_key" href="/record/$cid" style="color:inherit;">$title</a>),
-                    "id"      => $cid,
+                    "content" => qq(<a title="$color_key" href="/record/$cid" style="color:inherit;">$title_item</a>),
+                    "id"      => "$cid+$d->{column}",
+                    current_id => $cid,
                     "start"   => $d->{from}->ymd,
                     "group"   => $item_group,
                     column    => $d->{column},
-                    title     => $title,
+                    title     => $title_item,
                 };
                 $item->{style} = qq(background-color: $item_color)
                     if $item_color;

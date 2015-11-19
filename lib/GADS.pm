@@ -1614,7 +1614,7 @@ post '/edits' => require_login sub {
             base_url => request->base,
         );
 
-        $record->find_current_id($id);
+        $record->find_current_id($values->{current_id});
         my $to_write = $layout->column($values->{column})->type eq 'date'
             ? $values->{from}
             : {
