@@ -65,7 +65,7 @@
                 return new Date (
                     datetime.getFullYear(),
                     datetime.getMonth(),
-                    datetime.getDay()
+                    datetime.getDate()
                 );
             }
 
