@@ -1595,7 +1595,7 @@ post '/edits' => require_login sub {
         return 'Request body must contain JSON';
     }
 
-    my @id_failed;
+    my @failed;
     while ( my($id, $values) = each %$records ) {
         my $record = GADS::Record->new(
             user     => $user,
@@ -1605,26 +1605,31 @@ post '/edits' => require_login sub {
         );
 
         $record->find_current_id($id);
-        if ($layout->column($values->{column})->type eq 'date')
-        {
-            $record->fields->{ $values->{column} }->set_value($values->{from});
-        }
-        else {
-            $record->fields->{ $values->{column} }->set_value({
+        my $to_write = $layout->column($values->{column})->type eq 'date'
+            ? $values->{from}
+            : {
                 from    => $values->{from},
                 to      => $values->{to},
-            });
+            };
+        try { $record->fields->{ $values->{column} }->set_value($to_write) };
+        if (my $fatal = $@->wasFatal)
+        {
+            my $msg =  __x"Updating record {id} failed: {msg}", id => $id, msg => $fatal->message;
+            push @failed, $msg;
+            next;
         }
 
-        # TODO: How can we determine whether write() succeeds or fails?
-        #$record->write || push( @id_failed, $id );
-        $record->write;
+        try { $record->write };
+        if (my $fatal = $@->wasFatal)
+        {
+            my $msg =  __x"Updating record {id} failed: {msg}", id => $id, msg => $fatal->message;
+            push @failed, $msg;
+        }
     }
 
-    if (@id_failed) {
-        my $pluralised = ( @id_failed > 1 ) ? 'records' : 'record';
+    if (@failed) {
         return forwardHome(
-            { danger => "Updating $pluralised @id_failed failed" }, 'data' );
+            { danger => join("\n", @failed) }, 'data' );
     }
     else {
         return forwardHome(

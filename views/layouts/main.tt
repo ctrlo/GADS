@@ -151,7 +151,7 @@
 
             [% FOR message IN messages %]
                 <div class="alert alert-[% message.bootstrap_color %]">
-                    [% message.toString | html_entity %]
+                    [% message.toString | html_entity | html_line_break %]
                 </div>
             [% END %]
 
