@@ -30,6 +30,16 @@ use Dancer2::Plugin::LogReport mode => 'NORMAL';
 
 GADS::DB->setup(schema);
 
+# Setup these singleton classes with required parameters for if/when
+# they are called in classes later.
+GADS::Config->instance(
+    config => config,
+);
+
+GADS::Email->instance(
+    config => config,
+);
+
 my $instances = GADS::Instances->new(schema => schema);
 
 foreach my $instance (@{$instances->all})
