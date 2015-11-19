@@ -1595,7 +1595,7 @@ post '/edits' => require_login sub {
         return 'Request body must contain JSON';
     }
 
-    my @failed;
+    my $failed;
     while ( my($id, $values) = each %$records ) {
         my $record = GADS::Record->new(
             user     => $user,
@@ -1611,25 +1611,18 @@ post '/edits' => require_login sub {
                 from    => $values->{from},
                 to      => $values->{to},
             };
-        try { $record->fields->{ $values->{column} }->set_value($to_write) };
-        if (my $fatal = $@->wasFatal)
+        unless (process sub { $record->fields->{ $values->{column} }->set_value($to_write) })
         {
-            my $msg =  __x"Updating record {id} failed: {msg}", id => $id, msg => $fatal->message;
-            push @failed, $msg;
+            $failed = 1;
             next;
         }
 
-        try { $record->write };
-        if (my $fatal = $@->wasFatal)
-        {
-            my $msg =  __x"Updating record {id} failed: {msg}", id => $id, msg => $fatal->message;
-            push @failed, $msg;
-        }
+        process sub { $record->write }
+            or $failed = 1;
     }
 
-    if (@failed) {
-        return forwardHome(
-            { danger => join("\n", @failed) }, 'data' );
+    if ($failed) {
+        redirect '/data'; # Errors already written to display
     }
     else {
         return forwardHome(
