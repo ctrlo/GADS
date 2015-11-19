@@ -1150,6 +1150,7 @@ sub data_time
                         from  => $d->from_dt,
                         to    => $d->to_dt,
                         color => $color,
+                        column=> $column->id,
                     } if (!$self->to || DateTime->compare($self->to, $d->from_dt) >= 0)
                       && (!$self->from || DateTime->compare($d->to_dt, $self->from) >= 0);
                 }
@@ -1230,6 +1231,8 @@ sub data_time
                     "id"      => $cid,
                     "start"   => $d->{from}->ymd,
                     "group"   => $item_group,
+                    column    => $d->{column},
+                    title     => $title,
                 };
                 $item->{style} = qq(background-color: $item_color)
                     if $item_color;
