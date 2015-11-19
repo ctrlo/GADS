@@ -1160,6 +1160,7 @@ sub data_time
                         from  => $d->value,
                         to    => $d->value,
                         color => $color,
+                        column=> $column->id,
                     } if (!$self->from || DateTime->compare($d->value, $self->from) >= 0)
                       && (!$self->to || DateTime->compare($self->to, $d->value) >= 0);
                 }

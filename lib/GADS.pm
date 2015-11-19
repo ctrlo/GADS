@@ -1605,10 +1605,16 @@ post '/edits' => require_login sub {
         );
 
         $record->find_current_id($id);
-        $record->fields->{ $values->{column} }->set_value({
-            from    => $values->{from},
-            to      => $values->{to},
-        });
+        if ($layout->column($values->{column})->type eq 'date')
+        {
+            $record->fields->{ $values->{column} }->set_value($values->{from});
+        }
+        else {
+            $record->fields->{ $values->{column} }->set_value({
+                from    => $values->{from},
+                to      => $values->{to},
+            });
+        }
 
         # TODO: How can we determine whether write() succeeds or fails?
         #$record->write || push( @id_failed, $id );
