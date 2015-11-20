@@ -76,6 +76,10 @@ schema->storage->debugobj(new GADS::DBICProfiler);
 schema->storage->debug(1);
 # schema->exception_action(sub { panic @_ }); # There should never be exceptions from DBIC
 tie %{schema->storage->dbh->{CachedKids}}, 'Tie::Cache', 100;
+# Dynamically generate all relationships for columns. These may be added to as
+# the program's layout changes, but they can never be removed (program restart
+# required for that)
+GADS::DB->setup(schema);
 
 our $VERSION = '0.1';
 
@@ -98,7 +102,6 @@ hook before => sub {
     # Dynamically generate "virtual" columns for each row of data, based on the
     # configured layout
     my $user = logged_in_user;
-    GADS::DB->setup(schema);
 
     # Log to audit
     my $method = request->method;
