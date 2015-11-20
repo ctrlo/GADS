@@ -28,7 +28,6 @@ use HTML::Entities;
 use JSON qw(decode_json encode_json);
 use Log::Report;
 use POSIX qw(ceil);
-use Safe;
 use Scalar::Util qw(looks_like_number);
 use Text::CSV::Encoded;
 use Moo;
