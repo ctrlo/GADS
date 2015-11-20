@@ -51,7 +51,7 @@ foreach my $instance (@{$instances->all})
         config      => config,
     );
 
-    foreach my $column ($layout->all)
+    foreach my $column ($layout->all(order_dependencies => 1))
     {
         next if $column->userinput;
         $column->base_url(config->{gads}->{url});
