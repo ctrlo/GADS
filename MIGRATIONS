@@ -22,3 +22,8 @@ string.value citext
 user.email citext
 user.username citext
 user.value citext
+
+# Use the following to dump the data layout:
+DBIC_MIGRATION_USERNAME=root DBIC_MIGRATION_PASSWORD=xxxx dbic-migration -Ilib --schema_class='GADS::Schema' --dsn='dbi:mysql:database=gads' --dbic_connect_attrs quote_names=1 dump_named_sets --fixture_set layout
+# And then import it (note that the Instance table may need to be emptied):
+DBIC_MIGRATION_USERNAME=root DBIC_MIGRATION_PASSWORD=xxxx dbic-migration -Ilib --schema_class='GADS::Schema' --dsn='dbi:mysql:database=gads' --dbic_connect_attrs quote_names=1 dump_named_sets --fixture_set layout
