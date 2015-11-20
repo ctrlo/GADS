@@ -176,8 +176,9 @@ has userinput => (
 );
 
 has numeric => (
-    is  => 'rw',
-    isa => Bool,
+    is   => 'rw',
+    isa  => Bool,
+    lazy => 1,
 );
 
 # Whether the data is stored as a string. If so, we need to check for both
