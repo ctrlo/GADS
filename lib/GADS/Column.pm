@@ -172,7 +172,6 @@ has remember => (
 has userinput => (
     is      => 'rw',
     isa     => Bool,
-    lazy    => 1,
     default => 1,
 );
 
@@ -253,7 +252,6 @@ has field => (
 has value_field => (
     is      => 'rw',
     isa     => Str,
-    lazy    => 1,
     default => 'value',
 );
 
@@ -398,7 +396,6 @@ sub build_values
     }
 
     $self->table(camelize $self->type);
-    $self->numeric($self->type eq 'date' || $self->type eq 'intgr');
 }
 
 sub delete

@@ -56,13 +56,31 @@ after 'build_values' => sub {
         $self->calc($calc->{calc});
         $self->return_type($calc->{return_format});
         $self->decimal_places($calc->{decimal_places});
-        $self->numeric($self->return_type eq 'integer' || $self->return_type eq 'date' || $self->return_type eq 'numeric');
-        $self->value_field(_format_to_field $self->return_type);
-        $self->string_storage(1) if $self->return_type eq 'string';
     }
-    $self->table("Calcval");
-    $self->userinput(0);
 };
+
+has '+table' => (
+    default => 'Calcval',
+);
+
+has '+userinput' => (
+    default => 0,
+);
+
+has '+value_field' => (
+    default => sub {_format_to_field shift->return_type},
+);
+
+has '+string_storage' => (
+    default => sub {shift->return_type eq 'string'},
+);
+
+has '+numeric' => (
+    default => sub {
+        my $self = shift;
+        $self->return_type eq 'integer' || $self->return_type eq 'numeric';
+    },
+);
 
 before 'delete' => sub {
     my $self = shift;

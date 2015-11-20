@@ -50,9 +50,15 @@ after 'build_values' => sub {
         $self->amber($rag->{amber}),
         $self->red($rag->{red}),
     }
-    $self->table("Ragval");
-    $self->userinput(0);
 };
+
+has '+table' => (
+    default => 'Ragval',
+);
+
+has '+userinput' => (
+    default => 0,
+);
 
 before 'delete' => sub {
     my $self = shift;
