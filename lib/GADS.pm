@@ -64,6 +64,7 @@ use MIME::Base64;
 use Session::Token;
 use String::CamelCase qw(camelize);
 use Text::CSV;
+use Tie::Cache;
 use WWW::Mechanize::PhantomJS;
 
 use Dancer2; # Last to stop Moo generating conflicting namespace
@@ -74,6 +75,7 @@ use Dancer2::Plugin::LogReport 1.09;
 schema->storage->debugobj(new GADS::DBICProfiler);
 schema->storage->debug(1);
 # schema->exception_action(sub { panic @_ }); # There should never be exceptions from DBIC
+tie %{schema->storage->dbh->{CachedKids}}, 'Tie::Cache', 100;
 
 our $VERSION = '0.1';
 
