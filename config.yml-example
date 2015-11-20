@@ -52,10 +52,10 @@ gads:
 plugins:
   DBIC:
     default:
-      dsn: dbi:mysql:database=dbname;mysql_enable_utf8=1;host=localhost
+      dsn: dbi:mysql:database=dbname;mysql_enable_utf8=1;host=localhost # or dbi:Pg:database=gads
       schema_class: GADS::Schema
       user: dbuser
-      password: dbpass
+      pass: dbpass
       options:
         RaiseError: 1
         PrintError: 1
