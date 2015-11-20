@@ -1001,7 +1001,7 @@ sub _search_construct
 
     my $dtf = $self->schema->storage->datetime_parser;
     $value = $dtf->format_date(DateTime->now)
-        if $filter->{value} eq "CURDATE";
+        if $filter->{value} && $filter->{value} eq "CURDATE";
 
     my $s_field;
     if ($column->type eq "daterange")
