@@ -22,10 +22,6 @@
          "class" : "CurvalField"
       },
       {
-         "quantity" : "all",
-         "class" : "Ragval"
-      },
-      {
          "class" : "Instance",
          "quantity" : "all"
       },
