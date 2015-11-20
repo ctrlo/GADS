@@ -49,7 +49,7 @@ unless ($initial_username)
 }
 
 my ($dbic) = values %{config->{plugins}->{DBIC}};
-my $migration_cmd = qq(dbic-migration -Ilib --schema_class='GADS::Schema' --username=$dbic->{user} --password=$dbic->{pass} --dsn='$dbic->{dsn}' --dbic_connect_attrs quote_names=1);
+my $migration_cmd = qq(dbic-migration -Ilib --schema_class='GADS::Schema' --username=$dbic->{user} --password=$dbic->{password} --dsn='$dbic->{dsn}' --dbic_connect_attrs quote_names=1);
 say "Installing schema...";
 qx($migration_cmd install);
 say "Inserting permissions fixtures...";
