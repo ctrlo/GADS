@@ -186,6 +186,7 @@ has numeric => (
 has string_storage => (
     is      => 'rw',
     isa     => Bool,
+    lazy    => 1,
     default => 0,
 );
 
