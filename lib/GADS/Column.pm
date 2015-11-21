@@ -254,6 +254,7 @@ has field => (
 has value_field => (
     is      => 'rw',
     isa     => Str,
+    lazy    => 1,
     default => 'value',
 );
 
