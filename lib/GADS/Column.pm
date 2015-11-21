@@ -130,7 +130,7 @@ has return_type => (
             or error __x"Bad return type {type}", type => $_[0];
     },
     lazy    => 1,
-    builder => sub { $_[0]->type eq 'date' ? 'date' : undef }, # Default to date for date column
+    builder => sub { $_[0]->type && $_[0]->type eq 'date' ? 'date' : undef }, # Default to date for date column
 );
 
 has table => (
