@@ -258,6 +258,19 @@ has value_field => (
     default => 'value',
 );
 
+# Used to provide a blank template for row insertion (to blank existing
+# values). Only used in calc at time of writing
+has blank_row => (
+    is      => 'ro',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        {
+            $self->value_field => undef,
+        };
+    },
+);
+
 has class => (
     is      => 'ro',
     isa     => Str,

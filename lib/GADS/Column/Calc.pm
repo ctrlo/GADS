@@ -59,6 +59,24 @@ after 'build_values' => sub {
     }
 };
 
+has unique_key => (
+    is      => 'ro',
+    default => 'calcval_ux_record_layout',
+);
+
+# Used to provide a blank template for row insertion
+# (to blank existing values)
+has '+blank_row' => (
+    builder => sub {
+        {
+            value_date    => undef,
+            value_int     => undef,
+            value_numeric => undef,
+            value_text    => undef,
+        };
+    },
+);
+
 has '+table' => (
     default => 'Calcval',
 );

@@ -42,21 +42,39 @@ has schema => (
 sub write_cache
 {   my ($self, $table, $value) = @_;
 
+    # We are generally already in a transaction at this point, but
+    # start another one just in case
+    my $guard = $self->schema->txn_scope_guard;
+
     my $tablec = camelize $table;
     # The cache tables have unqiue constraints to prevent
     # duplicate cache values for the same records. Using an eval
     # catches any attempts to write duplicate values.
     my $vfield = $self->column->value_field;
-    my $values = {
+    my $row = $self->schema->resultset($tablec)->find({
         record_id => $self->record_id,
         layout_id => $self->column->{id},
-        $vfield   => $value,
-    };
-    try {
-        $self->schema->resultset($tablec)->create($values);
-    };
-    # Log any messages from try block, but only as trace
-    $@->reportAll(reason => 'TRACE');
+    },{
+        key => $self->column->unique_key,
+    });
+
+    if ($row)
+    {
+        if (!$self->equal($row->$vfield, $value))
+        {
+            my %blank = %{$self->column->blank_row};
+            $row->update({ %blank, $vfield => $value });
+            $self->changed(1);
+        }
+    }
+    else {
+        $self->schema->resultset($tablec)->create({
+            record_id => $self->record_id,
+            layout_id => $self->column->{id},
+            $vfield   => $value,
+        });
+    }
+    $guard->commit;
     $value;
 }
 

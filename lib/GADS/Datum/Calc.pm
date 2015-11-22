@@ -155,5 +155,25 @@ sub _write_calc
     $self->write_cache('calcval', @_);
 }
 
+# Compare 2 calc values. Could be from database or calculation
+sub equal
+{   my ($self, $a, $b) = @_;
+    (defined $a xor defined $b)
+        and return;
+    my $rt = $self->column->return_type;
+    if ($rt eq 'numeric' || $rt eq 'integer')
+    {
+        $a += 0; $b += 0; # Remove trailing zeros
+        $a == $b;
+    }
+    elsif ($rt eq 'date')
+    {
+        !DateTime->compare($a, $b);
+    }
+    else {
+        $a eq $b;
+    }
+}
+
 1;
 

@@ -52,6 +52,11 @@ after 'build_values' => sub {
     }
 };
 
+has unique_key => (
+    is      => 'ro',
+    default => 'ragval_ux_record_layout',
+);
+
 has '+table' => (
     default => 'Ragval',
 );

@@ -173,5 +173,10 @@ sub as_string
     $self->value // "";
 }
 
+sub equal
+{   my ($self, $a, $b) = @_;
+    $a eq $b;
+}
+
 1;
 

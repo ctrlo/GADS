@@ -38,18 +38,7 @@ sub update_cached
 
     return unless $self->write_cache;
 
-    # First get all old values, to see if changed
-    my @existing = $self->schema->resultset($table)->search({
-        layout_id => $self->id,
-    },{
-        prefetch => 'record',
-    })->all;
-    $value_field_old ||= $self->value_field;
-    my %old = map { $_->record->current_id => $_->$value_field_old } @existing;
-
-    $self->schema->resultset($table)->search({
-        layout_id => $self->id,
-    })->delete;
+    my $guard = $self->schema->txn_scope_guard;
 
     # Need to refresh layout for updated calculation. Also
     # need it for the dependent fields
@@ -59,37 +48,29 @@ sub update_cached
         config      => $self->layout->config,
         schema      => $self->schema,
     );
-
     my $records = GADS::Records->new(
         user         => $self->user,
         layout       => $layout,
         schema       => $self->schema,
         force_update => [ $self->id ],
     );
+
     my $depends = $self->depends_on;
     $records->search(
         columns => [@{$depends},$self->id],
     );
-    # Force an update on each row
-    $_->fields->{$self->id}->value
-        foreach (@{$records->results});
+
+    my @changed;
+    foreach my $record (@{$records->results})
+    {
+        $record->fields->{$self->id}->value;
+        push @changed, $record->current_id if $record->fields->{$self->id}->changed;
+    }
+
+    $guard->commit;
 
     return if $no_alert_send; # E.g. new column, don't want to alert on all
 
-    # Now get new values, and see what's changed
-    @existing = $self->schema->resultset($table)->search({
-        layout_id => $self->id,
-    },{
-        prefetch => 'record',
-    })->all;
-    my $value_field_new = $self->value_field;
-    my %new = map { $_->record->current_id => $_->$value_field_new } @existing;
-    my @changed = grep {
-        !(exists $old{$_})
-        || !defined $old{$_} && defined $new{$_}
-        || defined $old{$_} && !defined $new{$_}
-        || (defined $old{$_} && defined $new{$_} && $old{$_} ne $new{$_})
-    } keys %new;
     # Send any alerts
     my $alert_send = GADS::AlertSend->new(
         layout      => $self->layout,
