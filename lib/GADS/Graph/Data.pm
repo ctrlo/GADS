@@ -151,6 +151,10 @@ sub _build_csv
 
 sub get_color
 {   my ($self, $value) = @_;
+    # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
+    # an object) and may evaluate to an empty string. If so, txn_scope_guard
+    # warns as such, so undefine to prevent the warning
+    undef $@;
     my $guard = $self->schema->txn_scope_guard;
     my $existing = $self->schema->resultset('GraphColor')->find($value, { key => 'ux_graph_color_name' });
     my $color;

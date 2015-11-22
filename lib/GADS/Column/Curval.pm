@@ -136,6 +136,11 @@ sub value
 # Use an around so that we can stick the whole lot in transaction
 around 'write' => sub {
     my $orig  = shift;
+
+    # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
+    # an object) and may evaluate to an empty string. If so, txn_scope_guard
+    # warns as such, so undefine to prevent the warning
+    undef $@;
     my $guard = $_[0]->schema->txn_scope_guard;
 
     $orig->(@_); # Normal column write

@@ -38,6 +38,10 @@ sub update_cached
 
     return unless $self->write_cache;
 
+    # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
+    # an object) and may evaluate to an empty string. If so, txn_scope_guard
+    # warns as such, so undefine to prevent the warning
+    undef $@;
     my $guard = $self->schema->txn_scope_guard;
 
     # Need to refresh layout for updated calculation. Also

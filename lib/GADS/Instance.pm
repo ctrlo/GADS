@@ -177,7 +177,6 @@ sub _build__rset
 
 sub write
 {   my $self = shift;
-    my $guard = $self->schema->txn_scope_guard;
     my $values = {
         name                       => $self->name,
         homepage_text              => $self->homepage_text,
@@ -198,7 +197,6 @@ sub write
         $self->_set__rset($self->schema->resultset('Instance')->create($values));
         $self->_set_id($self->_rset->id);
     }
-    $guard->commit;
 }
 
 sub as_string

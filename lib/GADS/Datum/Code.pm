@@ -42,6 +42,10 @@ has schema => (
 sub write_cache
 {   my ($self, $table, $value) = @_;
 
+    # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
+    # an object) and may evaluate to an empty string. If so, txn_scope_guard
+    # warns as such, so undefine to prevent the warning
+    undef $@;
     # We are generally already in a transaction at this point, but
     # start another one just in case
     my $guard = $self->schema->txn_scope_guard;

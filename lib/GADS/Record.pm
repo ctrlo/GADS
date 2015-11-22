@@ -493,6 +493,10 @@ sub write_linked_id
 sub write
 {   my ($self, %options) = @_;
 
+    # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
+    # an object) and may evaluate to an empty string. If so, txn_scope_guard
+    # warns as such, so undefine to prevent the warning
+    undef $@;
     my $guard = $self->schema->txn_scope_guard;
 
     $self->new_entry(1) unless $self->current_id;
@@ -977,7 +981,11 @@ sub delete_current
         current_id => $id
     })->all;
 
-    # Start transaction
+    # Start transaction.
+    # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
+    # an object) and may evaluate to an empty string. If so, txn_scope_guard
+    # warns as such, so undefine to prevent the warning
+    undef $@;
     my $guard = $self->schema->txn_scope_guard;
 
     foreach my $record (@records)
