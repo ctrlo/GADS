@@ -39,6 +39,7 @@ WriteMakefile(
         'Test::More'                                => 0,
         'Text::Autoformat'                          => 0,
         'Text::CSV::Encoded'                        => 0,
+        'Tie::Cache'                                => 0,
         'Tree::DAG_Node'                            => 0,
         'WWW::Mechanize::PhantomJS'                 => 0,
         'YAML'                                      => 0,
