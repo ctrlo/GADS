@@ -73,6 +73,116 @@
             $("#submit_button").click( function() {
                 window.onbeforeunload = null;
             });
+
+            var calculator_size = [400, 150]; [%# [x, y] px %]
+            var calculator_id   = 'calculator_div';
+
+            function setup_calculator (selector) {
+                var calculator_elem = $('<div class="dropdown-menu" id="' + calculator_id + '"></div>');
+                calculator_elem.css({
+                    position: 'absolute',
+                    'z-index': 1000,
+                    width:  calculator_size[0],
+                    height: calculator_size[1],
+                    display: 'none',
+                    padding: '10px'
+                });
+                $('body').append(calculator_elem);
+
+                calculator_elem.append('
+                    <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <form>
+                        <div class="btn-group operator" data-toggle="buttons"></div>
+                        <div><input type="text" placeholder="Number"></input></div>
+                        <div>
+                            <input type="submit" value="Calculate" class="btn-default"></input>
+                        </div>
+                    </form>
+                ');
+
+                var calculator_operation;
+                var integer_input_elem;
+
+                var calculator_button = [
+                    {
+                        label:      '+',
+                        operation:  function (a, b) { return a + b; }
+                    },
+                    {
+                        label:      '-',
+                        operation:  function (a, b) { return a - b; }
+                    },
+                    {
+                        label:      '×',
+                        operation:  function (a, b) { return a * b; }
+                    },
+                    {
+                        label:      '÷',
+                        operation:  function (a, b) { return a / b; }
+                    }
+                ];
+                var operator_btns_elem = calculator_elem.find('.operator');
+                for (var i in calculator_button) {
+                    ( function () {
+                        var btn = calculator_button[i];
+                        var button_elem = $(
+                            '<label class="btn btn-primary">'
+                            + '<input type="radio" name="op">'
+                            + btn.label
+                            + '</input>'
+                            + '</label>'
+                        );
+                        operator_btns_elem.append(button_elem);
+                        button_elem.on('click', function() {
+                            calculator_operation = btn.operation;
+                            calculator_elem.find(':text').focus();
+                        });
+                    })();
+                }
+
+                calculator_elem.find('form').on('submit', function (e) {
+                    var new_value = calculator_operation(
+                        + integer_input_elem.val(),
+                        + calculator_elem.find(':text').val()
+                    );
+                    integer_input_elem.val(new_value);
+                    calculator_elem.hide();
+                    e.preventDefault();
+                });
+                calculator_elem.find('.close').on('click', function () {
+                    calculator_elem.hide();
+                });
+
+                var calc_button =
+                    '<span class="btn-xs btn-link openintcalculator">Calculator</span>';
+                $(selector).closest('.form-group').find('label').after(calc_button);
+
+                $('.openintcalculator').on('click', function (e) {
+                    var calc_elem = $(e.target);
+                    var container_elem = calc_elem.closest('.form-group');
+                    var input_elem = container_elem.find(selector);
+
+                    var container_y_offset = container_elem.offset().top;
+                    var container_height = container_elem.height();
+                    var calculator_y_offset;
+                    if (  container_y_offset > calculator_size[1] ) {
+                        calculator_y_offset = container_y_offset - calculator_size[1];
+                    }
+                    else {
+                        calculator_y_offset = container_y_offset + container_height;
+                    }
+                    calculator_elem.css({
+                        top: calculator_y_offset,
+                        left: container_elem.offset().left
+                    });
+                    calculator_elem.show();
+                    calculator_elem.find(':text').focus();
+                    integer_input_elem = input_elem;
+                });
+            }
+
+            setup_calculator('.intcalculator');
+
             [% INCLUDE tree.tt %]
             [% jscode.join('') %]
         }); 
@@ -239,6 +349,8 @@
     [% ELSE %]
         [% IF dispcol.type == "date" %]
             [% class = "form-control datepicker" %]
+        [% ELSIF dispcol.type == "intgr" %]
+            [% class = "form-control intcalculator" %]
         [% ELSE %]
             [% class = "form-control" %]
         [% END %]
