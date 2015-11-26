@@ -908,6 +908,13 @@ sub write
                     POSIX::_exit(0); # the child dies here
                 }
                 else {
+                    # We should already be in a try() block, probably with
+                    # hidden messages. These messages will never be written, as
+                    # we exit the process.  Therefore, stop the hiding of
+                    # messages for this part of the code.
+                    my $parent_try = dispatcher 'active-try';
+                    $parent_try->hide('NONE');
+
                     # We must catch exceptions here, otherwise we
                     # will never reap the process.
                     try { $alert_send->process } hide => 'ALL'; # This takes a long time
