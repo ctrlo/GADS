@@ -1138,7 +1138,7 @@ sub data_time
             my $d = $record->fields->{$column->id}
                 or next;
 
-            if ($column->type eq "daterange" || ($column->return_type && $column->return_type eq "date"))
+            if ($column->return_type eq "daterange" || $column->return_type eq "date")
             {
                 $multiple_dates = 1 if $had_date_col;
                 $had_date_col = 1;

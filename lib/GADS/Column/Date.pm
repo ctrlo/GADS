@@ -24,5 +24,9 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
+has '+return_type' => (
+    builder => sub { 'date' },
+);
+
 1;
 

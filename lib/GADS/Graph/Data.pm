@@ -211,7 +211,7 @@ sub _build_data
         foreach my $record (@{$self->records->results})
         {
             my $xval = $record->fields->{$x_axis->id};
-            if ($xval && $x_axis->return_type && $x_axis->return_type eq 'date')
+            if ($xval && $x_axis->return_type eq 'date')
             {
                 $xval = _group_date($xval->value, $self->x_axis_grouping);
             }
@@ -235,7 +235,7 @@ sub _build_data
                     $y_group_values{$gval} = { defined => 0 };
                     $y_group_index++;
                 }
-                if (($x_axis->return_type && $x_axis->return_type eq 'date') || $x_axis->type eq 'daterange')
+                if ($x_axis->return_type eq 'date' || $x_axis->return_type eq 'daterange')
                 {
                     $datemin = $x if !defined $datemin || $datemin > $x;
                     $datemax = $x if !defined $datemax || $datemax < $x;
@@ -304,7 +304,7 @@ sub _build_data
         {
             my $x_value = $x_axis ? $record->fields->{$x->id} : $x->id
                 or next;
-            if ($x_axis && $x_axis->return_type && $x_axis->return_type eq 'date')
+            if ($x_axis->return_type eq 'date')
             {
                 $x_value = _group_date($x_value->value, $self->x_axis_grouping)
                     or next;

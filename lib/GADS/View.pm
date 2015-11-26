@@ -183,7 +183,7 @@ sub _filter_tables
         }
     }
     elsif (my $id = $filter->{id}) {
-        $tables->{$filter->{id}} = 1;
+        $tables->{$filter->{id}} = $filter->{value};
     }
 }
 
@@ -214,12 +214,19 @@ sub write
 
     # Get all the columns in the filter. Check whether the user has
     # access to them.
-    my $tables_in_filter = {};
-    _filter_tables $decoded, $tables_in_filter;
-    foreach my $table (keys %$tables_in_filter)
+    my $cols_in_filter = {};
+    _filter_tables $decoded, $cols_in_filter;
+    foreach my $col_id (keys %$cols_in_filter)
     {
-        error __x"Invalid field ID {id} in filter", id => $table
-            unless $self->layout->column($table)->user_can('read');
+        my $strp = DateTime::Format::Strptime->new(
+            pattern   => '%F',
+        );
+        my $col = $self->layout->column($col_id);
+        my $val = $cols_in_filter->{$col_id};
+        error __x qq(Invalid date format "{value}"), value => $val
+            if !$strp->parse_datetime($val) && ($col->return_type eq 'date' || $col->return_type eq 'daterange');
+        error __x"Invalid field ID {id} in filter", id => $col_id
+            unless $col->user_can('read');
     }
 
     if ($self->id)
@@ -297,7 +304,7 @@ sub write
     # there is not much point, as they could be removed later anyway. We
     # do this during the processing of the alerts and filters elsewhere.
     my @existing = $self->schema->resultset('Filter')->search({ view_id => $self->id })->all;
-    foreach my $table (keys %$tables_in_filter)
+    foreach my $table (keys %$cols_in_filter)
     {
         unless (grep { $_->layout_id == $table } @existing)
         {
@@ -309,7 +316,7 @@ sub write
     }
     # Delete those no longer there
     $search = { view_id => $self->id };
-    $search->{layout_id} = { '!=' => [ '-and', keys %$tables_in_filter ] } if keys %$tables_in_filter;
+    $search->{layout_id} = { '!=' => [ '-and', keys %$cols_in_filter ] } if keys %$cols_in_filter;
     $self->schema->resultset('Filter')->search($search)->delete;
 }
 

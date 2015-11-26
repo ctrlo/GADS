@@ -124,13 +124,8 @@ has type => (
 # e.g. calc type can return date or integer
 has return_type => (
     is      => 'rw',
-    isa => sub {
-        return unless $_[0];
-        $_[0] =~ /(string|date|integer|numeric)/
-            or error __x"Bad return type {type}", type => $_[0];
-    },
     lazy    => 1,
-    builder => sub { $_[0]->type && $_[0]->type eq 'date' ? 'date' : undef }, # Default to date for date column
+    builder => sub { '' },
 );
 
 has table => (
