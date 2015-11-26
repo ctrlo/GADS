@@ -74,7 +74,17 @@ use Dancer2::Plugin::LogReport 1.10;
 
 schema->storage->debugobj(new GADS::DBICProfiler);
 schema->storage->debug(1);
-# schema->exception_action(sub { panic @_ }); # There should never be exceptions from DBIC
+
+# There should never be exceptions from DBIC, so we want to panic them to
+# ensure they get notified at the correct level. Unfortunately, DBIC's internal
+# code uses exceptions, and if these are panic'ed then they are not caught
+# properly. Use this dirty hack for the moment, but I am told these part of
+# DBIC may change in the future.
+schema->exception_action(sub {
+    die $_[0] if $_[0] =~ /^Unable to satisfy requested constraint/; # Expected
+    panic @_; # Not expected
+});
+
 tie %{schema->storage->dbh->{CachedKids}}, 'Tie::Cache', 100;
 # Dynamically generate all relationships for columns. These may be added to as
 # the program's layout changes, but they can never be removed (program restart
