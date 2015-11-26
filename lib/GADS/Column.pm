@@ -260,7 +260,7 @@ has blank_row => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        {
+        +{
             $self->value_field => undef,
         };
     },
