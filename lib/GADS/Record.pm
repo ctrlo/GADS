@@ -995,6 +995,18 @@ sub delete_current
     undef $@;
     my $guard = $self->schema->txn_scope_guard;
 
+    # Delete child records first
+    foreach my $child (@{$self->child_records})
+    {
+        my $record = GADS::Record->new(
+            user   => $self->user,
+            layout => $self->layout,
+            schema => $self->schema,
+        );
+        $record->find_current_id($child);
+        $record->delete_current;
+    }
+
     foreach my $record (@records)
     {
         $self->_delete_record_values($record->id);

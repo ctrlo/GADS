@@ -88,6 +88,14 @@
                 <div class="modal-body">
                     <p>Are you sure you want to delete this record? All previous versions will
                         also be deleted.</p>
+                    [% IF record.child_records.size %]
+                        <h5>The following child records will also be deleted:</h5>
+                        <ul>
+                            [% FOREACH rec IN record.child_records %]
+                                <li>[% rec %]</li>
+                            [% END %]
+                        </ul>
+                    [% END %]
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
