@@ -20,7 +20,7 @@ engines:
     LogReport:
       app_name: GADS
       dispatchers:
-        default:
+        syslog:
           type: SYSLOG
           identity: GADS
           facility: local0
