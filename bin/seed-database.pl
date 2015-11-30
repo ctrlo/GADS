@@ -36,6 +36,9 @@ GetOptions (
     'instance_name=s'    => \$instance_name,
 ) or exit;
 
+my ($dbic) = values %{config->{plugins}->{DBIC}}
+    or die "Please create config.yml before running this script";
+
 unless ($instance_name)
 {
     say "Please enter the name of the first datasheet";
@@ -48,7 +51,6 @@ unless ($initial_username)
     chomp ($initial_username = <STDIN>);
 }
 
-my ($dbic) = values %{config->{plugins}->{DBIC}};
 my $migration_cmd = qq(dbic-migration -Ilib --schema_class='GADS::Schema' --username=$dbic->{user} --password=$dbic->{password} --dsn='$dbic->{dsn}' --dbic_connect_attrs quote_names=1);
 say "Installing schema...";
 qx($migration_cmd install);
