@@ -14,34 +14,67 @@ GADS provides a much more user-friendly interface and makes the data easier to m
 
 # Installation
 
-Note: required fixtures for database (user permissions list etc) are currently
-only deployed when installing version 1 of the database. Therefore, install
-version 1 (```install --to_version 1```) and then upgrade (```upgrade```).
-
 ```
+# Clone
 git clone https://github.com/ctrlo/GADS.git
 
-# Create database (e.g. mysql)
-mysql> CREATE DATABASE gads CHARACTER SET utf8 COLLATE utf8_general_ci;
-mysql> GRANT ALL ON gads5.* TO 'gads'@'localhost' IDENTIFIED BY 'mysecret';
-
-# Deploy database and fixtures
-DBIC_MIGRATION_USERNAME=gads DBIC_MIGRATION_PASSWORD=mysecret \
-    dbic-migration -Ilib --schema_class='GADS::Schema' \
-    --dsn='dbi:mysql:database=gads5' --dbic_connect_attrs \
-    quote_names=1 install
-
-# Update example user
-mysql> UPDATE user SET email='me@example.com', username='me@example.com';
-
-# Create config.yml (plugins->DBIC - dsn, user, password, )
+# Create config.yml
 cp config.yml-example config.yml
-# Update config file:
+# Update config file, in particular:
 # - plugins->DBIC->dsn
 # - plugins->DBIC->user
 # - plugins->DBIC->password
 # - engines->session->YAML->is_secure
 
+# Create database (MySQL)
+mysql> CREATE DATABASE gads CHARACTER SET utf8 COLLATE utf8_general_ci;
+mysql> GRANT ALL ON gads5.* TO 'gads'@'localhost' IDENTIFIED BY 'mysecret';
+
+# Create database (PostgreSQL)
+postgres=# CREATE USER gads WITH PASSWORD 'xxx';
+postgres=# CREATE DATABASE gads OWNER gads;
+# Switch to gads database
+gads=# CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
+
+# Run database seeding script
+bin/seed-database.pl
+```
+
+# Manually seeding database
+```
+# Deploy database (MySQL)
+DBIC_MIGRATION_USERNAME=gads DBIC_MIGRATION_PASSWORD=mysecret \
+    dbic-migration -Ilib --schema_class='GADS::Schema' \
+    --dsn='dbi:mysql:database=gads' --dbic_connect_attrs \
+    quote_names=1 install
+
+# Insert permission fixtures (MySQL)
+DBIC_MIGRATION_USERNAME=gads DBIC_MIGRATION_PASSWORD=mysecret \
+    dbic-migration -Ilib --schema_class='GADS::Schema' \
+    --dsn='dbi:mysql:database=gads' --dbic_connect_attrs \
+    quote_names=1 populate --fixture_set permissions
+
+
+# Deploy database (PostgreSQL)
+DBIC_MIGRATION_USERNAME=gads DBIC_MIGRATION_PASSWORD=mysecret \
+    dbic-migration -Ilib --schema_class='GADS::Schema' \
+    --dsn='dbi:Pg:database=gads' --dbic_connect_attrs \
+    quote_names=1 install
+
+# Insert permission fixtures (PostgreSQL)
+DBIC_MIGRATION_USERNAME=gads DBIC_MIGRATION_PASSWORD=mysecret \
+    dbic-migration -Ilib --schema_class='GADS::Schema' \
+    --dsn='dbi:Pg:database=gads' --dbic_connect_attrs \
+    quote_names=1 populate --fixture_set permissions
+
+
+# Insert user into user table.
+# Insert instance into instance table.
+```
+
+# Finally
+
+```
 # Spin up application
 $ bin/app.pl
 
@@ -54,19 +87,6 @@ $ bin/app.pl
 # - Add data!
 ```
 
-## PostgreSQL
-
-```
-create user gads with password 'xxx';
-create database gads owner gads;
-# Switch to gads database
-CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
-DBIC_MIGRATION_USERNAME=gads DBIC_MIGRATION_PASSWORD=mysecret \
-    dbic-migration -Ilib --schema_class='GADS::Schema' \
-    --dsn='dbi:Pg:database=gads5' --dbic_connect_attrs \
-    quote_names=1 install
-```
-
 ## Other useful dbic-migration commands
 ```
 # Dump all data to fixtures
@@ -75,12 +95,9 @@ DBIC_MIGRATION_USERNAME=gads DBIC_MIGRATION_PASSWORD=mysecret \
 ... populate --fixture_set all_tables
 ```
 
-## Import data
+## Data
 ```
-bin/layout-download.pl > ~/layout.yaml
-bin/layout-import.pl ~/layout.yaml
-bin/generate.pl
-bin/onboard.pl new.csv
-bin/onboard.pl --take-first-enum new.csv
+bin/generate.pl # Generate random data
+bin/onboard.pl --take-first-enum new.csv # Import random data
 ```
 
