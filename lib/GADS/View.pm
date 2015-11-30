@@ -224,7 +224,9 @@ sub write
         my $col = $self->layout->column($col_id);
         my $val = $cols_in_filter->{$col_id};
         error __x qq(Invalid date format "{value}"), value => $val
-            if !$strp->parse_datetime($val) && ($col->return_type eq 'date' || $col->return_type eq 'daterange');
+            if ($col->return_type eq 'date' || $col->return_type eq 'daterange')
+                && !$strp->parse_datetime($val)
+                && $val ne 'CURDATE';
         error __x"Invalid field ID {id} in filter", id => $col_id
             unless $col->user_can('read');
     }
