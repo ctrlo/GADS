@@ -304,7 +304,7 @@ sub _build_data
         {
             my $x_value = $x_axis ? $record->fields->{$x->id} : $x->id
                 or next;
-            if ($x_axis->return_type eq 'date')
+            if ($x_axis && $x_axis->return_type eq 'date')
             {
                 $x_value = _group_date($x_value->value, $self->x_axis_grouping)
                     or next;
