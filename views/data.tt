@@ -53,7 +53,9 @@
                                 [% END %]
                                 <li role="presentation" class="dropdown-header">Global views</li>
                             [% END %]
-                            <li role="presentation">
+                            <li role="presentation"
+                                    [% IF ve.id == v.id %]class="active"[% END %]
+                                >
                                 <a role="menuitem" tabindex="-1" href="/data?view=[% ve.id %]">[% ve.name | html_entity %]
                                     [% veid = ve.id %]
                                     [% IF alerts.$veid %]<img src="/images/bell.png">[% END %]
