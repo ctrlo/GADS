@@ -1495,13 +1495,19 @@ any '/approval/?:id?' => require_login sub {
         my $failed;
         foreach my $col (@columns_to_show)
         {
-            if ($col->userinput) # Not calculated fields
+            my $newv = param($col->field);
+            if ($col->userinput && defined $newv) # Not calculated fields
             {
                 # No need to do anything if the file's just been uploaded
-                if (my $newv = param($col->field))
+                unless (upload "file".$col->id)
                 {
                     $failed = !process( sub { $record->fields->{$col->id}->set_value($newv) } ) || $failed;
                 }
+            }
+            elsif ($col->type eq 'file')
+            {
+                # Not defined file field. Must have been removed.
+                $failed = !process( sub { $record->fields->{$col->id}->set_value(undef) } ) || $failed;
             }
         }
         if (!$failed && process( sub { $record->write }))
