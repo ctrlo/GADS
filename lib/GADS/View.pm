@@ -183,7 +183,10 @@ sub _filter_tables
         }
     }
     elsif (my $id = $filter->{id}) {
-        $tables->{$filter->{id}} = $filter->{value};
+        $tables->{$filter->{id}} = {
+            value    => $filter->{value},
+            operator => $filter->{operator},
+        };
     }
 }
 
@@ -222,9 +225,13 @@ sub write
             pattern   => '%F',
         );
         my $col = $self->layout->column($col_id);
-        my $val = $cols_in_filter->{$col_id};
+        my $fil = $cols_in_filter->{$col_id};
+        my $val = $fil->{value};
+        my $op  = $fil->{operator};
         error __x qq(Invalid date format "{value}"), value => $val
             if ($col->return_type eq 'date' || $col->return_type eq 'daterange')
+                && $op ne 'is_empty'
+                && $op ne 'is_not_empty'
                 && !$strp->parse_datetime($val)
                 && $val ne 'CURDATE';
         error __x"Invalid field ID {id} in filter", id => $col_id
