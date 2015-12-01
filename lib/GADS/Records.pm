@@ -1224,22 +1224,20 @@ sub data_time
 
         # Create title label
         my $title = join ' - ', @titles;
-        if ($type eq 'calendar' && length $title > 90)
-        {
-            $title = substr($title, 0, 86).'...';
-        }
+        my $title_abr = length $title > 50 ? substr($title, 0, 45).'...' : $title;
 
         foreach my $d (@dates)
         {
             next unless $d->{from} && $d->{to};
             my $column = $self->layout->column($d->{column})->name;
-            my $title_item = $multiple_dates ? "$title ($column)" : $title;
+            my $title_i = $multiple_dates ? "$title ($column)" : $title;
+            my $title_i_abr = $multiple_dates ? "$title_abr ($column)" : $title_abr;
             if ($type eq 'calendar')
             {
                 my $item = {
                     "url"   => "/record/" . $record->current_id,
                     "class" => $d->{color},
-                    "title" => $title_item,
+                    "title" => $title_i_abr,
                     "id"    => $record->current_id,
                     "start" => $d->{from}->epoch*1000,
                     "end"   => $d->{to}->epoch*1000,
@@ -1249,13 +1247,13 @@ sub data_time
             else {
                 my $cid = $record->current_id;
                 my $item = {
-                    "content" => qq(<a title="$color_key" href="/record/$cid" style="color:inherit;">$title_item</a>),
+                    "content" => qq(<a title="$title_i" href="/record/$cid" style="color:inherit;">$title_i_abr</a>),
                     "id"      => "$cid+$d->{column}",
                     current_id => $cid,
                     "start"   => $d->{from}->ymd,
                     "group"   => $item_group,
                     column    => $d->{column},
-                    title     => $title_item,
+                    title     => $title_i,
                 };
                 $item->{style} = qq(background-color: $item_color)
                     if $item_color;
