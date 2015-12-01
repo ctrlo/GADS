@@ -944,7 +944,7 @@ sub _field_write
             {
                 $entry->{from}  = $datum_write->from_dt;
                 $entry->{to}    = $datum_write->to_dt;
-                $entry->{value} = $datum_write->as_string;
+                $entry->{value} = $datum_write->as_string || undef; # Don't write empty strings for missing values
             }
             elsif ($column->type =~ /(file|enum|tree|person|curval)/)
             {

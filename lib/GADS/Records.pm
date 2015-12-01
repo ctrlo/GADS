@@ -1008,15 +1008,23 @@ sub _search_construct
         # If it's a daterange, we have to be intelligent about the way the
         # search is constructed. Greater than, less than, equals all require
         # different values of the date range to be searched
-        if ($operator eq "=")
+        if ($operator eq "!=" || $operator eq "=") # Only used for empty / not empty
         {
             $s_field = "value";
         }
-        elsif ($operator eq ">" || $operator eq ">=")
+        elsif ($operator eq ">")
+        {
+            $s_field = "from";
+        }
+        elsif ($operator eq ">=")
         {
             $s_field = "to";
         }
-        elsif ($operator eq "<" || $operator eq "<=")
+        elsif ($operator eq "<")
+        {
+            $s_field = "to";
+        }
+        elsif ($operator eq "<=")
         {
             $s_field = "from";
         }

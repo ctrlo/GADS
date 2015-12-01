@@ -140,6 +140,18 @@
                         label: '[% column.name | html_entity %]',
                         [% IF column.type == "intgr" %]
                             type: 'integer',
+                        [% ELSIF column.return_type == "date" %]
+                            type: 'date',
+                            operators: ['equal', 'not_equal', 'less', 'less_or_equal', 'greater',
+                                'greater_or_equal',
+                                'is_empty', 'is_not_empty'
+                            ],
+                        [% ELSIF column.return_type == "daterange" %]
+                            type: 'date',
+                            operators: ['less', 'less_or_equal', 'greater',
+                                'greater_or_equal', 'contains',
+                                'is_empty', 'is_not_empty'
+                            ],
                         [% ELSE %]
                             type: 'string',
                         [% END %]
@@ -189,6 +201,7 @@
                     {type: 'less_or_equal',    accept_values: true,  apply_to: ['string', 'number', 'datetime']},
                     {type: 'greater',          accept_values: true,  apply_to: ['string', 'number', 'datetime']},
                     {type: 'greater_or_equal', accept_values: true,  apply_to: ['string', 'number', 'datetime']},
+                    {type: 'contains',         accept_values: true,  apply_to: ['datetime']},
                     {type: 'begins_with',      accept_values: true,  apply_to: ['string']},
                     {type: 'is_empty',         accept_values: false, apply_to: ['string', 'number', 'datetime']},
                     {type: 'is_not_empty',     accept_values: false, apply_to: ['string', 'number', 'datetime']}
