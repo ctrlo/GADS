@@ -148,7 +148,7 @@
                             ],
                         [% ELSIF column.return_type == "daterange" %]
                             type: 'date',
-                            operators: ['less', 'less_or_equal', 'greater',
+                            operators: ['equal', 'not_equal', 'less', 'less_or_equal', 'greater',
                                 'greater_or_equal', 'contains',
                                 'is_empty', 'is_not_empty'
                             ],

@@ -224,16 +224,31 @@ sub write
         my $strp = DateTime::Format::Strptime->new(
             pattern   => '%F',
         );
-        my $col = $self->layout->column($col_id);
-        my $fil = $cols_in_filter->{$col_id};
-        my $val = $fil->{value};
-        my $op  = $fil->{operator};
-        error __x qq(Invalid date format "{value}"), value => $val
-            if ($col->return_type eq 'date' || $col->return_type eq 'daterange')
-                && $op ne 'is_empty'
-                && $op ne 'is_not_empty'
-                && !$strp->parse_datetime($val)
-                && $val ne 'CURDATE';
+        my $col   = $self->layout->column($col_id);
+        my $fil   = $cols_in_filter->{$col_id};
+        my $val   = $fil->{value};
+        my $op    = $fil->{operator};
+        my $rtype = $col->return_type;
+        if ($rtype eq 'daterange' && ($op eq 'equal' || $op eq 'not_equal'))
+        {   # expect exact daterange format, "yyyy-mm-dd to yyyy-mm-dd"
+            my ($from, $to) = split ' to ', $val;
+            error __x qq(Invalid daterange format "{value}" for operator "$op". Value must be a
+                full date range ("yyyy-mm-dd to yyyy-mm-dd").), value => $val
+                if !$strp->parse_datetime($from) || !$strp->parse_datetime($to);
+        }
+        elsif (
+            ($rtype eq 'date' || $rtype eq 'daterange')
+            && ($op ne 'is_empty' && $op ne 'is_not_empty')
+        )
+        {   # expect standard date format for other daterange operators
+            error __x qq(Invalid date format "{value}"), value => $val
+                if ( $val !~ /^[-0-9]+$/ # parse_datetime allows junk after proper date
+                    || !$strp->parse_datetime($val)
+                ) && $val ne 'CURDATE';
+        }
+
+        error __x "No value can be entered for empty and not empty operators"
+            if ($op eq 'is_empty' || $op eq 'is_not_empty') && $val;
         error __x"Invalid field ID {id} in filter", id => $col_id
             unless $col->user_can('read');
     }
