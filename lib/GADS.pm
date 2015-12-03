@@ -1852,6 +1852,7 @@ any '/file/:id' => require_login sub {
     my $id = param 'id';
     my $file;
     process (sub { $file = GADS::Datum::File->get_file($id, schema, logged_in_user) });
+    $file or forwardHome(); # Error will have already been displayed
     send_file( \($file->content), content_type => $file->mimetype, filename => $file->name );
 };
 

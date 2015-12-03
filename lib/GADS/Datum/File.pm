@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Datum::File;
 
+use Log::Report;
 use Moo;
 use namespace::clean;
 
