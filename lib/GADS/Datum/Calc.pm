@@ -58,13 +58,17 @@ has layout => (
 
 sub as_string
 {   my $self = shift;
-    my $value = $self->value // "";
+    my $value = $self->value;
     $value = $value->ymd if ref $value eq 'DateTime';
     if ($self->column->return_type eq 'numeric')
     {
         if (my $dc = $self->column->decimal_places)
         {
             $value = sprintf("%.${dc}f", $value)
+        }
+        elsif (!defined $value)
+        {
+            $value = '';
         }
         else {
             $value += 0; # Remove trailing zeros
@@ -126,7 +130,7 @@ sub _transform_value
                    : 'Invalid field names in calc formula';
             assert "Invalid field names in calc formula. Remaining code: $code";
         }
-        else {
+        elsif (defined $code) {
             try { $value = $self->safe_eval("$code") };
             if ($@)
             {

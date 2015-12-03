@@ -167,11 +167,12 @@ sub sub_values
         if ($col->numeric)
         {
             # If field is numeric but does not have numeric value, then return
-            # grey, otherwise the value will be treated as zero
-            # and will probably return misleading RAG values
+            # undef, to force grey for a rag field and undef for a calc.
+            # Otherwise the value will be treated as zero and will probably
+            # return misleading values
             no warnings 'numeric', 'uninitialized';
             $dvalue .= ""; # Stringify
-            return if $self->column->type eq "rag" && $dvalue eq '';
+            return if $dvalue eq '';
             $dvalue = int $dvalue;
         }
         else {
