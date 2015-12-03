@@ -823,7 +823,7 @@ sub write
         $self->fields->{$col->id} = $new;
         # Changed?
         push @{$columns_changed{$self->current_id}}, $col->id
-            if !$new->equal($old->value, $new->value);
+            if !$self->new_entry && !$new->equal($old->value, $new->value);
     }
 
     # Do we need to update any child records that rely on the
