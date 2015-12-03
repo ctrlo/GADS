@@ -67,10 +67,10 @@ sub as_string
             $value = sprintf("%.${dc}f", $value)
         }
         else {
-            $value =~ s/\.?0+$//;
+            $value += 0; # Remove trailing zeros
         }
     }
-    $value;
+    "$value";
 }
 
 sub as_integer
