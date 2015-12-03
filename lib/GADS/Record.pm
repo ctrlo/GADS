@@ -783,7 +783,7 @@ sub write
         my $write_child_calc;
 
         # Get old value
-        my $old = defined $self->fields->{$col->id} ? $self->fields->{$col->id}->as_string : "";
+        my $old = $self->fields->{$col->id};
         # Force new value to be written
         my $dependent_values;
         foreach my $dependent (@{$col->depends_on})
@@ -822,7 +822,8 @@ sub write
         );
         $self->fields->{$col->id} = $new;
         # Changed?
-        push @{$columns_changed{$self->current_id}}, $col->id if $old ne $new->as_string;
+        push @{$columns_changed{$self->current_id}}, $col->id
+            if !$new->equal($old->value, $new->value);
     }
 
     # Do we need to update any child records that rely on the
@@ -857,7 +858,7 @@ sub write
                 foreach my $c (@update_children)
                 {
                     my $col       = $self->layout->column($c->{col_id});
-                    my $old_value = $r->fields->{$col->id}->value;
+                    my $old_value = $r->fields->{$col->id};
                     my $table     = $col->table;
                     $self->schema->resultset($table)->search({
                         record_id => $r->record_id,
@@ -872,7 +873,7 @@ sub write
                     $new_value->dependent_values(\%dep_values);
                     # Force update and check for change at same time
                     push @{$columns_changed{$r->current_id}}, $col->id
-                        if $old_value ne $new_value->value;
+                        if $new_value->equal($old_value->value, $new_value->value);
                 }
             }
         }
