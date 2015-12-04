@@ -161,7 +161,7 @@ sub get_color
     # otherwise we won't match when trying to find it.
     my $gc_rs = $self->schema->resultset('GraphColor');
     my $size = $gc_rs->result_source->column_info('name')->{size};
-    $value = substr $value, 1, $size;
+    $value = substr $value, 0, $size - 1;
     my $existing = $self->schema->resultset('GraphColor')->find($value, { key => 'ux_graph_color_name' });
     my $color;
     if ($existing)
