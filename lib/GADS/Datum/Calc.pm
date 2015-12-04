@@ -120,10 +120,11 @@ sub _transform_value
 
         # Insert ID if required
         my $current_id = $self->current_id;
-        $code =~ s/\[id\]/$current_id/g;
+        $code =~ s/\[id\]/$current_id/g
+            if $code;
 
         # If there are still square brackets then something is wrong
-        if ($code =~ /[\[\]]+/)
+        if ($code && $code =~ /[\[\]]+/)
         {
             $value = $column->return_type eq 'date'
                    ? undef

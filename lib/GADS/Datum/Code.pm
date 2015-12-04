@@ -85,6 +85,7 @@ sub write_cache
 sub sub_date
 {   my ($self, $code, $field, $date) = @_;
     trace "Entering sub_date";
+    $code or return;
     my $subs = 0; # Number of substitutions made
     # Try epoch, year, month and day
     $field =~ /^(\[?)(.*?)(\]?)$/;
