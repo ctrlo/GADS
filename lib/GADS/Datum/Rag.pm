@@ -159,11 +159,11 @@ sub as_integer
         ? 1
         : $self->value eq 'b_red'
         ? 2
-        : $self->value eq 'b_amber'
+        : $self->value eq 'c_amber'
         ? 3
-        : $self->value eq 'b_green'
+        : $self->value eq 'd_green'
         ? 4
-        : $self->value eq 'b_purple'
+        : $self->value eq 'e_purple'
         ? -1
         : -2;
 }
