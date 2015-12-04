@@ -71,33 +71,42 @@ has csv => (
     is => 'lazy',
 );
 
+# Define specific colours to match rag fields
+my $red    = 'D9534F';
+my $amber  = 'F0AD4E';
+my $green  = '5CB85C';
+my $grey   = '8C8C8C';
+my $purple = '4B0F44';
+
 has _colors => (
     is      => 'ro',
     default => sub {
         {
-            "34C3E0" => 1,
-            "62BB46" => 1,
-            "FFDD00" => 1,
+            "7A221B" => 1,
             "D1D3D4" => 1,
-            "F99D1C" => 1,
+            "34C3E0" => 1,
+            "FFDD00" => 1,
+            "9F6512" => 1,
             "F0679E" => 1,
             "2C4269" => 1,
             "7F3F98" => 1,
             "1C75BC" => 1,
-            "EF4136" => 1,
-            "2BB673" => 1,
             "51417B" => 1,
             "F26522" => 1,
-            "8C8C8C" => 1,
-            "97CEDD" => 1,
-            "DCDD20" => 1,
+            "BDE0E9" => 1,
+            "B0B11A" => 1,
             "4D4C4C" => 1,
-            "447CBF" => 1,
-            "F5C316" => 1,
             "007B45" => 1,
             "F37970" => 1,
-            "4B0F44" => 1,
             "EE2D72" => 1,
+            "F9DDB6" => 1,
+            "97C9B3" => 1,
+            "FFED7D" => 1,
+            $red     => 1,
+            $amber   => 1,
+            $green   => 1,
+            $grey    => 1,
+            $purple  => 1,
         },
     },
 );
@@ -169,7 +178,17 @@ sub get_color
         $color = $existing->color;
     }
     else {
-        ($color) = keys %{$self->_colors};
+        $color = $value eq 'a_grey'
+               ? $grey
+               : $value eq 'b_red'
+               ? $red
+               : $value eq 'c_amber'
+               ? $amber
+               : $value eq 'd_green'
+               ? $green
+               : $value eq 'e_purple'
+               ? $purple
+               : (keys %{$self->_colors})[0];
         $self->schema->resultset('GraphColor')->update_or_create({
             name  => $value,
             color => $color,
