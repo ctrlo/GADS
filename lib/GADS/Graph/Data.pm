@@ -156,6 +156,12 @@ sub get_color
     # warns as such, so undefine to prevent the warning
     undef $@;
     my $guard = $self->schema->txn_scope_guard;
+
+    # Make sure value doesn't exceed the length of the name column,
+    # otherwise we won't match when trying to find it.
+    my $gc_rs = $self->schema->resultset('GraphColor');
+    my $size = $gc_rs->result_source->column_info('name')->{size};
+    $value = substr $value, 1, $size;
     my $existing = $self->schema->resultset('GraphColor')->find($value, { key => 'ux_graph_color_name' });
     my $color;
     if ($existing)
