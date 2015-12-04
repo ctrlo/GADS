@@ -821,9 +821,10 @@ sub write
             layout           => $self->layout,
         );
         $self->fields->{$col->id} = $new;
-        # Changed?
+        # Changed? There may not always be an old. E.g. new record, new value
+        # in child record, new field added since previous record was created
         push @{$columns_changed{$self->current_id}}, $col->id
-            if !$self->new_entry && !$new->equal($old->value, $new->value);
+            if $old && !$new->equal($old->value, $new->value);
     }
 
     # Do we need to update any child records that rely on the
