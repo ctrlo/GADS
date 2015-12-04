@@ -164,15 +164,17 @@ sub get_color
     $value = substr $value, 0, $size - 1;
     my $existing = $self->schema->resultset('GraphColor')->find($value, { key => 'ux_graph_color_name' });
     my $color;
-    if ($existing)
+    if ($existing && $self->_colors->{$existing->color})
     {
         $color = $existing->color;
     }
     else {
         ($color) = keys %{$self->_colors};
-        $self->schema->resultset('GraphColor')->create({
+        $self->schema->resultset('GraphColor')->update_or_create({
             name  => $value,
             color => $color,
+        }, {
+            key => 'ux_graph_color_name'
         }) if $color; # May have run out of colours
     }
     $guard->commit;
