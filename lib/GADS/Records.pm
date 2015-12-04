@@ -1249,6 +1249,8 @@ sub data_time
             }
             else {
                 my $cid = $record->current_id;
+                $title_i = encode_entities $title_i;
+                $title_i_abr = encode_entities $title_i_abr;
                 my $item = {
                     "content" => qq(<a title="$title_i" href="/record/$cid" style="color:inherit;">$title_i_abr</a>),
                     "id"      => "$cid+$d->{column}",
@@ -1270,7 +1272,7 @@ sub data_time
     my @groups = map {
         {
             id      => $timeline_groups{$_},
-            content => $_,
+            content => encode_entities $_,
         }
     } keys %timeline_groups;
 
