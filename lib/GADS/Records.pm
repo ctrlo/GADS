@@ -1229,9 +1229,12 @@ sub data_time
         foreach my $d (@dates)
         {
             next unless $d->{from} && $d->{to};
-            my $column = $self->layout->column($d->{column})->name;
-            my $title_i = $multiple_dates ? "$title ($column)" : $title;
-            my $title_i_abr = $multiple_dates ? "$title_abr ($column)" : $title_abr;
+            my @add;
+            push @add, $self->layout->column($d->{column})->name if $multiple_dates;
+            push @add, $color_key if $options{color};
+            my $add = join ', ', @add;
+            my $title_i = $add ? "$title ($add)" : $title;
+            my $title_i_abr = $add ? "$title_abr ($add)" : $title_abr;
             if ($type eq 'calendar')
             {
                 my $item = {
