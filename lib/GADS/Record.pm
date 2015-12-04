@@ -601,11 +601,11 @@ sub write
         }
     }
 
-    error __"Please select at least one field to include in the child record"
-        if !($need_app || $need_rec) && $self->parent_id;
-
     # Anything to update?
     return unless $need_app || $need_rec;
+
+    error __"Please select at least one field to include in the child record"
+        if !($need_app || $need_rec) && $self->parent_id;
 
     # Dummy run?
     return if $options{dry_run};
