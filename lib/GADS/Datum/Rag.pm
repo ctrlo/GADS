@@ -92,15 +92,15 @@ sub _transform_value
 
         # Insert ID if required
         my $current_id = $self->current_id;
-        $green =~ s/\[id\]/$current_id/;
-        $amber =~ s/\[id\]/$current_id/;
-        $red   =~ s/\[id\]/$current_id/;
+        $green =~ s/\[id\]/$current_id/ if $green;
+        $amber =~ s/\[id\]/$current_id/ if $amber;
+        $red   =~ s/\[id\]/$current_id/ if $red;
 
         my $okaycount = 0;
         foreach my $code ($green, $amber, $red)
         {
             # If there are still square brackets then something is wrong
-            if ($code =~ /[\[\]]+/)
+            if ($code && $code =~ /[\[\]]+/)
             {
                 assert "Invalid field names in rag condition. Remaining code: $code";
             }
@@ -113,9 +113,9 @@ sub _transform_value
         # XXX Log somewhere if this fails
         if ($okaycount == 3)
         {
-            trace "Red code is: $red";
-            trace "Amber code is: $red";
-            trace "Green code is: $red";
+            trace __x"Red code is: {red}", red => $red;
+            trace __x"Amber code is: {amber}", amber => $amber;
+            trace __x"Green code is: {green}", green => $green;
             if ($red && try { $self->safe_eval("($red)") } )
             {
                 $ragvalue = 'b_red';
