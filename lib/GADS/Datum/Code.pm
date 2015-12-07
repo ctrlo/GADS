@@ -105,6 +105,7 @@ sub sub_values
 {   my ($self, $col, $code) = @_;
 
     trace "Entering sub_values";
+    $code or return;
 
     my $dvalue = $self->dependent_values->{$col->id};
     my $name   = $col->name;
