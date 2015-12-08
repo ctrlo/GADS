@@ -115,14 +115,16 @@ elsif ([Cost] < 10)
 [% END %]
 
 [% global.helptext.layout_rag = BLOCK %]
-RAG fields can be used to automatically generate colour-coded indicators based
+<p>RAG fields can be used to automatically generate colour-coded indicators based
 on other fields. Basic Perl programming style can be used to stipulate the conditions
 for the colour. If none match, the field will be indicated as grey. Values from other
 fields are used by inserting the field name between square brackets, whilst
 &quot;CURDATE&quot; can be used to insert the current date.  The ID of the
 record can be accessed using [id]. Values in date
 ranges are used by adding the suffix &quot;.from&quot; or &quot;.to&quot;
-to specify the date required. For example:
+to specify the date required.</p>
+
+<p>Examples:</p>
 
 <tt><pre>[% FILTER html %]
 [Start Date] > CURDATE
@@ -131,6 +133,11 @@ to specify the date required. For example:
 
 [Budget] < 100000[% END %]
 </pre></tt>
+
+<p>By default, empty numerical values will evaluate to zero, so <code>[myfield]
+    &lt; 100</code> will evaluate as true, even if <code>myfield</code> is undefined. To
+force expressions to grey in such cases, prefix the field with <code>^</code>:
+<code>[^myfield] &lt; 100</code> will evaluate to grey.</p>
 
 [% END %]
 

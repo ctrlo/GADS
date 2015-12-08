@@ -148,9 +148,8 @@ after 'write' => sub {
         my @depends_on;
         foreach my $col ($self->layout->all)
         {
-            my $name  = $col->name; my $suffix = $col->suffix;
             push @depends_on, $col->id
-                if $self->calc =~ /\Q[$name\E$suffix\Q]/i;
+                if $self->calc =~ $self->code_regex;
         }
         $self->depends_on(\@depends_on);
         $self->update_cached('Calcval', $no_alert_send, $value_field_old);

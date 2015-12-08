@@ -110,6 +110,16 @@ sub sub_values
     my $dvalue = $self->dependent_values->{$col->id};
     my $name   = $col->name;
 
+    # Fields in code can be prefixed with ^, which will mean that
+    # empty values will force the whole code to evaluate to undef.
+    # This allows, for example, "[myfield] < 100" to evaluate to
+    # grey if myfield has an undefined value. Otherwise it will
+    # evaluate to true.
+    # $return_on_undef is true if this setting is enabled.
+    # XXX This global replace will force all fields of the same
+    # name to do this.
+    my $return_on_undef = $code =~ s/\Q[^$name\E(\.|\])/[$name$1/g;
+
     if ($dvalue && $col->type eq "date")
     {
         $code = $self->sub_date($code, "[$name]", $dvalue->value);
@@ -129,9 +139,9 @@ sub sub_values
         # This will become a grey value for RAG fields
         my $subs;
         ($code, $subs) = $self->sub_date($code, "[$name.from]", $dvalue->{from});
-        return if $self->column->type eq "rag" && $subs && !$dvalue->{from};
+        return if $return_on_undef && $self->column->type eq "rag" && $subs && !$dvalue->{from};
         ($code, $subs) = $self->sub_date($code, "[$name.to]", $dvalue->{to});
-        return if $self->column->type eq "rag" && $subs && !$dvalue->{to};
+        return if $return_on_undef && $self->column->type eq "rag" && $subs && !$dvalue->{to};
     }
     elsif ($col->type eq "tree" && $code =~ /\Q[$name.level\E([0-9]+)\]/)
     {
@@ -174,7 +184,7 @@ sub sub_values
             # return misleading values
             no warnings 'numeric', 'uninitialized';
             $dvalue .= ""; # Stringify
-            return if $dvalue eq '';
+            return if $return_on_undef && $dvalue eq '';
             $dvalue = int $dvalue;
         }
         else {

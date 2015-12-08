@@ -661,5 +661,12 @@ sub values_beginning_with
     return @value;
 }
 
+# The regex that will match the column in a calc/rag code definition
+sub code_regex
+{   my $self  = shift;
+    my $name  = $self->name; my $suffix = $self->suffix;
+    qr/\[\^?\Q$name\E$suffix\Q]/i;
+}
+
 1;
 
