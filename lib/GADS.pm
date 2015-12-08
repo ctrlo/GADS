@@ -561,8 +561,6 @@ any '/data' => require_login sub {
         $records->search(
             view          => $view,
             columns_extra => [@extra],
-            rows          => 50, # Default to small subset for performance
-            page          => 1,
         );
         my ($items, $groups) = $records->data_timeline(%{$tl_options});
         $params->{records}      = encode_base64(encode_json($items));
