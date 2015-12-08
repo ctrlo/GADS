@@ -102,7 +102,7 @@ sub _transform_value
             # If there are still square brackets then something is wrong
             if ($code && $code =~ /[\[\]]+/)
             {
-                assert "Invalid field names in rag condition. Remaining code: $code";
+                warning __x"Invalid field names in rag condition. Remaining code: {code}", code => $code;
             }
             else {
                 $okaycount++;
@@ -132,7 +132,7 @@ sub _transform_value
                 # An exception occurred evaluating the code
                 $ragvalue = 'e_purple';
                 my $error = $@->wasFatal->message->toString;
-                assert "Failed to eval rag. Code was: $error";
+                warning __x"Failed to eval rag. Code was: {error}", error => $error;
             }
             else {
                 $ragvalue = 'a_grey';

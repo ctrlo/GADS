@@ -130,14 +130,14 @@ sub _transform_value
             $value = $column->return_type eq 'date'
                    ? undef
                    : 'Invalid field names in calc formula';
-            assert "Invalid field names in calc formula. Remaining code: $code";
+            warning __x"Invalid field names in calc formula. Remaining code: {code}", code => $code;
         }
         elsif (defined $code) {
             try { $value = $self->safe_eval("$code") };
             if ($@)
             {
                 $value = $@->wasFatal->message->toString;
-                assert "Failed to eval calc. Code was: $code";
+                warning __x"Failed to eval calc. Code was: {code}", code => $code;
             }
             # Convert to date if required
             if ($column->return_type eq "date")
@@ -146,7 +146,7 @@ sub _transform_value
                 if (my $exception = $@->wasFatal)
                 {
                     $value = undef;
-                    assert "$@";
+                    warning "$@";
                 }
             }
         }
