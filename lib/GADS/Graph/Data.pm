@@ -111,6 +111,11 @@ has _colors => (
     },
 );
 
+has _colors_in_use => (
+    is      => 'ro',
+    default => sub { +{} },
+);
+
 sub _build_csv
 {   my $self = shift;
     my $csv = Text::CSV::Encoded->new({ encoding  => undef });
@@ -160,17 +165,21 @@ sub _build_csv
 
 sub get_color
 {   my ($self, $value) = @_;
-    # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
-    # an object) and may evaluate to an empty string. If so, txn_scope_guard
-    # warns as such, so undefine to prevent the warning
-    undef $@;
-    my $guard = $self->schema->txn_scope_guard;
 
     # Make sure value doesn't exceed the length of the name column,
     # otherwise we won't match when trying to find it.
     my $gc_rs = $self->schema->resultset('GraphColor');
     my $size = $gc_rs->result_source->column_info('name')->{size};
     $value = substr $value, 0, $size - 1;
+    return "#".$self->_colors_in_use->{$value}
+        if exists $self->_colors_in_use->{$value};
+
+    # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
+    # an object) and may evaluate to an empty string. If so, txn_scope_guard
+    # warns as such, so undefine to prevent the warning
+    undef $@;
+    my $guard = $self->schema->txn_scope_guard;
+
     my $existing = $self->schema->resultset('GraphColor')->find($value, { key => 'ux_graph_color_name' });
     my $color;
     if ($existing && $self->_colors->{$existing->color})
@@ -199,6 +208,7 @@ sub get_color
     $guard->commit;
     if ($color)
     {
+        $self->_colors_in_use->{$value} = $color;
         delete $self->_colors->{$color};
         $color = "#$color";
     }
