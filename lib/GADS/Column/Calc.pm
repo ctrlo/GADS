@@ -149,7 +149,7 @@ after 'write' => sub {
         foreach my $col ($self->layout->all)
         {
             push @depends_on, $col->id
-                if $self->calc =~ $self->code_regex;
+                if $self->calc =~ $col->code_regex;
         }
         $self->depends_on(\@depends_on);
         $self->update_cached('Calcval', $no_alert_send, $value_field_old);
