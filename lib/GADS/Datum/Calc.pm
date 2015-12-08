@@ -74,7 +74,7 @@ sub as_string
             $value += 0; # Remove trailing zeros
         }
     }
-    $value ||= "";
+    $value //= "";
     "$value";
 }
 
