@@ -82,7 +82,8 @@ sub _transform_value
             $green  = $self->sub_values($col, $green);
             $amber  = $self->sub_values($col, $amber);
             $red    = $self->sub_values($col, $red);
-            $green && $amber && $red or return $self->_write_rag('a_grey');
+            defined $green && defined $amber && defined $red
+                or return $self->_write_rag('a_grey');
         }
 
         # Insert current date if required
@@ -116,15 +117,15 @@ sub _transform_value
             trace __x"Red code is: {red}", red => $red;
             trace __x"Amber code is: {amber}", amber => $amber;
             trace __x"Green code is: {green}", green => $green;
-            if ($red && try { $self->safe_eval("($red)") } )
+            if (defined $red && try { $self->safe_eval("($red)") } )
             {
                 $ragvalue = 'b_red';
             }
-            elsif (!$@ && $amber && try { $self->safe_eval("($amber)") } )
+            elsif (!$@ && defined $amber && try { $self->safe_eval("($amber)") } )
             {
                 $ragvalue = 'c_amber';
             }
-            elsif (!$@ && $green && try { $self->safe_eval("($green)") } )
+            elsif (!$@ && defined $green && try { $self->safe_eval("($green)") } )
             {
                 $ragvalue = 'd_green';
             }
