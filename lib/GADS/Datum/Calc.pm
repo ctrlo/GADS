@@ -143,11 +143,16 @@ sub _transform_value
             # Convert as required
             if ($column->return_type eq "date")
             {
-                try { $value = DateTime->from_epoch(epoch => $value) };
-                if (my $exception = $@->wasFatal)
+                $value = undef
+                    if !$value && !looks_like_number($value); # Convert empty strings to undef
+                if (defined $value)
                 {
-                    $value = undef;
-                    warning "$@";
+                    try { $value = DateTime->from_epoch(epoch => $value) };
+                    if (my $exception = $@->wasFatal)
+                    {
+                        $value = undef;
+                        warning "$@";
+                    }
                 }
             }
             elsif ($column->return_type eq 'numeric' || $column->return_type eq 'integer')
