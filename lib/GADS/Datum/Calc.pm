@@ -20,6 +20,7 @@ package GADS::Datum::Calc;
 
 use Log::Report;
 use Moo;
+use Scalar::Util qw(looks_like_number);
 use namespace::clean;
 
 extends 'GADS::Datum::Code';
@@ -139,7 +140,7 @@ sub _transform_value
                 $value = $@->wasFatal->message->toString;
                 warning __x"Failed to eval calc. Code was: {code}", code => $code;
             }
-            # Convert to date if required
+            # Convert as required
             if ($column->return_type eq "date")
             {
                 try { $value = DateTime->from_epoch(epoch => $value) };
@@ -148,6 +149,11 @@ sub _transform_value
                     $value = undef;
                     warning "$@";
                 }
+            }
+            elsif ($column->return_type eq 'numeric' || $column->return_type eq 'integer')
+            {
+                $value = undef
+                    if !$value && !looks_like_number($value); # Convert empty strings to undef
             }
         }
 
