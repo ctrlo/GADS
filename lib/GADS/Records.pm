@@ -756,7 +756,7 @@ sub construct_search
             {
                 my $f = {
                     id       => $c->id,
-                    operator => 'less',
+                    operator => 'less_or_equal',
                     value    => $to->ymd,
                 };
                 push @f, $f;
@@ -765,7 +765,7 @@ sub construct_search
             {
                 my $f = {
                     id       => $c->id,
-                    operator => 'greater',
+                    operator => 'greater_or_equal',
                     value    => $from->ymd,
                 };
                 push @f, $f;
