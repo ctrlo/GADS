@@ -1250,8 +1250,12 @@ sub data_time
                 my $cid = $record->current_id;
                 $title_i = encode_entities $title_i;
                 $title_i_abr = encode_entities $title_i_abr;
+                # If this is an item for a single day, then abbreviate the title,
+                # otherwise it can appear as a very long item on the timeline.
+                # If it's multiple day, the timeline plugin will automatically shorten it.
+                my $t = $d->{from}->epoch == $d->{to}->epoch ? $title_i_abr : $title_i;
                 my $item = {
-                    "content" => qq(<a title="$title_i" href="/record/$cid" style="color:inherit;">$title_i_abr</a>),
+                    "content" => qq(<a title="$title_i" href="/record/$cid" style="color:inherit;">$t</a>),
                     "id"      => "$cid+$d->{column}",
                     current_id => $cid,
                     "start"   => $d->{from}->ymd,
