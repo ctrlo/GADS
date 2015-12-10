@@ -1190,14 +1190,13 @@ sub data_time
                 next if $options{label} && $options{label} != $column->id;
                 # Not a date value, push onto title
                 # Don't want full HTML, which includes hyperlinks etc
-                my $v = encode_entities($d->as_string);
-                push @titles, $v if $v;
+                push @titles, $d->as_string if $d->as_string;
             }
         }
         if (my $label = $options{label})
         {
-            @titles = (encode_entities $record->fields->{$label}->as_string)
-                if $record->fields->{$label};
+            @titles = ($record->fields->{$label}->as_string)
+                if $record->fields->{$label}->as_string;
         }
         my $item_color; my $color_key = '';
         if (my $color = $options{color})
