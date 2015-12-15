@@ -254,15 +254,15 @@
                 <h4>RAG conditions: <small>(<a href="" data-toggle="modal" data-target="#helprag">?</a>)</small></h4>
                 <div class="form-group">
                     <label for="red">Red:</label>
-                    <input type="text" class="form-control" name="red" id="red" value="[% column.red | html_entity %]">
+                    <textarea class="form-control monospace" id="red" name="red" rows="5">[% column.red | html_entity %]</textarea>
                 </div>
                 <div class="form-group">
                     <label for="amber">Amber:</label>
-                    <input type="text" class="form-control" name="amber" id="amber" value="[% column.amber | html_entity %]">
+                    <textarea class="form-control monospace" id="amber" name="amber" rows="5">[% column.amber | html_entity %]</textarea>
                 </div>
                 <div class="form-group">
                     <label for="green">Green:</label>
-                    <input type="text" class="form-control" name="green" id="green" value="[% column.green | html_entity %]">
+                    <textarea class="form-control monospace" id="green" name="green" rows="5">[% column.green | html_entity %]</textarea>
                 </div>
             </div>
             <div id="divcalc"
