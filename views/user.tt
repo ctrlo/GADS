@@ -265,6 +265,7 @@
             <th>Title</th>
             <th>Email</th>
             <th>Organisation</th>
+            <th>Last login</th>
         </tr>
     </thead>
     <tbody>
@@ -276,6 +277,7 @@
                 <td>[% edituser.title.name | html_entity %]</td>
                 <td>[% edituser.email | html_entity %]</td>
                 <td>[% edituser.organisation.name | html_entity %]</td>
+                <td>[% edituser.lastlogin OR "Never logged in" %]</td>
             </tr>
         [% END %]
     </tbody>
