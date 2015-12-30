@@ -273,6 +273,14 @@ sub _build_is_historic
     $current_rec_id && $current_rec_id != $self->record_id;
 }
 
+# Remove IDs from record, to effectively make this a new unwritten
+# record. Used when prefilling values.
+sub remove_id
+{   my $self = shift;
+    $self->current_id(undef);
+    $self->linked_id(undef);
+}
+
 sub find_record_id
 {   my ($self, $record_id) = @_;
     $self->_find(record_id => $record_id);

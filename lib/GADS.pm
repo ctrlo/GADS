@@ -1814,7 +1814,7 @@ any '/edit/:id?' => require_login sub {
                     if !$record->fields->{$col->id}->has_value && $col->remember;
             }
         }
-        $record->current_id(undef);
+        $record->remove_id;
     }
     else {
         $record->initialise;
