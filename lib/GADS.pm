@@ -51,6 +51,7 @@ use GADS::MetricGroup;
 use GADS::MetricGroups;
 use GADS::Record;
 use GADS::Records;
+use GADS::RecordsGroup;
 use GADS::Type::Permissions;
 use GADS::User;
 use GADS::Users;
@@ -309,13 +310,12 @@ get '/data_calendar/:time' => require_login sub {
         user                 => $user,
         layout               => $layout,
         schema               => schema,
+        view                 => $view,
+        from                 => $fromdt,
+        to                   => $todt,
         interpolate_children => 0,
     );
-    $records->search(
-        view    => $view,
-        from    => $fromdt,
-        to      => $todt,
-    );
+    $records->search;
 
     header "Cache-Control" => "max-age=0, must-revalidate, private";
     content_type 'application/json';
@@ -331,28 +331,18 @@ sub _data_graph
     my $user    = logged_in_user;
     my $layout  = var 'layout';
     my $view    = current_view($user, $layout);
-    my $graph   = GADS::Graph->new(id => $id, schema => schema);
-    my $records = GADS::Records->new(
+    my $records = GADS::RecordsGroup->new(
         user              => $user,
         layout            => $layout,
         schema            => schema,
         prefetch_children => 1,
     );
-    # Columns is either the x-axis, or if not defined, all the columns in the view
-    my @columns = $graph->x_axis
-        ? ($graph->x_axis, $graph->y_axis)
-        : $view
-        ? @{$view->columns}
-        : $layout->all(user_can_read => 1);
-
-    push @columns, $graph->group_by if $graph->group_by;
-
-
-    $records->search(
+    GADS::Graph::Data->new(
+        id      => $id,
+        records => $records,
+        schema  => schema,
         view    => $view,
-        columns => \@columns,
     );
-    GADS::Graph::Data->new(id => $id, records => $records, schema => schema);
 }
 
 get '/data_graph/:id/:time' => require_login sub {
@@ -558,10 +548,9 @@ any '/data' => require_login sub {
         push @extra, $tl_options->{label} if $tl_options->{label};
         push @extra, $tl_options->{group} if $tl_options->{group};
         push @extra, $tl_options->{color} if $tl_options->{color};
-        $records->search(
-            view          => $view,
-            columns_extra => [@extra],
-        );
+        $records->view($view);
+        $records->columns_extra([@extra]);
+        $records->search;
         my ($items, $groups) = $records->data_timeline(%{$tl_options});
         $params->{records}      = encode_base64(encode_json($items));
         $params->{groups}       = encode_base64(encode_json($groups));
@@ -621,13 +610,11 @@ any '/data' => require_login sub {
             $records->default_sort($sort);
         }
 
-        $records->search(
-            view    => $view,
-            rows    => $rows,
-            page    => $page,
-            sort    => session('sort'),
-            format  => (defined param('download') ? {plain => 1} : {encode_entities => 1}),
-        );
+        $records->view($view);
+        $records->rows($rows);
+        $records->page($page);
+        $records->sort(session 'sort');
+        $records->search;
         my $pages = $records->pages;
 
         my $subset = {

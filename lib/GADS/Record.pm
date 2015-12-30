@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Record;
 
-use Carp qw(confess);
 use DateTime;
 use DateTime::Format::Strptime qw( );
 use DBIx::Class::ResultClass::HashRefInflator;
@@ -299,21 +298,21 @@ sub _find
         layout           => $self->layout,
         schema           => $self->schema,
         columns          => $self->columns,
+        include_approval => $self->include_approval,
     );
 
-    my $rinfo = $records->construct_search;
+    $records->construct_search;
     $self->columns_retrieved_do($records->columns_retrieved_do);
     $self->columns_retrieved_no($records->columns_retrieved_no);
 
-    my @limit      = @{$rinfo->{limit}};
     my $prefetches = $records->prefetches;
     my $joins      = $records->joins;
-    my @search     = @{$rinfo->{search}};
-
+    my $search;
 
     my $root_table;
     if (my $record_id = $find{record_id})
     {
+        $search = $records->search_query('record');
         unshift @$prefetches, (
             {
                 'current' => $records->linked_hash
@@ -321,20 +320,13 @@ sub _find
             'createdby',
             'approvedby'
         ); # Add info about related current record
-        push @limit, ("me.id" => $record_id);
+        push @$search, ("me.id" => $record_id);
         $root_table = 'Record';
-        unless ($self->include_approval)
-        {
-            push @search, (
-                { 'me.approval'         => 0 },
-                { 'me.record_id'        => undef },
-                { 'current.instance_id' => $self->layout->instance_id },
-            );
-        }
     }
     elsif (my $current_id = $find{current_id})
     {
-        push @limit, ("me.id" => $current_id);
+        $search = $records->search_query;
+        push @$search, {"me.id" => $current_id};
         unshift @$prefetches, ('current', 'createdby', 'approvedby'); # Add info about related current record
         $prefetches = [
             $records->linked_hash,
@@ -345,28 +337,19 @@ sub _find
         ];
         $joins      = {'record' => $joins};
         $root_table = 'Current';
-        unless ($self->include_approval)
-        {
-            push @search, (
-                {'record.approval' => 0},
-                {'record.record_id' => undef},
-            );
-        }
-        push @search, { 'me.instance_id' => $self->layout->instance_id };
     }
     else {
-        confess "record_id or current_id needs to be passed to _find";
+        panic "record_id or current_id needs to be passed to _find";
     }
 
-    my $search = [-and => [@search, @limit]];
-
-    my $select = {
-        prefetch => $prefetches,
-        join     => $joins,
-    };
-
     my $result = $self->schema->resultset($root_table)->search(
-        $search, $select
+        [
+            -and => $search
+        ],
+        {
+            prefetch => $prefetches,
+            join     => $joins,
+        },
     );
 
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
@@ -422,7 +405,7 @@ sub _set_current_id
 sub _transform_values
 {   my $self = shift;
 
-    my $original = $self->record or confess "Record data has not been set";
+    my $original = $self->record or panic "Record data has not been set";
 
     my $fields = {};
     # We must fo these columns in dependent order, otherwise the
@@ -839,11 +822,6 @@ sub write
     # values of this parent record?
     if (@update_children)
     {
-        my $records = GADS::Records->new(
-            user   => $self->user,
-            layout => $self->layout,
-            schema => $self->schema,
-        );
         # @retrieve is all the values to retrieve for the child record.
         # It includes the calculated values in the record and the
         # dependent values of that calc value. We can then see if any
@@ -852,11 +830,15 @@ sub write
             $_->{col_id},
             @{$self->layout->column($_->{col_id})->depends_on}
         } @update_children;
-        $records->search(
+        my $records = GADS::Records->new(
+            user              => $self->user,
+            layout            => $self->layout,
+            schema            => $self->schema,
             columns           => \@retrieve,
             current_ids       => $self->child_records,
             retrieve_children => 0,
         );
+        $records->search;
         foreach my $r (@{$records->results})
         {
             # See if this child record contains any of its own values that

@@ -32,6 +32,10 @@ has records => (
     required => 1,
 );
 
+has view => (
+    is => 'ro',
+);
+
 has xlabels => (
     is      => 'rw',
     lazy    => 1,
@@ -218,183 +222,191 @@ sub get_color
 sub _build_data
 {   my $self = shift;
 
-    # XXX A lot of this would probably be better done by the database...
+    # Columns is either the x-axis, or if not defined, all the columns in the view
+    my @columns = $self->x_axis
+        ? ($self->x_axis, $self->y_axis)
+        : $self->view
+        ? @{$self->view->columns}
+        : $self->records->layout->all(user_can_read => 1);
 
-    my $layout   = $self->records->layout;
-    my $x_axis   = $self->x_axis ? $layout->column($self->x_axis) : undef;
-    my $y_axis   = $layout->column($self->y_axis);
-    my $group_by = $self->group_by && $layout->column($self->group_by);
+    my $layout      = $self->records->layout;
+    # $x_axis is undefined if all the fields are to appear on it
+    my $x_axis      = $self->x_axis ? $layout->column($self->x_axis) : undef;
+    # Whether the x-axis is a daterange data type. If so, we need to treat it
+    # specially and span values from single records across dates.
+    my $x_daterange = $x_axis && $x_axis->return_type eq 'daterange';
+    # Only try grouping by date for valid date column
+    my $x_axis_grouping =
+        $x_axis &&
+        ($x_axis->return_type eq 'date' || $x_axis->return_type eq 'daterange') &&
+        $self->x_axis_grouping;
 
-    # $y_group_index used to count y_group unique values
-    my $y_group_index = 0;
+    my $group_by_db = [];
+    push @$group_by_db, {
+        id    => $self->x_axis,
+        pluck => $x_axis_grouping, # Whether to group x-axis dates
+    } if !$x_daterange && $self->x_axis;
+
+    my $records = $self->records;
+    $records->column_id($self->y_axis) unless !$self->x_axis; # Don't specify column when all x-axis graph
+    $records->operator($self->y_axis_stack);
+    # Apply aggregate operator to all columns if multi x-axis
+    $records->aggregate_all(1) if !$self->x_axis;
+
+    my $group_by_col;
+    if ($self->type ne 'pie' && $self->group_by)
+    {
+        $group_by_col = $layout->column($self->group_by);
+        push @columns, $self->group_by;
+        push @$group_by_db, {
+            id => $self->group_by,
+        };
+        $records->col_max($self->group_by);
+    }
+
+    if ($x_daterange)
+    {
+        $records->dr_interval($x_axis_grouping);
+        $records->dr_column($x_axis->id);
+    }
+
+    my $y_axis = $layout->column($self->y_axis);
+    $records->view($self->view);
+    $records->columns(\@columns);
+    $records->group_by($group_by_db);
+    $records->search;
 
     # The view of this graph
-    my $view    = $self->records->view;
-    # All the x values from the records. May only be one, or may be lots if
-    # not defined in the graph
-    my @x = $x_axis
+    my $view = $self->records->view;
+    # All the sources of the x values. May only be one column, may be several columns,
+    # or may be lots of dates.
+    my @x = $x_daterange
+        ? () # Populated in a moment for daterange x-axis
+        : $x_axis
         ? ($x_axis)
         : $view
         ? $self->records->layout->view($view->id, user_can_read => 1)
         : $layout->all(user_can_read => 1);
 
-    my %xy_values; my %y_group_values;
-    my ($datemin, $datemax);
-    if ($x_axis)
+    if ($x_daterange)
     {
-        # Go through each record, and count how many unique values
-        # there are for the field in question. Then define the key
-        # of the xy_values hash using the index count
-        foreach my $record (@{$self->records->results})
+        # If this is a daterange x-axis, then use the start date
+        # as calculated by GADS::RecordsGroup, then interpolate
+        # until the end date. These same values will have been retrieved
+        # in the resultset.
+        my $pointer = $records->dr_from->clone;
+        while ($pointer->epoch <= $records->dr_to->epoch)
         {
-            my $xval = $record->fields->{$x_axis->id};
-            if ($xval && $x_axis->return_type eq 'date')
-            {
-                $xval = _group_date($xval->value, $self->x_axis_grouping);
-            }
-            next unless $xval && "$xval";
-
-            my $gval = $group_by && $record->fields->{$group_by->id};
-
-            my @xvals = $x_axis->type eq 'daterange'
-                      ? _group_dates($xval, $self->x_axis_grouping)
-                      : ($xval);
-
-            foreach my $x (@xvals)
-            {
-                $x = $x->epoch if ref $x eq 'DateTime';
-                if (!defined $xy_values{"$x"})
-                {
-                    $xy_values{"$x"} = 1;
-                }
-                if ($group_by && !defined $y_group_values{$gval})
-                {
-                    $y_group_values{$gval} = { defined => 0 };
-                    $y_group_index++;
-                }
-                if ($x_axis->return_type eq 'date' || $x_axis->return_type eq 'daterange')
-                {
-                    $datemin = $x if !defined $datemin || $datemin > $x;
-                    $datemax = $x if !defined $datemax || $datemax < $x;
-                }
-            }
+            push @x, $pointer->clone;
+            $pointer->add("${x_axis_grouping}s" => 1);
         }
     }
-    else {
-        # Showing several columns, so show each as its own x-axis value
-        $xy_values{$_->id} = 1
-            foreach @x;
-    }
 
-    my $dg = {
+    my $dgf = {
         day   => '%d %B %Y',
         month => '%B %Y',
         year  => '%Y',
     };
 
-    my @xlabels;
+    # Now go into each of the retrieved database results, and create a more
+    # useful hash with all the series on, which we can use to create the
+    # graphs. At this point, we do not know what the x-axis values will be,
+    # so we need to wait until we've retrieved them all first (we know the
+    # source of the values, but not the value or quantity of them).
+    my $results = {}; # The overall results hash
+    my %series; # The names of all of the series for the graph. May only be one.
+    my $datemin; my $datemax; # For x-axis dates, min and max retrieved
 
-    my $count = 0;
-    if ($self->x_axis_grouping && $datemin && $datemax)
+    # For each line of results from the SQL query
+    foreach my $line (@{$self->records->results})
     {
-        @xlabels = ();
-        my $inc = DateTime->from_epoch( epoch => $datemin );
-        my $add = $self->x_axis_grouping.'s';
-        while ($inc->epoch <= $datemax)
-        {
-            $xy_values{$inc->epoch} = $count;
-            my $df = $dg->{$self->x_axis_grouping};
-            push @xlabels, $inc->strftime($df);
-            $inc->add( $add => 1 );
-            $count++;
-        }
-    }
-    elsif ($x_axis)
-    {
-        # Generate unique index numbers for all the x-values
-        @xlabels = sort keys %xy_values;
-        foreach my $l (@xlabels)
-        {
-            $xy_values{$l} = $count;
-            $count++;
-        }
-    }
-    else {
-        # x labels will just be field ID numbers. Translate to
-        # field names
-        @xlabels = map { $_->name } @x;
-        foreach my $l (@x)
-        {
-            $xy_values{$l->id} = $count;
-            $count++;
-        }
-    }
-    
-    # Now go into each record a second time, counting the values for each
-    # of the above unique values, and setting the count into the series hash.
-    # $series holds all the info about each series of data. It's kept together
-    # so that related data can be sorted together.
-    my $series;
-    foreach my $record (@{$self->records->results})
-    {
+        # For each x-axis source (see above)
         foreach my $x (@x)
         {
-            my $x_value = $x_axis ? $record->fields->{$x->id} : $x->id
-                or next;
-            if ($x_axis && $x_axis->return_type eq 'date')
-            {
-                $x_value = _group_date($x_value->value, $self->x_axis_grouping)
-                    or next;
-                $x_value = $x_value->epoch;
-            }
-            next unless "$x_value";
-            my @x_values = $x_axis && $x_axis->type eq 'daterange'
-                         ? map { $_->epoch } _group_dates($x_value, $self->x_axis_grouping)
-                         : ($x_value);
+            my $col     = $x_daterange ? $x->epoch : $x->field;
+            my $x_value = $line->get_column($col);
+            $self->x_axis && !$x_value
+                and next; # Skip blank x-values, but only for non multi-x-axis
 
-            my $y_value     = $x_axis ? $record->fields->{$y_axis->id} : $record->fields->{$x->id};
-            my $y_field     = $x_axis ? $y_axis : $x; # The field of the y axis value
-            my $groupby_val = $group_by && $record->fields->{$group_by->id};
-
-            my $key;
-            if ($self->type eq "pie")
+            if ($x_axis_grouping) # Group by date, round to required interval
             {
-                $key = 1; # Only ever one key for the one ring of a pie
+                my $x_dt = $x_daterange
+                         ? $x
+                         : $self->schema->storage->datetime_parser->parse_date($x_value);
+                my $df   = $dgf->{$x_axis_grouping};
+                $x_value = $self->_group_date($x_dt);
+                $datemin = $x_value if !defined $datemin || $datemin->epoch > $x_value->epoch;
+                $datemax = $x_value if !defined $datemax || $datemax->epoch < $x_value->epoch;
+                $x_value = $x_value->strftime($df) if $x_value;
             }
-            elsif ($self->type eq "donut")
+            elsif (!$x_axis) # Multiple column x-axis
             {
-                $key = $groupby_val || 1; # Maybe no grouping will be set
-            }
-            elsif (!$groupby_val)
-            {
-                $key = 1; # Only one series
-            }
-            else {
-                $key = $groupby_val;
+                $x_value = $x->name;
             }
 
-            unless ($self->type eq "pie" || $self->type eq "donut" || defined $series->{$key})
-            {
-                # If not defined, zero out the field's values
-                my @zero = (0) x $count;
-                $series->{$key}->{data} = \@zero;
-                $series->{$key}->{y_group} = "$groupby_val" if $group_by;
-            }
-            # Finally increase by one the particlar value count in question
-            foreach my $xv (@x_values)
-            {
-                my $idx = $xy_values{$xv};
-                if ($self->y_axis_stack eq 'count')
-                {
-                    $series->{$key}->{data}->[$idx]++;
-                }
-                elsif($y_field->numeric) {
-                    $series->{$key}->{data}->[$idx] += $y_value if $y_value;
-                }
-                else {
-                    $series->{$key}->{data}->[$idx] = 0 unless $series->{$key}->{data}->[$idx];
-                }
-            }
+            # The key for this series. May only be one (use "1")
+            my $k = $group_by_col
+                  ? $line->get_column($group_by_col->field)
+                  : 1;
+            $k ||= '<blank value>';
+            $series{$k} = 1; # Hash to kill duplicate values
+
+            # Store all the results for each x value together, by series
+            $results->{$x_value} ||= {};
+
+            # The column name to retrieve from SQL record
+            my $fname = $x_daterange
+                      ? $x->epoch
+                      : $self->x_axis
+                      ? $y_axis->field."_".$self->y_axis_stack
+                      : $x->field;
+            $results->{$x_value}->{$k} = $line->get_column($fname);
+            no warnings 'numeric', 'uninitialized';
+            # Add on the linked column from another datasheet, if applicable
+            next if !$x_axis && (!$x->numeric || !$x->link_parent); # Multi x-axis
+            $results->{$x_value}->{$k} += $line->get_column("${fname}_link")
+                if $y_axis->link_parent && $self->y_axis_stack eq 'sum';
+        }
+    }
+
+    # Work out the labels for the x-axis. We now know this having processed
+    # all the values.
+    my @xlabels;
+    if ($x_axis_grouping && $datemin && $datemax)
+    {
+        @xlabels = ();
+        my $inc = $datemin->clone;
+        my $add = $x_axis_grouping.'s';
+        while ($inc->epoch <= $datemax->epoch)
+        {
+            my $df = $dgf->{$x_axis_grouping};
+            push @xlabels, $inc->strftime($df);
+            $inc->add( $add => 1 );
+        }
+    }
+    elsif (!$self->x_axis) # Multiple columns, use column name
+    {
+        @xlabels = map { $_->name } @x;
+    }
+    else {
+        @xlabels = sort keys %$results;
+    }
+
+    # Now that we have all the values retrieved and know the quantity
+    # of the x-axis values, we can map these into individual series
+    my $series;
+    foreach my $serial (keys %series)
+    {
+        my @xloop = $self->x_axis ? @xlabels : @x;
+        foreach my $x (@xloop)
+        {
+            my $x_val = $self->x_axis ? $x : $x->name;
+            # May be a zero y-value for a grouped graph, but the
+            # series still needs a zero written, even for a line graph.
+            no warnings 'numeric', 'uninitialized';
+            my $y = int $results->{$x_val}->{$serial};
+            $y = 0 if !$self->x_axis && !$x->numeric;
+            push @{$series->{$serial}->{data}}, $y;
         }
     }
 
@@ -415,14 +427,12 @@ sub _build_data
         }
 
         # Now go into each data item and recalculate against the metric
-        my %indices = reverse %xy_values;
         foreach my $line (keys %$series)
         {
             my @data = @{$series->{$line}->{data}};
             for my $i (0 .. $#data)
             {
-                my $x = $indices{$i};
-                $x    = $layout->column($x)->name unless $x_axis;
+                my $x = $xlabels[$i];
                 my $target = $metrics->{$line}->{$x};
                 $series->{$line}->{data}->[$i] = $target ? int ($data[$i] * 100 / $target ) : 0;
             }
@@ -440,51 +450,41 @@ sub _build_data
         {
             my @ps;
             my $s = $series->{$k}->{data};
-            foreach my $item (keys %xy_values)
-            {
-                my $idx = $xy_values{$item};
-                push @ps, [
-                    $item, $s->[$idx],
-                ] if $s->[$idx]
-            }
+            my $idx = 0;
+            push @ps, [
+                $_, ($s->[$idx++]||0),
+            ] foreach @xlabels;
             push @points, \@ps;
         }
+        # XXX jqplot doesn't like smaller ring segmant quantities first.
+        # Sorting fixes this, but should probably be fixed in jqplot.
+        @points = sort { scalar @$b <=> scalar @$a } @points;
     }
     else {
-        # Now work out the Y labels for each point. Go into each data set and
-        # see if there is a value. If there is, set the label, otherwise leave
-        # it blank in order to show no label at that point
+        # Work out the required jqplot labels for each series.
         foreach my $k (keys %$series)
         {
-            my $y_group = $series->{$k}->{y_group} || '<blank value>';
-            my ($showlabel, $color);
-            if (!$y_group || $y_group_values{$y_group}->{defined})
-            {
-                $showlabel = 'false';
-            }
-            else {
-                $showlabel = 'true';
-                $y_group_values{$y_group}->{defined} = 1;
-                $color = $self->get_color($y_group);
-            }
+            my $showlabel = 'true';
+            my $color = $self->get_color($k);
             $series->{$k}->{label} = {
                 color         => $color,
                 showlabel     => $showlabel,
                 showline      => $self->type eq "scatter" ? 'false' : 'true',
                 markeroptions => $markeroptions,
-                label         => $y_group
+                label         => $k,
             };
         }
 
-        # Sort the series by y_group, so that the groupings appear together on the chart
-        my @all_series = values %$series;
-        @all_series    = sort { $a->{y_group} cmp $b->{y_group} } @all_series if $group_by;
+        # Sort the names of the series so they appear in order on the
+        # graph. For some reason, they need to be in reverse order to
+        # appear correctly in jqplot.
+        my @all_series = map { $series->{$_} } reverse sort keys %$series;
         @points        = map { $_->{data} } @all_series;
         @labels        = map { $_->{label} } @all_series;
     }
 
-    {
-        xlabels => \@xlabels,
+    +{
+        xlabels => \@xlabels, # Populated, but not used for donut
         points  => \@points,
         labels  => \@labels, # Not used for pie/donut
     }
@@ -492,9 +492,10 @@ sub _build_data
 
 # Take a date and round it down according to the grouping
 sub _group_date
-{   my ($val, $grouping) = @_;
+{   my ($self, $val) = @_;
     $val or return;
-    $grouping eq 'year'
+    my $grouping = $self->x_axis_grouping;
+    $val = $grouping eq 'year'
          ? DateTime->new(year => $val->year)
          : $grouping eq 'month'
          ? DateTime->new(year => $val->year, month => $val->month)

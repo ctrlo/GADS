@@ -91,16 +91,15 @@ sub _build_values
         or return []; # No layout or fields set
 
     my $records = GADS::Records->new(
-        user             => undef,
-        layout           => $layout,
-        schema           => $self->schema,
-    );
-
-    $records->search(
+        user    => undef,
+        layout  => $layout,
+        schema  => $self->schema,
         columns => $self->curval_fields,
         # Sort on all columns displayed as the Curval
         sort    => [ map { { id => $_ } } @{$self->curval_fields} ],
     );
+
+    $records->search;
 
     my @values;
     foreach my $r (@{$records->results})

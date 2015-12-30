@@ -57,12 +57,10 @@ sub update_cached
         layout       => $layout,
         schema       => $self->schema,
         force_update => [ $self->id ],
+        columns      => [@{$self->depends_on},$self->id],
     );
 
-    my $depends = $self->depends_on;
-    $records->search(
-        columns => [@{$depends},$self->id],
-    );
+    $records->search;
 
     my @changed;
     foreach my $record (@{$records->results})

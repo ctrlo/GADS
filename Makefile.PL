@@ -27,6 +27,7 @@ WriteMakefile(
         'DateTime::Event::Random'                   => 0,
         'DateTime::Format::Strptime'                => 0,
         'DateTime::Span'                            => 0,
+        'DBIx::Class::Helper::ResultSet::DateMethods1' => 0,
         'DBIx::Class::Migration'                    => 0,
         'DBIx::Class::ResultClass::HashRefInflator' => 0,
         'HTML::FromText'                            => 0,

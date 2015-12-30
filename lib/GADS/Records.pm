@@ -144,6 +144,12 @@ has interpolate_children => (
     default => 1,
 );
 
+# Limit to specific current IDs
+has current_ids => (
+    is  => 'rw',
+    isa => Maybe[ArrayRef],
+);
+
 has prefetches => (
     is      => 'rw',
     isa     => ArrayRef,
@@ -155,6 +161,32 @@ has joins => (
     isa     => ArrayRef,
     default => sub { [] },
 );
+
+# Additional limiting conditions to be added to the main query.
+has search_limit => (
+    is      => 'rw',
+    isa     => ArrayRef,
+    default => sub { [] },
+);
+
+# Produce the overall search condition array, combining the above 2.
+sub search_query
+{   my ($self, $root_table) = @_;
+    my @search = @{$self->search_limit};
+    $root_table ||= 'current';
+    my $current = $root_table eq 'current' ? 'me' : 'current';
+    my $record  = $root_table eq 'record'  ? 'me' : 'record';
+    unless ($self->include_approval)
+    {
+        push @search, (
+            { "$record.approval"  => 0 },
+            { "$record.record_id" => undef },
+        );
+    }
+    push @search, { "$current.id"          => $self->current_ids} if $self->current_ids;
+    push @search, { "$current.instance_id" => $self->layout->instance_id };
+    [@search];
+}
 
 # Same as prefetches, but linked fields
 has linked_prefetches => (
@@ -205,10 +237,6 @@ has sort => (
 has schema => (
     is       => 'rw',
     required => 1,
-);
-
-has format => (
-    is => 'rw',
 );
 
 has default_sort => (
@@ -527,64 +555,13 @@ sub search_all_fields
     sort {$a->{current_id} <=> $b->{current_id}} values %results;
 }
 
-sub search
-{   my ($self, %options) = @_;
-    #   push @limit, ("record.record_id" => undef)
-    #        unless $approval;
-    #}
-    #push @limit, (approval => $approval);
-
-    my $prefetches  = $self->prefetches([]);
-    my $joins       = $self->joins([]);
-    my $current_ids = delete $options{current_ids},
-    my $rinfo       = $self->construct_search(%options);
-    my @search      = @{$rinfo->{search}};
-    my @limit       = @{$rinfo->{limit}};
-
-    my $root_table;
-    unless ($self->include_approval)
-    {
-        push @search, (
-            { 'record.approval'  => 0 },
-            { 'record.record_id' => undef },
-        );
-    }
-    push @search, { 'me.id'          => $current_ids} if $current_ids;
-    push @search, { 'me.instance_id' => $self->layout->instance_id };
-
-    $root_table = 'Current';
-
-    my $search = [-and => [@search, @limit]];
-
-    # XXX Okay, this is a bit weird - we join current to record to current.
-    # This is because we return records at the end, and it allows current
-    # to be used when the record is used. Is there a better way?
-    my $linked  = $self->linked_hash;
-    my $current = $root_table eq 'Record' ? { current => $linked } : 'current';
-    unshift @$prefetches, ($current, 'createdby', 'approvedby');
-
-    my $currents = $self->prefetch_children ? { currents => {record => $prefetches} } : 'currents';
-    my $select = {
-        prefetch => $root_table eq 'Record' ? $prefetches : [
-            {
-                'record' => $prefetches
-            },
-            $currents,
-            $linked,
-        ],
-        join     => $root_table eq 'Record' ? $joins : [
-            {
-                'record' => $joins
-            },
-            $linked,
-        ],
-        '+select' => $self->plus_select,
-        order_by  => $self->order_by,
-    };
+# Produce a standard set of results without grouping
+sub _search
+{   my ($self, $root_table, $select) = @_;
 
     # First count all values from result
     my $count = $self->schema->resultset($root_table)->search(
-        $search, $select
+        [-and => $self->search_query], $select
     )->count;
 
     # Send page information back
@@ -601,11 +578,10 @@ sub search
     $select->{rows} = $rows if $rows;
     $select->{page} = $page if $page;
     my $result = $self->schema->resultset($root_table)->search(
-        $search, $select
+        [-and => $self->search_query], $select
     );
 
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
-
     # This messy code is to reorder the results slightly, so that
     # child records appear below their parent record
     my @all_ids;
@@ -623,7 +599,6 @@ sub search
             parent_id            => $rec->{parent_id},
             linked_id            => $rec->{linked_id},
             user                 => $self->user,
-            format               => $self->format,
             layout               => $self->layout,
             force_update         => $self->force_update,
             columns_retrieved_no => $self->columns_retrieved_no,
@@ -661,7 +636,6 @@ sub search
                     parent_id            => $rec->{parent_id},
                     linked_id            => $rec->{linked_id},
                     user                 => $self->user,
-                    format               => $self->format,
                     layout               => $self->layout,
                     force_update         => $self->force_update,
                     columns_retrieved_no => $self->columns_retrieved_no,
@@ -699,14 +673,42 @@ sub search
     $self->results(\@all);
 }
 
+sub search
+{   my $self = shift;
+
+    $self->construct_search;
+
+    # XXX Okay, this is a bit weird - we join current to record to current.
+    # This is because we return records at the end, and it allows current
+    # to be used when the record is used. Is there a better way?
+    my $prefetches  = $self->prefetches;
+    my $joins       = $self->joins;
+    my $linked      = $self->linked_hash;
+    unshift @$prefetches, ('current', 'createdby', 'approvedby');
+    my $currents = $self->prefetch_children ? { currents => {record => $prefetches} } : 'currents';
+    my $select = {
+        prefetch => [
+            {
+                'record' => $prefetches
+            },
+            $currents,
+            $linked,
+        ],
+        join     => [
+            {
+                'record' => $joins
+            },
+            $linked,
+        ],
+        '+select' => $self->plus_select, # Used for additional sort columns
+        order_by  => $self->order_by,
+    };
+
+    $self->_search('Current', $select);
+}
+
 sub construct_search
 {   my ($self, %options) = @_;
-
-    foreach my $option (keys %options)
-    {
-        $self->$option($options{$option});
-    }
-    undef %options;
 
     my $layout = $self->layout;
 
@@ -898,10 +900,7 @@ sub construct_search
         }
     }
 
-    {
-        search     => \@search,
-        limit      => \@limit,
-    }
+    $self->search_limit([@limit, @search]);
 }
 
 sub _table_name
@@ -917,6 +916,14 @@ sub _table_name_linked
     my $index = $jn > 1 ? "_$jn" : '';
     $column->sprefix . $index;
 }
+
+# Return a fully-qualified value field for a table
+sub _fqvalue
+{   my ($self, $column) = @_;
+    my $tn = $self->_table_name($column);
+    "$tn." . $column->value_field;
+}
+
 
 sub add_sort
 {   my ($self, $column, $type) = @_;
@@ -1290,6 +1297,24 @@ sub data_calendar
 sub data_timeline
 {   my $self = shift;
     $self->data_time('timeline', @_);
+}
+
+sub _min_date { shift->_min_max_date('min', @_) };
+sub _max_date { shift->_min_max_date('max', @_) };
+
+sub _min_max_date
+{   my ($self, $action, $date1, $date2) = @_;
+    my $dt_parser = $self->schema->storage->datetime_parser;
+    my $d1 = $dt_parser->parse_date($date1);
+    my $d2 = $dt_parser->parse_date($date2);
+    return $d1 if !$d2;
+    return $d2 if !$d1;
+    if ($action eq 'min') {
+        return $d1 if $d1->epoch < $d2->epoch;
+    } else {
+        return $d1 if $d1->epoch > $d2->epoch;
+    }
+    return $d2;
 }
 
 1;

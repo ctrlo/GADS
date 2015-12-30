@@ -112,15 +112,14 @@ sub _create_cache
         layout      => $self->layout,
         instance_id => $self->layout->instance_id,
     );
+    my $view    = $views->view($self->view_id);
     my $records = GADS::Records->new(
         user   => $self->user,
         layout => $self->layout,
         schema => $self->schema,
+        view   => $view,
     );
-    my $view    = $views->view($self->view_id);
-    $records->search(
-        view    => $view,
-    );
+    $records->search;
 
     my @caches;
     foreach my $result (@{$records->results})
