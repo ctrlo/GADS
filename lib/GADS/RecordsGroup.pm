@@ -270,12 +270,13 @@ sub _search_group
         select => [@select_fields],
         join     => [
             {
-                'record' => [@$prefetches, @$joins],
+                'record' => [@$joins, @$prefetches],
             },
             $self->linked_hash,
         ],
         group_by => [@g],
     };
+
 
     my $result = $self->schema->resultset('Current')->search(
         [-and => $self->search_query], $select
