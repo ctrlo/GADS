@@ -177,10 +177,12 @@ sub _search_group
         my $dt_parser = $self->schema->storage->datetime_parser;
         # Find min/max dates from above, including linked field if required
         my $daterange_from = $self->_min_date(
-            $result->get_column('start_date'), $result->get_column('start_date_link')
+            $result->get_column('start_date'),
+            ($field_link ? $result->get_column('start_date_link') : undef)
         );
         my $daterange_to   = $self->_max_date(
-            $result->get_column('end_date'), $result->get_column('end_date_link')
+            $result->get_column('end_date'),
+            ($field_link ? $result->get_column('end_date_link') : undef)
         );
         $daterange_from->truncate(to => 'month');
         $daterange_to->truncate(to => 'month');
@@ -288,8 +290,8 @@ sub _max_date { shift->_min_max_date('max', @_) };
 sub _min_max_date
 {   my ($self, $action, $date1, $date2) = @_;
     my $dt_parser = $self->schema->storage->datetime_parser;
-    my $d1 = $dt_parser->parse_date($date1);
-    my $d2 = $dt_parser->parse_date($date2);
+    my $d1 = $date1 && $dt_parser->parse_date($date1);
+    my $d2 = $date2 && $dt_parser->parse_date($date2);
     return $d1 if !$d2;
     return $d2 if !$d1;
     if ($action eq 'min') {
