@@ -814,8 +814,14 @@ sub write
         $self->fields->{$col->id} = $new;
         # Changed? There may not always be an old. E.g. new record, new value
         # in child record, new field added since previous record was created
-        push @{$columns_changed{$self->current_id}}, $col->id
-            if $old && !$new->equal($old->value, $new->value);
+        if ($old && !$new->equal($old->value, $new->value))
+        {
+            push @{$columns_changed{$self->current_id}}, $col->id;
+        }
+        elsif (!$old)
+        {
+            $new->value; # Force value to be evaluated and written
+        }
     }
 
     # Do we need to update any child records that rely on the
