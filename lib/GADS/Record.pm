@@ -895,6 +895,7 @@ sub write
                 base_url    => $self->base_url,
                 current_ids => [$cid],
                 columns     => $columns_changed{$cid},
+                current_new => $self->new_entry,
             );
 
             if (my $kid = fork)

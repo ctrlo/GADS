@@ -50,6 +50,13 @@ has current_ids => (
     required => 1,
 );
 
+# Whether this is a brand new record
+has current_new => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
 has base_url => (
     is       => 'rw',
     required => 1,
@@ -64,10 +71,15 @@ sub process
 {   my $self = shift;
 
     # First see what views this record should be in. We use this to
-    # see if it's dropped out or been added to any views
-    my @all_views = $self->schema->resultset('View')->search({
-        'view_layouts.layout_id' => $self->columns,
-    },{
+    # see if it's dropped out or been added to any views.
+    # Firstly, search on the views that may have been affected. This
+    # is all the ones that contain the changed columns. If this is
+    # a brand new record, however, then it doesn't matter what columns
+    # have changed, so get all the views.
+    my $search;
+    $search->{'view_layouts.layout_id'} = $self->columns
+        unless $self->current_new;
+    my @all_views = $self->schema->resultset('View')->search($search,{
         prefetch => 'view_layouts',
     })->all;
 
