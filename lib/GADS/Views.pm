@@ -49,6 +49,11 @@ has global => (
     isa => ArrayRef,
 );
 
+has all => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
 # Only required a full view is retrieved
 has layout => (
     is => 'rw',
@@ -76,6 +81,15 @@ sub _build_global
     })->all;
     my @global = map { $self->view($_->id) } @views;
     \@global;
+}
+
+sub _build_all
+{   my $self = shift;
+    my @views = $self->schema->resultset('View')->search({
+        instance_id => $self->instance_id,
+    })->all;
+    my @all = map { $self->view($_->id) } @views;
+    \@all;
 }
 
 # Default user view

@@ -127,6 +127,17 @@ has alert => (
     }
 );
 
+has has_alerts => (
+    is  => 'lazy',
+    isa => Bool,
+);
+
+sub _build_has_alerts
+{   my $self = shift;
+    $self->_view or return;
+    $self->_view->alerts->count ? 1 : 0;
+}
+
 has columns => (
     is      => 'rw',
     lazy    => 1,
