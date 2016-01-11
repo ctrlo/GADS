@@ -103,8 +103,10 @@ has all => (
     },
 );
 
-sub _create_cache
+sub update_cache
 {   my $self = shift;
+
+    my $guard = $self->schema->txn_scope_guard;
 
     my $views   = GADS::Views->new(
         user        => $self->user,
@@ -121,19 +123,44 @@ sub _create_cache
     );
     $records->search;
 
-    my @caches;
+    my $view_id = $self->view_id;
+    my @caches; my $cache;
     foreach my $result (@{$records->results})
     {
+        my $current_id = $result->current_id;
         foreach my $column (@{$view->columns})
         {
             push @caches, {
                 layout_id  => $column,
-                view_id    => $self->view_id,
-                current_id => $result->current_id,
+                view_id    => $view_id,
+                current_id => $current_id,
             };
+            $cache->{$view_id}->{$column}->{$current_id} = undef;
         }
     }
-    $self->schema->resultset('AlertCache')->populate(\@caches);
+    my @existing = $self->schema->resultset('AlertCache')->search({
+        -or => \@caches
+    })->all;
+
+    foreach (@existing)
+    {
+        if (exists $cache->{$_->view_id}->{$_->layout_id}->{$_->current_id})
+        {
+            delete $cache->{$_->view_id}->{$_->layout_id}->{$_->current_id};
+        }
+        else {
+            $_->delete;
+        }
+    }
+
+    my @towrite;
+    foreach (@caches)
+    {
+        push @towrite, $_
+            if exists $cache->{$_->{view_id}}->{$_->{layout_id}}->{$_->{current_id}};
+    }
+    $self->schema->resultset('AlertCache')->populate(\@towrite);
+    $guard->commit;
 }
 
 sub write
@@ -172,22 +199,8 @@ sub write
             user_id   => $self->user->{id},
             frequency => $self->frequency,
         });
-        $self->_create_cache($alert) unless $exists;
+        $self->update_cache unless $exists;
     }
-}
-
-sub update_cache
-{   my $self = shift;
-
-    $self->schema->resultset('AlertCache')->search({
-        view_id => $self->view_id,
-    })->delete;
-
-    my ($alert) = $self->schema->resultset('Alert')->search({
-        view_id => $self->view_id,
-        user_id => $self->user->{id},
-    });
-    $self->_create_cache($alert);
 }
 
 1;
