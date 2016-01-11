@@ -138,9 +138,18 @@ sub update_cache
             $cache->{$view_id}->{$column}->{$current_id} = undef;
         }
     }
-    my @existing = $self->schema->resultset('AlertCache')->search({
-        -or => \@caches
-    })->all;
+
+    # Only search for 1000 at a time, otherwise query is too large
+    my @existing; my $i = 0;
+    while ($i < @caches)
+    {
+        my $max = $i + 999;
+        $max = @caches-1 if $max >= @caches;
+        push @existing, $self->schema->resultset('AlertCache')->search({
+            -or => [@caches[$i..$max]]
+        })->all;
+        $i += 1000;
+    }
 
     foreach (@existing)
     {
