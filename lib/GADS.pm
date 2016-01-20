@@ -1748,9 +1748,9 @@ any '/edit/:id?' => require_login sub {
                         $failed = !process( sub { $record->fields->{$col->id}->set_value($newv) } ) || $failed;
                     }
                 }
-                elsif ($col->type eq 'file')
+                elsif ($col->type eq 'file' && !upload("file".$col->id))
                 {
-                    # Not defined file field. Must have been removed.
+                    # Not defined file field and not just uploaded. Must have been removed.
                     $failed = !process( sub { $record->fields->{$col->id}->set_value(undef) } ) || $failed;
                 }
             }
