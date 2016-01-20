@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Datum::Calc;
 
 use Log::Report;
+use Math::Round qw/round/;
 use Moo;
 use Scalar::Util qw(looks_like_number);
 use namespace::clean;
@@ -159,6 +160,7 @@ sub _transform_value
             {
                 $value = undef
                     if !$value && !looks_like_number($value); # Convert empty strings to undef
+                $value = round $value if defined $value && $column->return_type eq 'integer';
             }
         }
 
