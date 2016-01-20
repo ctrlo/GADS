@@ -107,7 +107,6 @@ GADS::Email->instance(
 
 hook before => sub {
 
-    return if request->uri =~ m!^/(error|js|css|login|images|fonts|resetpw|ping)!;
     return if param 'error';
 
     # Dynamically generate "virtual" columns for each row of data, based on the
@@ -118,7 +117,9 @@ hook before => sub {
     my $method = request->method;
     my $path   = request->path;
     my $audit  = GADS::Audit->new(schema => schema, user => $user);
-    my $description = qq(User $user->{username} made $method request to $path);
+    my $description = $user
+        ? qq(User $user->{username} made $method request to $path)
+        : qq(Unauthenticated user made $method request to $path);
     $audit->user_action(description => $description, url => $path, method => $method)
         if $user;
 
