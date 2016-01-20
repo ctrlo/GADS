@@ -7,4 +7,4 @@ use GADS;
 use Dancer2::Test apps => ['GADS'];
 
 route_exists [GET => '/'], 'a route handler is defined for /';
-response_status_is ['GET' => '/'], 200, 'response status is 200 for /';
+response_status_is ['GET' => '/'], 302, 'response status is 302 for /';
