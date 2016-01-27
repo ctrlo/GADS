@@ -81,7 +81,8 @@ sub update
 {   my ($class, $schema) = @_;
 
     # Find out what latest field ID is
-    my $max = $schema->resultset('Layout')->search->get_column('id')->max;
+    my $max = $schema->resultset('Layout')->search->get_column('id')->max
+        or return; # No fields
 
     # Does this exist as an accessor?
     my $rec_rsource = $schema->resultset('Record')->result_source;
