@@ -77,5 +77,27 @@ sub add_column
     $schema->register_class(Record => $rec_class);
 }
 
+sub update
+{   my ($class, $schema) = @_;
+
+    # Find out what latest field ID is
+    my $max = $schema->resultset('Layout')->search->get_column('id')->max;
+
+    # Does this exist as an accessor?
+    my $rec_rsource = $schema->resultset('Record')->result_source;
+    unless ($rec_rsource->has_relationship("field$max"))
+    {
+        # No. Need to go back until we find the one that exists
+        my $id = $max;
+        $id-- while !$rec_rsource->has_relationship("field$id");
+        $id++; # Start at one the doesn't exist
+        for ($id..$max) {
+            # Add them/it
+            my $col = $schema->resultset('Layout')->find($_);
+            $class->add_column($schema, $col);
+        }
+    }
+}
+
 1;
 

@@ -109,8 +109,12 @@ hook before => sub {
 
     return if param 'error';
 
-    # Dynamically generate "virtual" columns for each row of data, based on the
-    # configured layout
+    # Add any new relationships for new fields. These are normally
+    # added when the field is created, but with multiple processes
+    # these will not have been created for the other processes.
+    # This subroutine checks for missing ones and adds them.
+    GADS::DB->update(schema);
+
     my $user = logged_in_user;
 
     # Log to audit
