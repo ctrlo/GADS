@@ -70,7 +70,7 @@
                         <a href="/edit/" class="btn btn-default" role="button">New record</a>
                     </div>
                 [% END %]
-                [% IF user.permission.link %]
+                [% IF user.permission.link AND show_link %]
                     <div class="btn-group">
                         <a href="/link/" class="btn btn-default" role="button">New linked record</a>
                     </div>

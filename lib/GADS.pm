@@ -706,6 +706,7 @@ any '/data' => require_login sub {
     $params->{user_views}      = $views->user_views;
     $params->{alerts}          = $alert->all;
     $params->{user_can_create} = $layout->user_can('write_new');
+    $params->{show_link}       = rset('Current')->count;
     template 'data' => $params;
 };
 
