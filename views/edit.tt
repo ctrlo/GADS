@@ -143,7 +143,7 @@
                 <label>
                     <input type="checkbox" name="child_inc" value="[% dispcol.id %]"
                         [% IF record.current_id AND record.fields.$colid.has_value %]checked[% END %]
-                    > <span [% label_style %]>[% label %]</span> (tick to include)
+                    > <span [% label_style %]>[% label %]</span> (tick for own value, untick to inherit)
                 </label>
             </div>
         [% ELSE %]
