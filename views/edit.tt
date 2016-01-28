@@ -349,7 +349,7 @@
     [% ELSE %]
         [% IF dispcol.type == "date" %]
             [% class = "form-control datepicker" %]
-        [% ELSIF dispcol.type == "intgr" %]
+        [% ELSIF dispcol.type == "intgr" AND editvalue.value.defined %]
             [% class = "form-control intcalculator" %]
         [% ELSE %]
             [% class = "form-control" %]
