@@ -74,7 +74,6 @@
                 window.onbeforeunload = null;
             });
 
-            var calculator_size = [400, 150]; [%# [x, y] px %]
             var calculator_id   = 'calculator_div';
 
             function setup_calculator (selector) {
@@ -82,15 +81,12 @@
                 calculator_elem.css({
                     position: 'absolute',
                     'z-index': 1000,
-                    width:  calculator_size[0],
-                    height: calculator_size[1],
                     display: 'none',
                     padding: '10px'
                 });
                 $('body').append(calculator_elem);
 
                 calculator_elem.append('
-                    <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     <form class="form-inline">
                         <div class="form-group btn-group operator" data-toggle="buttons"></div>
                         <div class="form-group"><input type="text" placeholder="Number" class="form-control"></input></div>
@@ -165,8 +161,9 @@
                     var container_y_offset = container_elem.offset().top;
                     var container_height = container_elem.height();
                     var calculator_y_offset;
-                    if (  container_y_offset > calculator_size[1] ) {
-                        calculator_y_offset = container_y_offset - calculator_size[1];
+                    var calc_div_height = $('#calculator_div').height();
+                    if (  container_y_offset > calc_div_height ) {
+                        calculator_y_offset = container_y_offset - calc_div_height;
                     }
                     else {
                         calculator_y_offset = container_y_offset + container_height;
