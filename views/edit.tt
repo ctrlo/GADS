@@ -96,6 +96,15 @@
                     </form>
                 ');
 
+                $(document).mouseup(function (e)
+                {
+                    if (!calculator_elem.is(e.target)
+                        && calculator_elem.has(e.target).length === 0)
+                    {
+                        calculator_elem.hide();
+                    }
+                });
+
                 var calculator_operation;
                 var integer_input_elem;
 
