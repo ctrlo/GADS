@@ -176,7 +176,9 @@
                         left: container_elem.offset().left
                     });
                     calculator_elem.show();
-                    calculator_elem.find(':text').focus();
+                    var calc_input = calculator_elem.find(':text');
+                    calc_input.focus();
+                    calc_input.val('');
                     integer_input_elem = input_elem;
                 });
             }
