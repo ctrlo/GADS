@@ -550,7 +550,19 @@ sub write
         }
         elsif ($datum->changed && !$column->user_can('write_existing'))
         {
-            error __x"You do not have permission to edit field {name}", name => $column->name;
+            # If the user does not have write access to the field, but has
+            # permission to create child records, then we want to allow them
+            # to add a blank field to the child record. If they do, they
+            # will land here, so we check for that and only error if they
+            # have entered a value.
+            if ($datum->blank && $self->parent_id)
+            {
+                # Force new record to write if this is the only change
+                $need_rec = 1;
+            }
+            else {
+                error __x"You do not have permission to edit field {name}", name => $column->name;
+            }
         }
 
         if ($self->doing_approval)

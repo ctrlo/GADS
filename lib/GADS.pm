@@ -1664,7 +1664,9 @@ any '/edit/:id?' => require_login sub {
         base_url => request->base,
     );
 
-    my @columns_to_show = $id
+    my $child = param 'child';
+
+    my @columns_to_show = $id || $child # show all cols for new child, to allow inc/exc of field
         ? $layout->all(user_can_readwrite_existing => 1)
         : $layout->all(user_can_write_new => 1);
 
@@ -1675,7 +1677,7 @@ any '/edit/:id?' => require_login sub {
 
     if (param 'submit')
     {
-        $record->initialise unless $id || param('child');
+        $record->initialise unless $id || $child;
         my $params = params;
         my $uploads = request->uploads;
         foreach my $key (keys %$uploads)
@@ -1691,7 +1693,7 @@ any '/edit/:id?' => require_login sub {
             });
         }
         my $failed;
-        if (my $child = param 'child')
+        if ($child)
         {
             if ($id && !user_has_role('create_child'))
             {
@@ -1819,7 +1821,7 @@ any '/edit/:id?' => require_login sub {
             if !$col->user_can('read');
     }
 
-    my $child = param('child') && user_has_role('create_child')
+    my $child_rec = $child && user_has_role('create_child')
         ? int(param 'child')
         : $record->parent_id
         ? $record->parent_id
@@ -1828,11 +1830,11 @@ any '/edit/:id?' => require_login sub {
     notice __"Please tick the fields that will have their own values for this child record "
         ."(at least one must be ticked). Any fields that are not ticked will inherit their "
         ."value from the parent."
-            if param('child');
+            if $child;
 
     my $output = template 'edit' => {
         record      => $record,
-        child       => $child,
+        child       => $child_rec,
         all_columns => \@columns_to_show,
         page        => 'edit'
     };
