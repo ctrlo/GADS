@@ -95,7 +95,8 @@ sub update
         for ($id..$max) {
             # Add them/it
             my $col = $schema->resultset('Layout')->find($_);
-            $class->add_column($schema, $col);
+            $class->add_column($schema, $col)
+                if $col; # May have since been deleted
         }
     }
 }
