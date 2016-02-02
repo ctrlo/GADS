@@ -504,6 +504,8 @@ sub write
     }
     else {
         $newitem->{id} = $self->set_id if $self->set_id;
+        # Add at end of other items
+        $newitem->{position} = $self->schema->resultset('Layout')->get_column('position')->max + 1;
         my $id = $self->schema->resultset('Layout')->create($newitem)->id;
         $self->id($id);
     }
