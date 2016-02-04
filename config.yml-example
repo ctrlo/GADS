@@ -32,6 +32,7 @@ gads:
   email_from: '"GADS" <user@example.com>' # Emails are sent from this
   aup: 0 # Whether to show an acceptable use policy
   login_instance: 1 # The config values used for login page
+  default_instance: 1 # The default instance on login, if more than one
   url: https://example.com/ # Used for URLs in overnight email alerts
   # aup_accept: I accept these terms # Use to change default accept button
   message_prefix: >

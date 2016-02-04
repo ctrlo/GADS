@@ -163,7 +163,7 @@ hook before => sub {
         elsif (!session('instance_id'))
         {
             my $instances = GADS::Instances->new(schema => schema);
-            session instance_id => $instances->all->[0]->id;
+            session instance_id => config->{gads}->{default_instance} || $instances->all->[0]->id;
         }
         # Instance ID can be overriden using the parameter "oi". This is
         # a bit hacky, but it allows (for example) the session instance to
