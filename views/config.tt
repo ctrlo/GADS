@@ -42,7 +42,7 @@
                 width : "800",
                 height : "400",
                 plugins : "table",
-                theme_advanced_buttons1 : "bold, italic, underline, strikethrough, justifyleft, justifycenter, justifyright, bullist, numlist, outdent, indent, undo, redo, link, unlink, cleanup, hr, formatselect, forecolor, backcolor",
+                theme_advanced_buttons1 : "bold, italic, underline, strikethrough, justifyleft, justifycenter, justifyright, bullist, numlist, outdent, indent, undo, redo, link, unlink, removeformat, cleanup, hr, formatselect, forecolor, backcolor",
                 theme_advanced_buttons2 : "tablecontrols",
                 theme_advanced_buttons3 : ""
             });
