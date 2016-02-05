@@ -120,10 +120,12 @@ hook before => sub {
     # Log to audit
     my $method = request->method;
     my $path   = request->path;
+    my $query  = request->query_string;
     my $audit  = GADS::Audit->new(schema => schema, user => $user);
     my $description = $user
-        ? qq(User $user->{username} made $method request to $path)
-        : qq(Unauthenticated user made $method request to $path);
+        ? qq(User "$user->{username}" made "$method" request to "$path")
+        : qq(Unauthenticated user made "$method" request to "$path");
+    $description .= qq( with query "$query") if $query;
     $audit->user_action(description => $description, url => $path, method => $method)
         if $user;
 
