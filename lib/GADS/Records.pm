@@ -1203,7 +1203,8 @@ sub data_time
         if (my $label = $options{label})
         {
             @titles = ($record->fields->{$label}->as_string)
-                if $record->fields->{$label}->as_string;
+                # Value for this record may not exist or be blank
+                if $record->fields->{$label} && $record->fields->{$label}->as_string;
         }
         my $item_color; my $color_key = '';
         if (my $color = $options{color})
