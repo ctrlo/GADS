@@ -1794,21 +1794,26 @@ any '/edit/:id?' => require_login sub {
             # The last edited record was one for approval. This will
             # be missing values, so get its associated main record,
             # and use the values for that too.
-            my $child = GADS::Record->new(
-                user             => $user,
-                layout           => $layout,
-                schema           => schema,
-                include_approval => 1,
-                base_url         => request->base,
-            );
-            $child->find_record_id($record->approval_record_id);
-            foreach my $col (@columns_to_show)
+            # There will only be an associated main record if some
+            # values did not need approval
+            if ($record->approval_record_id)
             {
-                next unless $col->userinput;
-                # See if the record above had a value. If not, fill with the
-                # approval record's value
-                $record->fields->{$col->id} = $child->fields->{$col->id}
-                    if !$record->fields->{$col->id}->has_value && $col->remember;
+                my $child = GADS::Record->new(
+                    user             => $user,
+                    layout           => $layout,
+                    schema           => schema,
+                    include_approval => 1,
+                    base_url         => request->base,
+                );
+                $child->find_record_id($record->approval_record_id);
+                foreach my $col (@columns_to_show)
+                {
+                    next unless $col->userinput;
+                    # See if the record above had a value. If not, fill with the
+                    # approval record's value
+                    $record->fields->{$col->id} = $child->fields->{$col->id}
+                        if !$record->fields->{$col->id}->has_value && $col->remember;
+                }
             }
         }
         $record->remove_id;
