@@ -656,7 +656,19 @@ sub write
         # values if needed for another new entry. Use the approval ID id
         # it exists, otherwise the record ID.
         my $id = $self->approval_id || $self->record_id;
-        $self->schema->resultset('User')->find($self->user->{id})->update({ lastrecord => $id });
+        my $this_last = {
+            user_id     => $user_id,
+            instance_id => $self->layout->instance_id,
+        };
+        my ($last) = $self->schema->resultset('UserLastrecord')->search($this_last)->all;
+        if ($last)
+        {
+            $last->update({ record_id => $id });
+        }
+        else {
+            $this_last->{record_id} = $id;
+            $self->schema->resultset('UserLastrecord')->create($this_last);
+        }
     }
 
 
@@ -759,10 +771,12 @@ sub write
         {
             # Nothing left for this approval record. Is there a last_record flag?
             # If so, change that to the main record's flag instead.
-            my ($user) = $self->schema->resultset('User')->search({
-                lastrecord => $self->approval_id,
+            my ($lr) = $self->schema->resultset('UserLastrecord')->search({
+                record_id => $self->approval_id,
             })->all;
-            $user->update({ lastrecord => $self->record_id }) if $user;
+            $lr->update({ record_id => $self->record_id }) if $lr;
+
+            # Delete approval stub
             $self->schema->resultset('Record')->find($self->approval_id)->delete;
         }
     }

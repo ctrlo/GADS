@@ -1677,6 +1677,12 @@ any '/edit/:id?' => require_login sub {
         $record->find_current_id($id);
     }
 
+    # XXX Move into user class once properly available
+    my ($lastrecord) = rset('UserLastrecord')->search({
+        instance_id => $layout->instance_id,
+        user_id     => $user->{id},
+    })->all;
+
     if (param 'submit')
     {
         $record->initialise unless $id || $child;
@@ -1780,8 +1786,9 @@ any '/edit/:id?' => require_login sub {
         $record->current_id(undef);
         $record->record_id(undef);
     }
-    elsif(my $previous = $user->{lastrecord})
+    elsif($lastrecord)
     {
+        my $previous = $lastrecord->record_id;
         # Prefill previous values, but only those tagged to be remembered
         my @remember = map {$_->id} $layout->all(remember => 1);
         $record->columns(\@remember);

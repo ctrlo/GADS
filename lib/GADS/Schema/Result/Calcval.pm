@@ -155,8 +155,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-17 14:35:44
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2FPXESLMis7e83MaYx493Q
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-02-09 12:55:53
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yVFUGNM0ceG5Lf2KyimIvA
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;

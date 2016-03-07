@@ -438,6 +438,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 user_lastrecords
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::UserLastrecord>
+
+=cut
+
+__PACKAGE__->has_many(
+  "user_lastrecords",
+  "GADS::Schema::Result::UserLastrecord",
+  { "foreign.user_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 user_permissions
 
 Type: has_many
@@ -469,8 +484,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:n5UUh5zm88/612YMaRdiCw
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-03-07 11:12:47
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:214uqMTvYSnGhgONFtC1+g
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
