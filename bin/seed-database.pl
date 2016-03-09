@@ -67,6 +67,13 @@ $migration->install;
 say "Inserting permissions fixtures...";
 $migration->populate('permissions');
 
+# It's possible that permissions may not have been populated.  DBIC Migration
+# doesn't error if the fixtures above don't exist, and whenever a new version
+# of the schema is created, the fixtures need to be copied across, which needs
+# to be done manually. So, at least do a check now:
+rset('Permission')->count
+    or die "No permissions populated. Do the fixtures exist?";
+
 say qq(Creating initial username "$initial_username"...);
 my $user = rset('User')->create({
     username => $initial_username,
