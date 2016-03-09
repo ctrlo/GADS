@@ -28,6 +28,7 @@ use lib "$FindBin::Bin/../lib";
 use Getopt::Long;
 use Dancer2;
 use Dancer2::Plugin::DBIC;
+use DBIx::Class::Migration;
 
 my ($initial_username, $instance_name);
 my $namespace = $ENV{CDB_NAMESPACE};
@@ -51,11 +52,20 @@ unless ($initial_username)
     chomp ($initial_username = <STDIN>);
 }
 
-my $migration_cmd = qq(dbic-migration -Ilib --schema_class='GADS::Schema' --username=$dbic->{user} --password=$dbic->{password} --dsn='$dbic->{dsn}' --dbic_connect_attrs quote_names=1);
+my $migration = DBIx::Class::Migration->new(
+    schema_class => 'GADS::Schema',
+    schema_args  => [{
+        user         => $dbic->{user},
+        password     => $dbic->{password},
+        dsn          => $dbic->{dsn},
+        quote_names  => 1,
+    }],
+);
+
 say "Installing schema...";
-qx($migration_cmd install);
+$migration->install;
 say "Inserting permissions fixtures...";
-qx($migration_cmd populate --fixture_set permissions);
+$migration->populate('permissions');
 
 say qq(Creating initial username "$initial_username"...);
 my $user = rset('User')->create({
