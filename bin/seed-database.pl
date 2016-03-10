@@ -91,6 +91,6 @@ foreach my $perm (rset('Permission')->all)
 
 say "Creating initial datasheet...";
 rset('Instance')->create({
-    name => 'GADS',
+    name => $instance_name,
 });
 
