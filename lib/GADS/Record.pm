@@ -1056,7 +1056,10 @@ sub _delete_record_values
     $self->schema->resultset('Date')     ->search({ record_id  => $rid })->delete;
     $self->schema->resultset('Person')   ->search({ record_id  => $rid })->delete;
     $self->schema->resultset('File')     ->search({ record_id  => $rid })->delete;
-    $self->schema->resultset('User')     ->search({ lastrecord => $rid })->update({ lastrecord => undef });
+    # Remove record from any user lastrecord references
+    $self->schema->resultset('UserLastrecord')->search({
+        record_id => $rid,
+    })->delete;
 }
 
 1;
