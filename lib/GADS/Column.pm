@@ -433,6 +433,18 @@ sub delete
             Please remove these before deletion.", dep => $dep;
     }
 
+    # Now see if any Curval fields depend on this field
+    if (my @parents = $self->schema->resultset('CurvalField')->search({
+            child_id => $self->id
+        })->all
+    )
+    {
+        my @pn = map { $_->parent->name } @parents;
+        my $p  = join ', ', @pn;
+        error __x"The following fields in another datasheet refer to this field: {p}.
+            Please remove these references before deletion of this field.", p => $p;
+    }
+
     if (my @graphs = $self->schema->resultset('Graph')->search(
             [
                 { x_axis => $self->id   },
