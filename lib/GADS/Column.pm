@@ -485,6 +485,9 @@ sub delete
     # XXX The following should be done in ::Enum, except it won't be if the column
     # is not a different type. This may still error due to parents etc
     $self->schema->resultset('Enumval')->search({ layout_id => $self->id })->delete;
+    # Same here. This should be done in Curval (and indeed it was) except there
+    # may be some left over if the type of field has changed
+    $self->schema->resultset('CurvalField')->search({ parent_id => $self->id })->delete;
 
     $self->schema->resultset('Instance')->search({ sort_layout_id => $self->id })->update({sort_layout_id => undef});;
     $self->schema->resultset($self->table)->search({ layout_id => $self->id })->delete;

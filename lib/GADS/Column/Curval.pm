@@ -169,11 +169,6 @@ around 'write' => sub {
     $guard->commit;
 };
 
-before 'delete' => sub {
-    my $self = shift;
-    $self->schema->resultset('CurvalField')->search({ parent_id => $self->id })->delete;
-};
-
 sub _layout_from_instance
 {   my $self = shift;
     $self->refers_to_instance or return;
