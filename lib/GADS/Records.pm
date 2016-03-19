@@ -797,7 +797,6 @@ sub construct_search
     # Now add all the filters as joins (we don't need to prefetch this data). However,
     # the filter might also be a column in the view from before, in which case add
     # it to, or use, the prefetch. We use the tracking variables from above.
-    my @calcsearch; # The search for fields that may need to be recalculated
     my @search;     # The user search
     if (my $view = $self->view)
     {
@@ -813,8 +812,6 @@ sub construct_search
                 $self->_search_construct($decoded, $layout);
                 # Get the user search criteria
                 @search     = @{$self->_search_construct($decoded, $layout)};
-                # Put together the search to look for undefined calculated fields
-                @calcsearch = @{$self->_search_construct($decoded, $layout, \%cache_cols)};
             }
         }
         unless ($self->sort)
