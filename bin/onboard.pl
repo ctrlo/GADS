@@ -35,7 +35,8 @@ use List::MoreUtils 'first_index';
 
 my ($take_first_enum, $ignore_incomplete_dateranges,
     $dry_run, $ignore_string_zeros, $force,
-    $invalid_csv, @invalid_report, $instance_id);
+    $invalid_csv, @invalid_report, $instance_id,
+    $update_unique);
 
 GetOptions (
     'take-first-enum'              => \$take_first_enum,
@@ -46,6 +47,7 @@ GetOptions (
     'invalid-csv=s'                => \$invalid_csv,
     'invalid-report=s'             => \@invalid_report,
     'instance-id=s'                => \$instance_id,
+    'update-unique'                => \$update_unique,
 ) or exit;
 
 
@@ -249,29 +251,29 @@ while (my $row = $csv->getline($fh))
             schema => schema,
         );
         $record->initialise;
-        my $failed;
-        foreach my $col ($layout->all)
+        my @failed = update_fields($layout, $input, $record);
+        if (!@failed)
         {
-            if ($col->userinput) # Not calculated fields
+            try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force) };
+            if ($@)
             {
-                my $newv = $input->{$col->field};
-                if ($col->type eq "daterange" && $ignore_incomplete_dateranges)
+                my $message = $@->died->message;
+                if ($update_unique
+                    && $message->msgid eq 'Field "{field}" must be unique but value "{value}" already exists in record {id}'
+                )
                 {
-                    $newv = ['',''] if !($newv->[0] && $newv->[1]);
+                    $record->find_current_id($message->valueOf('id'));
+                    push @failed, update_fields($layout, $input, $record);
+                    try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force) }
+                        unless @failed;
+                    push @failed, $@->died->message->toString if $@;
                 }
-                try { $record->fields->{$col->id}->set_value($newv) };
-                if (my $exception = $@->wasFatal)
-                {
-                    push @bad, $exception->message->toString;
-                    $failed = 1;
+                else {
+                    push @failed, "$message";
                 }
             }
         }
-        if (!$failed)
-        {
-            try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force) };
-            push @bad, "".$@->died if $@;
-        }
+        push @bad, @failed;
     }
 
     if (@bad)
@@ -303,3 +305,25 @@ if ($invalid_csv) {
 }
 
 say STDERR Dumper \@all_bad;
+
+sub update_fields
+{   my ($layout, $input, $record) = @_;
+    my @bad;
+    foreach my $col ($layout->all)
+    {
+        if ($col->userinput) # Not calculated fields
+        {
+            my $newv = $input->{$col->field};
+            if ($col->type eq "daterange" && $ignore_incomplete_dateranges)
+            {
+                $newv = ['',''] if !($newv->[0] && $newv->[1]);
+            }
+            try { $record->fields->{$col->id}->set_value($newv) };
+            if (my $exception = $@->wasFatal)
+            {
+                push @bad, $exception->message->toString;
+            }
+        }
+    }
+    @bad;
+}

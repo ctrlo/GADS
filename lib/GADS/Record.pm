@@ -102,12 +102,14 @@ has columns_retrieved_do => (
 has new_entry => (
     is      => 'rw',
     isa     => Bool,
+    clearer => 1,
     default => 0,
 );
 
 has record_id => (
     is      => 'rw',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
         $self->_set_record_id($self->record);
@@ -124,6 +126,7 @@ has linked_id => (
     is      => 'rw',
     isa     => Maybe[Int],
     lazy    => 1,
+    clearer => 1,
     coerce  => sub { $_[0] || undef }, # empty string from form submit
     builder => sub {
         my $self = shift;
@@ -140,6 +143,7 @@ has parent_id => (
     is      => 'rw',
     isa     => Maybe[Int],
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
         $self->current_id or return;
@@ -153,6 +157,7 @@ has child_records => (
     is      => 'rwp',
     isa     => ArrayRef,
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
         return [] if $self->parent_id;
@@ -171,8 +176,9 @@ has approval_id => (
 # Whether this is an approval record for a new entry.
 # Used when checking permissions for approving
 has approval_of_new => (
-    is  => 'lazy',
-    isa => Bool,
+    is      => 'lazy',
+    isa     => Bool,
+    clearer => 1,
 );
 
 # Whether to initialise fields that have no value
@@ -210,6 +216,7 @@ has changed => (
 has current_id => (
     is      => 'rw',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
         $self->_set_current_id($self->record);
@@ -219,6 +226,7 @@ has current_id => (
 has fields => (
     is      => 'rw',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
         $self->_transform_values;
@@ -228,6 +236,7 @@ has fields => (
 has createdby => (
     is      => 'rw',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
         return unless $self->record;
@@ -245,8 +254,9 @@ has force_update => (
 );
 
 has is_historic => (
-    is  => 'lazy',
-    isa => Bool,
+    is      => 'lazy',
+    isa     => Bool,
+    clearer => 1,
 );
 
 sub _build_approval_of_new
@@ -292,8 +302,26 @@ sub find_current_id
     $self->_find(current_id => $current_id);
 }
 
+sub clear
+{   my $self = shift;
+    $self->clear_current_id;
+    $self->clear_record_id;
+    $self->clear_linked_id;
+    $self->clear_parent_id;
+    $self->clear_child_records;
+    $self->clear_approval_of_new;
+    $self->clear_fields;
+    $self->clear_createdby;
+    $self->clear_is_historic;
+    $self->clear_new_entry;
+}
+
 sub _find
 {   my ($self, %find) = @_;
+
+    # First clear applicable properties
+    $self->clear;
+
     my $records = GADS::Records->new(
         user             => $self->user,
         layout           => $self->layout,
