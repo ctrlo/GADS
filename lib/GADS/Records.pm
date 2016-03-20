@@ -673,6 +673,28 @@ sub _search
     $self->results(\@all);
 }
 
+sub count
+{   my $self = shift;
+
+    $self->construct_search;
+
+    my $prefetches  = $self->prefetches;
+    my $joins       = $self->joins;
+    my $linked      = $self->linked_hash;
+    my $select = {
+        join     => [
+            {
+                'record' => [@$prefetches, @$joins],
+            },
+            $linked,
+        ],
+    };
+
+    $self->schema->resultset('Current')->search(
+        [-and => $self->search_query], $select
+    )->count;
+}
+
 sub search
 {   my $self = shift;
 
@@ -962,7 +984,7 @@ sub _search_construct
             my @res = $self->_search_construct($rule, $layout, $ignore_perms);
             push @final, @res if @res;
         }
-        my $condition = $filter->{condition} eq 'OR' ? '-or' : '-and';
+        my $condition = $filter->{condition} && $filter->{condition} eq 'OR' ? '-or' : '-and';
         return @final ? [$condition => \@final] : [];
     }
 

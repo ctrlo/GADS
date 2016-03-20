@@ -1,9 +1,6 @@
 use utf8;
 package GADS::Schema::Result::Layout;
 
-# Created by DBIx::Class::Schema::Loader
-# DO NOT MODIFY THE FIRST PART OF THIS FILE
-
 =head1 NAME
 
 GADS::Schema::Result::Layout
@@ -65,6 +62,12 @@ __PACKAGE__->table("layout");
   is_nullable: 0
 
 =head2 remember
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 isunique
 
   data_type: 'smallint'
   default_value: 0
@@ -134,6 +137,8 @@ __PACKAGE__->add_columns(
   "optional",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "remember",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "isunique",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "position",
   { data_type => "integer", is_nullable => 1 },
@@ -679,10 +684,4 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-03-07 16:32:42
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3X0y4NFGcmRSdfK5dDaQNA
-
-
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

@@ -1,20 +1,13 @@
 # This process is not great, but it's what I use at the moment.
 # These steps are a few reminders on how to update the database schema.
 
+**MySQL Workbench no longer used. dbicdump no longer used.**
+
 * Use dbic-migration script to create blank database
-* Use mysql-workbench to sync to known good
-* Edit using mysql-workbench
-* Sync again
-* Run dbic.sh to get changes in Schema
+* Edit schema files and increment version in schema/
 * Run dbic-migration prepare
-* Change relevant text => citext columns
+* Change relevant text => citext columns as follows:
 
-DBIC_MIGRATION_USERNAME=root DBIC_MIGRATION_PASSWORD=xxxx \
-    dbic-migration -Ilib --schema_class='GADS::Schema' \
-    --dsn='dbi:mysql:database=gads' --force_overwrite --database MySQL \
-    --database PostgreSQL --dbic_connect_attrs     quote_names=1 prepare
-
-* Update PostgreSQL types:
 calcval.value_text citext
 daterange.value citext
 enumval.value citext
@@ -22,6 +15,15 @@ string.value citext
 user.email citext
 user.username citext
 user.value citext
+
+* Copy permissions fixtures to new schema version
+* Run dbic-migration upgrade
+
+
+DBIC_MIGRATION_USERNAME=root DBIC_MIGRATION_PASSWORD=xxxx \
+    dbic-migration -Ilib --schema_class='GADS::Schema' \
+    --dsn='dbi:mysql:database=gads' --force_overwrite --database MySQL \
+    --database PostgreSQL --dbic_connect_attrs     quote_names=1 prepare
 
 # Use the following to dump the data layout:
 DBIC_MIGRATION_USERNAME=root DBIC_MIGRATION_PASSWORD=xxxx dbic-migration -Ilib --schema_class='GADS::Schema' --dsn='dbi:mysql:database=gads' --dbic_connect_attrs quote_names=1 dump_named_sets --fixture_set layout

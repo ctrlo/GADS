@@ -67,6 +67,11 @@
             </div>
             <div class="checkbox noragcalc" [% noragcalc %]>
                 <label>
+                    <input type="checkbox" name="isunique" [% IF column.isunique %]checked[% END %]>Ensure values are unique between records
+                </label>
+            </div>
+            <div class="checkbox noragcalc" [% noragcalc %]>
+                <label>
                     <input type="checkbox" id="display_condition" name="display_condition" [% IF column.display_field %]checked[% END %]>Only display under the following conditions:
                 </label>
             </div>

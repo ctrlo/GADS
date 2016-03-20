@@ -61,6 +61,7 @@ has _view => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
+        $self->schema or return;
         my ($view) = $self->schema->resultset('View')->search({
             'me.id'          => $self->id,
             'me.instance_id' => $self->instance_id,

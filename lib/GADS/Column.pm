@@ -164,6 +164,12 @@ has remember => (
     coerce => sub { $_[0] ? 1 : 0 },
 );
 
+has isunique => (
+    is     => 'rw',
+    isa    => Bool,
+    coerce => sub { $_[0] ? 1 : 0 },
+);
+
 has userinput => (
     is      => 'rw',
     isa     => Bool,
@@ -386,6 +392,7 @@ sub build_values
     $self->name($original->{name});
     $self->optional($original->{optional});
     $self->remember($original->{remember});
+    $self->isunique($original->{isunique});
     $self->position($original->{position});
     $self->helptext($original->{helptext});
     $self->description($original->{description});
@@ -504,6 +511,7 @@ sub write
         or error __"Please select a type for the item";
     $newitem->{optional}      = $self->optional;
     $newitem->{remember}      = $self->remember;
+    $newitem->{isunique}      = $self->isunique;
     $newitem->{description}   = $self->description;
     $newitem->{helptext}      = $self->helptext;
     $newitem->{link_parent}   = $self->link_parent_id;

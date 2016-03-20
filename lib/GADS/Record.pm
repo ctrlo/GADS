@@ -35,6 +35,7 @@ use GADS::Datum::String;
 use GADS::Datum::Tree;
 use GADS::Util         qw(:all);
 use Log::Report;
+use JSON qw(encode_json);
 use POSIX ();
 
 use Moo;
@@ -562,6 +563,46 @@ sub write
             }
             else {
                 error __x"You do not have permission to edit field {name}", name => $column->name;
+            }
+        }
+
+        if ($column->isunique && ($self->new_entry || $datum->changed))
+        {
+            # Check for other columns with this value.
+            # First create a view to search for this value in the column.
+            my $filter = encode_json({
+                rules => [{
+                    field    => $column->id,
+                    id       => $column->id,
+                    type     => $column->type,
+                    value    => $datum->as_string,
+                    operator => 'equal',
+                }]
+            });
+            my $view = GADS::View->new(
+                filter      => $filter,
+                instance_id => $self->layout->instance_id,
+                layout      => $self->layout,
+                schema      => $self->schema,
+                user        => undef,
+            );
+            my $records = GADS::Records->new(
+                user    => undef, # Do not want to limit by user
+                rows    => 1,
+                view    => $view,
+                layout  => $self->layout,
+                schema  => $self->schema,
+                columns => [$column->id],
+            );
+
+            $records->search;
+            if (@{$records->results})
+            {
+                # Might be more, but one will do
+                my ($r) = @{$records->results};
+                # as_string() used as will be encoded on message display
+                error __x(qq(Field "{field}" must be unique but value "{value}" already exists in record {id}),
+                    field => $column->name, value => $datum->as_string, id => $r->current_id);
             }
         }
 
