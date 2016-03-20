@@ -648,7 +648,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divcalc').hide();
                     $('#divfile').hide();
                     $('#divcurval').show();
-                    $('.noragcalc').hide();
+                    $('.noragcalc').show();
                 } else {
                     $('#divenum').hide();
                     $('#divtree').hide();
