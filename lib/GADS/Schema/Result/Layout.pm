@@ -73,6 +73,12 @@ __PACKAGE__->table("layout");
   default_value: 0
   is_nullable: 0
 
+=head2 textbox
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
 =head2 position
 
   data_type: 'integer'
@@ -139,6 +145,8 @@ __PACKAGE__->add_columns(
   "remember",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "isunique",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "textbox",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "position",
   { data_type => "integer", is_nullable => 1 },

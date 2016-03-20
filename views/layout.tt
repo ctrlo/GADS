@@ -251,6 +251,20 @@
                         value="[% column.filesize %]" placeholder="Leave blank for no limit">
                 </div>
             </div>
+            <div id="divstring"
+                    [% IF column.type != "string" %]
+                        style="display:none"
+                    [% END %]
+                >
+                <div class="form-group">
+                    <label for="textbox">Options:</label>
+                    <div class="checkbox">
+                        <label>
+                            <input id="textbox" type="checkbox" name="textbox" [% IF column.textbox %]checked[% END %]>Multi-line text box
+                        </label>
+                    </div>
+                </div>
+            </div>
             <div id="divrag"
                 [% IF column.type != "rag" %]
                     style="display:none"
@@ -613,6 +627,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divcalc').hide();
                     $('#divfile').hide();
                     $('#divcurval').hide();
+                    $('#divstring').hide();
                     $('.noragcalc').show();
                 } else if (val == "enum") {
                     $('#divenum').show();
@@ -621,6 +636,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divcalc').hide();
                     $('#divfile').hide();
                     $('#divcurval').hide();
+                    $('#divstring').hide();
                     $('.noragcalc').show();
                 } else if (val == "rag") {
                     $('#divrag').show();
@@ -629,6 +645,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divcalc').hide();
                     $('#divfile').hide();
                     $('#divcurval').hide();
+                    $('#divstring').hide();
                     $('.noragcalc').hide();
                 } else if (val == "calc") {
                     $('#divrag').hide();
@@ -637,6 +654,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divcalc').show();
                     $('#divfile').hide();
                     $('#divcurval').hide();
+                    $('#divstring').hide();
                     $('.noragcalc').hide();
                 } else if (val == "file") {
                     $('#divrag').hide();
@@ -645,6 +663,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divcalc').hide();
                     $('#divfile').show();
                     $('#divcurval').hide();
+                    $('#divstring').hide();
                     $('.noragcalc').show();
                 } else if (val == "curval") {
                     $('#divrag').hide();
@@ -653,6 +672,16 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divcalc').hide();
                     $('#divfile').hide();
                     $('#divcurval').show();
+                    $('#divstring').hide();
+                    $('.noragcalc').show();
+                } else if (val == "string") {
+                    $('#divrag').hide();
+                    $('#divtree').hide();
+                    $('#divenum').hide();
+                    $('#divcalc').hide();
+                    $('#divfile').hide();
+                    $('#divcurval').hide();
+                    $('#divstring').show();
                     $('.noragcalc').show();
                 } else {
                     $('#divenum').hide();
@@ -661,6 +690,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divcalc').hide();
                     $('#divfile').hide();
                     $('#divcurval').hide();
+                    $('#divstring').hide();
                     $('.noragcalc').show();
                 }
             });

@@ -230,19 +230,21 @@
                 </p>
             [% END %]
         [% END %]
+    [% ELSIF dispcol.type == "daterange" %]
+        <div class="input-group input-daterange">
+                <input type="text" name="[% field %]" class="form-control datepicker from" value="[% editvalue.from_form | html_entity %]" [% readonly %]>
+                <span class="input-group-addon">to</span>
+                <input type="text" name="[% field %]" class="form-control datepicker to" value="[% editvalue.to_form | html_entity %]" [% readonly %]>
+        </div>
     [% ELSE %]
-        [% IF dispcol.type == "daterange" %]
-            <div class="input-group input-daterange">
-                    <input type="text" name="[% field %]" class="form-control datepicker from" value="[% editvalue.from_form | html_entity %]" [% readonly %]>
-                    <span class="input-group-addon">to</span>
-                    <input type="text" name="[% field %]" class="form-control datepicker to" value="[% editvalue.to_form | html_entity %]" [% readonly %]>
-            </div>
+        [% IF dispcol.type == "date" %]
+            [% class = "form-control datepicker" %]
         [% ELSE %]
-            [% IF dispcol.type == "date" %]
-                [% class = "form-control datepicker" %]
-            [% ELSE %]
-                [% class = "form-control" %]
-            [% END %]
+            [% class = "form-control" %]
+        [% END %]
+        [% IF dispcol.textbox %]
+            <textarea [%readonly %] class="form-control" id="[% dispcol.id %]" name="[% field %]" rows="10">[% IF record %][% editvalue.html %][% END %]</textarea>
+        [% ELSE %]
             <input type="text" class="[% class %]" id="[% dispcol.id %]"
                 name="[% field %]" value="[% IF record %][% editvalue.html %][% END %]" [% readonly %] >
         [% END %]

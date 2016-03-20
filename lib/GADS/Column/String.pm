@@ -24,9 +24,28 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
+has textbox => (
+    is     => 'rw',
+    isa    => Bool,
+    coerce => sub { $_[0] ? 1 : 0 },
+);
+
 after 'build_values' => sub {
     my ($self, $original) = @_;
     $self->string_storage(1);
+
+    if ($original->{textbox})
+    {
+        $self->textbox(1);
+    }
+};
+
+after 'write' => sub {
+    my $self = shift;
+
+    $self->schema->resultset('Layout')->find($self->id)->update({
+        textbox => $self->textbox,
+    });
 };
 
 1;

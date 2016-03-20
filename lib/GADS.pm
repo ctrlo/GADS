@@ -1200,6 +1200,10 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             {
                 $column->end_node_only(param 'end_node_only');
             }
+            elsif ($column->type eq "string")
+            {
+                $column->textbox(param 'textbox');
+            }
             elsif ($column->type eq "curval")
             {
                 $column->refers_to_instance(param 'refers_to_instance');
