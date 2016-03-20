@@ -270,7 +270,7 @@ while (my $row = $csv->getline($fh))
         if (!$failed)
         {
             try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force) };
-            push @bad, "$@" if $@;
+            push @bad, "".$@->died if $@;
         }
     }
 
