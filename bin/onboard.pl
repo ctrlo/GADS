@@ -31,10 +31,11 @@ use GADS::Layout;
 use GADS::Record;
 use Text::CSV;
 use Getopt::Long qw(:config pass_through);
+use List::MoreUtils 'first_index';
 
 my ($take_first_enum, $ignore_incomplete_dateranges,
     $dry_run, $ignore_string_zeros, $force,
-    $invalid_csv, $instance_id);
+    $invalid_csv, @invalid_report, $instance_id);
 
 GetOptions (
     'take-first-enum'              => \$take_first_enum,
@@ -43,6 +44,7 @@ GetOptions (
     'ignore-string-zeros'          => \$ignore_string_zeros,
     'force=s'                      => \$force,
     'invalid-csv=s'                => \$invalid_csv,
+    'invalid-report=s'             => \@invalid_report,
     'instance-id=s'                => \$instance_id,
 ) or exit;
 
@@ -146,9 +148,19 @@ if ($invalid_csv)
     open $fh_invalid, ">", $invalid_csv or die "Failed to create $invalid_csv: $!";
     # open $fh_invalid, ">:encoding(utf8)", $invalid_csv or die "Failed to create $invalid_csv: $!";
     my @field_names = map { $_->{name} } @fields;
-    push @field_names, "Errors";
-    $csv->print($fh_invalid, \@field_names);
+
+    my @headings = @invalid_report ? @invalid_report : @field_names;
+    $csv->print($fh_invalid, [@headings, 'Errors']);
     print $fh_invalid "\n";
+
+    # If invalid-report has been specified, convert field names into
+    # indexes of CSV file
+    @invalid_report = map {
+        my $name = $_;
+        my $index = first_index { /^$name$/ } @field_names;
+        error "Field $_ invalid for invalid-report" if $index == -1;
+        $index;
+    } @invalid_report;
 }
 
 while (my $row = $csv->getline($fh))
@@ -270,6 +282,13 @@ while (my $row = $csv->getline($fh))
         };
         if ($invalid_csv)
         {
+            if (@invalid_report)
+            {
+                my @row2;
+                push @row2, $row->[$_]
+                    foreach @invalid_report;
+                $row = \@row2;
+            }
             push @$row, @bad;
             $csv->print($fh_invalid, $row);
             print $fh_invalid "\n";
