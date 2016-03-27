@@ -159,15 +159,17 @@ has sprefix => (
 );
 
 has remember => (
-    is     => 'rw',
-    isa    => Bool,
-    coerce => sub { $_[0] ? 1 : 0 },
+    is      => 'rw',
+    isa     => Bool,
+    default => 0,
+    coerce  => sub { $_[0] ? 1 : 0 },
 );
 
 has isunique => (
-    is     => 'rw',
-    isa    => Bool,
-    coerce => sub { $_[0] ? 1 : 0 },
+    is      => 'rw',
+    isa     => Bool,
+    default => 0,
+    coerce  => sub { $_[0] ? 1 : 0 },
 );
 
 has userinput => (
@@ -192,9 +194,10 @@ has string_storage => (
 );
 
 has optional => (
-    is     => 'rw',
-    isa    => Bool,
-    coerce => sub { $_[0] ? 1 : 0 },
+    is      => 'rw',
+    isa     => Bool,
+    default => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
 );
 
 has description => (
