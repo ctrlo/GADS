@@ -25,9 +25,10 @@ use MooX::Types::MooseLike::Base qw/:all/;
 extends 'GADS::Column';
 
 has textbox => (
-    is     => 'rw',
-    isa    => Bool,
-    coerce => sub { $_[0] ? 1 : 0 },
+    is      => 'rw',
+    isa     => Bool,
+    default => 0,
+    coerce  => sub { $_[0] ? 1 : 0 },
 );
 
 after 'build_values' => sub {
