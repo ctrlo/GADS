@@ -36,11 +36,11 @@ use List::MoreUtils 'first_index';
 my ($take_first_enum, $ignore_incomplete_dateranges,
     $dry_run, $ignore_string_zeros, $force,
     $invalid_csv, @invalid_report, $instance_id,
-    $update_unique);
+    $update_unique, $blank_invalid_enum, $no_change_unless_blank);
 
 GetOptions (
     'take-first-enum'              => \$take_first_enum,
-    'ignore-imcomplete-dateranges' => \$ignore_incomplete_dateranges,
+    'ignore-incomplete-dateranges' => \$ignore_incomplete_dateranges,
     'dry-run'                      => \$dry_run,
     'ignore-string-zeros'          => \$ignore_string_zeros,
     'force=s'                      => \$force,
@@ -48,6 +48,8 @@ GetOptions (
     'invalid-report=s'             => \@invalid_report,
     'instance-id=s'                => \$instance_id,
     'update-unique'                => \$update_unique,
+    'blank-invalid-enum'           => \$blank_invalid_enum,
+    'no-change-unless-blank'       => \$no_change_unless_blank,
 ) or exit;
 
 
@@ -147,8 +149,8 @@ my $layout = GADS::Layout->new(
 my $fh_invalid;
 if ($invalid_csv)
 {
-    open $fh_invalid, ">", $invalid_csv or die "Failed to create $invalid_csv: $!";
-    # open $fh_invalid, ">:encoding(utf8)", $invalid_csv or die "Failed to create $invalid_csv: $!";
+    #open $fh_invalid, ">", $invalid_csv or die "Failed to create $invalid_csv: $!";
+    open $fh_invalid, ">:encoding(utf8)", $invalid_csv or die "Failed to create $invalid_csv: $!";
     my @field_names = map { $_->{name} } @fields;
 
     my @headings = @invalid_report ? @invalid_report : @field_names;
@@ -165,20 +167,28 @@ if ($invalid_csv)
     } @invalid_report;
 }
 
+my $count = {
+    in      => 0,
+    written => 0,
+    errors  => 0,
+};
+
 while (my $row = $csv->getline($fh))
 {
     my @row = @$row
         or next;
     next unless "@row"; # Skip blank lines
 
-    my $count = 0;
-    my $input; my @bad;
+    $count->{in}++;
+
+    my $col_count = 0;
+    my $input; my @bad; my @bad_enum;
     my $previous_field;
     foreach my $col (@row)
     {
-        my $f = $fields[$count];
+        my $f = $fields[$col_count];
         $col =~ s/\s+$//;
-        say STDOUT "Going to process $col into field $f->{name}";
+        #say STDOUT "Going to process $col into field $f->{name}";
         if ($f->{id} == 118) {
             # IDT course name. Exists in act type?
             if ($selects->{36}->{lc $col})
@@ -205,7 +215,9 @@ while (my $row = $csv->getline($fh))
                     $input->{$f->{field}} = $selects->{$f->{id}}->{lc $col};
                 }
                 else {
-                    push @bad, qq(Invalid enum value "$col" for "$f->{name}");
+                    push @bad_enum, qq(Invalid enum value "$col" for "$f->{name}");
+                    $input->{$f->{field}} = ''
+                        if $blank_invalid_enum;
                 }
             }
         }
@@ -239,10 +251,11 @@ while (my $row = $csv->getline($fh))
         }
 
         my $previous_field = $f;
-        $count++;
+        $col_count++;
     }
 
-    unless (@bad)
+    my $write = !@bad && (!@bad_enum || $blank_invalid_enum);
+    if ($write)
     {
         # Insert record into DB. May still be problems
         my $record = GADS::Record->new(
@@ -257,24 +270,36 @@ while (my $row = $csv->getline($fh))
             try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force) };
             if ($@)
             {
-                my $message = $@->died->message;
+                my $exc = $@->died;
+                my $message = ref $exc ? $@->died->message : $exc;
                 if ($update_unique
                     && $message->msgid eq 'Field "{field}" must be unique but value "{value}" already exists in record {id}'
                 )
                 {
                     $record->find_current_id($message->valueOf('id'));
                     push @failed, update_fields($layout, $input, $record);
-                    try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force) }
+                    try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force, no_change_unless_blank => $no_change_unless_blank) }
                         unless @failed;
-                    push @failed, $@->died->message->toString if $@;
+                    if ($@)
+                    {
+                        push @failed, $@->died->message->toString;
+                    }
+                    else {
+                        $count->{written}++;
+                    }
                 }
                 else {
                     push @failed, "$message";
                 }
             }
+            else {
+                $count->{written}++;
+            }
         }
         push @bad, @failed;
     }
+
+    push @bad, @bad_enum;
 
     if (@bad)
     {
@@ -304,7 +329,8 @@ if ($invalid_csv) {
     close $fh_invalid or die "$invalid_csv: $!";
 }
 
-say STDERR Dumper \@all_bad;
+$count->{errors} = @all_bad;
+say STDOUT Dumper $count;
 
 sub update_fields
 {   my ($layout, $input, $record) = @_;
