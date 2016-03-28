@@ -1,9 +1,6 @@
 use utf8;
 package GADS::Schema::Result::String;
 
-# Created by DBIx::Class::Schema::Loader
-# DO NOT MODIFY THE FIRST PART OF THIS FILE
-
 =head1 NAME
 
 GADS::Schema::Result::String
@@ -58,6 +55,12 @@ __PACKAGE__->table("string");
   data_type: 'text'
   is_nullable: 1
 
+=head2 value_index
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 128
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -69,6 +72,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "value",
   { data_type => "text", is_nullable => 1 },
+  "value_index",
+  { data_type => "varchar", is_nullable => 1, size => 128 },
 );
 
 =head1 PRIMARY KEY
@@ -116,13 +121,9 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IU4m0xlqLVQ6jdfT7OBeSA
-
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
-    $sqlt_table->add_index(name => 'string_idx_value', fields => [ { name => 'value', size => 64 } ]);
+    $sqlt_table->add_index(name => 'string_idx_value_index', fields => [ 'value_index' ]);
 }
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

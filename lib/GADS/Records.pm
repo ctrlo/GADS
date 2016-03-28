@@ -332,12 +332,16 @@ sub _add_linked_join
 
 # Shortcut to generate the required joining hash for a DBIC search
 sub linked_hash
-{   my $self = shift;
-    if (@{$self->linked_prefetches})
+{   my ($self, $type) = @_;
+    # Empty type is both
+    my @tables;
+    push @tables, @{$self->linked_joins} if !$type || $type eq 'join';
+    push @tables, @{$self->linked_prefetches} if !$type || $type eq 'prefetch';
+    if (@tables)
     {
         {
             linked => {
-                record => $self->linked_prefetches,
+                record => \@tables,
             },
         };
     }
@@ -703,9 +707,10 @@ sub search
     # XXX Okay, this is a bit weird - we join current to record to current.
     # This is because we return records at the end, and it allows current
     # to be used when the record is used. Is there a better way?
-    my $prefetches  = $self->prefetches;
-    my $joins       = $self->joins;
-    my $linked      = $self->linked_hash;
+    my $prefetches      = $self->prefetches;
+    my $joins           = $self->joins;
+    my $linked_join     = $self->linked_hash('join');
+    my $linked_prefetch = $self->linked_hash('prefetch');
     unshift @$prefetches, ('current', 'createdby', 'approvedby');
     my $currents = $self->prefetch_children ? { currents => {record => $prefetches} } : 'currents';
     my $select = {
@@ -714,13 +719,13 @@ sub search
                 'record' => $prefetches
             },
             $currents,
-            $linked,
+            $linked_prefetch,
         ],
         join     => [
             {
                 'record' => $joins
             },
-            $linked,
+            $linked_join,
         ],
         '+select' => $self->plus_select, # Used for additional sort columns
         order_by  => $self->order_by,
@@ -1028,7 +1033,9 @@ sub _search_construct
     $value = $dtf->format_date(DateTime->now)
         if $filter->{value} && $filter->{value} eq "CURDATE";
 
-    my $s_field;
+    $value =~ s/\_/\\\_/g if $operator eq '-like';
+
+    my @conditions;
     if ($column->type eq "daterange")
     {
         # If it's a daterange, we have to be intelligent about the way the
@@ -1036,35 +1043,58 @@ sub _search_construct
         # different values of the date range to be searched
         if ($operator eq "!=" || $operator eq "=") # Only used for empty / not empty
         {
-            $s_field = "value";
+            push @conditions, {
+                operator => $operator,
+                s_field  => "value",
+            };
         }
-        elsif ($operator eq ">")
+        elsif ($operator eq ">" || $operator eq "<=")
         {
-            $s_field = "from";
+            push @conditions, {
+                operator => $operator,
+                s_field  => "from",
+            };
         }
-        elsif ($operator eq ">=")
+        elsif ($operator eq ">=" || $operator eq "<")
         {
-            $s_field = "to";
-        }
-        elsif ($operator eq "<")
-        {
-            $s_field = "to";
-        }
-        elsif ($operator eq "<=")
-        {
-            $s_field = "from";
+            push @conditions, {
+                operator => $operator,
+                s_field  => "to",
+            };
         }
         elsif ($operator eq "-like")
         {
             # Requires 2 searches ANDed together
-            return ('-and' => ["$s_table.from" => { '<=', $value}, "$s_table.to" => { '>=', $value}]);
+            push @conditions, {
+                operator => "<=",
+                s_field  => "from",
+            };
+            push @conditions, {
+                operator => ">=",
+                s_field  => "to",
+            };
         }
         else {
             error __x"Invalid operator {operator} for date range", operator => $operator;
         }
     }
     else {
-        $s_field = $column->value_field;
+        push @conditions, {
+            operator => $operator,
+            s_field  => $column->value_field,
+        };
+    }
+    if ($column->type eq "string")
+    {
+        # The normal value search of a string is not indexed, due to the potential size
+        # of the data. Therefore, add the second indexed value field, to speed up
+        # the search.
+        # $value can be an array ref from above.
+        push @conditions, {
+            operator => $operator,
+            s_field  => "value_index",
+            value    => $value && !ref($value) ? substr($value, 0, 128) : $value,
+        };
     }
 
     if ($column->type eq "person")
@@ -1075,23 +1105,28 @@ sub _search_construct
         $value =~ s/\[CURUSER\]/$curuser/g;
     }
 
-    $value =~ s/\_/\\\_/g if $operator eq '-like';
-    my $sq = {$operator => $value};
-    # By default SQL will not include NULL values for not equals.
-    # Let's include them
-    $sq = [ $sq, undef ] if $filter->{operator} eq 'not_equal';
-    if (!$column->link_parent)
+    my @final = map {
+        # By default SQL will not include NULL values for not equals.
+        # Let's include them. We need to use the original filter operator
+        # value, not the converted SQL one.
+        # XXX Repeated below
+        my $sq = {$_->{operator} => $_->{value} || $value};
+        $sq = [ $sq, undef ] if $filter->{operator} eq 'not_equal';
+        +( "$s_table.$_->{s_field}" => $sq )
+    } @conditions;
+    @final = ('-and' => [@final]);
+    if ($column->link_parent)
     {
-        ("$s_table.$s_field" => $sq);
+        my @final2 = map {
+            # XXX Repeated above
+            my $sq = {$_->{operator} => $_->{value} || $value};
+            $sq = [ $sq, undef ] if $filter->{operator} eq 'not_equal';
+            +( $self->_table_name_linked($column->link_parent).".$_->{s_field}" => $sq );
+        } @conditions;
+        @final2 = ('-and' => [@final2]);
+        @final = (['-or' => [@final], [@final2]]);
     }
-    else {
-        (
-            -or => [
-                "$s_table.$s_field" => $sq,
-                $self->_table_name_linked($column->link_parent).".$s_field" => $sq,
-            ],
-        );
-    }
+    return @final;
 }
 
 sub csv
