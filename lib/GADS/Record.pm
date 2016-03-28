@@ -1047,7 +1047,7 @@ sub _field_write
             else {
                 $entry->{value} = $datum_write->value;
             }
-            if ($column->type eq 'string')
+            if ($column->type eq 'string' && $datum_write->value)
             {
                 $entry->{value_index} = lc substr $datum_write->value, 0, 128;
             }
