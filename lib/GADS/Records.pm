@@ -1093,7 +1093,7 @@ sub _search_construct
         push @conditions, {
             operator => $operator,
             s_field  => "value_index",
-            value    => $value && !ref($value) ? substr($value, 0, 128) : $value,
+            value    => $value && !ref($value) ? lc(substr($value, 0, 128)) : $value,
         };
     }
 

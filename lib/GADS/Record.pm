@@ -1049,7 +1049,7 @@ sub _field_write
             }
             if ($column->type eq 'string')
             {
-                $entry->{value_index} = substr $datum_write->value, 0, 128;
+                $entry->{value_index} = lc substr $datum_write->value, 0, 128;
             }
         }
         $self->schema->resultset($table)->create($entry);
