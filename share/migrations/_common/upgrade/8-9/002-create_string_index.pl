@@ -16,10 +16,12 @@ migrate {
         $schema->resultset('String')->all
     )
     {
-        my $value = lc $row->value;
-        $value = substr $value, 0, 128;
-        $row->update({
-            value_index => $value,
-        });
+        if (my $value = lc $row->value)
+        {
+            $value = substr $value, 0, 128;
+            $row->update({
+                value_index => $value,
+            });
+        }
     }
 };
