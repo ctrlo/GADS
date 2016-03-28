@@ -16,9 +16,9 @@ migrate {
         $schema->resultset('String')->all
     )
     {
-        if (my $value = lc $row->value)
+        if (my $value = $row->value)
         {
-            $value = substr $value, 0, 128;
+            $value = lc substr $value, 0, 128;
             $row->update({
                 value_index => $value,
             });
