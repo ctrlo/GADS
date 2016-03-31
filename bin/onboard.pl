@@ -36,7 +36,8 @@ use List::MoreUtils 'first_index';
 my ($take_first_enum, $ignore_incomplete_dateranges,
     $dry_run, $ignore_string_zeros, $force,
     $invalid_csv, @invalid_report, $instance_id,
-    $update_unique, $blank_invalid_enum, $no_change_unless_blank);
+    $update_unique, $blank_invalid_enum, $no_change_unless_blank,
+    $update_only);
 
 GetOptions (
     'take-first-enum'              => \$take_first_enum,
@@ -48,6 +49,7 @@ GetOptions (
     'invalid-report=s'             => \@invalid_report,
     'instance-id=s'                => \$instance_id,
     'update-unique=s'              => \$update_unique,
+    'update-only'                  => \$update_only, # Do not write new version record
     'blank-invalid-enum'           => \$blank_invalid_enum,
     'no-change-unless-blank'       => \$no_change_unless_blank,
 ) or exit;
@@ -287,7 +289,7 @@ while (my $row = $csv->getline($fh))
         my @failed = update_fields(\@fields, $input, $record);
         if (!@failed)
         {
-            try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force) };
+            try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force, update_only => $update_only) };
             if ($@)
             {
                 my $exc = $@->died;
