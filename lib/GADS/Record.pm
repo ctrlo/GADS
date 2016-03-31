@@ -302,6 +302,41 @@ sub find_current_id
     $self->_find(current_id => $current_id);
 }
 
+# Returns new GADS::Record object, doesn't change current one
+sub find_unique
+{   my ($self, $column, $value) = @_;
+
+    # First create a view to search for this value in the column.
+    my $filter = encode_json({
+        rules => [{
+            field    => $column->id,
+            id       => $column->id,
+            type     => $column->type,
+            value    => $value,
+            operator => 'equal',
+        }]
+    });
+    my $view = GADS::View->new(
+        filter      => $filter,
+        instance_id => $self->layout->instance_id,
+        layout      => $self->layout,
+        schema      => $self->schema,
+        user        => undef,
+    );
+    my $records = GADS::Records->new(
+        user    => undef, # Do not want to limit by user
+        rows    => 1,
+        view    => $view,
+        layout  => $self->layout,
+        schema  => $self->schema,
+        columns => [$column->id],
+    );
+
+    $records->search;
+    # Might be more, but one will do
+    return pop @{$records->results};
+}
+
 sub clear
 {   my $self = shift;
     $self->clear_current_id;
@@ -604,37 +639,8 @@ sub write
         if ($column->isunique && ($self->new_entry || $datum->changed))
         {
             # Check for other columns with this value.
-            # First create a view to search for this value in the column.
-            my $filter = encode_json({
-                rules => [{
-                    field    => $column->id,
-                    id       => $column->id,
-                    type     => $column->type,
-                    value    => $datum->as_string,
-                    operator => 'equal',
-                }]
-            });
-            my $view = GADS::View->new(
-                filter      => $filter,
-                instance_id => $self->layout->instance_id,
-                layout      => $self->layout,
-                schema      => $self->schema,
-                user        => undef,
-            );
-            my $records = GADS::Records->new(
-                user    => undef, # Do not want to limit by user
-                rows    => 1,
-                view    => $view,
-                layout  => $self->layout,
-                schema  => $self->schema,
-                columns => [$column->id],
-            );
-
-            $records->search;
-            if (@{$records->results})
+            if (my $r = $self->find_unique($column, $datum->as_string))
             {
-                # Might be more, but one will do
-                my ($r) = @{$records->results};
                 # as_string() used as will be encoded on message display
                 error __x(qq(Field "{field}" must be unique but value "{value}" already exists in record {id}),
                     field => $column->name, value => $datum->as_string, id => $r->current_id);

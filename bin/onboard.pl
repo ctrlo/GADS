@@ -47,7 +47,7 @@ GetOptions (
     'invalid-csv=s'                => \$invalid_csv,
     'invalid-report=s'             => \@invalid_report,
     'instance-id=s'                => \$instance_id,
-    'update-unique'                => \$update_unique,
+    'update-unique=s'              => \$update_unique,
     'blank-invalid-enum'           => \$blank_invalid_enum,
     'no-change-unless-blank'       => \$no_change_unless_blank,
 ) or exit;
@@ -74,21 +74,29 @@ open my $fh, "<:encoding(utf8)", $file or die "$file: $!";
 my $row = $csv->getline($fh);
 my @f = @$row;
 
+my $layout = GADS::Layout->new(
+    user                     => undef,
+    schema                   => schema,
+    config                   => config,
+    instance_id              => $instance_id,
+    user_permission_override => 1
+);
+
 # First check if fields exist
 my @fields; my $selects;
-my $dr;
+my $dr; my $update_unique_col;
 foreach my $field (@f)
 {
     my ($f) = rset('Layout')->search({ name => $field })->all;
     die "Field $field does not exist" unless $f;
-    push @fields, {
-        field => "field".$f->id,
-        id    => $f->id,
-        type  => $f->type,
-        name  => $f->name,
-    };
+    my $column = $layout->column($f->id);
+    push @fields, $column;
 
     die "Daterange $field needs 2 columns" if ($dr && $f->type ne "daterange");
+
+    # Convert update-unique to ID from name
+    $update_unique_col = $column
+        if $update_unique && $update_unique eq $f->name;
 
     # Prefill select values
     if ($f->type eq "enum" || $f->type eq "tree")
@@ -135,15 +143,10 @@ foreach my $field (@f)
     }
 }
 
-my @all_bad;
+error "field $update_unique not found for update-unique"
+    if $update_unique && !$update_unique_col;
 
-my $layout = GADS::Layout->new(
-    user                     => undef,
-    schema                   => schema,
-    config                   => config,
-    instance_id              => $instance_id,
-    user_permission_override => 1
-);
+my @all_bad;
 
 # Open CSV to output bad lines in
 my $fh_invalid;
@@ -151,7 +154,7 @@ if ($invalid_csv)
 {
     #open $fh_invalid, ">", $invalid_csv or die "Failed to create $invalid_csv: $!";
     open $fh_invalid, ">:encoding(utf8)", $invalid_csv or die "Failed to create $invalid_csv: $!";
-    my @field_names = map { $_->{name} } @fields;
+    my @field_names = map { $_->name } @fields;
 
     my @headings = @invalid_report ? @invalid_report : @field_names;
     $csv->print($fh_invalid, [@headings, 'Errors']);
@@ -196,32 +199,33 @@ while (my $row = $csv->getline($fh))
                 push @bad, qq(IDT Tier 3 course name "$col" exists as sub activity type);
             }
         }
-        if ($f->{type} eq "enum" || $f->{type} eq "tree" || $f->{type} eq "person")
+        if ($f->type eq "enum" || $f->type eq "tree" || $f->type eq "person")
         {
             # Get enum ID value
             if ($col eq "")
             {
                 # Blank value. Insertion will handle non-optional fields
-                $input->{$f->{field}} = $col;
+                $input->{$f->field} = $col;
             }
             else {
-                if (ref $selects->{$f->{id}}->{lc $col} eq "ARRAY")
+                my $colname = $f->name;
+                if (ref $selects->{$f->id}->{lc $col} eq "ARRAY")
                 {
-                    push @bad, qq(Multiple instances of enum value "$col" for "$f->{name}");
+                    push @bad, qq(Multiple instances of enum value "$col" for "$colname");
                 }
-                elsif (exists $selects->{$f->{id}}->{lc $col})
+                elsif (exists $selects->{$f->id}->{lc $col})
                 {
                     # okay
-                    $input->{$f->{field}} = $selects->{$f->{id}}->{lc $col};
+                    $input->{$f->field} = $selects->{$f->id}->{lc $col};
                 }
                 else {
-                    push @bad_enum, qq(Invalid enum value "$col" for "$f->{name}");
-                    $input->{$f->{field}} = ''
+                    push @bad_enum, qq(Invalid enum value "$col" for "$colname");
+                    $input->{$f->field} = ''
                         if $blank_invalid_enum;
                 }
             }
         }
-        elsif ($f->{type} eq "daterange")
+        elsif ($f->type eq "daterange")
         {
             $col =~ s!/!-!g; # Change date delimiters from slash to hyphen
             if ($col =~ /([0-9]{1,2}).([0-9]{1,2}).([0-9]{4})/)
@@ -229,25 +233,25 @@ while (my $row = $csv->getline($fh))
                 # Swap year and day if needed
                 $col = "$3-$2-$1";
             }
-            if (exists $input->{$f->{field}})
+            if (exists $input->{$f->field})
             {
-                push @{$input->{$f->{field}}}, $col;
+                push @{$input->{$f->field}}, $col;
             }
             else {
-                $input->{$f->{field}} = [$col];
+                $input->{$f->field} = [$col];
             }
         }
-        elsif ($f->{type} eq "string")
+        elsif ($f->type eq "string")
         {
             # Option to ignore zeros in text fields
-            $input->{$f->{field}} = $ignore_string_zeros && $col eq '0' ? '' : $col;
+            $input->{$f->field} = $ignore_string_zeros && $col eq '0' ? '' : $col;
         }
-        elsif ($f->{type} eq "intgr")
+        elsif ($f->type eq "intgr")
         {
-            $input->{$f->{field}} = sprintf "%.0f", $col if $col;
+            $input->{$f->field} = sprintf "%.0f", $col if $col;
         }
         else {
-            $input->{$f->{field}} = $col;
+            $input->{$f->field} = $col;
         }
 
         my $previous_field = $f;
@@ -263,8 +267,24 @@ while (my $row = $csv->getline($fh))
             layout => $layout,
             schema => schema,
         );
-        $record->initialise;
-        my @failed = update_fields($layout, $input, $record);
+
+        # Look for existing record?
+        if ($update_unique)
+        {
+            my $unique_field = $update_unique_col->field;
+            if (my $existing = $record->find_unique($update_unique_col, $input->{$unique_field}))
+            {
+                $record->find_current_id($existing->current_id);
+            }
+            else {
+                $record->initialise;
+            }
+        }
+        else {
+            $record->initialise;
+        }
+
+        my @failed = update_fields(\@fields, $input, $record);
         if (!@failed)
         {
             try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force) };
@@ -272,25 +292,7 @@ while (my $row = $csv->getline($fh))
             {
                 my $exc = $@->died;
                 my $message = ref $exc ? $@->died->message : $exc;
-                if ($update_unique
-                    && $message->msgid eq 'Field "{field}" must be unique but value "{value}" already exists in record {id}'
-                )
-                {
-                    $record->find_current_id($message->valueOf('id'));
-                    push @failed, update_fields($layout, $input, $record);
-                    try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force, no_change_unless_blank => $no_change_unless_blank) }
-                        unless @failed;
-                    if ($@)
-                    {
-                        push @failed, $@->died->message->toString;
-                    }
-                    else {
-                        $count->{written}++;
-                    }
-                }
-                else {
-                    push @failed, "$message";
-                }
+                push @failed, "$message";
             }
             else {
                 $count->{written}++;
@@ -333,9 +335,9 @@ $count->{errors} = @all_bad;
 say STDOUT Dumper $count;
 
 sub update_fields
-{   my ($layout, $input, $record) = @_;
+{   my ($fields, $input, $record) = @_;
     my @bad;
-    foreach my $col ($layout->all)
+    foreach my $col (@$fields)
     {
         if ($col->userinput) # Not calculated fields
         {
