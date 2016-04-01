@@ -27,6 +27,7 @@ extends 'GADS::Column';
 has textbox => (
     is      => 'rw',
     isa     => Bool,
+    lazy    => 1,
     default => 0,
     coerce  => sub { $_[0] ? 1 : 0 },
 );

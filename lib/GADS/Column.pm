@@ -161,6 +161,7 @@ has sprefix => (
 has remember => (
     is      => 'rw',
     isa     => Bool,
+    lazy    => 1,
     default => 0,
     coerce  => sub { $_[0] ? 1 : 0 },
 );
@@ -168,6 +169,7 @@ has remember => (
 has isunique => (
     is      => 'rw',
     isa     => Bool,
+    lazy    => 1,
     default => 0,
     coerce  => sub { $_[0] ? 1 : 0 },
 );
@@ -196,6 +198,7 @@ has string_storage => (
 has optional => (
     is      => 'rw',
     isa     => Bool,
+    lazy    => 1,
     default => 1,
     coerce  => sub { $_[0] ? 1 : 0 },
 );
