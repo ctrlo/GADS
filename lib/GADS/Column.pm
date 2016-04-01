@@ -425,6 +425,8 @@ sub build_values
 sub delete
 {   my $self = shift;
 
+    my $guard = $self->schema->txn_scope_guard;
+
     # First see if any views are conditional on this field
     if (my @deps = $self->schema->resultset('Layout')->search({
             display_field => $self->id
@@ -506,6 +508,8 @@ sub delete
     $self->schema->resultset('Instance')->search({ sort_layout_id => $self->id })->update({sort_layout_id => undef});;
     $self->schema->resultset($self->table)->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('Layout')->find($self->id)->delete;
+
+    $guard->commit;
 }
 
 sub write
