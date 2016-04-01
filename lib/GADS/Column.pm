@@ -489,6 +489,7 @@ sub delete
     $self->schema->resultset('Rag')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('Ragval')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('AlertCache')->search({ layout_id => $self->id })->delete;
+    $self->schema->resultset('AlertSend')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('Sort')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('Intgr')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('String')->search({ layout_id => $self->id })->delete;
