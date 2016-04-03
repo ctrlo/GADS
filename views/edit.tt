@@ -110,29 +110,38 @@
 
                 var calculator_button = [
                     {
+                        action:     'add',
                         label:      '+',
+                        keypress:   [ '+' ],
                         operation:  function (a, b) { return a + b; }
                     },
                     {
+                        action:     'subtract',
                         label:      '-',
+                        keypress:   [ '-' ],
                         operation:  function (a, b) { return a - b; }
                     },
                     {
+                        action:     'multiply',
                         label:      '×',
+                        keypress:   [ '*', 'X', 'x', '×' ],
                         operation:  function (a, b) { return a * b; }
                     },
                     {
+                        action:     'divide',
                         label:      '÷',
+                        keypress:   [ '/', '÷' ],
                         operation:  function (a, b) { return a / b; }
                     }
                 ];
+                var keypress_action = {};
                 var operator_btns_elem = calculator_elem.find('.operator');
                 for (var i in calculator_button) {
                     ( function () {
                         var btn = calculator_button[i];
                         var button_elem = $(
                             '<label class="btn btn-primary" style="width:40px">'
-                            + '<input type="radio" name="op">'
+                            + '<input type="radio" name="op" class="btn_label_' + btn.action + '">'
                             + btn.label
                             + '</input>'
                             + '</label>'
@@ -142,9 +151,22 @@
                             calculator_operation = btn.operation;
                             calculator_elem.find(':text').focus();
                         });
+                        for (var j in btn.keypress) {
+                            var keypress = btn.keypress[j];
+                            keypress_action[keypress] = btn.action;
+                        }
                     })();
                 }
 
+                calculator_elem.find(':text').on('keypress', function (e) {
+                    var key_pressed = e.key;
+                    if (key_pressed in keypress_action) {
+                        var button_selector = '.btn_label_'
+                            + keypress_action[key_pressed];
+                        calculator_elem.find(button_selector).click();
+                        e.preventDefault();
+                    }
+                });
                 calculator_elem.find('form').on('submit', function (e) {
                     var new_value = calculator_operation(
                         + integer_input_elem.val(),
