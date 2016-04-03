@@ -181,10 +181,10 @@
                         top: calculator_y_offset,
                         left: container_elem.offset().left
                     });
-                    calculator_elem.show();
                     var calc_input = calculator_elem.find(':text');
-                    calc_input.focus();
                     calc_input.val('');
+                    calculator_elem.show();
+                    calc_input.focus();
                     integer_input_elem = input_elem;
                 });
             }
