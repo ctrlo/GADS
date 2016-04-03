@@ -154,9 +154,6 @@
                     calculator_elem.hide();
                     e.preventDefault();
                 });
-                calculator_elem.find('.close').on('click', function () {
-                    calculator_elem.hide();
-                });
 
                 var calc_button =
                     '<span class="btn-xs btn-link openintcalculator">Calculator</span>';
