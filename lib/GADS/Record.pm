@@ -1140,6 +1140,18 @@ sub delete_current
         current_id => $id
     })->all;
 
+    my @curvals = $self->schema->resultset('Curval')->search({
+        value => $id,
+    })->all;
+
+    if (@curvals)
+    {
+        my @vals = map { $_->record->current_id } @curvals;
+        my $vals = join ', ', @vals;
+        error "Record ID {id} is referenced from record(s): {vals}",
+            id => $id, vals => $vals;
+    }
+
     # Start transaction.
     # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
     # an object) and may evaluate to an empty string. If so, txn_scope_guard
