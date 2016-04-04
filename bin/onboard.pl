@@ -89,7 +89,7 @@ my @fields; my $selects;
 my $dr; my $update_unique_col;
 foreach my $field (@f)
 {
-    my ($f) = rset('Layout')->search({ name => $field })->all;
+    my ($f) = rset('Layout')->search({ name => $field, instance_id => $layout->instance_id })->all;
     die "Field $field does not exist" unless $f;
     my $column = $layout->column($f->id);
     push @fields, $column;
