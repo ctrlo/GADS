@@ -1148,7 +1148,7 @@ sub delete_current
     {
         my @vals = map { $_->record->current_id } @curvals;
         my $vals = join ', ', @vals;
-        error "Record ID {id} is referenced from record(s): {vals}",
+        error __x"Record ID {id} is referenced from record(s): {vals}",
             id => $id, vals => $vals;
     }
 
