@@ -1140,18 +1140,6 @@ sub delete_current
         current_id => $id
     })->all;
 
-    my @curvals = $self->schema->resultset('Curval')->search({
-        value => $id,
-    })->all;
-
-    if (@curvals)
-    {
-        my @vals = map { $_->record->current_id } @curvals;
-        my $vals = join ', ', @vals;
-        error __x"Record ID {id} is referenced from record(s): {vals}",
-            id => $id, vals => $vals;
-    }
-
     # Start transaction.
     # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
     # an object) and may evaluate to an empty string. If so, txn_scope_guard
@@ -1177,6 +1165,7 @@ sub delete_current
     }
     $self->schema->resultset('Current')->find($id)->update({ record_id => undef });
     $self->schema->resultset('Record') ->search({ current_id => $id })->update({ record_id => undef });
+    $self->schema->resultset('Curval') ->search({ value => $id })->update({ value => undef });
     $self->schema->resultset('AlertCache')->search({ current_id => $id })->delete;
     $self->schema->resultset('Record')->search({ current_id => $id })->delete;
     $self->schema->resultset('AlertSend')->search({ current_id => $id })->delete;
