@@ -16,6 +16,8 @@ charset: "UTF-8"
 
 template: "template_toolkit"
 
+logger: LogReport
+
 session: "YAML"
 
 engines:
@@ -63,7 +65,7 @@ plugins:
         RaiseError: 1
         PrintError: 1
         quote_names: 1
-        mysql_enable_utf8: 1 # or  pg_enable_utf8: 1
+        mysql_enable_utf8: 1 # or  pg_enable_utf8: -1 (should be default)
   Auth::Extensible:
     no_default_pages: 1
     no_login_handler: 1
