@@ -91,9 +91,12 @@
         <li><a href="?page=[% subset.page - 1 %]">&laquo;</a></li>
     [% END %]
     [% i = 0 %]
-    [% WHILE i < subset.pages %]
-        [% i = i + 1 %]
-        <li [% IF i == subset.page %]class="active"[% END %]><a href="?page=[% i %]">[% i %]</a></li>
+    [% FOREACH i IN subset.pnumbers %]
+        [% IF i == '...' %]
+            <li class="disabled"><span>[% i %]</span></li>
+        [% ELSE %]
+            <li [% IF i == subset.page %]class="active"[% END %]><a href="?page=[% i %]">[% i %]</a></li>
+        [% END %]
     [% END %]
     [% IF subset.page == subset.pages %]
         <li class="next disabled"><span>&raquo;</span></li>

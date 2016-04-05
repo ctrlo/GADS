@@ -629,6 +629,32 @@ any '/data' => require_login sub {
             pages => $pages,
             page  => $page,
         };
+        if ($pages > 50)
+        {
+            my @pnumbers = (1..5);
+            if ($page-5 > 6)
+            {
+                push @pnumbers, '...';
+                my $max = $page + 5 > $pages ? $pages : $page + 5;
+                push @pnumbers, ($page-5..$max);
+            }
+            else {
+                push @pnumbers, (6..15);
+            }
+            if ($pages-5 > $page+5)
+            {
+                push @pnumbers, '...';
+                push @pnumbers, ($pages-4..$pages);
+            }
+            elsif ($pnumbers[-1] < $pages)
+            {
+                push @pnumbers, ($pnumbers[-1]+1..$pages);
+            }
+            $subset->{pnumbers} = [@pnumbers];
+        }
+        else {
+            $subset->{pnumbers} = [1..$pages];
+        }
 
         if (param 'sendemail')
         {
