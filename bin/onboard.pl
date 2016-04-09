@@ -282,7 +282,7 @@ while (my $row = $csv->getline($fh))
         my @failed = update_fields(\@fields, $input, $record);
         if (!@failed)
         {
-            try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force, update_only => $update_only) };
+            try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force, update_only => $update_only, no_change_unless_blank => $no_change_unless_blank) };
             if ($@)
             {
                 my $exc = $@->died;
