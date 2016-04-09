@@ -640,8 +640,9 @@ sub write
         #  Check for no change option, used by onboarding script
         if ($options{no_change_unless_blank} && !$self->new_entry && $datum->changed && !$datum->oldvalue->blank)
         {
-            error __x"Attempt to change {name} from {old} to {new} but no changes are allowed to existing data",
-                old => $datum->oldvalue->as_string, new => $datum->as_string, name => $column->name;
+            error __x"Attempt to change {name} from \"{old}\" to \"{new}\" but no changes are allowed to existing data",
+                old => $datum->oldvalue->as_string, new => $datum->as_string, name => $column->name
+                if lc $datum->oldvalue->as_string ne lc $datum->as_string && $datum->oldvalue->as_string;
         }
 
         if ($column->isunique && ($self->new_entry || $datum->changed))
