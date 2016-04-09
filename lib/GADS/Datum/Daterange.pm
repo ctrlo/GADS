@@ -48,7 +48,18 @@ has set_value => (
             $self->value($newvalue);
         }
         else {
-            $self->_init_value($value);
+            # Parse now if we have a parser. Better to check for invalid values whilst
+            # we're setting values, so that they are caught and displayed to the user.
+            # We don't have a parser if setting the value on instantiation from the
+            # database, but in that case we know we have a valid value.
+            if ($self->datetime_parser)
+            {
+                my $v = $self->_parse_dt($value); # DB parser needed for this. Will be set second time
+                $self->value($v);
+            }
+            else {
+                $self->_init_value($value);
+            }
             $self->has_value(1) if defined $value || $self->init_no_value;
         }
     },
@@ -128,11 +139,15 @@ sub _parse_dt
         };
     }
     # Otherwise assume it's a hashref: { from => .., to => .. }
+    error __x"Please enter 2 date values for '{col}'", col => $self->column->name
+        if $original->{from} xor $original->{to};
+    error __x"Invalid start date {value} for {col}. Please enter as yyyy-mm-dd.", value => $original->{from}, col => $self->column->name,
+        if $original->{from} && $original->{from} !~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+    error __x"Invalid end date {value} for {col}. Please enter as yyyy-mm-dd.", value => $original->{to}, col => $self->column->name,
+        if $original->{to} && $original->{to} !~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+
     my $from = $original->{from} ? $db_parser->parse_date($original->{from}) : undef;
     my $to   = $original->{to}   ? $db_parser->parse_date($original->{to}) : undef;
-
-    error __x"Please enter 2 date values for '{col}'", col => $self->column->name
-        if $from xor $to;
 
     return unless $from && $to;
 

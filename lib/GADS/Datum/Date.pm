@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Datum::Date;
 
 use DateTime;
+use Log::Report;
 use Moo;
 use namespace::clean;
 
@@ -48,7 +49,18 @@ has set_value => (
             $self->value($newvalue);
         }
         else {
-            $self->_init_value($value);
+            # Parse now if we have a parser. Better to check for invalid values whilst
+            # we're setting values, so that they are caught and displayed to the user.
+            # We don't have a parser if setting the value on instantiation from the
+            # database, but in that case we know we have a valid value.
+            if ($self->datetime_parser)
+            {
+                my $v = $self->_to_dt($value);
+                $self->value($v);
+            }
+            else {
+                $self->_init_value($value);
+            }
             $self->has_value(1) if defined $value || $self->init_no_value;
         }
     },
@@ -91,6 +103,8 @@ sub _to_dt
     return unless $value;
     if (ref $value ne 'DateTime')
     {
+        error __x"Invalid date {value} for {col}. Please enter as yyyy-mm-dd.", value => $value, col => $self->column->name,
+            if $value && $value !~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
         my $db_parser = $self->datetime_parser;
         $value && $db_parser->parse_date($value);
     }
