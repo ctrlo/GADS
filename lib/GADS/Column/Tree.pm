@@ -34,9 +34,11 @@ sub DESTROY
 }
 
 has end_node_only => (
-    is     => 'rw',
-    isa    => Bool,
-    coerce => sub { $_[0] ? 1 : 0 },
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    default => 0,
 );
 
 # The root node, which all other nodes are referenced from.

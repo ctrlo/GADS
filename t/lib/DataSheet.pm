@@ -90,6 +90,88 @@ sub _build_columns
     }
     $columns->{string1} = $string1;
 
+    my $integer1 = GADS::Column::Intgr->new(
+        schema => $schema,
+        user   => undef,
+        layout => $layout,
+    );
+    $integer1->type('intgr');
+    $integer1->name('Integer1');
+    try { $integer1->write };
+    if ($@)
+    {
+        $@->wasFatal->throw(is_fatal => 0);
+        return;
+    }
+    $columns->{integer1} = $integer1;
+
+    my $enum1 = GADS::Column::Enum->new(
+        schema => $schema,
+        user   => undef,
+        layout => $layout,
+    );
+    $enum1->type('enum');
+    $enum1->name('Enum1');
+    $enum1->enumvals([
+        {
+            value => 'foo1',
+        },
+        {
+            value => 'foo2',
+        },
+        {
+            value => 'foo3',
+        },
+    ]);
+    try { $enum1->write };
+    if ($@)
+    {
+        $@->wasFatal->throw(is_fatal => 0);
+        return;
+    }
+    $columns->{enum1} = $enum1;
+
+    my $tree1 = GADS::Column::Tree->new(
+        schema => $schema,
+        user   => undef,
+        layout => $layout,
+    );
+    $tree1->type('tree');
+    $tree1->name('Tree1');
+    try { $tree1->write };
+    my $tree_id = $tree1->id;
+    if ($@)
+    {
+        $@->wasFatal->throw(is_fatal => 0);
+        return;
+    }
+    $tree1->update([{
+        'children' => [],
+        'data' => {},
+        'text' => 'tree1',
+        'id' => 'j1_1'
+    },
+    {
+        'data' => {},
+        'text' => 'tree2',
+        'children' => [],
+        'id' => 'j1_2'
+    },
+    {
+        'data' => {},
+        'text' => 'tree3',
+        'children' => [],
+        'id' => 'j1_2'
+    }]);
+    # Reload to get tree built etc
+    $tree1 = GADS::Column::Tree->new(
+        schema => $schema,
+        user   => undef,
+        layout => $layout,
+    );
+    $tree1->from_id($tree_id);
+    $columns->{tree1} = $tree1;
+
     my $date1 = GADS::Column::Date->new(
         schema => $schema,
         user   => undef,
@@ -140,6 +222,9 @@ sub create_records
         $record->clear;
         $record->initialise;
         $record->fields->{$columns->{string1}->id}->set_value($datum->{string1});
+        $record->fields->{$columns->{integer1}->id}->set_value($datum->{integer1});
+        $record->fields->{$columns->{enum1}->id}->set_value($datum->{enum1});
+        $record->fields->{$columns->{tree1}->id}->set_value($datum->{tree1});
         $record->fields->{$columns->{date1}->id}->set_value($datum->{date1});
         $record->fields->{$columns->{daterange1}->id}->set_value($datum->{daterange1});
         try { $record->write(no_alerts => 1) };
