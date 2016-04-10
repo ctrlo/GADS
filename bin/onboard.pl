@@ -248,7 +248,7 @@ while (my $row = $csv->getline($fh))
             {
                 $input->{$f->field} = sprintf "%.0f", $col if $col;
             }
-            else {
+            elsif ($col) {
                 my $colname = $f->name;
                 push @bad, qq(Invalid item "$col" for integer field "$colname");
             }
