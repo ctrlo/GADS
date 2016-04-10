@@ -244,7 +244,14 @@ while (my $row = $csv->getline($fh))
         }
         elsif ($f->type eq "intgr")
         {
-            $input->{$f->field} = sprintf "%.0f", $col if $col;
+            if ($col =~ /^[\.0-9]+$/)
+            {
+                $input->{$f->field} = sprintf "%.0f", $col if $col;
+            }
+            else {
+                my $colname = $f->name;
+                push @bad, qq(Invalid item "$col" for integer field "$colname");
+            }
         }
         else {
             $input->{$f->field} = $col;
