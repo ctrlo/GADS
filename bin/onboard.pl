@@ -37,7 +37,7 @@ my ($take_first_enum, $ignore_incomplete_dateranges,
     $dry_run, $ignore_string_zeros, $force,
     $invalid_csv, @invalid_report, $instance_id,
     $update_unique, $blank_invalid_enum, $no_change_unless_blank,
-    $update_only);
+    $update_only, $report_changes);
 
 GetOptions (
     'take-first-enum'              => \$take_first_enum,
@@ -52,6 +52,7 @@ GetOptions (
     'update-only'                  => \$update_only, # Do not write new version record
     'blank-invalid-enum'           => \$blank_invalid_enum,
     'no-change-unless-blank'       => \$no_change_unless_blank,
+    'report-changes'               => \$report_changes,
 ) or exit;
 
 
@@ -279,7 +280,14 @@ while (my $row = $csv->getline($fh))
             $record->initialise;
         }
 
-        my @failed = update_fields(\@fields, $input, $record);
+        my @changes;
+        my @failed = update_fields(\@fields, $input, $record, \@changes);
+        if ($report_changes)
+        {
+            say STDOUT "Changes for record ".$record->fields->{$update_unique_col->id}->as_string." are as follows:";
+            say STDOUT $_ foreach @changes;
+            say STDOUT "\n";
+        }
         if (!@failed)
         {
             try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force, update_only => $update_only, no_change_unless_blank => $no_change_unless_blank) };
@@ -330,21 +338,34 @@ $count->{errors} = @all_bad;
 say STDOUT Dumper $count;
 
 sub update_fields
-{   my ($fields, $input, $record) = @_;
+{   my ($fields, $input, $record, $changes) = @_;
     my @bad;
     foreach my $col (@$fields)
     {
         if ($col->userinput) # Not calculated fields
         {
             my $newv = $input->{$col->field};
-            if ($col->type eq "daterange" && $ignore_incomplete_dateranges)
+            if (!$record->current_id || $newv)
             {
-                $newv = ['',''] if !($newv->[0] && $newv->[1]);
-            }
-            try { $record->fields->{$col->id}->set_value($newv) };
-            if (my $exception = $@->wasFatal)
-            {
-                push @bad, $exception->message->toString;
+                if ($col->type eq "daterange" && $ignore_incomplete_dateranges)
+                {
+                    $newv = ['',''] if !($newv->[0] && $newv->[1]);
+                }
+                my $datum = $record->fields->{$col->id};
+                my $old_value = $datum->as_string;
+                my $was_blank = $datum->blank;
+                try { $datum->set_value($newv) };
+                if (my $exception = $@->wasFatal)
+                {
+                    push @bad, $exception->message->toString;
+                }
+                elsif ($report_changes && $record->current_id && $datum->changed && !$was_blank)
+                {
+                    my $colname = $col->name;
+                    my $newvalue = $datum->as_string;
+                    push @$changes, qq(Change value of "$colname" from "$old_value" to "$newvalue")
+                        if  lc $old_value ne lc $newvalue; # Don't report change of case
+                }
             }
         }
     }
