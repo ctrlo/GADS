@@ -282,7 +282,7 @@ while (my $row = $csv->getline($fh))
 
         my @changes;
         my @failed = update_fields(\@fields, $input, $record, \@changes);
-        if ($report_changes)
+        if ($report_changes && @changes)
         {
             say STDOUT "Changes for record ".$record->fields->{$update_unique_col->id}->as_string." are as follows:";
             say STDOUT $_ foreach @changes;
