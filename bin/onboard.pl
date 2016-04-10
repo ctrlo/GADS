@@ -37,7 +37,7 @@ my ($take_first_enum, $ignore_incomplete_dateranges,
     $dry_run, $ignore_string_zeros, $force,
     $invalid_csv, @invalid_report, $instance_id,
     $update_unique, $blank_invalid_enum, $no_change_unless_blank,
-    $update_only, $report_changes);
+    $update_only, $report_changes, @append);
 
 GetOptions (
     'take-first-enum'              => \$take_first_enum,
@@ -53,6 +53,7 @@ GetOptions (
     'blank-invalid-enum'           => \$blank_invalid_enum,
     'no-change-unless-blank'       => \$no_change_unless_blank,
     'report-changes'               => \$report_changes,
+    'append=s'                     => \@append,
 ) or exit;
 
 
@@ -173,6 +174,14 @@ if ($invalid_csv)
     } @invalid_report;
 }
 
+my %append;
+foreach my $append (@append)
+{
+    my ($col) = grep { $_->name eq $append } @fields;
+    error "Field $append invalid for append" unless $col;
+    $append{$col->id} = 1;
+}
+
 my $count = {
     in      => 0,
     written => 0,
@@ -193,8 +202,8 @@ while (my $row = $csv->getline($fh))
     foreach my $col (@row)
     {
         my $f = $fields[$col_count];
-        $col =~ s/\s+$//;
-        $col =~ s/^\s+//;
+        $col =~ s/\h+$//;
+        $col =~ s/^\h+//;
         #say STDOUT "Going to process $col into field $f->{name}";
         if ($f->type eq "enum" || $f->type eq "tree" || $f->type eq "person")
         {
@@ -369,12 +378,17 @@ sub update_fields
                 my $datum = $record->fields->{$col->id};
                 my $old_value = $datum->as_string;
                 my $was_blank = $datum->blank;
+                if ($append{$col->id})
+                {
+                    $newv =~ s/^\s+// if !$old_value; # Trim preceding line returns if no value to append to
+                    $newv = $old_value.$newv if $append{$col->id};
+                }
                 try { $datum->set_value($newv) };
                 if (my $exception = $@->wasFatal)
                 {
                     push @bad, $exception->message->toString;
                 }
-                elsif ($report_changes && $record->current_id && $datum->changed && !$was_blank)
+                elsif ($report_changes && $record->current_id && $datum->changed && !$was_blank && !$append{$col->id})
                 {
                     my $colname = $col->name;
                     my $newvalue = $datum->as_string;
