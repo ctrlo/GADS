@@ -275,12 +275,19 @@ while (my $row = $csv->getline($fh))
         if ($update_unique)
         {
             my $unique_field = $update_unique_col->field;
-            if (my $existing = $record->find_unique($update_unique_col, $input->{$unique_field}))
+            if ($input->{$unique_field})
             {
-                $record->find_current_id($existing->current_id);
+                if (my $existing = $record->find_unique($update_unique_col, $input->{$unique_field}))
+                {
+                    $record->find_current_id($existing->current_id);
+                }
+                else {
+                    $record->initialise;
+                }
             }
             else {
                 $record->initialise;
+                push @bad, qq(Missing unique identifier for "$update_unique". Data will be uploaded as new record. Full record follows: @row);
             }
         }
         else {
