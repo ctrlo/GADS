@@ -297,7 +297,9 @@ while (my $row = $csv->getline($fh))
             }
             else {
                 $record->initialise;
-                push @bad, qq(Missing unique identifier for "$update_unique". Data will be uploaded as new record. Full record follows: @row);
+                my $full = "@row";
+                $full =~ s/\n//g;
+                push @bad, qq(Missing unique identifier for "$update_unique". Data will be uploaded as new record. Full record follows: $full);
             }
         }
         else {
