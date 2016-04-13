@@ -94,6 +94,8 @@ foreach my $field (@f)
     my ($f) = rset('Layout')->search({ name => $field, instance_id => $layout->instance_id })->all;
     die "Field $field does not exist" unless $f;
     my $column = $layout->column($f->id);
+    die "Field $field exists twice"
+        if (grep { $_->name eq $field } @fields) && $column->type ne "daterange";
     push @fields, $column;
 
     die "Daterange $field needs 2 columns" if ($dr && $f->type ne "daterange");
