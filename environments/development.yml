@@ -19,3 +19,12 @@ show_errors: 1
 
 # print the banner
 startup_info: 1
+
+engines:
+  logger:
+    LogReport:
+      app_name: GADS
+      dispatchers:
+        default:
+          type: PERL
+          mode: DEBUG
