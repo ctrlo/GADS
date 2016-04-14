@@ -2038,11 +2038,20 @@ any '/login' => sub {
 
     if (param('signin'))
     {
-        my ($success, $realm) = authenticate_user(
-            params->{username}, params->{password}
+        my $username  = param('username');
+        my $lastfail  = DateTime->now->subtract(minutes => 15);
+        my $lastfailf = schema->storage->datetime_parser->format_datetime($lastfail);
+        my $fail      = rset('User')->search({
+            username  => $username,
+            failcount => { '>=' => 5 },
+            lastfail  => { '>' => $lastfailf },
+        })->count;
+        $fail and assert "Reached fail limit for user $username";
+        my ($success, $realm) = !$fail && authenticate_user(
+            $username, params->{password}
         );
         if ($success) {
-            session logged_in_user => params->{username};
+            session logged_in_user => $username;
             session logged_in_user_realm => $realm;
             if (param 'remember_me')
             {
@@ -2056,10 +2065,26 @@ any '/login' => sub {
             $user = logged_in_user;
             $audit->user($user);
             $audit->login_success;
+            rset('User')->find($user->{id})->update({
+                failcount => 0,
+                lastfail  => undef,
+            });
             forwardHome();
         }
         else {
-            $audit->login_failure(param 'username');
+            $audit->login_failure($username);
+            my ($user) = rset('User')->search({
+                username        => $username,
+                account_request => 0,
+            })->all;
+            if ($user)
+            {
+                $user->update({
+                    failcount => $user->failcount + 1,
+                    lastfail  => DateTime->now,
+                });
+                trace "Fail count for $username is now ".$user->failcount;
+            }
             report {is_fatal=>0}, ERROR => "The username or password was not recognised";
         }
     }
