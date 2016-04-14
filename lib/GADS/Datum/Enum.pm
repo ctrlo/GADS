@@ -41,7 +41,7 @@ has set_value => (
         }
         elsif (defined $value) {
             # User input
-            !$value || $self->column->enumval($value)
+            !$value || $self->column->enumval($value) || $self->id == $value # unchanged deleted value
                 or error __x"'{int}' is not a valid enum ID for '{col}'"
                     , int => $value, col => $self->column->name;
             $value = undef if !$value; # Can be empty string, generating warnings

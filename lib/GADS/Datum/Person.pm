@@ -49,7 +49,7 @@ has set_value => (
         }
         else {
             # User input
-            !$value || grep {$value == $_->id} @{$self->column->people}
+            !$value || (grep {$value == $_->id} @{$self->column->people}) || $value == $self->id # Unchanged deleted user
                 or error __x"'{int}' is not a valid person ID"
                     , int => $value;
             $value = undef if !$value; # Can be empty string, generating warnings
