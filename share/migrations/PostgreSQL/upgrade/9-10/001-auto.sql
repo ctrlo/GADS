@@ -4,10 +4,10 @@
 BEGIN;
 
 ;
-ALTER TABLE user ADD COLUMN lastfail timestamp;
+ALTER TABLE "user" ADD COLUMN lastfail timestamp;
 
 ;
-ALTER TABLE user ADD COLUMN failcount integer DEFAULT 0 NOT NULL;
+ALTER TABLE "user" ADD COLUMN failcount integer DEFAULT 0 NOT NULL;
 
 ;
 
