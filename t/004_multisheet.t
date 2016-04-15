@@ -23,6 +23,7 @@ my $columns2 = $sheet2->columns;
 # Set link field of second sheet daterange to daterange of first sheet
 $columns2->{daterange1}->link_parent_id($columns1->{daterange1}->id);
 $columns2->{daterange1}->write;
+$layout2->clear; # Need to rebuild columns to get link_parent built
 
 my $record1 = GADS::Record->new(
     user     => undef,

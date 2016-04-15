@@ -88,7 +88,6 @@ sub _build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $columns->{string1} = $string1;
 
     my $integer1 = GADS::Column::Intgr->new(
         schema => $schema,
@@ -103,7 +102,6 @@ sub _build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $columns->{integer1} = $integer1;
 
     my $enum1 = GADS::Column::Enum->new(
         schema => $schema,
@@ -129,7 +127,6 @@ sub _build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $columns->{enum1} = $enum1;
 
     my $tree1 = GADS::Column::Tree->new(
         schema => $schema,
@@ -170,7 +167,6 @@ sub _build_columns
         layout => $layout,
     );
     $tree1->from_id($tree_id);
-    $columns->{tree1} = $tree1;
 
     my $date1 = GADS::Column::Date->new(
         schema => $schema,
@@ -185,7 +181,6 @@ sub _build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $columns->{date1} = $date1;
 
     my $daterange1 = GADS::Column::Daterange->new(
         schema => $schema,
@@ -200,8 +195,17 @@ sub _build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $columns->{daterange1} = $daterange1;
 
+    # Only add the columns now to the columns hash, as this will lazily build
+    # the columns index in the layout, which would otherwise be incomplete.
+    # We return the reference to the layout one, in case we change any of
+    # the objects properties, which are used by the datums.
+    $columns->{string1}    = $layout->column($string1->id);
+    $columns->{integer1}   = $layout->column($integer1->id);
+    $columns->{enum1}      = $layout->column($enum1->id);
+    $columns->{tree1}      = $layout->column($tree1->id);
+    $columns->{date1}      = $layout->column($date1->id);
+    $columns->{daterange1} = $layout->column($daterange1->id);
     $columns;
 }
 

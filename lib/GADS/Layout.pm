@@ -68,6 +68,7 @@ has name => (
 has columns => (
     is      => 'rw',
     lazy    => 1,
+    clearer => 1,
     builder => '_build_columns',
 );
 
@@ -95,6 +96,7 @@ has user_permission_override => (
 has columns_index => (
     is      => 'rw',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
         my @columns = @{$self->columns};
@@ -102,6 +104,12 @@ has columns_index => (
         \%columns;
     },
 );
+
+sub clear
+{   my $self = shift;
+    $self->clear_columns;
+    $self->clear_columns_index;
+}
 
 # Instantiate new class. This builds a list of all
 # columns, so that it's cached for any later function
