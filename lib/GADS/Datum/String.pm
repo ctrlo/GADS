@@ -29,6 +29,7 @@ has set_value => (
     is       => 'rw',
     trigger  => sub {
         my ($self, $value) = @_;
+        $value =~ /\h+$/ if !ref $value && $value;
         if (my $regex = !ref $value && $self->column->force_regex)
         {
             error __x"Invalid value \"{value}\" for {field}", value => $value, field => $self->column->name
