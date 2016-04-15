@@ -257,12 +257,16 @@
                     [% END %]
                 >
                 <div class="form-group">
-                    <label for="textbox">Options:</label>
+                    <label for="textbox">Textbox:</label>
                     <div class="checkbox">
                         <label>
                             <input id="textbox" type="checkbox" name="textbox" [% IF column.textbox %]checked[% END %]>Multi-line text box
                         </label>
                     </div>
+                </div>
+                <div class="form-group">
+                    <label for="force_regex">Force input format: (<a href="" data-toggle="modal" data-target="#modalhelp_force_regex">?</a>)</label>
+                    <input id="force_regex" class="form-control" type="text" name="force_regex" value="[% column.force_regex | html_entity %]">
                 </div>
             </div>
             <div id="divrag"
@@ -392,6 +396,23 @@
                     </div>
                     <div class="modal-body">
                         <p>[% global.helptext.layout_groups %]</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+       <!-- Modal -->
+        <div class="modal fade" id="modalhelp_force_regex" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">Force input format</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>[% global.helptext.force_regex %]</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>

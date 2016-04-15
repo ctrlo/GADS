@@ -79,6 +79,11 @@ __PACKAGE__->table("layout");
   default_value: 0
   is_nullable: 0
 
+=head2 force_regex
+
+  data_type: 'text'
+  is_nullable: 1
+
 =head2 position
 
   data_type: 'integer'
@@ -148,6 +153,8 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "textbox",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "force_regex",
+  { data_type => "text", is_nullable => 1 },
   "position",
   { data_type => "integer", is_nullable => 1 },
   "ordering",

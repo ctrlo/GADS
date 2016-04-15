@@ -32,6 +32,12 @@ has textbox => (
     coerce  => sub { $_[0] ? 1 : 0 },
 );
 
+has force_regex => (
+    is      => 'rw',
+    isa     => Str,
+    lazy    => 1,
+);
+
 after 'build_values' => sub {
     my ($self, $original) = @_;
     $self->string_storage(1);
@@ -40,13 +46,18 @@ after 'build_values' => sub {
     {
         $self->textbox(1);
     }
+    if (my $force_regex = $original->{force_regex})
+    {
+        $self->force_regex($force_regex);
+    }
 };
 
 after 'write' => sub {
     my $self = shift;
 
     $self->schema->resultset('Layout')->find($self->id)->update({
-        textbox => $self->textbox,
+        textbox     => $self->textbox,
+        force_regex => $self->force_regex,
     });
 };
 

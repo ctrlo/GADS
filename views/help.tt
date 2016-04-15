@@ -30,6 +30,17 @@ Allows users to edit values in existing records, without requiring those
 values to be approved.</p>
 [% END %]
 
+[% global.helptext.force_regex = BLOCK %]
+<p>Use this option to force a value to be in a particular format.
+Enter a regular expression here to define the format.
+<p>To match a value containing the word "foo":</p>
+<tt><pre>.*foo.*</pre></tt>
+<p>To match anything beginning with "bar":</p>
+<tt><pre>bar.*</pre></tt>
+<p>To match a single letter followed by any number:</p>
+<tt><pre>[A-Za-z][0-9]+</pre></tt>
+[% END %]
+
 [% global.helptext.layout_perms = BLOCK %]
 The permissions of the field affect the ability of users to specify
 the values in records, not change any aspect of the layout. Specifically:

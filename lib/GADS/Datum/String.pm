@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Datum::String;
 
 use HTML::FromText;
+use Log::Report;
 use Moo;
 use namespace::clean;
 
@@ -28,6 +29,11 @@ has set_value => (
     is       => 'rw',
     trigger  => sub {
         my ($self, $value) = @_;
+        if (my $regex = !ref $value && $self->column->force_regex)
+        {
+            error __x"Invalid value \"{value}\" for {field}", value => $value, field => $self->column->name
+                if $value !~ /^$regex$/;
+        }
         if ($self->has_value)
         {
             # Previous value

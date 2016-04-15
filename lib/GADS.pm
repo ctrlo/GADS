@@ -1229,6 +1229,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             elsif ($column->type eq "string")
             {
                 $column->textbox(param 'textbox');
+                $column->force_regex(param 'force_regex');
             }
             elsif ($column->type eq "curval")
             {
