@@ -36,8 +36,9 @@ use List::MoreUtils 'first_index';
 my ($take_first_enum, $ignore_incomplete_dateranges,
     $dry_run, $ignore_string_zeros, $force,
     $invalid_csv, @invalid_report, $instance_id,
-    $update_unique, $blank_invalid_enum, $no_change_unless_blank,
-    $update_only, $report_changes, @append);
+    $update_unique, $skip_existing_unique, $blank_invalid_enum,
+    $no_change_unless_blank, $update_only, $report_changes,
+    @append);
 
 GetOptions (
     'take-first-enum'              => \$take_first_enum,
@@ -49,6 +50,7 @@ GetOptions (
     'invalid-report=s'             => \@invalid_report,
     'instance-id=s'                => \$instance_id,
     'update-unique=s'              => \$update_unique,
+    'skip-existing-unique=s'       => \$skip_existing_unique,
     'update-only'                  => \$update_only, # Do not write new version record
     'blank-invalid-enum'           => \$blank_invalid_enum,
     'no-change-unless-blank'       => \$no_change_unless_blank,
@@ -62,6 +64,9 @@ die "Invalid option '$force' supplied to --force"
 
 die "Need --instance-id to be specified"
     unless $instance_id;
+
+die "--skip-existing-unique and --update-unique are mutually exclusive"
+    if $update_unique && $skip_existing_unique;
 
 my ($file) = @ARGV;
 $file or die "Usage: $0 [--take-first-enum] [--ignore-incomplete-dateranges]
@@ -88,7 +93,7 @@ my $layout = GADS::Layout->new(
 
 # First check if fields exist
 my @fields; my $selects;
-my $dr; my $update_unique_col;
+my $dr; my $update_unique_col; my $skip_existing_unique_col;
 foreach my $field (@f)
 {
     my ($f) = rset('Layout')->search({ name => $field, instance_id => $layout->instance_id })->all;
@@ -103,6 +108,10 @@ foreach my $field (@f)
     # Convert update-unique to ID from name
     $update_unique_col = $column
         if $update_unique && $update_unique eq $f->name;
+
+    # Convert skip-existing-unique to ID from name
+    $skip_existing_unique_col = $column
+        if $skip_existing_unique && $skip_existing_unique eq $f->name;
 
     # Prefill select values
     if ($f->type eq "enum" || $f->type eq "tree")
@@ -151,6 +160,9 @@ foreach my $field (@f)
 
 error "field $update_unique not found for update-unique"
     if $update_unique && !$update_unique_col;
+
+error "field $skip_existing_unique not found for skip-existing-unique"
+    if $skip_existing_unique && !$skip_existing_unique_col;
 
 my @all_bad;
 
@@ -276,6 +288,7 @@ while (my $row = $csv->getline($fh))
     my $write = !@bad && (!@bad_enum || $blank_invalid_enum);
     if ($write)
     {
+        my $skip;
         # Insert record into DB. May still be problems
         my $record = GADS::Record->new(
             user   => undef,
@@ -304,32 +317,56 @@ while (my $row = $csv->getline($fh))
                 push @bad, qq(Missing unique identifier for "$update_unique". Data will be uploaded as new record. Full record follows: $full);
             }
         }
+        elsif ($skip_existing_unique)
+        {
+            my $unique_field = $skip_existing_unique_col->field;
+            if (defined $input->{$unique_field})
+            {
+                if (my $existing = $record->find_unique($skip_existing_unique_col, $input->{$unique_field}))
+                {
+                    push @bad, qq(Skipping: unique identifier "$input->{$unique_field}" already exists for "$skip_existing_unique");
+                    $skip = 1;
+                }
+                else {
+                    $record->initialise;
+                }
+            }
+            else {
+                $record->initialise;
+                my $full = "@row";
+                $full =~ s/\n//g;
+                push @bad, qq(Missing unique identifier for "$update_unique". Data will be uploaded as new record. Full record follows: $full);
+            }
+        }
         else {
             $record->initialise;
         }
 
-        my @changes;
-        my @failed = update_fields(\@fields, $input, $record, \@changes);
-        if ($report_changes && @changes)
+        unless ($skip)
         {
-            say STDOUT "Changes for record ".$record->fields->{$update_unique_col->id}->as_string." are as follows:";
-            say STDOUT $_ foreach @changes;
-            say STDOUT "\n";
-        }
-        if (!@failed)
-        {
-            try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force, update_only => $update_only, no_change_unless_blank => $no_change_unless_blank) };
-            if ($@)
+            my @changes;
+            my @failed = update_fields(\@fields, $input, $record, \@changes);
+            if ($report_changes && @changes)
             {
-                my $exc = $@->died;
-                my $message = ref $exc ? $@->died->message : $exc;
-                push @failed, "$message";
+                say STDOUT "Changes for record ".$record->fields->{$update_unique_col->id}->as_string." are as follows:";
+                say STDOUT $_ foreach @changes;
+                say STDOUT "\n";
             }
-            else {
-                $count->{written}++;
+            if (!@failed)
+            {
+                try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force, update_only => $update_only, no_change_unless_blank => $no_change_unless_blank) };
+                if ($@)
+                {
+                    my $exc = $@->died;
+                    my $message = ref $exc ? $@->died->message : $exc;
+                    push @failed, "$message";
+                }
+                else {
+                    $count->{written}++;
+                }
             }
+            push @bad, @failed;
         }
-        push @bad, @failed;
     }
 
     push @bad, @bad_enum;
