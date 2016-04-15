@@ -33,7 +33,7 @@ has set_value => (
         if (my $regex = !ref $value && $self->column->force_regex)
         {
             error __x"Invalid value \"{value}\" for {field}", value => $value, field => $self->column->name
-                if $value !~ /^$regex$/;
+                if $value && $value !~ /^$regex$/;
         }
         if ($self->has_value)
         {
