@@ -175,7 +175,7 @@ if ($invalid_csv)
     my @field_names = map { $_->name } @fields;
 
     my @headings = @invalid_report ? @invalid_report : @field_names;
-    $csv->print($fh_invalid, [@headings, 'Errors']);
+    $csv->print($fh_invalid, ['Status', @headings, 'Errors']);
     print $fh_invalid "\n";
 
     # If invalid-report has been specified, convert field names into
@@ -360,10 +360,14 @@ while (my $row = $csv->getline($fh))
                     my $exc = $@->died;
                     my $message = ref $exc ? $@->died->message : $exc;
                     push @failed, "$message";
+                    $write = 0;
                 }
                 else {
                     $count->{written}++;
                 }
+            }
+            else {
+                $write = 0;
             }
             push @bad, @failed;
         }
@@ -386,6 +390,7 @@ while (my $row = $csv->getline($fh))
                     foreach @invalid_report;
                 $row = \@row2;
             }
+            unshift @$row, $write ? 'Record written' : 'Record not written';
             push @$row, @bad;
             $csv->print($fh_invalid, $row);
             print $fh_invalid "\n";
