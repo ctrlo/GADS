@@ -96,70 +96,76 @@ my @fields; my $selects;
 my $dr; my $update_unique_col; my $skip_existing_unique_col;
 foreach my $field (@f)
 {
-    my ($f) = rset('Layout')->search({ name => $field, instance_id => $layout->instance_id })->all;
-    die "Field $field does not exist" unless $f;
-    my $column = $layout->column($f->id);
-    die "Field $field exists twice"
-        if (grep { $_->name eq $field } @fields) && $column->type ne "daterange";
-    push @fields, $column;
-
-    die "Daterange $field needs 2 columns" if ($dr && $f->type ne "daterange");
-
-    # Convert update-unique to ID from name
-    $update_unique_col = $column
-        if $update_unique && $update_unique eq $f->name;
-
-    # Convert skip-existing-unique to ID from name
-    $skip_existing_unique_col = $column
-        if $skip_existing_unique && $skip_existing_unique eq $f->name;
-
-    # Prefill select values
-    if ($f->type eq "enum" || $f->type eq "tree")
+    if ($update_unique && $update_unique eq 'ID' && $field eq 'ID')
     {
-        my @vals = rset('Enumval')->search({ layout_id => $f->id, deleted => 0 })->all;
-        foreach my $v (@vals)
+        push @fields, undef; # Special case. XXX maybe need a special GADS::Column for ID?
+    }
+    else {
+        my ($f) = rset('Layout')->search({ name => $field, instance_id => $layout->instance_id })->all;
+        die "Field $field does not exist" unless $f;
+        my $column = $layout->column($f->id);
+        die "Field $field exists twice"
+            if (grep { $_ && $_->name eq $field } @fields) && $column->type ne "daterange";
+        push @fields, $column;
+
+        die "Daterange $field needs 2 columns" if ($dr && $f->type ne "daterange");
+
+        # Convert update-unique to ID from name
+        $update_unique_col = $column
+            if $update_unique && $update_unique ne 'ID' && $update_unique eq $f->name;
+
+        # Convert skip-existing-unique to ID from name
+        $skip_existing_unique_col = $column
+            if $skip_existing_unique && $skip_existing_unique eq $f->name;
+
+        # Prefill select values
+        if ($f->type eq "enum" || $f->type eq "tree")
         {
-            my $text = lc $v->value;
-            # See if it already exists - possible multiple values
-            if (exists $selects->{$f->id}->{$text})
+            my @vals = rset('Enumval')->search({ layout_id => $f->id, deleted => 0 })->all;
+            foreach my $v (@vals)
             {
-                next if $take_first_enum;
-                my $existing = $selects->{$f->id}->{$text};
-                my @existing = ref $existing eq "ARRAY" ? @$existing : ($existing);
-                $selects->{$f->id}->{$text} = [@existing, $v->id];
-            }
-            else {
-                $selects->{$f->id}->{$text} = $v->id;
+                my $text = lc $v->value;
+                # See if it already exists - possible multiple values
+                if (exists $selects->{$f->id}->{$text})
+                {
+                    next if $take_first_enum;
+                    my $existing = $selects->{$f->id}->{$text};
+                    my @existing = ref $existing eq "ARRAY" ? @$existing : ($existing);
+                    $selects->{$f->id}->{$text} = [@existing, $v->id];
+                }
+                else {
+                    $selects->{$f->id}->{$text} = $v->id;
+                }
             }
         }
-    }
-    elsif ($f->type eq "person")
-    {
-        my @vals = rset('User')->search({ deleted => undef, account_request => 0 })->all;
-        foreach my $v (@vals)
+        elsif ($f->type eq "person")
         {
-            my $text = lc $v->value;
-            # See if it already exists - possible multiple values
-            if (exists $selects->{$f->id}->{$text})
+            my @vals = rset('User')->search({ deleted => undef, account_request => 0 })->all;
+            foreach my $v (@vals)
             {
-                my $existing = $selects->{$f->id}->{$text};
-                my @existing = ref $existing eq "ARRAY" ? @$existing : ($existing);
-                $selects->{$f->id}->{$text} = [@existing, $v->id];
-            }
-            else {
-                $selects->{$f->id}->{$text} = $v->id;
+                my $text = lc $v->value;
+                # See if it already exists - possible multiple values
+                if (exists $selects->{$f->id}->{$text})
+                {
+                    my $existing = $selects->{$f->id}->{$text};
+                    my @existing = ref $existing eq "ARRAY" ? @$existing : ($existing);
+                    $selects->{$f->id}->{$text} = [@existing, $v->id];
+                }
+                else {
+                    $selects->{$f->id}->{$text} = $v->id;
+                }
             }
         }
-    }
-    elsif ($f->type eq "daterange")
-    {
-        # Expect a second daterange column immediately after
-        $dr = $dr ? 0 : 1;
+        elsif ($f->type eq "daterange")
+        {
+            # Expect a second daterange column immediately after
+            $dr = $dr ? 0 : 1;
+        }
     }
 }
 
 error "field $update_unique not found for update-unique"
-    if $update_unique && !$update_unique_col;
+    if $update_unique && $update_unique ne 'ID' && !$update_unique_col;
 
 error "field $skip_existing_unique not found for skip-existing-unique"
     if $skip_existing_unique && !$skip_existing_unique_col;
@@ -172,7 +178,7 @@ if ($invalid_csv)
 {
     #open $fh_invalid, ">", $invalid_csv or die "Failed to create $invalid_csv: $!";
     open $fh_invalid, ">:encoding(utf8)", $invalid_csv or die "Failed to create $invalid_csv: $!";
-    my @field_names = map { $_->name } @fields;
+    my @field_names = map { $_ && $_->name } @fields;
 
     my @headings = @invalid_report ? @invalid_report : @field_names;
     $csv->print($fh_invalid, ['Status', @headings, 'Errors']);
@@ -216,6 +222,12 @@ while (my $row = $csv->getline($fh))
     foreach my $col (@row)
     {
         my $f = $fields[$col_count];
+        if (!$f) # Will be undef for ID column
+        {
+            $input->{ID} = $col;
+            $col_count++;
+            next;
+        }
         $col =~ s/\h+$//;
         $col =~ s/^\h+//;
         #say STDOUT "Going to process $col into field $f->{name}";
@@ -299,10 +311,19 @@ while (my $row = $csv->getline($fh))
         # Look for existing record?
         if ($update_unique)
         {
-            my $unique_field = $update_unique_col->field;
+            my $unique_field = $update_unique eq 'ID' ? 'ID' : $update_unique_col->field;
             if ($input->{$unique_field})
             {
-                if (my $existing = $record->find_unique($update_unique_col, $input->{$unique_field}))
+                if ($unique_field eq 'ID')
+                {
+                    try { $record->find_current_id($input->{ID}) };
+                    if ($@)
+                    {
+                        push @bad, qq(Failed to retrieve record ID $input->{ID} ($@). Data will not be uploaded.);
+                        $skip = 1;
+                    }
+                }
+                elsif (my $existing = $record->find_unique($update_unique_col, $input->{$unique_field}))
                 {
                     $record->find_current_id($existing->current_id);
                 }
@@ -412,6 +433,7 @@ sub update_fields
     my @bad;
     foreach my $col (@$fields)
     {
+        next unless $col; # undef for ID column
         if ($col->userinput) # Not calculated fields
         {
             my $newv = $input->{$col->field};
