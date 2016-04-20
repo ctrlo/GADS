@@ -30,6 +30,7 @@ has set_value => (
         my ($self, $value) = @_;
         my $first_time = 1 unless $self->has_id;
         my $new_id;
+        my $clone = $self->clone; # Copy before changing text
         if (ref $value)
         {
             # From database, with enumval table joined
@@ -56,7 +57,7 @@ has set_value => (
             $self->changed(1) if (!defined($self->id) && defined $value)
                 || (!defined($value) && defined $self->id)
                 || (defined $self->id && defined $value && $self->id != $value);
-            $self->oldvalue($self->clone);
+            $self->oldvalue($clone);
         }
         $self->id($new_id) if defined $new_id || $self->init_no_value;
     },
@@ -78,7 +79,7 @@ sub has_value { $_[0]->has_id }
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
-    $orig->($self, id => $self->id);
+    $orig->($self, id => $self->id, text => $self->text);
 };
 
 sub as_string
