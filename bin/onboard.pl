@@ -106,7 +106,7 @@ foreach my $field (@f)
         my $column = $layout->column($f->id);
         die "Field $field exists twice"
             if (grep { $_ && $_->name eq $field } @fields) && $column->type ne "daterange";
-        push @fields, $column;
+        push @fields, $column unless $dr && $f->type eq "daterange";
 
         die "Daterange $field needs 2 columns" if ($dr && $f->type ne "daterange");
 
@@ -218,6 +218,7 @@ while (my $row = $csv->getline($fh))
 
     my $col_count = 0;
     my $input; my @bad; my @bad_enum;
+    my $drf; # last loop was a daterange, expect another
     my $previous_field;
     foreach my $col (@row)
     {
@@ -268,9 +269,11 @@ while (my $row = $csv->getline($fh))
             if (exists $input->{$f->field})
             {
                 push @{$input->{$f->field}}, $col;
+                $drf = 0;
             }
             else {
                 $input->{$f->field} = [$col];
+                $drf = 1;
             }
         }
         elsif ($f->type eq "string")
@@ -294,7 +297,7 @@ while (my $row = $csv->getline($fh))
         }
 
         my $previous_field = $f;
-        $col_count++;
+        $col_count++ unless $drf;
     }
 
     my $write = !@bad && (!@bad_enum || $blank_invalid_enum);
