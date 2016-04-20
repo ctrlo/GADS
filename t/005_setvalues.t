@@ -13,34 +13,40 @@ use t::lib::DataSheet;
 
 my $values = {
     string1 => {
-        old       => 'foo', # The initial value
-        new       => 'bar', # The value it's changed to
-        as_string => 'bar', # The string representation of the new value
+        old           => 'foo', # The initial value
+        old_as_string => 'foo', # The initial value
+        new           => 'bar', # The value it's changed to
+        new_as_string => 'bar', # The string representation of the new value
     },
     integer1 => {
-        old       => 100,
-        new       => 200,
-        as_string => '200',
+        old           => 100,
+        old_as_string => '100',
+        new           => 200,
+        new_as_string => '200',
     },
     enum1 => {
-        old       => 1,
-        new       => 2,
-        as_string => 'foo2',
+        old           => 1,
+        old_as_string => 'foo1',
+        new           => 2,
+        new_as_string => 'foo2',
     },
     tree1 => {
-        old       => 4,
-        new       => 5,
-        as_string => 'tree2',
+        old           => 4,
+        old_as_string => 'tree1',
+        new           => 5,
+        new_as_string => 'tree2',
     },
     date1 => {
-        old       => '2010-10-10',
-        new       => '2011-10-10',
-        as_string => '2011-10-10',
+        old           => '2010-10-10',
+        old_as_string => '2010-10-10',
+        new           => '2011-10-10',
+        new_as_string => '2011-10-10',
     },
     daterange1 => {
-        old       => ['2000-10-10', '2001-10-10'],
-        new       => ['2000-11-11', '2001-11-11'],
-        as_string => '2000-11-11 to 2001-11-11',
+        old           => ['2000-10-10', '2001-10-10'],
+        old_as_string => '2000-10-10 to 2001-10-10',
+        new           => ['2000-11-11', '2001-11-11'],
+        new_as_string => '2000-11-11 to 2001-11-11',
     },
 };
 
@@ -116,8 +122,18 @@ for my $test ('blank', 'nochange', 'changed')
         else {
             ok( !$datum->changed, "$type has not changed" );
         }
-        my $as_string = $values->{$type}->{as_string};
-        is( $datum->as_string, $as_string, "$type is $as_string" );
+        if ($test eq 'changed' || $test eq 'nochange')
+        {
+            ok( $datum->oldvalue, "$type oldvalue exists" );
+            my $old = $test eq 'changed' ? $values->{$type}->{old_as_string} : $values->{$type}->{new_as_string};
+            is( $datum->oldvalue && $datum->oldvalue->as_string, $old, "$type oldvalue exists and matches for test $test" );
+        }
+        elsif ($test eq 'blank')
+        {
+            ok( $datum->oldvalue && $datum->oldvalue->blank, "$type was blank" );
+        }
+        my $new_as_string = $values->{$type}->{new_as_string};
+        is( $datum->as_string, $new_as_string, "$type is $new_as_string" );
     }
 }
 
