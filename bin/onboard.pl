@@ -261,11 +261,8 @@ while (my $row = $csv->getline($fh))
         elsif ($f->type eq "daterange")
         {
             $col =~ s!/!-!g; # Change date delimiters from slash to hyphen
-            if ($col =~ /([0-9]{1,2}).([0-9]{1,2}).([0-9]{4})/)
-            {
-                # Swap year and day if needed
-                $col = "$3-$2-$1";
-            }
+            $col =~ s!^([0-9]{1,2})-([0-9]{1,2})-([0-9]{4})$!$3-$2-$1!; # Allow wrong way round
+            $col =~ s/^([0-9]{4})([0-9]{2})([0-9]{2})$/$1-$2-$3/; # Allow no delimter. Assume yyyymmdd
             if (exists $input->{$f->field})
             {
                 push @{$input->{$f->field}}, $col;
