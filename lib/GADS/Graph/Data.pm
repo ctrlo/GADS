@@ -288,7 +288,7 @@ sub _build_data
         ? $self->records->layout->view($view->id, user_can_read => 1)
         : $layout->all(user_can_read => 1);
 
-    if ($x_daterange)
+    if ($x_daterange && $records->dr_from && $records->dr_to)
     {
         # If this is a daterange x-axis, then use the start date
         # as calculated by GADS::RecordsGroup, then interpolate

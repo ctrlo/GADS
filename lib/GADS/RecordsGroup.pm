@@ -184,60 +184,64 @@ sub _search_group
             $result->get_column('end_date'),
             ($field_link ? $result->get_column('end_date_link') : undef)
         );
-        $daterange_from->truncate(to => 'month');
-        $daterange_to->truncate(to => 'month');
-        # Pass dates back to caller
-        $self->_set_dr_from($daterange_from);
-        $self->_set_dr_to  ($daterange_to);
 
-        # The literal CASE statement, which we reuse for each required period
-        my $from_field   = $self->schema->storage->dbh->quote_identifier('from');
-        my $to_field     = $self->schema->storage->dbh->quote_identifier('to');
-        my $col_val      = $self->_fqvalue($self->column);
-        my $col_val_link = $self->column->link_parent && $self->_fqvalue($self->column->link_parent);
-
-        my $case = $field_link
-            ? "CASE WHEN "
-              . "($field.$from_field < %s OR $field_link.$from_field < %s) "
-              . "AND ($field.$to_field >= %s OR $field_link.$to_field >= %s) "
-              . "THEN %s ELSE 0 END"
-            : "CASE WHEN $field.$from_field"
-              . " < %s AND $field.$to_field"
-              . " >= %s THEN %s ELSE 0 END";
-
-        my $pointer = $daterange_from->clone;
-        while ($pointer->epoch <= $daterange_to->epoch)
+        if ($daterange_from && $daterange_to)
         {
-            # Add the required timespan to the CASE statement
-            my $from  = $self->schema->storage->dbh->quote(
-                $dt_parser->format_date($pointer->clone->add($increment => 1))
-            );
-            my $to    = $self->schema->storage->dbh->quote(
-                $dt_parser->format_date($pointer)
-            );
-            my $sum   = $self->operator eq 'count' ? 1 : $col_val;
-            my $casef = $field_link
-                      ? sprintf($case, $from, $from, $to, $to, $sum)
-                      : sprintf($case, $from, $to, $sum);
-            # Finally add it to the select, naming it after the epoch of
-            # the time-period start
-            push @select_fields, {
-                sum => \$casef,
-                -as => $pointer->epoch,
-            };
-            # Also add link parent field as well if required
-            if ($self->column->link_parent)
+            $daterange_from->truncate(to => 'month');
+            $daterange_to->truncate(to => 'month');
+            # Pass dates back to caller
+            $self->_set_dr_from($daterange_from);
+            $self->_set_dr_to  ($daterange_to);
+
+            # The literal CASE statement, which we reuse for each required period
+            my $from_field   = $self->schema->storage->dbh->quote_identifier('from');
+            my $to_field     = $self->schema->storage->dbh->quote_identifier('to');
+            my $col_val      = $self->_fqvalue($self->column);
+            my $col_val_link = $self->column->link_parent && $self->_fqvalue($self->column->link_parent);
+
+            my $case = $field_link
+                ? "CASE WHEN "
+                  . "($field.$from_field < %s OR $field_link.$from_field < %s) "
+                  . "AND ($field.$to_field >= %s OR $field_link.$to_field >= %s) "
+                  . "THEN %s ELSE 0 END"
+                : "CASE WHEN $field.$from_field"
+                  . " < %s AND $field.$to_field"
+                  . " >= %s THEN %s ELSE 0 END";
+
+            my $pointer = $daterange_from->clone;
+            while ($pointer->epoch <= $daterange_to->epoch)
             {
-                my $sum   = $self->operator eq 'count' ? 1 : $col_val_link;
+                # Add the required timespan to the CASE statement
+                my $from  = $self->schema->storage->dbh->quote(
+                    $dt_parser->format_date($pointer->clone->add($increment => 1))
+                );
+                my $to    = $self->schema->storage->dbh->quote(
+                    $dt_parser->format_date($pointer)
+                );
+                my $sum   = $self->operator eq 'count' ? 1 : $col_val;
                 my $casef = $field_link
                           ? sprintf($case, $from, $from, $to, $to, $sum)
                           : sprintf($case, $from, $to, $sum);
+                # Finally add it to the select, naming it after the epoch of
+                # the time-period start
                 push @select_fields, {
                     sum => \$casef,
-                    -as => $pointer->epoch."_link",
+                    -as => $pointer->epoch,
                 };
+                # Also add link parent field as well if required
+                if ($self->column->link_parent)
+                {
+                    my $sum   = $self->operator eq 'count' ? 1 : $col_val_link;
+                    my $casef = $field_link
+                              ? sprintf($case, $from, $from, $to, $to, $sum)
+                              : sprintf($case, $from, $to, $sum);
+                    push @select_fields, {
+                        sum => \$casef,
+                        -as => $pointer->epoch."_link",
+                    };
+                }
+                $pointer->add($increment => 1);
             }
-            $pointer->add($increment => 1);
         }
     }
 
