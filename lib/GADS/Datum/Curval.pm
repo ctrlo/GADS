@@ -90,7 +90,8 @@ sub as_integer
 
 sub html_withlinks
 {   my $self = shift;
-    my $string = $self->as_string;
+    my $string = $self->as_string
+        or return "";
     my $link = "/record/".$self->id."?oi=".$self->column->refers_to_instance;
     qq(<a href="$link">$string</a>);
 }
