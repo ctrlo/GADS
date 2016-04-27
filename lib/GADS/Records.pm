@@ -508,17 +508,24 @@ sub search_all_fields
         my $plural      = $field->{plural};
         my $value_field = $field->{value_field} || 'value';
         my $s           = $field->{sub} ? "value.$value_field" : "$plural.$value_field";
-        my $prefetch    = $field->{type} eq 'current_id'
+        my $joins       = $field->{type} eq 'current_id'
                         ? undef
                         : $field->{sub}
                         ? {
-                              'record' => 
+                              'record' => [
+                                  $self->joins,
                                   {
                                       $plural => ['value', 'layout']
                                   },
+                              ]
                           } 
                         : {
-                              'record' => { $plural => 'layout' },
+                              'record' => [
+                                  $self->joins,
+                                  {
+                                      $plural => 'layout'
+                                  },
+                              ]
                           };
 
         my @search = @basic_search;
@@ -532,8 +539,7 @@ sub search_all_fields
             push @search, { 'layout.id' => \@columns_can_view }
         }
         my @currents = $self->schema->resultset('Current')->search({ -and => \@search},{
-            join     => { record => $self->joins},
-            prefetch => $prefetch,
+            join => $joins,
         })->all;
 
         foreach my $current (@currents)
@@ -542,11 +548,14 @@ sub search_all_fields
             {
                 # instance ID different from current, therefore must be curval field result
                 my @search = @basic_search;
-                my $prefetch = { record => 'curvals' };
                 push @search, "curvals.value" => $current->id;
                 my $found = $self->schema->resultset('Current')->search({ -and => \@search},{
-                    join => { record => $self->joins},
-                    prefetch => $prefetch,
+                    join => {
+                        record => [
+                            'curvals',
+                            $self->joins,
+                        ]
+                    },
                 });
                 $found{$_} = 1
                     foreach $found->get_column('id')->all;
