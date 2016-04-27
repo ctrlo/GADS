@@ -134,7 +134,10 @@
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% user.value | html_entity %]<b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     [% FOREACH instance IN instances %]
-                                        <li><a href="?instance=[% instance.id %]">[% instance.name | html_entity %]</a></li>
+                                        <li [% IF instance.id == instance_id %]class="active"[% END %]>
+                                            <a href="?instance=[% instance.id %]"
+                                            >[% instance.name | html_entity %]</a>
+                                        </li>
                                     [% END %]
                                     <li class="divider"></li>
                                     <li><a href="[% url.page %]/account/detail">My details</a></li>

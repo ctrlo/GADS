@@ -210,11 +210,12 @@ hook before_template => sub {
         $tokens->{user_can_approve} = 1;
         $tokens->{approve_waiting} = $approval->count;
     }
-    $tokens->{instances} = GADS::Instances->new(schema => schema)->all;
-    $tokens->{messages}  = session('messages');
-    $tokens->{user}      = $user;
-    $tokens->{search}    = session 'search';
-    $tokens->{config}    = config;
+    $tokens->{instances}   = GADS::Instances->new(schema => schema)->all;
+    $tokens->{instance_id} = session 'instance_id';
+    $tokens->{messages}    = session('messages');
+    $tokens->{user}        = $user;
+    $tokens->{search}      = session 'search';
+    $tokens->{config}      = config;
     session 'messages' => [];
 };
 
