@@ -1,4 +1,6 @@
-[% IF v %]
+[% IF search %]
+    <h3>Search results <small>[% search | html_entity %]</small></h3>
+[% ELSIF v %]
     <h3>[% v.name | html_entity %]</h3>
 [% ELSE %]
     <h3>All data</h3>

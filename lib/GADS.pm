@@ -212,6 +212,7 @@ hook before_template => sub {
     $tokens->{instances} = GADS::Instances->new(schema => schema)->all;
     $tokens->{messages}  = session('messages');
     $tokens->{user}      = $user;
+    $tokens->{search}    = session 'search';
     $tokens->{config}    = config;
     session 'messages' => [];
 };
@@ -322,6 +323,8 @@ get '/data_calendar/:time' => require_login sub {
         to                   => $todt,
         interpolate_children => 0,
     );
+    $records->search_all_fields(session 'search')
+        if session 'search';
     $records->search;
 
     header "Cache-Control" => "max-age=0, must-revalidate, private";
@@ -344,6 +347,8 @@ sub _data_graph
         schema            => schema,
         prefetch_children => 1,
     );
+    $records->search_all_fields(session 'search')
+        if session 'search';
     GADS::Graph::Data->new(
         id      => $id,
         records => $records,
@@ -368,20 +373,18 @@ get '/data_graph/:id/:time' => require_login sub {
 
 get '/search' => require_login sub {
 
-    my $search  = param 'search';
+    my $search  = param('clear') ? '' : param('search_text');
+    session 'search' => $search;
+    $search or redirect "/data"; # Clear search
     my $user    = logged_in_user;
     my $layout  = var 'layout';
     my $records = GADS::Records->new(schema => schema, user => $user, layout => $layout);
-    my @results = $records->search_all_fields($search);
+    my $results = $records->search_all_fields($search);
 
     # Redirect to record if only one result
-    redirect "/record/$results[0]->{current_id}"
-        if @results == 1;
-    template 'search' => {
-        results => \@results,
-        search  => $search,
-        page    => 'search',
-    };
+    redirect "/record/$results->[0]"
+        if @$results == 1;
+    redirect "/data";
 };
 
 any '/data' => require_login sub {
@@ -557,6 +560,8 @@ any '/data' => require_login sub {
         push @extra, $tl_options->{color} if $tl_options->{color};
         $records->view($view);
         $records->columns_extra([@extra]);
+        $records->search_all_fields(session 'search')
+            if session 'search';
         $records->search;
         my ($items, $groups) = $records->data_timeline(%{$tl_options});
         $params->{records}      = encode_base64(encode_json($items));
@@ -573,6 +578,8 @@ any '/data' => require_login sub {
         my $page = defined param('download') ? undef : session('page');
 
         my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
+        $records->search_all_fields(session 'search')
+            if session 'search';
 
         if (defined param('sort'))
         {

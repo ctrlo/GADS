@@ -494,6 +494,8 @@ sub search_all_fields
             }
         }
     }
+
+    my %found;
     foreach my $field (@fields)
     {
         next if ($field->{type} eq 'number')
@@ -524,15 +526,14 @@ sub search_all_fields
             $field->{type} eq 'current_id' ? { id => $search } : { $s => $search };
         if ($field->{type} eq 'current_id')
         {
-            push @search, { 'me.layout_id' => $self->layout->instance_id };
+            push @search, { 'me.instance_id' => $self->layout->instance_id };
         }
         else {
             push @search, { 'layout.id' => \@columns_can_view }
         }
         my @currents = $self->schema->resultset('Current')->search({ -and => \@search},{
-            join => { record => $self->joins},
+            join     => { record => $self->joins},
             prefetch => $prefetch,
-            collapse => 1,
         })->all;
 
         foreach my $current (@currents)
@@ -543,40 +544,21 @@ sub search_all_fields
                 my @search = @basic_search;
                 my $prefetch = { record => 'curvals' };
                 push @search, "curvals.value" => $current->id;
-                push @currents, $self->schema->resultset('Current')->search({ -and => \@search},{
+                my $found = $self->schema->resultset('Current')->search({ -and => \@search},{
                     join => { record => $self->joins},
                     prefetch => $prefetch,
-                })->all;
-                next;
-            }
-            my @r;
-            if ($field->{type} eq 'current_id')
-            {
-                push @r, "ID: ".$current->id;
+                });
+                $found{$_} = 1
+                    foreach $found->get_column('id')->all;
             }
             else {
-                foreach my $string ($current->record->$plural)
-                {
-                    my $v = $field->{sub} ? $string->value->$value_field : $string->$value_field;
-                    push @r, $string->layout->name. ": ". $v;
-                }
-            }
-            my $hl = join(', ', @r);
-            if ($results{$current->id})
-            {
-                $results{$current->id}->{results} .= ", $hl";
-            }
-            else {
-                $results{$current->id} = {
-                    current_id => $current->id,
-                    record_id  => $current->record->id,
-                    results    => $hl,
-                };
+                $found{$current->id} = 1;
             }
         }
     }
 
-    sort {$a->{current_id} <=> $b->{current_id}} values %results;
+    my @ids = keys %found;
+    $self->current_ids(\@ids);
 }
 
 # Produce a standard set of results without grouping
@@ -847,9 +829,10 @@ sub construct_search
     my @search;     # The user search
     if (my $view = $self->view)
     {
-        if (my $filter = $view->filter)
+        # Apply view filter, but not if specific current IDs set (as when quick search is used)
+        if ($view->filter && !$self->current_ids)
         {
-            my $decoded = decode_json($filter);
+            my $decoded = decode_json($view->filter);
             # Do 2 loops through all the filters and gather the joins. The reason is that
             # any extra joins will be added *before* the prefetches, thereby making the
             # prefetch join numbers unpredictable. By doing an initial run, when we
