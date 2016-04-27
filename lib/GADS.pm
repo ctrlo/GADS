@@ -161,6 +161,7 @@ hook before => sub {
             my $instances = GADS::Instances->new(schema => schema);
             session 'instance_id' => $instance_id
                 if grep { $_->id == $instance_id } @{$instances->all};
+            session 'search' => undef;
         }
         elsif (!session('instance_id'))
         {
