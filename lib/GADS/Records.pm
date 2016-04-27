@@ -472,13 +472,16 @@ sub search_all_fields
          time_zone => 'local',
     );
 
-    my @columns_can_view = map {$_->id} $self->layout->all(user_can_read => 1);
+    my @columns_can_view;
+    foreach my $col ($self->layout->all(user_can_read => 1))
+    {
+        push @columns_can_view, $col->id;
+        push @columns_can_view, @{$col->curval_fields}
+            if ($col->type eq 'curval'); # Curval type needs all its columns from other layout
+    }
+
     # Applies to all types of fields being searched
-    my @basic_search = (
-        {
-            'me.instance_id' => $self->layout->instance_id,
-        },
-    );
+    my @basic_search;
     # Only search limited view if configured for user
     if (my $view = $self->limit_to_view)
     {
@@ -519,8 +522,13 @@ sub search_all_fields
         my @search = @basic_search;
         push @search,
             $field->{type} eq 'current_id' ? { id => $search } : { $s => $search };
-        push @search, { 'layout.id' => \@columns_can_view }
-            unless $field->{type} eq 'current_id';
+        if ($field->{type} eq 'current_id')
+        {
+            push @search, { 'me.layout_id' => $self->layout->instance_id };
+        }
+        else {
+            push @search, { 'layout.id' => \@columns_can_view }
+        }
         my @currents = $self->schema->resultset('Current')->search({ -and => \@search},{
             join => { record => $self->joins},
             prefetch => $prefetch,
@@ -529,6 +537,18 @@ sub search_all_fields
 
         foreach my $current (@currents)
         {
+            if ($current->instance_id != $self->layout->instance_id)
+            {
+                # instance ID different from current, therefore must be curval field result
+                my @search = @basic_search;
+                my $prefetch = { record => 'curvals' };
+                push @search, "curvals.value" => $current->id;
+                push @currents, $self->schema->resultset('Current')->search({ -and => \@search},{
+                    join => { record => $self->joins},
+                    prefetch => $prefetch,
+                })->all;
+                next;
+            }
             my @r;
             if ($field->{type} eq 'current_id')
             {
