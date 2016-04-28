@@ -28,5 +28,10 @@ has '+return_type' => (
     builder => sub { 'date' },
 );
 
+sub validate
+{   my ($self, $value) = @_;
+    !$value || $value =~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+}
+
 1;
 

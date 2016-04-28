@@ -125,7 +125,7 @@ has type => (
 has return_type => (
     is      => 'rw',
     lazy    => 1,
-    builder => sub { '' },
+    builder => sub { 'string' },
 );
 
 has table => (
@@ -668,6 +668,11 @@ sub _filter_remove_colid_decoded
         @$rules = grep { _filter_remove_colid_decoded($_, $colid) } @$rules;
     }
     $filter->{id} && $colid == $filter->{id} ? 0 : 1;
+}
+
+sub validate
+{   my ($self, $value) = @_;
+    1; # Overridden in child classes
 }
 
 sub values_beginning_with

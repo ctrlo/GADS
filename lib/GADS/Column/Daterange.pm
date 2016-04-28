@@ -28,5 +28,13 @@ has '+return_type' => (
     builder => sub { 'daterange' },
 );
 
+sub validate
+{   my ($self, $value) = @_;
+    !$value
+    # Accept both formats. Normal date format used to validate searches
+    || $value =~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/
+    || $value =~ /^[0-9]{4}-[0-9]{2}-[0-9]{2} - [0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+}
+
 1;
 

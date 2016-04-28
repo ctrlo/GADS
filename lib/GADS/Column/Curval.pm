@@ -232,7 +232,7 @@ sub values_beginning_with
             id       => $_->id,
             type     => $_->type,
             value    => $match,
-            operator => 'begins_with',
+            operator => $_->return_type eq 'string' ? 'begins_with' : 'equal',
         },
     } @{$self->curval_fields};
     my $filter = encode_json({

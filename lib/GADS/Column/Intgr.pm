@@ -28,5 +28,9 @@ has '+numeric' => (
     default => 1,
 );
 
+has '+return_type' => (
+    builder => sub { 'integer' },
+);
+
 1;
 

@@ -104,7 +104,7 @@ sub _to_dt
     if (ref $value ne 'DateTime')
     {
         error __x"Invalid date {value} for {col}. Please enter as yyyy-mm-dd.", value => $value, col => $self->column->name,
-            if $value && $value !~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+            unless $self->column->validate($value);
         my $db_parser = $self->datetime_parser;
         $value && $db_parser->parse_date($value);
     }

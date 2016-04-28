@@ -1024,28 +1024,7 @@ sub _search_construct
     my $operator = $ops{$filter->{operator}}
         or error __x"Invalid operator {filter}", filter => $filter->{operator};
 
-    my $vprefix = $filter->{operator} eq 'contains' ? '' : '';
-    my $vsuffix = $filter->{operator} =~ /contains|begins_with/ ? '%' : '';
-    
     my $s_table = $self->_table_name($column);
-
-    my $value;
-    if ($filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty')
-    {
-        my $comb = $filter->{operator} eq 'is_empty' ? '-or' : '-and';
-        $value = $column->string_storage
-            ? [ $comb => undef, "" ]
-            : undef;
-    }
-    else {
-        $value = $vprefix.$filter->{value}.$vsuffix;
-    }
-
-    my $dtf = $self->schema->storage->datetime_parser;
-    $value = $dtf->format_date(DateTime->now)
-        if $filter->{value} && $filter->{value} eq "CURDATE";
-
-    $value =~ s/\_/\\\_/g if $operator eq '-like';
 
     my @conditions;
     if ($column->type eq "daterange")
@@ -1085,6 +1064,7 @@ sub _search_construct
                 operator => ">=",
                 s_field  => "to",
             };
+            $operator = 'equal';
         }
         else {
             error __x"Invalid operator {operator} for date range", operator => $operator;
@@ -1096,6 +1076,30 @@ sub _search_construct
             s_field  => $column->value_field,
         };
     }
+
+    my $vprefix = $operator eq '-like' ? '' : '';
+    my $vsuffix = $operator eq '-like' ? '%' : '';
+
+    my $value;
+    if ($filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty')
+    {
+        my $comb = $filter->{operator} eq 'is_empty' ? '-or' : '-and';
+        $value = $column->string_storage
+            ? [ $comb => undef, "" ]
+            : undef;
+    }
+    else {
+        $value = $vprefix.$filter->{value}.$vsuffix;
+    }
+
+    my $dtf = $self->schema->storage->datetime_parser;
+    $value = $dtf->format_date(DateTime->now)
+        if $filter->{value} && $filter->{value} eq "CURDATE";
+
+    $value =~ s/\_/\\\_/g if $operator eq '-like';
+
+    next unless $column->validate($value);
+
     if ($column->type eq "string")
     {
         # The normal value search of a string is not indexed, due to the potential size
