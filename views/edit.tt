@@ -22,6 +22,7 @@
             [% END %]
             [% trees = [] %]
             [% jscode = [] %]
+            [% typeaheads = [] %]
             [% columns_done = {} %]
             [% FOREACH col IN all_columns %]
                 [% PROCESS do_col %]
@@ -73,6 +74,31 @@
             $("#submit_button").click( function() {
                 window.onbeforeunload = null;
             });
+            [% FOREACH typeahead IN typeaheads %]
+                $("#[% typeahead.id %]").change( function() {
+                    if (!($( this ).val()))
+                    {
+                        $("#[% typeahead.id %]_value").val("");
+                    }
+                });
+                $("#[% typeahead.id %]").typeahead({
+                    delay: 500,
+                    matcher: function () { return true; },
+                    sorter: function (items) { return items; },
+                    afterSelect: function (selected) {
+                        $("#[% typeahead.id %]_value").val(selected.id);
+                    },
+                    source: function (query, process) {
+                        return $.ajax({
+                            type: 'GET',
+                            url: '/match/layout/[% typeahead.id | uri %]',
+                            data: { q: query },
+                            success: function(result) { process(result) },
+                            dataType: 'json'
+                        });
+                    }
+                });
+            [% END %]
             [% INCLUDE tree.tt %]
             [% jscode.join('') %]
         }); 
@@ -172,17 +198,24 @@
             [% END %]
         </select>
     [% ELSIF dispcol.type == "curval" %]
-        <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
-            [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
-                <option></option>
-            [% END %]
-            [% enumvals = dispcol.values %]
-            [% FOREACH enumval IN enumvals %]
-                [% UNLESS enumval.deleted %]
-                    <option value="[% enumval.id %]" [% IF editvalue.id == enumval.id %]selected[% END %]>[% enumval.value | html_entity %]</option>
+        [% IF dispcol.typeahead %]
+            <input type="hidden" name="[% field %]" id="[% dispcol.id %]_value" value="[% editvalue.id %]">
+            <input type="text" class="form-control" id="[% dispcol.id %]" autocomplete="off"
+                name="[% field %]_typeahead" value="[% IF record %][% editvalue.html %][% END %]" [% readonly %] >
+            [% typeaheads.push({id = dispcol.id, field = field }) %]
+        [% ELSE %]
+            <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
+                [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
+                    <option></option>
                 [% END %]
-            [% END %]
-        </select>
+                [% enumvals = dispcol.values %]
+                [% FOREACH enumval IN enumvals %]
+                    [% UNLESS enumval.deleted %]
+                        <option value="[% enumval.id %]" [% IF editvalue.id == enumval.id %]selected[% END %]>[% enumval.value | html_entity %]</option>
+                    [% END %]
+                [% END %]
+            </select>
+        [% END %]
     [% ELSIF dispcol.type == "tree" %]
         <input type="hidden" name="[% field %]" id="treeval_id[% dispcol.id %]" value="[% editvalue.id %]">
         [% IF readonly %]

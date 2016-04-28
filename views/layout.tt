@@ -205,6 +205,14 @@
                 [% IF instance_layouts.size %]
                     [% rti = column.refers_to_instance %]
                     <div class="form-group">
+                        <label for="typeahead">Auto-complete:</label>
+                        <div class="checkbox">
+                            <label>
+                                <input id="typeahead" type="checkbox" name="typeahead" [% IF column.typeahead %]checked[% END %]>Use auto-complete textbox instead of drop-down
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label for="refers_to_instance">Instance to select from:</label>
                         <select class="form-control" id="refers_to_instance" name="refers_to_instance">
                             [% FOREACH instance IN instance_layouts %]
@@ -227,7 +235,7 @@
                                     [% END %]
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" name="curval_fields" value="[% c.id %]" [% checked %]>[% c.name %]
+                                            <input type="checkbox" name="curval_field_ids" value="[% c.id %]" [% checked %]>[% c.name %]
                                         </label>
                                     </div>
                                 [% END %]

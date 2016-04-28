@@ -1242,9 +1242,10 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             }
             elsif ($column->type eq "curval")
             {
+                $column->typeahead(param 'typeahead');
                 $column->refers_to_instance(param 'refers_to_instance');
-                my $curval_fields = ref param('curval_fields') ? param('curval_fields') : [param('curval_fields')||()];
-                $column->curval_fields($curval_fields);
+                my $curval_field_ids = ref param('curval_field_ids') ? param('curval_field_ids') : [param('curval_field_ids')||()];
+                $column->curval_field_ids($curval_field_ids);
             }
 
             if (process( sub { $column->write }))

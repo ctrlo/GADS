@@ -79,6 +79,12 @@ __PACKAGE__->table("layout");
   default_value: 0
   is_nullable: 0
 
+=head2 typeahead
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
 =head2 force_regex
 
   data_type: 'text'
@@ -152,6 +158,8 @@ __PACKAGE__->add_columns(
   "isunique",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "textbox",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "typeahead",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "force_regex",
   { data_type => "text", is_nullable => 1 },

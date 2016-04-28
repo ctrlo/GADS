@@ -20,12 +20,22 @@ package GADS::Column::Curval;
 
 use GADS::Config;
 use GADS::Records;
+use JSON qw(encode_json);
 use Log::Report;
 
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
+
+after 'build_values' => sub {
+    my ($self, $original) = @_;
+
+    if ($original->{typeahead})
+    {
+        $self->typeahead(1);
+    }
+};
 
 has refers_to_instance => (
     is      => 'rw',
@@ -44,38 +54,64 @@ sub _build_refers_to_instance
     $random->child->instance->id;
 }
 
-has curval_fields => (
+has typeahead => (
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    default => 0,
+    coerce  => sub { $_[0] ? 1 : 0 },
+);
+
+has curval_field_ids => (
     is      => 'rw',
     isa     => ArrayRef,
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        my @curval_fields = $self->schema->resultset('CurvalField')->search({
+        my @curval_field_ids = $self->schema->resultset('CurvalField')->search({
             parent_id => $self->id,
         }, {
             join     => 'child',
             order_by => 'child.position',
         })->all;
-        [map { $_->child_id } @curval_fields];
+        [map { $_->child_id } @curval_field_ids];
+    },
+    trigger => sub {
+        $_[0]->clear_curval_fields;
     },
 );
 
-has curval_fields_index => (
+has curval_fields => (
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
+);
+
+has curval_field_ids_index => (
     is  => 'lazy',
     isa => HashRef,
 );
 
-sub _build_curval_fields_index
+has value_field => (
+    is => 'lazy',
+);
+
+sub _build_curval_field_ids_index
 {   my $self = shift;
-    my @vals = @{$self->curval_fields};
+    my @vals = @{$self->curval_field_ids};
     my %vals = map { $_ => undef } @vals;
     \%vals;
+}
+
+sub _build_curval_fields
+{   my $self = shift;
+    [ map { $self->_layout_from_instance->column($_) } @{$self->curval_field_ids} ];
 }
 
 # Does this column reference the field?
 sub has_curval_field
 {   my ($self, $field) = @_;
-    exists $self->curval_fields_index->{$field};
+    exists $self->curval_field_ids_index->{$field};
 }
 
 has values => (
@@ -94,9 +130,9 @@ sub _build_values
         user    => undef,
         layout  => $layout,
         schema  => $self->schema,
-        columns => $self->curval_fields,
+        columns => $self->curval_field_ids,
         # Sort on all columns displayed as the Curval
-        sort    => [ map { { id => $_ } } @{$self->curval_fields} ],
+        sort    => [ map { { id => $_ } } @{$self->curval_field_ids} ],
     );
 
     $records->search;
@@ -104,7 +140,7 @@ sub _build_values
     my @values;
     foreach my $r (@{$records->results})
     {
-        my $text = join ", ", map { $r->fields->{$_} } @{$self->curval_fields};
+        my $text = join ", ", map { $r->fields->{$_} } @{$self->curval_field_ids};
         push @values, {
             id    => $r->current_id,
             value => $text,
@@ -147,8 +183,8 @@ around 'write' => sub {
     my $self = shift;
     my $layout_from_instance = $self->_layout_from_instance;
 
-    my @curval_fields;
-    foreach my $field (@{$self->curval_fields})
+    my @curval_field_ids;
+    foreach my $field (@{$self->curval_field_ids})
     {
         # Skip fields not part of referred instance
         next unless $layout_from_instance->column($field);
@@ -158,14 +194,20 @@ around 'write' => sub {
         };
         $self->schema->resultset('CurvalField')->create($field_hash)
             unless $self->schema->resultset('CurvalField')->search($field_hash)->count;
-        push @curval_fields, $field;
+        push @curval_field_ids, $field;
     }
 
     # Then delete any that no longer exist
     my $search = { parent_id => $self->id };
-    $search->{child_id} = { '!=' =>  [ -and => @curval_fields ] }
-        if @curval_fields;
+    $search->{child_id} = { '!=' =>  [ -and => @curval_field_ids ] }
+        if @curval_field_ids;
     $self->schema->resultset('CurvalField')->search($search)->delete;
+
+    # Update typeahead option
+    $self->schema->resultset('Layout')->find($self->id)->update({
+        typeahead   => $self->typeahead,
+    });
+
     $guard->commit;
 };
 
@@ -173,11 +215,57 @@ sub _layout_from_instance
 {   my $self = shift;
     $self->refers_to_instance or return;
     GADS::Layout->new(
-        user        => undef, # Allow all columns
-        schema      => $self->schema,
-        config      => GADS::Config->instance,
-        instance_id => $self->refers_to_instance,
+        user                     => undef, # Allow all columns
+        user_permission_override => 1,
+        schema                   => $self->schema,
+        config                   => GADS::Config->instance,
+        instance_id              => $self->refers_to_instance,
     );
+}
+
+sub values_beginning_with
+{   my ($self, $match) = @_;
+    # First create a view to search for this value in the column.
+    my @rules = map {
+        +{
+            field    => $_->id,
+            id       => $_->id,
+            type     => $_->type,
+            value    => $match,
+            operator => 'begins_with',
+        },
+    } @{$self->curval_fields};
+    my $filter = encode_json({
+        condition => 'OR',
+        rules     => [@rules],
+    });
+    my $view = GADS::View->new(
+        filter      => $filter,
+        instance_id => $self->refers_to_instance,
+        layout      => $self->_layout_from_instance,
+        schema      => $self->schema,
+        user        => undef,
+    );
+    my $records = GADS::Records->new(
+        user    => undef, # Do not want to limit by user
+        rows    => 10,
+        view    => $view,
+        layout  => $self->_layout_from_instance,
+        schema  => $self->schema,
+        columns => $self->curval_field_ids,
+    );
+
+    $records->search;
+    my @results;
+    foreach my $row (@{$records->results})
+    {
+        my $name = join ', ', map { $row->fields->{$_} } @{$self->curval_field_ids};
+        push @results, {
+            id   => $row->current_id,
+            name => $name,
+        }
+    }
+    @results;
 }
 
 1;
