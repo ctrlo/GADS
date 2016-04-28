@@ -720,6 +720,7 @@ any '/data' => require_login sub {
             $params->{sort}          = $records->sort;
             $params->{subset}        = $subset;
             $params->{records}       = $records->results;
+            $params->{count}         = $records->count;
             $params->{columns}       = \@columns;
             $params->{viewtype}      = 'table';
         }

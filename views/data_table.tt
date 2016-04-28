@@ -105,6 +105,7 @@
     [% END %]
 </ul>
 
+<p><small>Total records: [% count %]</small></p>
 <!-- Help text Modal -->
 <div class="modal fade" id="helptext_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">

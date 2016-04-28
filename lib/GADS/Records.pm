@@ -114,6 +114,13 @@ has rows => (
     is => 'rw',
 );
 
+has count => (
+    is      => 'rwp',
+    isa     => Int,
+    lazy    => 1,
+    builder => 1,
+);
+
 has page => (
     is => 'rw',
 );
@@ -580,6 +587,7 @@ sub _search
     )->count;
 
     # Send page information back
+    $self->_set_count($count);
     my $rows = $self->rows;
     $self->pages($rows ? ceil($count / $rows) : 1);
 
@@ -688,7 +696,7 @@ sub _search
     $self->results(\@all);
 }
 
-sub count
+sub _build_count
 {   my $self = shift;
 
     $self->construct_search;
