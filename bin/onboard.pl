@@ -53,7 +53,7 @@ GetOptions (
     'skip-existing-unique=s'       => \$skip_existing_unique,
     'update-only'                  => \$update_only, # Do not write new version record
     'blank-invalid-enum'           => \$blank_invalid_enum,
-    'no-change-unless-blank'       => \$no_change_unless_blank,
+    'no-change-unless-blank=s'     => \$no_change_unless_blank, # =bork or =blank_new
     'report-changes'               => \$report_changes,
     'append=s'                     => \@append,
 ) or exit;
@@ -61,6 +61,9 @@ GetOptions (
 
 die "Invalid option '$force' supplied to --force"
     if $force && $force ne 'mandatory';
+
+die "Invalid option '$no_change_unless_blank' supplied to --no-change-unless-blank"
+    if $no_change_unless_blank && $no_change_unless_blank !~ /^(skip_new|bork)$/;
 
 die "Need --instance-id to be specified"
     unless $instance_id;
@@ -92,7 +95,7 @@ my $layout = GADS::Layout->new(
 );
 
 # First check if fields exist
-my @fields; my $selects;
+my @fields; my $selects; my $selects_reverse;
 my $dr; my $update_unique_col; my $skip_existing_unique_col;
 foreach my $field (@f)
 {
@@ -136,6 +139,7 @@ foreach my $field (@f)
                 else {
                     $selects->{$f->id}->{$text} = $v->id;
                 }
+                $selects_reverse->{$f->id}->{$v->id} = $text;
             }
         }
         elsif ($f->type eq "person")
@@ -154,6 +158,7 @@ foreach my $field (@f)
                 else {
                     $selects->{$f->id}->{$text} = $v->id;
                 }
+                $selects_reverse->{$f->id}->{$v->id} = $text;
             }
         }
         elsif ($f->type eq "daterange")
@@ -375,7 +380,8 @@ while (my $row = $csv->getline($fh))
             }
             if (!@failed)
             {
-                try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force, update_only => $update_only, no_change_unless_blank => $no_change_unless_blank) };
+                my $nochange = $no_change_unless_blank && $no_change_unless_blank eq 'bork' ? 1 : 0; # shouldn't need option for "skip_new" instead of "bork", but safety check jus
+                try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force, update_only => $update_only, no_change_unless_blank => $nochange) };
                 if ($@)
                 {
                     my $exc = $@->died;
@@ -452,16 +458,37 @@ sub update_fields
                     $newv = $old_value.$newv if $append{$col->id};
                 }
                 try { $datum->set_value($newv) };
-                if (my $exception = $@->wasFatal)
-                {
-                    push @bad, $exception->message->toString;
-                }
-                elsif ($report_changes && $record->current_id && $datum->changed && !$was_blank && !$append{$col->id})
+
+                # Don't update existing value if no_change_unless_blank is "skip_new"
+                if ($no_change_unless_blank && $no_change_unless_blank eq 'skip_new' && $record->current_id && !$was_blank && !$append{$col->id})
                 {
                     my $colname = $col->name;
-                    my $newvalue = $datum->as_string;
-                    push @$changes, qq(Change value of "$colname" from "$old_value" to "$newvalue")
-                        if  lc $old_value ne lc $newvalue; # Don't report change of case
+                    my $newvalue = $col->fixedvals
+                        ? $selects_reverse->{$col->id}->{$newv}
+                        : $newv;
+                    if (lc $old_value ne lc $newvalue)
+                    {
+                        push @$changes, qq(Not going to change value of "$colname" from "$old_value" to "$newvalue")
+                    }
+                    elsif ($old_value ne $newvalue)
+                    {
+                        push @$changes, qq(Not going to change case of "$colname" from "$old_value" to "$newvalue")
+                            unless $col->fixedvals;
+                    }
+                }
+                else {
+                    try { $datum->set_value($newv) };
+                    if (my $exception = $@->wasFatal)
+                    {
+                        push @bad, $exception->message->toString;
+                    }
+                    elsif ($report_changes && $record->current_id && $datum->changed && !$was_blank && !$append{$col->id})
+                    {
+                        my $colname = $col->name;
+                        my $newvalue = $datum->as_string;
+                        push @$changes, qq(Change value of "$colname" from "$old_value" to "$newvalue")
+                            if  lc $old_value ne lc $newvalue; # Don't report change of case
+                    }
                 }
             }
         }
