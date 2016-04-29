@@ -96,9 +96,9 @@
                             <ul class="nav navbar-nav">
                                 <li [% IF page=="data" %]class="active"[% END %]><a href="[% url.page %]/data">Data</a></li>
                                 [% IF user_can_approve %]
-                                    [% IF approve_waiting %][% count = " (" _ approve_waiting _ ")" %][% END %]
+                                    [% IF approve_waiting %][% appcount = " (" _ approve_waiting _ ")" %][% END %]
                                     <li [% IF page=="approval" %]class="active"[% END %]>
-                                        <a href="[% url.page %]/approval/">Approval[% count %]</a>
+                                        <a href="[% url.page %]/approval/">Approval[% appcount %]</a>
                                     </li>
                                 [% END %]
                                 [% IF user.permission.layout OR user.permission.useradmin %]
