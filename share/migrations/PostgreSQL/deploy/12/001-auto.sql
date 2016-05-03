@@ -170,7 +170,7 @@ CREATE TABLE "daterange" (
   "layout_id" integer NOT NULL,
   "from" date,
   "to" date,
-  "value" citext
+  "value" citext,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "daterange_idx_layout_id" on "daterange" ("layout_id");
