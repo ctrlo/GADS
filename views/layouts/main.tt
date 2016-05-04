@@ -124,7 +124,7 @@
                             </ul>
                             <form class="navbar-form navbar-left" role="search" action="/search">
                                 <div class="form-group">
-                                    <input type="text" name="search_text" class="form-control" title="Use * as a wildcard character" placeholder="Use * as wildcard" value="[% search %]">
+                                    <input type="text" name="search_text" class="form-control" title="Use * as a wildcard character" placeholder="Use * as wildcard" value="[% search | html_entity %]">
                                 </div>
                                 <button type="submit" name="search" value="search" class="btn btn-default">Search</button>
                                 <button type="submit" name="clear" value="clear" class="btn btn-default">Clear</button>
