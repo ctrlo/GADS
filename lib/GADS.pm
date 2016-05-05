@@ -373,26 +373,26 @@ get '/data_graph/:id/:time' => require_login sub {
     });
 };
 
-get '/search' => require_login sub {
-
-    my $search  = param('clear') ? '' : param('search_text');
-    session 'search' => $search;
-    $search or redirect "/data"; # Clear search
-    my $user    = logged_in_user;
-    my $layout  = var 'layout';
-    my $records = GADS::Records->new(schema => schema, user => $user, layout => $layout);
-    my $results = $records->search_all_fields($search);
-
-    # Redirect to record if only one result
-    redirect "/record/$results->[0]"
-        if @$results == 1;
-    redirect "/data";
-};
-
 any '/data' => require_login sub {
 
     my $user   = logged_in_user;
     my $layout = var 'layout';
+
+    # Search submission?
+    if (defined(param('search_text')))
+    {
+        my $search  = param('clear') ? '' : param('search_text');
+        session 'search' => $search;
+        if ($search)
+        {
+            my $records = GADS::Records->new(schema => schema, user => $user, layout => $layout);
+            my $results = $records->search_all_fields($search);
+
+            # Redirect to record if only one result
+            redirect "/record/$results->[0]"
+                if @$results == 1;
+        }
+    }
 
     # Deal with any alert requests
     if (my $alert_view = param 'alert')

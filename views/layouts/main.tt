@@ -122,7 +122,7 @@
                                     </li>
                                 [% END %]
                             </ul>
-                            <form class="navbar-form navbar-left" role="search" action="/search">
+                            <form class="navbar-form navbar-left" role="search" action="/data" method="post">
                                 <div class="form-group">
                                     <input type="text" name="search_text" class="form-control" title="Use * as a wildcard character" placeholder="Use * as wildcard" value="[% search | html_entity %]">
                                 </div>
