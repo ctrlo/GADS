@@ -15,9 +15,9 @@
         <tr>
             <td>[% log.id %]</td>
             <td>[% log.user.text | html_entity %]</td>
-            <td>[% log.type %]</td>
-            <td>[% log.datetime %]</td>
-            <td>[% log.description %]</td>
+            <td>[% log.type | html_entity %]</td>
+            <td>[% log.datetime | html_entity %]</td>
+            <td>[% log.description | html_entity %]</td>
         </tr>
     [% END %]
 </table>
@@ -49,7 +49,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="user">User [% filtering.user %]</label>
+                    <label for="user">User [% filtering.user | html_entity %]</label>
                     <select class="form-control" id="user" name="user">
                         <option value="" [% UNLESS filtering.user %]selected[% END %]>&lt;Ignore&gt;</option>
                         [% FOREACH u IN users.all %]

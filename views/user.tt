@@ -14,12 +14,12 @@
                 <input type="hidden" name="account_request" value="1">
             [% END %]
             <input type="hidden" name="page" value="[% page %]">
-            <input type="hidden" name="username" value="[% edituser.username %]">
+            <input type="hidden" name="username" value="[% edituser.username | html_entity %]">
             [% IF edituser.account_request_notes %]
                 <div class="form-group">
                     <label for="notes">Notes:</label>
                     <p>[% edituser.account_request_notes %]</p>
-                    <input type="hidden" name="account_request_notes" value="[% edituser.account_request_notes %]"</input>
+                    <input type="hidden" name="account_request_notes" value="[% edituser.account_request_notes | html_entity %]"</input>
                 </div>
             [% END %]
             <div class="form-group">
@@ -111,7 +111,7 @@
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" name="groups" value="[% group.id %]"
-                                    [% IF edituser.groups.$key %]checked[% END %]>[% group.name %]
+                                    [% IF edituser.groups.$key %]checked[% END %]>[% group.name | html_entity %]
                             </label>
                         </div>
                     [% END %]
