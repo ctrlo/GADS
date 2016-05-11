@@ -553,6 +553,8 @@ sub write_linked_id
 # - no_change_unless_blank: bork on updates to existing values unless blank
 # - dry_run: do not actually perform any writes, test only
 # - no_alerts: do not send any alerts for changed values
+# - version_datetime: write version date as this instead of now
+# - version_userid: user ID for this version if override required
 sub write
 {   my ($self, %options) = @_;
 
@@ -720,10 +722,12 @@ sub write
 
     if ($need_rec && !$options{update_only})
     {
+        my $created_date = $options{version_datetime} || DateTime->now;
+        my $createdby = $options{version_userid} || $user_id;
         my $id = $self->schema->resultset('Record')->create({
             current_id => $self->current_id,
-            created    => DateTime->now,
-            createdby  => $user_id,
+            created    => $created_date,
+            createdby  => $createdby,
         })->id;
         $self->record_id_old($self->record_id) if $self->record_id;
         $self->record_id($id);
