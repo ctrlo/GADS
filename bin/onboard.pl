@@ -77,6 +77,10 @@ $file or die "Usage: $0 [--take-first-enum] [--ignore-incomplete-dateranges]
 
 GADS::DB->setup(schema);
 
+GADS::Config->instance(
+    config => config,
+);
+
 my $csv = Text::CSV->new({ binary => 1 }) # should set binary attribute?
     or die "Cannot use CSV: ".Text::CSV->error_diag ();
 
@@ -102,6 +106,11 @@ foreach my $field (@f)
     if ($update_unique && $update_unique eq 'ID' && $field eq 'ID')
     {
         push @fields, undef; # Special case. XXX maybe need a special GADS::Column for ID?
+    }
+    elsif ($field =~ /^(__version_datetime|__version_userid)$/)
+    {
+        push @fields, $1;
+        next;
     }
     else {
         my ($f) = rset('Layout')->search({ name => $field, instance_id => $layout->instance_id })->all;
@@ -183,7 +192,7 @@ if ($invalid_csv)
 {
     #open $fh_invalid, ">", $invalid_csv or die "Failed to create $invalid_csv: $!";
     open $fh_invalid, ">:encoding(utf8)", $invalid_csv or die "Failed to create $invalid_csv: $!";
-    my @field_names = map { $_ && $_->name } @fields;
+    my @field_names = map { ref $_ ? $_->name : $_ } @fields;
 
     my @headings = @invalid_report ? @invalid_report : @field_names;
     $csv->print($fh_invalid, ['Status', @headings, 'Errors']);
@@ -213,6 +222,10 @@ my $count = {
     errors  => 0,
 };
 
+my $parser_yymd = DateTime::Format::Strptime->new(
+    pattern  => '%Y-%m-%d',
+);
+
 while (my $row = $csv->getline($fh))
 {
     my @row = @$row
@@ -225,19 +238,30 @@ while (my $row = $csv->getline($fh))
     my $input; my @bad; my @bad_enum;
     my $drf; # last loop was a daterange, expect another
     my $previous_field;
+    my %options;
     foreach my $col (@row)
     {
+        $col =~ s/\h+$//;
+        $col =~ s/^\h+//;
+
         my $f = $fields[$col_count];
+
         if (!$f) # Will be undef for ID column
         {
             $input->{ID} = $col;
             $col_count++;
             next;
         }
-        $col =~ s/\h+$//;
-        $col =~ s/^\h+//;
-        #say STDOUT "Going to process $col into field $f->{name}";
-        if ($f->type eq "enum" || $f->type eq "tree" || $f->type eq "person")
+        elsif ($f eq '__version_datetime')
+        {
+            $options{version_datetime} = $parser_yymd->parse_datetime($col)
+                or push @bad, qq(Invalid version_datetime "$col");
+        }
+        elsif ($f eq '__version_userid')
+        {
+            $options{version_userid} = $col;
+        }
+        elsif ($f->type eq "enum" || $f->type eq "tree" || $f->type eq "person")
         {
             # Get enum ID value
             if ($col eq "")
@@ -381,7 +405,7 @@ while (my $row = $csv->getline($fh))
             if (!@failed)
             {
                 my $nochange = $no_change_unless_blank && $no_change_unless_blank eq 'bork' ? 1 : 0; # shouldn't need option for "skip_new" instead of "bork", but safety check jus
-                try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force, update_only => $update_only, no_change_unless_blank => $nochange) };
+                try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force, update_only => $update_only, no_change_unless_blank => $nochange, %options) };
                 if ($@)
                 {
                     my $exc = $@->died;
@@ -440,7 +464,7 @@ sub update_fields
     foreach my $col (@$fields)
     {
         next unless $col; # undef for ID column
-        if ($col->userinput) # Not calculated fields
+        if (ref $col && $col->userinput) # Not calculated fields
         {
             my $newv = $input->{$col->field};
             if (!$record->current_id || $newv)
