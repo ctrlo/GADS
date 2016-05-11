@@ -117,7 +117,7 @@ foreach my $field (@f)
         die "Field $field does not exist" unless $f;
         my $column = $layout->column($f->id);
         die "Field $field exists twice"
-            if (grep { $_ && $_->name eq $field } @fields) && $column->type ne "daterange";
+            if (grep { ref $_ && $_->name eq $field } @fields) && $column->type ne "daterange";
         push @fields, $column unless $dr && $f->type eq "daterange";
 
         die "Daterange $field needs 2 columns" if ($dr && $f->type ne "daterange");
