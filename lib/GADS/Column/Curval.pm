@@ -119,40 +119,44 @@ has values => (
     isa => ArrayRef,
 );
 
-sub _build_values
-{   my $self = shift;
+sub _records_from_db
+{   my ($self, $id) = @_;
 
     # Not the normal request layout
     my $layout = $self->_layout_from_instance
         or return []; # No layout or fields set
 
+    my @current_ids = $id ? ($id) : ();
     my $records = GADS::Records->new(
-        user    => undef,
-        layout  => $layout,
-        schema  => $self->schema,
-        columns => $self->curval_field_ids,
+        user        => undef,
+        layout      => $layout,
+        schema      => $self->schema,
+        columns     => $self->curval_field_ids,
+        current_ids => [@current_ids],
         # Sort on all columns displayed as the Curval
-        sort    => [ map { { id => $_ } } @{$self->curval_field_ids} ],
+        sort        => [ map { { id => $_ } } @{$self->curval_field_ids} ],
     );
 
     $records->search;
+    return $records;
+}
 
+sub _build_values
+{   my $self = shift;
+    my $records = $self->_records_from_db;
     my @values;
     foreach my $r (@{$records->results})
     {
-        my $text = join ", ", map { $r->fields->{$_} } @{$self->curval_field_ids};
-        push @values, {
-            id    => $r->current_id,
-            value => $text,
-        };
+        push @values, $self->_format_value($r);
     }
 
     \@values;
 }
 
 has values_index => (
-    is  => 'lazy',
-    isa => HashRef,
+    is        => 'lazy',
+    isa       => HashRef,
+    predicate => 1,
 );
 
 sub _build_values_index
@@ -165,7 +169,10 @@ sub _build_values_index
 sub value
 {   my ($self, $id) = @_;
     $id or return;
-    $self->values_index->{$id};
+    return $self->values_index->{$id}
+        if $self->has_values_index; # Do not build unnecessarily (expensive)
+    my ($row) = @{$self->_records_from_db($id)->results};
+    $self->_format_value($row);
 }
 
 # Use an around so that we can stick the whole lot in transaction
@@ -259,13 +266,19 @@ sub values_beginning_with
     my @results;
     foreach my $row (@{$records->results})
     {
-        my $name = join ', ', map { $row->fields->{$_} } @{$self->curval_field_ids};
-        push @results, {
-            id   => $row->current_id,
-            name => $name,
-        }
+        push @results, $self->_format_value($row);
     }
     @results;
+}
+
+sub _format_value
+{   my ($self, $row) = @_;
+    my @values = map { $row->fields->{$_} } @{$self->curval_field_ids};
+    my $text = join ', ', @values;
+    +{
+        id    => $row->current_id,
+        value => $text,
+    };
 }
 
 1;

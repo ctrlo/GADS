@@ -20,6 +20,7 @@ package GADS::Datum::Curval;
 
 use Log::Report;
 use Moo;
+use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Datum';
 
@@ -29,24 +30,19 @@ has set_value => (
         my ($self, $value) = @_;
         my $first_time = 1 unless $self->has_id;
         my $new_id;
-        my $clone = $self->clone; # Copy before changing text
+        my $clone = !$first_time && $self->clone; # Copy before changing text
         if (ref $value)
         {
             # From database, with enumval table joined
             if ($value = $value->{value})
             {
                 $new_id = $value;
-                # Look up text value
-                my $curval = $self->column->value($value);
-                $self->text($curval) if $curval;
             }
         }
         elsif (defined $value) {
             # User input
             $value = undef if !$value; # Can be empty string, generating warnings
             $new_id = $value;
-            my $curval = $self->column->value($value);
-            $self->text($curval);
         }
         unless ($first_time)
         {
@@ -56,13 +52,24 @@ has set_value => (
                 || (defined $self->id && defined $value && $self->id != $value);
             $self->oldvalue($clone);
         }
+        $self->clear_text;
         $self->id($new_id) if defined $new_id || $self->init_no_value;
     },
 );
 
 has text => (
-    is        => 'rw',
+    is      => 'lazy',
+    isa     => Str,
+    clearer => 1,
 );
+
+sub _build_text
+{   my $self = shift;
+    $self->id or return '';
+    my $v = $self->column->value($self->id);
+    defined $v or error __x"Invalid Curval ID {id}", id => $self->id;
+    $v->{value};
+}
 
 has id => (
     is        => 'rw',
