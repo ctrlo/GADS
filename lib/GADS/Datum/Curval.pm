@@ -44,6 +44,8 @@ has set_value => (
                         layout               => $self->column->_layout_from_instance,
                         user                 => undef,
                         record               => $v->{record},
+                        linked_id            => $v->{linked_id},
+                        parent_id            => $v->{parent_id},
                         columns_retrieved_do => $self->column->curval_fields,
                     );
                     $self->_set_text($self->column->_format_value($record)->{value});
