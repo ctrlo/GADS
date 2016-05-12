@@ -31,12 +31,27 @@ has set_value => (
         my $first_time = 1 unless $self->has_id;
         my $new_id;
         my $clone = !$first_time && $self->clone; # Copy before changing text
+        $self->clear_text;
         if (ref $value)
         {
             # From database, with enumval table joined
-            if ($value = $value->{value})
+            if (my $v = $value->{value})
             {
-                $new_id = $value;
+                if (ref $v eq 'HASH')
+                {
+                    my $record = GADS::Record->new(
+                        schema               => $self->column->schema,
+                        layout               => $self->column->_layout_from_instance,
+                        user                 => undef,
+                        record               => $v->{record},
+                        columns_retrieved_do => $self->column->curval_fields,
+                    );
+                    $self->_set_text($self->column->_format_value($record)->{value});
+                    $new_id = $v->{id};
+                }
+                else {
+                    $new_id = $v;
+                }
             }
         }
         elsif (defined $value) {
@@ -52,14 +67,15 @@ has set_value => (
                 || (defined $self->id && defined $value && $self->id != $value);
             $self->oldvalue($clone);
         }
-        $self->clear_text;
         $self->id($new_id) if defined $new_id || $self->init_no_value;
     },
 );
 
 has text => (
-    is      => 'lazy',
+    is      => 'rwp',
     isa     => Str,
+    lazy    => 1,
+    builder => 1,
     clearer => 1,
 );
 
@@ -73,6 +89,7 @@ sub _build_text
 
 has id => (
     is        => 'rw',
+    isa       => Maybe[Int],
     predicate => 1,
     trigger   => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
 );

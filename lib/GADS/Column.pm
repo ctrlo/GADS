@@ -414,6 +414,18 @@ sub build_values
         $self->join({$self->field => 'value'});
         $self->fixedvals(1);
     }
+    elsif ($self->type eq 'curval')
+    {
+        my @join = map { $_->join } @{$self->curval_fields};
+        $self->join({
+            $self->field => {
+                value => {
+                    record => [@join]
+                }
+            }
+        });
+        $self->fixedvals(1);
+    }
     else {
         $self->sprefix($self->field);
         $self->join($self->field);

@@ -122,6 +122,9 @@ has values => (
 sub _records_from_db
 {   my ($self, $id) = @_;
 
+    panic "Entering curval _build_values and PANIC_ON_CURVAL_BUILD_VALUES is true"
+        if $ENV{PANIC_ON_CURVAL_BUILD_VALUES};
+
     # Not the normal request layout
     my $layout = $self->_layout_from_instance
         or return []; # No layout or fields set

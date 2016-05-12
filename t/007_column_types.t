@@ -44,4 +44,17 @@ my $curval = $columns->{curval1};
 
 is( scalar @{$curval->values}, 2, "Correct number of values for curval field" );
 
+# Now check that we're not building all curval values when we're just
+# retrieving individual records
+$ENV{PANIC_ON_CURVAL_BUILD_VALUES} = 1;
+
+my $records = GADS::Records->new(
+    user    => undef,
+    layout  => $layout,
+    schema  => $schema,
+);
+$records->search;
+
+ok( $_->fields->{$curval->id}->text ) foreach @{$records->results};
+
 done_testing();
