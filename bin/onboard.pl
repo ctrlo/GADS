@@ -105,6 +105,9 @@ foreach my $field (@f)
 {
     if ($update_unique && $update_unique eq 'ID' && $field eq 'ID')
     {
+        # Check that there is not an ID field in the layout
+        die "ID is present in the layout but is a special name"
+            if grep { $_->name eq 'ID' } $layout->all;
         push @fields, undef; # Special case. XXX maybe need a special GADS::Column for ID?
     }
     elsif ($field =~ /^(__version_datetime|__version_userid)$/)
