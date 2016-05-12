@@ -126,13 +126,13 @@ sub _records_from_db
     my $layout = $self->_layout_from_instance
         or return []; # No layout or fields set
 
-    my @current_ids = $id ? ($id) : ();
+    my $current_ids = $id && [$id];
     my $records = GADS::Records->new(
         user        => undef,
         layout      => $layout,
         schema      => $self->schema,
         columns     => $self->curval_field_ids,
-        current_ids => [@current_ids],
+        current_ids => $current_ids,
         # Sort on all columns displayed as the Curval
         sort        => [ map { { id => $_ } } @{$self->curval_field_ids} ],
     );
