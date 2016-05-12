@@ -16,8 +16,15 @@ has data => (
         [
             {
                 string1    => 'Foo',
+                integer1   => 50,
                 date1      => '2014-10-10',
                 daterange1 => ['2012-02-10', '2013-06-15'],
+            },
+            {
+                string1    => 'Bar',
+                integer1   => 99,
+                date1      => '2009-01-02',
+                daterange1 => ['2008-05-04', '2008-07-14'],
             },
         ];
     },
@@ -42,6 +49,10 @@ has columns => (
 
 has records => (
     is => 'lazy',
+);
+
+has curval => (
+    is => 'ro',
 );
 
 sub _build_schema
@@ -196,6 +207,34 @@ sub _build_columns
         return;
     }
 
+    my $curval1;
+    if ($self->curval)
+    {
+        GADS::Config->instance(
+            config => undef,
+        );
+        $curval1 = GADS::Column::Curval->new(
+            schema => $self->schema,
+            user   => undef,
+            layout => $self->layout,
+        );
+        my $refers_to_instance = $self->curval;
+        $curval1->refers_to_instance($refers_to_instance);
+        my $curval_field_ids_rs = $self->schema->resultset('Layout')->search({
+            instance_id => $refers_to_instance,
+        });
+        my @curval_field_ids = map { $_->id } $curval_field_ids_rs->all;
+        $curval1->curval_field_ids([@curval_field_ids]);
+        $curval1->type('curval');
+        $curval1->name('Curval1');
+        try { $curval1->write };
+        if ($@)
+        {
+            $@->wasFatal->throw(is_fatal => 0);
+            return;
+        }
+    }
+
     # Only add the columns now to the columns hash, as this will lazily build
     # the columns index in the layout, which would otherwise be incomplete.
     # We return the reference to the layout one, in case we change any of
@@ -206,6 +245,8 @@ sub _build_columns
     $columns->{tree1}      = $layout->column($tree1->id);
     $columns->{date1}      = $layout->column($date1->id);
     $columns->{daterange1} = $layout->column($daterange1->id);
+    $columns->{curval1}    = $layout->column($curval1->id)
+        if $curval1;
     $columns;
 }
 
@@ -231,6 +272,8 @@ sub create_records
         $record->fields->{$columns->{tree1}->id}->set_value($datum->{tree1});
         $record->fields->{$columns->{date1}->id}->set_value($datum->{date1});
         $record->fields->{$columns->{daterange1}->id}->set_value($datum->{daterange1});
+        $record->fields->{$columns->{curval1}->id}->set_value($datum->{curval1})
+            if $columns->{curval1};
         try { $record->write(no_alerts => 1) };
         $@ and return;
     }

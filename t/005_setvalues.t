@@ -25,15 +25,15 @@ my $values = {
         new_as_string => '200',
     },
     enum1 => {
-        old           => 1,
+        old           => 7,
         old_as_string => 'foo1',
-        new           => 2,
+        new           => 8,
         new_as_string => 'foo2',
     },
     tree1 => {
-        old           => 4,
+        old           => 10,
         old_as_string => 'tree1',
-        new           => 5,
+        new           => 11,
         new_as_string => 'tree2',
     },
     date1 => {
@@ -48,6 +48,12 @@ my $values = {
         new           => ['2000-11-11', '2001-11-11'],
         new_as_string => '2000-11-11 to 2001-11-11',
     },
+    curval1 => {
+        old           => 1,
+        old_as_string => 'Foo, 50, , , 2014-10-10, 2012-02-10 to 2013-06-15',
+        new           => 2,
+        new_as_string => 'Bar, 99, , , 2009-01-02, 2008-05-04 to 2008-07-14',
+    },
 };
 
 my $data = {
@@ -59,36 +65,40 @@ my $data = {
             tree1      => '',
             date1      => '',
             daterange1 => ['', ''],
+            curval1    => '',
         },
     ],
     changed => [
         {
             string1    => 'foo',
             integer1   => '100',
-            enum1      => 1,
-            tree1      => 4,
+            enum1      => 7,
+            tree1      => 10,
             date1      => '2010-10-10',
             daterange1 => ['2000-10-10', '2001-10-10'],
+            curval1    => 1,
         },
     ],
     nochange => [
         {
             string1    => 'bar',
             integer1   => '200',
-            enum1      => 2,
-            tree1      => 5,
+            enum1      => 8,
+            tree1      => 11,
             date1      => '2011-10-10',
             daterange1 => ['2000-11-11', '2001-11-11'],
+            curval1    => 2,
         },
     ],
 };
 
 for my $test ('blank', 'nochange', 'changed')
 {
-    my $sheet = t::lib::DataSheet->new(data => $data->{$test});
-
-    my $schema = $sheet->schema;
-    my $layout = $sheet->layout;
+    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+    $curval_sheet->create_records;
+    my $schema  = $curval_sheet->schema;
+    my $sheet   = t::lib::DataSheet->new(data => $data->{$test}, schema => $schema, curval => 2);
+    my $layout  = $sheet->layout;
     my $columns = $sheet->columns;
     $sheet->create_records;
 
