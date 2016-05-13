@@ -229,6 +229,9 @@ my $parser_yymd = DateTime::Format::Strptime->new(
     pattern  => '%Y-%m-%d',
 );
 
+# Used to retrieve all columns when searching unique field
+my @all_column_ids = map { $_->id } $layout->all;
+
 while (my $row = $csv->getline($fh))
 {
     my @row = @$row
@@ -355,9 +358,9 @@ while (my $row = $csv->getline($fh))
                         $skip = 1;
                     }
                 }
-                elsif (my $existing = $record->find_unique($update_unique_col, $input->{$unique_field}))
+                elsif (my $existing = $record->find_unique($update_unique_col, $input->{$unique_field}, @all_column_ids))
                 {
-                    $record->find_current_id($existing->current_id);
+                    $record = $existing;
                 }
                 else {
                     $record->initialise;

@@ -304,7 +304,7 @@ sub find_current_id
 
 # Returns new GADS::Record object, doesn't change current one
 sub find_unique
-{   my ($self, $column, $value) = @_;
+{   my ($self, $column, $value, @retrieve_columns) = @_;
 
     # First create a view to search for this value in the column.
     my $filter = encode_json({
@@ -323,13 +323,15 @@ sub find_unique
         schema      => $self->schema,
         user        => undef,
     );
+    @retrieve_columns = ($column->id)
+        unless @retrieve_columns;
     my $records = GADS::Records->new(
         user    => undef, # Do not want to limit by user
         rows    => 1,
         view    => $view,
         layout  => $self->layout,
         schema  => $self->schema,
-        columns => [$column->id],
+        columns => \@retrieve_columns,
     );
 
     $records->search;
