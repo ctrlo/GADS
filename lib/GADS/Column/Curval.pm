@@ -62,6 +62,10 @@ has typeahead => (
     coerce  => sub { $_[0] ? 1 : 0 },
 );
 
+has layout_parent => (
+    is => 'lazy',
+);
+
 has curval_field_ids => (
     is      => 'rw',
     isa     => ArrayRef,
@@ -105,7 +109,7 @@ sub _build_curval_field_ids_index
 
 sub _build_curval_fields
 {   my $self = shift;
-    [ map { $self->_layout_from_instance->column($_) } @{$self->curval_field_ids} ];
+    [ map { $self->layout_parent->column($_) } @{$self->curval_field_ids} ];
 }
 
 # Does this column reference the field?
@@ -126,7 +130,7 @@ sub _records_from_db
         if $ENV{PANIC_ON_CURVAL_BUILD_VALUES};
 
     # Not the normal request layout
-    my $layout = $self->_layout_from_instance
+    my $layout = $self->layout_parent
         or return []; # No layout or fields set
 
     my $current_ids = $id && [$id];
@@ -191,13 +195,13 @@ around 'write' => sub {
     $orig->(@_); # Normal column write
 
     my $self = shift;
-    my $layout_from_instance = $self->_layout_from_instance;
+    my $layout_parent = $self->layout_parent;
 
     my @curval_field_ids;
     foreach my $field (@{$self->curval_field_ids})
     {
         # Skip fields not part of referred instance
-        next unless $layout_from_instance->column($field);
+        next unless $layout_parent->column($field);
         my $field_hash = {
             parent_id => $self->id,
             child_id  => $field,
@@ -221,7 +225,7 @@ around 'write' => sub {
     $guard->commit;
 };
 
-sub _layout_from_instance
+sub _build_layout_parent
 {   my $self = shift;
     $self->refers_to_instance or return;
     GADS::Layout->new(
@@ -252,7 +256,7 @@ sub values_beginning_with
     my $view = GADS::View->new(
         filter      => $filter,
         instance_id => $self->refers_to_instance,
-        layout      => $self->_layout_from_instance,
+        layout      => $self->layout_parent,
         schema      => $self->schema,
         user        => undef,
     );
@@ -260,7 +264,7 @@ sub values_beginning_with
         user    => undef, # Do not want to limit by user
         rows    => 10,
         view    => $view,
-        layout  => $self->_layout_from_instance,
+        layout  => $self->layout_parent,
         schema  => $self->schema,
         columns => $self->curval_field_ids,
     );

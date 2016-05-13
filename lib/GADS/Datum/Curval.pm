@@ -41,7 +41,7 @@ has set_value => (
                 {
                     my $record = GADS::Record->new(
                         schema               => $self->column->schema,
-                        layout               => $self->column->_layout_from_instance,
+                        layout               => $self->column->layout_parent,
                         user                 => undef,
                         record               => $v->{record},
                         linked_id            => $v->{linked_id},
