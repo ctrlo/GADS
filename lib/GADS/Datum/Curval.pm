@@ -74,11 +74,12 @@ has set_value => (
 );
 
 has text => (
-    is      => 'rwp',
-    isa     => Str,
-    lazy    => 1,
-    builder => 1,
-    clearer => 1,
+    is        => 'rwp',
+    isa       => Str,
+    lazy      => 1,
+    builder   => 1,
+    clearer   => 1,
+    predicate => 1,
 );
 
 sub _build_text
@@ -102,7 +103,12 @@ sub has_value { $_[0]->has_id }
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
-    $orig->($self, id => $self->id, text => $self->text);
+    # Only pass text in if it's already been built
+    my %params = (
+        id => $self->id,
+    );
+    $params{text} = $self->text if $self->has_text;
+    $orig->($self, %params);
 };
 
 sub as_string
