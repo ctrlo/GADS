@@ -25,8 +25,8 @@ my $data = [
 my $sheet = t::lib::DataSheet->new(data => $data);
 
 my $schema = $sheet->schema;
-my $layout = $sheet->layout;
 my $columns = $sheet->columns;
+my $layout = $sheet->layout;
 $sheet->create_records;
 
 my $records = GADS::Records->new(

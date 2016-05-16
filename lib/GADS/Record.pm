@@ -144,6 +144,7 @@ has parent_id => (
     isa     => Maybe[Int],
     lazy    => 1,
     clearer => 1,
+    coerce  => sub { $_[0] || undef },
     builder => sub {
         my $self = shift;
         $self->current_id or return;
@@ -153,7 +154,24 @@ has parent_id => (
     },
 );
 
-has child_records => (
+has parent => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_parent
+{   my $self = shift;
+    return unless $self->parent_id;
+    my $parent = GADS::Record->new(
+        user   => $self->user,
+        layout => $self->layout,
+        schema => $self->schema,
+    );
+    $parent->find_current_id($self->parent_id);
+    $parent;
+}
+
+has child_record_ids => (
     is      => 'rwp',
     isa     => ArrayRef,
     lazy    => 1,
@@ -163,8 +181,7 @@ has child_records => (
         return [] if $self->parent_id;
         my @children = $self->schema->resultset('Current')->search({
             parent_id => $self->current_id,
-        })->all;
-        @children = map { $_->get_column('id') } @children;
+        })->get_column('id')->all;
         \@children;
     },
 );
@@ -345,7 +362,8 @@ sub clear
     $self->clear_record_id;
     $self->clear_linked_id;
     $self->clear_parent_id;
-    $self->clear_child_records;
+    $self->clear_parent;
+    $self->clear_child_record_ids;
     $self->clear_approval_of_new;
     $self->clear_fields;
     $self->clear_createdby;
@@ -427,8 +445,8 @@ sub _find
         $self->linked_id($record->{linked_id});
         $self->parent_id($record->{parent_id});
         $self->linked_record($record->{linked}->{record});
-        my @child_records = map { $_->{id} } @{$record->{currents}};
-        $self->_set_child_records(\@child_records);
+        my @child_record_ids = map { $_->{id} } @{$record->{currents}};
+        $self->_set_child_record_ids(\@child_record_ids);
         $record = $record->{record};
     }
     else {
@@ -486,7 +504,6 @@ sub _transform_values
         my $value = $original->{$column->field};
         $value = $self->linked_record && $self->linked_record->{$column->link_parent->field}
             if $self->linked_id && $column->link_parent && !$self->is_historic;
-        next if $self->parent_id && !defined $value;
 
         # FIXME XXX Don't collect file content in sql query
         delete $value->{value}->{content} if $column->type eq "file";
@@ -497,6 +514,7 @@ sub _transform_values
             record_id        => $self->record_id,
             current_id       => $self->current_id,
             set_value        => $value,
+            child_unique     => $value->{child_unique},
             column           => $column,
             dependent_values => $dependent_values,
             init_no_value    => $self->init_no_value,
@@ -591,7 +609,7 @@ sub write
 
     # First loop round: sanitise and see which if any have changed
     my %appfields; # Any fields that need approval
-    my ($need_app, $need_rec); # Whether a new approval_rs or record_rs needs to be created
+    my ($need_app, $need_rec, my $child_unique); # Whether a new approval_rs or record_rs needs to be created
     $need_rec = 1 if $self->changed;
     foreach my $column ($self->layout->all)
     {
@@ -649,7 +667,10 @@ sub write
                 if lc $datum->oldvalue->as_string ne lc $datum->as_string && $datum->oldvalue->as_string;
         }
 
-        if ($column->isunique && ($self->new_entry || $datum->changed))
+        # Don't check for unique if this is a child record and it hasn't got a unique value.
+        # If the value has been de-selected as unique, the datum will be changed, and it
+        # may still have a value in it, although this won't be written.
+        if ($column->isunique && ($self->new_entry || $datum->changed) && !($self->parent_id && !$datum->child_unique))
         {
             # Check for other columns with this value.
             if (my $r = $self->find_unique($column, $datum->as_string))
@@ -697,13 +718,15 @@ sub write
                 $appfields{$column->id} = 1;
             }
         }
+        $child_unique = 1 if $datum->child_unique;
     }
+
+    # Error if child record as no fields selected
+    error __"Please select at least one field to include in the child record"
+        if $self->parent_id && !$child_unique;
 
     # Anything to update?
     return if !($need_app || $need_rec) && !$options{update_only};
-
-    error __"Please select at least one field to include in the child record"
-        if !($need_app || $need_rec) && $self->parent_id;
 
     # Dummy run?
     return if $options{dry_run};
@@ -768,7 +791,6 @@ sub write
         }
     }
 
-
     # Write all the values
     my %columns_changed = ($self->current_id => []);
     my @columns_cached;
@@ -776,7 +798,14 @@ sub write
     {
         next unless $column->userinput;
         my $datum = $self->fields->{$column->id};
-        next if ($self->parent_id || $self->linked_id) && !$datum; # Don't write all values if this is a child/linked record
+        if ($self->parent_id && !$datum->child_unique)
+        {
+            $datum = $self->parent->fields->{$column->id}->clone;
+            $datum->current_id($self->current_id);
+            $datum->record_id($self->record_id);
+            $self->fields->{$column->id} = $datum;
+        }
+        next if $self->linked_id && !$datum; # Don't write all values if this is a linked record
 
         if ($need_rec || $options{update_only}) # For new records, $need_rec is only set if user has create permissions without approval
         {
@@ -880,130 +909,60 @@ sub write
         }
     }
 
-    # XXX A bit of a kludge, but don't update associated calc/rag values or
-    # child records when update_only takes place. Shouldn't matter for what
-    # update_only is designed for, but might want to be fixed in the future
-    unless ($options{update_only})
+    # Write cached values.
+    foreach my $col ($self->layout->all(userinput => 0, order_dependencies => 1))
     {
-        # Write cached values.
-        my $parent; # Entire parent record, if applicable and needed
-
-        # Which updated columns may affect children records.
-        # This contains all the items in the parent record which are calculated
-        # values and may have changed as a result of their dependent values
-        # changing. Each item is a hashref with the calculated value (or otherwise)
-        # as the key col_id, and which changed values it depends on as the key depends_on.
-        my @update_children;
-
-        foreach my $col ($self->layout->all(userinput => 0, order_dependencies => 1))
+        # Get old value
+        my $old = $self->fields->{$col->id};
+        # Force new value to be written
+        my $dependent_values;
+        foreach my $dependent (@{$col->depends_on})
         {
-            # Whether to write the calculated value for a child record.
-            # If the record does not contain any of its own values for
-            # a particular calculated value, then don't bother to write it.
-            my $write_child_calc;
-
-            # Get old value
-            my $old = $self->fields->{$col->id};
-            # Force new value to be written
-            my $dependent_values;
-            foreach my $dependent (@{$col->depends_on})
-            {
-                $write_child_calc = 1
-                    if exists $self->fields->{$dependent}; # Unique value for this child's calc
-
-                # Get parent values if needed (calc field depends on them)
-                if ($self->parent_id && !exists $self->fields->{$dependent} && !$parent)
-                {
-                    $parent = GADS::Record->new(
-                        user   => $self->user,
-                        layout => $self->layout,
-                        schema => $self->schema,
-                    );
-                    $parent->find_current_id($self->parent_id);
-                }
-
-                $dependent_values->{$dependent}
-                    = $parent && !exists $self->fields->{$dependent}
-                    ? $parent->fields->{$dependent}
-                    : $appfields{$dependent}
-                    ? $self->fields->{$dependent}->oldvalue
-                    : $self->fields->{$dependent};
-                push @update_children, { col_id => $col->id, depends_on => $dependent }
-                    if $dependent_values->{$dependent}->changed;
-            }
-            next if $self->parent_id && !$write_child_calc;
-            my $new = $col->class->new(
-                current_id       => $self->current_id,
-                record_id        => $self->record_id,
-                column           => $col,
-                dependent_values => $dependent_values,
-                schema           => $self->schema,
-                layout           => $self->layout,
-            );
-            $self->fields->{$col->id} = $new;
-            # Changed? There may not always be an old. E.g. new record, new value
-            # in child record, new field added since previous record was created
-            if ($old && !$new->equal($old->value, $new->value))
-            {
-                push @{$columns_changed{$self->current_id}}, $col->id;
-            }
-            elsif (!$old)
-            {
-                $new->value; # Force value to be evaluated and written
-            }
+            $dependent_values->{$dependent}
+                = $appfields{$dependent}
+                ? $self->fields->{$dependent}->oldvalue
+                : $self->fields->{$dependent};
         }
-
-        # Do we need to update any child records that rely on the
-        # values of this parent record?
-        if (@update_children)
+        my $new = $col->class->new(
+            current_id       => $self->current_id,
+            record_id        => $self->record_id,
+            column           => $col,
+            dependent_values => $dependent_values,
+            schema           => $self->schema,
+            layout           => $self->layout,
+        );
+        $self->fields->{$col->id} = $new;
+        # Changed? There may not always be an old. E.g. new record, new value
+        # in child record, new field added since previous record was created
+        if ($old && !$new->equal($old->value, $new->value))
         {
-            # @retrieve is all the values to retrieve for the child record.
-            # It includes the calculated values in the record and the
-            # dependent values of that calc value. We can then see if any
-            # don't exist, which means their value is taken from the parent.
-            my @retrieve = map {
-                $_->{col_id},
-                @{$self->layout->column($_->{col_id})->depends_on}
-            } @update_children;
-            my $records = GADS::Records->new(
-                user              => $self->user,
-                layout            => $self->layout,
-                schema            => $self->schema,
-                columns           => \@retrieve,
-                current_ids       => $self->child_records,
-                retrieve_children => 0,
-            );
-            $records->search;
-            foreach my $r (@{$records->results})
-            {
-                # See if this child record contains any of its own values that
-                # will affect calculated values in the same record.
-                if (grep {exists $r->fields->{$_->{col_id}} && !exists $r->fields->{$_->{depends_on}}} @update_children)
-                {
-                    # If it does, delete and update the calc values
-                    foreach my $c (@update_children)
-                    {
-                        my $col       = $self->layout->column($c->{col_id});
-                        my $old_value = $r->fields->{$col->id};
-                        my $table     = $col->table;
-                        $self->schema->resultset($table)->search({
-                            record_id => $r->record_id,
-                            layout_id => $col->id,
-                        })->delete;
-                        my $new_value = $r->fields->{$col->id};
-                        $new_value->force_update(1);
-                        my %dep_values = map {
-                            $_ => exists $r->fields->{$_} ? $r->fields->{$_} : $self->fields->{$_}
-                        } @{$col->depends_on};
-                        # Add dependent values to item
-                        $new_value->dependent_values(\%dep_values);
-                        # Force update and check for change at same time
-                        push @{$columns_changed{$r->current_id}}, $col->id
-                            if $new_value->equal($old_value->value, $new_value->value);
-                    }
-                }
-            }
+            push @{$columns_changed{$self->current_id}}, $col->id;
         }
+        elsif (!$old)
+        {
+            $new->value; # Force value to be evaluated and written
+        }
+    }
+
+    # Do we need to update any child records that rely on the
+    # values of this parent record?
+    foreach my $child_id (@{$self->child_record_ids})
+    {
+        my $child = GADS::Record->new(
+            user   => undef,
+            layout => $self->layout,
+            schema => $self->schema,
+        );
+        $child->find_current_id($child_id);
+        foreach my $col ($self->layout->all(userinput => 1))
+        {
+            my $datum_child = $child->fields->{$col->id};
+            my $datum_parent = $child->fields->{$col->id};
+            $datum_child->set_value($datum_parent->value)
+                unless $datum_child->child_unique;
+        }
+        $child->force_update(1); # Ensure all code values are updated
+        $child->write(%options, update_only => 1);
     }
 
     # Alerts can cause SQL errors, due to the unique constraints
@@ -1064,7 +1023,8 @@ sub _field_write
         my $datum_write = $options{old} ? $datum->oldvalue : $datum;
         my $table = $column->table;
         my $entry = {
-            layout_id => $column->id,
+            child_unique => $datum->child_unique,
+            layout_id    => $column->id,
         };
         $entry->{record_id} = $options{approval} ? $self->approval_id : $self->record_id;
         if ($datum_write) # Possible that we're writing a blank value
@@ -1155,7 +1115,7 @@ sub delete_current
     my $guard = $self->schema->txn_scope_guard;
 
     # Delete child records first
-    foreach my $child (@{$self->child_records})
+    foreach my $child (@{$self->child_record_ids})
     {
         my $record = GADS::Record->new(
             user   => $self->user,

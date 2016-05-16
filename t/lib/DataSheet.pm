@@ -40,7 +40,8 @@ has instance_id => (
 );
 
 has layout => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 has columns => (
@@ -235,6 +236,41 @@ sub _build_columns
         }
     }
 
+    my $rag1 = GADS::Column::Rag->new(
+        schema => $schema,
+        user   => undef,
+        layout => $layout,
+    );
+    $rag1->red  ('[Daterange1.from.year] < 2012');
+    $rag1->amber('[Daterange1.from.year] == 2012');
+    $rag1->green('[Daterange1.from.year] > 2012');
+    $rag1->type('rag');
+    $rag1->name('Rag1');
+    try { $rag1->write };
+    if ($@)
+    {
+        $@->wasFatal->throw(is_fatal => 0);
+        return;
+    }
+    $self->clear_layout;
+    $layout = $self->layout;
+    my $calc1 = GADS::Column::Calc->new(
+        schema => $schema,
+        user   => undef,
+        layout => $layout,
+    );
+    $calc1->calc('[Daterange1.from.year]');
+    $calc1->type('calc');
+    $calc1->name('Calc1');
+    $calc1->return_type('integer');
+    try { $calc1->write };
+    if ($@)
+    {
+        $@->wasFatal->throw(is_fatal => 0);
+        return;
+    }
+
+
     # Only add the columns now to the columns hash, as this will lazily build
     # the columns index in the layout, which would otherwise be incomplete.
     # We return the reference to the layout one, in case we change any of
@@ -247,6 +283,8 @@ sub _build_columns
     $columns->{daterange1} = $layout->column($daterange1->id);
     $columns->{curval1}    = $layout->column($curval1->id)
         if $curval1;
+    $columns->{calc1}      = $layout->column($calc1->id);
+    $columns->{rag1}       = $layout->column($rag1->id);
     $columns;
 }
 

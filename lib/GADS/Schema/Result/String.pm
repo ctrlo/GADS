@@ -50,6 +50,12 @@ __PACKAGE__->table("string");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 child_unique
+
+  data_type: 'smallint'
+  default_value: 1
+  is_nullable: 0
+
 =head2 value
 
   data_type: 'text'
@@ -70,6 +76,8 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
   "layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "child_unique",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "value",
   { data_type => "text", is_nullable => 1 },
   "value_index",

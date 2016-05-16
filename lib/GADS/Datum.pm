@@ -43,6 +43,28 @@ has changed => (
     default => 0,
 );
 
+has child_unique => (
+    is      => 'rw',
+    isa     => Bool,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    default => 0,
+    trigger => sub {
+        my ($self, $value) = @_;
+        $self->changed(1)
+            if $self->_has_child_unique_old && $value != $self->_child_unique_old;
+        $self->_child_unique_old($value);
+    },
+);
+
+# Used to detect changes of child_unique
+has _child_unique_old => (
+    is        => 'rw',
+    isa       => Bool,
+    lazy      => 1,
+    default   => 0,
+    predicate => 1,
+);
+
 has blank => (
     is      => 'rw',
     isa     => Bool,
@@ -71,7 +93,6 @@ sub clone
         column     => $self->column,
         record_id  => $self->record_id,
         current_id => $self->current_id,
-        column     => $self->column,
         blank      => $self->blank,
         @extra
     );

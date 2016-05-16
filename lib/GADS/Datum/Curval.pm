@@ -97,6 +97,8 @@ has id => (
     trigger   => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
 );
 
+sub value { $_[0]->id }
+
 # Make up for missing predicated value property
 sub has_value { $_[0]->has_id }
 

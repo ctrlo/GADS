@@ -605,16 +605,11 @@ sub _search
     );
 
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
-    # This messy code is to reorder the results slightly, so that
-    # child records appear below their parent record
-    my @all_ids;
-    my %all; my %is_child;
+    my @all;
     foreach my $rec ($result->all)
     {
-        push @all_ids, $rec->{id};
         my @children = map { $_->{id} } @{$rec->{currents}};
-        map { $is_child{$_} = undef } @children;
-        $all{$rec->{id}} = GADS::Record->new(
+        push @all, GADS::Record->new(
             schema               => $self->schema,
             record               => $rec->{record},
             linked_record        => $rec->{linked}->{record},
@@ -627,70 +622,6 @@ sub _search
             columns_retrieved_no => $self->columns_retrieved_no,
             columns_retrieved_do => $self->columns_retrieved_do,
         );
-    }
-
-    if ($self->retrieve_children)
-    {
-        # Now get any child records that weren't picked up the first time.
-        # First any children of main records retrieved
-        my @need = grep { !exists $all{$_} } keys %is_child;
-        # Then any parents of children retrieved
-        push @need, grep { $_ && !exists $all{$_} } map { $all{$_}->parent_id } @all_ids;
-
-        if (@need) # Only if any to retrieve
-        {
-            delete $select->{rows}; # No pagination required - all records please
-            delete $select->{page};
-            my $additional = $self->schema->resultset($root_table)->search({
-                'me.id' => \@need,
-            }, $select );
-
-            $additional->result_class('DBIx::Class::ResultClass::HashRefInflator');
-            foreach my $rec ($additional->all)
-            {
-                push @all_ids, $rec->{id};
-                my @children = map { $_->{id} } @{$rec->{currents}};
-                map { $is_child{$_} = undef } @children;
-                $all{$rec->{id}} = GADS::Record->new(
-                    schema               => $self->schema,
-                    record               => $rec->{record},
-                    linked_record        => $rec->{linked}->{record},
-                    child_records        => \@children,
-                    parent_id            => $rec->{parent_id},
-                    linked_id            => $rec->{linked_id},
-                    user                 => $self->user,
-                    layout               => $self->layout,
-                    force_update         => $self->force_update,
-                    columns_retrieved_no => $self->columns_retrieved_no,
-                    columns_retrieved_do => $self->columns_retrieved_do,
-                );
-            }
-        }
-    }
-
-    my @all; my %done;
-    foreach my $rec_id (@all_ids)
-    {
-        next unless $all{$rec_id};
-        unless (exists $is_child{$rec_id} || exists $done{$rec_id})
-        {
-            push @all, $all{$rec_id};
-            $done{$rec_id} = undef;
-        }
-        foreach (@{$all{$rec_id}->child_records})
-        {
-            next if exists $done{$_} || !$all{$_};
-            # If required, fill-in missing values of children.
-            if ($self->interpolate_children)
-            {
-                foreach my $col (@{$self->columns_retrieved_no})
-                {
-                    $all{$_}->fields->{$col->id} //= $all{$rec_id}->fields->{$col->id};
-                }
-            }
-            push @all, $all{$_};
-            $done{$_} = undef;
-        }
     }
 
     $self->results(\@all);
@@ -1230,6 +1161,10 @@ sub data_time
             # Get item value
             my $d = $record->fields->{$column->id}
                 or next;
+
+            # Only show unique items of children, otherwise will be a lot of
+            # repeated entries
+            next if $record->parent_id && !$d->child_unique;
 
             if ($column->return_type eq "daterange" || $column->return_type eq "date")
             {

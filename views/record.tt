@@ -4,10 +4,10 @@
         <small>(child of <a href="/record/[% record.parent_id %]">record [% record.parent_id %]</a>)</small>
     [% END %]
 </h2>
-[% IF record.child_records.size %]
+[% IF record.child_record_ids.size %]
     <h4>Child records</h4>
     <ul>
-        [% FOREACH rec IN record.child_records %]
+        [% FOREACH rec IN record.child_record_ids %]
         <li><a href="/record/[% rec %]">[% rec %]</a></li>
         [% END %]
     </ul>
@@ -83,10 +83,10 @@
                 <div class="modal-body">
                     <p>Are you sure you want to delete this record? All previous versions will
                         also be deleted.</p>
-                    [% IF record.child_records.size %]
+                    [% IF record.child_record_ids.size %]
                         <h5>The following child records will also be deleted:</h5>
                         <ul>
-                            [% FOREACH rec IN record.child_records %]
+                            [% FOREACH rec IN record.child_record_ids %]
                                 <li>[% rec %]</li>
                             [% END %]
                         </ul>

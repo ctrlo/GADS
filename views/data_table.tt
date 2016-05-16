@@ -52,7 +52,7 @@
         [% FOREACH record IN records %]
         <tr>
             <td>
-                [% IF record.parent_id %]<span title="Parent record [% record.parent_id %]">&#8594;</span>[% END %]
+                [% IF record.parent_id %]<span title="Child record with parent record [% record.parent_id %]">[% record.parent_id %] &#8594;</span>[% END %]
                 <a href="/record/[% record.current_id %]">[% record.current_id %]</a>
                 [% IF user_can_edit %]
                     (<a href="/edit/[% record.current_id %]">Edit</a>)

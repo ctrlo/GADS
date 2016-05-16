@@ -53,6 +53,12 @@ __PACKAGE__->table("file");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 child_unique
+
+  data_type: 'smallint'
+  default_value: 1
+  is_nullable: 0
+
 =head2 value
 
   data_type: 'bigint'
@@ -68,6 +74,8 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "child_unique",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "value",
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
 );

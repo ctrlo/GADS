@@ -1727,7 +1727,7 @@ any '/edit/:id?' => require_login sub {
 
     if (param 'submit')
     {
-        $record->initialise unless $id || $child;
+        $record->initialise unless $id;
         my $params = params;
         my $uploads = request->uploads;
         foreach my $key (keys %$uploads)
@@ -1743,76 +1743,46 @@ any '/edit/:id?' => require_login sub {
             });
         }
         my $failed;
-        if ($child)
+
+        error __"You do not have permission to create a child record"
+            if $child && !$id && !user_has_role('create_child');
+        $record->parent_id($child);
+
+        my %child_inc = map { $_ => 1 } (ref(param 'child_inc') ? @{param 'child_inc'} : (param('child_inc') || ()));
+
+        # We actually only need the write columns for this. The read-only
+        # columns can be ignored, but if we do write them, an error will be
+        # thrown to the user if they've been changed. This is better than
+        # just silently ignoring them, IMHO.
+        foreach my $col (@columns_to_show)
         {
-            if ($id && !user_has_role('create_child'))
+            my $newv = param($col->field);
+            if ($col->userinput && defined $newv) # Not calculated fields
             {
-                # Edit of existing child record
-                foreach my $field (keys %{$record->fields})
+                # No need to do anything if the file's just been uploaded
+                unless (upload "file".$col->id)
                 {
-                    my $newv = param("field$field");
-                    $failed = !process( sub { $record->fields->{$field}->set_value($newv) } ) || $failed;
+                    my $datum = $record->fields->{$col->id};
+                    if ($child)
+                    {
+                        if ($child_inc{$col->id} && !$datum->child_unique
+                            || !$child_inc{$col->id} && $datum->child_unique
+                        ) {
+                            error __"You do not have permission to change the fields of the child record"
+                                unless user_has_role('create_child');
+                        }
+                        $datum->child_unique($child_inc{$col->id});
+                    }
+                    $failed = !process( sub { $record->fields->{$col->id}->set_value($newv) } ) || $failed;
                 }
             }
-            else {
-                error __"You do not have permission to create or change the fields of child records"
-                    unless user_has_role('create_child');
-                # New child record or edit by someone who can add/remove fields
-                $record->parent_id($child);
-                my @child_inc = ref(param 'child_inc') ? @{param 'child_inc'} : (param('child_inc') || ());
-                $record->fields({}) unless $id;
-                my %has_id;
-                foreach my $col (@child_inc)
-                {
-                    $has_id{$col} = undef;
-                    my $newv = param("field$col");
-                    if ($id && !defined($record->fields->{$col}))
-                    {
-                        $record->fields->{$col} = $record->initialise_field($col);
-                        # This is a new value for a new field. Normally this wouldn't
-                        # be flagged as changed, but we need to do so to force record
-                        # to update
-                        $record->fields->{$col}->changed(1);
-                    }
-                    elsif (!$id)
-                    {
-                        $record->fields->{$col} = $record->initialise_field($col);
-                    }
-                    $failed = !process( sub { $record->fields->{$col}->set_value($newv) } ) || $failed;
-                }
-                foreach (keys %{$record->fields})
-                {
-                    unless (exists $has_id{$_})
-                    {
-                        delete $record->fields->{$_};
-                        $record->changed(1);
-                    }
-                }
+            elsif ($col->type eq 'file' && !upload("file".$col->id))
+            {
+                # Not defined file field and not just uploaded. Must have been removed.
+                $failed = !process( sub { $record->fields->{$col->id}->set_value(undef) } ) || $failed;
             }
         }
-        else {
-            # We actually only need the write columns for this. The read-only
-            # columns can be ignored, but if we do write them, an error will be
-            # thrown to the user if they've been changed. This is better than
-            # just silently ignoring them, IMHO.
-            foreach my $col (@columns_to_show)
-            {
-                my $newv = param($col->field);
-                if ($col->userinput && defined $newv) # Not calculated fields
-                {
-                    # No need to do anything if the file's just been uploaded
-                    unless (upload "file".$col->id)
-                    {
-                        $failed = !process( sub { $record->fields->{$col->id}->set_value($newv) } ) || $failed;
-                    }
-                }
-                elsif ($col->type eq 'file' && !upload("file".$col->id))
-                {
-                    # Not defined file field and not just uploaded. Must have been removed.
-                    $failed = !process( sub { $record->fields->{$col->id}->set_value(undef) } ) || $failed;
-                }
-            }
-        }
+
         if (!$failed && process( sub { $record->write }))
         {
             return forwardHome(
@@ -1885,7 +1855,8 @@ any '/edit/:id?' => require_login sub {
 
     notice __"Please tick the fields that will have their own values for this child record "
         ."(at least one must be ticked). Any fields that are not ticked will inherit their "
-        ."value from the parent."
+        ."value from the parent. Values of the parent record are shown, which will be used "
+        ."unless the box is ticked and a different value entered."
             if $child;
 
     my $output = template 'edit' => {
