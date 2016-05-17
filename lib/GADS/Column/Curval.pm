@@ -273,18 +273,19 @@ sub values_beginning_with
     my @results;
     foreach my $row (@{$records->results})
     {
-        push @results, $self->_format_value($row);
+        push @results, $self->_format_value($row, 'name');
     }
     @results;
 }
 
 sub _format_value
-{   my ($self, $row) = @_;
+{   my ($self, $row, $value_key) = @_;
+    $value_key ||= 'value';
     my @values = map { $row->fields->{$_} } @{$self->curval_field_ids};
     my $text = join ', ', @values;
     +{
-        id    => $row->current_id,
-        value => $text,
+        id         => $row->current_id,
+        $value_key => $text,
     };
 }
 
