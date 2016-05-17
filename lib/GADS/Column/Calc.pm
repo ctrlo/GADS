@@ -22,6 +22,7 @@ use Log::Report;
 
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
+use Scalar::Util qw(looks_like_number);
 
 extends 'GADS::Column::Code';
 
@@ -163,6 +164,24 @@ sub resultset_for_values
     },{
         group_by  => 'me.'.$self->value_field,
     }) if $self->return_type eq 'string';
+}
+
+sub validate
+{   my ($self, $value) = @_;
+    return 1 if !$value;
+    if ($self->return_type eq 'date')
+    {
+        return $value =~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+    }
+    elsif ($self->return_type eq 'integer')
+    {
+        return $value =~ /^[0-9]+$/;
+    }
+    elsif ($self->return_type eq 'numeric')
+    {
+        return looks_like_number($value);
+    }
+    return 1;
 }
 
 1;

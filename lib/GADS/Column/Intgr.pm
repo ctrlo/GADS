@@ -32,5 +32,10 @@ has '+return_type' => (
     builder => sub { 'integer' },
 );
 
+sub validate
+{   my ($self, $value) = @_;
+    !$value || $value =~ /^[0-9]+$/;
+}
+
 1;
 
