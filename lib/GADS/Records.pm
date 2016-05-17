@@ -46,8 +46,13 @@ has user => (
 );
 
 has pages => (
-    is => 'rw',
+    is => 'lazy',
 );
+
+sub _build_pages
+{   my $self = shift;
+    $self->rows ? ceil($self->count / $self->rows) : 1;
+}
 
 has view => (
     is => 'rw',
@@ -101,13 +106,15 @@ has columns_extra => (
 # Value containing the actual columns retrieved.
 # In "normal order" as per layout.
 has columns_retrieved_no => (
-    is => 'rw',
+    is  => 'lazy',
+    isa => ArrayRef,
 );
 
 # Value containing the actual columns retrieved.
 # In "dependent order", needed for calcvals
 has columns_retrieved_do => (
-    is => 'rw',
+    is  => 'lazy',
+    isa => ArrayRef
 );
 
 has rows => (
@@ -143,6 +150,11 @@ has retrieve_children => (
     default => 1,
 );
 
+has _query_params => (
+    is  => 'lazy',
+    isa => HashRef,
+);
+
 # Whether to fill in missing values of children from parent.
 # XXX Is interpolate the correct word??!
 has interpolate_children => (
@@ -158,23 +170,56 @@ has current_ids => (
 );
 
 has prefetches => (
-    is      => 'rw',
-    isa     => ArrayRef,
-    default => sub { [] },
+    is  => 'lazy',
+    isa => ArrayRef,
 );
 
+sub _build_prefetches
+{   my $self = shift;
+    $self->_query_params->{prefetches};
+}
+
 has joins => (
-    is      => 'rw',
-    isa     => ArrayRef,
-    default => sub { [] },
+    is  => 'lazy',
+    isa => ArrayRef,
 );
+
+sub _build_joins
+{   my $self = shift;
+    $self->_query_params->{joins};
+}
+
+# Same as prefetches, but linked fields
+has linked_prefetches => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_linked_prefetches
+{   my $self = shift;
+    $self->_query_params->{linked_prefetches};
+}
+
+has linked_joins => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_linked_joins
+{   my $self = shift;
+    $self->_query_params->{linked_joins};
+}
 
 # Additional limiting conditions to be added to the main query.
 has search_limit => (
-    is      => 'rw',
-    isa     => ArrayRef,
-    default => sub { [] },
+    is  => 'lazy',
+    isa => ArrayRef,
 );
+
+sub _build_search_limit
+{   my $self = shift;
+    $self->_query_params->{search_limit};
+}
 
 # Produce the overall search condition array, combining the above 2.
 sub search_query
@@ -205,17 +250,17 @@ sub search_query
     [@search];
 }
 
-# Same as prefetches, but linked fields
-has linked_prefetches => (
-    is      => 'rw',
-    isa     => ArrayRef,
-    default => sub { [] },
-);
-
-has linked_joins => (
-    is      => 'rw',
-    isa     => ArrayRef,
-    default => sub { [] },
+has _jp_store => (
+    is => 'ro',
+    isa => HashRef,
+    default => sub {
+        +{
+            joins             => [],
+            prefetches        => [],
+            linked_joins      => [],
+            linked_prefetches => [],
+        };
+    },
 );
 
 has plus_select => (
@@ -261,7 +306,8 @@ has default_sort => (
 );
 
 has results => (
-    is => 'rw',
+    is  => 'lazy',
+    isa => ArrayRef,
 );
 
 sub _search_construct;
@@ -282,10 +328,11 @@ sub _default_sort
 sub _add_jp
 {   my ($self, $toadd, $type) = @_;
 
-    my $prefetches        = $self->prefetches;
-    my $joins             = $self->joins;
-    my $linked_prefetches = $self->linked_prefetches;
-    my $linked_joins      = $self->linked_joins;
+    my $jp_store          = $self->_jp_store;
+    my $prefetches        = $jp_store->{prefetches};
+    my $joins             = $jp_store->{joins};
+    my $linked_prefetches = $jp_store->{linked_prefetches};
+    my $linked_joins      = $jp_store->{linked_joins};
 
     # Process a join, prefetch or linked field. We see if we've already done it
     # first before adding. If the join criteria is a hash (ie joining a field
@@ -595,81 +642,8 @@ sub search_all_fields
 }
 
 # Produce a standard set of results without grouping
-sub _search
-{   my ($self, $root_table, $select) = @_;
-
-    # First count all values from result
-    my $count = $self->schema->resultset($root_table)->search(
-        [-and => $self->search_query], $select
-    )->count;
-
-    # Send page information back
-    $self->_set_count($count);
-    my $rows = $self->rows;
-    $self->pages($rows ? ceil($count / $rows) : 1);
-
-    # Now redo query but with just one page of results
-    my $page = $self->page
-             ? $self->page > $self->pages
-             ? $self->pages
-             : $self->page
-             : undef;
-
-    $select->{rows} = $rows if $rows;
-    $select->{page} = $page if $page;
-    my $result = $self->schema->resultset($root_table)->search(
-        [-and => $self->search_query], $select
-    );
-
-    $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
-    my @all;
-    foreach my $rec ($result->all)
-    {
-        my @children = map { $_->{id} } @{$rec->{currents}};
-        push @all, GADS::Record->new(
-            schema               => $self->schema,
-            record               => $rec->{record},
-            linked_record        => $rec->{linked}->{record},
-            child_records        => \@children,
-            parent_id            => $rec->{parent_id},
-            linked_id            => $rec->{linked_id},
-            user                 => $self->user,
-            layout               => $self->layout,
-            force_update         => $self->force_update,
-            columns_retrieved_no => $self->columns_retrieved_no,
-            columns_retrieved_do => $self->columns_retrieved_do,
-        );
-    }
-
-    $self->results(\@all);
-}
-
-sub _build_count
+sub _build_results
 {   my $self = shift;
-
-    $self->construct_search;
-
-    my $prefetches  = $self->prefetches;
-    my $joins       = $self->joins;
-    my $linked      = $self->linked_hash;
-    my $select = {
-        join     => [
-            {
-                'record' => [@$prefetches, @$joins],
-            },
-            $linked,
-        ],
-    };
-
-    $self->schema->resultset('Current')->search(
-        [-and => $self->search_query], $select
-    )->count;
-}
-
-sub search
-{   my $self = shift;
-
-    $self->construct_search;
 
     # XXX Okay, this is a bit weird - we join current to record to current.
     # This is because we return records at the end, and it allows current
@@ -698,14 +672,77 @@ sub search
         order_by  => $self->order_by,
     };
 
-    $self->_search('Current', $select);
+    # Now redo query but with just one page of results
+    my $page = $self->page;
+    $page = $self->pages
+        if $page && $page > 1 && $page > $self->pages; # Building page count is expensive, avoid if not needed
+
+    $select->{rows} = $self->rows if $self->rows;
+    $select->{page} = $page if $page;
+    my $result = $self->schema->resultset('Current')->search(
+        [-and => $self->search_query], $select
+    );
+
+    $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    my @all;
+    foreach my $rec ($result->all)
+    {
+        my @children = map { $_->{id} } @{$rec->{currents}};
+        push @all, GADS::Record->new(
+            schema               => $self->schema,
+            record               => $rec->{record},
+            linked_record        => $rec->{linked}->{record},
+            child_records        => \@children,
+            parent_id            => $rec->{parent_id},
+            linked_id            => $rec->{linked_id},
+            user                 => $self->user,
+            layout               => $self->layout,
+            force_update         => $self->force_update,
+            columns_retrieved_no => $self->columns_retrieved_no,
+            columns_retrieved_do => $self->columns_retrieved_do,
+        );
+    }
+
+    \@all;
 }
 
-sub construct_search
-{   my ($self, %options) = @_;
+has _next_single_id => (
+    is      => 'rwp',
+    isa     => Maybe[Int],
+    default => 0,
+);
 
+sub single
+{   my $self = shift;
+    my $next_id = $self->_next_single_id;
+    my $row = $self->results->[$next_id];
+    $self->_set__next_single_id(++$next_id);
+    $row;
+}
+
+sub _build_count
+{   my $self = shift;
+
+    my $prefetches  = $self->prefetches;
+    my $joins       = $self->joins;
+    my $linked      = $self->linked_hash;
+    my $select = {
+        join     => [
+            {
+                'record' => [@$prefetches, @$joins],
+            },
+            $linked,
+        ],
+    };
+
+    $self->schema->resultset('Current')->search(
+        [-and => $self->search_query], $select
+    )->count;
+}
+
+sub _build_columns_retrieved_do
+{   my $self = shift;
     my $layout = $self->layout;
-
     # First, add all the columns in the view as a prefetch. During
     # this stage, we keep track of what we've added, so that we
     # can act accordingly during the filters
@@ -732,17 +769,25 @@ sub construct_search
             order_dependencies => 1,
         );
     }
-    $self->columns_retrieved_do(\@columns);
-    my %columns_retrieved = map { $_->id => undef } @columns;
-    my @columns_retrieved_no = grep { exists $columns_retrieved{$_->id} } $layout->all;
-    $self->columns_retrieved_no(\@columns_retrieved_no);
+    \@columns;
+}
 
-    my %cache_cols;                     # Any column in the view that should be cached
-    my $prefetches = $self->prefetches; # Tables to prefetch - data being viewed
-    my $joins      = $self->joins;      # Tables to join - data being searched
-    my $cache_joins;                    # Tables that have data needed for calculated fields
+sub _build_columns_retrieved_no
+{   my $self = shift;
+    my %columns_retrieved = map { $_->id => undef } @{$self->columns_retrieved_do};
+    my @columns_retrieved_no = grep { exists $columns_retrieved{$_->id} } $self->layout->all;
+    \@columns_retrieved_no;
+}
+
+# Construct various parameters used for the query. These are all
+# related, so it makes sense to construct them together.
+sub _build__query_params
+{   my $self  = shift;
+
+    my $layout = $self->layout;
+
     my @search_date;                    # The search criteria to narrow-down by date range
-    foreach my $c (@columns)
+    foreach my $c (@{$self->columns_retrieved_do})
     {
         if ($c->type eq "date" || $c->type eq "daterange")
         {
@@ -771,9 +816,6 @@ sub construct_search
                 rules     => \@f,
             } if @f;
         }
-        # Flag cache if need be - may need updating
-        $cache_cols{$c->field} = $c
-            if $c->hascache;
         # We're viewing this, so prefetch all the values
         $self->_add_prefetch($c->join);
         $self->_add_linked_prefetch($c->link_parent->join) if $c->link_parent;
@@ -806,7 +848,7 @@ sub construct_search
             {
                 $self->_search_construct($decoded, $layout);
                 # Get the user search criteria
-                @search     = @{$self->_search_construct($decoded, $layout)};
+                @search = @{$self->_search_construct($decoded, $layout)};
             }
         }
         unless ($self->sort)
@@ -892,7 +934,14 @@ sub construct_search
         }
     }
 
-    $self->search_limit([@limit, @search]);
+    my $jp_store = $self->_jp_store;
+    +{
+        search_limit      => [@limit, @search],
+        joins             => $jp_store->{joins},
+        prefetches        => $jp_store->{prefetches},
+        linked_joins      => $jp_store->{linked_joins},
+        linked_prefetches => $jp_store->{linked_prefetches},
+    };
 }
 
 sub _table_name
@@ -1116,7 +1165,7 @@ sub csv
     my $csvout = $csv->string."\n";
 
     # All the data values
-    foreach my $line (@{$self->results})
+    while (my $line = $self->single)
     {
         my @items = ($line->current_id);
         push @items, map { $line->fields->{$_->id} } @columns;

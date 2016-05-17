@@ -274,7 +274,6 @@ sub _build_data
     $records->view($self->view);
     $records->columns(\@columns);
     $records->group_by($group_by_db);
-    $records->search;
 
     # The view of this graph
     my $view = $self->records->view;

@@ -327,7 +327,6 @@ get '/data_calendar/:time' => require_login sub {
     );
     $records->search_all_fields(session 'search')
         if session 'search';
-    $records->search;
 
     header "Cache-Control" => "max-age=0, must-revalidate, private";
     content_type 'application/json';
@@ -564,7 +563,6 @@ any '/data' => require_login sub {
         $records->columns_extra([@extra]);
         $records->search_all_fields(session 'search')
             if session 'search';
-        $records->search;
         my ($items, $groups) = $records->data_timeline(%{$tl_options});
         $params->{records}      = encode_base64(encode_json($items));
         $params->{groups}       = encode_base64(encode_json($groups));
@@ -630,7 +628,6 @@ any '/data' => require_login sub {
         $records->rows($rows);
         $records->page($page);
         $records->sort(session 'sort');
-        $records->search;
         my $pages = $records->pages;
 
         my $subset = {

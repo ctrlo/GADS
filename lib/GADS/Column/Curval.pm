@@ -144,7 +144,6 @@ sub _records_from_db
         sort        => [ map { { id => $_ } } @{$self->curval_field_ids} ],
     );
 
-    $records->search;
     return $records;
 }
 
@@ -269,7 +268,6 @@ sub values_beginning_with
         columns => $self->curval_field_ids,
     );
 
-    $records->search;
     my @results;
     foreach my $row (@{$records->results})
     {

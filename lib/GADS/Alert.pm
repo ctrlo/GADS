@@ -121,7 +121,6 @@ sub update_cache
         schema => $self->schema,
         view   => $view,
     );
-    $records->search;
 
     my $view_id = $self->view_id;
     my @caches; my $cache;

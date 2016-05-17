@@ -107,7 +107,6 @@ for my $test ('blank', 'nochange', 'changed')
         layout  => $layout,
         schema  => $schema,
     );
-    $records->search;
     my $results = $records->results;
 
     is( scalar @$results, 1, "One record in test dataset");

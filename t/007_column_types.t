@@ -53,7 +53,6 @@ my $records = GADS::Records->new(
     layout  => $layout,
     schema  => $schema,
 );
-$records->search;
 
 ok( $_->fields->{$curval->id}->text ) foreach @{$records->results};
 

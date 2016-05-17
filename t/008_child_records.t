@@ -18,7 +18,6 @@ sub _records
         layout  => $layout,
         schema  => $schema,
     );
-    $records->search;
     my @results = @{$records->results};
     is( scalar @results, $count, "Check number of records in retrieved dataset");
     @results;

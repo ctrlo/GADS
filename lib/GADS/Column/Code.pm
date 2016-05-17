@@ -60,8 +60,6 @@ sub update_cached
         columns      => [@{$self->depends_on},$self->id],
     );
 
-    $records->search;
-
     my @changed;
     foreach my $record (@{$records->results})
     {

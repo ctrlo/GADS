@@ -351,7 +351,6 @@ sub find_unique
         columns => \@retrieve_columns,
     );
 
-    $records->search;
     # Might be more, but one will do
     return pop @{$records->results};
 }
@@ -385,7 +384,6 @@ sub _find
         include_approval => $self->include_approval,
     );
 
-    $records->construct_search;
     $self->columns_retrieved_do($records->columns_retrieved_do);
     $self->columns_retrieved_no($records->columns_retrieved_no);
 
