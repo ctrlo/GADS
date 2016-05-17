@@ -451,14 +451,17 @@ sub search_all_fields
 
     my %results;
 
+    my $search_index = lc(substr($search, 0, 128));
     if ($search =~ s/\*/%/g )
     {
         $search = { like => $search };
+        $search_index =~ s/\*/%/g;
+        $search_index = { like => $search_index };
     }
 
     # XXX These really need to be pulled from the various Column classes
     my @fields = (
-        { type => 'string', plural => 'strings' },
+        { type => 'string', plural => 'strings', index_field => 'value_index' },
         { type => 'int'   , plural => 'intgrs' },
         { type => 'date'  , plural => 'dates' },
         { type => 'string', plural => 'dateranges' },
@@ -537,7 +540,11 @@ sub search_all_fields
 
         my @search = @basic_search;
         push @search,
-            $field->{type} eq 'current_id' ? { id => $search } : { $s => $search };
+            $field->{type} eq 'current_id'
+            ? { id => $search }
+            : $field->{index_field} # string with additional index field
+            ? ( { $field->{index_field} => $search_index }, { $s => $search } )
+            : { $s => $search };
         if ($field->{type} eq 'current_id')
         {
             push @search, { 'me.instance_id' => $self->layout->instance_id };

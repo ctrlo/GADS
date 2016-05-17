@@ -199,4 +199,14 @@ foreach my $filter (@filters)
     is( $records->count, $filter->{count}, "$filter->{name} for record count $filter->{count}");
 }
 
+my $records = GADS::Records->new(
+    user    => undef,
+    layout  => $layout,
+    schema  => $schema,
+);
+
+is (@{$records->search_all_fields('2014-10-10')}, 2, 'Quick search for 2014-10-10');
+is (@{$records->search_all_fields('Foo')}, 1, 'Quick search for foo');
+is (@{$records->search_all_fields('Foo*')}, 2, 'Quick search for foo*');
+
 done_testing();
