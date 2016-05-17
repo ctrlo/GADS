@@ -628,6 +628,55 @@ any '/data' => require_login sub {
         $records->rows($rows);
         $records->page($page);
         $records->sort(session 'sort');
+
+        if (param 'sendemail')
+        {
+            forwardHome({ danger => "There are no records in this view and therefore nobody to email"}, 'data')
+                unless $records->results;
+
+            return forwardHome(
+                { danger => 'You do not have permission to send messages' }, 'data' )
+                unless user_has_role 'message';
+
+            my $email  = GADS::Email->instance;
+            my $args   = {
+                subject => param('subject'),
+                text    => param('text'),
+                records => $records,
+                col_id  => param('peopcol'),
+            };
+
+            if (process( sub { $email->message($args, $user) }))
+            {
+                return forwardHome(
+                    { success => "The message has been sent successfully" }, 'data' );
+            }
+        }
+
+        if (defined param('download'))
+        {
+            forwardHome({ danger => "You do not have permission to download data"}, 'data')
+                unless user_has_role 'download';
+
+            forwardHome({ danger => "There are no records to download in this view"}, 'data')
+                unless $records->count;
+
+            my $csv = $records->csv;
+            my $now = DateTime->now();
+            my $header;
+            if ($header = config->{gads}->{header})
+            {
+                $csv       = "$header\n$csv" if $header;
+                $header    = "-$header" if $header;
+            }
+            # XXX Is this correct? We can't send native utf-8 without getting the error
+            # "Strings with code points over 0xFF may not be mapped into in-memory file handles".
+            # So, encode the string (e.g. "\x{100}"  becomes "\xc4\x80) and then send it,
+            # telling the browser it's utf-8
+            utf8::encode($csv);
+            return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
+        }
+
         my $pages = $records->pages;
 
         my $subset = {
@@ -662,65 +711,17 @@ any '/data' => require_login sub {
             $subset->{pnumbers} = [1..$pages];
         }
 
-        if (param 'sendemail')
-        {
-            forwardHome({ danger => "There are no records in this view and therefore nobody to email"}, 'data')
-                unless $records->results;
+        my @columns = $view
+            ? $layout->view($view->id, user_can_read => 1)
+            : $layout->all(user_can_read => 1);
+        $params->{user_can_edit} = $layout->user_can('write_existing');
+        $params->{sort}          = $records->sort;
+        $params->{subset}        = $subset;
+        $params->{records}       = $records->results;
+        $params->{count}         = $records->count;
+        $params->{columns}       = \@columns;
+        $params->{viewtype}      = 'table';
 
-            return forwardHome(
-                { danger => 'You do not have permission to send messages' }, 'data' )
-                unless user_has_role 'message';
-
-            my $email  = GADS::Email->instance;
-            my $args   = {
-                subject => param('subject'),
-                text    => param('text'),
-                records => $records,
-                col_id  => param('peopcol'),
-            };
-
-            if (process( sub { $email->message($args, $user) }))
-            {
-                return forwardHome(
-                    { success => "The message has been sent successfully" }, 'data' );
-            }
-        }
-
-        if (defined param('download'))
-        {
-            forwardHome({ danger => "You do not have permission to download data"}, 'data')
-                unless user_has_role 'download';
-
-            forwardHome({ danger => "There are no records to download in this view"}, 'data')
-                unless $records->results;
-
-            my $csv = $records->csv;
-            my $now = DateTime->now();
-            my $header;
-            if ($header = config->{gads}->{header})
-            {
-                $csv       = "$header\n$csv" if $header;
-                $header    = "-$header" if $header;
-            }
-            # XXX Is this correct? We can't send native utf-8 without getting the error
-            # "Strings with code points over 0xFF may not be mapped into in-memory file handles".
-            # So, encode the string (e.g. "\x{100}"  becomes "\xc4\x80) and then send it,
-            # telling the browser it's utf-8
-            utf8::encode($csv);
-            return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
-        }
-        else {
-            my @columns = $view
-                ? $layout->view($view->id, user_can_read => 1)
-                : $layout->all(user_can_read => 1);
-            $params->{user_can_edit} = $layout->user_can('write_existing');
-            $params->{sort}          = $records->sort;
-            $params->{subset}        = $subset;
-            $params->{records}       = $records->results;
-            $params->{count}         = $records->count;
-            $params->{columns}       = \@columns;
-            $params->{viewtype}      = 'table';
-        }
     }
 
     # Get all alerts

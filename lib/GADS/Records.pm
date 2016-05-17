@@ -176,7 +176,9 @@ has prefetches => (
 
 sub _build_prefetches
 {   my $self = shift;
-    $self->_query_params->{prefetches};
+    my $prefetches = $self->_query_params->{prefetches};
+    unshift @$prefetches, ('current', 'createdby', 'approvedby');
+    $prefetches;
 }
 
 has joins => (
@@ -306,8 +308,9 @@ has default_sort => (
 );
 
 has results => (
-    is  => 'lazy',
-    isa => ArrayRef,
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
 );
 
 sub _search_construct;
@@ -652,7 +655,6 @@ sub _build_results
     my $joins           = $self->joins;
     my $linked_join     = $self->linked_hash('join');
     my $linked_prefetch = $self->linked_hash('prefetch');
-    unshift @$prefetches, ('current', 'createdby', 'approvedby');
     my $currents = $self->prefetch_children ? { currents => {record => $prefetches} } : 'currents';
     my $select = {
         prefetch => [
@@ -712,11 +714,23 @@ has _next_single_id => (
     default => 0,
 );
 
+# This could be called thousands of times (e.g. download), so fetch
+# the rows in chunks
 sub single
 {   my $self = shift;
+    my $chunk = 100; # Size of chunks to retrieve each time
+    $self->rows($chunk) unless $self->rows;
+    $self->page(1) unless $self->page;
     my $next_id = $self->_next_single_id;
+    if ($next_id >= $chunk)
+    {
+        return if $self->page == $self->pages;
+        $next_id = $next_id - $chunk;
+        $self->clear_results;
+        $self->page($self->page + 1);
+    }
     my $row = $self->results->[$next_id];
-    $self->_set__next_single_id(++$next_id);
+    $self->_set__next_single_id($next_id + 1);
     $row;
 }
 
