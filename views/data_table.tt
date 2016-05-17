@@ -68,11 +68,15 @@
                         ">
                     </div>
                 [% ELSIF column.type == "string" OR column.type == "curval" %]
-                    <div class="more-less">
-                        <div class="more-block">
-                            <p>[% value.html_withlinks %]</p>
+                    [% IF value.as_string.length > 50 %]
+                        <div class="more-less">
+                            <div class="more-block">
+                    [% END %]
+                                <p>[% value.html_withlinks %]</p>
+                    [% IF value.as_string.length > 50 %]
+                            </div>
                         </div>
-                    </div>
+                    [% END %]
                 [% ELSE %]
                     <p>[% value.html %]</p>
                 [% END %]
