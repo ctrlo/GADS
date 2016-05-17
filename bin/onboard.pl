@@ -485,6 +485,9 @@ sub update_fields
                 if ($append{$col->id})
                 {
                     $newv =~ s/^\s+// if !$old_value; # Trim preceding line returns if no value to append to
+                    # Make sure CR at end of old value if applicable
+                    $old_value =~ s/\s+$//;
+                    $old_value = "$old_value\n" if $old_value;
                     $newv = $old_value.$newv if $append{$col->id};
                 }
                 try { $datum->set_value($newv) };
