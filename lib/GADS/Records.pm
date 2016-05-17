@@ -1054,7 +1054,7 @@ sub _search_construct
 
     $value =~ s/\_/\\\_/g if $operator eq '-like';
 
-    next unless $column->validate($value);
+    return unless $column->validate($value);
 
     if ($column->type eq "string")
     {
