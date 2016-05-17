@@ -185,10 +185,20 @@ sub search_query
     my $record  = $root_table eq 'record'  ? 'me' : 'record';
     unless ($self->include_approval)
     {
+        # There is a chance that there will be no approval records. In that case,
+        # the search will be a lot quicker without adding the approval search
+        # condition (due to indexes not spanning across tables). So, do a quick
+        # check first, and only add the condition if needed
+        my ($approval_exists) = $self->schema->resultset('Current')->search({
+            instance_id        => $self->layout->instance_id,
+            "$record.approval" => 1,
+        },{
+            join => 'record',
+            rows => 1,
+        })->all;
         push @search, (
             { "$record.approval"  => 0 },
-            { "$record.record_id" => undef },
-        );
+        ) if $approval_exists;
     }
     push @search, { "$current.id"          => $self->current_ids} if $self->current_ids;
     push @search, { "$current.instance_id" => $self->layout->instance_id };

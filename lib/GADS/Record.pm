@@ -469,7 +469,6 @@ sub versions
     my @records = $self->schema->resultset('Record')->search({
         'current_id' => $self->current_id,
         approval     => 0,
-        record_id    => undef
     },{
         order_by => { -desc => 'created' }
     })->all;
