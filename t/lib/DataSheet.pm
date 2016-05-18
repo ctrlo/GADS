@@ -93,7 +93,7 @@ sub _build_columns
         layout => $layout,
     );
     $string1->type('string');
-    $string1->name('String1');
+    $string1->name('string1');
     try { $string1->write };
     if ($@)
     {
@@ -107,7 +107,7 @@ sub _build_columns
         layout => $layout,
     );
     $integer1->type('intgr');
-    $integer1->name('Integer1');
+    $integer1->name('integer1');
     try { $integer1->write };
     if ($@)
     {
@@ -121,7 +121,7 @@ sub _build_columns
         layout => $layout,
     );
     $enum1->type('enum');
-    $enum1->name('Enum1');
+    $enum1->name('enum1');
     $enum1->enumvals([
         {
             value => 'foo1',
@@ -146,7 +146,7 @@ sub _build_columns
         layout => $layout,
     );
     $tree1->type('tree');
-    $tree1->name('Tree1');
+    $tree1->name('tree1');
     try { $tree1->write };
     my $tree_id = $tree1->id;
     if ($@)
@@ -186,7 +186,7 @@ sub _build_columns
         layout => $layout,
     );
     $date1->type('date');
-    $date1->name('Date1');
+    $date1->name('date1');
     try { $date1->write };
     if ($@)
     {
@@ -200,7 +200,7 @@ sub _build_columns
         layout => $layout,
     );
     $daterange1->type('daterange');
-    $daterange1->name('Daterange1');
+    $daterange1->name('daterange1');
     try { $daterange1->write };
     if ($@)
     {
@@ -227,7 +227,7 @@ sub _build_columns
         my @curval_field_ids = map { $_->id } $curval_field_ids_rs->all;
         $curval1->curval_field_ids([@curval_field_ids]);
         $curval1->type('curval');
-        $curval1->name('Curval1');
+        $curval1->name('curval1');
         try { $curval1->write };
         if ($@)
         {
@@ -245,7 +245,7 @@ sub _build_columns
     $rag1->amber('[Daterange1.from.year] == 2012');
     $rag1->green('[Daterange1.from.year] > 2012');
     $rag1->type('rag');
-    $rag1->name('Rag1');
+    $rag1->name('rag1');
     try { $rag1->write };
     if ($@)
     {
@@ -261,7 +261,7 @@ sub _build_columns
     );
     $calc1->calc('[Daterange1.from.year]');
     $calc1->type('calc');
-    $calc1->name('Calc1');
+    $calc1->name('calc1');
     $calc1->return_type('integer');
     try { $calc1->write };
     if ($@)
