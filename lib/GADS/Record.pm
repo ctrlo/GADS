@@ -606,6 +606,7 @@ sub write
 
     # First loop round: sanitise and see which if any have changed
     my %appfields; # Any fields that need approval
+    my %allow_update = map { $_ => 1 } @{$options{allow_update} || []};
     my ($need_app, $need_rec, my $child_unique); # Whether a new approval_rs or record_rs needs to be created
     $need_rec = 1 if $self->changed;
     foreach my $column ($self->layout->all)
@@ -661,7 +662,7 @@ sub write
         {
             error __x"Attempt to change {name} from \"{old}\" to \"{new}\" but no changes are allowed to existing data",
                 old => $datum->oldvalue->as_string, new => $datum->as_string, name => $column->name
-                if lc $datum->oldvalue->as_string ne lc $datum->as_string && $datum->oldvalue->as_string;
+                if !$allow_update{$column->id} && lc $datum->oldvalue->as_string ne lc $datum->as_string && $datum->oldvalue->as_string;
         }
 
         # Don't check for unique if this is a child record and it hasn't got a unique value.
