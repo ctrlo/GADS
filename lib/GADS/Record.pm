@@ -460,6 +460,7 @@ sub _find
         $self->_set_approval_record_id($record->{record_id}); # Related record if this is approval record
     }
     $self->record($record);
+    $self; # Allow chaining
 }
 
 sub versions

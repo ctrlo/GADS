@@ -205,8 +205,19 @@ my $records = GADS::Records->new(
     schema  => $schema,
 );
 
+# Quick searches
 is (@{$records->search_all_fields('2014-10-10')}, 2, 'Quick search for 2014-10-10');
 is (@{$records->search_all_fields('Foo')}, 1, 'Quick search for foo');
 is (@{$records->search_all_fields('Foo*')}, 2, 'Quick search for foo*');
+
+# Specific record retrieval
+my $record = GADS::Record->new(
+    user   => undef,
+    layout => $layout,
+    schema => $schema,
+);
+is( $record->find_record_id(1)->record_id, 1, "Retrieved history record ID 1" );
+$record->clear;
+is( $record->find_current_id(1)->current_id, 1, "Retrieved current ID 1" );
 
 done_testing();
