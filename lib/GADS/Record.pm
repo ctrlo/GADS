@@ -1021,7 +1021,7 @@ sub _field_write
         my $datum_write = $options{old} ? $datum->oldvalue : $datum;
         my $table = $column->table;
         my $entry = {
-            child_unique => $datum->child_unique,
+            child_unique => $datum ? $datum->child_unique : 0, # No datum for new invisible fields
             layout_id    => $column->id,
         };
         $entry->{record_id} = $options{approval} ? $self->approval_id : $self->record_id;
