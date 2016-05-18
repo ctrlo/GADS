@@ -410,8 +410,7 @@ while (my $row = $csv->getline($fh))
             }
             if (!@failed)
             {
-                my $nochange = $no_change_unless_blank && $no_change_unless_blank eq 'bork' ? 1 : 0; # shouldn't need option for "skip_new" instead of "bork", but safety check jus
-                try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force, update_only => $update_only, no_change_unless_blank => $nochange, %options) };
+                try { $record->write(no_alerts => 1, dry_run => $dry_run, force => $force, update_only => $update_only, no_change_unless_blank => $no_change_unless_blank, %options) };
                 if ($@)
                 {
                     my $exc = $@->died;
@@ -490,7 +489,6 @@ sub update_fields
                     $old_value = "$old_value\n" if $old_value;
                     $newv = $old_value.$newv if $append{$col->id};
                 }
-                try { $datum->set_value($newv) };
 
                 # Don't update existing value if no_change_unless_blank is "skip_new"
                 if ($no_change_unless_blank && $no_change_unless_blank eq 'skip_new' && $record->current_id && !$was_blank && !$append{$col->id})
