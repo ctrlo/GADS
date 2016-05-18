@@ -61,7 +61,7 @@ sub update_cached
     );
 
     my @changed;
-    foreach my $record ($records->single)
+    while (my $record = $records->single)
     {
         $record->fields->{$self->id}->value;
         push @changed, $record->current_id if $record->fields->{$self->id}->changed;
