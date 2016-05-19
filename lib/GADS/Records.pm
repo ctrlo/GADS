@@ -425,7 +425,10 @@ sub search_views
 
     return unless @views && @$current_ids;
 
-    my $columns = $self->layout->all;
+    # Need to specify no columns to be retrieved, otherwise as soon as
+    # $self->joins is called, prefetch will have all the columns in
+    $self->columns([]);
+
     my @search; my $found_in_a_view;
 
     # XXX This is up for debate. First, do a search with all views in, as it only
