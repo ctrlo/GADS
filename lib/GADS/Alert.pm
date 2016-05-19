@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Alert;
 
 use GADS::Util qw(:all);
+use GADS::Views;
 use List::MoreUtils qw/ uniq /;
 use Log::Report;
 use Scalar::Util qw(looks_like_number);

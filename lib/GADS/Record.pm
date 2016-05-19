@@ -986,6 +986,11 @@ sub write
                 current_new => $self->new_entry,
             );
 
+            if ($ENV{GADS_NO_FORK})
+            {
+                $alert_send->process;
+                return;
+            }
             if (my $kid = fork)
             {
                 waitpid($kid, 0); # let the child die
