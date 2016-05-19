@@ -52,6 +52,19 @@ $schema->resultset('User')->populate([
 
 my @filters = (
     {
+        name       => 'No filter',
+        rules      => undef,
+        columns    => [],
+        current_id => 1,
+        update     => [
+            {
+                column => 'string1',
+                value  => 'xyz',
+            },
+        ],
+        alerts => 0, # Actually 1, but 1 always added for this no filter view
+    },
+    {
         name  => 'Record appears in view',
         rules => [{
             id       => $columns->{string1}->id,
@@ -144,14 +157,14 @@ my $user = { id => 1 };
 # First all all the filters and alerts#
 foreach my $filter (@filters)
 {
-    my $rules = encode_json({
+    my $rules = $filter->{rules} ? {
         rules     => $filter->{rules},
         condition => $filter->{condition},
-    });
+    } : {};
 
     my $view = GADS::View->new(
         name        => $filter->{name},
-        filter      => $rules,
+        filter      => encode_json($rules),
         instance_id => 1,
         layout      => $layout,
         schema      => $schema,
@@ -201,7 +214,8 @@ foreach my $filter (@filters)
     }
     $record->write;
     my $alert_finish = $schema->resultset('AlertSend')->count;
-    is( $alert_finish, $alert_start + $filter->{alerts}, "Correct number of alerts queued to be sent for filter: $filter->{name}" );
+    # Number of new alerts is the change of values, plus the new record, plus the view without a filter
+    is( $alert_finish, $alert_start + $filter->{alerts} + 1, "Correct number of alerts queued to be sent for filter: $filter->{name}" );
 
 }
 
