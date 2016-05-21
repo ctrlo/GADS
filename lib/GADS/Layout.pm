@@ -61,8 +61,9 @@ has instance_id => (
 );
 
 has name => (
-    is  => 'lazy',
-    isa => Str,
+    is      => 'lazy',
+    isa     => Str,
+    clearer => 1,
 );
 
 has columns => (
@@ -107,6 +108,7 @@ has columns_index => (
 
 sub clear
 {   my $self = shift;
+    $self->clear_name;
     $self->clear_columns;
     $self->clear_columns_index;
 }

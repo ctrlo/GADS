@@ -40,6 +40,9 @@ my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
 $sheet->create_records;
 
+# Various tests for field types
+#
+# Curval tests
 my $curval = $columns->{curval1};
 
 is( scalar @{$curval->values}, 2, "Correct number of values for curval field" );
@@ -55,5 +58,18 @@ my $records = GADS::Records->new(
 );
 
 ok( $_->fields->{$curval->id}->text ) foreach @{$records->results};
+
+$layout->clear; # Rebuild layout for dependencies
+
+foreach my $col (reverse $layout->all(order_dependencies => 1))
+{
+    my $col_id = $col->id;
+    my $name   = $col->name;
+    ok( $schema->resultset('Layout')->find($col_id), "Field $name currently exists in layout table");
+    try { $col->delete };
+    is( $@, '', "Deletion of field $name did not throw exception" );
+    # Check that it's actually gone
+    ok( !$schema->resultset('Layout')->find($col_id), "Field $name has been removed from layout table");
+}
 
 done_testing();
