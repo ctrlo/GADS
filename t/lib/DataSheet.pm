@@ -70,7 +70,8 @@ sub _build_schema
 sub _build_layout
 {   my $self = shift;
 
-    $self->schema->resultset('Instance')->create({
+    $self->schema->resultset('Instance')->find_or_create({
+        id   => $self->instance_id,
         name => 'Layout'.$self->instance_id,
     });
 
