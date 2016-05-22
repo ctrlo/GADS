@@ -413,13 +413,15 @@ any '/data' => require_login sub {
     if (my $view_id = param('view'))
     {
         session 'view_id' => $view_id;
-        # Save to databse for next login
+        # Save to database for next login
         update_current_user lastview => $view_id;
         # When a new view is selected, unset sort, otherwise it's
         # not possible to remove a sort once it's been clicked
         session 'sort' => undef;
         # Also reset page number to 1
         session 'page' => undef;
+        # And remove any search to avoid confusion
+        session search => '';
     }
 
     if (my $rows = param('rows'))
