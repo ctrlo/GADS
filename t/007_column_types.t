@@ -72,4 +72,25 @@ foreach my $col (reverse $layout->all(order_dependencies => 1))
     ok( !$schema->resultset('Layout')->find($col_id), "Field $name has been removed from layout table");
 }
 
+# Now do the same tests again, but this time change all the field
+# types to string. This tests that any data not normally associated
+# with that particular type is still deleted.
+$curval_sheet = t::lib::DataSheet->new(schema => $schema, instance_id => 2);
+$sheet   = t::lib::DataSheet->new(data => $data, schema => $schema, curval => 2);
+$layout  = $sheet->layout;
+$columns = $sheet->columns;
+$layout->clear;
+foreach ($layout->all)
+{
+    $_->type('string');
+    $_->write;
+}
+$layout->clear;
+foreach my $col (reverse $layout->all(order_dependencies => 1))
+{
+    my $name = $col->name;
+    try { $col->delete };
+    is( $@, '', "Deletion of field $name of type string did not throw exception" );
+}
+
 done_testing();
