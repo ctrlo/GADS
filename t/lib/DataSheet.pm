@@ -163,19 +163,20 @@ sub _build_columns
         'children' => [],
         'data' => {},
         'text' => 'tree1',
-        'id' => 'j1_1'
+        'id' => 'j1_1',
     },
     {
         'data' => {},
         'text' => 'tree2',
-        'children' => [],
-        'id' => 'j1_2'
-    },
-    {
-        'data' => {},
-        'text' => 'tree3',
-        'children' => [],
-        'id' => 'j1_2'
+        'children' => [
+            {
+                'data' => {},
+                'text' => 'tree3',
+                'children' => [],
+                'id' => 'j1_3'
+            },
+        ],
+        'id' => 'j1_2',
     }]);
     # Reload to get tree built etc
     $tree1 = GADS::Column::Tree->new(
