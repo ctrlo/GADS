@@ -57,7 +57,7 @@ my $records = GADS::Records->new(
     schema  => $schema,
 );
 
-ok( $_->fields->{$curval->id}->text ) foreach @{$records->results};
+ok( $_->fields->{$curval->id}->text, "Curval field of record has a textual value" ) foreach @{$records->results};
 
 $layout->clear; # Rebuild layout for dependencies
 
