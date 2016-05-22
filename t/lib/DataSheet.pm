@@ -213,6 +213,20 @@ sub _build_columns
         return;
     }
 
+    my $file1 = GADS::Column::File->new(
+        schema => $schema,
+        user   => undef,
+        layout => $layout,
+    );
+    $file1->type('file');
+    $file1->name('file1');
+    try { $file1->write };
+    if ($@)
+    {
+        $@->wasFatal->throw(is_fatal => 0);
+        return;
+    }
+
     my $curval1;
     if ($self->curval)
     {
@@ -290,6 +304,7 @@ sub _build_columns
         if $curval1;
     $columns->{calc1}      = $layout->column($calc1->id);
     $columns->{rag1}       = $layout->column($rag1->id);
+    $columns->{file1}      = $layout->column($file1->id);
     $columns;
 }
 
@@ -317,6 +332,22 @@ sub create_records
         $record->fields->{$columns->{daterange1}->id}->set_value($datum->{daterange1});
         $record->fields->{$columns->{curval1}->id}->set_value($datum->{curval1})
             if $columns->{curval1};
+        # Only set file data if exists in data. Add random data if nothing specified
+
+        if (exists $datum->{file1})
+        {
+            my $file = $datum->{file1};
+            if (!$file)
+            {
+                $file = {
+                    name     => 'myfile.txt',
+                    mimetype => 'text/plain',
+                    content  => 'My text file',
+                };
+            }
+            $record->fields->{$columns->{file1}->id}->set_value($file);
+        }
+
         try { $record->write(no_alerts => 1) };
         $@ and return;
     }

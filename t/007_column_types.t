@@ -20,6 +20,7 @@ my $data = [
         date1      => '2010-10-10',
         daterange1 => ['2000-10-10', '2001-10-10'],
         curval1    => 1,
+        file1      => undef, # Add random file
     },
     {
         string1    => 'bar',
@@ -29,6 +30,7 @@ my $data = [
         date1      => '2011-10-10',
         daterange1 => ['2000-11-11', '2001-11-11'],
         curval1    => 2,
+        file1      => undef,
     },
 ];
 
