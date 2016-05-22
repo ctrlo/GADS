@@ -58,7 +58,11 @@ has curval => (
 
 sub _build_schema
 {   my $self = shift;
-    my $schema = GADS::Schema->connect({ dsn => 'dbi:SQLite:dbname=:memory:', quote_names => 1 });
+    my $schema = GADS::Schema->connect({
+        dsn             => 'dbi:SQLite:dbname=:memory:',
+        on_connect_call => 'use_foreign_keys',
+        quote_names     => 1,
+    });
     $schema->deploy;
     $schema;
 }
