@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Graph;
 
+use GADS::Graphs;
 use Log::Report;
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
@@ -52,7 +53,7 @@ has set_values => (
     is => 'rw',
     trigger => sub {
         my ($self, $original) = @_;
-        $self->id($original->{id});
+        $self->_set_id($original->{id});
         $self->x_axis($original->{x_axis});
         $self->x_axis_grouping($original->{x_axis_grouping});
         $self->y_axis($original->{y_axis});
@@ -67,7 +68,7 @@ has set_values => (
 );
 
 has id => (
-    is  => 'rw',
+    is  => 'rwp',
     isa => Int,
 );
 
@@ -224,6 +225,7 @@ sub write
     }
     else {
         $self->_graph($self->schema->resultset('Graph')->create($newgraph));
+        $self->_set_id($self->_graph->id);
     }
 }
 
