@@ -274,6 +274,7 @@ sub _build_data
     $records->view($self->view);
     $records->columns(\@columns);
     $records->group_by($group_by_db);
+    my $records_results = $self->records->results; # Do now so as to populate dr_from and dr_to
 
     # The view of this graph
     my $view = $self->records->view;
@@ -317,7 +318,7 @@ sub _build_data
     my $datemin; my $datemax; # For x-axis dates, min and max retrieved
 
     # For each line of results from the SQL query
-    foreach my $line (@{$self->records->results})
+    foreach my $line (@$records_results)
     {
         # For each x-axis source (see above)
         foreach my $x (@x)

@@ -96,18 +96,12 @@ sub _build_column
     $self->layout->column($self->column_id);
 }
 
-sub search
-{   shift->_search_group;
-}
-
-sub _search_group
+sub _build_results
 {   my ($self, %options) = @_;
 
     my $prefetches  = $self->prefetches;
     my $joins       = $self->joins;
     my @group_by    = @{$self->group_by};
-
-    $self->construct_search(%options);
 
     # Work out the field name to select, and the appropriate aggregate function
     my @select_fields;
@@ -286,7 +280,7 @@ sub _search_group
         [-and => $self->search_query], $select
     );
 
-    $self->results([$result->all]);
+    [$result->all];
 }
 
 sub _min_date { shift->_min_max_date('min', @_) };
