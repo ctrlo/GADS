@@ -61,9 +61,9 @@ after 'write' => sub {
     }
 };
 
-before 'delete' => sub {
-    my $self = shift;
-    $self->schema->resultset('FileOption')->search({ layout_id => $self->id })->delete;
+sub cleanup
+{   my ($class, $schema, $id)  = @_;
+    $schema->resultset('FileOption')->search({ layout_id => $id })->delete;
 };
 
 1;

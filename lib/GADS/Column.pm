@@ -434,6 +434,11 @@ sub build_values
     $self->table(camelize $self->type);
 }
 
+# Overridden in child classes. This function is used
+# to cleanup specialist column data when a column
+# is deleted
+sub cleanup {}
+
 sub delete
 {   my $self = shift;
 
@@ -494,6 +499,15 @@ sub delete
         my $filtered = _filter_remove_colid($self, $filter->view->filter);
         $filter->view->update({ filter => $filtered });
     };
+
+    # Clean up any specialist data for all column types. The column's
+    # type may have changed during its life, but the data may not
+    # have been removed on change, so we have to check all classes.
+    foreach my $type ($self->types)
+    {
+        my $class = "GADS::Column::".camelize $type;
+        $class->cleanup($self->schema, $self->id);
+    }
 
     $self->schema->resultset('ViewLayout')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('Filter')->search({ layout_id => $self->id })->delete;
