@@ -287,4 +287,10 @@ sub _format_value
     };
 }
 
+sub cleanup
+{   my ($class, $schema, $id) = @_;
+    $schema->resultset('Curval')->search({ layout_id => $id })->delete;
+    $schema->resultset('CurvalField')->search({ parent_id => $id })->delete;
+}
+
 1;

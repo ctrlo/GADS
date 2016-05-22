@@ -67,5 +67,10 @@ sub resultset_for_values
     return $self->schema->resultset('User');
 }
 
+sub cleanup
+{   my ($class, $schema, $id) = @_;
+    $schema->resultset('Person')->search({ layout_id => $id })->delete;
+}
+
 1;
 

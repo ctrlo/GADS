@@ -65,10 +65,11 @@ has '+userinput' => (
     default => 0,
 );
 
-before 'delete' => sub {
-    my $self = shift;
-    $self->schema->resultset('Ragval')->search({ layout_id => $self->id })->delete;
-};
+sub cleanup
+{   my ($class, $schema, $id) = @_;
+    $schema->resultset('Rag')->search({ layout_id => $id })->delete;
+    $schema->resultset('Ragval')->search({ layout_id => $id })->delete;
+}
 
 after 'write' => sub {
     my $self = shift;

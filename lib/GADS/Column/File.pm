@@ -63,6 +63,7 @@ after 'write' => sub {
 
 sub cleanup
 {   my ($class, $schema, $id)  = @_;
+    $schema->resultset('File')->search({ layout_id => $id })->delete;
     $schema->resultset('FileOption')->search({ layout_id => $id })->delete;
 };
 

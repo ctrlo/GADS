@@ -93,12 +93,10 @@ after 'write' => sub {
     $self->schema->resultset('Layout')->find($self->id)->update($newitem);
 };
 
-before 'delete' => sub {
-    my $self = shift;
-    $self->schema->resultset('Enum')->search({ layout_id => $self->id })->delete;
-    # May have previously been a tree and therefore have parent references
-    $self->schema->resultset('Enumval')->search({ layout_id => $self->id })->update({parent => undef});
-    $self->schema->resultset('Enumval')->search({ layout_id => $self->id })->delete;
+sub cleanup
+{   my ($class, $schema, $id) = @_;
+    # Rely on tree cleanup instead. If we have our own here, then
+    # it may error for tree types if the rows reference parents.
 };
 
 sub enumval

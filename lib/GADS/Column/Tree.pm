@@ -123,6 +123,13 @@ after 'write' => sub {
     $self->schema->resultset('Layout')->find($self->id)->update($newitem);
 };
 
+sub cleanup
+{   my ($class, $schema, $id) = @_;
+    $schema->resultset('Enum')->search({ layout_id => $id })->delete;
+    $schema->resultset('Enumval')->search({ layout_id => $id })->update({parent => undef});
+    $schema->resultset('Enumval')->search({ layout_id => $id })->delete;
+}
+
 before 'delete' => sub {
     my $self = shift;
     trace "Entering delete";

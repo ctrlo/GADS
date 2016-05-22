@@ -36,5 +36,10 @@ sub validate
     || $value =~ /^[0-9]{4}-[0-9]{2}-[0-9]{2} - [0-9]{4}-[0-9]{2}-[0-9]{2}$/;
 }
 
+sub cleanup
+{   my ($class, $schema, $id) = @_;
+    $schema->resultset('Daterange')->search({ layout_id => $id })->delete;
+}
+
 1;
 

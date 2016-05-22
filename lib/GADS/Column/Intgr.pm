@@ -37,5 +37,10 @@ sub validate
     !$value || $value =~ /^[0-9]+$/;
 }
 
+sub cleanup
+{   my ($class, $schema, $id) = @_;
+    $schema->resultset('Intgr')->search({ layout_id => $id })->delete;
+}
+
 1;
 

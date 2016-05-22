@@ -61,5 +61,10 @@ after 'write' => sub {
     });
 };
 
+sub cleanup
+{   my ($class, $schema, $id) = @_;
+    $schema->resultset('String')->search({ layout_id => $id })->delete
+}
+
 1;
 

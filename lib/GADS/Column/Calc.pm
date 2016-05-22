@@ -109,10 +109,11 @@ has '+numeric' => (
     },
 );
 
-before 'delete' => sub {
-    my $self = shift;
-    $self->schema->resultset('Calcval')->search({ layout_id => $self->id })->delete;
-};
+sub cleanup
+{   my ($class, $schema, $id) = @_;
+    $schema->resultset('Calc')->search({ layout_id => $id })->delete;
+    $schema->resultset('Calcval')->search({ layout_id => $id })->delete;
+}
 
 after 'write' => sub {
     my $self = shift;
