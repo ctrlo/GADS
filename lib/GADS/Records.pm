@@ -128,6 +128,11 @@ has count => (
     builder => 1,
 );
 
+has has_children => (
+    is  => 'lazy',
+    isa => Bool,
+);
+
 has page => (
     is => 'rw',
 );
@@ -757,6 +762,30 @@ sub _build_count
     )->count;
 }
 
+sub _build_has_children
+{   my $self = shift;
+
+    my $prefetches  = $self->prefetches;
+    my $joins       = $self->joins;
+    my $linked      = $self->linked_hash;
+    my $select = {
+        join     => [
+            {
+                'record' => [@$prefetches, @$joins],
+            },
+            $linked,
+        ],
+        rows => 1,
+    };
+
+    my @search_query = @{$self->search_query};
+    push @search_query, { 'me.parent_id' => { '!=' => undef }};
+    my @child = $self->schema->resultset('Current')->search(
+        [-and => [@search_query]], $select
+    )->all;
+    @child ? 1 : 0;
+}
+
 sub _build_columns_retrieved_do
 {   my $self = shift;
     my $layout = $self->layout;
@@ -1176,6 +1205,7 @@ sub csv
         ? $self->layout->view($self->view->id, user_can_read => 1)
         : $self->layout->all(user_can_read => 1);
     my @colnames = ("Serial");
+    push @colnames, "Parent" if $self->has_children;
     push @colnames, map { $_->name } @columns;
     $csv->combine(@colnames)
         or error __x"An error occurred producing the CSV headings: {err}", err => $csv->error_input;
@@ -1185,6 +1215,7 @@ sub csv
     while (my $line = $self->single)
     {
         my @items = ($line->current_id);
+        push @items, $line->parent_id if $self->has_children;
         push @items, map { $line->fields->{$_->id} } @columns;
         $csv->combine(@items)
             or error __x"An error occurred producing a line of CSV: {err} {items}",
