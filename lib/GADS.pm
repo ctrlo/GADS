@@ -502,10 +502,10 @@ any '/data' => require_login sub {
         elsif (my $csv = param('csv'))
         {
             my $graph = GADS::Graph->new(
+                id     => $csv,
                 layout => $layout,
                 schema => schema
             );
-            $graph->id($csv);
             my $gdata       = _data_graph($csv);
             my $csv_content = $gdata->csv;
             return send_file(
