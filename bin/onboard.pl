@@ -404,7 +404,8 @@ while (my $row = $csv->getline($fh))
             my @failed = update_fields(\@fields, $input, $record, \@changes);
             if ($report_changes && @changes)
             {
-                say STDOUT "Changes for record ".$record->fields->{$update_unique_col->id}->as_string." are as follows:";
+                my $ident = $update_unique eq 'ID' ? $record->current_id : $record->fields->{$update_unique_col->id}->as_string;
+                say STDOUT "Changes for record $ident are as follows:";
                 say STDOUT $_ foreach @changes;
                 say STDOUT "\n";
             }
