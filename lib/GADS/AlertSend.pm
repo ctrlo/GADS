@@ -85,21 +85,42 @@ sub process
 
     # See what views the records are in
     my $records = GADS::Records->new(
-        schema => $self->schema,
-        layout => $self->layout,
-        user   => $self->user,
+        columns => [], # Otherwise all columns retrieved during search construct
+        schema  => $self->schema,
+        layout  => $self->layout,
+        user    => $self->user,
     );
+
     # All the views the record is now in
     my @now_in = $records->search_views($self->current_ids, @all_views);
     my %now_in_views = map { $_->{view}->id => $_ } @now_in;
 
     # Compare that to the cache of what it was in before
-    my @original = $self->schema->resultset('View')->search({
-        'alert_caches.current_id' => $self->current_ids,
+    $search = {
         'alert_caches.layout_id'  => $self->columns,
-    },{
-        prefetch => ['alert_caches', {'alerts' => 'user'} ],
-    })->all;
+    };
+
+    # Chunk the searches, otherwise we risk overrunning the allowed number
+    # of search queries in the database
+    my $i = 0; my @original;
+    while ($i < @{$self->current_ids})
+    {
+        # If the number of current_ids that we have been given is the same as the
+        # number that exist in the database, then assume that we are searching
+        # all records. Therefore don't specify (the potentially thousands) current_ids.
+        unless (@{$self->current_ids} == $records->count)
+        {
+            my $max = $i + 499;
+            $max = @{$self->current_ids}-1 if $max >= @{$self->current_ids};
+            $search->{'alert_caches.current_id'} = [@{$self->current_ids}[$i..$max]];
+        }
+        push @original, $self->schema->resultset('View')->search($search,{
+            prefetch => ['alert_caches', {'alerts' => 'user'} ],
+        })->all;
+        last unless $search->{'alert_caches.current_id'}; # All current_ids
+        $i += 500;
+    }
+
 
     # Look at all the views it was in
     my @gone; my @to_delete;
@@ -133,13 +154,25 @@ sub process
     }
     $self->schema->resultset('AlertCache')->search(\@to_delete)->delete if @to_delete;
 
-    my @caches = $self->schema->resultset('View')->search({
-        'alert_caches.current_id' => $self->current_ids,
-        'alert_caches.layout_id'  => $self->columns,
-    }, {
-        prefetch => ['alert_caches', {'alerts' => 'user'} ],
-        collapse => 1,
-    })->all;
+    $i = 0; my @caches;
+    $search = {
+        'alert_caches.layout_id' => $self->columns,
+    };
+    while ($i < @{$self->current_ids})
+    {
+        # See above comments about searching current_ids
+        unless (@{$self->current_ids} == $records->count)
+        {
+            my $max = $i + 499;
+            $max = @{$self->current_ids}-1 if $max >= @{$self->current_ids};
+            $search->{'alert_caches.current_id'} = [@{$self->current_ids}[$i..$max]];
+        }
+        push @caches, $self->schema->resultset('View')->search($search,{
+            prefetch => ['alert_caches', {'alerts' => 'user'} ],
+        })->all;
+        last unless $search->{'alert_caches.current_id'}; # All current_ids
+        $i += 500;
+    }
 
     my @view_ids;
     foreach my $cache (@caches)
@@ -202,10 +235,25 @@ sub process
         })->all or next;
         my @view_columns = map { $_->layout_id } $vrs->view_layouts;
         # The alert caches that already exist for these IDs
-        my @e = $self->schema->resultset('AlertCache')->search({
+
+        $i = 0; my @e;
+        $search = {
             view_id    => $view->id,
-            current_id => $found->{ids},
-        })->all;
+        };
+        while ($i < @{$found->{ids}})
+        {
+            # See above comments about searching current_ids
+            unless (@{$found->{ids}} == $records->count)
+            {
+                my $max = $i + 499;
+                $max = @{$found->{ids}}-1 if $max >= @{$found->{ids}};
+                $search->{'current_id'} = [@{$found->{ids}}[$i..$max]];
+            }
+            push @e, $self->schema->resultset('AlertCache')->search($search)->all;
+            last unless $search->{'current_id'}; # All current_ids
+            $i += 500;
+        }
+
         my %already_there = map { $_->current_id => 1 } @e;
         foreach my $cid (@{$found->{ids}})
         {

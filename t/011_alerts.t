@@ -52,7 +52,7 @@ $schema->resultset('User')->populate([
 
 my @filters = (
     {
-        name       => 'No filter',
+        name       => 'Update of record in no filter view',
         rules      => undef,
         columns    => [],
         current_id => 1,
@@ -62,7 +62,7 @@ my @filters = (
                 value  => 'xyz',
             },
         ],
-        alerts => 0, # Actually 1, but 1 always added for this no filter view
+        alerts => 1,
     },
     {
         name  => 'Record appears in view',
@@ -181,6 +181,7 @@ foreach my $filter (@filters)
         view_id   => $view->id,
     );
     $alert->write;
+    $filter->{alert_id} = $alert->id;
 }
 
 $ENV{GADS_NO_FORK} = 1;
@@ -188,7 +189,10 @@ $ENV{GADS_NO_FORK} = 1;
 # Now update all the values, checking alerts as we go
 foreach my $filter (@filters)
 {
-    my $alert_start = $schema->resultset('AlertSend')->count;
+    my $alert_start = $schema->resultset('AlertSend')->search({
+        current_id => $filter->{current_id},
+        alert_id   => $filter->{alert_id},
+    })->count;
 
     # First add record
     my $record = GADS::Record->new(
@@ -203,6 +207,10 @@ foreach my $filter (@filters)
         $record->fields->{$col_id}->set_value($datum->{value});
     }
     $record->write;
+    my $alert_finish = $schema->resultset('AlertSend')->search({
+        current_id => $record->current_id,
+        alert_id   => $filter->{alert_id},
+    })->count;
 
     # Now update existing record
     $record->clear;
@@ -213,10 +221,82 @@ foreach my $filter (@filters)
         $record->fields->{$col_id}->set_value($datum->{value});
     }
     $record->write;
-    my $alert_finish = $schema->resultset('AlertSend')->count;
+    $alert_finish += $schema->resultset('AlertSend')->search({ current_id => $filter->{current_id} })->count;
     # Number of new alerts is the change of values, plus the new record, plus the view without a filter
-    is( $alert_finish, $alert_start + $filter->{alerts} + 1, "Correct number of alerts queued to be sent for filter: $filter->{name}" );
-
+    is( $alert_finish, $alert_start + $filter->{alerts}, "Correct number of alerts queued to be sent for filter: $filter->{name}" );
 }
+
+# Test some bulk alerts, which normally happen on code field updates
+diag "About to test alerts for bulk updates. This could take some time...";
+
+# Some bulk data, almost all matching the filter, but not quite,
+# to test big queries (otherwise current_ids is not searched)
+$data = [ { string1 => 'Bar' } ];
+push @$data, { string1 => 'Foo' }
+    for (1..1000);
+
+$sheet = t::lib::DataSheet->new(data => $data);
+$schema = $sheet->schema;
+$layout = $sheet->layout;
+$columns = $sheet->columns;
+$sheet->create_records;
+
+# Check alert count now, same query we perform at end
+my $alerts_rs = $schema->resultset('AlertSend')->search({
+    alert_id  => 1,
+    layout_id => $columns->{string1}->id,
+});
+my $alert_count = $alerts_rs->count;
+
+$schema->resultset('User')->create({
+    id       => 1,
+    username => 'user1@example.com',
+    email    => 'user1@example.com',
+});
+
+my $rules = {
+    rules     => [{
+        id       => $columns->{string1}->id,
+        type     => 'string',
+        value    => 'Foo',
+        operator => 'equal',
+    }],
+};
+
+my $view = GADS::View->new(
+    name        => 'view1',
+    filter      => encode_json($rules),
+    instance_id => 1,
+    layout      => $layout,
+    schema      => $schema,
+    user        => $user,
+    columns     => [$columns->{string1}->id],
+);
+$view->write;
+
+my $alert = GADS::Alert->new(
+    user      => $user,
+    layout    => $layout,
+    schema    => $schema,
+    frequency => 24,
+    view_id   => $view->id,
+);
+$alert->write;
+
+my @ids = $schema->resultset('Current')->get_column('id')->all;
+pop @ids; # Again, not all current_ids, otherwise current_ids will not be searched
+
+my $alert_send = GADS::AlertSend->new(
+    layout      => $layout,
+    schema      => $schema,
+    user        => $user,
+    base_url    => undef, # $self->base_url,
+    current_ids => [@ids],
+    columns     => [$columns->{string1}->id],
+);
+$alert_send->process;
+
+# We should now have 1000 new alerts to send
+is( $alerts_rs->count, $alert_count + 1000, "Correct number of bulk alerts inserted" );
 
 done_testing();

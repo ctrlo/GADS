@@ -43,6 +43,20 @@ has user => (
     required => 1,
 );
 
+has id => (
+    is      => 'rwp',
+    isa     => Int,
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        my ($alert) = $self->schema->resultset('Alert')->search({
+            view_id => $self->view_id,
+            user_id => $self->user->{id},
+        });
+        $alert->id;
+    },
+);
+
 has frequency => (
     is  => 'rw',
     isa => sub {
@@ -139,16 +153,17 @@ sub update_cache
         }
     }
 
-    # Only search for 1000 at a time, otherwise query is too large
+    # Only search for 300 at a time, otherwise query is too large
+    # (Sqlite has 1000 limit, this is 3 params times 300)
     my @existing; my $i = 0;
     while ($i < @caches)
     {
-        my $max = $i + 999;
+        my $max = $i + 299;
         $max = @caches-1 if $max >= @caches;
         push @existing, $self->schema->resultset('AlertCache')->search({
             -or => [@caches[$i..$max]]
         })->all;
-        $i += 1000;
+        $i += 300;
     }
 
     foreach (@existing)
@@ -208,6 +223,7 @@ sub write
             user_id   => $self->user->{id},
             frequency => $self->frequency,
         });
+        $self->_set_id($alert->id);
         $self->update_cache unless $exists;
     }
 }

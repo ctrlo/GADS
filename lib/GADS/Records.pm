@@ -465,16 +465,28 @@ sub search_views
     my $search       = {
         'me.instance_id' => $self->layout->instance_id,
     };
-    my $total_count = $self->schema->resultset('Current')->search({
-        instance_id => $self->layout->instance_id,
-        record_id   => { '!=' => undef } # Not sure why, but some IDs have no record. Bug?
-    })->count;
-    $search->{'me.id'} = $current_ids unless @$current_ids == $total_count; # Array ref
     $search->{'-or'} = \@search if @search;
 
-    $found_in_a_view ||= $self->schema->resultset('Current')->search($search,{
-        join     => {'record' => $joins},
-    })->count;
+    # Only search for 500 at a time, otherwise query is too large
+    my $i = 0;
+    while (!$found_in_a_view && $i < @$current_ids)
+    {
+        # If the number of current_ids that we have been given is the same as the
+        # number that exist in the database, then assume that we are searching
+        # all records. Therefore don't specify (the potentially thousands) current_ids.
+        unless (@$current_ids == $self->count)
+        {
+            my $max = $i + 499;
+            $max = @$current_ids-1 if $max >= @$current_ids;
+            $search->{'me.id'} = [@{$current_ids}[$i..$max]];
+        }
+        $found_in_a_view ||= $self->schema->resultset('Current')->search($search,{
+            rows => 1,
+            join => {'record' => $joins},
+        })->count;
+        last unless $search->{'me.id'};
+        $i += 500;
+    }
 
     my @foundin;
     if ($found_in_a_view)
@@ -487,14 +499,26 @@ sub search_views
             my $decoded = decode_json($filter);
             if (keys %$decoded)
             {
-                my @s = @{$self->_search_construct($decoded, $self->layout, 1)};
-                my @ids = $self->schema->resultset('Current')->search({
-                    'me.id'          => $current_ids, # Array ref
+                my $search = {
                     'me.instance_id' => $self->layout->instance_id,
-                    @s,
-                },{
-                    join     => {'record' => $joins},
-                })->get_column('id')->all;
+                    @{$self->_search_construct($decoded, $self->layout, 1)},
+                };
+                my $i = 0; my @ids;
+                while ($i < @$current_ids)
+                {
+                    # See comment above about searching for all current_ids
+                    unless (@$current_ids == $self->count)
+                    {
+                        my $max = $i + 499;
+                        $max = @$current_ids-1 if $max >= @$current_ids;
+                        $search->{'me.id'} = [@{$current_ids}[$i..$max]];
+                    }
+                    push @ids, $self->schema->resultset('Current')->search($search,{
+                        join => {'record' => $joins},
+                    })->get_column('id')->all;
+                    last unless $search->{'me.id'};
+                    $i += 500;
+                }
                 push @foundin, {
                     view => $view,
                     ids  => \@ids,
