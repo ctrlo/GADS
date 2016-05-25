@@ -72,7 +72,9 @@ sub cleanup
 }
 
 after 'write' => sub {
-    my $self = shift;
+    my ($self, %options) = @_;
+
+    my $no_alerts = $options{no_alerts};
 
     my $rag = {
         red   => $self->red,
@@ -82,7 +84,7 @@ after 'write' => sub {
     my ($ragr) = $self->schema->resultset('Rag')->search({
         layout_id => $self->id
     })->all;
-    my $need_update; my $no_alert_send;
+    my $need_update;
     if ($ragr)
     {
         # First see if the calculation has changed
@@ -95,7 +97,7 @@ after 'write' => sub {
         $rag->{layout_id} = $self->id;
         $self->schema->resultset('Rag')->create($rag);
         $need_update   = 1;
-        $no_alert_send = 1; # Don't alert on all new values
+        $no_alerts = 1; # Don't alert on all new values
     }
 
     if ($need_update)
@@ -108,7 +110,7 @@ after 'write' => sub {
                 if $self->green =~ $regex || $self->amber =~ $regex || $self->red =~ $regex;
         }
         $self->depends_on(\@depends_on);
-        $self->update_cached('Ragval', $no_alert_send);
+        $self->update_cached('Ragval', $no_alerts);
     }
 };
 

@@ -116,14 +116,16 @@ sub cleanup
 }
 
 after 'write' => sub {
-    my $self = shift;
+    my ($self, %options) = @_;
+
+    my $no_alerts = $options{no_alerts};
 
     # Existing calculation defined?
     my ($calcr) = $self->schema->resultset('Calc')->search({
         layout_id => $self->id,
     })->all;
 
-    my $need_update; my $no_alert_send; my $value_field_old;
+    my $need_update; my $value_field_old;
     if ($calcr)
     {
         $value_field_old = _format_to_field $calcr->return_format;
@@ -142,7 +144,7 @@ after 'write' => sub {
             return_format => $self->return_type,
         });
         $need_update   = 1;
-        $no_alert_send = 1; # Don't send alerts on all new values
+        $no_alerts = 1; # Don't send alerts on all new values
     }
 
     if ($need_update)
@@ -154,7 +156,7 @@ after 'write' => sub {
                 if $self->calc =~ $col->code_regex;
         }
         $self->depends_on(\@depends_on);
-        $self->update_cached('Calcval', $no_alert_send, $value_field_old);
+        $self->update_cached('Calcval', $no_alerts, $value_field_old);
     }
 };
 

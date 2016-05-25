@@ -1209,6 +1209,8 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             else {
                 $column->display_field(undef);
             }
+
+            my $no_alerts;
             if ($column->type eq "file")
             {
                 $column->filesize(param('filesize') || undef) if $column->type eq "file";
@@ -1219,6 +1221,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
                 $column->amber(param 'amber');
                 $column->green(param 'green');
                 $column->base_url(request->base); # For alerts
+                $no_alerts = param('no_alerts_rag');
             }
             elsif ($column->type eq "enum")
             {
@@ -1231,6 +1234,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
                 $column->calc(param 'calc');
                 $column->return_type(param 'return_type');
                 $column->base_url(request->base); # For alerts
+                $no_alerts = param('no_alerts_calc');
             }
             elsif ($column->type eq "tree")
             {
@@ -1249,7 +1253,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
                 $column->curval_field_ids($curval_field_ids);
             }
 
-            if (process( sub { $column->write }))
+            if (process( sub { $column->write(no_alerts => $no_alerts) }))
             {
                 my $action = param('id') ? 'updated' : 'created';
                 return forwardHome(
