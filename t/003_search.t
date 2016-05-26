@@ -215,6 +215,7 @@ foreach my $filter (@filters)
     );
 
     is( $records->count, $filter->{count}, "$filter->{name} for record count $filter->{count}");
+    is( @{$records->results}, $filter->{count}, "$filter->{name} actual records matches count $filter->{count}");
 }
 
 my $records = GADS::Records->new(
