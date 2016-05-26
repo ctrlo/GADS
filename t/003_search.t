@@ -18,22 +18,27 @@ my $data = [
         string1    => '',
         date1      => '',
         daterange1 => ['', ''],
+        enum1      => 1,
     },{
         string1    => '',
         date1      => '',
         daterange1 => ['', ''],
+        enum1      => 1,
     },{
         string1    => '',
         date1      => '2014-10-10',
         daterange1 => ['2014-03-21', '2015-03-01'],
+        enum1      => 1,
     },{
         string1    => 'Foo',
         date1      => '2014-10-10',
         daterange1 => ['2010-01-04', '2011-06-03'],
+        enum1      => 2,
     },{
         string1    => 'FooBar',
         date1      => '2015-10-10',
         daterange1 => ['2009-01-04', '2017-06-03'],
+        enum1      => 2,
     },{
         string1    => "${long}1",
     },{
@@ -172,6 +177,16 @@ my @filters = (
         condition => 'AND',
         count     => 1,
     },
+    {
+        name  => 'Search using enum with different tree in view',
+        rules => [{
+            id       => $columns->{enum1}->id,
+            type     => 'string',
+            value    => 'foo1',
+            operator => 'equal',
+        }],
+        count => 3,
+    },
 );
 
 foreach my $filter (@filters)
@@ -182,12 +197,15 @@ foreach my $filter (@filters)
     });
 
     my $view = GADS::View->new(
+        name        => 'Test view',
         filter      => $rules,
+        columns     => [$columns->{string1}->id, $columns->{tree1}->id],
         instance_id => 1,
         layout      => $layout,
         schema      => $schema,
         user        => undef,
     );
+    $view->write;
 
     my $records = GADS::Records->new(
         user    => undef,
@@ -208,7 +226,7 @@ my $records = GADS::Records->new(
 # Quick searches
 is (@{$records->search_all_fields('2014-10-10')}, 2, 'Quick search for 2014-10-10');
 is (@{$records->search_all_fields('Foo')}, 1, 'Quick search for foo');
-is (@{$records->search_all_fields('Foo*')}, 2, 'Quick search for foo*');
+is (@{$records->search_all_fields('Foo*')}, 5, 'Quick search for foo*');
 
 # Specific record retrieval
 my $record = GADS::Record->new(

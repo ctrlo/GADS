@@ -206,7 +206,11 @@ sub write
 {   my $self = shift;
 
     my $vu;
-    if ($self->global || $self->user->{permission}->{layout})
+    if (!$self->user) # Used during tests - no user
+    {
+        $vu->{global} = 1;
+    }
+    elsif ($self->global || $self->user->{permission}->{layout})
     {
         if ($self->global)
         {
