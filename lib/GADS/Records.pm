@@ -900,6 +900,8 @@ sub _build__query_params
         push @limit, @res if @res;
     }
 
+    my $user_sort = $self->sort; # Sort overriding view's sort
+
     # Now add all the filters as joins (we don't need to prefetch this data). However,
     # the filter might also be a column in the view from before, in which case add
     # it to, or use, the prefetch. We use the tracking variables from above.
@@ -921,7 +923,7 @@ sub _build__query_params
                 @search = @{$self->_search_construct($decoded, $layout)};
             }
         }
-        unless ($self->sort)
+        unless ($user_sort)
         {
             foreach my $sort (@{$view->sorts})
             {
@@ -966,10 +968,10 @@ sub _build__query_params
     # joins which will put the value_x columns out of kilter. A user selected
     # column will always be in a prefetch, so it's not possible for the reverse
     # to happen
-    if (my $sort = $self->sort)
+    if ($user_sort)
     {
         my @sorts;
-        foreach my $s (@$sort)
+        foreach my $s (@$user_sort)
         {
             my $type = $s->{type} && $s->{type} eq 'desc' ? '-desc' : '-asc';
             if (!$s->{id})
