@@ -99,8 +99,6 @@ sub _build_column
 sub _build_results
 {   my ($self, %options) = @_;
 
-    my $prefetches  = $self->prefetches;
-    my $joins       = $self->joins;
     my @group_by    = @{$self->group_by};
 
     # Work out the field name to select, and the appropriate aggregate function
@@ -114,24 +112,25 @@ sub _build_results
                : 'max';
         # Don't use SUM() for non-numeric columns
         $op = 'max' if $op eq 'sum' && !$_->numeric;
+        $self->add_join($_);
         push @select_fields, {
-            $op => $self->_fqvalue($_),
+            $op => $self->fqvalue($_),
             -as => $_->field
         };
         # Also add linked column if required
         push @select_fields, {
-            $op => $self->_fqvalue($_->link_parent),
+            $op => $self->fqvalue($_->link_parent),
             -as => $_->field."_link",
         } if $_->link_parent;
     };
 
     push @select_fields, {
-        $self->operator => $self->_fqvalue($self->column),
+        $self->operator => $self->fqvalue($self->column),
         -as             => $self->column->field."_".$self->{operator},
     } if $self->column;
 
     push @select_fields, {
-        $self->operator => $self->_fqvalue($self->column->link_parent),
+        $self->operator => $self->fqvalue($self->column->link_parent),
         -as             => $self->column->field."_".$self->{operator}."_link",
     } if $self->column && $self->column->link_parent;
 
@@ -161,7 +160,7 @@ sub _build_results
                 select => $select,
                 join   => [
                     {
-                        'record' => [@$prefetches, @$joins],
+                        'record' => [$self->all_joins],
                     },
                     $self->linked_hash,
                 ],
@@ -190,8 +189,8 @@ sub _build_results
             # The literal CASE statement, which we reuse for each required period
             my $from_field   = $self->schema->storage->dbh->quote_identifier('from');
             my $to_field     = $self->schema->storage->dbh->quote_identifier('to');
-            my $col_val      = $self->_fqvalue($self->column);
-            my $col_val_link = $self->column->link_parent && $self->_fqvalue($self->column->link_parent);
+            my $col_val      = $self->fqvalue($self->column);
+            my $col_val_link = $self->column->link_parent && $self->fqvalue($self->column->link_parent);
 
             my $case = $field_link
                 ? "CASE WHEN "
@@ -249,26 +248,26 @@ sub _build_results
         if (my $pluck = $_->{pluck}) {
 
             push @g, $self->schema->resultset('Current')->dt_SQL_pluck(
-                { -ident => $self->_fqvalue($col) }, 'year'
+                { -ident => $self->fqvalue($col) }, 'year'
             );
 
             push @g, $self->schema->resultset('Current')->dt_SQL_pluck(
-                { -ident => $self->_fqvalue($col) }, 'month'
+                { -ident => $self->fqvalue($col) }, 'month'
             ) if $pluck eq 'month' || $pluck eq 'day';
 
             push @g, $self->schema->resultset('Current')->dt_SQL_pluck(
-                { -ident => $self->_fqvalue($col) }, 'day_of_month'
+                { -ident => $self->fqvalue($col) }, 'day_of_month'
             ) if $pluck eq 'day';
 
         } else {
-            push @g, $self->_fqvalue($col);
+            push @g, $self->fqvalue($col);
         }
     };
     my $select = {
         select => [@select_fields],
         join     => [
             {
-                'record' => [@$joins, @$prefetches],
+                'record' => [$self->all_joins],
             },
             $self->linked_hash,
         ],

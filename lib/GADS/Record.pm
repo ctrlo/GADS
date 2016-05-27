@@ -387,15 +387,14 @@ sub _find
     $self->columns_retrieved_do($records->columns_retrieved_do);
     $self->columns_retrieved_no($records->columns_retrieved_no);
 
-    my $prefetches = $records->prefetches;
-    my $joins      = $records->joins;
-    my $search;
+    my $search     = $find{current_id} ? $records->search_query : $records->search_query(root_table => 'record');
+    my @prefetches = $records->prefetches;
+    my $joins      = [$records->joins];
 
     my $root_table;
     if (my $record_id = $find{record_id})
     {
-        $search = $records->search_query('record');
-        unshift @$prefetches, (
+        unshift @prefetches, (
             {
                 'current' => $records->linked_hash
             },
@@ -407,16 +406,15 @@ sub _find
     }
     elsif (my $current_id = $find{current_id})
     {
-        $search = $records->search_query;
         push @$search, {"me.id" => $current_id};
-        unshift @$prefetches, ('current', 'createdby', 'approvedby'); # Add info about related current record
-        $prefetches = [
+        unshift @prefetches, ('current', 'createdby', 'approvedby'); # Add info about related current record
+        @prefetches = (
             $records->linked_hash,
             'currents',
             {
-                'record' => $prefetches,
+                'record' => [@prefetches],
             },
-        ];
+        );
         $joins      = {'record' => $joins};
         $root_table = 'Current';
     }
@@ -429,7 +427,7 @@ sub _find
             -and => $search
         ],
         {
-            prefetch => $prefetches,
+            prefetch => [@prefetches],
             join     => $joins,
         },
     );

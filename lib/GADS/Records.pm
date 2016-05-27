@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Records;
 
-use Data::Compare;
 use DateTime;
 use DateTime::Format::Strptime qw( );
 use DBIx::Class::ResultClass::HashRefInflator;
@@ -32,6 +31,8 @@ use Scalar::Util qw(looks_like_number);
 use Text::CSV::Encoded;
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
+
+with 'GADS::RecordsJoin';
 
 # Preferably this is passed in to prevent extra
 # DB reads, but loads it if it isn't
@@ -174,67 +175,36 @@ has current_ids => (
     isa => Maybe[ArrayRef],
 );
 
-has prefetches => (
+# The standard search parameters for a query
+has search_params => (
     is  => 'lazy',
     isa => ArrayRef,
 );
 
-sub _build_prefetches
+sub _build_search_params
 {   my $self = shift;
-    my $prefetches = $self->_query_params->{prefetches};
-    unshift @$prefetches, ('current', 'createdby', 'approvedby');
-    $prefetches;
+    $self->_query_params->{search_params};
 }
 
-has joins => (
+# The same as search_params, but for a query without a prefetch. This
+# results in differently numbered joined tables
+has search_params_noprefetch => (
     is  => 'lazy',
     isa => ArrayRef,
 );
 
-sub _build_joins
+sub _build_search_params_noprefetch
 {   my $self = shift;
-    $self->_query_params->{joins};
+    $self->_query_params->{search_params_noprefetch};
 }
 
-# Same as prefetches, but linked fields
-has linked_prefetches => (
-    is  => 'lazy',
-    isa => ArrayRef,
-);
-
-sub _build_linked_prefetches
-{   my $self = shift;
-    $self->_query_params->{linked_prefetches};
-}
-
-has linked_joins => (
-    is  => 'lazy',
-    isa => ArrayRef,
-);
-
-sub _build_linked_joins
-{   my $self = shift;
-    $self->_query_params->{linked_joins};
-}
-
-# Additional limiting conditions to be added to the main query.
-has search_limit => (
-    is  => 'lazy',
-    isa => ArrayRef,
-);
-
-sub _build_search_limit
-{   my $self = shift;
-    $self->_query_params->{search_limit};
-}
-
-# Produce the overall search condition array, combining the above 2.
+# Produce the overall search condition array
 sub search_query
-{   my ($self, $root_table) = @_;
-    my @search = @{$self->search_limit};
-    $root_table ||= 'current';
-    my $current = $root_table eq 'current' ? 'me' : 'current';
-    my $record  = $root_table eq 'record'  ? 'me' : 'record';
+{   my ($self, %options) = @_;
+    my @search     = $options{noprefetch} ? @{$self->search_params_noprefetch} : @{$self->search_params};
+    my $root_table = $options{root_table} || 'current';
+    my $current    = $root_table eq 'current' ? 'me' : 'current';
+    my $record     = $root_table eq 'record'  ? 'me' : 'record';
     unless ($self->include_approval)
     {
         # There is a chance that there will be no approval records. In that case,
@@ -256,19 +226,6 @@ sub search_query
     push @search, { "$current.instance_id" => $self->layout->instance_id };
     [@search];
 }
-
-has _jp_store => (
-    is => 'ro',
-    isa => HashRef,
-    default => sub {
-        +{
-            joins             => [],
-            prefetches        => [],
-            linked_joins      => [],
-            linked_prefetches => [],
-        };
-    },
-);
 
 has plus_select => (
     is      => 'rw',
@@ -333,82 +290,21 @@ sub _default_sort
     }
 }
 
-sub _add_jp
-{   my ($self, $toadd, $type) = @_;
-
-    my $jp_store          = $self->_jp_store;
-    my $prefetches        = $jp_store->{prefetches};
-    my $joins             = $jp_store->{joins};
-    my $linked_prefetches = $jp_store->{linked_prefetches};
-    my $linked_joins      = $jp_store->{linked_joins};
-
-    # Process a join, prefetch or linked field. We see if we've already done it
-    # first before adding. If the join criteria is a hash (ie joining a field
-    # and then a value table), then we count the number of value joins, as
-    # these will subsequently be labelled _2 etc. In this case, we return index
-    # number.
-    my %found; my $key;
-    ($key) = keys %$toadd if ref $toadd eq 'HASH';
-    foreach my $j (@$joins, @$prefetches, @$linked_joins, @$linked_prefetches)
-    {
-        if ($key && ref $j eq 'HASH')
-        {
-            $found{$key}++;
-            return $found{$key} if Compare $toadd, $j;
-        }
-        elsif ($toadd eq $j)
-        {
-            return 1;
-        }
-    }
-
-    if ($type eq 'join')
-    {
-        push @$joins, $toadd;
-    }
-    elsif ($type eq 'prefetch')
-    {
-        push @$prefetches, $toadd;
-    }
-    elsif ($type eq 'linked_join')
-    {
-        push @$linked_joins, $toadd;
-    }
-    elsif ($type eq 'linked_prefetch')
-    {
-        push @$linked_prefetches, $toadd;
-    }
-    $found{$key}++ if $key;
-    return $key ? $found{$key} : 1;
-}
-
-sub _add_prefetch
-{   my $self = shift;
-    $self->_add_jp(@_, 'prefetch');
-}
-
-sub _add_join
-{   my $self = shift;
-    $self->_add_jp(@_, 'join');
-}
-
-sub _add_linked_prefetch
-{   my $self = shift;
-    $self->_add_jp(@_, 'linked_prefetch');
-}
-
-sub _add_linked_join
-{   my $self = shift;
-    $self->_add_jp(@_, 'linked_join');
-}
-
 # Shortcut to generate the required joining hash for a DBIC search
 sub linked_hash
-{   my ($self, $type) = @_;
+{   my ($self, %options) = @_;
     # Empty type is both
+    my $type        = $options{type};
+    my $search_only = $options{search_only};
     my @tables;
-    push @tables, @{$self->linked_joins} if !$type || $type eq 'join';
-    push @tables, @{$self->linked_prefetches} if !$type || $type eq 'prefetch';
+    if ($options{search_only})
+    {
+        push @tables, $self->joins_linked_search if !$type || $type eq 'join';
+    }
+    else {
+        push @tables, $self->joins_linked if !$type || $type eq 'join';
+    }
+    push @tables, $self->prefetches_linked if !$type || $type eq 'prefetch';
     if (@tables)
     {
         {
@@ -449,7 +345,7 @@ sub search_views
         # XXX Do not send alerts for hidden fields
         if (keys %$decoded)
         {
-            my @s = @{$self->_search_construct($decoded, $self->layout, 1)};
+            my @s = @{$self->_search_construct($decoded, $self->layout, ignore_perms => 1)};
             push @search, \@s;
         }
         else {
@@ -459,8 +355,6 @@ sub search_views
             last;
         }
     }
-
-    my $joins = $self->joins;
 
     my $search       = {
         'me.instance_id' => $self->layout->instance_id,
@@ -482,7 +376,7 @@ sub search_views
         }
         $found_in_a_view ||= $self->schema->resultset('Current')->search($search,{
             rows => 1,
-            join => {'record' => $joins},
+            join => {'record' => [$self->joins]},
         })->count;
         last unless $search->{'me.id'};
         $i += 500;
@@ -501,7 +395,7 @@ sub search_views
             {
                 my $search = {
                     'me.instance_id' => $self->layout->instance_id,
-                    @{$self->_search_construct($decoded, $self->layout, 1)},
+                    @{$self->_search_construct($decoded, $self->layout, ignore_perms => 1)},
                 };
                 my $i = 0; my @ids;
                 while ($i < @$current_ids)
@@ -514,7 +408,7 @@ sub search_views
                         $search->{'me.id'} = [@{$current_ids}[$i..$max]];
                     }
                     push @ids, $self->schema->resultset('Current')->search($search,{
-                        join => {'record' => $joins},
+                        join => {'record' => [$self->joins]},
                     })->get_column('id')->all;
                     last unless $search->{'me.id'};
                     $i += 500;
@@ -683,24 +577,25 @@ sub _build_results
     # XXX Okay, this is a bit weird - we join current to record to current.
     # This is because we return records at the end, and it allows current
     # to be used when the record is used. Is there a better way?
-    my $prefetches      = $self->prefetches;
-    my $joins           = $self->joins;
-    my $linked_join     = $self->linked_hash('join');
-    my $linked_prefetch = $self->linked_hash('prefetch');
-    my $currents = $self->prefetch_children ? { currents => {record => $prefetches} } : 'currents';
+    my $search_query    = $self->search_query; # Need to call first to build joins
+    my @prefetches      = $self->prefetches;
+    my @joins           = $self->joins;
+    my @linked_join     = $self->linked_hash(type => 'join');
+    my @linked_prefetch = $self->linked_hash(type => 'prefetch');
+    my $currents = $self->prefetch_children ? { currents => {record => [@prefetches]} } : 'currents';
     my $select = {
         prefetch => [
             {
-                'record' => $prefetches
+                'record' => [@prefetches],
             },
             $currents,
-            $linked_prefetch,
+            [@linked_prefetch],
         ],
         join     => [
             {
-                'record' => $joins
+                'record' => [@joins],
             },
-            $linked_join,
+            [@linked_join],
         ],
         '+select' => $self->plus_select, # Used for additional sort columns
         order_by  => $self->order_by,
@@ -714,7 +609,7 @@ sub _build_results
     $select->{rows} = $self->rows if $self->rows;
     $select->{page} = $page if $page;
     my $result = $self->schema->resultset('Current')->search(
-        [-and => $self->search_query], $select
+        [-and => $search_query], $select
     );
 
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
@@ -769,33 +664,31 @@ sub single
 sub _build_count
 {   my $self = shift;
 
-    my $prefetches  = $self->prefetches;
-    my $joins       = $self->joins;
-    my $linked      = $self->linked_hash;
+    my $search_query = $self->search_query(noprefetch => 1);
+    my @joins        = $self->joins_search;
+    my @linked       = $self->linked_hash(search_only => 1);
     my $select = {
         join     => [
             {
-                'record' => [@$prefetches, @$joins],
+                'record' => [@joins],
             },
-            $linked,
+            [@linked],
         ],
     };
 
     $self->schema->resultset('Current')->search(
-        [-and => $self->search_query], $select
+        [-and => $search_query], $select
     )->count;
 }
 
 sub _build_has_children
 {   my $self = shift;
 
-    my $prefetches  = $self->prefetches;
-    my $joins       = $self->joins;
     my $linked      = $self->linked_hash;
     my $select = {
         join     => [
             {
-                'record' => [@$prefetches, @$joins],
+                'record' => [$self->all_joins],
             },
             $linked,
         ],
@@ -887,8 +780,8 @@ sub _build__query_params
             } if @f;
         }
         # We're viewing this, so prefetch all the values
-        $self->_add_prefetch($c->join);
-        $self->_add_linked_prefetch($c->link_parent->join) if $c->link_parent;
+        $self->add_prefetch($c);
+        $self->add_linked_prefetch($c->link_parent) if $c->link_parent;
     }
 
     my @limit; # The overall limit, for example reduction by date range or approval field
@@ -906,6 +799,7 @@ sub _build__query_params
     # the filter might also be a column in the view from before, in which case add
     # it to, or use, the prefetch. We use the tracking variables from above.
     my @search;     # The user search
+    my @search_noprefetch;
     if (my $view = $self->view)
     {
         # Apply view filter, but not if specific current IDs set (as when quick search is used)
@@ -920,7 +814,8 @@ sub _build__query_params
             {
                 $self->_search_construct($decoded, $layout);
                 # Get the user search criteria
-                @search = @{$self->_search_construct($decoded, $layout)};
+                @search            = @{$self->_search_construct($decoded, $layout)};
+                @search_noprefetch = @{$self->_search_construct($decoded, $layout, noprefetch => 1)};
             }
         }
         unless ($user_sort)
@@ -960,6 +855,7 @@ sub _build__query_params
                 $self->_search_construct($decoded, $layout);
                 # Get the user search criteria
                 push @search, @{$self->_search_construct($decoded, $layout)};
+                push @search_noprefetch, @{$self->_search_construct($decoded, $layout, noprefetch => 1)};
             }
         }
     }
@@ -1006,42 +902,17 @@ sub _build__query_params
         }
     }
 
-    my $jp_store = $self->_jp_store;
     +{
-        search_limit      => [@limit, @search],
-        joins             => $jp_store->{joins},
-        prefetches        => $jp_store->{prefetches},
-        linked_joins      => $jp_store->{linked_joins},
-        linked_prefetches => $jp_store->{linked_prefetches},
+        search_params            => [@limit, @search],
+        search_params_noprefetch => [@limit, @search_noprefetch],
     };
 }
-
-sub _table_name
-{   my ($self, $column) = @_;
-    my $jn = $self->_add_join ($column->join);
-    my $index = $jn > 1 ? "_$jn" : '';
-    $column->sprefix . $index;
-}
-
-sub _table_name_linked
-{   my ($self, $column) = @_;
-    my $jn = $self->_add_linked_join ($column->join);
-    my $index = $jn > 1 ? "_$jn" : '';
-    $column->sprefix . $index;
-}
-
-# Return a fully-qualified value field for a table
-sub _fqvalue
-{   my ($self, $column) = @_;
-    my $tn = $self->_table_name($column);
-    "$tn." . $column->value_field;
-}
-
 
 sub add_sort
 {   my ($self, $column, $type) = @_;
 
-    my $s_table = $self->_table_name($column);
+    $self->add_join($column);
+    my $s_table = $self->table_name($column);
     $self->order_by_inc;
     my $sort_name = "sort_".$self->order_by_count;
     if ($column->link_parent)
@@ -1049,7 +920,7 @@ sub add_sort
         push @{$self->plus_select}, {
             concat => [
                 "$s_table.".$column->value_field,
-                $self->_table_name_linked($column->link_parent).".".$column->value_field,
+                $self->table_name_linked($column->link_parent).".".$column->value_field,
             ],
             -as    => $sort_name,
         };
@@ -1067,15 +938,16 @@ sub add_sort
 # we want to process columns that the user doesn't have access to
 # for things like alerts, but not for their normal viewing.
 sub _search_construct
-{   my ($self, $filter, $layout, $ignore_perms) = @_;
+{   my ($self, $filter, $layout, %options) = @_;
 
+    my $ignore_perms = $options{ignore_perms};
     if (my $rules = $filter->{rules})
     {
         # Filter has other nested filters
         my @final;
         foreach my $rule (@$rules)
         {
-            my @res = $self->_search_construct($rule, $layout, $ignore_perms);
+            my @res = $self->_search_construct($rule, $layout, %options);
             push @final, @res if @res;
         }
         my $condition = $filter->{condition} && $filter->{condition} eq 'OR' ? '-or' : '-and';
@@ -1101,7 +973,8 @@ sub _search_construct
     my $operator = $ops{$filter->{operator}}
         or error __x"Invalid operator {filter}", filter => $filter->{operator};
 
-    my $s_table = $self->_table_name($column);
+    $self->add_join($column, search => 1);
+    my $s_table = $self->table_name($column, search_only => $options{noprefetch});
 
     my @conditions;
     if ($column->type eq "daterange")
@@ -1214,7 +1087,8 @@ sub _search_construct
             # XXX Repeated above
             my $sq = {$_->{operator} => $_->{value} || $value};
             $sq = [ $sq, undef ] if $filter->{operator} eq 'not_equal';
-            +( $self->_table_name_linked($column->link_parent).".$_->{s_field}" => $sq );
+            $self->add_join($column->link_parent, linked => 1, search => 1);
+            +( $self->table_name($column->link_parent).".$_->{s_field}" => $sq );
         } @conditions;
         @final2 = ('-and' => [@final2]);
         @final = (['-or' => [@final], [@final2]]);
