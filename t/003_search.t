@@ -239,4 +239,64 @@ is( $record->find_record_id(1)->record_id, 1, "Retrieved history record ID 1" );
 $record->clear;
 is( $record->find_current_id(1)->current_id, 1, "Retrieved current ID 1" );
 
+# Check sorting functionality
+my @sorts = (
+    {
+        name         => 'Sort by single column in view ascending',
+        show_columns => [$columns->{string1}->id, $columns->{enum1}->id],
+        sort_by      => [$columns->{enum1}->id],
+        sort_type    => ['asc'],
+        first        => qr/^(6|7)$/,
+        last         => qr/^(4|5)$/,
+    },
+    {
+        name         => 'Sort by single column not in view ascending',
+        show_columns => [$columns->{string1}->id, $columns->{tree1}->id],
+        sort_by      => [$columns->{enum1}->id],
+        sort_type    => ['asc'],
+        first        => qr/^(6|7)$/,
+        last         => qr/^(4|5)$/,
+    },
+    {
+        name         => 'Sort by single column not in view descending',
+        show_columns => [$columns->{string1}->id, $columns->{tree1}->id],
+        sort_by      => [$columns->{enum1}->id],
+        sort_type    => ['desc'],
+        first        => qr/^(4|5)$/,
+        last         => qr/^(6|7)$/,
+    },
+    {
+        name         => 'Sort by two columns, one in view one not in view, asc then desc',
+        show_columns => [$columns->{string1}->id, $columns->{tree1}->id],
+        sort_by      => [$columns->{enum1}->id, $columns->{daterange1}->id],
+        sort_type    => ['asc', 'desc'],
+        first        => qr/^(6|7)$/,
+        last         => qr/^(5)$/,
+    },
+);
+
+foreach my $sort (@sorts)
+{
+    my $view = GADS::View->new(
+        name        => 'Test view',
+        columns     => $sort->{show_columns},
+        instance_id => 1,
+        layout      => $layout,
+        schema      => $schema,
+        user        => undef,
+    );
+    $view->write;
+    $view->set_sorts($sort->{sort_by}, $sort->{sort_type});
+
+    $records = GADS::Records->new(
+        user    => undef,
+        view    => $view,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    like( $records->results->[0]->current_id, $sort->{first}, "Correct first record for sort $sort->{name}");
+    like( $records->results->[-1]->current_id, $sort->{last}, "Correct last record for sort $sort->{name}");
+}
+
 done_testing();

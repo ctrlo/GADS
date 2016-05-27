@@ -59,6 +59,7 @@ has layout => (
 has _view => (
     is      => 'rw',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
         $self->schema or return;
@@ -455,6 +456,7 @@ sub set_sorts
         my $s = $schema->resultset('Sort')->create($sort);
         push @allsorts, $s->id;
     }
+    $self->_clear_view;
     $self->sorts($self->_get_sorts);
 }
 
