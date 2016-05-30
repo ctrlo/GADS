@@ -153,18 +153,9 @@ sub update_cache
         }
     }
 
-    # Only search for 300 at a time, otherwise query is too large
-    # (Sqlite has 1000 limit, this is 3 params times 300)
-    my @existing; my $i = 0;
-    while ($i < @caches)
-    {
-        my $max = $i + 299;
-        $max = @caches-1 if $max >= @caches;
-        push @existing, $self->schema->resultset('AlertCache')->search({
-            -or => [@caches[$i..$max]]
-        })->all;
-        $i += 300;
-    }
+    my @existing = $self->schema->resultset('AlertCache')->search({
+        view_id => $view_id,
+    })->all;
 
     foreach (@existing)
     {
