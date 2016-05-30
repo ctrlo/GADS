@@ -139,9 +139,9 @@ sub update_cache
 
     my $view_id = $self->view_id;
     my @caches; my $cache;
-    foreach my $result (@{$records->results})
+    while (my $record = $records->single)
     {
-        my $current_id = $result->current_id;
+        my $current_id = $record->current_id;
         foreach my $column (@{$view->columns})
         {
             push @caches, {
