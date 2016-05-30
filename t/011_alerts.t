@@ -226,6 +226,96 @@ foreach my $filter (@filters)
     is( $alert_finish, $alert_start + $filter->{alerts}, "Correct number of alerts queued to be sent for filter: $filter->{name}" );
 }
 
+# Test updates of views
+$data = [
+    {
+        string1 => 'Foo',
+        date1   => '2014-10-10',
+    },
+    {
+        string1 => 'Foo',
+        date1   => '2014-10-10',
+    },
+    {
+        string1 => 'Foo',
+        date1   => '2014-10-10',
+    },
+    {
+        string1 => 'Foo',
+        date1   => '2014-10-10',
+    },
+    {
+        string1 => 'Foo',
+        date1   => '2014-10-10',
+    },
+    {
+        string1 => 'Bar',
+        date1   => '2014-10-10',
+    },
+    {
+        string1 => 'Bar',
+        date1   => '2014-10-10',
+    },
+];
+
+$sheet = t::lib::DataSheet->new(data => $data);
+$schema = $sheet->schema;
+$layout = $sheet->layout;
+$columns = $sheet->columns;
+$sheet->create_records;
+
+# First create a view with no filter
+$schema->resultset('User')->create({
+    id       => 1,
+    username => 'user1@example.com',
+    email    => 'user1@example.com',
+});
+
+my $view = GADS::View->new(
+    name        => 'view1',
+    instance_id => 1,
+    layout      => $layout,
+    schema      => $schema,
+    user        => $user,
+    columns     => [$columns->{date1}->id],
+);
+$view->write;
+
+my $alert = GADS::Alert->new(
+    user      => $user,
+    layout    => $layout,
+    schema    => $schema,
+    frequency => 24,
+    view_id   => $view->id,
+);
+$alert->write;
+
+is( $schema->resultset('AlertCache')->count, 7, "Correct number of alerts inserted" );
+
+# Add a column, check alert cache
+$view->columns([$columns->{string1}->id, $columns->{date1}->id]);
+$view->write;
+is( $schema->resultset('AlertCache')->count, 14, "Correct number of alerts for column addition" );
+
+# Remove a column, check alert cache
+$view->columns([$columns->{string1}->id]);
+$view->write;
+is( $schema->resultset('AlertCache')->count, 7, "Correct number of alerts for column removal" );
+
+# Add a filter to the view, alert cache should be updated
+my $rules = {
+    rules     => [{
+        id       => $columns->{string1}->id,
+        type     => 'string',
+        value    => 'Foo',
+        operator => 'equal',
+    }],
+};
+
+$view->filter(encode_json($rules));
+$view->write;
+is( $schema->resultset('AlertCache')->count, 5, "Correct number of alerts after view updated" );
+
 # Test some bulk alerts, which normally happen on code field updates
 diag "About to test alerts for bulk updates. This could take some time...";
 
@@ -254,7 +344,7 @@ $schema->resultset('User')->create({
     email    => 'user1@example.com',
 });
 
-my $rules = {
+$rules = {
     rules     => [{
         id       => $columns->{string1}->id,
         type     => 'string',
@@ -263,7 +353,7 @@ my $rules = {
     }],
 };
 
-my $view = GADS::View->new(
+$view = GADS::View->new(
     name        => 'view1',
     filter      => encode_json($rules),
     instance_id => 1,
@@ -274,7 +364,7 @@ my $view = GADS::View->new(
 );
 $view->write;
 
-my $alert = GADS::Alert->new(
+$alert = GADS::Alert->new(
     user      => $user,
     layout    => $layout,
     schema    => $schema,

@@ -289,7 +289,9 @@ sub write
         }
     }
     else {
-        $self->id($self->schema->resultset('View')->create($vu)->id);
+        my $rset = $self->schema->resultset('View')->create($vu);
+        $self->_view($rset);
+        $self->id($rset->id);
     }
 
     my $schema = $self->schema;
