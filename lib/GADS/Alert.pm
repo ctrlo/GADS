@@ -118,63 +118,136 @@ has all => (
     },
 );
 
-sub update_cache
+has view => (
+    is => 'lazy',
+);
+
+sub _build_view
 {   my $self = shift;
-
-    my $guard = $self->schema->txn_scope_guard;
-
     my $views   = GADS::Views->new(
-        user        => $self->user,
+        # Current user may not have access to all fields in view,
+        # permissions are managed when sending the alerts
+        user        => undef,
         schema      => $self->schema,
         layout      => $self->layout,
         instance_id => $self->layout->instance_id,
     );
-    my $view    = $views->view($self->view_id);
-    my $records = GADS::Records->new(
-        user   => $self->user,
-        layout => $self->layout,
-        schema => $self->schema,
-        view   => $view,
-    );
+    $views->view($self->view_id);
+}
 
-    my $view_id = $self->view_id;
-    my @caches; my $cache;
-    while (my $record = $records->single)
+sub update_cache
+{   my ($self, %options) = @_;
+
+    my $guard = $self->schema->txn_scope_guard;
+
+    my $view = $self->view;
+
+    # If the view contains a CURUSER filter, we need separate
+    # alert caches for each user that has this alert. Only need
+    # to worry about this if all_users flag is set
+    my @users = $view->has_curuser && $options{all_users}
+        ? $self->schema->resultset('Alert')->search({
+            view_id => $view->id
+        }, {
+            prefetch => 'user'
+        })->all : ($self->user);
+    # @users contains hashref or DBIx class object, convert
+    @users = map { ref $_ && ref $_ ne 'HASH' ? +{ id => $_->user->id, value => $_->user->value } : $_ } @users;
+
+    foreach my $user (@users)
     {
-        my $current_id = $record->current_id;
-        foreach my $column (@{$view->columns})
+        my $u = $view->has_curuser && $user;
+
+        my $records = GADS::Records->new(
+            # We generally want to generate a view's alert_cache without user
+            # defined permissions limiting it, otherwise multiple users on a
+            # single global view will have different things to alert on.
+            # The only exception is when the view has a CURUSER, in which
+            # case we generate them individually.
+            user   => $u,
+            layout => $self->layout,
+            schema => $self->schema,
+            view   => $view,
+        );
+
+        my @caches; my $cache;
+        my $user_id = $view->has_curuser ? $u->{id} : undef;
+
+        while (my $record = $records->single)
         {
-            push @caches, {
-                layout_id  => $column,
-                view_id    => $view_id,
-                current_id => $current_id,
-            };
-            $cache->{$view_id}->{$column}->{$current_id} = undef;
+            my $current_id = $record->current_id;
+            foreach my $column (@{$view->columns})
+            {
+                my $a = {
+                    layout_id  => $column,
+                    view_id    => $view->id,
+                    current_id => $current_id,
+                    user_id    => $user_id,
+                };
+                push @caches, $a;
+                $cache->{$view->id}->{$column}->{$current_id} = 1;
+            }
         }
+
+        my @existing = $self->schema->resultset('AlertCache')->search({
+            view_id => $view->id,
+            user_id => $user_id,
+        });
+
+        foreach (@existing)
+        {
+            if ($cache->{$_->view_id}->{$_->layout_id}->{$_->current_id})
+            {
+                delete $cache->{$_->view_id}->{$_->layout_id}->{$_->current_id};
+            }
+            else {
+                $_->delete;
+            }
+        }
+
+        my @towrite;
+        foreach (@caches)
+        {
+            push @towrite, $_
+                if $cache->{$_->{view_id}}->{$_->{layout_id}}->{$_->{current_id}};
+        }
+        $self->schema->resultset('AlertCache')->populate(\@towrite);
+
     }
 
-    my @existing = $self->schema->resultset('AlertCache')->search({
-        view_id => $view_id,
-    })->all;
-
-    foreach (@existing)
+    # Now delete any alerts that should not be there that are applicable to our update
+    if ($view->has_curuser && !$options{all_users})
     {
-        if (exists $cache->{$_->view_id}->{$_->layout_id}->{$_->current_id})
+        # Possibly just changed to curuser, cleanup any
+        # undef user rows from previous alert
+        $self->schema->resultset('AlertCache')->search({
+            view_id => $view->id,
+            user_id => undef,
+        })->delete;
+    }
+    else {
+        # Cleanup any user_id alerts for users that no longer have this alert
+        $self->schema->resultset('AlertCache')->search({
+            view_id => $view->id,
+            user_id => [ '-and', [map { +{ '!=' => $_->{id} } } @users] ],
+        })->delete;
+        if ($view->has_curuser)
         {
-            delete $cache->{$_->view_id}->{$_->layout_id}->{$_->current_id};
+            # Cleanup null user_id alerts for curuser alert
+            $self->schema->resultset('AlertCache')->search({
+                view_id => $view->id,
+                user_id => undef,
+            })->delete;
         }
         else {
-            $_->delete;
+            # Cleanup specific user_id alerts for (now) non-curuser alert
+            $self->schema->resultset('AlertCache')->search({
+                view_id => $view->id,
+                user_id => { '!=' => undef },
+            })->delete;
         }
     }
 
-    my @towrite;
-    foreach (@caches)
-    {
-        push @towrite, $_
-            if exists $cache->{$_->{view_id}}->{$_->{layout_id}}->{$_->{current_id}};
-    }
-    $self->schema->resultset('AlertCache')->populate(\@towrite);
     $guard->commit;
 }
 
@@ -206,7 +279,7 @@ sub write
     }
     elsif(defined $self->frequency) {
         # Check whether this view already has alerts. No need for another
-        # cache if so.
+        # cache if so, unless view contains CURUSER
         my $exists = $self->schema->resultset('Alert')->search({ view_id => $self->view_id })->count;
 
         my $alert = $self->schema->resultset('Alert')->create({
@@ -215,7 +288,7 @@ sub write
             frequency => $self->frequency,
         });
         $self->_set_id($alert->id);
-        $self->update_cache unless $exists;
+        $self->update_cache if !$exists || $self->view->has_curuser;
     }
 }
 

@@ -42,7 +42,7 @@ is (scalar @values, 1, "Typeahead returned correct number of results");
 my ($value) = @values;
 is (ref $value, 'HASH', "Typeahead returns hashref for curval");
 is ($value->{id}, 2, "Typeahead result has correct ID");
-is ($value->{name}, "Bar, 99, , , 2009-01-02, 2008-05-04 to 2008-07-14, , b_red, ", "Typeahead returned correct values");
+is ($value->{name}, "Bar, 99, , , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, ", "Typeahead returned correct values");
 @values = $column->values_beginning_with('foo');
 is (scalar @values, 1, "Typeahead returned correct number of results");
 

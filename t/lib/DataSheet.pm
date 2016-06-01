@@ -5,10 +5,12 @@ use warnings;
 
 use JSON qw(encode_json);
 use Log::Report;
+use GADS::Group;
 use GADS::Layout;
 use GADS::Record;
 use GADS::Schema;
 use Moo;
+use MooX::Types::MooseLike::Base qw(:all);
 
 has data => (
     is      => 'rw',
@@ -42,6 +44,16 @@ has instance_id => (
 has layout => (
     is      => 'lazy',
     clearer => 1,
+);
+
+has no_groups => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
+has group => (
+    is => 'lazy',
 );
 
 has columns => (
@@ -84,11 +96,22 @@ sub _build_layout
     );
 }
 
+sub _build_group
+{   my $self = shift;
+    return if $self->no_groups;
+    my $group  = GADS::Group->new(schema => $self->schema);
+    $group->from_id;
+    $group->name('group1');
+    $group->write;
+    $group;
+}
+
 sub _build_columns
 {   my $self = shift;
 
-    my $schema = $self->schema;
-    my $layout = $self->layout;
+    my $schema      = $self->schema;
+    my $layout      = $self->layout;
+    my $permissions = [qw/read/];
 
     my $columns = {};
 
@@ -105,6 +128,8 @@ sub _build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
+    $string1->set_permissions($self->group->id, $permissions)
+        unless $self->no_groups;
 
     my $integer1 = GADS::Column::Intgr->new(
         schema => $schema,
@@ -119,6 +144,8 @@ sub _build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
+    $integer1->set_permissions($self->group->id, $permissions)
+        unless $self->no_groups;
 
     my $enum1 = GADS::Column::Enum->new(
         schema => $schema,
@@ -144,6 +171,8 @@ sub _build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
+    $enum1->set_permissions($self->group->id, $permissions)
+        unless $self->no_groups;
 
     my $tree1 = GADS::Column::Tree->new(
         schema => $schema,
@@ -185,6 +214,8 @@ sub _build_columns
         layout => $layout,
     );
     $tree1->from_id($tree_id);
+    $tree1->set_permissions($self->group->id, $permissions)
+        unless $self->no_groups;
 
     my $date1 = GADS::Column::Date->new(
         schema => $schema,
@@ -199,6 +230,8 @@ sub _build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
+    $date1->set_permissions($self->group->id, $permissions)
+        unless $self->no_groups;
 
     my $daterange1 = GADS::Column::Daterange->new(
         schema => $schema,
@@ -213,6 +246,8 @@ sub _build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
+    $daterange1->set_permissions($self->group->id, $permissions)
+        unless $self->no_groups;
 
     my $file1 = GADS::Column::File->new(
         schema => $schema,
@@ -227,6 +262,24 @@ sub _build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
+    $file1->set_permissions($self->group->id, $permissions)
+        unless $self->no_groups;
+
+    my $person1 = GADS::Column::Person->new(
+        schema => $schema,
+        user   => undef,
+        layout => $layout,
+    );
+    $person1->type('person');
+    $person1->name('person1');
+    try { $person1->write };
+    if ($@)
+    {
+        $@->wasFatal->throw(is_fatal => 0);
+        return;
+    }
+    $person1->set_permissions($self->group->id, $permissions)
+        unless $self->no_groups;
 
     my $curval1;
     if ($self->curval)
@@ -254,6 +307,8 @@ sub _build_columns
             $@->wasFatal->throw(is_fatal => 0);
             return;
         }
+        $curval1->set_permissions($self->group->id, $permissions)
+            unless $self->no_groups;
     }
 
     my $rag1 = GADS::Column::Rag->new(
@@ -272,6 +327,8 @@ sub _build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
+    $rag1->set_permissions($self->group->id, $permissions)
+        unless $self->no_groups;
     $self->clear_layout;
     $layout = $self->layout;
     my $calc1 = GADS::Column::Calc->new(
@@ -289,6 +346,8 @@ sub _build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
+    $calc1->set_permissions($self->group->id, $permissions)
+        unless $self->no_groups;
 
 
     # Only add the columns now to the columns hash, as this will lazily build
@@ -306,6 +365,7 @@ sub _build_columns
     $columns->{calc1}      = $layout->column($calc1->id);
     $columns->{rag1}       = $layout->column($rag1->id);
     $columns->{file1}      = $layout->column($file1->id);
+    $columns->{person1}    = $layout->column($person1->id);
     $columns;
 }
 
@@ -331,6 +391,19 @@ sub create_records
         $record->fields->{$columns->{tree1}->id}->set_value($datum->{tree1});
         $record->fields->{$columns->{date1}->id}->set_value($datum->{date1});
         $record->fields->{$columns->{daterange1}->id}->set_value($datum->{daterange1});
+        # Create users on the fly as required
+        if ($datum->{person1} && !$self->schema->resultset('User')->find($datum->{person1}))
+        {
+            my $user_id = $datum->{person1};
+            $self->schema->resultset('User')->find_or_create({
+                id       => $user_id,
+                username => "user$user_id\@example.com",
+                email    => "user$user_id\@example.com",
+                value    => ', ',
+            });
+            $columns->{person1}->clear_people;
+        }
+        $record->fields->{$columns->{person1}->id}->set_value($datum->{person1});
         $record->fields->{$columns->{curval1}->id}->set_value($datum->{curval1})
             if $columns->{curval1};
         # Only set file data if exists in data. Add random data if nothing specified

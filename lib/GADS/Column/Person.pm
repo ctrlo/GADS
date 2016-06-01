@@ -28,6 +28,7 @@ extends 'GADS::Column';
 has people => (
     is      => 'rw',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
         GADS::Users->new(schema => $self->schema)->all;

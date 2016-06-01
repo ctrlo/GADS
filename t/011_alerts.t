@@ -52,6 +52,10 @@ $schema->resultset('User')->populate([
         email    => 'user1@example.com',
     },
 ]);
+$schema->resultset('UserGroup')->create({
+    user_id  => 1,
+    group_id => $sheet->group->id,
+});
 
 my @filters = (
     {
@@ -173,7 +177,8 @@ my @filters = (
     },
 );
 
-my $user = { id => 1 };
+my $user = { id => 1, value => ', ' };
+my $user2 = { id => 2, value => ', ' };
 
 # First all all the filters and alerts#
 foreach my $filter (@filters)
@@ -291,6 +296,10 @@ $schema->resultset('User')->create({
     username => 'user1@example.com',
     email    => 'user1@example.com',
 });
+$schema->resultset('UserGroup')->create({
+    user_id  => 1,
+    group_id => $sheet->group->id,
+});
 
 my $view = GADS::View->new(
     name        => 'view1',
@@ -337,6 +346,128 @@ $view->filter(encode_json($rules));
 $view->write;
 is( $schema->resultset('AlertCache')->count, 5, "Correct number of alerts after view updated" );
 
+# Do some tests on CURUSER alerts
+$data = [
+    {
+        string1 => 'Foo',
+        person1 => 1,
+    },
+    {
+        string1 => 'Bar',
+        person1 => 1,
+    },
+    {
+        string1 => 'Foo',
+        person1 => 2,
+    },
+    {
+        string1 => 'Foo',
+        person1 => undef,
+    },
+    {
+        string1 => 'Bar',
+        person1 => undef,
+    },
+];
+
+$sheet = t::lib::DataSheet->new(data => $data);
+$schema = $sheet->schema;
+$layout = $sheet->layout;
+$columns = $sheet->columns;
+$sheet->create_records;
+
+# First create a view with no filter
+
+$view = GADS::View->new(
+    name        => 'view1',
+    instance_id => 1,
+    layout      => $layout,
+    schema      => $schema,
+    user        => $user,
+    global      => 1,
+    columns     => [$columns->{string1}->id, $columns->{person1}->id],
+);
+$view->write;
+
+$alert = GADS::Alert->new(
+    user      => $user,
+    layout    => $layout,
+    schema    => $schema,
+    frequency => 24,
+    view_id   => $view->id,
+);
+$alert->write;
+
+is( $schema->resultset('AlertCache')->count, 10, "Correct number of alerts inserted" );
+
+# Add a person filter, check alert cache
+$rules = {
+    rules     => [{
+        id       => $columns->{person1}->id,
+        type     => 'string',
+        value    => '[CURUSER]',
+        operator => 'equal',
+    }],
+};
+
+$view->filter(encode_json($rules));
+$view->write;
+is( $schema->resultset('AlertCache')->search({ user_id => 1 })->count, 4, "Correct number of alerts for initial CURUSER filter addition (user1)" );
+is( $schema->resultset('AlertCache')->search({ user_id => 2 })->count, 0, "Correct number of alerts for initial CURUSER filter addition (user2)" );
+
+$alert = GADS::Alert->new(
+    user      => $user2,
+    layout    => $layout,
+    schema    => $schema,
+    frequency => 24,
+    view_id   => $view->id,
+);
+$alert->write;
+
+is( $schema->resultset('AlertCache')->search({ user_id => 1 })->count, 4, "Still correct number of alerts for CURUSER filter addition (user1)" );
+is( $schema->resultset('AlertCache')->search({ user_id => 2 })->count, 2, "Correct number of alerts for new CURUSER filter addition (user2)" );
+is( $schema->resultset('AlertCache')->search({ user_id => undef })->count, 0, "No null user_id values inserted for CURUSER filter addition" );
+
+# Change global view slightly, check alerts
+$rules = {
+    rules     => [
+        {
+            id       => $columns->{person1}->id,
+            type     => 'string',
+            value    => '[CURUSER]',
+            operator => 'equal',
+        }, {
+            id       => $columns->{string1}->id,
+            type     => 'string',
+            value    => 'Foo',
+            operator => 'equal',
+        }
+    ],
+};
+$view->filter(encode_json($rules));
+$view->write;
+
+is( $schema->resultset('AlertCache')->search({ user_id => 1 })->count, 2, "Correct number of CURUSER alerts after filter change (user1)" );
+is( $schema->resultset('AlertCache')->search({ user_id => 2 })->count, 2, "Correct number of CURUSER alerts after filter change (user2)" );
+is( $schema->resultset('AlertCache')->search({ user_id => undef })->count, 0, "No null user_id values after filter change" );
+
+# And remove curuser filter
+$rules = {
+    rules     => [
+        {
+            id       => $columns->{string1}->id,
+            type     => 'string',
+            value    => 'Foo',
+            operator => 'equal',
+        }
+    ],
+};
+$view->filter(encode_json($rules));
+$view->write;
+
+is( $schema->resultset('AlertCache')->search({ user_id => { '!=' => undef } })->count, 0, "Correct number of user_id alerts after removal of curuser filter" );
+is( $schema->resultset('AlertCache')->search({ user_id => undef })->count, 6, "Correct number of normal alerts after removal of curuser filter" );
+
 # Test some bulk alerts, which normally happen on code field updates
 diag "About to test alerts for bulk updates. This could take some time...";
 
@@ -363,6 +494,10 @@ $schema->resultset('User')->create({
     id       => 1,
     username => 'user1@example.com',
     email    => 'user1@example.com',
+});
+$schema->resultset('UserGroup')->create({
+    user_id  => 1,
+    group_id => $sheet->group->id,
 });
 
 $rules = {

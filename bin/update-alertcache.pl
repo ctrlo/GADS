@@ -70,7 +70,7 @@ foreach my $instance (@{$instances->all})
                 schema    => schema,
                 view_id   => $view->id,
             );
-            $alert->update_cache;
+            $alert->update_cache(all_users => 1);
         }
         else {
             schema->resultset('AlertCache')->search({

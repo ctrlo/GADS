@@ -21,6 +21,7 @@ package GADS::AlertSend;
 use GADS::Email;
 use GADS::Records;
 use GADS::Util qw(:all);
+use GADS::Views;
 use List::MoreUtils qw/ uniq /;
 use Log::Report;
 use Scalar::Util qw(looks_like_number);
@@ -70,20 +71,33 @@ has columns => (
 sub process
 {   my $self = shift;
 
-    # First see what views this record should be in. We use this to
-    # see if it's dropped out or been added to any views.
-    # Firstly, search on the views that may have been affected. This
-    # is all the ones that contain the changed columns. If this is
-    # a brand new record, however, then it doesn't matter what columns
-    # have changed, so get all the views.
-    my $search;
-    $search->{'view_layouts.layout_id'} = $self->columns
-        unless $self->current_new;
-    my @all_views = $self->schema->resultset('View')->search($search,{
-        prefetch => 'view_layouts',
-    })->all;
+    # First see what views this record should be in. We use this to see if it's
+    # dropped out or been added to any views.
 
-    # See what views the records are in
+    # Firstly, search on the views that may have been affected. This is all the
+    # ones that have a filter with the changed columns. If this is a brand new
+    # record, however, then it doesn't matter what columns have changed, so get
+    # all the views.
+    my $search = {
+        'alerts.id' => { '!=' => undef },
+    };
+    $search->{'filters.layout_id'} = $self->columns
+        unless $self->current_new;
+    my @view_ids = $self->schema->resultset('View')->search($search,{
+        join     => ['alerts', 'filters'],
+    })->get_column('id')->all;
+
+    # We now have all the views that may have been affected by this update.
+    # Convert them into GADS::View objects
+    my $views = GADS::Views->new(
+        # Current user may not have access to all fields in view,
+        # permissions are managed when sending the alerts
+        user        => undef,
+        schema      => $self->schema,
+        layout      => $self->layout,
+        instance_id => $self->layout->instance_id,
+    );
+
     my $records = GADS::Records->new(
         columns => [], # Otherwise all columns retrieved during search construct
         schema  => $self->schema,
@@ -91,72 +105,134 @@ sub process
         user    => $self->user,
     );
 
-    # All the views the record is now in
-    my @now_in = $records->search_views($self->current_ids, @all_views);
-    my %now_in_views = map { $_->{view}->id => $_ } @now_in;
-
-    # Compare that to the cache of what it was in before
-    $search = {
-        'alert_caches.layout_id'  => $self->columns,
-    };
-
-    # Chunk the searches, otherwise we risk overrunning the allowed number
-    # of search queries in the database
-    my $i = 0; my @original;
-    while ($i < @{$self->current_ids})
+    my @to_add; # Items to add to the cache later
+    if (my @views = map { $views->view($_) } @view_ids)
     {
-        # If the number of current_ids that we have been given is the same as the
-        # number that exist in the database, then assume that we are searching
-        # all records. Therefore don't specify (the potentially thousands) current_ids.
-        unless (@{$self->current_ids} == $records->count)
+        # See which of those views the new/changed records are in.
+        #
+        # All the views the record is *now* in
+        my $now_in_views; my $now_in_views2;
+        foreach my $now_in ($records->search_views($self->current_ids, @views))
         {
-            my $max = $i + 499;
-            $max = @{$self->current_ids}-1 if $max >= @{$self->current_ids};
-            $search->{'alert_caches.current_id'} = [@{$self->current_ids}[$i..$max]];
+            # Create an easy to search hash for each view, user and record
+            my $view_id = $now_in->{view}->id;
+            my $user_id = $now_in->{user_id} || '';
+            my $cid     = $now_in->{id};
+            $now_in_views
+                ->{$view_id}
+                ->{$user_id}
+                ->{$cid} = 1;
+            # The same, in a slightly different format
+            $now_in_views2->{"${view_id}_${user_id}_${cid}"} = $now_in;
         }
-        push @original, $self->schema->resultset('View')->search($search,{
-            prefetch => ['alert_caches', {'alerts' => 'user'} ],
-        })->all;
-        last unless $search->{'alert_caches.current_id'}; # All current_ids
-        $i += 500;
-    }
 
-
-    # Look at all the views it was in
-    my @gone; my @to_delete;
-    foreach my $view (@original)
-    {
-        my %now_in_cache = map { $_ => undef } @{$now_in_views{$view->id}->{ids}};
-        my %current_id_done; # There will be multiple current_ids, as cannot use GROUP BY
-        my @current_ids;
-        foreach my $cache ($view->alert_caches)
+        # Compare that to the cache, so as to find the views that the record *was*
+        # in. Chunk the searches, otherwise we risk overrunning the allowed number
+        # of search queries in the database
+        my $i = 0; my @original;
+        # Only search on views we know may have been affected, as per records search
+        $search = {
+            'view.id' => \@view_ids,
+        };
+        while ($i < @{$self->current_ids})
         {
-            next if exists $current_id_done{$cache->current_id};
-            # See if it's still in the views
-            if (!exists $now_in_cache{$cache->current_id})
+            # If the number of current_ids that we have been given is the same as the
+            # number that exist in the database, then assume that we are searching
+            # all records. Therefore don't specify (the potentially thousands) current_ids.
+            unless (@{$self->current_ids} == $records->count)
             {
-                push @current_ids, $cache->current_id;
+                my $max = $i + 499;
+                $max = @{$self->current_ids}-1 if $max >= @{$self->current_ids};
+                $search->{'me.current_id'} = [@{$self->current_ids}[$i..$max]];
             }
-            $current_id_done{$cache->current_id} = undef;
-        }
-        # Needed in different formats for different uses
-        if (@current_ids)
-        {
-            push @gone, {
-                view        => $view,
-                current_ids => \@current_ids,
-            };
-            push @to_delete, {
-                view_id    => $view->id,
-                current_id => \@current_ids,
-            };
-        }
-    }
-    $self->schema->resultset('AlertCache')->search(\@to_delete)->delete if @to_delete;
 
-    $i = 0; my @caches;
+            push @original, $self->schema->resultset('AlertCache')->search($search,{
+                select => [
+                    { max => 'me.current_id' },
+                    { max => 'me.user_id' },
+                    { max => 'me.view_id' },
+                ],
+                as => [qw/
+                    me.current_id
+                    me.user_id
+                    me.view_id
+                /],
+                join     => 'view',
+                group_by => ['me.view_id', 'me.user_id', 'me.current_id'], # Remove column information
+                order_by => ['me.view_id', 'me.user_id', 'me.current_id'],
+            })->all;
+            last unless $search->{'me.current_id'}; # All current_ids
+            $i += 500;
+        }
+
+        # Now go through each of the views/alerts that the records *were* in, and
+        # work out whether the record has disappeared from any.
+        my @gone;
+        foreach my $alert (@original)
+        {
+            # See if it's still in the views. We use the previously created hash
+            # that contains all the views that the records are now in.
+            my $view_id = $alert->view_id;
+            my $user_id = $alert->user_id || '';
+            my $cid     = $alert->current_id;
+            if (!$now_in_views
+                ->{$view_id}
+                ->{$user_id}
+                ->{$cid}
+            )
+            {
+                # The row we're processing doesn't exist in the hash, so it's disappeared
+                my $view = $views->view($view_id);
+                push @gone, {
+                    view       => $view,
+                    current_id => $cid,
+                    user_id    => $user_id,
+                };
+                $self->schema->resultset('AlertCache')->search({
+                    view_id    => $view_id,
+                    user_id    => ($user_id || undef),
+                    current_id => $cid,
+                })->delete;
+            }
+            else {
+                # The row we're processing does appear in the hash, so no change. Flag
+                # this in our second cache. Anything left in the second hash is therefore
+                # something that is new in the view.
+                delete $now_in_views2->{"${view_id}_${user_id}_${cid}"};
+            }
+        }
+
+        # Now see what views it is new in, using the second hash
+        my @arrived;
+        foreach my $item (values %$now_in_views2)
+        {
+            my $view = $item->{view};
+
+            push @to_add, {
+                user_id    => $item->{user_id},
+                view_id    => $view->id,
+                layout_id  => $_,
+                current_id => $item->{id},
+            } foreach @{$view->columns};
+
+            # Add it to a hash suitable for emailing alerts with
+            push @arrived, {
+                view        => $view,
+                user_id     => $item->{user_id},
+                current_id  => $item->{id},
+            };
+        }
+
+        # Send the gone and arrived notifications
+        $self->_gone_arrived('gone', @gone);
+        $self->_gone_arrived('arrived', @arrived);
+    }
+
+    # Now find out which values have changed in each view. We simply take the list
+    # of changed columns and records, and search the cache.
+    my $i = 0; my @caches;
     $search = {
-        'alert_caches.layout_id' => $self->columns,
+        'alert_caches.layout_id' => $self->columns, # Columns that have changed
     };
     while ($i < @{$self->current_ids})
     {
@@ -174,109 +250,76 @@ sub process
         $i += 500;
     }
 
-    my @view_ids;
-    foreach my $cache (@caches)
+    # We now have a list of views that have changed
+    foreach my $view (@caches)
     {
-        # Note which views we know have changed, so we don't search them later
-        push @view_ids, $cache->id;
-
-        # Any emails that need to be sent instantly
-        my @users = map { $_->user } grep { $_->frequency == 0 } $cache->alerts;
-        foreach my $user (@users)
+        # Now construct an alerts hash for each view. This will contain either
+        # one value, in the case of a normal view, or several values, in the
+        # case of a view with a CURUSER field.
+        # We iterate through each of the alert's caches. If we find a null value,
+        # we know that this is a standard view, so we go no further. Otherwise,
+        # we have to go through all the caches and assign them to the relevant user.
+        #
+        my $alerts; # The hash
+        my $has_curuser; # Flag true if this is a curuser view
+        foreach my $alert_cache ($view->alert_caches)
+        {
+            if (my $key = $alert_cache->user_id)
+            {
+                $alerts->{$key} ||= [];
+                push @{$alerts->{$key}}, $alert_cache;
+                $has_curuser = 1;
+            }
+            else {
+                last;
+            }
+        }
+        foreach my $alert ($view->alerts)
         {
             # For each user of this alert, check they have read access
             # to the field in question, and send accordingly
+            my $user = $alert->user;
             my @cids; my @columns;
-            foreach my $i ($cache->alert_caches)
+            my @alerts = $has_curuser ? @{$alerts->{$user->id}} : $view->alert_caches;
+            foreach my $i (@alerts)
             {
+
                 my $col_id = $i->layout_id;
                 next unless $self->layout->column($col_id)->user_id_can($user->id, 'read');
                 push @cids, $i->current_id;
-                push @columns, $self->layout->column($i->layout_id)->name;
+                push @columns, $self->layout->column($i->layout_id);
             }
-            $self->_send_alert('changed', \@cids, $cache, [$user->email], \@columns)
-                if @cids;
-        }
-
-        # And those to be sent later
-        foreach my $cuid (@{$self->current_ids})
-        {
-            my @later = map { {alert_id => $_->id, current_id => $cuid, status => 'changed' } }
-                grep { $_->frequency > 0 } $cache->alerts;
-            foreach my $later (@later)
+            if ($alert->frequency) # send later
             {
-                foreach my $col_id (@{$self->columns})
+                foreach my $col (@columns)
                 {
-                    $later->{layout_id} = $col_id;
-                    # Unique constraint. Catch any exceptions. This is also
-                    # why we probably can't do all these with one call to populate()
-                    try { $self->schema->resultset('AlertSend')->create($later) };
-                    # Log any messages from try block, but only as trace
-                    $@->reportAll(reason => 'TRACE');
+                    foreach my $cid (@cids)
+                    {
+                        my $write = {
+                            alert_id   => $alert->id,
+                            layout_id  => $col->id,
+                            current_id => $cid,
+                            status     => 'changed',
+                        };
+                        # Unique constraint. Catch any exceptions. This is also
+                        # why we probably can't do all these with one call to populate()
+                        try { $self->schema->resultset('AlertSend')->create($write) };
+                        # Log any messages from try block, but only as trace
+                        $@->reportAll(reason => 'TRACE');
+                    }
                 }
             }
+            else {
+                my @colnames = map { $_->name } @columns;
+                $self->_send_alert('changed', \@cids, $view, [$user->email], \@colnames)
+                    if @cids;
+            }
         }
     }
 
-    # Now see what views it is new in
-    my @arrived; my @to_add;
-    foreach my $found (@now_in)
-    {
-        my @current_ids;
-        my $view = $found->{view};
-
-        # Get all the columns for this view. Can't use current view object
-        # as it only contains the filtered columns
-        my ($vrs) = $self->schema->resultset('View')->search({
-            'me.id'     => $view->id,
-            'alerts.id' => { '!=' => undef },
-        },{
-            prefetch => ['view_layouts', 'alerts'],
-        })->all or next;
-        my @view_columns = map { $_->layout_id } $vrs->view_layouts;
-        # The alert caches that already exist for these IDs
-
-        $i = 0; my @e;
-        $search = {
-            view_id    => $view->id,
-        };
-        while ($i < @{$found->{ids}})
-        {
-            # See above comments about searching current_ids
-            unless (@{$found->{ids}} == $records->count)
-            {
-                my $max = $i + 499;
-                $max = @{$found->{ids}}-1 if $max >= @{$found->{ids}};
-                $search->{'current_id'} = [@{$found->{ids}}[$i..$max]];
-            }
-            push @e, $self->schema->resultset('AlertCache')->search($search)->all;
-            last unless $search->{'current_id'}; # All current_ids
-            $i += 500;
-        }
-
-        my %already_there = map { $_->current_id => 1 } @e;
-        foreach my $cid (@{$found->{ids}})
-        {
-            next if $already_there{$cid};
-            push @current_ids, $cid;
-            foreach my $col_id (@view_columns)
-            {
-                push @to_add, {
-                    layout_id  => $col_id,
-                    view_id    => $view->id,
-                    current_id => $cid,
-                };
-            }
-        }
-        push @arrived, {
-            view        => $view,
-            current_ids => \@current_ids,
-        } if @current_ids;
-    }
+    # Finally update the alert cache. We don't do this earlier, otherwise a new
+    # record will be flagged as a change.
     $self->schema->resultset('AlertCache')->populate(\@to_add) if @to_add;
-
-    $self->_gone_arrived('gone', @gone);
-    $self->_gone_arrived('arrived', @arrived);
 }
 
 sub _gone_arrived
@@ -285,32 +328,29 @@ sub _gone_arrived
     foreach my $item (@items)
     {
         my @emails;
-        foreach my $alert ($item->{view}->alerts)
+        foreach my $alert (@{$item->{view}->all_alerts})
         {
             if ($alert->frequency)
             {
                 # send later
-                foreach my $cuid (@{$item->{current_ids}})
-                {
-                    try {
-                        # Unique constraint on table. Catch
-                        # any exceptions
-                        $self->schema->resultset('AlertSend')->create({
-                            alert_id   => $alert->id,
-                            current_id => $cuid,
-                            status     => $action,
-                        });
-                    };
-                    # Log any messages from try block, but only as trace
-                    $@->reportAll(reason => 'TRACE');
-                }
+                try {
+                    # Unique constraint on table. Catch
+                    # any exceptions
+                    $self->schema->resultset('AlertSend')->create({
+                        alert_id   => $alert->id,
+                        current_id => $item->{current_id},
+                        status     => $action,
+                    });
+                };
+                # Log any messages from try block, but only as trace
+                $@->reportAll(reason => 'TRACE');
             }
             else {
                 # send now
                 push @emails, $alert->user->email;
             }
         }
-        $self->_send_alert($action, $item->{current_ids}, $item->{view}, \@emails) if @emails;
+        $self->_send_alert($action, [$item->{current_id}], $item->{view}, \@emails) if @emails;
     }
 }
 

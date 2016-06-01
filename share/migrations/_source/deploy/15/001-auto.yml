@@ -1,0 +1,5063 @@
+---
+schema:
+  procedures: {}
+  tables:
+    alert:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - user_id
+          match_type: ''
+          name: alert_fk_user_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - view_id
+          match_type: ''
+          name: alert_fk_view_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: view
+          type: FOREIGN KEY
+      fields:
+        frequency:
+          data_type: integer
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: frequency
+          order: 4
+          size:
+            - 0
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        user_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: user_id
+          order: 3
+          size:
+            - 0
+        view_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: view_id
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - user_id
+          name: alert_idx_user_id
+          options: []
+          type: NORMAL
+        - fields:
+            - view_id
+          name: alert_idx_view_id
+          options: []
+          type: NORMAL
+      name: alert
+      options: []
+      order: 1
+    alert_cache:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - current_id
+          match_type: ''
+          name: alert_cache_fk_current_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: current
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: alert_cache_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - user_id
+          match_type: ''
+          name: alert_cache_fk_user_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - view_id
+          match_type: ''
+          name: alert_cache_fk_view_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: view
+          type: FOREIGN KEY
+      fields:
+        current_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: current_id
+          order: 4
+          size:
+            - 0
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: layout_id
+          order: 2
+          size:
+            - 0
+        user_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: user_id
+          order: 5
+          size:
+            - 0
+        view_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: view_id
+          order: 3
+          size:
+            - 0
+      indices:
+        - fields:
+            - current_id
+          name: alert_cache_idx_current_id
+          options: []
+          type: NORMAL
+        - fields:
+            - layout_id
+          name: alert_cache_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - user_id
+          name: alert_cache_idx_user_id
+          options: []
+          type: NORMAL
+        - fields:
+            - view_id
+          name: alert_cache_idx_view_id
+          options: []
+          type: NORMAL
+      name: alert_cache
+      options: []
+      order: 2
+    alert_send:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+            - alert_id
+            - current_id
+            - status
+          match_type: ''
+          name: alert_send_all
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+        - deferrable: 1
+          expression: ''
+          fields:
+            - alert_id
+          match_type: ''
+          name: alert_send_fk_alert_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: alert
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - current_id
+          match_type: ''
+          name: alert_send_fk_current_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: current
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: alert_send_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+      fields:
+        alert_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: alert_id
+          order: 3
+          size:
+            - 0
+        current_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: current_id
+          order: 4
+          size:
+            - 0
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 1
+          name: layout_id
+          order: 2
+          size:
+            - 0
+        status:
+          data_type: char
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 1
+          name: status
+          order: 5
+          size:
+            - 7
+      indices:
+        - fields:
+            - alert_id
+          name: alert_send_idx_alert_id
+          options: []
+          type: NORMAL
+        - fields:
+            - current_id
+          name: alert_send_idx_current_id
+          options: []
+          type: NORMAL
+        - fields:
+            - layout_id
+          name: alert_send_idx_layout_id
+          options: []
+          type: NORMAL
+      name: alert_send
+      options: []
+      order: 3
+    audit:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - user_id
+          match_type: ''
+          name: audit_fk_user_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+      fields:
+        datetime:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: datetime
+          order: 4
+          size:
+            - 0
+        description:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: description
+          order: 7
+          size:
+            - 0
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        method:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: method
+          order: 5
+          size:
+            - 45
+        type:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: type
+          order: 3
+          size:
+            - 45
+        url:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: url
+          order: 6
+          size:
+            - 0
+        user_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: user_id
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - user_id
+          name: audit_idx_user_id
+          options: []
+          type: NORMAL
+      name: audit
+      options: []
+      order: 4
+    calc:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: calc_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+      fields:
+        calc:
+          data_type: mediumtext
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: calc
+          order: 3
+          size:
+            - 0
+        decimal_places:
+          data_type: smallint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: decimal_places
+          order: 5
+          size:
+            - 0
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: layout_id
+          order: 2
+          size:
+            - 0
+        return_format:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: return_format
+          order: 4
+          size:
+            - 45
+      indices:
+        - fields:
+            - layout_id
+          name: calc_idx_layout_id
+          options: []
+          type: NORMAL
+      name: calc
+      options: []
+      order: 5
+    calcval:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - record_id
+            - layout_id
+          match_type: ''
+          name: calcval_ux_record_layout
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: calcval_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - record_id
+          match_type: ''
+          name: calcval_fk_record_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: record
+          type: FOREIGN KEY
+      fields:
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: layout_id
+          order: 3
+          size:
+            - 0
+        record_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: record_id
+          order: 2
+          size:
+            - 0
+        value_date:
+          data_type: date
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value_date
+          order: 6
+          size:
+            - 0
+        value_int:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value_int
+          order: 5
+          size:
+            - 0
+        value_numeric:
+          data_type: decimal
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value_numeric
+          order: 7
+          size:
+            - 20
+            - 5
+        value_text:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value_text
+          order: 4
+          size:
+            - 0
+      indices:
+        - fields:
+            - layout_id
+          name: calcval_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - record_id
+          name: calcval_idx_record_id
+          options: []
+          type: NORMAL
+        - fields:
+            - name: value_text
+              size: 64
+          name: calcval_idx_value_text
+          options: []
+          type: NORMAL
+        - fields:
+            - value_numeric
+          name: calcval_idx_value_numeric
+          options: []
+          type: NORMAL
+        - fields:
+            - value_int
+          name: calcval_idx_value_int
+          options: []
+          type: NORMAL
+        - fields:
+            - value_date
+          name: calcval_idx_value_date
+          options: []
+          type: NORMAL
+      name: calcval
+      options: []
+      order: 6
+    current:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - instance_id
+          match_type: ''
+          name: current_fk_instance_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: instance
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - linked_id
+          match_type: ''
+          name: current_fk_linked_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: current
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - parent_id
+          match_type: ''
+          name: current_fk_parent_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: current
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - record_id
+          match_type: ''
+          name: current_fk_record_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: record
+          type: FOREIGN KEY
+      fields:
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        instance_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: instance_id
+          order: 4
+          size:
+            - 0
+        linked_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: linked_id
+          order: 5
+          size:
+            - 0
+        parent_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: parent_id
+          order: 3
+          size:
+            - 0
+        record_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: record_id
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - instance_id
+          name: current_idx_instance_id
+          options: []
+          type: NORMAL
+        - fields:
+            - linked_id
+          name: current_idx_linked_id
+          options: []
+          type: NORMAL
+        - fields:
+            - parent_id
+          name: current_idx_parent_id
+          options: []
+          type: NORMAL
+        - fields:
+            - record_id
+          name: current_idx_record_id
+          options: []
+          type: NORMAL
+      name: current
+      options: []
+      order: 7
+    curval:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: curval_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - record_id
+          match_type: ''
+          name: curval_fk_record_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: record
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - value
+          match_type: ''
+          name: curval_fk_value
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: current
+          type: FOREIGN KEY
+      fields:
+        child_unique:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: child_unique
+          order: 4
+          size:
+            - 0
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: layout_id
+          order: 3
+          size:
+            - 0
+        record_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: record_id
+          order: 2
+          size:
+            - 0
+        value:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value
+          order: 5
+          size:
+            - 0
+      indices:
+        - fields:
+            - layout_id
+          name: curval_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - record_id
+          name: curval_idx_record_id
+          options: []
+          type: NORMAL
+        - fields:
+            - value
+          name: curval_idx_value
+          options: []
+          type: NORMAL
+      name: curval
+      options: []
+      order: 8
+    curval_fields:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - child_id
+          match_type: ''
+          name: curval_fields_fk_child_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - parent_id
+          match_type: ''
+          name: curval_fields_fk_parent_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+      fields:
+        child_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: child_id
+          order: 3
+          size:
+            - 0
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        parent_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: parent_id
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - child_id
+          name: curval_fields_idx_child_id
+          options: []
+          type: NORMAL
+        - fields:
+            - parent_id
+          name: curval_fields_idx_parent_id
+          options: []
+          type: NORMAL
+      name: curval_fields
+      options: []
+      order: 9
+    date:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: date_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - record_id
+          match_type: ''
+          name: date_fk_record_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: record
+          type: FOREIGN KEY
+      fields:
+        child_unique:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: child_unique
+          order: 4
+          size:
+            - 0
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: layout_id
+          order: 3
+          size:
+            - 0
+        record_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: record_id
+          order: 2
+          size:
+            - 0
+        value:
+          data_type: date
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value
+          order: 5
+          size:
+            - 0
+      indices:
+        - fields:
+            - layout_id
+          name: date_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - record_id
+          name: date_idx_record_id
+          options: []
+          type: NORMAL
+        - fields:
+            - value
+          name: date_idx_value
+          options: []
+          type: NORMAL
+      name: date
+      options: []
+      order: 10
+    daterange:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: daterange_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - record_id
+          match_type: ''
+          name: daterange_fk_record_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: record
+          type: FOREIGN KEY
+      fields:
+        child_unique:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: child_unique
+          order: 6
+          size:
+            - 0
+        from:
+          data_type: date
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: from
+          order: 4
+          size:
+            - 0
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: layout_id
+          order: 3
+          size:
+            - 0
+        record_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: record_id
+          order: 2
+          size:
+            - 0
+        to:
+          data_type: date
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: to
+          order: 5
+          size:
+            - 0
+        value:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value
+          order: 7
+          size:
+            - 45
+      indices:
+        - fields:
+            - layout_id
+          name: daterange_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - record_id
+          name: daterange_idx_record_id
+          options: []
+          type: NORMAL
+        - fields:
+            - from
+          name: daterange_idx_from
+          options: []
+          type: NORMAL
+        - fields:
+            - to
+          name: daterange_idx_to
+          options: []
+          type: NORMAL
+        - fields:
+            - value
+          name: daterange_idx_value
+          options: []
+          type: NORMAL
+      name: daterange
+      options: []
+      order: 11
+    enum:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: enum_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - record_id
+          match_type: ''
+          name: enum_fk_record_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: record
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - value
+          match_type: ''
+          name: enum_fk_value
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: enumval
+          type: FOREIGN KEY
+      fields:
+        child_unique:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: child_unique
+          order: 4
+          size:
+            - 0
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: layout_id
+          order: 3
+          size:
+            - 0
+        record_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: record_id
+          order: 2
+          size:
+            - 0
+        value:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value
+          order: 5
+          size:
+            - 0
+      indices:
+        - fields:
+            - layout_id
+          name: enum_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - record_id
+          name: enum_idx_record_id
+          options: []
+          type: NORMAL
+        - fields:
+            - value
+          name: enum_idx_value
+          options: []
+          type: NORMAL
+      name: enum
+      options: []
+      order: 12
+    enumval:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: enumval_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - parent
+          match_type: ''
+          name: enumval_fk_parent
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: enumval
+          type: FOREIGN KEY
+      fields:
+        deleted:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: deleted
+          order: 4
+          size:
+            - 0
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: layout_id
+          order: 3
+          size:
+            - 0
+        parent:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: parent
+          order: 5
+          size:
+            - 0
+        value:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - layout_id
+          name: enumval_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - parent
+          name: enumval_idx_parent
+          options: []
+          type: NORMAL
+        - fields:
+            - name: value
+              size: 64
+          name: enumval_idx_value
+          options: []
+          type: NORMAL
+      name: enumval
+      options: []
+      order: 13
+    file:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: file_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - record_id
+          match_type: ''
+          name: file_fk_record_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: record
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - value
+          match_type: ''
+          name: file_fk_value
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: fileval
+          type: FOREIGN KEY
+      fields:
+        child_unique:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: child_unique
+          order: 4
+          size:
+            - 0
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: layout_id
+          order: 3
+          size:
+            - 0
+        record_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: record_id
+          order: 2
+          size:
+            - 0
+        value:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value
+          order: 5
+          size:
+            - 0
+      indices:
+        - fields:
+            - layout_id
+          name: file_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - record_id
+          name: file_idx_record_id
+          options: []
+          type: NORMAL
+        - fields:
+            - value
+          name: file_idx_value
+          options: []
+          type: NORMAL
+      name: file
+      options: []
+      order: 14
+    file_option:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: file_option_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+      fields:
+        filesize:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: filesize
+          order: 3
+          size:
+            - 0
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: layout_id
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - layout_id
+          name: file_option_idx_layout_id
+          options: []
+          type: NORMAL
+      name: file_option
+      options: []
+      order: 15
+    fileval:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+      fields:
+        content:
+          data_type: longblob
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: content
+          order: 4
+          size:
+            - 0
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        mimetype:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: mimetype
+          order: 3
+          size:
+            - 0
+        name:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - name: name
+              size: 64
+          name: fileval_idx_name
+          options: []
+          type: NORMAL
+      name: fileval
+      options: []
+      order: 16
+    filter:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: filter_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - view_id
+          match_type: ''
+          name: filter_fk_view_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: view
+          type: FOREIGN KEY
+      fields:
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: layout_id
+          order: 3
+          size:
+            - 0
+        view_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: view_id
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - layout_id
+          name: filter_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - view_id
+          name: filter_idx_view_id
+          options: []
+          type: NORMAL
+      name: filter
+      options: []
+      order: 17
+    graph:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - group_by
+          match_type: ''
+          name: graph_fk_group_by
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - instance_id
+          match_type: ''
+          name: graph_fk_instance_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: instance
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - metric_group
+          match_type: ''
+          name: graph_fk_metric_group
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: metric_group
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - x_axis
+          match_type: ''
+          name: graph_fk_x_axis
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - y_axis
+          match_type: ''
+          name: graph_fk_y_axis
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+      fields:
+        description:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: description
+          order: 3
+          size:
+            - 0
+        group_by:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: group_by
+          order: 9
+          size:
+            - 0
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        instance_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: instance_id
+          order: 13
+          size:
+            - 0
+        metric_group:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: metric_group
+          order: 12
+          size:
+            - 0
+        stackseries:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: stackseries
+          order: 10
+          size:
+            - 0
+        title:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: title
+          order: 2
+          size:
+            - 0
+        type:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: type
+          order: 11
+          size:
+            - 45
+        x_axis:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: x_axis
+          order: 7
+          size:
+            - 0
+        x_axis_grouping:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: x_axis_grouping
+          order: 8
+          size:
+            - 45
+        y_axis:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: y_axis
+          order: 4
+          size:
+            - 0
+        y_axis_label:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: y_axis_label
+          order: 6
+          size:
+            - 0
+        y_axis_stack:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: y_axis_stack
+          order: 5
+          size:
+            - 45
+      indices:
+        - fields:
+            - group_by
+          name: graph_idx_group_by
+          options: []
+          type: NORMAL
+        - fields:
+            - instance_id
+          name: graph_idx_instance_id
+          options: []
+          type: NORMAL
+        - fields:
+            - metric_group
+          name: graph_idx_metric_group
+          options: []
+          type: NORMAL
+        - fields:
+            - x_axis
+          name: graph_idx_x_axis
+          options: []
+          type: NORMAL
+        - fields:
+            - y_axis
+          name: graph_idx_y_axis
+          options: []
+          type: NORMAL
+      name: graph
+      options: []
+      order: 18
+    graph_color:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - name
+          match_type: ''
+          name: ux_graph_color_name
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+      fields:
+        color:
+          data_type: char
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: color
+          order: 3
+          size:
+            - 6
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        name:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 1
+          name: name
+          order: 2
+          size:
+            - 128
+      indices: []
+      name: graph_color
+      options: []
+      order: 19
+    group:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+      fields:
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        name:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 128
+      indices: []
+      name: group
+      options: []
+      order: 20
+    instance:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - sort_layout_id
+          match_type: ''
+          name: instance_fk_sort_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+      fields:
+        email_delete_subject:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: email_delete_subject
+          order: 6
+          size:
+            - 0
+        email_delete_text:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: email_delete_text
+          order: 5
+          size:
+            - 0
+        email_reject_subject:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: email_reject_subject
+          order: 8
+          size:
+            - 0
+        email_reject_text:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: email_reject_text
+          order: 7
+          size:
+            - 0
+        email_welcome_subject:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: email_welcome_subject
+          order: 4
+          size:
+            - 0
+        email_welcome_text:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: email_welcome_text
+          order: 3
+          size:
+            - 0
+        homepage_text:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: homepage_text
+          order: 12
+          size:
+            - 0
+        homepage_text2:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: homepage_text2
+          order: 13
+          size:
+            - 0
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        name:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 0
+        register_email_help:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: register_email_help
+          order: 16
+          size:
+            - 0
+        register_notes_help:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: register_notes_help
+          order: 18
+          size:
+            - 0
+        register_organisation_help:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: register_organisation_help
+          order: 17
+          size:
+            - 0
+        register_telephone_help:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: register_telephone_help
+          order: 15
+          size:
+            - 0
+        register_text:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: register_text
+          order: 9
+          size:
+            - 0
+        register_title_help:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: register_title_help
+          order: 14
+          size:
+            - 0
+        sort_layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: sort_layout_id
+          order: 10
+          size:
+            - 0
+        sort_type:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: sort_type
+          order: 11
+          size:
+            - 45
+      indices:
+        - fields:
+            - sort_layout_id
+          name: instance_idx_sort_layout_id
+          options: []
+          type: NORMAL
+      name: instance
+      options: []
+      order: 21
+    intgr:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: intgr_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - record_id
+          match_type: ''
+          name: intgr_fk_record_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: record
+          type: FOREIGN KEY
+      fields:
+        child_unique:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: child_unique
+          order: 4
+          size:
+            - 0
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: layout_id
+          order: 3
+          size:
+            - 0
+        record_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: record_id
+          order: 2
+          size:
+            - 0
+        value:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value
+          order: 5
+          size:
+            - 0
+      indices:
+        - fields:
+            - layout_id
+          name: intgr_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - record_id
+          name: intgr_idx_record_id
+          options: []
+          type: NORMAL
+        - fields:
+            - value
+          name: intgr_idx_value
+          options: []
+          type: NORMAL
+      name: intgr
+      options: []
+      order: 22
+    layout:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - display_field
+          match_type: ''
+          name: layout_fk_display_field
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - instance_id
+          match_type: ''
+          name: layout_fk_instance_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: instance
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - link_parent
+          match_type: ''
+          name: layout_fk_link_parent
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+      fields:
+        description:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: description
+          order: 14
+          size:
+            - 0
+        display_field:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: display_field
+          order: 16
+          size:
+            - 0
+        display_regex:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: display_regex
+          order: 17
+          size:
+            - 0
+        end_node_only:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: end_node_only
+          order: 13
+          size:
+            - 0
+        force_regex:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: force_regex
+          order: 10
+          size:
+            - 0
+        helptext:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: helptext
+          order: 15
+          size:
+            - 0
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        instance_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: instance_id
+          order: 18
+          size:
+            - 0
+        isunique:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: isunique
+          order: 7
+          size:
+            - 0
+        link_parent:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: link_parent
+          order: 19
+          size:
+            - 0
+        name:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 0
+        optional:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: optional
+          order: 5
+          size:
+            - 0
+        ordering:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: ordering
+          order: 12
+          size:
+            - 45
+        permission:
+          data_type: integer
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: permission
+          order: 4
+          size:
+            - 0
+        position:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: position
+          order: 11
+          size:
+            - 0
+        remember:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: remember
+          order: 6
+          size:
+            - 0
+        textbox:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: textbox
+          order: 8
+          size:
+            - 0
+        type:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: type
+          order: 3
+          size:
+            - 45
+        typeahead:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: typeahead
+          order: 9
+          size:
+            - 0
+      indices:
+        - fields:
+            - display_field
+          name: layout_idx_display_field
+          options: []
+          type: NORMAL
+        - fields:
+            - instance_id
+          name: layout_idx_instance_id
+          options: []
+          type: NORMAL
+        - fields:
+            - link_parent
+          name: layout_idx_link_parent
+          options: []
+          type: NORMAL
+      name: layout
+      options: []
+      order: 23
+    layout_depend:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - depends_on
+          match_type: ''
+          name: layout_depend_fk_depends_on
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: layout_depend_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+      fields:
+        depends_on:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: depends_on
+          order: 3
+          size:
+            - 0
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: layout_id
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - depends_on
+          name: layout_depend_idx_depends_on
+          options: []
+          type: NORMAL
+        - fields:
+            - layout_id
+          name: layout_depend_idx_layout_id
+          options: []
+          type: NORMAL
+      name: layout_depend
+      options: []
+      order: 24
+    layout_group:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+            - group_id
+            - permission
+          match_type: ''
+          name: layout_group_ux_layout_group_permission
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+        - deferrable: 1
+          expression: ''
+          fields:
+            - group_id
+          match_type: ''
+          name: layout_group_fk_group_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: group
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: layout_group_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+      fields:
+        group_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: group_id
+          order: 3
+          size:
+            - 0
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: layout_id
+          order: 2
+          size:
+            - 0
+        permission:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: permission
+          order: 4
+          size:
+            - 45
+      indices:
+        - fields:
+            - group_id
+          name: layout_group_idx_group_id
+          options: []
+          type: NORMAL
+        - fields:
+            - layout_id
+          name: layout_group_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - permission
+          name: layout_group_idx_permission
+          options: []
+          type: NORMAL
+      name: layout_group
+      options: []
+      order: 25
+    metric:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - metric_group
+          match_type: ''
+          name: metric_fk_metric_group
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: metric_group
+          type: FOREIGN KEY
+      fields:
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        metric_group:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: metric_group
+          order: 2
+          size:
+            - 0
+        target:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: target
+          order: 4
+          size:
+            - 0
+        x_axis_value:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: x_axis_value
+          order: 3
+          size:
+            - 0
+        y_axis_grouping_value:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: y_axis_grouping_value
+          order: 5
+          size:
+            - 0
+      indices:
+        - fields:
+            - metric_group
+          name: metric_idx_metric_group
+          options: []
+          type: NORMAL
+      name: metric
+      options: []
+      order: 26
+    metric_group:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - instance_id
+          match_type: ''
+          name: metric_group_fk_instance_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: instance
+          type: FOREIGN KEY
+      fields:
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        instance_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: instance_id
+          order: 3
+          size:
+            - 0
+        name:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - instance_id
+          name: metric_group_idx_instance_id
+          options: []
+          type: NORMAL
+      name: metric_group
+      options: []
+      order: 27
+    organisation:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+      fields:
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        name:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 128
+      indices: []
+      name: organisation
+      options: []
+      order: 28
+    permission:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+      fields:
+        description:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: description
+          order: 3
+          size:
+            - 0
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        name:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 128
+        order:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: order
+          order: 4
+          size:
+            - 0
+      indices: []
+      name: permission
+      options: []
+      order: 29
+    person:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: person_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - record_id
+          match_type: ''
+          name: person_fk_record_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: record
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - value
+          match_type: ''
+          name: person_fk_value
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+      fields:
+        child_unique:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: child_unique
+          order: 4
+          size:
+            - 0
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: layout_id
+          order: 3
+          size:
+            - 0
+        record_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: record_id
+          order: 2
+          size:
+            - 0
+        value:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value
+          order: 5
+          size:
+            - 0
+      indices:
+        - fields:
+            - layout_id
+          name: person_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - record_id
+          name: person_idx_record_id
+          options: []
+          type: NORMAL
+        - fields:
+            - value
+          name: person_idx_value
+          options: []
+          type: NORMAL
+      name: person
+      options: []
+      order: 30
+    rag:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: rag_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+      fields:
+        amber:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: amber
+          order: 4
+          size:
+            - 0
+        green:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: green
+          order: 5
+          size:
+            - 0
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: layout_id
+          order: 2
+          size:
+            - 0
+        red:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: red
+          order: 3
+          size:
+            - 0
+      indices:
+        - fields:
+            - layout_id
+          name: rag_idx_layout_id
+          options: []
+          type: NORMAL
+      name: rag
+      options: []
+      order: 31
+    ragval:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - record_id
+            - layout_id
+          match_type: ''
+          name: ragval_ux_record_layout
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: UNIQUE
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: ragval_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - record_id
+          match_type: ''
+          name: ragval_fk_record_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: record
+          type: FOREIGN KEY
+      fields:
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: layout_id
+          order: 3
+          size:
+            - 0
+        record_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 1
+          name: record_id
+          order: 2
+          size:
+            - 0
+        value:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value
+          order: 4
+          size:
+            - 16
+      indices:
+        - fields:
+            - layout_id
+          name: ragval_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - record_id
+          name: ragval_idx_record_id
+          options: []
+          type: NORMAL
+        - fields:
+            - value
+          name: ragval_idx_value
+          options: []
+          type: NORMAL
+      name: ragval
+      options: []
+      order: 32
+    record:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - approvedby
+          match_type: ''
+          name: record_fk_approvedby
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - createdby
+          match_type: ''
+          name: record_fk_createdby
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - current_id
+          match_type: ''
+          name: record_fk_current_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: current
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - record_id
+          match_type: ''
+          name: record_fk_record_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: record
+          type: FOREIGN KEY
+      fields:
+        approval:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: approval
+          order: 7
+          size:
+            - 0
+        approvedby:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: approvedby
+          order: 5
+          size:
+            - 0
+        created:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: created
+          order: 2
+          size:
+            - 0
+        createdby:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: createdby
+          order: 4
+          size:
+            - 0
+        current_id:
+          data_type: bigint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: current_id
+          order: 3
+          size:
+            - 0
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        record_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: record_id
+          order: 6
+          size:
+            - 0
+      indices:
+        - fields:
+            - approvedby
+          name: record_idx_approvedby
+          options: []
+          type: NORMAL
+        - fields:
+            - createdby
+          name: record_idx_createdby
+          options: []
+          type: NORMAL
+        - fields:
+            - current_id
+          name: record_idx_current_id
+          options: []
+          type: NORMAL
+        - fields:
+            - record_id
+          name: record_idx_record_id
+          options: []
+          type: NORMAL
+        - fields:
+            - approval
+          name: record_idx_approval
+          options: []
+          type: NORMAL
+      name: record
+      options: []
+      order: 33
+    sort:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: sort_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - view_id
+          match_type: ''
+          name: sort_fk_view_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: view
+          type: FOREIGN KEY
+      fields:
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: layout_id
+          order: 3
+          size:
+            - 0
+        type:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: type
+          order: 4
+          size:
+            - 45
+        view_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: view_id
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - layout_id
+          name: sort_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - view_id
+          name: sort_idx_view_id
+          options: []
+          type: NORMAL
+      name: sort
+      options: []
+      order: 34
+    string:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: string_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - record_id
+          match_type: ''
+          name: string_fk_record_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: record
+          type: FOREIGN KEY
+      fields:
+        child_unique:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: child_unique
+          order: 4
+          size:
+            - 0
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: layout_id
+          order: 3
+          size:
+            - 0
+        record_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: record_id
+          order: 2
+          size:
+            - 0
+        value:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value
+          order: 5
+          size:
+            - 0
+        value_index:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value_index
+          order: 6
+          size:
+            - 128
+      indices:
+        - fields:
+            - layout_id
+          name: string_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - record_id
+          name: string_idx_record_id
+          options: []
+          type: NORMAL
+        - fields:
+            - value_index
+          name: string_idx_value_index
+          options: []
+          type: NORMAL
+      name: string
+      options: []
+      order: 35
+    title:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+      fields:
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        name:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 128
+      indices: []
+      name: title
+      options: []
+      order: 36
+    user:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - lastrecord
+          match_type: ''
+          name: user_fk_lastrecord
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: record
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - lastview
+          match_type: ''
+          name: user_fk_lastview
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: view
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - limit_to_view
+          match_type: ''
+          name: user_fk_limit_to_view
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: view
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - organisation
+          match_type: ''
+          name: user_fk_organisation
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: organisation
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - title
+          match_type: ''
+          name: user_fk_title
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: title
+          type: FOREIGN KEY
+      fields:
+        account_request:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: account_request
+          order: 19
+          size:
+            - 0
+        account_request_notes:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: account_request_notes
+          order: 20
+          size:
+            - 0
+        aup_accepted:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: aup_accepted
+          order: 21
+          size:
+            - 0
+        deleted:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: deleted
+          order: 12
+          size:
+            - 0
+        email:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: email
+          order: 4
+          size:
+            - 0
+        failcount:
+          data_type: integer
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: failcount
+          order: 15
+          size:
+            - 0
+        firstname:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: firstname
+          order: 2
+          size:
+            - 128
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        lastfail:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: lastfail
+          order: 14
+          size:
+            - 0
+        lastlogin:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: lastlogin
+          order: 13
+          size:
+            - 0
+        lastrecord:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: lastrecord
+          order: 16
+          size:
+            - 0
+        lastview:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: lastview
+          order: 17
+          size:
+            - 0
+        limit_to_view:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: limit_to_view
+          order: 22
+          size:
+            - 0
+        organisation:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: organisation
+          order: 7
+          size:
+            - 0
+        password:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: password
+          order: 9
+          size:
+            - 128
+        pwchanged:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: pwchanged
+          order: 10
+          size:
+            - 0
+        resetpw:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: resetpw
+          order: 11
+          size:
+            - 32
+        stylesheet:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: stylesheet
+          order: 23
+          size:
+            - 0
+        surname:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: surname
+          order: 3
+          size:
+            - 128
+        telephone:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: telephone
+          order: 8
+          size:
+            - 128
+        title:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: title
+          order: 6
+          size:
+            - 0
+        username:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: username
+          order: 5
+          size:
+            - 0
+        value:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value
+          order: 18
+          size:
+            - 0
+      indices:
+        - fields:
+            - lastrecord
+          name: user_idx_lastrecord
+          options: []
+          type: NORMAL
+        - fields:
+            - lastview
+          name: user_idx_lastview
+          options: []
+          type: NORMAL
+        - fields:
+            - limit_to_view
+          name: user_idx_limit_to_view
+          options: []
+          type: NORMAL
+        - fields:
+            - organisation
+          name: user_idx_organisation
+          options: []
+          type: NORMAL
+        - fields:
+            - title
+          name: user_idx_title
+          options: []
+          type: NORMAL
+        - fields:
+            - name: value
+              size: 64
+          name: user_idx_value
+          options: []
+          type: NORMAL
+        - fields:
+            - name: email
+              size: 64
+          name: user_idx_email
+          options: []
+          type: NORMAL
+        - fields:
+            - name: username
+              size: 64
+          name: user_idx_username
+          options: []
+          type: NORMAL
+      name: user
+      options: []
+      order: 37
+    user_graph:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - graph_id
+          match_type: ''
+          name: user_graph_fk_graph_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: graph
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - user_id
+          match_type: ''
+          name: user_graph_fk_user_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+      fields:
+        graph_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: graph_id
+          order: 3
+          size:
+            - 0
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        user_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: user_id
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - graph_id
+          name: user_graph_idx_graph_id
+          options: []
+          type: NORMAL
+        - fields:
+            - user_id
+          name: user_graph_idx_user_id
+          options: []
+          type: NORMAL
+      name: user_graph
+      options: []
+      order: 38
+    user_group:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - group_id
+          match_type: ''
+          name: user_group_fk_group_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: group
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - user_id
+          match_type: ''
+          name: user_group_fk_user_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+      fields:
+        group_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: group_id
+          order: 3
+          size:
+            - 0
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        user_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: user_id
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - group_id
+          name: user_group_idx_group_id
+          options: []
+          type: NORMAL
+        - fields:
+            - user_id
+          name: user_group_idx_user_id
+          options: []
+          type: NORMAL
+      name: user_group
+      options: []
+      order: 39
+    user_lastrecord:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - instance_id
+          match_type: ''
+          name: user_lastrecord_fk_instance_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: instance
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - record_id
+          match_type: ''
+          name: user_lastrecord_fk_record_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: record
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - user_id
+          match_type: ''
+          name: user_lastrecord_fk_user_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+      fields:
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        instance_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: instance_id
+          order: 3
+          size:
+            - 0
+        record_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: record_id
+          order: 2
+          size:
+            - 0
+        user_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: user_id
+          order: 4
+          size:
+            - 0
+      indices:
+        - fields:
+            - instance_id
+          name: user_lastrecord_idx_instance_id
+          options: []
+          type: NORMAL
+        - fields:
+            - record_id
+          name: user_lastrecord_idx_record_id
+          options: []
+          type: NORMAL
+        - fields:
+            - user_id
+          name: user_lastrecord_idx_user_id
+          options: []
+          type: NORMAL
+      name: user_lastrecord
+      options: []
+      order: 40
+    user_permission:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - permission_id
+          match_type: ''
+          name: user_permission_fk_permission_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: permission
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - user_id
+          match_type: ''
+          name: user_permission_fk_user_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+      fields:
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        permission_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: permission_id
+          order: 3
+          size:
+            - 0
+        user_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: user_id
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - permission_id
+          name: user_permission_idx_permission_id
+          options: []
+          type: NORMAL
+        - fields:
+            - user_id
+          name: user_permission_idx_user_id
+          options: []
+          type: NORMAL
+      name: user_permission
+      options: []
+      order: 41
+    view:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - instance_id
+          match_type: ''
+          name: view_fk_instance_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: instance
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - user_id
+          match_type: ''
+          name: view_fk_user_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+      fields:
+        filter:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: filter
+          order: 5
+          size:
+            - 0
+        global:
+          data_type: smallint
+          default_value: 0
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: global
+          order: 4
+          size:
+            - 0
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        instance_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: instance_id
+          order: 6
+          size:
+            - 0
+        name:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 3
+          size:
+            - 128
+        user_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: user_id
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - instance_id
+          name: view_idx_instance_id
+          options: []
+          type: NORMAL
+        - fields:
+            - user_id
+          name: view_idx_user_id
+          options: []
+          type: NORMAL
+      name: view
+      options: []
+      order: 42
+    view_layout:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - layout_id
+          match_type: ''
+          name: view_layout_fk_layout_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: layout
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
+            - view_id
+          match_type: ''
+          name: view_layout_fk_view_id
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: view
+          type: FOREIGN KEY
+      fields:
+        id:
+          data_type: integer
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        layout_id:
+          data_type: integer
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: layout_id
+          order: 3
+          size:
+            - 0
+        order:
+          data_type: integer
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: order
+          order: 4
+          size:
+            - 0
+        view_id:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: view_id
+          order: 2
+          size:
+            - 0
+      indices:
+        - fields:
+            - layout_id
+          name: view_layout_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - view_id
+          name: view_layout_idx_view_id
+          options: []
+          type: NORMAL
+      name: view_layout
+      options: []
+      order: 43
+  triggers: {}
+  views: {}
+translator:
+  add_drop_table: 0
+  filename: ~
+  no_comments: 0
+  parser_args:
+    sources:
+      - Alert
+      - AlertCache
+      - AlertSend
+      - Audit
+      - Calc
+      - Calcval
+      - Current
+      - Curval
+      - CurvalField
+      - Date
+      - Daterange
+      - Enum
+      - Enumval
+      - File
+      - FileOption
+      - Fileval
+      - Filter
+      - Graph
+      - GraphColor
+      - Group
+      - Instance
+      - Intgr
+      - Layout
+      - LayoutDepend
+      - LayoutGroup
+      - Metric
+      - MetricGroup
+      - Organisation
+      - Permission
+      - Person
+      - Rag
+      - Ragval
+      - Record
+      - Sort
+      - String
+      - Title
+      - User
+      - UserGraph
+      - UserGroup
+      - UserLastrecord
+      - UserPermission
+      - View
+      - ViewLayout
+  parser_type: SQL::Translator::Parser::DBIx::Class
+  producer_args: {}
+  producer_type: SQL::Translator::Producer::YAML
+  show_warnings: 0
+  trace: 0
+  version: 0.11021

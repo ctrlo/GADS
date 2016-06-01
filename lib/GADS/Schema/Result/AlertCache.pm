@@ -59,6 +59,12 @@ __PACKAGE__->table("alert_cache");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 user_id
+
+  data_type: 'bigint'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -70,6 +76,8 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
   "current_id",
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
+  "user_id",
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -128,6 +136,21 @@ __PACKAGE__->belongs_to(
   "view",
   "GADS::Schema::Result::View",
   { id => "view_id" },
+  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+);
+
+=head2 user
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::User>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "user",
+  "GADS::Schema::Result::User",
+  { id => "user_id" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 

@@ -50,9 +50,9 @@ my $values = {
     },
     curval1 => {
         old           => 1,
-        old_as_string => 'Foo, 50, , , 2014-10-10, 2012-02-10 to 2013-06-15, , c_amber, ',
+        old_as_string => 'Foo, 50, , , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, ',
         new           => 2,
-        new_as_string => 'Bar, 99, , , 2009-01-02, 2008-05-04 to 2008-07-14, , b_red, ',
+        new_as_string => 'Bar, 99, , , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, ',
     },
 };
 

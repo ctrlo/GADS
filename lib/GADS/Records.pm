@@ -330,62 +330,19 @@ sub search_views
     # $self->joins is called, prefetch will have all the columns in
     $self->columns([]);
 
-    my @search; my $found_in_a_view;
-
-    # XXX This is up for debate. First, do a search with all views in, as it only
-    # requires one SQL query (albeit a big one). If none match, happy days.
-    # If one does match though, we have to redo all the searches individually
-    # to find which one matched. Is this the most efficient way of doing it?
+    my @foundin;
     foreach my $view (@views)
     {
-        my $filter  = $view->filter || '{}';
-        my $view_id = $view->id;
-        trace qq(About to decode filter for view ID $view_id);
-        my $decoded = decode_json($filter);
-        # XXX Do not send alerts for hidden fields
-        if (keys %$decoded)
-        {
-            my @s = @{$self->_search_construct($decoded, $self->layout, ignore_perms => 1)};
-            push @search, \@s;
-        }
-        else {
-            # The view has no filter, so it must contain the record.
-            # Skip straight to the next step.
-            $found_in_a_view = 1;
-            last;
-        }
-    }
+        # Treat each view with CURUSER as a separate view for each user
+        # that has it set as an alert
+        my @user_ids = $view->has_curuser
+           ? $self->schema->resultset('Alert')->search({
+            view_id => $view->id
+        }, {
+            prefetch => 'user'
+        })->all : (undef);
 
-    my $search       = {
-        'me.instance_id' => $self->layout->instance_id,
-    };
-    $search->{'-or'} = \@search if @search;
-
-    # Only search for 500 at a time, otherwise query is too large
-    my $i = 0;
-    while (!$found_in_a_view && $i < @$current_ids)
-    {
-        # If the number of current_ids that we have been given is the same as the
-        # number that exist in the database, then assume that we are searching
-        # all records. Therefore don't specify (the potentially thousands) current_ids.
-        unless (@$current_ids == $self->count)
-        {
-            my $max = $i + 499;
-            $max = @$current_ids-1 if $max >= @$current_ids;
-            $search->{'me.id'} = [@{$current_ids}[$i..$max]];
-        }
-        $found_in_a_view ||= $self->schema->resultset('Current')->search($search,{
-            rows => 1,
-            join => {'record' => [$self->joins]},
-        })->count;
-        last unless $search->{'me.id'};
-        $i += 500;
-    }
-
-    my @foundin;
-    if ($found_in_a_view)
-    {
-        foreach my $view (@views)
+        foreach my $user_id (@user_ids)
         {
             my $filter  = $view->filter || '{}';
             my $view_id = $view->id;
@@ -395,7 +352,7 @@ sub search_views
             {
                 my $search = {
                     'me.instance_id' => $self->layout->instance_id,
-                    @{$self->_search_construct($decoded, $self->layout, ignore_perms => 1)},
+                    @{$self->_search_construct($decoded, $self->layout, ignore_perms => 1, user_id => $user_id)},
                 };
                 my $i = 0; my @ids;
                 while ($i < @$current_ids)
@@ -413,17 +370,22 @@ sub search_views
                     last unless $search->{'me.id'};
                     $i += 500;
                 }
-                push @foundin, {
-                    view => $view,
-                    ids  => \@ids,
-                } if @ids;
+                foreach my $id (@ids)
+                {
+                    push @foundin, {
+                        view    => $view,
+                        id      => $id,
+                        user_id => $user_id,
+                    };
+                }
             }
             else {
                 # No filter, definitely in view
                 push @foundin, {
-                    view => $view,
-                    ids  => $current_ids, # Array ref
-                };
+                    view    => $view,
+                    user_id => $user_id,
+                    id      => $_,
+                } foreach @$current_ids;
             }
         }
     }
@@ -1063,12 +1025,13 @@ sub _search_construct
         };
     }
 
-    if ($column->type eq "person")
+    if ($column->type eq "person" && $value =~ /\[CURUSER\]/)
     {
-        my $curuser = $self->user && $self->user->{value}
+        my $curuser = $options{user_id} || ($self->user && $self->user->{id})
             or warning "FIXME: user not set for filter";
         $curuser ||= "";
         $value =~ s/\[CURUSER\]/$curuser/g;
+        $conditions[0]->{s_field} = "id";
     }
 
     my @final = map {

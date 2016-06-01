@@ -129,6 +129,16 @@ has alert => (
     }
 );
 
+has all_alerts => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_all_alerts
+{   my $self = shift;
+    [ $self->_view->alerts ];
+}
+
 has has_alerts => (
     is  => 'lazy',
     isa => Bool,
@@ -150,6 +160,36 @@ has columns => (
         \@view_layouts,
     },
 );
+
+# All the filters in a flat structure
+has filters => (
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
+);
+
+sub _build_filters
+{   my $self = shift;
+    my $decoded = decode_json($self->filter);
+    my $cols_in_filter = {};
+    _filter_tables($decoded, $cols_in_filter);
+    [values %$cols_in_filter];
+}
+
+# Whether the view has a variable "CURUSER" condition
+has has_curuser => (
+    is      => 'lazy',
+    isa     => Bool,
+    clearer => 1,
+);
+
+sub _build_has_curuser
+{   my $self = shift;
+    grep {
+        $self->layout->column($_->{field})->type eq 'person'
+        && $_->{value} eq '[CURUSER]'
+    } @{$self->filters};
+}
 
 has owner => (
     is      => 'rw',
@@ -197,6 +237,7 @@ sub _filter_tables
     }
     elsif (my $id = $filter->{id}) {
         $tables->{$filter->{id}} = {
+            field    => $filter->{id},
             value    => $filter->{value},
             operator => $filter->{operator},
         };
@@ -231,6 +272,9 @@ sub write
     $vu->{filter}      = $self->filter;
     $vu->{instance_id} = $self->instance_id;
     my $decoded = decode_json($self->filter);
+
+    $self->clear_filters;
+    $self->clear_has_curuser;
 
     # Get all the columns in the filter. Check whether the user has
     # access to them.
