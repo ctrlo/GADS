@@ -32,7 +32,10 @@ my $data = [
         tree1      => 4,
     },{
         string1    => 'Disappear',
-    },
+    },{
+        string1    => 'FooFooBar',
+        date1      => '2010-10-10',
+    }
 ];
 
 my $sheet = t::lib::DataSheet->new(data => $data);
@@ -142,6 +145,24 @@ my @filters = (
         }],
         columns => [$columns->{string1}->id],
         current_id => 4,
+        update => [
+            {
+                column => 'string1',
+                value  => 'Gone',
+            },
+        ],
+        alerts => 1, # Disappears
+    },
+    {
+        name  => 'Change of filter of column not in view',
+        rules => [{
+            id       => $columns->{string1}->id,
+            type     => 'string',
+            value    => 'FooFooBar',
+            operator => 'equal',
+        }],
+        columns => [$columns->{date1}->id],
+        current_id => 5,
         update => [
             {
                 column => 'string1',
