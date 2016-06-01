@@ -107,7 +107,7 @@ foreach my $row (@rows)
     {
         push @columns, $row->layout->name;
     }
-    elsif ($row->status eq 'gone')
+    elsif ($row->status =~ /^gone/) # XXX Fixed with CHAR field pads 4 letter word
     {
         my $link = _id_link($current_id);
         push @notifications, {
