@@ -123,7 +123,8 @@ foreach my $row (@rows)
         };
     }
     else {
-        # XXX Throw error
+        panic __x"I don't know what to do with alert status of '{status}'",
+            status => $row->status;
     }
 
     $last_alert_id   = $row->alert_id;
