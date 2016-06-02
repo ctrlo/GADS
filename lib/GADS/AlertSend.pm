@@ -279,25 +279,23 @@ sub process
             # For each user of this alert, check they have read access
             # to the field in question, and send accordingly
             my $user = $alert->user;
-            my @cids; my @columns;
+            my @cids;
             my @alerts = $has_curuser ? @{$alerts->{$user->id}} : $view->alert_caches;
             foreach my $i (@alerts)
             {
-
                 my $col_id = $i->layout_id;
                 next unless $self->layout->column($col_id)->user_id_can($user->id, 'read');
                 push @cids, $i->current_id;
-                push @columns, $self->layout->column($i->layout_id);
             }
             if ($alert->frequency) # send later
             {
-                foreach my $col (@columns)
+                foreach my $col_id (@{$self->columns})
                 {
                     foreach my $cid (@cids)
                     {
                         my $write = {
                             alert_id   => $alert->id,
-                            layout_id  => $col->id,
+                            layout_id  => $col_id,
                             current_id => $cid,
                             status     => 'changed',
                         };
@@ -310,7 +308,7 @@ sub process
                 }
             }
             else {
-                my @colnames = map { $_->name } @columns;
+                my @colnames = map { $self->layout->column($_->id)->name } @{$self->columns};
                 $self->_send_alert('changed', \@cids, $view, [$user->email], \@colnames)
                     if @cids;
             }

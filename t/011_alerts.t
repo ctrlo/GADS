@@ -542,7 +542,8 @@ my $alert_send = GADS::AlertSend->new(
 );
 $alert_send->process;
 
-# We should now have 1000 new alerts to send
-is( $alerts_rs->count, $alert_count + 1000, "Correct number of bulk alerts inserted" );
+# We should now have 999 new alerts to send (1001 records, minus one popped from
+# current_ids, minus first one not in view)
+is( $alerts_rs->count, $alert_count + 999, "Correct number of bulk alerts inserted" );
 
 done_testing();
