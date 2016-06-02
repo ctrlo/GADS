@@ -308,7 +308,7 @@ sub process
                 }
             }
             else {
-                my @colnames = map { $self->layout->column($_->id)->name } @{$self->columns};
+                my @colnames = map { $self->layout->column($_)->name } @{$self->columns};
                 $self->_send_alert('changed', \@cids, $view, [$user->email], \@colnames)
                     if @cids;
             }
