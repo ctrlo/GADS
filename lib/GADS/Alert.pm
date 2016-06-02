@@ -142,6 +142,14 @@ sub update_cache
 
     my $view = $self->view;
 
+    if (!$view->has_alerts)
+    {
+        $self->schema->resultset('AlertCache')->search({
+            view_id => $view->id,
+        })->delete;
+        return;
+    }
+
     # If the view contains a CURUSER filter, we need separate
     # alert caches for each user that has this alert. Only need
     # to worry about this if all_users flag is set

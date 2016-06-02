@@ -321,7 +321,7 @@ sub write
         $self->_view->update($vu);
 
         # Update any alert caches for new filter
-        if ($self->filter_changed)
+        if ($self->filter_changed && $self->has_alerts)
         {
             my $alert = GADS::Alert->new(
                 user      => $self->user,
