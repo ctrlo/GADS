@@ -19,6 +19,7 @@ my $data = [
         date1      => '',
         daterange1 => ['', ''],
         enum1      => 1,
+        tree1      => 4,
     },{
         string1    => '',
         date1      => '',
@@ -187,8 +188,20 @@ my @filters = (
         }],
         count => 3,
     },
+    {
+        name  => 'Search 2 using enum with different tree in view',
+        columns => [$columns->{tree1}->id, $columns->{enum1}->id],
+        rules => [
+            {
+                id       => $columns->{tree1}->id,
+                type     => 'string',
+                value    => 'tree1',
+                operator => 'equal',
+            }
+        ],
+        count => 1,
+    },
 );
-
 foreach my $filter (@filters)
 {
     my $rules = encode_json({
@@ -196,10 +209,11 @@ foreach my $filter (@filters)
         condition => $filter->{condition},
     });
 
+    my $view_columns = $filter->{columns} || [$columns->{string1}->id, $columns->{tree1}->id];
     my $view = GADS::View->new(
         name        => 'Test view',
         filter      => $rules,
-        columns     => [$columns->{string1}->id, $columns->{tree1}->id],
+        columns     => $view_columns,
         instance_id => 1,
         layout      => $layout,
         schema      => $schema,
@@ -216,8 +230,19 @@ foreach my $filter (@filters)
 
     is( $records->count, $filter->{count}, "$filter->{name} for record count $filter->{count}");
     is( @{$records->results}, $filter->{count}, "$filter->{name} actual records matches count $filter->{count}");
-}
 
+    $view->set_sorts($view_columns, 'asc');
+    $records = GADS::Records->new(
+        user    => undef,
+        view    => $view,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    is( $records->count, $filter->{count}, "$filter->{name} for record count $filter->{count}");
+    is( @{$records->results}, $filter->{count}, "$filter->{name} actual records matches count $filter->{count}");
+
+}
 my $records = GADS::Records->new(
     user    => undef,
     layout  => $layout,

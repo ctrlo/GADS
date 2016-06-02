@@ -49,6 +49,7 @@ sub _add_jp
             $j->{prefetch} ||= $options{prefetch};
             $j->{search}   ||= $options{search};
             $j->{linked}   ||= $options{linked};
+            $j->{sort}     ||= $options{sort};
             return;
         }
     }
@@ -59,6 +60,7 @@ sub _add_jp
         prefetch => $options{prefetch}, # Whether values should be retrieved
         search   => $options{search},   # Whether it's used in a WHERE clause
         linked   => $options{linked},   # Whether it's a linked table
+        sort     => $options{sort},     # Whether it's used in an order_by clause
     };
 }
 
@@ -82,45 +84,32 @@ sub add_linked_join
     $self->_add_jp(@_, linked => 1);
 }
 
-sub _to_joins
-{   map { $_->{join} } @_;
+sub _jpfetch
+{   my ($self, %options) = @_;
+    my @return;
+    foreach (@{$self->_jp_store})
+    {
+        next if !$options{linked} && $_->{linked};
+        next if $options{linked} && !$_->{linked};
+        if ($options{search} && $_->{search}) {
+            push @return, $_;
+            next;
+        }
+        if ($options{sort} && $_->{sort}) {
+            push @return, $_;
+            next;
+        }
+        if ($options{prefetch} && $_->{prefetch}) {
+            push @return, $_;
+            next;
+        }
+    }
+    @return;
 }
 
-sub all_joins
+sub jpfetch
 {   my $self = shift;
-    _to_joins grep { !$_->{linked} } @{$self->_jp_store};
-}
-
-sub joins
-{   my $self = shift;
-    _to_joins grep { !$_->{prefetch} && !$_->{linked} } @{$self->_jp_store};
-}
-
-sub prefetches
-{   my $self = shift;
-    my @prefetches = _to_joins grep { $_->{prefetch} && !$_->{linked} } @{$self->_jp_store};
-    unshift @prefetches, ('current', 'createdby', 'approvedby');
-    @prefetches;
-}
-
-sub joins_search
-{   my $self = shift;
-    _to_joins grep { $_->{search} && !$_->{linked} } @{$self->_jp_store};
-}
-
-sub joins_linked_search
-{   my $self = shift;
-    _to_joins grep { $_->{search} && $_->{linked} } @{$self->_jp_store};
-}
-
-sub joins_linked
-{   my $self = shift;
-    _to_joins grep { !$_->{prefetch} && $_->{linked} } @{$self->_jp_store};
-}
-
-sub prefetches_linked
-{   my $self = shift;
-    _to_joins grep { $_->{prefetch} && $_->{linked} } @{$self->_jp_store};
+    map { $_->{join} } $self->_jpfetch(@_);
 }
 
 sub table_name
@@ -138,9 +127,7 @@ sub _join_number
     ($key) = keys %$join if ref $join eq 'HASH';
 
     # Need prefetches then joins to get the correct key numbers for DBIC
-    my @store = grep { !$_->{prefetch} }  @{$self->_jp_store};
-    push @store, grep { $_->{prefetch} }  @{$self->_jp_store};
-    @store = grep { $_->{search} } @store if $options{search_only};
+    my @store = $self->_jpfetch(%options);
     foreach my $j (@store)
     {
         if ($key && ref $j->{join} eq 'HASH')
@@ -162,8 +149,8 @@ sub _join_number
 
 # Return a fully-qualified value field for a table
 sub fqvalue
-{   my ($self, $column) = @_;
-    my $tn = $self->table_name($column);
+{   my ($self, $column, %options) = @_;
+    my $tn = $self->table_name($column, %options);
     "$tn." . $column->value_field;
 }
 

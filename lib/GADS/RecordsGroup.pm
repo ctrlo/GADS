@@ -112,25 +112,25 @@ sub _build_results
                : 'max';
         # Don't use SUM() for non-numeric columns
         $op = 'max' if $op eq 'sum' && !$_->numeric;
-        $self->add_join($_);
+        $self->add_join($_, search => 1);
         push @select_fields, {
-            $op => $self->fqvalue($_),
+            $op => $self->fqvalue($_, search => 1),
             -as => $_->field
         };
         # Also add linked column if required
         push @select_fields, {
-            $op => $self->fqvalue($_->link_parent),
+            $op => $self->fqvalue($_->link_parent, linked => 1, search => 1),
             -as => $_->field."_link",
         } if $_->link_parent;
     };
 
     push @select_fields, {
-        $self->operator => $self->fqvalue($self->column),
+        $self->operator => $self->fqvalue($self->column, search => 1),
         -as             => $self->column->field."_".$self->{operator},
     } if $self->column;
 
     push @select_fields, {
-        $self->operator => $self->fqvalue($self->column->link_parent),
+        $self->operator => $self->fqvalue($self->column->link_parent, linked => 1, search => 1),
         -as             => $self->column->field."_".$self->{operator}."_link",
     } if $self->column && $self->column->link_parent;
 
@@ -156,13 +156,13 @@ sub _build_results
         ) if $field_link;
 
         my ($result) = $self->schema->resultset('Current')->search(
-            [-and => $self->search_query], {
+            [-and => $self->search_query(search => 1, prefetch => 1)], {
                 select => $select,
                 join   => [
                     {
-                        'record' => [$self->all_joins],
+                        'record' => [$self->jpfetch(search => 1, prefetch => 1)],
                     },
-                    $self->linked_hash,
+                    $self->linked_hash(search => 1, prefetch => 1),
                 ],
             },
         )->all;
@@ -189,8 +189,8 @@ sub _build_results
             # The literal CASE statement, which we reuse for each required period
             my $from_field   = $self->schema->storage->dbh->quote_identifier('from');
             my $to_field     = $self->schema->storage->dbh->quote_identifier('to');
-            my $col_val      = $self->fqvalue($self->column);
-            my $col_val_link = $self->column->link_parent && $self->fqvalue($self->column->link_parent);
+            my $col_val      = $self->fqvalue($self->column, search => 1);
+            my $col_val_link = $self->column->link_parent && $self->fqvalue($self->column->link_parent, linked => 1, search => 1);
 
             my $case = $field_link
                 ? "CASE WHEN "
@@ -248,35 +248,35 @@ sub _build_results
         if (my $pluck = $_->{pluck}) {
 
             push @g, $self->schema->resultset('Current')->dt_SQL_pluck(
-                { -ident => $self->fqvalue($col) }, 'year'
+                { -ident => $self->fqvalue($col, search => 1) }, 'year'
             );
 
             push @g, $self->schema->resultset('Current')->dt_SQL_pluck(
-                { -ident => $self->fqvalue($col) }, 'month'
+                { -ident => $self->fqvalue($col, search => 1) }, 'month'
             ) if $pluck eq 'month' || $pluck eq 'day';
 
             push @g, $self->schema->resultset('Current')->dt_SQL_pluck(
-                { -ident => $self->fqvalue($col) }, 'day_of_month'
+                { -ident => $self->fqvalue($col, search => 1) }, 'day_of_month'
             ) if $pluck eq 'day';
 
         } else {
-            push @g, $self->fqvalue($col);
+            push @g, $self->fqvalue($col, search => 1);
         }
     };
     my $select = {
         select => [@select_fields],
         join     => [
             {
-                'record' => [$self->all_joins],
+                'record' => [$self->jpfetch(prefetch => 1, search => 1)],
             },
-            $self->linked_hash,
+            $self->linked_hash(prefetch => 1, search => 1),
         ],
         group_by => [@g],
     };
 
 
     my $result = $self->schema->resultset('Current')->search(
-        [-and => $self->search_query], $select
+        [-and => $self->search_query(prefetch => 1, search => 1)], $select
     );
 
     [$result->all];

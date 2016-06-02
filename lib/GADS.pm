@@ -346,7 +346,6 @@ sub _data_graph
         user              => $user,
         layout            => $layout,
         schema            => schema,
-        prefetch_children => 1,
     );
     $records->search_all_fields(session 'search')
         if session 'search';

@@ -485,10 +485,10 @@ sub set_sorts
     # the data associated with that entry.
     my @fields = ref $sortfield ? @$sortfield : ($sortfield // ()); # Allow empty string for ID
     my @types  = ref $sorttype  ? @$sorttype  : ($sorttype  || ());
-    my @allsorts;
+    my @allsorts; my $type_last;
     foreach my $layout_id (@fields)
     {
-        my $type = shift @types;
+        my $type = (shift @types) || $type_last;
         error __x"Invalid type {type}", type => $type
             unless grep { $_->{name} eq $type } @{sort_types()};
         # Check column is valid and user has access
@@ -501,6 +501,7 @@ sub set_sorts
         };
         my $s = $schema->resultset('Sort')->create($sort);
         push @allsorts, $s->id;
+        $type_last = $type;
     }
     $self->_clear_view;
     $self->sorts($self->_get_sorts);
