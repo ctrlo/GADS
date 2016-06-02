@@ -170,9 +170,11 @@ sub update_cache
             view   => $view,
         );
 
-        my @caches; my $cache;
         my $user_id = $view->has_curuser ? $u->{id} : undef;
 
+        my %exists;
+        # For each item in this view, see if it exists in the cache. If it doesn't,
+        # create it.
         while (my $record = $records->single)
         {
             my $current_id = $record->current_id;
@@ -184,35 +186,22 @@ sub update_cache
                     current_id => $current_id,
                     user_id    => $user_id,
                 };
-                push @caches, $a;
-                $cache->{$view->id}->{$column}->{$current_id} = 1;
+                my ($a_rs) = $self->schema->resultset('AlertCache')->search($a);
+                $a_rs ||= $self->schema->resultset('AlertCache')->create($a);
+                # Keep track of all those that should be in the cache
+                $exists{$a_rs->id} = undef;
             }
         }
 
-        my @existing = $self->schema->resultset('AlertCache')->search({
+        # Now iterate through all of them and delete any that shouldn't exist
+        my $rs = $self->schema->resultset('AlertCache')->search({
             view_id => $view->id,
             user_id => $user_id,
         });
-
-        foreach (@existing)
+        while (my $existing = $rs->next)
         {
-            if ($cache->{$_->view_id}->{$_->layout_id}->{$_->current_id})
-            {
-                delete $cache->{$_->view_id}->{$_->layout_id}->{$_->current_id};
-            }
-            else {
-                $_->delete;
-            }
+            $existing->delete unless exists $exists{$existing->id};
         }
-
-        my @towrite;
-        foreach (@caches)
-        {
-            push @towrite, $_
-                if $cache->{$_->{view_id}}->{$_->{layout_id}}->{$_->{current_id}};
-        }
-        $self->schema->resultset('AlertCache')->populate(\@towrite);
-
     }
 
     # Now delete any alerts that should not be there that are applicable to our update
