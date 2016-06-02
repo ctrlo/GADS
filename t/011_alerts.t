@@ -451,6 +451,16 @@ is( $schema->resultset('AlertCache')->search({ user_id => 1 })->count, 2, "Corre
 is( $schema->resultset('AlertCache')->search({ user_id => 2 })->count, 2, "Correct number of CURUSER alerts after filter change (user2)" );
 is( $schema->resultset('AlertCache')->search({ user_id => undef })->count, 0, "No null user_id values after filter change" );
 
+# Update a record so as to cause a search_views with CURUSER
+my $record = GADS::Record->new(
+    user     => $user,
+    layout   => $layout,
+    schema   => $schema,
+);
+$record->find_current_id(1);
+$record->fields->{$columns->{string1}->id}->set_value('FooBar');
+$record->write;
+
 # And remove curuser filter
 $rules = {
     rules     => [
@@ -466,7 +476,7 @@ $view->filter(encode_json($rules));
 $view->write;
 
 is( $schema->resultset('AlertCache')->search({ user_id => { '!=' => undef } })->count, 0, "Correct number of user_id alerts after removal of curuser filter" );
-is( $schema->resultset('AlertCache')->search({ user_id => undef })->count, 6, "Correct number of normal alerts after removal of curuser filter" );
+is( $schema->resultset('AlertCache')->search({ user_id => undef })->count, 4, "Correct number of normal alerts after removal of curuser filter" );
 
 # Test some bulk alerts, which normally happen on code field updates
 diag "About to test alerts for bulk updates. This could take some time...";

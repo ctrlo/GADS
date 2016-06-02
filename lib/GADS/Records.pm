@@ -338,9 +338,7 @@ sub search_views
         my @user_ids = $view->has_curuser
            ? $self->schema->resultset('Alert')->search({
             view_id => $view->id
-        }, {
-            prefetch => 'user'
-        })->all : (undef);
+        })->get_column('user_id')->all : (undef);
 
         foreach my $user_id (@user_ids)
         {
