@@ -542,8 +542,36 @@ sub _build_results
     my @joins           = $self->joins;
     my @linked_join     = $self->linked_hash(type => 'join');
     my @linked_prefetch = $self->linked_hash(type => 'prefetch');
-    my $currents = $self->prefetch_children ? { currents => {record => [@prefetches]} } : 'currents';
+    my $currents        = $self->prefetch_children ? { currents => {record => [@prefetches]} } : 'currents';
+
+    # Run 2 queries. First to get the current IDs of the matching records, then
+    # the second to get the actual data for the records. Although this means
+    # 2 separate DB queries, it prevents queries with large SELECT and WHERE
+    # clauses, which can be very slow (with Pg at least).
     my $select = {
+        join     => [
+            {
+                'record' => [$self->joins_search],
+            },
+            [$self->joins_linked_search],
+        ],
+        '+select' => $self->plus_select, # Used for additional sort columns
+        order_by  => $self->order_by,
+    };
+    my $page = $self->page;
+    $page = $self->pages
+        if $page && $page > 1 && $page > $self->pages; # Building page count is expensive, avoid if not needed
+
+    $select->{rows} = $self->rows if $self->rows;
+    $select->{page} = $page if $page;
+
+    # Get the current IDs
+    my @cids = $self->schema->resultset('Current')->search(
+        [-and => $search_query], $select
+    )->get_column('me.id')->all;
+
+    # Now redo the query with those IDs
+    $select = {
         prefetch => [
             {
                 'record' => [@prefetches],
@@ -561,15 +589,8 @@ sub _build_results
         order_by  => $self->order_by,
     };
 
-    # Now redo query but with just one page of results
-    my $page = $self->page;
-    $page = $self->pages
-        if $page && $page > 1 && $page > $self->pages; # Building page count is expensive, avoid if not needed
-
-    $select->{rows} = $self->rows if $self->rows;
-    $select->{page} = $page if $page;
     my $result = $self->schema->resultset('Current')->search(
-        [-and => $search_query], $select
+        { 'me.id' => \@cids }, $select
     );
 
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
@@ -871,7 +892,7 @@ sub _build__query_params
 sub add_sort
 {   my ($self, $column, $type) = @_;
 
-    $self->add_join($column);
+    $self->add_join($column, search => 1);
     my $s_table = $self->table_name($column);
     $self->order_by_inc;
     my $sort_name = "sort_".$self->order_by_count;
