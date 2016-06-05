@@ -36,6 +36,10 @@ migrate {
                 $parentval_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
                 foreach my $parentval ($parentval_rs->all)
                 {
+                    next if $schema->resultset($type)->search({
+                        record_id => $child_record->id,
+                        layout_id => $parentval->{layout_id},
+                    })->count;
                     $parentval->{record_id} = $child_record->id;
                     delete $parentval->{id};
                     $schema->resultset($type)->create($parentval);
