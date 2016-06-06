@@ -263,6 +263,9 @@ sub _build_results
             push @g, $self->fqvalue($col, search => 1);
         }
     };
+
+    my $q = $self->search_query(prefetch => 1, search => 1); # Called first to generate joins
+
     my $select = {
         select => [@select_fields],
         join     => [
@@ -274,9 +277,8 @@ sub _build_results
         group_by => [@g],
     };
 
-
     my $result = $self->schema->resultset('Current')->search(
-        [-and => $self->search_query(prefetch => 1, search => 1)], $select
+        [-and => $q], $select
     );
 
     [$result->all];

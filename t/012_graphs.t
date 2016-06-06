@@ -2,6 +2,7 @@ use Test::More; # tests => 1;
 use strict;
 use warnings;
 
+use JSON qw(encode_json);
 use Log::Report;
 use GADS::Graph;
 use GADS::Graph::Data;
@@ -53,6 +54,22 @@ my $graphs = [
         data         => [[ 50, 10, 20 ]],
     },
     {
+        name         => 'String x-axis, integer sum y-axis with view filter',
+        type         => 'bar',
+        x_axis       => $columns->{string1}->id,
+        y_axis       => $columns->{integer1}->id,
+        y_axis_stack => 'sum',
+        data         => [[ 15, 10 ]],
+        rules => [
+            {
+                id       => $columns->{enum1}->id,
+                type     => 'string',
+                value    => 'foo1',
+                operator => 'equal',
+            }
+        ],
+    },
+    {
         name            => 'Date range x-axis, integer sum y-axis',
         type            => 'bar',
         x_axis          => $columns->{daterange1}->id,
@@ -99,6 +116,25 @@ foreach my $g (@$graphs)
         if $g->{group_by};
     $graph->write;
 
+    my $view;
+    if (my $r = $g->{rules})
+    {
+        my $rules = encode_json({
+            rules     => $r,
+            # condition => 'AND', # Default
+        });
+
+        $view = GADS::View->new(
+            name        => 'Test view',
+            filter      => $rules,
+            instance_id => 1,
+            layout      => $layout,
+            schema      => $schema,
+            user        => undef,
+        );
+        $view->write;
+    }
+
     my $records = GADS::RecordsGroup->new(
         user              => undef,
         layout            => $layout,
@@ -106,6 +142,7 @@ foreach my $g (@$graphs)
     );
     my $graph_data = GADS::Graph::Data->new(
         id      => $graph->id,
+        view    => $view,
         records => $records,
         schema  => $schema,
     );
