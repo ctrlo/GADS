@@ -875,10 +875,10 @@ any '/graph/?:id?' => require_role layout => sub {
     if (defined $id)
     {
         my $graph = GADS::Graph->new(
+            id     => $id,
             layout => $layout,
             schema => schema,
         );
-        $graph->id($id) if $id;
 
         if (param 'delete')
         {
