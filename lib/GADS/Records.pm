@@ -461,7 +461,7 @@ sub search_all_fields
                     join => {
                         record => [
                             'curvals',
-                            $self->joins,
+                            $self->jpfetch(search => 1),
                         ]
                     },
                 });

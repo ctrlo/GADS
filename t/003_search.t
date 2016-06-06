@@ -18,28 +18,29 @@ my $data = [
         string1    => '',
         date1      => '',
         daterange1 => ['', ''],
-        enum1      => 1,
-        tree1      => 4,
+        enum1      => 7,
+        tree1      => 10,
+        curval1    => 2,
     },{
         string1    => '',
         date1      => '',
         daterange1 => ['', ''],
-        enum1      => 1,
+        enum1      => 7,
     },{
         string1    => '',
         date1      => '2014-10-10',
         daterange1 => ['2014-03-21', '2015-03-01'],
-        enum1      => 1,
+        enum1      => 7,
     },{
         string1    => 'Foo',
         date1      => '2014-10-10',
         daterange1 => ['2010-01-04', '2011-06-03'],
-        enum1      => 2,
+        enum1      => 8,
     },{
         string1    => 'FooBar',
         date1      => '2015-10-10',
         daterange1 => ['2009-01-04', '2017-06-03'],
-        enum1      => 2,
+        enum1      => 8,
     },{
         string1    => "${long}1",
     },{
@@ -47,12 +48,16 @@ my $data = [
     },
 ];
 
-my $sheet = t::lib::DataSheet->new(data => $data);
 
-my $schema = $sheet->schema;
-my $layout = $sheet->layout;
+
+my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+$curval_sheet->create_records;
+my $schema  = $curval_sheet->schema;
+my $sheet   = t::lib::DataSheet->new(data => $data, schema => $schema, curval => 2);
+my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
 $sheet->create_records;
+
 
 # Manually force one string to be empty and one to be undef.
 # Both should be returned during a search on is_empty
@@ -253,6 +258,7 @@ my $records = GADS::Records->new(
 is (@{$records->search_all_fields('2014-10-10')}, 2, 'Quick search for 2014-10-10');
 is (@{$records->search_all_fields('Foo')}, 1, 'Quick search for foo');
 is (@{$records->search_all_fields('Foo*')}, 5, 'Quick search for foo*');
+is (@{$records->search_all_fields('99')}, 1, 'Quick search for 99');
 
 # Specific record retrieval
 my $record = GADS::Record->new(
@@ -260,9 +266,9 @@ my $record = GADS::Record->new(
     layout => $layout,
     schema => $schema,
 );
-is( $record->find_record_id(1)->record_id, 1, "Retrieved history record ID 1" );
+is( $record->find_record_id(3)->record_id, 3, "Retrieved history record ID 3" );
 $record->clear;
-is( $record->find_current_id(1)->current_id, 1, "Retrieved current ID 1" );
+is( $record->find_current_id(3)->current_id, 3, "Retrieved current ID 3" );
 
 # Check sorting functionality
 my @sorts = (
@@ -271,32 +277,32 @@ my @sorts = (
         show_columns => [$columns->{string1}->id, $columns->{enum1}->id],
         sort_by      => [$columns->{enum1}->id],
         sort_type    => ['asc'],
-        first        => qr/^(6|7)$/,
-        last         => qr/^(4|5)$/,
+        first        => qr/^(8|9)$/,
+        last         => qr/^(6|7)$/,
     },
     {
         name         => 'Sort by single column not in view ascending',
         show_columns => [$columns->{string1}->id, $columns->{tree1}->id],
         sort_by      => [$columns->{enum1}->id],
         sort_type    => ['asc'],
-        first        => qr/^(6|7)$/,
-        last         => qr/^(4|5)$/,
+        first        => qr/^(8|9)$/,
+        last         => qr/^(6|7)$/,
     },
     {
         name         => 'Sort by single column not in view descending',
         show_columns => [$columns->{string1}->id, $columns->{tree1}->id],
         sort_by      => [$columns->{enum1}->id],
         sort_type    => ['desc'],
-        first        => qr/^(4|5)$/,
-        last         => qr/^(6|7)$/,
+        first        => qr/^(6|7)$/,
+        last         => qr/^(8|9)$/,
     },
     {
         name         => 'Sort by two columns, one in view one not in view, asc then desc',
         show_columns => [$columns->{string1}->id, $columns->{tree1}->id],
         sort_by      => [$columns->{enum1}->id, $columns->{daterange1}->id],
         sort_type    => ['asc', 'desc'],
-        first        => qr/^(6|7)$/,
-        last         => qr/^(5)$/,
+        first        => qr/^(8|9)$/,
+        last         => qr/^(7)$/,
     },
 );
 
