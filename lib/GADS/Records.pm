@@ -367,7 +367,7 @@ sub search_all_fields
         { type => 'string', plural => 'enums', sub => 1 },
         { type => 'string', plural => 'people', sub => 1 },
         { type => 'file'  , plural => 'files', sub => 1, value_field => 'name' },
-        { type => 'current_id' },
+        { type => 'current_id', plural => '' }, # Empty string to avoid uninit warnings
     );
 
     # Set up a date parser
