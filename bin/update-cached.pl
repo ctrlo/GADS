@@ -27,6 +27,7 @@ use GADS::Layout;
 use Dancer2 ':script';
 use Dancer2::Plugin::DBIC qw(schema resultset rset);
 use Dancer2::Plugin::LogReport mode => 'NORMAL';
+use Tie::Cache;
 
 GADS::DB->setup(schema);
 
@@ -39,6 +40,8 @@ GADS::Config->instance(
 GADS::Email->instance(
     config => config,
 );
+
+tie %{schema->storage->dbh->{CachedKids}}, 'Tie::Cache', 100;
 
 my $instances = GADS::Instances->new(schema => schema);
 
