@@ -22,6 +22,7 @@ use DateTime;
 use DateTime::Format::Strptime qw( );
 use DBIx::Class::ResultClass::HashRefInflator;
 use GADS::AlertSend;
+use GADS::Config;
 use GADS::Datum::Calc;
 use GADS::Datum::Curval;
 use GADS::Datum::Date;
@@ -308,14 +309,32 @@ sub remove_id
     $self->linked_id(undef);
 }
 
+sub _check_instance
+{   my ($self, $instance_id_new) = @_;
+    if ($self->layout->instance_id != $instance_id_new)
+    {
+       my $layout = GADS::Layout->new(
+            user        => $self->user,
+            schema      => $self->schema,
+            config      => GADS::Config->instance,
+            instance_id => $instance_id_new,
+        );
+        $self->layout($layout);
+    }
+}
+
 sub find_record_id
 {   my ($self, $record_id) = @_;
+    my $instance_id = $self->schema->resultset('Record')->find($record_id)->current->instance_id;
+    $self->_check_instance($instance_id);
     $self->_find(record_id => $record_id);
 }
 
 sub find_current_id
 {   my ($self, $current_id) = @_;
     return unless $current_id;
+    my $instance_id = $self->schema->resultset('Current')->find($current_id)->instance_id;
+    $self->_check_instance($instance_id);
     $self->_find(current_id => $current_id);
 }
 

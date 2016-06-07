@@ -1674,6 +1674,7 @@ post '/edits' => require_login sub {
         );
 
         $record->find_current_id($values->{current_id});
+        $layout = $record->layout; # May have changed if record from other datasheet
         my $to_write = $layout->column($values->{column})->type eq 'date'
             ? $values->{from}
             : {
@@ -1713,20 +1714,22 @@ any '/edit/:id?' => require_login sub {
 
     my $child = param 'child';
 
-    my @columns_to_show = $id || $child # show all cols for new child, to allow inc/exc of field
-        ? $layout->all(user_can_readwrite_existing => 1)
-        : $layout->all(user_can_write_new => 1);
-
-    if ($id)
-    {
-        $record->find_current_id($id);
-    }
-
     # XXX Move into user class once properly available
     my ($lastrecord) = rset('UserLastrecord')->search({
         instance_id => $layout->instance_id,
         user_id     => $user->{id},
     })->all;
+
+    if ($id)
+    {
+        $record->find_current_id($id);
+        $layout = $record->layout; # May have changed if record from other datasheet
+    }
+
+    my @columns_to_show = $id || $child # show all cols for new child, to allow inc/exc of field
+        ? $layout->all(user_can_readwrite_existing => 1)
+        : $layout->all(user_can_write_new => 1);
+
 
     if (param 'submit')
     {
@@ -1894,6 +1897,7 @@ any qr{/(record|history)/([0-9]+)} => require_login sub {
       $action eq 'history'
     ? $record->find_record_id($id)
     : $record->find_current_id($id);
+    $layout = $record->layout; # May have changed if record from other datasheet
 
     my @versions = $record->versions;
 

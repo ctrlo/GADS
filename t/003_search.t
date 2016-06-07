@@ -269,6 +269,11 @@ my $record = GADS::Record->new(
 is( $record->find_record_id(3)->record_id, 3, "Retrieved history record ID 3" );
 $record->clear;
 is( $record->find_current_id(3)->current_id, 3, "Retrieved current ID 3" );
+# Find records from different layout
+$record->clear;
+is( $record->find_record_id(1)->record_id, 1, "Retrieved history record ID 1 from other datasheet" );
+$record->clear;
+is( $record->find_current_id(1)->current_id, 1, "Retrieved current ID 1 from other datasheet" );
 
 # Check sorting functionality
 my @sorts = (
