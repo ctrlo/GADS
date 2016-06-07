@@ -667,7 +667,7 @@ sub write
         # Don't check for unique if this is a child record and it hasn't got a unique value.
         # If the value has been de-selected as unique, the datum will be changed, and it
         # may still have a value in it, although this won't be written.
-        if ($column->isunique && ($self->new_entry || $datum->changed) && !($self->parent_id && !$datum->child_unique))
+        if ($column->isunique && !$datum->blank && ($self->new_entry || $datum->changed) && !($self->parent_id && !$datum->child_unique))
         {
             # Check for other columns with this value.
             if (my $r = $self->find_unique($column, $datum->as_string))
