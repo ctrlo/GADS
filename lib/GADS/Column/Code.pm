@@ -34,7 +34,7 @@ has base_url => (
 );
 
 sub update_cached
-{   my ($self, $table, $no_alert_send, $value_field_old) = @_;
+{   my ($self, %options) = @_;
 
     return unless $self->write_cache;
 
@@ -69,7 +69,7 @@ sub update_cached
 
     $guard->commit;
 
-    return if $no_alert_send; # E.g. new column, don't want to alert on all
+    return if $options{no_alert_send}; # E.g. new column, don't want to alert on all
 
     # Send any alerts
     my $alert_send = GADS::AlertSend->new(

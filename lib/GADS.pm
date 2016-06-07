@@ -1252,7 +1252,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
                 $column->curval_field_ids($curval_field_ids);
             }
 
-            if (process( sub { $column->write(no_alerts => $no_alerts) }))
+            if (process( sub { $column->write(no_alerts => $no_alerts, no_cache_update => param('no_cache_update')) }))
             {
                 my $action = param('id') ? 'updated' : 'created';
                 return forwardHome(

@@ -156,7 +156,8 @@ after 'write' => sub {
                 if $self->calc =~ $col->code_regex;
         }
         $self->depends_on(\@depends_on);
-        $self->update_cached('Calcval', $no_alerts, $value_field_old);
+        $self->update_cached(no_alerts => $no_alerts)
+            unless $options{no_cache_update};
     }
 };
 

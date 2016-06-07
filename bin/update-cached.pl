@@ -58,7 +58,7 @@ foreach my $instance (@{$instances->all})
     {
         next if $column->userinput;
         $column->base_url(config->{gads}->{url});
-        $column->update_cached($column->table);
+        $column->update_cached;
     }
 }
 

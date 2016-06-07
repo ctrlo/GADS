@@ -304,6 +304,15 @@
                         </label>
                     </div>
                 </div>
+                <div class="form-group">
+                    <label for="no_cache_update">Value updates:</label>
+                    <div class="checkbox">
+                        <label>
+                            <input id="no_cache_update" type="checkbox" name="no_cache_update">Do not immediately update all existing values
+                                (values will be updated overnight instead)
+                        </label>
+                    </div>
+                </div>
             </div>
             <div id="divcalc"
                 [% IF column.type != "calc" %]
@@ -329,6 +338,15 @@
                         <label>
                             <input id="no_alerts_calc" type="checkbox" name="no_alerts_calc" checked>Do not send alerts when making this update
                                 (alerts will still be sent when records are subsequently edited individually)
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="no_cache_update">Value updates:</label>
+                    <div class="checkbox">
+                        <label>
+                            <input id="no_cache_update" type="checkbox" name="no_cache_update">Do not immediately update all existing values
+                                (values will be updated overnight instead)
                         </label>
                     </div>
                 </div>

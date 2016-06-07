@@ -110,7 +110,8 @@ after 'write' => sub {
                 if $self->green =~ $regex || $self->amber =~ $regex || $self->red =~ $regex;
         }
         $self->depends_on(\@depends_on);
-        $self->update_cached('Ragval', $no_alerts);
+        $self->update_cached(no_alerts => $no_alerts)
+            unless $options{no_cache_update};
     }
 };
 
