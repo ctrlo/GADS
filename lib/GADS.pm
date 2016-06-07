@@ -1076,6 +1076,8 @@ any '/view/:id' => require_login sub {
             $view->set_sorts($params->{sortfield}, $params->{sorttype});
             # Set current view to the one created/edited
             session 'view_id' => $view->id;
+            # And remove any search to avoid confusion
+            session search => '';
             return forwardHome(
                 { success => "The view has been updated successfully" }, 'data' );
         }
