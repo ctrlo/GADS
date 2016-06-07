@@ -96,10 +96,6 @@ has curval_field_ids_index => (
     isa => HashRef,
 );
 
-has value_field => (
-    is => 'lazy',
-);
-
 sub _build_curval_field_ids_index
 {   my $self = shift;
     my @vals = @{$self->curval_field_ids};
