@@ -425,6 +425,7 @@ sub build_values
             }
         });
         $self->fixedvals(1);
+        $self->sprefix($self->field);
     }
     else {
         $self->sprefix($self->field);
