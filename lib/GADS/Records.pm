@@ -960,9 +960,15 @@ sub _search_construct
         $value = $vprefix.$filter->{value}.$vsuffix;
     }
 
-    my $dtf = $self->schema->storage->datetime_parser;
-    $value = $dtf->format_date(DateTime->now)
-        if $filter->{value} && $filter->{value} eq "CURDATE";
+    # Sub-in current date as required. Ideally we would use the same
+    # code here as the calc/rag fields, but this can be accessed by
+    # any user, so should be a lot tighter.
+    if ($filter->{value} && $filter->{value} =~ "CURDATE")
+    {
+        my $vdt = GADS::View->parse_date_filter($filter->{value});
+        my $dtf = $self->schema->storage->datetime_parser;
+        $value = $dtf->format_date($vdt);
+    }
 
     $value =~ s/\_/\\\_/g if $operator eq '-like';
 

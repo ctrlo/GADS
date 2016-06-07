@@ -52,7 +52,8 @@
                     that meets the configured criteria. Filters can be either logical AND or 
                     logical OR, and be grouped at different levels for maximum flexibility.
                     Any dates entered must be specified in the form yyyy-mm-dd, or "CURDATE"
-                    can be used to specify the current date. [CURUSER] can be used to specify
+                    can be used to specify the current date (number of seconds can be added to or
+                    subtracted from CURDATE to adjust the date). [CURUSER] can be used to specify
                     the user that is logged in when the view is used.
                 </dd>
             </dl>

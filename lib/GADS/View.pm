@@ -305,7 +305,7 @@ sub write
             error __x qq(Invalid date format "{value}"), value => $val
                 if ( $val !~ /^[-0-9]+$/ # parse_datetime allows junk after proper date
                     || !$strp->parse_datetime($val)
-                ) && $val ne 'CURDATE';
+                ) && !($val =~ 'CURDATE' && $self->parse_date_filter($val));
         }
 
         error __x "No value can be entered for empty and not empty operators"
@@ -505,6 +505,23 @@ sub set_sorts
     }
     $self->_clear_view;
     $self->sorts($self->_get_sorts);
+}
+
+sub parse_date_filter
+{   my ($class, $value) = @_;
+    $value =~ /^(\h*([0-9]+)\h*([+])\h*)?CURDATE(\h*([-+])\h*([0-9]+)\h*)?$/
+        or return;
+    my $now = DateTime->now;
+    my ($v1, $op1, $op2, $v2) = ($2, $3, $5, $6);
+    if ($op1 && $op1 eq '+' && $v1)
+    { $now->add(seconds => $v1) }
+#    if ($op1 eq '-' && $v1) # Doesn't work, needs coding differently
+#    { $now->subtract(seconds => $v1) }
+    if ($op2 && $op2 eq '+' && $v2)
+    { $now->add(seconds => $v2) }
+    if ($op2 && $op2 eq '-' && $v2)
+    { $now->subtract(seconds => $v2) }
+    $now;
 }
 
 1;
