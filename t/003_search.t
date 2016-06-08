@@ -259,6 +259,7 @@ is (@{$records->search_all_fields('2014-10-10')}, 2, 'Quick search for 2014-10-1
 is (@{$records->search_all_fields('Foo')}, 1, 'Quick search for foo');
 is (@{$records->search_all_fields('Foo*')}, 5, 'Quick search for foo*');
 is (@{$records->search_all_fields('99')}, 1, 'Quick search for 99');
+is (@{$records->search_all_fields('1979-01-204')}, 0, 'Quick search for invalid date');
 
 # Specific record retrieval
 my $record = GADS::Record->new(

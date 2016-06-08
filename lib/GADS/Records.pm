@@ -370,12 +370,6 @@ sub search_all_fields
         { type => 'current_id', plural => '' }, # Empty string to avoid uninit warnings
     );
 
-    # Set up a date parser
-    my $format = DateTime::Format::Strptime->new(
-         pattern   => '%Y-%m-%d',
-         time_zone => 'local',
-    );
-
     my @columns_can_view;
     foreach my $col ($self->layout->all(user_can_read => 1))
     {
@@ -406,7 +400,7 @@ sub search_all_fields
             && !looks_like_number $search;
         next if ($field->{type} eq 'int' || $field->{type} eq 'current_id')
             && $search !~ /^-?\d+$/;
-        next if $field->{type} eq 'date' &&  !$format->parse_datetime($search);
+        next if $field->{type} eq 'date' && !GADS::Column::Date->validate($search);
 
         # These aren't really needed for current_id, but no harm
         my $plural      = $field->{plural};
