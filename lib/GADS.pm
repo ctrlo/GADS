@@ -474,10 +474,10 @@ any '/data' => require_login sub {
                 xlabels => $gdata->xlabels,
             };
             my $graph = GADS::Graph->new(
+                id     => $png,
                 layout => $layout,
                 schema => schema
             );
-            $graph->id($png);
             my $options_in = encode_json {
                 type         => $graph->type,
                 x_axis_name  => $graph->x_axis_name,
