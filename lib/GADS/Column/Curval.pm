@@ -249,12 +249,12 @@ sub values_beginning_with
         rules     => [@rules],
     });
     my $view = GADS::View->new(
-        filter      => $filter,
         instance_id => $self->refers_to_instance,
         layout      => $self->layout_parent,
         schema      => $self->schema,
         user        => undef,
     );
+    $view->filter($filter) if $match;
     my $records = GADS::Records->new(
         user    => undef, # Do not want to limit by user
         rows    => 10,

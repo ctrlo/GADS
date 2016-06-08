@@ -693,14 +693,15 @@ sub values_beginning_with
     my $resultset = $self->resultset_for_values;
     my @value;
     my $value_field = 'me.'.$self->value_field;
+    my $search = $match_string
+        ? {
+            $value_field => {
+                -like => "${match_string}%",
+            },
+        } : {};
     if ($resultset) {
         $match_string =~ s/([_%])/\\$1/g;
-        my $match_result = $resultset->search(
-            {
-                $value_field => {
-                    -like => "${match_string}%",
-                },
-            },
+        my $match_result = $resultset->search($search,
             {
                 rows   => 10,
                 select => {
