@@ -660,6 +660,12 @@ sub _build_columns_retrieved_no
     \@columns_retrieved_no;
 }
 
+sub clear
+{   my $self = shift;
+    $self->clear_results;
+    $self->_set__next_single_id(0);
+}
+
 # Construct various parameters used for the query. These are all
 # related, so it makes sense to construct them together.
 sub _query_params
@@ -817,7 +823,7 @@ sub _query_params
         }
     }
 
-    [@limit, @search];
+    (@limit, @search);
 }
 
 sub add_sort

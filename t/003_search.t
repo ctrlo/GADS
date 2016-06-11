@@ -248,13 +248,72 @@ foreach my $filter (@filters)
     is( @{$records->results}, $filter->{count}, "$filter->{name} actual records matches count $filter->{count}");
 
 }
+
+# Search with a limited view defined
 my $records = GADS::Records->new(
     user    => undef,
     layout  => $layout,
     schema  => $schema,
 );
 
+my $rules = encode_json({
+    rules     => [{
+        id       => $columns->{date1}->id,
+        type     => 'date',
+        value    => '2015-01-01',
+        operator => 'greater',
+    }],
+});
+
+my $limit_to_view = GADS::View->new(
+    name        => 'Limit to view',
+    filter      => $rules,
+    instance_id => 1,
+    layout      => $layout,
+    schema      => $schema,
+    user        => undef,
+);
+$limit_to_view->write;
+
+$rules = encode_json({
+    rules     => [{
+        id       => $columns->{string1}->id,
+        type     => 'string',
+        value    => 'Foo',
+        operator => 'begins_with',
+    }],
+});
+
+my $view = GADS::View->new(
+    name        => 'Foo',
+    filter      => $rules,
+    instance_id => 1,
+    layout      => $layout,
+    schema      => $schema,
+    user        => undef,
+);
+$view->write;
+
+$records = GADS::Records->new(
+    user    => {
+        limit_to_view => $limit_to_view->id,
+    },
+    view    => $view,
+    layout  => $layout,
+    schema  => $schema,
+);
+
+is ($records->count, 1, 'Correct number of results when limiting to a view');
+
 # Quick searches
+# First with limited view still defined
+is (@{$records->search_all_fields('2014-10-10')}, 0, 'Correct number of quick search results when limiting to a view');
+# Now normal
+$records = GADS::Records->new(
+    user    => undef,
+    layout  => $layout,
+    schema  => $schema,
+);
 is (@{$records->search_all_fields('2014-10-10')}, 2, 'Quick search for 2014-10-10');
 is (@{$records->search_all_fields('Foo')}, 1, 'Quick search for foo');
 is (@{$records->search_all_fields('Foo*')}, 5, 'Quick search for foo*');
