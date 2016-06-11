@@ -1044,29 +1044,6 @@ sub csv
     $csvout;
 }
 
-sub data
-{
-    my $self = shift;
-
-    my $columns = $self->layout->all;
-
-    my @output;
-    foreach my $record (@{$self->results})
-    {
-        my $serial = $record->current_id;
-        my @rec = ($record->record_id, $serial);
-
-        foreach my $column (@$columns)
-        {
-            my $field = $column->field;
-            my $value = $record->values->{$field};
-            push @rec, $value;
-        }
-        push @output, \@rec;
-    }
-    @output;
-}
-
 # Base function for calendar and timeline
 sub data_time
 {   my ($self, $type, %options) = @_;
@@ -1085,7 +1062,7 @@ sub data_time
 
     # All the data values
     my $multiple_dates;
-    foreach my $record (@{$self->results})
+    while (my $record  = $self->single)
     {
         my @dates; my @titles;
         my $had_date_col; # Used to detect multiple date columns in this view
