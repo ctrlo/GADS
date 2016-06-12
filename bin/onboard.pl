@@ -214,7 +214,7 @@ if ($invalid_csv)
 my %append;
 foreach my $append (@append)
 {
-    my ($col) = grep { $_->name eq $append } @fields;
+    my ($col) = grep { $_ && $_->name eq $append } @fields;
     error "Field $append invalid for append" unless $col;
     $append{$col->id} = 1;
 }
