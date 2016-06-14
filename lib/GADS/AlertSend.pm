@@ -253,65 +253,50 @@ sub process
     # We now have a list of views that have changed
     foreach my $view (@caches)
     {
-        # Now construct an alerts hash for each view. This will contain either
-        # one value, in the case of a normal view, or several values, in the
-        # case of a view with a CURUSER field.
-        # We iterate through each of the alert's caches. If we find a null value,
-        # we know that this is a standard view, so we go no further. Otherwise,
-        # we have to go through all the caches and assign them to the relevant user.
-        #
-        my $alerts; # The hash
-        my $has_curuser; # Flag true if this is a curuser view
+        # We iterate through each of the alert's caches, sending alerts where required
+        my $send_now; # Used for immediate send to amalgamate columns and IDs
         foreach my $alert_cache ($view->alert_caches)
         {
-            if (my $key = $alert_cache->user_id)
+            my $col_id = $alert_cache->layout_id;
+            my @alerts = $alert_cache->user ? $self->schema->resultset('Alert')->search({
+                view_id => $alert_cache->view_id,
+                user_id => $alert_cache->user_id,
+            })->all : $alert_cache->view->alerts;
+            foreach my $alert (@alerts)
             {
-                $alerts->{$key} ||= [];
-                push @{$alerts->{$key}}, $alert_cache;
-                $has_curuser = 1;
-            }
-            else {
-                last;
-            }
-        }
-        foreach my $alert ($view->alerts)
-        {
-            # For each user of this alert, check they have read access
-            # to the field in question, and send accordingly
-            my $user = $alert->user;
-            my @cids;
-            my @alerts = $has_curuser ? @{$alerts->{$user->id}} : $view->alert_caches;
-            foreach my $i (@alerts)
-            {
-                my $col_id = $i->layout_id;
-                next unless $self->layout->column($col_id)->user_id_can($user->id, 'read');
-                push @cids, $i->current_id;
-            }
-            if ($alert->frequency) # send later
-            {
-                foreach my $col_id (@{$self->columns})
+                # For each user of this alert, check they have read access
+                # to the field in question, and send accordingly
+                next unless $self->layout->column($col_id)->user_id_can($alert->user_id, 'read');
+                if ($alert->frequency) # send later
                 {
-                    foreach my $cid (@cids)
-                    {
-                        my $write = {
-                            alert_id   => $alert->id,
-                            layout_id  => $col_id,
-                            current_id => $cid,
-                            status     => 'changed',
-                        };
-                        # Unique constraint. Catch any exceptions. This is also
-                        # why we probably can't do all these with one call to populate()
-                        try { $self->schema->resultset('AlertSend')->create($write) };
-                        # Log any messages from try block, but only as trace
-                        $@->reportAll(reason => 'TRACE');
-                    }
+                    my $write = {
+                        alert_id   => $alert->id,
+                        layout_id  => $col_id,
+                        current_id => $alert_cache->current_id,
+                        status     => 'changed',
+                    };
+                    # Unique constraint. Catch any exceptions. This is also
+                    # why we probably can't do all these with one call to populate()
+                    try { $self->schema->resultset('AlertSend')->create($write) };
+                    # Log any messages from try block, but only as trace
+                    $@->reportAll(reason => 'TRACE');
+                }
+                else {
+                    $send_now->{$alert->user_id} ||= {
+                        user    => $alert->user,
+                        cids    => [],
+                        col_ids => [],
+                    };
+                    push @{$send_now->{$alert->user_id}->{col_ids}}, $col_id;
+                    push @{$send_now->{$alert->user_id}->{cids}}, $alert_cache->current_id;
                 }
             }
-            else {
-                my @colnames = map { $self->layout->column($_)->name } @{$self->columns};
-                $self->_send_alert('changed', \@cids, $view, [$user->email], \@colnames)
-                    if @cids;
-            }
+        }
+        foreach my $a (values %$send_now)
+        {
+            my @colnames = map { $self->layout->column($_)->name } @{$a->{col_ids}};
+            my @cids = @{$a->{cids}};
+            $self->_send_alert('changed', \@cids, $view, [$a->{user}->email], \@colnames);
         }
     }
 

@@ -31,6 +31,18 @@ my $data = [
         enum1      => 1,
         tree1      => 4,
     },{
+        string1    => 'FooBar',
+        date1      => '2015-10-10',
+        daterange1 => ['2009-01-04', '2017-06-03'],
+        enum1      => 1,
+        tree1      => 4,
+    },{
+        string1    => 'FooBar',
+        date1      => '2015-10-10',
+        daterange1 => ['2009-01-04', '2017-06-03'],
+        enum1      => 1,
+        tree1      => 4,
+    },{
         string1    => 'Disappear',
     },{
         string1    => 'FooFooBar',
@@ -61,7 +73,7 @@ my @filters = (
     {
         name       => 'Update of record in no filter view',
         rules      => undef,
-        columns    => [],
+        columns    => [], # No columns, only appearance of new record will matter
         current_id => 1,
         update     => [
             {
@@ -140,6 +152,54 @@ my @filters = (
         alerts => 0, # Neither update nor new appear/change in view
     },
     {
+        name  => 'Update to row, one column in view and one not',
+        rules => [
+            {
+                id       => $columns->{string1}->id,
+                type     => 'string',
+                value    => 'FooBar',
+                operator => 'begins_with',
+            },
+        ],
+        columns => [$columns->{string1}->id],
+        current_id => 4,
+        update => [
+            {
+                column => 'string1',
+                value  => 'FooBar2',
+            },
+            {
+                column => 'date1',
+                value  => '2017-10-15',
+            },
+        ],
+        alerts => 2, # One alert for only single column in view, one for new record
+    },
+    {
+        name  => 'Update to row, changes to 2 columns both in view',
+        rules => [
+            {
+                id       => $columns->{string1}->id,
+                type     => 'string',
+                value    => 'FooBar',
+                operator => 'begins_with',
+            },
+        ],
+        columns => [$columns->{string1}->id, $columns->{date1}->id],
+        current_id => 5,
+        update => [
+            {
+                column => 'string1',
+                value  => 'FooBar2',
+            },
+            {
+                column => 'date1',
+                value  => '2017-10-15',
+            },
+        ],
+        alerts => 3, # One alert for only single column in view, one for new record
+    },
+    {
         name  => 'Disappears from view',
         rules => [{
             id       => $columns->{string1}->id,
@@ -148,7 +208,7 @@ my @filters = (
             operator => 'equal',
         }],
         columns => [$columns->{string1}->id],
-        current_id => 4,
+        current_id => 6,
         update => [
             {
                 column => 'string1',
@@ -166,7 +226,7 @@ my @filters = (
             operator => 'equal',
         }],
         columns => [$columns->{date1}->id],
-        current_id => 5,
+        current_id => 7,
         update => [
             {
                 column => 'string1',
@@ -247,7 +307,10 @@ foreach my $filter (@filters)
         $record->fields->{$col_id}->set_value($datum->{value});
     }
     $record->write;
-    $alert_finish += $schema->resultset('AlertSend')->search({ current_id => $filter->{current_id} })->count;
+    $alert_finish += $schema->resultset('AlertSend')->search({
+        current_id => $filter->{current_id},
+        alert_id   => $filter->{alert_id},
+    })->count;
     # Number of new alerts is the change of values, plus the new record, plus the view without a filter
     is( $alert_finish, $alert_start + $filter->{alerts}, "Correct number of alerts queued to be sent for filter: $filter->{name}" );
 }
