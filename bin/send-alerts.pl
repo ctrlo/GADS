@@ -81,6 +81,7 @@ foreach my $row (@rows)
     if (defined $last_user && $last_user->id != $row->alert->user_id)
     {
         push @notifications, _do_columns($last_current_id, @columns);
+        @columns = ();
         _send $last_user->email, @notifications;
         @notifications = ();
     }
@@ -88,6 +89,7 @@ foreach my $row (@rows)
     if (!defined $last_alert_id || $last_alert_id != $row->alert_id)
     {
         push @notifications, _do_columns($last_current_id, @columns);
+        @columns = ();
         push @notifications, { text => '', html => '</ul><p></p>' } if @notifications; # blank line separater
         my $view_name = $row->alert->view->name;
         push @notifications, {
