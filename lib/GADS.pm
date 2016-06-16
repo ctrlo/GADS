@@ -759,7 +759,7 @@ any '/account/?:action?/?' => require_login sub {
         if (user_password password => param('oldpassword'), new_password => $new_password)
         {
             $audit->login_change("New password set for user");
-            forwardHome({ success => qq(Your password has been changed to: $new_password)}, 'account/detail' );
+            forwardHome({ success => qq(Your password has been changed to: $new_password)}, 'account/detail', user_only => 1 ); # Don't log elsewhere
         }
         else {
             forwardHome({ danger => "The existing password entered is incorrect"}, 'account/detail' );
@@ -2164,18 +2164,25 @@ sub current_view {
 };
 
 sub forwardHome {
-    if (my $message = shift)
+    my ($message, $page, %options) = @_;
+
+    if ($message)
     {
         my ($type) = keys %$message;
+        my $lroptions = {};
+        # Check for option to only display to user (e.g. passwords)
+        $lroptions->{to} = 'error_handler' if $options{user_only};
+
         if ($type eq 'danger')
         {
-            report {is_fatal=>0}, ERROR => $message->{$type};
+            $lroptions->{is_fatal} = 0;
+            report $lroptions, ERROR => $message->{$type};
         }
         else {
-            success $message->{$type};
+            report $lroptions, NOTICE => $message->{$type}, _class => 'success';
         }
     }
-    my $page = shift || '';
+    $page ||= '';
     redirect "/$page";
 }
 
