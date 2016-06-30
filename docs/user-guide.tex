@@ -1,10 +1,10 @@
 \documentclass{ctrlo-int-toc}
 
-\setdate{31st March 2015}
+\setdate{30th June 2016}
 
-\settitle{gads user guide}
+\settitle{linkspace user guide}
 
-\setname{Globally Accessible Data Store (GADS) User Guide}
+\setname{Linkspace User Guide}
 
 \usepackage{supertabular}
 \usepackage{comment}
@@ -13,14 +13,14 @@
 
 \begin{document}
 
-\clearpage\section{Quick start guide for GADS users}
+\clearpage\section{Quick start guide for Linkspace users}
 \label{sec:quickstart}
-Globally Accessible Data Store (GADS) has been designed to make it easy for teams, departments and organisations to share and update information across multiple locations. 
+Linkspace has been designed to make it easy for teams, departments and organisations to share and update information across multiple locations.
 
-As a general GADS user, once you have logged in, almost everything you need can be found under the \textbf{Data} tab. Exactly what you can do in the system will depend on the permissions you have been given by the system administrator though. You may only be able to view data, or you may be able to \hyperref[subsec:addrecord]{add records} or just \hyperref[subsec:editrecord]{edit records}. 
+As a general Linkspace user, once you have logged in, almost everything you need can be found under the \textbf{Data} tab. Exactly what you can do in the system will depend on the permissions you have been given by the system administrator though. You may only be able to view data, or you may be able to \hyperref[subsec:addrecord]{add records} or just \hyperref[subsec:editrecord]{edit records}.
 
 \subsection{using the power of data views}
-One of the things that makes GADS easy to use is that it allows you to quickly see only the data you need, rather than having to contend with columns and rows of data that may be irrelevant to your team or your specific tasks. You can save sorted and filtered views of the data so that you can access them immediately when you log in. 
+One of the things that makes Linkspace easy to use is that it allows you to quickly see only the data you need, rather than having to contend with columns and rows of data that may be irrelevant to your team or your specific tasks. You can save sorted and filtered views of the data so that you can access them immediately when you log in.
 
 \includegraphics[width=15.921cm,height=10.188cm]{userguide-img/userguide-img001.png}
 
@@ -49,8 +49,8 @@ NOTE: If your new record needs to be approved, you won't see it included in the 
 \item Click the \textbf{Data} tab in the top navigation.
 \item If you can't see the record you want to edit, click on the \textbf{View} dropdown and select the \hyperref[sec:views]{data view} that will show you the record you need.
 \item Alternatively, use the \textbf{Search} box at the top of the page to find your record.
-\item Click on the number listed in the \textbf{ID} column of the record you want to edit.
-\item Click the \textbf{Edit} button. If you do not have this button then you do not have permission to edit records.
+\item Click \textbf{Edit} next to the number listed in the \textbf{ID} column of the record you want to edit.
+\item If you do not have this button then you do not have permission to edit records.
 \item Make any changes and click the \textbf{Save} button at the bottom of the record.
 \end{enumerate}
 \begin{notebox}
@@ -63,7 +63,7 @@ NOTE: If your edits need to be approved, you won't see them immediately. In this
 \item If you cannot see the record you want to edit, click on the \textbf{View} dropdown and select the \hyperref[sec:views]{data view} that will show you the record you need.
 \item Alternatively, use the \textbf{Search} box at the top of the page to find your record.
 \item Click on the number listed in the \textbf{Serial} column of the record you want to edit.
-\item Click the \textbf{Delete} button. If you do not have this button then you do not have permission to delete records.
+\item Open the \textbf{Action} menu and then click the \textbf{Delete} button. If you do not have this button then you do not have permission to delete records.
 \item To confirm you want to delete the record, click the \textbf{Delete} button in the pop-up box that appears on your screen. 
 \end{enumerate}
 \subsection[view earlier versions of a record]{view earlier versions of a record}
@@ -95,7 +95,7 @@ If you have the permission to download data you will see a \textbf{Download} but
 
 \clearpage\section[VIEWS: Viewing your data]{VIEWS: Viewing your data}
 \label{sec:views}
-GADS lets you create and save different views of the data so that you can hide any data that's irrelevant to you for specific tasks and focus on what you need. 
+Linkspace lets you create and save different views of the data so that you can hide any data that's irrelevant to you for specific tasks and focus on what you need.
 
 \textbf{Global views} are set up by system administrators and can be seen by all users. Any user with the appropriate permissions can also set up their own \textbf{personalised views}.
 
@@ -192,8 +192,6 @@ Greater or Equal &
 As above, but it also includes the records with the value you specify. \ \\\hline
 Begins with &
 When you want to display only records that begin with a certain word or group of letters.\\\hline
-Contains &
-When you want to display only records that contain a certain word or group of letters.\\\hline
 \end{supertabular}
 \end{flushleft}
 \end{enumerate}
@@ -336,18 +334,23 @@ Before you set your change alert, you may need to \hyperref[subsec:personalview]
 \item Person {}-- Lets users select from a list of all other users on the system.
 \item RedAmberGreen status (RAG) \--- Automatically generates colour-coded indicators based on the values of other data fields. See: \hyperref[subsec:fieldrag]{Add a status indicator to a record}
 \item Calculated value {}-- Lets you automatically generate values based on other fields. See: \hyperref[subsec:fieldcalc]{Automatically calculate values for a field}
+\item Record from other data sheet -- Lets you provide multiple options for users to choose from, which are populated from another data sheet.
+
+\begin{itemize}
+    \item When you select this field type select the other data sheet from the right-hand side of the screen.
+    \item Tick the columns you wish to the user when displaying the options.
+\end{itemize}
 \end{enumerate}
 \item Once you have selected the field type and completed the relevant options for that field you can add a \textbf{Description} which all users will see displayed next to the field. 
 \item You can also add \textbf{User help text}. This is displayed when a user clicks on the question mark (?) next to the field name. 
 \item Tick the box if you want the field to be optional.
 \item Click \textbf{Save} to create the new data field. 
-\item Go back into the newly created field by clicking \textbf{Edit} next to its name in the list.
 \item Under \textbf{Permissions} set which user groups can view and edit this data field by clicking on the \textbf{Add new group} button. You must \hyperref[sec:usergroups]{add at least one user group} here, otherwise the field will be invisible to all users. For more information see \hyperref[subsec:setfieldperms]{Set permissions for data fields}.
 \end{enumerate}
 
 \subsection[set permissions on a data field]{set permissions on a data field}
 \label{subsec:setfieldperms}
-By using the GADS groups functionality, you can set who can view, add, edit or approve changes to specific data fields according to the user group(s) they belong to. For each data field you can specify what members of each user group are allowed to do on that field.
+By using the Linkspace groups functionality, you can set who can view, add, edit or approve changes to specific data fields according to the user group(s) they belong to. For each data field you can specify what members of each user group are allowed to do on that field.
 
 To set permissions on a data field, there are two steps:
 
@@ -415,7 +418,7 @@ You can create a \textbf{Calculated value} data field to automatically generate 
 \begin{enumerate}
 \item \hyperref[subsec:addfield]{Add a new data field} and give it a name. 
 \item Select \textbf{Calculated value} as the \textbf{Type} of field. 
-\item In the \textbf{Return value conversion} dropdown box, select whether the final value will be text, a date or an integer. 
+\item In the \textbf{Return value conversion} dropdown box, select whether the final value will be text, a date, a number or an integer.
 \item In the \textbf{Calculation} box, use the Basic Perl programming style to return the value of the calculated field. To reference another field insert the field name in square brackets and the value(s) of the field in inverted commas. For example if you wanted to create an automatically generated Continent field that depended on the value in the Country field, you might use the following:
 
 \begin{code}
@@ -536,7 +539,7 @@ Any changes you make to the order of the fields will affect all your users.
 \end{enumerate}
 
 \clearpage\section[PERMISSIONS: Seting permissions]{PERMISSIONS: Setting permissions}
-GADS enables very fine control over exactly what data users can add, delete, view and update. You control what users are able to do and see on the GADS system in two ways:
+Linkspace enables very fine control over exactly what data users can add, delete, view and update. You control what users are able to do and see on the Linkspace system in two ways:
 \begin{enumerate}
     \item You control what data fields they can view, edit and approve changes on via their membership of user groups – See: \hyperref[subsec:setfieldperms]{Set permissions on a data field}.
     \item You control everything else they can do on the system (i.e delete records, download data, manage user accounts, administer layouts, views and graphs, etc. via their individual user permissions – See: \hyperref[subsec:userperms]{Set the permissions for a user}).
@@ -574,12 +577,13 @@ Only users with permission to configure the system itself can create graphs. Oth
 \item Provide a title and a description of your graph. 
 \item Select the \textbf{Type} of graph: Bar, Line, Donut, Scatter or Pie
 \item Define the data fields and values for your graph. 
-\item Select a field for the \textbf{X-axis} from the dropdown list. This defines the set of values to use for the x-axis (horizontal axis) for a bar, line or scatter graph. For a donut or pie graph, this defines each segment within a ring. (The x-axis label will automatically be the name of its defined data field.)
+\item Select a field for the \textbf{X-axis} from the dropdown list. This defines the set of values to use for the x-axis (horizontal axis) for a bar, line or scatter graph. For a donut or pie graph, this defines each segment within a ring. The x-axis label will automatically be the name of its defined data field. It's also possible to select all <All fields in view>, which will show each field in the view as a point on the x-axis. This option is only really applicable when summing fields (see below); a count will produce a flat graph across all points.
 \item The \textbf{X-axis grouping} is optional and only relevant to date fields. It lets you group the values that are returned for the x-axis according to day, month or year. 
 \item From the dropdown list, select the field to use for your \textbf{Y-axis field}. This defines the field to use for the y-values (vertical axis) of a graph. You can ignore this step if you are using a donut or pie graph, or if you want your y-axis to show a total count for each value that appears in the X-axis field. \ 
 \item In the \textbf{Y-axis values} box you must choose whether you want the graph to show the total sum of a particular field (for numeric values only), or count the number of times each value appears. 
 \item If you are using a bar, line or scatter graph, provide a \textbf{Y-axis label}.
 \item The \textbf{Group by field} is optional. This lets you group related data items. For example, if countries were being displayed on the graph, this option could be used to group (and colour code) by continent. In the case of a donut graph, this defines the rings. Otherwise, the data being displayed is normally a smaller subset of this grouping option.
+\item Select a set of metrics if you want your values to be converted to percentage values compared against a set of fixed values. See the \hyperref[sec:metrics]{metrics} section for more information.
 \item Select \textbf{Stack data} if you want different data items for the same x value to be stacked on top of each other, rather than displayed side-by-side
 \item Select \textbf{Add graph to all users} if you want the graph to be displayed in the graph view for all users.
 \item Click the \textbf{Save} button at the bottom of the screen.
@@ -597,12 +601,50 @@ Only users with permission to configure the system itself can create graphs. Oth
 \item Click the \textbf{Delete} button at the bottom of the screen.
 \item To confirm you want to delete the graph, click the \textbf{Delete} button in the pop-up box that appears on your screen. 
 \end{enumerate}
+
+
+\clearpage\section[METRICS: Compare graphs against absolute values]{METRICS: Compare graphs against absolute values}
+\label{sec:metrics}
+Metrics enable a graph's values to be converted into percentage values, measured against pre-defined values. For example, a graph might have y-axis values of 20, 40 and 50. These could be plotted against metrics of 40, 40 and 200 (which might be targets). In this case, the graph values would be converted to 50\%, 100\% and 25\%.
+
+\subsection[create a set of metrics]{create a set of metrics}
+One set of metrics consists of several points to plot a graph against. Only users with permission to configure graphs can create metrics.
+
+\begin{enumerate}
+\item Click the \textbf{Admin} tab in the top navigation and select \textbf{Metrics} from the drop-down menu. (If you can't see the \textbf{Admin} tab, then you don't have the permissions to add, edit or delete data fields or graphs.)
+\item Click on \textbf{Create new metric}.
+\item Provide a name for the metrics.
+\item Click \textbf{Create}.
+\end{enumerate}
+\subsection[add data points to a metric set]{add data points to a metric set}
+\begin{enumerate}
+\item Click \textbf{Edit} next to the name of the relevant metric set.
+\item To add a metric point, click \textbf{Add Item}.
+\item To edit an existing metric point, click \textbf{Edit} next to the item.
+\item For each metric point, enter the x-axis value that the metric applies to. The value must be exactly how it is shown on the graph. Also enter the y-axis value that the graph's value should be ccompared against. Optionally, enter a y-axis grouping value, if the graph in question has a y-axis grouping set (thereby having more than one value per x/y coordinate).
+\item Click the \textbf{Save} button.
+\end{enumerate}
+
+\subsection[delete a metric group]{delete a metric group}
+\begin{enumerate}
+\item Click \textbf{Edit} next to the name of the relevant metric set.
+\item Click \textbf{Delete group}.
+\end{enumerate}
+
+\subsection[remove a data point from a metric set]{remove a data point from a metric set}
+\begin{enumerate}
+\item Click \textbf{Edit} next to the name of the relevant metric set.
+\item Click \textbf{Edit} next to the item.
+\item Click \textbf{Delete}.
+\end{enumerate}
+
+
 \clearpage\section[MESSAGES: Emailing other users]{MESSAGES: Emailing other users}
 \subsection[email another user from gads ]{email another user from gads }
 If the names of other users are included in your data records as a person field, you can access their email address by clicking on their name in the record. If you have an email client installed on your device you can then click on the email address to create a new email message addressed to that user. \ 
 
 \subsection[email a group of users]{email a group of users}
-GADS makes it easy to message a group of users that appear in a person field. For example, if your record has a person field called Project leaders, you can email all the project leaders simply by clicking on the envelope icon at the top of the Project leaders column. 
+Linkspace makes it easy to message a group of users that appear in a person field. For example, if your record has a person field called Project leaders, you can email all the project leaders simply by clicking on the envelope icon at the top of the Project leaders column.
 
 What makes it more powerful is that you can filter the list according to certain criteria and then use the same action to message all project leaders whose projects meet those criteria. 
 
@@ -613,7 +655,7 @@ For example, if you wanted to email all of the project leaders whose projects ha
 
 \clearpage\section[LOGIN: Managing your account details]{LOGIN: Managing your account details}
 \subsection[change your password]{change your password}
-GADS does not allow you to set your own password, but you can ask the system to generate a new one for you. If you are already logged in:
+Linkspace does not allow you to set your own password, but you can ask the system to generate a new one for you. If you are already logged in:
 
 \begin{enumerate}
 \item Click on \textbf{your name} at the top of the screen
@@ -650,7 +692,7 @@ NOTE: If you change your email address this will become your new username when y
 \item Complete the new user form and click \textbf{Save}.
 \end{enumerate}
 \begin{tipbox}[userdefinedwidth=15cm]
-\textbf{Tip:} It is possible for GADS users to request an account through your GADS login screen. If this functionality is enabled on the system, direct users to your login URL. You will be alerted to any new account requests. \ 
+\textbf{Tip:} It is possible for Linkspace users to request an account through your Linkspace login screen. If this functionality is enabled on the system, direct users to your login URL. You will be alerted to any new account requests. \
 \end{tipbox}
 
 \bigskip
@@ -724,16 +766,16 @@ If there are any new records or edits that require approval any user with the au
 \subsection[use the wildcard search]{use the wildcard search}
 You can use the search box at the top of the screen to find specific records. If you want to search across all fields but are not sure of the exact spelling or full term used, you can use the wildcard function. \ Use the * to indicate that what you've typed is only a part of what you are looking for.
 
-For example, if you wanted to find a specific project, but didn't know the full project name, you could type the part you do know inside two *s -- i.e. *Training*. The search will return all records where there is a reference to training in the project name, or in any other field.
+For example, if you wanted to find a specific project, but didn't know the full project name, you could type the part you do know inside two *s -- i.e. *Training*. The search will return all records where there is a reference to training in the project name, or in any other field. Results will be shown in accordance with the current view (with the filter removed, showing the results of the search instead).
 
 \begin{notebox}
 NOTE: The search can be run faster when you search using the beginning of something i.e. only using the * at the end. For example if you wanted to search for all countries that start with United, you would type United* in the search box. 
 \end{notebox}
 
 \begin{admin}
-\clearpage\section[GADS HOMEPAGE]{GADS HOMEPAGE}
+\clearpage\section[Linkspace HOMEPAGE]{Linkspace HOMEPAGE}
 \subsection[configuring your gads homepage]{configuring your gads homepage}
-You can add text and links to your GADS homepage. 
+You can add text and links to your Linkspace homepage.
 
 \begin{enumerate}
 \item Click the \textbf{Admin} tab in the top navigation and select \textbf{General Settings} from the drop-down menu. (If you can't see the \textbf{Admin} tab, then you don't have the permissions to add, edit or delete users.)
