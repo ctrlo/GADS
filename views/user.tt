@@ -235,7 +235,7 @@
                                 <p>Please enter your existing password in order to generate a new password.
                                     Passwords can only be auto-generated for security reasons.</p>
                                 <div class="form-group">
-                                    <input type="password" class="form-control" name="oldpassword" placeholder="Existing password">
+                                    <input type="password" class="form-control" name="oldpassword" placeholder="Existing password" autocomplete="off">
                                 </div>
                             </div>
                             <div class="modal-footer">
