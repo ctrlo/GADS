@@ -25,6 +25,7 @@ engines:
     YAML:
       session_dir: "/tmp/dancer-sessions"
       cookie_duration: 3600
+      cookie_name: linkspace.session
       is_secure: 1
 
 gads:
