@@ -147,7 +147,7 @@ sub _build_values
 {   my $self = shift;
     my $records = $self->_records_from_db;
     my @values;
-    foreach my $r (@{$records->results})
+    while (my $r = $records->single)
     {
         push @values, $self->_format_value($r);
     }
