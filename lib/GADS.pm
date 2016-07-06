@@ -1192,6 +1192,12 @@ any '/layout/?:id?' => require_role 'layout' => sub {
 
         if (param 'delete')
         {
+            # Provide plenty of logging in case of repercussions of deletion
+            my $colname = $column->name;
+            trace __x"Starting deletion of column {name}", name => $colname;
+            my $audit  = GADS::Audit->new(schema => schema, user => $user);
+            my $description = qq(User "$user->{username}" deleted field "$colname");
+            $audit->user_action(description => $description);
             if (process( sub { $column->delete }))
             {
                 return forwardHome(
