@@ -130,13 +130,11 @@ sub cleanup
     $schema->resultset('Enumval')->search({ layout_id => $id })->delete;
 }
 
-before 'delete' => sub {
+after 'delete' => sub {
     my $self = shift;
-    trace "Entering delete";
-    $self->schema->resultset('Enum')->search({ layout_id => $self->id })->delete;
+    trace "Leaving delete";
     $self->_clear_enumvals;
     $self->_clear_enumvals_index;
-    $self->_delete_unused_nodes(purge => 1);
 };
 
 # Get a single node value
@@ -287,7 +285,7 @@ sub _delete_unused_nodes
     # Do the actual deletion if they don't exist
     foreach my $node (@flat)
     {
-        next if !$options{purge} && $node->{deleted}; # Already deleted
+        next if $node->{deleted}; # Already deleted
         if ($self->_enumvals_index->{$node->{id}})
         {
             # Node in use somewhere
@@ -307,7 +305,7 @@ sub _delete_unused_nodes
                 value     => $node->{id}
             })->count; # In use somewhere
             my $haschild = grep {$_->{parent} && $node->{id} == $_->{parent}} @flat; # Has (deleted) children
-            if (!$options{purge} && ($count || $haschild))
+            if ($count || $haschild)
             {
                 $self->schema->resultset('Enumval')->find($node->{id})->update({
                     deleted => 1
