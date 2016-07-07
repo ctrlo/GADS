@@ -412,8 +412,10 @@ any '/data' => require_login sub {
     if (my $view_id = param('view'))
     {
         session 'view_id' => $view_id;
-        # Save to database for next login
-        update_current_user lastview => $view_id;
+        # Save to database for next login.
+        # Check that it's valid first, otherwise database will bork
+        my $view = current_view($user, $layout);
+        update_current_user lastview => $view->id;
         # When a new view is selected, unset sort, otherwise it's
         # not possible to remove a sort once it's been clicked
         session 'sort' => undef;
