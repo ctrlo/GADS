@@ -76,23 +76,48 @@ sub value { $_[0]->id }
 sub has_value { $_[0]->has_id }
 
 has name => (
-    is => 'rw',
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->_rset->name;
+    },
 );
 
 has mimetype => (
-    is => 'rw',
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->_rset->mimetype;
+    },
 );
 
+# Needed in case this is unattached file, in which case schema
+# is not in column property
 has schema => (
-    is => 'rw',
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->column->schema;
+    },
 );
+
+has _rset => (
+    is => 'lazy',
+);
+
+sub _build__rset
+{   my $self = shift;
+    $self->id or return;
+    $self->column->user_can('read') or error __x"You do not have access to file ID {id}", id => $self->id
+        if $self->column;
+    $self->schema->resultset('Fileval')->find($self->id);
+}
 
 has content => (
     is      => 'rw',
     lazy    => 1,
     builder => sub {
-        my $self = shift;
-        $self->schema->resultset('Fileval')->find($self->id)->content;
+        $_[0]->_rset->content;
     },
 );
 
@@ -102,25 +127,6 @@ around 'clone' => sub {
     $orig->($self, id => $self->id, name => $self->name, mimetype => $self->mimetype);
 };
 
-
-# Not designed to be used within object. Just send file from ID.
-# XXX Make OO?
-sub get_file
-{   my ($self, $id, $schema, $user) = @_;
-    $id or error __"No ID provided for file retrieval";
-    my $fileval = $schema->resultset('Fileval')->find($id)
-        or error __x"File ID {id} cannot be found", id => $id;
-    # Check whether this is hidden and whether the user has access
-    my ($file) = $fileval->files; # In theory can be more than one, but not in practice (yet)
-    # if ($file && $file->layout->hidden) # Could be unattached document
-    # XXX Need to check if user has view access
-    if ($file) # Could be unattached document
-    {
-        error __"You do not have access to this document"
-            unless $user->{permission}->{layout};
-    }
-    $fileval;
-}
 
 sub as_string
 {   my $self = shift;

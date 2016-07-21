@@ -1887,9 +1887,23 @@ any '/edit/:id?' => require_login sub {
 
 any '/file/:id' => require_login sub {
     my $id = param 'id';
-    my $file;
-    process (sub { $file = GADS::Datum::File->get_file($id, schema, logged_in_user) });
-    $file or forwardHome(); # Error will have already been displayed
+    my $layout = var 'layout';
+
+    # Need to get file details first, to be able to populate
+    # column details of applicable.
+    my $fileval = schema->resultset('Fileval')->find($id)
+        or error __x"File ID {id} cannot be found", id => $id;
+    my ($file_rs) = $fileval->files; # In theory can be more than one, but not in practice (yet)
+    my $file = GADS::Datum::File->new(id => $id);
+    # Get appropriate column, if applicable (could be unattached document)
+    # This will control access to the file
+    if ($file_rs && $file_rs->layout_id)
+    {
+        $file->column($layout->column($file_rs->layout_id));
+    }
+    else {
+        $file->schema(schema);
+    }
     send_file( \($file->content), content_type => $file->mimetype, filename => $file->name );
 };
 
