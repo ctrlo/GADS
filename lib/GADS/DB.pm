@@ -73,6 +73,10 @@ sub add_column
             };
         }
     );
+
+    GADS::Schema->unregister_source('Record');
+    GADS::Schema->register_class(Record => $rec_class);
+
     $schema->unregister_source('Record');
     $schema->register_class(Record => $rec_class);
 }
