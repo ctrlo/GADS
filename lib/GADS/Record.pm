@@ -625,7 +625,7 @@ sub write
     # First loop round: sanitise and see which if any have changed
     my %appfields; # Any fields that need approval
     my %allow_update = map { $_ => 1 } @{$options{allow_update} || []};
-    my ($need_app, $need_rec, my $child_unique); # Whether a new approval_rs or record_rs needs to be created
+    my ($need_app, $need_rec, $child_unique); # Whether a new approval_rs or record_rs needs to be created
     $need_rec = 1 if $self->changed;
     foreach my $column ($self->layout->all)
     {
