@@ -82,9 +82,9 @@ plugins:
     realms:
       dbic:
         provider: DBIC
-        users_table: user
-        roles_table: permission
-        user_roles_table: user_permission
+        users_source: user
+        roles_source: permission
+        user_roles_source: user_permission
         roles_role_column: name
         roles_key: permission
         password_expiry_days: 60
