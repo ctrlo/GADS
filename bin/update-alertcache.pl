@@ -26,7 +26,7 @@ use GADS::Instances;
 use GADS::Layout;
 use GADS::Views;
 use Dancer2;
-use Dancer2::Plugin::DBIC qw(schema resultset rset);
+use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::LogReport mode => 'NORMAL';
 
 GADS::DB->setup(schema);

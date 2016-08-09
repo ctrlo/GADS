@@ -21,8 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 
-use Dancer2 ':script';
-use Dancer2::Plugin::DBIC qw(schema resultset rset);
+use Dancer2;
+use Dancer2::Plugin::DBIC;
 use GADS::Schema;
 use Text::CSV;
 use Tree::DAG_Node;

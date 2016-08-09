@@ -6,8 +6,8 @@ use warnings;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 
-use Dancer2 ':script';
-use Dancer2::Plugin::DBIC qw(schema resultset rset);
+use Dancer2;
+use Dancer2::Plugin::DBIC;
 use DateTime::Event::Random;
 use GADS::DB;
 use GADS::Layout;

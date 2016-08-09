@@ -24,8 +24,8 @@ use lib "$FindBin::Bin/../lib";
 use GADS::DB;
 use GADS::Instances;
 use GADS::Layout;
-use Dancer2 ':script';
-use Dancer2::Plugin::DBIC qw(schema resultset rset);
+use Dancer2;
+use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::LogReport mode => 'NORMAL';
 use Tie::Cache;
 

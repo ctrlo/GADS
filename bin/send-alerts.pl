@@ -24,7 +24,7 @@ use lib "$FindBin::Bin/../lib";
 use GADS::Schema;
 use GADS::Alert;
 use GADS::Email;
-use Dancer2 ':script';
+use Dancer2;
 use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::LogReport mode => 'NORMAL';
 
