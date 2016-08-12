@@ -101,6 +101,7 @@ my $layout = GADS::Layout->new(
 # First check if fields exist
 my @fields; my $selects; my $selects_reverse;
 my $dr; my $update_unique_col; my $skip_existing_unique_col;
+my $multi_columns; # Fields that need more than one column of data (e.g. daterange).
 foreach my $field (@f)
 {
     if ($update_unique && $update_unique eq 'ID' && $field eq 'ID')
@@ -123,7 +124,7 @@ foreach my $field (@f)
             if (grep { ref $_ && $_->name eq $field } @fields) && $column->type ne "daterange";
         push @fields, $column unless $dr && $f->type eq "daterange";
 
-        die "Daterange $field needs 2 columns" if ($dr && $f->type ne "daterange");
+        $multi_columns->{$column->id} = 1 if $dr && $f->type eq "daterange";
 
         # Convert update-unique to ID from name
         $update_unique_col = $column
@@ -242,7 +243,7 @@ while (my $row = $csv->getline($fh))
 
     my $col_count = 0;
     my $input; my @bad; my @bad_enum;
-    my $drf; # last loop was a daterange, expect another
+    my $drf; # last loop was a daterange, may be another
     my $previous_field;
     my %options;
     foreach my $col (@row)
@@ -295,17 +296,29 @@ while (my $row = $csv->getline($fh))
         }
         elsif ($f->type eq "daterange")
         {
+            # Daterange can be either 2 date columns or textual date range
             $col =~ s!/!-!g; # Change date delimiters from slash to hyphen
             $col =~ s!^([0-9]{1,2})-([0-9]{1,2})-([0-9]{4})$!$3-$2-$1!; # Allow wrong way round
             $col =~ s/^([0-9]{4})([0-9]{2})([0-9]{2})$/$1-$2-$3/; # Allow no delimter. Assume yyyymmdd
-            if (exists $input->{$f->field})
+            if ($multi_columns->{$f->id})
             {
-                push @{$input->{$f->field}}, $col;
-                $drf = 0;
+                if (exists $input->{$f->field})
+                {
+                    push @{$input->{$f->field}}, $col;
+                    $drf = 0;
+                }
+                else {
+                    $input->{$f->field} = [$col];
+                    $drf = 1;
+                }
+            }
+            elsif ($col =~ /^([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})\h*(-|to)\h*([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})$/)
+            {
+                $input->{$f->field} = [$1,$3];
             }
             else {
-                $input->{$f->field} = [$col];
-                $drf = 1;
+                my $colname = $f->name;
+                push @bad, qq(Invalid daterange value "$col" for "$colname");
             }
         }
         elsif ($f->type eq "string")
