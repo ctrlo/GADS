@@ -97,8 +97,8 @@
             <hr>
             <h4>Permissions <small>(<a href="" data-toggle="modal" data-target="#modalhelp_groups">?</a>)</small></h4>
                 [% IF column.id %]
-                    <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_permissions" data-title="Add new group">Add new group</a>
                     [% IF column.permissions.size %]
+                        <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_permissions" data-title="Add another group">Add another group</a>
                         <table class="table table-condensed">
                             <tr>
                                 <th>Group</th>
@@ -124,7 +124,12 @@
                             [% END %]
                         </table>
                     [% ELSE %]
-                        <p>No groups have permission rights for this field</p>
+                        <p>Access must be granted to this field before anyone (including you) can view and edit data in it.
+                        [% IF groups.all.size %]
+                            To give access, a group <a data-toggle="modal" data-target="#modal_permissions" data-title="Add group" style="cursor: pointer;">must be assigned to it</a>.
+                        [% ELSE %]
+                            Groups are used to assign access. You must first <a href="/group">create a group</a>.
+                        [% END %]
                     [% END %]
                 [% ELSE %]
                     <p>Please save the field before adding permissions</p>
