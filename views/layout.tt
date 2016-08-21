@@ -502,11 +502,11 @@
                                 </select>
                             </div>
                         </div>
-                        <p>Users in this group can:</p>
+                        <p>Tick the permissions that this group should have (<a id="selectall" style="cursor: pointer;">select all</a>)</p>
                         [% FOR perm IN permissions %]
                             <div class="checkbox">
                                 <label>
-                                    <input type="checkbox" name="permissions" value="[% perm.short %]" id="modal_permissions-[% perm.short %]">[% perm %]
+                                    <input type="checkbox" class="check_perm" name="permissions" value="[% perm.short %]" id="modal_permissions-[% perm.short %]">[% perm %]
                                 </label>
                             </div>
                         [% END %]
@@ -597,6 +597,13 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
             sel = sel[0];
             ref.edit(sel);
         };
+            $('#selectall').click(function() {
+                if ($('.check_perm:checked').length == 7) {
+                    $('.check_perm').prop('checked', false);
+                } else {
+                    $('.check_perm').prop('checked', true);
+                }
+            });
         $(document).ready(function () {
             $('#sortable').sortable({
                 cancel: "a"
