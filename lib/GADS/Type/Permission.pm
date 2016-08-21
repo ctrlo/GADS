@@ -35,7 +35,7 @@ sub long {
     : $self->short eq 'write_new'                  ? 'Enter values for new records'
     : $self->short eq 'write_existing'             ? 'Edit values of existing records'
     : $self->short eq 'approve_new'                ? 'Approve values in new records'
-    : $self->short eq 'approve_existing'           ? 'Approve values in existing records'
+    : $self->short eq 'approve_existing'           ? 'Approve changes in existing records'
     : $self->short eq 'write_new_no_approval'      ? 'Enter values for new records without requiring approval'
     : $self->short eq 'write_existing_no_approval' ? 'Edit values of existing records without requiring approval'
     : '';

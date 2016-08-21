@@ -19,7 +19,7 @@ for the group, specifying the access that the group has.</p>
 <h5>Approve values in new records</h5>
 <p>If requiring approval for data edits from some users, this permission
 allows other users to approve the values for new records.</p>
-<h5>Approve values in existing records</h5>
+<h5>Approve changes in existing records</h5>
 <p>If requiring approval for data edits from some users, this permission
 allows other users to approve the values for existing records.</p>
 <h5>Enter values for new records without requiring approval</h5>
