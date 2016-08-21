@@ -1,5 +1,5 @@
 # Your application's name
-appname: "GADS"
+appname: "Linkspace"
 
 # The default layout to use for your application (located in
 # views/layouts/main.tt)
@@ -32,23 +32,23 @@ gads:
   name: "App name" # The local name for the application
   header: "HEADER"
   hostlocal: 0     # Whether to fetch files such as jquery.js locally
-  email_from: '"GADS" <user@example.com>' # Emails are sent from this
+  email_from: '"Linkspace" <user@example.com>' # Emails are sent from this
   aup: 0 # Whether to show an acceptable use policy
   login_instance: 1 # The config values used for login page
   default_instance: 1 # The default instance on login, if more than one
   url: https://example.com/ # Used for URLs in overnight email alerts
   # aup_accept: I accept these terms # Use to change default accept button
   message_prefix: >
-    This email has been generated and sent from GADS. Replies
+    This email has been generated and sent from Linkspace. Replies
     will be directed to the sender of the message.
   user_status: 0 # Whether to show user status on login
   user_status_message: >
     You must accept that you will treat this system with
     respect. And be gentle please.
   new_account:
-    subject: Your new account details1
+    subject: Your new account details
     body: >
-      An account for GADS has been created for you. Please
+      An account for Linkspace has been created for you. Please
       click on the following link to retrieve your password:
     
       [URL]
@@ -75,7 +75,7 @@ plugins:
       module: Mail::Message
       options:
         via: sendmail
-    mail_from: '"GADS Database" <user@example.com>'
+    mail_from: '"Linkspace Database" <user@example.com>'
     password_reset_text: GADS::reset_text
     welcome_text: GADS::welcome_text
     permission_denied_page_handler: GADS::permission_denied
