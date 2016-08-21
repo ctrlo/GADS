@@ -1189,7 +1189,12 @@ any '/layout/?:id?' => require_role 'layout' => sub {
         if (param 'update_perms')
         {
             my $permissions = ref param('permissions') eq 'ARRAY' ? param('permissions') : [param('permissions') || ()];
-            $column->set_permissions(param('group_id'), $permissions);
+            if (process sub { $column->set_permissions(param('group_id'), $permissions) })
+            {
+                my $msg = qq(Permissions have been updated successfully. <a href="/layout/">Click here</a> to return to the layout index.);
+                report NOTICE => $msg, _class => 'html,success';
+                return forwardHome( undef, "layout/".$column->id );
+            }
         }
 
         if (param 'delete')
