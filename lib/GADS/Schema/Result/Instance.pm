@@ -1,4 +1,5 @@
 use utf8;
+
 package GADS::Schema::Result::Instance;
 
 # Created by DBIx::Class::Schema::Loader
@@ -12,6 +13,8 @@ GADS::Schema::Result::Instance
 
 use strict;
 use warnings;
+
+use Log::Report;
 
 use base 'DBIx::Class::Core';
 
@@ -296,6 +299,15 @@ __PACKAGE__->has_many(
 
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-02-09 12:55:53
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:buKwfAsr1asQ11B1eu3TIw
+
+sub delete
+{   my $self = shift;
+    $self->result_source->schema->resultset('Layout')->search({
+        instance_id => $self->id,
+    })->count
+        and error __"All fields must be deleted from this table before it can be deleted";
+    $self->next::method(@_);
+}
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

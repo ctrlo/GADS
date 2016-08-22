@@ -158,27 +158,26 @@ hook before => sub {
     {
         if (my $instance_id = param('instance'))
         {
-            my $instances = GADS::Instances->new(schema => schema);
-            session 'instance_id' => $instance_id
-                if grep { $_->id == $instance_id } @{$instances->all};
             session 'search' => undef;
         }
         elsif (!session('instance_id'))
         {
-            my $instances = GADS::Instances->new(schema => schema);
-            session instance_id => config->{gads}->{default_instance} || $instances->all->[0]->id;
+            session instance_id => config->{gads}->{default_instance};
         }
         # Instance ID can be overriden using the parameter "oi". This is
         # a bit hacky, but it allows (for example) the session instance to
         # be one sheet, but then a linked record to be viewed from another
         # sheet. This is used in the links for the Curval column type
-        my $override_instance = param('oi')
-            && GADS::Instances->new(schema => schema)->is_valid(param 'oi');
+        my $instance_id = param('oi') || param('instance') || session('instance_id');
+        my $instances = GADS::Instances->new(schema => schema);
+        $instance_id = $instances->is_valid($instance_id) || $instances->all->[0]->id;
+        session instance_id => $instance_id
+            unless param 'oi';
         my $layout = GADS::Layout->new(
             user        => $user,
             schema      => schema,
             config      => config,
-            instance_id => $override_instance || session('instance_id'),
+            instance_id => $instance_id,
         );
         var 'layout' => $layout;
     }
@@ -1042,6 +1041,49 @@ any '/group/?:id?' => require_role useradmin => sub {
         $params->{layout} = $layout;
     }
     template 'group' => $params;
+};
+
+any '/table/?:id?' => require_role layout => sub {
+
+    my $id       = param 'id';
+    my $instance = defined($id) && ($id && rset('Instance')->find($id) || rset('Instance')->new({}));
+    my $layout   = var 'layout';
+
+    if (param 'submit')
+    {
+        $instance->name(param 'name');
+
+        if (process(sub {$instance->update_or_insert}))
+        {
+            my $action = param('id') ? 'updated' : 'created';
+            return forwardHome(
+                { success => "Table has been $action successfully" }, '/table' );
+        }
+    }
+
+    if (param 'delete')
+    {
+        if (process(sub {$instance->delete}))
+        {
+            return forwardHome(
+                { success => "The table has been deleted successfully" }, '/table' );
+        }
+    }
+
+    my $params = {
+        page => 'table'
+    };
+
+    if (defined $id)
+    {
+        say STDERR "MMM";
+        # id will be 0 for new group
+        $params->{instance} = $instance;
+    }
+    else {
+        $params->{instances} = [rset('Instance')->all],
+    }
+    template 'table' => $params;
 };
 
 any '/view/:id' => require_login sub {
