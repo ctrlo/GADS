@@ -57,16 +57,16 @@ has _nodes => (
     builder => sub { $_[0]->_tree->{nodes} },
 );
 
-# A hash of all the enumvals. Also gets value from
+# An array of all the enumvals. Also gets value from
 # _tree once it's built. Contains the enumvals with
 # their actual values in, but no tree relationship info
-has _enumvals => (
+has enumvals => (
     is      => 'lazy',
     isa     => ArrayRef,
     clearer => 1,
 );
 
-sub _build__enumvals
+sub _build_enumvals
 {   my $self = shift;
     my $enumrs = $self->schema->resultset('Enumval')->search({
         layout_id => $self->id,
@@ -89,7 +89,7 @@ has _enumvals_index => (
 
 sub _build__enumvals_index
 {   my $self = shift;
-    my %enumvals = map {$_->{id} => $_} @{$self->_enumvals};
+    my %enumvals = map {$_->{id} => $_} @{$self->enumvals};
     \%enumvals;
 }
 
@@ -133,7 +133,7 @@ sub cleanup
 after 'delete' => sub {
     my $self = shift;
     trace "Leaving delete";
-    $self->_clear_enumvals;
+    $self->clear_enumvals;
     $self->_clear_enumvals_index;
 };
 
@@ -157,7 +157,7 @@ sub _build__tree
 
     my $enumvals;
     my $tree; my @order;
-    my @enumvals = @{$self->_enumvals};
+    my @enumvals = @{$self->enumvals};
     foreach my $enumval (@enumvals)
     {
         my $parent = $enumval->{parent}; # && $enum->parent->id;
@@ -351,7 +351,7 @@ sub update
     }
 
     $self->_set__enumvals_index($new_tree);
-    $self->_clear_enumvals; # Array shouldn't be used now, but clear in case
+    $self->clear_enumvals; # Array shouldn't be used now, but clear in case
     $self->_delete_unused_nodes;
 
     trace "Exiting update";

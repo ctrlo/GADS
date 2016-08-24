@@ -116,6 +116,9 @@
                                             <li [% IF page=="user" %]class="active"[% END %]><a href="[% url.page %]/user/">Manage Users</a></li>
                                             <li [% IF page=="group" %]class="active"[% END %]><a href="[% url.page %]/group/">Manage Groups</a></li>
                                         [% END %]
+                                        [% IF user.permission.layout %]
+                                            <li [% IF page=="import" %]class="active"[% END %]><a href="[% url.page %]/import/">Imports</a></li>
+                                        [% END %]
                                         [% IF user.permission.audit %]
                                             <li [% IF page=="audit" %]class="active"[% END %]><a href="[% url.page %]/audit/">Audit logs</a></li>
                                         [% END %]

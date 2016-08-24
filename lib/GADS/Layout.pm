@@ -111,6 +111,18 @@ has columns_index => (
     },
 );
 
+has internal_columns => (
+    is      => 'ro',
+    isa     => HashRef,
+    builder => sub {
+        +{
+            -1 => 'ID',
+            -2 => 'Version Datetime',
+            -3 => 'Version User ID',
+        };
+    },
+);
+
 sub clear
 {   my $self = shift;
     $self->clear_name;
@@ -178,6 +190,21 @@ sub _build_columns
         }
     }
 
+    # Add on special internal columns
+    foreach my $internal (keys %{$self->internal_columns})
+    {
+        my $name = $self->internal_columns->{$internal};
+        my $isunique = $name eq 'ID' ? 1 : 0;
+        push @return, GADS::Column->new(
+            id                       => $internal,
+            name                     => $name,
+            isunique                 => $isunique,
+            internal                 => 1,
+            user_permission_override => $self->user_permission_override,
+            schema                   => $self->schema,
+            layout                   => $self,
+        );
+    }
 
     \@return;
 }
@@ -226,6 +253,9 @@ sub all
 
     my @columns = @{$self->columns};
     @columns = $self->_order_dependencies(@columns) if $options{order_dependencies};
+    @columns = grep { !$_->internal } @columns unless $options{include_internal};
+    @columns = grep { $_->internal } @columns if $options{only_internal};
+    @columns = grep { $_->isunique } @columns if $options{only_unique};
     @columns = grep { $_->type eq $type } @columns if $type;
     @columns = grep { $_->remember == $options{remember} } @columns if defined $options{remember};
     @columns = grep { $_->userinput == $options{userinput} } @columns if defined $options{userinput};

@@ -102,6 +102,12 @@ has id => (
     isa => Int,
 );
 
+has internal => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
 # Used to force a database ID on creation (used in layout import)
 has set_id => (
     is  => 'rw',
@@ -530,6 +536,8 @@ sub write
     my $newitem;
     $newitem->{name} = $self->name
         or error __"Please enter a name for item";
+    grep { $_  eq $newitem->{name} } values %{$self->layout->internal_columns}
+        and error __x"{name} is a reserved name for a field", name => $newitem->{name};
     $newitem->{type} = $self->type
         or error __"Please select a type for the item";
     $newitem->{optional}      = $self->optional;

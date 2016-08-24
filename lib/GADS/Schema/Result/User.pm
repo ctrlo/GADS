@@ -407,6 +407,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 imports
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::Import>
+
+=cut
+
+__PACKAGE__->has_many(
+  "imports",
+  "GADS::Schema::Result::Import",
+  { "foreign.user_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 title
 
 Type: belongs_to

@@ -47,7 +47,8 @@ has user => (
 );
 
 has pages => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_pages
@@ -62,7 +63,8 @@ has view => (
 # Whether to limit any results to only those
 # in a specific view
 has limit_to_view => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_limit_to_view
@@ -107,15 +109,17 @@ has columns_extra => (
 # Value containing the actual columns retrieved.
 # In "normal order" as per layout.
 has columns_retrieved_no => (
-    is  => 'lazy',
-    isa => ArrayRef,
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
 );
 
 # Value containing the actual columns retrieved.
 # In "dependent order", needed for calcvals
 has columns_retrieved_do => (
-    is  => 'lazy',
-    isa => ArrayRef
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
 );
 
 has rows => (
@@ -127,11 +131,13 @@ has count => (
     isa     => Int,
     lazy    => 1,
     builder => 1,
+    clearer => 1,
 );
 
 has has_children => (
-    is  => 'lazy',
-    isa => Bool,
+    is      => 'lazy',
+    isa     => Bool,
+    clearer => 1,
 );
 
 has page => (
@@ -662,6 +668,11 @@ sub _build_columns_retrieved_no
 
 sub clear
 {   my $self = shift;
+    $self->clear_pages;
+    $self->clear_limit_to_view;
+    $self->clear_columns_retrieved_no;
+    $self->clear_columns_retrieved_do;
+    $self->clear_count;
     $self->clear_results;
     $self->_set__next_single_id(0);
 }

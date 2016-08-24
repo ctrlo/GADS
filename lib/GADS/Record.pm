@@ -41,6 +41,7 @@ use POSIX ();
 
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 use namespace::clean;
 
 # Preferably this is passed in to prevent extra
@@ -267,6 +268,20 @@ has createdby => (
     },
 );
 
+has created => (
+    is      => 'lazy',
+    isa     => DateAndTime,
+    clearer => 1,
+);
+
+sub _build_created
+{   my $self = shift;
+    return unless $self->record;
+    $self->schema->storage->datetime_parser->parse_datetime(
+        $self->record->{created}
+    );
+}
+
 has force_update => (
     is => 'rw',
 );
@@ -342,6 +357,9 @@ sub find_current_id
 sub find_unique
 {   my ($self, $column, $value, @retrieve_columns) = @_;
 
+    return $self->find_current_id($value)
+        if $column->id == -1;
+
     # First create a view to search for this value in the column.
     my $filter = encode_json({
         rules => [{
@@ -385,6 +403,7 @@ sub clear
     $self->clear_approval_of_new;
     $self->clear_fields;
     $self->clear_createdby;
+    $self->clear_created;
     $self->clear_is_historic;
     $self->clear_new_entry;
 }
@@ -584,7 +603,7 @@ sub write_linked_id
 # - update_only: update the values of the existing record instead of creating a
 # new version. This allows updates that aren't recorded in the history, and
 # allows the correcting of previous versions that have since been changed.
-# - force: things to force even if invalid
+# - force_mandatory: allow blank mandatory values
 # - no_change_unless_blank: bork on updates to existing values unless blank
 # - dry_run: do not actually perform any writes, test only
 # - no_alerts: do not send any alerts for changed values
@@ -620,8 +639,6 @@ sub write
             })->count;
     }
 
-    my $force_mandatory = $options{force} && $options{force} eq 'mandatory' ? 1 : 0;
-
     # First loop round: sanitise and see which if any have changed
     my %appfields; # Any fields that need approval
     my %allow_update = map { $_ => 1 } @{$options{allow_update} || []};
@@ -634,7 +651,7 @@ sub write
             or next; # Will not be set for child records
 
         # Check for blank value
-        if (!$self->parent_id && !$self->linked_id && !$column->optional && $datum->blank && !$force_mandatory)
+        if (!$self->parent_id && !$self->linked_id && !$column->optional && $datum->blank && !$options{force_mandatory})
         {
             # Only warn if it was previously blank, otherwise it might
             # be a read-only field for this user

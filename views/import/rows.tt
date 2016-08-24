@@ -1,0 +1,22 @@
+<h3>Import rows for import [% import_id %]</h3>
+
+[% IF rows.size %]
+    <table class="table table-striped">
+        <tr>
+            <th>Status</th>
+            <th>Errors</th>
+            <th>Changes</th>
+            <th>Content</th>
+        </tr>
+        [% FOREACH row IN rows.all %]
+            <tr>
+                <td>[% row.status | html_entity %]</td>
+                <td>[% row.errors | html_entity %]</td>
+                <td>[% row.changes | html_entity %]</td>
+                <td>[% row.content | html_entity %]</td>
+            </tr>
+        [% END %]
+    </table>
+[% ELSE %]
+    <p>No rows to show for this import</p>
+[% END %]

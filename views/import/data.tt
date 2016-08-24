@@ -1,0 +1,72 @@
+<h2>Import Data</h2>
+<p>Use this page to upload a CSV file containing data for the currently selected table. The first row of the file must contain the field names, exactly matching those of the layout.</p>
+
+<div class="row">
+    <div class="col-md-6">
+        <form  role="form" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="file">CSV File:</label>
+                <input type="file" id="file" name="file">
+            </div>
+            <div class="form-group">
+                <label>Options:</label>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="import_options" value="dry_run" checked>Dry run
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="import_options" value="force_mandatory">Allow blank mandatory values
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="import_options" value="blank_invalid_enum">Blank any invalid multiple select and tree values
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="import_options" value="no_change_unless_blank">If updating a record, only insert new values, do not overwrite existing values
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="import_options" value="take_first_enum">Take first value of duplicated matching tree nodes or multiple select values
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="import_options" value="ignore_string_zeros">Ignore values of &quot;0&quot; in text field values
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="import_options" value="round_integers">Round decimal values being imported into integer fields
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Update existing records where this unique value already exists:</label>
+                <select class="form-control" name="update_unique">
+                    <option selected></option>
+                    [% FOR column IN layout.all("only_unique", 1, "include_internal", 1) %]
+                        <option value="[% column.id %]">[% column.name | html_entity %]</option>
+                    [% END %]
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Skip lines where this unique value already exists in a record:</label>
+                <select class="form-control" name="skip_existing_unique">
+                    <option selected></option>
+                    [% FOR column IN layout.all("only_unique", 1, "include_internal", 1) %]
+                        <option value="[% column.id %]">[% column.name | html_entity %]</option>
+                    [% END %]
+                </select>
+            </div>
+            <input type="submit" name="submit" value="Submit" class="btn btn-primary">
+            <a href="/import/" class="btn btn-default">Cancel</a>
+        </form>
+    </div>
+</div>
+<p></p>

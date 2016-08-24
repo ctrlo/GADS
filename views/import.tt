@@ -1,0 +1,48 @@
+<a href="/import/data/" class="btn btn-default">Import data...</a>
+<a href="" data-toggle="modal" data-target="#modal_clear" class="btn btn-default">Clear completed reports...</a>
+<h3>Import Status</h3>
+[% IF imports.size %]
+    <table class="table table-striped">
+        <tr>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Rows processed</th>
+            <th>Result</th>
+            <th></th>
+        </tr>
+        [% FOREACH import IN imports %]
+            <tr>
+                <td>[% import.type | html_entity %]</td>
+                <td>[% IF import.completed %]Completed [% import.completed %][% ELSE %]In progress[% END %]</td>
+                <td>[% import.row_count %]</td>
+                <td>[% import.result %]</td>
+                <td><a href="/import/rows/[% import.id %]">View all rows</a></td>
+            </tr>
+        [% END %]
+    </table>
+[% ELSE %]
+    <p>No imports to show</p>
+[% END %]
+<p></p>
+
+<!-- Modal -->
+<div class="modal fade" id="modal_clear" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Clear completed reports</h4>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete reports of all completed imports?</p>
+            </div>
+            <form  role="form" method="post">
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" name="clear" value="clear" class="btn btn-primary">Confirm</button>
+                </div>
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+

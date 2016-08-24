@@ -44,6 +44,7 @@ use GADS::Graph::Data;
 use GADS::Graphs;
 use GADS::Group;
 use GADS::Groups;
+use GADS::Import;
 use GADS::Instance;
 use GADS::Instances;
 use GADS::Layout;
@@ -1076,7 +1077,6 @@ any '/table/?:id?' => require_role layout => sub {
 
     if (defined $id)
     {
-        say STDERR "MMM";
         # id will be 0 for new group
         $params->{instance} = $instance;
     }
@@ -2016,6 +2016,75 @@ any '/audit/?' => require_role audit => sub {
         filtering   => session('audit_filtering'),
         audit_types => GADS::Audit::audit_types,
         page        => 'audit',
+    };
+};
+
+any '/import/?' => require_any_role [qw/layout useradmin/] => sub {
+
+    if (param 'clear')
+    {
+        rset('Import')->search({
+            completed => { '!=' => undef },
+        })->delete;
+    }
+
+    template 'import' => {
+        imports => [rset('Import')->search({},{ order_by => { -desc => 'me.completed' } })->all],
+        page    => 'import',
+    };
+};
+
+any '/import/rows/:import_id' => require_any_role [qw/layout useradmin/] => sub {
+
+    rset('Import')->find(param 'import_id')
+        or error __"Requested import not found";
+
+    my $rows = rset('ImportRow')->search({
+        import_id => param('import_id'),
+    },{
+        order_by => {
+            -asc => 'me.id',
+        }
+    });
+
+    template 'import/rows' => {
+        import_id => param('import_id'),
+        rows      => $rows,
+        page      => 'import',
+    };
+};
+
+any '/import/data/?' => require_role 'layout' => sub {
+
+    if (param 'submit')
+    {
+        if (my $upload = upload('file'))
+        {
+            my %options = map { $_ => 1 } body_parameters->get_all('import_options');
+            $options{no_change_unless_blank} = 'skip_new' if $options{no_change_unless_blank};
+            $options{update_unique} = param('update_unique') if param('update_unique');
+            $options{skip_existing_unique} = param('skip_existing_unique') if param('skip_existing_unique');
+            my $import = GADS::Import->new(
+                file     => $upload->tempname,
+                schema   => schema,
+                layout   => var('layout'),
+                user_id  => logged_in_user->{id},
+                %options,
+            );
+            if (process sub { $import->process })
+            {
+                notice __"The file import process has been started and can be monitored using the import summary";
+                redirect '/import/';
+            }
+        }
+        else {
+            report({is_fatal => 0}, ERROR => 'Please select a file to upload');
+        }
+    }
+
+    template 'import/data' => {
+        layout => var('layout'),
+        page   => 'import',
     };
 };
 
