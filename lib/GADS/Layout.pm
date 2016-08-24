@@ -73,6 +73,11 @@ has columns => (
     builder => '_build_columns',
 );
 
+has _columns_namehash => (
+    is  => 'lazy',
+    isa => HashRef,
+);
+
 # The permissions the logged-in user has, for the whole data set
 has user_permissions => (
     is        => 'rw',
@@ -268,6 +273,17 @@ sub column
         or return; # Column does not exist
     return if $options{permission} && !$column->user_can($options{permission});
     $column;
+}
+
+sub _build__columns_namehash
+{   my $self = shift;
+    my %columns = map { $_->name => $_ } @{$self->columns};
+    \%columns;
+}
+
+sub column_by_name
+{   my ($self, $name) = @_;
+    $self->_columns_namehash->{$name};
 }
 
 sub view
