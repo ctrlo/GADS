@@ -328,7 +328,10 @@ sub _check_instance
 {   my ($self, $instance_id_new) = @_;
     if ($self->layout->instance_id != $instance_id_new)
     {
-       my $layout = GADS::Layout->new(
+        # Check it's valid for this site first
+        $self->schema->resultset('Instance')->find($instance_id_new)
+            or return;
+        my $layout = GADS::Layout->new(
             user        => $self->user,
             schema      => $self->schema,
             config      => GADS::Config->instance,

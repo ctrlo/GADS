@@ -36,6 +36,10 @@ has schema => (
     is => 'lazy',
 );
 
+has site_id => (
+    is      => 'ro',
+);
+
 has instance_id => (
     is      => 'ro',
     default => 1,
@@ -76,15 +80,30 @@ sub _build_schema
         quote_names     => 1,
     });
     $schema->deploy;
+    if ($self->site_id)
+    {
+        $schema->resultset('Site')->create({
+            id => $self->site_id,
+        });
+        $schema->site_id($self->site_id);
+    }
     $schema;
 }
 
 sub _build_layout
 {   my $self = shift;
 
+    my $site_id = $self->schema->site_id;
+    if ($site_id && !$self->schema->resultset('Site')->find($site_id))
+    {
+        $self->schema->resultset('Site')->create({
+            id => $site_id,
+        });
+    }
     $self->schema->resultset('Instance')->find_or_create({
-        id   => $self->instance_id,
-        name => 'Layout'.$self->instance_id,
+        id      => $self->instance_id,
+        name    => 'Layout'.$self->instance_id,
+        site_id => $self->schema->site_id,
     });
 
     GADS::Layout->new(

@@ -1,9 +1,6 @@
 use utf8;
 package GADS::Schema::Result::Group;
 
-# Created by DBIx::Class::Schema::Loader
-# DO NOT MODIFY THE FIRST PART OF THIS FILE
-
 =head1 NAME
 
 GADS::Schema::Result::Group
@@ -47,6 +44,12 @@ __PACKAGE__->table("group");
   is_nullable: 1
   size: 128
 
+=head2 site_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -54,6 +57,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "name",
   { data_type => "varchar", is_nullable => 1, size => 128 },
+  "site_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -100,10 +105,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 site
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2015-02-15 11:41:42
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jofia4P4SMX470Xy+CNKWA
+Type: belongs_to
 
+Related object: L<GADS::Schema::Result::Site>
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+=cut
+
+__PACKAGE__->belongs_to(
+  "site",
+  "GADS::Schema::Result::Site",
+  { id => "site_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
 1;

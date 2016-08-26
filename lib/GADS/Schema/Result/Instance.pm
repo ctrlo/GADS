@@ -2,9 +2,6 @@ use utf8;
 
 package GADS::Schema::Result::Instance;
 
-# Created by DBIx::Class::Schema::Loader
-# DO NOT MODIFY THE FIRST PART OF THIS FILE
-
 =head1 NAME
 
 GADS::Schema::Result::Instance
@@ -47,6 +44,12 @@ __PACKAGE__->table("instance");
 =head2 name
 
   data_type: 'text'
+  is_nullable: 1
+
+=head2 site_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
   is_nullable: 1
 
 =head2 email_welcome_text
@@ -138,6 +141,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "name",
   { data_type => "text", is_nullable => 1 },
+  "site_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "email_welcome_text",
   { data_type => "text", is_nullable => 1 },
   "email_welcome_subject",
@@ -246,6 +251,26 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 site
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Site>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "site",
+  "GADS::Schema::Result::Site",
+  { id => "site_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
 =head2 sort_layout
 
 Type: belongs_to
@@ -296,10 +321,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-02-09 12:55:53
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:buKwfAsr1asQ11B1eu3TIw
-
 sub delete
 {   my $self = shift;
     $self->result_source->schema->resultset('Layout')->search({
@@ -309,6 +330,4 @@ sub delete
     $self->next::method(@_);
 }
 
-
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

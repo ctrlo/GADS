@@ -1,9 +1,6 @@
 use utf8;
 package GADS::Schema::Result::User;
 
-# Created by DBIx::Class::Schema::Loader
-# DO NOT MODIFY THE FIRST PART OF THIS FILE
-
 =head1 NAME
 
 GADS::Schema::Result::User
@@ -40,6 +37,12 @@ __PACKAGE__->table("user");
   data_type: 'bigint'
   is_auto_increment: 1
   is_nullable: 0
+
+=head2 site_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
 
 =head2 firstname
 
@@ -172,6 +175,8 @@ __PACKAGE__->table("user");
 __PACKAGE__->add_columns(
   "id",
   { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
+  "site_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "firstname",
   { data_type => "varchar", is_nullable => 1, size => 128 },
   "surname",
@@ -362,6 +367,26 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 site
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Site>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "site",
+  "GADS::Schema::Result::Site",
+  { id => "site_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
 =head2 people
 
 Type: has_many
@@ -517,10 +542,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-03-07 11:12:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:214uqMTvYSnGhgONFtC1+g
-
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
     $sqlt_table->add_index(name => 'user_idx_value', fields => [ { name => 'value', size => 64 } ]);
@@ -528,5 +549,4 @@ sub sqlt_deploy_hook {
     $sqlt_table->add_index(name => 'user_idx_username', fields => [ { name => 'username', size => 64 } ]);
 }
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

@@ -1,9 +1,6 @@
 use utf8;
 package GADS::Schema::Result::Audit;
 
-# Created by DBIx::Class::Schema::Loader
-# DO NOT MODIFY THE FIRST PART OF THIS FILE
-
 =head1 NAME
 
 GADS::Schema::Result::Audit
@@ -40,6 +37,12 @@ __PACKAGE__->table("audit");
   data_type: 'bigint'
   is_auto_increment: 1
   is_nullable: 0
+
+=head2 site_id
+
+  date_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
 
 =head2 user_id
 
@@ -80,6 +83,8 @@ __PACKAGE__->table("audit");
 __PACKAGE__->add_columns(
   "id",
   { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
+  "site_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "user_id",
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "type",
@@ -132,10 +137,24 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 site
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eN2VFm/OAQUO5It9/bgNAA
+Type: belongs_to
 
+Related object: L<GADS::Schema::Result::Site>
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+=cut
+
+__PACKAGE__->belongs_to(
+  "site",
+  "GADS::Schema::Result::Site",
+  { id => "site_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
 1;

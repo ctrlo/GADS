@@ -110,6 +110,18 @@ hook before => sub {
 
     return if param 'error';
 
+    # See if sites are set up. If os, find site and configure in schema
+    if (schema->resultset('Site')->count && request->dispatch_path !~ m{/invalidsite})
+    {
+        my ($site) = schema->resultset('Site')->search({
+            host => request->base->host,
+        })
+            or redirect '/invalidsite';
+        my $site_id = $site->id;
+        trace __x"Site ID is {id}", id => $site_id;
+        schema->site_id($site_id);
+    }
+
     # Add any new relationships for new fields. These are normally
     # added when the field is created, but with multiple processes
     # these will not have been created for the other processes.
@@ -2276,6 +2288,12 @@ any '/resetpw/:code' => sub {
                 using the "Reset Password" link) }, 'login'
         );
     }
+};
+
+get '/invalidsite' => sub {
+    template 'invalidsite' => {
+        page => 'invalidsite'
+    };
 };
 
 get '/match/layout/:layout_id' => require_login sub {

@@ -1,9 +1,6 @@
 use utf8;
 package GADS::Schema;
 
-# Created by DBIx::Class::Schema::Loader
-# DO NOT MODIFY THE FIRST PART OF THIS FILE
-
 use strict;
 use warnings;
 
@@ -11,11 +8,16 @@ use base 'DBIx::Class::Schema';
 
 __PACKAGE__->load_namespaces;
 
+our $VERSION = 17;
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-08 11:57:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rF2lcSaMAscjAAUiulzkfw
+__PACKAGE__->mk_group_accessors('simple' => qw/site_id/);
 
-our $VERSION = 16;
+# Resultset to restrict by site ID, if configured
+sub resultset
+{   my $self = shift;
+    my $rs = $self->next::method(@_);
+    return $rs unless $rs->result_source->has_column('site_id');
+    $rs->search_rs({ 'me.site_id' => $self->site_id });
+}
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

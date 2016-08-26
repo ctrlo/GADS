@@ -81,7 +81,7 @@
             <p class="text-center">[% header %]</p>
         [% END %]
         <div class="container-fluid">
-            [% UNLESS page == "login" OR single_graph %]
+            [% UNLESS page == "login" OR page == "invalidsite" OR single_graph %]
                 <div class="navbar navbar-default" role="navigation">
                         <div class="navbar-header">
                             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
