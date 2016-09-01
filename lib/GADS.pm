@@ -1325,7 +1325,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             if (process( sub { $column->write(no_alerts => $no_alerts, no_cache_update => param('no_cache_update')) }))
             {
                 my $action = param('id') ? "updated" : "created";
-                my $msg = qq(Item has been $action successfully. You can <a href="/layout/0">create another one</a> or <a href="" data-toggle="modal" data-target="#modal_permissions" data-title="Add new group">add permissions to this one</a>.);
+                my $msg = qq(Item has been $action successfully. You can <a href="/layout/0">create another one</a> or <a href="" data-toggle="modal" data-target="#modal_permissions">add permissions to this one</a>.);
                 report NOTICE => $msg, _class => 'html,success';
                 return forwardHome( undef, "layout/".$column->id );
             }
