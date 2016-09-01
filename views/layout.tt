@@ -496,24 +496,28 @@
                         <h4 class="modal-title" id="modal_permissions-title">Permissions for group</h4>
                     </div>
                     <div class="modal-body">
-                        <div class="form-group" id="modal_permissions-group_div">
-                            <input type="hidden" name="group_id" id="modal_permissions-group_id" value="">
-                            <div id="modal_permissions-group_select_div">
-                                <label for="modal_permissions-group_select">Group:</label>
-                                <select class="form-control" id="modal_permissions-group_select" name="group_id">
-                                    [% FOR group IN groups.all %]
-                                        <option value="[% group.id %]">[% group.name %]</option>
-                                    [% END %]
-                                </select>
+                        [% IF groups.all.size %]
+                            <div class="form-group" id="modal_permissions-group_div">
+                                <input type="hidden" name="group_id" id="modal_permissions-group_id" value="">
+                                <div id="modal_permissions-group_select_div">
+                                    <label for="modal_permissions-group_select">Group:</label>
+                                    <select class="form-control" id="modal_permissions-group_select" name="group_id">
+                                        [% FOR group IN groups.all %]
+                                            <option value="[% group.id %]">[% group.name %]</option>
+                                        [% END %]
+                                    </select>
+                                </div>
                             </div>
-                        </div>
-                        <p>Tick the permissions that this group should have (<a id="selectall" style="cursor: pointer;">select all</a>)</p>
-                        [% FOR perm IN permissions %]
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" class="check_perm" name="permissions" value="[% perm.short %]" id="modal_permissions-[% perm.short %]">[% perm %]
-                                </label>
-                            </div>
+                            <p>Tick the permissions that this group should have (<a id="selectall" style="cursor: pointer;">select all</a>)</p>
+                            [% FOR perm IN permissions %]
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" class="check_perm" name="permissions" value="[% perm.short %]" id="modal_permissions-[% perm.short %]">[% perm %]
+                                    </label>
+                                </div>
+                            [% END %]
+                        [% ELSE %]
+                            <p>No groups have been created yet. <a href="/group">Click here</a> to create a group.</p>
                         [% END %]
                     </div>
                     <div class="modal-footer">
