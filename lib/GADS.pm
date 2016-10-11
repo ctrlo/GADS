@@ -392,6 +392,8 @@ any '/data' => require_login sub {
     if (defined(param('search_text')))
     {
         my $search  = param('clear') ? '' : param('search_text');
+        $search =~ s/\h+$//;
+        $search =~ s/^\h+//;
         session 'search' => $search;
         if ($search)
         {
