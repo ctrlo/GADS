@@ -1243,7 +1243,13 @@ any '/layout/?:id?' => require_role 'layout' => sub {
         if (param 'update_perms')
         {
             my $permissions = ref param('permissions') eq 'ARRAY' ? param('permissions') : [param('permissions') || ()];
-            if (process sub { $column->set_permissions(param('group_id'), $permissions) })
+            # Although the layout form should only return one group_id value
+            # (there are 2, but JS renames them), instances have been observed
+            # when a second empty one has also been sent. There are possibly
+            # problems with the JS, but given the implications of 2 here, we
+            # ensure that only one is present.
+            my ($group_id) = grep { $_ } body_parameters->get_all('group_id');
+            if (process sub { $column->set_permissions($group_id, $permissions) })
             {
                 my $msg = qq(Permissions have been updated successfully. <a href="/layout/">Click here</a> to return to the layout index.);
                 report NOTICE => $msg, _class => 'html,success';
