@@ -2195,6 +2195,9 @@ any '/login' => sub {
             $username, params->{password}
         );
         if ($success) {
+            # change session ID if we have a new enough D2 version with support
+            app->change_session_id
+                if app->can('change_session_id');
             session logged_in_user => $username;
             session logged_in_user_realm => $realm;
             if (param 'remember_me')
