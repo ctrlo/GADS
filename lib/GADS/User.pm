@@ -137,6 +137,30 @@ sub groups
     $self->schema->resultset('UserGroup')->search($search)->delete;
 }
 
+sub permissions
+{   my ($self, $permissions) = @_;
+
+    foreach my $p (@$permissions)
+    {
+        my $item = {
+            user_id       => $self->id,
+            permission_id => $p,
+        };
+
+        unless($self->schema->resultset('UserPermission')->search($item)->count)
+        {
+            $self->schema->resultset('UserPermission')->create($item);
+        }
+    }
+
+    # Delete any groups that no longer exist
+    my $search = { user_id => $self->id };
+    $search->{permission_id} = {
+        '!=' => [ -and => @$permissions ]
+    } if @$permissions;
+    $self->schema->resultset('UserPermission')->search($search)->delete;
+}
+
 sub delete
 {   my ($self, %options) = @_;
 

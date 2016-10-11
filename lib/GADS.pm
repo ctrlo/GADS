@@ -1393,8 +1393,6 @@ any '/user/?:id?' => require_role useradmin => sub {
             return forwardHome({ danger => "User $email already exists" }, 'user' )
                 if $usero->get_user;
         }
-        my @permissions = ref param('permission') ? @{param('permission')} : (param('permission') || ());
-        my %permissions = map { $all_permissions{$_} => 1 } @permissions;
         my %values = (
             firstname             => param('firstname'),
             surname               => param('surname'),
@@ -1405,7 +1403,6 @@ any '/user/?:id?' => require_role useradmin => sub {
             organisation          => param('organisation') || undef,
             account_request_notes => param('account_request_notes'),
             limit_to_view         => param('limit_to_view') || undef,
-            permission            => \%permissions,
         );
 
         $values{value} = _user_value(\%values);
@@ -1449,16 +1446,23 @@ any '/user/?:id?' => require_role useradmin => sub {
             my @groups = ref param('groups') ? @{param('groups')} : (param('groups') || ());
             my $usero = GADS::User->new(schema => schema, config => config, id => $newuser->{id});
             $usero->groups(\@groups);
+            my $audit_groups = join ', ', @groups;
+
+            # Update permissions. This currently needs to be done here rather than in DPAE
+            # due to the addition of the site_id column, which DPAE is not able to take
+            # account of, so the permissions could otherwise get applied to the wrong user
+            my @permissions = ref param('permission') ? @{param('permission')} : (param('permission') || ());
+            $usero->permissions(\@permissions);
+            my $audit_perms = join ', ', map { $all_permissions{$_} } @permissions;
             my $action;
-            my $audit_perms = join ', ', keys %{$newuser->{permission}};
             if ($id) {
                 $audit->login_change(
-                    "User updated: ID $newuser->{id}, username: $newuser->{username}; permissions: $audit_perms");
+                    "User updated: ID $newuser->{id}, username: $newuser->{username}; groups: $audit_groups, permissions: $audit_perms");
                 $action = 'updated';
             }
             else {
                 $audit->login_change(
-                    "New user created: ID $newuser->{id}, username: $newuser->{username}; permissions: $audit_perms");
+                    "New user created: ID $newuser->{id}, username: $newuser->{username}; groups: $audit_groups, permissions: $audit_perms");
                 $action = 'created';
             }
 
