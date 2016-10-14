@@ -86,7 +86,6 @@
                             labelRenderer: $.jqplot.CanvasAxisLabelRenderer
                         },
                         yaxis: {
-                            padMin: 0,
                             label: options_in.y_axis_label,
                             labelRenderer: $.jqplot.CanvasAxisLabelRenderer
                         }
