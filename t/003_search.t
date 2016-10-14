@@ -369,30 +369,66 @@ my @sorts = (
         first        => qr/^(8|9)$/,
         last         => qr/^(7)$/,
     },
+    {
+        name         => 'Sort with filter',
+        show_columns => [$columns->{enum1}->id,$columns->{curval1}->id,$columns->{tree1}->id],
+        sort_by      => [$columns->{enum1}->id],
+        sort_type    => ['asc', 'desc'],
+        first        => qr/^(3)$/,
+        last         => qr/^(3)$/,
+        count        => 1,
+        filter       => {
+            rules => [
+                {
+                    id       => $columns->{tree1}->id,
+                    type     => 'string',
+                    value    => 'tree1',
+                    operator => 'equal',
+                },
+            ],
+        },
+    },
 );
 
 foreach my $sort (@sorts)
 {
-    my $view = GADS::View->new(
-        name        => 'Test view',
-        columns     => $sort->{show_columns},
-        instance_id => 1,
-        layout      => $layout,
-        schema      => $schema,
-        user        => undef,
-    );
-    $view->write;
-    $view->set_sorts($sort->{sort_by}, $sort->{sort_type});
+    # If doing a count with the sort, then do 2 passes, one to check that actual
+    # number of rows retrieved, and one to check the count calculation function
+    my $passes = $sort->{count} ? 2 : 1;
+    foreach my $pass (1..$passes)
+    {
+        my $filter = encode_json($sort->{filter} || {});
+        my $view = GADS::View->new(
+            name        => 'Test view',
+            columns     => $sort->{show_columns},
+            filter      => $filter,
+            instance_id => 1,
+            layout      => $layout,
+            schema      => $schema,
+            user        => undef,
+        );
+        $view->write;
+        $view->set_sorts($sort->{sort_by}, $sort->{sort_type});
 
-    $records = GADS::Records->new(
-        user    => undef,
-        view    => $view,
-        layout  => $layout,
-        schema  => $schema,
-    );
+        $records = GADS::Records->new(
+            user    => undef,
+            view    => $view,
+            layout  => $layout,
+            schema  => $schema,
+        );
 
-    like( $records->results->[0]->current_id, $sort->{first}, "Correct first record for sort $sort->{name}");
-    like( $records->results->[-1]->current_id, $sort->{last}, "Correct last record for sort $sort->{name}");
+        if ($pass == 1)
+        {
+            is( @{$records->results}, $sort->{count}, "Correct number of records in results for sort $sort->{name}" )
+                if $sort->{count};
+
+            like( $records->results->[0]->current_id, $sort->{first}, "Correct first record for sort $sort->{name}");
+            like( $records->results->[-1]->current_id, $sort->{last}, "Correct last record for sort $sort->{name}");
+        }
+        else {
+            is( $records->count, $sort->{count}, "Correct record count for sort $sort->{name}" )
+        }
+    }
 }
 
 done_testing();

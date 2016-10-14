@@ -682,6 +682,8 @@ sub clear
 sub _query_params
 {   my ($self, %options) = @_;
 
+    $self->order_by([]);
+    $self->order_by_count(0);
     my $layout = $self->layout;
 
     my @search_date;                    # The search criteria to narrow-down by date range
@@ -719,118 +721,114 @@ sub _query_params
         $self->add_linked_prefetch($c->link_parent) if $c->link_parent;
     }
 
-    my @limit; # The overall limit, for example reduction by date range or approval field
-    # Add any date ranges to the search from above
-    if (@search_date)
+    my @limit;  # The overall limit, for example reduction by date range or approval field
+    my @search; # The user search
+    # The following code needs to be run twice, to make sure that join numbers
+    # are worked out correctly. Otherwise, a search criteria might not take
+    # into account a subsuquent sort, and vice-versa.
+    for (1..2)
     {
-        # _search_construct returns an array ref, so dereference it first
-        my @res = @{($self->_search_construct({condition => 'OR', rules => \@search_date}, $layout))};
-        push @limit, @res if @res;
-    }
-
-    my $user_sort = $self->sort; # Sort overriding view's sort
-
-    # Now add all the filters as joins (we don't need to prefetch this data). However,
-    # the filter might also be a column in the view from before, in which case add
-    # it to, or use, the prefetch. We use the tracking variables from above.
-    my @search;     # The user search
-    if (my $view = $self->view)
-    {
-        # Apply view filter, but not if specific current IDs set (as when quick search is used)
-        if ($view->filter && !$self->current_ids)
+        # Add any date ranges to the search from above
+        if (@search_date)
         {
-            my $decoded = decode_json($view->filter);
-            # Do 2 loops through all the filters and gather the joins. The reason is that
-            # any extra joins will be added *before* the prefetches, thereby making the
-            # prefetch join numbers unpredictable. By doing an initial run, when we
-            # repeat we will have predictable join numbers.
-            if (keys %$decoded)
+            # _search_construct returns an array ref, so dereference it first
+            my @res = @{($self->_search_construct({condition => 'OR', rules => \@search_date}, $layout))};
+            push @limit, @res if @res;
+        }
+
+        my $user_sort = $self->sort; # Sort overriding view's sort
+
+        # Now add all the filters as joins (we don't need to prefetch this data). However,
+        # the filter might also be a column in the view from before, in which case add
+        # it to, or use, the prefetch. We use the tracking variables from above.
+        if (my $view = $self->view)
+        {
+            # Apply view filter, but not if specific current IDs set (as when quick search is used)
+            if ($view->filter && !$self->current_ids)
             {
-                $self->_search_construct($decoded, $layout);
-                # Get the user search criteria
-                @search = @{$self->_search_construct($decoded, $layout, %options)};
+                my $decoded = decode_json($view->filter);
+                if (keys %$decoded)
+                {
+                    # Get the user search criteria
+                    @search = @{$self->_search_construct($decoded, $layout, %options)};
+                }
+            }
+            unless ($user_sort)
+            {
+                foreach my $sort (@{$view->sorts})
+                {
+                    if (my $col_id = $sort->{layout_id})
+                    {
+                        my $column  = $layout->column($col_id);
+                        my $type    = $sort->{type} eq 'desc' ? '-desc' : '-asc';
+                        $self->add_sort($column, $type);
+                    }
+                    else {
+                        # No column defined means sort by ID
+                        my $type = $sort->{type} eq 'desc' ? '-desc' : '-asc';
+                        push @{$self->order_by}, { $type => 'me.id' };
+                    }
+                    # Add the first sort column to the object for retrieval later
+                    $self->sort({
+                        id   => $sort->{layout_id},
+                        type => $sort->{type},
+                    }) unless $self->sort;
+                }
             }
         }
-        unless ($user_sort)
+        if (my $view = $self->limit_to_view)
         {
-            foreach my $sort (@{$view->sorts})
+            if (my $filter = $view->filter)
             {
-                if (my $col_id = $sort->{layout_id})
+                my $decoded = decode_json($filter);
+                if (keys %$decoded)
                 {
-                    my $column  = $layout->column($col_id);
-                    my $type    = $sort->{type} eq 'desc' ? '-desc' : '-asc';
-                    $self->add_sort($column, $type);
+                    # Get the user search criteria
+                    push @search, @{$self->_search_construct($decoded, $layout, %options)};
                 }
-                else {
-                    # No column defined means sort by ID
-                    my $type = $sort->{type} eq 'desc' ? '-desc' : '-asc';
+            }
+        }
+        # Configure specific user selected sort, if applicable. This needs to be done
+        # after the filters have been added, otherwise the filters could add additonal
+        # joins which will put the value_x columns out of kilter. A user selected
+        # column will always be in a prefetch, so it's not possible for the reverse
+        # to happen
+        if ($user_sort)
+        {
+            my @sorts;
+            foreach my $s (@$user_sort)
+            {
+                my $type = $s->{type} && $s->{type} eq 'desc' ? '-desc' : '-asc';
+                if (!$s->{id})
+                {
                     push @{$self->order_by}, { $type => 'me.id' };
                 }
-                # Add the first sort column to the object for retrieval later
+                elsif (my $column = $layout->column($s->{id}))
+                {
+                    $self->add_sort($column, $type);
+                }
+            }
+        }
+        # Default sort
+        unless (@{$self->order_by})
+        {
+            my $default_sort = $self->default_sort;
+            my $type         = $default_sort->{type} && $default_sort->{type} eq 'desc' ? 'desc' : 'asc';
+            if (my $col_id = $default_sort->{id})
+            {
+                my $col     = $self->layout->column($col_id);
+                $self->add_sort($col, "-$type");
                 $self->sort({
-                    id   => $sort->{layout_id},
-                    type => $sort->{type},
-                }) unless $self->sort;
+                    id   => $col_id,
+                    type => $type,
+                });
             }
-        }
-    }
-    if (my $view = $self->limit_to_view)
-    {
-        if (my $filter = $view->filter)
-        {
-            my $decoded = decode_json($filter);
-            # Do 2 loops through all the filters and gather the joins. The reason is that
-            # any extra joins will be added *before* the prefetches, thereby making the
-            # prefetch join numbers unpredictable. By doing an initial run, when we
-            # repeat we will have predictable join numbers.
-            if (keys %$decoded)
-            {
-                $self->_search_construct($decoded, $layout);
-                # Get the user search criteria
-                push @search, @{$self->_search_construct($decoded, $layout, %options)};
+            else {
+                push @{$self->order_by}, { "-$type" => 'me.id' };
+                $self->sort({
+                    type => $type,
+                });
             }
-        }
-    }
-    # Configure specific user selected sort, if applicable. This needs to be done
-    # after the filters have been added, otherwise the filters could add additonal
-    # joins which will put the value_x columns out of kilter. A user selected
-    # column will always be in a prefetch, so it's not possible for the reverse
-    # to happen
-    if ($user_sort)
-    {
-        my @sorts;
-        foreach my $s (@$user_sort)
-        {
-            my $type = $s->{type} && $s->{type} eq 'desc' ? '-desc' : '-asc';
-            if (!$s->{id})
-            {
-                push @{$self->order_by}, { $type => 'me.id' };
-            }
-            elsif (my $column = $layout->column($s->{id}))
-            {
-                $self->add_sort($column, $type);
-            }
-        }
-    }
-    # Default sort
-    unless (@{$self->order_by})
-    {
-        my $default_sort = $self->default_sort;
-        my $type         = $default_sort->{type} && $default_sort->{type} eq 'desc' ? 'desc' : 'asc';
-        if (my $col_id = $default_sort->{id})
-        {
-            my $col     = $self->layout->column($col_id);
-            $self->add_sort($col, "-$type");
-            $self->sort({
-                id   => $col_id,
-                type => $type,
-            });
-        }
-        else {
-            push @{$self->order_by}, { "-$type" => 'me.id' };
-            $self->sort({
-                type => $type,
-            });
         }
     }
 
