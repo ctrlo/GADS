@@ -17,30 +17,35 @@ my $data = [
         date1      => '2013-10-10',
         daterange1 => ['2014-03-21', '2015-03-01'],
         integer1   => 10,
-        enum1      => 1,
+        enum1      => 7,
+        curval1    => 1,
     },{
         string1    => 'Bar',
         date1      => '2014-10-10',
         daterange1 => ['2010-01-04', '2011-06-03'],
         integer1   => 15,
-        enum1      => 1,
+        enum1      => 7,
+        curval1    => 2,
     },{
         string1    => 'Bar',
         integer1   => 35,
-        enum1      => 2,
+        enum1      => 8,
+        curval1    => 1,
     },{
         string1    => 'FooBar',
         date1      => '2016-10-10',
         daterange1 => ['2009-01-04', '2017-06-03'],
         integer1   => 20,
-        enum1      => 2,
+        enum1      => 8,
+        curval1    => 2,
     },
 ];
 
-my $sheet = t::lib::DataSheet->new(data => $data);
-
-my $schema = $sheet->schema;
-my $layout = $sheet->layout;
+my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+$curval_sheet->create_records;
+my $schema  = $curval_sheet->schema;
+my $sheet   = t::lib::DataSheet->new(data => $data, schema => $schema, curval => 2);
+my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
 $sheet->create_records;
 
@@ -95,7 +100,24 @@ my $graphs = [
         y_axis_stack => 'sum',
         group_by     => $columns->{enum1}->id,
         data         => [[ 35, 0, 20 ], [ 15, 10, 0 ]],
-,
+    },
+    {
+        name         => 'Curval on x-axis grouped by enum',
+        type         => 'bar',
+        x_axis       => $columns->{curval1}->id,
+        y_axis       => $columns->{integer1}->id,
+        y_axis_stack => 'sum',
+        group_by     => $columns->{enum1}->id,
+        data         => [[35, 20], [ 10, 15 ]],
+    },
+    {
+        name         => 'Graph grouped by curvals',
+        type         => 'bar',
+        x_axis       => $columns->{string1}->id,
+        y_axis       => $columns->{integer1}->id,
+        y_axis_stack => 'sum',
+        group_by     => $columns->{curval1}->id,
+        data         => [[ 15, 0, 20 ], [ 35, 10, 0 ]],
     },
 ];
 

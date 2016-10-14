@@ -122,29 +122,58 @@ sub table_name
 sub _join_number
 {   my ($self, $column, %options) = @_;
 
-    my %found; my $key;
     my $join = $column->join;
-    ($key) = keys %$join if ref $join eq 'HASH';
 
-    # Need prefetches then joins to get the correct key numbers for DBIC
+    # Find the correct join number, by iterating through all the current
+    # joins, and jumping at the matching join with the count number.
+    # Joins in the form "field{n} => value" will be counted as the same,
+    # but only returned with an exact match.
     my @store = $self->_jpfetch(%options);
+    my $stash = {};
     foreach my $j (@store)
     {
-        if ($key && ref $j->{join} eq 'HASH')
-        {
-            $found{$key}++;
-            return $found{$key} if Compare $join, $j->{join};
-        }
-        elsif ($join eq $j->{join})
-        {
-            return 1;
-        }
+        my $n = _find($join, $j->{join}, $stash);
+        return $n if $n;
     }
+
     # This shouldn't happen. If we get here then we're trying to get a
     # join number for a table that hasn't been added.
     my $cid = $column->id;
     panic "Unable to get join number: column $cid hasn't been added";
+}
 
+sub _find
+{   my ($needle, $join, $stash) = @_;
+    if (ref $join eq 'HASH')
+    {
+        my ($key, $value) = %$join;
+        $stash->{$key}++;
+        if (Compare $needle, $join)
+        {
+            # Multiple join, as in the case of enumvals
+            # (field{n} => value)
+            $stash->{$value}++;
+            return $stash->{$value};
+        }
+        my $n = _find($needle, $value, $stash);
+        return $n if $n;
+    }
+    elsif (ref $join eq 'ARRAY')
+    {
+        foreach (@$join)
+        {
+            my $n = _find($needle, $_, $stash);
+            return $n if $n;
+        }
+    }
+    else {
+        $stash->{$join}++;
+        if ($needle eq $join)
+        {
+            # Single table join
+            return $stash->{$needle};
+        }
+    }
 }
 
 # Return a fully-qualified value field for a table
