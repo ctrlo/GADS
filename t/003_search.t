@@ -26,21 +26,25 @@ my $data = [
         date1      => '',
         daterange1 => ['', ''],
         enum1      => 7,
+        tree1      => 12,
     },{
         string1    => '',
         date1      => '2014-10-10',
         daterange1 => ['2014-03-21', '2015-03-01'],
         enum1      => 7,
+        tree1      => 11,
     },{
         string1    => 'Foo',
         date1      => '2014-10-10',
         daterange1 => ['2010-01-04', '2011-06-03'],
         enum1      => 8,
+        tree1      => 10,
     },{
         string1    => 'FooBar',
         date1      => '2015-10-10',
         daterange1 => ['2009-01-04', '2017-06-03'],
         enum1      => 8,
+        tree1      => 11,
     },{
         string1    => "${long}1",
     },{
@@ -204,7 +208,7 @@ my @filters = (
                 operator => 'equal',
             }
         ],
-        count => 1,
+        count => 2,
     },
 );
 foreach my $filter (@filters)
@@ -370,19 +374,39 @@ my @sorts = (
         last         => qr/^(7)$/,
     },
     {
-        name         => 'Sort with filter',
+        name         => 'Sort with filter on enums',
         show_columns => [$columns->{enum1}->id,$columns->{curval1}->id,$columns->{tree1}->id],
         sort_by      => [$columns->{enum1}->id],
-        sort_type    => ['asc', 'desc'],
+        sort_type    => ['asc'],
         first        => qr/^(3)$/,
-        last         => qr/^(3)$/,
-        count        => 1,
+        last         => qr/^(6)$/,
+        count        => 2,
         filter       => {
             rules => [
                 {
                     id       => $columns->{tree1}->id,
                     type     => 'string',
                     value    => 'tree1',
+                    operator => 'equal',
+                },
+            ],
+        },
+    },
+    # Sometimes _value table numbers can get mixed up, so try the opposite way round as well
+    {
+        name         => 'Sort with filter on enums - opposite filter/sort combo',
+        show_columns => [$columns->{enum1}->id,$columns->{curval1}->id,$columns->{tree1}->id],
+        sort_by      => [$columns->{tree1}->id],
+        sort_type    => ['asc'],
+        first        => qr/^(3)$/,
+        last         => qr/^(4)$/,
+        count        => 3,
+        filter       => {
+            rules => [
+                {
+                    id       => $columns->{enum1}->id,
+                    type     => 'string',
+                    value    => 'foo1',
                     operator => 'equal',
                 },
             ],

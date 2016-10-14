@@ -517,7 +517,9 @@ sub _build_results
 
     # Now redo the query with those IDs
     my $rec1 = @prefetches ? { record => [@prefetches] } : 'record';
-    my $rec2 = $self->jpfetch(sort => 1) ? { record => [$self->jpfetch(sort => 1)] } : 'record';
+    # Add joins for sorts, but only if they're not already a prefetch (otherwise ordering can be messed up)
+    my @j = $self->jpfetch(sort => 1, prefetch => 0);
+    my $rec2 = @j ? { record => [@j] } : 'record';
 
     $select = {
         prefetch => [

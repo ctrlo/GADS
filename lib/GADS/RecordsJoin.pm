@@ -91,6 +91,7 @@ sub _jpfetch
     {
         next if !$options{linked} && $_->{linked};
         next if $options{linked} && !$_->{linked};
+        next if exists $options{prefetch} && !$options{prefetch} && $_->{prefetch};
         if ($options{search} && $_->{search}) {
             push @return, $_;
             next;
