@@ -340,6 +340,30 @@ $record->clear;
 is( $record->find_current_id(1)->current_id, 1, "Retrieved current ID 1 from other datasheet" );
 
 # Check sorting functionality
+# First check default_sort functionality
+$records = GADS::Records->new(
+    default_sort => {
+        type => 'asc',
+        id   => -1,
+    },
+    user    => undef,
+    layout  => $layout,
+    schema  => $schema,
+);
+is( $records->results->[0]->current_id, 3, "Correct first record for default_sort (asc)");
+is( $records->results->[-1]->current_id, 9, "Correct last record for default_sort (asc)");
+$records = GADS::Records->new(
+    default_sort => {
+        type => 'desc',
+        id   => -1,
+    },
+    user    => undef,
+    layout  => $layout,
+    schema  => $schema,
+);
+is( $records->results->[0]->current_id, 9, "Correct first record for default_sort (desc)");
+is( $records->results->[-1]->current_id, 3, "Correct last record for default_sort (desc)");
+
 my @sorts = (
     {
         name         => 'Sort by single column in view ascending',
@@ -380,6 +404,8 @@ my @sorts = (
         sort_type    => ['asc'],
         first        => qr/^(3)$/,
         last         => qr/^(6)$/,
+        max_id       => 6,
+        min_id       => 3,
         count        => 2,
         filter       => {
             rules => [
@@ -400,6 +426,8 @@ my @sorts = (
         sort_type    => ['asc'],
         first        => qr/^(3)$/,
         last         => qr/^(4)$/,
+        max_id       => 5,
+        min_id       => 3,
         count        => 3,
         filter       => {
             rules => [
@@ -412,13 +440,21 @@ my @sorts = (
             ],
         },
     },
+    {
+        name         => 'Sort by enum that is after another enum in the fetched column',
+        show_columns => [$columns->{enum1}->id,$columns->{curval1}->id,$columns->{tree1}->id],
+        sort_by      => [$columns->{tree1}->id],
+        sort_type    => ['asc'],
+        first        => qr/^(8|9)$/,
+        last         => qr/^(4)$/,
+    },
 );
 
 foreach my $sort (@sorts)
 {
-    # If doing a count with the sort, then do 2 passes, one to check that actual
+    # If doing a count with the sort, then do an extra pass, one to check that actual
     # number of rows retrieved, and one to check the count calculation function
-    my $passes = $sort->{count} ? 2 : 1;
+    my $passes = $sort->{count} ? 3 : 2;
     foreach my $pass (1..$passes)
     {
         my $filter = encode_json($sort->{filter} || {});
@@ -440,8 +476,18 @@ foreach my $sort (@sorts)
             layout  => $layout,
             schema  => $schema,
         );
+        $records->sort({ type => 'desc', id => -1 })
+            if $pass == 1;
 
+        # Test override of sort first
         if ($pass == 1)
+        {
+            my $first = $sort->{max_id} || 9;
+            my $last  = $sort->{min_id} || 3;
+            is( $records->results->[0]->current_id, $first, "Correct first record for sort override and test $sort->{name}");
+            is( $records->results->[-1]->current_id, $last, "Correct last record for sort override and test $sort->{name}");
+        }
+        elsif ($pass == 2)
         {
             is( @{$records->results}, $sort->{count}, "Correct number of records in results for sort $sort->{name}" )
                 if $sort->{count};

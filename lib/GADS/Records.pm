@@ -192,28 +192,17 @@ sub search_query
     [@search];
 }
 
-has plus_select => (
+has _plus_select => (
     is      => 'rw',
     isa     => ArrayRef,
     default => sub { [] },
 );
 
-has order_by => (
+has _sorts => (
     is      => 'rw',
     isa     => ArrayRef,
     default => sub { [] },
 );
-
-has order_by_count => (
-    is      => 'rw',
-    isa     => Int,
-    default => 0,
-);
-
-sub order_by_inc
-{   my $self = shift;
-    $self->order_by_count($self->order_by_count + 1);
-}
 
 has sort => (
     is     => 'rw',
@@ -500,7 +489,7 @@ sub _build_results
             },
             [$self->linked_hash(search => 1, sort => 1)],
         ],
-        '+select' => $self->plus_select, # Used for additional sort columns
+        '+select' => $self->_plus_select, # Used for additional sort columns
         order_by  => $self->order_by,
     };
     my $page = $self->page;
@@ -530,8 +519,8 @@ sub _build_results
             $rec2,
             [$self->linked_hash(sort => 1)],
         ],
-        '+select' => $self->plus_select, # Used for additional sort columns
-        order_by  => $self->order_by,
+        '+select' => $self->_plus_select, # Used for additional sort columns
+        order_by  => $self->order_by(prefetch => 1),
     };
 
     my $result = $self->schema->resultset('Current')->search(
@@ -684,8 +673,6 @@ sub clear
 sub _query_params
 {   my ($self, %options) = @_;
 
-    $self->order_by([]);
-    $self->order_by_count(0);
     my $layout = $self->layout;
 
     my @search_date;                    # The search criteria to narrow-down by date range
@@ -766,9 +753,9 @@ sub _query_params
                         $self->add_sort($column, $type);
                     }
                     else {
-                        # No column defined means sort by ID
+                        # No column defined means sort by ID (column number -1)
                         my $type = $sort->{type} eq 'desc' ? '-desc' : '-asc';
-                        push @{$self->order_by}, { $type => 'me.id' };
+                        $self->add_sort($self->layout->column(-1), $type);
                     }
                     # Add the first sort column to the object for retrieval later
                     $self->sort({
@@ -790,46 +777,15 @@ sub _query_params
                 }
             }
         }
-        # Configure specific user selected sort, if applicable. This needs to be done
-        # after the filters have been added, otherwise the filters could add additonal
-        # joins which will put the value_x columns out of kilter. A user selected
-        # column will always be in a prefetch, so it's not possible for the reverse
-        # to happen
+        # Configure specific user selected sort, if applicable.
         if ($user_sort)
         {
             my @sorts;
             foreach my $s (@$user_sort)
             {
-                my $type = $s->{type} && $s->{type} eq 'desc' ? '-desc' : '-asc';
-                if (!$s->{id})
-                {
-                    push @{$self->order_by}, { $type => 'me.id' };
-                }
-                elsif (my $column = $layout->column($s->{id}))
-                {
-                    $self->add_sort($column, $type);
-                }
-            }
-        }
-        # Default sort
-        unless (@{$self->order_by})
-        {
-            my $default_sort = $self->default_sort;
-            my $type         = $default_sort->{type} && $default_sort->{type} eq 'desc' ? 'desc' : 'asc';
-            if (my $col_id = $default_sort->{id})
-            {
-                my $col     = $self->layout->column($col_id);
-                $self->add_sort($col, "-$type");
-                $self->sort({
-                    id   => $col_id,
-                    type => $type,
-                });
-            }
-            else {
-                push @{$self->order_by}, { "-$type" => 'me.id' };
-                $self->sort({
-                    type => $type,
-                });
+                my $type   = $s->{type} && $s->{type} eq 'desc' ? '-desc' : '-asc';
+                my $column = $layout->column($s->{id} || -1); # Default to special ID column
+                $self->add_sort($column, $type);
             }
         }
     }
@@ -839,27 +795,59 @@ sub _query_params
 
 sub add_sort
 {   my ($self, $column, $type) = @_;
+    $self->add_join($column, sort => 1)
+        unless $column->internal;
+    push @{$self->_sorts}, {
+        $type => $column,
+    };
+}
 
-    $self->add_join($column, sort => 1);
-    my $s_table = $self->table_name($column, sort => 1, search => 1);
-    $self->order_by_inc;
-    my $sort_name = "sort_".$self->order_by_count;
-    if ($column->link_parent)
+sub order_by
+{   my ($self, %options) = @_;
+
+    $self->_plus_select([]);
+    my @sorts = @{$self->_sorts};
+
+    # Default sort
+    unless (@sorts)
     {
-        push @{$self->plus_select}, {
-            concat => [
-                "$s_table.".$column->value_field,
-                $self->table_name_linked($column->link_parent, sort => 1, search => 1, linked => 1).".".$column->value_field,
-            ],
-            -as    => $sort_name,
+        my $default_sort = $self->default_sort;
+        my $type         = $default_sort->{type} && $default_sort->{type} eq 'desc' ? '-desc' : '-asc';
+        my $column       = $self->layout->column($default_sort->{id} || -1);
+        push @sorts, {
+            $type => $column,
+        };
+        # Pass information back to caller
+        $self->sort({
+            type => $type,
+        });
+    }
+
+    my @order_by; my $sort_count;
+    foreach my $s (@sorts)
+    {
+        my ($type, $column) = %$s;
+        my $s_table = $self->table_name($column, sort => 1, search => 1, %options);
+        $sort_count++;
+        my $sort_name = "sort_".$sort_count;
+        if ($column->link_parent)
+        {
+            push @{$self->_plus_select}, {
+                concat => [
+                    "$s_table.".$column->value_field,
+                    $self->table_name_linked($column->link_parent, sort => 1, search => 1, linked => 1, %options).".".$column->value_field,
+                ],
+                -as    => $sort_name,
+            };
+        }
+        else {
+            $sort_name = "$s_table.".$column->value_field;
+        }
+        push @order_by, {
+            $type => $sort_name,
         };
     }
-    else {
-        $sort_name = "$s_table.".$column->value_field;
-    }
-    push @{$self->order_by}, {
-        $type => $sort_name,
-    };
+    \@order_by;
 }
 
 # $ignore_perms means to ignore any permissions on the column being

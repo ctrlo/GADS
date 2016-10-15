@@ -32,8 +32,10 @@ has _jp_store => (
 sub _add_jp
 {   my ($self, $column, %options) = @_;
 
-    my $jp_store          = $self->_jp_store;
+    panic "Attempt to generate join for internal column"
+        if $column->internal;
 
+    my $jp_store = $self->_jp_store;
     my $key;
     my $toadd = $column->join;
     ($key) = keys %$toadd if ref $toadd eq 'HASH';
@@ -115,6 +117,11 @@ sub jpfetch
 
 sub table_name
 {   my ($self, $column, %options) = @_;
+    if ($column->internal)
+    {
+        return 'me' if $column->name eq 'ID';
+        return $column->sprefix;
+    }
     my $jn = $self->_join_number($column, %options);
     my $index = $jn > 1 ? "_$jn" : '';
     $column->sprefix . $index;
@@ -129,6 +136,15 @@ sub _join_number
     # joins, and jumping at the matching join with the count number.
     # Joins in the form "field{n} => value" will be counted as the same,
     # but only returned with an exact match.
+    # If this is for a sort, then we need to adjust the options depending on
+    # whether the sort is a column also included in a prefetch. If it's not,
+    # then it will be first in the DBIC query, and therefore the number should
+    # not include other prefetch joins.
+    if ($options{sort} && $options{prefetch})
+    {
+        my ($jp) = grep { Compare $_->{join}, $join } @{$self->_jp_store};
+        $options{prefetch} = $jp->{prefetch};
+    }
     my @store = $self->_jpfetch(%options);
     my $stash = {};
     foreach my $j (@store)

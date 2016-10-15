@@ -113,13 +113,31 @@ has columns_index => (
 
 has internal_columns => (
     is      => 'ro',
-    isa     => HashRef,
+    isa     => ArrayRef,
     builder => sub {
-        +{
-            -1 => 'ID',
-            -2 => 'Version Datetime',
-            -3 => 'Version User ID',
-        };
+        [
+            {
+                id       => -1,
+                name     => 'ID',
+                table    => 'current',
+                column   => 'id',
+                isunique => 1,
+            },
+            {
+                id     => -2,
+                name   => 'Version Datetime',
+                table  => 'record',
+                column => 'created',
+                isunique => 0,
+            },
+            {
+                id     => -3,
+                name   => 'Version User ID',
+                table  => 'record',
+                column => 'created_by',
+                isunique => 0,
+            },
+        ];
     },
 );
 
@@ -191,14 +209,15 @@ sub _build_columns
     }
 
     # Add on special internal columns
-    foreach my $internal (keys %{$self->internal_columns})
+    foreach my $internal (@{$self->internal_columns})
     {
-        my $name = $self->internal_columns->{$internal};
-        my $isunique = $name eq 'ID' ? 1 : 0;
         push @return, GADS::Column->new(
-            id                       => $internal,
-            name                     => $name,
-            isunique                 => $isunique,
+            id                       => $internal->{id},
+            name                     => $internal->{name},
+            isunique                 => $internal->{isunique},
+            table                    => camelize($internal->{table}),
+            sprefix                  => $internal->{table},
+            value_field              => $internal->{column},
             internal                 => 1,
             user_permission_override => $self->user_permission_override,
             schema                   => $self->schema,
