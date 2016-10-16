@@ -16,6 +16,7 @@ my $long = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eius
 my $data = [
     {
         string1    => '',
+        integer1   => 4,
         date1      => '',
         daterange1 => ['', ''],
         enum1      => 7,
@@ -23,32 +24,38 @@ my $data = [
         curval1    => 2,
     },{
         string1    => '',
+        integer1   => 5,
         date1      => '',
         daterange1 => ['', ''],
         enum1      => 7,
         tree1      => 12,
     },{
         string1    => '',
+        integer1   => 6,
         date1      => '2014-10-10',
         daterange1 => ['2014-03-21', '2015-03-01'],
         enum1      => 7,
         tree1      => 11,
     },{
         string1    => 'Foo',
+        integer1   => 7,
         date1      => '2014-10-10',
         daterange1 => ['2010-01-04', '2011-06-03'],
         enum1      => 8,
         tree1      => 10,
     },{
         string1    => 'FooBar',
+        integer1   => 1,
         date1      => '2015-10-10',
         daterange1 => ['2009-01-04', '2017-06-03'],
         enum1      => 8,
         tree1      => 11,
     },{
         string1    => "${long}1",
+        integer1   => 2,
     },{
         string1    => "${long}2",
+        integer1   => 3,
     },
 ];
 
@@ -363,6 +370,17 @@ $records = GADS::Records->new(
 );
 is( $records->results->[0]->current_id, 9, "Correct first record for default_sort (desc)");
 is( $records->results->[-1]->current_id, 3, "Correct last record for default_sort (desc)");
+$records = GADS::Records->new(
+    default_sort => {
+        type => 'desc',
+        id   => $columns->{integer1}->id,
+    },
+    user    => undef,
+    layout  => $layout,
+    schema  => $schema,
+);
+is( $records->results->[0]->current_id, 6, "Correct first record for default_sort (column in view)");
+is( $records->results->[-1]->current_id, 7, "Correct last record for default_sort (column in view)");
 
 my @sorts = (
     {

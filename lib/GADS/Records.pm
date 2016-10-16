@@ -214,6 +214,15 @@ has sort => (
     },
 );
 
+# Whether a sort was provided when this class was called. sort will be populated
+# if one was not provided, so we need to know whether to overwrite it each time
+# or keep the one that was passed
+has _had_user_sort => (
+    is => 'rw',
+    isa => Bool,
+    predicate => 1,
+);
+
 has schema => (
     is       => 'rw',
     required => 1,
@@ -230,19 +239,6 @@ has results => (
 );
 
 sub _search_construct;
-
-sub _default_sort
-{   my ($self, $col_id, $type) = @_;
-
-    if ($col_id)
-    {
-        my $column = $self->layout->column($col_id);
-        { $type => $column };
-    }
-    else {
-        { -asc => 'id' };
-    }
-}
 
 # Shortcut to generate the required joining hash for a DBIC search
 sub linked_hash
@@ -715,6 +711,8 @@ sub _query_params
     # The following code needs to be run twice, to make sure that join numbers
     # are worked out correctly. Otherwise, a search criteria might not take
     # into account a subsuquent sort, and vice-versa.
+    # Clean out sorts, otherwise sorts will be added each run
+    $self->_sorts([]);
     for (1..2)
     {
         # Add any date ranges to the search from above
@@ -757,11 +755,6 @@ sub _query_params
                         my $type = $sort->{type} eq 'desc' ? '-desc' : '-asc';
                         $self->add_sort($self->layout->column(-1), $type);
                     }
-                    # Add the first sort column to the object for retrieval later
-                    $self->sort({
-                        id   => $sort->{layout_id},
-                        type => $sort->{type},
-                    }) unless $self->sort;
                 }
             }
         }
@@ -788,6 +781,9 @@ sub _query_params
                 $self->add_sort($column, $type);
             }
         }
+        # Finish by calling order_by. This may add joins of its own, so it
+        # ensures that any are added correctly.
+        $self->order_by;
     }
 
     (@limit, @search);
@@ -808,19 +804,22 @@ sub order_by
     $self->_plus_select([]);
     my @sorts = @{$self->_sorts};
 
+    my $first_sort;
     # Default sort
     unless (@sorts)
     {
         my $default_sort = $self->default_sort;
         my $type         = $default_sort->{type} && $default_sort->{type} eq 'desc' ? '-desc' : '-asc';
         my $column       = $self->layout->column($default_sort->{id} || -1);
+        $self->add_join($column, sort => 1)
+            unless $column->internal;
         push @sorts, {
             $type => $column,
         };
-        # Pass information back to caller
-        $self->sort({
-            type => $type,
-        });
+        $first_sort = {
+            id   => $column->id,
+            type => $type eq '-desc' ? 'desc' : 'asc',
+        };
     }
 
     my @order_by; my $sort_count;
@@ -843,10 +842,21 @@ sub order_by
         else {
             $sort_name = "$s_table.".$column->value_field;
         }
+        $first_sort = {
+            id   => $column->id,
+            type => $type eq '-desc' ? 'desc' : 'asc',
+        } unless $first_sort;
         push @order_by, {
             $type => $sort_name,
         };
     }
+
+    # Add the first sort column to the object for retrieval later, but
+    # only if it hadn't already been passed in
+    $self->_had_user_sort($self->sort ? 1 : 0)
+        unless $self->_has_had_user_sort;
+    $self->sort($first_sort)
+        unless $self->_had_user_sort;
     \@order_by;
 }
 
