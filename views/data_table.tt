@@ -16,14 +16,14 @@
     <thead>
         <tr>
             [% sort = sort.shift %]
-            [% IF NOT sort.id AND sort.type == "asc" %]
+            [% IF sort.id == -1 AND sort.type == "asc" %]
                 [% st = "&#9650;" %]
-            [% ELSIF NOT sort.id %]
+            [% ELSIF sort.id == -1 %]
                 [% st = "&#9660;" %]
             [% ELSE %]
                 [% st = "" %]
             [% END %]
-            <th><a href="?sort=" style="color:black">Serial[% st %]</a></th>
+            <th><a href="?sort=-1" style="color:black">Serial[% st %]</a></th>
             [% peopcols = [] %]
             [% FOREACH col IN columns %]
                 [% IF sort.id == col.id AND sort.type == "asc" %]

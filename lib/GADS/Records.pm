@@ -198,12 +198,21 @@ has _plus_select => (
     default => sub { [] },
 );
 
+sub clear_sorts
+{   my $self = shift;
+    $self->_clear_sorts;
+    $self->clear_sort_first;
+}
+
+# Internal list of all sorts for this resultset. Generated from any of the means
+# of setting a sort, or returns default if required
 has _sorts => (
-    is      => 'rw',
+    is      => 'lazy',
     isa     => ArrayRef,
-    default => sub { [] },
+    clearer => 1,
 );
 
+# User-specified sort override
 has sort => (
     is     => 'rw',
     isa    => Maybe[ArrayRef],
@@ -214,14 +223,16 @@ has sort => (
     },
 );
 
-# Whether a sort was provided when this class was called. sort will be populated
-# if one was not provided, so we need to know whether to overwrite it each time
-# or keep the one that was passed
-has _had_user_sort => (
-    is => 'rw',
-    isa => Bool,
-    predicate => 1,
+# The first sort of the calculated list of sorts
+has sort_first => (
+    is      => 'lazy',
+    clearer => 1,
 );
+
+sub _build_sort_first
+{   my $self = shift;
+    @{$self->_sorts}[0];
+}
 
 has schema => (
     is       => 'rw',
@@ -711,8 +722,6 @@ sub _query_params
     # The following code needs to be run twice, to make sure that join numbers
     # are worked out correctly. Otherwise, a search criteria might not take
     # into account a subsuquent sort, and vice-versa.
-    # Clean out sorts, otherwise sorts will be added each run
-    $self->_sorts([]);
     for (1..2)
     {
         # Add any date ranges to the search from above
@@ -723,7 +732,6 @@ sub _query_params
             push @limit, @res if @res;
         }
 
-        my $user_sort = $self->sort; # Sort overriding view's sort
 
         # Now add all the filters as joins (we don't need to prefetch this data). However,
         # the filter might also be a column in the view from before, in which case add
@@ -740,23 +748,6 @@ sub _query_params
                     @search = @{$self->_search_construct($decoded, $layout, %options)};
                 }
             }
-            unless ($user_sort)
-            {
-                foreach my $sort (@{$view->sorts})
-                {
-                    if (my $col_id = $sort->{layout_id})
-                    {
-                        my $column  = $layout->column($col_id);
-                        my $type    = $sort->{type} eq 'desc' ? '-desc' : '-asc';
-                        $self->add_sort($column, $type);
-                    }
-                    else {
-                        # No column defined means sort by ID (column number -1)
-                        my $type = $sort->{type} eq 'desc' ? '-desc' : '-asc';
-                        $self->add_sort($self->layout->column(-1), $type);
-                    }
-                }
-            }
         }
         if (my $view = $self->limit_to_view)
         {
@@ -770,17 +761,6 @@ sub _query_params
                 }
             }
         }
-        # Configure specific user selected sort, if applicable.
-        if ($user_sort)
-        {
-            my @sorts;
-            foreach my $s (@$user_sort)
-            {
-                my $type   = $s->{type} && $s->{type} eq 'desc' ? '-desc' : '-asc';
-                my $column = $layout->column($s->{id} || -1); # Default to special ID column
-                $self->add_sort($column, $type);
-            }
-        }
         # Finish by calling order_by. This may add joins of its own, so it
         # ensures that any are added correctly.
         $self->order_by;
@@ -789,13 +769,42 @@ sub _query_params
     (@limit, @search);
 }
 
-sub add_sort
-{   my ($self, $column, $type) = @_;
-    $self->add_join($column, sort => 1)
-        unless $column->internal;
-    push @{$self->_sorts}, {
-        $type => $column,
+sub _build__sorts
+{   my $self = shift;
+    my @sorts;
+    if (my $user_sort = $self->sort)
+    {
+        foreach my $s (@$user_sort)
+        {
+            push @sorts, {
+                id   => $s->{id} || -1,
+                type => $s->{type} || 'asc',
+            };
+        }
+    }
+    elsif ($self->view && @{$self->view->sorts}) {
+        foreach my $sort (@{$self->view->sorts})
+        {
+            push @sorts, {
+                id   => $sort->{layout_id} || -1,
+                type => $sort->{type} || 'asc',
+            }
+        }
+    }
+    elsif (my $default_sort = $self->default_sort)
+    {
+        push @sorts, {
+            id   => $default_sort->{id} || -1,
+            type => $default_sort->{type} || 'asc',
+        };
+    }
+    else {
+        push @sorts, {
+            id   => -1,
+            type => 'asc',
+        }
     };
+    \@sorts;
 }
 
 sub order_by
@@ -804,28 +813,13 @@ sub order_by
     $self->_plus_select([]);
     my @sorts = @{$self->_sorts};
 
-    my $first_sort;
-    # Default sort
-    unless (@sorts)
-    {
-        my $default_sort = $self->default_sort;
-        my $type         = $default_sort->{type} && $default_sort->{type} eq 'desc' ? '-desc' : '-asc';
-        my $column       = $self->layout->column($default_sort->{id} || -1);
-        $self->add_join($column, sort => 1)
-            unless $column->internal;
-        push @sorts, {
-            $type => $column,
-        };
-        $first_sort = {
-            id   => $column->id,
-            type => $type eq '-desc' ? 'desc' : 'asc',
-        };
-    }
-
     my @order_by; my $sort_count;
     foreach my $s (@sorts)
     {
-        my ($type, $column) = %$s;
+        my $type   = "-$s->{type}";
+        my $column = $self->layout->column($s->{id});
+        $self->add_join($column, sort => 1)
+            unless $column->internal;
         my $s_table = $self->table_name($column, sort => 1, search => 1, %options);
         $sort_count++;
         my $sort_name = "sort_".$sort_count;
@@ -842,21 +836,11 @@ sub order_by
         else {
             $sort_name = "$s_table.".$column->value_field;
         }
-        $first_sort = {
-            id   => $column->id,
-            type => $type eq '-desc' ? 'desc' : 'asc',
-        } unless $first_sort;
         push @order_by, {
             $type => $sort_name,
         };
     }
 
-    # Add the first sort column to the object for retrieval later, but
-    # only if it hadn't already been passed in
-    $self->_had_user_sort($self->sort ? 1 : 0)
-        unless $self->_has_had_user_sort;
-    $self->sort($first_sort)
-        unless $self->_had_user_sort;
     \@order_by;
 }
 

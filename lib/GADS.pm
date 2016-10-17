@@ -598,53 +598,41 @@ any '/data' => require_login sub {
         $records->search_all_fields(session 'search')
             if session 'search';
 
+        $records->view($view);
+        $records->rows($rows);
+        $records->page($page);
+        $records->sort(session 'sort');
+
+        # Default sort if not set
+        my $config = GADS::Instance->new(
+            id     => session('instance_id'),
+            schema => schema,
+        );
+        my $sort = {
+            id   => $config->sort_layout_id,
+            type => $config->sort_type,
+        };
+        $records->default_sort($sort);
+
         if (defined param('sort'))
         {
             my $sort     = int param 'sort';
             # Check user has access
             forwardHome({ danger => "Invalid column ID for sort" }, '/data')
                 unless !$sort || ($layout->column($sort) && $layout->column($sort)->user_can('read'));
-            my $existing = session('sort');
-            if (!$existing && $view && @{$view->sorts})
-            {
-                # Get first sort of existing view
-                my $sort = $view->sorts->[0];
-                $existing = {
-                    id => $sort->{layout_id},
-                    type => $sort->{type},
-                };
-            }
+            my $existing = $records->sort_first;
             my $type;
-            if ($existing && $existing->{id} == $sort)
+            if ($existing->{id} == $sort)
             {
                 $type = $existing->{type} eq 'desc' ? 'asc' : 'desc';
             }
             else {
-                $type = 'asc'; #$existing ? 'asc' : 'desc';
+                $type = 'asc';
             }
             session 'sort' => { type => $type, id => $sort };
+            $records->clear_sorts;
+            $records->sort(session 'sort');
         }
-
-        unless (session 'sort')
-        {
-            # Default sort if not set
-            # Set here in case it's a hidden column
-            my $config = GADS::Instance->new(
-                id     => session('instance_id'),
-                schema => schema,
-            );
-            my $sort = {
-                id   => $config->sort_layout_id,
-                type => $config->sort_type,
-            };
-            # session 'sort' => $sort;
-            $records->default_sort($sort);
-        }
-
-        $records->view($view);
-        $records->rows($rows);
-        $records->page($page);
-        $records->sort(session 'sort');
 
         if (param 'sendemail')
         {
@@ -732,7 +720,7 @@ any '/data' => require_login sub {
             ? $layout->view($view->id, user_can_read => 1)
             : $layout->all(user_can_read => 1);
         $params->{user_can_edit} = $layout->user_can('write_existing');
-        $params->{sort}          = $records->sort;
+        $params->{sort}          = $records->sort_first;
         $params->{subset}        = $subset;
         $params->{records}       = $records->results;
         $params->{count}         = $records->count;
