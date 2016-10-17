@@ -1124,6 +1124,8 @@ any '/view/:id' => require_login sub {
             session 'view_id' => $view->id;
             # And remove any search to avoid confusion
             session search => '';
+            # And remove any custom sorting, so that sort of view takes effect
+            session 'sort' => undef;
             return forwardHome(
                 { success => "The view has been updated successfully" }, 'data' );
         }
