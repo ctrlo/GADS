@@ -1030,7 +1030,9 @@ sub write
             }
             if (my $kid = fork)
             {
-                waitpid($kid, 0); # let the child die
+                # will fire off a worker and then abandon it, thus making reaping
+                # the long running process (the grndkid) init's (pid1) problem
+                waitpid($kid, 0); # wait for child to start grandchild and clean up
             }
             else {
                 if (my $grandkid = fork) {
@@ -1046,10 +1048,8 @@ sub write
 
                     # We must catch exceptions here, otherwise we
                     # will never reap the process.
-                    try { $alert_send->process } hide => 'ALL'; # This takes a long time
-                    my $success = $@->died ? 0 : 1;
-                    $@->reportAll(is_fatal => 0);
-                    POSIX::_exit(0); # grandchild dies here
+                    my $guard = guard { POSIX::_exit(0) };
+                    $alert_send->process; # This takes a long time
                 }
             }
         }
