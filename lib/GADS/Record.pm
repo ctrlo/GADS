@@ -38,6 +38,7 @@ use GADS::Util         qw(:all);
 use Log::Report;
 use JSON qw(encode_json);
 use POSIX ();
+use Scope::Guard qw(guard);
 
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
