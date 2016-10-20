@@ -1047,10 +1047,14 @@ sub write
                     my $parent_try = dispatcher 'active-try';
                     $parent_try->hide('NONE');
 
-                    # We must catch exceptions here, otherwise we
-                    # will never reap the process.
+                    # We must catch exceptions here, otherwise we will never
+                    # reap the process. Set up a guard to be doubly-sure this
+                    # happens.
                     my $guard = guard { POSIX::_exit(0) };
-                    $alert_send->process; # This takes a long time
+                    # Despite the guard, we still operate in a try block, so as to catch
+                    # the messages from any exceptions and report them accordingly
+                    try { $alert_send->process } hide => 'ALL'; # This takes a long time
+                    $@->reportAll(is_fatal => 0);
                 }
             }
         }
