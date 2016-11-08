@@ -382,6 +382,38 @@ $records = GADS::Records->new(
 is( $records->results->[0]->current_id, 6, "Correct first record for default_sort (column in view)");
 is( $records->results->[-1]->current_id, 7, "Correct last record for default_sort (column in view)");
 
+# Standard sort parameter for search()
+$records = GADS::Records->new(
+    sort => {
+        type => 'desc',
+        id   => $columns->{integer1}->id,
+    },
+    user    => undef,
+    layout  => $layout,
+    schema  => $schema,
+);
+is( $records->results->[0]->current_id, 6, "Correct first record for standard sort");
+is( $records->results->[-1]->current_id, 7, "Correct last record for standard sort");
+
+# Standard sort parameter for search() with invalid column. This can happen if the
+# user switches tables and there is still a sort parameter in the session. In this
+# case, it should revert to the default search.
+$records = GADS::Records->new(
+    sort => {
+        type => 'desc',
+        id   => -1000,
+    },
+    default_sort => {
+        type => 'desc',
+        id   => $columns->{integer1}->id,
+    },
+    user    => undef,
+    layout  => $layout,
+    schema  => $schema,
+);
+is( $records->results->[0]->current_id, 6, "Correct first record for standard sort");
+is( $records->results->[-1]->current_id, 7, "Correct last record for standard sort");
+
 my @sorts = (
     {
         name         => 'Sort by single column in view ascending',

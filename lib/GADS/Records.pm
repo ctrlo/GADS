@@ -779,26 +779,26 @@ sub _build__sorts
             push @sorts, {
                 id   => $s->{id} || -1,
                 type => $s->{type} || 'asc',
-            };
+            } if $self->layout->column($s->{id});
         }
     }
-    elsif ($self->view && @{$self->view->sorts}) {
+    if (!@sorts && $self->view && @{$self->view->sorts}) {
         foreach my $sort (@{$self->view->sorts})
         {
             push @sorts, {
                 id   => $sort->{layout_id} || -1,
                 type => $sort->{type} || 'asc',
-            }
+            } if $self->layout->column($sort->{layout_id});
         }
     }
-    elsif (my $default_sort = $self->default_sort)
+    if (!@sorts && $self->default_sort)
     {
         push @sorts, {
-            id   => $default_sort->{id} || -1,
-            type => $default_sort->{type} || 'asc',
-        };
+            id   => $self->default_sort->{id} || -1,
+            type => $self->default_sort->{type} || 'asc',
+        } if $self->layout->column($self->default_sort->{id});
     }
-    else {
+    unless (@sorts) {
         push @sorts, {
             id   => -1,
             type => 'asc',
