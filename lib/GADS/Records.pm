@@ -169,7 +169,6 @@ sub search_query
     my @search     = $self->_query_params(%options);
     my $root_table = $options{root_table} || 'current';
     my $current    = $root_table eq 'current' ? 'me' : 'current';
-    my $record     = $root_table eq 'record'  ? 'me' : 'record';
     unless ($self->include_approval)
     {
         # There is a chance that there will be no approval records. In that case,
@@ -178,13 +177,13 @@ sub search_query
         # check first, and only add the condition if needed
         my ($approval_exists) = $root_table eq 'current' && $self->schema->resultset('Current')->search({
             instance_id        => $self->layout->instance_id,
-            "$record.approval" => 1,
+            "records.approval" => 1,
         },{
-            join => 'record',
+            join => 'records',
             rows => 1,
         })->all;
         push @search, (
-            { "$record.approval"  => 0 },
+            { "record_single.approval"  => 0 },
         ) if $approval_exists;
     }
     push @search, { "$current.id"          => $self->current_ids} if $self->current_ids;
@@ -258,14 +257,19 @@ sub linked_hash
     if (@tables)
     {
         {
-            linked => {
-                record => \@tables,
-            },
+            linked => [
+                {
+                    record_single => [
+                        'record_later',
+                        @tables,
+                    ]
+                },
+            ],
         };
     }
     else {
         {
-            linked => 'record',
+            linked => { record_single => 'record_later' },
         }
     }
 }
@@ -299,7 +303,8 @@ sub search_views
             if (keys %$decoded)
             {
                 my $search = {
-                    'me.instance_id' => $self->layout->instance_id,
+                    'me.instance_id'          => $self->layout->instance_id,
+                    'record_later.current_id' => undef,
                     @{$self->_search_construct($decoded, $self->layout, ignore_perms => 1, user_id => $user_id)},
                 };
                 my $i = 0; my @ids;
@@ -313,7 +318,12 @@ sub search_views
                         $search->{'me.id'} = [@{$current_ids}[$i..$max]];
                     }
                     push @ids, $self->schema->resultset('Current')->search($search,{
-                        join => {'record' => [$self->jpfetch(search => 1)]},
+                        join => {
+                            'record_single' => [
+                                $self->jpfetch(search => 1),
+                                'record_later',
+                            ],
+                        },
                     })->get_column('id')->all;
                     last unless $search->{'me.id'};
                     $i += 500;
@@ -412,7 +422,8 @@ sub search_all_fields
                         ? undef
                         : $field->{sub}
                         ? {
-                              'record' => [
+                              'record_single' => [
+                                  'record_later',
                                   $self->jpfetch(search => 1),
                                   {
                                       $plural => ['value', 'layout']
@@ -420,7 +431,8 @@ sub search_all_fields
                               ]
                           } 
                         : {
-                              'record' => [
+                              'record_single' => [
+                                  'record_later',
                                   $self->jpfetch(search => 1),
                                   {
                                       $plural => 'layout'
@@ -440,7 +452,8 @@ sub search_all_fields
             push @search, { 'me.instance_id' => $self->layout->instance_id };
         }
         else {
-            push @search, { 'layout.id' => \@columns_can_view }
+            push @search, { 'layout.id' => \@columns_can_view };
+            push @search, ( 'record_later.current_id' => undef );
         }
         my @currents = $self->schema->resultset('Current')->search({ -and => \@search},{
             join => $joins,
@@ -455,7 +468,8 @@ sub search_all_fields
                 push @search, "curvals.value" => $current->id;
                 my $found = $self->schema->resultset('Current')->search({ -and => \@search},{
                     join => {
-                        record => [
+                        record_single => [
+                            'record_later',
                             'curvals',
                             $self->jpfetch(search => 1),
                         ]
@@ -492,7 +506,10 @@ sub _build_results
     my $select = {
         join     => [
             {
-                'record' => [$self->jpfetch(search => 1, sort => 1)],
+                'record_single' => [ # The (assumed) single record for the required version of current
+                    'record_later',  # The record after the single record (undef when single is latest)
+                    $self->jpfetch(search => 1, sort => 1),
+                ],
             },
             [$self->linked_hash(search => 1, sort => 1)],
         ],
@@ -507,15 +524,20 @@ sub _build_results
     $select->{page} = $page if $page;
 
     # Get the current IDs
+    push @{$search_query}, {
+        'record_later.current_id'   => undef,
+        'record_later_2.current_id' => undef,
+    }; # Only take the latest record_single (no later ones)
     my @cids = $self->schema->resultset('Current')->search(
         [-and => $search_query], $select
     )->get_column('me.id')->all;
 
     # Now redo the query with those IDs
-    my $rec1 = @prefetches ? { record => [@prefetches] } : 'record';
-    # Add joins for sorts, but only if they're not already a prefetch (otherwise ordering can be messed up)
+    my $rec1 = @prefetches ? { record_single => [@prefetches] } : 'record_single';
+    # Add joins for sorts, but only if they're not already a prefetch (otherwise ordering can be messed up).
+    # We also add the join for record_later, so that we can take only the latest required record
     my @j = $self->jpfetch(sort => 1, prefetch => 0);
-    my $rec2 = @j ? { record => [@j] } : 'record';
+    my $rec2 = @j ? { record_single => [@j, 'record_later'] } : { record_single => 'record_later' };
 
     $select = {
         prefetch => [
@@ -530,9 +552,11 @@ sub _build_results
         order_by  => $self->order_by(prefetch => 1),
     };
 
-    my $result = $self->schema->resultset('Current')->search(
-        { 'me.id' => \@cids }, $select
-    );
+    my $result = $self->schema->resultset('Current')->search({
+        'me.id' => \@cids,
+        'record_later.current_id' => undef,
+        'record_later_2.current_id' => undef,
+    }, $select);
 
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my @all;
@@ -541,7 +565,7 @@ sub _build_results
         my @children = map { $_->{id} } @{$rec->{currents}};
         push @all, GADS::Record->new(
             schema               => $self->schema,
-            record               => $rec->{record},
+            record               => $rec->{record_single},
             linked_record        => $rec->{linked}->{record},
             child_records        => \@children,
             parent_id            => $rec->{parent_id},
@@ -592,12 +616,19 @@ sub _build_count
     my $select = {
         join     => [
             {
-                'record' => [@joins],
+                'record_single' => [
+                    'record_later',
+                    @joins
+                ],
             },
             [@linked],
         ],
     };
 
+    push @{$search_query}, (
+        { 'record_later.current_id'   => undef },
+        { 'record_later_2.current_id' => undef },
+    );
     $self->schema->resultset('Current')->search(
         [-and => $search_query], $select
     )->count;
@@ -611,7 +642,10 @@ sub _build_has_children
     my $select = {
         join     => [
             {
-                'record' => [$self->jpfetch(search => 1)],
+                'record_single' => [
+                    'record_later',
+                    $self->jpfetch(search => 1),
+                ],
             },
             $linked,
         ],
@@ -619,6 +653,10 @@ sub _build_has_children
     };
 
     push @search_query, { 'me.parent_id' => { '!=' => undef }};
+    push @search_query, (
+        { 'record_later.current_id  ' => undef },
+        { 'record_later_2.current_id' => undef },
+    );
     my @child = $self->schema->resultset('Current')->search(
         [-and => [@search_query]], $select
     )->all;

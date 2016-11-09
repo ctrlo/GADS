@@ -414,5 +414,18 @@ sub sqlt_deploy_hook {
     $sqlt_table->add_index(name => 'record_idx_approval', fields => [ 'approval' ]);
 }
 
+# Enable finding of latest record for current ID
+__PACKAGE__->might_have(
+    "record_later",
+    "GADS::Schema::Result::Record",
+    sub {
+        my $args = shift;
+        return {
+            "$args->{foreign_alias}.current_id"  => { -ident => "$args->{self_alias}.current_id" },
+            "$args->{foreign_alias}.created" => { '>' => \"$args->{self_alias}.created" },
+        };
+    }
+);
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

@@ -431,7 +431,7 @@ sub _find
 
     my $search     = $find{current_id} ? $records->search_query : $records->search_query(root_table => 'record');
     my @prefetches = $records->jpfetch(prefetch => 1);
-    my $joins      = [$records->jpfetch(search => 1)];
+    my @joins      = $records->jpfetch(search => 1);
 
     my $root_table;
     if (my $record_id = $find{record_id})
@@ -443,21 +443,34 @@ sub _find
             'createdby',
             'approvedby'
         ); # Add info about related current record
-        push @$search, ("me.id" => $record_id);
+        push @$search, { 'me.id' => $record_id };
+        push @$search, { 'record_later.current_id' => undef };
         $root_table = 'Record';
     }
     elsif (my $current_id = $find{current_id})
     {
-        push @$search, {"me.id" => $current_id};
+        push @$search, { 'me.id' => $current_id };
+        push @$search, { 'record_later.current_id' => undef };
+        push @$search, { 'record_later_2.current_id' => undef };
         unshift @prefetches, ('current', 'createdby', 'approvedby'); # Add info about related current record
         @prefetches = (
             $records->linked_hash,
             'currents',
             {
-                'record' => [@prefetches],
+                'record_single' => [
+                    'record_later',
+                    @prefetches,
+                ],
             },
         );
-        $joins      = {'record' => $joins};
+        @joins = (
+            {
+                'record_single' => [
+                    'record_later',
+                    @joins,
+                ],
+            },
+        );
         $root_table = 'Current';
     }
     else {
@@ -470,7 +483,7 @@ sub _find
         ],
         {
             prefetch => [@prefetches],
-            join     => $joins,
+            join     => [@joins],
         },
     );
 
@@ -482,10 +495,10 @@ sub _find
     {
         $self->linked_id($record->{linked_id});
         $self->parent_id($record->{parent_id});
-        $self->linked_record($record->{linked}->{record});
+        $self->linked_record($record->{linked}->{record_single_2});
         my @child_record_ids = map { $_->{id} } @{$record->{currents}};
         $self->_set_child_record_ids(\@child_record_ids);
-        $record = $record->{record};
+        $record = $record->{record_single};
     }
     else {
         $self->linked_id($record->{current}->{linked_id});
@@ -493,7 +506,7 @@ sub _find
         # then this will not be used. Instead the values will be replaced
         # with the actual values of that record, which may or may not have
         # values
-        $self->linked_record($record->{current}->{linked}->{record});
+        $self->linked_record($record->{current}->{linked}->{record_single});
     }
     if ($self->_set_approval_flag($record->{approval}))
     {
