@@ -441,7 +441,8 @@ sub create_records
             $record->fields->{$columns->{file1}->id}->set_value($file);
         }
 
-        try { $record->write(no_alerts => 1) };
+        try { $record->write(no_alerts => 1) } hide => 'ALL';
+        $@->reportAll(is_fatal => 0);
         $@ and return;
     }
     1;
