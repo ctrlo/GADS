@@ -1157,10 +1157,7 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => require_login sub {
 
     my ($layout_id, $value) = splat;
 
-    my $tree = GADS::Column::Tree->new(
-        instance_id => session('instance_id'),
-        schema      => schema,
-    );
+    my $tree = var('layout')->column($layout_id);
 
     if (param 'data')
     {
@@ -1168,18 +1165,16 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => require_login sub {
             { danger => 'You do not have permission to edit trees' } )
             unless user_has_role 'layout';
 
-        $tree->id($layout_id);
         my $newtree = JSON->new->utf8(0)->decode(param 'data');
         $tree->update($newtree);
         return;
     }
-    header "Cache-Control" => "max-age=0, must-revalidate, private";
+    my $json = $tree->type eq 'tree' ? $tree->json($value) : [];
 
     # If record is specified, select the record's value in the returned JSON
-    $tree->from_id($layout_id) if $layout_id; # Blank for new trees
     header "Cache-Control" => "max-age=0, must-revalidate, private";
     content_type 'application/json';
-    encode_json($tree->json($value));
+    encode_json($json);
 
 };
 
