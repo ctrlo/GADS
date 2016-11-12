@@ -234,6 +234,7 @@
                                 [% END %]
                                 >
                                 [% FOREACH c IN instance.layout.all %]
+                                    [% NEXT IF c.type == "curval" %]
                                     [% checked = "" %]
                                     [% IF instance.instance.id == rti AND column.has_curval_field(c.id) %]
                                         [% checked = "checked" %]

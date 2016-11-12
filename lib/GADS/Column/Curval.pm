@@ -192,11 +192,25 @@ around 'write' => sub {
     my $self = shift;
     my $layout_parent = $self->layout_parent;
 
+    # Check whether we are linking to a table that already links back to this one
+    if ($self->schema->resultset('Layout')->search({
+        instance_id => $layout_parent->instance_id,
+        type        => 'curval',
+    })->count)
+    {
+        error __x qq(Cannot use columns from table "{table}" as it contains a column that links back to this table),
+            table => $layout_parent->name;
+
+    }
+
     my @curval_field_ids;
     foreach my $field (@{$self->curval_field_ids})
     {
         # Skip fields not part of referred instance
-        next unless $layout_parent->column($field);
+        my $field_full = $layout_parent->column($field)
+            or next;
+        # Check whether field is a curval - can't refer recursively
+        next if $field_full->type eq 'curval';
         my $field_hash = {
             parent_id => $self->id,
             child_id  => $field,

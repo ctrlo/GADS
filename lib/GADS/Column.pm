@@ -540,6 +540,23 @@ sub write
         and error __x"{name} is a reserved name for a field", name => $newitem->{name};
     $newitem->{type} = $self->type
         or error __"Please select a type for the item";
+
+    # Check whether the parent linked field goes to a layout that has a curval
+    # back to the current layout
+    if ($self->link_parent_id)
+    {
+        my $link_parent = $self->schema->resultset('Layout')->find($self->link_parent_id);
+        if ($link_parent->type eq 'curval')
+        {
+            foreach ($link_parent->curval_fields_parents)
+            {
+                error __x qq(Cannot link to column "{col}" which contains columns from this table),
+                    col => $link_parent->name
+                    if $_->child->instance_id == $self->instance_id;
+            }
+        }
+    }
+
     $newitem->{optional}      = $self->optional;
     $newitem->{remember}      = $self->remember;
     $newitem->{isunique}      = $self->isunique;
