@@ -66,10 +66,26 @@ has record => (
     is      => 'rw',
 );
 
-# The parent linked record, if applicable
-has linked_record => (
+# The raw parent linked record from the database, if applicable
+has linked_record_raw => (
     is      => 'rw',
 );
+
+# The parent linked record as a GADS::Record object
+has linked_record => (
+    is => 'lazy',
+);
+
+sub _build_linked_record
+{   my $self = shift;
+    my $linked = GADS::Record->new(
+        user   => $self->user,
+        layout => $self->layout,
+        schema => $self->schema,
+    );
+    $linked->find_current_id($self->linked_id);
+    $linked;
+}
 
 # Should be set true if we are processing an approval
 has doing_approval => (
@@ -493,7 +509,7 @@ sub _find
     {
         $self->linked_id($record->{linked_id});
         $self->parent_id($record->{parent_id});
-        $self->linked_record($record->{linked}->{record_single_2});
+        $self->linked_record_raw($record->{linked}->{record_single_2});
         my @child_record_ids = map { $_->{id} } @{$record->{currents}};
         $self->_set_child_record_ids(\@child_record_ids);
         $record = $record->{record_single};
@@ -504,7 +520,7 @@ sub _find
         # then this will not be used. Instead the values will be replaced
         # with the actual values of that record, which may or may not have
         # values
-        $self->linked_record($record->{current}->{linked}->{record_single});
+        $self->linked_record_raw($record->{current}->{linked}->{record_single});
     }
     if ($self->_set_approval_flag($record->{approval}))
     {
@@ -551,7 +567,7 @@ sub _transform_values
             $dependent_values->{$dependent} = $fields->{$dependent};
         }
         my $value = $original->{$column->field};
-        $value = $self->linked_record && $self->linked_record->{$column->link_parent->field}
+        $value = $self->linked_record_raw && $self->linked_record_raw->{$column->link_parent->field}
             if $self->linked_id && $column->link_parent && !$self->is_historic;
 
         # FIXME XXX Don't collect file content in sql query
@@ -592,14 +608,20 @@ sub initialise_field
 {   my ($self, $id) = @_;
     my $layout = $self->layout;
     my $column = $layout->column($id);
-    $column->class->new(
-        record_id        => $self->record_id,
-        set_value        => undef,
-        column           => $column,
-        schema           => $self->schema,
-        layout           => $self->layout,
-        datetime_parser  => $self->schema->storage->datetime_parser,
-    );
+    if ($self->linked_id && $column->link_parent)
+    {
+        $self->linked_record->fields->{$column->link_parent->id};
+    }
+    else {
+        $column->class->new(
+            record_id        => $self->record_id,
+            set_value        => undef,
+            column           => $column,
+            schema           => $self->schema,
+            layout           => $self->layout,
+            datetime_parser  => $self->schema->storage->datetime_parser,
+        );
+    }
 }
 
 sub approver_can_action_column
@@ -853,7 +875,7 @@ sub write
             $datum->record_id($self->record_id);
             $self->fields->{$column->id} = $datum;
         }
-        next if $self->linked_id && !$datum; # Don't write all values if this is a linked record
+        next if $self->linked_id && $column->link_parent; # Don't write all values if this is a linked record
 
         if ($need_rec || $options{update_only}) # For new records, $need_rec is only set if user has create permissions without approval
         {
@@ -951,8 +973,11 @@ sub write
         my $dependent_values;
         foreach my $dependent (@{$col->depends_on})
         {
+            my $linked = $self->linked_id && $self->layout->column($dependent)->link_parent;
             $dependent_values->{$dependent}
-                = $appfields{$dependent}
+                = $appfields{$dependent} # waiting approval, use old value
+                ? $self->fields->{$dependent}->oldvalue
+                : $linked && $self->fields->{$dependent}->oldvalue # linked, and linked value has been overwritten
                 ? $self->fields->{$dependent}->oldvalue
                 : $self->fields->{$dependent};
         }

@@ -80,6 +80,10 @@ has curval => (
     is => 'ro',
 );
 
+GADS::Config->instance(
+    config => undef,
+);
+
 sub _build_schema
 {   my $self = shift;
     my $schema = GADS::Schema->connect({
@@ -312,9 +316,6 @@ sub __build_columns
     my $curval1;
     if ($self->curval)
     {
-        GADS::Config->instance(
-            config => undef,
-        );
         $curval1 = GADS::Column::Curval->new(
             schema => $self->schema,
             user   => undef,

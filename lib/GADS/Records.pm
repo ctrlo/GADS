@@ -565,7 +565,7 @@ sub _build_results
         push @all, GADS::Record->new(
             schema               => $self->schema,
             record               => $rec->{record_single},
-            linked_record        => $rec->{linked}->{record},
+            linked_record_raw    => $rec->{linked}->{record},
             child_records        => \@children,
             parent_id            => $rec->{parent_id},
             linked_id            => $rec->{linked_id},
