@@ -166,6 +166,9 @@ has current_ids => (
 # Produce the overall search condition array
 sub search_query
 {   my ($self, %options) = @_;
+    # Only used by record_later_search(). Will pull wrong query_params
+    # if left in %options
+    my $linked     = delete $options{linked};
     my @search     = $self->_query_params(%options);
     my $root_table = $options{root_table} || 'current';
     my $current    = $root_table eq 'current' ? 'me' : 'current';
@@ -188,6 +191,7 @@ sub search_query
     }
     push @search, { "$current.id"          => $self->current_ids} if $self->current_ids;
     push @search, { "$current.instance_id" => $self->layout->instance_id };
+    push @search, $self->record_later_search(%options, linked => $linked);
     [@search];
 }
 
@@ -304,8 +308,8 @@ sub search_views
             {
                 my $search = {
                     'me.instance_id'          => $self->layout->instance_id,
-                    'record_later.current_id' => undef,
                     @{$self->_search_construct($decoded, $self->layout, ignore_perms => 1, user_id => $user_id)},
+                    %{$self->record_later_search},
                 };
                 my $i = 0; my @ids;
                 while ($i < @$current_ids)
@@ -453,7 +457,7 @@ sub search_all_fields
         }
         else {
             push @search, { 'layout.id' => \@columns_can_view };
-            push @search, ( 'record_later.current_id' => undef );
+            push @search, $self->record_later_search(search => 1);
         }
         my @currents = $self->schema->resultset('Current')->search({ -and => \@search},{
             join => $joins,
@@ -495,7 +499,7 @@ sub _build_results
     # XXX Okay, this is a bit weird - we join current to record to current.
     # This is because we return records at the end, and it allows current
     # to be used when the record is used. Is there a better way?
-    my $search_query    = $self->search_query(search => 1, sort => 1); # Need to call first to build joins
+    my $search_query    = $self->search_query(search => 1, sort => 1, linked => 1); # Need to call first to build joins
     my @prefetches      = $self->jpfetch(prefetch => 1);
     my @linked_prefetch = $self->linked_hash(prefetch => 1);
 
@@ -524,10 +528,7 @@ sub _build_results
     $select->{page} = $page if $page;
 
     # Get the current IDs
-    push @{$search_query}, {
-        'record_later.current_id'   => undef,
-        'record_later_2.current_id' => undef,
-    }; # Only take the latest record_single (no later ones)
+    # Only take the latest record_single (no later ones)
     my @cids = $self->schema->resultset('Current')->search(
         [-and => $search_query], $select
     )->get_column('me.id')->all;
@@ -552,11 +553,9 @@ sub _build_results
         order_by  => $self->order_by(prefetch => 1),
     };
 
-    my $result = $self->schema->resultset('Current')->search({
-        'me.id' => \@cids,
-        'record_later.current_id' => undef,
-        'record_later_2.current_id' => undef,
-    }, $select);
+    my $search = $self->record_later_search(prefetch => 1, sort => 1, linked => 1);
+    $search->{'me.id'} = \@cids;
+    my $result = $self->schema->resultset('Current')->search($search, $select);
 
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my @all;
@@ -610,7 +609,7 @@ sub single
 sub _build_count
 {   my $self = shift;
 
-    my $search_query = $self->search_query(search => 1);
+    my $search_query = $self->search_query(search => 1, linked => 1);
     my @joins        = $self->jpfetch(search => 1);
     my @linked       = $self->linked_hash(search => 1, linked => 1);
     my $select = {
@@ -625,10 +624,6 @@ sub _build_count
         ],
     };
 
-    push @{$search_query}, (
-        { 'record_later.current_id'   => undef },
-        { 'record_later_2.current_id' => undef },
-    );
     $self->schema->resultset('Current')->search(
         [-and => $search_query], $select
     )->count;
@@ -637,7 +632,7 @@ sub _build_count
 sub _build_has_children
 {   my $self = shift;
 
-    my @search_query = @{$self->search_query(search => 1)};
+    my @search_query = @{$self->search_query(search => 1, linked => 1)};
     my $linked = $self->linked_hash(search => 1);
     my $select = {
         join     => [
@@ -653,10 +648,6 @@ sub _build_has_children
     };
 
     push @search_query, { 'me.parent_id' => { '!=' => undef }};
-    push @search_query, (
-        { 'record_later.current_id  ' => undef },
-        { 'record_later_2.current_id' => undef },
-    );
     my @child = $self->schema->resultset('Current')->search(
         [-and => [@search_query]], $select
     )->all;

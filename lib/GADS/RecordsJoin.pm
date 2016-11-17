@@ -63,6 +63,7 @@ sub _add_jp
         search   => $options{search},   # Whether it's used in a WHERE clause
         linked   => $options{linked},   # Whether it's a linked table
         sort     => $options{sort},     # Whether it's used in an order_by clause
+        curval   => $column->type eq 'curval' ? 1 : 0,
     };
 }
 
@@ -84,6 +85,37 @@ sub add_linked_prefetch
 sub add_linked_join
 {   my $self = shift;
     $self->_add_jp(@_, linked => 1);
+}
+
+sub record_later_search
+{   my ($self, %options) = @_;
+    my $count = 1; # Always at least one
+    $count++ if $options{linked};
+    foreach (@{$self->_jp_store})
+    {
+        if ($_->{curval})
+        {
+            if ($options{search} && $_->{search})
+            {
+                $count++;
+            }
+            elsif ($options{sort} && $_->{sort})
+            {
+                $count++;
+            }
+            elsif ($options{prefetch} && $_->{prefetch})
+            {
+                $count++;
+            }
+        }
+    }
+    my $search;
+    for (1..$count)
+    {
+        my $id = $_ == 1 ? '' : "_$_";
+        $search->{"record_later$id.current_id"} = undef;
+    }
+    $search;
 }
 
 sub _jpfetch

@@ -150,7 +150,6 @@ sub _build_results
             { max => "$field.to", -as => 'end_date'},
         ];
         my $search = $self->search_query(search => 1, prefetch => 1);
-        push @$search, { 'record_later.current_id' => undef };
         # Include linked field if applicable
         if ($field_link)
         {
@@ -158,7 +157,10 @@ sub _build_results
                 { min => "$field_link.from", -as => 'start_date_link'},
                 { max => "$field_link.to", -as => 'end_date_link'},
             );
-            push @$search, { 'record_later_2.current_id' => undef };
+            push @$search, $self->record_later_search(linked => 1, search => 1, prefetch => 1);
+        }
+        else {
+            push @$search, $self->record_later_search(search => 1, prefetch => 1);
         }
 
         my ($result) = $self->schema->resultset('Current')->search(
@@ -274,8 +276,7 @@ sub _build_results
     };
 
     my $q = $self->search_query(prefetch => 1, search => 1); # Called first to generate joins
-    push @$q, { 'record_later.current_id' => undef };
-    push @$q, { 'record_later_2.current_id' => undef };
+    push @$q, $self->record_later_search(search => 1, prefetch => 1, linked => 1);
 
     my $select = {
         select => [@select_fields],

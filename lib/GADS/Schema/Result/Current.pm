@@ -1,9 +1,6 @@
 use utf8;
 package GADS::Schema::Result::Current;
 
-# Created by DBIx::Class::Schema::Loader
-# DO NOT MODIFY THE FIRST PART OF THIS FILE
-
 =head1 NAME
 
 GADS::Schema::Result::Current
@@ -41,12 +38,6 @@ __PACKAGE__->table("current");
   is_auto_increment: 1
   is_nullable: 0
 
-=head2 record_id
-
-  data_type: 'bigint'
-  is_foreign_key: 1
-  is_nullable: 1
-
 =head2 parent_id
 
   data_type: 'bigint'
@@ -70,8 +61,6 @@ __PACKAGE__->table("current");
 __PACKAGE__->add_columns(
   "id",
   { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
-  "record_id",
-  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "parent_id",
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "instance_id",
@@ -229,26 +218,6 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 record
-
-Type: belongs_to
-
-Related object: L<GADS::Schema::Result::Record>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "record",
-  "GADS::Schema::Result::Record",
-  { id => "record_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
-);
-
 =head2 records
 
 Type: has_many
@@ -268,7 +237,7 @@ __PACKAGE__->has_many(
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rxAxdyOBz/25FzoaWbC+Bg
 
-__PACKAGE__->has_one(
+__PACKAGE__->might_have(
   "record_single",
   "GADS::Schema::Result::Record",
   { "foreign.current_id" => "self.id" },

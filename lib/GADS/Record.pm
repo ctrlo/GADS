@@ -444,14 +444,12 @@ sub _find
             'approvedby'
         ); # Add info about related current record
         push @$search, { 'me.id' => $record_id };
-        push @$search, { 'record_later.current_id' => undef };
         $root_table = 'Record';
     }
     elsif (my $current_id = $find{current_id})
     {
         push @$search, { 'me.id' => $current_id };
-        push @$search, { 'record_later.current_id' => undef };
-        push @$search, { 'record_later_2.current_id' => undef };
+        push @$search, $records->record_later_search(linked => 1);
         unshift @prefetches, ('current', 'createdby', 'approvedby'); # Add info about related current record
         @prefetches = (
             $records->linked_hash,
@@ -919,21 +917,6 @@ sub write
 
     }
 
-    # Update the current record tracking, if we've created a new
-    # permanent record, or a new record requiring approval
-    if ($need_rec && !$options{update_only})
-    {
-        $self->schema->resultset('Current')->find($self->current_id)->update({
-            record_id => $self->record_id
-        });
-    }
-    elsif ($need_app && $self->new_entry)
-    {
-        $self->schema->resultset('Current')->find($self->current_id)->update({
-            record_id => $self->approval_id
-        });
-    }
-
     # If this is an approval, see if there is anything left to approve
     # in this record. If not, delete the stub record.
     if ($self->doing_approval)
@@ -1189,7 +1172,6 @@ sub delete_current
     {
         $self->_delete_record_values($record->id);
     }
-    $self->schema->resultset('Current')->find($id)->update({ record_id => undef });
     $self->schema->resultset('Record') ->search({ current_id => $id })->update({ record_id => undef });
     $self->schema->resultset('Curval') ->search({ value => $id })->update({ value => undef });
     $self->schema->resultset('AlertCache')->search({ current_id => $id })->delete;
