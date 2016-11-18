@@ -111,4 +111,23 @@ foreach my $filter (@filters)
     }
 }
 
+# Retrieve single record and check linked values
+my $single = GADS::Record->new(
+    user   => undef,
+    layout => $layout1,
+    schema => $schema,
+);
+
+#? $record->find_record_id($id)
+$single->find_current_id($record2->current_id);
+my $got = join ", ",
+    map { $_->name.': ' . $single->fields->{$_->id} }  sort { $a->id <=> $b->id } values %$columns2;
+my $expected = 'string1: Foo, integer1: , enum1: , tree1: , date1: , daterange1: 2010-10-10 to 2012-10-10, file1: , person1: , rag1: b_red, calc1: 2010';
+is( $got, $expected, "Retrieve record with linked field by current ID" );
+$single->clear;
+$single->find_record_id($record2->record_id);
+$got = join ", ",
+    map { $_->name.': ' . $single->fields->{$_->id} }  sort { $a->id <=> $b->id } values %$columns2;
+is( $got, $expected, "Retrieve record with linked field by current ID" );
+
 done_testing();

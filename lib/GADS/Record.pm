@@ -454,7 +454,7 @@ sub _find
     {
         unshift @prefetches, (
             {
-                'current' => $records->linked_hash
+                'current' => $records->linked_hash(prefetch => 1),
             },
             'createdby',
             'approvedby'
@@ -468,7 +468,7 @@ sub _find
         push @$search, $records->record_later_search(linked => 1);
         unshift @prefetches, ('current', 'createdby', 'approvedby'); # Add info about related current record
         @prefetches = (
-            $records->linked_hash,
+            $records->linked_hash(prefetch => 1),
             'currents',
             {
                 'record_single' => [
@@ -512,6 +512,7 @@ sub _find
         $self->linked_record_raw($record->{linked}->{record_single_2});
         my @child_record_ids = map { $_->{id} } @{$record->{currents}};
         $self->_set_child_record_ids(\@child_record_ids);
+        $self->linked_record_raw($record->{linked}->{record_single});
         $record = $record->{record_single};
     }
     else {
