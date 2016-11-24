@@ -70,7 +70,10 @@ try { $curval_fail->write };
 ok( $@, "Attempt to create curval recursive reference fails" );
 
 # Add a curval field without any columns. Check that it doesn't cause fatal
-# errors when building values
+# errors when building values.
+# This won't normally be allowed, but we want to test anyway just in case - set
+# an env variable to allow it.
+$ENV{GADS_ALLOW_BLANK_CURVAL} = 1;
 my $curval_blank = GADS::Column::Curval->new(
     schema             => $schema,
     user               => undef,

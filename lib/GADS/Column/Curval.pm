@@ -198,6 +198,10 @@ around 'write' => sub {
     my $layout_parent = $self->layout_parent
         or error __"Please select a table to link to";
 
+
+    !@{$self->curval_field_ids} && !$ENV{GADS_ALLOW_BLANK_CURVAL}
+        and error __"Please select some fields to use from the other table";
+
     # Check whether we are linking to a table that already links back to this one
     if ($self->schema->resultset('Layout')->search({
         'me.instance_id'    => $layout_parent->instance_id,
