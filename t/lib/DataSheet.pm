@@ -61,7 +61,15 @@ has group => (
 );
 
 has columns => (
-    is => 'lazy',
+    is      => 'ro',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        my $columns = $self->__build_columns
+            # Errors should have been caught and reported during _build_columns
+            or error "Failed to build columns. Check previous messages for details of errors";
+        return $columns;
+    },
 );
 
 has records => (
@@ -125,7 +133,8 @@ sub _build_group
     $group;
 }
 
-sub _build_columns
+# Exact name of _build_columns causes recursive loop in Moo...
+sub __build_columns
 {   my $self = shift;
 
     my $schema      = $self->schema;
