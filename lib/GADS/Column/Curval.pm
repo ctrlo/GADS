@@ -194,8 +194,11 @@ around 'write' => sub {
 
     # Check whether we are linking to a table that already links back to this one
     if ($self->schema->resultset('Layout')->search({
-        instance_id => $layout_parent->instance_id,
-        type        => 'curval',
+        'me.instance_id'    => $layout_parent->instance_id,
+        'me.type'           => 'curval',
+        'child.instance_id' => $self->layout->instance_id,
+    },{
+        join => {'curval_fields_parents' => 'child'},
     })->count)
     {
         error __x qq(Cannot use columns from table "{table}" as it contains a column that links back to this table),

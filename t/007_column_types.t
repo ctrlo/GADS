@@ -49,6 +49,26 @@ my $curval = $columns->{curval1};
 
 is( scalar @{$curval->values}, 2, "Correct number of values for curval field" );
 
+# Create a second curval sheet, and check that we can link to first sheet
+# (which links to second)
+my $curval_sheet2 = t::lib::DataSheet->new(schema => $schema, curval => 1, instance_id => 3);
+$curval_sheet2->create_records;
+is( scalar @{$curval_sheet2->columns->{curval1}->values}, 2, "Correct number of values for curval field" );
+
+# Create another curval fields that would cause a recursive loop. Check that it
+# fails
+my $curval_fail = GADS::Column::Curval->new(
+    schema => $schema,
+    user   => undef,
+    layout => $curval_sheet->layout,
+);
+$curval_fail->refers_to_instance($layout->instance_id);
+$curval_fail->curval_field_ids([$columns->{string1}->id]);
+$curval_fail->type('curval');
+$curval_fail->name('curval fail');
+try { $curval_fail->write };
+ok( $@, "Attempt to create curval recursive reference fails" );
+
 # Now check that we're not building all curval values when we're just
 # retrieving individual records
 $ENV{PANIC_ON_CURVAL_BUILD_VALUES} = 1;
@@ -63,6 +83,9 @@ ok( $_->fields->{$curval->id}->text, "Curval field of record has a textual value
 
 $layout->clear; # Rebuild layout for dependencies
 
+# Test deletion of columns in first datasheet. But first, remove curval field
+# that refers to this one
+$curval_sheet2->columns->{curval1}->delete;
 foreach my $col (reverse $layout->all(order_dependencies => 1))
 {
     my $col_id = $col->id;
