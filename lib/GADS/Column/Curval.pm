@@ -127,7 +127,7 @@ sub _records_from_db
 
     # Not the normal request layout
     my $layout = $self->layout_parent
-        or return []; # No layout or fields set
+        or return; # No layout or fields set
 
     my $current_ids = $id && [$id];
     my $records = GADS::Records->new(
@@ -145,7 +145,8 @@ sub _records_from_db
 
 sub _build_values
 {   my $self = shift;
-    my $records = $self->_records_from_db;
+    my $records = $self->_records_from_db
+        or return [];
     my @values;
     while (my $r = $records->single)
     {
@@ -168,12 +169,16 @@ sub _build_values_index
     \%values;
 }
 
+# Used to return a formatted value for a single datum. Normally called from a
+# Datum::Curval object
 sub value
 {   my ($self, $id) = @_;
     $id or return;
     return $self->values_index->{$id}
         if $self->has_values_index; # Do not build unnecessarily (expensive)
-    my ($row) = @{$self->_records_from_db($id)->results};
+    my $records = $self->_records_from_db($id)
+        or return;
+    my ($row) = @{$records->results};
     $self->_format_value($row);
 }
 
@@ -190,7 +195,8 @@ around 'write' => sub {
     $orig->(@_); # Normal column write
 
     my $self = shift;
-    my $layout_parent = $self->layout_parent;
+    my $layout_parent = $self->layout_parent
+        or error __"Please select a table to link to";
 
     # Check whether we are linking to a table that already links back to this one
     if ($self->schema->resultset('Layout')->search({

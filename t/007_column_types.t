@@ -69,6 +69,25 @@ $curval_fail->name('curval fail');
 try { $curval_fail->write };
 ok( $@, "Attempt to create curval recursive reference fails" );
 
+# Add a curval field without any columns. Check that it doesn't cause fatal
+# errors when building values
+my $curval_blank = GADS::Column::Curval->new(
+    schema             => $schema,
+    user               => undef,
+    layout             => $layout,
+    name               => 'curval blank',
+    type               => 'curval',
+    refers_to_instance => $curval_sheet->layout->instance_id,
+    curval_field_ids   => [],
+);
+$curval_blank->write;
+# Clear the layout to force the column to be build, and also to build
+# dependencies properly in the next test
+$layout->clear;
+# Now force the values to be built. This should not bork
+try { $layout->column($curval_blank->id)->values };
+ok( !$@, "Building values for curval with no fields does not bork" );
+
 # Now check that we're not building all curval values when we're just
 # retrieving individual records
 $ENV{PANIC_ON_CURVAL_BUILD_VALUES} = 1;
