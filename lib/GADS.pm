@@ -2144,7 +2144,7 @@ any '/import/data/?' => require_role 'layout' => sub {
                 }
             }
 
-	    notice __"The file import process has been started and can be monitored using the import summary";
+	    notice __"The file import process has been started and can be monitored using the Import Status below";
 	    redirect '/import/';
 
         }
