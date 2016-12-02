@@ -2038,10 +2038,13 @@ any '/audit/?' => require_role audit => sub {
         }
     }
 
+    $audit->filtering(session 'audit_filtering')
+        if session 'audit_filtering';
+
     template 'audit' => {
         logs        => $audit->logs(session 'audit_filtering'),
         users       => $users,
-        filtering   => session('audit_filtering'),
+        filtering   => $audit->filtering,
         audit_types => GADS::Audit::audit_types,
         page        => 'audit',
     };

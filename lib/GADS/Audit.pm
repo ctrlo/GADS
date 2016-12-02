@@ -21,6 +21,7 @@ package GADS::Audit;
 use DateTime;
 use GADS::Datum::Person;
 use Moo;
+use MooX::Types::MooseLike::Base qw/ArrayRef HashRef/;
 
 has schema => (
     is       => 'rw',
@@ -29,6 +30,30 @@ has schema => (
 
 has user => (
     is => 'rw',
+);
+
+has filtering => (
+    is      => 'rw',
+    isa     => HashRef,
+    coerce  => sub {
+        my $value = shift;
+        my $format = DateTime::Format::Strptime->new(
+             pattern   => '%Y-%m-%d',
+             time_zone => 'local',
+        );
+        if ($value->{from} && ref $value->{from} ne 'DateTime')
+        {
+            $value->{from} = $format->parse_datetime($value->{from});
+        }
+        if ($value->{to} && ref $value->{to} ne 'DateTime')
+        {
+            $value->{to} = $format->parse_datetime($value->{to});
+        }
+        $value->{from} ||= DateTime->now->subtract(days => 7);
+        $value->{to}   ||= DateTime->now;
+        return $value;
+    },
+    builder => sub { +{} },
 );
 
 sub audit_types{ [qw/user_action login_change login_success logout login_failure/] };
@@ -91,22 +116,16 @@ sub login_failure
 }
 
 sub logs
-{   my ($self, $filtering) = @_;
+{   my $self = shift;
 
-    my $format = DateTime::Format::Strptime->new(
-         pattern   => '%Y-%m-%d',
-         time_zone => 'local',
-    );
-
+    my $filtering = $self->filtering;
     my $dtf  = $self->schema->storage->datetime_parser;
-    my $to   = $filtering->{to} ? $format->parse_datetime($filtering->{to}) : DateTime->now;
-    my $from = $filtering->{from} ? $format->parse_datetime($filtering->{from}) : $to->clone->subtract(days => 7);
 
     my $search = {
         datetime => {
             -between => [
-                $dtf->format_datetime($from),
-                $dtf->format_datetime($to),
+                $dtf->format_datetime($filtering->{from}),
+                $dtf->format_datetime($filtering->{to}),
             ],
         },
     };

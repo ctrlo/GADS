@@ -61,12 +61,12 @@
                 <div class="form-group">
                     <label for="from">From</label>
                     <input type="text" class="form-control datepicker" id="from"
-                        name="from" value="[% filtering.from %]">
+                        name="from" value="[% filtering.from.ymd %]">
                 </div>
                 <div class="form-group">
                     <label for="to">To</label>
                     <input type="text" class="form-control datepicker" id="to"
-                        name="to" value="[% filtering.to %]">
+                        name="to" value="[% filtering.to.ymd %]">
                 </div>
             </div>
             <div class="modal-footer">
