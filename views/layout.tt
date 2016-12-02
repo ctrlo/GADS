@@ -102,7 +102,7 @@
                         <table class="table table-condensed">
                             <tr>
                                 <th>Group</th>
-                                <th>Permssions</th>
+                                <th>Permissions</th>
                             </tr>
                             [% FOREACH permission IN column.permissions.pairs %]
                                 [% group = groups.group(permission.key) %]
