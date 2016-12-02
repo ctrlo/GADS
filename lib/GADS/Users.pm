@@ -22,6 +22,7 @@ use Email::Valid;
 use GADS::Email;
 use GADS::Instance;
 use Log::Report;
+use Text::CSV::Encoded;
 
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
@@ -192,6 +193,28 @@ sub register
         subject => "New account request",
         text    => $text,
     });
+}
+
+sub csv
+{   my $self = shift;
+    my $csv  = Text::CSV::Encoded->new({ encoding  => undef });
+
+    # Column names
+    $csv->combine(qw/ID Surname Forename Title Email Organisation Telephone Lastlogin/)
+        or error __x"An error occurred producing the CSV headings: {err}", err => $csv->error_input;
+    my $csvout = $csv->string."\n";
+
+    # All the data values
+    foreach my $user (@{$self->all})
+    {
+        $csv->combine($user->id, $user->surname, $user->firstname, ($user->title && $user->title->name || ''),
+            $user->email, ($user->organisation && $user->organisation->name || ''), $user->telephone, $user->lastlogin
+        )
+            or error __x"An error occurred producing a line of CSV: {err}",
+                err => "".$csv->error_diag;
+        $csvout .= $csv->string."\n";
+    }
+    $csvout;
 }
 
 1;

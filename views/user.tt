@@ -252,6 +252,7 @@
 <p>
     <a href="/user/0" class="btn btn-default" role="button">Create user</a>
     <a href="" data-toggle="modal" data-target="#modal-email" class="btn btn-default" role="button">Email users</a>
+    <a href="/user?download" class="btn btn-default" role="button">Download</a>
 </p>
 [% IF register_requests.size %]
     <h4>Active accounts</h4>
