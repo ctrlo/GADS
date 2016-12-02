@@ -47,6 +47,8 @@ $record2->initialise;
 $record2->fields->{$columns2->{daterange1}->id}->set_value(['2010-10-10', '2012-10-10']);
 $record2->write(no_alerts => 1);
 
+# Clear the record object and write a new one, this time with the
+# date blank but linked to the first sheet with a date value
 $record2->clear;
 
 $record2->linked_id($record1->current_id);
@@ -57,12 +59,17 @@ $record2->write_linked_id;
 
 my @filters = (
     {
+        name  => 'Basic',
         rules => [{
             id       => $columns2->{daterange1}->id,
             type     => 'daterange',
             value    => '2011-10-10',
             operator => 'contains',
         }],
+        values => [
+            'string1: ,integer1: ,enum1: ,tree1: ,date1: ,daterange1: 2010-10-10 to 2012-10-10,file1: ,person1: ,rag1: b_red,calc1: 2010,',
+            'string1: Foo,integer1: ,enum1: ,tree1: ,date1: ,daterange1: 2010-10-10 to 2012-10-10,file1: ,person1: ,rag1: b_red,calc1: 2010,',
+        ],
         count => 2,
     },
 );
@@ -75,12 +82,15 @@ foreach my $filter (@filters)
     });
 
     my $view = GADS::View->new(
+        name        => $filter->{name},
         filter      => $rules,
+        columns     => [map { $_->id } values %$columns2],
         instance_id => 2,
         layout      => $layout2,
         schema      => $schema,
         user        => undef,
     );
+    $view->write;
 
     my $records = GADS::Records->new(
         user    => undef,
@@ -89,7 +99,35 @@ foreach my $filter (@filters)
         schema  => $schema,
     );
 
-    ok( $records->count == $filter->{count}, "Searching for record count $filter->{count}");
+    is( $records->count, $filter->{count}, "Correct record count for filter $filter->{name}");
+
+    foreach my $expected (@{$filter->{values}})
+    {
+        my $retrieved = $records->single;
+        my $got = '';
+        $got .= $_->name.': ' . $retrieved->fields->{$_->id} . ','
+            foreach sort { $a->id <=> $b->id } values %$columns2;
+        is( $got, $expected, "Retrieved data correct for test $filter->{name} ID ".$retrieved->current_id );
+    }
 }
+
+# Retrieve single record and check linked values
+my $single = GADS::Record->new(
+    user   => undef,
+    layout => $layout1,
+    schema => $schema,
+);
+
+#? $record->find_record_id($id)
+$single->find_current_id($record2->current_id);
+my $got = join ", ",
+    map { $_->name.': ' . $single->fields->{$_->id} }  sort { $a->id <=> $b->id } values %$columns2;
+my $expected = 'string1: Foo, integer1: , enum1: , tree1: , date1: , daterange1: 2010-10-10 to 2012-10-10, file1: , person1: , rag1: b_red, calc1: 2010';
+is( $got, $expected, "Retrieve record with linked field by current ID" );
+$single->clear;
+$single->find_record_id($record2->record_id);
+$got = join ", ",
+    map { $_->name.': ' . $single->fields->{$_->id} }  sort { $a->id <=> $b->id } values %$columns2;
+is( $got, $expected, "Retrieve record with linked field by current ID" );
 
 done_testing();

@@ -39,7 +39,7 @@ has set_value => (
         {
             # Previous value
             $self->changed(1)
-                if defined($self->value) && defined($value) && $self->value ne $value;
+                if ($self->value || '') ne ($value || '');
             $self->oldvalue($self->clone);
         }
         $self->value(

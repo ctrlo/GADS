@@ -1,9 +1,6 @@
 use utf8;
 package GADS::Schema::Result::Record;
 
-# Created by DBIx::Class::Schema::Loader
-# DO NOT MODIFY THE FIRST PART OF THIS FILE
-
 =head1 NAME
 
 GADS::Schema::Result::Record
@@ -188,21 +185,6 @@ __PACKAGE__->belongs_to(
   "GADS::Schema::Result::Current",
   { id => "current_id" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
-);
-
-=head2 currents
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::Current>
-
-=cut
-
-__PACKAGE__->has_many(
-  "currents",
-  "GADS::Schema::Result::Current",
-  { "foreign.record_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 curvals
@@ -406,13 +388,22 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-02-09 12:55:53
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fZm0XwwwL02xDABVfGHvJA
-
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
     $sqlt_table->add_index(name => 'record_idx_approval', fields => [ 'approval' ]);
 }
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+# Enable finding of latest record for current ID
+__PACKAGE__->might_have(
+    "record_later",
+    "GADS::Schema::Result::Record",
+    sub {
+        my $args = shift;
+        return {
+            "$args->{foreign_alias}.current_id"  => { -ident => "$args->{self_alias}.current_id" },
+            "$args->{foreign_alias}.id" => { '>' => \"$args->{self_alias}.id" },
+        };
+    }
+);
+
 1;

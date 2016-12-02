@@ -426,7 +426,7 @@ sub build_values
         $self->join({
             $self->field => {
                 value => {
-                    record => [@join]
+                    record_single => ['record_later', @join],
                 }
             }
         });

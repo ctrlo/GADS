@@ -146,5 +146,41 @@ for my $test ('blank', 'nochange', 'changed')
     }
 }
 
+# Set of tests to check behaviour when values start as undefined (as happens,
+# for example, when a new column is created and not added to existing records)
+my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+$curval_sheet->create_records;
+my $schema  = $curval_sheet->schema;
+my $sheet   = t::lib::DataSheet->new(schema => $schema, curval => 2);
+my $layout  = $sheet->layout;
+my $columns = $sheet->columns;
+$sheet->create_records;
+
+foreach my $c (keys %{$data->{changed}->[0]})
+{
+    my $column = $columns->{$c};
+    # First check that an empty string replacing the null
+    # value counts as not changed
+    my $class  = $column->class;
+    my $datum = $class->new(
+        set_value       => undef,
+        column          => $column,
+        init_no_value   => 1,
+        datetime_parser => $schema->storage->datetime_parser,
+        schema          => $schema,
+    );
+    $datum->set_value($data->{changed}->[0]->{$c});
+    ok( $datum->changed, "$c has changed" );
+    # And now that an actual value does count as a change
+    $datum = $class->new(
+        set_value       => undef,
+        column          => $column,
+        init_no_value   => 1,
+        datetime_parser => $schema->storage->datetime_parser,
+        schema          => $schema,
+    );
+    $datum->set_value($data->{blank}->[0]->{$c});
+    ok( !$datum->changed, "$c has not changed" );
+}
 
 done_testing();

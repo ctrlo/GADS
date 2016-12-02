@@ -66,10 +66,26 @@ has record => (
     is      => 'rw',
 );
 
-# The parent linked record, if applicable
-has linked_record => (
+# The raw parent linked record from the database, if applicable
+has linked_record_raw => (
     is      => 'rw',
 );
+
+# The parent linked record as a GADS::Record object
+has linked_record => (
+    is => 'lazy',
+);
+
+sub _build_linked_record
+{   my $self = shift;
+    my $linked = GADS::Record->new(
+        user   => $self->user,
+        layout => $self->layout,
+        schema => $self->schema,
+    );
+    $linked->find_current_id($self->linked_id);
+    $linked;
+}
 
 # Should be set true if we are processing an approval
 has doing_approval => (
@@ -431,33 +447,44 @@ sub _find
 
     my $search     = $find{current_id} ? $records->search_query : $records->search_query(root_table => 'record');
     my @prefetches = $records->jpfetch(prefetch => 1);
-    my $joins      = [$records->jpfetch(search => 1)];
+    my @joins      = $records->jpfetch(search => 1);
 
     my $root_table;
     if (my $record_id = $find{record_id})
     {
         unshift @prefetches, (
             {
-                'current' => $records->linked_hash
+                'current' => $records->linked_hash(prefetch => 1),
             },
             'createdby',
             'approvedby'
         ); # Add info about related current record
-        push @$search, ("me.id" => $record_id);
+        push @$search, { 'me.id' => $record_id };
         $root_table = 'Record';
     }
     elsif (my $current_id = $find{current_id})
     {
-        push @$search, {"me.id" => $current_id};
+        push @$search, { 'me.id' => $current_id };
+        push @$search, $records->record_later_search(linked => 1);
         unshift @prefetches, ('current', 'createdby', 'approvedby'); # Add info about related current record
         @prefetches = (
-            $records->linked_hash,
+            $records->linked_hash(prefetch => 1),
             'currents',
             {
-                'record' => [@prefetches],
+                'record_single' => [
+                    'record_later',
+                    @prefetches,
+                ],
             },
         );
-        $joins      = {'record' => $joins};
+        @joins = (
+            {
+                'record_single' => [
+                    'record_later',
+                    @joins,
+                ],
+            },
+        );
         $root_table = 'Current';
     }
     else {
@@ -470,7 +497,7 @@ sub _find
         ],
         {
             prefetch => [@prefetches],
-            join     => $joins,
+            join     => [@joins],
         },
     );
 
@@ -482,10 +509,11 @@ sub _find
     {
         $self->linked_id($record->{linked_id});
         $self->parent_id($record->{parent_id});
-        $self->linked_record($record->{linked}->{record});
+        $self->linked_record_raw($record->{linked}->{record_single_2});
         my @child_record_ids = map { $_->{id} } @{$record->{currents}};
         $self->_set_child_record_ids(\@child_record_ids);
-        $record = $record->{record};
+        $self->linked_record_raw($record->{linked}->{record_single});
+        $record = $record->{record_single};
     }
     else {
         $self->linked_id($record->{current}->{linked_id});
@@ -493,7 +521,7 @@ sub _find
         # then this will not be used. Instead the values will be replaced
         # with the actual values of that record, which may or may not have
         # values
-        $self->linked_record($record->{current}->{linked}->{record});
+        $self->linked_record_raw($record->{current}->{linked}->{record_single});
     }
     if ($self->_set_approval_flag($record->{approval}))
     {
@@ -540,7 +568,7 @@ sub _transform_values
             $dependent_values->{$dependent} = $fields->{$dependent};
         }
         my $value = $original->{$column->field};
-        $value = $self->linked_record && $self->linked_record->{$column->link_parent->field}
+        $value = $self->linked_record_raw && $self->linked_record_raw->{$column->link_parent->field}
             if $self->linked_id && $column->link_parent && !$self->is_historic;
 
         # FIXME XXX Don't collect file content in sql query
@@ -581,14 +609,20 @@ sub initialise_field
 {   my ($self, $id) = @_;
     my $layout = $self->layout;
     my $column = $layout->column($id);
-    $column->class->new(
-        record_id        => $self->record_id,
-        set_value        => undef,
-        column           => $column,
-        schema           => $self->schema,
-        layout           => $self->layout,
-        datetime_parser  => $self->schema->storage->datetime_parser,
-    );
+    if ($self->linked_id && $column->link_parent)
+    {
+        $self->linked_record->fields->{$column->link_parent->id};
+    }
+    else {
+        $column->class->new(
+            record_id        => $self->record_id,
+            set_value        => undef,
+            column           => $column,
+            schema           => $self->schema,
+            layout           => $self->layout,
+            datetime_parser  => $self->schema->storage->datetime_parser,
+        );
+    }
 }
 
 sub approver_can_action_column
@@ -842,7 +876,7 @@ sub write
             $datum->record_id($self->record_id);
             $self->fields->{$column->id} = $datum;
         }
-        next if $self->linked_id && !$datum; # Don't write all values if this is a linked record
+        next if $self->linked_id && $column->link_parent; # Don't write all values if this is a linked record
 
         if ($need_rec || $options{update_only}) # For new records, $need_rec is only set if user has create permissions without approval
         {
@@ -906,21 +940,6 @@ sub write
 
     }
 
-    # Update the current record tracking, if we've created a new
-    # permanent record, or a new record requiring approval
-    if ($need_rec && !$options{update_only})
-    {
-        $self->schema->resultset('Current')->find($self->current_id)->update({
-            record_id => $self->record_id
-        });
-    }
-    elsif ($need_app && $self->new_entry)
-    {
-        $self->schema->resultset('Current')->find($self->current_id)->update({
-            record_id => $self->approval_id
-        });
-    }
-
     # If this is an approval, see if there is anything left to approve
     # in this record. If not, delete the stub record.
     if ($self->doing_approval)
@@ -955,8 +974,11 @@ sub write
         my $dependent_values;
         foreach my $dependent (@{$col->depends_on})
         {
+            my $linked = $self->linked_id && $self->layout->column($dependent)->link_parent;
             $dependent_values->{$dependent}
-                = $appfields{$dependent}
+                = $appfields{$dependent} # waiting approval, use old value
+                ? $self->fields->{$dependent}->oldvalue
+                : $linked && $self->fields->{$dependent}->oldvalue # linked, and linked value has been overwritten
                 ? $self->fields->{$dependent}->oldvalue
                 : $self->fields->{$dependent};
         }
@@ -1176,7 +1198,6 @@ sub delete_current
     {
         $self->_delete_record_values($record->id);
     }
-    $self->schema->resultset('Current')->find($id)->update({ record_id => undef });
     $self->schema->resultset('Record') ->search({ current_id => $id })->update({ record_id => undef });
     $self->schema->resultset('Curval') ->search({ value => $id })->update({ value => undef });
     $self->schema->resultset('AlertCache')->search({ current_id => $id })->delete;

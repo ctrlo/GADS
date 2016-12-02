@@ -149,18 +149,29 @@ sub _build_results
             { min => "$field.from", -as => 'start_date'},
             { max => "$field.to", -as => 'end_date'},
         ];
+        my $search = $self->search_query(search => 1, prefetch => 1);
         # Include linked field if applicable
-        push @$select, (
-            { min => "$field_link.from", -as => 'start_date_link'},
-            { max => "$field_link.to", -as => 'end_date_link'},
-        ) if $field_link;
+        if ($field_link)
+        {
+            push @$select, (
+                { min => "$field_link.from", -as => 'start_date_link'},
+                { max => "$field_link.to", -as => 'end_date_link'},
+            );
+            push @$search, $self->record_later_search(linked => 1, search => 1, prefetch => 1);
+        }
+        else {
+            push @$search, $self->record_later_search(search => 1, prefetch => 1);
+        }
 
         my ($result) = $self->schema->resultset('Current')->search(
-            [-and => $self->search_query(search => 1, prefetch => 1)], {
+            [-and => $search], {
                 select => $select,
                 join   => [
                     {
-                        'record' => [$self->jpfetch(search => 1, prefetch => 1)],
+                        'record_single' => [
+                            'record_later',
+                            $self->jpfetch(search => 1, prefetch => 1),
+                        ],
                     },
                     $self->linked_hash(search => 1, prefetch => 1),
                 ],
@@ -265,12 +276,16 @@ sub _build_results
     };
 
     my $q = $self->search_query(prefetch => 1, search => 1); # Called first to generate joins
+    push @$q, $self->record_later_search(search => 1, prefetch => 1, linked => 1);
 
     my $select = {
         select => [@select_fields],
         join     => [
             {
-                'record' => [$self->jpfetch(prefetch => 1, search => 1)],
+                'record_single' => [
+                    'record_later',
+                    $self->jpfetch(prefetch => 1, search => 1),
+                ],
             },
             $self->linked_hash(prefetch => 1, search => 1),
         ],
