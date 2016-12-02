@@ -1239,7 +1239,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             my ($group_id) = grep { $_ } body_parameters->get_all('group_id');
             if (process sub { $column->set_permissions($group_id, $permissions) })
             {
-                my $msg = qq(Permissions have been updated successfully. <a href="/layout/">Click here</a> to return to the layout index.);
+                my $msg = qq(Permissions have been updated successfully. <a href="/layout/">Click here</a> to return to Edit Layout.);
                 report NOTICE => $msg, _class => 'html,success';
                 return forwardHome( undef, "layout/".$column->id );
             }
