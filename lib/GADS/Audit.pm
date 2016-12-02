@@ -130,6 +130,26 @@ sub logs
     \@logs;
 }
 
+sub csv
+{   my $self = shift;
+    my $csv  = Text::CSV::Encoded->new({ encoding  => undef });
+
+    # Column names
+    $csv->combine(qw/ID User Type Time Description/)
+        or error __x"An error occurred producing the CSV headings: {err}", err => $csv->error_input;
+    my $csvout = $csv->string."\n";
+
+    # All the data values
+    foreach my $row (@{$self->logs})
+    {
+        $csv->combine($row->{id}, $row->{user}->text, $row->{type}, $row->{datetime}, $row->{description})
+            or error __x"An error occurred producing a line of CSV: {err}",
+                err => "".$csv->error_diag;
+        $csvout .= $csv->string."\n";
+    }
+    $csvout;
+}
+
 1;
 
 

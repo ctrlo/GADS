@@ -2009,6 +2009,24 @@ any '/audit/?' => require_role audit => sub {
     my $audit = GADS::Audit->new(schema => schema);
     my $users = GADS::Users->new(schema => schema, config => config);
 
+    if (defined param 'download')
+    {
+        my $csv = $audit->csv;
+        my $now = DateTime->now();
+        my $header;
+        if ($header = config->{gads}->{header})
+        {
+            $csv       = "$header\n$csv" if $header;
+            $header    = "-$header" if $header;
+        }
+        # XXX Is this correct? We can't send native utf-8 without getting the error
+        # "Strings with code points over 0xFF may not be mapped into in-memory file handles".
+        # So, encode the string (e.g. "\x{100}"  becomes "\xc4\x80) and then send it,
+        # telling the browser it's utf-8
+        utf8::encode($csv);
+        return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
+    }
+
     if (param 'audit_filtering')
     {
         session 'audit_filtering' => {
