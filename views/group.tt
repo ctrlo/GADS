@@ -30,7 +30,7 @@
         <tr>
             <th></th>
             <th>Name</th>
-            <th>Permissions</th>
+            <th>Permissions for currently selected table</th>
         </tr>
         [% FOREACH group IN groups %]
             <tr>
