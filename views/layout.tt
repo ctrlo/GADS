@@ -503,6 +503,7 @@
                                 <div id="modal_permissions-group_select_div">
                                     <label for="modal_permissions-group_select">Group:</label>
                                     <select class="form-control" id="modal_permissions-group_select" name="group_id">
+                                        <option value=""></option>
                                         [% FOR group IN groups.all %]
                                             <option value="[% group.id %]">[% group.name %]</option>
                                         [% END %]
