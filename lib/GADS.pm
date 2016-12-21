@@ -64,7 +64,6 @@ use HTML::Entities;
 use JSON qw(decode_json encode_json);
 use MIME::Base64;
 use Session::Token;
-use Scope::Guard qw(guard);
 use String::CamelCase qw(camelize);
 use Text::CSV;
 use Tie::Cache;
@@ -2123,32 +2122,11 @@ any '/import/data/?' => require_role 'layout' => sub {
                 %options,
             );
 
-            # We need to fork for the actual import, as it could take very long.
-            # The import process writes the status to the database so that the
-            # user can see the progress.
-            if (my $kid = fork)
+            if (process sub { $import->process })
             {
-                waitpid($kid, 0); # wait for child to start grandchild and clean up
+		return forwardHome(
+		    { success => "The file import process has been started and can be monitored using the Import Status below" }, 'import' );
             }
-            else {
-                if (my $grandkid = fork) {
-                    POSIX::_exit(0); # the child dies here
-                }
-                else {
-                    # We must catch exceptions here, otherwise we will never
-                    # reap the process. Set up a guard to be doubly-sure this
-                    # happens.
-                    my $guard = guard { POSIX::_exit(0) };
-                    # Despite the guard, we still operate in a try block, so as to catch
-                    # the messages from any exceptions and report them accordingly
-                    try { $import->process } hide => 'ALL'; # This takes a long time
-                    $@->reportAll(is_fatal => 0);
-                }
-            }
-
-	    notice __"The file import process has been started and can be monitored using the Import Status below";
-	    redirect '/import/';
-
         }
         else {
             report({is_fatal => 0}, ERROR => 'Please select a file to upload');

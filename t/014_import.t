@@ -7,6 +7,8 @@ use GADS::Import;
 
 use t::lib::DataSheet;
 
+$ENV{GADS_NO_FORK} = 1; # Prevent forking during import process
+
 # version tests
 {
     my $sheet = t::lib::DataSheet->new(data => []);

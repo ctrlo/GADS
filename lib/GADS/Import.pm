@@ -22,6 +22,7 @@ use DateTime;
 use GADS::Record;
 use List::MoreUtils 'first_index';
 use Log::Report;
+use Scope::Guard qw(guard);
 use Text::CSV;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
@@ -124,7 +125,8 @@ has skip_existing_unique => (
 );
 
 has csv => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_csv
@@ -164,7 +166,8 @@ has fields => (
 );
 
 has fh => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_fh
@@ -174,12 +177,54 @@ sub _build_fh
     $fh;
 }
 
+sub _reset_csv
+{   my $self = shift;
+    close $self->fh;
+    $self->clear_csv;
+    $self->clear_fh;
+}
+
 sub process
 {   my $self = shift;
     error __"skip_existing_unique and update_unique are mutually exclusive"
         if $self->update_unique && $self->skip_existing_unique;
     $self->layout->user_permission_override(1);
-    $self->import_rows;
+    # Build fields from first row before we start reading. This may error
+    $self->fields;
+
+    # We now need to close the fh and reset CSV. If we don't do this, we
+    # end up with duplicated lines being read once the process forks.
+    $self->_reset_csv;
+
+    # We need to fork for the actual import, as it could take very long.
+    # The import process writes the status to the database so that the
+    # user can see the progress.
+    if ($ENV{GADS_NO_FORK})
+    {
+        # Used in tests when we don't want to fork
+        $self->_import_rows;
+    }
+    else {
+        if (my $kid = fork)
+        {
+            waitpid($kid, 0); # wait for child to start grandchild and clean up
+        }
+        else {
+            if (my $grandkid = fork) {
+                POSIX::_exit(0); # the child dies here
+            }
+            else {
+                # We must catch exceptions here, otherwise we will never
+                # reap the process. Set up a guard to be doubly-sure this
+                # happens.
+                my $guard = guard { POSIX::_exit(0) };
+                # Despite the guard, we still operate in a try block, so as to catch
+                # the messages from any exceptions and report them accordingly
+                try { $self->_import_rows } hide => 'ALL'; # This takes a long time
+                $@->reportAll(is_fatal => 0);
+            }
+        }
+    }
 }
 
 sub _build_fields
@@ -263,7 +308,7 @@ sub _build_fields
     \@fields;
 }
 
-sub import_rows
+sub _import_rows
 {   my $self = shift;
 
     my $count = {
@@ -288,6 +333,8 @@ sub import_rows
         type    => 'data',
         started => DateTime->now,
     });
+
+    $self->csv->getline($self->fh); # Slurp off the header row
 
     while (my $row = $self->csv->getline($self->fh))
     {
