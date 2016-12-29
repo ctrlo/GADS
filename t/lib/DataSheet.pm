@@ -401,14 +401,14 @@ sub __build_columns
 sub create_records
 {   my $self = shift;
 
+    my $columns = $self->columns;
+
     my $record = GADS::Record->new(
         user     => undef,
         layout   => $self->layout,
         schema   => $self->schema,
         base_url => undef,
     );
-
-    my $columns = $self->columns;
 
     foreach my $datum (@{$self->data})
     {
