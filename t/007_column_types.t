@@ -140,4 +140,44 @@ foreach my $col (reverse $layout->all(order_dependencies => 1))
     is( $@, '', "Deletion of field $name of type string did not throw exception" );
 }
 
+# Calc column tests
+$data = [
+    {
+        daterange1 => ['2000-10-10', '2001-10-10'],
+    },
+    {
+        daterange1 => ['2012-11-11', '2013-11-11'],
+    },
+];
+
+$sheet   = t::lib::DataSheet->new(data => $data);
+$schema  = $sheet->schema;
+$layout  = $sheet->layout;
+$columns = $sheet->columns;
+$sheet->create_records;
+
+$records = GADS::Records->new(
+    user    => undef,
+    layout  => $layout,
+    schema  => $schema,
+);
+
+# Code values should have been written to database by now
+$ENV{GADS_PANIC_ON_ENTERING_CODE} = 1;
+
+my $calc_col = $columns->{calc1};
+my $rag_col  = $columns->{rag1};
+
+my @calcs = qw/2000 2012/;
+my @rags  = qw/b_red c_amber/;
+foreach my $record (@{$records->results})
+{
+    my $calc  = shift @calcs;
+    my $rag   = shift @rags;
+    is( $record->fields->{$calc_col->id}->as_string, $calc, "Correct calc value for record" );
+    is( $record->fields->{$rag_col->id}->as_string, $rag, "Correct rag value for record" );
+}
+
+$ENV{GADS_PANIC_ON_ENTERING_CODE} = 0;
+
 done_testing();

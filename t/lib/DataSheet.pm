@@ -46,8 +46,7 @@ has instance_id => (
 );
 
 has layout => (
-    is      => 'lazy',
-    clearer => 1,
+    is => 'lazy',
 );
 
 has no_groups => (
@@ -358,12 +357,17 @@ sub __build_columns
     }
     $rag1->set_permissions($self->group->id, $permissions)
         unless $self->no_groups;
-    $self->clear_layout;
-    $layout = $self->layout;
+
+    # At this point, layout will have been built with current columns (it will
+    # have been built as part of creating the RAG column). Therefore, clear it,
+    # but keep the same reference in this object for code that has already taken
+    # a reference to the old one.
+    $self->layout->clear;
+
     my $calc1 = GADS::Column::Calc->new(
         schema => $schema,
         user   => undef,
-        layout => $layout,
+        layout => $self->layout,
     );
     $calc1->calc('[Daterange1.from.year]');
     $calc1->type('calc');
@@ -378,6 +382,9 @@ sub __build_columns
     $calc1->set_permissions($self->group->id, $permissions)
         unless $self->no_groups;
 
+    # Clear the layout again, otherwise it won't include the calc
+    # column itself (it will have been built as part of its creation)
+    $self->layout->clear;
 
     # Only add the columns now to the columns hash, as this will lazily build
     # the columns index in the layout, which would otherwise be incomplete.

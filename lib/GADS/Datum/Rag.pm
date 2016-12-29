@@ -72,6 +72,10 @@ sub _transform_value
         return $self->_write_rag('a_grey');
     }
     else {
+        # Used during tests to check that $original is being set correctly
+        panic "Entering calculation code"
+            if $ENV{GADS_PANIC_ON_ENTERING_CODE};
+
         my $green = $self->column->green;
         my $amber = $self->column->amber;
         my $red   = $self->column->red;
