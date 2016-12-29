@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Column::Date;
 
+use DateTime::Format::CLDR;
 use Log::Report;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
@@ -29,8 +30,22 @@ has '+return_type' => (
 );
 
 sub validate
-{   my ($self, $value) = @_;
-    !$value || $value =~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+{   my ($self, $value, %options) = @_;
+    return 1 if !$value;
+    if (!$self->parse_date($value))
+    {
+        return 0 unless $options{fatal};
+        error __x"Invalid date '{value}' for {col}. Please enter as {format}.",
+            value => $value, col => $self->name, format => $self->dateformat;
+    }
+    1;
+}
+
+sub validate_search
+{   my $self = shift;
+    my ($value, %options) = @_;
+    $value eq 'CURDATE' and return 1;
+    $self->validate(@_);
 }
 
 sub cleanup

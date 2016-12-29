@@ -26,50 +26,53 @@ extends 'GADS::Datum';
 
 has set_value => (
     is       => 'rw',
+    predicate => 1,
     trigger  => sub {
         my ($self, $value) = @_;
-        my $first_time = 1 unless $self->has_id;
-        my $new_id;
-        my $clone = !$first_time && $self->clone; # Copy before changing text
+        my $clone = $self->clone; # Copy before changing text
         $self->clear_text;
-        if (ref $value)
+        $value = undef if !$value; # Can be empty string, generating warnings
+        $self->column->validate($value, fatal => 1);
+        $self->changed(1) if (!defined($self->id) && defined $value)
+            || (!defined($value) && defined $self->id)
+            || (defined $self->id && defined $value && $self->id != $value);
+        $self->id($value);
+        $self->oldvalue($clone);
+    },
+);
+
+has value_hash => (
+    is      => 'ro',
+    lazy    => 1,
+    clearer => 1, # Clear when new value written
+    builder => sub {
+        my $self = shift;
+        $self->has_init_value or return;
+        my $value = $self->init_value->{value};
+        my ($id, $text);
+        # From database, with enumval table joined
+        if (ref $value eq 'HASH')
         {
-            # From database, with enumval table joined
-            if (my $v = $value->{value})
-            {
-                if (ref $v eq 'HASH')
-                {
-                    my $record = GADS::Record->new(
-                        schema               => $self->column->schema,
-                        layout               => $self->column->layout_parent,
-                        user                 => undef,
-                        record               => $v->{record_single},
-                        linked_id            => $v->{linked_id},
-                        parent_id            => $v->{parent_id},
-                        columns_retrieved_do => $self->column->curval_fields,
-                    );
-                    $self->_set_text($self->column->_format_value($record)->{value});
-                    $new_id = $v->{id};
-                }
-                else {
-                    $new_id = $v;
-                }
-            }
+            my $record = GADS::Record->new(
+                schema               => $self->column->schema,
+                layout               => $self->column->layout_parent,
+                user                 => undef,
+                record               => $value->{record_single},
+                linked_id            => $value->{linked_id},
+                parent_id            => $value->{parent_id},
+                columns_retrieved_do => $self->column->curval_fields,
+            );
+            $text = $self->column->_format_value($record)->{value};
+            $id = $value->{id};
         }
-        elsif (defined $value) {
-            # User input
-            $value = undef if !$value; # Can be empty string, generating warnings
-            $new_id = $value;
+        else {
+            return;
         }
-        unless ($first_time)
-        {
-            # Previous value
-            $self->changed(1) if (!defined($self->id) && defined $value)
-                || (!defined($value) && defined $self->id)
-                || (defined $self->id && defined $value && $self->id != $value);
-            $self->oldvalue($clone);
-        }
-        $self->id($new_id) if defined $new_id || $self->init_no_value;
+        $self->has_id(1) if defined $id || $self->init_no_value;
+        +{
+            id   => $id,
+            text => $text,
+        };
     },
 );
 
@@ -84,6 +87,7 @@ has text => (
 
 sub _build_text
 {   my $self = shift;
+    return $self->value_hash->{text} if $self->value_hash && !$self->has_set_value;
     $self->id or return '';
     my $v = $self->column->value($self->id);
     defined $v or error __x"Invalid Curval ID {id}", id => $self->id;
@@ -93,8 +97,14 @@ sub _build_text
 has id => (
     is        => 'rw',
     isa       => Maybe[Int],
-    predicate => 1,
+    lazy      => 1,
     trigger   => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
+    builder   => sub { $_[0]->value_hash && $_[0]->value_hash->{id} },
+);
+
+has has_id => (
+    is  => 'rw',
+    isa => Bool,
 );
 
 sub value { $_[0]->id }

@@ -409,14 +409,23 @@ sub search_all_fields
         }
     }
 
+    my $date_column = GADS::Column::Date->new(
+        schema => $self->schema,
+        layout => $self->layout,
+    );
     my %found;
     foreach my $field (@fields)
     {
+        my $search_local = $search;
         next if ($field->{type} eq 'number')
-            && !looks_like_number $search;
+            && !looks_like_number $search_local;
         next if ($field->{type} eq 'int' || $field->{type} eq 'current_id')
-            && $search !~ /^-?\d+$/;
-        next if $field->{type} eq 'date' && !GADS::Column::Date->validate($search);
+            && $search_local !~ /^-?\d+$/;
+        if ($field->{type} eq 'date')
+        {
+            next if !$date_column->validate($search_local);
+            $search_local = $self->_date_for_db($date_column, $search_local);
+        }
 
         # These aren't really needed for current_id, but no harm
         my $plural      = $field->{plural};
@@ -447,10 +456,10 @@ sub search_all_fields
         my @search = @basic_search;
         push @search,
             $field->{type} eq 'current_id'
-            ? { id => $search }
+            ? { id => $search_local }
             : $field->{index_field} # string with additional index field
-            ? ( { $field->{index_field} => $search_index }, { $s => $search } )
-            : { $s => $search };
+            ? ( { $field->{index_field} => $search_index }, { $s => $search_local } )
+            : { $s => $search_local };
         if ($field->{type} eq 'current_id')
         {
             push @search, { 'me.instance_id' => $self->layout->instance_id };
@@ -723,7 +732,7 @@ sub _query_params
                 my $f = {
                     id       => $c->id,
                     operator => 'less_or_equal',
-                    value    => $to->ymd,
+                    value    => $self->schema->storage->datetime_parser->format_date($to),
                 };
                 push @f, $f;
             }
@@ -732,7 +741,7 @@ sub _query_params
                 my $f = {
                     id       => $c->id,
                     operator => 'greater_or_equal',
-                    value    => $from->ymd,
+                    value    => $self->schema->storage->datetime_parser->format_date($from),
                 };
                 push @f, $f;
             }
@@ -917,6 +926,7 @@ sub _search_construct
     my $s_table = $self->table_name($column, %options, search => 1);
 
     my @conditions;
+    my $transform_date; # Whether to convert date value to database format
     if ($column->type eq "daterange")
     {
         # If it's a daterange, we have to be intelligent about the way the
@@ -931,6 +941,7 @@ sub _search_construct
         }
         elsif ($operator eq ">" || $operator eq "<=")
         {
+            $transform_date = 1;
             push @conditions, {
                 operator => $operator,
                 s_field  => "from",
@@ -938,6 +949,7 @@ sub _search_construct
         }
         elsif ($operator eq ">=" || $operator eq "<")
         {
+            $transform_date = 1;
             push @conditions, {
                 operator => $operator,
                 s_field  => "to",
@@ -945,6 +957,7 @@ sub _search_construct
         }
         elsif ($operator eq "-like")
         {
+            $transform_date = 1;
             # Requires 2 searches ANDed together
             push @conditions, {
                 operator => "<=",
@@ -982,6 +995,8 @@ sub _search_construct
         $value = $vprefix.$filter->{value}.$vsuffix;
     }
 
+    return unless $column->validate_search($value);
+
     # Sub-in current date as required. Ideally we would use the same
     # code here as the calc/rag fields, but this can be accessed by
     # any user, so should be a lot tighter.
@@ -991,10 +1006,12 @@ sub _search_construct
         my $dtf = $self->schema->storage->datetime_parser;
         $value = $dtf->format_date($vdt);
     }
+    elsif ($transform_date || $column->return_type eq 'date')
+    {
+        $value = $self->_date_for_db($column, $value);
+    }
 
     $value =~ s/\_/\\\_/g if $operator eq '-like';
-
-    return unless $column->validate($value);
 
     if ($column->type eq "string")
     {
@@ -1041,6 +1058,12 @@ sub _search_construct
         @final = (['-or' => [@final], [@final2]]);
     }
     return @final;
+}
+
+sub _date_for_db
+{   my ($self, $column, $value) = @_;
+    my $dt = $column->parse_date($value);
+    $self->schema->storage->datetime_parser->format_date($dt);
 }
 
 sub csv

@@ -68,7 +68,18 @@ has _child_unique_old => (
 has blank => (
     is      => 'rw',
     isa     => Bool,
-    default => 1,
+    lazy    => 1,
+    builder => 1,
+);
+
+sub _build_blank {
+    $_[0]->value ? 0 : 1;
+}
+
+# Used to seed the value from the database
+has init_value => (
+    is        => 'ro',
+    predicate => 1,
 );
 
 has init_no_value => (
@@ -78,6 +89,10 @@ has init_no_value => (
 
 has oldvalue => (
     is  => 'rw',
+);
+
+has has_value => (
+    is => 'rw',
 );
 
 sub html

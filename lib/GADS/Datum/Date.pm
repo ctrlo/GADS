@@ -18,60 +18,46 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Datum::Date;
 
+use GADS::SchemaInstance;
 use DateTime;
 use Log::Report;
 use Moo;
+use MooX::Types::MooseLike::Base qw/:all/;
 use namespace::clean;
 
 extends 'GADS::Datum';
 
-has datetime_parser => (
-    is       => 'rw',
-    required => 1,
+has schema => (
+    is      => 'ro',
+    lazy    => 1,
+    builder => sub {
+        GADS::SchemaInstance->instance;
+    },
 );
 
-# This is a bit messy. We would normally work using the
-# trigger alone, but we can't, because the first time
-# round the datetime parser will not be available, so
-# that needs to be done at build stage as a lazy
+# Set datum value with value from user
 has set_value => (
     is       => 'rw',
     trigger  => sub {
         my ($self, $value) = @_;
-
-        if ($self->has_value)
-        {
-            $self->oldvalue($self->clone);
-            my $newvalue = $self->_to_dt($value); # DB parser needed for this. Will be set second time
-            my $old = $self->oldvalue && $self->oldvalue->value ? $self->oldvalue->value->epoch : 0;
-            my $new = $newvalue ? $newvalue->epoch : 0; 
-            $self->changed(1) if $old != $new;
-            $self->value($newvalue);
-        }
-        else {
-            # Parse now if we have a parser. Better to check for invalid values whilst
-            # we're setting values, so that they are caught and displayed to the user.
-            # We don't have a parser if setting the value on instantiation from the
-            # database, but in that case we know we have a valid value.
-            if ($self->datetime_parser)
-            {
-                my $v = $self->_to_dt($value);
-                $self->value($v);
-            }
-            else {
-                $self->_init_value($value);
-            }
-            $self->has_value(1) if defined $value || $self->init_no_value;
-        }
-    },
+        $self->oldvalue($self->clone);
+        my $newvalue = $self->_to_dt($value, 'user');
+        my $old = $self->oldvalue && $self->oldvalue->value ? $self->oldvalue->value->epoch : 0;
+        my $new = $newvalue ? $newvalue->epoch : 0;
+        $self->changed(1) if $old != $new;
+        $self->value($newvalue);
+    }
 );
 
 has value => (
-    is        => 'rw',
-    lazy      => 1,
-    builder   => sub {
-        my ($self) = @_;
-        $self->_to_dt($self->_init_value);
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        my $value = $self->init_value;
+        my $v = $self->_to_dt($value, 'db');
+        $self->has_value(1) if defined $value || $self->init_no_value;
+        $v;
     },
 );
 
@@ -79,11 +65,6 @@ around blank => sub
 {   my ($orig, $self) = @_;
     $self->value ? 0 : 1;
 };
-
-# The initial value, as a raw date
-has _init_value => (
-    is => 'rw',
-);
 
 # Can't use predicate, as value may not have been built on
 # second time it's set
@@ -94,29 +75,31 @@ has has_value => (
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
-    $orig->($self, 'datetime_parser' => $self->datetime_parser, value => $self->value);
+    $orig->($self, value => $self->value);
 };
 
 sub _to_dt
-{   my ($self, $value) = @_;
+{   my ($self, $value, $source) = @_;
     $value = $value->{value} if ref $value eq 'HASH';
     return unless $value;
-    if (ref $value ne 'DateTime')
+    if (ref $value eq 'DateTime')
     {
-        error __x"Invalid date {value} for {col}. Please enter as yyyy-mm-dd.", value => $value, col => $self->column->name,
-            unless $self->column->validate($value);
-        my $db_parser = $self->datetime_parser;
-        $value && $db_parser->parse_date($value);
+        return $value;
     }
-    else {
-        $value;
+    elsif ($source eq 'db')
+    {
+        return $self->schema->storage->datetime_parser->parse_date($value);
+    }
+    else { # Assume 'user'
+        $self->column->validate($value, fatal => 1);
+        $self->column->parse_date($value);
     }
 }
 
 sub as_string
 {   my $self = shift;
     return "" unless $self->value;
-    $self->value->ymd;
+    $self->value->format_cldr($self->column->dateformat);
 }
 
 sub as_integer

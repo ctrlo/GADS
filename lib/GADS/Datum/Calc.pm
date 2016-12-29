@@ -40,7 +40,7 @@ has value => (
     clearer  => 1,
     builder  => sub {
         my $self = shift;
-        $self->_transform_value($self->set_value);
+        $self->_transform_value($self->init_value);
     },
 );
 
@@ -61,7 +61,7 @@ has layout => (
 sub as_string
 {   my $self = shift;
     my $value = $self->value;
-    $value = $value->ymd if ref $value eq 'DateTime';
+    $value = $value->format_cldr($self->column->dateformat) if ref $value eq 'DateTime';
     if ($self->column->return_type eq 'numeric')
     {
         if (my $dc = $self->column->decimal_places)

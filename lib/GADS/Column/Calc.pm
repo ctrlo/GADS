@@ -175,7 +175,7 @@ sub validate
     return 1 if !$value;
     if ($self->return_type eq 'date')
     {
-        return $value =~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+        return $self->parse_date($value);
     }
     elsif ($self->return_type eq 'integer')
     {

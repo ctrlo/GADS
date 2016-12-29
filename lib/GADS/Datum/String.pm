@@ -35,23 +35,24 @@ has set_value => (
             error __x"Invalid value \"{value}\" for {field}", value => $value, field => $self->column->name
                 if $value && $value !~ /^$regex$/;
         }
-        if ($self->has_value)
-        {
-            # Previous value
-            $self->changed(1)
-                if ($self->value || '') ne ($value || '');
-            $self->oldvalue($self->clone);
-        }
-        $self->value(
-            (ref $value ? $value->{value} : $value)
-        ) if defined $value || $self->init_no_value;
+        $self->changed(1)
+            if ($self->value || '') ne ($value || '');
+        $self->oldvalue($self->clone);
+        $self->value($value);
     },
 );
 
 has value => (
     is        => 'rw',
+    lazy      => 1,
     trigger   => sub { $_[0]->blank($_[1] ? 0 : 1) },
-    predicate => 1,
+    builder   => sub {
+        my $self = shift;
+        $self->has_init_value or return;
+        my $value = $self->init_value->{value};
+        $self->has_value(1) if defined $value || $self->init_no_value;
+        $value;
+    },
 );
 
 around 'clone' => sub {

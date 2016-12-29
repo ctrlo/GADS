@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Datum::Tree;
 
 use Moo;
+use MooX::Types::MooseLike::Base qw/:all/;
 use namespace::clean;
 
 extends 'GADS::Datum';
@@ -27,55 +28,55 @@ has set_value => (
     is       => 'rw',
     trigger  => sub {
         my ($self, $value) = @_;
-        my $first_time = 1 unless $self->has_id;
-        my $new_id;
         my $clone = $self->clone; # Copy before changing text
-        if (ref $value)
-        {
-            # From database, with enumval table joined
-            if ($value = $value->{value})
-            {
-                $new_id = $value->{id};
-                $self->text($value->{value});
-                $self->deleted($value->{deleted});
-            }
-        }
-        elsif (defined $value) {
-            # User input
-            !$value || $self->column->node($value)
-                or error __x"'{int}' is not a valid tree node ID for '{col}'"
-                    , int => $value, col => $self->column->name;
-            $value && $self->column->node($value)->{node}->{deleted}
-                and error __x"Node '{int}' has been deleted and can therefore not be used"
-                    , int => $value;
-            $value = undef if !$value; # Can be empty string, generating warnings
-            $new_id = $value;
-            # Look up text value
-            my $node = $self->column->node($value);
-            $self->text($node->{value}) if $node;
-        }
-        unless ($first_time)
-        {
-            # Previous value
-            $self->changed(1) if (!defined($self->id) && defined $value)
-                || (!defined($value) && defined $self->id)
-                || (defined $self->id && defined $value && $self->id != $value);
-            $self->oldvalue($clone);
-        }
-        $self->id($new_id) if defined $new_id || $self->init_no_value;
+        $value = undef if !$value; # Can be empty string, generating warnings
+        $self->column->validate($value, fatal => 1);
+        # Look up text value
+        my $node = $self->column->node($value);
+        $self->text($node->{value}) if $node;
+        $self->changed(1) if (!defined($self->id) && defined $value)
+            || (!defined($value) && defined $self->id)
+            || (defined $self->id && defined $value && $self->id != $value);
+        $self->id($value);
+        $self->oldvalue($clone);
     },
 );
 
 has id => (
-    is        => 'rw',
-    predicate => 1,
-    trigger   => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
+    is      => 'rw',
+    lazy    => 1,
+    trigger => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
+    builder => sub {
+        $_[0]->value_hash->{id};
+    },
+);
+
+has has_id => (
+    is  => 'rw',
+    isa => Bool,
 );
 
 sub value { $_[0]->id }
 
 # Make up for missing predicated value property
 sub has_value { $_[0]->has_id }
+
+has value_hash => (
+    is      => 'ro',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->has_init_value or return {};
+        my $value = $self->init_value->{value};
+        my $id = $value->{id};
+        $self->has_id(1) if defined $id || $self->init_no_value;
+        +{
+            id      => $id,
+            text    => $value->{value},
+            deleted => $value->{deleted},
+        };
+    },
+);
 
 has ancestors => (
     is      => 'rw',
@@ -108,12 +109,20 @@ has full_path => (
     },
 );
 
-has deleted => (
-    is => 'rw',
+has text => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->value_hash->{text};
+    },
 );
 
-has text => (
-    is        => 'rw',
+has deleted => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->value_hash->{deleted};
+    },
 );
 
 around 'clone' => sub {

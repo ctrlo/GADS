@@ -32,6 +32,7 @@ gads:
   name: "App name" # The local name for the application
   header: "HEADER"
   hostlocal: 0     # Whether to fetch files such as jquery.js locally
+  dateformat: "yyyy-MM-dd" # In CLDR format. Not all options available for datetime picker
   email_from: '"Linkspace" <user@example.com>' # Emails are sent from this
   aup: 0 # Whether to show an acceptable use policy
   login_instance: 1 # The config values used for login page

@@ -93,6 +93,21 @@ after 'write' => sub {
     $self->schema->resultset('Layout')->find($self->id)->update($newitem);
 };
 
+sub validate
+{   my ($self, $value, %options) = @_;
+    return 1 if !$value;
+    if (!defined $self->enumval($value)) # unchanged deleted value
+    {
+        return 0 unless $options{fatal};
+        error __x"'{int}' is not a valid enum ID for '{col}'",
+            int => $value, col => $self->name;
+    }
+    1;
+}
+
+# Any value is valid for a search, as it can include begins_with etc
+sub validate_search {1};
+
 sub cleanup
 {   my ($class, $schema, $id) = @_;
     # Rely on tree cleanup instead. If we have our own here, then

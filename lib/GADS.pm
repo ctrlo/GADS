@@ -102,6 +102,10 @@ GADS::Config->instance(
     config => config,
 );
 
+GADS::SchemaInstance->instance(
+    schema => schema,
+);
+
 GADS::Email->instance(
     config => config,
 );
@@ -189,7 +193,7 @@ hook before => sub {
         my $layout = GADS::Layout->new(
             user        => $user,
             schema      => schema,
-            config      => config,
+            config      => GADS::Config->instance,
             instance_id => $instance_id,
         );
         var 'layout' => $layout;
@@ -227,7 +231,7 @@ hook before_template => sub {
     $tokens->{messages}    = session('messages');
     $tokens->{user}        = $user;
     $tokens->{search}      = session 'search';
-    $tokens->{config}      = config;
+    $tokens->{config}      = GADS::Config->instance;
     session 'messages' => [];
 };
 

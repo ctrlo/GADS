@@ -28,33 +28,27 @@ has set_value => (
     is       => 'rw',
     trigger  => sub {
         my ($self, $value) = @_;
-        if (ref $value)
-        {
-            # From database
-            $value = $value->{value};
-        }
-        elsif (defined $value) {
-            # User input
-            $value =~ /^-?[0-9]*$/ or error __x"'{int}' is not a valid integer for '{col}'"
-                , int => $value, col => $self->column->name;
-            $value = undef if !$value && $value !~ /^0+$/; # Can be empty string, generating warnings
-        }
-        if ($self->has_value)
-        {
-            # Previous value
-            $self->changed(1) if (!defined($self->value) && defined $value)
-                || (!defined($value) && defined $self->value)
-                || (defined $self->value && defined $value && $self->value != $value);
-            $self->oldvalue($self->clone);
-        }
+        $value = undef if defined $value && !$value && $value !~ /^0+$/; # Can be empty string, generating warnings
+        $self->column->validate($value, fatal => 1);
+        $self->changed(1) if (!defined($self->value) && defined $value)
+            || (!defined($value) && defined $self->value)
+            || (defined $self->value && defined $value && $self->value != $value);
+        $self->oldvalue($self->clone);
         $self->value($value) if defined $value || $self->init_no_value;
     },
 );
 
 has value => (
     is      => 'rw',
+    lazy    => 1,
     trigger => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
-    predicate => 1,
+    builder => sub {
+        my $self = shift;
+        $self->has_init_value or return;
+        my $value = $self->init_value->{value};
+        $self->has_value(1) if defined $value || $self->init_no_value;
+        $value;
+    },
 );
 
 around 'clone' => sub {

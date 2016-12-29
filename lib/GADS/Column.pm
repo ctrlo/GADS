@@ -359,6 +359,25 @@ has hascache => (
     },
 );
 
+has dateformat => (
+    is      => 'rw',
+    isa     => Str,
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->layout->config->dateformat;
+    },
+);
+
+sub parse_date
+{   my ($self, $value) = @_;
+    return if ref $value; # Will cause CLDR parser to bork
+    my $cldr = DateTime::Format::CLDR->new(
+        pattern => $self->dateformat,
+    );
+    $value && $cldr->parse_datetime($value);
+}
+
 sub _build_permissions
 {   my $self = shift;
     my @all = $self->schema->resultset('LayoutGroup')->search({
@@ -711,6 +730,10 @@ sub _filter_remove_colid_decoded
 sub validate
 {   my ($self, $value) = @_;
     1; # Overridden in child classes
+}
+
+sub validate_search
+{   shift->validate(@_);
 }
 
 sub values_beginning_with

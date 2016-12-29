@@ -190,7 +190,7 @@
             <script type="text/javascript" src="[% url.js %]/bootstrap-datepicker.js"></script>
             <script type="text/javascript">
                 $(document).ready(function() {
-                    $('.datepicker').datepicker({format: "yyyy-mm-dd", autoclose: true});
+                    $('.datepicker').datepicker({format: "[% config.dateformat_datepicker %]", autoclose: true});
                 });
             </script>
         [% END %]

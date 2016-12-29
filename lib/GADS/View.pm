@@ -282,30 +282,24 @@ sub write
     _filter_tables $decoded, $cols_in_filter;
     foreach my $col_id (keys %$cols_in_filter)
     {
-        my $strp = DateTime::Format::Strptime->new(
-            pattern   => '%F',
-        );
         my $col   = $self->layout->column($col_id);
         my $fil   = $cols_in_filter->{$col_id};
         my $val   = $fil->{value};
         my $op    = $fil->{operator};
         my $rtype = $col->return_type;
-        if ($rtype eq 'daterange' && ($op eq 'equal' || $op eq 'not_equal'))
-        {   # expect exact daterange format, "yyyy-mm-dd to yyyy-mm-dd"
-            my ($from, $to) = split ' to ', $val;
-            error __x qq(Invalid daterange format "{value}" for operator "$op". Value must be a
-                full date range ("yyyy-mm-dd to yyyy-mm-dd").), value => $val
-                if !$strp->parse_datetime($from) || !$strp->parse_datetime($to);
+        if ($rtype eq 'daterange')
+        {
+            if ($op eq 'equal' || $op eq 'not_equal')
+            {
+                # expect exact daterange format, e.g. "yyyy-mm-dd to yyyy-mm-dd"
+                $col->validate_search($val, fatal => 1, full_only => 1); # Will bork on failure
+            }
+            else {
+                $col->validate_search($val, fatal => 1, single_only => 1); # Will bork on failure
+            }
         }
-        elsif (
-            ($rtype eq 'date' || $rtype eq 'daterange')
-            && ($op ne 'is_empty' && $op ne 'is_not_empty')
-        )
-        {   # expect standard date format for other daterange operators
-            error __x qq(Invalid date format "{value}"), value => $val
-                if ( $val !~ /^[-0-9]+$/ # parse_datetime allows junk after proper date
-                    || !$strp->parse_datetime($val)
-                ) && !($val =~ 'CURDATE' && $self->parse_date_filter($val));
+        else {
+            $col->validate_search($val, fatal => 1); # Will bork on failure
         }
 
         error __x "No value can be entered for empty and not empty operators"

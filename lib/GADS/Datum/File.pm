@@ -20,6 +20,7 @@ package GADS::Datum::File;
 
 use Log::Report;
 use Moo;
+use MooX::Types::MooseLike::Base qw/:all/;
 use namespace::clean;
 
 extends 'GADS::Datum';
@@ -28,9 +29,8 @@ has set_value => (
     is       => 'rw',
     trigger  => sub {
         my ($self, $value) = @_;
-        my $first_time = 1 unless $self->has_id;
+        my $clone = $self->clone; # Copy before changing text
         my $new_id;
-        $value = $value->{value} if ref $value && ref $value->{value};
         if (ref $value && $value->{content})
         {
             # New file uploaded
@@ -42,35 +42,49 @@ has set_value => (
             $self->name($value->{name});
             $self->mimetype($value->{mimetype});
         }
-        elsif(ref $value) {
-            $new_id = $value->{id};
-            $self->name($value->{name});
-            $self->mimetype($value->{mimetype});
-        }
         else {
             # Just ID for file passed. Probably a resubmission
             # of a form with previous errors
             $new_id = $value;
         }
-        unless ($first_time)
-        {
-            # Previous value
-            $self->changed(1) if (!defined($self->id) && defined $value)
-                || (!defined($value) && defined $self->id)
-                || (defined $self->id && defined $value && $self->id != $value);
-            $self->oldvalue($self->clone);
-        }
-        $self->id($new_id) if $new_id || $self->init_no_value;
+        $self->changed(1) if (!defined($self->id) && defined $value)
+            || (!defined($value) && defined $self->id)
+            || (defined $self->id && defined $value && $self->id != $value);
+        $self->oldvalue($self->clone);
+        $self->id($new_id) if defined $new_id || $self->init_no_value;
     },
 );
 
 has id => (
-    is        => 'rw',
-    predicate => 1,
-    trigger   => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
+    is      => 'rw',
+    lazy    => 1,
+    trigger => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
+    builder => sub { $_[0]->value_hash && $_[0]->value_hash->{id} },
+);
+
+has has_id => (
+    is  => 'rw',
+    isa => Bool,
 );
 
 sub value { $_[0]->id }
+
+has value_hash => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->has_init_value or return;
+        my $value = $self->init_value->{value};
+        my $id = $value->{id};
+        $self->has_id(1) if defined $id || $self->init_no_value;
+        +{
+            id       => $id,
+            name     => $value->{name},
+            mimetype => $value->{mimetype},
+        };
+    },
+);
 
 # Make up for missing predicated value property
 sub has_value { $_[0]->has_id }
@@ -79,7 +93,7 @@ has name => (
     is      => 'rw',
     lazy    => 1,
     builder => sub {
-        $_[0]->_rset->name;
+        $_[0]->value_hash ? $_[0]->value_hash->{name} : $_[0]->_rset && $_[0]->_rset->name;
     },
 );
 
@@ -87,7 +101,7 @@ has mimetype => (
     is      => 'rw',
     lazy    => 1,
     builder => sub {
-        $_[0]->_rset->mimetype;
+        $_[0]->value_hash ? $_[0]->value_hash->{mimetype} : $_[0]->_rset && $_[0]->_rset->mimetype;
     },
 );
 
@@ -117,7 +131,7 @@ has content => (
     is      => 'rw',
     lazy    => 1,
     builder => sub {
-        $_[0]->_rset->content;
+        $_[0]->value_hash ? $_[0]->value_hash->{content} : $_[0]->_rset && $_[0]->_rset->content;
     },
 );
 

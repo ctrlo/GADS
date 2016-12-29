@@ -137,6 +137,25 @@ after 'delete' => sub {
     $self->_clear_enumvals_index;
 };
 
+sub validate
+{   my ($self, $value, %options) = @_;
+    return 1 if !$value;
+
+    if (!$self->node($value))
+    {
+        return 0 unless $options{fatal};
+        error __x"'{int}' is not a valid tree node ID for '{col}'",
+            int => $value, col => $self->name;
+    }
+    if ($self->node($value)->{node}->{deleted})
+    {
+        return 0 unless $options{fatal};
+        error __x"Node '{int}' has been deleted and can therefore not be used"
+            , int => $value;
+    }
+    1;
+}
+
 # Get a single node value
 sub node
 {   my ($self, $id) = @_;

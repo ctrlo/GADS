@@ -30,13 +30,48 @@ has config => (
 has gads => (
     is      => 'ro',
     lazy    => 1,
-    builder => sub { $_[0]->config->{gads} },
+    builder => sub { ref $_[0]->config eq 'HASH' && $_[0]->config->{gads} },
 );
 
 has login_instance => (
     is      => 'ro',
     lazy    => 1,
     builder => sub { $_[0]->gads->{login_instance} || 1 },
+);
+
+has dateformat => (
+    is      => 'ro',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        ref $self->gads eq 'HASH' && $self->gads->{dateformat} || 'yyyy-MM-dd';
+    },
+);
+
+has dateformat_datepicker => (
+    is      => 'ro',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        my $dateformat = $self->dateformat;
+        # Convert CLDR to datepicker.
+        # Datepicker accepts:
+        # d, dd: Numeric date, no leading zero and leading zero, respectively. Eg, 5, 05.
+        # - No change required
+        # D, DD: Abbreviated and full weekday names, respectively. Eg, Mon, Monday.
+        $dateformat =~ s/eeee/DD/;
+        $dateformat =~ s/eee/D/;
+        # m, mm: Numeric month, no leading zero and leading zero, respectively. Eg, 7, 07.
+        $dateformat =~ s/MM(?!M)/mm/;
+        $dateformat =~ s/M(?!M)/m/;
+        # M, MM: Abbreviated and full month names, respectively. Eg, Jan, January
+        $dateformat =~ s/MMMM/MM/;
+        $dateformat =~ s/MMM/M/;
+        # yy, yyyy: 2- and 4-digit years, respectively. Eg, 12, 2012.
+        # - No change required
+
+        return $dateformat;
+    },
 );
 
 1;

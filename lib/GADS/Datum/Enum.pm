@@ -20,6 +20,7 @@ package GADS::Datum::Enum;
 
 use Log::Report;
 use Moo;
+use MooX::Types::MooseLike::Base qw/:all/;
 use namespace::clean;
 
 extends 'GADS::Datum';
@@ -28,49 +29,56 @@ has set_value => (
     is       => 'rw',
     trigger  => sub {
         my ($self, $value) = @_;
-        my $first_time = 1 unless $self->has_id;
-        my $new_id;
         my $clone = $self->clone; # Copy before changing text
-        if (ref $value)
-        {
-            # From database, with enumval table joined
-            if ($value = $value->{value})
-            {
-                $new_id = $value->{id};
-                $self->text($value->{value});
-            }
-        }
-        elsif (defined $value) {
-            # User input
-            !$value || $self->column->enumval($value) || $self->id == $value # unchanged deleted value
-                or error __x"'{int}' is not a valid enum ID for '{col}'"
-                    , int => $value, col => $self->column->name;
-            $value = undef if !$value; # Can be empty string, generating warnings
-            $new_id = $value;
-            # Look up text value
-            my $enumval = $self->column->enumval($value);
-            $self->text($enumval->{value}) if $enumval;
-        }
-        unless ($first_time)
-        {
-            # Previous value
-            $self->changed(1) if (!defined($self->id) && defined $value)
-                || (!defined($value) && defined $self->id)
-                || (defined $self->id && defined $value && $self->id != $value);
-            $self->oldvalue($clone);
-        }
-        $self->id($new_id) if defined $new_id || $self->init_no_value;
+        $value = undef if !$value; # Can be empty string, generating warnings
+        $self->column->validate($value, fatal => 1) unless $self->id && $value && $self->id == $value; # unchanged deleted value
+        # Look up text value
+        my $enumval = $self->column->enumval($value);
+        $self->text($enumval->{value}) if $enumval;
+        $self->changed(1) if (!defined($self->id) && defined $value)
+            || (!defined($value) && defined $self->id)
+            || (defined $self->id && defined $value && $self->id != $value);
+        $self->oldvalue($clone);
+        $self->id($value) if defined $value || $self->init_no_value;
     },
 );
 
 has text => (
-    is        => 'rw',
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->value_hash->{text};
+    },
 );
 
 has id => (
-    is        => 'rw',
-    predicate => 1,
-    trigger   => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
+    is      => 'rw',
+    lazy    => 1,
+    trigger => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
+    builder => sub {
+        $_[0]->value_hash->{id};
+    },
+);
+
+has value_hash => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->has_init_value or return {};
+        my $value = $self->init_value->{value};
+        my $id = $value->{id};
+        $self->has_id(1) if defined $id || $self->init_no_value;
+        +{
+            id   => $id,
+            text => $value->{value},
+        };
+    },
+);
+
+has has_id => (
+    is  => 'rw',
+    isa => Bool,
 );
 
 sub value { $_[0]->id }

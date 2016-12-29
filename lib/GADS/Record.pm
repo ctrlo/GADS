@@ -579,14 +579,13 @@ sub _transform_values
         $fields->{$column->id} = $column->class->new(
             record_id        => $self->record_id,
             current_id       => $self->current_id,
-            set_value        => $value,
+            init_value       => $value,
             child_unique     => $value->{child_unique},
             column           => $column,
             dependent_values => $dependent_values,
             init_no_value    => $self->init_no_value,
             schema           => $self->schema,
             layout           => $self->layout,
-            datetime_parser  => $self->schema->storage->datetime_parser,
             force_update     => $force_update,
         );
     }

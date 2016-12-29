@@ -1,6 +1,6 @@
 =pod
 GADS - Globally Accessible Data Store
-Copyright (C) 2014 Ctrl O Ltd
+Copyright (C) 2016 Ctrl O Ltd
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
@@ -16,38 +16,15 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 =cut
 
-package GADS::Column::Intgr;
+package GADS::SchemaInstance;
 
-use Log::Report;
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
 
-extends 'GADS::Column';
+with 'MooX::Singleton';
 
-has '+numeric' => (
-    default => 1,
+has schema => (
+    is       => 'ro',
+    required => 1,
 );
-
-has '+return_type' => (
-    builder => sub { 'integer' },
-);
-
-sub validate
-{   my ($self, $value, %options) = @_;
-
-    if ($value && $value !~ /^[0-9]+$/)
-    {
-        return 0 unless $options{fatal};
-        error __x"'{int}' is not a valid integer for '{col}'",
-            int => $value, col => $self->name;
-    }
-    1;
-}
-
-sub cleanup
-{   my ($class, $schema, $id) = @_;
-    $schema->resultset('Intgr')->search({ layout_id => $id })->delete;
-}
 
 1;
-

@@ -122,7 +122,7 @@ foreach my $user_type (keys %users)
     my $layout = GADS::Layout->new(
         user        => $user,
         schema      => $schema,
-        config      => undef,
+        config      => GADS::Config->instance,
         instance_id => $sheet->instance_id,
     );
 

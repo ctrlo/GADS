@@ -79,9 +79,28 @@ has curval => (
     is => 'ro',
 );
 
-GADS::Config->instance(
-    config => undef,
+has calc_code => (
+    is      => 'ro',
+    isa     => Str,
+    default => '[Daterange1.from.year]',
 );
+
+has calc_return_type => (
+    is      => 'ro',
+    isa     => Str,
+    default => 'integer',
+);
+
+has config => (
+    is => 'lazy',
+);
+
+sub _build_config
+{   my $self = shift;
+    GADS::Config->instance(
+        config => undef,
+    );
+}
 
 sub _build_schema
 {   my $self = shift;
@@ -120,7 +139,7 @@ sub _build_layout
     GADS::Layout->new(
         user                     => undef,
         schema                   => $self->schema,
-        config                   => undef,
+        config                   => $self->config,
         instance_id              => $self->instance_id,
         user_permission_override => 1,
     );
@@ -369,10 +388,10 @@ sub __build_columns
         user   => undef,
         layout => $self->layout,
     );
-    $calc1->calc('[Daterange1.from.year]');
+    $calc1->calc($self->calc_code);
     $calc1->type('calc');
     $calc1->name('calc1');
-    $calc1->return_type('integer');
+    $calc1->return_type($self->calc_return_type);
     try { $calc1->write };
     if ($@)
     {

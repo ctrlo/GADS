@@ -20,57 +20,47 @@ package GADS::Datum::Daterange;
 
 use DateTime;
 use DateTime::Span;
+use GADS::SchemaInstance;
 use Log::Report;
 use Moo;
 use namespace::clean;
 
 extends 'GADS::Datum';
 
-has datetime_parser => (
-    is       => 'rw',
-    required => 1,
+has schema => (
+    is      => 'ro',
+    lazy    => 1,
+    builder => sub {
+        GADS::SchemaInstance->instance;
+    },
 );
 
+# Set datum value with value from user
 has set_value => (
     is       => 'rw',
     trigger  => sub {
         my ($self, $value) = @_;
 
-        if ($self->has_value)
-        {
-            $self->oldvalue($self->clone);
-            my $newvalue = $self->_parse_dt($value); # DB parser needed for this. Will be set second time
-            my $from_old = $self->oldvalue && $self->oldvalue->value ? $self->oldvalue->value->start->epoch : 0;
-            my $to_old   = $self->oldvalue && $self->oldvalue->value ? $self->oldvalue->value->end->epoch   : 0;
-            my $from_new = $newvalue ? $newvalue->start->epoch : 0;
-            my $to_new   = $newvalue ? $newvalue->end->epoch   : 0;
-            $self->changed(1) if $from_old != $from_new || $to_old != $to_new;
-            $self->value($newvalue);
-        }
-        else {
-            # Parse now if we have a parser. Better to check for invalid values whilst
-            # we're setting values, so that they are caught and displayed to the user.
-            # We don't have a parser if setting the value on instantiation from the
-            # database, but in that case we know we have a valid value.
-            if ($self->datetime_parser)
-            {
-                my $v = $self->_parse_dt($value); # DB parser needed for this. Will be set second time
-                $self->value($v);
-            }
-            else {
-                $self->_init_value($value);
-            }
-            $self->has_value(1) if defined $value || $self->init_no_value;
-        }
-    },
+        $self->oldvalue($self->clone);
+        my $newvalue = $self->_parse_dt($value, 'user');
+        my $from_old = $self->oldvalue && $self->oldvalue->value ? $self->oldvalue->value->start->epoch : 0;
+        my $to_old   = $self->oldvalue && $self->oldvalue->value ? $self->oldvalue->value->end->epoch   : 0;
+        my $from_new = $newvalue ? $newvalue->start->epoch : 0;
+        my $to_new   = $newvalue ? $newvalue->end->epoch   : 0;
+        $self->changed(1) if $from_old != $from_new || $to_old != $to_new;
+        $self->value($newvalue);
+    }
 );
 
 has value => (
-    is       => 'rw',
-    lazy     => 1,
-    builder   => sub {
-        my ($self) = @_;
-        $self->_parse_dt($self->_init_value);
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        my $value = $self->init_value;
+        my $v = $self->_parse_dt($value, 'db');
+        $self->has_value(1) if defined $value || $self->init_no_value;
+        $self->value($v);
     },
 );
 
@@ -78,16 +68,6 @@ around blank => sub {
     my ($orig, $self) = @_;
     $self->from_dt && $self->to_dt ? 0 : 1;
 };
-
-# The initial value, as a raw date
-has _init_value => (
-    is => 'rw',
-);
-
-has schema => (
-    is       => 'rw',
-    required => 1,
-);
 
 # Can't use predicate, as value may not have been built on
 # second time it's set
@@ -100,7 +80,6 @@ around 'clone' => sub {
     my $self = shift;
     $orig->(
         $self,
-        datetime_parser => $self->datetime_parser,
         value           => $self->value,
         schema          => $self->schema,
     );
@@ -108,12 +87,12 @@ around 'clone' => sub {
 
 sub from_form
 {   my $self = shift;
-    $self->value && $self->value->start->ymd;
+    $self->value && $self->value->start->format_cldr($self->column->dateformat);
 }
 
 sub to_form
 {   my $self = shift;
-    $self->value && $self->value->end->ymd;
+    $self->value && $self->value->end->format_cldr($self->column->dateformat);
 }
 
 sub from_dt
@@ -127,8 +106,9 @@ sub to_dt
 }
 
 sub _parse_dt
-{   my ($self, $original) = @_;
-    my $db_parser = $self->datetime_parser;
+{   my ($self, $original, $source) = @_;
+
+    $original or return;
 
     # Array ref will be received from form
     if (ref $original eq 'ARRAY')
@@ -139,25 +119,24 @@ sub _parse_dt
         };
     }
     # Otherwise assume it's a hashref: { from => .., to => .. }
-    error __x"Please enter 2 date values for '{col}'", col => $self->column->name
-        if $original->{from} xor $original->{to};
-    error __x"Invalid start date {value} for {col}. Please enter as yyyy-mm-dd.", value => $original->{from}, col => $self->column->name,
-        if $original->{from} && $original->{from} !~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
-    error __x"Invalid end date {value} for {col}. Please enter as yyyy-mm-dd.", value => $original->{to}, col => $self->column->name,
-        if $original->{to} && $original->{to} !~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
 
-    my $from = $original->{from} ? $db_parser->parse_date($original->{from}) : undef;
-    my $to   = $original->{to}   ? $db_parser->parse_date($original->{to}) : undef;
+    return
+        if !$original->{from} && !$original->{to};
 
-    return unless $from && $to;
+    my ($from, $to);
+    if ($source eq 'db')
+    {
+        my $db_parser = $self->schema->storage->datetime_parser;
+        $from = $db_parser->parse_date($original->{from});
+        $to   = $db_parser->parse_date($original->{to});
+    }
+    else { # Assume 'user'
+        $self->column->validate($original, fatal => 1);
+        $from = $self->column->parse_date($original->{from});
+        $to   = $self->column->parse_date($original->{to});
+    }
 
-    error __x"Start date must be before the end date for '{col}'", col => $self->column->name
-        if DateTime->compare($from, $to) == 1;
-
-    my $return = DateTime::Span->from_datetimes(start => $from, end => $to);
-
-    my $string = $self->_as_string($return);
-    $return;
+    DateTime::Span->from_datetimes(start => $from, end => $to);
 }
 
 # XXX Why is this needed? Error when creating new record otherwise
@@ -177,7 +156,8 @@ sub _as_string
 {   my ($self, $range) = @_;
     return "" unless $range;
     return "" unless $range->start && $range->end;
-    $range->start->ymd . " to " . $range->end->ymd;
+    my $format = $self->column->dateformat;
+    $range->start->format_cldr($format) . " to " . $range->end->format_cldr($format);
 }
 
 1;

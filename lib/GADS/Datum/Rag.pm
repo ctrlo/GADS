@@ -38,7 +38,7 @@ has value => (
     clearer  => 1,
     builder  => sub {
         my $self = shift;
-        $self->_transform_value($self->set_value);
+        $self->_transform_value($self->init_value);
     },
 );
 
