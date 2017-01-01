@@ -626,6 +626,10 @@ sub user_id_can
 
 sub set_permissions
 {   my ($self, $group_id, $permissions) = @_;
+
+    $group_id
+        or error __"Please select a group to add the permissions to";
+
     my $has_read;
     foreach my $permission (@$permissions)
     {
