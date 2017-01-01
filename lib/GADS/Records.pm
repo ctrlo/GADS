@@ -505,9 +505,7 @@ sub search_all_fields
 sub _build_results
 {   my $self = shift;
 
-    # XXX Okay, this is a bit weird - we join current to record to current.
-    # This is because we return records at the end, and it allows current
-    # to be used when the record is used. Is there a better way?
+    # Build the search query first, to ensure that all join numbers are correct
     my $search_query    = $self->search_query(search => 1, sort => 1, linked => 1); # Need to call first to build joins
     my @prefetches      = $self->jpfetch(prefetch => 1);
     my @linked_prefetch = $self->linked_hash(prefetch => 1);

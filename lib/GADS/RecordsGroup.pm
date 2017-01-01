@@ -101,6 +101,10 @@ sub _build_results
 
     my @group_by    = @{$self->group_by};
 
+    # Build the full query first, to ensure that all join numbers etc are
+    # calculated correctly
+    my $search_query    = $self->search_query(search => 1, sort => 1, linked => 1);
+
     # Work out the field name to select, and the appropriate aggregate function
     my @select_fields;
     foreach (@{$self->columns_retrieved_do})
@@ -112,25 +116,25 @@ sub _build_results
                : 'max';
         # Don't use SUM() for non-numeric columns
         $op = 'max' if $op eq 'sum' && !$_->numeric;
-        $self->add_join($_, search => 1);
+        $self->add_prefetch($_);
         push @select_fields, {
-            $op => $self->fqvalue($_, search => 1),
+            $op => $self->fqvalue($_, search => 1, prefetch => 1),
             -as => $_->field
         };
         # Also add linked column if required
         push @select_fields, {
-            $op => $self->fqvalue($_->link_parent, linked => 1, search => 1),
+            $op => $self->fqvalue($_->link_parent, linked => 1, search => 1, prefetch => 1),
             -as => $_->field."_link",
         } if $_->link_parent;
     };
 
     push @select_fields, {
-        $self->operator => $self->fqvalue($self->column, search => 1),
+        $self->operator => $self->fqvalue($self->column, search => 1, prefetch => 1),
         -as             => $self->column->field."_".$self->{operator},
     } if $self->column;
 
     push @select_fields, {
-        $self->operator => $self->fqvalue($self->column->link_parent, linked => 1, search => 1),
+        $self->operator => $self->fqvalue($self->column->link_parent, linked => 1, search => 1, prefetch => 1),
         -as             => $self->column->field."_".$self->{operator}."_link",
     } if $self->column && $self->column->link_parent;
 
@@ -200,8 +204,8 @@ sub _build_results
             # The literal CASE statement, which we reuse for each required period
             my $from_field   = $self->schema->storage->dbh->quote_identifier('from');
             my $to_field     = $self->schema->storage->dbh->quote_identifier('to');
-            my $col_val      = $self->fqvalue($self->column, search => 1);
-            my $col_val_link = $self->column->link_parent && $self->fqvalue($self->column->link_parent, linked => 1, search => 1);
+            my $col_val      = $self->fqvalue($self->column, search => 1, prefetch => 1);
+            my $col_val_link = $self->column->link_parent && $self->fqvalue($self->column->link_parent, linked => 1, search => 1, prefetch => 1);
 
             my $case = $field_link
                 ? "CASE WHEN "
@@ -259,19 +263,19 @@ sub _build_results
         if (my $pluck = $_->{pluck}) {
 
             push @g, $self->schema->resultset('Current')->dt_SQL_pluck(
-                { -ident => $self->fqvalue($col, search => 1) }, 'year'
+                { -ident => $self->fqvalue($col, search => 1, prefetch => 1) }, 'year'
             );
 
             push @g, $self->schema->resultset('Current')->dt_SQL_pluck(
-                { -ident => $self->fqvalue($col, search => 1) }, 'month'
+                { -ident => $self->fqvalue($col, search => 1, prefetch => 1) }, 'month'
             ) if $pluck eq 'month' || $pluck eq 'day';
 
             push @g, $self->schema->resultset('Current')->dt_SQL_pluck(
-                { -ident => $self->fqvalue($col, search => 1) }, 'day_of_month'
+                { -ident => $self->fqvalue($col, search => 1, prefetch => 1) }, 'day_of_month'
             ) if $pluck eq 'day';
 
         } else {
-            push @g, $self->fqvalue($col, search => 1);
+            push @g, $self->fqvalue($col, search => 1, prefetch => 1);
         }
     };
 

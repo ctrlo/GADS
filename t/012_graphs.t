@@ -13,10 +13,10 @@ use t::lib::DataSheet;
 
 my $data = [
     {
+        # No integer1 - the value will be taken from a linked record
         string1    => 'Foo',
         date1      => '2013-10-10',
         daterange1 => ['2014-03-21', '2015-03-01'],
-        integer1   => 10,
         enum1      => 7,
         curval1    => 1,
     },{
@@ -48,6 +48,36 @@ my $sheet   = t::lib::DataSheet->new(data => $data, schema => $schema, curval =>
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
 $sheet->create_records;
+
+# Add linked record sheet, which will contain the integer1 value for the first
+# record of the first sheet
+my $sheet2 = t::lib::DataSheet->new(data => [], instance_id => 3, schema => $schema);
+my $layout2 = $sheet2->layout;
+my $columns2 = $sheet2->columns;
+
+# Set link field of first sheet integer1 to integer1 of second sheet
+$columns->{integer1}->link_parent_id($columns2->{integer1}->id);
+$columns->{integer1}->write;
+$layout->clear; # Need to rebuild columns to get link_parent built
+
+# Create the single record of the second sheet, which will contain the single
+# integer1 value
+my $child = GADS::Record->new(
+    user   => undef,
+    layout => $layout2,
+    schema => $schema,
+);
+$child->initialise;
+$child->fields->{$columns2->{integer1}->id}->set_value(10);
+$child->write(no_alerts => 1);
+# Set the first record of the first sheet to take its value from the linked sheet
+my $parent = GADS::Records->new(
+    user   => undef,
+    layout => $layout,
+    schema => $schema,
+)->single;
+$parent->linked_id($child->current_id);
+$parent->write_linked_id;
 
 my $graphs = [
     {
