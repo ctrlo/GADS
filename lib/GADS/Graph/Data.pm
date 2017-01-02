@@ -327,8 +327,7 @@ sub _build_data
             my $x_value = $line->get_column($col);
             $x_value ||= $line->get_column("${col}_link")
                 if !$x_daterange && $x->link_parent;
-            $self->x_axis && !$x_value
-                and next; # Skip blank x-values, but only for non multi-x-axis
+            $x_value ||= '<no value>';
 
             if ($x_axis_grouping) # Group by date, round to required interval
             {
