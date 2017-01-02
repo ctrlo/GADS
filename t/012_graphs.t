@@ -76,8 +76,7 @@ my $parent = GADS::Records->new(
     layout => $layout,
     schema => $schema,
 )->single;
-$parent->linked_id($child->current_id);
-$parent->write_linked_id;
+$parent->write_linked_id($child->current_id);
 
 my $graphs = [
     {
