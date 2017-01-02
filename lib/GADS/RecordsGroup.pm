@@ -106,27 +106,34 @@ sub _build_results
     my $search_query    = $self->search_query(search => 1, sort => 1, linked => 1);
 
     # Work out the field name to select, and the appropriate aggregate function
-    my @select_fields;
-    foreach (@{$self->columns_retrieved_do})
+    my @select_fields; my @cols;
+    foreach my $col (@{$self->columns_retrieved_do})
     {
-        my $op = $self->col_max && $self->col_max == $_->id
+        push @cols, $col;
+        push @cols, @{$col->curval_fields}
+            if $col->type eq 'curval';
+    }
+
+    foreach my $col (@cols)
+    {
+        my $op = $self->col_max && $self->col_max == $col->id
                ? 'max'
                : $self->aggregate_all
                ? $self->operator
                : 'max';
         # Don't use SUM() for non-numeric columns
-        $op = 'max' if $op eq 'sum' && !$_->numeric;
-        $self->add_prefetch($_);
+        $op = 'max' if $op eq 'sum' && !$col->numeric;
+        $self->add_prefetch($col);
         push @select_fields, {
-            $op => $self->fqvalue($_, search => 1, prefetch => 1),
-            -as => $_->field
+            $op => $self->fqvalue($col, search => 1, prefetch => 1),
+            -as => $col->field
         };
         # Also add linked column if required
         push @select_fields, {
-            $op => $self->fqvalue($_->link_parent, linked => 1, search => 1, prefetch => 1),
-            -as => $_->field."_link",
-        } if $_->link_parent;
-    };
+            $op => $self->fqvalue($col->link_parent, linked => 1, search => 1, prefetch => 1),
+            -as => $col->field."_link",
+        } if $col->link_parent;
+    }
 
     push @select_fields, {
         $self->operator => $self->fqvalue($self->column, search => 1, prefetch => 1),

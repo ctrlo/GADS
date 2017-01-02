@@ -328,6 +328,11 @@ sub _build_data
             $x_value ||= $line->get_column("${col}_link")
                 if !$x_daterange && $x->link_parent;
 
+            if (!$x_daterange && $x->type eq 'curval' && $x_value)
+            {
+                $x_value = $x->format_value(map { $line->get_column($_->field) } @{$x->curval_fields});
+            }
+
             if ($x_axis_grouping) # Group by date, round to required interval
             {
                 !$x_value and next;

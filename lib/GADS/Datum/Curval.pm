@@ -62,7 +62,7 @@ has value_hash => (
                 parent_id            => $value->{parent_id},
                 columns_retrieved_do => $self->column->curval_fields,
             );
-            $text = $self->column->_format_value($record)->{value};
+            $text = $self->column->_format_row($record)->{value};
             $id = $value->{id};
         }
         else {

@@ -150,7 +150,7 @@ sub _build_values
     my @values;
     while (my $r = $records->single)
     {
-        push @values, $self->_format_value($r);
+        push @values, $self->_format_row($r);
     }
 
     \@values;
@@ -179,7 +179,7 @@ sub value
     my $records = $self->_records_from_db($id)
         or return;
     my ($row) = @{$records->results};
-    $self->_format_value($row);
+    $self->_format_row($row);
 }
 
 # Use an around so that we can stick the whole lot in transaction
@@ -294,20 +294,24 @@ sub values_beginning_with
     my @results;
     foreach my $row (@{$records->results})
     {
-        push @results, $self->_format_value($row, 'name');
+        push @results, $self->_format_row($row, 'name');
     }
     @results;
 }
 
-sub _format_value
+sub _format_row
 {   my ($self, $row, $value_key) = @_;
     $value_key ||= 'value';
     my @values = map { $row->fields->{$_} } @{$self->curval_field_ids};
-    my $text = join ', ', @values;
+    my $text = $self->format_value(@values);
     +{
         id         => $row->current_id,
         $value_key => $text,
     };
+}
+
+sub format_value
+{   shift; join ', ', map { $_ || '' } @_;
 }
 
 sub cleanup

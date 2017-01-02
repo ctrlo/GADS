@@ -139,7 +139,7 @@ my $graphs = [
         x_axis       => $columns->{curval1}->id,
         y_axis       => $columns->{integer1}->id,
         y_axis_stack => 'sum',
-        data         => [[ 45, 35 ]],
+        data         => [[ 35, 45 ]],
     },
     {
         name         => 'Curval on x-axis grouped by enum',
@@ -148,7 +148,7 @@ my $graphs = [
         y_axis       => $columns->{integer1}->id,
         y_axis_stack => 'sum',
         group_by     => $columns->{enum1}->id,
-        data         => [[35, 20], [ 10, 15 ]],
+        data         => [[20, 35], [ 15, 10 ]],
     },
     {
         name         => 'Graph grouped by curvals',
