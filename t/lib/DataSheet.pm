@@ -466,7 +466,7 @@ sub create_records
         if (exists $datum->{file1})
         {
             my $file = $datum->{file1};
-            if (!$file)
+            if (!defined $file)
             {
                 $file = {
                     name     => 'myfile.txt',

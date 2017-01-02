@@ -39,6 +39,7 @@ has set_value => (
                 mimetype => $value->{mimetype},
                 content  => $value->{content},
             })->id;
+            $self->content($value->{content});
             $self->name($value->{name});
             $self->mimetype($value->{mimetype});
         }
@@ -47,10 +48,10 @@ has set_value => (
             # of a form with previous errors
             $new_id = $value || undef;
         }
-        $self->changed(1) if (!defined($self->id) && defined $value)
-            || (!defined($value) && defined $self->id)
-            || (defined $self->id && defined $value && $self->id != $value);
-        $self->oldvalue($self->clone);
+        $self->changed(1) if (!$self->id && $value)
+            || (!$value && $self->id)
+            || (defined $self->id && defined $new_id && $self->id != $new_id && $clone->content ne $self->content);
+        $self->oldvalue($clone);
         $self->id($new_id) if defined $new_id || $self->init_no_value;
     },
 );
@@ -131,14 +132,19 @@ has content => (
     is      => 'rw',
     lazy    => 1,
     builder => sub {
-        $_[0]->value_hash ? $_[0]->value_hash->{content} : $_[0]->_rset && $_[0]->_rset->content;
+        $_[0]->_rset && $_[0]->_rset->content;
     },
 );
 
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
-    $orig->($self, id => $self->id, name => $self->name, mimetype => $self->mimetype);
+    $orig->($self,
+        id       => $self->id,
+        name     => $self->name,
+        mimetype => $self->mimetype,
+        content  => $self->content
+    );
 };
 
 

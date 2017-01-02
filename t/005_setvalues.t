@@ -13,46 +13,48 @@ use t::lib::DataSheet;
 
 my $values = {
     string1 => {
-        old           => 'foo', # The initial value
         old_as_string => 'foo', # The initial value
         new           => 'bar', # The value it's changed to
         new_as_string => 'bar', # The string representation of the new value
     },
     integer1 => {
-        old           => 100,
         old_as_string => '100',
         new           => 200,
         new_as_string => '200',
     },
     enum1 => {
-        old           => 7,
         old_as_string => 'foo1',
         new           => 8,
         new_as_string => 'foo2',
     },
     tree1 => {
-        old           => 10,
         old_as_string => 'tree1',
         new           => 11,
         new_as_string => 'tree2',
     },
     date1 => {
-        old           => '2010-10-10',
         old_as_string => '2010-10-10',
         new           => '2011-10-10',
         new_as_string => '2011-10-10',
     },
     daterange1 => {
-        old           => ['2000-10-10', '2001-10-10'],
         old_as_string => '2000-10-10 to 2001-10-10',
         new           => ['2000-11-11', '2001-11-11'],
         new_as_string => '2000-11-11 to 2001-11-11',
     },
     curval1 => {
-        old           => 1,
         old_as_string => 'Foo, 50, , , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012',
         new           => 2,
         new_as_string => 'Bar, 99, , , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+    },
+    file1 => {
+        old_as_string => 'file1.txt',
+        new => {
+            name     => 'file2.txt',
+            mimetype => 'text/plain',
+            content  => 'Text file2',
+        },
+        new_as_string => 'file2.txt',
     },
 };
 
@@ -66,6 +68,7 @@ my $data = {
             date1      => '',
             daterange1 => ['', ''],
             curval1    => '',
+            file1      => '',
         },
     ],
     changed => [
@@ -77,6 +80,11 @@ my $data = {
             date1      => '2010-10-10',
             daterange1 => ['2000-10-10', '2001-10-10'],
             curval1    => 1,
+            file1      => {
+                name     => 'file1.txt',
+                mimetype => 'text/plain',
+                content  => 'Text file1',
+            },
         },
     ],
     nochange => [
@@ -88,6 +96,11 @@ my $data = {
             date1      => '2011-10-10',
             daterange1 => ['2000-11-11', '2001-11-11'],
             curval1    => 2,
+            file1      => {
+                name     => 'file2.txt',
+                mimetype => 'text/plain',
+                content  => 'Text file2',
+            },
         },
     ],
 };
@@ -182,5 +195,23 @@ foreach my $c (keys %{$data->{changed}->[0]})
     $datum->set_value($data->{blank}->[0]->{$c});
     ok( !$datum->changed, "$c has not changed" );
 }
+
+# Final special test for file with only ID number the same (no new content)
+$sheet = t::lib::DataSheet->new(
+    data => [
+        {
+            file1 => undef, # This will create default dummy file
+        },
+    ],
+);
+$sheet->create_records;
+my $record = GADS::Records->new(
+    user    => undef,
+    layout  => $sheet->layout,
+    schema  => $sheet->schema,
+)->single;
+my $datum = $record->fields->{$sheet->columns->{file1}->id};
+$datum->set_value(1); # Same ID has existing one
+ok( !$datum->changed, "Update with same file ID has not changed" );
 
 done_testing();
