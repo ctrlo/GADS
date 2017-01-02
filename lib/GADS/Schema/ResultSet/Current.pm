@@ -5,6 +5,6 @@ use warnings;
 
 use parent 'DBIx::Class::ResultSet';
 
-__PACKAGE__->load_components('Helper::ResultSet::DateMethods1');
+__PACKAGE__->load_components(qw/Helper::ResultSet::DateMethods1 +GADS::Helper::Concat/);
 
 1;

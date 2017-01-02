@@ -275,7 +275,18 @@ sub _build_results
             ) if $pluck eq 'day';
 
         } else {
-            push @g, $self->fqvalue($col, search => 1, prefetch => 1);
+            if ($col->link_parent)
+            {
+                my $main = $self->fqvalue($col, search => 1, prefetch => 1);
+                my $link = $self->fqvalue($col->link_parent, search => 1, prefetch => 1, linked => 1);
+                push @g, $self->schema->resultset('Current')->helper_concat(
+                     { -ident => $main },
+                     { -ident => $link },
+                );
+            }
+            else {
+                push @g, $self->fqvalue($col, search => 1, prefetch => 1);
+            }
         }
     };
 

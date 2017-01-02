@@ -325,6 +325,8 @@ sub _build_data
         {
             my $col     = $x_daterange ? $x->epoch : $x->field;
             my $x_value = $line->get_column($col);
+            $x_value ||= $line->get_column("${col}_link")
+                if !$x_daterange && $x->link_parent;
             $self->x_axis && !$x_value
                 and next; # Skip blank x-values, but only for non multi-x-axis
 
@@ -360,8 +362,8 @@ sub _build_data
                       : $self->x_axis
                       ? $y_axis->field."_".$self->y_axis_stack
                       : $x->field;
-            $results->{$x_value}->{$k} = $line->get_column($fname);
             no warnings 'numeric', 'uninitialized';
+            $results->{$x_value}->{$k} += $line->get_column($fname); # 2 loops for linked values
             # Add on the linked column from another datasheet, if applicable
             next if !$x_axis && (!$x->numeric || !$x->link_parent); # Multi x-axis
             $results->{$x_value}->{$k} += $line->get_column("${fname}_link")

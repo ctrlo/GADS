@@ -11,9 +11,11 @@ use GADS::RecordsGroup;
 
 use t::lib::DataSheet;
 
+my $linked_value = 10; # See below
+
 my $data = [
     {
-        # No integer1 - the value will be taken from a linked record
+        # No integer1 - the value will be taken from a linked record ($linked_value)
         string1    => 'Foo',
         date1      => '2013-10-10',
         daterange1 => ['2014-03-21', '2015-03-01'],
@@ -68,7 +70,7 @@ my $child = GADS::Record->new(
     schema => $schema,
 );
 $child->initialise;
-$child->fields->{$columns2->{integer1}->id}->set_value(10);
+$child->fields->{$columns2->{integer1}->id}->set_value($linked_value);
 $child->write(no_alerts => 1);
 # Set the first record of the first sheet to take its value from the linked sheet
 my $parent = GADS::Records->new(
@@ -76,6 +78,7 @@ my $parent = GADS::Records->new(
     layout => $layout,
     schema => $schema,
 )->single;
+#$parent->linked_id($child->current_id);
 $parent->write_linked_id($child->current_id);
 
 my $graphs = [
@@ -131,6 +134,14 @@ my $graphs = [
         data         => [[ 35, 0, 20 ], [ 15, 10, 0 ]],
     },
     {
+        name         => 'Curval on x-axis',
+        type         => 'bar',
+        x_axis       => $columns->{curval1}->id,
+        y_axis       => $columns->{integer1}->id,
+        y_axis_stack => 'sum',
+        data         => [[ 45, 35 ]],
+    },
+    {
         name         => 'Curval on x-axis grouped by enum',
         type         => 'bar',
         x_axis       => $columns->{curval1}->id,
@@ -148,10 +159,71 @@ my $graphs = [
         group_by     => $columns->{curval1}->id,
         data         => [[ 15, 0, 20 ], [ 35, 10, 0 ]],
     },
+    {
+        name         => 'Linked value on x-axis, count',
+        type         => 'bar',
+        x_axis       => $columns->{integer1}->id,
+        y_axis       => $columns->{string1}->id,
+        y_axis_stack => 'count',
+        data         => [[ 1, 1, 1, 1 ]],
+        xlabels      => [ 10, 15, 20, 35 ],
+    },
+    {
+        name         => 'Linked value on x-axis (multiple linked), count',
+        type         => 'bar',
+        x_axis       => $columns->{integer1}->id,
+        y_axis       => $columns->{string1}->id,
+        y_axis_stack => 'count',
+        data         => [[ 1, 1, 1, 1 ]],
+        xlabels      => [ 10, 20, 35, 55 ],
+        child2       => 55,
+    },
+    {
+        name         => 'Linked value on x-axis (same value in normal/linked), sum',
+        type         => 'bar',
+        x_axis       => $columns->{integer1}->id,
+        y_axis       => $columns->{calc1}->id,
+        y_axis_stack => 'sum',
+        data         => [[ 4024, 2009, 0 ]],
+        xlabels      => [ 15, 20, 35 ],
+        child        => 15,
+    },
 ];
 
 foreach my $g (@$graphs)
 {
+    # Write new linked value, or reset to original
+    my $child_value = $g->{child} || $linked_value;
+    my $child_id = $child->current_id;
+    $child->clear;
+    $child->find_current_id($child_id);
+    my $datum = $child->fields->{$columns2->{integer1}->id};
+    if ($datum->value != $child_value)
+    {
+        $datum->set_value($child_value);
+        $child->write(no_alerts => 1);
+    }
+
+    my $child2; my $parent2;
+    if (my $child2_value = $g->{child2})
+    {
+        $child2 = GADS::Record->new(
+            user   => undef,
+            layout => $layout2,
+            schema => $schema,
+        );
+        $child2->initialise;
+        $child2->fields->{$columns2->{integer1}->id}->set_value($child2_value);
+        $child2->write(no_alerts => 1);
+        # Set the first record of the first sheet to take its value from the linked sheet
+        $parent2 = GADS::Record->new(
+            user   => undef,
+            layout => $layout,
+            schema => $schema,
+        )->find_current_id(4);
+        $parent2->write_linked_id($child2->current_id);
+    }
+
     my $graph = GADS::Graph->new(
         layout => $layout,
         schema => $schema,
@@ -199,6 +271,14 @@ foreach my $g (@$graphs)
     );
 
     is_deeply($graph_data->points, $g->{data}, "Graph data for $g->{name} is correct");
+    is_deeply($graph_data->xlabels, $g->{xlabels}, "Graph xlabels for $g->{name} is correct")
+        if $g->{xlabels};
+    if ($child2)
+    {
+        $parent2->write_linked_id(undef);
+        $parent2->delete; # Just the record, revert to previous version
+        $child2->delete_current;
+    }
 }
 
 done_testing();
