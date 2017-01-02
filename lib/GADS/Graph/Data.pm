@@ -327,10 +327,10 @@ sub _build_data
             my $x_value = $line->get_column($col);
             $x_value ||= $line->get_column("${col}_link")
                 if !$x_daterange && $x->link_parent;
-            $x_value ||= '<no value>';
 
             if ($x_axis_grouping) # Group by date, round to required interval
             {
+                !$x_value and next;
                 my $x_dt = $x_daterange
                          ? $x
                          : $self->schema->storage->datetime_parser->parse_date($x_value);
@@ -344,6 +344,8 @@ sub _build_data
             {
                 $x_value = $x->name;
             }
+
+            $x_value ||= '<no value>';
 
             # The key for this series. May only be one (use "1")
             my $k = $group_by_col
