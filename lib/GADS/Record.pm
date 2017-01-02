@@ -631,9 +631,23 @@ sub approver_can_action_column
 }
 
 sub write_linked_id
-{   my $self = shift;
+{   my ($self, $linked_id) = @_;
+    my $guard = $self->schema->txn_scope_guard;
+    # Blank existing values first, otherwise they will be read instead of
+    # linked values under some circumstances
+    if ($linked_id)
+    {
+        $self->fields->{$_->id}->set_value('')
+            foreach $self->layout->all(linked => 1);
+        # There is some mileage in sending alerts here, but given that the
+        # values are probably about to be updated with a linked value, there
+        # seems little point
+        $self->write(no_alerts => 1);
+    }
     my $current = $self->schema->resultset('Current')->find($self->current_id);
-    $current->update({ linked_id => $self->linked_id });
+    $current->update({ linked_id => $linked_id });
+    $self->linked_id($linked_id);
+    $guard->commit;
 }
 
 # options (mostly used by onboard):
@@ -1080,6 +1094,7 @@ sub write
             }
         }
     }
+    $self->new_entry(0); # written to database, no longer new
 }
 
 sub _field_write

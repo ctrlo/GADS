@@ -275,6 +275,7 @@ sub all
     @columns = grep { !$_->internal } @columns unless $options{include_internal};
     @columns = grep { $_->internal } @columns if $options{only_internal};
     @columns = grep { $_->isunique } @columns if $options{only_unique};
+    @columns = grep { $_->link_parent } @columns if $options{linked};
     @columns = grep { $_->type eq $type } @columns if $type;
     @columns = grep { $_->remember == $options{remember} } @columns if defined $options{remember};
     @columns = grep { $_->userinput == $options{userinput} } @columns if defined $options{userinput};

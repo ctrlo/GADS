@@ -45,7 +45,7 @@ has set_value => (
         else {
             # Just ID for file passed. Probably a resubmission
             # of a form with previous errors
-            $new_id = $value;
+            $new_id = $value || undef;
         }
         $self->changed(1) if (!defined($self->id) && defined $value)
             || (!defined($value) && defined $self->id)

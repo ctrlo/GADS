@@ -55,7 +55,7 @@ $record2->linked_id($record1->current_id);
 $record2->initialise;
 $record2->fields->{$columns2->{string1}->id}->set_value('Foo');
 $record2->write(no_alerts => 1);
-$record2->write_linked_id;
+$record2->write_linked_id($record1->current_id);
 
 my @filters = (
     {

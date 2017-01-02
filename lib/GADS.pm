@@ -1719,19 +1719,15 @@ any '/link/:id?' => require_role link => sub {
 
     if (param 'submit')
     {
-        $record->linked_id(param 'linked_id');
         my $result;
         if ($id)
         {
-            # Force rewrite of new record without linked values
-            $record->changed(1);
-            $result = process( sub { $record->write_linked_id })
-                && process( sub { $record->write });
+            $result = process( sub { $record->write_linked_id(param 'linked_id') });
         }
         else {
             $record->initialise;
             $result = process( sub { $record->write })
-                && process( sub { $record->write_linked_id });
+                && process( sub { $record->write_linked_id(param 'linked_id' ) });
         }
         if ($result)
         {
