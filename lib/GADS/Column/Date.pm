@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Column::Date;
 
 use DateTime::Format::CLDR;
+use GADS::View;
 use Log::Report;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
@@ -45,7 +46,7 @@ sub validate_search
 {   my $self = shift;
     my ($value, %options) = @_;
     $value or return 1;
-    $value eq 'CURDATE' and return 1;
+    GADS::View->parse_date_filter($value) and return 1;
     $self->validate(@_);
 }
 
