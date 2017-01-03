@@ -44,6 +44,7 @@ sub validate
 sub validate_search
 {   my $self = shift;
     my ($value, %options) = @_;
+    $value or return 1;
     $value eq 'CURDATE' and return 1;
     $self->validate(@_);
 }

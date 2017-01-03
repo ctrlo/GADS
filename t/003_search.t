@@ -127,6 +127,15 @@ my @filters = (
         count => 2,
     },
     {
+        name  => 'date is empty',
+        rules => [{
+            id       => $columns->{date1}->id,
+            type     => 'date',
+            operator => 'is_empty',
+        }],
+        count => 4,
+    },
+    {
         name  => 'string begins with Foo',
         rules => [{
             id       => $columns->{string1}->id,

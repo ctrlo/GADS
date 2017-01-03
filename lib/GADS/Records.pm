@@ -1004,7 +1004,7 @@ sub _search_construct
         my $dtf = $self->schema->storage->datetime_parser;
         $value = $dtf->format_date($vdt);
     }
-    elsif ($transform_date || $column->return_type eq 'date')
+    elsif ($transform_date || ($column->return_type eq 'date' && $value))
     {
         $value = $self->_date_for_db($column, $value);
     }
