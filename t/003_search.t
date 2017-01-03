@@ -43,7 +43,7 @@ my $data = [
         string1    => 'Foo',
         integer1   => 7,
         date1      => '2014-10-10',
-        daterange1 => ['2010-01-04', '2011-06-03'],
+        daterange1 => ['2013-10-10', '2013-12-03'],
         enum1      => 8,
         tree1      => 10,
     },{
@@ -67,7 +67,13 @@ my $data = [
 my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
-my $sheet   = t::lib::DataSheet->new(data => $data, schema => $schema, curval => 2);
+my $sheet   = t::lib::DataSheet->new(
+    data             => $data,
+    schema           => $schema,
+    curval           => 2,
+    calc_code        => '[Daterange1.from]',
+    calc_return_type => 'date',
+);
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
 $sheet->create_records;
@@ -145,6 +151,16 @@ my @filters = (
             id       => $columns->{date1}->id,
             type     => 'date',
             value    => 'CURDATE + '.(86400 * 365), # Might be leap seconds etc, but close enough
+            operator => 'equal',
+        }],
+        count => 1,
+    },
+    {
+        name  => 'date in calc',
+        rules => [{
+            id       => $columns->{calc1}->id,
+            type     => 'date',
+            value    => 'CURDATE - '.(86400 * 365), # Might be leap seconds etc, but close enough
             operator => 'equal',
         }],
         count => 1,

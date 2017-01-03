@@ -24,6 +24,7 @@ use String::CamelCase qw(camelize);
 use GADS::DB;
 use GADS::Type::Permission;
 use GADS::Util qw(:all);
+use GADS::View;
 
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
@@ -372,6 +373,9 @@ has dateformat => (
 sub parse_date
 {   my ($self, $value) = @_;
     return if ref $value; # Will cause CLDR parser to bork
+    # Check whether it's a CURDATE first
+    my $dt = GADS::View->parse_date_filter($value);
+    return $dt if $dt;
     my $cldr = DateTime::Format::CLDR->new(
         pattern => $self->dateformat,
     );
