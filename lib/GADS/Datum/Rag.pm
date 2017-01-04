@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Datum::Rag;
 
+use Data::Dumper;
 use Log::Report;
 use Moo;
 use namespace::clean;
@@ -46,22 +47,43 @@ has has_value => (
     is => 'rwp',
 );
 
-has dependent_values => (
-    is       => 'rw',
-    required => 1,
-);
-
 has layout => (
     is       => 'rw',
     required => 1,
 );
 
+has params_red => (
+    is => 'lazy',
+);
+
+sub _build_params_red
+{   my $self = shift;
+    $self->_sub_param_values($self->column->params_red);
+}
+
+has params_amber => (
+    is => 'lazy',
+);
+
+sub _build_params_amber
+{   my $self = shift;
+    $self->_sub_param_values($self->column->params_amber);
+}
+
+has params_green => (
+    is => 'lazy',
+);
+
+sub _build_params_green
+{   my $self = shift;
+    $self->_sub_param_values($self->column->params_green);
+}
+
 sub _transform_value
 {   my ($self, $original) = @_;
 
-    my $column           = $self->column;
-    my $layout           = $self->layout;
-    my $dependent_values = $self->dependent_values;
+    my $column = $self->column;
+    my $layout = $self->layout;
 
     if (exists $original->{value} && !$self->force_update)
     {
@@ -76,76 +98,41 @@ sub _transform_value
         panic "Entering calculation code"
             if $ENV{GADS_PANIC_ON_ENTERING_CODE};
 
-        my $green = $self->column->green;
-        my $amber = $self->column->amber;
-        my $red   = $self->column->red;
-
-        foreach my $col_id (@{$column->depends_on})
+        my $ragvalue; my %error;
+        if ( try { $column->eval('red', @{$self->params_red}) } )
         {
-            my $col = $layout->column($col_id);
-            $green  = $self->sub_values($col, $green);
-            $amber  = $self->sub_values($col, $amber);
-            $red    = $self->sub_values($col, $red);
-            defined $green && defined $amber && defined $red
-                or return $self->_write_rag('a_grey');
+            $ragvalue = 'b_red';
         }
-
-        # Insert current date if required
-        $green = $self->sub_date($green, 'CURDATE', DateTime->now->truncate(to => 'day'));
-        $amber = $self->sub_date($amber, 'CURDATE', DateTime->now->truncate(to => 'day'));
-        $red   = $self->sub_date($red, 'CURDATE', DateTime->now->truncate(to => 'day'));
-
-        # Insert ID if required
-        my $current_id = $self->current_id;
-        $green =~ s/\[id\]/$current_id/ if $green;
-        $amber =~ s/\[id\]/$current_id/ if $amber;
-        $red   =~ s/\[id\]/$current_id/ if $red;
-
-        my $okaycount = 0;
-        foreach my $code ($green, $amber, $red)
+        elsif($@) {
+            $error{code}   = $self->column->red;
+            $error{text}   = $@->wasFatal->message->toString;
+            $error{params} = $self->params_red;
+        }
+        if (!%error && !$ragvalue && try { $column->eval('amber', @{$self->params_amber}) } )
         {
-            # If there are still square brackets then something is wrong
-            if ($code && $code =~ /[\[\]]+/)
-            {
-                warning __x"Invalid field names in rag condition. Remaining code: {code}", code => $code;
-            }
-            else {
-                $okaycount++;
-            }
+            $ragvalue = 'c_amber';
         }
-
-        my $ragvalue;
-        # XXX Log somewhere if this fails
-        if ($okaycount == 3)
+        elsif($@) {
+            $error{code}   = $self->column->amber;
+            $error{text}   = $@->wasFatal->message->toString;
+            $error{params} = $self->params_amber;
+        }
+        if (!%error && !$ragvalue && try { $column->eval('green', @{$self->params_green}) } )
         {
-            trace __x"Red code is: {red}", red => $red;
-            trace __x"Amber code is: {amber}", amber => $amber;
-            trace __x"Green code is: {green}", green => $green;
-            if (defined $red && try { $self->safe_eval("($red)") } )
-            {
-                $ragvalue = 'b_red';
-            }
-            elsif (!$@ && defined $amber && try { $self->safe_eval("($amber)") } )
-            {
-                $ragvalue = 'c_amber';
-            }
-            elsif (!$@ && defined $green && try { $self->safe_eval("($green)") } )
-            {
-                $ragvalue = 'd_green';
-            }
-            elsif ($@) {
-                # An exception occurred evaluating the code
-                $ragvalue = 'e_purple';
-                my $error = $@->wasFatal->message->toString;
-                warning __x"Failed to eval rag. Code was: {error}", error => $error;
-            }
-            else {
-                $ragvalue = 'a_grey';
-            }
+            $ragvalue = 'd_green';
         }
-        else {
+        elsif($@) {
+            $error{code}   = $self->column->green;
+            $error{text}   = $@->wasFatal->message->toString;
+            $error{params} = $self->params_green;
+        }
+        if (%error) {
+            # An exception occurred evaluating the code
             $ragvalue = 'e_purple';
+            warning __x"Failed to eval rag: {error} (code: {code}, params: {params})",
+                error => $error{text}, code => $error{code}, params => Dumper(@{$error{params}});
         }
+        $ragvalue ||= 'a_grey';
         return $self->_write_rag($ragvalue);
     }
 }

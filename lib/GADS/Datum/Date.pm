@@ -108,5 +108,10 @@ sub as_integer
     $self->value->epoch;
 }
 
+sub for_code
+{   my $self = shift;
+    $self->_date_for_code($self->value);
+}
+
 1;
 

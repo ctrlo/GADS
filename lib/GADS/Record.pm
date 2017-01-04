@@ -29,6 +29,7 @@ use GADS::Datum::Date;
 use GADS::Datum::Daterange;
 use GADS::Datum::Enum;
 use GADS::Datum::File;
+use GADS::Datum::ID;
 use GADS::Datum::Integer;
 use GADS::Datum::Person;
 use GADS::Datum::Rag;
@@ -567,6 +568,13 @@ sub _transform_values
         {
             $dependent_values->{$dependent} = $fields->{$dependent};
         }
+        $dependent_values->{-1} = GADS::Datum::ID->new(
+            record_id        => $self->record_id,
+            current_id       => $self->current_id,
+            column           => $self->layout->column(-1),
+            schema           => $self->schema,
+            layout           => $self->layout,
+        );
         my $value = $original->{$column->field};
         $value = $self->linked_record_raw && $self->linked_record_raw->{$column->link_parent->field}
             if $self->linked_id && $column->link_parent && !$self->is_historic;
@@ -995,6 +1003,13 @@ sub write
                 ? $self->fields->{$dependent}->oldvalue
                 : $self->fields->{$dependent};
         }
+        $dependent_values->{-1} = GADS::Datum::ID->new(
+            record_id        => $self->record_id,
+            current_id       => $self->current_id,
+            column           => $self->layout->column(-1),
+            schema           => $self->schema,
+            layout           => $self->layout,
+        );
         my $new = $col->class->new(
             current_id       => $self->current_id,
             record_id        => $self->record_id,

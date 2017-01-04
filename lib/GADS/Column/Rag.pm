@@ -71,7 +71,13 @@ sub cleanup
     $schema->resultset('Ragval')->search({ layout_id => $id })->delete;
 }
 
-after 'write' => sub {
++around 'write' => sub
+{   my $orig = shift;
+
+    my $guard = $_[0]->schema->txn_scope_guard;
+
+    $orig->(@_); # Standard column write first
+
     my ($self, %options) = @_;
 
     my $no_alerts = $options{no_alerts};
@@ -102,18 +108,82 @@ after 'write' => sub {
 
     if ($need_update)
     {
-        my @depends_on;
-        foreach my $col ($self->layout->all)
+        my %depends_on; # Stop duplicates
+
+        foreach my $var ($self->params_red, $self->params_amber, $self->params_green)
         {
-            my $regex = $col->code_regex;
-            push @depends_on, $col->id
-                if $self->green =~ $regex || $self->amber =~ $regex || $self->red =~ $regex;
+            my $col = $self->layout->column_by_name_short($var)
+                or error __x"Unknown short column name \"{name}\" in calculation", name => $var;
+            $depends_on{$col->id} = 1
+                unless $col->internal;
         }
+
+        my @depends_on = keys %depends_on;
+
         $self->depends_on(\@depends_on);
         $self->update_cached(no_alerts => $no_alerts)
             unless $options{no_cache_update};
     }
+
+    $guard->commit;
 };
+
+sub params_red
+{   my $self = shift;
+    $self->_parse_prototype($self->red);
+}
+
+sub params_amber
+{   my $self = shift;
+    $self->_parse_prototype($self->amber);
+}
+
+sub params_green
+{   my $self = shift;
+    $self->_parse_prototype($self->green);
+}
+
+has _evaluate_red => (
+    is => 'lazy',
+);
+
+has _evaluate_amber => (
+    is => 'lazy',
+);
+
+has _evaluate_green => (
+    is => 'lazy',
+);
+
+sub _build__evaluate_red
+{   my $self = shift;
+    my $code = $self->_replace_function_name($self->red, "red_".$self->id);
+    Inline->bind(Lua => $code);
+}
+
+sub _build__evaluate_amber
+{   my $self = shift;
+    my $code = $self->_replace_function_name($self->amber, "amber_".$self->id);
+    Inline->bind(Lua => $code);
+}
+
+sub _build__evaluate_green
+{   my $self = shift;
+    my $code = $self->_replace_function_name($self->green, "green_".$self->id);
+    Inline->bind(Lua => $code);
+}
+
+sub eval
+{   my ($self, $color, @params) = @_;
+    my $e = "_evaluate_$color";
+    $self->$e; # Make sure function has been inlined
+    my $eval_function_name = "evaluate_${color}_".$self->id;
+    # Create dispatch table to prevent warnings
+    my $dispatch = {
+        evaluate => \&$eval_function_name,
+    };
+    $dispatch->{evaluate}->(@params);
+}
 
 1;
 

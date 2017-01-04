@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Column::Code;
 
 use GADS::AlertSend;
+use Inline;
+use Log::Report;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 
@@ -82,6 +84,21 @@ sub update_cached
     );
     $alert_send->process;
 };
+
+sub _replace_function_name
+{   my ($self, $code, $name) = @_;
+    $code =~ s/\s*function\s+(evaluate)\s*/function evaluate_$name/;
+    return $code;
+}
+
+sub _parse_prototype
+{   my ($self, $code) = @_;
+    $code =~ /function/ > 1
+        and error "Code definition can only contain one function";
+    $code =~ /^\s*function\s+evaluate\s*\(([A-Za-z0-9_,\s]+)\)/s
+        or error "Invalid code definition: must contain function evaluate(...)";
+    split /[,\s]+/, $1;
+}
 
 1;
 

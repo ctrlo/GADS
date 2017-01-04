@@ -78,6 +78,11 @@ has _columns_namehash => (
     isa => HashRef,
 );
 
+has _columns_name_shorthash => (
+    is  => 'lazy',
+    isa => HashRef,
+);
+
 # The permissions the logged-in user has, for the whole data set
 has user_permissions => (
     is        => 'rw',
@@ -117,11 +122,12 @@ has internal_columns => (
     builder => sub {
         [
             {
-                id       => -1,
-                name     => 'ID',
-                table    => 'current',
-                column   => 'id',
-                isunique => 1,
+                id         => -1,
+                name       => 'ID',
+                name_short => 'id',
+                table      => 'current',
+                column     => 'id',
+                isunique   => 1,
             },
             {
                 id     => -2,
@@ -214,6 +220,7 @@ sub _build_columns
         push @return, GADS::Column->new(
             id                       => $internal->{id},
             name                     => $internal->{name},
+            name_short               => $internal->{name_short},
             isunique                 => $internal->{isunique},
             table                    => camelize($internal->{table}),
             sprefix                  => $internal->{table},
@@ -334,6 +341,17 @@ sub _build__columns_namehash
 sub column_by_name
 {   my ($self, $name) = @_;
     $self->_columns_namehash->{$name};
+}
+
+sub _build__columns_name_shorthash
+{   my $self = shift;
+    my %columns = map { $_->name_short => $_ } grep { $_->name_short } @{$self->columns};
+    \%columns;
+}
+
+sub column_by_name_short
+{   my ($self, $name) = @_;
+    $self->_columns_name_shorthash->{$name};
 }
 
 sub view

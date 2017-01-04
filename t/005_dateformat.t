@@ -74,7 +74,7 @@ foreach my $format (qw/yyyy-MM-dd dd-MM-yyyy/)
     my $sheet   = t::lib::DataSheet->new(
         data             => $test->{data},
         config           => $config,
-        calc_code        => '[Daterange1.from]',
+        calc_code        => "function evaluate (daterange1) \n return daterange1.from.epoch \n end",
         calc_return_type => 'date',
     );
     my $schema  = $sheet->schema;

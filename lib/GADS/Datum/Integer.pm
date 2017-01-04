@@ -67,4 +67,10 @@ sub as_integer
     my $int  = int ($self->value // 0);
 }
 
+sub for_code
+{   my $self = shift;
+    $self->value or return;
+    int $self->value;
+}
+
 1;

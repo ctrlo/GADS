@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Datum::Calc;
 
+use Data::Dumper;
 use Log::Report;
 use Math::Round qw/round/;
 use Moo;
@@ -48,15 +49,19 @@ has has_value => (
     is => 'rwp',
 );
 
-has dependent_values => (
-    is       => 'rw',
-    required => 1,
-);
-
 has layout => (
     is       => 'rw',
     required => 1,
 );
+
+has params => (
+    is => 'lazy',
+);
+
+sub _build_params
+{   my $self = shift;
+    $self->_sub_param_values($self->column->params);
+}
 
 sub as_string
 {   my $self = shift;
@@ -95,9 +100,9 @@ sub _parse_date
 sub _transform_value
 {   my ($self, $original) = @_;
 
-    my $column           = $self->column;
-    my $code             = $column->calc;
-    my $layout           = $self->layout;
+    my $column = $self->column;
+    my $code   = $column->calc;
+    my $layout = $self->layout;
 
     my $value;
 
@@ -116,55 +121,35 @@ sub _transform_value
         # Used during tests to check that $original is being set correctly
         panic "Entering calculation code"
             if $ENV{GADS_PANIC_ON_ENTERING_CODE};
-        foreach my $col_id (@{$column->depends_on})
-        {
-            my $col    = $layout->column($col_id);
-            $code = $self->sub_values($col, $code);
-        }
-        # Insert current date if required
-        $code = $self->sub_date($code, 'CURDATE', DateTime->now->truncate(to => 'day'));
 
-        # Insert ID if required
-        my $current_id = $self->current_id;
-        $code =~ s/\[id\]/$current_id/g
-            if $code;
-
-        # If there are still square brackets then something is wrong
-        if ($code && $code =~ /[\[\]]+/)
+        my @params = @{$self->params};
+        try { $value = $column->eval(@params) };
+        if ($@)
         {
-            $value = $column->return_type eq 'date'
-                   ? undef
-                   : 'Invalid field names in calc formula';
-            warning __x"Invalid field names in calc formula. Remaining code: {code}", code => $code;
+            $value = '<evaluation error>';
+            warning __x"Failed to eval calc: {error} (code: {code}, params: {params})",
+                error => $@->wasFatal->message->toString, code => $code, params => Dumper(@params);
         }
-        elsif (defined $code) {
-            try { $value = $self->safe_eval("$code") };
-            if ($@)
+        # Convert as required
+        if ($column->return_type eq "date")
+        {
+            $value = undef
+                if !$value && !looks_like_number($value); # Convert empty strings to undef
+            if (defined $value)
             {
-                $value = $@->wasFatal->message->toString;
-                warning __x"Failed to eval calc. Code was: {code}", code => $code;
-            }
-            # Convert as required
-            if ($column->return_type eq "date")
-            {
-                $value = undef
-                    if !$value && !looks_like_number($value); # Convert empty strings to undef
-                if (defined $value)
+                try { $value = DateTime->from_epoch(epoch => $value) };
+                if (my $exception = $@->wasFatal)
                 {
-                    try { $value = DateTime->from_epoch(epoch => $value) };
-                    if (my $exception = $@->wasFatal)
-                    {
-                        $value = undef;
-                        warning "$@";
-                    }
+                    $value = undef;
+                    warning "$@";
                 }
             }
-            elsif ($column->return_type eq 'numeric' || $column->return_type eq 'integer')
-            {
-                $value = undef
-                    if !$value && !looks_like_number($value); # Convert empty strings to undef
-                $value = round $value if defined $value && $column->return_type eq 'integer';
-            }
+        }
+        elsif ($column->return_type eq 'numeric' || $column->return_type eq 'integer')
+        {
+            $value = undef
+                if !$value && !looks_like_number($value); # Convert empty strings to undef
+            $value = round $value if defined $value && $column->return_type eq 'integer';
         }
 
         $self->_write_calc($value);

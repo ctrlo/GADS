@@ -82,7 +82,7 @@ has curval => (
 has calc_code => (
     is      => 'ro',
     isa     => Str,
-    default => '[Daterange1.from.year]',
+    default => "function evaluate (daterange1) \n if daterange1.from == null then return end \n return daterange1.from.year\nend",
 );
 
 has calc_return_type => (
@@ -290,6 +290,7 @@ sub __build_columns
     );
     $daterange1->type('daterange');
     $daterange1->name('daterange1');
+    $daterange1->name_short('daterange1');
     try { $daterange1->write };
     if ($@)
     {
@@ -363,9 +364,9 @@ sub __build_columns
         user   => undef,
         layout => $layout,
     );
-    $rag1->red  ('[Daterange1.from.year] < 2012');
-    $rag1->amber('[Daterange1.from.year] == 2012');
-    $rag1->green('[Daterange1.from.year] > 2012');
+    $rag1->red  ("function evaluate (daterange1) \n if daterange1.from == nil then return end \n if daterange1.from.year < 2012 then return 1 else return 0 end \n end");
+    $rag1->amber("function evaluate (daterange1) \n if daterange1.from == nil then return end \n if daterange1.from.year == 2012 then return 1 else return 0 end \n end");
+    $rag1->green("function evaluate (daterange1) \n if daterange1.from == nil then return end \n if daterange1.from.year > 2012 then return 1 else return 0 end \n end");
     $rag1->type('rag');
     $rag1->name('rag1');
     try { $rag1->write };

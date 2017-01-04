@@ -141,4 +141,12 @@ sub html_withlinks
     qq(<a href="$link">$string</a>);
 }
 
+sub for_code
+{   my $self = shift;
+    my $return = {
+        value => $self->value,
+    };
+
+}
+
 1;

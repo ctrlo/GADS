@@ -1266,7 +1266,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
         if (param 'submit')
         {
             $column->$_(param $_)
-                foreach (qw/name type description helptext optional isunique remember link_parent_id/);
+                foreach (qw/name name_short type description helptext optional isunique remember link_parent_id/);
             if (param 'display_condition')
             {
                 $column->display_field(param 'display_field');

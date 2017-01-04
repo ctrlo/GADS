@@ -39,6 +39,21 @@ has schema => (
     required => 1,
 );
 
+has dependent_values => (
+    is       => 'rw',
+    required => 1,
+);
+
+sub _sub_param_values
+{   my ($self, @params) = @_;
+    [
+        map {
+            my $id = $self->layout->column_by_name_short($_)->id;
+            $self->dependent_values->{$id}->for_code;
+        } @params
+    ];
+}
+
 sub write_cache
 {   my ($self, $table, $value) = @_;
 
@@ -82,125 +97,10 @@ sub write_cache
     $value;
 }
 
-sub sub_date
-{   my ($self, $code, $field, $date) = @_;
-    trace "Entering sub_date";
-    $code or return;
-    my $subs = 0; # Number of substitutions made
-    # Try epoch, year, month and day
-    $field =~ /^(\[?)(.*?)(\]?)$/;
-    my ($begin, $name, $end) = ($1 || "", $2, $3 || "");
-    my $year = $date ? $date->year : qq("");
-    $subs += $code =~ s/\Q$begin$name.year$end/$year/gi;
-    my $month = $date ? $date->month : qq("");
-    $subs += $code =~ s/\Q$begin$name.month$end/$month/gi;
-    my $day = $date ? $date->day : qq("");
-    $subs += $code =~ s/\Q$begin$name.day$end/$day/gi;
-    my $epoch = $date ? $date->epoch : qq("");
-    $subs += $code =~ s/\Q$begin$name$end/$epoch/gi;
-    wantarray ? ($code, $subs) : $code;
-}
-
-sub sub_values
-{   my ($self, $col, $code) = @_;
-
-    trace "Entering sub_values";
-    $code or return;
-
-    my $dvalue = $self->dependent_values->{$col->id};
-    my $name   = $col->name;
-
-    # Fields in code can be prefixed with ^, which will mean that
-    # empty values will force the whole code to evaluate to undef.
-    # This allows, for example, "[myfield] < 100" to evaluate to
-    # grey if myfield has an undefined value. Otherwise it will
-    # evaluate to true.
-    # $return_on_undef is true if this setting is enabled.
-    # XXX This global replace will force all fields of the same
-    # name to do this.
-    my $return_on_undef = $code =~ s/\Q[^$name\E(\.|\])/[$name$1/g;
-
-    if ($dvalue && $col->type eq "date")
-    {
-        $code = $self->sub_date($code, "[$name]", $dvalue->value);
-    }
-    elsif ($col->type eq "daterange")
-    {
-        # Return empty strings for missing values, otherwise eval fails after
-        # substitutions have been made
-        $dvalue = {
-            from  => $dvalue ? $dvalue->from_dt    : undef,
-            to    => $dvalue ? $dvalue->to_dt      : undef,
-            value => $dvalue ? '"'.$dvalue->as_string.'"' : qq(""),
-        };
-        # First try subbing in full value
-        $code =~ s/\Q[$name.value]/$dvalue->{value}/gi;
-        # The following code returns if a substitution of a blank value was made
-        # This will become a grey value for RAG fields
-        my $subs;
-        ($code, $subs) = $self->sub_date($code, "[$name.from]", $dvalue->{from});
-        return if $return_on_undef && $self->column->type eq "rag" && $subs && !$dvalue->{from};
-        ($code, $subs) = $self->sub_date($code, "[$name.to]", $dvalue->{to});
-        return if $return_on_undef && $self->column->type eq "rag" && $subs && !$dvalue->{to};
-    }
-    elsif ($col->type eq "tree" && $code =~ /\Q[$name.level\E([0-9]+)\]/)
-    {
-        # Need to loop round in case more than one level
-        while ($code =~ /\Q[$name.level\E([0-9]+)\]/)
-        {
-            my $level = $1;
-            my $rvalue;
-            if ($dvalue && $dvalue->deleted)
-            {
-                $rvalue = "Orphan node (deleted)";
-            }
-            elsif ($dvalue)
-            {
-                my @ancestors  = $dvalue->id ? $col->node($dvalue->id)->{node}->{node}->ancestors : ();
-                my $get_level  = $level + 1; # Root is first, add one to ignore
-                my $level_node = @ancestors == $get_level - 1 # Return current node if it's that level
-                               ? $dvalue->id
-                               : $ancestors[-$get_level] # Otherwise check it exists
-                               ? $ancestors[-$get_level]->name
-                               : undef;
-                $rvalue        = $level_node ? $col->node($level_node)->{value} : undef;
-            }
-            $rvalue = $rvalue ? "q`$rvalue`" : qq("");
-            $code =~ s/\Q[$name.level$level]/$rvalue/gi;
-        }
-    }
-
-    # Possible for tree values to have both a level (above code) or be on
-    # their own (below code)
-    unless ($col->type eq "date" || $col->type eq "daterange")
-    {
-        # XXX Is there a q char delimiter that is safe regardless
-        # of input? Backtick is unlikely to be used...
-        if ($col->numeric)
-        {
-            # If field is numeric but does not have numeric value, then return
-            # undef, to force grey for a rag field and undef for a calc.
-            # Otherwise the value will be treated as zero and will probably
-            # return misleading values
-            no warnings 'numeric', 'uninitialized';
-            $dvalue .= ""; # Stringify
-            return if $return_on_undef && $dvalue eq '';
-            $dvalue = int $dvalue;
-        }
-        else {
-            # Quote for the eval
-            $dvalue = $dvalue ? "q`$dvalue`" : qq("");
-        }
-        $code =~ s/\Q[$name]/$dvalue/gi;
-    }
-
-    $code;
-}
-
 sub safe_eval
-{   my($self, $expr) = @_;
-    my $safe = GADS::Safe->instance;
-    $safe->eval($expr);
+{   my($self, $code) = @_;
+    Inline->bind(Lua => $code);
+    evaluate(@{$self->params});
 }
 
 1;

@@ -87,6 +87,14 @@ example "Level 1#Level 2#Node value").</p>
 
 [% END %]
 
+[% global.helptext.name_short = BLOCK %]
+<p>The short name is used to refer to fields within calculated and RAG fields.
+Although optional, it must be specified if this field is to be used within a
+calculated or RAG field. The short name must be unique, must start with a
+letter, and is only allowedcontain letters, numbers and underscores.</p>
+
+[% END %]
+
 [% global.helptext.layout_calc = BLOCK %]
 Calculated fields can be used to automatically generate values based
 on other fields. Basic Perl programming style can be used, with the value that

@@ -113,5 +113,21 @@ sub clone
     );
 }
 
+sub for_code
+{   my $self = shift;
+    $self->as_string; # Default
+}
+
+sub _date_for_code
+{   my ($self, $value) = @_;
+    $value or return undef;
+    +{
+        year  => $value->year,
+        month => $value->month,
+        day   => $value->day,
+        epoch => $value->epoch,
+    };
+}
+
 1;
 

@@ -145,4 +145,26 @@ sub as_integer
     $self->id // 0;
 }
 
+sub for_code
+{   my $self = shift;
+    my $return = {
+        value   => $self->as_string,
+        parents => {},
+    };
+    my $id = $self->id;
+    my @parents = $id ? $self->column->node($id)->{node}->{node}->ancestors : ();
+    pop @parents; # Remove root
+    my $count;
+    foreach my $parent (reverse @parents)
+    {
+        $count++;
+        my $node_id = $parent->name;
+        my $text    = $self->column->node($node_id)->{value};
+        # Use text for the parent number, as this will not work in Lua:
+        # value.parents.1
+        $return->{parents}->{"parent$count"} = $text;
+    }
+    $return;
+}
+
 1;

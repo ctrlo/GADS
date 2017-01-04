@@ -115,7 +115,13 @@ sub cleanup
     $schema->resultset('Calcval')->search({ layout_id => $id })->delete;
 }
 
-after 'write' => sub {
+around 'write' => sub
+{   my $orig = shift;
+
+    my $guard = $_[0]->schema->txn_scope_guard;
+
+    $orig->(@_); # Standard column write first
+
     my ($self, %options) = @_;
 
     my $no_alerts = $options{no_alerts};
@@ -149,17 +155,29 @@ after 'write' => sub {
 
     if ($need_update)
     {
-        my @depends_on;
-        foreach my $col ($self->layout->all)
+        my %depends_on; # Prevent duplicates
+        foreach my $var ($self->params)
         {
-            push @depends_on, $col->id
-                if $self->calc =~ $col->code_regex;
+            my $col = $self->layout->column_by_name_short($var)
+                or error __x"Unknown short column name \"{name}\" in calculation", name => $var;
+            $depends_on{$col->id} = 1
+                unless $col->internal;
         }
+
+        my @depends_on = keys %depends_on;
+
         $self->depends_on(\@depends_on);
         $self->update_cached(no_alerts => $no_alerts)
             unless $options{no_cache_update};
     }
+
+    $guard->commit;
 };
+
+sub params
+{   my $self = shift;
+    $self->_parse_prototype($self->calc);
+}
 
 sub resultset_for_values
 {   my $self = shift;
@@ -186,6 +204,27 @@ sub validate
         return looks_like_number($value);
     }
     return 1;
+}
+
+has _evaluate => (
+    is => 'lazy',
+);
+
+sub _build__evaluate
+{   my $self = shift;
+    my $code = $self->_replace_function_name($self->calc, $self->id);
+    Inline->bind(Lua => $code);
+}
+
+sub eval
+{   my ($self, @params) = @_;
+    $self->_evaluate;
+    my $eval_function_name = "evaluate_".$self->id;
+    # Create dispatch table to prevent warnings
+    my $dispatch = {
+        evaluate => \&$eval_function_name,
+    };
+    $dispatch->{evaluate}->(@params);
 }
 
 1;

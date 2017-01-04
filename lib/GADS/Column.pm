@@ -119,6 +119,11 @@ has name => (
     isa => Str,
 );
 
+has name_short => (
+    is  => 'rw',
+    isa => Maybe[Str],
+);
+
 has type => (
     is  => 'rw',
     isa => sub {
@@ -421,6 +426,7 @@ sub build_values
     }
     $self->id($original->{id});
     $self->name($original->{name});
+    $self->name_short($original->{name_short});
     $self->optional($original->{optional});
     $self->remember($original->{remember});
     $self->isunique($original->{isunique});
@@ -559,6 +565,27 @@ sub write
         and error __x"{name} is a reserved name for a field", name => $newitem->{name};
     $newitem->{type} = $self->type
         or error __"Please select a type for the item";
+
+    if ($newitem->{name_short} = $self->name_short)
+    {
+        # Check format
+        $self->name_short =~ /^[a-z][_0-9a-z]*$/i
+            or error __"Short names must begin with a letter and can only contain letters, numbers and underscores";
+        # Check short name is unique
+        my $search = {
+            name_short  => $self->name_short,
+            instance_id => $self->instance_id,
+        };
+        if ($self->id)
+        {
+            # Don't search self if already in DB
+            $search->{id}          = { '!=' => $self->id };
+        }
+
+        my $exists = $self->schema->resultset('Layout')->search($search)->next;
+        $exists and error __x"Short name {short} must be unique but already exists for field \"{name}\"",
+            short => $self->name_short, name => $exists->name;
+    }
 
     # Check whether the parent linked field goes to a layout that has a curval
     # back to the current layout

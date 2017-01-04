@@ -160,5 +160,14 @@ sub _as_string
     $range->start->format_cldr($format) . " to " . $range->end->format_cldr($format);
 }
 
+sub for_code
+{   my $self = shift;
+    +{
+        from  => $self->_date_for_code($self->from_dt),
+        to    => $self->_date_for_code($self->to_dt),
+        value => $self->as_string,
+    };
+}
+
 1;
 
