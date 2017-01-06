@@ -278,7 +278,7 @@ has createdby => (
         return unless $self->record;
         GADS::Datum::Person->new(
             record_id        => $self->record_id,
-            set_value        => {value => $self->record->{createdby}},
+            init_value       => {value => $self->record->{createdby}},
             schema           => $self->schema,
             layout           => $self->layout,
         );

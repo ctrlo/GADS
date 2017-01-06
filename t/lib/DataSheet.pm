@@ -450,13 +450,13 @@ sub create_records
         if ($datum->{person1} && !$self->schema->resultset('User')->find($datum->{person1}))
         {
             my $user_id = $datum->{person1};
-            $self->schema->resultset('User')->find_or_create({
+            my $user = {
                 id       => $user_id,
                 username => "user$user_id\@example.com",
                 email    => "user$user_id\@example.com",
-                value    => ', ',
-            });
-            $columns->{person1}->clear_people;
+                value    => "User$user_id, User$user_id",
+            };
+            $record->fields->{$columns->{person1}->id}->set_value($user);
         }
         $record->fields->{$columns->{person1}->id}->set_value($datum->{person1});
         $record->fields->{$columns->{curval1}->id}->set_value($datum->{curval1})
