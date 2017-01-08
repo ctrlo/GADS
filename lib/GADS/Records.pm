@@ -1072,7 +1072,7 @@ sub csv
     my @columns = $self->view
         ? $self->layout->view($self->view->id, user_can_read => 1)
         : $self->layout->all(user_can_read => 1);
-    my @colnames = ("Serial");
+    my @colnames = ("ID");
     push @colnames, "Parent" if $self->has_children;
     push @colnames, map { $_->name } @columns;
     $csv->combine(@colnames)
