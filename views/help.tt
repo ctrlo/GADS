@@ -1,3 +1,7 @@
+[% global.helptext.limit_user_data = BLOCK %]
+By default, a user can see any record in Linkspace, and is only limited to what fields of that record he or she can view. This option makes it possible to also limit the records that a user can view. By selecting a view in the dropdown box, a user can only ever see records that meet the search criteria of that view, regardless of what other search criteria or views they may make themselves.
+[% END %]
+
 [% global.helptext.layout_groups = BLOCK %]
 <p>Permissions allow you to specify the access a user has to this field.
 Using these settings, you can assign everything from full access for a
