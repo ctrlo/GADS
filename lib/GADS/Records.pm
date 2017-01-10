@@ -974,7 +974,7 @@ sub _search_construct
     else {
         push @conditions, {
             operator => $operator,
-            s_field  => $column->value_field,
+            s_field  => $filter->{value_field} || $column->value_field,
         };
     }
 

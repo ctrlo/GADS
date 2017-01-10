@@ -184,32 +184,112 @@ foreach my $test (@tests)
 # update tests
 my @update_tests = (
     {
+        name    => 'Update unique field with string',
         option  => 'update_unique',
         data    => "string1,integer1\nFoo,100\nFoo2,150",
+        unique  => 'string1',
         count   => 3,
-        string  => 'Foo Bar Foo2',
-        intgr   => '100 99 150',
+        results => {
+            string1  => 'Foo Bar Foo2',
+            integer1 => '100 99 150',
+        },
         written => 2,
         errors  => 0,
         skipped => 0,
     },
     {
+        name    => 'Update unique field with enum',
+        option  => 'update_unique',
+        data    => "string1,enum1\nFooBar1,foo1\nFooBar2,foo3",
+        unique  => 'enum1',
+        count   => 3,
+        results => {
+            string1 => 'FooBar1 Bar FooBar2',
+            enum1   => 'foo1 foo2 foo3',
+        },
+        written => 2,
+        errors  => 0,
+        skipped => 0,
+        existing_data => [
+            {
+                string1    => 'Foo',
+                enum1      => 1,
+            },
+            {
+                string1    => 'Bar',
+                enum1      => 2,
+            },
+        ],
+    },
+    {
+        name    => 'Update unique field with tree',
+        option  => 'update_unique',
+        data    => "string1,tree1\nFooBar1,tree1\nFooBar2,tree3",
+        unique  => 'tree1',
+        count   => 3,
+        results => {
+            string1 => 'FooBar1 Bar FooBar2',
+            tree1   => 'tree1 tree2 tree3',
+        },
+        written => 2,
+        errors  => 0,
+        skipped => 0,
+        existing_data => [
+            {
+                string1    => 'Foo',
+                tree1      => 4,
+            },
+            {
+                string1    => 'Bar',
+                tree1      => 5,
+            },
+        ],
+    },
+    {
+        name    => 'Update unique field with person',
+        option  => 'update_unique',
+        data    => qq(string1,person1\nBar,"User1, User1"),
+        unique  => 'person1',
+        count   => 1,
+        results => {
+            string1 => 'Bar',
+            person1 => 'User1, User1', # 1 values each with commas
+        },
+        written => 1,
+        errors  => 0,
+        skipped => 0,
+        existing_data => [
+            {
+                string1    => 'Foo',
+                person1    => 1,
+            },
+        ],
+    },
+    {
+        name    => 'Skip when existing unique value exists',
         option  => 'skip_existing_unique',
         data    => "string1,integer1\nFoo,100\nFoo2,150",
+        unique  => 'string1',
         count   => 3,
-        string  => 'Foo Bar Foo2',
-        intgr   => '50 99 150',
+        results => {
+            string1  => 'Foo Bar Foo2',
+            integer1 => '50 99 150',
+        },
         written => 1,
         errors  => 0,
         skipped => 1,
     },
     {
+        name    => 'No change of value unless blank',
         option  => 'no_change_unless_blank',
         data    => "string1,integer1,date1\nFoo,200,2010-10-10\nBar,300,2011-10-10",
+        unique  => 'string1',
         count   => 2,
-        string  => 'Foo Bar',
-        intgr   => '50 300',
-        date    => '2010-10-10 2011-10-10',
+        results => {
+            string1  => 'Foo Bar',
+            integer1 => '50 300',
+            date1   => '2010-10-10 2011-10-10',
+        },
         written => 2,
         errors  => 0,
         skipped => 0,
@@ -243,22 +323,22 @@ foreach my $test (@update_tests)
         password => 'test',
     });
 
-    my $string1 = $layout->column_by_name('string1');
-    $string1->isunique(1);
-    $string1->write;
+    my $unique = $layout->column_by_name($test->{unique});
+    $unique->isunique(1);
+    $unique->write;
 
     my %options;
     if ($test->{option} eq 'update_unique')
     {
-        $options{update_unique} = $string1->id;
+        $options{update_unique} = $unique->id;
     }
     if ($test->{option} eq 'skip_existing_unique')
     {
-        $options{skip_existing_unique} = $string1->id;
+        $options{skip_existing_unique} = $unique->id;
     }
     if ($test->{option} eq 'no_change_unless_blank')
     {
-        $options{update_unique} = $string1->id;
+        $options{update_unique} = $unique->id;
         $options{no_change_unless_blank} = 'skip_new';
     }
 
@@ -278,23 +358,19 @@ foreach my $test (@update_tests)
         schema => $schema,
     );
 
-    is($records->count, $test->{count}, "Correct record count after import test $test->{option}");
-    my @got_string = map { $_->fields->{$string1->id}->as_string } @{$records->results};
-    is("@got_string", $test->{string}, "Correct data written to string table for test $test->{option}");
-    my $integer1 = $layout->column_by_name('integer1');
-    my @got_integer = map { $_->fields->{$integer1->id}->as_string } @{$records->results};
-    is("@got_integer", $test->{intgr}, "Correct data written to intgr table for test $test->{option}");
-    if ($test->{date})
+    is($records->count, $test->{count}, "Correct record count after import test $test->{name}");
+
+    foreach my $field_name (keys %{$test->{results}})
     {
-        my $date1 = $layout->column_by_name('date1');
-        my @got_date = map { $_->fields->{$date1->id}->as_string } @{$records->results};
-        is("@got_date", $test->{date}, "Correct data written to date table for test $test->{option}");
+        my $field = $layout->column_by_name($field_name);
+        my @got = map { $_->fields->{$field->id}->as_string } @{$records->results};
+        is("@got", $test->{results}->{$field_name}, "Correct data written to $field_name table for test $test->{name}");
     }
 
     my $imp = $schema->resultset('Import')->next;
-    is($imp->written_count, $test->{written}, "Correct count of written lines for test $test->{option}");
-    is($imp->error_count, $test->{errors}, "Correct count of error lines for test $test->{option}");
-    is($imp->skipped_count, $test->{skipped}, "Correct count of skipped lines for test $test->{option}");
+    is($imp->written_count, $test->{written}, "Correct count of written lines for test $test->{name}");
+    is($imp->error_count, $test->{errors}, "Correct count of error lines for test $test->{name}");
+    is($imp->skipped_count, $test->{skipped}, "Correct count of skipped lines for test $test->{name}");
 }
 
 done_testing();

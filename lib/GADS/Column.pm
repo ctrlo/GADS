@@ -272,6 +272,15 @@ has value_field => (
     default => 'value',
 );
 
+# Used when searching for a value's index value as opposed to string value
+# (e.g. enums)
+has value_field_as_index => (
+    is      => 'rw',
+    isa     => Maybe[Str],
+    lazy    => 1,
+    default => undef,
+);
+
 # Used to provide a blank template for row insertion (to blank existing
 # values). Only used in calc at time of writing
 has blank_row => (
