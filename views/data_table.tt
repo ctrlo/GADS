@@ -23,7 +23,7 @@
             [% ELSE %]
                 [% st = "" %]
             [% END %]
-            <th><a href="?sort=-1" style="color:black">Serial[% st %]</a></th>
+            <th><a href="?sort=-1" style="color:black">ID[% st %]</a></th>
             [% peopcols = [] %]
             [% FOREACH col IN columns %]
                 [% IF sort.id == col.id AND sort.type == "asc" %]
