@@ -93,6 +93,11 @@ after 'write' => sub {
     $self->schema->resultset('Layout')->find($self->id)->update($newitem);
 };
 
+sub _build_join
+{   my $self = shift;
+    +{$self->field => 'value'};
+}
+
 sub validate
 {   my ($self, $value, %options) = @_;
     return 1 if !$value;

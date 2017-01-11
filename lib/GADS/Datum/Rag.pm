@@ -52,31 +52,34 @@ has layout => (
     required => 1,
 );
 
-has params_red => (
+has vars_red => (
     is => 'lazy',
 );
 
-sub _build_params_red
+sub _build_vars_red
 {   my $self = shift;
-    $self->_sub_param_values($self->column->params_red);
+    # $self->_sub_param_values($self->column->params_red);
+    $self->record->values_by_shortname($self->column->params_red);
 }
 
-has params_amber => (
+has vars_amber => (
     is => 'lazy',
 );
 
-sub _build_params_amber
+sub _build_vars_amber
 {   my $self = shift;
-    $self->_sub_param_values($self->column->params_amber);
+    # $self->_sub_param_values($self->column->params_amber);
+    $self->record->values_by_shortname($self->column->params_amber);
 }
 
-has params_green => (
+has vars_green => (
     is => 'lazy',
 );
 
-sub _build_params_green
+sub _build_vars_green
 {   my $self = shift;
-    $self->_sub_param_values($self->column->params_green);
+    # $self->_sub_param_values($self->column->params_green);
+    $self->record->values_by_shortname($self->column->params_green);
 }
 
 sub _transform_value
@@ -99,38 +102,47 @@ sub _transform_value
             if $ENV{GADS_PANIC_ON_ENTERING_CODE};
 
         my $ragvalue; my %error;
-        if ( try { $column->eval('red', @{$self->params_red}) } )
+        my $return = try { $column->eval($self->column->red, $self->vars_red) };
+        if ($return->{return})
         {
             $ragvalue = 'b_red';
         }
-        elsif($@) {
-            $error{code}   = $self->column->red;
-            $error{text}   = $@->wasFatal->message->toString;
-            $error{params} = $self->params_red;
+        elsif($@ || $return->{error}) {
+            $error{code} = $self->column->red;
+            $error{text} = $@ ? $@->wasFatal->message->toString : $return->{error};
+            $error{vars} = $self->vars_red;
         }
-        if (!%error && !$ragvalue && try { $column->eval('amber', @{$self->params_amber}) } )
+        if (!%error && !$ragvalue)
         {
-            $ragvalue = 'c_amber';
+            $return = try { $column->eval($self->column->amber, $self->vars_amber) };
+            if ($return->{return})
+            {
+                $ragvalue = 'c_amber';
+            }
+            elsif($@ || $return->{error}) {
+                $error{code} = $self->column->amber;
+                $error{text} = $@ ? $@->wasFatal->message->toString : $return->{error};
+                $error{vars} = $self->vars_amber;
+            }
         }
-        elsif($@) {
-            $error{code}   = $self->column->amber;
-            $error{text}   = $@->wasFatal->message->toString;
-            $error{params} = $self->params_amber;
-        }
-        if (!%error && !$ragvalue && try { $column->eval('green', @{$self->params_green}) } )
+        if (!%error && !$ragvalue)
         {
-            $ragvalue = 'd_green';
-        }
-        elsif($@) {
-            $error{code}   = $self->column->green;
-            $error{text}   = $@->wasFatal->message->toString;
-            $error{params} = $self->params_green;
+            $return = try { $column->eval($self->column->green, $self->vars_green) };
+            if ($return->{return})
+            {
+                $ragvalue = 'd_green';
+            }
+            elsif($@ || $return->{error}) {
+                $error{code} = $self->column->green;
+                $error{text} = $@ ? $@->wasFatal->message->toString : $return->{error};
+                $error{vars} = $self->vars_green;
+            }
         }
         if (%error) {
             # An exception occurred evaluating the code
             $ragvalue = 'e_purple';
             warning __x"Failed to eval rag: {error} (code: {code}, params: {params})",
-                error => $error{text}, code => $error{code}, params => Dumper(@{$error{params}});
+                error => $error{text}, code => $error{code}, params => Dumper($error{vars});
         }
         $ragvalue ||= 'a_grey';
         return $self->_write_rag($ragvalue);

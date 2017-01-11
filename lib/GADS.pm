@@ -1223,12 +1223,13 @@ any '/layout/?:id?' => require_role 'layout' => sub {
                   ? param('type')
                   : rset('Layout')->find($id)->type;
         $class = "GADS::Column::".camelize($class);
-        my $column = $class->new(
-            schema => schema,
-            user   => $user,
-            layout => $layout
-        );
-        $column->from_id($id) if $id;
+        my $column = $id
+            ? $layout->column($id)
+            : $class->new(
+                schema => schema,
+                user   => $user,
+                layout => $layout
+            );
         
         # Update of permissions?
         if (param 'update_perms')

@@ -25,6 +25,11 @@ use namespace::clean;
 
 use overload 'bool' => sub { 1 }, '""'  => 'as_string', '0+' => 'as_integer', fallback => 1;
 
+has record => (
+    is       => 'ro',
+    weak_ref => 1,
+);
+
 has record_id => (
     is => 'rw',
 );
@@ -79,6 +84,7 @@ sub _build_blank {
 # Used to seed the value from the database
 has init_value => (
     is        => 'ro',
+    clearer   => 1,
     predicate => 1,
 );
 
@@ -95,6 +101,14 @@ has has_value => (
     is => 'rw',
 );
 
+# Whether this value is going to require approval. Used to know when to use the
+# oldvalue as the correct current value
+has is_awaiting_approval => (
+    is      => 'rw',
+    isa     => Bool,
+    default => 0,
+);
+
 sub html
 {   my $self = shift;
     encode_entities $self->as_string;
@@ -105,6 +119,7 @@ sub clone
     # This will be called from a child class, in which case @extra can specify
     # additional attributes specific to that class
     ref($self)->new(
+        record     => $self->record,
         column     => $self->column,
         record_id  => $self->record_id,
         current_id => $self->current_id,

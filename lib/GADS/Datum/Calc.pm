@@ -54,13 +54,13 @@ has layout => (
     required => 1,
 );
 
-has params => (
+has vars => (
     is => 'lazy',
 );
 
-sub _build_params
+sub _build_vars
 {   my $self = shift;
-    $self->_sub_param_values($self->column->params);
+    $self->record->values_by_shortname($self->column->params);
 }
 
 sub as_string
@@ -122,13 +122,16 @@ sub _transform_value
         panic "Entering calculation code"
             if $ENV{GADS_PANIC_ON_ENTERING_CODE};
 
-        my @params = @{$self->params};
-        try { $value = $column->eval(@params) };
-        if ($@)
+        try { $value = $column->eval($self->column->calc, $self->vars) };
+        if ($@ || $value->{error})
         {
-            $value = '<evaluation error>';
+            my $error = $@ ? $@->wasFatal->message->toString : $value->{error};
             warning __x"Failed to eval calc: {error} (code: {code}, params: {params})",
-                error => $@->wasFatal->message->toString, code => $code, params => Dumper(@params);
+                error => $error, code => $code, params => Dumper($self->vars);
+            $value = '<evaluation error>';
+        }
+        else {
+            $value = $value->{return};
         }
         # Convert as required
         if ($column->return_type eq "date")

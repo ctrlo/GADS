@@ -145,8 +145,9 @@ has table => (
 );
 
 has join => (
-    is  => 'rw',
-    isa => AnyOf[Str, HashRef],
+    is      => 'lazy',
+    isa     => AnyOf[Str, HashRef],
+    clearer => 1,
 );
 
 has fixedvals => (
@@ -374,6 +375,22 @@ has dateformat => (
     },
 );
 
+# Used to store flags that we might want to store when the record is processed
+has flags => (
+    is      => 'rwp',
+    isa     => HashRef,
+    default => sub { +{} },
+);
+
+has _rset => (
+    is => 'lazy',
+);
+
+sub _build__rset
+{   my $self = shift;
+    $self->schema->resultset('Layout')->find($self->id);
+}
+
 sub parse_date
 {   my ($self, $value) = @_;
     return if ref $value; # Will cause CLDR parser to bork
@@ -442,28 +459,24 @@ sub build_values
     if ($self->type eq 'enum' || $self->type eq 'tree' || $self->type eq 'person' || $self->type eq 'file')
     {
         $self->sprefix('value');
-        $self->join({$self->field => 'value'});
         $self->fixedvals(1);
     }
     elsif ($self->type eq 'curval')
     {
-        my @join = map { $_->join } @{$self->curval_fields};
-        $self->join({
-            $self->field => {
-                value => {
-                    record_single => ['record_later', @join],
-                }
-            }
-        });
         $self->fixedvals(1);
         $self->sprefix($self->field);
     }
     else {
         $self->sprefix($self->field);
-        $self->join($self->field);
     }
 
     $self->table(camelize $self->type);
+}
+
+# Overriden for most columns
+sub _build_join
+{   my $self = shift;
+    return $self->field;
 }
 
 # Overridden in child classes. This function is used
@@ -614,20 +627,27 @@ sub write
     $newitem->{instance_id}   = $self->layout->instance_id;
     $newitem->{position}      = $self->position
         if $self->position; # Used on layout import
-   
-    if ($self->id)
+
+    my $is_new = !$self->id; # Need to keep this even after writing id
+
+    if ($is_new)
     {
-        $self->schema->resultset('Layout')->find($self->id)->update($newitem);
-    }
-    else {
         $newitem->{id} = $self->set_id if $self->set_id;
         # Add at end of other items
         $newitem->{position} = ($self->schema->resultset('Layout')->get_column('position')->max || 0) + 1;
         my $id = $self->schema->resultset('Layout')->create($newitem)->id;
         $self->id($id);
     }
+    else {
+        $self->schema->resultset('Layout')->find($self->id)->update($newitem);
+    }
 
-    GADS::DB->add_column($self->schema, $self);
+    if ($is_new)
+    {
+        push @{$self->layout->columns}, $self;
+        GADS::DB->add_column($self->schema, $self);
+    }
+    $self->layout->clear_indexes;
 }
 
 sub user_can

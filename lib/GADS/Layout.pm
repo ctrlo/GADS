@@ -74,13 +74,15 @@ has columns => (
 );
 
 has _columns_namehash => (
-    is  => 'lazy',
-    isa => HashRef,
+    is      => 'lazy',
+    isa     => HashRef,
+    clearer => 1,
 );
 
 has _columns_name_shorthash => (
-    is  => 'lazy',
-    isa => HashRef,
+    is      => 'lazy',
+    isa     => HashRef,
+    clearer => 1,
 );
 
 # The permissions the logged-in user has, for the whole data set
@@ -147,11 +149,18 @@ has internal_columns => (
     },
 );
 
-sub clear
+sub clear_indexes
 {   my $self = shift;
     $self->clear_name;
-    $self->clear_columns;
     $self->clear_columns_index;
+    $self->_clear_columns_namehash;
+    $self->_clear_columns_name_shorthash
+}
+
+sub clear
+{   my $self = shift;
+    $self->clear_columns;
+    $self->clear_indexes;
 }
 
 # Instantiate new class. This builds a list of all

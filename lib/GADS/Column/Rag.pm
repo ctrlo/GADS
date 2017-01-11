@@ -25,19 +25,44 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column::Code';
 
+has '+type' => (
+    default => 'rag',
+);
+
 has green => (
-    is  => 'rw',
-    isa => Str,
+    is      => 'rw',
+    isa     => Str,
+    lazy    => 1,
+    clearer => 1,
+    builder => sub {
+        my $self = shift;
+        my ($rag) = $self->_rset->rags;
+        $rag->green;
+    },
 );
 
 has amber => (
-    is  => 'rw',
-    isa => Str,
+    is      => 'rw',
+    isa     => Str,
+    lazy    => 1,
+    clearer => 1,
+    builder => sub {
+        my $self = shift;
+        my ($rag) = $self->_rset->rags;
+        $rag->amber;
+    },
 );
 
 has red => (
-    is  => 'rw',
-    isa => Str,
+    is      => 'rw',
+    isa     => Str,
+    lazy    => 1,
+    clearer => 1,
+    builder => sub {
+        my $self = shift;
+        my ($rag) = $self->_rset->rags;
+        $rag->red;
+    },
 );
 
 after 'build_values' => sub {
@@ -128,61 +153,29 @@ sub cleanup
     $guard->commit;
 };
 
+sub clear
+{   my $self = shift;
+    $self->clear_red;
+    $self->clear_amber;
+    $self->clear_green;
+}
+
 sub params_red
 {   my $self = shift;
-    $self->_parse_prototype($self->red);
+    my $params = $self->_parse_code($self->red)->{params};
+    @$params;
 }
 
 sub params_amber
 {   my $self = shift;
-    $self->_parse_prototype($self->amber);
+    my $params = $self->_parse_code($self->amber)->{params};
+    @$params;
 }
 
 sub params_green
 {   my $self = shift;
-    $self->_parse_prototype($self->green);
-}
-
-has _evaluate_red => (
-    is => 'lazy',
-);
-
-has _evaluate_amber => (
-    is => 'lazy',
-);
-
-has _evaluate_green => (
-    is => 'lazy',
-);
-
-sub _build__evaluate_red
-{   my $self = shift;
-    my $code = $self->_replace_function_name($self->red, "red_".$self->id);
-    Inline->bind(Lua => $code);
-}
-
-sub _build__evaluate_amber
-{   my $self = shift;
-    my $code = $self->_replace_function_name($self->amber, "amber_".$self->id);
-    Inline->bind(Lua => $code);
-}
-
-sub _build__evaluate_green
-{   my $self = shift;
-    my $code = $self->_replace_function_name($self->green, "green_".$self->id);
-    Inline->bind(Lua => $code);
-}
-
-sub eval
-{   my ($self, $color, @params) = @_;
-    my $e = "_evaluate_$color";
-    $self->$e; # Make sure function has been inlined
-    my $eval_function_name = "evaluate_${color}_".$self->id;
-    # Create dispatch table to prevent warnings
-    my $dispatch = {
-        evaluate => \&$eval_function_name,
-    };
-    $dispatch->{evaluate}->(@params);
+    my $params = $self->_parse_code($self->green)->{params};
+    @$params;
 }
 
 1;

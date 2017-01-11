@@ -39,21 +39,6 @@ has schema => (
     required => 1,
 );
 
-has dependent_values => (
-    is       => 'rw',
-    required => 1,
-);
-
-sub _sub_param_values
-{   my ($self, @params) = @_;
-    [
-        map {
-            my $id = $self->layout->column_by_name_short($_)->id;
-            $self->dependent_values->{$id}->for_code;
-        } @params
-    ];
-}
-
 sub write_cache
 {   my ($self, $table, $value) = @_;
 
@@ -95,12 +80,6 @@ sub write_cache
     }
     $guard->commit;
     $value;
-}
-
-sub safe_eval
-{   my($self, $code) = @_;
-    Inline->bind(Lua => $code);
-    evaluate(@{$self->params});
 }
 
 1;

@@ -49,13 +49,17 @@ has people_hash => (
 after build_values => sub {
     my ($self, $original) = @_;
 
-    $self->join({$self->field => 'value'});
     my ($file_option) = $original->{file_options}->[0];
     if ($file_option)
     {
         $self->file_options({ filesize => $file_option->{filesize} });
     }
 };
+
+sub _build_join
+{   my $self = shift;
+    +{$self->field => 'value'};
+}
 
 sub random
 {   my $self = shift;

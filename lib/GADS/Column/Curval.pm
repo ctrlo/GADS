@@ -66,10 +66,22 @@ has layout_parent => (
     is => 'lazy',
 );
 
+# Tell the column that it needs to include all fields when selecting from
+# the sheet referred to. This can be called at any time, so we need to clear
+# existing properties such as joins which will then be reuilt
+sub build_all_columns
+{   my $self = shift;
+    $self->_set_flags({ all_columns => 1 });
+    $self->clear_curval_field_ids_retrieve;
+    $self->clear_curval_fields_retrieve;
+    $self->clear_join;
+}
+
 has curval_field_ids => (
     is      => 'rw',
     isa     => ArrayRef,
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
         my @curval_field_ids = $self->schema->resultset('CurvalField')->search({
@@ -78,7 +90,7 @@ has curval_field_ids => (
             join     => 'child',
             order_by => 'child.position',
         })->all;
-        [map { $_->child_id } @curval_field_ids];
+        return [map { $_->child_id } @curval_field_ids];
     },
     trigger => sub {
         $_[0]->clear_curval_fields;
@@ -92,8 +104,9 @@ has curval_fields => (
 );
 
 has curval_field_ids_index => (
-    is  => 'lazy',
-    isa => HashRef,
+    is      => 'lazy',
+    isa     => HashRef,
+    clearer => 1,
 );
 
 sub _build_curval_field_ids_index
@@ -101,6 +114,42 @@ sub _build_curval_field_ids_index
     my @vals = @{$self->curval_field_ids};
     my %vals = map { $_ => undef } @vals;
     \%vals;
+}
+
+# The fields to actually retrieve. This will either be the same as
+# the standard curval_fields, or will include additional fields that
+# will be stored for calculated fields
+has curval_field_ids_retrieve => (
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
+);
+
+sub _build_curval_field_ids_retrieve
+{   my $self = shift;
+    if ($self->flags->{all_columns})
+    {
+        my @curval_field_ids = $self->schema->resultset('Layout')->search({
+            instance_id => $self->layout_parent->instance_id,
+        }, {
+            order_by => 'me.position',
+        })->all;
+        return [map { $_->id } @curval_field_ids];
+    }
+    else {
+        return $self->curval_field_ids;
+    }
+}
+
+has curval_fields_retrieve => (
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
+);
+
+sub _build_curval_fields_retrieve
+{   my $self = shift;
+    [ map { $self->layout_parent->column($_) } @{$self->curval_field_ids_retrieve} ];
 }
 
 sub _build_curval_fields
@@ -115,15 +164,16 @@ sub has_curval_field
 }
 
 has values => (
-    is  => 'lazy',
-    isa => ArrayRef,
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
 );
 
 sub _records_from_db
 {   my ($self, $id) = @_;
 
     panic "Entering curval _build_values and PANIC_ON_CURVAL_BUILD_VALUES is true"
-        if $ENV{PANIC_ON_CURVAL_BUILD_VALUES};
+        if !$id && $ENV{PANIC_ON_CURVAL_BUILD_VALUES};
 
     # Not the normal request layout
     my $layout = $self->layout_parent
@@ -134,13 +184,25 @@ sub _records_from_db
         user        => undef,
         layout      => $layout,
         schema      => $self->schema,
-        columns     => $self->curval_field_ids,
+        columns     => $self->curval_field_ids_retrieve,
         current_ids => $current_ids,
         # Sort on all columns displayed as the Curval
-        sort        => [ map { { id => $_ } } @{$self->curval_field_ids} ],
+        sort        => [ map { { id => $_ } } @{$self->curval_field_ids_retrieve} ],
     );
 
     return $records;
+}
+
+sub _build_join
+{   my $self = shift;
+    my @join = map { $_->join } @{$self->curval_fields_retrieve};
+    +{
+        $self->field => {
+            value => {
+                record_single => ['record_later', @join],
+            }
+        }
+    };
 }
 
 sub _build_values
@@ -160,6 +222,7 @@ has values_index => (
     is        => 'lazy',
     isa       => HashRef,
     predicate => 1,
+    clearer   => 1,
 );
 
 sub _build_values_index
@@ -173,13 +236,41 @@ sub _build_values_index
 # Datum::Curval object
 sub value
 {   my ($self, $id) = @_;
+    my $row = $self->_get_row($id);
+    $self->_format_row($row);
+}
+
+sub field_values
+{   my ($self, %value) = @_;
+    # If the column hasn't been built with all_columns, then we'll need to
+    # retrieve all the columns (otherwise only the ones defined for display in
+    # the record will be available).  The rows would normally only need to be
+    # retrieved when a single record is being written.
+    !$value{id} && !$value{row} and return {};
+    my $row;
+    if ($value{id} || !$value{row}->column_flags->{$self->id}->{all_columns})
+    {
+        $self->build_all_columns;
+        my $cid = $value{id} || $value{row}->current_id;
+        $row = $self->_get_row($cid);
+    }
+    my %values = map {
+        $_->name_short => $row->has_record && $row->fields->{$_->id}->for_code
+    } grep {
+        $_->name_short
+    } @{$self->curval_fields_retrieve};
+    return \%values;
+}
+
+sub _get_row
+{   my ($self, $id) = @_;
     $id or return;
     return $self->values_index->{$id}
         if $self->has_values_index; # Do not build unnecessarily (expensive)
     my $records = $self->_records_from_db($id)
         or return;
     my ($row) = @{$records->results};
-    $self->_format_row($row);
+    return $row;
 }
 
 # Use an around so that we can stick the whole lot in transaction
@@ -294,16 +385,17 @@ sub values_beginning_with
     my @results;
     foreach my $row (@{$records->results})
     {
-        push @results, $self->_format_row($row, 'name');
+        push @results, $self->_format_row($row, value_key => 'name');
     }
     @results;
 }
 
 sub _format_row
-{   my ($self, $row, $value_key) = @_;
-    $value_key ||= 'value';
-    my @values = map { $row->fields->{$_} } @{$self->curval_field_ids};
-    my $text = $self->format_value(@values);
+{   my ($self, $row, %options) = @_;
+    my $value_key = $options{value_key} || 'value';
+    my @col_ids   = @{$self->curval_field_ids};
+    my @values    = map { $row->fields->{$_} } @{$self->curval_field_ids};
+    my $text      = $self->format_value(@values);
     +{
         id         => $row->current_id,
         $value_key => $text,

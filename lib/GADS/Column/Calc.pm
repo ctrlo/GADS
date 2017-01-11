@@ -27,8 +27,20 @@ use Scalar::Util qw(looks_like_number);
 extends 'GADS::Column::Code';
 
 has calc => (
-    is  => 'rw',
-    isa => Str,
+    is      => 'rw',
+    isa     => Str,
+    lazy    => 1,
+    clearer => 1,
+    builder => sub {
+        my $self = shift;
+        $self->_rset or return;
+        my ($calc) = $self->_rset->calcs;
+        $calc->calc;
+    },
+);
+
+has '+type' => (
+    default => 'calc',
 );
 
 has decimal_places => (
@@ -46,6 +58,11 @@ sub _format_to_field
     : $return_type eq 'numeric'
     ? 'value_numeric'
     : 'value_text'
+}
+
+sub clear
+{   my $self = shift;
+    $self->clear_calc;
 }
 
 after 'build_values' => sub {
@@ -176,7 +193,7 @@ around 'write' => sub
 
 sub params
 {   my $self = shift;
-    $self->_parse_prototype($self->calc);
+    $self->_params_from_code($self->calc);
 }
 
 sub resultset_for_values
@@ -204,27 +221,6 @@ sub validate
         return looks_like_number($value);
     }
     return 1;
-}
-
-has _evaluate => (
-    is => 'lazy',
-);
-
-sub _build__evaluate
-{   my $self = shift;
-    my $code = $self->_replace_function_name($self->calc, $self->id);
-    Inline->bind(Lua => $code);
-}
-
-sub eval
-{   my ($self, @params) = @_;
-    $self->_evaluate;
-    my $eval_function_name = "evaluate_".$self->id;
-    # Create dispatch table to prevent warnings
-    my $dispatch = {
-        evaluate => \&$eval_function_name,
-    };
-    $dispatch->{evaluate}->(@params);
 }
 
 1;

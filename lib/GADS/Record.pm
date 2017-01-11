@@ -64,8 +64,15 @@ has user => (
 );
 
 has record => (
-    is      => 'rw',
+    is => 'rw',
 );
+
+# Subroutine to create a slightly more advanced predication for "record" above
+sub has_record
+{   my $self = shift;
+    my $rec = $self->record or return;
+    %$rec and return 1;
+}
 
 # The raw parent linked record from the database, if applicable
 has linked_record_raw => (
@@ -116,6 +123,12 @@ has columns_retrieved_no => (
 # In "dependent order", needed for calcvals
 has columns_retrieved_do => (
     is => 'rw',
+);
+
+# Record-specific flags for columns that should be stored with this record
+has column_flags => (
+    is      => 'ro',
+    default => sub { +{} },
 );
 
 # Whether this is a new record, not yet in the database
@@ -559,22 +572,10 @@ sub _transform_values
     my $original = $self->record or panic "Record data has not been set";
 
     my $fields = {};
-    # We must fo these columns in dependent order, otherwise the
+    # We must do these columns in dependent order, otherwise the
     # column values may not exist for the calc values.
     foreach my $column (@{$self->columns_retrieved_do})
     {
-        my $dependent_values;
-        foreach my $dependent (@{$column->depends_on})
-        {
-            $dependent_values->{$dependent} = $fields->{$dependent};
-        }
-        $dependent_values->{-1} = GADS::Datum::ID->new(
-            record_id        => $self->record_id,
-            current_id       => $self->current_id,
-            column           => $self->layout->column(-1),
-            schema           => $self->schema,
-            layout           => $self->layout,
-        );
         my $value = $original->{$column->field};
         $value = $self->linked_record_raw && $self->linked_record_raw->{$column->link_parent->field}
             if $self->linked_id && $column->link_parent && !$self->is_historic;
@@ -585,19 +586,42 @@ sub _transform_values
             $self->force_update && grep { $_ == $column->id } @{$self->force_update}
         ) ? 1 : 0;
         $fields->{$column->id} = $column->class->new(
+            record           => $self,
             record_id        => $self->record_id,
             current_id       => $self->current_id,
             init_value       => $value,
             child_unique     => $value->{child_unique},
             column           => $column,
-            dependent_values => $dependent_values,
             init_no_value    => $self->init_no_value,
             schema           => $self->schema,
             layout           => $self->layout,
             force_update     => $force_update,
         );
     }
+    $fields->{-1} = GADS::Datum::ID->new(
+        record_id        => $self->record_id,
+        current_id       => $self->current_id,
+        column           => $self->layout->column(-1),
+        schema           => $self->schema,
+        layout           => $self->layout,
+    );
     $fields;
+}
+
+sub values_by_shortname
+{   my ($self, @names) = @_;
+    +{
+        map {
+            my $col = $self->layout->column_by_name_short($_);
+            my $linked = $self->linked_id && $col->link_parent;
+            my $d = $self->fields->{$col->id}->is_awaiting_approval # waiting approval, use old value
+                ? $self->fields->{$col->id}->oldvalue
+                : $linked && $self->fields->{$col->id}->oldvalue # linked, and linked value has been overwritten
+                ? $self->fields->{$col->id}->oldvalue
+                : $self->fields->{$col->id};
+            $_ => $d->for_code;
+        } @names
+    };
 }
 
 # Initialise empty record for new write
@@ -622,8 +646,8 @@ sub initialise_field
     }
     else {
         $column->class->new(
+            record           => $self,
             record_id        => $self->record_id,
-            set_value        => undef,
             column           => $column,
             schema           => $self->schema,
             layout           => $self->layout,
@@ -699,7 +723,6 @@ sub write
     }
 
     # First loop round: sanitise and see which if any have changed
-    my %appfields; # Any fields that need approval
     my %allow_update = map { $_ => 1 } @{$options{allow_update} || []};
     my ($need_app, $need_rec, $child_unique); # Whether a new approval_rs or record_rs needs to be created
     $need_rec = 1 if $self->changed;
@@ -791,7 +814,7 @@ sub write
                 trace __x"Approval needed because of no immediate write access to column {id}",
                     id => $column->id;
                 $need_app = 1;
-                $appfields{$column->id} = 1;
+                $datum->is_awaiting_approval(1);
             }
         }
         elsif ($datum->changed)
@@ -807,7 +830,7 @@ sub write
                 trace __x"Approval needed because of no immediate write access to column {id}",
                     id => $column->id;
                 $need_app = 1;
-                $appfields{$column->id} = 1;
+                $datum->is_awaiting_approval(1);
             }
         }
         $child_unique = 1 if $datum->child_unique;
@@ -953,7 +976,7 @@ sub write
         if ($need_app)
         {
             # Only need to write values that need approval
-            next unless $appfields{$column->id};
+            next unless $datum->is_awaiting_approval;
             $self->_field_write($column, $datum, approval => 1)
                 if ($self->new_entry && !$datum->blank)
                     || (!$self->new_entry && $datum->changed);
@@ -992,29 +1015,11 @@ sub write
         # Get old value
         my $old = $self->fields->{$col->id};
         # Force new value to be written
-        my $dependent_values;
-        foreach my $dependent (@{$col->depends_on})
-        {
-            my $linked = $self->linked_id && $self->layout->column($dependent)->link_parent;
-            $dependent_values->{$dependent}
-                = $appfields{$dependent} # waiting approval, use old value
-                ? $self->fields->{$dependent}->oldvalue
-                : $linked && $self->fields->{$dependent}->oldvalue # linked, and linked value has been overwritten
-                ? $self->fields->{$dependent}->oldvalue
-                : $self->fields->{$dependent};
-        }
-        $dependent_values->{-1} = GADS::Datum::ID->new(
-            record_id        => $self->record_id,
-            current_id       => $self->current_id,
-            column           => $self->layout->column(-1),
-            schema           => $self->schema,
-            layout           => $self->layout,
-        );
         my $new = $col->class->new(
+            record           => $self,
             current_id       => $self->current_id,
             record_id        => $self->record_id,
             column           => $col,
-            dependent_values => $dependent_values,
             schema           => $self->schema,
             layout           => $self->layout,
         );

@@ -565,6 +565,13 @@ sub _build_results
     my $result = $self->schema->resultset('Current')->search($search, $select);
 
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    my $column_flags = {
+        map {
+            $_->id => $_->flags
+        } grep {
+            %{$_->flags}
+        } @{$self->columns_retrieved_no}
+    };
     my @all;
     foreach my $rec ($result->all)
     {
@@ -581,6 +588,7 @@ sub _build_results
             force_update         => $self->force_update,
             columns_retrieved_no => $self->columns_retrieved_no,
             columns_retrieved_do => $self->columns_retrieved_do,
+            column_flags         => $column_flags,
         );
     }
 
@@ -673,7 +681,7 @@ sub _build_columns_retrieved_do
         my @col_ids = grep {defined $_} @{$self->columns}; # Remove undef column IDs
         my %col_ids;
         @col_ids{@col_ids} = undef;
-        @columns = grep { exists $col_ids{$_->id} } $layout->all(order_dependencies => 1);
+        @columns = grep { $_->id; exists $col_ids{$_->id} } $layout->all(order_dependencies => 1);
     }
     elsif (my $view = $self->view)
     {

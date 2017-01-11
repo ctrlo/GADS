@@ -69,7 +69,7 @@ sub as_integer
 
 sub for_code
 {   my $self = shift;
-    $self->value or return;
+    $self->value or return undef;
     int $self->value;
 }
 

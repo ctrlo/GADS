@@ -19,10 +19,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Column::Code;
 
 use GADS::AlertSend;
-use Inline;
 use Log::Report;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
+
+use Inline 'Lua' => q{
+    function lua_run(string, vars)
+        env = {}
+        env["vars"] = vars
+        env["os"] = { time = os.time, date = os.date }
+        func, err = load(string, nil, 't', env)
+        ret = {}
+        if err then
+            ret["success"] = 0
+            ret["error"] = err
+            return ret
+        end
+        ret["success"] = 1
+        ret["return"] = func()
+        return ret
+    end
+};
 
 extends 'GADS::Column';
 
@@ -46,14 +63,15 @@ sub update_cached
     undef $@;
     my $guard = $self->schema->txn_scope_guard;
 
-    # Need to refresh layout for updated calculation. Also
-    # need it for the dependent fields
-    my $layout = GADS::Layout->new(
-        instance_id => $self->layout->instance_id,
-        user        => $self->user,
-        config      => $self->layout->config,
-        schema      => $self->schema,
-    );
+    $self->clear; # Refresh calc for updated calculation
+    my $layout = $self->layout;
+
+    # Flag curval fields to retrieve all values whenever they are built. This
+    # will ensure that as eaech row is retrieved, the curval will already have
+    # all fields it requires (which are all expected to be present for the
+    # calcval)
+    $_->type eq 'curval' && $_->build_all_columns foreach $layout->all;
+
     my $records = GADS::Records->new(
         user         => $self->user,
         layout       => $layout,
@@ -85,19 +103,38 @@ sub update_cached
     $alert_send->process;
 };
 
-sub _replace_function_name
-{   my ($self, $code, $name) = @_;
-    $code =~ s/\s*function\s+(evaluate)\s*/function evaluate_$name/;
-    return $code;
+sub _params_from_code
+{   my ($self, $code) = @_;
+    my $params = $self->_parse_code($code)->{params};
+    @$params;
 }
 
-sub _parse_prototype
+sub _parse_code
 {   my ($self, $code) = @_;
-    $code =~ /function/ > 1
-        and error "Code definition can only contain one function";
-    $code =~ /^\s*function\s+evaluate\s*\(([A-Za-z0-9_,\s]+)\)/s
+    $code =~ /^\s*function\s+evaluate\s*\(([A-Za-z0-9_,\s]+)\)(.*?)end\s*$/s
         or error "Invalid code definition: must contain function evaluate(...)";
-    split /[,\s]+/, $1;
+    my @params   = split /[,\s]+/, $1;
+    my $run_code = $2;
+    +{
+        code   => $run_code,
+        params => [@params],
+    };
+}
+
+sub eval
+{   my ($self, $code, $vars) = @_;
+    my $run_code = $self->_parse_code($code)->{code};
+    my $mapping = '';
+    $mapping .= qq($_ = vars["$_"]\n) foreach keys %$vars;
+    $run_code = $mapping.$run_code;
+    my $return = lua_run($run_code, $vars);
+    # Make sure we're not returning anything funky (e.g. code refs)
+    my $ret = $return->{return} && ''.$return->{return};
+    my $err = $return->{error} && ''.$return->{error};
+    +{
+        return => $ret,
+        error  => $err,
+    }
 }
 
 1;

@@ -93,6 +93,11 @@ sub _build__enumvals_index
     \%enumvals;
 }
 
+sub _build_join
+{   my $self = shift;
+    +{$self->field => 'value'};
+}
+
 # The whole tree, constructed here so that it only
 # needs to be done once
 has _tree => (

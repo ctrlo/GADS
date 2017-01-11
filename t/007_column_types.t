@@ -4,6 +4,7 @@ use warnings;
 
 use JSON qw(encode_json);
 use Log::Report;
+use GADS::Column::Calc;
 use GADS::Layout;
 use GADS::Record;
 use GADS::Records;
@@ -37,7 +38,12 @@ my $data = [
 my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
-my $sheet   = t::lib::DataSheet->new(data => $data, schema => $schema, curval => 2);
+my $sheet   = t::lib::DataSheet->new(
+    data             => $data,
+    schema           => $schema,
+    curval           => 2,
+    curval_field_ids => [ $curval_sheet->columns->{string1}->id ],
+);
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
 $sheet->create_records;
@@ -144,17 +150,104 @@ foreach my $col (reverse $layout->all(order_dependencies => 1))
 $data = [
     {
         daterange1 => ['2000-10-10', '2001-10-10'],
+        curval1    => 1,
     },
     {
         daterange1 => ['2012-11-11', '2013-11-11'],
+        curval1    => 2,
     },
 ];
 
-$sheet   = t::lib::DataSheet->new(data => $data);
-$schema  = $sheet->schema;
-$layout  = $sheet->layout;
-$columns = $sheet->columns;
+$curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+$curval_sheet->create_records;
+$schema       = $curval_sheet->schema;
+$sheet        = t::lib::DataSheet->new(
+    data             => $data,
+    schema           => $schema,
+    curval           => 2,
+    curval_field_ids => [ $curval_sheet->columns->{string1}->id ],
+);
+$layout       = $sheet->layout;
+$columns      = $sheet->columns;
 $sheet->create_records;
+
+# Attempt to create additional calc field separately.
+# This has been known to cause errors with $layout not
+# being updated properly
+
+# First try with invalid function
+my $calc2_col = GADS::Column::Calc->new(
+    schema => $schema,
+    user   => undef,
+    layout => $layout,
+    name   => 'calc2',
+    calc   => "foobar evaluate (curval)",
+);
+try { $calc2_col->write };
+ok( $@, "Failed to write calc field with invalid function" );
+
+# Then with invalid short name
+$calc2_col = GADS::Column::Calc->new(
+    schema => $schema,
+    user   => undef,
+    layout => $layout,
+    name   => 'calc2',
+    calc   => "function evaluate (curval) \n return curval1.value\nend",
+);
+try { $calc2_col->write };
+ok( $@, "Failed to write calc field with invalid short names" );
+
+# Now create properly, with return value of field not in normal
+$calc2_col = GADS::Column::Calc->new(
+    schema => $schema,
+    user   => undef,
+    layout => $layout,
+    name   => 'calc2',
+    calc   => "function evaluate (curval1,id) \n return curval1.field_values.daterange1.from.year .. 'X' .. id \nend",
+);
+$calc2_col->write;
+
+# Same for RAG
+my $rag2 = GADS::Column::Rag->new(
+    schema => $schema,
+    user   => undef,
+    layout => $layout,
+    name   => 'rag2',
+    red    => "function evaluate (daterange1) \n if daterange1.from == nil then return end \n if daterange1.from.year < 2012 then return 1 else return 0 end \n end",
+    amber  => "function evaluate (daterange1) \n if daterange1.from == nil then return end \n if daterange1.from.year == 2012 then return 1 else return 0 end \n end",
+    green  => "function evaluate (daterange1) \n if daterange1.from == nil then return end \n if daterange1.from.year > 2012 then return 1 else return 0 end \n end",
+);
+$rag2->write;
+
+# Create a calc field that has something invalid in the nested code
+my $calc3_col = GADS::Column::Calc->new(
+    schema => $schema,
+    user   => undef,
+    layout => $layout,
+    name   => 'calc3',
+    calc   => "function evaluate (curval1) \n adsfadsf return curval1.field_values.daterange1.from.year \nend",
+);
+try { $calc3_col->write } hide => 'ALL';
+my ($warning) = $@->exceptions;
+like($warning, qr/syntax error/, "Warning received for syntax error in calc");
+$calc3_col->delete;
+
+# Same for RAG
+my $rag3 = GADS::Column::Rag->new(
+    schema => $schema,
+    user   => undef,
+    layout => $layout,
+    name   => 'rag2',
+    red    => "function evaluate (daterange1) \n foobar \n end",
+    amber  => "function evaluate (daterange1) \n foobar \n end",
+    green  => "function evaluate (daterange1) \n foobar \n end",
+);
+try { $rag3->write } hide => 'ALL';
+($warning) = $@->exceptions;
+like($warning, qr/syntax error/, "Warning received for syntax error in rag");
+$rag3->delete;
+
+$layout->clear;
 
 $records = GADS::Records->new(
     user    => undef,
@@ -168,16 +261,29 @@ $ENV{GADS_PANIC_ON_ENTERING_CODE} = 1;
 my $calc_col = $columns->{calc1};
 my $rag_col  = $columns->{rag1};
 
-my @calcs = qw/2000 2012/;
-my @rags  = qw/b_red c_amber/;
-foreach my $record (@{$records->results})
+my @calcs   = qw/2000 2012/;
+my @calcs2  = qw/2012 2008/; # From default datasheet values for daterange1 (referenced from curval)
+my @rags    = qw/b_red c_amber/;
+my @results = @{$records->results};
+# Set env variables to allow record write (after retrieving results)
+$ENV{GADS_PANIC_ON_ENTERING_CODE} = 0;
+$ENV{GADS_NO_FORK} = 1;
+foreach my $record (@results)
 {
     my $calc  = shift @calcs;
+    my $calc2 = (shift @calcs2) . 'X' . $record->current_id;
     my $rag   = shift @rags;
     is( $record->fields->{$calc_col->id}->as_string, $calc, "Correct calc value for record" );
+    is( $record->fields->{$calc2_col->id}->as_string, $calc2, "Correct calc2 value for record" );
     is( $record->fields->{$rag_col->id}->as_string, $rag, "Correct rag value for record" );
+    # Check we can update the record
+    $record->fields->{$columns->{daterange1}->id}->set_value(['2014-10-10', '2015-10-10']);
+    $record->fields->{$columns->{curval1}->id}->set_value(2);
+    $record->write;
+    is( $record->fields->{$calc_col->id}->as_string, '2014', "Correct calc value for record after write" );
+    $calc2 = '2008' . 'X' . $record->current_id;
+    is( $record->fields->{$calc2_col->id}->as_string, $calc2, "Correct calc2 value for record after write" );
+    is( $record->fields->{$rag_col->id}->as_string, 'd_green', "Correct rag value for record after write" );
 }
-
-$ENV{GADS_PANIC_ON_ENTERING_CODE} = 0;
 
 done_testing();

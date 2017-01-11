@@ -33,7 +33,6 @@ has filesize => (
 after build_values => sub {
     my ($self, $original) = @_;
 
-    $self->join({$self->field => 'value'});
     $self->value_field('name');
     my ($file_option) = $original->{file_options}->[0];
     if ($file_option)
@@ -60,6 +59,11 @@ after 'write' => sub {
         $self->schema->resultset('FileOption')->create($foption);
     }
 };
+
+sub _build_join
+{   my $self = shift;
+    +{$self->field => 'value'};
+}
 
 sub cleanup
 {   my ($class, $schema, $id)  = @_;

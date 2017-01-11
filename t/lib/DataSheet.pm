@@ -79,6 +79,10 @@ has curval => (
     is => 'ro',
 );
 
+has curval_field_ids => (
+    is => 'ro',
+);
+
 has calc_code => (
     is      => 'ro',
     isa     => Str,
@@ -336,17 +340,18 @@ sub __build_columns
     if ($self->curval)
     {
         $curval1 = GADS::Column::Curval->new(
-            schema => $self->schema,
-            user   => undef,
-            layout => $self->layout,
+            schema     => $self->schema,
+            user       => undef,
+            layout     => $self->layout,
+            name_short => 'curval1',
         );
         my $refers_to_instance = $self->curval;
         $curval1->refers_to_instance($refers_to_instance);
         my $curval_field_ids_rs = $self->schema->resultset('Layout')->search({
             instance_id => $refers_to_instance,
         });
-        my @curval_field_ids = map { $_->id } $curval_field_ids_rs->all;
-        $curval1->curval_field_ids([@curval_field_ids]);
+        my $curval_field_ids = $self->curval_field_ids || [ map { $_->id } $curval_field_ids_rs->all ];
+        $curval1->curval_field_ids($curval_field_ids);
         $curval1->type('curval');
         $curval1->name('curval1');
         try { $curval1->write };

@@ -96,40 +96,116 @@ letter, and is only allowedcontain letters, numbers and underscores.</p>
 [% END %]
 
 [% global.helptext.layout_calc = BLOCK %]
-Calculated fields can be used to automatically generate values based
-on other fields. Basic Perl programming style can be used, with the value that
-is returned being used for the value of the field. Values from other fields
-are used by inserting the field name between square brackets. The ID of the
-record can be accessed using [id]. Values in date
-ranges are used by adding the suffix &quot;.from&quot; or &quot;.to&quot;
-to specify the date required. Upper levels of a tree value can be specified
-using &quot;levelX&quot;, where X is the level required, starting at 1 for the
-top level. For example:
+<h5>Introduction</h5>
+<p>Calculated fields can be used to automatically generate values based on
+other fields. Basic <a href="https://www.lua.org/pil/contents.html">Lua
+programming style</a> can be used, with the value that is returned being used
+for the value of the field.</p> <p>The defined code should consist of a
+function called <code>evaluate</code> with parameters as the values required
+from other fields. Values from other fields are used by defining a short name
+for the field and then inserting that short name into the function name as per
+the examples below. The short name for a field is defined by editing the field
+and entering a value into the &quot;Short name&quot; parameter.</p> <p>Note
+that only a subset of the Lua language is available for use. For full details,
+please see the manual.</p>
 
-<tt><pre>
-[% FILTER html %]
-if ([Country] eq "Greece" && [Region] eq "A")
-{
-    return "Europe"
-}
-elsif ([Country] eq "Japan")
-{
-    return "Asia"
-}
-elsif ([daterange.from] > CURDATE)
-{
-    return "Started"
-}
-elsif ([tree.level2] eq "next level")
-{
-    return "Next from top"
-}
-elsif ([Cost] < 10)
-{
-    return "Bargain"
-}
-[% END %]
-</pre></tt>
+<h5>Using different field types</h5>
+<p>Values in <em>date fields</em> are passed as Lua table values with
+the indexes year, month, day and epoch.  <em>Date ranges</em> are also
+passed as Lua tables with the index &quot;from&quot; and &quot;to&quot; which
+contain tables as per a date field.</p> <p><em>Tree values</em> are
+passed as Lua table values with the indexes &quot;value&quot; and
+&quot;parents&quot;, the former containing the actual value and the latter
+being another table containing all the node's parents (starting at
+&quot;parent1&quot; for the top level and continuing sequentially as
+required).</p> <p>The <em>ID of the record</em> can be accessed using
+the special short name &quot;id&quot;.</p>
+
+<h5>Return values</h5>
+<p>In order for a calculated value to behave as expected (such as sorting and
+searching correctly), it's important that Linkspace knows what value it is
+returning. The type of value can specified using the &quot;Return value
+conversion&quot; option. In the case of a date, the value returned from the
+calculated function should be epoch time, which will then be converted to a
+full date by Linkspace.</p>
+
+<p>The following selection of
+functions show example code:</p>
+
+<h5>Calculated values based on text comparisons</h5>
+<tt><pre>[% FILTER html %]
+function evaluate (country, region)
+    if country == "Greece" and region == "A" then
+        return "Europe"
+    elseif country == "Japan" then
+        return "Asia"
+    end
+end
+[% END %]</pre></tt>
+
+<h5>Calculated values based on date comparisons</h5>
+<tt><pre>[% FILTER html %]
+function evaluate (daterange)
+    if daterange.from == nil then
+        return "No starting date"
+    end
+    if daterange.from.epoch < os.time() then
+        return "Started"
+    end
+    if daterange.from.epoch < os.time() + (86400 * 30) then
+        return "Starts within 30 days"
+    end
+    return "Not yet started"
+end
+[% END %]</pre></tt>
+
+<h5>Calculated values based on tree nodes</h5>
+<tt><pre>[% FILTER html %]
+function evaluate (mytree)
+    if mytree.parents.parent2 == nil then
+        return "No second level"
+    end
+    return "Second level is: " .. mytree.parents.parent2
+end
+[% END %]</pre></tt>
+
+<h5>Calculated values based on number comparisons</h5>
+<tt><pre>[% FILTER html %]
+function evaluate (cost)
+    if cost == nil then
+        return "No cost set"
+    end
+    if cost > 10 then
+        return "Expensive"
+    else
+        return "Bargain"
+    end
+end
+[% END %]</pre></tt>
+
+<h5>Working out the average of several numerical values</h5>
+<tt><pre>[% FILTER html %]
+function evaluate (score1, score2, score3)
+    total = 0
+    count = 0
+    if score1 ~= nil then
+        total = total + score1
+        count = count + 1
+    end
+    if score2 ~= nil then
+        total = total + score2
+        count = count + 1
+    end
+    if score3 ~= nil then
+        total = total + score3
+        count = count + 1
+    end
+    if count == 0 then
+        return
+    end
+    return (total / count)
+end
+[% END %]</pre></tt>
 
 [% END %]
 
