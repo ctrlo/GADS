@@ -71,7 +71,7 @@ my $sheet   = t::lib::DataSheet->new(
     data             => $data,
     schema           => $schema,
     curval           => 2,
-    calc_code        => '[Daterange1.from]',
+    calc_code        => "function evaluate (daterange1) \n if daterange1.from == nil then return end \n return daterange1.from.epoch \n end",
     calc_return_type => 'date',
 );
 my $layout  = $sheet->layout;
