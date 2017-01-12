@@ -29,6 +29,7 @@ has set_value => (
     is       => 'rw',
     trigger  => sub {
         my ($self, $value) = @_;
+        ($value) = @$value if ref $value eq 'ARRAY';
         $value =~ /\h+$/ if !ref $value && $value;
         if (my $regex = !ref $value && $self->column->force_regex)
         {
@@ -49,7 +50,7 @@ has value => (
     builder   => sub {
         my $self = shift;
         $self->has_init_value or return;
-        my $value = $self->init_value->{value};
+        my $value = $self->init_value->[0]->{value};
         $self->has_value(1) if defined $value || $self->init_no_value;
         $value;
     },

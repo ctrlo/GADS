@@ -371,7 +371,7 @@ sub search_all_fields
 
     # XXX These really need to be pulled from the various Column classes
     my @fields = (
-        { type => 'string', plural => 'strings', index_field => 'value_index' },
+        { type => 'string', plural => 'strings', index_field => 'strings.value_index' },
         { type => 'int'   , plural => 'intgrs' },
         { type => 'date'  , plural => 'dates' },
         { type => 'string', plural => 'dateranges' },

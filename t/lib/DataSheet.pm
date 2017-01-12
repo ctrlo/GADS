@@ -208,6 +208,7 @@ sub __build_columns
     );
     $enum1->type('enum');
     $enum1->name('enum1');
+    $enum1->name_short('enum1');
     $enum1->enumvals([
         {
             value => 'foo1',

@@ -57,7 +57,7 @@ has value => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        my $value = $self->init_value;
+        my $value = $self->init_value && $self->init_value->[0];
         my $v = $self->_parse_dt($value, 'db');
         $self->has_value(1) if defined $value || $self->init_no_value;
         $self->value($v);

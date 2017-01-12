@@ -30,6 +30,7 @@ has set_value => (
     trigger  => sub {
         my ($self, $value) = @_;
         my $clone = $self->clone; # Copy before changing text
+        ($value) = @$value if ref $value eq 'ARRAY';
         $value = undef if !$value; # Can be empty string, generating warnings
         $self->column->validate($value, fatal => 1);
         $self->changed(1) if (!defined($self->id) && defined $value)
@@ -54,7 +55,7 @@ has value_hash => (
     builder => sub {
         my $self = shift;
         $self->has_init_value or return;
-        my $value = $self->init_value->{value};
+        my $value = $self->init_value->[0]->{value};
         my ($id, $text);
         # From database, with enumval table joined
         if (ref $value eq 'HASH')
@@ -80,7 +81,7 @@ has _record => (
 sub _build__record
 {   my $self = shift;
     $self->has_init_value or return;
-    my $value = $self->init_value->{value};
+    my $value = $self->init_value->[0]->{value};
     GADS::Record->new(
         schema               => $self->column->schema,
         layout               => $self->column->layout_parent,
@@ -122,7 +123,7 @@ has id => (
     builder   => sub {
         my $self = shift;
         $self->has_init_value or return;
-        my $id = $self->init_value->{value}->{id};
+        my $id = $self->init_value->[0]->{value}->{id};
         $self->has_id(1) if defined $id || $self->init_no_value;
         return $id;
     },

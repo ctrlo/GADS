@@ -27,7 +27,10 @@ use Inline 'Lua' => q{
     function lua_run(string, vars)
         local env = {}
         env["vars"] = vars
+        env["pairs"] = pairs
+        env["ipairs"] = ipairs
         env["os"] = { time = os.time, date = os.date }
+        env["table"] = { sort = table.sort, insert = table.insert }
         func, err = load(string, nil, 't', env)
         ret = {}
         if err then

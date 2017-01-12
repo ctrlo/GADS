@@ -64,6 +64,10 @@ has '+value_field_as_index' => (
     default => 'id',
 );
 
+has '+can_multivalue' => (
+    default => 1,
+);
+
 after build_values => sub {
     my ($self, $original) = @_;
     $self->ordering($original->{ordering});

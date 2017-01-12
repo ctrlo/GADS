@@ -28,6 +28,7 @@ has set_value => (
     is       => 'rw',
     trigger  => sub {
         my ($self, $value) = @_;
+        ($value) = @$value if ref $value eq 'ARRAY';
         $value = undef if defined $value && !$value && $value !~ /^0+$/; # Can be empty string, generating warnings
         $self->column->validate($value, fatal => 1);
         $self->changed(1) if (!defined($self->value) && defined $value)
@@ -45,7 +46,7 @@ has value => (
     builder => sub {
         my $self = shift;
         $self->has_init_value or return;
-        my $value = $self->init_value->{value};
+        my $value = $self->init_value->[0]->{value};
         $self->has_value(1) if defined $value || $self->init_no_value;
         $value;
     },

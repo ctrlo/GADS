@@ -316,9 +316,11 @@
             </label>
         [% END %]
     [% IF dispcol.type == "enum" %]
-        <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
+        <select class="form-control [% IF dispcol.multivalue %]selectpicker [% END %]" name="[% field %]" id="[% dispcol.id %]" [% readonly %] [% IF dispcol.multivalue %]multiple[% END %]>
             [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
-                <option></option>
+                [% IF !dispcol.multivalue %]
+                    <option></option>
+                [% END %]
             [% END %]
             [% IF dispcol.ordering == "desc" %]
                 [% enumvals = dispcol.enumvals.sort('value').reverse %]
@@ -329,9 +331,9 @@
             [% END %]
             [% is_selected = 0 %]
             [% FOREACH enumval IN enumvals %]
-                <option value="[% enumval.id %]" [% IF editvalue.id == enumval.id %][% is_selected = 1 %]selected[% END %]>[% enumval.value | html_entity %]</option>
+                <option value="[% enumval.id %]" [% IF editvalue.id_hash.${enumval.id} %][% is_selected = 1 %]selected[% END %]>[% enumval.value | html_entity %]</option>
             [% END %]
-            [% IF editvalue.id AND NOT is_selected %]
+            [% IF editvalue.id AND NOT is_selected AND !dispcol.multivalue %]
                 <option value="[% editvalue.id %]" selected>[% editvalue.html %]</option>
             [% END %]
         </select>

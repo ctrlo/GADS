@@ -31,6 +31,7 @@ has set_value => (
         my ($self, $value) = @_;
         my $clone = $self->clone; # Copy before changing text
         my $new_id;
+        ($value) = @$value if ref $value eq 'ARRAY';
         if (ref $value && $value->{content})
         {
             # New file uploaded
@@ -76,7 +77,7 @@ has value_hash => (
     builder => sub {
         my $self = shift;
         $self->has_init_value or return;
-        my $value = $self->init_value->{value};
+        my $value = $self->init_value->[0]->{value};
         my $id = $value->{id};
         $self->has_id(1) if defined $id || $self->init_no_value;
         +{

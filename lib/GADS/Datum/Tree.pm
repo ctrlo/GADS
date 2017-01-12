@@ -28,6 +28,7 @@ has set_value => (
     is       => 'rw',
     trigger  => sub {
         my ($self, $value) = @_;
+        ($value) = @$value if ref $value eq 'ARRAY';
         my $clone = $self->clone; # Copy before changing text
         $value = undef if !$value; # Can be empty string, generating warnings
         $self->column->validate($value, fatal => 1);
@@ -67,7 +68,7 @@ has value_hash => (
     builder => sub {
         my $self = shift;
         $self->has_init_value or return {};
-        my $value = $self->init_value->{value};
+        my $value = $self->init_value->[0]->{value};
         my $id = $value->{id};
         $self->has_id(1) if defined $id || $self->init_no_value;
         +{

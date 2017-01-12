@@ -156,6 +156,19 @@ has fixedvals => (
     isa => Bool,
 );
 
+has can_multivalue => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
+has multivalue => (
+    is      => 'rw',
+    isa     => Bool,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    default => 0,
+);
+
 has ordering => (
     is  => 'rw',
     isa => Maybe[Str],
@@ -460,6 +473,7 @@ sub build_values
     $self->optional($original->{optional});
     $self->remember($original->{remember});
     $self->isunique($original->{isunique});
+    $self->multivalue($original->{multivalue} ? 1 : 0) if $self->can_multivalue;
     $self->position($original->{position});
     $self->helptext($original->{helptext});
     $self->description($original->{description});
@@ -632,6 +646,7 @@ sub write
     $newitem->{optional}      = $self->optional;
     $newitem->{remember}      = $self->remember;
     $newitem->{isunique}      = $self->isunique;
+    $newitem->{multivalue}    = $self->multivalue if $self->can_multivalue;
     $newitem->{description}   = $self->description;
     $newitem->{helptext}      = $self->helptext;
     $newitem->{link_parent}   = $self->link_parent_id;

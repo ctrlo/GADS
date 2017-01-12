@@ -88,9 +88,9 @@ sub _transform_value
     my $column = $self->column;
     my $layout = $self->layout;
 
-    if (exists $original->{value} && !$self->force_update)
+    if (ref $original && !$self->force_update)
     {
-        return $original->{value};
+        return $original->[0]->{value};
     }
     elsif (!$self->column->green && !$self->column->amber && !$self->column->red)
     {

@@ -66,7 +66,7 @@ sub add_column
     # Temporary hack
     # very inefficient and needs to go away when the rel options show up
     my $rec_class = $schema->class('Record');
-    $rec_class->might_have(
+    $rec_class->has_many(
         $colname => camelize($coltype),
         sub {
             my $args = shift;

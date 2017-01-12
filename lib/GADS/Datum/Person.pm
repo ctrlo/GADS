@@ -33,6 +33,7 @@ has set_value => (
     is       => 'rw',
     trigger  => sub {
         my ($self, $value) = @_;
+        ($value) = @$value if ref $value eq 'ARRAY';
         my $new_id;
         my $clone = $self->clone;
         if (ref $value)
@@ -83,7 +84,13 @@ has value_hash => (
     builder => sub {
         my $self = shift;
         $self->has_init_value or return;
-        my $value = $self->init_value->{value};
+        # May or may not be multiple values, depending on source. Could have
+        # come from a record value (multiple possible) or from a record
+        # property such as created_by
+        my $init_value = $self->init_value;
+        my $value = ref $init_value eq 'ARRAY'
+            ? $init_value->[0]->{value}
+            : $init_value->{value};
         my $id = $value->{id};
         $self->has_id(1) if defined $id || $self->init_no_value;
         +{

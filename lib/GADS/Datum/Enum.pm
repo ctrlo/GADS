@@ -31,24 +31,44 @@ has set_value => (
         my ($self, $value) = @_;
         my $clone = $self->clone; # Copy before changing text
         $value = undef if !$value; # Can be empty string, generating warnings
-        $self->column->validate($value, fatal => 1) unless $self->id && $value && $self->id == $value; # unchanged deleted value
-        # Look up text value
-        my $enumval = $self->column->enumval($value);
-        $self->text($enumval->{value}) if $enumval;
-        $self->changed(1) if (!defined($self->id) && defined $value)
-            || (!defined($value) && defined $self->id)
-            || (defined $self->id && defined $value && $self->id != $value);
+        my @values = sort ref $value eq 'ARRAY' ? @$value : $value ? ($value) : ();
+        my @old    = sort ref $self->id eq 'ARRAY' ? @{$self->id} : $self->id ? $self->id : ();
+        my $changed = "@values" ne "@old";
+        if ($changed)
+        {
+            my @text;
+            foreach (@values)
+            {
+                $self->column->validate($_, fatal => 1);
+                push @text, $self->column->enumval($_)->{value};
+            }
+            $self->clear_text;
+            $self->_text(\@text);
+        }
+        $self->changed($changed);
         $self->oldvalue($clone);
-        $self->id($value) if defined $value || $self->init_no_value;
+        $self->id($self->column->multivalue ? \@values : $value);
     },
 );
 
 has text => (
     is      => 'rw',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
-        $_[0]->value_hash->{text};
+        my $self = shift;
+        join ', ', @{$self->_text};
     },
+);
+
+# Internal text, array ref of all individual text values
+has _text => (
+    is      => 'rw',
+    isa     => ArrayRef,
+    lazy    => 1,
+    builder => sub {
+        $_[0]->value_hash->{text} || [];
+    }
 );
 
 has id => (
@@ -56,7 +76,8 @@ has id => (
     lazy    => 1,
     trigger => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
     builder => sub {
-        $_[0]->value_hash->{id};
+        my $self = shift;
+        $self->column->multivalue ? $self->value_hash->{ids} : $self->value_hash->{ids}->[0];
     },
 );
 
@@ -66,12 +87,13 @@ has value_hash => (
     builder => sub {
         my $self = shift;
         $self->has_init_value or return {};
-        my $value = $self->init_value->{value};
-        my $id = $value->{id};
-        $self->has_id(1) if defined $id || $self->init_no_value;
+        my @values = map { $_->{value} } @{$self->init_value};
+        my @ids    = map { $_->{id} } @values;
+        my @texts  = map { $_->{value} || '' } @values;
+        $self->has_id(1) if (grep { defined $_ } @ids) || $self->init_no_value;
         +{
-            id   => $id,
-            text => $value->{value},
+            ids  => \@ids,
+            text => \@texts,
         };
     },
 );
@@ -80,6 +102,17 @@ has has_id => (
     is  => 'rw',
     isa => Bool,
 );
+
+has id_hash => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_id_hash
+{   my $self = shift;
+    return { $self->id => 1 } if !$self->column->multivalue;
+    +{ map { $_ => 1 } @{$self->id} };
+}
 
 sub value { $_[0]->id }
 
@@ -99,7 +132,22 @@ sub as_string
 
 sub as_integer
 {   my $self = shift;
+    panic "No integer value for multivalue"
+        if $self->column->multivalue;
     $self->id // 0;
+}
+
+sub for_code
+{   my ($self, %options) = @_;
+    return $self->as_string
+        unless $self->column->multivalue;
+    my %values;
+    @values{@{$self->id}} = @{$self->_text};
+    +{
+        text   => $self->as_string,
+        values => \%values,
+    };
+
 }
 
 1;

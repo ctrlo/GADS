@@ -41,6 +41,7 @@ has set_value => (
     trigger  => sub {
         my ($self, $value) = @_;
         $self->oldvalue($self->clone);
+        ($value) = @$value if ref $value eq 'ARRAY';
         my $newvalue = $self->_to_dt($value, 'user');
         my $old = $self->oldvalue && $self->oldvalue->value ? $self->oldvalue->value->epoch : 0;
         my $new = $newvalue ? $newvalue->epoch : 0;
@@ -54,7 +55,7 @@ has value => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        my $value = $self->init_value;
+        my $value = $self->init_value && $self->init_value->[0];
         my $v = $self->_to_dt($value, 'db');
         $self->has_value(1) if defined $value || $self->init_no_value;
         $v;

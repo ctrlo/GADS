@@ -37,6 +37,7 @@
         [% IF page == "layout" OR page == "edit" OR page == "approval" OR page =="audit" %]
             <link rel="stylesheet" href="[% url.css %]/jstree.min.css" />
             <link rel="stylesheet" href="[% url.css %]/bootstrap-datepicker.min.css" />
+            <link rel="stylesheet" href="[% url.css %]/bootstrap-select.min.css" />
         [% END %]
         [% IF page == "data" AND viewtype == "calendar" %]
             <link rel="stylesheet" href="[% url.css %]/calendar.min.css">
@@ -272,6 +273,7 @@
         [% IF page == "layout" OR page == "edit" OR page == "approval" %]
             <script src="[% url.js %]/jstree.min.js"></script>
             <script src="[% url.js %]/jstree-misc.js"></script>
+            <script src="[% url.js %]/bootstrap-select.min.js"></script>
         [% END %]
     </div>
     </body>

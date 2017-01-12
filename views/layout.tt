@@ -74,6 +74,13 @@
                     <input type="checkbox" name="isunique" [% IF column.isunique %]checked[% END %]>Ensure values are unique between records
                 </label>
             </div>
+            [% IF column.can_multivalue %]
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="multivalue" [% IF column.multivalue %]checked[% END %]>Allow multiple values
+                    </label>
+                </div>
+            [% END %]
             <div class="checkbox noragcalc" [% noragcalc %]>
                 <label>
                     <input type="checkbox" id="display_condition" name="display_condition" [% IF column.display_field %]checked[% END %]>Only display under the following conditions:

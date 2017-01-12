@@ -582,7 +582,7 @@ sub _transform_values
             if $self->linked_id && $column->link_parent && !$self->is_historic;
 
         # FIXME XXX Don't collect file content in sql query
-        delete $value->{value}->{content} if $column->type eq "file";
+        delete $value->[0]->{value}->{content} if $column->type eq "file";
         my $force_update = (
             $self->force_update && grep { $_ == $column->id } @{$self->force_update}
         ) ? 1 : 0;
@@ -591,7 +591,7 @@ sub _transform_values
             record_id        => $self->record_id,
             current_id       => $self->current_id,
             init_value       => $value,
-            child_unique     => $value->{child_unique},
+            child_unique     => $value->[0]->{child_unique}, # Assume same for all parts of value
             column           => $column,
             init_no_value    => $self->init_no_value,
             schema           => $self->schema,
@@ -1130,6 +1130,7 @@ sub _field_write
             layout_id    => $column->id,
         };
         $entry->{record_id} = $options{approval} ? $self->approval_id : $self->record_id;
+        my @entries;
         if ($datum_write) # Possible that we're writing a blank value
         {
             if ($column->type eq "daterange")
@@ -1137,17 +1138,38 @@ sub _field_write
                 $entry->{from}  = $datum_write->from_dt;
                 $entry->{to}    = $datum_write->to_dt;
                 $entry->{value} = $datum_write->as_string || undef; # Don't write empty strings for missing values
+                push @entries, $entry;
             }
             elsif ($column->type =~ /(file|enum|tree|person|curval)/)
             {
-                $entry->{value} = $datum_write->id;
+                if (ref $datum_write->id eq 'ARRAY')
+                {
+                    if (!@{$datum_write->id})
+                    {
+                        push @entries, $entry; # No values, but still need to write null value
+                    }
+                    foreach my $id (@{$datum_write->id})
+                    {
+                        my %entry = %$entry; # Copy to stop referenced id being overwritten
+                        $entry{value} = $id;
+                        push @entries, \%entry;
+                    }
+                }
+                else {
+                    $entry->{value} = $datum_write->id;
+                    push @entries, $entry;
+                }
+            }
+            elsif ($column->type eq 'string')
+            {
+                $entry->{value} = $datum_write->value;
+                $entry->{value_index} = lc substr $datum_write->value, 0, 128
+                    if $datum_write->value;
+                push @entries, $entry;
             }
             else {
                 $entry->{value} = $datum_write->value;
-            }
-            if ($column->type eq 'string' && $datum_write->value)
-            {
-                $entry->{value_index} = lc substr $datum_write->value, 0, 128;
+                push @entries, $entry;
             }
         }
 
@@ -1175,7 +1197,8 @@ sub _field_write
         }
 
         if (!$options{update_only} || $create) {
-            $self->schema->resultset($table)->create($entry);
+            $self->schema->resultset($table)->create($_)
+                foreach @entries;
         }
     }
 }

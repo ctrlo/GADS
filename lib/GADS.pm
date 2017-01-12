@@ -1267,7 +1267,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
         if (param 'submit')
         {
             $column->$_(param $_)
-                foreach (qw/name name_short type description helptext optional isunique remember link_parent_id/);
+                foreach (qw/name name_short type description helptext optional isunique multivalue remember link_parent_id/);
             if (param 'display_condition')
             {
                 $column->display_field(param 'display_field');
@@ -1851,7 +1851,7 @@ any '/edit/:id?' => require_login sub {
         # just silently ignoring them, IMHO.
         foreach my $col (@columns_to_show)
         {
-            my $newv = param($col->field);
+            my $newv = [body_parameters->get_all($col->field)];
             if ($col->userinput && defined $newv) # Not calculated fields
             {
                 # No need to do anything if the file's just been uploaded

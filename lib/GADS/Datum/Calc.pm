@@ -108,7 +108,7 @@ sub _transform_value
 
     if (ref $original && !$self->force_update)
     {
-        my $v  = $original->{$column->value_field};
+        my $v  = $original->[0]->{$column->value_field};
         $value = $column->return_type eq 'date'
                ? $self->_parse_date($v)
                : $v;

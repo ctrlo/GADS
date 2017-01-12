@@ -112,6 +112,12 @@ __PACKAGE__->table("layout");
   default_value: 0
   is_nullable: 0
 
+=head2 multivalue
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
 =head2 description
 
   data_type: 'text'
@@ -175,6 +181,8 @@ __PACKAGE__->add_columns(
   "ordering",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "end_node_only",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "multivalue",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "description",
   { data_type => "text", is_nullable => 1 },
