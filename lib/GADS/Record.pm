@@ -292,7 +292,7 @@ has createdby => (
         return unless $self->record;
         GADS::Datum::Person->new(
             record_id        => $self->record_id,
-            set_value        => {value => $self->record->{createdby}},
+            init_value       => {value => $self->record->{createdby}},
             schema           => $self->schema,
             layout           => $self->layout,
         );
@@ -397,11 +397,12 @@ sub find_unique
     # First create a view to search for this value in the column.
     my $filter = encode_json({
         rules => [{
-            field    => $column->id,
-            id       => $column->id,
-            type     => $column->type,
-            value    => $value,
-            operator => 'equal',
+            field       => $column->id,
+            id          => $column->id,
+            type        => $column->type,
+            value       => $value,
+            value_field => $column->value_field_as_index, # Need to use value ID not string as search
+            operator    => 'equal',
         }]
     });
     my $view = GADS::View->new(
@@ -788,7 +789,7 @@ sub write
         if ($column->isunique && !$datum->blank && ($self->new_entry || $datum->changed) && !($self->parent_id && !$datum->child_unique))
         {
             # Check for other columns with this value.
-            if (my $r = $self->find_unique($column, $datum->as_string))
+            if (my $r = $self->find_unique($column, $datum->value))
             {
                 # as_string() used as will be encoded on message display
                 error __x(qq(Field "{field}" must be unique but value "{value}" already exists in record {id}),

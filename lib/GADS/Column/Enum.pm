@@ -60,6 +60,10 @@ has ordering => (
     }
 );
 
+has '+value_field_as_index' => (
+    default => 'id',
+);
+
 after build_values => sub {
     my ($self, $original) = @_;
     $self->ordering($original->{ordering});

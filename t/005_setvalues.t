@@ -47,6 +47,17 @@ my $values = {
         new           => 2,
         new_as_string => 'Bar, 99, , , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
     },
+    person1 => {
+        old_as_string => 'User1, User1',
+        new           => {
+            id       => 2,
+            username => "user2\@example.com",
+            email    => "user2\@example.com",
+            value    => 'User2, User2',
+
+        },
+        new_as_string => 'User2, User2',
+    },
     file1 => {
         old_as_string => 'file1.txt',
         new => {
@@ -69,6 +80,7 @@ my $data = {
             daterange1 => ['', ''],
             curval1    => '',
             file1      => '',
+            person1    => '',
         },
     ],
     changed => [
@@ -80,6 +92,7 @@ my $data = {
             date1      => '2010-10-10',
             daterange1 => ['2000-10-10', '2001-10-10'],
             curval1    => 1,
+            person1    => 1,
             file1      => {
                 name     => 'file1.txt',
                 mimetype => 'text/plain',
@@ -96,6 +109,7 @@ my $data = {
             date1      => '2011-10-10',
             daterange1 => ['2000-11-11', '2001-11-11'],
             curval1    => 2,
+            person1    => 2,
             file1      => {
                 name     => 'file2.txt',
                 mimetype => 'text/plain',
@@ -169,7 +183,7 @@ my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
 $sheet->create_records;
 
-foreach my $c (keys %{$data->{changed}->[0]})
+foreach my $c (keys %$values)
 {
     my $column = $columns->{$c};
     # First check that an empty string replacing the null
@@ -182,7 +196,7 @@ foreach my $c (keys %{$data->{changed}->[0]})
         datetime_parser => $schema->storage->datetime_parser,
         schema          => $schema,
     );
-    $datum->set_value($data->{changed}->[0]->{$c});
+    $datum->set_value($values->{$c}->{new});
     ok( $datum->changed, "$c has changed" );
     # And now that an actual value does count as a change
     $datum = $class->new(

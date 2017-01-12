@@ -1,3 +1,5 @@
+[% PROCESS help.tt %]
+
 [% IF edit.defined %]
 [% edituser = users.shift %]
 [% IF edituser.account_request %]
@@ -75,7 +77,7 @@
             [% IF page == "user" %]
                 <div class="form-group">
                     <label for="limit_to_view">
-                        Limit user's data to only records in:
+                        Limit user's data to only records in: (<a href="" data-toggle="modal" data-target="#modalhelp_limitdata">?</a>)
                     </label>
                     <select class="form-control" id="limit_to_view" name="limit_to_view">
                         <option></option>
@@ -349,6 +351,24 @@
                 <button type="submit" name="sendemail" value="sendemail" class="btn btn-primary">Send email</button>
             </div>
             </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<!-- Modal -->
+<div class="modal fade" id="modalhelp_limitdata" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Limiting a user's access to records</h4>
+            </div>
+            <div class="modal-body">
+                <p>[% global.helptext.limit_user_data %]</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->

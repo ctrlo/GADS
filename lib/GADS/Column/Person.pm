@@ -25,6 +25,10 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
+has '+value_field_as_index' => (
+    default => 'id',
+);
+
 has people => (
     is      => 'rw',
     lazy    => 1,

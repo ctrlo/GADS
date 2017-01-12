@@ -126,13 +126,15 @@
                                     </li>
                                 [% END %]
                             </ul>
-                            <form class="navbar-form navbar-left" role="search" action="/data" method="post">
-                                <div class="form-group">
-                                    <input type="text" name="search_text" class="form-control" title="Use * as a wildcard character" placeholder="Use * as wildcard" value="[% search | html_entity %]">
-                                </div>
-                                <button type="submit" name="search" value="search" class="btn btn-default">Search</button>
-                                <button type="submit" name="clear" value="clear" class="btn btn-default">Clear</button>
-                            </form>
+                            [% IF page == "data" %]
+                                <form class="navbar-form navbar-left" role="search" action="/data" method="post">
+                                    <div class="form-group">
+                                        <input type="text" name="search_text" class="form-control" title="Use * as a wildcard character" placeholder="Use * as wildcard" value="[% search | html_entity %]">
+                                    </div>
+                                    <button type="submit" name="search" value="search" class="btn btn-default">Search</button>
+                                    <button type="submit" name="clear" value="clear" class="btn btn-default">Clear</button>
+                                </form>
+                            [% END %]
                             <ul class="nav navbar-nav navbar-right">
                                 <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% user.value | html_entity %]<b class="caret"></b></a>

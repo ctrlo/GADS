@@ -22,6 +22,7 @@ use DateTime;
 use HTML::Entities;
 use Log::Report;
 use Moo;
+use MooX::Types::MooseLike::Base qw/:all/;
 use namespace::clean;
 
 extends 'GADS::Datum';
@@ -32,19 +33,15 @@ has set_value => (
     is       => 'rw',
     trigger  => sub {
         my ($self, $value) = @_;
-        my $first_time = 1 unless $self->has_id;
         my $new_id;
+        my $clone = $self->clone;
         if (ref $value)
         {
-            # From database, with user table joined
-            if ($value = $value->{value})
+            # Used in tests to create user at same time.
+            if ($value->{email})
             {
-                $new_id = $value->{id};
-                foreach my $f (@user_fields)
-                {
-                    $self->$f($value->{$f});
-                }
-                $self->_set_text($value->{value});
+                $new_id = $self->schema->resultset('User')->find_or_create($value)->id;
+                $self->column->clear_people;
             }
         }
         else {
@@ -56,28 +53,22 @@ has set_value => (
             $new_id = $value;
             # Look up text value
         }
-        unless ($first_time)
-        {
-            # Previous value. See if it's an update, in which case all fields
-            # will need updating
-            if (
-                   (!defined($self->id) && defined $value)
-                || (!defined($value) && defined $self->id)
-                || (defined $self->id && defined $value && $self->id != $value)
-            ) {
-                # XXX Move to a better class?
-                my $person;
-                $person = $self->schema->resultset('User')->find($new_id) if $new_id;
-                foreach my $f (@user_fields)
-                {
-                    $self->$f($person ? $person->$f : undef);
-                }
-                $self->_set_text($person ? $person->value : undef);
-                $self->changed(1);
-                $self->oldvalue($self->clone);
+        if (
+               (!defined($self->id) && defined $new_id)
+            || (!defined($new_id) && defined $self->id)
+            || (defined $self->id && defined $new_id && $self->id != $new_id)
+        ) {
+            my $person;
+            $person = $self->schema->resultset('User')->find($new_id) if $new_id;
+            foreach my $f (@user_fields)
+            {
+                $self->$f($person ? $person->$f : undef);
             }
+            $self->_set_text($person ? $person->value : undef);
+            $self->changed(1);
         }
-        $self->id($new_id) if $new_id || $self->init_no_value;
+        $self->oldvalue($clone);
+        $self->id($new_id);
     },
 );
 
@@ -86,35 +77,93 @@ has schema => (
     required => 1,
 );
 
+has value_hash => (
+    is      => 'ro',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->has_init_value or return;
+        my $value = $self->init_value->{value};
+        my $id = $value->{id};
+        $self->has_id(1) if defined $id || $self->init_no_value;
+        +{
+            id        => $id,
+            email     => $value->{email},
+            firstname => $value->{firstname},
+            surname   => $value->{surname},
+            telephone => $value->{telephone},
+            text      => $value->{value},
+        };
+    },
+);
+
 # Whether to allow deleted users to be set
 has allow_deleted => (
     is => 'rw',
 );
 
+has _rset => (
+    is => 'lazy',
+);
+
+sub _build__rset
+{   my $self = shift;
+    $self->id or return;
+    $self->schema->resultset('User')->find($self->id);
+}
+
 has email => (
     is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->value_hash ? $_[0]->value_hash->{email} : $_[0]->_rset && $_[0]->_rset->email;
+    },
 );
 
 has firstname => (
     is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->value_hash ? $_[0]->value_hash->{firstname} : $_[0]->_rset && $_[0]->_rset->firstname;
+    },
 );
 
 has surname => (
     is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->value_hash ? $_[0]->value_hash->{surname} : $_[0]->_rset && $_[0]->_rset->surname;
+    },
 );
 
 has telephone => (
     is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->value_hash ? $_[0]->value_hash->{telephone} : $_[0]->_rset && $_[0]->_rset->telephone;
+    },
 );
 
 has text => (
     is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->value_hash ? $_[0]->value_hash->{text} : $_[0]->_rset && $_[0]->_rset->text;
+    },
 );
 
 has id => (
-    is        => 'rw',
-    predicate => 1,
-    trigger   => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
+    is      => 'rw',
+    lazy    => 1,
+    trigger => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
+    builder => sub {
+        $_[0]->value_hash && $_[0]->value_hash->{id}; # Don't try and build from rset, as that needs id set
+    },
+);
+
+has has_id => (
+    is  => 'rw',
+    isa => Bool,
 );
 
 sub value { $_[0]->id }

@@ -3,7 +3,7 @@
 [% IF records.size %]
 <table class="table table-striped">
     <tr>
-        <th>Serial</th>
+        <th>ID</th>
         <th>Submitted by</th>
     </tr>
     [% FOREACH record IN records %]

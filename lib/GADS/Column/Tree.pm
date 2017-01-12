@@ -33,6 +33,10 @@ sub DESTROY
     $self->_root->delete_tree if $self->_has_tree;
 }
 
+has '+value_field_as_index' => (
+    default => 'id',
+);
+
 has end_node_only => (
     is      => 'rw',
     isa     => Bool,
