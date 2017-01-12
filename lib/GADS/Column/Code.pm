@@ -25,7 +25,7 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 use Inline 'Lua' => q{
     function lua_run(string, vars)
-        env = {}
+        local env = {}
         env["vars"] = vars
         env["os"] = { time = os.time, date = os.date }
         func, err = load(string, nil, 't', env)
