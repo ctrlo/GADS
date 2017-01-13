@@ -101,7 +101,7 @@ letter, and is only allowedcontain letters, numbers and underscores.</p>
 
 [% global.helptext.layout_calc = BLOCK %]
 <h5>Introduction</h5>
-<p>Calculated fields can be used to automatically generate values based on
+<p>Calculated fields (including RedAmberGreen fields) can be used to automatically generate values based on
 other fields. Basic <a href="https://www.lua.org/pil/contents.html">Lua
 programming style</a> can be used, with the value that is returned being used
 for the value of the field.</p> <p>The defined code should consist of a
@@ -126,6 +126,10 @@ required).</p> <p>The <em>ID of the record</em> can be accessed using
 the special short name &quot;id&quot;.</p>
 
 <h5>Return values</h5>
+<p>Return values for RedAmberGreen fields should be the string &quot;red&quot;,
+&quot;amber&quot; or &quot;green&quot;. It is also permissable to return
+nothing, which will be interpreted as a grey value. Any other values, or code
+causing errors, will display purple.</p>
 <p>In order for a calculated value to behave as expected (such as sorting and
 searching correctly), it's important that Linkspace knows what value it is
 returning. The type of value can specified using the &quot;Return value
@@ -144,6 +148,22 @@ function evaluate (country, region)
     elseif country == "Japan" then
         return "Asia"
     end
+end
+[% END %]</pre></tt>
+
+<h5>RedAmberGreen value based on date comparisons</h5>
+<tt><pre>[% FILTER html %]
+function evaluate (daterange)
+    if daterange.from == nil then
+        return
+    end
+    if daterange.from.epoch < os.time() then
+        return "green"
+    end
+    if daterange.from.epoch < os.time() + (86400 * 30) then
+        return "amber"
+    end
+    return "red"
 end
 [% END %]</pre></tt>
 
@@ -212,31 +232,3 @@ end
 [% END %]</pre></tt>
 
 [% END %]
-
-[% global.helptext.layout_rag = BLOCK %]
-<p>RAG fields can be used to automatically generate colour-coded indicators based
-on other fields. Basic Perl programming style can be used to stipulate the conditions
-for the colour. If none match, the field will be indicated as grey. Values from other
-fields are used by inserting the field name between square brackets, whilst
-&quot;CURDATE&quot; can be used to insert the current date.  The ID of the
-record can be accessed using [id]. Values in date
-ranges are used by adding the suffix &quot;.from&quot; or &quot;.to&quot;
-to specify the date required.</p>
-
-<p>Examples:</p>
-
-<tt><pre>[% FILTER html %]
-[Start Date] > CURDATE
-
-[Cost to date] > [Budget]
-
-[Budget] < 100000[% END %]
-</pre></tt>
-
-<p>By default, empty numerical values will evaluate to zero, so <code>[myfield]
-    &lt; 100</code> will evaluate as true, even if <code>myfield</code> is undefined. To
-force expressions to grey in such cases, prefix the field with <code>^</code>:
-<code>[^myfield] &lt; 100</code> will evaluate to grey.</p>
-
-[% END %]
-
