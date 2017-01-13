@@ -90,7 +90,7 @@ CREATE TABLE "calcval" (
   "id" bigserial NOT NULL,
   "record_id" bigint NOT NULL,
   "layout_id" integer NOT NULL,
-  "value_text" text,
+  "value_text" citext,
   "value_int" bigint,
   "value_date" date,
   "value_numeric" numeric(20,5),
@@ -175,7 +175,7 @@ CREATE TABLE "daterange" (
   "from" date,
   "to" date,
   "child_unique" smallint DEFAULT 0 NOT NULL,
-  "value" character varying(45),
+  "value" citext,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "daterange_idx_layout_id" on "daterange" ("layout_id");
@@ -206,7 +206,7 @@ CREATE INDEX "enum_idx_value" on "enum" ("value");
 --
 CREATE TABLE "enumval" (
   "id" serial NOT NULL,
-  "value" text,
+  "value" citext,
   "layout_id" integer,
   "deleted" smallint DEFAULT 0 NOT NULL,
   "parent" integer,
@@ -612,7 +612,7 @@ CREATE TABLE "string" (
   "record_id" bigint NOT NULL,
   "layout_id" integer NOT NULL,
   "child_unique" smallint DEFAULT 0 NOT NULL,
-  "value" text,
+  "value" citext,
   "value_index" character varying(128),
   PRIMARY KEY ("id")
 );
@@ -641,8 +641,8 @@ CREATE TABLE "user" (
   "site_id" integer,
   "firstname" character varying(128),
   "surname" character varying(128),
-  "email" text,
-  "username" text,
+  "email" citext,
+  "username" citext,
   "title" integer,
   "organisation" integer,
   "telephone" character varying(128),
@@ -655,7 +655,7 @@ CREATE TABLE "user" (
   "failcount" integer DEFAULT 0 NOT NULL,
   "lastrecord" bigint,
   "lastview" bigint,
-  "value" text,
+  "value" citext,
   "account_request" smallint DEFAULT 0,
   "account_request_notes" text,
   "aup_accepted" timestamp,
