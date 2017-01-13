@@ -370,9 +370,14 @@ sub __build_columns
         user   => undef,
         layout => $layout,
     );
-    $rag1->red  ("function evaluate (daterange1) \n if daterange1.from == nil then return end \n if daterange1.from.year < 2012 then return 1 else return 0 end \n end");
-    $rag1->amber("function evaluate (daterange1) \n if daterange1.from == nil then return end \n if daterange1.from.year == 2012 then return 1 else return 0 end \n end");
-    $rag1->green("function evaluate (daterange1) \n if daterange1.from == nil then return end \n if daterange1.from.year > 2012 then return 1 else return 0 end \n end");
+    $rag1->code("
+        function evaluate (daterange1)
+            if daterange1.from == nil then return end
+            if daterange1.from.year < 2012 then return 'red' end
+            if daterange1.from.year == 2012 then return 'amber' end
+            if daterange1.from.year > 2012 then return 'green' end
+        end
+    ");
     $rag1->type('rag');
     $rag1->name('rag1');
     try { $rag1->write };
@@ -395,7 +400,7 @@ sub __build_columns
         user   => undef,
         layout => $self->layout,
     );
-    $calc1->calc($self->calc_code);
+    $calc1->code($self->calc_code);
     $calc1->type('calc');
     $calc1->name('calc1');
     $calc1->return_type($self->calc_return_type);

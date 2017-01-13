@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Datum::Calc;
 
-use Data::Dumper;
 use Log::Report;
 use Math::Round qw/round/;
 use Moo;
@@ -26,42 +25,6 @@ use Scalar::Util qw(looks_like_number);
 use namespace::clean;
 
 extends 'GADS::Datum::Code';
-
-has set_value => (
-    is       => 'rw',
-    trigger  => sub {
-        my $self = shift;
-        $self->_set_has_value(1);
-    },
-);
-
-has value => (
-    is       => 'rw',
-    lazy     => 1,
-    clearer  => 1,
-    builder  => sub {
-        my $self = shift;
-        $self->_transform_value($self->init_value);
-    },
-);
-
-has has_value => (
-    is => 'rwp',
-);
-
-has layout => (
-    is       => 'rw',
-    required => 1,
-);
-
-has vars => (
-    is => 'lazy',
-);
-
-sub _build_vars
-{   my $self = shift;
-    $self->record->values_by_shortname($self->column->params);
-}
 
 sub as_string
 {   my $self = shift;
@@ -97,70 +60,45 @@ sub _parse_date
 {   $_[1] or return;
     $_[0]->schema->storage->datetime_parser->parse_date($_[1]);
 }
-sub _transform_value
-{   my ($self, $original) = @_;
+
+sub convert_value
+{   my ($self, $in) = @_;
 
     my $column = $self->column;
-    my $code   = $column->calc;
-    my $layout = $self->layout;
 
-    my $value;
+    my $value = $in->{return};
+    my $return;
 
-    if (ref $original && !$self->force_update)
+    if ($in->{error}) # Will have already been reported
     {
-        my $v  = $original->[0]->{$column->value_field};
-        $value = $column->return_type eq 'date'
-               ? $self->_parse_date($v)
-               : $v;
+        $return = '<evaluation error>';
     }
-    elsif (!$code)
+    elsif ($column->return_type eq "date")
     {
-        return;
-    }
-    else {
-        # Used during tests to check that $original is being set correctly
-        panic "Entering calculation code"
-            if $ENV{GADS_PANIC_ON_ENTERING_CODE};
-
-        try { $value = $column->eval($self->column->calc, $self->vars) };
-        if ($@ || $value->{error})
+        if ($value && looks_like_number($value))
         {
-            my $error = $@ ? $@->wasFatal->message->toString : $value->{error};
-            warning __x"Failed to eval calc: {error} (code: {code}, params: {params})",
-                error => $error, code => $code, params => Dumper($self->vars);
-            $value = '<evaluation error>';
-        }
-        else {
-            $value = $value->{return};
-        }
-        # Convert as required
-        if ($column->return_type eq "date")
-        {
-            $value = undef
-                if !$value && !looks_like_number($value); # Convert empty strings to undef
-            if (defined $value)
+            try { $return = DateTime->from_epoch(epoch => $value) };
+            if (my $exception = $@->wasFatal)
             {
-                try { $value = DateTime->from_epoch(epoch => $value) };
-                if (my $exception = $@->wasFatal)
-                {
-                    $value = undef;
-                    warning "$@";
-                }
+                warning "$@";
             }
         }
-        elsif ($column->return_type eq 'numeric' || $column->return_type eq 'integer')
-        {
-            $value = undef
-                if !$value && !looks_like_number($value); # Convert empty strings to undef
-            $value = round $value if defined $value && $column->return_type eq 'integer';
-        }
-
-        $self->_write_calc($value);
     }
-    $value;
+    elsif ($column->return_type eq 'numeric' || $column->return_type eq 'integer')
+    {
+        if ($value && looks_like_number($value))
+        {
+            $return = round $value if defined $value && $column->return_type eq 'integer';
+        }
+    }
+    else {
+        $return = $value;
+    }
+
+    $return;
 }
 
-sub _write_calc
+sub write_value
 {   my $self = shift;
     $self->write_cache('calcval', @_);
 }

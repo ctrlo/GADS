@@ -46,6 +46,27 @@ use Inline 'Lua' => q{
 
 extends 'GADS::Column';
 
+has _rset_code => (
+    is      => 'lazy',
+);
+
+has code => (
+    is      => 'rw',
+    isa     => Str,
+    lazy    => 1,
+    clearer => 1,
+    builder => sub {
+        my $self = shift;
+        my $code = $self->_rset_code && $self->_rset_code->code;
+        $code || '';
+    },
+);
+
+sub clear
+{   my $self = shift;
+    $self->clear_code;
+}
+
 has write_cache => (
     is      => 'rw',
     default => 1,
@@ -54,6 +75,15 @@ has write_cache => (
 has base_url => (
     is => 'rw',
 );
+
+has '+userinput' => (
+    default => 0,
+);
+
+sub params
+{   my $self = shift;
+    $self->_params_from_code($self->code);
+}
 
 sub update_cached
 {   my ($self, %options) = @_;
@@ -140,5 +170,41 @@ sub eval
     }
 }
 
-1;
++around 'write' => sub
+{   my $orig = shift;
 
+    my $guard = $_[0]->schema->txn_scope_guard;
+
+    my ($self, %options) = @_;
+
+    my $new = !$self->id;
+
+    $orig->(@_); # Standard column write first
+
+    my $no_alerts = $options{no_alerts};
+
+    if ($self->write_code) # Returns true if anything relevant changed
+    {
+        $no_alerts = 1 if $new; # Don't send alerts for new values
+
+        my %depends_on; # Stop duplicates
+
+        foreach my $var ($self->params)
+        {
+            my $col = $self->layout->column_by_name_short($var)
+                or error __x"Unknown short column name \"{name}\" in calculation", name => $var;
+            $depends_on{$col->id} = 1
+                unless $col->internal;
+        }
+
+        my @depends_on = keys %depends_on;
+
+        $self->depends_on(\@depends_on);
+        $self->update_cached(no_alerts => $no_alerts)
+            unless $options{no_cache_update};
+    }
+
+    $guard->commit;
+};
+
+1;

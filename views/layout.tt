@@ -294,60 +294,29 @@
                     <input id="force_regex" class="form-control" type="text" name="force_regex" value="[% column.force_regex | html_entity %]">
                 </div>
             </div>
-            <div id="divrag"
-                [% IF column.type != "rag" %]
+            <div id="divcode"
+                [% IF column.type != "calc" AND column.type != "rag" %]
                     style="display:none"
                 [% END %]
                 >
-                <h4>RAG conditions: <small>(<a href="" data-toggle="modal" data-target="#helprag">?</a>)</small></h4>
-                <div class="form-group">
-                    <label for="red">Red:</label>
-                    <textarea class="form-control monospace" id="red" name="red" rows="5">[% column.red | html_entity %]</textarea>
-                </div>
-                <div class="form-group">
-                    <label for="amber">Amber:</label>
-                    <textarea class="form-control monospace" id="amber" name="amber" rows="5">[% column.amber | html_entity %]</textarea>
-                </div>
-                <div class="form-group">
-                    <label for="green">Green:</label>
-                    <textarea class="form-control monospace" id="green" name="green" rows="5">[% column.green | html_entity %]</textarea>
-                </div>
-                <div class="form-group">
-                    <label for="no_alerts_rag">Alerts:</label>
-                    <div class="checkbox">
-                        <label>
-                            <input id="no_alerts_rag" type="checkbox" name="no_alerts_rag" checked>Do not send alerts when making this update
-                                (alerts will still be sent when records are subsequently edited individually)
-                        </label>
+                <div id="divcalc"
+                    [% IF column.type != "calc" %]
+                        style="display:none"
+                    [% END %]
+                    >
+                    <div class="form-group">
+                        <label for="return_type">Return value conversion:</label>
+                        <select class="form-control" name="return_type">
+                            <option value="string" [% IF column.return_type == "string" %]selected[% END %]>String</option>
+                            <option value="date" [% IF column.return_type == "date" %]selected[% END %]>Date</option>
+                            <option value="integer" [% IF column.return_type == "integer" %]selected[% END %]>Integer</option>
+                            <option value="numeric" [% IF column.return_type == "numeric" %]selected[% END %]>Decimal</option>
+                        </select>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="no_cache_update">Value updates:</label>
-                    <div class="checkbox">
-                        <label>
-                            <input id="no_cache_update" type="checkbox" name="no_cache_update">Do not immediately update all existing values
-                                (values will be updated overnight instead)
-                        </label>
-                    </div>
-                </div>
-            </div>
-            <div id="divcalc"
-                [% IF column.type != "calc" %]
-                    style="display:none"
-                [% END %]
-                >
-                <div class="form-group">
-                    <label for="calc">Return value conversion:</label>
-                    <select class="form-control" name="return_type">
-                        <option value="string" [% IF column.return_type == "string" %]selected[% END %]>String</option>
-                        <option value="date" [% IF column.return_type == "date" %]selected[% END %]>Date</option>
-                        <option value="integer" [% IF column.return_type == "integer" %]selected[% END %]>Integer</option>
-                        <option value="numeric" [% IF column.return_type == "numeric" %]selected[% END %]>Decimal</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="calc">Calculation: (<a href="" data-toggle="modal" data-target="#helpcalc">?</a>)</label>
-                    <textarea class="form-control monospace" id="calc" name="calc" rows="10">[% column.calc | html_entity %]</textarea>
+                    <label for="code">Calculation: (<a href="" data-toggle="modal" data-target="#helpcalc">?</a>)</label>
+                    <textarea class="form-control monospace" id="code" name="code" rows="10">[% column.code | html_entity %]</textarea>
                 </div>
                 <div class="form-group">
                     <label for="no_alerts_calc">Alerts:</label>
@@ -715,8 +684,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 if (val == "tree") {
                     $('#divenum').hide();
                     $('#divtree').show();
-                    $('#divrag').hide();
-                    $('#divcalc').hide();
+                    $('#divcode').hide();
                     $('#divfile').hide();
                     $('#divcurval').hide();
                     $('#divstring').hide();
@@ -724,14 +692,13 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 } else if (val == "enum") {
                     $('#divenum').show();
                     $('#divtree').hide();
-                    $('#divrag').hide();
-                    $('#divcalc').hide();
+                    $('#divcode').hide();
                     $('#divfile').hide();
                     $('#divcurval').hide();
                     $('#divstring').hide();
                     $('.noragcalc').show();
                 } else if (val == "rag") {
-                    $('#divrag').show();
+                    $('#divcode').show();
                     $('#divtree').hide();
                     $('#divenum').hide();
                     $('#divcalc').hide();
@@ -740,7 +707,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divstring').hide();
                     $('.noragcalc').hide();
                 } else if (val == "calc") {
-                    $('#divrag').hide();
+                    $('#divcode').show();
                     $('#divtree').hide();
                     $('#divenum').hide();
                     $('#divcalc').show();
@@ -749,28 +716,25 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divstring').hide();
                     $('.noragcalc').hide();
                 } else if (val == "file") {
-                    $('#divrag').hide();
+                    $('#divcode').hide();
                     $('#divtree').hide();
                     $('#divenum').hide();
-                    $('#divcalc').hide();
                     $('#divfile').show();
                     $('#divcurval').hide();
                     $('#divstring').hide();
                     $('.noragcalc').show();
                 } else if (val == "curval") {
-                    $('#divrag').hide();
+                    $('#divcode').hide();
                     $('#divtree').hide();
                     $('#divenum').hide();
-                    $('#divcalc').hide();
                     $('#divfile').hide();
                     $('#divcurval').show();
                     $('#divstring').hide();
                     $('.noragcalc').show();
                 } else if (val == "string") {
-                    $('#divrag').hide();
+                    $('#divcode').hide();
                     $('#divtree').hide();
                     $('#divenum').hide();
-                    $('#divcalc').hide();
                     $('#divfile').hide();
                     $('#divcurval').hide();
                     $('#divstring').show();
@@ -778,8 +742,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 } else {
                     $('#divenum').hide();
                     $('#divtree').hide();
-                    $('#divrag').hide();
-                    $('#divcalc').hide();
+                    $('#divcode').hide();
                     $('#divfile').hide();
                     $('#divcurval').hide();
                     $('#divstring').hide();

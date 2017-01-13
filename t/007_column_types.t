@@ -181,7 +181,7 @@ my $calc2_col = GADS::Column::Calc->new(
     user   => undef,
     layout => $layout,
     name   => 'calc2',
-    calc   => "foobar evaluate (curval)",
+    code   => "foobar evaluate (curval)",
 );
 try { $calc2_col->write };
 ok( $@, "Failed to write calc field with invalid function" );
@@ -192,7 +192,7 @@ $calc2_col = GADS::Column::Calc->new(
     user   => undef,
     layout => $layout,
     name   => 'calc2',
-    calc   => "function evaluate (curval) \n return curval1.value\nend",
+    code   => "function evaluate (curval) \n return curval1.value\nend",
 );
 try { $calc2_col->write };
 ok( $@, "Failed to write calc field with invalid short names" );
@@ -203,7 +203,7 @@ $calc2_col = GADS::Column::Calc->new(
     user   => undef,
     layout => $layout,
     name   => 'calc2',
-    calc   => "function evaluate (curval1,id) \n return curval1.field_values.daterange1.from.year .. 'X' .. id \nend",
+    code   => "function evaluate (curval1,id) \n return curval1.field_values.daterange1.from.year .. 'X' .. id \nend",
 );
 $calc2_col->write;
 
@@ -213,9 +213,14 @@ my $rag2 = GADS::Column::Rag->new(
     user   => undef,
     layout => $layout,
     name   => 'rag2',
-    red    => "function evaluate (daterange1) \n if daterange1.from == nil then return end \n if daterange1.from.year < 2012 then return 1 else return 0 end \n end",
-    amber  => "function evaluate (daterange1) \n if daterange1.from == nil then return end \n if daterange1.from.year == 2012 then return 1 else return 0 end \n end",
-    green  => "function evaluate (daterange1) \n if daterange1.from == nil then return end \n if daterange1.from.year > 2012 then return 1 else return 0 end \n end",
+    code   => "
+        function evaluate (daterange1)
+            if daterange1.from == nil then return end
+            if daterange1.from.year < 2012 then return 'red' end
+            if daterange1.from.year == 2012 then return 'amber' end
+            if daterange1.from.year > 2012 then return 'green' end
+        end
+    ",
 );
 $rag2->write;
 
@@ -225,7 +230,7 @@ my $calc3_col = GADS::Column::Calc->new(
     user   => undef,
     layout => $layout,
     name   => 'calc3',
-    calc   => "function evaluate (curval1) \n adsfadsf return curval1.field_values.daterange1.from.year \nend",
+    code   => "function evaluate (curval1) \n adsfadsf return curval1.field_values.daterange1.from.year \nend",
 );
 try { $calc3_col->write } hide => 'ALL';
 my ($warning) = $@->exceptions;
@@ -238,9 +243,11 @@ my $rag3 = GADS::Column::Rag->new(
     user   => undef,
     layout => $layout,
     name   => 'rag2',
-    red    => "function evaluate (daterange1) \n foobar \n end",
-    amber  => "function evaluate (daterange1) \n foobar \n end",
-    green  => "function evaluate (daterange1) \n foobar \n end",
+    code   => "
+        function evaluate (daterange1)
+            foobar
+        end
+    ",
 );
 try { $rag3->write } hide => 'ALL';
 ($warning) = $@->exceptions;

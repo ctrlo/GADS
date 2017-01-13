@@ -8,7 +8,7 @@ use base 'DBIx::Class::Schema';
 
 __PACKAGE__->load_namespaces;
 
-our $VERSION = 20;
+our $VERSION = 21;
 
 __PACKAGE__->mk_group_accessors('simple' => qw/site_id/);
 

@@ -47,19 +47,24 @@ __PACKAGE__->table("rag");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 red
+=head2 red (legacy)
 
   data_type: 'text'
   is_nullable: 1
 
-=head2 amber
+=head2 amber (legacy)
 
   data_type: 'text'
   is_nullable: 1
 
-=head2 green
+=head2 green (legacy)
 
   data_type: 'text'
+  is_nullable: 1
+
+=head2 code
+
+  data_type: 'mediumtext'
   is_nullable: 1
 
 =cut
@@ -75,6 +80,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "green",
   { data_type => "text", is_nullable => 1 },
+  "code",
+  { data_type => "mediumtext", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY

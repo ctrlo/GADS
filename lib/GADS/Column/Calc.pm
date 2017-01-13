@@ -26,27 +26,20 @@ use Scalar::Util qw(looks_like_number);
 
 extends 'GADS::Column::Code';
 
-has calc => (
-    is      => 'rw',
-    isa     => Str,
-    lazy    => 1,
-    clearer => 1,
-    builder => sub {
-        my $self = shift;
-        $self->_rset or return;
-        my ($calc) = $self->_rset->calcs;
-        $calc->calc;
-    },
-);
-
 has '+type' => (
     default => 'calc',
 );
 
-has decimal_places => (
-    is  => 'rw',
-    isa => Maybe[Int],
-);
+sub _build__rset_code
+{   my $self = shift;
+    $self->_rset or return;
+    my ($code) = $self->_rset->calcs;
+    if (!$code)
+    {
+        $code = $self->schema->resultset('Calc')->new({});
+    }
+    return $code;
+}
 
 # Convert return format to database column field
 sub _format_to_field
@@ -60,23 +53,6 @@ sub _format_to_field
     : 'value_text'
 }
 
-sub clear
-{   my $self = shift;
-    $self->clear_calc;
-}
-
-after 'build_values' => sub {
-    my ($self, $original) = @_;
-
-    my ($calc) = $original->{calcs}->[0];
-    if ($calc) # Calculations defined?
-    {
-        $self->calc($calc->{calc});
-        $self->return_type($calc->{return_format});
-        $self->decimal_places($calc->{decimal_places});
-    }
-};
-
 has unique_key => (
     is      => 'ro',
     default => 'calcval_ux_record_layout',
@@ -85,6 +61,7 @@ has unique_key => (
 # Used to provide a blank template for row insertion
 # (to blank existing values)
 has '+blank_row' => (
+    lazy => 1,
     builder => sub {
         {
             value_date    => undef,
@@ -99,15 +76,26 @@ has '+table' => (
     default => 'Calcval',
 );
 
-has '+userinput' => (
-    default => 0,
-);
-
 has '+return_type' => (
     isa => sub {
         return unless $_[0];
         $_[0] =~ /(string|date|integer|numeric)/
             or error __x"Bad return type {type}", type => $_[0];
+    },
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->_rset_code && $self->_rset_code->return_format || 'string';
+    },
+);
+
+has decimal_places => (
+    is      => 'rw',
+    isa     => Maybe[Int],
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->_rset_code && $self->_rset_code->decimal_places;
     },
 );
 
@@ -132,68 +120,19 @@ sub cleanup
     $schema->resultset('Calcval')->search({ layout_id => $id })->delete;
 }
 
-around 'write' => sub
-{   my $orig = shift;
-
-    my $guard = $_[0]->schema->txn_scope_guard;
-
-    $orig->(@_); # Standard column write first
-
-    my ($self, %options) = @_;
-
-    my $no_alerts = $options{no_alerts};
-
-    # Existing calculation defined?
-    my ($calcr) = $self->schema->resultset('Calc')->search({
-        layout_id => $self->id,
-    })->all;
-
-    my $need_update; my $value_field_old;
-    if ($calcr)
-    {
-        $value_field_old = _format_to_field $calcr->return_format;
-        # First see if the calculation has changed
-        $need_update = $calcr->calc ne $self->calc
-            || $calcr->return_format ne $self->return_type;
-        $calcr->update({
-            calc          => $self->calc,
-            return_format => $self->return_type,
-        });
-    }
-    else {
-        $calcr = $self->schema->resultset('Calc')->create({
-            calc          => $self->calc,
-            layout_id     => $self->id,
-            return_format => $self->return_type,
-        });
-        $need_update   = 1;
-        $no_alerts = 1; # Don't send alerts on all new values
-    }
-
-    if ($need_update)
-    {
-        my %depends_on; # Prevent duplicates
-        foreach my $var ($self->params)
-        {
-            my $col = $self->layout->column_by_name_short($var)
-                or error __x"Unknown short column name \"{name}\" in calculation", name => $var;
-            $depends_on{$col->id} = 1
-                unless $col->internal;
-        }
-
-        my @depends_on = keys %depends_on;
-
-        $self->depends_on(\@depends_on);
-        $self->update_cached(no_alerts => $no_alerts)
-            unless $options{no_cache_update};
-    }
-
-    $guard->commit;
-};
-
-sub params
+# Returns whether an update is needed
+sub write_code
 {   my $self = shift;
-    $self->_params_from_code($self->calc);
+    my $rset = $self->_rset_code;
+    my $need_update = !$rset->in_storage
+        || $self->_rset_code->code ne $self->code
+        || $self->_rset_code->return_format ne $self->return_type;
+    $rset->layout_id($self->id);
+    $rset->code($self->code);
+    $rset->return_format($self->return_type);
+    $rset->decimal_places($self->decimal_places);
+    $rset->insert_or_update;
+    return $need_update;
 }
 
 sub resultset_for_values

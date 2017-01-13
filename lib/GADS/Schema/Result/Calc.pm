@@ -1,9 +1,6 @@
 use utf8;
 package GADS::Schema::Result::Calc;
 
-# Created by DBIx::Class::Schema::Loader
-# DO NOT MODIFY THE FIRST PART OF THIS FILE
-
 =head1 NAME
 
 GADS::Schema::Result::Calc
@@ -47,7 +44,12 @@ __PACKAGE__->table("calc");
   is_foreign_key: 1
   is_nullable: 1
 
-=head2 calc
+=head2 calc (legacy)
+
+  data_type: 'mediumtext'
+  is_nullable: 1
+
+=head2 code
 
   data_type: 'mediumtext'
   is_nullable: 1
@@ -71,6 +73,8 @@ __PACKAGE__->add_columns(
   "layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "calc",
+  { data_type => "mediumtext", is_nullable => 1 },
+  "code",
   { data_type => "mediumtext", is_nullable => 1 },
   "return_format",
   { data_type => "varchar", is_nullable => 1, size => 45 },

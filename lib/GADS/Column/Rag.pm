@@ -29,53 +29,16 @@ has '+type' => (
     default => 'rag',
 );
 
-has green => (
-    is      => 'rw',
-    isa     => Str,
-    lazy    => 1,
-    clearer => 1,
-    builder => sub {
-        my $self = shift;
-        my ($rag) = $self->_rset->rags;
-        $rag->green;
-    },
-);
-
-has amber => (
-    is      => 'rw',
-    isa     => Str,
-    lazy    => 1,
-    clearer => 1,
-    builder => sub {
-        my $self = shift;
-        my ($rag) = $self->_rset->rags;
-        $rag->amber;
-    },
-);
-
-has red => (
-    is      => 'rw',
-    isa     => Str,
-    lazy    => 1,
-    clearer => 1,
-    builder => sub {
-        my $self = shift;
-        my ($rag) = $self->_rset->rags;
-        $rag->red;
-    },
-);
-
-after 'build_values' => sub {
-    my ($self, $original) = @_;
-
-    my ($rag) = $original->{rags}->[0];
-    if ($rag) # RAG defined?
+sub _build__rset_code
+{   my $self = shift;
+    $self->_rset or return;
+    my ($code) = $self->_rset->rags;
+    if (!$code)
     {
-        $self->green($rag->{green}),
-        $self->amber($rag->{amber}),
-        $self->red($rag->{red}),
+        $code = $self->schema->resultset('Rag')->new({});
     }
-};
+    return $code;
+}
 
 has unique_key => (
     is      => 'ro',
@@ -86,96 +49,22 @@ has '+table' => (
     default => 'Ragval',
 );
 
-has '+userinput' => (
-    default => 0,
-);
-
 sub cleanup
 {   my ($class, $schema, $id) = @_;
     $schema->resultset('Rag')->search({ layout_id => $id })->delete;
     $schema->resultset('Ragval')->search({ layout_id => $id })->delete;
 }
 
-+around 'write' => sub
-{   my $orig = shift;
-
-    my $guard = $_[0]->schema->txn_scope_guard;
-
-    $orig->(@_); # Standard column write first
-
-    my ($self, %options) = @_;
-
-    my $no_alerts = $options{no_alerts};
-
-    my $rag = {
-        red   => $self->red,
-        amber => $self->amber,
-        green => $self->green,
-    };
-    my ($ragr) = $self->schema->resultset('Rag')->search({
-        layout_id => $self->id
-    })->all;
-    my $need_update;
-    if ($ragr)
-    {
-        # First see if the calculation has changed
-        $need_update =  $ragr->red ne $self->red
-                     || $ragr->amber ne $self->amber
-                     || $ragr->green ne $self->green;
-        $ragr->update($rag);
-    }
-    else {
-        $rag->{layout_id} = $self->id;
-        $self->schema->resultset('Rag')->create($rag);
-        $need_update   = 1;
-        $no_alerts = 1; # Don't alert on all new values
-    }
-
-    if ($need_update)
-    {
-        my %depends_on; # Stop duplicates
-
-        foreach my $var ($self->params_red, $self->params_amber, $self->params_green)
-        {
-            my $col = $self->layout->column_by_name_short($var)
-                or error __x"Unknown short column name \"{name}\" in calculation", name => $var;
-            $depends_on{$col->id} = 1
-                unless $col->internal;
-        }
-
-        my @depends_on = keys %depends_on;
-
-        $self->depends_on(\@depends_on);
-        $self->update_cached(no_alerts => $no_alerts)
-            unless $options{no_cache_update};
-    }
-
-    $guard->commit;
-};
-
-sub clear
+# Returns whether an update is needed
+sub write_code
 {   my $self = shift;
-    $self->clear_red;
-    $self->clear_amber;
-    $self->clear_green;
-}
-
-sub params_red
-{   my $self = shift;
-    my $params = $self->_parse_code($self->red)->{params};
-    @$params;
-}
-
-sub params_amber
-{   my $self = shift;
-    my $params = $self->_parse_code($self->amber)->{params};
-    @$params;
-}
-
-sub params_green
-{   my $self = shift;
-    my $params = $self->_parse_code($self->green)->{params};
-    @$params;
+    my $rset = $self->_rset_code;
+    my $need_update = !$rset->in_storage
+        || $self->_rset_code->code ne $self->code;
+    $rset->layout_id($self->id);
+    $rset->code($self->code);
+    $rset->insert_or_update;
+    return $need_update;
 }
 
 1;

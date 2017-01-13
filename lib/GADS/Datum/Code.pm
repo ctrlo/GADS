@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Datum::Code;
 
+use Data::Dumper;
 use GADS::Safe;
 use String::CamelCase qw(camelize); 
 use Log::Report;
@@ -25,6 +26,33 @@ use Moo;
 use namespace::clean;
 
 extends 'GADS::Datum';
+
+has set_value => (
+    is      => 'rw',
+    trigger => sub {
+        my $self = shift;
+        $self->_set_has_value(1);
+    },
+);
+
+has value => (
+    is       => 'rw',
+    lazy     => 1,
+    clearer  => 1,
+    builder  => sub {
+        my $self = shift;
+        $self->_transform_value($self->init_value);
+    },
+);
+
+has has_value => (
+    is => 'rwp',
+);
+
+has layout => (
+    is       => 'rw',
+    required => 1,
+);
 
 has force_update => (
     is      => 'rw',
@@ -38,6 +66,15 @@ has schema => (
     is       => 'rw',
     required => 1,
 );
+
+has vars => (
+    is => 'lazy',
+);
+
+sub _build_vars
+{   my $self = shift;
+    $self->record->values_by_shortname($self->column->params);
+}
 
 sub write_cache
 {   my ($self, $table, $value) = @_;
@@ -82,5 +119,46 @@ sub write_cache
     $value;
 }
 
-1;
+sub _transform_value
+{   my ($self, $original) = @_;
 
+    my $column = $self->column;
+    my $layout = $self->layout;
+    my $code   = $column->code;
+
+    my $value;
+
+    if (ref $original && !$self->force_update)
+    {
+        my $v  = $original->[0]->{$column->value_field};
+        $value = $column->return_type eq 'date'
+               ? $self->_parse_date($v)
+               : $v;
+    }
+    elsif (!$code)
+    {
+        # Nothing, $value stays undef
+    }
+    else {
+        # Used during tests to check that $original is being set correctly
+        panic "Entering calculation code"
+            if $ENV{GADS_PANIC_ON_ENTERING_CODE};
+
+        try { $value = $column->eval($self->column->code, $self->vars) };
+        if ($@ || $value->{error})
+        {
+            my $error = $@ ? $@->wasFatal->message->toString : $value->{error};
+            warning __x"Failed to eval calc: {error} (code: {code}, params: {params})",
+                error => $error, code => $code, params => Dumper($self->vars);
+            $value->{error} = 1;
+        }
+
+        $value = $self->convert_value($value); # Convert value as required by calc/rag
+
+        $self->write_value($value);
+    }
+
+    $value;
+}
+
+1;
