@@ -30,8 +30,7 @@ has set_value => (
     trigger  => sub {
         my ($self, $value) = @_;
         my $clone = $self->clone; # Copy before changing text
-        $value = undef if !$value; # Can be empty string, generating warnings
-        my @values = sort ref $value eq 'ARRAY' ? @$value : $value ? ($value) : ();
+        my @values = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
         my @old    = sort ref $self->id eq 'ARRAY' ? @{$self->id} : $self->id ? $self->id : ();
         my $changed = "@values" ne "@old";
         if ($changed)
@@ -47,7 +46,7 @@ has set_value => (
         }
         $self->changed($changed);
         $self->oldvalue($clone);
-        $self->id($self->column->multivalue ? \@values : $value);
+        $self->id($self->column->multivalue ? \@values : $values[0]);
     },
 );
 
@@ -73,6 +72,15 @@ has _text => (
 
 has id => (
     is      => 'rw',
+    isa     => sub {
+        my $value = shift;
+        !defined $value and return;
+        ref $value ne 'ARRAY' && $value =~ /^[0-9]+/ and return;
+        my @values = @$value;
+        my @remain = grep {
+            defined $_ && $_ !~ /^[0-9]+$/;
+        } @values and panic "Invalid value for ID";
+    },
     lazy    => 1,
     trigger => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
     builder => sub {
