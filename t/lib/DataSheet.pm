@@ -86,7 +86,7 @@ has curval_field_ids => (
 has calc_code => (
     is      => 'ro',
     isa     => Str,
-    default => "function evaluate (daterange1) \n if daterange1.from == null then return end \n return daterange1.from.year\nend",
+    default => "function evaluate (daterange1) \n if daterange1 == null then return end \n return daterange1.from.year\nend",
 );
 
 has calc_return_type => (
@@ -372,7 +372,7 @@ sub __build_columns
     );
     $rag1->code("
         function evaluate (daterange1)
-            if daterange1.from == nil then return end
+            if daterange1 == nil then return end
             if daterange1.from.year < 2012 then return 'red' end
             if daterange1.from.year == 2012 then return 'amber' end
             if daterange1.from.year > 2012 then return 'green' end

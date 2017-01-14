@@ -153,14 +153,14 @@ end
 
 <h5>RedAmberGreen value based on date comparisons</h5>
 <tt><pre>[% FILTER html %]
-function evaluate (daterange)
-    if daterange.from == nil then
+function evaluate (mydaterange)
+    if mydaterange == nil then
         return
     end
-    if daterange.from.epoch < os.time() then
+    if mydaterange.from.epoch < os.time() then
         return "green"
     end
-    if daterange.from.epoch < os.time() + (86400 * 30) then
+    if mydaterange.from.epoch < os.time() + (86400 * 30) then
         return "amber"
     end
     return "red"
@@ -169,14 +169,14 @@ end
 
 <h5>Calculated values based on date comparisons</h5>
 <tt><pre>[% FILTER html %]
-function evaluate (daterange)
-    if daterange.from == nil then
-        return "No starting date"
+function evaluate (mydaterange)
+    if mydaterange == nil then
+        return "Date range is blank"
     end
-    if daterange.from.epoch < os.time() then
+    if mydaterange.from.epoch < os.time() then
         return "Started"
     end
-    if daterange.from.epoch < os.time() + (86400 * 30) then
+    if mydaterange.from.epoch < os.time() + (86400 * 30) then
         return "Starts within 30 days"
     end
     return "Not yet started"

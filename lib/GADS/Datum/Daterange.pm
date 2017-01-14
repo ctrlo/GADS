@@ -162,6 +162,7 @@ sub _as_string
 
 sub for_code
 {   my $self = shift;
+    return undef if $self->blank;
     +{
         from  => $self->_date_for_code($self->from_dt),
         to    => $self->_date_for_code($self->to_dt),

@@ -215,7 +215,7 @@ my $rag2 = GADS::Column::Rag->new(
     name   => 'rag2',
     code   => "
         function evaluate (daterange1)
-            if daterange1.from == nil then return end
+            if daterange1 == nil then return end
             if daterange1.from.year < 2012 then return 'red' end
             if daterange1.from.year == 2012 then return 'amber' end
             if daterange1.from.year > 2012 then return 'green' end
