@@ -20,7 +20,7 @@ package GADS::Column::Curval;
 
 use GADS::Config;
 use GADS::Records;
-use JSON qw(encode_json);
+use JSON qw(encode_json decode_json);
 use Log::Report;
 
 use Moo;
@@ -163,6 +163,22 @@ sub has_curval_field
     exists $self->curval_field_ids_index->{$field};
 }
 
+has view => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_view
+{   my $self = shift;
+    my $view = GADS::View->new(
+        instance_id => $self->refers_to_instance,
+        filter      => $self->filter,
+        layout      => $self->layout_parent,
+        schema      => $self->schema,
+        user        => undef,
+    );
+}
+
 has values => (
     is      => 'lazy',
     isa     => ArrayRef,
@@ -182,6 +198,7 @@ sub _records_from_db
     my $current_ids = $id && [$id];
     my $records = GADS::Records->new(
         user        => undef,
+        view        => $self->view,
         layout      => $layout,
         schema      => $self->schema,
         columns     => $self->curval_field_ids_retrieve,
@@ -335,6 +352,10 @@ around 'write' => sub {
         typeahead   => $self->typeahead,
     });
 
+    # Clear what may be cached values that should be updated after write
+    $self->clear_values;
+    $self->clear_view;
+
     $guard->commit;
 };
 
@@ -363,8 +384,14 @@ sub values_beginning_with
         },
     } @{$self->curval_fields};
     my $filter = encode_json({
-        condition => 'OR',
-        rules     => [@rules],
+        condition => 'AND',
+        rules     => [
+            {
+                condition => 'OR',
+                rules     => [@rules],
+            },
+            decode_json($self->view->filter),
+        ],
     });
     my $view = GADS::View->new(
         instance_id => $self->refers_to_instance,

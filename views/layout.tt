@@ -236,14 +236,14 @@
                             [% END %]
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="curval_instance">Columns to show:</label>
-                        [% FOREACH instance IN instance_layouts %]
-                            <div id="instance_fields_[% instance.instance.id %]" class="instance_fields"
-                                [% IF rti AND instance.instance.id != rti %]
-                                    style="display:none"
-                                [% END %]
-                                >
+                    [% FOREACH instance IN instance_layouts %]
+                        <div id="instance_fields_[% instance.instance.id %]" class="instance_fields"
+                            [% IF rti AND instance.instance.id != rti %]
+                                style="display:none"
+                            [% END %]
+                            >
+                            <div class="form-group">
+                                <label for="curval_instance">Columns to show:</label>
                                 [% FOREACH c IN instance.layout.all %]
                                     [% NEXT IF c.type == "curval" %]
                                     [% checked = "" %]
@@ -257,8 +257,13 @@
                                     </div>
                                 [% END %]
                             </div>
-                        [% END %]
-                    </div>
+                            <div class="form-group">
+                                    <label for="builder[% instance.layout.instance_id %]">Filter to apply:</label>
+                                    <div id="builder[% instance.layout.instance_id %]"></div>
+                            </div>
+                        </div>
+                    [% END %]
+                    <input id="filter" type="hidden" name="filter" value="[% column.filter | html_entity %]">
                 [% ELSE %]
                     <div class="alert alert-info">
                         No other instances are available to select data from
@@ -339,7 +344,7 @@
             </div>
         </div>
     </div>
-    <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">[% IF column.id %]Save[% ELSE %]Save[% END %]</button>
+    <button type="submit" id="submit_save" name="submit" value="submit" class="btn btn-primary">[% IF column.id %]Save[% ELSE %]Save[% END %]</button>
     [% IF column.id %]
         <a href="/layout/" class="btn btn-default">Cancel</a>
         <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
@@ -529,32 +534,32 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
         </tr>
     </thead>
     <tbody id="sortable">
-        [% FOREACH column IN all_columns %]
+        [% FOREACH col IN all_columns %]
         <tr>
-            <input type="hidden" name="position" value="[% column.id %]">
-            <td><a href="/layout/[% column.id %]">Edit</a></td>
-            <td>[% column.name | html_entity %]
+            <input type="hidden" name="position" value="[% col.id %]">
+            <td><a href="/layout/[% col.id %]">Edit</a></td>
+            <td>[% col.name | html_entity %]
             <td>
-                [% IF column.type == "string" %]Text[% END %]
-                [% IF column.type == "intgr" %]Integer[% END %]
-                [% IF column.type == "date" %]Date[% END %]
-                [% IF column.type == "daterange" %]Date range[% END %]
-                [% IF column.type == "enum" %]Select[% END %]
-                [% IF column.type == "tree" %]Tree[% END %]
-                [% IF column.type == "file" %]File[% END %]
-                [% IF column.type == "person" %]Person[% END %]
-                [% IF column.type == "rag" %]RedAmberGreen (RAG) status[% END %]
-                [% IF column.type == "calc" %]Calculated value[% END %]
-                [% IF column.type == "curval" %]Record from other data sheet[% END %]
+                [% IF col.type == "string" %]Text[% END %]
+                [% IF col.type == "intgr" %]Integer[% END %]
+                [% IF col.type == "date" %]Date[% END %]
+                [% IF col.type == "daterange" %]Date range[% END %]
+                [% IF col.type == "enum" %]Select[% END %]
+                [% IF col.type == "tree" %]Tree[% END %]
+                [% IF col.type == "file" %]File[% END %]
+                [% IF col.type == "person" %]Person[% END %]
+                [% IF col.type == "rag" %]RedAmberGreen (RAG) status[% END %]
+                [% IF col.type == "calc" %]Calculated value[% END %]
+                [% IF col.type == "curval" %]Record from other data sheet[% END %]
             </td>
             <td>
-                [% column.description | html_entity %]
+                [% col.description | html_entity %]
             </td>
         </tr>
         [% END %]
     </tbody>
 </table>
-<button type="submit" id="submit" name="saveposition" value="submit" class="btn btn-primary">Save order</button>
+<button type="submit" id="submit_saceorder" name="saveposition" value="submit" class="btn btn-primary">Save order</button>
 <p></p>
 </form>
 [% END %]
@@ -625,7 +630,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
             $('#display_condition').click(function () {
                 $("#display_condition_div").toggle(400);
             });
-            $(document).on("click", "#submit", function() {
+            $(document).on("click_save", "#submit", function() {
                 if( !$('#jstree_demo_div').length ) return true;
                 if( !$('#jstree_demo_div').is(":visible") ) return true;
                 var v =$("#jstree_demo_div").jstree(true).get_json('#', { 'flat': false });
@@ -676,6 +681,20 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 var divid = '#instance_fields_' + $(this).val();
                 $('.instance_fields').hide();
                 $(divid).show();
+            });
+            [% FOREACH instance IN instance_layouts %]
+                [% PROCESS builder.tt builder_id = instance.layout.instance_id all_columns = instance.layout.all filter_normal = column.filter filter_base64 = column.filter_base64 %]
+            [% END %]
+            [% IF column.filter AND NOT column.filter.match('^[{}\s]*$') %]
+                var data = decodeBase64('[% column.filter_base64 %]');
+                $('#builder[% column.refers_to_instance %]').queryBuilder('setRules',
+                    JSON.parse(data)
+                );
+            [% END %]
+
+            $('#submit_save').click(function() {
+                var current_builder = "#builder" + $('#refers_to_instance').val();
+                UpdateFilter($(current_builder));
             });
             $('#type').change(function(){
                 $('#divenum').hide();

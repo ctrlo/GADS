@@ -196,6 +196,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "link_parent",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "filter",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY

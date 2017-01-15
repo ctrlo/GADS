@@ -49,7 +49,7 @@
                 <link rel="stylesheet" href="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/vis/4.7.0/vis.min.css">
             [% END %]
         [% END %]
-        [% IF page == "view" %]
+        [% IF page == "view" OR page == "layout" %]
             <link rel="stylesheet" href="[% url.css %]/query-builder.css">
         [% END %]
         [% IF page == "user" OR page == "account" %]
@@ -197,7 +197,7 @@
                 });
             </script>
         [% END %]
-        [% IF page == "edit" OR page == "approval" OR page == "view" OR (page == "data" AND viewtype == "timeline") %]
+        [% IF page == "edit" OR page == "approval" OR page == "view" OR page == "layout" OR (page == "data" AND viewtype == "timeline") %]
             <script type="text/javascript" src="[% url.js %]/base64decode.js"></script>
         [% END %]
         [% IF page == "login" %]
@@ -220,13 +220,13 @@
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasTextRenderer.min.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasAxisLabelRenderer.min.js"></script>
         [% END %]
-        [% IF page == "view" OR page == "data" %]
+        [% IF page == "view" OR page == "data" OR page == "layout" %]
             <script type="text/javascript" src="[% url.js %]/underscore-min.js"></script>
         [% END %]
-        [% IF page == "view" %]
+        [% IF page == "view" OR page == "layout" %]
             <script type="text/javascript" src="[% url.js %]/query-builder.js"></script>
         [% END %]
-        [% IF page == "view" || page == "edit" %]
+        [% IF page == "view" OR page == "edit" OR page == "layout" %]
             <script type="text/javascript" src="[% url.js %]/bootstrap3-typeahead.min.js"></script>
         [% END %]
         [% IF page == "data" AND viewtype == "calendar" %]

@@ -1,0 +1,83 @@
+$('#builder[% builder_id %]').queryBuilder({
+    filters: [
+        [% FOR col IN all_columns %]
+            {
+                id: '[% col.id %]',
+                label: '[% col.name | html_entity %]',
+                [% IF col.type == "intgr" %]
+                    type: 'integer',
+                [% ELSIF col.return_type == "date" %]
+                    type: 'date',
+                    operators: ['equal', 'not_equal', 'less', 'less_or_equal', 'greater',
+                        'greater_or_equal',
+                        'is_empty', 'is_not_empty'
+                    ],
+                [% ELSIF col.return_type == "daterange" %]
+                    type: 'date',
+                    operators: ['equal', 'not_equal', 'less', 'less_or_equal', 'greater',
+                        'greater_or_equal', 'contains',
+                        'is_empty', 'is_not_empty'
+                    ],
+                [% ELSE %]
+                    type: 'string',
+                [% END %]
+                [% IF col.type == "rag" %]
+                    input: 'select',
+                    values: {
+                        'b_red': 'Red',
+                        'c_amber': 'Amber',
+                        'd_green': 'Green',
+                        'a_grey': 'Grey',
+                        'e_purple': 'Purple'
+                    },
+                [% END %]
+                [%
+                    column_type = col.type;
+                    IF column_type == 'enum'
+                        OR column_type == 'person'
+                        OR column_type == 'calc'
+                        OR column_type == 'tree';
+                %]
+                onAfterCreateRuleInput: function($rule, filter) {
+                    var $ruleInput = $( '#' + $rule.attr('id') + ' .rule-value-container input');
+                    $ruleInput.attr('autocomplete', 'off');
+                    $ruleInput.typeahead({
+                        delay: 100,
+                        matcher: function () { return true; },
+                        sorter: function (items) { return items; },
+                        source: function (query, process) {
+                            return $.ajax({
+                                type: 'GET',
+                                url: '/match/layout/[% col.id | uri %]',
+                                data: { q: query, oi: [% col.layout.instance_id %] },
+                                success: function(result) { process(result) },
+                                dataType: 'json'
+                            });
+                        }
+                    });
+                }
+                [% END %]
+            },
+        [% END %] 
+        ],
+        operators: [
+            {type: 'equal',            accept_values: true,  apply_to: ['string', 'number', 'datetime']},
+            {type: 'not_equal',        accept_values: true,  apply_to: ['string', 'number', 'datetime']},
+            {type: 'less',             accept_values: true,  apply_to: ['string', 'number', 'datetime']},
+            {type: 'less_or_equal',    accept_values: true,  apply_to: ['string', 'number', 'datetime']},
+            {type: 'greater',          accept_values: true,  apply_to: ['string', 'number', 'datetime']},
+            {type: 'greater_or_equal', accept_values: true,  apply_to: ['string', 'number', 'datetime']},
+            {type: 'contains',         accept_values: true,  apply_to: ['datetime']},
+            {type: 'begins_with',      accept_values: true,  apply_to: ['string']},
+            {type: 'is_empty',         accept_values: false, apply_to: ['string', 'number', 'datetime']},
+            {type: 'is_not_empty',     accept_values: false, apply_to: ['string', 'number', 'datetime']}
+        ]
+
+});
+[% UNLESS update_filter_done %]
+    function UpdateFilter(builder) {
+        var res = builder.queryBuilder('getRules');
+        $("#filter").val(JSON.stringify(res, null, 2));
+    };
+    [% update_filter_done = 1 %]
+[% END %]

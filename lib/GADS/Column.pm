@@ -25,6 +25,7 @@ use GADS::DB;
 use GADS::Type::Permission;
 use GADS::Util qw(:all);
 use GADS::View;
+use MIME::Base64 qw/encode_base64/;
 
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
@@ -199,6 +200,19 @@ has isunique => (
     default => 0,
     coerce  => sub { $_[0] ? 1 : 0 },
 );
+
+has filter => (
+    is      => 'rw',
+    isa     => Str,
+    lazy    => 1,
+    coerce  => sub { $_[0] || encode_json({}) },
+    clearer => 1,
+    builder => sub {
+        encode_json({});
+    },
+);
+
+sub filter_base64 { encode_base64(shift->filter) }
 
 has userinput => (
     is      => 'rw',
@@ -492,6 +506,7 @@ sub build_values
     {
         $self->fixedvals(1);
         $self->sprefix($self->field);
+        $self->filter($original->{filter});
     }
     else {
         $self->sprefix($self->field);
@@ -646,6 +661,7 @@ sub write
     $newitem->{optional}      = $self->optional;
     $newitem->{remember}      = $self->remember;
     $newitem->{isunique}      = $self->isunique;
+    $newitem->{filter}        = $self->filter;
     $newitem->{multivalue}    = $self->multivalue if $self->can_multivalue;
     $newitem->{description}   = $self->description;
     $newitem->{helptext}      = $self->helptext;

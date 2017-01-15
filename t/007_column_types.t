@@ -97,6 +97,30 @@ $layout->clear;
 try { $layout->column($curval_blank->id)->values };
 ok( !$@, "Building values for curval with no fields does not bork" );
 
+# Filter on curval tests
+my $curval_filter = GADS::Column::Curval->new(
+    schema             => $schema,
+    user               => undef,
+    layout             => $layout,
+    name               => 'curval filter',
+    type               => 'curval',
+    filter             => encode_json({
+        rules => [{
+            id       => $curval_sheet->columns->{string1}->id,
+            type     => 'string',
+            value    => 'Foo',
+            operator => 'equal',
+        }],
+    }),
+    refers_to_instance => $curval_sheet->layout->instance_id,
+    curval_field_ids   => [],
+);
+$curval_filter->write;
+# Clear the layout to force the column to be build, and also to build
+# dependencies properly in the next test
+$layout->clear;
+is( scalar @{$curval_filter->values}, 1, "Correct number of values for curval field with filter" );
+
 # Now check that we're not building all curval values when we're just
 # retrieving individual records
 $ENV{PANIC_ON_CURVAL_BUILD_VALUES} = 1;

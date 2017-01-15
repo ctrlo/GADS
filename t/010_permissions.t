@@ -126,6 +126,27 @@ foreach my $user_type (keys %users)
         instance_id => $sheet->instance_id,
     );
 
+    # Check that user has access to all curval values
+    my $curval_column = $columns->{curval1};
+    is( @{$curval_column->values}, 2, "User has access to all curval values" );
+
+    # Now apply a filter. Correct number of curval values should be
+    # retrieved, regardless of user perms
+    $curval_column->filter(encode_json({
+        rules => [{
+            id       => $curval_sheet->columns->{string1}->id,
+            type     => 'string',
+            value    => 'Foo',
+            operator => 'equal',
+        }],
+    }));
+    $curval_column->write;
+    is( @{$curval_column->values}, 1, "User has access to all curval values" );
+    # Reset for next test
+    $curval_column->clear_filter;
+    $curval_column->write;
+
+
     # First try writing to existing record
     my $records = GADS::Records->new(
         user    => $user,
