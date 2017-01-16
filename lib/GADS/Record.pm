@@ -461,7 +461,7 @@ sub _find
     $self->columns_retrieved_no($records->columns_retrieved_no);
 
     my $search     = $find{current_id} ? $records->search_query : $records->search_query(root_table => 'record');
-    my @prefetches = $records->jpfetch(prefetch => 1);
+    my @prefetches = $records->jpfetch(prefetch => 1, multivalue => 0);
     my @joins      = $records->jpfetch(search => 1);
 
     my $root_table;
@@ -573,6 +573,11 @@ sub _transform_values
     my $original = $self->record or panic "Record data has not been set";
 
     my $fields = {};
+    # If any columns are multivalue, then the values will not have been
+    # prefetched, as prefetching can result in an exponential amount of
+    # rows being fetched from the database in one go. It's better to pull
+    # all types of value together though, so we store them in this hashref.
+    my $multi_values = {};
     # We must do these columns in dependent order, otherwise the
     # column values may not exist for the calc values.
     foreach my $column (@{$self->columns_retrieved_do})
@@ -586,6 +591,27 @@ sub _transform_values
         my $force_update = (
             $self->force_update && grep { $_ == $column->id } @{$self->force_update}
         ) ? 1 : 0;
+
+        if ($column->multivalue)
+        {
+            if (!$multi_values->{$column->id})
+            {
+                my ($left, $prefetch) = %{$column->join}; # Prefetch table is 2nd part of join
+                my $m_rs = $self->schema->resultset($column->table)->search({
+                    'me.record_id'      => $self->record_id,
+                    'layout.multivalue' => 1,
+                }, {
+                    join     => 'layout',
+                    prefetch => $prefetch,
+                });
+                $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+                $multi_values->{$column->id} ||= [];
+                push @{$multi_values->{$_->{layout_id}}}, $_
+                    foreach $m_rs->all;
+            }
+            $value = $multi_values->{$column->id};
+        }
+
         $fields->{$column->id} = $column->class->new(
             record           => $self,
             record_id        => $self->record_id,
@@ -1195,7 +1221,6 @@ sub _field_write
                 $create = 1;
             }
         }
-
         if (!$options{update_only} || $create) {
             $self->schema->resultset($table)->create($_)
                 foreach @entries;

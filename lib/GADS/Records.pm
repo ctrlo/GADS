@@ -540,7 +540,10 @@ sub _build_results
         [-and => $search_query], $select
     )->get_column('me.id')->all;
 
-    # Now redo the query with those IDs
+    # Now redo the query with those IDs.
+    # First stop prefetches of multivalue columns, which can result in huge
+    # numbers of rows being retrieved.
+    @prefetches      = $self->jpfetch(prefetch => 1, multivalue => 0);
     my $rec1 = @prefetches ? { record_single => [@prefetches] } : 'record_single';
     # Add joins for sorts, but only if they're not already a prefetch (otherwise ordering can be messed up).
     # We also add the join for record_later, so that we can take only the latest required record

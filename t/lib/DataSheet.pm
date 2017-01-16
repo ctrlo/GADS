@@ -71,6 +71,16 @@ has columns => (
     },
 );
 
+# Whether to create multiple columns of a particular type
+has column_count => (
+    is      => 'ro',
+    default => sub {
+        +{
+            enum => 1,
+        }
+    },
+);
+
 has records => (
     is => 'lazy',
 );
@@ -206,34 +216,39 @@ sub __build_columns
     $integer1->set_permissions($self->group->id, $permissions)
         unless $self->no_groups;
 
-    my $enum1 = GADS::Column::Enum->new(
-        schema => $schema,
-        user   => undef,
-        layout => $layout,
-    );
-    $enum1->type('enum');
-    $enum1->name('enum1');
-    $enum1->name_short('enum1');
-    $enum1->multivalue(1) if $self->multivalue;
-    $enum1->enumvals([
-        {
-            value => 'foo1',
-        },
-        {
-            value => 'foo2',
-        },
-        {
-            value => 'foo3',
-        },
-    ]);
-    try { $enum1->write };
-    if ($@)
+    my @enums;
+    foreach my $count (1..$self->column_count->{enum})
     {
-        $@->wasFatal->throw(is_fatal => 0);
-        return;
+        my $enum = GADS::Column::Enum->new(
+            schema => $schema,
+            user   => undef,
+            layout => $layout,
+        );
+        $enum->type('enum');
+        $enum->name("enum$count");
+        $enum->name_short("enum$count");
+        $enum->multivalue(1) if $self->multivalue;
+        $enum->enumvals([
+            {
+                value => 'foo1',
+            },
+            {
+                value => 'foo2',
+            },
+            {
+                value => 'foo3',
+            },
+        ]);
+        try { $enum->write };
+        if ($@)
+        {
+            $@->wasFatal->throw(is_fatal => 0);
+            return;
+        }
+        $enum->set_permissions($self->group->id, $permissions)
+            unless $self->no_groups;
+        push @enums, $enum;
     }
-    $enum1->set_permissions($self->group->id, $permissions)
-        unless $self->no_groups;
 
     my $tree1 = GADS::Column::Tree->new(
         schema => $schema,
@@ -429,7 +444,8 @@ sub __build_columns
     # the objects properties, which are used by the datums.
     $columns->{string1}    = $layout->column($string1->id);
     $columns->{integer1}   = $layout->column($integer1->id);
-    $columns->{enum1}      = $layout->column($enum1->id);
+    $columns->{$_->name}   = $layout->column($_->id)
+        foreach @enums;
     $columns->{tree1}      = $layout->column($tree1->id);
     $columns->{date1}      = $layout->column($date1->id);
     $columns->{daterange1} = $layout->column($daterange1->id);
@@ -460,7 +476,8 @@ sub create_records
         $record->initialise;
         $record->fields->{$columns->{string1}->id}->set_value($datum->{string1});
         $record->fields->{$columns->{integer1}->id}->set_value($datum->{integer1});
-        $record->fields->{$columns->{enum1}->id}->set_value($datum->{enum1});
+        $record->fields->{$columns->{"enum$_"}->id}->set_value($datum->{"enum$_"})
+            foreach 1..$self->column_count->{enum};
         $record->fields->{$columns->{tree1}->id}->set_value($datum->{tree1});
         $record->fields->{$columns->{date1}->id}->set_value($datum->{date1});
         $record->fields->{$columns->{daterange1}->id}->set_value($datum->{daterange1});

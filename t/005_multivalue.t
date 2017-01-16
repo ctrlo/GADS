@@ -17,19 +17,28 @@ my $data = [
     {
         string1 => 'Foo',
         enum1   => 1,
+        enum2   => 4,
+        tree1   => 7,
     },
     {
         string1 => 'Bar',
         enum1   => 2,
+        enum2   => 5,
+        tree1   => 8,
     },
     {
         string1 => 'FooBar',
         enum1   => 3,
+        enum2   => 6,
+        tree1   => 9,
     },
 ];
 
 my $sheet   = t::lib::DataSheet->new(
     data             => $data,
+    column_count     => {
+        enum => 2,
+    },
     calc_code        => "
         function evaluate (enum1)
             values = {}
@@ -47,10 +56,14 @@ my $sheet   = t::lib::DataSheet->new(
 my $schema  = $sheet->schema;
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
-my $enum = $columns->{enum1};
-my $calc = $columns->{calc1};
-$enum->multivalue(1);
-$enum->write;
+my $enum1 = $columns->{enum1};
+my $enum2 = $columns->{enum2};
+my $tree  = $columns->{tree1};
+my $calc  = $columns->{calc1};
+$enum1->multivalue(1);
+$enum1->write;
+$enum2->multivalue(1);
+$enum2->write;
 $sheet->create_records;
 
 my $record = GADS::Record->new(
@@ -62,23 +75,36 @@ my $record = GADS::Record->new(
 my @tests = (
     {
         name      => 'Write 2 values',
-        write     => [1, 2],
-        as_string => 'foo1, foo2',
+        write     => {
+            enum1 => [1, 2],
+        },
+        as_string => {
+            enum1 => 'foo1, foo2',
+            enum2 => 'foo1',
+            tree1 => 'tree1',
+            calc1 => 'foo1foo2',
+        },
         search    => 'foo2',
         count     => 2,
-        calcval   => 'foo1foo2',
     }
 );
 
 foreach my $test (@tests)
 {
     $record->find_current_id(1);
-    $record->fields->{$enum->id}->set_value($test->{write});
+    foreach my $type (keys %{$test->{write}})
+    {
+        my $col = $columns->{$type};
+        $record->fields->{$col->id}->set_value($test->{write}->{$type});
+    }
     $record->write;
     $record->clear;
     $record->find_current_id(1);
-    is( $record->fields->{$enum->id}->as_string, $test->{as_string}, "Enum updated correctly for test $test->{name}" );
-    is( $record->fields->{$calc->id}->as_string, $test->{calcval}, "Calc value correct for test $test->{name}" );
+    foreach my $type (keys %{$test->{as_string}})
+    {
+        my $col = $columns->{$type};
+        is( $record->fields->{$col->id}->as_string, $test->{as_string}->{$type}, "$type updated correctly for test $test->{name}" );
+    }
 
     my $rules = encode_json({
         rules => [
