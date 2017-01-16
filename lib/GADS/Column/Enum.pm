@@ -33,6 +33,8 @@ has enumvals => (
         my $enumrs = $self->schema->resultset('Enumval')->search({
             layout_id => $self->id,
             deleted   => 0,
+        }, {
+            order_by => 'me.id'
         });
         $enumrs->result_class('DBIx::Class::ResultClass::HashRefInflator');
         my @enumvals = $enumrs->all;
