@@ -118,7 +118,8 @@ has id_hash => (
 
 sub _build_id_hash
 {   my $self = shift;
-    return { $self->id => 1 } if !$self->column->multivalue;
+    return $self->id ? { $self->id => 1 } : {} if !$self->column->multivalue;
+    return {} if !$self->id;
     +{ map { $_ => 1 } @{$self->id} };
 }
 

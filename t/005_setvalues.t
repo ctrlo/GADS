@@ -119,6 +119,34 @@ my $data = {
     ],
 };
 
+# First check that we can create new record and access its blank values
+foreach my $multivalue (0..1)
+{
+    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+    $curval_sheet->create_records;
+    my $sheet = t::lib::DataSheet->new(
+        curval     => 2,
+        schema     => $curval_sheet->schema,
+        multivalue => $multivalue,
+    );
+    $sheet->columns; # Force columns to build
+    my $record_new = GADS::Record->new(
+        user     => undef,
+        layout   => $sheet->layout,
+        schema   => $sheet->schema,
+    );
+    $record_new->initialise;
+    foreach my $type (keys %$values)
+    {
+        my $col = $sheet->columns->{$type};
+        is( $record_new->fields->{$col->id}->as_string, '', 'New record $type is empty string' );
+        is( $record_new->fields->{$col->id}->value, undef, 'Value of new record $type is undef' );
+        # Check that id_hash can be generated correctly
+        is( ref $record_new->fields->{$col->id}->id_hash, 'HASH', '$type has id_hash' )
+            if $record_new->fields->{$col->id}->can('id_hash');
+    }
+}
+
 for my $test ('blank', 'nochange', 'changed')
 {
     # Values can be set as both array ref and scalar. Test both.

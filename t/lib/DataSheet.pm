@@ -95,6 +95,11 @@ has calc_return_type => (
     default => 'integer',
 );
 
+has multivalue => (
+    is      => 'ro',
+    default => 0,
+);
+
 has config => (
     is => 'lazy',
 );
@@ -209,6 +214,7 @@ sub __build_columns
     $enum1->type('enum');
     $enum1->name('enum1');
     $enum1->name_short('enum1');
+    $enum1->multivalue(1) if $self->multivalue;
     $enum1->enumvals([
         {
             value => 'foo1',
