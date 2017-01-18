@@ -538,6 +538,25 @@ sub _find
         # values
         $self->linked_record_raw($record->{current}->{linked}->{record_single});
     }
+    # Fetch and merge and multi-values
+    my @record_ids = ($record->{id});
+    push @record_ids, $self->linked_record_raw->{id} if $self->linked_record_raw;
+    if (my $multi = $records->fetch_multivalues([@record_ids]))
+    {
+        # At this point we could have either or both of record and linked.
+        # Check normal record first
+        if ($multi->{$record->{id}})
+        {
+            my $record_id = $record->{id};
+            $record->{$_} = $multi->{$record_id}->{$_} foreach keys %{$multi->{$record_id}};
+        }
+        # Now linked
+        if (my $linked = $self->linked_record_raw)
+        {
+            my $linked_id = $linked->{id};
+            $linked->{$_} = $multi->{$linked_id}->{$_} foreach keys %{$multi->{$linked_id}};
+        }
+    }
     if ($self->_set_approval_flag($record->{approval}))
     {
         $self->_set_approval_record_id($record->{record_id}); # Related record if this is approval record
@@ -591,27 +610,6 @@ sub _transform_values
         my $force_update = (
             $self->force_update && grep { $_ == $column->id } @{$self->force_update}
         ) ? 1 : 0;
-
-        if ($column->multivalue)
-        {
-            if (!$multi_values->{$column->id})
-            {
-                my ($left, $prefetch) = %{$column->join}; # Prefetch table is 2nd part of join
-                my $m_rs = $self->schema->resultset($column->table)->search({
-                    'me.record_id'      => $self->record_id,
-                    'layout.multivalue' => 1,
-                }, {
-                    join     => 'layout',
-                    prefetch => $prefetch,
-                });
-                $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
-                $multi_values->{$column->id} ||= [];
-                push @{$multi_values->{$_->{layout_id}}}, $_
-                    foreach $m_rs->all;
-            }
-            $value = $multi_values->{$column->id};
-        }
-
         $fields->{$column->id} = $column->class->new(
             record           => $self,
             record_id        => $self->record_id,

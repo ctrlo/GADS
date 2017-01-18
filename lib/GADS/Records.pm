@@ -257,7 +257,7 @@ sub _search_construct;
 # Shortcut to generate the required joining hash for a DBIC search
 sub linked_hash
 {   my ($self, %options) = @_;
-    my @tables = $self->jpfetch(%options, linked => 1);
+    my @tables = $self->jpfetch(%options, linked => 1, multivalue => 0);
     if (@tables)
     {
         {
@@ -575,7 +575,8 @@ sub _build_results
             %{$_->flags}
         } @{$self->columns_retrieved_no}
     };
-    my @all;
+
+    my @all; my @record_ids;
     foreach my $rec ($result->all)
     {
         my @children = map { $_->{id} } @{$rec->{currents}};
@@ -593,9 +594,63 @@ sub _build_results
             columns_retrieved_do => $self->columns_retrieved_do,
             column_flags         => $column_flags,
         );
+        push @record_ids, $rec->{record_single}->{id};
+        push @record_ids, $rec->{linked}->{record_single}->{id}
+            if $rec->{linked}->{record_single};
     }
 
+    # Fetch and add multi-values
+    my $multi = $self->fetch_multivalues([@record_ids]);
+    foreach my $row (@all)
+    {
+        my $record    = $row->record;
+        my $record_id = $record->{id};
+        $record->{$_} = $multi->{$record_id}->{$_} foreach keys %{$multi->{$record_id}};
+        if ($row->linked_record_raw)
+        {
+            my $record_linked = $row->linked_record_raw;
+            my $record_id_linked = $record_linked->{id};
+            $record_linked->{$_} = $multi->{$record_id_linked}->{$_} foreach keys %{$multi->{$record_id_linked}};
+        }
+    };
+
     \@all;
+}
+
+sub fetch_multivalues
+{   my ($self, $record_ids) = @_;
+
+    my $return; # Return undef if no multivalues
+    my $columns_done = {};
+    foreach my $column (@{$self->columns_retrieved_no})
+    {
+        my @cols = ($column);
+        push @cols, $column->link_parent if $column->link_parent;
+        foreach my $col (@cols)
+        {
+            next unless $col->multivalue;
+            if (!$columns_done->{$col->id})
+            {
+                my ($left, $prefetch) = %{$col->join}; # Prefetch table is 2nd part of join
+                my $m_rs = $self->schema->resultset($col->table)->search({
+                    'me.record_id'      => $record_ids,
+                    'layout.multivalue' => 1,
+                }, {
+                    join     => 'layout',
+                    prefetch => $prefetch,
+                });
+                $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+                foreach my $val ($m_rs->all)
+                {
+                    my $field = "field$val->{layout_id}";
+                    $return->{$val->{record_id}}->{$field} ||= [];
+                    push @{$return->{$val->{record_id}}->{$field}}, $val;
+                    $columns_done->{$val->{layout_id}} = 1;
+                }
+            }
+        }
+    }
+    $return;
 }
 
 has _next_single_id => (

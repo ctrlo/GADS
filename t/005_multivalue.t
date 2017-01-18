@@ -121,6 +121,7 @@ foreach my $test (@tests)
         name        => 'Test view',
         filter      => $rules,
         instance_id => 1,
+        columns     => [ map { $_->id } $layout->all ],
         layout      => $layout,
         schema      => $schema,
         user        => undef,
@@ -135,6 +136,14 @@ foreach my $test (@tests)
     );
 
     is( $records->count, $test->{count}, "Correct number of records for search $test->{name}");
+
+    $record = $records->single;
+
+    foreach my $type (keys %{$test->{as_string}})
+    {
+        my $col = $columns->{$type};
+        is( $record->fields->{$col->id}->as_string, $test->{as_string}->{$type}, "$type updated correctly for test $test->{name}" );
+    }
 }
 
 done_testing();

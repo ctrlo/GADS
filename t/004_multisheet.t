@@ -11,7 +11,8 @@ use GADS::Schema;
 
 use t::lib::DataSheet;
 
-my $sheet1 = t::lib::DataSheet->new(data => [], instance_id => 1);
+# Only use multivalue for the referenced sheet. Normal multivalue is tested elsewhere.
+my $sheet1 = t::lib::DataSheet->new(data => [], instance_id => 1, multivalue => 1);
 my $schema = $sheet1->schema;
 my $sheet2 = t::lib::DataSheet->new(data => [], instance_id => 2, schema => $schema);
 
@@ -23,6 +24,8 @@ my $columns2 = $sheet2->columns;
 # Set link field of second sheet daterange to daterange of first sheet
 $columns2->{daterange1}->link_parent_id($columns1->{daterange1}->id);
 $columns2->{daterange1}->write;
+$columns2->{enum1}->link_parent_id($columns1->{enum1}->id);
+$columns2->{enum1}->write;
 $layout2->clear; # Need to rebuild columns to get link_parent built
 
 my $record1 = GADS::Record->new(
@@ -34,6 +37,7 @@ my $record1 = GADS::Record->new(
 
 $record1->initialise;
 $record1->fields->{$columns1->{daterange1}->id}->set_value(['2010-10-10', '2012-10-10']);
+$record1->fields->{$columns1->{enum1}->id}->set_value([1]);
 $record1->write(no_alerts => 1);
 
 my $record2 = GADS::Record->new(
@@ -45,6 +49,7 @@ my $record2 = GADS::Record->new(
 
 $record2->initialise;
 $record2->fields->{$columns2->{daterange1}->id}->set_value(['2010-10-10', '2012-10-10']);
+$record2->fields->{$columns2->{enum1}->id}->set_value([7]);
 $record2->write(no_alerts => 1);
 
 # Clear the record object and write a new one, this time with the
@@ -67,8 +72,8 @@ my @filters = (
             operator => 'contains',
         }],
         values => [
-            'string1: ,integer1: ,enum1: ,tree1: ,date1: ,daterange1: 2010-10-10 to 2012-10-10,file1: ,person1: ,rag1: b_red,calc1: 2010,',
-            'string1: Foo,integer1: ,enum1: ,tree1: ,date1: ,daterange1: 2010-10-10 to 2012-10-10,file1: ,person1: ,rag1: b_red,calc1: 2010,',
+            'string1: ,integer1: ,enum1: foo1,tree1: ,date1: ,daterange1: 2010-10-10 to 2012-10-10,file1: ,person1: ,rag1: b_red,calc1: 2010,',
+            'string1: Foo,integer1: ,enum1: foo1,tree1: ,date1: ,daterange1: 2010-10-10 to 2012-10-10,file1: ,person1: ,rag1: b_red,calc1: 2010,',
         ],
         count => 2,
     },
@@ -118,16 +123,15 @@ my $single = GADS::Record->new(
     schema => $schema,
 );
 
-#? $record->find_record_id($id)
 $single->find_current_id($record2->current_id);
 my $got = join ", ",
     map { $_->name.': ' . $single->fields->{$_->id} }  sort { $a->id <=> $b->id } values %$columns2;
-my $expected = 'string1: Foo, integer1: , enum1: , tree1: , date1: , daterange1: 2010-10-10 to 2012-10-10, file1: , person1: , rag1: b_red, calc1: 2010';
+my $expected = 'string1: Foo, integer1: , enum1: foo1, tree1: , date1: , daterange1: 2010-10-10 to 2012-10-10, file1: , person1: , rag1: b_red, calc1: 2010';
 is( $got, $expected, "Retrieve record with linked field by current ID" );
 $single->clear;
 $single->find_record_id($record2->record_id);
 $got = join ", ",
     map { $_->name.': ' . $single->fields->{$_->id} }  sort { $a->id <=> $b->id } values %$columns2;
-is( $got, $expected, "Retrieve record with linked field by current ID" );
+is( $got, $expected, "Retrieve record with linked field by record ID" );
 
 done_testing();
