@@ -1118,9 +1118,9 @@ any '/view/:id' => require_login sub {
         my $params = params;
         my $columns = ref param('column') ? param('column') : [ param('column') // () ]; # Ensure array
         $view->columns($columns);
-        $view->global (param('global') ? 1 : 0);
-        $view->name   (param 'name');
-        $view->filter (param 'filter');
+        $view->global(param('global') ? 1 : 0);
+        $view->name  (param 'name');
+        $view->filter->as_json(param 'filter');
         if (process( sub { $view->write }))
         {
             $view->set_sorts($params->{sortfield}, $params->{sorttype});
@@ -1314,7 +1314,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             {
                 $column->typeahead(param 'typeahead');
                 $column->refers_to_instance(param 'refers_to_instance');
-                $column->filter(param 'filter');
+                $column->filter->as_json(param 'filter');
                 my $curval_field_ids = ref param('curval_field_ids') ? param('curval_field_ids') : [param('curval_field_ids')||()];
                 $column->curval_field_ids($curval_field_ids);
             }

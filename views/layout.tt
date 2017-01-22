@@ -683,10 +683,10 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 $(divid).show();
             });
             [% FOREACH instance IN instance_layouts %]
-                [% PROCESS builder.tt builder_id = instance.layout.instance_id all_columns = instance.layout.all filter_normal = column.filter filter_base64 = column.filter_base64 %]
+                [% PROCESS builder.tt builder_id = instance.layout.instance_id all_columns = instance.layout.all filter_normal = column.filter filter_base64 = column.filter.base64 %]
             [% END %]
             [% IF column.filter AND NOT column.filter.match('^[{}\s]*$') %]
-                var data = decodeBase64('[% column.filter_base64 %]');
+                var data = decodeBase64('[% column.filter.base64 %]');
                 $('#builder[% column.refers_to_instance %]').queryBuilder('setRules',
                     JSON.parse(data)
                 );

@@ -133,9 +133,9 @@
                 ' );
             });
         }); 
-        [% INCLUDE builder.tt filter_normal = v.filter filter_base64 = v.filter_base64 %]
+        [% INCLUDE builder.tt filter_normal = v.filter filter_base64 = v.filter.base64 %]
         [% IF v.filter AND NOT v.filter.match('^[{}\s]*$') %]
-            var data = decodeBase64('[% v.filter_base64 %]');
+            var data = decodeBase64('[% v.filter.base64 %]');
             $('#builder').queryBuilder('setRules',
                 JSON.parse(data)
             );

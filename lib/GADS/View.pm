@@ -19,8 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::View;
 
 use GADS::Alert;
+use GADS::Filter;
 use GADS::Schema;
-use JSON qw(decode_json);
 use Log::Report;
 use MIME::Base64;
 use String::CamelCase qw(camelize);
@@ -91,25 +91,32 @@ has name => (
 
 has filter => (
     is      => 'rw',
-    isa     => sub {
-        decode_json($_[0]); # Will die on error
-    },
     lazy    => 1,
-    builder => sub { ($_[0]->_view && $_[0]->_view->filter) || '{}' },
-    trigger => sub {
-        my ($self, $value) = @_;
-        $self->filter_changed(1)
-            if $self->_view && $self->_view->filter ne $value;
+    clearer => 1,
+    coerce  => sub {
+        my $value = shift;
+        if (ref $value ne 'GADS::Filter')
+        {
+            if (ref $value eq 'HASH')
+            {
+                $value = GADS::Filter->new(
+                    as_hash => $value,
+                );
+            }
+            else {
+                $value = GADS::Filter->new(
+                    as_json => $value,
+                );
+            }
+        }
+        $value;
     },
-);
-
-sub filter_base64
-{   my $self = shift;
-    encode_base64($self->filter);
-}
-
-has filter_changed => (
-    is => 'rw',
+    builder => sub {
+        my $self = shift;
+        my $filter = $self->_view # Don't trigger changed() in Filter
+            ? GADS::Filter->new(as_json => $self->_view->filter)
+            : GADS::Filter->new;
+    },
 );
 
 has sorts => (
@@ -161,21 +168,6 @@ has columns => (
     },
 );
 
-# All the filters in a flat structure
-has filters => (
-    is      => 'lazy',
-    isa     => ArrayRef,
-    clearer => 1,
-);
-
-sub _build_filters
-{   my $self = shift;
-    my $decoded = decode_json($self->filter);
-    my $cols_in_filter = {};
-    _filter_tables($decoded, $cols_in_filter);
-    [values %$cols_in_filter];
-}
-
 # Whether the view has a variable "CURUSER" condition
 has has_curuser => (
     is      => 'lazy',
@@ -188,7 +180,7 @@ sub _build_has_curuser
     grep {
         $self->layout->column($_->{field})->type eq 'person'
         && $_->{value} eq '[CURUSER]'
-    } @{$self->filters};
+    } @{$self->filter->filters};
 }
 
 has owner => (
@@ -223,27 +215,6 @@ sub BUILD
     }
 }
 
-# Recursively find all tables in a nested filter
-sub _filter_tables
-{   my ($filter, $tables) = @_;
-
-    if (my $rules = $filter->{rules})
-    {
-        # Filter has other nested filters
-        foreach my $rule (@$rules)
-        {
-            _filter_tables($rule, $tables);
-        }
-    }
-    elsif (my $id = $filter->{id}) {
-        $tables->{$filter->{id}} = {
-            field    => $filter->{id},
-            value    => $filter->{value},
-            operator => $filter->{operator},
-        };
-    }
-}
-
 sub write
 {   my $self = shift;
 
@@ -269,23 +240,18 @@ sub write
     }
 
     $vu->{name}        = $self->name or error __"Please enter a name for the view";
-    $vu->{filter}      = $self->filter;
+    $vu->{filter}      = $self->filter->as_json;
     $vu->{instance_id} = $self->instance_id;
-    my $decoded = decode_json($self->filter);
 
-    $self->clear_filters;
     $self->clear_has_curuser;
 
     # Get all the columns in the filter. Check whether the user has
     # access to them.
-    my $cols_in_filter = {};
-    _filter_tables $decoded, $cols_in_filter;
-    foreach my $col_id (keys %$cols_in_filter)
+    foreach my $filter (@{$self->filter->filters})
     {
-        my $col   = $self->layout->column($col_id);
-        my $fil   = $cols_in_filter->{$col_id};
-        my $val   = $fil->{value};
-        my $op    = $fil->{operator};
+        my $col   = $self->layout->column($filter->{field});
+        my $val   = $filter->{value};
+        my $op    = $filter->{operator};
         my $rtype = $col->return_type;
         if ($rtype eq 'daterange')
         {
@@ -304,7 +270,7 @@ sub write
 
         error __x "No value can be entered for empty and not empty operators"
             if ($op eq 'is_empty' || $op eq 'is_not_empty') && $val;
-        error __x"Invalid field ID {id} in filter", id => $col_id
+        error __x"Invalid field ID {id} in filter", id => $filter->{field}
             unless $col->user_can('read');
     }
 
@@ -315,7 +281,7 @@ sub write
         $self->_view->update($vu);
 
         # Update any alert caches for new filter
-        if ($self->filter_changed && $self->has_alerts)
+        if ($self->filter->changed && $self->has_alerts)
         {
             my $alert = GADS::Alert->new(
                 user      => $self->user,
@@ -385,19 +351,20 @@ sub write
     # there is not much point, as they could be removed later anyway. We
     # do this during the processing of the alerts and filters elsewhere.
     my @existing = $self->schema->resultset('Filter')->search({ view_id => $self->id })->all;
-    foreach my $table (keys %$cols_in_filter)
+    my @all_filters = @{$self->filter->filters};
+    foreach my $filter (@all_filters)
     {
-        unless (grep { $_->layout_id == $table } @existing)
+        unless (grep { $_->layout_id == $filter->{field} } @existing)
         {
             $self->schema->resultset('Filter')->create({
                 view_id   => $self->id,
-                layout_id => $table,
+                layout_id => $filter->{field},
             });
         }
     }
     # Delete those no longer there
     $search = { view_id => $self->id };
-    $search->{layout_id} = { '!=' => [ '-and', keys %$cols_in_filter ] } if keys %$cols_in_filter;
+    $search->{layout_id} = { '!=' => [ '-and', map { $_->{field} } @all_filters ] } if @all_filters;
     $self->schema->resultset('Filter')->search($search)->delete;
 }
 

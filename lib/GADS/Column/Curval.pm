@@ -20,7 +20,6 @@ package GADS::Column::Curval;
 
 use GADS::Config;
 use GADS::Records;
-use JSON qw(encode_json decode_json);
 use Log::Report;
 
 use Moo;
@@ -383,16 +382,18 @@ sub values_beginning_with
             operator => $_->return_type eq 'string' ? 'begins_with' : 'equal',
         },
     } @{$self->curval_fields};
-    my $filter = encode_json({
-        condition => 'AND',
-        rules     => [
-            {
-                condition => 'OR',
-                rules     => [@rules],
-            },
-            decode_json($self->view->filter),
-        ],
-    });
+    my $filter = GADS::Filter->new(
+        as_hash => {
+            condition => 'AND',
+            rules     => [
+                {
+                    condition => 'OR',
+                    rules     => [@rules],
+                },
+                $self->view->filter->as_hash,
+            ],
+        },
+    );
     my $view = GADS::View->new(
         instance_id => $self->refers_to_instance,
         layout      => $self->layout_parent,

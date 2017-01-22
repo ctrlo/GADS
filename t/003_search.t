@@ -5,6 +5,7 @@ use warnings;
 use Test::MockTime qw(set_fixed_time restore_time); # Load before DateTime
 use JSON qw(encode_json);
 use Log::Report;
+use GADS::Filter;
 use GADS::Layout;
 use GADS::Record;
 use GADS::Records;
@@ -268,10 +269,12 @@ my @filters = (
 );
 foreach my $filter (@filters)
 {
-    my $rules = encode_json({
-        rules     => $filter->{rules},
-        condition => $filter->{condition},
-    });
+    my $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => $filter->{rules},
+            condition => $filter->{condition},
+        },
+    );
 
     my $view_columns = $filter->{columns} || [$columns->{string1}->id, $columns->{tree1}->id];
     my $view = GADS::View->new(
@@ -315,14 +318,16 @@ my $records = GADS::Records->new(
     schema  => $schema,
 );
 
-my $rules = encode_json({
-    rules     => [{
-        id       => $columns->{date1}->id,
-        type     => 'date',
-        value    => '2015-01-01',
-        operator => 'greater',
-    }],
-});
+my $rules = GADS::Filter->new(
+    as_hash => {
+        rules     => [{
+            id       => $columns->{date1}->id,
+            type     => 'date',
+            value    => '2015-01-01',
+            operator => 'greater',
+        }],
+    },
+);
 
 my $limit_to_view = GADS::View->new(
     name        => 'Limit to view',
@@ -334,14 +339,16 @@ my $limit_to_view = GADS::View->new(
 );
 $limit_to_view->write;
 
-$rules = encode_json({
-    rules     => [{
-        id       => $columns->{string1}->id,
-        type     => 'string',
-        value    => 'Foo',
-        operator => 'begins_with',
-    }],
-});
+$rules = GADS::Filter->new(
+    as_hash => {
+        rules     => [{
+            id       => $columns->{string1}->id,
+            type     => 'string',
+            value    => 'Foo',
+            operator => 'begins_with',
+        }],
+    },
+);
 
 my $view = GADS::View->new(
     name        => 'Foo',
@@ -555,7 +562,9 @@ foreach my $sort (@sorts)
     my $passes = $sort->{count} ? 3 : 2;
     foreach my $pass (1..$passes)
     {
-        my $filter = encode_json($sort->{filter} || {});
+        my $filter = GADS::Filter->new(
+            as_hash => ($sort->{filter} || {}),
+        );
         my $view = GADS::View->new(
             name        => 'Test view',
             columns     => $sort->{show_columns},

@@ -396,16 +396,15 @@ $view->write;
 is( $schema->resultset('AlertCache')->count, 7, "Correct number of alerts for column removal" );
 
 # Add a filter to the view, alert cache should be updated
-my $rules = {
+$view->filter->as_hash({
     rules     => [{
         id       => $columns->{string1}->id,
         type     => 'string',
         value    => 'Foo',
         operator => 'equal',
     }],
-};
+});
 
-$view->filter(encode_json($rules));
 $view->write;
 is( $schema->resultset('AlertCache')->count, 5, "Correct number of alerts after view updated" );
 
@@ -464,16 +463,15 @@ $alert->write;
 is( $schema->resultset('AlertCache')->count, 10, "Correct number of alerts inserted" );
 
 # Add a person filter, check alert cache
-$rules = {
+$view->filter->as_hash({
     rules     => [{
         id       => $columns->{person1}->id,
         type     => 'string',
         value    => '[CURUSER]',
         operator => 'equal',
     }],
-};
+});
 
-$view->filter(encode_json($rules));
 $view->write;
 is( $schema->resultset('AlertCache')->search({ user_id => 1 })->count, 4, "Correct number of alerts for initial CURUSER filter addition (user1)" );
 is( $schema->resultset('AlertCache')->search({ user_id => 2 })->count, 0, "Correct number of alerts for initial CURUSER filter addition (user2)" );
@@ -492,7 +490,7 @@ is( $schema->resultset('AlertCache')->search({ user_id => 2 })->count, 2, "Corre
 is( $schema->resultset('AlertCache')->search({ user_id => undef })->count, 0, "No null user_id values inserted for CURUSER filter addition" );
 
 # Change global view slightly, check alerts
-$rules = {
+$view->filter->as_hash({
     rules     => [
         {
             id       => $columns->{person1}->id,
@@ -506,8 +504,7 @@ $rules = {
             operator => 'equal',
         }
     ],
-};
-$view->filter(encode_json($rules));
+});
 $view->write;
 
 is( $schema->resultset('AlertCache')->search({ user_id => 1 })->count, 2, "Correct number of CURUSER alerts after filter change (user1)" );
@@ -525,7 +522,7 @@ $record->fields->{$columns->{string1}->id}->set_value('FooBar');
 $record->write;
 
 # And remove curuser filter
-$rules = {
+$view->filter->as_hash({
     rules     => [
         {
             id       => $columns->{string1}->id,
@@ -534,8 +531,7 @@ $rules = {
             operator => 'equal',
         }
     ],
-};
-$view->filter(encode_json($rules));
+});
 $view->write;
 
 is( $schema->resultset('AlertCache')->search({ user_id => { '!=' => undef } })->count, 0, "Correct number of user_id alerts after removal of curuser filter" );
@@ -573,18 +569,20 @@ $schema->resultset('UserGroup')->create({
     group_id => $sheet->group->id,
 });
 
-$rules = {
-    rules     => [{
-        id       => $columns->{string1}->id,
-        type     => 'string',
-        value    => 'Foo',
-        operator => 'equal',
-    }],
-};
+my $rules = GADS::Filter->new(
+    as_hash => {
+        rules     => [{
+            id       => $columns->{string1}->id,
+            type     => 'string',
+            value    => 'Foo',
+            operator => 'equal',
+        }],
+    },
+);
 
 $view = GADS::View->new(
     name        => 'view1',
-    filter      => encode_json($rules),
+    filter      => $rules,
     instance_id => 1,
     layout      => $layout,
     schema      => $schema,

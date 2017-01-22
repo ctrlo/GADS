@@ -5,6 +5,7 @@ use warnings;
 use JSON qw(encode_json);
 use Log::Report;
 use GADS::Column::Calc;
+use GADS::Filter;
 use GADS::Layout;
 use GADS::Record;
 use GADS::Records;
@@ -104,14 +105,16 @@ my $curval_filter = GADS::Column::Curval->new(
     layout             => $layout,
     name               => 'curval filter',
     type               => 'curval',
-    filter             => encode_json({
-        rules => [{
-            id       => $curval_sheet->columns->{string1}->id,
-            type     => 'string',
-            value    => 'Foo',
-            operator => 'equal',
-        }],
-    }),
+    filter             => GADS::Filter->new(
+        as_hash => {
+            rules => [{
+                id       => $curval_sheet->columns->{string1}->id,
+                type     => 'string',
+                value    => 'Foo',
+                operator => 'equal',
+            }],
+        },
+    ),
     refers_to_instance => $curval_sheet->layout->instance_id,
     curval_field_ids   => [],
 );

@@ -4,6 +4,7 @@ use warnings;
 
 use JSON qw(encode_json);
 use Log::Report;
+use GADS::Filter;
 use GADS::Group;
 use GADS::Groups;
 use GADS::Layout;
@@ -132,14 +133,16 @@ foreach my $user_type (keys %users)
 
     # Now apply a filter. Correct number of curval values should be
     # retrieved, regardless of user perms
-    $curval_column->filter(encode_json({
-        rules => [{
-            id       => $curval_sheet->columns->{string1}->id,
-            type     => 'string',
-            value    => 'Foo',
-            operator => 'equal',
-        }],
-    }));
+    $curval_column->filter(GADS::Filter->new(
+        as_hash => {
+            rules => [{
+                id       => $curval_sheet->columns->{string1}->id,
+                type     => 'string',
+                value    => 'Foo',
+                operator => 'equal',
+            }],
+        },
+    ));
     $curval_column->write;
     is( @{$curval_column->values}, 1, "User has access to all curval values" );
     # Reset for next test

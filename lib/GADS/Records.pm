@@ -24,7 +24,6 @@ use DBIx::Class::ResultClass::HashRefInflator;
 use GADS::Record;
 use GADS::View;
 use HTML::Entities;
-use JSON qw(decode_json encode_json);
 use Log::Report;
 use POSIX qw(ceil);
 use Scalar::Util qw(looks_like_number);
@@ -300,10 +299,10 @@ sub search_views
 
         foreach my $user_id (@user_ids)
         {
-            my $filter  = $view->filter || '{}';
+            my $filter  = $view->filter;
             my $view_id = $view->id;
             trace qq(About to decode filter for view ID $view_id);
-            my $decoded = decode_json($filter);
+            my $decoded = $filter->as_hash;
             if (keys %$decoded)
             {
                 my $search = {
@@ -401,7 +400,7 @@ sub search_all_fields
     {
         if (my $filter = $view->filter)
         {
-            my $decoded = decode_json($filter);
+            my $decoded = $filter->as_hash;
             if (keys %$decoded)
             {
                 push @basic_search, @{$self->_search_construct($decoded, $self->layout)};
@@ -843,7 +842,7 @@ sub _query_params
             # Apply view filter, but not if specific current IDs set (as when quick search is used)
             if ($view->filter && !$self->current_ids)
             {
-                my $decoded = decode_json($view->filter);
+                my $decoded = $view->filter->as_hash;
                 if (keys %$decoded)
                 {
                     # Get the user search criteria
@@ -855,7 +854,7 @@ sub _query_params
         {
             if (my $filter = $view->filter)
             {
-                my $decoded = decode_json($filter);
+                my $decoded = $filter->as_hash;
                 if (keys %$decoded)
                 {
                     # Get the user search criteria
