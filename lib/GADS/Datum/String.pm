@@ -46,7 +46,9 @@ has set_value => (
 has value => (
     is        => 'rw',
     lazy      => 1,
-    trigger   => sub { $_[0]->blank($_[1] ? 0 : 1) },
+    trigger   => sub {
+        $_[0]->blank(length $_[1] ? 0 : 1)
+    },
     builder   => sub {
         my $self = shift;
         $self->has_init_value or return;
@@ -55,6 +57,10 @@ has value => (
         $value;
     },
 );
+
+sub _build_blank {
+    length $_[0]->value ? 0 : 1;
+}
 
 around 'clone' => sub {
     my $orig = shift;

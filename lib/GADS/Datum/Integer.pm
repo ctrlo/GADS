@@ -52,6 +52,10 @@ has value => (
     },
 );
 
+sub _build_blank {
+    defined $_[0]->value && $_[0]->value =~ /.+/ ? 0 : 1;
+}
+
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
