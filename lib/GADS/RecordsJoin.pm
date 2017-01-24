@@ -59,11 +59,11 @@ sub _add_jp
     # Otherwise add it
     push @$jp_store, {
         join       => $toadd,
-        prefetch   => $options{prefetch},   # Whether values should be retrieved
+        # Never prefetch multivalue columns, which can result in huge numbers of rows being retrieved.
+        prefetch   => !$column->multivalue && $options{prefetch},   # Whether values should be retrieved
         search     => $options{search},     # Whether it's used in a WHERE clause
         linked     => $options{linked},     # Whether it's a linked table
         sort       => $options{sort},       # Whether it's used in an order_by clause
-        multivalue => $column->multivalue,  # Whether the column is multivalue
         curval     => $column->type eq 'curval' ? 1 : 0,
     };
 }
@@ -126,7 +126,6 @@ sub _jpfetch
     {
         next if !$options{linked} && $_->{linked};
         next if $options{linked} && !$_->{linked};
-        next if defined $options{multivalue} && $_->{multivalue} != $options{multivalue};
         next if exists $options{prefetch} && !$options{prefetch} && $_->{prefetch};
         if ($options{search} && $_->{search}) {
             push @return, $_;

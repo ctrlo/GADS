@@ -461,7 +461,7 @@ sub _find
     $self->columns_retrieved_no($records->columns_retrieved_no);
 
     my $search     = $find{current_id} ? $records->search_query : $records->search_query(root_table => 'record');
-    my @prefetches = $records->jpfetch(prefetch => 1, multivalue => 0);
+    my @prefetches = $records->jpfetch(prefetch => 1);
     my @joins      = $records->jpfetch(search => 1);
 
     my $root_table;

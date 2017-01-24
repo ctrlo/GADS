@@ -256,7 +256,7 @@ sub _search_construct;
 # Shortcut to generate the required joining hash for a DBIC search
 sub linked_hash
 {   my ($self, %options) = @_;
-    my @tables = $self->jpfetch(%options, linked => 1, multivalue => 0);
+    my @tables = $self->jpfetch(%options, linked => 1);
     if (@tables)
     {
         {
@@ -540,9 +540,7 @@ sub _build_results
     )->get_column('me.id')->all;
 
     # Now redo the query with those IDs.
-    # First stop prefetches of multivalue columns, which can result in huge
-    # numbers of rows being retrieved.
-    @prefetches      = $self->jpfetch(prefetch => 1, multivalue => 0);
+    @prefetches      = $self->jpfetch(prefetch => 1);
     my $rec1 = @prefetches ? { record_single => [@prefetches] } : 'record_single';
     # Add joins for sorts, but only if they're not already a prefetch (otherwise ordering can be messed up).
     # We also add the join for record_later, so that we can take only the latest required record
@@ -921,7 +919,7 @@ sub order_by
         my $column = $self->layout->column($s->{id});
         $self->add_join($column, sort => 1)
             unless $column->internal;
-        my $s_table = $self->table_name($column, sort => 1, search => 1, %options);
+        my $s_table = $self->table_name($column, sort => 1, %options);
         $sort_count++;
         my $sort_name = "sort_".$sort_count;
         if ($column->link_parent)
@@ -929,7 +927,7 @@ sub order_by
             push @{$self->_plus_select}, {
                 concat => [
                     "$s_table.".$column->value_field,
-                    $self->table_name_linked($column->link_parent, sort => 1, search => 1, linked => 1, %options).".".$column->value_field,
+                    $self->table_name_linked($column->link_parent, sort => 1, linked => 1, %options).".".$column->value_field,
                 ],
                 -as    => $sort_name,
             };
