@@ -101,6 +101,19 @@ has has_value => (
     is => 'rw',
 );
 
+sub values
+{   my $self = shift;
+    my @values = ref $self->value eq 'ARRAY' ? @{$self->value} : ($self->value);
+    # If a normal array is used (not array ref) then TT does not iterate over
+    # the values properly if the only value is a "0"
+    [@values];
+}
+
+sub written_to
+{   my $self = shift;
+    defined $self->oldvalue;
+}
+
 # Whether this value is going to require approval. Used to know when to use the
 # oldvalue as the correct current value
 has is_awaiting_approval => (
@@ -109,10 +122,31 @@ has is_awaiting_approval => (
     default => 0,
 );
 
+sub ready_to_write { return 1 }
+
+has show_for_write => (
+    is      => 'rw',
+    lazy    => 1,
+    isa     => Bool,
+    clearer => 1,
+    builder => sub {
+        my $self = shift;
+        $self->ready_to_write && !$self->written_to;
+    },
+);
+
 sub html
 {   my $self = shift;
     encode_entities $self->as_string;
 }
+
+sub html_form
+{   my $self = shift;
+    $self->values;
+}
+
+# Overridden where applicable
+sub html_withlinks { $_[0]->html }
 
 sub clone
 {   my ($self, @extra) = @_;

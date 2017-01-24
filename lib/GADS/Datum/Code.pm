@@ -23,6 +23,7 @@ use GADS::Safe;
 use String::CamelCase qw(camelize); 
 use Log::Report;
 use Moo;
+use MooX::Types::MooseLike::Base qw/:all/;
 use namespace::clean;
 
 extends 'GADS::Datum';
@@ -36,13 +37,8 @@ has set_value => (
 );
 
 has value => (
-    is       => 'rw',
-    lazy     => 1,
-    clearer  => 1,
-    builder  => sub {
-        my $self = shift;
-        $self->_transform_value($self->init_value);
-    },
+    is      => 'lazy',
+    clearer => 1,
 );
 
 has has_value => (
@@ -52,14 +48,6 @@ has has_value => (
 has layout => (
     is       => 'rw',
     required => 1,
-);
-
-has force_update => (
-    is      => 'rw',
-    trigger => sub {
-        my $self = shift;
-        $self->clear_value;
-    },
 );
 
 has schema => (
@@ -76,8 +64,29 @@ sub _build_vars
     $self->record->values_by_shortname($self->column->params);
 }
 
+around 'clone' => sub {
+    my $orig = shift;
+    my $self = shift;
+    $orig->($self,
+        has_value => $self->has_value,
+        layout    => $self->layout,
+        schema    => $self->schema
+    );
+};
+
+sub ready_to_write
+{   my $self = shift;
+    foreach my $col ($self->column->param_columns)
+    {
+        return 0 if !$self->record->fields->{$col->id}->written_to;
+    }
+    return 1;
+}
+
 sub write_cache
-{   my ($self, $table, $value) = @_;
+{   my ($self, $table) = @_;
+
+    my $value = $self->value;
 
     # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
     # an object) and may evaluate to an empty string. If so, txn_scope_guard
@@ -88,9 +97,6 @@ sub write_cache
     my $guard = $self->schema->txn_scope_guard;
 
     my $tablec = camelize $table;
-    # The cache tables have unqiue constraints to prevent
-    # duplicate cache values for the same records. Using an eval
-    # catches any attempts to write duplicate values.
     my $vfield = $self->column->value_field;
     my $row = $self->schema->resultset($tablec)->find({
         record_id => $self->record_id,
@@ -119,8 +125,15 @@ sub write_cache
     $value;
 }
 
-sub _transform_value
-{   my ($self, $original) = @_;
+sub re_evaluate
+{   my $self = shift;
+    $self->clear_init_value;
+    $self->clear_value;
+    my $v = $self->value; # Force new value to be calculated
+}
+
+sub _build_value
+{   my $self = shift;
 
     my $column = $self->column;
     my $layout = $self->layout;
@@ -128,9 +141,9 @@ sub _transform_value
 
     my $value;
 
-    if (ref $original && !$self->force_update)
+    if ($self->init_value)
     {
-        my $v  = $original->[0]->{$column->value_field};
+        my $v  = $self->init_value->[0]->{$column->value_field};
         $value = $column->return_type eq 'date'
                ? $self->_parse_date($v)
                : $v;
@@ -154,8 +167,6 @@ sub _transform_value
         }
 
         $value = $self->convert_value($value); # Convert value as required by calc/rag
-
-        $self->write_value($value);
     }
 
     $value;

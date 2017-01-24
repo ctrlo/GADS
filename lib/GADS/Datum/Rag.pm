@@ -58,7 +58,7 @@ sub convert_value
 
 sub write_value
 {   my $self = shift;
-    $self->write_cache('ragval', @_);
+    $self->write_cache('ragval');
 }
 
 # XXX Why is this needed? Error when creating new record otherwise

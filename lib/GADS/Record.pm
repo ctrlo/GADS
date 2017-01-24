@@ -51,6 +51,11 @@ use namespace::clean;
 has layout => (
     is       => 'rw',
     required => 1,
+    trigger  => sub {
+        # Pass in record to layout, used for filtered curvals
+        my ($self, $layout) = @_;
+        $layout->record($self);
+    },
 );
 
 has schema => (
@@ -312,10 +317,6 @@ sub _build_created
         $self->record->{created}
     );
 }
-
-has force_update => (
-    is => 'rw',
-);
 
 has is_historic => (
     is      => 'lazy',
@@ -607,9 +608,6 @@ sub _transform_values
 
         # FIXME XXX Don't collect file content in sql query
         delete $value->[0]->{value}->{content} if $column->type eq "file";
-        my $force_update = (
-            $self->force_update && grep { $_ == $column->id } @{$self->force_update}
-        ) ? 1 : 0;
         $fields->{$column->id} = $column->class->new(
             record           => $self,
             record_id        => $self->record_id,
@@ -620,7 +618,6 @@ sub _transform_values
             init_no_value    => $self->init_no_value,
             schema           => $self->schema,
             layout           => $self->layout,
-            force_update     => $force_update,
         );
     }
     $fields->{-1} = GADS::Datum::ID->new(
@@ -655,7 +652,6 @@ sub initialise
     my $fields;
     foreach my $column ($self->layout->all)
     {
-        next unless $column->userinput;
         $fields->{$column->id} = $self->initialise_field($column->id);
     }
     $self->fields($fields);
@@ -705,6 +701,33 @@ sub write_linked_id
     $current->update({ linked_id => $linked_id });
     $self->linked_id($linked_id);
     $guard->commit;
+}
+
+has _show_for_write_hash => (
+    is      => 'ro',
+    isa     => HashRef,
+    clearer => 1,
+    default => sub { +{} },
+);
+
+# Reset the show_for_write status for each of the record's fields (as recorded
+# during the previous write)
+sub show_for_write_restore
+{   my $self = shift;
+    $self->fields->{$_}->show_for_write($self->_show_for_write_hash->{$_})
+        foreach keys %{$self->fields};
+}
+
+sub show_for_write_save
+{   my $self = shift;
+    $self->_show_for_write_hash->{$_} = $self->fields->{$_}->show_for_write
+        foreach keys %{$self->fields};
+}
+
+sub show_for_write_clear
+{   my $self = shift; $self->_clear_show_for_write_hash;
+    $self->fields->{$_}->clear_show_for_write
+        foreach keys %{$self->fields};
 }
 
 # options (mostly used by onboard):
@@ -934,11 +957,10 @@ sub write
     # Write all the values
     my %columns_changed = ($self->current_id => []);
     my @columns_cached;
-    foreach my $column ($self->layout->all)
+    foreach my $column ($self->layout->all(order_dependencies => 1))
     {
-        next unless $column->userinput;
         my $datum = $self->fields->{$column->id};
-        if ($self->parent_id && !$datum->child_unique)
+        if ($self->parent_id && !$datum->child_unique && $column->userinput) # Calc values always unique
         {
             $datum = $self->parent->fields->{$column->id}->clone;
             $datum->current_id($self->current_id);
@@ -981,7 +1003,7 @@ sub write
                     # Write value. It's a new entry and the user doesn't have
                     # write access to this field. This will write a blank
                     # value.
-                    $self->_field_write($column);
+                    $self->_field_write($column, $datum) if !$column->userinput;
                 }
                 elsif ($column->user_can('write'))
                 {
@@ -1034,33 +1056,6 @@ sub write
         }
     }
 
-    # Write cached values.
-    foreach my $col ($self->layout->all(userinput => 0, order_dependencies => 1))
-    {
-        # Get old value
-        my $old = $self->fields->{$col->id};
-        # Force new value to be written
-        my $new = $col->class->new(
-            record           => $self,
-            current_id       => $self->current_id,
-            record_id        => $self->record_id,
-            column           => $col,
-            schema           => $self->schema,
-            layout           => $self->layout,
-        );
-        $self->fields->{$col->id} = $new;
-        # Changed? There may not always be an old. E.g. new record, new value
-        # in child record, new field added since previous record was created
-        if ($old && !$new->equal($old->value, $new->value))
-        {
-            push @{$columns_changed{$self->current_id}}, $col->id;
-        }
-        elsif (!$old)
-        {
-            $new->value; # Force value to be evaluated and written
-        }
-    }
-
     # Do we need to update any child records that rely on the
     # values of this parent record?
     foreach my $child_id (@{$self->child_record_ids})
@@ -1071,14 +1066,17 @@ sub write
             schema => $self->schema,
         );
         $child->find_current_id($child_id);
-        foreach my $col ($self->layout->all(userinput => 1))
+        foreach my $col ($self->layout->all(order_dependencies => 1))
         {
             my $datum_child = $child->fields->{$col->id};
-            my $datum_parent = $child->fields->{$col->id};
-            $datum_child->set_value($datum_parent->value)
-                unless $datum_child->child_unique;
+            if ($col->userinput)
+            {
+                my $datum_parent = $self->fields->{$col->id};
+                $datum_child->set_value($datum_parent->value)
+                    unless $datum_child->child_unique;
+            }
+            # Calc/rag values will be evaluated during write()
         }
-        $child->force_update(1); # Ensure all code values are updated
         $child->write(%options, update_only => 1);
     }
 
@@ -1223,6 +1221,11 @@ sub _field_write
             $self->schema->resultset($table)->create($_)
                 foreach @entries;
         }
+    }
+    else {
+        $datum->record_id($self->record_id);
+        $datum->re_evaluate;
+        $datum->write_value;
     }
 }
 

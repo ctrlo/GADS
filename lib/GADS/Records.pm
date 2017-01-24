@@ -86,11 +86,6 @@ has to => (
     is => 'rw',
 );
 
-# Whether to force recalculation of cached fields
-has force_update => (
-    is => 'rw',
-);
-
 has remembered_only => (
     is => 'rw',
 );
@@ -586,7 +581,6 @@ sub _build_results
             linked_id            => $rec->{linked_id},
             user                 => $self->user,
             layout               => $self->layout,
-            force_update         => $self->force_update,
             columns_retrieved_no => $self->columns_retrieved_no,
             columns_retrieved_do => $self->columns_retrieved_do,
             column_flags         => $column_flags,

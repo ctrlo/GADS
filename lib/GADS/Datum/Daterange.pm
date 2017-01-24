@@ -160,6 +160,15 @@ sub _as_string
     $range->start->format_cldr($format) . " to " . $range->end->format_cldr($format);
 }
 
+sub html_form
+{   my $self = shift;
+    my $format = $self->column->dateformat;
+    [
+        $self->value->start->format_cldr($format),
+        $self->value->end->format($format),
+    ];
+}
+
 sub for_code
 {   my $self = shift;
     return undef if $self->blank;

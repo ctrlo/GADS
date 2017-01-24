@@ -66,6 +66,13 @@ has name => (
     clearer => 1,
 );
 
+# Reference to the relevant record using this layout if applicable. Used for
+# filtered curvals
+has record => (
+    is       => 'rw',
+    weak_ref => 1,
+);
+
 has columns => (
     is      => 'rw',
     lazy    => 1,

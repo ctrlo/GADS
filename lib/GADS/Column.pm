@@ -428,7 +428,7 @@ sub parse_date
 {   my ($self, $value) = @_;
     return if ref $value; # Will cause CLDR parser to bork
     # Check whether it's a CURDATE first
-    my $dt = GADS::View->parse_date_filter($value);
+    my $dt = GADS::Filter->parse_date_filter($value);
     return $dt if $dt;
     my $cldr = DateTime::Format::CLDR->new(
         pattern => $self->dateformat,

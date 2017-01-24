@@ -191,6 +191,7 @@ sub __build_columns
     );
     $string1->type('string');
     $string1->name('string1');
+    $string1->name_short('string1');
     try { $string1->write };
     if ($@)
     {
@@ -257,6 +258,7 @@ sub __build_columns
     );
     $tree1->type('tree');
     $tree1->name('tree1');
+    $tree1->name_short('tree1');
     try { $tree1->write };
     my $tree_id = $tree1->id;
     if ($@)

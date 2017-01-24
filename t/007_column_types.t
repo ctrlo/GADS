@@ -15,9 +15,9 @@ use t::lib::DataSheet;
 
 my $data = [
     {
-        string1    => 'foo',
+        string1    => 'Foo',
         integer1   => '100',
-        enum1      => 7,
+        enum1      => [7, 8],
         tree1      => 10,
         date1      => '2010-10-10',
         daterange1 => ['2000-10-10', '2001-10-10'],
@@ -25,7 +25,7 @@ my $data = [
         file1      => undef, # Add random file
     },
     {
-        string1    => 'bar',
+        string1    => 'Bar',
         integer1   => '200',
         enum1      => 8,
         tree1      => 11,
@@ -36,12 +36,30 @@ my $data = [
     },
 ];
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+my $data2 = [
+    {
+        string1    => 'Foo',
+        integer1   => 50,
+        date1      => '2014-10-10',
+        daterange1 => ['2012-02-10', '2013-06-15'],
+        enum1      => 1,
+    },
+    {
+        string1    => 'Bar',
+        integer1   => 99,
+        date1      => '2009-01-02',
+        daterange1 => ['2008-05-04', '2008-07-14'],
+        enum1      => 2,
+    },
+];
+
+my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, data => $data2);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
 my $sheet   = t::lib::DataSheet->new(
     data             => $data,
     schema           => $schema,
+    multivalue       => 1,
     curval           => 2,
     curval_field_ids => [ $curval_sheet->columns->{string1}->id ],
 );
@@ -123,6 +141,52 @@ $curval_filter->write;
 # dependencies properly in the next test
 $layout->clear;
 is( scalar @{$curval_filter->values}, 1, "Correct number of values for curval field with filter" );
+
+# Check that we can filter on a value in the record
+foreach my $test (qw/match nomatch invalid/)
+{
+    foreach my $field (qw/string1 enum1/)
+    {
+        my $value = $test eq 'match'
+            ? "\$$field"
+            : $test eq 'nomatch'
+            ? '$tree1'
+            : '$string123';
+
+        $curval_filter = GADS::Column::Curval->new(
+            schema             => $schema,
+            user               => undef,
+            layout             => $layout,
+            name               => 'curval filter',
+            type               => 'curval',
+            filter             => GADS::Filter->new(
+                as_hash => {
+                    rules => [{
+                        id       => $curval_sheet->columns->{$field}->id,
+                        type     => 'string',
+                        value    => $value,
+                        operator => 'equal',
+                    }],
+                },
+            ),
+            refers_to_instance => $curval_sheet->layout->instance_id,
+            curval_field_ids   => [],
+        );
+        $curval_filter->write;
+
+        # Clear the layout to force the column to be build, and also to build
+        # dependencies properly in the next test
+        $layout->clear;
+        my $record = GADS::Record->new(
+            user   => undef,
+            layout => $layout,
+            schema => $schema,
+        );
+        $record->find_current_id(3);
+        my $count = $test eq 'match' && $field eq 'enum1' ? 2 : $test eq 'match' ? 1 : 0;
+        is( scalar @{$curval_filter->values}, $count, "Correct number of values for curval field with filter" );
+    }
+}
 
 # Now check that we're not building all curval values when we're just
 # retrieving individual records

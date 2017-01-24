@@ -93,6 +93,15 @@ sub _build__record
     );
 }
 
+sub ready_to_write
+{   my $self = shift;
+    foreach my $col (@{$self->column->filter->columns_in_subs($self->column->layout)})
+    {
+        return 0 if !$self->record->fields->{$col->id}->ready_to_write;
+    }
+    return 1;
+}
+
 has text => (
     is        => 'rwp',
     isa       => Str,

@@ -176,6 +176,10 @@ sub _build_view
         schema      => $self->schema,
         user        => undef,
     );
+    # Replace any "special" $short_name values with their actual value from the
+    # record
+    $view->filter->sub_values($self->layout->record);
+    return $view;
 }
 
 has values => (

@@ -42,7 +42,7 @@ has set_value => (
                 push @text, $self->column->enumval($_)->{value};
             }
             $self->clear_text;
-            $self->_text(\@text);
+            $self->text_all(\@text);
         }
         $self->changed($changed);
         $self->oldvalue($clone);
@@ -56,12 +56,12 @@ has text => (
     clearer => 1,
     builder => sub {
         my $self = shift;
-        join ', ', @{$self->_text};
+        join ', ', @{$self->text_all};
     },
 );
 
 # Internal text, array ref of all individual text values
-has _text => (
+has text_all => (
     is      => 'rw',
     isa     => ArrayRef,
     lazy    => 1,
@@ -151,7 +151,7 @@ sub for_code
     return $self->as_string
         unless $self->column->multivalue;
     my %values;
-    @values{@{$self->id}} = @{$self->_text};
+    @values{@{$self->id}} = @{$self->text_all};
     +{
         text   => $self->as_string,
         values => \%values,

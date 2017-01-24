@@ -249,6 +249,17 @@
     [% field = 'field' _ dispcol.id %]
     [% colid = dispcol.id %]
 
+    [%# Skip if field has a filter (which will alter its values) and the dependent values have not yet been completed %]
+
+    [%# If field's value has already been written to, do not display field by add as hidden value instead %]
+    [% IF record.fields.$colid.written_to AND NOT record.fields.$colid.show_for_write %]
+        [% FOREACH val IN record.fields.$colid.html_form %]
+            <input type="hidden" name="[% field %]" value="[% val %]">
+        [% END %]
+    [% END %]
+
+    [% NEXT UNLESS record.fields.$colid.show_for_write %]
+
     [%# Skip field if it's an approval request but a value not needing approval %]
     [% NEXT IF page == "approval" AND NOT (record.fields.$colid.has_value)  %]
     [%# Skip if it's a child record and the value doesn't exist %]

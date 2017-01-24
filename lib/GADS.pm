@@ -1818,10 +1818,11 @@ any '/edit/:id?' => require_login sub {
         ? $layout->all(user_can_readwrite_existing => 1)
         : $layout->all(user_can_write_new => 1);
 
+    $record->initialise unless $id;
 
     if (param 'submit')
     {
-        $record->initialise unless $id;
+        $record->show_for_write_save;
         my $params = params;
         my $uploads = request->uploads;
         foreach my $key (keys %$uploads)
@@ -1850,6 +1851,7 @@ any '/edit/:id?' => require_login sub {
         # just silently ignoring them, IMHO.
         foreach my $col (@columns_to_show)
         {
+            next unless defined body_parameters->get($col->field);
             my $newv = [body_parameters->get_all($col->field)];
             if ($col->userinput && defined $newv) # Not calculated fields
             {
@@ -1877,10 +1879,26 @@ any '/edit/:id?' => require_login sub {
             }
         }
 
-        if (!$failed && process( sub { $record->write }))
+        my @not_done = grep {
+            $_->userinput && !$record->fields->{$_->id}->written_to
+        } @columns_to_show;
+        if (@not_done)
+        {
+            if (process( sub { $record->write(dry_run => 1) } ))
+            {
+                $record->show_for_write_clear;
+            }
+            else {
+                $record->show_for_write_restore;
+            }
+        }
+        elsif (!$failed && process( sub { $record->write }))
         {
             return forwardHome(
                 { success => 'Submission has been completed successfully for record ID '.$record->current_id }, 'data' );
+        }
+        else {
+            $record->show_for_write_restore;
         }
     }
     elsif($id) {
@@ -1894,14 +1912,19 @@ any '/edit/:id?' => require_login sub {
     }
     elsif($lastrecord)
     {
-        my $previous = $lastrecord->record_id;
+        my $previous = GADS::Record->new(
+            user   => $record->user,
+            layout => $record->layout,
+            schema => $record->schema,
+        );
         # Prefill previous values, but only those tagged to be remembered
         my @remember = map {$_->id} $layout->all(remember => 1);
-        $record->columns(\@remember);
-        $record->include_approval(1);
-        $record->init_no_value(0);
-        $record->find_record_id($previous);
-        $record->columns_retrieved_no(\@columns_to_show); # Force all columns to be shown
+        $previous->columns(\@remember);
+        $previous->include_approval(1);
+        $previous->init_no_value(0);
+        $previous->find_record_id($lastrecord->record_id);
+        $record->{fields}->{$_->id} = $previous->{fields}->{$_->id}
+            foreach @{$previous->columns_retrieved_do};
         if ($record->approval_flag)
         {
             # The last edited record was one for approval. This will

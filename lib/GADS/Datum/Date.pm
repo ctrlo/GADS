@@ -109,6 +109,11 @@ sub as_integer
     $self->value->epoch;
 }
 
+sub html_form
+{   my $self = shift;
+    [$self->as_string];
+}
+
 sub for_code
 {   my $self = shift;
     $self->_date_for_code($self->value);

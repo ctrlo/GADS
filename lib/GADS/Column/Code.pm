@@ -85,6 +85,16 @@ sub params
     $self->_params_from_code($self->code);
 }
 
+sub param_columns
+{   my ($self, %options) = @_;
+    grep {
+        $_
+    } map {
+        $self->layout->column_by_name_short($_)
+            or $options{is_fatal} && error __x"Unknown short column name \"{name}\" in calculation", name => $_;
+    } $self->params;
+}
+
 sub update_cached
 {   my ($self, %options) = @_;
 
@@ -109,15 +119,16 @@ sub update_cached
         user         => $self->user,
         layout       => $layout,
         schema       => $self->schema,
-        force_update => [ $self->id ],
         columns      => [@{$self->depends_on},$self->id],
     );
 
     my @changed;
     while (my $record = $records->single)
     {
-        $record->fields->{$self->id}->value;
-        push @changed, $record->current_id if $record->fields->{$self->id}->changed;
+        my $datum = $record->fields->{$self->id};
+        $datum->re_evaluate;
+        $datum->write_value;
+        push @changed, $record->current_id if $datum->changed;
     }
 
     $guard->commit;
@@ -187,16 +198,8 @@ sub eval
     {
         $no_alerts = 1 if $new; # Don't send alerts for new values
 
-        my %depends_on; # Stop duplicates
-
-        foreach my $var ($self->params)
-        {
-            my $col = $self->layout->column_by_name_short($var)
-                or error __x"Unknown short column name \"{name}\" in calculation", name => $var;
-            $depends_on{$col->id} = 1
-                unless $col->internal;
-        }
-
+        # Stop duplicates
+        my %depends_on = map { $_->id => 1 } grep { !$_->internal } $self->param_columns(is_fatal => 1);
         my @depends_on = keys %depends_on;
 
         $self->depends_on(\@depends_on);

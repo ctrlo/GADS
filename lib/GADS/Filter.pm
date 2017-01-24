@@ -20,6 +20,7 @@ package GADS::Filter;
 
 use Data::Compare qw/Compare/;
 use JSON qw(decode_json encode_json);
+use Log::Report;
 use MIME::Base64;
 
 use Moo;
@@ -141,10 +142,11 @@ sub _filter_tables
     }
 }
 
+# The IDs of the columns that will be subbed into the filter
 sub columns_in_subs
 {   my ($self, $layout) = @_;
     my @filters = grep { $_ } map { $_->{value} =~ /^\$([_0-9a-z]+)$/i; $1 } @{$self->filters};
-    [ grep { $_->userinput } map { $layout->column_by_name_short($_) } @filters ];
+    [ map { $layout->column_by_name_short($_) } @filters ];
 }
 
 # Sub into the filter values from a record
@@ -164,7 +166,7 @@ sub _sub_filter_single
         $self->_sub_filter_single($_, $record)
             foreach @{$single->{rules}};
     }
-    elsif ($single->{value} =~ /^\$([_0-9a-z]+)$/i)
+    elsif ($single->{value} && $single->{value} =~ /^\$([_0-9a-z]+)$/i)
     {
         my $col = $record->layout->column_by_name_short($1)
             or return;
@@ -193,6 +195,7 @@ sub _sub_filter_single
             }
         }
         else {
+            $datum->re_evaluate if !$col->userinput;
             $single->{value} = $datum->as_string;
         }
     }

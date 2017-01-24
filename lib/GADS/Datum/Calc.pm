@@ -100,7 +100,7 @@ sub convert_value
 
 sub write_value
 {   my $self = shift;
-    $self->write_cache('calcval', @_);
+    $self->write_cache('calcval');
 }
 
 # Compare 2 calc values. Could be from database or calculation

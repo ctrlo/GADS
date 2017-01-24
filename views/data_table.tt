@@ -67,7 +67,7 @@
                         [% value %]
                         ">
                     </div>
-                [% ELSIF column.type == "string" OR column.type == "curval" %]
+                [% ELSIF column.type == "string" OR column.type == "curval" OR column.multivalue %]
                     [% IF value.as_string.length > 50 %]
                         <div class="more-less">
                             <div class="more-block">
