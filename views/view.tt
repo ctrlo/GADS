@@ -134,7 +134,7 @@
             });
         }); 
         [% INCLUDE builder.tt filter_normal = v.filter filter_base64 = v.filter.base64 %]
-        [% IF v.filter AND NOT v.filter.match('^[{}\s]*$') %]
+        [% IF v.filter.as_json AND NOT v.filter.as_json.match('^[{}\s]*$') %]
             var data = decodeBase64('[% v.filter.base64 %]');
             $('#builder').queryBuilder('setRules',
                 JSON.parse(data)
