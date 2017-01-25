@@ -48,7 +48,7 @@ sub _add_jp
             || $toadd eq $j->{join}
         )
         {
-            $j->{prefetch} ||= $options{prefetch};
+            $j->{prefetch} ||= !$column->multivalue && $options{prefetch};
             $j->{search}   ||= $options{search};
             $j->{linked}   ||= $options{linked};
             $j->{sort}     ||= $options{sort};
