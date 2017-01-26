@@ -177,8 +177,9 @@ sub _build_view
         user        => undef,
     );
     # Replace any "special" $short_name values with their actual value from the
-    # record
-    $view->filter->sub_values($self->layout->record);
+    # record. If sub_values fails (due to record not being ready yet), then the
+    # view is not built
+    return unless $view->filter->sub_values($self->layout->record);
     return $view;
 }
 
@@ -197,6 +198,9 @@ sub _records_from_db
     # Not the normal request layout
     my $layout = $self->layout_parent
         or return; # No layout or fields set
+
+    my $view = $self->view
+        or return; # record not ready yet for sub_values
 
     my $current_ids = $id && [$id];
     my $records = GADS::Records->new(
@@ -376,6 +380,7 @@ sub _build_layout_parent
 
 sub values_beginning_with
 {   my ($self, $match) = @_;
+    $self->view or return; # Record not ready yet in sub_values
     # First create a view to search for this value in the column.
     my @rules = map {
         +{

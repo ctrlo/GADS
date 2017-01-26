@@ -154,24 +154,30 @@ sub columns_in_subs
 sub sub_values
 {   my ($self, $record) = @_;
     my $filter = $self->as_hash;
-    $self->_sub_filter_single($_, $record)
-        foreach @{$filter->{rules}};
+    foreach (@{$filter->{rules}})
+    {
+        return 0 unless $self->_sub_filter_single($_, $record);
+    }
     $self->as_hash($filter);
-    return;
+    return 1;
 }
 
 sub _sub_filter_single
 {   my ($self, $single, $record) = @_;
     if ($single->{rules})
     {
-        $self->_sub_filter_single($_, $record)
-            foreach @{$single->{rules}};
+        foreach (@{$single->{rules}})
+        {
+            return 0 unless $self->_sub_filter_single($_, $record);
+        }
     }
     elsif ($single->{value} && $single->{value} =~ /^\$([_0-9a-z]+)$/i)
     {
         my $col = $record->layout->column_by_name_short($1)
-            or return;
+            or return 1; # Not a failure, just no match
         my $datum = $record->fields->{$col->id};
+        $datum->written_to
+            or return 0; # Failure: record not ready yet
         # First check for multivalue. If it is, we replace the singular rule
         # in this hash with a rule for each value and OR them all together
         if ($col->multivalue)
@@ -200,6 +206,7 @@ sub _sub_filter_single
             $single->{value} = $datum->as_string;
         }
     }
+    return 1;
 }
 
 sub filter_types

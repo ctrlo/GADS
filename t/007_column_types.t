@@ -191,7 +191,7 @@ foreach my $test (qw/match nomatch invalid/)
                 },
             ),
             refers_to_instance => $curval_sheet->layout->instance_id,
-            curval_field_ids   => [],
+            curval_field_ids   => [ $curval_sheet->columns->{string1}->id ],
         );
         $curval_filter->write;
 
@@ -204,8 +204,23 @@ foreach my $test (qw/match nomatch invalid/)
             schema => $schema,
         );
         $record->find_current_id(3);
+
+        # Hack to make it look like the dependent datums for the curval filter have been written to
+        my $datum = $record->fields->{$layout->column_by_name_short($field)->id};
+        $datum->oldvalue($datum->clone);
         my $count = $test eq 'match' && $field eq 'enum1' ? 2 : $test eq 'match' ? 1 : 0;
-        is( scalar @{$curval_filter->values}, $count, "Correct number of values for curval field with filter" );
+        is( scalar @{$curval_filter->values}, $count, "Correct number of values for curval field with $field filter, test $test" );
+
+        # Check that we can create a new record with the filtered curval field in
+        $layout->clear;
+        $record = GADS::Record->new(
+            user     => undef,
+            layout   => $layout,
+            schema   => $schema,
+        );
+        $record->initialise;
+        is( scalar @{$layout->column($curval_filter->id)->values}, 0, "Correct number of values for curval field with filter" );
+        $curval_filter->delete;
     }
 }
 
