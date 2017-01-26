@@ -54,6 +54,8 @@ my $other;
 isnt( $parent->fields->{$daterange1_id}->as_string, $child->fields->{$daterange1_id}->as_string, "Parent and child date ranges are different");
 my $calc1_id = $columns->{calc1}->id;
 isnt( $parent->fields->{$calc1_id}->as_string, $child->fields->{$calc1_id}->as_string, "Parent and child calc values are different");
+is( $parent->fields->{$calc1_id}->as_string, 2012, "Parent calc value is correct after first write");
+is( $child->fields->{$calc1_id}->as_string, 2011, "Child calc value is correct after first write");
 my $string1_id = $columns->{string1}->id;
 is( $parent->fields->{$string1_id}->as_string, $child->fields->{$string1_id}->as_string, "Parent and child strings are the same");
 my $rag1_id = $columns->{rag1}->id;
@@ -68,6 +70,8 @@ $parent->write(no_alerts => 1);
 ($parent, $other, $child) = _records($schema, $layout, 3);
 isnt( $parent->fields->{$daterange1_id}->as_string, $child->fields->{$daterange1_id}->as_string, "Parent and child date ranges are different");
 isnt( $parent->fields->{$calc1_id}->as_string, $child->fields->{$calc1_id}->as_string, "Parent and child calc values are different");
+is( $parent->fields->{$calc1_id}->as_string, 2000, "Parent calc value is correct after second write");
+is( $child->fields->{$calc1_id}->as_string, 2011, "Child calc value is correct after second write");
 is( $parent->fields->{$string1_id}->as_string, $child->fields->{$string1_id}->as_string, "Parent and child strings are the same");
 is( $child->fields->{$rag1_id}->as_string, 'b_red', "Child rag is red"); # Same as parent even though DR different
 
@@ -79,8 +83,25 @@ $child->write(no_alerts => 1);
 
 ($parent, $other, $child) = _records($schema, $layout, 3);
 is( $parent->fields->{$daterange1_id}->as_string, $child->fields->{$daterange1_id}->as_string, "Parent and child date ranges are the same");
-is( $parent->fields->{$calc1_id}->as_string, $child->fields->{$calc1_id}->as_string, "Parent and child calc values are the same");
+is( $parent->fields->{$calc1_id}->as_string, 2000, "Parent calc value is correct after writing new daterange to parent after child unique change");
+is( $child->fields->{$calc1_id}->as_string, 2000, "Child calc value is correct after removing daterange as unique");
 isnt( $parent->fields->{$string1_id}->as_string, $child->fields->{$string1_id}->as_string, "Parent and child strings are different");
 is( $parent->fields->{$rag1_id}->as_string, $child->fields->{$rag1_id}->as_string, "Parent and child rags are the same");
+
+# Set new daterange value in parent, check it propagates to child calc
+$parent->fields->{$daterange1_id}->set_value(['2005-01-01', '2006-02-02']);
+$parent->write(no_alerts => 1);
+($parent, $other, $child) = _records($schema, $layout, 3);
+is( $parent->fields->{$calc1_id}->as_string, 2005, "Parent calc value is correct after writing new daterange to parent");
+is( $child->fields->{$calc1_id}->as_string, 2005, "Child calc value is correct after writing new daterange to parent");
+ok( $parent->fields->{$calc1_id}->changed, "Parent calc value is markged changed after writing new daterange to parent");
+ok( $child->fields->{$calc1_id}->changed, "Child calc value is marked changed after writing new daterange to parent");
+
+# Set new daterange value in parent but one that doesn't affect calc value
+$parent->fields->{$daterange1_id}->set_value(['2005-02-01', '2006-03-02']);
+$parent->write(no_alerts => 1);
+($parent, $other, $child) = _records($schema, $layout, 3);
+ok( $parent->fields->{$calc1_id}->changed, "Parent calc value is not marked changed when writing new daterange to parent");
+ok( $child->fields->{$calc1_id}->changed, "Child calc value is not marked changed when writing new daterange to parent");
 
 done_testing();
