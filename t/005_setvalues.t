@@ -140,85 +140,101 @@ foreach my $multivalue (0..1)
     {
         my $col = $sheet->columns->{$type};
         is( $record_new->fields->{$col->id}->as_string, '', 'New record $type is empty string' );
-        is( $record_new->fields->{$col->id}->value, undef, 'Value of new record $type is undef' );
+        if ($col->multivalue)
+        {
+            is_deeply( $record_new->fields->{$col->id}->value, [], 'Multivalue of new record $type is empty array' );
+        }
+        else {
+            is( $record_new->fields->{$col->id}->value, undef, 'Value of new record $type is undef' );
+        }
         # Check that id_hash can be generated correctly
         is( ref $record_new->fields->{$col->id}->id_hash, 'HASH', '$type has id_hash' )
             if $record_new->fields->{$col->id}->can('id_hash');
     }
 }
 
-for my $test ('blank', 'nochange', 'changed')
+foreach my $multivalue (0..1)
 {
-    # Values can be set as both array ref and scalar. Test both.
-    foreach my $arrayref (0..1)
+    for my $test ('blank', 'nochange', 'changed')
     {
-        my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
-        $curval_sheet->create_records;
-        my $schema  = $curval_sheet->schema;
-        my $sheet   = t::lib::DataSheet->new(data => $data->{$test}, schema => $schema, curval => 2);
-        my $layout  = $sheet->layout;
-        my $columns = $sheet->columns;
-        $sheet->create_records;
-
-        my $records = GADS::Records->new(
-            user    => undef,
-            layout  => $layout,
-            schema  => $schema,
-        );
-        my $results = $records->results;
-
-        is( scalar @$results, 1, "One record in test dataset");
-
-        my ($record) = @$results;
-
-        foreach my $type (keys %$values)
+        # Values can be set as both array ref and scalar. Test both.
+        foreach my $arrayref (0..1)
         {
-            next if $arrayref && $type eq 'daterange1';
-            my $datum = $record->fields->{$columns->{$type}->id};
-            if ($test eq 'blank')
+            my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+            $curval_sheet->create_records;
+            my $schema  = $curval_sheet->schema;
+            my $sheet   = t::lib::DataSheet->new(
+                data       => $data->{$test},
+                multivalue => $multivalue,
+                schema     => $schema,
+                curval     => 2
+            );
+            my $layout  = $sheet->layout;
+            my $columns = $sheet->columns;
+            $sheet->create_records;
+
+            my $records = GADS::Records->new(
+                user    => undef,
+                layout  => $layout,
+                schema  => $schema,
+            );
+            my $results = $records->results;
+
+            my $is_multi = $multivalue ? " for multivalue" : '';
+
+            is( scalar @$results, 1, "One record in test dataset$is_multi");
+
+            my ($record) = @$results;
+
+            foreach my $type (keys %$values)
             {
-                ok( $datum->blank, "$type is blank" );
-            }
-            else {
-                ok( !$datum->blank, "$type is not blank" );
-            }
-            if ($arrayref)
-            {
-                $datum->set_value([$values->{$type}->{new}])
-            }
-            else {
-                $datum->set_value($values->{$type}->{new});
-            }
-            if ($test eq 'blank' || $test eq 'changed')
-            {
-                ok( $datum->changed, "$type has changed" );
-            }
-            else {
-                ok( !$datum->changed, "$type has not changed" );
-            }
-            if ($test eq 'changed' || $test eq 'nochange')
-            {
-                ok( $datum->oldvalue, "$type oldvalue exists" );
-                my $old = $test eq 'changed' ? $values->{$type}->{old_as_string} : $values->{$type}->{new_as_string};
-                is( $datum->oldvalue && $datum->oldvalue->as_string, $old, "$type oldvalue exists and matches for test $test" );
-            }
-            elsif ($test eq 'blank')
-            {
-                ok( $datum->oldvalue && $datum->oldvalue->blank, "$type was blank" );
-            }
-            my $new_as_string = $values->{$type}->{new_as_string};
-            is( $datum->as_string, $new_as_string, "$type is $new_as_string" );
-            # Check that setting a blank value works
-            if ($test eq 'blank')
-            {
-                if ($arrayref)
+                next if $arrayref && $type eq 'daterange1';
+                my $datum = $record->fields->{$columns->{$type}->id};
+                if ($test eq 'blank')
                 {
-                    $datum->set_value([$data->{blank}->[0]->{$type}]);
+                    ok( $datum->blank, "$type is blank$is_multi" );
                 }
                 else {
-                    $datum->set_value($data->{blank}->[0]->{$type});
+                    ok( !$datum->blank, "$type is not blank$is_multi" );
                 }
-                ok( $datum->blank, "$type has been set to blank" );
+                if ($arrayref)
+                {
+                    $datum->set_value([$values->{$type}->{new}])
+                }
+                else {
+                    $datum->set_value($values->{$type}->{new});
+                }
+                if ($test eq 'blank' || $test eq 'changed')
+                {
+                    ok( $datum->changed, "$type has changed$is_multi" );
+                }
+                else {
+                    ok( !$datum->changed, "$type has not changed$is_multi" );
+                }
+                if ($test eq 'changed' || $test eq 'nochange')
+                {
+                    ok( $datum->oldvalue, "$type oldvalue exists$is_multi" );
+                    my $old = $test eq 'changed' ? $values->{$type}->{old_as_string} : $values->{$type}->{new_as_string};
+                    is( $datum->oldvalue && $datum->oldvalue->as_string, $old, "$type oldvalue exists and matches for test $test$is_multi" );
+                }
+                elsif ($test eq 'blank')
+                {
+                    ok( $datum->oldvalue && $datum->oldvalue->blank, "$type was blank$is_multi" );
+                }
+                my $new_as_string = $values->{$type}->{new_as_string};
+                is( $datum->as_string, $new_as_string, "$type is $new_as_string$is_multi" );
+                # Check that setting a blank value works
+                if ($test eq 'blank')
+                {
+                    if ($arrayref)
+                    {
+                        $datum->set_value([$data->{blank}->[0]->{$type}]);
+                    }
+                    else {
+                        $datum->set_value($data->{blank}->[0]->{$type});
+                    }
+                    ok( $datum->blank, "$type has been set to blank$is_multi" );
+                }
             }
         }
     }

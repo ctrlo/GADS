@@ -78,7 +78,7 @@ has blank => (
 );
 
 sub _build_blank {
-    $_[0]->value ? 0 : 1;
+    (grep { $_ } @{$_[0]->values}) ? 0 : 1;
 }
 
 # Used to seed the value from the database

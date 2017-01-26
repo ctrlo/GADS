@@ -78,14 +78,25 @@ has id => (
         ref $value ne 'ARRAY' && $value =~ /^[0-9]+/ and return;
         my @values = @$value;
         my @remain = grep {
-            defined $_ && $_ !~ /^[0-9]+$/;
+            !defined $_ || $_ !~ /^[0-9]+$/;
         } @values and panic "Invalid value for ID";
     },
     lazy    => 1,
-    trigger => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
+    trigger => sub {
+        my ($self, $new) = @_;
+        if ($self->column->multivalue)
+        {
+            $self->blank(@$new == 0 ? 1 : 0);
+        }
+        else {
+            $self->blank(defined $new ? 0 : 1);
+        }
+    },
     builder => sub {
         my $self = shift;
-        $self->column->multivalue ? $self->value_hash->{ids} : $self->value_hash->{ids}->[0];
+        $self->column->multivalue
+            ? [ grep { defined $_ } @{$self->value_hash->{ids}} ]
+            : $self->value_hash->{ids}->[0];
     },
 );
 
