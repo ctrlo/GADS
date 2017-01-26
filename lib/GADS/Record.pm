@@ -725,7 +725,8 @@ sub show_for_write_save
 }
 
 sub show_for_write_clear
-{   my $self = shift; $self->_clear_show_for_write_hash;
+{   my $self = shift;
+    $self->_clear_show_for_write_hash;
     $self->fields->{$_}->clear_show_for_write
         foreach keys %{$self->fields};
 }

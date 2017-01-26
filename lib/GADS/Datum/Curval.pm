@@ -97,7 +97,7 @@ sub ready_to_write
 {   my $self = shift;
     foreach my $col (@{$self->column->filter->columns_in_subs($self->column->layout)})
     {
-        return 0 if !$self->record->fields->{$col->id}->ready_to_write;
+        return 0 if !$self->record->fields->{$col->id}->written_to;
     }
     return 1;
 }

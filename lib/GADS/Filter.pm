@@ -147,7 +147,7 @@ sub _filter_tables
 sub columns_in_subs
 {   my ($self, $layout) = @_;
     my @filters = grep { $_ } map { $_->{value} =~ /^\$([_0-9a-z]+)$/i; $1 } @{$self->filters};
-    [ map { $layout->column_by_name_short($_) } @filters ];
+    [ grep { $_ } map { $layout->column_by_name_short($_) } @filters ];
 }
 
 # Sub into the filter values from a record

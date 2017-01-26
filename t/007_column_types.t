@@ -206,20 +206,44 @@ foreach my $test (qw/match nomatch invalid/)
         $record->find_current_id(3);
 
         # Hack to make it look like the dependent datums for the curval filter have been written to
-        my $datum = $record->fields->{$layout->column_by_name_short($field)->id};
+        my $datum = $record->fields->{$columns->{$field}->id};
         $datum->oldvalue($datum->clone);
         my $count = $test eq 'match' && $field eq 'enum1' ? 2 : $test eq 'match' ? 1 : 0;
         is( scalar @{$curval_filter->values}, $count, "Correct number of values for curval field with $field filter, test $test" );
 
         # Check that we can create a new record with the filtered curval field in
         $layout->clear;
-        $record = GADS::Record->new(
+        my $record_new = GADS::Record->new(
             user     => undef,
             layout   => $layout,
             schema   => $schema,
         );
-        $record->initialise;
+        $record_new->initialise;
         is( scalar @{$layout->column($curval_filter->id)->values}, 0, "Correct number of values for curval field with filter" );
+        if ($test eq 'invalid')
+        {
+            # Will be ready already - no proper dependent values
+            ok( $record_new->fields->{$curval_filter->id}->ready_to_write, "Curval field $field with invalid record filter already ready to write" );
+            ok( $record_new->fields->{$curval_filter->id}->show_for_write, "Curval field $field with invalid record filter is shown for write" );
+        }
+        else {
+            ok( !$record_new->fields->{$curval_filter->id}->ready_to_write, "Curval field $field with record filter not yet ready to write, test $test" );
+            ok( !$record_new->fields->{$curval_filter->id}->show_for_write, "Curval field $field with record filter not yet shown for write, test $test" );
+        }
+        ok( $record_new->fields->{$columns->{$field}->id}->ready_to_write, "Field $field is ready to write, test $test" );
+        ok( $record_new->fields->{$columns->{$field}->id}->show_for_write, "Field $field is shown for write, test $test" );
+        # Write the required value and then check that it is no ready
+        # Use the values from previous retrieved record - we know these are valid
+        foreach my $f (qw/enum1 string1 tree1/)
+        {
+            my $col_id = $columns->{$f}->id;
+            $record_new->fields->{$col_id}->set_value($record->fields->{$col_id}->value);
+        }
+        $record_new->show_for_write_clear;
+        ok( $record_new->fields->{$curval_filter->id}->ready_to_write, "Curval field $field with record filter is now ready to write, test $test" );
+        ok( $record_new->fields->{$curval_filter->id}->show_for_write, "Curval field $field with record filter is now shown for write, test $test" );
+        ok( $record_new->fields->{$columns->{$field}->id}->ready_to_write, "Field $field is still ready to write, test $test" );
+        ok( !$record_new->fields->{$columns->{$field}->id}->show_for_write, "Field $field is not shown for write, test $test" );
         $curval_filter->delete;
     }
 }
