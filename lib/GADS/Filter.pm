@@ -35,7 +35,8 @@ has as_json => (
     clearer => 1,
     coerce  => sub {
         # Ensure consistent format
-        encode_json(decode_json($_[0]));
+        my $json = shift || '{}';
+        encode_json(decode_json($json));
     },
     builder => sub {
         my $self = shift;

@@ -116,6 +116,27 @@ $layout->clear;
 try { $layout->column($curval_blank->id)->values };
 ok( !$@, "Building values for curval with no fields does not bork" );
 
+# Check that an undefined filter does not cause an exception.  Normally a blank
+# filter would be written as an empty JSON string, but that may not be there
+# for columns from old versions
+my $curval_blank_filter = GADS::Column::Curval->new(
+    schema             => $schema,
+    user               => undef,
+    layout             => $layout,
+    name               => 'curval blank',
+    type               => 'curval',
+    refers_to_instance => $curval_sheet->layout->instance_id,
+    curval_field_ids   => [],
+);
+$curval_blank_filter->write;
+# Clear the layout to force the column to be build
+$layout->clear;
+# Manually blank the filters
+$schema->resultset('Layout')->update({ filter => undef });
+# Now force the values to be built. This should not bork
+try { $layout->column($curval_blank_filter->id)->values };
+ok( !$@, "Undefined filter does not cause exception during layout build" );
+
 # Filter on curval tests
 my $curval_filter = GADS::Column::Curval->new(
     schema             => $schema,
