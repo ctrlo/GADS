@@ -188,7 +188,7 @@ sub eval
 
     my ($self, %options) = @_;
 
-    my $new = !$self->id;
+    my $new = !$self->id || !$self->_rset_code->code;
 
     $orig->(@_); # Standard column write first
 

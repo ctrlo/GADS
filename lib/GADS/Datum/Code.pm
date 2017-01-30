@@ -127,9 +127,11 @@ sub write_cache
 
 sub re_evaluate
 {   my $self = shift;
+    my $old = $self->value;
     $self->clear_init_value;
     $self->clear_value;
-    my $v = $self->value; # Force new value to be calculated
+    my $new = $self->value; # Force new value to be calculated
+    $self->changed(1) if ($old xor $new) || !$self->equal($old, $new);
 }
 
 sub _build_value

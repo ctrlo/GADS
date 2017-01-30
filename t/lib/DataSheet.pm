@@ -49,6 +49,12 @@ has layout => (
     is => 'lazy',
 );
 
+has no_users => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
 has no_groups => (
     is      => 'ro',
     isa     => Bool,
@@ -471,6 +477,22 @@ sub create_records
         schema   => $self->schema,
         base_url => undef,
     );
+
+    unless ($self->no_users)
+    {
+        $self->schema->resultset('User')->find_or_create({ # May already be created for schema
+            id        => 1,
+            username  => 'user1@example.com',
+            email     => 'user1@example.com',
+            firstname => 'User1',
+            surname   => 'User1',
+            value     => 'User1, User1',
+        });
+        $self->schema->resultset('UserGroup')->find_or_create({ # May already be created for schema
+            user_id  => 1,
+            group_id => $self->group->id,
+        });
+    }
 
     foreach my $datum (@{$self->data})
     {

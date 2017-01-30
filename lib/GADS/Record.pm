@@ -995,10 +995,10 @@ sub write
                     || (!$self->new_entry && $column->user_can('write_existing_no_approval'))
                 )
                 {
-                    push @{$columns_changed{$self->current_id}}, $column->id if $datum->changed;
-
                     # Write new value
                     $self->_field_write($column, $datum, %options);
+
+                    push @{$columns_changed{$self->current_id}}, $column->id if $datum->changed;
                 }
                 elsif ($self->new_entry) {
                     # Write value. It's a new entry and the user doesn't have

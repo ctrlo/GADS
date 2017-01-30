@@ -6,11 +6,14 @@ use Log::Report;
 
 use t::lib::DataSheet;
 
-my $sheet_site1 = t::lib::DataSheet->new(site_id => 1);
+# Don't create users, as the normal find_or_create check won't find the
+# existing user at that ID due to the site_id constraint and will then fail
+my $sheet_site1 = t::lib::DataSheet->new(site_id => 1, no_users => 1);
 my $schema      = $sheet_site1->schema;
 $sheet_site1->create_records;
+# Set the site_id. This should be use throughout the next data sheet creation
 $schema->site_id(2);
-my $sheet_site2 = t::lib::DataSheet->new(schema => $schema, instance_id => 2);
+my $sheet_site2 = t::lib::DataSheet->new(schema => $schema, instance_id => 2, no_users => 1);
 $sheet_site2->create_records;
 
 # Check site 1 records

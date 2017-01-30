@@ -41,10 +41,10 @@ my $data = {
     ],
 };
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, no_groups => 1);
+my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, no_groups => 1, no_users => 1);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
-my $sheet   = t::lib::DataSheet->new(data => $data->{a}, schema => $schema, curval => 2, no_groups => 1);
+my $sheet   = t::lib::DataSheet->new(data => $data->{a}, schema => $schema, curval => 2, no_groups => 1, no_users => 1);
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
 $sheet->create_records;

@@ -88,20 +88,39 @@ is( $child->fields->{$calc1_id}->as_string, 2000, "Child calc value is correct a
 isnt( $parent->fields->{$string1_id}->as_string, $child->fields->{$string1_id}->as_string, "Parent and child strings are different");
 is( $parent->fields->{$rag1_id}->as_string, $child->fields->{$rag1_id}->as_string, "Parent and child rags are the same");
 
-# Set new daterange value in parent, check it propagates to child calc
+# Set new daterange value in parent, check it propagates to child calc and alerts set correctly
+$ENV{GADS_NO_FORK} = 1;
+my $user = { id => 1 };
+my $view = GADS::View->new(
+    name        => 'view1',
+    instance_id => 1,
+    layout      => $layout,
+    schema      => $schema,
+    user        => $user,
+    global      => 1,
+    columns     => [$columns->{calc1}->id],
+);
+$view->write;
+my $alert = GADS::Alert->new(
+    user      => $user,
+    layout    => $layout,
+    schema    => $schema,
+    frequency => 24,
+    view_id   => $view->id,
+);
+$alert->write;
+is( $schema->resultset('AlertSend')->count, 0, "Correct number");
 $parent->fields->{$daterange1_id}->set_value(['2005-01-01', '2006-02-02']);
-$parent->write(no_alerts => 1);
+$parent->write;
 ($parent, $other, $child) = _records($schema, $layout, 3);
 is( $parent->fields->{$calc1_id}->as_string, 2005, "Parent calc value is correct after writing new daterange to parent");
 is( $child->fields->{$calc1_id}->as_string, 2005, "Child calc value is correct after writing new daterange to parent");
-ok( $parent->fields->{$calc1_id}->changed, "Parent calc value is markged changed after writing new daterange to parent");
-ok( $child->fields->{$calc1_id}->changed, "Child calc value is marked changed after writing new daterange to parent");
+is( $schema->resultset('AlertSend')->count, 2, "Correct number");
 
 # Set new daterange value in parent but one that doesn't affect calc value
 $parent->fields->{$daterange1_id}->set_value(['2005-02-01', '2006-03-02']);
 $parent->write(no_alerts => 1);
 ($parent, $other, $child) = _records($schema, $layout, 3);
-ok( $parent->fields->{$calc1_id}->changed, "Parent calc value is not marked changed when writing new daterange to parent");
-ok( $child->fields->{$calc1_id}->changed, "Child calc value is not marked changed when writing new daterange to parent");
+is( $schema->resultset('AlertSend')->count, 2, "Correct number");
 
 done_testing();

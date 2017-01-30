@@ -18,36 +18,60 @@ my $data = [
         daterange1 => ['2014-03-21', '2015-03-01'],
         enum1      => 1,
         tree1      => 4,
-    },{
+    },
+    {
         string1    => 'Foo',
         date1      => '2014-10-10',
         daterange1 => ['2010-01-04', '2011-06-03'],
         enum1      => 1,
         tree1      => 4,
-    },{
+    },
+    {
         string1    => 'FooBar',
         date1      => '2015-10-10',
         daterange1 => ['2009-01-04', '2017-06-03'],
         enum1      => 1,
         tree1      => 4,
-    },{
+    },
+    {
         string1    => 'FooBar',
         date1      => '2015-10-10',
         daterange1 => ['2009-01-04', '2017-06-03'],
         enum1      => 1,
         tree1      => 4,
-    },{
+    },
+    {
         string1    => 'FooBar',
         date1      => '2015-10-10',
         daterange1 => ['2009-01-04', '2017-06-03'],
         enum1      => 1,
         tree1      => 4,
-    },{
+    },
+    {
         string1    => 'Disappear',
-    },{
+    },
+    {
         string1    => 'FooFooBar',
         date1      => '2010-10-10',
-    }
+    },
+    {
+        daterange1 => ['2009-01-04', '2017-06-03'],
+    },
+    {
+        daterange1 => ['2009-01-04', '2017-06-03'],
+    },
+    {
+        daterange1 => ['2009-01-04', '2017-06-03'],
+    },
+    {
+        daterange1 => ['2009-01-04', '2017-06-03'],
+    },
+    {
+        daterange1 => ['2009-01-04', '2017-06-03'],
+    },
+    {
+        daterange1 => ['2009-01-04', '2017-06-03'],
+    },
 ];
 
 my $sheet = t::lib::DataSheet->new(data => $data);
@@ -56,18 +80,6 @@ my $schema = $sheet->schema;
 my $layout = $sheet->layout;
 my $columns = $sheet->columns;
 $sheet->create_records;
-
-$schema->resultset('User')->populate([
-    {
-        id       => 1,
-        username => 'user1@example.com',
-        email    => 'user1@example.com',
-    },
-]);
-$schema->resultset('UserGroup')->create({
-    user_id  => 1,
-    group_id => $sheet->group->id,
-});
 
 my @filters = (
     {
@@ -235,12 +247,110 @@ my @filters = (
         ],
         alerts => 1, # Disappears
     },
+    {
+        name  => 'Change of calc field in view',
+        rules => undef,
+        columns => [$columns->{calc1}->id],
+        current_id => 8,
+        update => [
+            {
+                column => 'daterange1',
+                value  => ['2010-10-10', '2011-10-10'],
+            },
+        ],
+        alerts => 2, # New record plus Calc field updated
+    },
+    {
+        name  => 'Change of calc field forces record into view',
+        rules => [{
+            id       => $columns->{calc1}->id,
+            type     => 'string',
+            value    => '2014',
+            operator => 'equal',
+        }],
+        columns => [$columns->{calc1}->id],
+        current_id => 9,
+        update => [
+            {
+                column => 'daterange1',
+                value  => ['2014-10-10', '2015-10-10'],
+            },
+        ],
+        alerts => 2, # New record plus calc field coming into view
+    },
+    {
+        name  => 'Change of calc field makes no change to record not in view',
+        rules => [{
+            id       => $columns->{calc1}->id,
+            type     => 'string',
+            value    => '2015',
+            operator => 'equal',
+        }],
+        columns => [$columns->{calc1}->id],
+        current_id => 10,
+        update => [
+            {
+                column => 'daterange1',
+                value  => ['2014-10-10', '2015-10-10'],
+            },
+        ],
+        alerts => 0, # Neither new record nor changed record will be in view
+    },
+    {
+        name  => 'Change of rag field in view',
+        rules => undef,
+        columns => [$columns->{rag1}->id],
+        current_id => 11,
+        update => [
+            {
+                column => 'daterange1',
+                value  => ['2012-10-10', '2013-10-10'],
+            },
+        ],
+        alerts => 2, # New record plus Calc field updated
+    },
+    {
+        name  => 'Change of rag field forces record into view',
+        rules => [{
+            id       => $columns->{rag1}->id,
+            type     => 'string',
+            value    => 'c_amber',
+            operator => 'equal',
+        }],
+        columns => [$columns->{rag1}->id],
+        current_id => 12,
+        update => [
+            {
+                column => 'daterange1',
+                value  => ['2012-10-10', '2015-10-10'],
+            },
+        ],
+        alerts => 2, # New record plus calc field coming into view
+    },
+    {
+        name  => 'Change of rag field makes no difference to record not in view',
+        rules => [{
+            id       => $columns->{rag1}->id,
+            type     => 'string',
+            value    => 'c_amber',
+            operator => 'equal',
+        }],
+        columns => [$columns->{rag1}->id],
+        current_id => 13,
+        update => [
+            {
+                column => 'daterange1',
+                value  => ['2013-10-10', '2015-10-10'],
+            },
+        ],
+        alerts => 0, # Neither new record nor existing record in view
+    },
 );
 
 my $user = { id => 1, value => ', ' };
 my $user2 = { id => 2, value => ', ' };
 
-# First all all the filters and alerts#
+# First write all the filters and alerts
 foreach my $filter (@filters)
 {
     my $rules = $filter->{rules} ? {
@@ -293,6 +403,8 @@ foreach my $filter (@filters)
         $record->fields->{$col_id}->set_value($datum->{value});
     }
     $record->write;
+
+    # Count number of alerts for the just-written record
     my $alert_finish = $schema->resultset('AlertSend')->search({
         current_id => $record->current_id,
         alert_id   => $filter->{alert_id},
@@ -307,6 +419,9 @@ foreach my $filter (@filters)
         $record->fields->{$col_id}->set_value($datum->{value});
     }
     $record->write;
+
+    # Add the number of alerts created as a result of record update to previous
+    # alert count
     $alert_finish += $schema->resultset('AlertSend')->search({
         current_id => $filter->{current_id},
         alert_id   => $filter->{alert_id},
@@ -354,16 +469,6 @@ $columns = $sheet->columns;
 $sheet->create_records;
 
 # First create a view with no filter
-$schema->resultset('User')->create({
-    id       => 1,
-    username => 'user1@example.com',
-    email    => 'user1@example.com',
-});
-$schema->resultset('UserGroup')->create({
-    user_id  => 1,
-    group_id => $sheet->group->id,
-});
-
 my $view = GADS::View->new(
     name        => 'view1',
     instance_id => 1,
@@ -537,6 +642,121 @@ $view->write;
 is( $schema->resultset('AlertCache')->search({ user_id => { '!=' => undef } })->count, 0, "Correct number of user_id alerts after removal of curuser filter" );
 is( $schema->resultset('AlertCache')->search({ user_id => undef })->count, 4, "Correct number of normal alerts after removal of curuser filter" );
 
+# Check alerts after update of calc column code
+$sheet = t::lib::DataSheet->new;
+$schema = $sheet->schema;
+$layout = $sheet->layout;
+$columns = $sheet->columns;
+$sheet->create_records;
+
+# First create a view with no filter
+$view = GADS::View->new(
+    name        => 'view1',
+    instance_id => 1,
+    layout      => $layout,
+    schema      => $schema,
+    user        => $user,
+    global      => 1,
+    columns     => [$columns->{calc1}->id],
+);
+$view->write;
+
+$alert = GADS::Alert->new(
+    user      => $user,
+    layout    => $layout,
+    schema    => $schema,
+    frequency => 24,
+    view_id   => $view->id,
+);
+$alert->write;
+
+is( $schema->resultset('AlertCache')->count, 2, "Correct number of alerts inserted for initial calc test write" );
+is( $schema->resultset('AlertSend')->count, 0, "Start calc column change test with no alerts to send" );
+
+# Update calc column to same result (extra space to ensure update), should be no more alerts
+my $calc_col = $columns->{calc1};
+$calc_col->code("function evaluate (daterange1) \n if daterange1 == null then return end \n return daterange1.from.year\nend ");
+$calc_col->write;
+is( $schema->resultset('AlertSend')->count, 0, "Correct number of alerts after calc update with no change" );
+
+# Update calc column for different result (one record will change, other has same end year)
+$calc_col->code("function evaluate (daterange1) \n if daterange1 == null then return end \n return daterange1.to.year\nend");
+$calc_col->write;
+is( $schema->resultset('AlertSend')->count, 1, "Correct number of alerts to send after calc update with change" );
+
+# Add filter, check alert after calc update
+$schema->resultset('AlertSend')->delete;
+$view->filter->as_hash({
+    rules     => [
+        {
+            id       => $columns->{calc1}->id,
+            type     => 'string',
+            value    => '2011',
+            operator => 'greater',
+        },
+    ],
+});
+$view->write;
+is( $schema->resultset('AlertCache')->count, 1, "Correct number of alert caches after filter applied" );
+$calc_col->code("function evaluate (daterange1) \n if daterange1 == null then return end \n return daterange1.from.year\nend");
+$calc_col->write;
+is( $schema->resultset('AlertSend')->count, 1, "Correct number of alerts to send after calc updated with filter in place" );
+
+# Mock tests for testing alerts for changes as a result of current date.
+# Mocking the time in Perl will not affect Lua, so instead we insert the
+# year hard-coded in the Lua code. Years of 2010 and 2014 are used for the tests.
+$sheet = t::lib::DataSheet->new(
+    calc_code => "function evaluate (daterange1) \nif daterange1.from.year < 2010 then return 1 else return 0 end\nend",
+);
+$schema = $sheet->schema;
+$layout = $sheet->layout;
+$columns = $sheet->columns;
+$sheet->create_records;
+
+# First create a view with no filter
+$view = GADS::View->new(
+    name        => 'view1',
+    instance_id => 1,
+    layout      => $layout,
+    schema      => $schema,
+    user        => $user,
+    global      => 1,
+    columns     => [$columns->{calc1}->id],
+    filter      => GADS::Filter->new->as_hash({
+        rules     => [
+            {
+                id       => $columns->{calc1}->id,
+                type     => 'string',
+                value    => '1',
+                operator => 'equal',
+            },
+        ],
+    }),
+);
+$view->write;
+
+$alert = GADS::Alert->new(
+    user      => $user,
+    layout    => $layout,
+    schema    => $schema,
+    frequency => 24,
+    view_id   => $view->id,
+);
+$alert->write;
+
+# Should be nothing in view initially - current year equal to 2014
+is( $schema->resultset('AlertCache')->count, 1, "Correct number of alerts inserted for initial calc test write" );
+is( $schema->resultset('AlertSend')->count, 0, "Start calc column change test with no alerts to send" );
+
+# Wind date forward 4 years, should now appear in view
+$schema->resultset('Calc')->update({
+    code => "function evaluate (daterange1) \nif daterange1.from.year < 2014 then return 1 else return 0 end\nend",
+});
+$layout->clear;
+$columns->{calc1}->update_cached;
+is( $schema->resultset('AlertCache')->count, 2, "Correct number of alerts inserted for initial calc test write" );
+is( $schema->resultset('AlertSend')->count, 1, "Correct number of alerts after calc update with no change" );
+
 # Test some bulk alerts, which normally happen on code field updates
 diag "About to test alerts for bulk updates. This could take some time...";
 
@@ -558,16 +778,6 @@ my $alerts_rs = $schema->resultset('AlertSend')->search({
     layout_id => $columns->{string1}->id,
 });
 my $alert_count = $alerts_rs->count;
-
-$schema->resultset('User')->create({
-    id       => 1,
-    username => 'user1@example.com',
-    email    => 'user1@example.com',
-});
-$schema->resultset('UserGroup')->create({
-    user_id  => 1,
-    group_id => $sheet->group->id,
-});
 
 my $rules = GADS::Filter->new(
     as_hash => {
