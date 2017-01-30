@@ -51,6 +51,13 @@ my $data2 = [
         daterange1 => ['2008-05-04', '2008-07-14'],
         enum1      => 2,
     },
+    {
+        string1    => 'Bar',
+        integer1   => 99,
+        date1      => '2009-01-02',
+        daterange1 => ['2008-05-04', '2008-07-14'],
+        enum1      => '',
+    },
 ];
 
 my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, data => $data2);
@@ -72,7 +79,7 @@ $sheet->create_records;
 # Curval tests
 my $curval = $columns->{curval1};
 
-is( scalar @{$curval->values}, 2, "Correct number of values for curval field" );
+is( scalar @{$curval->values}, 3, "Correct number of values for curval field" );
 
 # Create a second curval sheet, and check that we can link to first sheet
 # (which links to second)
@@ -164,88 +171,127 @@ $layout->clear;
 is( scalar @{$curval_filter->values}, 1, "Correct number of values for curval field with filter" );
 
 # Check that we can filter on a value in the record
-foreach my $test (qw/match nomatch invalid/)
+foreach my $test (qw/string1 enum1 multi negative nomatch invalid/)
 {
-    foreach my $field (qw/string1 enum1/)
-    {
-        my $value = $test eq 'match'
-            ? "\$$field"
-            : $test eq 'nomatch'
-            ? '$tree1'
-            : '$string123';
+    my $field = $test =~ /(string1|enum1)/
+        ? $test
+        : $test =~ /(multi|negative)/
+        ? 'enum1'
+        : 'string1';
+    my $match = $test =~ /(string1|enum1|multi|negative)/ ? 1 : 0;
+    my $value = $match
+        ? "\$$field"
+        : $test eq 'nomatch'
+        ? '$tree1'
+        : '$string123';
 
-        $curval_filter = GADS::Column::Curval->new(
-            schema             => $schema,
-            user               => undef,
-            layout             => $layout,
-            name               => 'curval filter',
-            type               => 'curval',
-            filter             => GADS::Filter->new(
-                as_hash => {
-                    rules => [{
-                        id       => $curval_sheet->columns->{$field}->id,
-                        type     => 'string',
-                        value    => $value,
-                        operator => 'equal',
-                    }],
+    my $rules = $test eq 'multi'
+        ? {
+            rules => [
+                {
+                    id       => $curval_sheet->columns->{$field}->id,
+                    type     => 'string',
+                    value    => $value,
+                    operator => 'equal',
                 },
-            ),
-            refers_to_instance => $curval_sheet->layout->instance_id,
-            curval_field_ids   => [ $curval_sheet->columns->{string1}->id ],
-        );
-        $curval_filter->write;
-
-        # Clear the layout to force the column to be build, and also to build
-        # dependencies properly in the next test
-        $layout->clear;
-        my $record = GADS::Record->new(
-            user   => undef,
-            layout => $layout,
-            schema => $schema,
-        );
-        $record->find_current_id(3);
-
-        # Hack to make it look like the dependent datums for the curval filter have been written to
-        my $datum = $record->fields->{$columns->{$field}->id};
-        $datum->oldvalue($datum->clone);
-        my $count = $test eq 'match' && $field eq 'enum1' ? 2 : $test eq 'match' ? 1 : 0;
-        is( scalar @{$curval_filter->values}, $count, "Correct number of values for curval field with $field filter, test $test" );
-
-        # Check that we can create a new record with the filtered curval field in
-        $layout->clear;
-        my $record_new = GADS::Record->new(
-            user     => undef,
-            layout   => $layout,
-            schema   => $schema,
-        );
-        $record_new->initialise;
-        is( scalar @{$layout->column($curval_filter->id)->values}, 0, "Correct number of values for curval field with filter" );
-        if ($test eq 'invalid')
-        {
-            # Will be ready already - no proper dependent values
-            ok( $record_new->fields->{$curval_filter->id}->ready_to_write, "Curval field $field with invalid record filter already ready to write" );
-            ok( $record_new->fields->{$curval_filter->id}->show_for_write, "Curval field $field with invalid record filter is shown for write" );
+                {
+                    id       => $curval_sheet->columns->{$field}->id,
+                    type     => 'string',
+                    operator => 'is_empty',
+                },
+            ],
+            condition => 'OR',
         }
-        else {
-            ok( !$record_new->fields->{$curval_filter->id}->ready_to_write, "Curval field $field with record filter not yet ready to write, test $test" );
-            ok( !$record_new->fields->{$curval_filter->id}->show_for_write, "Curval field $field with record filter not yet shown for write, test $test" );
+        : $test eq 'negative'
+        ? {
+            rules => [{
+                id       => $curval_sheet->columns->{$field}->id,
+                type     => 'string',
+                value    => $value,
+                operator => 'not_equal',
+            }],
         }
-        ok( $record_new->fields->{$columns->{$field}->id}->ready_to_write, "Field $field is ready to write, test $test" );
-        ok( $record_new->fields->{$columns->{$field}->id}->show_for_write, "Field $field is shown for write, test $test" );
-        # Write the required value and then check that it is no ready
-        # Use the values from previous retrieved record - we know these are valid
-        foreach my $f (qw/enum1 string1 tree1/)
-        {
-            my $col_id = $columns->{$f}->id;
-            $record_new->fields->{$col_id}->set_value($record->fields->{$col_id}->value);
-        }
-        $record_new->show_for_write_clear;
-        ok( $record_new->fields->{$curval_filter->id}->ready_to_write, "Curval field $field with record filter is now ready to write, test $test" );
-        ok( $record_new->fields->{$curval_filter->id}->show_for_write, "Curval field $field with record filter is now shown for write, test $test" );
-        ok( $record_new->fields->{$columns->{$field}->id}->ready_to_write, "Field $field is still ready to write, test $test" );
-        ok( !$record_new->fields->{$columns->{$field}->id}->show_for_write, "Field $field is not shown for write, test $test" );
-        $curval_filter->delete;
+        : {
+            rules => [{
+                id       => $curval_sheet->columns->{$field}->id,
+                type     => 'string',
+                value    => $value,
+                operator => 'equal',
+            }],
+        };
+
+    $curval_filter = GADS::Column::Curval->new(
+        schema             => $schema,
+        user               => undef,
+        layout             => $layout,
+        name               => 'curval filter',
+        type               => 'curval',
+        filter             => GADS::Filter->new(
+            as_hash => $rules,
+        ),
+        refers_to_instance => $curval_sheet->layout->instance_id,
+        curval_field_ids   => [ $curval_sheet->columns->{string1}->id ],
+    );
+    $curval_filter->write;
+
+    # Clear the layout to force the column to be build, and also to build
+    # dependencies properly in the next test
+    $layout->clear;
+    my $record = GADS::Record->new(
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->find_current_id(4);
+
+    # Hack to make it look like the dependent datums for the curval filter have been written to
+    my $datum = $record->fields->{$columns->{$field}->id};
+    $datum->oldvalue($datum->clone);
+    my $count = $test eq 'multi'
+        ? 3
+        : $test eq 'negative'
+        ? 1
+        : $match && $field eq 'enum1'
+        ? 2
+        : $match
+        ? 1
+        : 0;
+    is( scalar @{$curval_filter->values}, $count, "Correct number of values for curval field with $field filter, test $test" );
+
+    # Check that we can create a new record with the filtered curval field in
+    $layout->clear;
+    my $record_new = GADS::Record->new(
+        user     => undef,
+        layout   => $layout,
+        schema   => $schema,
+    );
+    $record_new->initialise;
+    is( scalar @{$layout->column($curval_filter->id)->values}, 0, "Correct number of values for curval field with filter" );
+    if ($test eq 'invalid')
+    {
+        # Will be ready already - no proper dependent values
+        ok( $record_new->fields->{$curval_filter->id}->ready_to_write, "Curval field $field with invalid record filter already ready to write" );
+        ok( $record_new->fields->{$curval_filter->id}->show_for_write, "Curval field $field with invalid record filter is shown for write" );
     }
+    else {
+        ok( !$record_new->fields->{$curval_filter->id}->ready_to_write, "Curval field $field with record filter not yet ready to write, test $test" );
+        ok( !$record_new->fields->{$curval_filter->id}->show_for_write, "Curval field $field with record filter not yet shown for write, test $test" );
+    }
+    ok( $record_new->fields->{$columns->{$field}->id}->ready_to_write, "Field $field is ready to write, test $test" );
+    ok( $record_new->fields->{$columns->{$field}->id}->show_for_write, "Field $field is shown for write, test $test" );
+    # Write the required value and then check that it is now ready
+    # Use the values from previous retrieved record - we know these are valid
+    foreach my $f (qw/enum1 string1 tree1/)
+    {
+        my $col_id = $columns->{$f}->id;
+        $record_new->fields->{$col_id}->set_value($record->fields->{$col_id}->value);
+    }
+    $record_new->show_for_write_clear;
+    ok( $record_new->fields->{$curval_filter->id}->ready_to_write, "Curval field $field with record filter is now ready to write, test $test" );
+    ok( $record_new->fields->{$curval_filter->id}->show_for_write, "Curval field $field with record filter is now shown for write, test $test" );
+    ok( $record_new->fields->{$columns->{$field}->id}->ready_to_write, "Field $field is still ready to write, test $test" );
+    ok( !$record_new->fields->{$columns->{$field}->id}->show_for_write, "Field $field is not shown for write, test $test" );
+    $curval_filter->delete;
 }
 
 # Now check that we're not building all curval values when we're just

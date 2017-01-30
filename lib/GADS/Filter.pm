@@ -117,9 +117,9 @@ has filters => (
 
 sub _build_filters
 {   my $self = shift;
-    my $cols_in_filter = {};
+    my $cols_in_filter = [];
     _filter_tables($self->as_hash, $cols_in_filter);
-    [values %$cols_in_filter];
+    $cols_in_filter;
 }
 
 # Recursively find all tables in a nested filter
@@ -135,7 +135,7 @@ sub _filter_tables
         }
     }
     elsif (my $id = $filter->{id}) {
-        $tables->{$filter->{id}} = {
+        push @$tables, {
             field    => $filter->{id},
             value    => $filter->{value},
             operator => $filter->{operator},
@@ -146,7 +146,7 @@ sub _filter_tables
 # The IDs of the columns that will be subbed into the filter
 sub columns_in_subs
 {   my ($self, $layout) = @_;
-    my @filters = grep { $_ } map { $_->{value} =~ /^\$([_0-9a-z]+)$/i; $1 } @{$self->filters};
+    my @filters = grep { $_ } map { $_->{value} && $_->{value} =~ /^\$([_0-9a-z]+)$/i && $1 } @{$self->filters};
     [ grep { $_ } map { $layout->column_by_name_short($_) } @filters ];
 }
 
@@ -188,9 +188,10 @@ sub _sub_filter_single
                 $single->{value} = $texts[0];
             }
             else {
+                my $condition = $single->{operator} eq 'not_equal' ? 'AND' : 'OR';
                 my %template = %$single;
                 %$single = (
-                    condition => 'OR',
+                    condition => $condition,
                     rules     => [],
                 );
                 foreach my $text (@texts)
