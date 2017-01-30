@@ -535,7 +535,13 @@ sub _build_results
     )->get_column('me.id')->all;
 
     # Now redo the query with those IDs.
-    @prefetches      = $self->jpfetch(prefetch => 1);
+    @prefetches = $self->jpfetch(prefetch => 1);
+    unshift @prefetches, (
+        {
+            'createdby' => 'organisation',
+        },
+    );
+
     my $rec1 = @prefetches ? { record_single => [@prefetches] } : 'record_single';
     # Add joins for sorts, but only if they're not already a prefetch (otherwise ordering can be messed up).
     # We also add the join for record_later, so that we can take only the latest required record

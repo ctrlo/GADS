@@ -122,8 +122,12 @@ passed as Lua table values with the indexes &quot;value&quot; and
 &quot;parents&quot;, the former containing the actual value and the latter
 being another table containing all the node's parents (starting at
 &quot;parent1&quot; for the top level and continuing sequentially as
-required).</p> <p>The <em>ID of the record</em> can be accessed using
-the special short name &quot;id&quot;.</p>
+required).</p> <p>The <em>ID of the record</em> can be accessed using the
+special short name &quot;_id&quot;.</p> <p>The <em>user that last updated the
+record</em> can be accessed using the special short name
+&quot;_version_user&quot;, which will be returned as a table with the keys:
+firstname, surname, email, telephone, organisation and text. The organisation
+will be returned with the keys id and name.
 
 <h5>Return values</h5>
 <p>Return values for RedAmberGreen fields should be the string &quot;red&quot;,

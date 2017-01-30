@@ -27,8 +27,6 @@ use namespace::clean;
 
 extends 'GADS::Datum';
 
-my @user_fields = qw(firstname surname email telephone id);
-
 has set_value => (
     is       => 'rw',
     trigger  => sub {
@@ -61,9 +59,14 @@ has set_value => (
         ) {
             my $person;
             $person = $self->schema->resultset('User')->find($new_id) if $new_id;
-            foreach my $f (@user_fields)
+            foreach my $f (qw(firstname surname email telephone id))
             {
                 $self->$f($person ? $person->$f : undef);
+            }
+            if ($person)
+            {
+                my $org = _org_to_hash($person->organisation);
+                $self->organisation($org);
             }
             $self->_set_text($person ? $person->value : undef);
             $self->changed(1);
@@ -77,6 +80,15 @@ has schema => (
     is       => 'rw',
     required => 1,
 );
+
+sub _org_to_hash
+{   my $org = shift;
+    $org or return {};
+    +{
+        id   => $org->id,
+        name => $org->name,
+    };
+}
 
 has value_hash => (
     is      => 'ro',
@@ -94,12 +106,13 @@ has value_hash => (
         my $id = $value->{id};
         $self->has_id(1) if defined $id || $self->init_no_value;
         +{
-            id        => $id,
-            email     => $value->{email},
-            firstname => $value->{firstname},
-            surname   => $value->{surname},
-            telephone => $value->{telephone},
-            text      => $value->{value},
+            id           => $id,
+            email        => $value->{email},
+            firstname    => $value->{firstname},
+            surname      => $value->{surname},
+            telephone    => $value->{telephone},
+            organisation => $value->{organisation},
+            text         => $value->{value},
         };
     },
 );
@@ -151,6 +164,14 @@ has telephone => (
     },
 );
 
+has organisation => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->value_hash ? $_[0]->value_hash->{organisation} : $_[0]->_rset && $_[0]->_rset->organisation;
+    },
+);
+
 has text => (
     is      => 'rw',
     lazy    => 1,
@@ -182,13 +203,14 @@ around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
     $orig->($self,
-        id        => $self->id,
-        email     => $self->email,
-        schema    => $self->schema,
-        firstname => $self->firstname,
-        surname   => $self->surname,
-        telephone => $self->telephone,
-        text      => $self->text,
+        id           => $self->id,
+        email        => $self->email,
+        schema       => $self->schema,
+        firstname    => $self->firstname,
+        surname      => $self->surname,
+        telephone    => $self->telephone,
+        organisation => $self->organisation,
+        text         => $self->text,
     );
 };
 
@@ -230,6 +252,18 @@ sub as_string
 sub as_integer
 {   my $self = shift;
     $self->id // 0;
+}
+
+sub for_code
+{   my $self = shift;
+    +{
+        surname      => $self->surname,
+        firstname    => $self->firstname,
+        email        => $self->email,
+        telephone    => $self->telephone,
+        organisation => $self->organisation,
+        text         => $self->text,
+    };
 }
 
 1;

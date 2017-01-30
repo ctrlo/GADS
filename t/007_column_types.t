@@ -238,7 +238,7 @@ foreach my $test (qw/string1 enum1 multi negative nomatch invalid/)
     # dependencies properly in the next test
     $layout->clear;
     my $record = GADS::Record->new(
-        user   => undef,
+        user   => $sheet->user,
         layout => $layout,
         schema => $schema,
     );
@@ -261,7 +261,7 @@ foreach my $test (qw/string1 enum1 multi negative nomatch invalid/)
     # Check that we can create a new record with the filtered curval field in
     $layout->clear;
     my $record_new = GADS::Record->new(
-        user     => undef,
+        user     => $sheet->user,
         layout   => $layout,
         schema   => $schema,
     );
@@ -299,7 +299,7 @@ foreach my $test (qw/string1 enum1 multi negative nomatch invalid/)
 $ENV{PANIC_ON_CURVAL_BUILD_VALUES} = 1;
 
 my $records = GADS::Records->new(
-    user    => undef,
+    user    => $sheet->user,
     layout  => $layout,
     schema  => $schema,
 );
@@ -400,7 +400,7 @@ $calc2_col = GADS::Column::Calc->new(
     user   => undef,
     layout => $layout,
     name   => 'calc2',
-    code   => "function evaluate (curval1,id) \n return curval1.field_values.daterange1.from.year .. 'X' .. id \nend",
+    code   => "function evaluate (curval1,_id) \n return curval1.field_values.daterange1.from.year .. 'X' .. _id \nend",
 );
 $calc2_col->write;
 
@@ -471,10 +471,21 @@ my $calc_zero_str = GADS::Column::Calc->new(
 );
 $calc_zero_str->write;
 
+# Calc field with version editor
+my $calc_version = GADS::Column::Calc->new(
+    schema      => $schema,
+    user        => undef,
+    layout      => $layout,
+    name        => 'calc5',
+    code        => "function evaluate (_version_user) \n return _version_user.surname \nend",
+    return_type => 'string',
+);
+$calc_version->write;
+
 $layout->clear;
 
 $records = GADS::Records->new(
-    user    => undef,
+    user    => $sheet->user,
     layout  => $layout,
     schema  => $schema,
 );
@@ -501,6 +512,7 @@ foreach my $record (@results)
     is( $record->fields->{$calc2_col->id}->as_string, $calc2, "Correct calc2 value for record" );
     is( $record->fields->{$calc_zero_int->id}->as_string, '0', "Correct calc value for zero int" );
     is( $record->fields->{$calc_zero_str->id}->as_string, '0', "Correct calc value for zero string" );
+    is( $record->fields->{$calc_version->id}->as_string, 'User1', "Correct calc value for record version user" );
     is( $record->fields->{$rag_col->id}->as_string, $rag, "Correct rag value for record" );
     # Check we can update the record
     $record->fields->{$columns->{daterange1}->id}->set_value(['2014-10-10', '2015-10-10']);

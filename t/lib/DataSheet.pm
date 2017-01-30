@@ -61,6 +61,39 @@ has no_groups => (
     default => 0,
 );
 
+has user => (
+    is => 'lazy',
+);
+
+sub _build_user
+{   my $self = shift;
+    my $user;
+    unless ($self->no_users)
+    {
+        my $user_rs = $self->schema->resultset('User')->find_or_create({ # May already be created for schema
+            id        => 1,
+            username  => 'user1@example.com',
+            email     => 'user1@example.com',
+            firstname => 'User1',
+            surname   => 'User1',
+            value     => 'User1, User1',
+        });
+        $self->schema->resultset('UserGroup')->find_or_create({ # May already be created for schema
+            user_id  => 1,
+            group_id => $self->group->id,
+        });
+        # Most of the app expects a hash at the moment. XXX Need to convert to object
+        $user = {
+            id        => $user_rs->id,
+            firstname => $user_rs->firstname,
+            surname   => $user_rs->surname,
+            email     => $user_rs->email,
+            value     => $user_rs->value,
+        };
+    }
+    return $user;
+}
+
 has group => (
     is => 'lazy',
 );
@@ -472,27 +505,11 @@ sub create_records
     my $columns = $self->columns;
 
     my $record = GADS::Record->new(
-        user     => undef,
+        user     => $self->user,
         layout   => $self->layout,
         schema   => $self->schema,
         base_url => undef,
     );
-
-    unless ($self->no_users)
-    {
-        $self->schema->resultset('User')->find_or_create({ # May already be created for schema
-            id        => 1,
-            username  => 'user1@example.com',
-            email     => 'user1@example.com',
-            firstname => 'User1',
-            surname   => 'User1',
-            value     => 'User1, User1',
-        });
-        $self->schema->resultset('UserGroup')->find_or_create({ # May already be created for schema
-            user_id  => 1,
-            group_id => $self->group->id,
-        });
-    }
 
     foreach my $datum (@{$self->data})
     {

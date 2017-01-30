@@ -295,12 +295,7 @@ has createdby => (
     builder => sub {
         my $self = shift;
         return unless $self->record;
-        GADS::Datum::Person->new(
-            record_id        => $self->record_id,
-            init_value       => {value => $self->record->{createdby}},
-            schema           => $self->schema,
-            layout           => $self->layout,
-        );
+        $self->fields->{-3};
     },
 );
 
@@ -472,7 +467,9 @@ sub _find
             {
                 'current' => $records->linked_hash(prefetch => 1),
             },
-            'createdby',
+            {
+                'createdby' => 'organisation',
+            },
             'approvedby'
         ); # Add info about related current record
         push @$search, { 'me.id' => $record_id };
@@ -626,6 +623,14 @@ sub _transform_values
         column           => $self->layout->column(-1),
         schema           => $self->schema,
         layout           => $self->layout,
+    );
+    $fields->{-3} = GADS::Datum::Person->new(
+        record_id        => $self->record_id,
+        current_id       => $self->current_id,
+        column           => $self->layout->column(-3),
+        schema           => $self->schema,
+        layout           => $self->layout,
+        init_value       => { value => $original->{createdby} },
     );
     $fields;
 }
