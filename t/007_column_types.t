@@ -405,6 +405,26 @@ try { $rag3->write } hide => 'ALL';
 like($warning, qr/syntax error/, "Warning received for syntax error in rag");
 $rag3->delete;
 
+# Create calc fields that returns 0
+my $calc_zero_int = GADS::Column::Calc->new(
+    schema      => $schema,
+    user        => undef,
+    layout      => $layout,
+    name        => 'calc4',
+    code        => "function evaluate (curval1) \n return 0 \nend",
+    return_type => 'integer',
+);
+$calc_zero_int->write;
+my $calc_zero_str = GADS::Column::Calc->new(
+    schema      => $schema,
+    user        => undef,
+    layout      => $layout,
+    name        => 'calc4',
+    code        => "function evaluate (curval1) \n return 0 \nend",
+    return_type => 'string',
+);
+$calc_zero_str->write;
+
 $layout->clear;
 
 $records = GADS::Records->new(
@@ -433,6 +453,8 @@ foreach my $record (@results)
     my $rag   = shift @rags;
     is( $record->fields->{$calc_col->id}->as_string, $calc, "Correct calc value for record" );
     is( $record->fields->{$calc2_col->id}->as_string, $calc2, "Correct calc2 value for record" );
+    is( $record->fields->{$calc_zero_int->id}->as_string, '0', "Correct calc value for zero int" );
+    is( $record->fields->{$calc_zero_str->id}->as_string, '0', "Correct calc value for zero string" );
     is( $record->fields->{$rag_col->id}->as_string, $rag, "Correct rag value for record" );
     # Check we can update the record
     $record->fields->{$columns->{daterange1}->id}->set_value(['2014-10-10', '2015-10-10']);

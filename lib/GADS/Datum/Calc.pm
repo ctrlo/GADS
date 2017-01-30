@@ -86,7 +86,7 @@ sub convert_value
     }
     elsif ($column->return_type eq 'numeric' || $column->return_type eq 'integer')
     {
-        if ($value && looks_like_number($value))
+        if (defined $value && looks_like_number($value))
         {
             $return = round $value if defined $value && $column->return_type eq 'integer';
         }

@@ -173,7 +173,7 @@ sub eval
     $run_code = $mapping.$run_code;
     my $return = lua_run($run_code, $vars);
     # Make sure we're not returning anything funky (e.g. code refs)
-    my $ret = $return->{return} && ''.$return->{return};
+    my $ret = defined $return->{return} && ''.$return->{return};
     my $err = $return->{error} && ''.$return->{error};
     +{
         return => $ret,
