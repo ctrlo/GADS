@@ -479,7 +479,10 @@ sub _find
     {
         push @$search, { 'me.id' => $current_id };
         push @$search, $records->record_later_search(linked => 1);
-        unshift @prefetches, ('current', 'createdby', 'approvedby'); # Add info about related current record
+        unshift @prefetches, ('current', {
+            'createdby' => 'organisation',
+        }
+        , 'approvedby'); # Add info about related current record
         @prefetches = (
             $records->linked_hash(prefetch => 1),
             'currents',
