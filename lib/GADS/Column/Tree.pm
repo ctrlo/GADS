@@ -118,16 +118,13 @@ has original => (
 
 after build_values => sub {
     my ($self, $original) = @_;
-    trace "Entering after build_values";
     $self->table('Enum');
     $self->original($original);
     $self->end_node_only($original->{end_node_only});
-    trace "Exiting after build_values";
 };
 
 after 'write' => sub {
     my $self = shift;
-    trace "Entering write";
     my $newitem = { end_node_only => $self->end_node_only };
     $self->schema->resultset('Layout')->find($self->id)->update($newitem);
 };
@@ -141,7 +138,6 @@ sub cleanup
 
 after 'delete' => sub {
     my $self = shift;
-    trace "Leaving delete";
     $self->clear_enumvals;
     $self->_clear_enumvals_index;
 };
@@ -169,8 +165,6 @@ sub validate
 sub node
 {   my ($self, $id) = @_;
 
-    trace "Entering node";
-
     $id or return;
     {
         node  => $self->_nodes->{$id},
@@ -180,8 +174,6 @@ sub node
 
 sub _build__tree
 {   my $self = shift;
-
-    trace "Entering _build_tree";
 
     my $enumvals;
     my $tree; my @order;
@@ -226,8 +218,6 @@ sub _build__tree
 sub json
 {   my ($self, $selected) = @_;
 
-    trace "Entering json";
-
     my $stash = {
         tree => {
             text => "root"
@@ -269,8 +259,6 @@ sub json
 
 sub _delete_unused_nodes
 {   my ($self, %options) = @_;
-
-    trace "Entering _delete_unused_nodes";
 
     # Get all ones currently in database. This will be different to
     # the ones currently in _enumvals_index
@@ -346,8 +334,6 @@ sub _delete_unused_nodes
             }
         }
     }
-
-    trace "Exiting _delete_unused_nodes";
 }
 
 sub random
@@ -365,8 +351,6 @@ sub random
 sub update
 {   my ($self, $tree) = @_;
 
-    trace "Entering update";
-
     # Create a new hash ref with our new tree structure in. We'll copy
     # the new nodes into it as we go, and then compare it to the old
     # one after to know which ones to delete from the database
@@ -381,14 +365,10 @@ sub update
     $self->_set__enumvals_index($new_tree);
     $self->clear_enumvals; # Array shouldn't be used now, but clear in case
     $self->_delete_unused_nodes;
-
-    trace "Exiting update";
 }
 
 sub _update
 {   my ($self, $t, $new_tree) = @_;
-
-    trace "Entering _update";
 
     my $parent = $t->{parent} || '#';
     $parent = undef if $parent eq '#'; # Hash is top of tree (no parent)
