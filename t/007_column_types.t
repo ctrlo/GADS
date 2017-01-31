@@ -513,13 +513,18 @@ $ENV{GADS_PANIC_ON_ENTERING_CODE} = 1;
 my $calc_col = $columns->{calc1};
 my $rag_col  = $columns->{rag1};
 
-my @calcs   = qw/2000 2012/;
-my @calcs2  = qw/2012 2008/; # From default datasheet values for daterange1 (referenced from curval)
-my @rags    = qw/b_red c_amber/;
+my @calcs   = qw/2000 2012 2000/;
+my @calcs2  = qw/2012 2008 2012/; # From default datasheet values for daterange1 (referenced from curval)
+my @rags    = qw/b_red c_amber b_red/;
 my @results = @{$records->results};
 # Set env variables to allow record write (after retrieving results)
 $ENV{GADS_PANIC_ON_ENTERING_CODE} = 0;
 $ENV{GADS_NO_FORK} = 1;
+push @results, GADS::Record->new(
+    user   => $sheet->user,
+    layout => $layout,
+    schema => $schema,
+)->find_current_id(3);
 foreach my $record (@results)
 {
     my $calc  = shift @calcs;
@@ -539,6 +544,7 @@ foreach my $record (@results)
     $calc2 = '2008' . 'X' . $record->current_id;
     is( $record->fields->{$calc2_col->id}->as_string, $calc2, "Correct calc2 value for record after write" );
     is( $record->fields->{$rag_col->id}->as_string, 'd_green', "Correct rag value for record after write" );
+    is( $record->fields->{$calc_version->id}->as_string, 'User1', "Correct calc value for record version user after write" );
 }
 
 done_testing();
