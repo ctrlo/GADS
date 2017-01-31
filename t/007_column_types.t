@@ -69,6 +69,8 @@ my $sheet   = t::lib::DataSheet->new(
     multivalue       => 1,
     curval           => 2,
     curval_field_ids => [ $curval_sheet->columns->{string1}->id ],
+    calc_code        => "function evaluate (string1) \n return string1 \nend",
+    calc_return_type => 'string',
 );
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
@@ -171,15 +173,17 @@ $layout->clear;
 is( scalar @{$curval_filter->values}, 1, "Correct number of values for curval field with filter" );
 
 # Check that we can filter on a value in the record
-foreach my $test (qw/string1 enum1 multi negative nomatch invalid/)
+foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid/)
 {
-    my $field = $test =~ /(string1|enum1)/
+    my $field = $test =~ /(string1|enum1|calc1)/
         ? $test
         : $test =~ /(multi|negative)/
         ? 'enum1'
         : 'string1';
-    my $match = $test =~ /(string1|enum1|multi|negative)/ ? 1 : 0;
-    my $value = $match
+    my $match = $test =~ /(string1|enum1|calc1|multi|negative)/ ? 1 : 0;
+    my $value = $test eq 'calc1'
+        ? '$calc1'
+        : $match
         ? "\$$field"
         : $test eq 'nomatch'
         ? '$tree1'
@@ -209,6 +213,15 @@ foreach my $test (qw/string1 enum1 multi negative nomatch invalid/)
                 type     => 'string',
                 value    => $value,
                 operator => 'not_equal',
+            }],
+        }
+        : $test eq 'calc1'
+        ? {
+            rules => [{
+                id       => $curval_sheet->columns->{'string1'}->id,
+                type     => 'string',
+                value    => $value,
+                operator => 'equal',
             }],
         }
         : {
@@ -245,7 +258,8 @@ foreach my $test (qw/string1 enum1 multi negative nomatch invalid/)
     $record->find_current_id(4);
 
     # Hack to make it look like the dependent datums for the curval filter have been written to
-    my $datum = $record->fields->{$columns->{$field}->id};
+    my $written_field = $field eq 'calc1' ? 'string1' : $field;
+    my $datum = $record->fields->{$columns->{$written_field}->id};
     $datum->oldvalue($datum->clone);
     my $count = $test eq 'multi'
         ? 3
@@ -277,8 +291,10 @@ foreach my $test (qw/string1 enum1 multi negative nomatch invalid/)
         ok( !$record_new->fields->{$curval_filter->id}->ready_to_write, "Curval field $field with record filter not yet ready to write, test $test" );
         ok( !$record_new->fields->{$curval_filter->id}->show_for_write, "Curval field $field with record filter not yet shown for write, test $test" );
     }
-    ok( $record_new->fields->{$columns->{$field}->id}->ready_to_write, "Field $field is ready to write, test $test" );
-    ok( $record_new->fields->{$columns->{$field}->id}->show_for_write, "Field $field is shown for write, test $test" );
+    my $ready = $field eq 'calc1' ? 0 : 1;
+    is( $record_new->fields->{$columns->{$field}->id}->ready_to_write, $ready, "Field $field is ready to write, test $test" );
+    is( $record_new->fields->{$columns->{$field}->id}->show_for_write, $ready, "Field $field is shown for write, test $test" );
+    ok( !$record_new->fields->{$columns->{$field}->id}->written_to, "Field $field is written to, test $test" );
     # Write the required value and then check that it is now ready
     # Use the values from previous retrieved record - we know these are valid
     foreach my $f (qw/enum1 string1 tree1/)
@@ -286,6 +302,7 @@ foreach my $test (qw/string1 enum1 multi negative nomatch invalid/)
         my $col_id = $columns->{$f}->id;
         $record_new->fields->{$col_id}->set_value($record->fields->{$col_id}->value);
     }
+    ok( $record_new->fields->{$columns->{$field}->id}->written_to, "Field $field is written to, test $test" );
     $record_new->show_for_write_clear;
     ok( $record_new->fields->{$curval_filter->id}->ready_to_write, "Curval field $field with record filter is now ready to write, test $test" );
     ok( $record_new->fields->{$curval_filter->id}->show_for_write, "Curval field $field with record filter is now shown for write, test $test" );

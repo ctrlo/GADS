@@ -465,6 +465,7 @@ sub __build_columns
     $calc1->code($self->calc_code);
     $calc1->type('calc');
     $calc1->name('calc1');
+    $calc1->name_short('calc1');
     $calc1->return_type($self->calc_return_type);
     try { $calc1->write };
     if ($@)

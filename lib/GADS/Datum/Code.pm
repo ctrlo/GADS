@@ -83,6 +83,11 @@ sub ready_to_write
     return 1;
 }
 
+sub written_to
+{   my $self = shift;
+    $self->ready_to_write;
+}
+
 sub write_cache
 {   my ($self, $table) = @_;
 
