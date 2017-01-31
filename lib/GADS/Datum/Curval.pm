@@ -93,14 +93,19 @@ sub _build__record
     );
 }
 
-sub ready_to_write
-{   my $self = shift;
+around 'ready_to_write' => sub {
+    my $orig = shift;
+    my $self = shift;
+    # If the master sub returns 0, return that here
+    my $initial = $orig->($self, @_);
+    return 0 if !$initial;
+    # Otherwise continue tests
     foreach my $col (@{$self->column->filter->columns_in_subs($self->column->layout)})
     {
         return 0 if !$self->record->fields->{$col->id}->written_to;
     }
     return 1;
-}
+};
 
 has text => (
     is        => 'rwp',

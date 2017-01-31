@@ -122,7 +122,14 @@ has is_awaiting_approval => (
     default => 0,
 );
 
-sub ready_to_write { return 1 }
+sub ready_to_write
+{   my $self = shift;
+    if (my $col_id = $self->column->display_field)
+    {
+        return $self->record->fields->{$col_id}->ready_to_write;
+    }
+    return 1;
+}
 
 has show_for_write => (
     is      => 'rw',

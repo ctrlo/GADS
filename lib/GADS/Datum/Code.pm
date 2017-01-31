@@ -74,14 +74,19 @@ around 'clone' => sub {
     );
 };
 
-sub ready_to_write
-{   my $self = shift;
+around 'ready_to_write' => sub {
+    my $orig = shift;
+    my $self = shift;
+    # If the master sub returns 0, return that here
+    my $initial = $orig->($self, @_);
+    return 0 if !$initial;
+    # Otherwise continue tests
     foreach my $col ($self->column->param_columns)
     {
         return 0 if !$self->record->fields->{$col->id}->written_to;
     }
     return 1;
-}
+};
 
 sub written_to
 {   my $self = shift;
