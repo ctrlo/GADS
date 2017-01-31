@@ -28,6 +28,8 @@ sub convert_value
 {   my ($self, $in) = @_;
 
     my $value = $in->{return};
+    trace "Value into convert_value is: $value";
+
     my $return;
 
     if ($in->{error}) # Will have already been reported
@@ -54,6 +56,9 @@ sub convert_value
         # Not expected
         $return = 'e_purple';
     }
+
+    trace "Returning value from convert_value: $return";
+    $return;
 }
 
 sub write_value

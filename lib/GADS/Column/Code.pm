@@ -175,6 +175,8 @@ sub eval
     # Make sure we're not returning anything funky (e.g. code refs)
     my $ret = defined $return->{return} && ''.$return->{return};
     my $err = $return->{error} && ''.$return->{error};
+    no warnings "uninitialized";
+    trace "Return value from Lua: $ret, error: $err";
     +{
         return => $ret,
         error  => $err,

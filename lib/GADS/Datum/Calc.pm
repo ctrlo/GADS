@@ -67,6 +67,8 @@ sub convert_value
     my $column = $self->column;
 
     my $value = $in->{return};
+    trace "Value into convert_value is: $value";
+
     my $return;
 
     if ($in->{error}) # Will have already been reported
@@ -94,6 +96,9 @@ sub convert_value
     else {
         $return = $value;
     }
+
+    no warnings "uninitialized";
+    trace "Returning value from convert_value: $return";
 
     $return;
 }

@@ -173,8 +173,12 @@ sub _sub_filter_single
     }
     elsif ($single->{value} && $single->{value} =~ /^\$([_0-9a-z]+)$/i)
     {
-        my $col = $record->layout->column_by_name_short($1)
-            or return 1; # Not a failure, just no match
+        my $col = $record->layout->column_by_name_short($1);
+        if (!$col)
+        {
+            trace "No match for short name $1";
+            return 1; # Not a failure, just no match
+        }
         my $datum = $record->fields->{$col->id};
         $datum->written_to
             or return 0; # Failure: record not ready yet
@@ -205,6 +209,7 @@ sub _sub_filter_single
         else {
             $datum->re_evaluate if !$col->userinput;
             $single->{value} = $datum->as_string;
+            trace "Value subbed into rule: $single->{value}";
         }
     }
     return 1;
