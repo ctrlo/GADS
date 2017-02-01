@@ -630,21 +630,6 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
             $('#display_condition').click(function () {
                 $("#display_condition_div").toggle(400);
             });
-            $(document).on("click_save", "#submit", function() {
-                if( !$('#jstree_demo_div').length ) return true;
-                if( !$('#jstree_demo_div').is(":visible") ) return true;
-                var v =$("#jstree_demo_div").jstree(true).get_json('#', { 'flat': false });
-                var mytext = JSON.stringify(v);
-                $.ajax({
-                    async: false,
-                    type: "POST",
-                    url: "/tree/[% column.id %]",
-                    data: {'data': mytext }
-                }).done(function( data ) {
-                    alert( "Tree has been updated" );
-                });
-                return true;
-            });
             $('#jstree_demo_div').jstree({
                 "core" : {
                     "check_callback" : true,
@@ -693,8 +678,23 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
             [% END %]
 
             $('#submit_save').click(function() {
-                var current_builder = "#builder" + $('#refers_to_instance').val();
-                UpdateFilter($(current_builder));
+                if( $('#jstree_demo_div').length && $('#jstree_demo_div').is(":visible") ) {
+                    var v =$("#jstree_demo_div").jstree(true).get_json('#', { 'flat': false });
+                    var mytext = JSON.stringify(v);
+                    $.ajax({
+                        async: false,
+                        type: "POST",
+                        url: "/tree/[% column.id %]",
+                        data: {'data': mytext }
+                    }).done(function( data ) {
+                        alert( "Tree has been updated" );
+                    });
+                    return true;
+                } else if ($("#builder" + $('#refers_to_instance')).is(":visible")) {
+                    var current_builder = "#builder" + $('#refers_to_instance').val();
+                    UpdateFilter($(current_builder));
+                }
+                return true;
             });
             $('#type').change(function(){
                 $('#divenum').hide();
