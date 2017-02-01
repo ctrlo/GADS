@@ -681,6 +681,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
             [% END %]
 
             $('#submit_save').click(function() {
+                var current_builder = "#builder" + $('#refers_to_instance').val();
                 if( $('#jstree_demo_div').length && $('#jstree_demo_div').is(":visible") ) {
                     var v =$("#jstree_demo_div").jstree(true).get_json('#', { 'flat': false });
                     var mytext = JSON.stringify(v);
@@ -693,8 +694,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                         alert( "Tree has been updated" );
                     });
                     return true;
-                } else if ($("#builder" + $('#refers_to_instance')).is(":visible")) {
-                    var current_builder = "#builder" + $('#refers_to_instance').val();
+                } else if ($(current_builder).is(":visible")) {
                     UpdateFilter($(current_builder));
                 }
                 return true;
