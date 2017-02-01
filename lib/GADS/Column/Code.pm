@@ -29,6 +29,7 @@ use Inline 'Lua' => q{
         env["vars"] = vars
         env["pairs"] = pairs
         env["ipairs"] = ipairs
+        env["tonumber"] = tonumber
         env["os"] = { time = os.time, date = os.date }
         env["table"] = { sort = table.sort, insert = table.insert }
         func, err = load(string, nil, 't', env)
