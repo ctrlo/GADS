@@ -138,6 +138,10 @@ has show_for_write => (
     clearer => 1,
     builder => sub {
         my $self = shift;
+        if (my $col_id = $self->column->display_field)
+        {
+            return $self->record->fields->{$col_id}->show_for_write;
+        }
         $self->ready_to_write && !$self->written_to;
     },
 );
