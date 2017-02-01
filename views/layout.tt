@@ -231,6 +231,9 @@
                     <div class="form-group">
                         <label for="refers_to_instance">Instance to select from:</label>
                         <select class="form-control" id="refers_to_instance" name="refers_to_instance">
+                            [% IF NOT rti %]
+                                <option></option>
+                            [% END %]
                             [% FOREACH instance IN instance_layouts %]
                                 <option value="[% instance.instance.id %]" [% IF rti == instance.instance.id %]selected[% END %]>[% instance.instance.name | html_entity %]</option>
                             [% END %]
@@ -238,7 +241,7 @@
                     </div>
                     [% FOREACH instance IN instance_layouts %]
                         <div id="instance_fields_[% instance.instance.id %]" class="instance_fields"
-                            [% IF rti AND instance.instance.id != rti %]
+                            [% IF (rti AND instance.instance.id != rti) OR NOT rti %]
                                 style="display:none"
                             [% END %]
                             >
