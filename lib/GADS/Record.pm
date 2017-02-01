@@ -1173,22 +1173,15 @@ sub _field_write
             }
             elsif ($column->type =~ /(file|enum|tree|person|curval)/)
             {
-                if (ref $datum_write->id eq 'ARRAY')
+                if (!@{$datum_write->ids})
                 {
-                    if (!@{$datum_write->id})
-                    {
-                        push @entries, $entry; # No values, but still need to write null value
-                    }
-                    foreach my $id (@{$datum_write->id})
-                    {
-                        my %entry = %$entry; # Copy to stop referenced id being overwritten
-                        $entry{value} = $id;
-                        push @entries, \%entry;
-                    }
+                    push @entries, $entry; # No values, but still need to write null value
                 }
-                else {
-                    $entry->{value} = $datum_write->id;
-                    push @entries, $entry;
+                foreach my $id (@{$datum_write->ids})
+                {
+                    my %entry = %$entry; # Copy to stop referenced id being overwritten
+                    $entry{value} = $id;
+                    push @entries, \%entry;
                 }
             }
             elsif ($column->type eq 'string')

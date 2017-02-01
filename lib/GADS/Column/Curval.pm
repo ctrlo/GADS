@@ -65,6 +65,10 @@ has layout_parent => (
     is => 'lazy',
 );
 
+has '+can_multivalue' => (
+    default => 1,
+);
+
 # Tell the column that it needs to include all fields when selecting from
 # the sheet referred to. This can be called at any time, so we need to clear
 # existing properties such as joins which will then be reuilt
@@ -190,10 +194,11 @@ has values => (
 );
 
 sub _records_from_db
-{   my ($self, $id) = @_;
+{   my ($self, $ids) = @_;
 
+    # $ids is optional
     panic "Entering curval _build_values and PANIC_ON_CURVAL_BUILD_VALUES is true"
-        if !$id && $ENV{PANIC_ON_CURVAL_BUILD_VALUES};
+        if !$ids && $ENV{PANIC_ON_CURVAL_BUILD_VALUES};
 
     # Not the normal request layout
     my $layout = $self->layout_parent
@@ -202,14 +207,13 @@ sub _records_from_db
     my $view = $self->view
         or return; # record not ready yet for sub_values
 
-    my $current_ids = $id && [$id];
     my $records = GADS::Records->new(
         user        => undef,
         view        => $self->view,
         layout      => $layout,
         schema      => $self->schema,
         columns     => $self->curval_field_ids_retrieve,
-        current_ids => $current_ids,
+        current_ids => $ids,
         # Sort on all columns displayed as the Curval
         sort        => [ map { { id => $_ } } @{$self->curval_field_ids_retrieve} ],
     );
@@ -258,43 +262,63 @@ sub _build_values_index
 
 # Used to return a formatted value for a single datum. Normally called from a
 # Datum::Curval object
-sub value
-{   my ($self, $id) = @_;
-    my $row = $self->_get_row($id);
-    $self->_format_row($row);
+sub ids_to_values
+{   my ($self, $ids) = @_;
+    my $rows = $self->_get_rows($ids);
+    [ map { $self->_format_row($_) } @$rows ];
 }
 
-sub field_values
+sub all_field_values
 {   my ($self, %value) = @_;
     # If the column hasn't been built with all_columns, then we'll need to
     # retrieve all the columns (otherwise only the ones defined for display in
     # the record will be available).  The rows would normally only need to be
     # retrieved when a single record is being written.
-    !$value{id} && !$value{row} and return {};
-    my $row;
-    if ($value{id} || !$value{row}->column_flags->{$self->id}->{all_columns})
+    my $rows;
+    # See if any of the requested rows have not had all columns built
+    my $need_all = $value{rows}
+        && grep { !$_->column_flags->{$self->id}->{all_columns} } @{$value{rows}};
+    if ($value{ids} || $need_all)
     {
         $self->build_all_columns;
-        my $cid = $value{id} || $value{row}->current_id;
-        $row = $self->_get_row($cid);
+        my $cids = $value{ids} || [ map { $_->current_id } @{$value{rows}} ];
+        $rows = $self->_get_rows($cids);
     }
-    my %values = map {
-        $_->name_short => $row->has_record && $row->fields->{$_->id}->for_code
-    } grep {
+    elsif ($value{rows}) {
+        $rows = $value{rows}
+    }
+    else {
+        panic "Neither rows not ids passed to all_field_values";
+    }
+    my @retrieve_cols = grep {
         $_->name_short
     } @{$self->curval_fields_retrieve};
-    return \%values;
+    +{
+        map {
+            my $row = $_;
+            $row->current_id => {
+                map {
+                    $_->name_short => $row->has_record && $row->fields->{$_->id}->for_code
+                } @retrieve_cols
+            },
+        } @$rows
+    }
 }
 
-sub _get_row
-{   my ($self, $id) = @_;
-    $id or return;
-    return $self->values_index->{$id}
-        if $self->has_values_index; # Do not build unnecessarily (expensive)
-    my $records = $self->_records_from_db($id)
-        or return;
-    my ($row) = @{$records->results};
-    return $row;
+sub _get_rows
+{   my ($self, $ids) = @_;
+    @$ids or return;
+    my $return;
+    if ($self->has_values_index) # Do not build unnecessarily (expensive)
+    {
+        $return = [ map { $self->values_index->{$_} } @$ids ];
+    }
+    else {
+        $return = $self->_records_from_db($ids)->results;
+    }
+    error __x"Invalid Curval ID list {ids}", ids => "@$ids"
+        if @$return != @$ids;
+    $return;
 }
 
 # Use an around so that we can stick the whole lot in transaction

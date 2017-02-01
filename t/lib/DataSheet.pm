@@ -115,7 +115,8 @@ has column_count => (
     is      => 'ro',
     default => sub {
         +{
-            enum => 1,
+            enum   => 1,
+            curval => 1,
         }
     },
 );
@@ -399,32 +400,37 @@ sub __build_columns
     $person1->set_permissions($self->group->id, $permissions)
         unless $self->no_groups;
 
-    my $curval1;
+    my @curvals;
     if ($self->curval)
     {
-        $curval1 = GADS::Column::Curval->new(
-            schema     => $self->schema,
-            user       => undef,
-            layout     => $self->layout,
-            name_short => 'curval1',
-        );
-        my $refers_to_instance = $self->curval;
-        $curval1->refers_to_instance($refers_to_instance);
-        my $curval_field_ids_rs = $self->schema->resultset('Layout')->search({
-            instance_id => $refers_to_instance,
-        });
-        my $curval_field_ids = $self->curval_field_ids || [ map { $_->id } $curval_field_ids_rs->all ];
-        $curval1->curval_field_ids($curval_field_ids);
-        $curval1->type('curval');
-        $curval1->name('curval1');
-        try { $curval1->write };
-        if ($@)
+        foreach my $count (1..$self->column_count->{curval})
         {
-            $@->wasFatal->throw(is_fatal => 0);
-            return;
+            my $curval = GADS::Column::Curval->new(
+                schema     => $self->schema,
+                user       => undef,
+                layout     => $self->layout,
+                name_short => "curval$count",
+            );
+            my $refers_to_instance = $self->curval;
+            $curval->refers_to_instance($refers_to_instance);
+            my $curval_field_ids_rs = $self->schema->resultset('Layout')->search({
+                instance_id => $refers_to_instance,
+            });
+            my $curval_field_ids = $self->curval_field_ids || [ map { $_->id } $curval_field_ids_rs->all ];
+            $curval->curval_field_ids($curval_field_ids);
+            $curval->type('curval');
+            $curval->name("curval$count");
+            $curval->multivalue(1) if $self->multivalue;
+            try { $curval->write };
+            if ($@)
+            {
+                $@->wasFatal->throw(is_fatal => 0);
+                return;
+            }
+            $curval->set_permissions($self->group->id, $permissions)
+                unless $self->no_groups;
+            push @curvals, $curval;
         }
-        $curval1->set_permissions($self->group->id, $permissions)
-            unless $self->no_groups;
     }
 
     my $rag1 = GADS::Column::Rag->new(
@@ -487,12 +493,10 @@ sub __build_columns
     $columns->{string1}    = $layout->column($string1->id);
     $columns->{integer1}   = $layout->column($integer1->id);
     $columns->{$_->name}   = $layout->column($_->id)
-        foreach @enums;
+        foreach (@enums, @curvals);
     $columns->{tree1}      = $layout->column($tree1->id);
     $columns->{date1}      = $layout->column($date1->id);
     $columns->{daterange1} = $layout->column($daterange1->id);
-    $columns->{curval1}    = $layout->column($curval1->id)
-        if $curval1;
     $columns->{calc1}      = $layout->column($calc1->id);
     $columns->{rag1}       = $layout->column($rag1->id);
     $columns->{file1}      = $layout->column($file1->id);
@@ -536,8 +540,11 @@ sub create_records
             $record->fields->{$columns->{person1}->id}->set_value($user);
         }
         $record->fields->{$columns->{person1}->id}->set_value($datum->{person1});
-        $record->fields->{$columns->{curval1}->id}->set_value($datum->{curval1})
-            if $columns->{curval1};
+        if ($columns->{curval1})
+        {
+            $record->fields->{$columns->{"curval$_"}->id}->set_value($datum->{"curval$_"})
+                foreach 1..$self->column_count->{curval};
+        }
         # Only set file data if exists in data. Add random data if nothing specified
 
         if (exists $datum->{file1})

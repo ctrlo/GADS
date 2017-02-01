@@ -62,8 +62,8 @@ has value => (
     },
 );
 
-around blank => sub
-{   my ($orig, $self) = @_;
+sub blank
+{   my $self = shift;
     $self->value ? 0 : 1;
 };
 

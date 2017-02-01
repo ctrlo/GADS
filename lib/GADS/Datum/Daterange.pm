@@ -64,8 +64,8 @@ has value => (
     },
 );
 
-around blank => sub {
-    my ($orig, $self) = @_;
+sub blank
+{   my $self = shift;
     $self->from_dt && $self->to_dt ? 0 : 1;
 };
 

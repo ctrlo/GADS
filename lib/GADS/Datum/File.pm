@@ -64,6 +64,10 @@ has id => (
     builder => sub { $_[0]->value_hash && $_[0]->value_hash->{id} },
 );
 
+sub ids { [ $_[0]->id ] }
+
+sub _build_blank { $_[0]->id ? 0 : 1 }
+
 has has_id => (
     is  => 'rw',
     isa => Bool,

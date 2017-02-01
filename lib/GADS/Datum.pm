@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Datum;
 
 use HTML::Entities;
+use Log::Report;
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
 use namespace::clean;
@@ -75,11 +76,8 @@ has blank => (
     isa     => Bool,
     lazy    => 1,
     builder => 1,
+    clearer => 1,
 );
-
-sub _build_blank {
-    (grep { $_ } @{$_[0]->values}) ? 0 : 1;
-}
 
 # Used to seed the value from the database
 has init_value => (
@@ -103,6 +101,7 @@ has has_value => (
 
 sub values
 {   my $self = shift;
+    panic "values() is now deprecated";
     my @values = ref $self->value eq 'ARRAY' ? @{$self->value} : ($self->value);
     # If a normal array is used (not array ref) then TT does not iterate over
     # the values properly if the only value is a "0"
@@ -153,7 +152,7 @@ sub html
 
 sub html_form
 {   my $self = shift;
-    $self->values;
+    [ $self->value ];
 }
 
 # Overridden where applicable

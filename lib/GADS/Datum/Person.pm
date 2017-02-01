@@ -194,7 +194,11 @@ has has_id => (
     isa => Bool,
 );
 
+sub ids { [ $_[0]->id ] }
+
 sub value { $_[0]->id }
+
+sub _build_blank { $_[0]->id ? 0 : 1 }
 
 # Make up for missing predicated value property
 sub has_value { $_[0]->has_id }

@@ -24,73 +24,90 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Datum';
 
-has set_value => (
-    is       => 'rw',
-    predicate => 1,
-    trigger  => sub {
-        my ($self, $value) = @_;
-        my $clone = $self->clone; # Copy before changing text
-        ($value) = @$value if ref $value eq 'ARRAY';
-        $value = undef if !$value; # Can be empty string, generating warnings
-        $self->column->validate($value, fatal => 1);
-        $self->changed(1) if (!defined($self->id) && defined $value)
-            || (!defined($value) && defined $self->id)
-            || (defined $self->id && defined $value && $self->id != $value);
-        if ($self->changed)
-        {
-            # Need to clear initial values, to ensure new value is built from this new ID
-            $self->clear_text;
-            $self->clear_init_value;
-            $self->clear_value_hash;
-        }
-        $self->id($value);
-        $self->oldvalue($clone);
-    },
-);
+sub set_value
+{   my ($self, $value) = @_;
+    my $clone = $self->clone; # Copy before changing text
+    my @values = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
+    grep {
+        $_ !~ /^[0-9]+$/;
+    } @values and panic "Invalid value for ID";
+    my @old     = sort @{$self->ids};
+    my $changed = "@values" ne "@old";
+    if ($changed)
+    {
+        $self->changed(1);
+        $self->_set_ids(\@values);
+        # Need to clear initial values, to ensure new value is built from this new ID
+        $self->_clear_text_all;
+        $self->_clear_text_hash;
+        $self->clear_text;
+        $self->clear_init_value;
+        $self->_clear_init_value_hash;
+        $self->_clear_records;
+        $self->clear_blank;
+    }
+    $self->oldvalue($clone);
+}
 
-has value_hash => (
-    is      => 'ro',
-    lazy    => 1,
-    clearer => 1, # Clear when new value written
-    builder => sub {
-        my $self = shift;
-        $self->has_init_value or return;
-        my $value = $self->init_value->[0]->{value};
-        my ($id, $text);
-        # From database, with enumval table joined
-        if (ref $value eq 'HASH')
-        {
-            $id = $value->{id};
-        }
-        else {
-            return;
-        }
-        $self->has_id(1) if defined $id || $self->init_no_value;
-        +{
-            id   => $id,
-            text => $text,
-        };
-    },
-);
-
-has _record => (
+# Hash with various values built from init_value. Used to populate
+# specific value properties
+has _init_value_hash => (
     is      => 'lazy',
+    isa     => HashRef,
     clearer => 1,
 );
 
-sub _build__record
+sub _build__init_value_hash
 {   my $self = shift;
-    $self->has_init_value or return;
-    my $value = $self->init_value->[0]->{value};
-    GADS::Record->new(
-        schema               => $self->column->schema,
-        layout               => $self->column->layout_parent,
-        user                 => undef,
-        record               => $value->{record_single},
-        linked_id            => $value->{linked_id},
-        parent_id            => $value->{parent_id},
-        columns_retrieved_do => $self->column->curval_fields_retrieve,
-    );
+    if ($self->has_init_value) # May have been cleared after write
+    {
+        # initial value can either include whole record or just be ID. Assume
+        # that they will be all one or the other
+        my (@ids, @records);
+        foreach my $v (@{$self->init_value})
+        {
+            my $value = $v->{value};
+            if (ref $value)
+            {
+                push @records, GADS::Record->new(
+                    schema               => $self->column->schema,
+                    layout               => $self->column->layout_parent,
+                    user                 => undef,
+                    record               => $value->{record_single},
+                    linked_id            => $value->{linked_id},
+                    parent_id            => $value->{parent_id},
+                    columns_retrieved_do => $self->column->curval_fields_retrieve,
+                );
+                push @ids, $value->{record_single}->{current_id};
+            }
+            else {
+                push @ids, $value if !ref $value && defined $value; # Just ID
+            }
+        }
+        +{
+            records => \@records,
+            ids     => \@ids,
+        };
+    }
+    else {
+        +{};
+    }
+}
+
+has _records => (
+    is      => 'lazy',
+    isa     => Maybe[ArrayRef],
+    clearer => 1,
+);
+
+sub _build__records
+{   my $self = shift;
+    $self->_init_value_hash->{records};
+}
+
+sub _build_blank
+{   my $self = shift;
+    @{$self->ids} ? 0 : 1;
 }
 
 around 'ready_to_write' => sub {
@@ -118,55 +135,76 @@ has text => (
 
 sub _build_text
 {   my $self = shift;
-    $self->id or return '';
-    if ($self->_record)
-    {
-        my $record = $self->_record;
-        return $self->column->_format_row($record)->{value};
-    }
-    my $v = $self->column->value($self->id);
-    defined $v or error __x"Invalid Curval ID {id}", id => $self->id;
-    $v->{value};
+    join '; ', map { $_->{value} } @{$self->_text_all};
 }
 
-has id => (
+# Internal text, array ref of all individual text values
+has _text_all => (
     is        => 'rw',
-    isa       => Maybe[Int],
+    isa       => ArrayRef,
     lazy      => 1,
-    trigger   => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
+    clearer   => 1,
+    predicate => 1,
     builder   => sub {
         my $self = shift;
-        $self->has_init_value or return;
-        my $id = $self->init_value->[0]->{value}->{id};
-        $self->has_id(1) if defined $id || $self->init_no_value;
-        return $id;
+        if ($self->_records)
+        {
+            return [ map { $self->column->_format_row($_) } @{$self->_records} ];
+        }
+        else {
+            return $self->column->ids_to_values($self->ids, fatal => 1);
+        }
+    }
+);
+
+has _text_hash => (
+    is      => 'lazy',
+    isa     => HashRef,
+    clearer => 1,
+);
+
+sub _build__text_hash
+{   my $self = shift;
+    +{
+        map { $_->{id} => $_->{value} } @{$self->_text_all}
+    };
+}
+
+has id_hash => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_id_hash
+{   my $self = shift;
+    +{ map { $_ => 1 } @{$self->ids} };
+}
+
+has ids => (
+    is      => 'rwp',
+    isa     => Maybe[ArrayRef],
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->_init_value_hash->{ids} || [];
     },
 );
 
-has has_id => (
-    is  => 'rw',
-    isa => Bool,
-);
-
-has built_with_all => (
-    is      => 'rwp',
-    isa     => Bool,
-    default => 0,
-);
-
-sub value { $_[0]->id }
-
-# Make up for missing predicated value property
-sub has_value { $_[0]->has_id }
+sub id
+{   my $self = shift;
+    $self->column->multivalue
+        and panic "Cannot return single id value for multivalue field";
+    $self->ids->[0];
+}
 
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
     # Only pass text in if it's already been built
     my %params = (
-        id => $self->id,
+        ids => $self->ids,
     );
-    $params{text} = $self->text if $self->has_text;
+    $params{_text_all}  = $self->_text_all if $self->_has_text_all;
     $params{init_value} = $self->init_value if $self->has_init_value;
     $orig->($self, %params);
 };
@@ -181,24 +219,41 @@ sub as_integer
     $self->id // 0;
 }
 
+sub html_form
+{   my $self = shift;
+    $self->ids;
+}
+
 sub html_withlinks
 {   my $self = shift;
-    my $string = $self->as_string
-        or return "";
-    my $link = "/record/".$self->id."?oi=".$self->column->refers_to_instance;
-    qq(<a href="$link">$string</a>);
+    $self->as_string or return "";
+    my @return;
+    foreach my $id (keys %{$self->_text_all})
+    {
+        my $string = $self->_text_all->{$id};
+        my $link = "/record/$id?oi=".$self->column->refers_to_instance;
+        push @return, qq(<a href="$link">$string</a>);
+    }
+    join '; ', @return;
 }
 
 sub for_code
 {   my ($self, %options) = @_;
-    my %value = $self->_record ? (row => $self->_record) : (id => $self->id);
-    my $field_values = $self->column->field_values(%value);
-    my $record = $self->_record;
-    +{
-        value        => $self->as_string,
-        field_values => $field_values,
-    };
 
+    # Get all field data in one chunk
+    my $field_values = $self->_records
+        ? $self->column->all_field_values(rows => $self->_records)
+        : $self->column->all_field_values(ids => $self->ids);
+
+    my @values = map {
+        +{
+            id           => $_,
+            value        => $self->_text_hash->{$_},
+            field_values => $field_values->{$_},
+        }
+    } (@{$self->ids});
+
+    $self->column->multivalue ? \@values : $values[0];
 }
 
 1;

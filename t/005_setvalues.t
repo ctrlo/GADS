@@ -142,10 +142,16 @@ foreach my $multivalue (0..1)
         is( $record_new->fields->{$col->id}->as_string, '', 'New record $type is empty string' );
         if ($col->multivalue)
         {
-            is_deeply( $record_new->fields->{$col->id}->value, [], 'Multivalue of new record $type is empty array' );
+            is_deeply( $record_new->fields->{$col->id}->value, [], 'Multivalue of new record $type is empty array' )
+                if $record_new->fields->{$col->id}->can('value');
+            is_deeply( $record_new->fields->{$col->id}->ids, [], 'Multivalue of new record $type is empty array' )
+                if $record_new->fields->{$col->id}->can('ids');
         }
         else {
-            is( $record_new->fields->{$col->id}->value, undef, 'Value of new record $type is undef' );
+            is( $record_new->fields->{$col->id}->value, undef, 'Value of new record $type is undef' )
+                if $record_new->fields->{$col->id}->can('value');
+            is( $record_new->fields->{$col->id}->id, undef, 'ID of new record $type is undef' )
+                if $record_new->fields->{$col->id}->can('id');
         }
         # Check that id_hash can be generated correctly
         is( ref $record_new->fields->{$col->id}->id_hash, 'HASH', '$type has id_hash' )
@@ -222,7 +228,7 @@ foreach my $multivalue (0..1)
                     ok( $datum->oldvalue && $datum->oldvalue->blank, "$type was blank$is_multi" );
                 }
                 my $new_as_string = $values->{$type}->{new_as_string};
-                is( $datum->as_string, $new_as_string, "$type is $new_as_string$is_multi" );
+                is( $datum->as_string, $new_as_string, "$type is $new_as_string$is_multi for test $test" );
                 # Check that setting a blank value works
                 if ($test eq 'blank')
                 {

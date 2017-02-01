@@ -83,14 +83,8 @@ has id => (
     },
     lazy    => 1,
     trigger => sub {
-        my ($self, $new) = @_;
-        if ($self->column->multivalue)
-        {
-            $self->blank(@$new == 0 ? 1 : 0);
-        }
-        else {
-            $self->blank(defined $new ? 0 : 1);
-        }
+        my $self = shift;
+        $self->clear_blank;
     },
     builder => sub {
         my $self = shift;
@@ -99,6 +93,22 @@ has id => (
             : $self->value_hash->{ids}->[0];
     },
 );
+
+sub ids {
+    my $self = shift;
+    $self->column->multivalue ? $self->id : [ $self->id ];
+}
+
+sub _build_blank
+{   my $self = shift;
+    if ($self->column->multivalue)
+    {
+        @{$self->id} == 0 ? 1 : 0;
+    }
+    else {
+        defined $self->id ? 0 : 1;
+    }
+}
 
 has value_hash => (
     is      => 'rw',
@@ -138,6 +148,11 @@ sub value { $_[0]->id }
 
 # Make up for missing predicated value property
 sub has_value { $_[0]->has_id }
+
+sub html_form
+{   my $self = shift;
+    $self->column->multivalue ? $self->id : [ $self->id ];
+}
 
 around 'clone' => sub {
     my $orig = shift;

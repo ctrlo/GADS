@@ -16,31 +16,44 @@ $ENV{GADS_NO_FORK} = 1;
 my $data = [
     {
         string1 => 'Foo',
-        enum1   => 1,
-        enum2   => 4,
-        tree1   => 7,
+        enum1   => 7,
+        enum2   => 10,
+        tree1   => 13,
+        curval1 => 1,
+        curval2 => 2,
     },
     {
         string1 => 'Bar',
-        enum1   => 2,
-        enum2   => 5,
-        tree1   => 8,
+        enum1   => 8,
+        enum2   => 11,
+        tree1   => 14,
+        curval1 => 1,
+        curval2 => 2,
     },
     {
         string1 => 'FooBar',
-        enum1   => 3,
-        enum2   => 6,
-        tree1   => 9,
+        enum1   => 9,
+        enum2   => 12,
+        tree1   => 15,
+        curval1 => 1,
+        curval2 => 2,
     },
 ];
 
+my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+$curval_sheet->create_records;
+my $schema  = $curval_sheet->schema;
+
 my $sheet   = t::lib::DataSheet->new(
     data             => $data,
+    schema           => $schema,
+    curval           => 2,
     column_count     => {
-        enum => 2,
+        enum   => 2,
+        curval => 2,
     },
     calc_code        => "
-        function evaluate (enum1)
+        function evaluate (enum1, curval1)
             values = {}
             for k, v in pairs(enum1.values) do table.insert(values, v) end
             table.sort(values)
@@ -48,22 +61,30 @@ my $sheet   = t::lib::DataSheet->new(
             for i,v in ipairs(values) do
                 text = text .. v
             end
+            for i,v in ipairs(curval1) do
+                text = text .. v.field_values.string1
+            end
             return text
         end
     ",
     calc_return_type => 'string',
 );
-my $schema  = $sheet->schema;
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
-my $enum1 = $columns->{enum1};
-my $enum2 = $columns->{enum2};
-my $tree  = $columns->{tree1};
-my $calc  = $columns->{calc1};
+my $enum1   = $columns->{enum1};
+my $enum2   = $columns->{enum2};
+my $curval1 = $columns->{curval1};
+my $curval2 = $columns->{curval2};
+my $tree    = $columns->{tree1};
+my $calc    = $columns->{calc1};
 $enum1->multivalue(1);
 $enum1->write;
 $enum2->multivalue(1);
 $enum2->write;
+$curval1->multivalue(1);
+$curval1->write;
+$curval2->multivalue(1);
+$curval2->write;
 $sheet->create_records;
 
 my $record = GADS::Record->new(
@@ -76,13 +97,16 @@ my @tests = (
     {
         name      => 'Write 2 values',
         write     => {
-            enum1 => [1, 2],
+            enum1   => [7, 8],
+            curval1 => [1, 2],
         },
         as_string => {
-            enum1 => 'foo1, foo2',
-            enum2 => 'foo1',
-            tree1 => 'tree1',
-            calc1 => 'foo1foo2',
+            enum1   => 'foo1, foo2',
+            enum2   => 'foo1',
+            curval1 => 'Foo, 50, , , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012; Bar, 99, , , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+            curval2 => 'Bar, 99, , , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+            tree1   => 'tree1',
+            calc1   => 'foo1foo2FooBar', # 2x enum values then 2x string values from curval
         },
         search    => 'foo2',
         count     => 2,
@@ -91,7 +115,7 @@ my @tests = (
 
 foreach my $test (@tests)
 {
-    $record->find_current_id(1);
+    $record->find_current_id(3);
     foreach my $type (keys %{$test->{write}})
     {
         my $col = $columns->{$type};
@@ -99,7 +123,7 @@ foreach my $test (@tests)
     }
     $record->write;
     $record->clear;
-    $record->find_current_id(1);
+    $record->find_current_id(3);
     foreach my $type (keys %{$test->{as_string}})
     {
         my $col = $columns->{$type};
