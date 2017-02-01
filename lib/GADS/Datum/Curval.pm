@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Datum::Curval;
 
+use HTML::Entities qw/encode_entities/;
 use Log::Report;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
@@ -228,10 +229,10 @@ sub html_withlinks
 {   my $self = shift;
     $self->as_string or return "";
     my @return;
-    foreach my $id (keys %{$self->_text_all})
+    foreach my $v (@{$self->_text_all})
     {
-        my $string = $self->_text_all->{$id};
-        my $link = "/record/$id?oi=".$self->column->refers_to_instance;
+        my $string = encode_entities $v->{value};
+        my $link = "/record/$v->{id}?oi=".$self->column->refers_to_instance;
         push @return, qq(<a href="$link">$string</a>);
     }
     join '; ', @return;
