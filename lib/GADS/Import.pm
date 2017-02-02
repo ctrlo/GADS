@@ -411,7 +411,7 @@ sub _import_rows
                 {
                     $input->{$col->id} = [$1,$3];
                 }
-                else {
+                elsif ($value) {
                     push @bad, __x"Invalid daterange value '{value}' for '{colname}'",
                         value => $value, colname => $col->name;
                 }
