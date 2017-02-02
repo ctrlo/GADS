@@ -174,8 +174,11 @@ sub as_integer
 
 sub for_code
 {   my ($self, %options) = @_;
-    return $self->as_string
-        unless $self->column->multivalue;
+    if (!$self->column->multivalue)
+    {
+        return undef if $self->blank;
+        return $self->as_string;
+    }
     my %values;
     @values{@{$self->id}} = @{$self->text_all};
     +{

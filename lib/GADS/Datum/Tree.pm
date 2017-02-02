@@ -153,7 +153,7 @@ sub as_integer
 sub for_code
 {   my $self = shift;
     my $return = {
-        value   => $self->as_string,
+        value   => $self->blank ? undef : $self->as_string,
         parents => {},
     };
     my $id = $self->id;
