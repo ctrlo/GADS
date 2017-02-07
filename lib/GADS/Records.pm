@@ -424,7 +424,9 @@ sub search_all_fields
         # These aren't really needed for current_id, but no harm
         my $plural      = $field->{plural};
         my $value_field = $field->{value_field} || 'value';
-        my $s           = $field->{sub} ? "value.$value_field" : "$plural.$value_field";
+        # Need to get correct "value" number for search, in case it's been incremented through limit_to_view
+        my $s           = $field->{sub} ? $self->value_next_join(search => 1).".$value_field" : "$plural.$value_field";
+
         my $joins       = $field->{type} eq 'current_id'
                         ? undef
                         : $field->{sub}

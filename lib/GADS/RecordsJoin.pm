@@ -226,6 +226,22 @@ sub _find
     }
 }
 
+# Get the next join by the name of "value"
+sub value_next_join
+{   my ($self, %options) = @_;
+    my $count = 1;
+    foreach my $j ($self->_jpfetch(%options))
+    {
+        if (ref $j->{join})
+        {
+            my ($val) = values %{$j->{join}};
+            $count++ if $val eq 'value';
+        }
+    }
+    my $id = $count == 1 ? '' : "_$count";
+    "value$id";
+}
+
 # Return a fully-qualified value field for a table
 sub fqvalue
 {   my ($self, $column, %options) = @_;

@@ -324,8 +324,8 @@ my $rules = GADS::Filter->new(
         rules     => [{
             id       => $columns->{date1}->id,
             type     => 'date',
-            value    => '2015-01-01',
-            operator => 'greater',
+            value    => '2014-10-10',
+            operator => 'equal',
         }],
     },
 );
@@ -374,7 +374,30 @@ is ($records->count, 1, 'Correct number of results when limiting to a view');
 
 # Quick searches
 # First with limited view still defined
-is (@{$records->search_all_fields('2014-10-10')}, 0, 'Correct number of quick search results when limiting to a view');
+is (@{$records->search_all_fields('Foobar')}, 0, 'Correct number of quick search results when limiting to a view');
+
+# Same again but limited by enumval
+$limit_to_view->filter(GADS::Filter->new(
+    as_hash => {
+        rules     => [{
+            id       => $columns->{enum1}->id,
+            type     => 'string',
+            value    => 'foo2',
+            operator => 'equal',
+        }],
+    },
+));
+$limit_to_view->write;
+$records = GADS::Records->new(
+    user    => {
+        limit_to_view => $limit_to_view->id,
+    },
+    layout  => $layout,
+    schema  => $schema,
+);
+is ($records->count, 2, 'Correct number of results when limiting to a view with enumval');
+is (@{$records->search_all_fields('2014-10-10')}, 1, 'Correct number of quick search results when limiting to a view with enumval');
+
 # Now normal
 $records = GADS::Records->new(
     user    => undef,
