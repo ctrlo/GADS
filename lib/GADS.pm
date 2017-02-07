@@ -2028,6 +2028,20 @@ any '/audit/?' => require_role audit => sub {
     my $audit = GADS::Audit->new(schema => schema);
     my $users = GADS::Users->new(schema => schema, config => config);
 
+    if (param 'audit_filtering')
+    {
+        session 'audit_filtering' => {
+            method => param('method'),
+            type   => param('type'),
+            user   => param('user'),
+            from   => param('from'),
+            to     => param('to'),
+        }
+    }
+
+    $audit->filtering(session 'audit_filtering')
+        if session 'audit_filtering';
+
     if (defined param 'download')
     {
         my $csv = $audit->csv;
@@ -2045,20 +2059,6 @@ any '/audit/?' => require_role audit => sub {
         utf8::encode($csv);
         return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
     }
-
-    if (param 'audit_filtering')
-    {
-        session 'audit_filtering' => {
-            method => param('method'),
-            type   => param('type'),
-            user   => param('user'),
-            from   => param('from'),
-            to     => param('to'),
-        }
-    }
-
-    $audit->filtering(session 'audit_filtering')
-        if session 'audit_filtering';
 
     template 'audit' => {
         logs        => $audit->logs(session 'audit_filtering'),
