@@ -1801,6 +1801,93 @@ post '/edits' => require_login sub {
     }
 };
 
+any '/bulk/?' => require_login sub {
+
+    my $user   = logged_in_user;
+    my $layout = var 'layout';
+    my $view   = current_view($user, $layout);
+
+    # The records to update
+    my $records = GADS::Records->new(
+        view   => $view,
+        schema => schema,
+        user   => $user,
+        layout => $layout,
+    );
+
+    # The dummy record to test for updates
+    my $record = GADS::Record->new(
+        user     => $user,
+        layout   => $layout,
+        schema   => schema,
+        base_url => request->base,
+    );
+    $record->initialise;
+
+    # Files not supported at this time
+    my @columns_to_show = grep { $_->type ne 'file' } $layout->all(user_can_write_new => 1);
+
+    if (param 'submit')
+    {
+        # See which ones to update
+        my $failed; my @updated;
+        foreach my $col (@columns_to_show)
+        {
+            next unless defined body_parameters->get($col->field);
+            my $newv = [body_parameters->get_all($col->field)];
+            if (defined $newv)
+            {
+                my $datum = $record->fields->{$col->id};
+                $failed = !process( sub { $datum->set_value($newv) } ) || $failed;
+                push @updated, $col->id
+                    if !$datum->blank;
+            }
+        }
+        if (!$failed)
+        {
+            my ($success, $failures);
+            while (my $record_update = $records->single)
+            {
+                foreach my $col_id (@updated)
+                {
+                    $record_update->fields->{$col_id}->set_value($record->fields->{$col_id}->html_form);
+                    # Use force_mandatory to skip "was previously blank" warnings. No
+                    # records will actually be made blank, as we wouldn't write otherwise
+                    if (process( sub { $record_update->write(force_mandatory => 1) } )) { $success++ } else { $failures++ };
+                }
+            }
+            if ($success && !$failures)
+            {
+                return forwardHome(
+                    { success => 'All records have been updated successfully' }, 'data' );
+            }
+            else # Failures, back round the buoy
+            {
+                my $s = __xn"1 record was updated successfully", "{_count} records were updated successfully", $success;
+                my $f = __xn", 1 record failed to be updated", "{_count} records failed to be updated", $failures;
+                mistake $s,$f;
+            }
+        }
+    }
+
+    my $view_name = $view ? $view->name : 'All data';
+
+    # Get number of records in view for sanity check for user
+    my $count = $records->count;
+    my $count_msg = __xn", which contains 1 record.", ", which contains {_count} records.", $count;
+    my $notice = __x qq(Use this page to update all records in the currently selected view.
+        Fields without a value entered will retain their existing value.
+        The current view is "{view}"), view => $view_name;
+    notice $notice.$count_msg;
+
+    template 'edit' => {
+        view        => $view,
+        record      => $record,
+        all_columns => \@columns_to_show,
+        page        => 'bulk'
+    };
+};
+
 any '/edit/:id?' => require_login sub {
     my $id = param 'id';
 

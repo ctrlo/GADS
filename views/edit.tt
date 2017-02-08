@@ -1,5 +1,7 @@
 <h2>
-    [% IF record.current_id %]
+    [% IF page == "bulk" %]
+        Bulk update
+    [% ELSIF record.current_id %]
         Record ID [% record.current_id %]
         [% IF record.parent_id %]
             <small>(child of record [% record.parent_id %])</small>

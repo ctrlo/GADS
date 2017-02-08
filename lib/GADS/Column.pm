@@ -694,6 +694,7 @@ sub user_can
 {   my ($self, $permission) = @_;
     return 1 if $self->user_permission_override;
     return 1 if $self->internal && $permission eq 'read';
+    return 0 if !$self->userinput && $permission ne 'read'; # Can't write to code fields
     return 1 if grep { $_ eq $permission } @{$self->user_permissions};
     if ($permission eq 'write') # shortcut
     {

@@ -67,21 +67,25 @@
                         [% END %]
                     </ul>
                 </div>
-                [% IF user_can_create %]
-                    <div class="btn-group">
-                        <a href="/edit/" class="btn btn-default" role="button">New record</a>
-                    </div>
-                [% END %]
-                [% IF user.permission.link AND show_link %]
-                    <div class="btn-group">
-                        <a href="/link/" class="btn btn-default" role="button">New linked record</a>
-                    </div>
-                [% END %]
-                [% IF viewtype == "table" AND records.size AND user.permission.download %]
-                    <div class="btn-group">
-                        <a href="/data?download" class="btn btn-default" role="button">Download</a>
-                    </div>
-                [% END %]
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                            Action <span class="caret"></span>
+                    </button>
+                    <ul id="menu_action" class="dropdown-menu" role="menu" aria-labelledby="drop_action">
+                        [% IF user_can_create %]
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/edit/">New record</a></li>
+                        [% END %]
+                        [% IF user.permission.link AND show_link %]
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/link/">New linked record</a></li>
+                        [% END %]
+                        [% IF user.permission.bulk_update %]
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/">Update all records...</a></li>
+                        [% END %]
+                        [% IF viewtype == "table" AND records.size AND user.permission.download %]
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?download">Download</a></li>
+                        [% END %]
+                    </ul>
+                </div>
                 [% IF viewtype == "timeline" %]
                     <div class="btn-group">
                         <a class="btn btn-default" data-toggle="modal" data-target="#modal_timeline" role="button">Timeline options...</a>

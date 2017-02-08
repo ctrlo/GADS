@@ -3,5 +3,5 @@ $HASH1 = {
                   => 'User can access audit data',
            id     => 10,
            name   => 'audit',
-           order  => 10
+           order  => 11
          };

@@ -3,5 +3,5 @@ $HASH1 = {
                   => 'User can link records between data sets',
            id     => 9,
            name   => 'link',
-           order  => 9
+           order  => 10
          };
