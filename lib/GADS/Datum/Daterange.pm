@@ -163,8 +163,8 @@ sub html_form
 {   my $self = shift;
     my $format = $self->column->dateformat;
     [
-        $self->value->start->format_cldr($format),
-        $self->value->end->format($format),
+        $self->from_form,
+        $self->to_form,
     ];
 }
 
