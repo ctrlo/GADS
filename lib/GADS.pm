@@ -1763,16 +1763,29 @@ post '/edits' => require_login sub {
 
         $record->find_current_id($values->{current_id});
         $layout = $record->layout; # May have changed if record from other datasheet
-        my $to_write = $layout->column($values->{column})->type eq 'date'
-            ? $values->{from}
-            : {
+        if ($layout->column($values->{column})->type eq 'date')
+        {
+            my $to_write = $values->{from};
+            unless (process sub { $record->fields->{ $values->{column} }->set_value($to_write) })
+            {
+                $failed = 1;
+                next;
+            }
+        }
+        else {
+            # daterange
+            my $to_write = {
                 from    => $values->{from},
                 to      => $values->{to},
             };
-        unless (process sub { $record->fields->{ $values->{column} }->set_value($to_write) })
-        {
-            $failed = 1;
-            next;
+            # The end date as reported by the timeline will be a day later than
+            # expected (it will be midnight the following day instead.
+            # Therefore subtract one day from it
+            unless (process sub { $record->fields->{ $values->{column} }->set_value($to_write, subtract_days_end => 1) })
+            {
+                $failed = 1;
+                next;
+            }
         }
 
         process sub { $record->write }

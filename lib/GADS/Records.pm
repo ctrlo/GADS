@@ -1310,7 +1310,8 @@ sub data_time
                 };
                 $item->{style} = qq(background-color: $item_color)
                     if $item_color;
-                $item->{end} = $d->{to}->ymd
+                # Add one day, otherwise ends at 00:00:00, looking like day is not included
+                $item->{end} = $d->{to}->clone->add( days => 1 )->ymd
                     if $d->{from}->epoch != $d->{to}->epoch;
                 push @result, $item;
             }

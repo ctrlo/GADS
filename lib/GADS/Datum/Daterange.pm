@@ -36,21 +36,18 @@ has schema => (
 );
 
 # Set datum value with value from user
-has set_value => (
-    is       => 'rw',
-    trigger  => sub {
-        my ($self, $value) = @_;
+sub set_value
+{   my ($self, $value, %options) = @_;
 
-        $self->oldvalue($self->clone);
-        my $newvalue = $self->_parse_dt($value, 'user');
-        my $from_old = $self->oldvalue && $self->oldvalue->value ? $self->oldvalue->value->start->epoch : 0;
-        my $to_old   = $self->oldvalue && $self->oldvalue->value ? $self->oldvalue->value->end->epoch   : 0;
-        my $from_new = $newvalue ? $newvalue->start->epoch : 0;
-        my $to_new   = $newvalue ? $newvalue->end->epoch   : 0;
-        $self->changed(1) if $from_old != $from_new || $to_old != $to_new;
-        $self->value($newvalue);
-    }
-);
+    $self->oldvalue($self->clone);
+    my $newvalue = $self->_parse_dt($value, source => 'user', %options);
+    my $from_old = $self->oldvalue && $self->oldvalue->value ? $self->oldvalue->value->start->epoch : 0;
+    my $to_old   = $self->oldvalue && $self->oldvalue->value ? $self->oldvalue->value->end->epoch   : 0;
+    my $from_new = $newvalue ? $newvalue->start->epoch : 0;
+    my $to_new   = $newvalue ? $newvalue->end->epoch   : 0;
+    $self->changed(1) if $from_old != $from_new || $to_old != $to_new;
+    $self->value($newvalue);
+}
 
 has value => (
     is      => 'rw',
@@ -58,7 +55,7 @@ has value => (
     builder => sub {
         my $self = shift;
         my $value = $self->init_value && $self->init_value->[0];
-        my $v = $self->_parse_dt($value, 'db');
+        my $v = $self->_parse_dt($value, source => 'db');
         $self->has_value(1) if defined $value || $self->init_no_value;
         $self->value($v);
     },
@@ -106,7 +103,8 @@ sub to_dt
 }
 
 sub _parse_dt
-{   my ($self, $original, $source) = @_;
+{   my ($self, $original, %options) = @_;
+    my $source = $options{source};
 
     $original or return;
 
@@ -136,6 +134,7 @@ sub _parse_dt
         $to   = $self->column->parse_date($original->{to});
     }
 
+    $to->subtract( days => $options{subtract_days_end} ) if $options{subtract_days_end};
     DateTime::Span->from_datetimes(start => $from, end => $to);
 }
 
