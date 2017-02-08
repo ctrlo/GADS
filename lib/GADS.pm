@@ -1801,7 +1801,7 @@ post '/edits' => require_login sub {
     }
 };
 
-any '/bulk/?' => require_login sub {
+any '/bulk/?' => require_role bulk_update => sub {
 
     my $user   = logged_in_user;
     my $layout = var 'layout';
