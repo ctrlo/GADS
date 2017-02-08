@@ -79,10 +79,11 @@
                             <li role="presentation"><a role="menuitem" tabindex="-1" href="/link/">New linked record</a></li>
                         [% END %]
                         [% IF user.permission.bulk_update %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/">Update all records...</a></li>
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/update/">Update all records in view...</a></li>
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/clone/">Clone all records in view...</a></li>
                         [% END %]
                         [% IF viewtype == "table" AND records.size AND user.permission.download %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?download">Download</a></li>
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?download">Download all records in view</a></li>
                         [% END %]
                     </ul>
                 </div>

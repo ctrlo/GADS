@@ -1801,11 +1801,15 @@ post '/edits' => require_login sub {
     }
 };
 
-any '/bulk/?' => require_role bulk_update => sub {
+any '/bulk/:type/?' => require_role bulk_update => sub {
 
     my $user   = logged_in_user;
     my $layout = var 'layout';
     my $view   = current_view($user, $layout);
+    my $type   = param 'type';
+
+    $type eq 'update' || $type eq 'clone'
+        or error __x"Invalid bulk type: {type}", type => $type;
 
     # The records to update
     my $records = GADS::Records->new(
@@ -1825,7 +1829,7 @@ any '/bulk/?' => require_role bulk_update => sub {
     $record->initialise;
 
     # Files not supported at this time
-    my @columns_to_show = grep { $_->type ne 'file' } $layout->all(user_can_write_new => 1);
+    my @columns_to_show = grep { $type eq 'clone' || $_->type ne 'file' } $layout->all(user_can_write_new => 1);
 
     if (param 'submit')
     {
@@ -1848,6 +1852,8 @@ any '/bulk/?' => require_role bulk_update => sub {
             my ($success, $failures);
             while (my $record_update = $records->single)
             {
+                $record_update->remove_id
+                    if $type eq 'clone';
                 foreach my $col_id (@updated)
                 {
                     $record_update->fields->{$col_id}->set_value($record->fields->{$col_id}->html_form);
@@ -1875,10 +1881,19 @@ any '/bulk/?' => require_role bulk_update => sub {
     # Get number of records in view for sanity check for user
     my $count = $records->count;
     my $count_msg = __xn", which contains 1 record.", ", which contains {_count} records.", $count;
-    my $notice = __x qq(Use this page to update all records in the currently selected view.
-        Fields without a value entered will retain their existing value.
-        The current view is "{view}"), view => $view_name;
-    notice $notice.$count_msg;
+    if ($type eq 'update')
+    {
+        my $notice = __x qq(Use this page to update all records in the currently selected view.
+            Fields without a value entered will retain their existing value.
+            The current view is "{view}"), view => $view_name;
+        notice $notice.$count_msg;
+    }
+    else {
+        my $notice = __x qq(Use this page to bulk clone all of the records in the currently selected view.
+            The cloned records will be created using the same existing values by default, but replaced with
+            the values below where entered. The current view is "{view}"), view => $view_name;
+        notice $notice.$count_msg;
+    }
 
     template 'edit' => {
         view        => $view,
@@ -2007,8 +2022,7 @@ any '/edit/:id?' => require_login sub {
     elsif (my $from = param('from'))
     {
         $record->find_current_id($from);
-        $record->current_id(undef);
-        $record->record_id(undef);
+        $record->remove_id;
     }
     elsif($lastrecord)
     {
