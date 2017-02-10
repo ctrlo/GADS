@@ -301,7 +301,7 @@
         <div class="col-md-12">
     <div class="form-group">
         [% label = dispcol.name | html_entity %]
-        [% IF dispcol.optional %]
+        [% IF dispcol.optional OR page == "bulk" %]
             [% label_style = 'style="font-weight:normal !important"' %]
         [% ELSE %]
             [% label_style = 'style="font-weight:bold !important"' %]
