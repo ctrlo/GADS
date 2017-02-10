@@ -83,6 +83,11 @@
                     updateGroup: false,
                     remove:      false
                 },
+                margin: {
+                    item: {
+                        horizontal: 0
+                    }
+                },
                 onMove: on_move,
                 snap:   snap_to_day
             };

@@ -28,6 +28,10 @@ has '+numeric' => (
     default => 1,
 );
 
+has '+addable' => (
+    default => 1,
+);
+
 has '+return_type' => (
     builder => sub { 'integer' },
 );

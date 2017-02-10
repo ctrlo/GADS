@@ -18,9 +18,11 @@ my $values = {
         new_as_string => 'bar', # The string representation of the new value
     },
     integer1 => {
-        old_as_string => '100',
-        new           => 200,
-        new_as_string => '200',
+        old_as_string  => '100',
+        new            => 200,
+        new_as_string  => '200',
+        addable        => '+ 25',
+        addable_result => '225',
     },
     enum1 => {
         old_as_string => 'foo1',
@@ -33,14 +35,18 @@ my $values = {
         new_as_string => 'tree2',
     },
     date1 => {
-        old_as_string => '2010-10-10',
-        new           => '2011-10-10',
-        new_as_string => '2011-10-10',
+        old_as_string  => '2010-10-10',
+        new            => '2011-10-10',
+        new_as_string  => '2011-10-10',
+        addable        => '+ 1 year',
+        addable_result => '2012-10-10',
     },
     daterange1 => {
-        old_as_string => '2000-10-10 to 2001-10-10',
-        new           => ['2000-11-11', '2001-11-11'],
-        new_as_string => '2000-11-11 to 2001-11-11',
+        old_as_string  => '2000-10-10 to 2001-10-10',
+        new            => ['2000-11-11', '2001-11-11'],
+        new_as_string  => '2000-11-11 to 2001-11-11',
+        addable        => ['+ 1 week', '+ 5 years'],
+        addable_result => '2000-11-18 to 2006-11-11',
     },
     curval1 => {
         old_as_string => 'Foo, 50, , , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012',
@@ -222,6 +228,7 @@ foreach my $multivalue (0..1)
                     ok( $datum->oldvalue, "$type oldvalue exists$is_multi" );
                     my $old = $test eq 'changed' ? $values->{$type}->{old_as_string} : $values->{$type}->{new_as_string};
                     is( $datum->oldvalue && $datum->oldvalue->as_string, $old, "$type oldvalue exists and matches for test $test$is_multi" );
+                    ok( $datum->written_valid, "$type is written valid for non-blank$is_multi" );
                 }
                 elsif ($test eq 'blank')
                 {
@@ -240,6 +247,24 @@ foreach my $multivalue (0..1)
                         $datum->set_value($data->{blank}->[0]->{$type});
                     }
                     ok( $datum->blank, "$type has been set to blank$is_multi" );
+                    # Blank values should not be counted as a valid written value
+                    ok( !$datum->written_valid, "$type is not written valid for blank$is_multi" );
+                    # Test writing of addable value applied to an blank existing value.
+                    if (my $addable = $values->{$type}->{addable})
+                    {
+                        $datum->set_value($addable);
+                        ok( $datum->written_valid, "$type is written valid for addable value$is_multi" );
+                        ok( $datum->blank, "$type is blank after writing addable value$is_multi" );
+                    }
+                }
+                elsif ($test eq 'changed') # Doesn't really matter which write test, as long as has value
+                {
+                    if (my $addable = $values->{$type}->{addable})
+                    {
+                        $datum->set_value($addable);
+                        ok( $datum->written_valid, "$type is written valid for addable value$is_multi" );
+                        is( $datum->as_string, $values->{$type}->{addable_result}, "$type is correct after writing addable change$is_multi" );
+                    }
                 }
             }
         }

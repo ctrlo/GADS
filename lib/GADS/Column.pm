@@ -222,6 +222,14 @@ has numeric => (
     lazy => 1,
 );
 
+# Whether this type can have some sort of sensible addition/subtraction
+# operation performed on it
+has addable => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
 # Whether the data is stored as a string. If so, we need to check for both
 # empty string and null values to test if empty
 has string_storage => (

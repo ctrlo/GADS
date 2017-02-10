@@ -34,6 +34,7 @@ sub set_value
     } @values and panic "Invalid value for ID";
     my @old     = sort @{$self->ids};
     my $changed = "@values" ne "@old";
+    $self->_set_written_valid(!!@values);
     if ($changed)
     {
         $self->changed(1);

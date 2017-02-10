@@ -264,7 +264,7 @@
 
         <script type="text/javascript" src="[% url.js %]/jquery.placeholder.js"></script>
         <script type="text/javascript">
-            $('.personpop').popover({placement:'auto', html:true});
+            $('[data-toggle="popover"]').popover({placement:'auto', html:true});
             if (typeof jscode != 'undefined') {
                 eval(jscode);
             }

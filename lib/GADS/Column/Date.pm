@@ -30,6 +30,10 @@ has '+return_type' => (
     builder => sub { 'date' },
 );
 
+has '+addable' => (
+    default => 1,
+);
+
 sub validate
 {   my ($self, $value, %options) = @_;
     return 1 if !$value;

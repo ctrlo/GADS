@@ -1833,8 +1833,9 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
 
     if (param 'submit')
     {
+        $record->show_for_write_save;
         # See which ones to update
-        my $failed; my @updated;
+        my $failed_initial; my @updated;
         foreach my $col (@columns_to_show)
         {
             next unless defined body_parameters->get($col->field);
@@ -1842,38 +1843,51 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
             if (defined $newv)
             {
                 my $datum = $record->fields->{$col->id};
-                $failed = !process( sub { $datum->set_value($newv) } ) || $failed;
-                push @updated, $col->id
-                    if !$datum->blank;
+                $failed_initial = !process( sub { $datum->set_value($newv) } ) || $failed_initial;
+                push @updated, $col
+                    if $datum->written_valid;
             }
         }
-        if (!$failed)
+        if (!$failed_initial)
         {
             my ($success, $failures);
             while (my $record_update = $records->single)
             {
                 $record_update->remove_id
                     if $type eq 'clone';
-                foreach my $col_id (@updated)
+                my $failed;
+                foreach my $col (@updated)
                 {
-                    $record_update->fields->{$col_id}->set_value($record->fields->{$col_id}->html_form);
+                    my $newv = [body_parameters->get_all($col->field)];
+                    last if $failed = !process( sub { $record_update->fields->{$col->id}->set_value($newv) } );
+                }
+                if (!$failed)
+                {
                     # Use force_mandatory to skip "was previously blank" warnings. No
                     # records will actually be made blank, as we wouldn't write otherwise
                     if (process( sub { $record_update->write(force_mandatory => 1) } )) { $success++ } else { $failures++ };
                 }
+                else {
+                    $failures++;
+                }
             }
-            if ($success && !$failures)
+            if (!$success && !$failures)
+            {
+                notice __"No updates have been made";
+            }
+            elsif ($success && !$failures)
             {
                 return forwardHome(
                     { success => 'All records have been updated successfully' }, 'data' );
             }
             else # Failures, back round the buoy
             {
-                my $s = __xn"1 record was updated successfully", "{_count} records were updated successfully", $success;
-                my $f = __xn", 1 record failed to be updated", "{_count} records failed to be updated", $failures;
-                mistake $s,$f;
+                my $s = __xn"{_count} record was updated successfully", "{_count} records were updated successfully", $success;
+                my $f = __xn", {_count} record failed to be updated", ", {_count} records failed to be updated", $failures;
+                mistake $s.$f;
             }
         }
+        $record->show_for_write_restore;
     }
 
     my $view_name = $view ? $view->name : 'All data';

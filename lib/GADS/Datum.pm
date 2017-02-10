@@ -145,6 +145,14 @@ has show_for_write => (
     },
 );
 
+# Whether a value has been written to the datum that is valid (and not blank).
+# Written values can include addable values.
+has written_valid => (
+    is      => 'rwp',
+    isa     => Bool,
+    default => 0,
+);
+
 sub html
 {   my $self = shift;
     encode_entities $self->as_string;

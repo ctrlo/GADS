@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Datum::Daterange;
 
 use DateTime;
+use DateTime::Format::DateManip;
 use DateTime::Span;
 use GADS::SchemaInstance;
 use Log::Report;
@@ -118,8 +119,11 @@ sub _parse_dt
     }
     # Otherwise assume it's a hashref: { from => .., to => .. }
 
-    return
-        if !$original->{from} && !$original->{to};
+    if (!$original->{from} && !$original->{to})
+    {
+        $self->_set_written_valid(0);
+        return;
+    }
 
     my ($from, $to);
     if ($source eq 'db')
@@ -129,9 +133,35 @@ sub _parse_dt
         $to   = $db_parser->parse_date($original->{to});
     }
     else { # Assume 'user'
-        $self->column->validate($original, fatal => 1);
-        $from = $self->column->parse_date($original->{from});
-        $to   = $self->column->parse_date($original->{to});
+        # If it's not a valid value, see if it's a duration instead
+        if ($self->column->validate($original))
+        {
+            $self->_set_written_valid(1);
+            $from = $self->column->parse_date($original->{from});
+            $to   = $self->column->parse_date($original->{to});
+        }
+        else {
+            my $from_duration = DateTime::Format::DateManip->parse_duration($original->{from});
+            my $to_duration = DateTime::Format::DateManip->parse_duration($original->{to});
+            if ($from_duration || $to_duration)
+            {
+                $self->_set_written_valid(1);
+                if ($self->value)
+                {
+                    $from = $self->value->start;
+                    $from->add_duration($from_duration) if $from_duration;
+                    $to = $self->value->end;
+                    $to->add_duration($to_duration) if $to_duration;
+                }
+                else {
+                    return; # Don't bork as we might be bulk updating, with some blank values
+                }
+            }
+            else {
+                # Nothing fits, raise fatal error
+                $self->column->validate($original, fatal => 1);
+            }
+        }
     }
 
     $to->subtract( days => $options{subtract_days_end} ) if $options{subtract_days_end};

@@ -77,6 +77,12 @@
                 window.onbeforeunload = null;
             });
 
+            $(document).on('click', '.remove_datepicker', function() {
+                var dp = '.datepicker' + $(this).data("field");
+                $(dp).datepicker('remove');
+                alert("Date selector has been disabled for this field");
+            });
+
             [% FOREACH typeahead IN typeaheads %]
                 $("#[% typeahead.id %]").change( function() {
                     if (!($( this ).val()))
@@ -315,6 +321,22 @@
             [% label = label _ " (<a data-toggle='modal' href='/helptext/"
                              _ dispcol.id  _ "' data-target='#helptext_modal'>?</a>)" %]
         [% END %]
+        [% IF page == "bulk" AND dispcol.addable AND (dispcol.return_type == "date" OR dispcol.return_type == "daterange") %]
+            [% label_add = BLOCK %]
+                (<span style="font-weight:normal !important"><a style="cursor: pointer" data-toggle="popover" title="Add or subtract for cloned value"
+                data-content="You can add or subtract a time period for the updated or cloned values by entering an amount, such as &quot;+ 4 weeks&quot;.
+                First you will need to <a class='remove_datepicker' style='cursor: pointer' data-field='[% dispcol.id %]'>
+                    disable the date selector</a>." data-html="true">add/subtract</a></span>)
+            [% END %]
+            [% label = label _ label_add %]
+        [% ELSIF page == "bulk" AND dispcol.addable %]
+            [% label_add = BLOCK %]
+                (<span style="font-weight:normal !important"><a style="cursor: pointer" data-toggle="popover" title="Add or subtract for cloned value"
+                data-content="You can add or subtract a value for the new or cloned values by entering an amount, such as &lsquo;+25&rsquo;.
+                Available operators are: &lsquo;+&rsquo;, &lsquo;-&rsquo;, &lsquo;*&rsquo;; and &lsquo;/&rsquo;." data-html="true">add/subtract</a></span>)
+            [% END %]
+            [% label = label _ label_add %]
+        [% END %]
         [% IF child AND user.permission.create_child %]
             <div class="checkbox">
                 <label>
@@ -434,9 +456,9 @@
         [% END %]
     [% ELSIF dispcol.type == "daterange" %]
         <div class="input-group input-daterange">
-                <input type="text" name="[% field %]" class="form-control datepicker from" value="[% editvalue.from_form | html_entity %]" [% readonly %]>
+                <input type="text" name="[% field %]" class="form-control datepicker from datepicker[% dispcol.id %]" value="[% editvalue.from_form | html_entity %]" [% readonly %]>
                 <span class="input-group-addon">to</span>
-                <input type="text" name="[% field %]" class="form-control datepicker to" value="[% editvalue.to_form | html_entity %]" [% readonly %]>
+                <input type="text" name="[% field %]" class="form-control datepicker to datepicker[% dispcol.id %]" value="[% editvalue.to_form | html_entity %]" [% readonly %]>
         </div>
     [% ELSE %]
         [% IF dispcol.type == "date" %]

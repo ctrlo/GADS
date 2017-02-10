@@ -33,8 +33,14 @@ has set_value => (
         $value = undef if !$value; # Can be empty string, generating warnings
         $self->column->validate($value, fatal => 1);
         # Look up text value
-        my $node = $self->column->node($value);
-        $self->text($node->{value}) if $node;
+        if (my $node = $self->column->node($value))
+        {
+            $self->text($node->{value});
+            $self->_set_written_valid(1);
+        }
+        else {
+            $self->_set_written_valid(0);
+        }
         $self->changed(1) if (!defined($self->id) && defined $value)
             || (!defined($value) && defined $self->id)
             || (defined $self->id && defined $value && $self->id != $value);

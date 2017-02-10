@@ -29,6 +29,10 @@ has '+return_type' => (
     builder => sub { 'daterange' },
 );
 
+has '+addable' => (
+    default => 1,
+);
+
 sub validate
 {   my ($self, $value, %options) = @_;
 

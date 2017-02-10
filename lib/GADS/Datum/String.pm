@@ -38,6 +38,7 @@ has set_value => (
         }
         $self->changed(1)
             if ($self->value || '') ne ($value || '');
+        $self->_set_written_valid(!!$value);
         $self->oldvalue($self->clone);
         $self->value($value);
     },
