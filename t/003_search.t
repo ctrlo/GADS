@@ -206,6 +206,84 @@ my @filters = (
         count => 6,
     },
     {
+        name  => 'daterange less than',
+        rules => [{
+            id       => $columns->{daterange1}->id,
+            type     => 'daterange',
+            value    => '2013-12-31',
+            operator => 'less',
+        }],
+        count => 1,
+    },
+    {
+        name  => 'daterange less or equal',
+        rules => [{
+            id       => $columns->{daterange1}->id,
+            type     => 'daterange',
+            value    => '2013-12-31',
+            operator => 'less_or_equal',
+        }],
+        count => 2,
+    },
+    {
+        name  => 'daterange greater than',
+        rules => [{
+            id       => $columns->{daterange1}->id,
+            type     => 'daterange',
+            value    => '2013-12-31',
+            operator => 'greater',
+        }],
+        count => 1,
+    },
+    {
+        name  => 'daterange greater or equal',
+        rules => [{
+            id       => $columns->{daterange1}->id,
+            type     => 'daterange',
+            value    => '2014-10-10',
+            operator => 'greater_or_equal',
+        }],
+        count => 2,
+    },
+    {
+        name  => 'daterange equal',
+        rules => [{
+            id       => $columns->{daterange1}->id,
+            type     => 'daterange',
+            value    => '2014-03-21 to 2015-03-01',
+            operator => 'equal',
+        }],
+        count => 1,
+    },
+    {
+        name  => 'daterange not equal',
+        rules => [{
+            id       => $columns->{daterange1}->id,
+            type     => 'daterange',
+            value    => '2014-03-21 to 2015-03-01',
+            operator => 'not_equal',
+        }],
+        count => 6,
+    },
+    {
+        name  => 'daterange empty',
+        rules => [{
+            id       => $columns->{daterange1}->id,
+            type     => 'daterange',
+            operator => 'is_empty',
+        }],
+        count => 4,
+    },
+    {
+        name  => 'daterange not empty',
+        rules => [{
+            id       => $columns->{daterange1}->id,
+            type     => 'daterange',
+            operator => 'is_not_empty',
+        }],
+        count => 3,
+    },
+    {
         name  => 'daterange contains',
         rules => [{
             id       => $columns->{daterange1}->id,
