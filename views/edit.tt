@@ -510,6 +510,9 @@
             [% jscode.push('
                 $("#' _ col.id  _ '").change( function () {
                     var val = ' _ js_valget _ ';
+                    if (!val) {
+                        val = "";
+                    }
                     var data = decodeBase64("' _ depends.regex_b64 _ '");
                     var re = new RegExp("^" + data + "$");
                     if (re.test(val)) {
