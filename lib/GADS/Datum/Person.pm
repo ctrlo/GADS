@@ -109,6 +109,7 @@ has value_hash => (
         +{
             id           => $id,
             email        => $value->{email},
+            username     => $value->{username},
             firstname    => $value->{firstname},
             surname      => $value->{surname},
             telephone    => $value->{telephone},
@@ -138,6 +139,14 @@ has email => (
     lazy    => 1,
     builder => sub {
         $_[0]->value_hash ? $_[0]->value_hash->{email} : $_[0]->_rset && $_[0]->_rset->email;
+    },
+);
+
+has username => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->value_hash ? $_[0]->value_hash->{username} : $_[0]->_rset && $_[0]->_rset->username;
     },
 );
 
@@ -210,6 +219,7 @@ around 'clone' => sub {
     $orig->($self,
         id           => $self->id,
         email        => $self->email,
+        username     => $self->username,
         schema       => $self->schema,
         firstname    => $self->firstname,
         surname      => $self->surname,

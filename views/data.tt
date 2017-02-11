@@ -7,7 +7,7 @@
 [% END %]
 <p>
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-6">
             <div class="btn-toolbar" role="toolbar">
                 <div class="btn-group" role="group">
                     <a href="?viewtype=table" class="btn btn-default" title="View as table">
@@ -95,7 +95,7 @@
             </div>
         </div>
         [% IF viewtype == "table" %]
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <form method="get" class="form-horizontal" role="form">
                     <div class="form-group">
                         <div class="col-sm-4">

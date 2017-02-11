@@ -7,7 +7,7 @@
 <table class="table table-striped">
     <tr>
         <th>ID</th>
-        <th>User</th>
+        <th>Username</th>
         <th>Type</th>
         <th>Time</th>
         <th>Description</th>
@@ -15,7 +15,7 @@
     [% FOREACH log IN logs %]
         <tr>
             <td>[% log.id %]</td>
-            <td>[% log.user.text | html_entity %]</td>
+            <td>[% log.user.username | html_entity %]</td>
             <td>[% log.type | html_entity %]</td>
             <td>[% log.datetime | html_entity %]</td>
             <td>[% log.description | html_entity %]</td>

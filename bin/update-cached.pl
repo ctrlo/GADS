@@ -51,7 +51,7 @@ foreach my $instance (@{$instances->all})
         user        => undef,
         instance_id => $instance->id,
         schema      => schema,
-        config      => config,
+        config      => GADS::Config->instance,
     );
 
     foreach my $column ($layout->all(order_dependencies => 1))
