@@ -114,17 +114,26 @@ hook before => sub {
 
     return if param 'error';
 
-    # See if sites are set up. If os, find site and configure in schema
-    if (schema->resultset('Site')->count && request->dispatch_path !~ m{/invalidsite})
+    # See if there are multiple sites. If so, find site and configure in schema
+    if (schema->resultset('Site')->count > 1 && request->dispatch_path !~ m{/invalidsite})
     {
         my ($site) = schema->resultset('Site')->search({
             host => request->base->host,
         })
             or redirect '/invalidsite';
+        var 'site' => $site;
         my $site_id = $site->id;
         trace __x"Site ID is {id}", id => $site_id;
         schema->site_id($site_id);
     }
+    else {
+        my $site = schema->resultset('Site')->next;
+        schema->site_id($site->id);
+        var 'site' => $site;
+    }
+    GADS::Site->instance(
+        site => var('site'),
+    );
 
     # Add any new relationships for new fields. These are normally
     # added when the field is created, but with multiple processes
@@ -231,6 +240,7 @@ hook before_template => sub {
     $tokens->{messages}    = session('messages');
     $tokens->{user}        = $user;
     $tokens->{search}      = session 'search';
+    $tokens->{site}        = var 'site';
     $tokens->{config}      = GADS::Config->instance;
     session 'messages' => [];
 };
@@ -793,7 +803,8 @@ any '/account/?:action?/?' => require_login sub {
             surname      => param('surname')      || undef,
             email        => param('email'),
             username     => param('email'),
-            telephone    => param('telephone')    || undef,
+            freetext1    => param('freetext1')    || undef,
+            freetext2    => param('freetext2')    || undef,
             title        => param('title')        || undef,
             organisation => param('organisation') || undef,
             value        => _user_value($params),
@@ -1397,7 +1408,8 @@ any '/user/?:id?' => require_role useradmin => sub {
             surname               => param('surname'),
             email                 => param('email'),
             username              => param('email'),
-            telephone             => param('telephone'),
+            freetext1             => param('freetext1'),
+            freetext2             => param('freetext2'),
             title                 => param('title') || undef,
             organisation          => param('organisation') || undef,
             account_request_notes => param('account_request_notes'),
@@ -1505,7 +1517,8 @@ any '/user/?:id?' => require_role useradmin => sub {
             firstname     => param('firstname'),
             surname       => param('surname'),
             email         => param('email'),
-            telephone     => param('telephone'),
+            freetext1     => param('freetext1'),
+            freetext2     => param('freetext2'),
             title         => { id => param('title') },
             organisation  => { id => param('organisation') },
             limit_to_view => param('limit_to_view'),

@@ -59,7 +59,7 @@ has set_value => (
         ) {
             my $person;
             $person = $self->schema->resultset('User')->find($new_id) if $new_id;
-            foreach my $f (qw(firstname surname email telephone id))
+            foreach my $f (qw(firstname surname email freetext1 freetext2 id))
             {
                 $self->$f($person ? $person->$f : undef);
             }
@@ -112,7 +112,8 @@ has value_hash => (
             username     => $value->{username},
             firstname    => $value->{firstname},
             surname      => $value->{surname},
-            telephone    => $value->{telephone},
+            freetext1    => $value->{freetext1},
+            freetext2    => $value->{freetext2},
             organisation => $value->{organisation},
             text         => $value->{value},
         };
@@ -166,11 +167,19 @@ has surname => (
     },
 );
 
-has telephone => (
+has freetext1 => (
     is      => 'rw',
     lazy    => 1,
     builder => sub {
-        $_[0]->value_hash ? $_[0]->value_hash->{telephone} : $_[0]->_rset && $_[0]->_rset->telephone;
+        $_[0]->value_hash ? $_[0]->value_hash->{freetext1} : $_[0]->_rset && $_[0]->_rset->freetext1;
+    },
+);
+
+has freetext2 => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->value_hash ? $_[0]->value_hash->{freetext2} : $_[0]->_rset && $_[0]->_rset->freetext2;
     },
 );
 
@@ -223,7 +232,8 @@ around 'clone' => sub {
         schema       => $self->schema,
         firstname    => $self->firstname,
         surname      => $self->surname,
-        telephone    => $self->telephone,
+        freetext1    => $self->freetext1,
+        freetext2    => $self->freetext2,
         organisation => $self->organisation,
         text         => $self->text,
     );
@@ -246,10 +256,16 @@ sub html
         $e = encode_entities $e;
         push @details, qq(Email: <a href='mailto:$e'>$e</a>);
     }
-    if (my $t = $self->telephone)
+    my $site = GADS::Site->instance->site;
+    if (my $t = $self->freetext1)
     {
         $t = encode_entities $t;
-        push @details, qq(Telephone: $t);
+        push @details, $site->register_freetext1_name.": $t";
+    }
+    if (my $t = $self->freetext2)
+    {
+        $t = encode_entities $t;
+        push @details, $site->register_freetext2_name.": $t";
     }
     my $details = join '<br>', map {encode_entities $_} @details;
     my $text = encode_entities $self->text;
@@ -275,7 +291,8 @@ sub for_code
         surname      => $self->surname,
         firstname    => $self->firstname,
         email        => $self->email,
-        telephone    => $self->telephone,
+        freetext1    => $self->freetext1,
+        freetext2    => $self->freetext2,
         organisation => $self->organisation,
         text         => $self->text,
     };

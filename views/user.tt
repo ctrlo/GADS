@@ -36,44 +36,56 @@
                 <label for="email">Email:</label>
                 <input type="text" class="form-control" id="email" name="email" value="[% edituser.email | html_entity %]">
             </div>
-            <div class="form-group">
-                <label for="telephone">Telephone:</label>
-                <input type="text" class="form-control" id="telephone" name="telephone" value="[% edituser.telephone | html_entity %]">
-            </div>
-            <div class="form-group">
-                <label for="title">
-                    Title:
-                    [% IF page == "user" %]
-                        (<a data-toggle="modal" data-target="#modalnewtitle" href="">create</a>)
-                    [% END %]
-                </label>
-                <select class="form-control" id="title" name="title">
-                    [% UNLESS edituser.title.id %]
-                        <option></option>
-                    [% END %]
-                    [% FOREACH title IN titles %]
-                        <option value="[% title.id %]" [% IF edituser.title == title.id %]selected[% END %]>[% title.name | html_entity %]</option>
-                    [% END %]
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="organisation">
-                    Organisation:
-                    [% IF page == "user" %]
-                        (<a data-toggle="modal" data-target="#modalneworganisation" href="">create</a>)
-                    [% END %]
-                </label>
-                <select class="form-control" id="organisation" name="organisation">
-                    [% UNLESS edituser.organisation.id %]
-                        <option></option>
-                    [% END %]
-                    [% FOREACH organisation IN organisations %]
-                        <option value="[% organisation.id %]"
-                            [% IF edituser.organisation == organisation.id %]selected[% END %]>[% organisation.name | html_entity %]
-                        </option>
-                    [% END %]
-                </select>
-            </div>
+            [% IF site.register_freetext1_name %]
+                <div class="form-group">
+                    <label for="freetext1">[% site.register_freetext1_name %]:</label>
+                    <input type="text" class="form-control" id="freetext1" name="freetext1" value="[% edituser.freetext1 | html_entity %]">
+                </div>
+            [% END %]
+            [% IF site.register_freetext2_name %]
+                <div class="form-group">
+                    <label for="freetext2">[% site.register_freetext2_name %]:</label>
+                    <input type="text" class="form-control" id="freetext2" name="freetext2" value="[% edituser.freetext2 | html_entity %]">
+                </div>
+            [% END %]
+            [% IF site.register_show_title %]
+                <div class="form-group">
+                    <label for="title">
+                        Title:
+                        [% IF page == "user" %]
+                            (<a data-toggle="modal" data-target="#modalnewtitle" href="">create</a>)
+                        [% END %]
+                    </label>
+                    <select class="form-control" id="title" name="title">
+                        [% UNLESS edituser.title.id %]
+                            <option></option>
+                        [% END %]
+                        [% FOREACH title IN titles %]
+                            <option value="[% title.id %]" [% IF edituser.title == title.id %]selected[% END %]>[% title.name | html_entity %]</option>
+                        [% END %]
+                    </select>
+                </div>
+            [% END %]
+            [% IF site.register_show_organisation %]
+                <div class="form-group">
+                    <label for="organisation">
+                        [% site.register_organisation_name %]:
+                        [% IF page == "user" %]
+                            (<a data-toggle="modal" data-target="#modalneworganisation" href="">create</a>)
+                        [% END %]
+                    </label>
+                    <select class="form-control" id="organisation" name="organisation">
+                        [% UNLESS edituser.organisation.id %]
+                            <option></option>
+                        [% END %]
+                        [% FOREACH organisation IN organisations %]
+                            <option value="[% organisation.id %]"
+                                [% IF edituser.organisation == organisation.id %]selected[% END %]>[% organisation.name | html_entity %]
+                            </option>
+                        [% END %]
+                    </select>
+                </div>
+            [% END %]
             [% IF page == "user" %]
                 <div class="form-group">
                     <label for="limit_to_view">
@@ -191,7 +203,7 @@
                             <h4 class="modal-title" id="myModalLabel">Add organisation</h4>
                         </div>
                         <div class="modal-body">
-                            <p>Please enter the name of a new organisation:</p>
+                            <p>Please enter the name of a new [% site.register_organisation_name %]:</p>
                             <div class="form-group">
                                 <input type="text" class="form-control" id="neworganisation" name="neworganisation" placeholder="New organisation">
                             </div>
@@ -265,9 +277,13 @@
             <th>ID</th>
             <th>Surname</th>
             <th>Firstname</th>
-            <th>Title</th>
+            [% IF site.register_show_title %]
+                <th>Title</th>
+            [% END %]
             <th>Email</th>
-            <th>Organisation</th>
+            [% IF site.register_show_organisation %]
+                <th>[% site.register_organisation_name %]</th>
+            [% END %]
             <th>Last login</th>
         </tr>
     </thead>
@@ -277,9 +293,13 @@
                 <td><a href="/user/[% edituser.id %]">[% edituser.id %]</a></td>
                 <td>[% edituser.surname | html_entity %]</td>
                 <td>[% edituser.firstname | html_entity %]</td>
-                <td>[% edituser.title.name | html_entity %]</td>
+                [% IF site.register_show_title %]
+                    <td>[% edituser.title.name | html_entity %]</td>
+                [% END %]
                 <td>[% edituser.email | html_entity %]</td>
-                <td>[% edituser.organisation.name | html_entity %]</td>
+                [% IF site.register_show_organisation %]
+                    <td>[% edituser.organisation.name | html_entity %]</td>
+                [% END %]
                 <td>[% edituser.lastlogin OR "Never logged in" %]</td>
             </tr>
         [% END %]
@@ -294,7 +314,9 @@
                 <th>Surname</th>
                 <th>Firstname</th>
                 <th>Email</th>
-                <th>Organisation</th>
+                [% IF site.register_show_organisation %]
+                    <th>[% site.register_organisation_name %]</th>
+                [% END %]
             </tr>
         </thead>
         <tbody>

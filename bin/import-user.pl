@@ -44,7 +44,7 @@ my $guard = schema->txn_scope_guard;
 
 while (my $row = $csv->getline($fh))
 {
-    my ($firstname, $surname, $email, $telephone, $title, $organisation, $group) = @$row;
+    my ($firstname, $surname, $email, $freetext1, $freetext2, $title, $organisation, $group) = @$row;
 
     my $title_id        = $titles{$title} or die qq(Title "$title" not found);
     my $organisation_id = $organisations{$organisation} or die qq(Organisation "$organisation" not found);
@@ -54,7 +54,8 @@ while (my $row = $csv->getline($fh))
         surname      => $surname,
         email        => $email,
         username     => $email,
-        telephone    => $telephone,
+        freetext1    => $freetext1,
+        freetext2    => $freetext2,
         title        => $title_id,
         organisation => $organisation_id,
     });

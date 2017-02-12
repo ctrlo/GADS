@@ -84,6 +84,16 @@ __PACKAGE__->table("user");
   is_nullable: 1
   size: 128
 
+=head2 freetext1
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 freetext2
+
+  data_type: 'text'
+  is_nullable: 1
+
 =head2 password
 
   data_type: 'varchar'
@@ -191,6 +201,10 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "telephone",
   { data_type => "varchar", is_nullable => 1, size => 128 },
+  "freetext1",
+  { data_type => "text", is_nullable => 1 },
+  "freetext2",
+  { data_type => "text", is_nullable => 1 },
   "password",
   { data_type => "varchar", is_nullable => 1, size => 128 },
   "pwchanged",

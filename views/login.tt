@@ -101,52 +101,68 @@
                             <label for="surname">Surname:</label>
                             <input type="text" class="form-control" id="surname" name="surname">
                         </div>
-                        <div class="form-group">
-                            <label for="title">Title:
-                                [% IF instance.register_title_help %]
-                                    <span style="font-weight:normal !important">[% instance.register_title_help %]</span>
-                                [% END %]
-                            </label>
-                            <select class="form-control" id="title" name="title">
-                                <option></option>
-                                [% FOREACH title IN titles %]
-                                    <option value="[% title.id %]">[% title.name | html_entity %]</option>
-                                [% END %]
-                            </select>
-                        </div>
+                        [% IF site.register_show_title %]
+                            <div class="form-group">
+                                <label for="title">Title:
+                                    [% IF site.register_title_help %]
+                                        <span style="font-weight:normal !important">[% site.register_title_help %]</span>
+                                    [% END %]
+                                </label>
+                                <select class="form-control" id="title" name="title">
+                                    <option></option>
+                                    [% FOREACH title IN titles %]
+                                        <option value="[% title.id %]">[% title.name | html_entity %]</option>
+                                    [% END %]
+                                </select>
+                            </div>
+                        [% END %]
                         <div class="form-group">
                             <label for="email">Email:
-                                [% IF instance.register_email_help %]
-                                    <span style="font-weight:normal !important">[% instance.register_email_help %]</span>
+                                [% IF site.register_email_help %]
+                                    <span style="font-weight:normal !important">[% site.register_email_help %]</span>
                                 [% END %]
                             </label>
                             <input type="text" class="form-control" id="email" name="email">
                         </div>
-                        <div class="form-group">
-                            <label for="telephone">Telephone:
-                                [% IF instance.register_telephone_help %]
-                                    <span style="font-weight:normal !important">[% instance.register_telephone_help %]</span>
-                                [% END %]
-                            </label>
-                            <input type="text" class="form-control" id="telephone" name="telephone">
-                        </div>
-                        <div class="form-group">
-                            <label for="title">Organisation:
-                                [% IF instance.register_organisation_help %]
-                                    <span style="font-weight:normal !important">[% instance.register_organisation_help %]</span>
-                                [% END %]
-                            </label>
-                            <select class="form-control" id="organisation" name="organisation">
-                                <option></option>
-                                [% FOREACH organisation IN organisations %]
-                                    <option value="[% organisation.id %]">[% organisation.name | html_entity %]</option>
-                                [% END %]
-                            </select>
-                        </div>
+                        [% IF site.register_freetext1_name %]
+                            <div class="form-group">
+                                <label for="freetext1">[% site.register_freetext1_name %]:
+                                    [% IF site.register_freetext1_help %]
+                                        <span style="font-weight:normal !important">[% site.register_freetext1_help %]</span>
+                                    [% END %]
+                                </label>
+                                <input type="text" class="form-control" id="freetext1" name="freetext1">
+                            </div>
+                        [% END %]
+                        [% IF site.register_freetext2_name %]
+                            <div class="form-group">
+                                <label for="freetext2">[% site.register_freetext2_name %]:
+                                    [% IF site.register_freetext2_help %]
+                                        <span style="font-weight:normal !important">[% site.register_freetext2_help %]</span>
+                                    [% END %]
+                                </label>
+                                <input type="text" class="form-control" id="freetext2" name="freetext2">
+                            </div>
+                        [% END %]
+                        [% IF site.register_show_organisation %]
+                            <div class="form-group">
+                                <label for="organisation">[% site.register_organisation_name %]:
+                                    [% IF site.register_organisation_help %]
+                                        <span style="font-weight:normal !important">[% site.register_organisation_help %]</span>
+                                    [% END %]
+                                </label>
+                                <select class="form-control" id="organisation" name="organisation">
+                                    <option></option>
+                                    [% FOREACH organisation IN organisations %]
+                                        <option value="[% organisation.id %]">[% organisation.name | html_entity %]</option>
+                                    [% END %]
+                                </select>
+                            </div>
+                        [% END %]
                         <div class="form-group">
                             <label for="account_request_notes">Notes:
-                                [% IF instance.register_notes_help %]
-                                    <span style="font-weight:normal !important">[% instance.register_notes_help %]</span>
+                                [% IF site.register_notes_help %]
+                                    <span style="font-weight:normal !important">[% site.register_notes_help %]</span>
                                 [% END %]
                             </label>
                             <textarea class="form-control" name="account_request_notes" id="account_request_notes" rows="5"></textarea>

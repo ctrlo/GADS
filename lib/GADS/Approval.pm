@@ -102,7 +102,8 @@ sub _build__records
             { max => 'createdby.firstname' },
             { max => 'createdby.surname' },
             { max => 'createdby.email' },
-            { max => 'createdby.telephone' },
+            { max => 'createdby.freetext1' },
+            { max => 'createdby.freetext2' },
             { max => 'createdby.value' },
         ],
         as => [qw/
@@ -112,7 +113,8 @@ sub _build__records
             createdby.firstname
             createdby.surname
             createdby.email
-            createdby.telephone
+            createdby.freetext1
+            createdby.freetext2
             createdby.value
         /],
         group_by => 'record.id',

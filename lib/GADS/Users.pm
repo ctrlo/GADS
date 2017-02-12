@@ -21,6 +21,7 @@ package GADS::Users;
 use Email::Valid;
 use GADS::Email;
 use GADS::Instance;
+use GADS::Site;
 use Log::Report;
 use Text::CSV::Encoded;
 
@@ -159,16 +160,23 @@ sub register
     my %new;
     my %params = %$params;
 
+    my $site = GADS::Site->instance->site;
+
     error __"Please enter a valid email address"
         unless Email::Valid->address($params{email});
 
-    my @fields = qw(firstname surname email telephone title organisation account_request_notes);
+    my @fields = qw(firstname surname email account_request_notes);
+    push @fields, 'organisation' if $site->register_show_organisation;
+    push @fields, 'title' if $site->register_show_title;
+    push @fields, 'freetext1' if $site->register_freetext1_name;
+    push @fields, 'freetext2' if $site->register_freetext2_name;
     @new{@fields} = @params{@fields};
     $new{firstname} = ucfirst $new{firstname};
     $new{surname} = ucfirst $new{surname};
     $new{username} = $params->{email};
     $new{account_request} = 1;
-    $new{telephone} or delete $new{telephone};
+    $new{freetext1} or delete $new{freetext1};
+    $new{freetext2} or delete $new{freetext2};
     $new{title} or delete $new{title};
     $new{organisation} or delete $new{organisation};
     my $user = $self->schema->resultset('User')->create(\%new);
@@ -181,8 +189,9 @@ sub register
     $text .= "surname: $new{surname}, ";
     $text .= "email: $new{email}, ";
     $text .= "title: ".$user->title->name.", " if $user->title;
-    $text .= "telephone: $new{telephone}, " if $new{telephone};
-    $text .= "organisation: ".$user->organisation->name.", " if $user->organisation;
+    $text .= $site->register_freetext1_name.": $new{freetext1}, " if $new{freetext1};
+    $text .= $site->register_freetext2_name.": $new{freetext2}, " if $new{freetext2};
+    $text .= $site->register_organisation_name.": ".$user->organisation->name.", " if $user->organisation;
     $text .= "\n\n";
     $text .= "User notes: $new{account_request_notes}\n";
     my $config = $self->config
@@ -199,8 +208,14 @@ sub csv
 {   my $self = shift;
     my $csv  = Text::CSV::Encoded->new({ encoding  => undef });
 
+    my $site = GADS::Site->instance->site;
     # Column names
-    $csv->combine(qw/ID Surname Forename Title Email Organisation Telephone Lastlogin/)
+    my @columns = qw/ID Surname Forename Email Lastlogin/;
+    push @columns, $site->register_freetext1_name if $site->register_freetext1_name;
+    push @columns, $site->register_freetext2_name if $site->register_freetext2_name;
+    push @columns, 'Organisation' if $site->register_show_organisation;
+    push @columns, 'Title' if $site->register_show_title;
+    $csv->combine(@columns)
         or error __x"An error occurred producing the CSV headings: {err}", err => $csv->error_input;
     my $csvout = $csv->string."\n";
 
