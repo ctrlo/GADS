@@ -108,8 +108,39 @@ my @tests = (
             tree1   => 'tree1',
             calc1   => 'foo1foo2FooBar', # 2x enum values then 2x string values from curval
         },
-        search    => 'foo2',
+        search    => [
+            {
+                column => 'enum1',
+                value  => 'foo2',
+            },
+        ],
         count     => 2,
+    },
+    {
+        name      => 'Search 2 values',
+        write     => {
+            enum1  => [7, 8],
+            enum2  => [10, 11],
+        },
+        as_string => {
+            enum1   => 'foo1, foo2',
+            enum2   => 'foo1, foo2',
+            curval1 => 'Foo, 50, , , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012; Bar, 99, , , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+            curval2 => 'Bar, 99, , , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+            tree1   => 'tree1',
+            calc1   => 'foo1foo2FooBar', # 2x enum values then 2x string values from curval
+        },
+        search    => [
+            {
+                column => 'enum1',
+                value  => 'foo1',
+            },
+            {
+                column => 'enum2',
+                value  => 'foo1',
+            },
+        ],
+        count     => 1,
     }
 );
 
@@ -130,15 +161,17 @@ foreach my $test (@tests)
         is( $record->fields->{$col->id}->as_string, $test->{as_string}->{$type}, "$type updated correctly for test $test->{name}" );
     }
 
+    my @rules = map {
+        +{
+            id       => $columns->{$_->{column}}->id,
+            type     => 'string',
+            value    => $_->{value},
+            operator => 'equal',
+        }
+    } @{$test->{search}};
     my $rules = encode_json({
-        rules => [
-            {
-                id       => $columns->{enum1}->id,
-                type     => 'string',
-                value    => $test->{search},
-                operator => 'equal',
-            }
-        ],
+        rules     => \@rules,
+        condition => 'OR',
     });
 
     my $view = GADS::View->new(

@@ -522,6 +522,7 @@ sub _build_results
         ],
         '+select' => $self->_plus_select, # Used for additional sort columns
         order_by  => $self->order_by,
+        distinct  => 1, # Otherwise multiple records returned for multivalue fields
     };
     my $page = $self->page;
     $page = $self->pages
@@ -694,6 +695,7 @@ sub _build_count
             },
             [@linked],
         ],
+        distinct => 1, # Otherwise multiple records returned for multivalue fields
     };
 
     $self->schema->resultset('Current')->search(
