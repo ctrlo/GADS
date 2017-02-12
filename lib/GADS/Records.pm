@@ -620,7 +620,7 @@ sub fetch_multivalues
 {   my ($self, $record_ids) = @_;
 
     my $return; # Return undef if no multivalues
-    my $columns_done = {};
+    my $tables_done = {};
     foreach my $column (@{$self->columns_retrieved_no})
     {
         my @cols = ($column);
@@ -628,7 +628,7 @@ sub fetch_multivalues
         foreach my $col (@cols)
         {
             next unless $col->multivalue;
-            if (!$columns_done->{$col->id})
+            if (!$tables_done->{$col->table})
             {
                 my ($left, $prefetch) = %{$col->join}; # Prefetch table is 2nd part of join
                 my $m_rs = $self->schema->resultset($col->table)->search({
@@ -644,8 +644,8 @@ sub fetch_multivalues
                     my $field = "field$val->{layout_id}";
                     $return->{$val->{record_id}}->{$field} ||= [];
                     push @{$return->{$val->{record_id}}->{$field}}, $val;
-                    $columns_done->{$val->{layout_id}} = 1;
                 }
+                $tables_done->{$col->table} = 1;
             }
         }
     }
