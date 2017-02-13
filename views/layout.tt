@@ -266,7 +266,7 @@
                             </div>
                         </div>
                     [% END %]
-                    <input id="filter" type="hidden" name="filter" value="[% column.filter | html_entity %]">
+                    <input id="filter" type="hidden" name="filter" value="[% column.filter.as_json | html_entity %]">
                 [% ELSE %]
                     <div class="alert alert-info">
                         No other instances are available to select data from
