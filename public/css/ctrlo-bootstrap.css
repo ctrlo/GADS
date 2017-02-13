@@ -474,6 +474,7 @@ select.input-lg {
 	padding-left:0;
 	padding-right:0;
 }
+/*
 .caret {
 	display:inline-block;
 	width:33px;
@@ -486,6 +487,7 @@ select.input-lg {
 	margin-right:-10px;
 	margin-top:-5px;
 }
+*/
 .dropdown-menu {
 	font-size:15px;
 	border:1px solid #33c2df;
@@ -626,7 +628,7 @@ select.input-group-sm>.form-control,select.input-group-sm>.input-group-addon,sel
 			padding-bottom:14.5px;
 	}
 	.navbar-nav.navbar-right:last-child {
-			border:#dddddd 1px solid;
+	/*		border:#dddddd 1px solid; */
 	}
 }
 .navbar-form {

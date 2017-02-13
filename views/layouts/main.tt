@@ -27,7 +27,7 @@
         <title>Linkspace [% page %]</title>
 
         <!-- Bootstrap core CSS -->
-        <link rel="stylesheet" href="[% url.css %]/bootstrap.min.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
         <!-- Custom styles for this template -->
         [% UNLESS single_graph %]
@@ -104,8 +104,12 @@
                                 [% END %]
                                 [% IF user.permission.layout OR user.permission.useradmin OR user.permission.audit %]
                                     <li class="dropdown">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin <b class="caret"></b></a>
-                                    <ul class="dropdown-menu">
+                                    <button type="button" id="admin-menu" class="btn btn-default dropdown-toggle" 
+                                        data-toggle="dropdown" aria-controls="admin-menu-options" aria-expanded="false" aria-haspopup="true">
+                                        <span>Admin menu</span>
+                                        <span class="caret"></span>
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
                                         [% IF user.permission.layout %]
                                             <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/layout/">Data Layout</a></li>
                                             <li [% IF page=="table" %]class="active"[% END %]><a href="[% url.page %]/table/">Tables</a></li>
@@ -138,8 +142,12 @@
                             [% END %]
                             <ul class="nav navbar-nav navbar-right">
                                 <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% user.value | html_entity %]<b class="caret"></b></a>
-                                <ul class="dropdown-menu">
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-label="User menu"
+                                    aria-expanded="false" aria-haspopup="true" aria-controls="user-menu">
+                                    <span>[% user.value | html_entity %]</span>
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" id="user-menu">
                                     [% FOREACH instance IN instances %]
                                         <li [% IF instance.id == instance_id %]class="active"[% END %]>
                                             <a href="?instance=[% instance.id %]"
@@ -181,14 +189,19 @@
         [% IF hostlocal %]
             <script src="[% url.js %]/jquery-1.10.2.min.js"></script>
             <script src="[% url.js %]/jquery-ui.min.js"></script>
-            <script src="[% url.js %]/bootstrap.min.js"></script>
+<!--            <script src="[% url.js %]/bootstrap.min.js"></script> -->
             <script src="[% url.js %]/tooltip.min.js"></script>
         [% ELSE %]
             <script src="[% scheme %]://code.jquery.com/jquery-1.10.2.min.js"></script>
             <script src="[% scheme %]://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
-            <script src="[% scheme %]://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<!--            <script src="[% scheme %]://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script> -->
             <script src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/js/tooltip.min.js"></script>
         [% END %]
+
+
+        <!-- Latests bootstrap with better a11y -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
         [% IF page == "edit" OR page == "approval" OR page == "audit" OR page == "bulk" %]
             <script type="text/javascript" src="[% url.js %]/bootstrap-datepicker.js"></script>
             <script type="text/javascript">
