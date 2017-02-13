@@ -202,7 +202,6 @@
         [% END %]
         [% IF page == "login" %]
             <script type="text/javascript" src="[% url.js %]/bootstrap-show-password.js"></script>
-            <script type="text/javascript" src="[% url.js %]/login.js"></script>
         [% END %]
         [% IF page == "data" AND viewtype == "graph" %]
             <!--[if lt IE 9]><script language="javascript" type="text/javascript" src="/js/excanvas.min.js"></script><![endif]-->

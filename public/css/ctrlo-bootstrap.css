@@ -1135,3 +1135,57 @@ button.close {
 .carousel-control .icon-prev,.carousel-control .icon-next {
 	margin-left: -10px;
 }
+
+/* a11y-related */
+
+.visually-hidden {
+    border: 0;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
+
+.visually-hidden-opacity {
+    opacity: 0;
+}
+
+/* Login page - Remember Username */
+
+.remember-me, .reset-password {
+    display: inline-block;
+    width: 48%;
+    vertical-align: top;
+}
+
+.remember-me {
+    position: relative;
+}
+
+#remember {
+    position: absolute;
+    left: 0;
+    top: 5px;
+}
+
+#remember + label {
+    padding: 5px;
+    margin-left: -5px;
+}
+
+#remember:focus + label,
+#remember:hover + label {
+    color: #197E97;
+    outline: 2px solid #197E97;
+}
+
+#remember + label span::before {
+    content: "\e157";
+}
+
+#remember:checked + label span::before {
+    content: "\e067";
+} 
