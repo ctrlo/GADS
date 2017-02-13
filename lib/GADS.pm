@@ -237,7 +237,7 @@ hook before_template => sub {
     }
     $tokens->{instances}     = GADS::Instances->new(schema => schema)->all;
     $tokens->{instance_id}   = session 'instance_id';
-    $tokens->{instance_name} = var('layout')->name;
+    $tokens->{instance_name} = var('layout')->name if var('layout');
     $tokens->{messages}      = session('messages');
     $tokens->{user}          = $user;
     $tokens->{search}        = session 'search';
