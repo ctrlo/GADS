@@ -90,7 +90,8 @@ sub convert_value
     {
         if (defined $value && looks_like_number($value))
         {
-            $return = round $value if defined $value && $column->return_type eq 'integer';
+            $return = $value;
+            $return = round $return if defined $return && $column->return_type eq 'integer';
         }
     }
     else {
