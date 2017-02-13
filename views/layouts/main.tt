@@ -137,16 +137,22 @@
                                 </form>
                             [% END %]
                             <ul class="nav navbar-nav navbar-right">
+                                [% IF instances.size > 1 %]
+                                    <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% instance_name | html_entity %]<b class="caret"></b></a>
+                                    <ul class="dropdown-menu">
+                                        [% FOREACH instance IN instances %]
+                                            <li [% IF instance.id == instance_id %]class="active"[% END %]>
+                                                <a href="?instance=[% instance.id %]"
+                                                >[% instance.name | html_entity %]</a>
+                                            </li>
+                                        [% END %]
+                                    </ul>
+                                    </li>
+                                [% END %]
                                 <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% user.value | html_entity %]<b class="caret"></b></a>
                                 <ul class="dropdown-menu">
-                                    [% FOREACH instance IN instances %]
-                                        <li [% IF instance.id == instance_id %]class="active"[% END %]>
-                                            <a href="?instance=[% instance.id %]"
-                                            >[% instance.name | html_entity %]</a>
-                                        </li>
-                                    [% END %]
-                                    <li class="divider"></li>
                                     <li><a href="[% url.page %]/account/detail">My details</a></li>
                                     <li><a href="[% url.page %]/account/graph">My graphs</a></li>
                                     <li class="divider"></li>
