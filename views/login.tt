@@ -64,10 +64,10 @@
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
+                            <p>Enter your email address to receive a password reset link.</p>
                             <label for="email">Email address</label>
-                            <input type="email" class="form-control" name="emailreset" id="email" placeholder="Enter email">
+                            <input type="email" class="form-control" name="emailreset" id="email" placeholder="name@example.com">
                         </div>
-                        <p>Enter your email address to receive a password reset link</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
