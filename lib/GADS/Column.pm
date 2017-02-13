@@ -590,6 +590,15 @@ sub delete
         my $filtered = _filter_remove_colid($self, $filter->view->filter);
         $filter->view->update({ filter => $filtered });
     };
+    # Same again for fields with filter
+    foreach my $col ($self->schema->resultset('Layout')->search({
+        filter => { '!=' => '{}' },
+    })->all)
+    {
+        $col->filter or next;
+        my $filtered = _filter_remove_colid($self, $col->filter);
+        $col->update({ filter => $filtered });
+    };
 
     # Clean up any specialist data for all column types. The column's
     # type may have changed during its life, but the data may not
@@ -822,7 +831,7 @@ sub _filter_remove_colid_decoded
     if (my $rules = $filter->{rules})
     {
         # Filter has other nested filters
-        @$rules = grep { _filter_remove_colid_decoded($_, $colid) } @$rules;
+        @$rules = grep { _filter_remove_colid_decoded($_, $colid) && (!$_->{rules} || @{$_->{rules}}) } @$rules;
     }
     $filter->{id} && $colid == $filter->{id} ? 0 : 1;
 }
