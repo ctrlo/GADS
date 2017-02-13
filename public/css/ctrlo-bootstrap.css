@@ -1189,3 +1189,23 @@ button.close {
 #remember:checked + label span::before {
     content: "\e067";
 } 
+
+/* Login page - reset password dialog */
+
+.modal-header {
+    position: relative;
+}
+
+.modal-header button.close {
+    position: absolute;
+    right: 0;
+    top: 0;
+    margin: .5em;
+    opacity: 1;
+    font-size: 1.2em;
+}
+
+.modal-header button.close .close-mark {
+    color: #993300;
+    font-size: 1em;
+}
