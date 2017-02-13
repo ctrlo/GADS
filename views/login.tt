@@ -103,7 +103,7 @@
                     </div>
                     <div class="modal-body">
                         [% IF error %]
-                            <div class="alert alert-danger" role="alert">[% error %]</div>
+                            <div class="alert alert-danger" role="alert">Error: [% error %]</div>
                         [% END %]
                         [% IF register_text %]
                             <p>[% register_text %]</p>
