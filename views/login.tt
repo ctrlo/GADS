@@ -44,7 +44,7 @@
                             </label>
                         </span>
                         <span class="reset-password">
-                            <a href="" class="btn btn-link pull-right" data-toggle="modal" data-target="#myModal">Reset Password</a>
+                            <button type="button" class="btn btn-link pull-right" data-toggle="modal" data-target="#modal-reset-password">Reset Password</button>
                         </span>
                     </div>
                     <hr>
@@ -68,7 +68,7 @@
         [% END %]
 
         <!-- Modal -->
-        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="reset-password-heading" aria-hidden="true">
+        <div class="modal fade" id="modal-reset-password" tabindex="-1" role="dialog" aria-labelledby="reset-password-heading" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form method="post" autocomplete="off" enctype="multipart/form-data">
