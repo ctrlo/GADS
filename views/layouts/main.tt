@@ -85,15 +85,17 @@
             [% UNLESS page == "login" OR page == "invalidsite" OR single_graph %]
                 <div class="navbar navbar-default" role="navigation">
                         <div class="navbar-header">
-                            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                                <span class="sr-only">Toggle navigation</span>
-                                <span class="icon-bar"></span>
-                                <span class="icon-bar"></span>
-                                <span class="icon-bar"></span>
+                            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-controls="main-navbar">
+                                <span class="hamburger-menu-title">Menu</span>
+                                <span class="hamburger">
+                                    <span class="icon-bar"></span>
+                                    <span class="icon-bar"></span>
+                                    <span class="icon-bar"></span>
+                                </span>
                             </button>
                             <a class="navbar-brand" href="[% url.page %]/">Home</a>
                         </div>
-                        <div class="collapse navbar-collapse">
+                        <div class="collapse navbar-collapse" id="main-navbar">
                             <ul class="nav navbar-nav">
                                 <li [% IF page=="data" %]class="active"[% END %]><a href="[% url.page %]/data">Data</a></li>
                                 [% IF user_can_approve %]

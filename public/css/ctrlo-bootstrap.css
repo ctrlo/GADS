@@ -617,11 +617,23 @@ select.input-group-sm>.form-control,select.input-group-sm>.input-group-addon,sel
 .navbar-nav>li>a {
 	line-height:21px;
 }
+
 @media (max-width:767px) {
 	.navbar-nav .open .dropdown-menu>li>a {
 			line-height:21px;
 	}
+
+    .hamburger-menu-title, .hamburger {
+        float : left;
+    }
+
+    .hamburger-menu-title {
+        padding-right: .4em;
+        margin-top: -.2em;
+        vertical-align: top;
+    }
 }
+
 @media (min-width:768px) {
 	.navbar-nav>li>a {
 			padding-top:14.5px;
