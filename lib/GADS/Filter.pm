@@ -208,8 +208,8 @@ sub _sub_filter_single
         }
         else {
             $datum->re_evaluate if !$col->userinput;
-            $single->{value} = $datum->as_string;
-            trace "Value subbed into rule: $single->{value}";
+            $single->{value} = $col->numeric ? $datum->value : $datum->as_string;
+            trace "Value subbed into rule: $single->{value} for column: ".$col->name;
         }
     }
     return 1;

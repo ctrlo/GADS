@@ -984,8 +984,11 @@ sub _search_construct
     my %permission = $ignore_perms ? () : (permission => 'read');
     my $column   = $layout->column($filter->{id}, %permission)
         or return;
+    $filter->{operator} = $filter->{operator} eq 'not_equal' ? 'is_not_empty' : 'is_empty'
+        if !defined $filter->{value};
     my $operator = $ops{$filter->{operator}}
         or error __x"Invalid operator {filter}", filter => $filter->{operator};
+
 
     $self->add_join($column, search => 1);
     my $s_table = $self->table_name($column, %options, search => 1);
