@@ -24,7 +24,8 @@ use Moo;
 extends 'GADS::Datum';
 
 has value => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_value

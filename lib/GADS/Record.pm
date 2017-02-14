@@ -627,6 +627,14 @@ sub _transform_values
         schema           => $self->schema,
         layout           => $self->layout,
     );
+    $fields->{-2} = GADS::Datum::Date->new(
+        record_id        => $self->record_id,
+        current_id       => $self->current_id,
+        column           => $self->layout->column(-3),
+        schema           => $self->schema,
+        layout           => $self->layout,
+        init_value       => [ { value => $original->{created} } ],
+    );
     $fields->{-3} = GADS::Datum::Person->new(
         record_id        => $self->record_id,
         current_id       => $self->current_id,
@@ -658,7 +666,7 @@ sub values_by_shortname
 sub initialise
 {   my $self = shift;
     my $fields;
-    foreach my $column ($self->layout->all)
+    foreach my $column ($self->layout->all(include_internal => 1))
     {
         $fields->{$column->id} = $self->initialise_field($column->id);
     }
@@ -917,10 +925,10 @@ sub write
 
     my $user_id = $self->user ? $self->user->{id} : undef;
 
+    my $created_date = $options{version_datetime} || DateTime->now;
+    my $createdby = $options{version_userid} || $user_id;
     if ($need_rec && !$options{update_only})
     {
-        my $created_date = $options{version_datetime} || DateTime->now;
-        my $createdby = $options{version_userid} || $user_id;
         my $id = $self->schema->resultset('Record')->create({
             current_id => $self->current_id,
             created    => $created_date,
@@ -929,6 +937,10 @@ sub write
         $self->record_id_old($self->record_id) if $self->record_id;
         $self->record_id($id);
     };
+    $self->fields->{-1}->current_id($self->current_id);
+    $self->fields->{-1}->clear_value; # Will rebuild as current_id
+    $self->fields->{-2}->set_value($created_date);
+    $self->fields->{-3}->set_value($createdby, no_validation => 1);
 
     if ($need_app)
     {

@@ -28,7 +28,7 @@ use namespace::clean;
 extends 'GADS::Datum';
 
 sub set_value
-{   my ($self, $value) = @_;
+{   my ($self, $value, %options) = @_;
     ($value) = @$value if ref $value eq 'ARRAY';
     my $new_id;
     my $clone = $self->clone;
@@ -43,7 +43,7 @@ sub set_value
     }
     else {
         # User input
-        !$value || (grep {$value == $_->id} @{$self->column->people}) || $value == $self->id # Unchanged deleted user
+        !$value || $options{no_validation} || (grep {$value == $_->id} @{$self->column->people}) || $value == $self->id # Unchanged deleted user
             or error __x"'{int}' is not a valid person ID"
                 , int => $value;
         $value = undef if !$value; # Can be empty string, generating warnings

@@ -2,6 +2,7 @@ use Test::More; # tests => 1;
 use strict;
 use warnings;
 
+use Test::MockTime qw(set_fixed_time restore_time); # Load before DateTime
 use JSON qw(encode_json);
 use Log::Report;
 use GADS::Column::Calc;
@@ -12,6 +13,8 @@ use GADS::Records;
 use GADS::Schema;
 
 use t::lib::DataSheet;
+
+set_fixed_time('10/22/2014 01:00:00', '%m/%d/%Y %H:%M:%S'); # Fix all tests for _version_datetime calc
 
 my $data = [
     {
@@ -378,6 +381,7 @@ $schema       = $curval_sheet->schema;
 $sheet        = t::lib::DataSheet->new(
     data             => $data,
     schema           => $schema,
+    user_count       => 2,
     curval           => 2,
     curval_field_ids => [ $curval_sheet->columns->{string1}->id ],
 );
@@ -494,7 +498,7 @@ my $calc_version = GADS::Column::Calc->new(
     user        => undef,
     layout      => $layout,
     name        => 'calc5',
-    code        => "function evaluate (_version_user) \n return _version_user.surname \nend",
+    code        => qq(function evaluate (_version_user, _version_datetime) \n return _version_user.surname .. " X " .. _version_datetime.day \nend),
     return_type => 'string',
 );
 $calc_version->write;
@@ -513,9 +517,9 @@ $ENV{GADS_PANIC_ON_ENTERING_CODE} = 1;
 my $calc_col = $columns->{calc1};
 my $rag_col  = $columns->{rag1};
 
-my @calcs   = qw/2000 2012 2000/;
-my @calcs2  = qw/2012 2008 2012/; # From default datasheet values for daterange1 (referenced from curval)
-my @rags    = qw/b_red c_amber b_red/;
+my @calcs   = qw/2000 2012 2000 2000/;
+my @calcs2  = qw/2012 2008 2012 2012/; # From default datasheet values for daterange1 (referenced from curval)
+my @rags    = qw/b_red c_amber b_red b_red/;
 my @results = @{$records->results};
 # Set env variables to allow record write (after retrieving results)
 $ENV{GADS_PANIC_ON_ENTERING_CODE} = 0;
@@ -525,6 +529,20 @@ push @results, GADS::Record->new(
     layout => $layout,
     schema => $schema,
 )->find_current_id(3);
+# Plus new record
+my $record_new = GADS::Record->new(
+    user   => $sheet->user,
+    layout => $layout,
+    schema => $schema,
+);
+$record_new->initialise;
+$record_new->fields->{$columns->{daterange1}->id}->set_value(['2000-10-10', '2001-10-10']);
+$record_new->fields->{$columns->{curval1}->id}->set_value(1);
+$record_new->write;
+my $cid = $record_new->current_id;
+$record_new->clear;
+$record_new->find_current_id($cid);
+push @results, $record_new;
 foreach my $record (@results)
 {
     my $calc  = shift @calcs;
@@ -534,17 +552,21 @@ foreach my $record (@results)
     is( $record->fields->{$calc2_col->id}->as_string, $calc2, "Correct calc2 value for record" );
     is( $record->fields->{$calc_zero_int->id}->as_string, '0', "Correct calc value for zero int" );
     is( $record->fields->{$calc_zero_str->id}->as_string, '0', "Correct calc value for zero string" );
-    is( $record->fields->{$calc_version->id}->as_string, 'User1', "Correct calc value for record version user" );
+    is( $record->fields->{$calc_version->id}->as_string, 'User1 X 22', "Correct calc value for record version user" );
     is( $record->fields->{$rag_col->id}->as_string, $rag, "Correct rag value for record" );
     # Check we can update the record
+    set_fixed_time('11/15/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
     $record->fields->{$columns->{daterange1}->id}->set_value(['2014-10-10', '2015-10-10']);
     $record->fields->{$columns->{curval1}->id}->set_value(2);
+    $record->user({ id => 2 });
     $record->write;
     is( $record->fields->{$calc_col->id}->as_string, '2014', "Correct calc value for record after write" );
     $calc2 = '2008' . 'X' . $record->current_id;
     is( $record->fields->{$calc2_col->id}->as_string, $calc2, "Correct calc2 value for record after write" );
     is( $record->fields->{$rag_col->id}->as_string, 'd_green', "Correct rag value for record after write" );
-    is( $record->fields->{$calc_version->id}->as_string, 'User1', "Correct calc value for record version user after write" );
+    is( $record->fields->{$calc_version->id}->as_string, 'User2 X 15', "Correct calc value for record version user after write" );
 }
+
+restore_time();
 
 done_testing();

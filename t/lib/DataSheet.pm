@@ -49,10 +49,10 @@ has layout => (
     is => 'lazy',
 );
 
-has no_users => (
+has user_count => (
     is      => 'ro',
-    isa     => Bool,
-    default => 0,
+    isa     => Int,
+    default => 1,
 );
 
 has no_groups => (
@@ -68,22 +68,23 @@ has user => (
 sub _build_user
 {   my $self = shift;
     my $user;
-    unless ($self->no_users)
+    for my $id (1..$self->user_count)
     {
         my $user_rs = $self->schema->resultset('User')->find_or_create({ # May already be created for schema
-            id        => 1,
-            username  => 'user1@example.com',
-            email     => 'user1@example.com',
-            firstname => 'User1',
-            surname   => 'User1',
-            value     => 'User1, User1',
+            id        => $id,
+            username  => "user$id\@example.com",
+            email     => "user$id\@example.com",
+            firstname => "User$id",
+            surname   => "User$id",
+            value     => "User$id, User$id",
         });
         $self->schema->resultset('UserGroup')->find_or_create({ # May already be created for schema
-            user_id  => 1,
+            user_id  => $id,
             group_id => $self->group->id,
         });
         # Most of the app expects a hash at the moment. XXX Need to convert to object
-        $user = {
+        # Just return first one for use in tests by default
+        $user ||= {
             id        => $user_rs->id,
             firstname => $user_rs->firstname,
             surname   => $user_rs->surname,

@@ -133,6 +133,7 @@ has internal_columns => (
             {
                 id         => -1,
                 name       => 'ID',
+                type       => 'id',
                 name_short => '_id',
                 table      => 'current',
                 column     => 'id',
@@ -141,6 +142,7 @@ has internal_columns => (
             {
                 id         => -2,
                 name       => 'Version Datetime',
+                type       => 'date',
                 name_short => '_version_datetime',
                 table      => 'record',
                 column     => 'created',
@@ -149,6 +151,7 @@ has internal_columns => (
             {
                 id         => -3,
                 name       => 'Version User ID',
+                type       => 'person',
                 name_short => '_version_user',
                 table      => 'record',
                 column     => 'created_by',
@@ -243,7 +246,9 @@ sub _build_columns
             table                    => camelize($internal->{table}),
             sprefix                  => $internal->{table},
             value_field              => $internal->{column},
+            type                     => $internal->{type},
             internal                 => 1,
+            userinput                => 0,
             user_permission_override => $self->user_permission_override,
             schema                   => $self->schema,
             layout                   => $self,

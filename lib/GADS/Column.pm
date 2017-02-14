@@ -129,7 +129,7 @@ has name_short => (
 has type => (
     is  => 'rw',
     isa => sub {
-        grep { $_[0] eq $_ } GADS::Column::types
+        $_[0] eq 'id' || grep { $_[0] eq $_ } GADS::Column::types
             or error __x"Invalid field type {type}", type => $_[0];
     },
 );
@@ -349,6 +349,7 @@ has class => (
     lazy    => 1,
     builder => sub {
         my %classes = (
+            id        => 'GADS::Datum::ID',
             date      => 'GADS::Datum::Date',
             daterange => 'GADS::Datum::Daterange',
             string    => 'GADS::Datum::String',
