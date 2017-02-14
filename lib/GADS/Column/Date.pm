@@ -34,6 +34,19 @@ has '+addable' => (
     default => 1,
 );
 
+has '+option_names' => (
+    default => sub { [qw/show_datepicker/] },
+);
+
+has show_datepicker => (
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    builder => sub { defined $_[0]->options->{show_datepicker} ? $_[0]->options->{show_datepicker} : 1 },
+    trigger => sub { $_[0]->options->{show_datepicker} = $_[1] ? 1 : 0 },
+);
+
 sub validate
 {   my ($self, $value, %options) = @_;
     return 1 if !$value;

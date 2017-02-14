@@ -325,8 +325,11 @@
             [% label_add = BLOCK %]
                 (<span style="font-weight:normal !important"><a style="cursor: pointer" data-toggle="popover" title="Add or subtract for cloned value"
                 data-content="You can add or subtract a time period for the updated or cloned values by entering an amount, such as &quot;+ 4 weeks&quot;.
-                First you will need to <a class='remove_datepicker' style='cursor: pointer' data-field='[% dispcol.id %]'>
-                    disable the date selector</a>." data-html="true">add/subtract</a></span>)
+                [% IF dispcol.show_datepicker %]
+                    First you will need to <a class='remove_datepicker' style='cursor: pointer' data-field='[% dispcol.id %]'>
+                    disable the date selector
+                [% END %]
+                </a>." data-html="true">add/subtract</a></span>)
             [% END %]
             [% label = label _ label_add %]
         [% ELSIF page == "bulk" AND dispcol.addable %]
@@ -455,13 +458,14 @@
             [% END %]
         [% END %]
     [% ELSIF dispcol.type == "daterange" %]
+        [% IF dispcol.show_datepicker %][% datepicker = "datepicker" %][% ELSE %][% datepicker = "" %][% END %]
         <div class="input-group input-daterange">
-                <input type="text" name="[% field %]" class="form-control datepicker from datepicker[% dispcol.id %]" value="[% editvalue.from_form | html_entity %]" [% readonly %]>
+                <input type="text" name="[% field %]" class="form-control [% datepicker %] from datepicker[% dispcol.id %]" value="[% editvalue.from_form | html_entity %]" [% readonly %]>
                 <span class="input-group-addon">to</span>
-                <input type="text" name="[% field %]" class="form-control datepicker to datepicker[% dispcol.id %]" value="[% editvalue.to_form | html_entity %]" [% readonly %]>
+                <input type="text" name="[% field %]" class="form-control [% datepicker %] to datepicker[% dispcol.id %]" value="[% editvalue.to_form | html_entity %]" [% readonly %]>
         </div>
     [% ELSE %]
-        [% IF dispcol.type == "date" %]
+        [% IF dispcol.type == "date" AND dispcol.show_datepicker %]
             [% class = "form-control datepicker" %]
         [% ELSIF dispcol.type == "intgr" AND editvalue.value.defined %]
             [% class = "form-control intcalculator" %]

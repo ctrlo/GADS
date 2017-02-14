@@ -170,6 +170,18 @@ has multivalue => (
     default => 0,
 );
 
+has options => (
+    is      => 'rw',
+    isa     => HashRef,
+    default => sub { +{} },
+);
+
+has option_names => (
+    is      => 'ro',
+    isa     => ArrayRef,
+    default => sub { [] },
+);
+
 has ordering => (
     is  => 'rw',
     isa => Maybe[Str],
@@ -494,6 +506,8 @@ sub build_values
     $self->multivalue($original->{multivalue} ? 1 : 0) if $self->can_multivalue;
     $self->position($original->{position});
     $self->helptext($original->{helptext});
+    my $options = $original->{options} ? decode_json($original->{options}) : {};
+    $self->options($options);
     $self->description($original->{description});
     $self->field("field$original->{id}");
     $self->type($original->{type});
@@ -678,6 +692,7 @@ sub write
     $newitem->{multivalue}    = $self->multivalue if $self->can_multivalue;
     $newitem->{description}   = $self->description;
     $newitem->{helptext}      = $self->helptext;
+    $newitem->{options}       = encode_json($self->options);
     $newitem->{link_parent}   = $self->link_parent_id;
     $newitem->{display_field} = $self->display_field;
     $newitem->{display_regex} = $self->display_regex;

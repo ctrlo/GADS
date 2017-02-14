@@ -1280,6 +1280,8 @@ any '/layout/?:id?' => require_role 'layout' => sub {
         {
             $column->$_(param $_)
                 foreach (qw/name name_short type description helptext optional isunique multivalue remember link_parent_id/);
+            $column->$_(param $_)
+                foreach @{$column->option_names};
             if (param 'display_condition')
             {
                 $column->display_field(param 'display_field');

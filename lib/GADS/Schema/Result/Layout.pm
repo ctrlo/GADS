@@ -128,6 +128,11 @@ __PACKAGE__->table("layout");
   data_type: 'text'
   is_nullable: 1
 
+=head2 options
+
+  data_type: 'text'
+  is_nullable: 1
+
 =head2 display_field
 
   data_type: 'integer'
@@ -187,6 +192,8 @@ __PACKAGE__->add_columns(
   "description",
   { data_type => "text", is_nullable => 1 },
   "helptext",
+  { data_type => "text", is_nullable => 1 },
+  "options",
   { data_type => "text", is_nullable => 1 },
   "display_field",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },

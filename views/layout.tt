@@ -302,6 +302,20 @@
                     <input id="force_regex" class="form-control" type="text" name="force_regex" value="[% column.force_regex | html_entity %]">
                 </div>
             </div>
+            <div id="divdate"
+                    [% IF column.type != "date" AND column.type != "daterange" %]
+                        style="display:none"
+                    [% END %]
+                >
+                <div class="form-group">
+                    <label for="show_datepicker">Show date picker:</label>
+                    <div class="checkbox">
+                        <label>
+                            <input id="show_datepicker" type="checkbox" name="show_datepicker" [% IF column.show_datepicker %]checked[% END %]>Show date picker pop-up to select dates
+                        </label>
+                    </div>
+                </div>
+            </div>
             <div id="divcode"
                 [% IF column.type != "calc" AND column.type != "rag" %]
                     style="display:none"
@@ -710,6 +724,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divfile').hide();
                     $('#divcurval').hide();
                     $('#divstring').hide();
+                    $('#divdate').hide();
                     $('.noragcalc').show();
                 } else if (val == "enum") {
                     $('#divenum').show();
@@ -718,6 +733,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divfile').hide();
                     $('#divcurval').hide();
                     $('#divstring').hide();
+                    $('#divdate').hide();
                     $('.noragcalc').show();
                 } else if (val == "rag") {
                     $('#divcode').show();
@@ -727,6 +743,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divfile').hide();
                     $('#divcurval').hide();
                     $('#divstring').hide();
+                    $('#divdate').hide();
                     $('.noragcalc').hide();
                 } else if (val == "calc") {
                     $('#divcode').show();
@@ -736,6 +753,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divfile').hide();
                     $('#divcurval').hide();
                     $('#divstring').hide();
+                    $('#divdate').hide();
                     $('.noragcalc').hide();
                 } else if (val == "file") {
                     $('#divcode').hide();
@@ -744,6 +762,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divfile').show();
                     $('#divcurval').hide();
                     $('#divstring').hide();
+                    $('#divdate').hide();
                     $('.noragcalc').show();
                 } else if (val == "curval") {
                     $('#divcode').hide();
@@ -752,6 +771,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divfile').hide();
                     $('#divcurval').show();
                     $('#divstring').hide();
+                    $('#divdate').hide();
                     $('.noragcalc').show();
                 } else if (val == "string") {
                     $('#divcode').hide();
@@ -760,6 +780,16 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divfile').hide();
                     $('#divcurval').hide();
                     $('#divstring').show();
+                    $('#divdate').hide();
+                    $('.noragcalc').show();
+                } else if (val == "date") {
+                    $('#divcode').hide();
+                    $('#divtree').hide();
+                    $('#divenum').hide();
+                    $('#divfile').hide();
+                    $('#divcurval').hide();
+                    $('#divstring').hide();
+                    $('#divdate').show();
                     $('.noragcalc').show();
                 } else {
                     $('#divenum').hide();
@@ -768,6 +798,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divfile').hide();
                     $('#divcurval').hide();
                     $('#divstring').hide();
+                    $('#divdate').hide();
                     $('.noragcalc').show();
                 }
             });
