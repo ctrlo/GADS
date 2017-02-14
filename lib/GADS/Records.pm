@@ -984,8 +984,10 @@ sub _search_construct
     my %permission = $ignore_perms ? () : (permission => 'read');
     my $column   = $layout->column($filter->{id}, %permission)
         or return;
+    # If testing a comparison but we have no value, then assume search empty/not empty
+    # (used during filters on curval against current record values)
     $filter->{operator} = $filter->{operator} eq 'not_equal' ? 'is_not_empty' : 'is_empty'
-        if !defined $filter->{value};
+        if $filter->{operator} !~ /(is_empty|is_not_empty)/ && !defined $filter->{value};
     my $operator = $ops{$filter->{operator}}
         or error __x"Invalid operator {filter}", filter => $filter->{operator};
 

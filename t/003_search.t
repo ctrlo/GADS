@@ -49,7 +49,6 @@ my $data = [
         tree1      => 10,
     },{
         string1    => 'FooBar',
-        integer1   => 1,
         date1      => '2015-10-10',
         daterange1 => ['2009-01-04', '2017-06-03'],
         enum1      => 8,
@@ -204,6 +203,15 @@ my @filters = (
             operator => 'not_equal',
         }],
         count => 6,
+    },
+    {
+        name  => 'greater than undefined value', # matches against empty instead
+        rules => [{
+            id       => $columns->{integer1}->id,
+            type     => 'integer',
+            operator => 'greater',
+        }],
+        count => 1,
     },
     {
         name  => 'daterange less than',
