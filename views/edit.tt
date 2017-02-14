@@ -463,7 +463,8 @@
                 <input type="text" name="[% field %]" class="form-control [% datepicker %] from datepicker[% dispcol.id %]" value="[% editvalue.from_form | html_entity %]" 
                     [% IF NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %] [% readonly %]>
                 <span class="input-group-addon">to</span>
-                <input type="text" name="[% field %]" class="form-control [% datepicker %] to datepicker[% dispcol.id %]" value="[% editvalue.to_form | html_entity %]" [% readonly %]>
+                <input type="text" name="[% field %]" class="form-control [% datepicker %] to datepicker[% dispcol.id %]" value="[% editvalue.to_form | html_entity %]"
+                    [% IF NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %] [% readonly %]>
         </div>
     [% ELSE %]
         [% IF dispcol.type == "date" AND dispcol.show_datepicker %]
