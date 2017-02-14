@@ -27,55 +27,52 @@ use namespace::clean;
 
 extends 'GADS::Datum';
 
-has set_value => (
-    is       => 'rw',
-    trigger  => sub {
-        my ($self, $value) = @_;
-        ($value) = @$value if ref $value eq 'ARRAY';
-        my $new_id;
-        my $clone = $self->clone;
-        if (ref $value)
+sub set_value
+{   my ($self, $value) = @_;
+    ($value) = @$value if ref $value eq 'ARRAY';
+    my $new_id;
+    my $clone = $self->clone;
+    if (ref $value)
+    {
+        # Used in tests to create user at same time.
+        if ($value->{email})
         {
-            # Used in tests to create user at same time.
-            if ($value->{email})
-            {
-                $new_id = $self->schema->resultset('User')->find_or_create($value)->id;
-                $self->column->clear_people;
-            }
+            $new_id = $self->schema->resultset('User')->find_or_create($value)->id;
+            $self->column->clear_people;
         }
-        else {
-            # User input
-            !$value || (grep {$value == $_->id} @{$self->column->people}) || $value == $self->id # Unchanged deleted user
-                or error __x"'{int}' is not a valid person ID"
-                    , int => $value;
-            $value = undef if !$value; # Can be empty string, generating warnings
-            $new_id = $value;
-            # Look up text value
+    }
+    else {
+        # User input
+        !$value || (grep {$value == $_->id} @{$self->column->people}) || $value == $self->id # Unchanged deleted user
+            or error __x"'{int}' is not a valid person ID"
+                , int => $value;
+        $value = undef if !$value; # Can be empty string, generating warnings
+        $new_id = $value;
+        # Look up text value
+    }
+    if (
+           (!defined($self->id) && defined $new_id)
+        || (!defined($new_id) && defined $self->id)
+        || (defined $self->id && defined $new_id && $self->id != $new_id)
+    ) {
+        my $person;
+        $person = $self->schema->resultset('User')->find($new_id) if $new_id;
+        foreach my $f (qw(firstname surname email freetext1 freetext2 id))
+        {
+            $self->$f($person ? $person->$f : undef);
         }
-        if (
-               (!defined($self->id) && defined $new_id)
-            || (!defined($new_id) && defined $self->id)
-            || (defined $self->id && defined $new_id && $self->id != $new_id)
-        ) {
-            my $person;
-            $person = $self->schema->resultset('User')->find($new_id) if $new_id;
-            foreach my $f (qw(firstname surname email freetext1 freetext2 id))
-            {
-                $self->$f($person ? $person->$f : undef);
-            }
-            if ($person)
-            {
-                my $org = _org_to_hash($person->organisation);
-                $self->organisation($org);
-            }
-            $self->_set_text($person ? $person->value : undef);
-            $self->changed(1);
+        if ($person)
+        {
+            my $org = _org_to_hash($person->organisation);
+            $self->organisation($org);
         }
-        $self->_set_written_valid(!!$new_id);
-        $self->oldvalue($clone);
-        $self->id($new_id);
-    },
-);
+        $self->_set_text($person ? $person->value : undef);
+        $self->changed(1);
+    }
+    $self->_set_written_valid(!!$new_id);
+    $self->oldvalue($clone);
+    $self->id($new_id);
+}
 
 has schema => (
     is       => 'rw',

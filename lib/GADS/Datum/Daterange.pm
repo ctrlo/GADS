@@ -133,14 +133,14 @@ sub _parse_dt
         $to   = $db_parser->parse_date($original->{to});
     }
     else { # Assume 'user'
-        # If it's not a valid value, see if it's a duration instead
-        if ($self->column->validate($original))
+        # If it's not a valid value, see if it's a duration instead (only for bulk)
+        if ($self->column->validate($original, fatal => !$options{bulk}))
         {
             $self->_set_written_valid(1);
             $from = $self->column->parse_date($original->{from});
             $to   = $self->column->parse_date($original->{to});
         }
-        else {
+        elsif($options{bulk}) {
             my $from_duration = DateTime::Format::DateManip->parse_duration($original->{from});
             my $to_duration = DateTime::Format::DateManip->parse_duration($original->{to});
             if ($from_duration || $to_duration)

@@ -24,30 +24,27 @@ use namespace::clean;
 
 extends 'GADS::Datum';
 
-has set_value => (
-    is       => 'rw',
-    trigger  => sub {
-        my ($self, $value) = @_;
-        ($value) = @$value if ref $value eq 'ARRAY';
-        my $clone = $self->clone; # Copy before changing text
-        $value = undef if !$value; # Can be empty string, generating warnings
-        $self->column->validate($value, fatal => 1);
-        # Look up text value
-        if (my $node = $self->column->node($value))
-        {
-            $self->text($node->{value});
-            $self->_set_written_valid(1);
-        }
-        else {
-            $self->_set_written_valid(0);
-        }
-        $self->changed(1) if (!defined($self->id) && defined $value)
-            || (!defined($value) && defined $self->id)
-            || (defined $self->id && defined $value && $self->id != $value);
-        $self->id($value);
-        $self->oldvalue($clone);
-    },
-);
+sub set_value
+{   my ($self, $value) = @_;
+    ($value) = @$value if ref $value eq 'ARRAY';
+    my $clone = $self->clone; # Copy before changing text
+    $value = undef if !$value; # Can be empty string, generating warnings
+    $self->column->validate($value, fatal => 1);
+    # Look up text value
+    if (my $node = $self->column->node($value))
+    {
+        $self->text($node->{value});
+        $self->_set_written_valid(1);
+    }
+    else {
+        $self->_set_written_valid(0);
+    }
+    $self->changed(1) if (!defined($self->id) && defined $value)
+        || (!defined($value) && defined $self->id)
+        || (defined $self->id && defined $value && $self->id != $value);
+    $self->id($value);
+    $self->oldvalue($clone);
+}
 
 has id => (
     is      => 'rw',

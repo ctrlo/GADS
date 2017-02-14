@@ -37,19 +37,16 @@ has schema => (
 );
 
 # Set datum value with value from user
-has set_value => (
-    is       => 'rw',
-    trigger  => sub {
-        my ($self, $value) = @_;
-        $self->oldvalue($self->clone);
-        ($value) = @$value if ref $value eq 'ARRAY';
-        my $newvalue = $self->_to_dt($value, 'user');
-        my $old = $self->oldvalue && $self->oldvalue->value ? $self->oldvalue->value->epoch : 0;
-        my $new = $newvalue ? $newvalue->epoch : 0;
-        $self->changed(1) if $old != $new;
-        $self->value($newvalue);
-    }
-);
+sub set_value
+{   my ($self, $value, %options) = @_;
+    $self->oldvalue($self->clone);
+    ($value) = @$value if ref $value eq 'ARRAY';
+    my $newvalue = $self->_to_dt($value, source => 'user', %options);
+    my $old = $self->oldvalue && $self->oldvalue->value ? $self->oldvalue->value->epoch : 0;
+    my $new = $newvalue ? $newvalue->epoch : 0;
+    $self->changed(1) if $old != $new;
+    $self->value($newvalue);
+}
 
 has value => (
     is      => 'rw',
@@ -57,7 +54,7 @@ has value => (
     builder => sub {
         my $self = shift;
         my $value = $self->init_value && $self->init_value->[0];
-        my $v = $self->_to_dt($value, 'db');
+        my $v = $self->_to_dt($value, source => 'db');
         $self->has_value(1) if defined $value || $self->init_no_value;
         $v;
     },
@@ -81,7 +78,8 @@ around 'clone' => sub {
 };
 
 sub _to_dt
-{   my ($self, $value, $source) = @_;
+{   my ($self, $value, %options) = @_;
+    my $source = $options{source};
     $value = $value->{value} if ref $value eq 'HASH';
     if (!$value)
     {
@@ -97,7 +95,7 @@ sub _to_dt
         return $self->schema->storage->datetime_parser->parse_date($value);
     }
     else { # Assume 'user'
-        if (!$self->column->validate($value))
+        if (!$self->column->validate($value) && $options{bulk}) # Only allow duration during bulk update
         {
             # See if it's a duration and return that instead if so
             if (my $duration = DateTime::Format::DateManip->parse_duration($value))

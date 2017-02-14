@@ -25,39 +25,36 @@ use namespace::clean;
 
 extends 'GADS::Datum';
 
-has set_value => (
-    is       => 'rw',
-    trigger  => sub {
-        my ($self, $value) = @_;
-        my $clone = $self->clone; # Copy before changing text
-        my $new_id;
-        ($value) = @$value if ref $value eq 'ARRAY';
-        if (ref $value && $value->{content})
-        {
-            # New file uploaded
-            $new_id = $self->schema->resultset('Fileval')->create({
-                name     => $value->{name},
-                mimetype => $value->{mimetype},
-                content  => $value->{content},
-            })->id;
-            $self->content($value->{content});
-            $self->name($value->{name});
-            $self->mimetype($value->{mimetype});
-            $self->_set_written_valid(1);
-        }
-        else {
-            # Just ID for file passed. Probably a resubmission
-            # of a form with previous errors
-            $new_id = $value || undef;
-            $self->_set_written_valid(!!$new_id);
-        }
-        $self->changed(1) if (!$self->id && $value)
-            || (!$value && $self->id)
-            || (defined $self->id && defined $new_id && $self->id != $new_id && $clone->content ne $self->content);
-        $self->oldvalue($clone);
-        $self->id($new_id) if defined $new_id || $self->init_no_value;
-    },
-);
+sub set_value
+{   my ($self, $value) = @_;
+    my $clone = $self->clone; # Copy before changing text
+    my $new_id;
+    ($value) = @$value if ref $value eq 'ARRAY';
+    if (ref $value && $value->{content})
+    {
+        # New file uploaded
+        $new_id = $self->schema->resultset('Fileval')->create({
+            name     => $value->{name},
+            mimetype => $value->{mimetype},
+            content  => $value->{content},
+        })->id;
+        $self->content($value->{content});
+        $self->name($value->{name});
+        $self->mimetype($value->{mimetype});
+        $self->_set_written_valid(1);
+    }
+    else {
+        # Just ID for file passed. Probably a resubmission
+        # of a form with previous errors
+        $new_id = $value || undef;
+        $self->_set_written_valid(!!$new_id);
+    }
+    $self->changed(1) if (!$self->id && $value)
+        || (!$value && $self->id)
+        || (defined $self->id && defined $new_id && $self->id != $new_id && $clone->content ne $self->content);
+    $self->oldvalue($clone);
+    $self->id($new_id) if defined $new_id || $self->init_no_value;
+}
 
 has id => (
     is      => 'rw',

@@ -1857,7 +1857,7 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
             if (defined $newv)
             {
                 my $datum = $record->fields->{$col->id};
-                $failed_initial = !process( sub { $datum->set_value($newv) } ) || $failed_initial;
+                $failed_initial = !process( sub { $datum->set_value($newv, bulk => 1) } ) || $failed_initial;
                 push @updated, $col
                     if $datum->written_valid;
             }
@@ -1873,7 +1873,7 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
                 foreach my $col (@updated)
                 {
                     my $newv = [body_parameters->get_all($col->field)];
-                    last if $failed = !process( sub { $record_update->fields->{$col->id}->set_value($newv) } );
+                    last if $failed = !process( sub { $record_update->fields->{$col->id}->set_value($newv, bulk => 1) } );
                 }
                 if (!$failed)
                 {
@@ -1896,8 +1896,8 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
             }
             else # Failures, back round the buoy
             {
-                my $s = __xn"{_count} record was updated successfully", "{_count} records were updated successfully", $success;
-                my $f = __xn", {_count} record failed to be updated", ", {_count} records failed to be updated", $failures;
+                my $s = __xn"{_count} record was updated successfully", "{_count} records were updated successfully", $success || 0;
+                my $f = __xn", {_count} record failed to be updated", ", {_count} records failed to be updated", $failures || 0;
                 mistake $s.$f;
             }
         }

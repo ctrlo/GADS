@@ -25,31 +25,28 @@ use namespace::clean;
 
 extends 'GADS::Datum';
 
-has set_value => (
-    is       => 'rw',
-    trigger  => sub {
-        my ($self, $value) = @_;
-        my $clone = $self->clone; # Copy before changing text
-        my @values = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
-        my @old    = sort ref $self->id eq 'ARRAY' ? @{$self->id} : $self->id ? $self->id : ();
-        my $changed = "@values" ne "@old";
-        $self->_set_written_valid(!!@values);
-        if ($changed)
+sub set_value
+{   my ($self, $value) = @_;
+    my $clone = $self->clone; # Copy before changing text
+    my @values = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
+    my @old    = sort ref $self->id eq 'ARRAY' ? @{$self->id} : $self->id ? $self->id : ();
+    my $changed = "@values" ne "@old";
+    $self->_set_written_valid(!!@values);
+    if ($changed)
+    {
+        my @text;
+        foreach (@values)
         {
-            my @text;
-            foreach (@values)
-            {
-                $self->column->validate($_, fatal => 1);
-                push @text, $self->column->enumval($_)->{value};
-            }
-            $self->clear_text;
-            $self->text_all(\@text);
+            $self->column->validate($_, fatal => 1);
+            push @text, $self->column->enumval($_)->{value};
         }
-        $self->changed($changed);
-        $self->oldvalue($clone);
-        $self->id($self->column->multivalue ? \@values : $values[0]);
-    },
-);
+        $self->clear_text;
+        $self->text_all(\@text);
+    }
+    $self->changed($changed);
+    $self->oldvalue($clone);
+    $self->id($self->column->multivalue ? \@values : $values[0]);
+}
 
 has text => (
     is      => 'rw',

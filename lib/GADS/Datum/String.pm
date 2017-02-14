@@ -25,24 +25,21 @@ use namespace::clean;
 
 extends 'GADS::Datum';
 
-has set_value => (
-    is       => 'rw',
-    trigger  => sub {
-        my ($self, $value) = @_;
-        ($value) = @$value if ref $value eq 'ARRAY';
-        $value =~ /\h+$/ if !ref $value && $value;
-        if (my $regex = !ref $value && $self->column->force_regex)
-        {
-            error __x"Invalid value \"{value}\" for {field}", value => $value, field => $self->column->name
-                if $value && $value !~ /^$regex$/;
-        }
-        $self->changed(1)
-            if ($self->value || '') ne ($value || '');
-        $self->_set_written_valid(!!$value);
-        $self->oldvalue($self->clone);
-        $self->value($value);
-    },
-);
+sub set_value
+{   my ($self, $value) = @_;
+    ($value) = @$value if ref $value eq 'ARRAY';
+    $value =~ /\h+$/ if !ref $value && $value;
+    if (my $regex = !ref $value && $self->column->force_regex)
+    {
+        error __x"Invalid value \"{value}\" for {field}", value => $value, field => $self->column->name
+            if $value && $value !~ /^$regex$/;
+    }
+    $self->changed(1)
+        if ($self->value || '') ne ($value || '');
+    $self->_set_written_valid(!!$value);
+    $self->oldvalue($self->clone);
+    $self->value($value);
+}
 
 has value => (
     is        => 'rw',

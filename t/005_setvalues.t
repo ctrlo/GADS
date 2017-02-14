@@ -252,7 +252,7 @@ foreach my $multivalue (0..1)
                     # Test writing of addable value applied to an blank existing value.
                     if (my $addable = $values->{$type}->{addable})
                     {
-                        $datum->set_value($addable);
+                        $datum->set_value($addable, bulk => 1);
                         ok( $datum->written_valid, "$type is written valid for addable value$is_multi" );
                         ok( $datum->blank, "$type is blank after writing addable value$is_multi" );
                     }
@@ -261,7 +261,7 @@ foreach my $multivalue (0..1)
                 {
                     if (my $addable = $values->{$type}->{addable})
                     {
-                        $datum->set_value($addable);
+                        $datum->set_value($addable, bulk => 1);
                         ok( $datum->written_valid, "$type is written valid for addable value$is_multi" );
                         is( $datum->as_string, $values->{$type}->{addable_result}, "$type is correct after writing addable change$is_multi" );
                     }
