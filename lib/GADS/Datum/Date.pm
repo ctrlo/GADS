@@ -92,7 +92,12 @@ sub _to_dt
     }
     elsif ($source eq 'db')
     {
-        return $self->schema->storage->datetime_parser->parse_date($value);
+        if ($value =~ / /) # Assume datetime
+        {
+            return $self->schema->storage->datetime_parser->parse_datetime($value);
+        } else {
+            return $self->schema->storage->datetime_parser->parse_date($value);
+        }
     }
     else { # Assume 'user'
         if (!$self->column->validate($value) && $options{bulk}) # Only allow duration during bulk update
