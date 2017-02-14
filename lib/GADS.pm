@@ -2027,7 +2027,7 @@ any '/edit/:id?' => require_login sub {
         } @columns_to_show;
         if (@not_done)
         {
-            if (process( sub { $record->write(dry_run => 1) } ))
+            if (!$failed && process( sub { $record->write(dry_run => 1) } ))
             {
                 $record->show_for_write_clear;
             }
