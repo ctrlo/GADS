@@ -163,6 +163,12 @@ has can_multivalue => (
     default => 0,
 );
 
+has has_multivalue_plus => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
 has multivalue => (
     is      => 'rw',
     isa     => Bool,

@@ -1093,7 +1093,7 @@ sub write
             if ($col->userinput)
             {
                 my $datum_parent = $self->fields->{$col->id};
-                $datum_child->set_value($datum_parent->value)
+                $datum_child->set_value($datum_parent->html_form)
                     unless $datum_child->child_unique;
             }
             # Calc/rag values will be evaluated during write()
@@ -1178,10 +1178,19 @@ sub _field_write
         {
             if ($column->type eq "daterange")
             {
-                $entry->{from}  = $datum_write->from_dt;
-                $entry->{to}    = $datum_write->to_dt;
-                $entry->{value} = $datum_write->as_string || undef; # Don't write empty strings for missing values
-                push @entries, $entry;
+                if (!@{$datum_write->values})
+                {
+                    push @entries, $entry; # No values, but still need to write null value
+                }
+                my @texts = @{$datum_write->text_all};
+                foreach my $range (@{$datum_write->values})
+                {
+                    my %entry = %$entry; # Copy to stop referenced values being overwritten
+                    $entry{from}  = $range->start;
+                    $entry{to}    = $range->end;
+                    $entry{value} = shift @texts;
+                    push @entries, \%entry;
+                }
             }
             elsif ($column->type =~ /(file|enum|tree|person|curval)/)
             {

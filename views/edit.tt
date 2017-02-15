@@ -51,6 +51,18 @@
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
         $(document).ready(function () {
+            $(document).on("click", ".cloneme", function() {
+                var parent = $(this).parents('.input_holder');
+                var cloned = parent.clone();
+                cloned.removeAttr('id').insertAfter(parent);
+                cloned.find(".datepicker").datepicker({format: "[% config.dateformat_datepicker %]", autoclose: true});
+            });
+            $('.removeme').click(function() {
+                var parent = $(this).parents('.input_holder');
+                if (parent.siblings(".input_holder").length > 0) {
+                    parent.remove();
+                }
+            });
             $(document).on('hidden.bs.modal', function (e) {
                 $(e.target).removeData('bs.modal');
             });
@@ -303,8 +315,6 @@
         [% readonly = "" %]
     [% END %]
 
-    <div class="row">
-        <div class="col-md-12">
     <div class="form-group">
         [% label = dispcol.name | html_entity %]
         [% IF dispcol.optional OR page == "bulk" %]
@@ -353,138 +363,153 @@
                 [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
             </label>
         [% END %]
-    [% IF dispcol.type == "enum" %]
         [% IF dispcol.multivalue %]
             [%# Ensure a value gets sent back to show this field was shown if nothing selected %]
             <input type="hidden" name="[% field %]">
         [% END %]
-        <select class="form-control [% IF dispcol.multivalue %]selectpicker [% END %]" name="[% field %]" id="[% dispcol.id %]" [% readonly %] [% IF dispcol.multivalue %]multiple[% END %]>
-            [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
-                [% IF !dispcol.multivalue %]
-                    <option></option>
-                [% END %]
-            [% END %]
-            [% IF dispcol.ordering == "desc" %]
-                [% enumvals = dispcol.enumvals.sort('value').reverse %]
-            [% ELSIF dispcol.ordering == "asc" %]
-                [% enumvals = dispcol.enumvals.sort('value') %]
-            [% ELSE %]
-                [% enumvals = dispcol.enumvals %]
-            [% END %]
-            [% is_selected = 0 %]
-            [% FOREACH enumval IN enumvals %]
-                <option value="[% enumval.id %]" [% IF editvalue.id_hash.${enumval.id} %][% is_selected = 1 %]selected[% END %]>[% enumval.value | html_entity %]</option>
-            [% END %]
-            [% IF editvalue.id AND NOT is_selected AND !dispcol.multivalue %]
-                <option value="[% editvalue.id %]" selected>[% editvalue.html %]</option>
-            [% END %]
-        </select>
-    [% ELSIF dispcol.type == "curval" %]
-        [% IF dispcol.typeahead %]
-            <input type="hidden" name="[% field %]" id="[% dispcol.id %]_value" value="[% editvalue.id %]">
-            <input type="text" class="form-control" id="[% dispcol.id %]" autocomplete="off"
-                name="[% field %]_typeahead" value="[% IF record %][% editvalue.html %][% END %]" [% readonly %] >
-            [% typeaheads.push({id = dispcol.id, field = field }) %]
-        [% ELSE %]
-            [% IF dispcol.multivalue %]
-                [%# Ensure a value gets sent back to show this field was shown if nothing selected %]
-                <input type="hidden" name="[% field %]">
-            [% END %]
-            <select class="form-control [% IF dispcol.multivalue %]selectpicker [% END %]" name="[% field %]" id="[% dispcol.id %]" [% readonly %] [% IF dispcol.multivalue %]multiple[% END %]>
-                [% IF !dispcol.multivalue %]
-                    [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
-                        <option></option>
+        [% WHILE editvalue.html_form.size %]
+            <div class="input_holder">
+                <div class="row">
+                    <div class="[% IF dispcol.multivalue AND dispcol.has_multivalue_plus %]col-md-10[% ELSE %]col-md-12[% END %]">
+                        [% IF dispcol.type == "enum" %]
+                            <select class="form-control [% IF dispcol.multivalue %]selectpicker [% END %]" name="[% field %]" id="[% dispcol.id %]" [% readonly %] [% IF dispcol.multivalue %]multiple[% END %]>
+                                [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
+                                    [% IF !dispcol.multivalue %]
+                                        <option></option>
+                                    [% END %]
+                                [% END %]
+                                [% IF dispcol.ordering == "desc" %]
+                                    [% enumvals = dispcol.enumvals.sort('value').reverse %]
+                                [% ELSIF dispcol.ordering == "asc" %]
+                                    [% enumvals = dispcol.enumvals.sort('value') %]
+                                [% ELSE %]
+                                    [% enumvals = dispcol.enumvals %]
+                                [% END %]
+                                [% is_selected = 0 %]
+                                [% FOREACH enumval IN enumvals %]
+                                    <option value="[% enumval.id %]" [% IF editvalue.id_hash.${enumval.id} %][% is_selected = 1 %]selected[% END %]>[% enumval.value | html_entity %]</option>
+                                [% END %]
+                                [% IF editvalue.id AND NOT is_selected AND !dispcol.multivalue %]
+                                    <option value="[% editvalue.id %]" selected>[% editvalue.html %]</option>
+                                [% END %]
+                            </select>
+                        [% ELSIF dispcol.type == "curval" %]
+                            [% IF dispcol.typeahead %]
+                                <input type="hidden" name="[% field %]" id="[% dispcol.id %]_value" value="[% editvalue.id %]">
+                                <input type="text" class="form-control" id="[% dispcol.id %]" autocomplete="off"
+                                    name="[% field %]_typeahead" value="[% IF record %][% editvalue.html %][% END %]" [% readonly %] >
+                                [% typeaheads.push({id = dispcol.id, field = field }) %]
+                            [% ELSE %]
+                                [% IF dispcol.multivalue %]
+                                    [%# Ensure a value gets sent back to show this field was shown if nothing selected %]
+                                    <input type="hidden" name="[% field %]">
+                                [% END %]
+                                <select class="form-control [% IF dispcol.multivalue %]selectpicker [% END %]" name="[% field %]" id="[% dispcol.id %]" [% readonly %] [% IF dispcol.multivalue %]multiple[% END %]>
+                                    [% IF !dispcol.multivalue %]
+                                        [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
+                                            <option></option>
+                                        [% END %]
+                                    [% END %]
+                                    [% enumvals = dispcol.values %]
+                                    [% FOREACH enumval IN enumvals %]
+                                        [% UNLESS enumval.deleted %]
+                                            <option value="[% enumval.id %]" [% IF editvalue.id_hash.${enumval.id} %]selected[% END %]>[% enumval.value | html_entity %]</option>
+                                        [% END %]
+                                    [% END %]
+                                </select>
+                            [% END %]
+                        [% ELSIF dispcol.type == "tree" %]
+                            <input type="hidden" name="[% field %]" id="treeval_id[% dispcol.id %]" value="[% editvalue.id %]">
+                            [% IF readonly %]
+                                <div class="form-group">
+                                    [% editvalue.html %]
+                                </div>
+                            [% ELSE %]
+                                [% trees.push({id = dispcol.id, end_node_only = dispcol.end_node_only, value = editvalue }) %]
+                                <div class="form-group">
+                                    <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('open_all');">Expand all</a> |
+                                    <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('close_all');">Collapse all</a> |
+                                    <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('refresh');">Reload</a>
+                                    <div id="jstree[% dispcol.id %]"></div>
+                                </div>
+                                <input type="hidden" id="[% dispcol.id %]" value="">
+                            [% END %]
+                        [% ELSIF dispcol.type == "person" %]
+                            <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
+                                [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
+                                    <option></option>
+                                [% END %]
+                                [% IF editvalue.id %]
+                                    [% selected = editvalue.id %]
+                                [% ELSIF NOT record.current_id %] [%# default to current user for new records only %]
+                                    [% selected = user.id %]
+                                [% END %]
+                                [% is_selected = 0 %]
+                                [% FOREACH person IN dispcol.people %]
+                                    [% UNLESS person.deleted %]
+                                        <option value="[% person.id %]" [% IF selected == person.id %][% is_selected = 1 %]selected[% END %]>[% person.value | html_entity %]</option>
+                                    [% END %]
+                                [% END %]
+                                [% IF editvalue.id AND NOT is_selected %]
+                                    <option value="[% editvalue.id %]" selected>[% editvalue.html %]</option>
+                                [% END %]
+                            </select>
+                        [% ELSIF dispcol.type == "file" %]
+                            [% IF readonly %]
+                                [% IF editvalue.id %]
+                                    <input type="hidden" name="[% field %]" value="[% editvalue.id %]">
+                                    <p class="help-block">Current file name: [% editvalue.html %] (read-only field, cannot be updated).</p>
+                                [% ELSE %]
+                                    <p class="help-block">No current file (read-only field, cannot be updated).</p>
+                                [% END %]
+                            [% ELSE %]
+                                <input type="file" id="[% dispcol.id %]" name="[% "file" _ dispcol.id %]">
+                                [% IF editvalue.id %]
+                                    <p class="help-block">
+                                        <input type="checkbox" name="[% field %]" value="[% editvalue.id %]" checked>Include file.
+                                        Current file name: [% editvalue.html %]. Select a new file to replace.
+                                    </p>
+                                [% END %]
+                            [% END %]
+                        [% ELSIF dispcol.type == "daterange" %]
+                            [% IF dispcol.show_datepicker %][% datepicker = "datepicker" %][% ELSE %][% datepicker = "" %][% END %]
+                            <div class="input-group input-daterange">
+                                    <input type="text" name="[% field %]" class="form-control [% datepicker %] from datepicker[% dispcol.id %]" value="[% editvalue.html_form.shift | html_entity %]" 
+                                        [% IF NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %] [% readonly %]>
+                                    <span class="input-group-addon">to</span>
+                                    <input type="text" name="[% field %]" class="form-control [% datepicker %] to datepicker[% dispcol.id %]" value="[% editvalue.html_form.shift | html_entity %]"
+                                        [% IF NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %] [% readonly %]>
+                            </div>
+                        [% ELSE %]
+                            [% IF dispcol.type == "date" AND dispcol.show_datepicker %]
+                                [% class = "form-control datepicker" %]
+                            [% ELSIF dispcol.type == "intgr" AND editvalue.value.defined %]
+                                [% class = "form-control intcalculator" %]
+                            [% ELSE %]
+                                [% class = "form-control" %]
+                            [% END %]
+                            [% IF dispcol.textbox %]
+                                <textarea [%readonly %] class="form-control" id="[% dispcol.id %]" name="[% field %]" rows="10">[% IF record %][% editvalue.html %][% END %]</textarea>
+                            [% ELSE %]
+                                <input type="text" class="[% class %]" id="[% dispcol.id %]"
+                                    name="[% field %]" value="[% IF record %][% editvalue.html %][% END %]" [% readonly %]
+                                    [% IF dispcol.type == "date" AND NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %]>
+                            [% END %]
+                        [% END %]
+                    </div>
+                    [% IF dispcol.multivalue AND dispcol.has_multivalue_plus %]
+                        <div class="col-md-2">
+                            <a class="btn btn-primary btn-sm"><i class="fa fa-lg fa-plus cloneme" style="cursor: pointer"></i></a>
+                            <a class="btn btn-primary btn-sm"><i class="fa fa-lg fa-minus removeme" style="cursor: pointer"></i></a>
+                        </div>
                     [% END %]
-                [% END %]
-                [% enumvals = dispcol.values %]
-                [% FOREACH enumval IN enumvals %]
-                    [% UNLESS enumval.deleted %]
-                        <option value="[% enumval.id %]" [% IF editvalue.id_hash.${enumval.id} %]selected[% END %]>[% enumval.value | html_entity %]</option>
-                    [% END %]
-                [% END %]
-            </select>
-        [% END %]
-    [% ELSIF dispcol.type == "tree" %]
-        <input type="hidden" name="[% field %]" id="treeval_id[% dispcol.id %]" value="[% editvalue.id %]">
-        [% IF readonly %]
-            <div class="form-group">
-                [% editvalue.html %]
+                </div>
             </div>
-        [% ELSE %]
-            [% trees.push({id = dispcol.id, end_node_only = dispcol.end_node_only, value = editvalue }) %]
-            <div class="form-group">
-                <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('open_all');">Expand all</a> |
-                <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('close_all');">Collapse all</a> |
-                <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('refresh');">Reload</a>
-                <div id="jstree[% dispcol.id %]"></div>
-            </div>
-            <input type="hidden" id="[% dispcol.id %]" value="">
-        [% END %]
-    [% ELSIF dispcol.type == "person" %]
-        <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
-            [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
-                <option></option>
-            [% END %]
-            [% IF editvalue.id %]
-                [% selected = editvalue.id %]
-            [% ELSIF NOT record.current_id %] [%# default to current user for new records only %]
-                [% selected = user.id %]
-            [% END %]
-            [% is_selected = 0 %]
-            [% FOREACH person IN dispcol.people %]
-                [% UNLESS person.deleted %]
-                    <option value="[% person.id %]" [% IF selected == person.id %][% is_selected = 1 %]selected[% END %]>[% person.value | html_entity %]</option>
-                [% END %]
-            [% END %]
-            [% IF editvalue.id AND NOT is_selected %]
-                <option value="[% editvalue.id %]" selected>[% editvalue.html %]</option>
-            [% END %]
-        </select>
-    [% ELSIF dispcol.type == "file" %]
-        [% IF readonly %]
-            [% IF editvalue.id %]
-                <input type="hidden" name="[% field %]" value="[% editvalue.id %]">
-                <p class="help-block">Current file name: [% editvalue.html %] (read-only field, cannot be updated).</p>
-            [% ELSE %]
-                <p class="help-block">No current file (read-only field, cannot be updated).</p>
-            [% END %]
-        [% ELSE %]
-            <input type="file" id="[% dispcol.id %]" name="[% "file" _ dispcol.id %]">
-            [% IF editvalue.id %]
-                <p class="help-block">
-                    <input type="checkbox" name="[% field %]" value="[% editvalue.id %]" checked>Include file.
-                    Current file name: [% editvalue.html %]. Select a new file to replace.
-                </p>
+            [% UNLESS dispcol.multivalue AND dispcol.has_multivalue_plus %]
+                [% editvalue = 0 %]
             [% END %]
         [% END %]
-    [% ELSIF dispcol.type == "daterange" %]
-        [% IF dispcol.show_datepicker %][% datepicker = "datepicker" %][% ELSE %][% datepicker = "" %][% END %]
-        <div class="input-group input-daterange">
-                <input type="text" name="[% field %]" class="form-control [% datepicker %] from datepicker[% dispcol.id %]" value="[% editvalue.from_form | html_entity %]" 
-                    [% IF NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %] [% readonly %]>
-                <span class="input-group-addon">to</span>
-                <input type="text" name="[% field %]" class="form-control [% datepicker %] to datepicker[% dispcol.id %]" value="[% editvalue.to_form | html_entity %]"
-                    [% IF NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %] [% readonly %]>
-        </div>
-    [% ELSE %]
-        [% IF dispcol.type == "date" AND dispcol.show_datepicker %]
-            [% class = "form-control datepicker" %]
-        [% ELSIF dispcol.type == "intgr" AND editvalue.value.defined %]
-            [% class = "form-control intcalculator" %]
-        [% ELSE %]
-            [% class = "form-control" %]
-        [% END %]
-        [% IF dispcol.textbox %]
-            <textarea [%readonly %] class="form-control" id="[% dispcol.id %]" name="[% field %]" rows="10">[% IF record %][% editvalue.html %][% END %]</textarea>
-        [% ELSE %]
-            <input type="text" class="[% class %]" id="[% dispcol.id %]"
-                name="[% field %]" value="[% IF record %][% editvalue.html %][% END %]" [% readonly %]
-                [% IF dispcol.type == "date" AND NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %]>
-        [% END %]
-    [% END %]
-</div>
-</div>
-</div>
+    </div>
 
     [%# Prevent recursive loops %]
     [% cid = dispcol.id %]

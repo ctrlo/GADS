@@ -33,6 +33,14 @@ has '+addable' => (
     default => 1,
 );
 
+has '+can_multivalue' => (
+    default => 1,
+);
+
+has '+has_multivalue_plus' => (
+    default => 1,
+);
+
 has '+option_names' => (
     default => sub { [qw/show_datepicker/] },
 );

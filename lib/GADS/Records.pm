@@ -631,14 +631,18 @@ sub fetch_multivalues
             next unless $col->multivalue;
             if (!$tables_done->{$col->table})
             {
-                my ($left, $prefetch) = %{$col->join}; # Prefetch table is 2nd part of join
+                my $select = {
+                    join => 'layout',
+                };
+                if (ref $col->join)
+                {
+                    my ($left, $prefetch) = %{$col->join}; # Prefetch table is 2nd part of join
+                    $select->{prefetch} = $prefetch;
+                }
                 my $m_rs = $self->schema->resultset($col->table)->search({
                     'me.record_id'      => $record_ids,
                     'layout.multivalue' => 1,
-                }, {
-                    join     => 'layout',
-                    prefetch => $prefetch,
-                });
+                }, $select);
                 $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
                 foreach my $val ($m_rs->all)
                 {
@@ -1212,17 +1216,21 @@ sub data_time
                 # Push value onto stack
                 if ($column->type eq "daterange")
                 {
-                    $d->from_dt && $d->to_dt or next;
-                    # It's possible that values from other columns not within
-                    # the required range will have been retrieved. Don't bother
-                    # adding them
-                    push @dates, {
-                        from  => $d->from_dt,
-                        to    => $d->to_dt,
-                        color => $color,
-                        column=> $column->id,
-                    } if (!$self->to || DateTime->compare($self->to, $d->from_dt) >= 0)
-                      && (!$self->from || DateTime->compare($d->to_dt, $self->from) >= 0);
+                    my $count;
+                    foreach my $range (@{$d->values})
+                    {
+                        # It's possible that values from other columns not within
+                        # the required range will have been retrieved. Don't bother
+                        # adding them
+                        push @dates, {
+                            from  => $range->start,
+                            to    => $range->end,
+                            color => $color,
+                            column=> $column->id,
+                            count => ++$count,
+                        } if (!$self->to || DateTime->compare($self->to, $range->start) >= 0)
+                          && (!$self->from || DateTime->compare($range->end, $self->from) >= 0);
+                    }
                 }
                 else {
                     $d->value or next;
@@ -1231,6 +1239,7 @@ sub data_time
                         to    => $d->value,
                         color => $color,
                         column=> $column->id,
+                        count => 1,
                     } if (!$self->from || DateTime->compare($d->value, $self->from) >= 0)
                       && (!$self->to || DateTime->compare($self->to, $d->value) >= 0);
                 }
@@ -1308,7 +1317,7 @@ sub data_time
                 my $t = $d->{from}->epoch == $d->{to}->epoch ? $title_i_abr : $title_i;
                 my $item = {
                     "content" => qq(<a title="$title_i" href="/record/$cid" style="color:inherit;">$t</a>),
-                    "id"      => "$cid+$d->{column}",
+                    "id"      => "$cid+$d->{column}+$d->{count}",
                     current_id => $cid,
                     "start"   => $d->{from}->ymd,
                     "group"   => $item_group,

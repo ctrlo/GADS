@@ -24,7 +24,7 @@ use DateTime::Span;
 use GADS::SchemaInstance;
 use Log::Report;
 use Moo;
-use namespace::clean;
+use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Datum';
 
@@ -38,34 +38,59 @@ has schema => (
 
 # Set datum value with value from user
 sub set_value
-{   my ($self, $value, %options) = @_;
-
-    $self->oldvalue($self->clone);
-    my $newvalue = $self->_parse_dt($value, source => 'user', %options);
-    my $from_old = $self->oldvalue && $self->oldvalue->value ? $self->oldvalue->value->start->epoch : 0;
-    my $to_old   = $self->oldvalue && $self->oldvalue->value ? $self->oldvalue->value->end->epoch   : 0;
-    my $from_new = $newvalue ? $newvalue->start->epoch : 0;
-    my $to_new   = $newvalue ? $newvalue->end->epoch   : 0;
-    $self->changed(1) if $from_old != $from_new || $to_old != $to_new;
-    $self->value($newvalue);
+{   my ($self, $all, %options) = @_;
+    $all ||= [];
+    my @all = @$all; # Take a copy first
+    my $clone = $self->clone;
+    shift @all if @all % 2 == 1 && !$all[0]; # First is hidden value from form
+    my @values;
+    $self->_set_written_valid(0) if !@values; # Assume 0, 1 written in parse_dt
+    while (@all)
+    {
+        my @dt = $self->_parse_dt([shift @all, shift @all], source => 'user', %options);
+        push @values, @dt if @dt;
+    }
+    my @text_all = sort map { $self->_as_string($_) } @values;
+    my @old_texts = @{$self->text_all};
+    my $changed = "@text_all" ne "@old_texts";
+    if ($changed)
+    {
+        $self->changed(1);
+        $self->_set_values([@values]);
+        $self->_set_text_all([@text_all]);
+        $self->clear_html_form;
+        $self->clear_blank;
+    }
+    $self->oldvalue($clone);
 }
 
-has value => (
-    is      => 'rw',
+has values => (
+    is      => 'rwp',
+    isa     => ArrayRef,
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        my $value = $self->init_value && $self->init_value->[0];
-        my $v = $self->_parse_dt($value, source => 'db');
-        $self->has_value(1) if defined $value || $self->init_no_value;
-        $self->value($v);
+        $self->init_value or return [];
+        my @values = map { $self->_parse_dt($_, source => 'db') } @{$self->init_value};
+        $self->has_value(!!@values);
+        [@values];
     },
 );
 
-sub blank
+has text_all => (
+    is      => 'rwp',
+    isa     => ArrayRef,
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        [ map { $self->_as_string($_) } @{$self->values} ];
+    },
+);
+
+sub _build_blank
 {   my $self = shift;
-    $self->from_dt && $self->to_dt ? 0 : 1;
-};
+    ! grep { $_->start && $_->end } @{$self->values};
+}
 
 # Can't use predicate, as value may not have been built on
 # second time it's set
@@ -78,30 +103,10 @@ around 'clone' => sub {
     my $self = shift;
     $orig->(
         $self,
-        value           => $self->value,
-        schema          => $self->schema,
+        values => $self->values,
+        schema => $self->schema,
     );
 };
-
-sub from_form
-{   my $self = shift;
-    $self->value && $self->value->start->format_cldr($self->column->dateformat);
-}
-
-sub to_form
-{   my $self = shift;
-    $self->value && $self->value->end->format_cldr($self->column->dateformat);
-}
-
-sub from_dt
-{   my $self = shift;
-    $self->value && $self->value->start;
-}
-
-sub to_dt
-{   my $self = shift;
-    $self->value && $self->value->end;
-}
 
 sub _parse_dt
 {   my ($self, $original, %options) = @_;
@@ -121,7 +126,6 @@ sub _parse_dt
 
     if (!$original->{from} && !$original->{to})
     {
-        $self->_set_written_valid(0);
         return;
     }
 
@@ -146,12 +150,18 @@ sub _parse_dt
             if ($from_duration || $to_duration)
             {
                 $self->_set_written_valid(1);
-                if ($self->value)
+                if (@{$self->values})
                 {
-                    $from = $self->value->start;
-                    $from->add_duration($from_duration) if $from_duration;
-                    $to = $self->value->end;
-                    $to->add_duration($to_duration) if $to_duration;
+                    my @return;
+                    foreach my $value (@{$self->values})
+                    {
+                        $from = $value->start;
+                        $from->add_duration($from_duration) if $from_duration;
+                        $to = $value->end;
+                        $to->add_duration($to_duration) if $to_duration;
+                        push @return, DateTime::Span->from_datetimes(start => $from, end => $to);
+                    }
+                    return @return;
                 }
                 else {
                     return; # Don't bork as we might be bulk updating, with some blank values
@@ -165,7 +175,7 @@ sub _parse_dt
     }
 
     $to->subtract( days => $options{subtract_days_end} ) if $options{subtract_days_end};
-    DateTime::Span->from_datetimes(start => $from, end => $to);
+    (DateTime::Span->from_datetimes(start => $from, end => $to));
 }
 
 # XXX Why is this needed? Error when creating new record otherwise
@@ -177,8 +187,7 @@ sub as_integer
 
 sub as_string
 {   my $self = shift;
-    $self->value; # Force update of values
-    $self->_as_string($self->value);
+    join ', ', @{$self->text_all};
 }
 
 sub _as_string
@@ -189,23 +198,31 @@ sub _as_string
     $range->start->format_cldr($format) . " to " . $range->end->format_cldr($format);
 }
 
-sub html_form
+has html_form => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_html_form
 {   my $self = shift;
-    my $format = $self->column->dateformat;
-    [
-        $self->from_form,
-        $self->to_form,
-    ];
+    [ map {
+        $_->start->format_cldr($self->column->dateformat),
+        $_->end->format_cldr($self->column->dateformat),
+    } @{$self->values} ];
 }
 
 sub for_code
 {   my $self = shift;
-    return undef if $self->blank;
-    +{
-        from  => $self->_date_for_code($self->from_dt),
-        to    => $self->_date_for_code($self->to_dt),
-        value => $self->as_string,
-    };
+    return undef if !$self->column->multivalue && $self->blank;
+    my @return = map {
+        +{
+            from  => $self->_date_for_code($_->start),
+            to    => $self->_date_for_code($_->end),
+            value => $self->_as_string($_),
+        };
+    } @{$self->values};
+
+    $self->column->multivalue ? \@return : $return[0];
 }
 
 1;

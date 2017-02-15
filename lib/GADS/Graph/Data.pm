@@ -512,19 +512,5 @@ sub _group_date
          : $val
 }
 
-sub _group_dates
-{   my ($val, $grouping) = @_;
-    $val or return;
-    my $start  = _group_date($val->from_dt, $grouping);
-    my @return = ($start);
-    my $range  = $val->from_dt->clone;
-    while ($range->epoch < _group_date($val->to_dt, $grouping)->epoch)
-    {
-        $range->add($grouping."s" => 1);
-        push @return, _group_date($range, $grouping);
-    }
-    @return;
-}
-
 1;
 
