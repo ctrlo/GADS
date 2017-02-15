@@ -273,8 +273,13 @@
 
     [%# If field's value has already been written to, do not display field by add as hidden value instead %]
     [% IF record.fields.$colid.written_to AND NOT record.fields.$colid.show_for_write %]
-        [% FOREACH val IN record.fields.$colid.html_form %]
-            <input type="hidden" name="[% field %]" value="[% val %]">
+        [% IF record.fields.$colid.html_form.size %]
+            [% FOREACH val IN record.fields.$colid.html_form %]
+                <input type="hidden" name="[% field %]" value="[% val %]">
+            [% END %]
+        [% ELSE %]
+            [%# Ensure a value gets sent back to show this field was shown if nothing selected %]
+            <input type="hidden" name="[% field %]">
         [% END %]
     [% END %]
 
