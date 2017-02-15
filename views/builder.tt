@@ -5,7 +5,7 @@ $('#builder[% builder_id %]').queryBuilder({
                 id: '[% col.id %]',
                 label: '[% col.name | html_entity %]',
                 [% IF col.type == "intgr" %]
-                    type: 'integer',
+                    type: 'string', [%# Allow variable names %]
                 [% ELSIF col.return_type == "date" %]
                     type: 'date',
                     operators: ['equal', 'not_equal', 'less', 'less_or_equal', 'greater',
