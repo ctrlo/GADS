@@ -1996,6 +1996,22 @@ any '/edit/:id?' => require_login sub {
         # just silently ignoring them, IMHO.
         foreach my $col (@columns_to_show)
         {
+            # See if it depends on another value. If so, we won't have received
+            # a value, but we need to write one anyway to flag the datum having
+            # been written
+            if ($col->display_field)
+            {
+                my $depends_on = $layout->column($col->display_field);
+                my $re         = $col->display_regex;
+                my $regex      = qr(^$re$);
+                # Assume that the field depended on has already been written
+                if ($record->fields->{$col->display_field}->as_string !~ $regex)
+                {
+                    # Doesn't match so won't have been shown
+                    $record->fields->{$col->id}->set_value('');
+                    next;
+                }
+            }
             next unless defined body_parameters->get($col->field);
             my $newv = [body_parameters->get_all($col->field)];
             if ($col->userinput && defined $newv) # Not calculated fields
