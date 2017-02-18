@@ -287,12 +287,14 @@ sub search_views
     {
         # Treat each view with CURUSER as a separate view for each user
         # that has it set as an alert
-        my @user_ids = $view->has_curuser
-           ? $self->schema->resultset('Alert')->search({
+        my @users = $view->has_curuser
+           ? $self->schema->resultset('User')->search({
             view_id => $view->id
-        })->get_column('user_id')->all : (undef);
+        }, {
+            join => 'alerts',
+        })->all : (undef);
 
-        foreach my $user_id (@user_ids)
+        foreach my $user (@users)
         {
             my $filter  = $view->filter;
             my $view_id = $view->id;
@@ -302,7 +304,7 @@ sub search_views
             {
                 my $search = {
                     'me.instance_id'          => $self->layout->instance_id,
-                    @{$self->_search_construct($decoded, $self->layout, ignore_perms => 1, user_id => $user_id)},
+                    @{$self->_search_construct($decoded, $self->layout, ignore_perms => 1, user => $user)},
                     %{$self->record_later_search},
                 };
                 my $i = 0; my @ids;
@@ -331,7 +333,7 @@ sub search_views
                     push @foundin, {
                         view    => $view,
                         id      => $id,
-                        user_id => $user_id,
+                        user_id => $user && $user->id,
                     };
                 }
             }
@@ -339,7 +341,7 @@ sub search_views
                 # No filter, definitely in view
                 push @foundin, {
                     view    => $view,
-                    user_id => $user_id,
+                    user_id => $user && $user->id,
                     id      => $_,
                 } foreach @$current_ids;
             }
@@ -1087,6 +1089,25 @@ sub _search_construct
 
     $value =~ s/\_/\\\_/g if $operator eq '-like';
 
+    if ($value && $value =~ /\[CURUSER\]/)
+    {
+        if ($column->type eq "person")
+        {
+            my $curuser = ($options{user} && $options{user}->id) || ($self->user && $self->user->{id})
+                or warning "FIXME: user not set for person filter";
+            $curuser ||= "";
+            $value =~ s/\[CURUSER\]/$curuser/g;
+            $conditions[0]->{s_field} = "id";
+        }
+        elsif ($column->return_type eq "string")
+        {
+            my $curuser = ($options{user} && $options{user}->value) || ($self->user && $self->user->{value})
+                or warning "FIXME: user not set for string filter";
+            $curuser ||= "";
+            $value =~ s/\[CURUSER\]/$curuser/g;
+        }
+    }
+
     if ($column->type eq "string")
     {
         # The normal value search of a string is not indexed, due to the potential size
@@ -1098,15 +1119,6 @@ sub _search_construct
             s_field  => "value_index",
             value    => $value && !ref($value) ? lc(substr($value, 0, 128)) : $value,
         };
-    }
-
-    if ($column->type eq "person" && $value =~ /\[CURUSER\]/)
-    {
-        my $curuser = $options{user_id} || ($self->user && $self->user->{id})
-            or warning "FIXME: user not set for filter";
-        $curuser ||= "";
-        $value =~ s/\[CURUSER\]/$curuser/g;
-        $conditions[0]->{s_field} = "id";
     }
 
     my @final = map {

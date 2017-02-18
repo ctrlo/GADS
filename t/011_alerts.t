@@ -347,8 +347,8 @@ my @filters = (
     },
 );
 
-my $user = { id => 1, value => ', ' };
-my $user2 = { id => 2, value => ', ' };
+my $user = { id => 1, value => 'User1, User1' };
+my $user2 = { id => 2, value => 'User2, User2' };
 
 # First write all the filters and alerts
 foreach my $filter (@filters)
@@ -513,134 +513,207 @@ $view->filter->as_hash({
 $view->write;
 is( $schema->resultset('AlertCache')->count, 5, "Correct number of alerts after view updated" );
 
-# Do some tests on CURUSER alerts
-$data = [
-    {
-        string1 => 'Foo',
-        person1 => 1,
-    },
-    {
-        string1 => 'Bar',
-        person1 => 1,
-    },
-    {
-        string1 => 'Foo',
-        person1 => 2,
-    },
-    {
-        string1 => 'Foo',
-        person1 => undef,
-    },
-    {
-        string1 => 'Bar',
-        person1 => undef,
-    },
-];
+# Do some tests on CURUSER alerts. One for filter on person field, other on string
+foreach my $curuser_type (qw/person string/)
+{
+    $data = $curuser_type eq 'person'
+        ? [
+            {
+                string1 => 'Foo',
+                person1 => 1,
+            },
+            {
+                string1 => 'Bar',
+                person1 => 1,
+            },
+            {
+                string1 => 'Foo',
+                person1 => 2,
+            },
+            {
+                string1 => 'Foo',
+                person1 => undef,
+            },
+            {
+                string1 => 'Bar',
+                person1 => undef,
+            },
+        ]
+        : [
+            {
+                integer1 => '100',
+                string1  => 'User1, User1',
+            },
+            {
+                integer1 => '200',
+                string1  => 'User1, User1',
+            },
+            {
+                integer1 => '100',
+                string1  => 'User2, User2',
+            },
+            {
+                integer1 => '100',
+                string1  => undef,
+            },
+            {
+                integer1 => '200',
+                string1  => undef,
+            },
+        ];
 
-$sheet = t::lib::DataSheet->new(data => $data);
-$schema = $sheet->schema;
-$layout = $sheet->layout;
-$columns = $sheet->columns;
-$sheet->create_records;
+    $sheet = t::lib::DataSheet->new(data => $data, user_count => 2);
+    $schema = $sheet->schema;
+    $layout = $sheet->layout;
+    $columns = $sheet->columns;
+    $sheet->create_records;
 
-# First create a view with no filter
+    # First create a view with no filter
 
-$view = GADS::View->new(
-    name        => 'view1',
-    instance_id => 1,
-    layout      => $layout,
-    schema      => $schema,
-    user        => $user,
-    global      => 1,
-    columns     => [$columns->{string1}->id, $columns->{person1}->id],
-);
-$view->write;
+    my $col_ids = $curuser_type eq 'person'
+        ? [$columns->{string1}->id, $columns->{person1}->id]
+        : [$columns->{integer1}->id, $columns->{string1}->id];
+    $view = GADS::View->new(
+        name        => 'view1',
+        instance_id => 1,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $user,
+        global      => 1,
+        columns     => $col_ids,
+    );
+    $view->write;
 
-$alert = GADS::Alert->new(
-    user      => $user,
-    layout    => $layout,
-    schema    => $schema,
-    frequency => 24,
-    view_id   => $view->id,
-);
-$alert->write;
+    $alert = GADS::Alert->new(
+        user      => $user,
+        layout    => $layout,
+        schema    => $schema,
+        frequency => 24,
+        view_id   => $view->id,
+    );
+    $alert->write;
 
-is( $schema->resultset('AlertCache')->count, 10, "Correct number of alerts inserted" );
+    is( $schema->resultset('AlertCache')->count, 10, "Correct number of alerts inserted" );
 
-# Add a person filter, check alert cache
-$view->filter->as_hash({
-    rules     => [{
-        id       => $columns->{person1}->id,
-        type     => 'string',
-        value    => '[CURUSER]',
-        operator => 'equal',
-    }],
-});
-
-$view->write;
-is( $schema->resultset('AlertCache')->search({ user_id => 1 })->count, 4, "Correct number of alerts for initial CURUSER filter addition (user1)" );
-is( $schema->resultset('AlertCache')->search({ user_id => 2 })->count, 0, "Correct number of alerts for initial CURUSER filter addition (user2)" );
-
-$alert = GADS::Alert->new(
-    user      => $user2,
-    layout    => $layout,
-    schema    => $schema,
-    frequency => 24,
-    view_id   => $view->id,
-);
-$alert->write;
-
-is( $schema->resultset('AlertCache')->search({ user_id => 1 })->count, 4, "Still correct number of alerts for CURUSER filter addition (user1)" );
-is( $schema->resultset('AlertCache')->search({ user_id => 2 })->count, 2, "Correct number of alerts for new CURUSER filter addition (user2)" );
-is( $schema->resultset('AlertCache')->search({ user_id => undef })->count, 0, "No null user_id values inserted for CURUSER filter addition" );
-
-# Change global view slightly, check alerts
-$view->filter->as_hash({
-    rules     => [
-        {
-            id       => $columns->{person1}->id,
+    # Add a person filter, check alert cache
+    my $filter_id = $curuser_type eq 'person'
+        ? $columns->{person1}->id
+        : $columns->{string1}->id;
+    $view->filter->as_hash({
+        rules     => [{
+            id       => $filter_id,
             type     => 'string',
             value    => '[CURUSER]',
             operator => 'equal',
-        }, {
-            id       => $columns->{string1}->id,
-            type     => 'string',
-            value    => 'Foo',
-            operator => 'equal',
-        }
-    ],
-});
-$view->write;
+        }],
+    });
 
-is( $schema->resultset('AlertCache')->search({ user_id => 1 })->count, 2, "Correct number of CURUSER alerts after filter change (user1)" );
-is( $schema->resultset('AlertCache')->search({ user_id => 2 })->count, 2, "Correct number of CURUSER alerts after filter change (user2)" );
-is( $schema->resultset('AlertCache')->search({ user_id => undef })->count, 0, "No null user_id values after filter change" );
+    $view->write;
+    is( $schema->resultset('AlertCache')->search({ user_id => 1 })->count, 4, "Correct number of alerts for initial CURUSER filter addition (user1)" );
+    is( $schema->resultset('AlertCache')->search({ user_id => 2 })->count, 0, "Correct number of alerts for initial CURUSER filter addition (user2)" );
 
-# Update a record so as to cause a search_views with CURUSER
-my $record = GADS::Record->new(
-    user     => $user,
-    layout   => $layout,
-    schema   => $schema,
-);
-$record->find_current_id(1);
-$record->fields->{$columns->{string1}->id}->set_value('FooBar');
-$record->write;
+    $alert = GADS::Alert->new(
+        user      => $user2,
+        layout    => $layout,
+        schema    => $schema,
+        frequency => 24,
+        view_id   => $view->id,
+    );
+    $alert->write;
 
-# And remove curuser filter
-$view->filter->as_hash({
-    rules     => [
-        {
-            id       => $columns->{string1}->id,
-            type     => 'string',
-            value    => 'Foo',
-            operator => 'equal',
-        }
-    ],
-});
-$view->write;
+    is( $schema->resultset('AlertCache')->search({ user_id => 1 })->count, 4, "Still correct number of alerts for CURUSER filter addition (user1)" );
+    is( $schema->resultset('AlertCache')->search({ user_id => 2 })->count, 2, "Correct number of alerts for new CURUSER filter addition (user2)" );
+    is( $schema->resultset('AlertCache')->search({ user_id => undef })->count, 0, "No null user_id values inserted for CURUSER filter addition" );
 
-is( $schema->resultset('AlertCache')->search({ user_id => { '!=' => undef } })->count, 0, "Correct number of user_id alerts after removal of curuser filter" );
-is( $schema->resultset('AlertCache')->search({ user_id => undef })->count, 4, "Correct number of normal alerts after removal of curuser filter" );
+    # Change global view slightly, check alerts
+    if ($curuser_type eq 'person')
+    {
+        $view->filter->as_hash({
+            rules     => [
+                {
+                    id       => $columns->{person1}->id,
+                    type     => 'string',
+                    value    => '[CURUSER]',
+                    operator => 'equal',
+                }, {
+                    id       => $columns->{string1}->id,
+                    type     => 'string',
+                    value    => 'Foo',
+                    operator => 'equal',
+                }
+            ],
+        });
+    }
+    else {
+        $view->filter->as_hash({
+            rules     => [
+                {
+                    id       => $columns->{string1}->id,
+                    type     => 'string',
+                    value    => '[CURUSER]',
+                    operator => 'equal',
+                }, {
+                    id       => $columns->{integer1}->id,
+                    type     => 'string',
+                    value    => 100,
+                    operator => 'equal',
+                }
+            ],
+        });
+    }
+    $view->write;
+
+    is( $schema->resultset('AlertCache')->search({ user_id => 1 })->count, 2, "Correct number of CURUSER alerts after filter change (user1)" );
+    is( $schema->resultset('AlertCache')->search({ user_id => 2 })->count, 2, "Correct number of CURUSER alerts after filter change (user2)" );
+    is( $schema->resultset('AlertCache')->search({ user_id => undef })->count, 0, "No null user_id values after filter change" );
+
+    # Update a record so as to cause a search_views with CURUSER
+    my $record = GADS::Record->new(
+        user     => $user,
+        layout   => $layout,
+        schema   => $schema,
+    );
+    $record->find_current_id(1);
+    if ($curuser_type eq 'person')
+    {
+        $record->fields->{$columns->{string1}->id}->set_value('FooBar');
+    }
+    else {
+        $record->fields->{$columns->{integer1}->id}->set_value(150);
+    }
+    $record->write;
+
+    # And remove curuser filter
+    if ($curuser_type eq 'person')
+    {
+        $view->filter->as_hash({
+            rules     => [
+                {
+                    id       => $columns->{string1}->id,
+                    type     => 'string',
+                    value    => 'Foo',
+                    operator => 'equal',
+                }
+            ],
+        });
+    }
+    else {
+        $view->filter->as_hash({
+            rules     => [
+                {
+                    id       => $columns->{integer1}->id,
+                    type     => 'string',
+                    value    => '100',
+                    operator => 'equal',
+                }
+            ],
+        });
+    }
+    $view->write;
+
+    is( $schema->resultset('AlertCache')->search({ user_id => { '!=' => undef } })->count, 0, "Correct number of user_id alerts after removal of curuser filter" );
+    is( $schema->resultset('AlertCache')->search({ user_id => undef })->count, 4, "Correct number of normal alerts after removal of curuser filter" );
+}
 
 # Check alerts after update of calc column code
 $sheet = t::lib::DataSheet->new;

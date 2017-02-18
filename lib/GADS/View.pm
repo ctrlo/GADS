@@ -178,8 +178,10 @@ has has_curuser => (
 sub _build_has_curuser
 {   my $self = shift;
     grep {
-        $self->layout->column($_->{field})->type eq 'person'
-        && $_->{value} eq '[CURUSER]'
+        ($self->layout->column($_->{field})->type eq 'person'
+            && $_->{value} eq '[CURUSER]')
+        || ($self->layout->column($_->{field})->return_type eq 'string'
+            && $_->{value} eq '[CURUSER]')
     } @{$self->filter->filters};
 }
 
