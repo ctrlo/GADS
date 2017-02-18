@@ -425,7 +425,12 @@
                             [%# Ensure a value gets sent back to show this field was shown if nothing selected %]
                             <input type="hidden" name="[% field %]">
                         [% END %]
-                        <select class="form-control [% IF dispcol.multivalue %]selectpicker [% END %]" name="[% field %]" id="[% dispcol.id %]" [% readonly %] [% IF dispcol.multivalue %]multiple[% END %]>
+                        <select class="form-control [% IF dispcol.multivalue %]selectpicker [% END %]"
+                            name="[% field %]" id="[% dispcol.id %]" [% readonly %]
+                            [% IF dispcol.multivalue %]
+                                data-multiple-separator="; "
+                                multiple
+                            [% END %]>
                             [% IF !dispcol.multivalue %]
                                 [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
                                     <option></option>
