@@ -434,7 +434,9 @@
                             [% enumvals = dispcol.values %]
                             [% FOREACH enumval IN enumvals %]
                                 [% UNLESS enumval.deleted %]
-                                    <option value="[% enumval.id %]" [% IF editvalue.id_hash.${enumval.id} %]selected[% END %]>[% enumval.value | html_entity %]</option>
+                                    <option value="[% enumval.id %]" [% IF editvalue.id_hash.${enumval.id} %]selected[% END %]
+                                        data-subtext="[% enumval.subvalue %]">[% enumval.mainvalue | html_entity %]
+                                    </option>
                                 [% END %]
                             [% END %]
                         </select>

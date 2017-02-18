@@ -455,11 +455,26 @@ sub _format_row
 {   my ($self, $row, %options) = @_;
     my $value_key = $options{value_key} || 'value';
     my @col_ids   = @{$self->curval_field_ids};
-    my @values    = map { $row->fields->{$_} } @{$self->curval_field_ids};
-    my $text      = $self->format_value(@values);
+    my @values; my @mainvalues; my @subvalues;
+    foreach my $fid (@{$self->curval_field_ids})
+    {
+        push @values, $row->fields->{$fid};
+        if (length "@values" < 100)
+        {
+            push @mainvalues, $row->fields->{$fid};
+        }
+        else {
+            push @subvalues, $row->fields->{$fid};
+        }
+    }
+    my $text     = $self->format_value(@values);
+    my $maintext = $self->format_value(@mainvalues);
+    my $subtext  = $self->format_value(@subvalues);
     +{
         id         => $row->current_id,
         $value_key => $text,
+        mainvalue  => $maintext,
+        subvalue   => $subtext,
     };
 }
 
