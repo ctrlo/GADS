@@ -138,10 +138,11 @@ has column_flags => (
 
 # Whether this is a new record, not yet in the database
 has new_entry => (
-    is      => 'rw',
+    is      => 'ro',
     isa     => Bool,
+    lazy    => 1,
     clearer => 1,
-    default => 0,
+    builder => sub { !$_[0]->current_id },
 );
 
 has record_id => (
@@ -719,32 +720,117 @@ sub write_linked_id
     $guard->commit;
 }
 
-has _show_for_write_hash => (
-    is      => 'ro',
-    isa     => HashRef,
-    clearer => 1,
-    default => sub { +{} },
-);
-
-# Reset the show_for_write status for each of the record's fields (as recorded
-# during the previous write)
-sub show_for_write_restore
-{   my $self = shift;
-    $self->fields->{$_}->show_for_write($self->_show_for_write_hash->{$_})
-        foreach keys %{$self->fields};
-}
-
-sub show_for_write_save
-{   my $self = shift;
-    $self->_show_for_write_hash->{$_} = $self->fields->{$_}->show_for_write
-        foreach keys %{$self->fields};
-}
-
 sub show_for_write_clear
 {   my $self = shift;
-    $self->_clear_show_for_write_hash;
     $self->fields->{$_}->clear_show_for_write
         foreach keys %{$self->fields};
+}
+
+# Move to the previous set of values on the edit page. This saves the ones on
+# the current page as "next page" values
+sub move_back
+{   my $self = shift;
+    foreach my $col ($self->layout->all)
+    {
+        if ($self->fields->{$col->id}->value_current_page)
+        {
+            $self->fields->{$col->id}->_set_written_to(0);
+            $self->fields->{$col->id}->value_next_page(1);
+        }
+        elsif ($self->fields->{$col->id}->value_previous_page)
+        {
+            $self->fields->{$col->id}->value_previous_page(0);
+            $self->fields->{$col->id}->_set_written_to(0);
+        }
+    }
+}
+
+# Move onto the next edit page - submissions all complete for current page
+sub move_forward
+{   my $self = shift;
+    foreach my $col ($self->layout->all)
+    {
+        $self->fields->{$col->id}->value_previous_page(1)
+            if $self->fields->{$col->id}->written_to;
+        $self->fields->{$col->id}->value_next_page(0)
+            if $self->fields->{$col->id}->ready_to_write;
+    }
+}
+
+# Reset the current values to make them shown on the edit page again (e.g
+# if there has been an input error)
+sub move_nowhere
+{   my $self = shift;
+    foreach my $col ($self->layout->all)
+    {
+        $self->fields->{$col->id}->_set_written_to(0)
+            if $self->fields->{$col->id}->value_current_page;
+    }
+}
+
+has editor_previous_fields => (
+    is      => 'rw',
+    isa     => ArrayRef,
+    trigger => sub {
+        my ($self, $fields) = @_;
+        $self->fields->{$_}->value_previous_page(1)
+            foreach @$fields;
+    },
+);
+
+has editor_next_fields => (
+    is      => 'rw',
+    isa     => ArrayRef,
+    trigger => sub {
+        my ($self, $fields) = @_;
+        $self->fields->{$_}->value_next_page(1)
+            foreach @$fields;
+    },
+);
+
+has editor_shown_fields => (
+    is      => 'rw',
+    isa     => ArrayRef,
+    trigger => sub {
+        my ($self, $fields) = @_;
+        $self->fields->{$_}->value_current_page(1)
+            foreach @$fields;
+    },
+);
+
+# Whether the record has a previous set of values that have already been written. Used
+# to work out whether to display a "back" button on the record
+sub has_previous_values
+{   my $self = shift;
+    !!grep {
+        $self->fields->{$_->id}->value_previous_page
+    } $self->columns_to_show_write;
+}
+
+# Whether record has more values to be written after we have displayed these. Used
+# to work out wherther to display "save" or "next"
+sub has_next_values
+{   my $self = shift;
+    !!grep {
+        !$self->fields->{$_->id}->written_to && !$self->fields->{$_->id}->show_for_write
+    } $self->columns_to_show_write;
+}
+
+sub has_not_done
+{   my $self = shift;
+    !!grep {
+        # Still needs to be done if:
+           !$self->fields->{$_->id}->written_to # It's not been written to at all
+           # or, it's been written to, but only as a remembered "next" value
+        || !($self->fields->{$_->id}->written_to && !$self->fields->{$_->id}->value_next_page)
+    } $self->columns_to_show_write;
+}
+
+sub columns_to_show_write
+{   my $self = shift;
+    $self->new_entry
+        ? $self->layout->all(user_can_write_new => 1, userinput => 1)
+        : $self->layout->all(user_can_write_existing => 1, userinput => 1)
 }
 
 # options (mostly used by onboard):
@@ -765,8 +851,6 @@ sub write
     # warns as such, so undefine to prevent the warning
     undef $@;
     my $guard = $self->schema->txn_scope_guard;
-
-    $self->new_entry(1) unless $self->current_id;
 
     # Create a new overall record if it's new, otherwise
     # load the old values
@@ -1158,7 +1242,7 @@ sub write
             }
         }
     }
-    $self->new_entry(0); # written to database, no longer new
+    $self->clear_new_entry; # written to database, no longer new
 }
 
 sub _field_write

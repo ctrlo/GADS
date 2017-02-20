@@ -1849,7 +1849,10 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
 
     if (param 'submit')
     {
-        $record->show_for_write_save;
+        $record->editor_previous_fields([body_parameters->get_all('previous_fields')]);
+        $record->editor_next_fields([body_parameters->get_all('next_fields')]);
+        $record->editor_shown_fields([body_parameters->get_all('shown_fields')]);
+
         # See which ones to update
         my $failed_initial; my @updated;
         foreach my $col (@columns_to_show)
@@ -1903,7 +1906,7 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
                 mistake $s.$f;
             }
         }
-        $record->show_for_write_restore;
+        $record->move_nowhere;
     }
 
     my $view_name = $view ? $view->name : 'All data';
@@ -1967,7 +1970,9 @@ any '/edit/:id?' => require_login sub {
 
     if (param 'submit')
     {
-        $record->show_for_write_save;
+        $record->editor_previous_fields([body_parameters->get_all('previous_fields')]);
+        $record->editor_next_fields([body_parameters->get_all('next_fields')]);
+        $record->editor_shown_fields([body_parameters->get_all('shown_fields')]);
         my $params = params;
         my $uploads = request->uploads;
         foreach my $key (keys %$uploads)
@@ -2040,17 +2045,20 @@ any '/edit/:id?' => require_login sub {
             }
         }
 
-        my @not_done = grep {
-            $_->userinput && !$record->fields->{$_->id}->written_to
-        } @columns_to_show;
-        if (@not_done)
+        if (param('submit') eq 'back')
+        {
+            $record->move_back;
+        }
+        elsif ($record->has_not_done)
         {
             if (!$failed && process( sub { $record->write(dry_run => 1) } ))
             {
-                $record->show_for_write_clear;
+                # Everything submitted is okay, continue to next stage
+                $record->move_forward;
             }
             else {
-                $record->show_for_write_restore;
+                # Something wasn't correct, keep field display same as submitted
+                $record->move_nowhere;
             }
         }
         elsif (!$failed && process( sub { $record->write }))
@@ -2059,7 +2067,8 @@ any '/edit/:id?' => require_login sub {
                 { success => 'Submission has been completed successfully for record ID '.$record->current_id }, 'data' );
         }
         else {
-            $record->show_for_write_restore;
+            # Something wasn't correct, keep field display same as submitted
+            $record->move_nowhere;
         }
     }
     elsif($id) {

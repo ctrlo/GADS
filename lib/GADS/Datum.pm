@@ -92,7 +92,11 @@ has init_no_value => (
 );
 
 has oldvalue => (
-    is  => 'rw',
+    is      => 'rw',
+    trigger => sub {
+        my $self = shift;
+        $self->clear_written_to;
+    },
 );
 
 has has_value => (
@@ -108,10 +112,16 @@ sub values
     [@values];
 }
 
-sub written_to
-{   my $self = shift;
-    defined $self->oldvalue;
-}
+has written_to => (
+    is      => 'rwp',
+    isa     => Bool,
+    lazy    => 1,
+    clearer => 1,
+    builder => sub {
+        my $self = shift;
+        defined $self->oldvalue;
+    },
+);
 
 # Whether this value is going to require approval. Used to know when to use the
 # oldvalue as the correct current value
@@ -143,6 +153,30 @@ has show_for_write => (
         }
         $self->ready_to_write && !$self->written_to;
     },
+);
+
+# This value was (or will be) shown on an edit page as a hidden value that
+# contains a value from a previous page
+has value_previous_page => (
+    is      => 'rw',
+    isa     => Bool,
+    default => 0,
+);
+
+# This value was (or will be) shown on the current edit page
+has value_current_page => (
+    is      => 'rw',
+    isa     => Bool,
+    default => 0,
+);
+
+# This value was (or will be) shown on an edit page as a hidden value that
+# contains a value from a future page, and which the user should be given
+# another change to edit
+has value_next_page => (
+    is      => 'rw',
+    isa     => Bool,
+    default => 0,
 );
 
 # Whether a value has been written to the datum that is valid (and not blank).

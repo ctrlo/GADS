@@ -49,6 +49,7 @@ sub set_value
         $self->clear_blank;
     }
     $self->oldvalue($clone);
+    $self->_set_written_to(0) if $self->value_next_page;
 }
 
 # Hash with various values built from init_value. Used to populate

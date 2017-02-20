@@ -34,7 +34,12 @@
     <div style="height:55px;"></div>
     <nav class="navbar navbar-default navbar-fixed-bottom" style="min-height:55px">
         <div class="container">
-            <button type="submit" id="submit_button" name="submit" value="submit" class="btn btn-primary">Save</button>
+            [% IF record.has_previous_values %]
+                <button type="submit" name="submit" value="back" class="btn btn-default submit_button">Previous</button>
+            [% END %]
+            <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
+                [% IF record.has_next_values %]Next[% ELSE %]Save[% END %]
+            </button>
             <a href="/data" class="btn btn-default">Cancel</a>
         </div>
     </nav>
@@ -85,7 +90,7 @@
                 return message;
             };
             window.onbeforeunload = confirmOnPageExit;
-            $("#submit_button").click( function() {
+            $(".submit_button").click( function() {
                 window.onbeforeunload = null;
             });
 
@@ -272,7 +277,7 @@
     [%# Skip if field has a filter (which will alter its values) and the dependent values have not yet been completed %]
 
     [%# If field's value has already been written to, do not display field by add as hidden value instead %]
-    [% IF record.fields.$colid.written_to AND NOT record.fields.$colid.show_for_write %]
+    [% IF record.fields.$colid.value_previous_page OR record.fields.$colid.value_next_page %]
         [% IF record.fields.$colid.html_form.size %]
             [% FOREACH val IN record.fields.$colid.html_form %]
                 <input type="hidden" name="[% field %]" value="[% val %]">
@@ -281,9 +286,19 @@
             [%# Ensure a value gets sent back to show this field was shown if nothing selected %]
             <input type="hidden" name="[% field %]">
         [% END %]
+        [% IF record.fields.$colid.value_previous_page %]
+            <input type="hidden" name="previous_fields" value="[% colid %]">
+        [% ELSE %]
+            <input type="hidden" name="next_fields" value="[% colid %]">
+        [% END %]
+        [% NEXT %]
+    [% END %]
+
+    [% IF record.fields.$colid.value_previous_page %]
     [% END %]
 
     [% NEXT UNLESS record.fields.$colid.show_for_write %]
+    <input type="hidden" name="shown_fields" value="[% colid %]">
 
     [%# Skip field if it's an approval request but a value not needing approval %]
     [% NEXT IF page == "approval" AND NOT (record.fields.$colid.has_value)  %]
