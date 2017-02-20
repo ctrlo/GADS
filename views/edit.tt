@@ -563,7 +563,7 @@
 
     [%# First display the actual column, only if it doesn't depend on others,
         or it's meant to be displayed because we're within the parent %]
-    [% IF !columns_done.$cid AND col.display_field.id == parent.id  OR NOT col.display_field.id %]
+    [% IF !columns_done.$cid AND col.display_field == parent.id  OR NOT col.display_field %]
         [% dispcol = col %]
         [% PROCESS showcol %]
     [% END %]
