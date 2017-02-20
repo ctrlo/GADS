@@ -1999,24 +1999,14 @@ any '/edit/:id?' => require_login sub {
         # columns can be ignored, but if we do write them, an error will be
         # thrown to the user if they've been changed. This is better than
         # just silently ignoring them, IMHO.
+        my @display_on_fields;
         foreach my $col (@columns_to_show)
         {
-            # See if it depends on another value. If so, we won't have received
+            # See if it depends on another value. If so, we might not have received
             # a value, but we need to write one anyway to flag the datum having
-            # been written
-            if ($col->display_field)
-            {
-                my $depends_on = $layout->column($col->display_field);
-                my $re         = $col->display_regex;
-                my $regex      = qr(^$re$);
-                # Assume that the field depended on has already been written
-                if ($record->fields->{$col->display_field}->as_string !~ $regex)
-                {
-                    # Doesn't match so won't have been shown
-                    $record->fields->{$col->id}->set_value('');
-                    next;
-                }
-            }
+            # been written. We might receive this column before the one it depends on,
+            # so add it to a stash and check it once we've set all values
+            push @display_on_fields, $col if $col->display_field;
             next unless defined body_parameters->get($col->field);
             my $newv = [body_parameters->get_all($col->field)];
             if ($col->userinput && defined $newv) # Not calculated fields
@@ -2042,6 +2032,20 @@ any '/edit/:id?' => require_login sub {
             {
                 # Not defined file field and not just uploaded. Must have been removed.
                 $failed = !process( sub { $record->fields->{$col->id}->set_value(undef) } ) || $failed;
+            }
+        }
+        # Now check all the fields that depended on value in other fields to be
+        # displayed - see comment above
+        foreach my $col (@display_on_fields)
+        {
+            my $depends_on = $layout->column($col->display_field);
+            my $re         = $col->display_regex;
+            my $regex      = qr(^$re$);
+            # Field it depends on will have been written by now. Check regex condition
+            if ($record->fields->{$col->display_field}->as_string !~ $regex)
+            {
+                # Doesn't match so won't have been shown, should be blank regardless
+                $record->fields->{$col->id}->set_value('');
             }
         }
 
