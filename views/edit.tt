@@ -294,9 +294,6 @@
         [% NEXT %]
     [% END %]
 
-    [% IF record.fields.$colid.value_previous_page %]
-    [% END %]
-
     [% NEXT UNLESS record.fields.$colid.show_for_write %]
     <input type="hidden" name="shown_fields" value="[% colid %]">
 
