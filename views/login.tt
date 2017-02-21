@@ -24,50 +24,64 @@
     [% ELSE %]
         <div class="row" style="margin-top:20px">
             <div class="col-xs-12 col-sm-8 col-md-6 col-sm-offset-2 col-md-offset-3">
-                <form role="form" method="post" autocomplete="off">
-                    <fieldset>
-                        <h2>Please Sign In</h2>
-                        <hr>
-                        <div class="form-group">
-                            <input type="email" name="username" id="email" class="form-control input-lg" placeholder="Email Address" value="[% username %]">
-                        </div>
-                        <div class="form-group">
-                            <input type="password" name="password" id="password" class="form-control input-lg" placeholder="Password">
-                        </div>
-                        <span class="button-checkbox">
-                            <button type="button" class="btn" data-color="info">Remember Username</button>
-                            <input type="checkbox" name="remember_me" id="remember" [% IF username %]checked="checked"[% END %] class="hidden">
-                            <a href="" class="btn btn-link pull-right" data-toggle="modal" data-target="#myModal">Reset Password</a>
+                <form method="post" autocomplete="off">
+                    <h1>Please Sign In</h1>
+                    <hr>
+                    <div class="form-group">
+                        <label for="email">Email address:</label>
+                        <input type="email" name="username" id="email" class="form-control input-lg" placeholder="name@example.com" value="[% username %]">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" name="password" id="password" class="form-control input-lg">
+                    </div>
+                    <div>
+                        <span class="remember-me">
+                            <input type="checkbox" name="remember_me" id="remember" [% IF username %]checked="checked"[% END %] class="visually-hidden-opacity">
+                            <label for="remember">
+                                <span class="glyphicon glyphicon-check" aria-hidden="true"></span>
+                                Remember Username
+                            </label>
                         </span>
-                        <hr>
-                        <div class="row">
-                            <div class="col-xs-6 col-sm-6 col-md-6">
-                                <input type="submit" name="signin" class="btn btn-lg btn-success btn-block" value="Sign In">
-                            </div>
-                            <div class="col-xs-6 col-sm-6 col-md-6">
-                                <a href="" class="btn btn-lg btn-primary btn-block" data-toggle="modal" data-target="#modalregister">Request account</a>
-                            </div>
+                        <span class="reset-password">
+                            <button type="button" class="btn btn-link pull-right" data-toggle="modal" data-target="#modal-reset-password">Reset Password</button>
+                        </span>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-xs-6 col-sm-6 col-md-6">
+                            <input type="submit" name="signin" class="btn btn-lg btn-success btn-block" value="Sign In">
                         </div>
-                    </fieldset>
-                </form>
+                        <div class="col-xs-6 col-sm-6 col-md-6">
+                            <button type="button" class="btn btn-lg btn-primary btn-block" data-toggle="modal" data-target="#modalregister">Request account</button>
+                        </div>
+                    </div>
+            </form>
             </div>
         </div>
 
+        [% BLOCK modal_close_button %]
+            <button type="button" class="close" data-dismiss="modal">
+                <span class="close-mark" aria-hidden="true">&times;</span>
+                close
+            </button>
+        [% END %]
+
         <!-- Modal -->
-        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal fade" id="modal-reset-password" tabindex="-1" role="dialog" aria-labelledby="reset-password-heading" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <form role="form" method="post" autocomplete="off" enctype="multipart/form-data">
+                    <form method="post" autocomplete="off" enctype="multipart/form-data">
                     <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="myModalLabel">Reset password</h4>
-                    </div>
+                        <h1 class="modal-title" id="reset-password-heading">Reset password</h1>
+                        [% PROCESS modal_close_button %]
+                   </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="email">Email address</label>
-                            <input type="email" class="form-control" name="emailreset" id="email" placeholder="Enter email">
+                            <p>Enter your email address to receive a password reset link.</p>
+                            <label for="email">Email address:</label>
+                            <input type="email" class="form-control" name="emailreset" id="emailreset" placeholder="name@example.com">
                         </div>
-                        <p>Enter your email address to receive a password reset link</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -77,18 +91,19 @@
                 </div><!-- /.modal-content -->
             </div><!-- /.modal-dialog -->
         </div><!-- /.modal -->
+
         <!-- Modal -->
-        <div class="modal fade" id="modalregister" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal fade" id="modalregister" tabindex="-1" role="dialog" aria-labelledby="request-account-heading" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <form role="form" method="post" autocomplete="off">
+                    <form method="post" autocomplete="off">
                     <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="myModalLabel">Request account</h4>
+                        <h1 class="modal-title" id="request-account-heading">Request account</h1>
+                        [% PROCESS modal_close_button %]
                     </div>
                     <div class="modal-body">
                         [% IF error %]
-                            <div class="alert alert-danger" role="alert">[% error %]</div>
+                            <div class="alert alert-danger" role="alert">Error: [% error %]</div>
                         [% END %]
                         [% IF register_text %]
                             <p>[% register_text %]</p>
