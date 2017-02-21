@@ -18,16 +18,15 @@
 
         [% IF hostlocal %]
             <link rel="stylesheet" href="[% url.css %]/font-awesome.min.css">
+            <link rel="stylesheet" href="[% url.css %]/bootstrap.min.css">
             <!-- <link href='[% scheme %]://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'> -->
         [% ELSE %]
             <link href='[% scheme %]://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
             <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+            <link rel="stylesheet" href="[% scheme %]//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
         [% END %]
 
         <title>Linkspace [% page %]</title>
-
-        <!-- Bootstrap core CSS -->
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
         <!-- Custom styles for this template -->
         [% UNLESS single_graph %]
@@ -201,18 +200,14 @@
         [% IF hostlocal %]
             <script src="[% url.js %]/jquery-1.10.2.min.js"></script>
             <script src="[% url.js %]/jquery-ui.min.js"></script>
-<!--            <script src="[% url.js %]/bootstrap.min.js"></script> -->
+            <script src="[% url.js %]/bootstrap.min.js"></script>
             <script src="[% url.js %]/tooltip.min.js"></script>
         [% ELSE %]
             <script src="[% scheme %]://code.jquery.com/jquery-1.10.2.min.js"></script>
             <script src="[% scheme %]://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
-<!--            <script src="[% scheme %]://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script> -->
+            <script src="[% scheme %]://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
             <script src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/js/tooltip.min.js"></script>
         [% END %]
-
-
-        <!-- Latests bootstrap with better a11y -->
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
         [% IF page == "edit" OR page == "approval" OR page == "audit" OR page == "bulk" %]
             <script type="text/javascript" src="[% url.js %]/bootstrap-datepicker.js"></script>
