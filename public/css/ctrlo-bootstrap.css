@@ -474,6 +474,7 @@ select.input-lg {
 	padding-left:0;
 	padding-right:0;
 }
+/*
 .caret {
 	display:inline-block;
 	width:33px;
@@ -486,6 +487,7 @@ select.input-lg {
 	margin-right:-10px;
 	margin-top:-5px;
 }
+*/
 .dropdown-menu {
 	font-size:15px;
 	border:1px solid #33c2df;
@@ -615,18 +617,30 @@ select.input-group-sm>.form-control,select.input-group-sm>.input-group-addon,sel
 .navbar-nav>li>a {
 	line-height:21px;
 }
+
 @media (max-width:767px) {
 	.navbar-nav .open .dropdown-menu>li>a {
 			line-height:21px;
 	}
+
+    .hamburger-menu-title, .hamburger {
+        float : left;
+    }
+
+    .hamburger-menu-title {
+        padding-right: .4em;
+        margin-top: -.2em;
+        vertical-align: top;
+    }
 }
+
 @media (min-width:768px) {
 	.navbar-nav>li>a {
 			padding-top:14.5px;
 			padding-bottom:14.5px;
 	}
 	.navbar-nav.navbar-right:last-child {
-			border:#dddddd 1px solid;
+	/*		border:#dddddd 1px solid; */
 	}
 }
 .navbar-form {
