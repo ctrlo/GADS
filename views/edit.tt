@@ -444,7 +444,7 @@
                         <select class="form-control [% IF dispcol.multivalue %]selectpicker [% END %]"
                             name="[% field %]" id="[% dispcol.id %]" [% readonly %]
                             [% IF dispcol.multivalue %]
-                                data-multiple-separator="; "
+                                data-multiple-separator="; " data-window-padding="70"
                                 multiple
                             [% END %]>
                             [% IF !dispcol.multivalue %]
