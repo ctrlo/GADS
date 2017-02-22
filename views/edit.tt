@@ -456,12 +456,16 @@
                             [% FOREACH enumval IN enumvals %]
                                 [% UNLESS enumval.deleted %]
                                     <option value="[% enumval.id %]" [% IF editvalue.id_hash.${enumval.id} %]selected[% END %]
-                                        title="[% enumval.mainvalue | html_entity %]" [%# only show main title in selection %]
-                                        [%# custom content for each option in order to show tooltip text %]
-                                        data-content="<span title='[% enumval.value | html_entity %]'>
-                                            [% enumval.mainvalue | html_entity %]
-                                            <small class='text-muted'>[% enumval.subvalue | html_entity %]</small>
-                                        </span>"
+                                        [% IF dispcol.multivalue %]
+                                            title="[% enumval.mainvalue | html_entity %]" [%# only show main title in selection %]
+                                            [%# custom content for each option in order to show tooltip text %]
+                                            data-content="<span title='[% enumval.value | html_entity %]'>
+                                                [% enumval.mainvalue | html_entity %]
+                                                <small class='text-muted'>[% enumval.subvalue | html_entity %]</small>
+                                            </span>"
+                                        [% END %]
+                                    >
+                                    [% UNLESS dispcol.multivalue %][% enumval.value | html_entity %][% END %]
                                     </option>
                                 [% END %]
                             [% END %]

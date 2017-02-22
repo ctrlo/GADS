@@ -2041,8 +2041,10 @@ any '/edit/:id?' => require_login sub {
             my $depends_on = $layout->column($col->display_field);
             my $re         = $col->display_regex;
             my $regex      = qr(^$re$);
-            # Field it depends on will have been written by now. Check regex condition
-            if ($record->fields->{$col->display_field}->as_string !~ $regex)
+            # Field it depends on will have been written by now, if it is going
+            # to be at all. Check regex condition
+            my $parent_datum = $record->fields->{$col->display_field};
+            if ($parent_datum->written_to && $parent_datum->as_string !~ $regex)
             {
                 # Doesn't match so won't have been shown, should be blank regardless
                 $record->fields->{$col->id}->set_value('');
