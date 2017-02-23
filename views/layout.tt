@@ -14,22 +14,24 @@
                 <label for="name">Name:</label>
                 <input type="text" class="form-control" id="name" name="name" value="[% column.name | html_entity %]">
             </div>
-            <div class="form-group">
-                <label for="type">Type:</label>
-                <select class="form-control" id="type" name="type">
-                    <option value="string" [% IF column.type == "string" %]selected[% END %]>Text</option>
-                    <option value="intgr" [% IF column.type == "intgr" %]selected[% END %]>Integer</option>
-                    <option value="date" [% IF column.type == "date" %]selected[% END %]>Date</option>
-                    <option value="daterange" [% IF column.type == "daterange" %]selected[% END %]>Date range</option>
-                    <option value="enum" [% IF column.type == "enum" %]selected[% END %]>Dropdown list</option>
-                    <option value="tree" [% IF column.type == "tree" %]selected[% END %]>Tree</option>
-                    <option value="file" [% IF column.type == "file" %]selected[% END %]>Document</option>
-                    <option value="person" [% IF column.type == "person" %]selected[% END %]>Person</option>
-                    <option value="rag" [% IF column.type == "rag" %]selected[% END %]>RedAmberGreen status (RAG)</option>
-                    <option value="calc" [% IF column.type == "calc" %]selected[% END %]>Calculated value</option>
-                    <option value="curval" [% IF column.type == "curval" %]selected[% END %]>Record from other data sheet</option>
-                </select>
-            </div>
+            [% UNLESS column.id %]
+                <div class="form-group">
+                    <label for="type">Type:</label>
+                    <select class="form-control" id="type" name="type">
+                        <option value="string" [% IF column.type == "string" %]selected[% END %]>Text</option>
+                        <option value="intgr" [% IF column.type == "intgr" %]selected[% END %]>Integer</option>
+                        <option value="date" [% IF column.type == "date" %]selected[% END %]>Date</option>
+                        <option value="daterange" [% IF column.type == "daterange" %]selected[% END %]>Date range</option>
+                        <option value="enum" [% IF column.type == "enum" %]selected[% END %]>Dropdown list</option>
+                        <option value="tree" [% IF column.type == "tree" %]selected[% END %]>Tree</option>
+                        <option value="file" [% IF column.type == "file" %]selected[% END %]>Document</option>
+                        <option value="person" [% IF column.type == "person" %]selected[% END %]>Person</option>
+                        <option value="rag" [% IF column.type == "rag" %]selected[% END %]>RedAmberGreen status (RAG)</option>
+                        <option value="calc" [% IF column.type == "calc" %]selected[% END %]>Calculated value</option>
+                        <option value="curval" [% IF column.type == "curval" %]selected[% END %]>Record from other data sheet</option>
+                    </select>
+                </div>
+            [% END %]
             <div class="form-group">
                 <label for="description">Description:</label>
                 <input type="text" class="form-control" id="description" name="description" value="[% column.description | html_entity %]">
