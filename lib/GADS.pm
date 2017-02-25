@@ -1281,7 +1281,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             $column->$_(param $_)
                 foreach (qw/name name_short description helptext optional isunique multivalue remember link_parent_id/);
             $column->type(param 'type')
-                if $id; # Can't change type as it would require DBIC resultsets to be removed and re-added
+                unless $id; # Can't change type as it would require DBIC resultsets to be removed and re-added
             $column->$_(param $_)
                 foreach @{$column->option_names};
             if (param 'display_condition')
