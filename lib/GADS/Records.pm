@@ -20,6 +20,7 @@ package GADS::Records;
 
 use DateTime;
 use DateTime::Format::Strptime qw( );
+use DBIx::Class::Helper::ResultSet::Util qw(correlate);
 use DBIx::Class::ResultClass::HashRefInflator;
 use GADS::Record;
 use GADS::View;
@@ -997,10 +998,6 @@ sub _search_construct
     my $operator = $ops{$filter->{operator}}
         or error __x"Invalid operator {filter}", filter => $filter->{operator};
 
-
-    $self->add_join($column, search => 1);
-    my $s_table = $self->table_name($column, %options, search => 1);
-
     my @conditions;
     my $transform_date; # Whether to convert date value to database format
     if ($column->type eq "daterange")
@@ -1011,6 +1008,7 @@ sub _search_construct
         if ($operator eq "!=" || $operator eq "=") # Only used for empty / not empty
         {
             push @conditions, {
+                type     => $filter->{operator},
                 operator => $operator,
                 s_field  => "value",
             };
@@ -1019,6 +1017,7 @@ sub _search_construct
         {
             $transform_date = 1;
             push @conditions, {
+                type     => $filter->{operator},
                 operator => $operator,
                 s_field  => "from",
             };
@@ -1027,6 +1026,7 @@ sub _search_construct
         {
             $transform_date = 1;
             push @conditions, {
+                type     => $filter->{operator},
                 operator => $operator,
                 s_field  => "to",
             };
@@ -1036,10 +1036,12 @@ sub _search_construct
             $transform_date = 1;
             # Requires 2 searches ANDed together
             push @conditions, {
+                type     => $filter->{operator},
                 operator => "<=",
                 s_field  => "from",
             };
             push @conditions, {
+                type     => $filter->{operator},
                 operator => ">=",
                 s_field  => "to",
             };
@@ -1051,6 +1053,7 @@ sub _search_construct
     }
     else {
         push @conditions, {
+            type     => $filter->{operator},
             operator => $operator,
             s_field  => $filter->{value_field} || $column->value_field,
         };
@@ -1115,6 +1118,7 @@ sub _search_construct
         # the search.
         # $value can be an array ref from above.
         push @conditions, {
+            type     => $filter->{operator},
             operator => $operator,
             s_field  => "value_index",
             value    => $value && !ref($value) ? lc(substr($value, 0, 128)) : $value,
@@ -1122,28 +1126,52 @@ sub _search_construct
     }
 
     my @final = map {
-        # By default SQL will not include NULL values for not equals.
-        # Let's include them. We need to use the original filter operator
-        # value, not the converted SQL one.
-        # XXX Repeated below
-        my $sq = {$_->{operator} => $_->{value} || $value};
-        $sq = [ $sq, undef ] if $filter->{operator} eq 'not_equal';
-        +( "$s_table.$_->{s_field}" => $sq )
+        $self->_resolve($column, $_, $value, 0, %options);
     } @conditions;
     @final = ('-and' => [@final]);
-    if ($column->link_parent)
+    if (my $link_parent = $column->link_parent)
     {
         my @final2 = map {
-            # XXX Repeated above
-            my $sq = {$_->{operator} => $_->{value} || $value};
-            $sq = [ $sq, undef ] if $filter->{operator} eq 'not_equal';
-            $self->add_join($column->link_parent, linked => 1, search => 1);
-            +( $self->table_name($column->link_parent, %options, search => 1, linked => 1).".$_->{s_field}" => $sq );
+            $self->_resolve($link_parent, $_, $value, 1, %options);
         } @conditions;
         @final2 = ('-and' => [@final2]);
         @final = (['-or' => [@final], [@final2]]);
     }
     return @final;
+}
+
+sub _resolve
+{   my ($self, $column, $condition, $default_value, $is_linked, %options) = @_;
+    # If the column is a multivalue, then normally a not_equal would match
+    # even if we're not expecting it to (if the record's value contains
+    # "foo" and "bar", then a search for "not foo" would still return the
+    # "bar" and hence the whole record including "foo".  We therefore have
+    # to instead negate the record IDs containing that negative match.
+    if ($column->multivalue && $condition->{type} eq 'not_equal')
+    {
+        my $subjoin = $column->subjoin;
+        my $table   = $subjoin || $column->field;
+        +(
+            'me.id' => {
+                -not_in => correlate( $self->schema->resultset('Current'), "record_single" )->search_related(
+                    $column->field, {
+                        "$table.$_->{s_field}" => $_->{value} || $default_value,
+                    },
+                    {
+                        select => "record_later.current_id",
+                        join   => $column->subjoin,
+                    }
+                )->as_query
+            }
+        );
+    }
+    else {
+        $self->add_join($column, search => 1, linked => $is_linked);
+        my $s_table = $self->table_name($column, %options, search => 1, linked => $is_linked);
+        my $sq = {$condition->{operator} => $condition->{value} || $default_value};
+        $sq = [ $sq, undef ] if $condition->{type} eq 'not_equal';
+        +( "$s_table.$_->{s_field}" => $sq );
+    }
 }
 
 sub _date_for_db

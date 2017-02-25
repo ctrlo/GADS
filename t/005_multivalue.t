@@ -141,7 +141,37 @@ my @tests = (
             },
         ],
         count     => 1,
-    }
+    },
+    {
+        name      => 'Search negative 1',
+        write     => {
+            enum1  => [7, 8],
+            enum2  => [11, 12],
+        },
+        search    => [
+            {
+                column   => 'enum1',
+                value    => 'foo1',
+                operator => 'not_equal',
+            },
+        ],
+        count     => 2,
+    },
+    {
+        name      => 'Search negative 2',
+        write     => {
+            enum1  => [7, 8],
+            enum2  => [10, 11],
+        },
+        search    => [
+            {
+                column   => 'enum1',
+                value    => 'foo2',
+                operator => 'not_equal',
+            },
+        ],
+        count     => 1,
+    },
 );
 
 foreach my $test (@tests)
@@ -155,10 +185,13 @@ foreach my $test (@tests)
     $record->write;
     $record->clear;
     $record->find_current_id(3);
-    foreach my $type (keys %{$test->{as_string}})
+    if ($test->{as_string})
     {
-        my $col = $columns->{$type};
-        is( $record->fields->{$col->id}->as_string, $test->{as_string}->{$type}, "$type updated correctly for test $test->{name}" );
+        foreach my $type (keys %{$test->{as_string}})
+        {
+            my $col = $columns->{$type};
+            is( $record->fields->{$col->id}->as_string, $test->{as_string}->{$type}, "$type updated correctly for test $test->{name}" );
+        }
     }
 
     my @rules = map {
@@ -166,7 +199,7 @@ foreach my $test (@tests)
             id       => $columns->{$_->{column}}->id,
             type     => 'string',
             value    => $_->{value},
-            operator => 'equal',
+            operator => $_->{operator} || 'equal',
         }
     } @{$test->{search}};
     my $rules = encode_json({
@@ -196,10 +229,13 @@ foreach my $test (@tests)
 
     $record = $records->single;
 
-    foreach my $type (keys %{$test->{as_string}})
+    if ($test->{as_string})
     {
-        my $col = $columns->{$type};
-        is( $record->fields->{$col->id}->as_string, $test->{as_string}->{$type}, "$type updated correctly for test $test->{name}" );
+        foreach my $type (keys %{$test->{as_string}})
+        {
+            my $col = $columns->{$type};
+            is( $record->fields->{$col->id}->as_string, $test->{as_string}->{$type}, "$type updated correctly for test $test->{name}" );
+        }
     }
 }
 

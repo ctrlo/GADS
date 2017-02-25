@@ -152,6 +152,17 @@ has join => (
     clearer => 1,
 );
 
+has subjoin => (
+    is => 'lazy',
+);
+
+sub _build_subjoin
+{   my $self = shift;
+    return unless ref $self->join;
+    my ($temp, $subjoin) = %{$self->join};
+    $subjoin;
+}
+
 has fixedvals => (
     is  => 'rw',
     isa => Bool,
