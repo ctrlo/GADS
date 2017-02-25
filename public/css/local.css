@@ -114,3 +114,7 @@ table.floatThead-table {
     margin: 0 15px 0 0;
 }
 
+.jqplot-table-legend-label {
+    white-space: nowrap;
+}
+
