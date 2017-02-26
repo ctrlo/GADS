@@ -45,6 +45,11 @@ has '+option_names' => (
     default => sub { [qw/show_datepicker/] },
 );
 
+# Still counts as string storage for search (value field is string)
+has '+string_storage' => (
+    default => sub {shift->return_type eq 'string'},
+);
+
 has show_datepicker => (
     is      => 'rw',
     isa     => Bool,

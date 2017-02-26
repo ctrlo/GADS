@@ -186,25 +186,7 @@ sub _sub_filter_single
         # in this hash with a rule for each value and OR them all together
         if ($col->multivalue)
         {
-            my @texts = @{$datum->text_all};
-            if (@texts == 1)
-            {
-                $single->{value} = $texts[0];
-            }
-            else {
-                my $condition = $single->{operator} eq 'not_equal' ? 'AND' : 'OR';
-                my %template = %$single;
-                %$single = (
-                    condition => $condition,
-                    rules     => [],
-                );
-                foreach my $text (@texts)
-                {
-                    my %rule = %template;
-                    $rule{value} = $text;
-                    push @{$single->{rules}}, \%rule;
-                }
-            }
+            $single->{value} = $datum->text_all;
         }
         else {
             $datum->re_evaluate if !$col->userinput;

@@ -1293,7 +1293,7 @@ sub _field_write
             {
                 $entry->{value} = $datum_write->value;
                 $entry->{value_index} = lc substr $datum_write->value, 0, 128
-                    if $datum_write->value;
+                    if defined $datum_write->value;
                 push @entries, $entry;
             }
             else {

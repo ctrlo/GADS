@@ -1062,54 +1062,58 @@ sub _search_construct
     my $vprefix = $operator eq '-like' ? '' : '';
     my $vsuffix = $operator eq '-like' ? '%' : '';
 
-    my $value;
-    if ($filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty')
+    my @values;
+    my @original_values = ref $filter->{value} ? @{$filter->{value}} : ($filter->{value});
+    foreach (@original_values)
     {
-        my $comb = $filter->{operator} eq 'is_empty' ? '-or' : '-and';
-        $value = $column->string_storage
-            ? [ $comb => undef, "" ]
-            : undef;
-    }
-    else {
-        $value = $vprefix.$filter->{value}.$vsuffix;
-    }
-
-    return unless $column->validate_search($value);
-
-    # Sub-in current date as required. Ideally we would use the same
-    # code here as the calc/rag fields, but this can be accessed by
-    # any user, so should be a lot tighter.
-    if ($filter->{value} && $filter->{value} =~ "CURDATE")
-    {
-        my $vdt = GADS::View->parse_date_filter($filter->{value});
-        my $dtf = $self->schema->storage->datetime_parser;
-        $value = $dtf->format_date($vdt);
-    }
-    elsif ($transform_date || ($column->return_type eq 'date' && $value))
-    {
-        $value = $self->_date_for_db($column, $value);
-    }
-
-    $value =~ s/\_/\\\_/g if $operator eq '-like';
-
-    if ($value && $value =~ /\[CURUSER\]/)
-    {
-        if ($column->type eq "person")
+        if ($filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty')
         {
-            my $curuser = ($options{user} && $options{user}->id) || ($self->user && $self->user->{id})
-                or warning "FIXME: user not set for person filter";
-            $curuser ||= "";
-            $value =~ s/\[CURUSER\]/$curuser/g;
-            $conditions[0]->{s_field} = "id";
+            push @values, $column->string_storage ? (undef, "") : undef;
+            next;
         }
-        elsif ($column->return_type eq "string")
+
+        $_ = $vprefix.$_.$vsuffix;
+
+        next unless $column->validate_search($_);
+
+        # Sub-in current date as required. Ideally we would use the same
+        # code here as the calc/rag fields, but this can be accessed by
+        # any user, so should be a lot tighter.
+        if ($_ && $_ =~ /CURDATE/)
         {
-            my $curuser = ($options{user} && $options{user}->value) || ($self->user && $self->user->{value})
-                or warning "FIXME: user not set for string filter";
-            $curuser ||= "";
-            $value =~ s/\[CURUSER\]/$curuser/g;
+            my $vdt = GADS::View->parse_date_filter($_);
+            my $dtf = $self->schema->storage->datetime_parser;
+            $_ = $dtf->format_date($vdt);
         }
+        elsif ($transform_date || ($column->return_type eq 'date' && $_))
+        {
+            $_ = $self->_date_for_db($column, $_);
+        }
+
+        $_ =~ s/\_/\\\_/g if $operator eq '-like';
+
+        if ($_ && $_ =~ /\[CURUSER\]/)
+        {
+            if ($column->type eq "person")
+            {
+                my $curuser = ($options{user} && $options{user}->id) || ($self->user && $self->user->{id})
+                    or warning "FIXME: user not set for person filter";
+                $curuser ||= "";
+                $_ =~ s/\[CURUSER\]/$curuser/g;
+                $conditions[0]->{s_field} = "id";
+            }
+            elsif ($column->return_type eq "string")
+            {
+                my $curuser = ($options{user} && $options{user}->value) || ($self->user && $self->user->{value})
+                    or warning "FIXME: user not set for string filter";
+                $curuser ||= "";
+                $_ =~ s/\[CURUSER\]/$curuser/g;
+            }
+        }
+        push @values, $_;
     }
+
+    @values or return;
 
     if ($column->type eq "string")
     {
@@ -1121,18 +1125,18 @@ sub _search_construct
             type     => $filter->{operator},
             operator => $operator,
             s_field  => "value_index",
-            value    => $value && !ref($value) ? lc(substr($value, 0, 128)) : $value,
+            values   => [ map { $_ && lc(substr($_, 0, 128)) } @values ],
         };
     }
 
     my @final = map {
-        $self->_resolve($column, $_, $value, 0, %options);
+        $self->_resolve($column, $_, \@values, 0, %options);
     } @conditions;
     @final = ('-and' => [@final]);
     if (my $link_parent = $column->link_parent)
     {
         my @final2 = map {
-            $self->_resolve($link_parent, $_, $value, 1, %options);
+            $self->_resolve($link_parent, $_, \@values, 1, %options);
         } @conditions;
         @final2 = ('-and' => [@final2]);
         @final = (['-or' => [@final], [@final2]]);
@@ -1142,6 +1146,9 @@ sub _search_construct
 
 sub _resolve
 {   my ($self, $column, $condition, $default_value, $is_linked, %options) = @_;
+
+    my $value = $condition->{values} || $default_value;
+
     # If the column is a multivalue, then normally a not_equal would match
     # even if we're not expecting it to (if the record's value contains
     # "foo" and "bar", then a search for "not foo" would still return the
@@ -1149,13 +1156,14 @@ sub _resolve
     # to instead negate the record IDs containing that negative match.
     if ($column->multivalue && $condition->{type} eq 'not_equal')
     {
+        $value    = @$value > 1 ? [ '-or' => @$value ] : $value->[0];
         my $subjoin = $column->subjoin;
         my $table   = $subjoin || $column->field;
         +(
             'me.id' => {
                 -not_in => correlate( $self->schema->resultset('Current'), "record_single" )->search_related(
                     $column->field, {
-                        "$table.$_->{s_field}" => $_->{value} || $default_value,
+                        "$table.$_->{s_field}" => $value,
                     },
                     {
                         select => "record_later.current_id",
@@ -1166,9 +1174,11 @@ sub _resolve
         );
     }
     else {
+        my $combiner = $condition->{type} =~ /(is_not_empty|not_equal)/ ? '-and' : '-or';
+        $value    = @$value > 1 ? [ $combiner => @$value ] : $value->[0];
         $self->add_join($column, search => 1, linked => $is_linked);
         my $s_table = $self->table_name($column, %options, search => 1, linked => $is_linked);
-        my $sq = {$condition->{operator} => $condition->{value} || $default_value};
+        my $sq = {$condition->{operator} => $value};
         $sq = [ $sq, undef ] if $condition->{type} eq 'not_equal';
         +( "$s_table.$_->{s_field}" => $sq );
     }

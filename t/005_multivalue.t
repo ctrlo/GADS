@@ -172,6 +172,21 @@ my @tests = (
         ],
         count     => 1,
     },
+    {
+        name      => 'Search negative 3',
+        write     => {
+            enum1  => [7, 8],
+            enum2  => [11, 12],
+        },
+        search    => [
+            {
+                column   => 'enum1',
+                value    => ['foo1', 'foo2'],
+                operator => 'not_equal',
+            },
+        ],
+        count     => 1,
+    },
 );
 
 foreach my $test (@tests)
