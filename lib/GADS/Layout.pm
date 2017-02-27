@@ -300,6 +300,11 @@ sub get_user_perms
     wantarray ? ($cache->{$user_id}->{perms}, $cache->{$user_id}->{overall_permissions}) : $cache->{$user_id}->{perms};
 }
 
+sub all_with_internal
+{   my $self = shift;
+    $self->all(@_, include_internal => 1);
+}
+
 sub all
 {   my ($self, %options) = @_;
 

@@ -184,7 +184,12 @@ sub _sub_filter_single
             or return 0; # Failure: record not ready yet
         # First check for multivalue. If it is, we replace the singular rule
         # in this hash with a rule for each value and OR them all together
-        if ($col->multivalue)
+        if ($col->type eq 'curval')
+        {
+            # Can't really try and match on a text value
+            $single->{value} = $datum->ids;
+        }
+        elsif ($col->multivalue)
         {
             $single->{value} = $datum->text_all;
         }
