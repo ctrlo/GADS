@@ -296,7 +296,7 @@ has createdby => (
     builder => sub {
         my $self = shift;
         return unless $self->record;
-        $self->fields->{-3};
+        $self->fields->{-13};
     },
 );
 
@@ -389,7 +389,7 @@ sub find_unique
 {   my ($self, $column, $value, @retrieve_columns) = @_;
 
     return $self->find_current_id($value)
-        if $column->id == -1;
+        if $column->id == -11;
 
     # First create a view to search for this value in the column.
     my $filter = encode_json({
@@ -621,25 +621,25 @@ sub _transform_values
             layout           => $self->layout,
         );
     }
-    $fields->{-1} = GADS::Datum::ID->new(
+    $fields->{-11} = GADS::Datum::ID->new(
         record_id        => $self->record_id,
         current_id       => $self->current_id,
-        column           => $self->layout->column(-1),
+        column           => $self->layout->column(-11),
         schema           => $self->schema,
         layout           => $self->layout,
     );
-    $fields->{-2} = GADS::Datum::Date->new(
+    $fields->{-12} = GADS::Datum::Date->new(
         record_id        => $self->record_id,
         current_id       => $self->current_id,
-        column           => $self->layout->column(-3),
+        column           => $self->layout->column(-12),
         schema           => $self->schema,
         layout           => $self->layout,
         init_value       => [ { value => $original->{created} } ],
     );
-    $fields->{-3} = GADS::Datum::Person->new(
+    $fields->{-13} = GADS::Datum::Person->new(
         record_id        => $self->record_id,
         current_id       => $self->current_id,
-        column           => $self->layout->column(-3),
+        column           => $self->layout->column(-13),
         schema           => $self->schema,
         layout           => $self->layout,
         init_value       => { value => $original->{createdby} },
@@ -1021,10 +1021,10 @@ sub write
         $self->record_id_old($self->record_id) if $self->record_id;
         $self->record_id($id);
     };
-    $self->fields->{-1}->current_id($self->current_id);
-    $self->fields->{-1}->clear_value; # Will rebuild as current_id
-    $self->fields->{-2}->set_value($created_date);
-    $self->fields->{-3}->set_value($createdby, no_validation => 1);
+    $self->fields->{-11}->current_id($self->current_id);
+    $self->fields->{-11}->clear_value; # Will rebuild as current_id
+    $self->fields->{-12}->set_value($created_date);
+    $self->fields->{-13}->set_value($createdby, no_validation => 1);
 
     if ($need_app)
     {

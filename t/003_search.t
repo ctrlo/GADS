@@ -353,6 +353,65 @@ my @filters = (
         ],
         count => 2,
     },
+    {
+        name  => 'Search for ID',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => -11, # Special id for ID column
+                type     => 'integer',
+                value    => '4',
+                operator => 'equal',
+            }
+        ],
+        count => 1,
+    },
+    {
+        name  => 'Search for version date 1',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => -12, # Special id for version datetime column
+                type     => 'date',
+                value    => '2014-10-10',
+                operator => 'greater',
+            },
+            {
+                id       => -12, # Special id for version datetime column
+                type     => 'date',
+                value    => '2014-10-11',
+                operator => 'less',
+            }
+        ],
+        condition => 'AND',
+        count     => 7,
+    },
+    {
+        name  => 'Search for version date 2',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => -12, # Special id for version datetime column
+                type     => 'date',
+                value    => '2014-10-15',
+                operator => 'greater',
+            },
+        ],
+        count => 0,
+    },
+    {
+        name  => 'Search for version editor',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => -13, # Special id for version editor ID
+                type     => 'integer',
+                value    => '1',
+                operator => 'equal',
+            },
+        ],
+        count => 7,
+    },
 );
 foreach my $filter (@filters)
 {
@@ -516,7 +575,7 @@ is( $record->find_current_id(1)->current_id, 1, "Retrieved current ID 1 from oth
 $records = GADS::Records->new(
     default_sort => {
         type => 'asc',
-        id   => -1,
+        id   => -11,
     },
     user    => undef,
     layout  => $layout,
@@ -527,7 +586,7 @@ is( $records->results->[-1]->current_id, 9, "Correct last record for default_sor
 $records = GADS::Records->new(
     default_sort => {
         type => 'desc',
-        id   => -1,
+        id   => -11,
     },
     user    => undef,
     layout  => $layout,
@@ -693,7 +752,7 @@ foreach my $sort (@sorts)
             layout  => $layout,
             schema  => $schema,
         );
-        $records->sort({ type => 'desc', id => -1 })
+        $records->sort({ type => 'desc', id => -11 })
             if $pass == 1;
 
         # Test override of sort first

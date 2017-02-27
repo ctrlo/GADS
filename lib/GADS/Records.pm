@@ -887,7 +887,7 @@ sub _build__sorts
         foreach my $s (@$user_sort)
         {
             push @sorts, {
-                id   => $s->{id} || -1,
+                id   => $s->{id} || -11, # Default ID
                 type => $s->{type} || 'asc',
             } if $self->layout->column($s->{id});
         }
@@ -896,7 +896,7 @@ sub _build__sorts
         foreach my $sort (@{$self->view->sorts})
         {
             push @sorts, {
-                id   => $sort->{layout_id} || -1,
+                id   => $sort->{layout_id} || -11,
                 type => $sort->{type} || 'asc',
             } if $self->layout->column($sort->{layout_id});
         }
@@ -904,13 +904,13 @@ sub _build__sorts
     if (!@sorts && $self->default_sort)
     {
         push @sorts, {
-            id   => $self->default_sort->{id} || -1,
+            id   => $self->default_sort->{id} || -11,
             type => $self->default_sort->{type} || 'asc',
         } if $self->layout->column($self->default_sort->{id});
     }
     unless (@sorts) {
         push @sorts, {
-            id   => -1,
+            id   => -11,
             type => 'asc',
         }
     };
@@ -1176,7 +1176,8 @@ sub _resolve
     else {
         my $combiner = $condition->{type} =~ /(is_not_empty|not_equal)/ ? '-and' : '-or';
         $value    = @$value > 1 ? [ $combiner => @$value ] : $value->[0];
-        $self->add_join($column, search => 1, linked => $is_linked);
+        $self->add_join($column, search => 1, linked => $is_linked)
+            unless $column->internal;
         my $s_table = $self->table_name($column, %options, search => 1, linked => $is_linked);
         my $sq = {$condition->{operator} => $value};
         $sq = [ $sq, undef ] if $condition->{type} eq 'not_equal';

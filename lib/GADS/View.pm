@@ -358,6 +358,9 @@ sub write
     {
         unless (grep { $_->layout_id == $filter->{field} } @existing)
         {
+            # Unable to add internal columns to filter table, as they don't
+            # reference any columns from the layout table
+            next unless $filter->{field} > 0;
             $self->schema->resultset('Filter')->create({
                 view_id   => $self->id,
                 layout_id => $filter->{field},

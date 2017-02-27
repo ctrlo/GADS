@@ -131,31 +131,34 @@ has internal_columns => (
     builder => sub {
         [
             {
-                id         => -1,
-                name       => 'ID',
-                type       => 'id',
-                name_short => '_id',
-                table      => 'current',
-                column     => 'id',
-                isunique   => 1,
+                id          => -11,
+                name        => 'ID',
+                type        => 'id',
+                name_short  => '_id',
+                table       => 'current',
+                column      => 'id',
+                isunique    => 1,
+                return_type => 'integer',
             },
             {
-                id         => -2,
-                name       => 'Version Datetime',
-                type       => 'date',
-                name_short => '_version_datetime',
-                table      => 'record',
-                column     => 'created',
-                isunique   => 0,
+                id          => -12,
+                name        => 'Version Datetime',
+                type        => 'date',
+                name_short  => '_version_datetime',
+                table       => 'record',
+                column      => 'created',
+                isunique    => 0,
+                return_type => 'date',
             },
             {
-                id         => -3,
-                name       => 'Version User ID',
-                type       => 'person',
-                name_short => '_version_user',
-                table      => 'record',
-                column     => 'created_by',
-                isunique   => 0,
+                id          => -13,
+                name        => 'Version User ID',
+                type        => 'person',
+                name_short  => '_version_user',
+                table       => 'record',
+                column      => 'createdby',
+                isunique    => 0,
+                return_type => 'integer',
             },
         ];
     },
@@ -238,7 +241,8 @@ sub _build_columns
     # Add on special internal columns
     foreach my $internal (@{$self->internal_columns})
     {
-        push @return, GADS::Column->new(
+        my $class = $internal->{return_type} eq 'date' ? 'GADS::Column::Date' : 'GADS::Column';
+        push @return, $class->new(
             id                       => $internal->{id},
             name                     => $internal->{name},
             name_short               => $internal->{name_short},
@@ -247,6 +251,7 @@ sub _build_columns
             sprefix                  => $internal->{table},
             value_field              => $internal->{column},
             type                     => $internal->{type},
+            return_type              => $internal->{return_type},
             internal                 => 1,
             userinput                => 0,
             user_permission_override => $self->user_permission_override,

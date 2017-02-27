@@ -1158,7 +1158,7 @@ any '/view/:id' => require_login sub {
     }
 
     my $output = template 'view' => {
-        all_columns  => [$layout->all(user_can_read => 1)],
+        all_columns  => [$layout->all(user_can_read => 1, include_internal => 1)],
         sort_types   => $view->sort_types,
         v            => $view, # TT does not like variable "view"
         clone        => param('clone'),
