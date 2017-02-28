@@ -1074,7 +1074,11 @@ sub _search_construct
 
         $_ = $vprefix.$_.$vsuffix;
 
-        next unless $column->validate_search($_);
+        # This shouldn't normally happen, but sometimes we can end up with an
+        # invalid search value, such as if the date format has changed and the
+        # filters still have the old format. In this case, match nothing rather
+        # than matching all or borking.
+        return ( \"0 = 1" ) if !$column->validate_search($_);
 
         # Sub-in current date as required. Ideally we would use the same
         # code here as the calc/rag fields, but this can be accessed by

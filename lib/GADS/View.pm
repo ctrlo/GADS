@@ -218,7 +218,9 @@ sub BUILD
 }
 
 sub write
-{   my $self = shift;
+{   my ($self, %options) = @_;
+
+    my $fatal = $options{no_errors} ? 0 : 1;
 
     my $vu;
     if (!$self->user) # Used during tests - no user
@@ -260,14 +262,14 @@ sub write
             if ($op eq 'equal' || $op eq 'not_equal')
             {
                 # expect exact daterange format, e.g. "yyyy-mm-dd to yyyy-mm-dd"
-                $col->validate_search($val, fatal => 1, full_only => 1); # Will bork on failure
+                $col->validate_search($val, fatal => $fatal, full_only => 1); # Will bork on failure
             }
             else {
-                $col->validate_search($val, fatal => 1, single_only => 1); # Will bork on failure
+                $col->validate_search($val, fatal => $fatal, single_only => 1); # Will bork on failure
             }
         }
         else {
-            $col->validate_search($val, fatal => 1); # Will bork on failure
+            $col->validate_search($val, fatal => $fatal); # Will bork on failure
         }
 
         error __x "No value can be entered for empty and not empty operators"

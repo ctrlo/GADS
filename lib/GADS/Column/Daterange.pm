@@ -116,7 +116,7 @@ sub validate_search
             value => $value, name => $self->name;
     }
     # Accept both formats. Normal date format used to validate searches
-    return 1 if $self->parse_date($value) || $self->validate($self->split($value));
+    return 1 if $self->parse_date($value) || ($self->split($value) && $self->validate($self->split($value)));
     return 0 unless $options{fatal};
     error "Invalid format {value} for {name}",
         value => $value, name => $self->name;

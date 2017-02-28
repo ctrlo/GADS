@@ -412,6 +412,32 @@ my @filters = (
         ],
         count => 7,
     },
+    {
+        name  => 'Search for invalid date',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => $columns->{date1}->id,
+                type     => 'date',
+                value    => '20188-01',
+                operator => 'equal',
+            },
+        ],
+        count => 0,
+    },
+    {
+        name  => 'Search for invalid daterange',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => $columns->{daterange1}->id,
+                type     => 'date',
+                value    => '20188-01 XX',
+                operator => 'equal',
+            },
+        ],
+        count => 0,
+    },
 );
 foreach my $filter (@filters)
 {
@@ -432,7 +458,7 @@ foreach my $filter (@filters)
         schema      => $schema,
         user        => undef,
     );
-    $view->write;
+    $view->write(no_errors => 1);
 
     my $records = GADS::Records->new(
         user    => undef,
