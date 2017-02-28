@@ -202,6 +202,7 @@ foreach my $multivalue (0..1)
             {
                 next if $arrayref && $type eq 'daterange1';
                 my $datum = $record->fields->{$columns->{$type}->id};
+                ok( !$datum->written_to, "$type has not been written to$is_multi" );
                 if ($test eq 'blank')
                 {
                     ok( $datum->blank, "$type is blank$is_multi" );
@@ -216,6 +217,7 @@ foreach my $multivalue (0..1)
                 else {
                     $datum->set_value($values->{$type}->{new});
                 }
+                ok( $datum->written_to, "$type has been written to$is_multi" );
                 if ($test eq 'blank' || $test eq 'changed')
                 {
                     ok( $datum->changed, "$type has changed$is_multi" );
@@ -306,6 +308,72 @@ foreach my $c (keys %$values)
     );
     $datum->set_value($data->{blank}->[0]->{$c});
     ok( !$datum->changed, "$c has not changed" );
+}
+
+# Test moving forward and back
+{
+    my $record = GADS::Record->new(
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->find_current_id(3);
+    # Write values to all datums
+    my @col_ids;
+    foreach my $c (keys %$values)
+    {
+        my $datum = $record->fields->{$columns->{$c}->id};
+        $datum->set_value($values->{$c}->{new});
+        push @col_ids, $columns->{$c}->id;
+    }
+    # Check all written to
+    foreach my $c (keys %$values)
+    {
+        my $datum = $record->fields->{$columns->{$c}->id};
+        ok( $datum->written_to, "$c is written to after first write" );
+    }
+    $record->editor_shown_fields([@col_ids]);
+    # Move nowhere - should reset written_to
+    $record->move_nowhere;
+    foreach my $c (keys %$values)
+    {
+        my $datum = $record->fields->{$columns->{$c}->id};
+        ok( !$datum->written_to, "$c is no longer written to written to after move nowhere" );
+    }
+    # Write values again
+    foreach my $c (keys %$values)
+    {
+        my $datum = $record->fields->{$columns->{$c}->id};
+        $datum->set_value($values->{$c}->{new});
+        ok( $datum->value_current_page, "$c is current page" );
+    }
+    # Move forward
+    $record->move_forward;
+    $record->editor_shown_fields([]);
+    $record->editor_previous_fields([@col_ids]);
+    foreach my $c (keys %$values)
+    {
+        my $datum = $record->fields->{$columns->{$c}->id};
+        ok( $datum->value_previous_page, "$c is previous page after move forward" );
+        ok( !$datum->value_next_page, "$c is previous page after move forward" );
+    }
+    # Move back to first page. Should no longer be previous page or written to
+    $record->move_back;
+    foreach my $c (keys %$values)
+    {
+        my $datum = $record->fields->{$columns->{$c}->id};
+        ok( !$datum->value_previous_page, "$c is no longer previous page after move back" );
+        ok( !$datum->written_to, "$c is no longer written to after move back" );
+    }
+    # Now simulate that all values are actually for the next page
+    $record->editor_next_fields([@col_ids]);
+    foreach my $c (keys %$values)
+    {
+        # Set the valu, this time it should not be flagged as written to
+        my $datum = $record->fields->{$columns->{$c}->id};
+        $datum->set_value($values->{$c}->{new});
+        ok( !$datum->written_to, "$c is not written to when a next page value" );
+    }
 }
 
 # Final special test for file with only ID number the same (no new content)

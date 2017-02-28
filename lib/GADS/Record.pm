@@ -742,6 +742,7 @@ sub move_back
             $self->fields->{$col->id}->value_previous_page(0);
             $self->fields->{$col->id}->_set_written_to(0);
         }
+        $self->fields->{$col->id}->value_current_page(0); # Reset, ready for next write
     }
 }
 
@@ -754,6 +755,7 @@ sub move_forward
             if $self->fields->{$col->id}->written_to;
         $self->fields->{$col->id}->value_next_page(0)
             if $self->fields->{$col->id}->ready_to_write;
+        $self->fields->{$col->id}->value_current_page(0); # Reset, ready for next write
     }
 }
 
