@@ -853,7 +853,7 @@ sub _filter_remove_colid
     my $filter_dec = decode_json $json;
     _filter_remove_colid_decoded($filter_dec, $self->id);
     # An AND with empty rules causes JSON filter to have JS error
-    $filter_dec = {} unless @{$filter_dec->{rules}};
+    $filter_dec = {} if !$filter_dec->{rules} || !@{$filter_dec->{rules}};
     encode_json $filter_dec;
 }
 
