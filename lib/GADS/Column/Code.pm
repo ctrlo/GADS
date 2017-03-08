@@ -29,7 +29,7 @@ use Inline 'Lua' => q{
         env["vars"] = vars
 
         env["ipairs"] = ipairs
-        env["math"] = { floor = math.floor }
+        env["math"] = { floor = math.floor, min = math.min, max = math.max, abs = math.abs }
         env["os"] = { time = os.time, date = os.date }
         env["pairs"] = pairs
         env["table"] = { sort = table.sort, insert = table.insert }
