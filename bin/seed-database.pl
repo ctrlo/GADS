@@ -30,11 +30,12 @@ use Dancer2;
 use Dancer2::Plugin::DBIC;
 use DBIx::Class::Migration;
 
-my ($initial_username, $instance_name);
+my ($initial_username, $instance_name, $host);
 my $namespace = $ENV{CDB_NAMESPACE};
 GetOptions (
     'initial_username=s' => \$initial_username,
     'instance_name=s'    => \$instance_name,
+    'site'               => \$host,
 ) or exit;
 
 my ($dbic) = values %{config->{plugins}->{DBIC}}
@@ -50,6 +51,12 @@ unless ($initial_username)
 {
     say "Please enter the email address of the first user";
     chomp ($initial_username = <STDIN>);
+}
+
+unless ($host)
+{
+    say "Please enter the hostname that will be used to access this site";
+    chomp ($host = <STDIN>);
 }
 
 my $migration = DBIx::Class::Migration->new(
@@ -74,10 +81,16 @@ $migration->populate('permissions');
 rset('Permission')->count
     or die "No permissions populated. Do the fixtures exist?";
 
+say qq(Creating site "$host"...);
+my $site = rset('Site')->create({
+    host => $host,
+});
+
 say qq(Creating initial username "$initial_username"...);
 my $user = rset('User')->create({
     username => $initial_username,
     email    => $initial_username,
+    site_id  => $site->id,
 });
 
 say "Adding all permissions to initial username...";
@@ -91,6 +104,7 @@ foreach my $perm (rset('Permission')->all)
 
 say "Creating initial datasheet...";
 rset('Instance')->create({
-    name => $instance_name,
+    name    => $instance_name,
+    site_id => $site->id,
 });
 
