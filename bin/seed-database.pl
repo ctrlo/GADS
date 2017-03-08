@@ -83,7 +83,8 @@ rset('Permission')->count
 
 say qq(Creating site "$host"...);
 my $site = rset('Site')->create({
-    host => $host,
+    host                       => $host,
+    register_organisation_name => 'Organisation',
 });
 
 say qq(Creating initial username "$initial_username"...);
