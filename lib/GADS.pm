@@ -1829,14 +1829,6 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
     $type eq 'update' || $type eq 'clone'
         or error __x"Invalid bulk type: {type}", type => $type;
 
-    # The records to update
-    my $records = GADS::Records->new(
-        view   => $view,
-        schema => schema,
-        user   => $user,
-        layout => $layout,
-    );
-
     # The dummy record to test for updates
     my $record = GADS::Record->new(
         user     => $user,
@@ -1848,6 +1840,15 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
 
     # Files not supported at this time
     my @columns_to_show = grep { $type eq 'clone' || $_->type ne 'file' } $layout->all(user_can_write_new => 1);
+
+    # The records to update
+    my $records = GADS::Records->new(
+        view          => $view,
+        columns_extra => [map { $_->id } $layout->all], # Need all columns to be able to write updated records
+        schema        => schema,
+        user          => $user,
+        layout        => $layout,
+    );
 
     if (param 'submit')
     {
