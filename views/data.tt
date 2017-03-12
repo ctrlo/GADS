@@ -44,6 +44,7 @@
                             [% END %]
                             <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_alert">Alert me</a></li>
                         [% END %]
+                        <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_rewind">Travel back in time...</a></li>
                         <li role="presentation" class="divider"></li>
                         [% first = 1 %]
                         [% FOREACH ve IN user_views %]
@@ -155,6 +156,33 @@
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
 [% END %]
+<div class="modal fade" id="modal_rewind" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form role="form" method="post">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">View data as it was at a previous time</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="frequency">Date:</label>
+                        <input class="form-control datepicker" type="text" value="[% session.rewind.format_cldr(config.dateformat) %]" name="rewind_date">
+                    </div>
+                    <div class="form-group">
+                        <label for="frequency">Time:</label>
+                        <input class="form-control" type="text" value="[% session.rewind.hms %]" name="rewind_time" placeholder="23:59:59">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" name="rewind" value="reset" class="btn btn-default">Reset to current</button>
+                    <button type="submit" name="rewind" value="set" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 <!-- Modal -->
 [% IF viewtype == "timeline" %]
     <div class="modal fade" id="modal_timeline" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

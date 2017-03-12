@@ -12,6 +12,11 @@ use GADS::Schema;
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
 
+# Set up a config singleton. This will be updated as required
+GADS::Config->instance(
+    config => undef,
+);
+
 has data => (
     is      => 'rw',
     default => sub {
@@ -157,9 +162,7 @@ has config => (
 
 sub _build_config
 {   my $self = shift;
-    GADS::Config->instance(
-        config => undef,
-    );
+    GADS::Config->instance;
 }
 
 sub _build_schema

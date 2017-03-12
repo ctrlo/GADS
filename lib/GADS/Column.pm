@@ -21,6 +21,7 @@ package GADS::Column;
 use JSON qw(decode_json encode_json);
 use Log::Report;
 use String::CamelCase qw(camelize);
+use GADS::DateTime;
 use GADS::DB;
 use GADS::Filter;
 use GADS::Type::Permission;
@@ -468,10 +469,7 @@ sub parse_date
     # Check whether it's a CURDATE first
     my $dt = GADS::Filter->parse_date_filter($value);
     return $dt if $dt;
-    my $cldr = DateTime::Format::CLDR->new(
-        pattern => $self->dateformat,
-    );
-    $value && $cldr->parse_datetime($value);
+    $value && GADS::DateTime::parse_datetime($value);
 }
 
 sub _build_permissions

@@ -31,6 +31,7 @@ use Scalar::Util qw(looks_like_number);
 use Text::CSV::Encoded;
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 
 with 'GADS::RecordsJoin';
 
@@ -139,6 +140,18 @@ has page => (
     is => 'rw',
 );
 
+# Whether to take results from some previous point in time
+has rewind => (
+    is  => 'ro',
+    isa => Maybe[DateAndTime],
+);
+
+sub rewind_formatted
+{   my $self = shift;
+    $self->rewind or return;
+    $self->schema->storage->datetime_parser->format_datetime($self->rewind);
+}
+
 has include_approval => (
     is      => 'rw',
     default => 0,
@@ -187,6 +200,9 @@ sub search_query
     push @search, { "$current.id"          => $self->current_ids} if $self->current_ids;
     push @search, { "$current.instance_id" => $self->layout->instance_id };
     push @search, $self->record_later_search(%options, linked => $linked);
+    push @search, {
+        'record_single.created' => { '<' => $self->rewind_formatted },
+    } if $self->rewind;
     [@search];
 }
 
@@ -534,6 +550,8 @@ sub _build_results
     $select->{rows} = $self->rows if $self->rows;
     $select->{page} = $page if $page;
 
+    local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
+        if $self->rewind;
     # Get the current IDs
     # Only take the latest record_single (no later ones)
     my @cids = $self->schema->resultset('Current')->search(
@@ -569,6 +587,8 @@ sub _build_results
 
     my $search = $self->record_later_search(prefetch => 1, sort => 1, linked => 1);
     $search->{'me.id'} = \@cids;
+    $search->{'record_single.created'} = { '<' => $self->rewind_formatted }
+        if $self->rewind;
     my $result = $self->schema->resultset('Current')->search($search, $select);
 
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
@@ -692,6 +712,8 @@ sub _build_count
     my $search_query = $self->search_query(search => 1, linked => 1);
     my @joins        = $self->jpfetch(search => 1);
     my @linked       = $self->linked_hash(search => 1, linked => 1);
+    local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
+        if $self->rewind;
     my $select = {
         join     => [
             {

@@ -314,6 +314,12 @@ sub _build_created
     );
 }
 
+# Whether to take results from some previous point in time
+has rewind => (
+    is  => 'ro',
+    isa => Maybe[DateAndTime],
+);
+
 has is_historic => (
     is      => 'lazy',
     isa     => Bool,
@@ -350,6 +356,7 @@ sub remove_id
 {   my $self = shift;
     $self->current_id(undef);
     $self->linked_id(undef);
+    $self->clear_new_entry;
 }
 
 sub _check_instance
@@ -451,6 +458,7 @@ sub _find
         layout           => $self->layout,
         schema           => $self->schema,
         columns          => $self->columns,
+        rewind           => $self->rewind,
         include_approval => $self->include_approval,
     );
 
@@ -507,6 +515,9 @@ sub _find
     else {
         panic "record_id or current_id needs to be passed to _find";
     }
+
+    local $GADS::Schema::Result::Record::REWIND = $records->rewind_formatted
+        if $records->rewind;
 
     my $result = $self->schema->resultset($root_table)->search(
         [
@@ -569,10 +580,13 @@ sub _find
 
 sub versions
 {   my $self = shift;
-    my @records = $self->schema->resultset('Record')->search({
+    my $search = {
         'current_id' => $self->current_id,
         approval     => 0,
-    },{
+    };
+    $search->{'created'} = { '<' => $self->schema->storage->datetime_parser->format_datetime($self->rewind) }
+        if $self->rewind;
+    my @records = $self->schema->resultset('Record')->search($search,{
         order_by => { -desc => 'created' }
     })->all;
     @records;
@@ -871,6 +885,13 @@ sub write
                 id        => $self->parent_id,
                 parent_id => { '!=' => undef },
             })->count;
+    }
+
+    # Don't allow editing rewind record - would cause unexpected things with
+    # things such as "changed" tests
+    if ($self->rewind)
+    {
+        error __"Unable to edit record that has been retrieved with rewind";
     }
 
     # First loop round: sanitise and see which if any have changed

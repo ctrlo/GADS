@@ -66,14 +66,15 @@ my $tests = {
 
 foreach my $format (qw/yyyy-MM-dd dd-MM-yyyy/)
 {
-    my $config  = GADS::Config->new(
-        config     => undef,
-        dateformat => $format,
-    );
+    my $config  = {
+        gads => {
+            dateformat => $format,
+        },
+    };
+    GADS::Config->instance->config($config);
     my $test = $tests->{$format};
     my $sheet   = t::lib::DataSheet->new(
         data             => $test->{data},
-        config           => $config,
         calc_code        => "function evaluate (daterange1) \n return daterange1.from.epoch \n end",
         calc_return_type => 'date',
     );

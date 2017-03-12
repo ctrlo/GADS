@@ -403,9 +403,27 @@ any '/data' => require_login sub {
     my $user   = logged_in_user;
     my $layout = var 'layout';
 
+    # Check for rewind configuration
+    if (my $rewind = param 'rewind')
+    {
+        if ($rewind eq 'reset' || !param('rewind_date'))
+        {
+            session rewind => undef;
+        }
+        else {
+            my $input = param('rewind_date');
+            $input   .= ' ' . (param('rewind_time') ? param('rewind_time') : '23:59:59');
+            my $dt    = GADS::DateTime::parse_datetime($input)
+                or error __x"Invalid date or time: {datetime}", datetime => $input;
+            session rewind => $dt;
+        }
+    }
+
     # Search submission?
     if (defined(param('search_text')))
     {
+        error __"Not possible to conduct a search when viewing data on a previous date"
+            if session('rewind');
         my $search  = param('clear') ? '' : param('search_text');
         $search =~ s/\h+$//;
         $search =~ s/^\h+//;
@@ -576,6 +594,7 @@ any '/data' => require_login sub {
             user                 => $user,
             layout               => $layout,
             schema               => schema,
+            rewind               => session('rewind'),
             interpolate_children => 0,
         );
         if (param 'tl_update')
@@ -609,7 +628,12 @@ any '/data' => require_login sub {
         my $rows = defined param('download') ? undef : session('rows');
         my $page = defined param('download') ? undef : session('page');
 
-        my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
+        my $records = GADS::Records->new(
+            user   => $user,
+            layout => $layout,
+            schema => schema,
+            rewind => session('rewind'),
+        );
         $records->search_all_fields(session 'search')
             if session 'search';
 
@@ -2195,6 +2219,7 @@ any qr{/(record|history)/([0-9]+)} => require_login sub {
         user   => $user,
         layout => $layout,
         schema => schema,
+        rewind => session('rewind'),
     );
 
       $action eq 'history'
