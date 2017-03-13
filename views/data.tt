@@ -44,7 +44,7 @@
                             [% END %]
                             <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_alert">Alert me</a></li>
                         [% END %]
-                        <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_rewind">Travel back in time...</a></li>
+                        <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_rewind">Historic view...</a></li>
                         <li role="presentation" class="divider"></li>
                         [% first = 1 %]
                         [% FOREACH ve IN user_views %]
