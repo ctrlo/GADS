@@ -189,10 +189,22 @@ has multivalue => (
 );
 
 has options => (
-    is      => 'rw',
+    is      => 'rwp',
     isa     => HashRef,
-    default => sub { +{} },
+    lazy    => 1,
+    builder => 1,
+    clearer => 1,
 );
+
+sub _build_options
+{   my $self = shift;
+    my $options = {};
+    foreach my $option_name (@{$self->option_names})
+    {
+        $options->{$option_name} = $self->$option_name;
+    }
+    $options;
+}
 
 has option_names => (
     is      => 'ro',
@@ -523,7 +535,7 @@ sub build_values
     $self->position($original->{position});
     $self->helptext($original->{helptext});
     my $options = $original->{options} ? decode_json($original->{options}) : {};
-    $self->options($options);
+    $self->_set_options($options);
     $self->description($original->{description});
     $self->field("field$original->{id}");
     $self->type($original->{type});

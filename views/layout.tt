@@ -313,7 +313,7 @@
                     <label for="show_datepicker">Show date picker:</label>
                     <div class="checkbox">
                         <label>
-                            <input id="show_datepicker" type="checkbox" name="show_datepicker" [% IF column.show_datepicker %]checked[% END %]>Show date picker pop-up to select dates
+                            <input id="show_datepicker" type="checkbox" name="show_datepicker" [% IF NOT column.show_datepicker.defined OR column.show_datepicker %]checked[% END %]>Show date picker pop-up to select dates
                         </label>
                     </div>
                 </div>
@@ -784,7 +784,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divstring').show();
                     $('#divdate').hide();
                     $('.noragcalc').show();
-                } else if (val == "date") {
+                } else if (val == "date" || val == "daterange") {
                     $('#divcode').hide();
                     $('#divtree').hide();
                     $('#divenum').hide();
