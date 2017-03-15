@@ -1962,7 +1962,7 @@ any '/edit/:id?' => require_login sub {
     $output;
 };
 
-any '/file/:id' => require_login sub {
+get '/file/:id' => require_login sub {
     my $id = param 'id';
     my $layout = var 'layout';
 
@@ -1982,6 +1982,29 @@ any '/file/:id' => require_login sub {
         $file->schema(schema);
     }
     send_file( \($file->content), content_type => $file->mimetype, filename => $file->name );
+};
+
+post '/file/ajax' => require_login sub {
+
+    if (my $upload = upload('file'))
+    {
+        my $file = rset('Fileval')->create({
+            name     => $upload->filename,
+            mimetype => $upload->type,
+            content  => $upload->content,
+        });
+        return encode_json({
+            url   => "/file/".$file->id,
+            is_ok => 1,
+        });
+    }
+    else {
+        return encode_json({
+            is_ok => 0,
+            error => "No file was submitted",
+        });
+    }
+
 };
 
 any qr{/(record|history)/([0-9]+)} => require_login sub {
