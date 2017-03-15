@@ -2125,7 +2125,7 @@ any '/edit/:id?' => require_login sub {
         $previous->include_approval(1);
         $previous->init_no_value(0);
         $previous->find_record_id($lastrecord->record_id);
-        $record->{fields}->{$_->id} = $previous->{fields}->{$_->id}
+        $record->fields->{$_->id} = $previous->fields->{$_->id}
             foreach @{$previous->columns_retrieved_do};
         if ($record->approval_flag)
         {
