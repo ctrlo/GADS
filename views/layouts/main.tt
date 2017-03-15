@@ -33,7 +33,7 @@
             <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap.css">
         [% END %]
 
-        [% IF page == "layout" OR page == "edit" OR page == "approval" OR page =="audit" OR page == "bulk" %]
+        [% IF page == "layout" OR page == "edit" OR page == "approval" OR page =="audit" OR page == "bulk" OR page == "data"%]
             <link rel="stylesheet" href="[% url.css %]/jstree.min.css" />
             <link rel="stylesheet" href="[% url.css %]/bootstrap-datepicker.min.css" />
             <link rel="stylesheet" href="[% url.css %]/bootstrap-select.min.css" />
@@ -57,6 +57,9 @@
             [% ELSE %]
                 <link rel="stylesheet" href="[% scheme %]://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.css">
             [% END %]
+        [% END %]
+        [% IF page == "config" %]
+            <link href="[% url.css %]/summernote.css" rel="stylesheet">
         [% END %]
 
         <!-- Custom styles for this template -->
@@ -133,13 +136,15 @@
                                 [% END %]
                             </ul>
                             [% IF page == "data" OR page == "index" OR page == "record" %]
-                                <form class="navbar-form navbar-left" role="search" action="/data" method="post">
-                                    <div class="form-group">
-                                        <input type="text" name="search_text" class="form-control" title="Use * as a wildcard character" placeholder="Use * as wildcard" value="[% search | html_entity %]">
-                                    </div>
-                                    <button type="submit" name="search" value="search" class="btn btn-default">Search</button>
-                                    <button type="submit" name="clear" value="clear" class="btn btn-default">Clear</button>
-                                </form>
+                                [% UNLESS session.rewind %]
+                                    <form class="navbar-form navbar-left" role="search" action="/data" method="post">
+                                        <div class="form-group">
+                                            <input type="text" name="search_text" class="form-control" title="Use * as a wildcard character" placeholder="Use * as wildcard" value="[% search | html_entity %]">
+                                        </div>
+                                        <button type="submit" name="search" value="search" class="btn btn-default">Search</button>
+                                        <button type="submit" name="clear" value="clear" class="btn btn-default">Clear</button>
+                                    </form>
+                                [% END %]
                             [% END %]
                             <ul class="nav navbar-nav navbar-right">
                                 [% IF instances.size > 1 %]
@@ -189,6 +194,10 @@
                 </div>
             [% END %]
 
+            [% IF session.rewind %]
+                <div class="alert alert-info">You are viewing data as it was on [% session.rewind.format_cldr(config.dateformat) %] at [% session.rewind.hms %]</div>
+            [% END %]
+
             [% content %]
 
         </div><!-- /.container -->
@@ -208,8 +217,7 @@
             <script src="[% scheme %]://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
             <script src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/js/tooltip.min.js"></script>
         [% END %]
-
-        [% IF page == "edit" OR page == "approval" OR page == "audit" OR page == "bulk" %]
+        [% IF page == "edit" OR page == "approval" OR page == "audit" OR page == "bulk" OR page == "data" %]
             <script type="text/javascript" src="[% url.js %]/bootstrap-datepicker.js"></script>
             <script type="text/javascript">
                 $(document).ready(function() {
@@ -269,7 +277,11 @@
             <script type='text/javascript' src='[% url.js %]/fontdetect.min.js'></script>
         [% END %]
         [% IF page == "config" %]
-            <script type="text/javascript" src="[% url.js %]/tiny_mce/tiny_mce.js"></script>
+            [% IF 0 %]
+                <script type="text/javascript" src="[% url.js %]/tiny_mce/tiny_mce.js"></script>
+            [% ELSE %]
+                <script src="[% url.js %]/summernote.min.js"></script>
+            [% END %]
         [% END %]
         [% IF page == "user" OR page == "account" %]
             [% IF hostlocal %]

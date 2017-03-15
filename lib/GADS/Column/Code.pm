@@ -27,11 +27,14 @@ use Inline 'Lua' => q{
     function lua_run(string, vars)
         local env = {}
         env["vars"] = vars
-        env["pairs"] = pairs
+
         env["ipairs"] = ipairs
-        env["tonumber"] = tonumber
+        env["math"] = { floor = math.floor, min = math.min, max = math.max, abs = math.abs }
         env["os"] = { time = os.time, date = os.date }
+        env["pairs"] = pairs
         env["table"] = { sort = table.sort, insert = table.insert }
+        env["tonumber"] = tonumber
+
         func, err = load(string, nil, 't', env)
         ret = {}
         if err then

@@ -23,25 +23,35 @@ use Moo;
 with 'MooX::Singleton';
 
 has config => (
-    is       => 'ro',
+    is       => 'rw',
     required => 1,
+    trigger  => sub {
+        my $self = shift;
+        $self->clear_gads;
+        $self->clear_login_instance;
+        $self->clear_dateformat;
+        $self->clear_dateformat_datepicker;
+    },
 );
 
 has gads => (
     is      => 'ro',
     lazy    => 1,
+    clearer => 1,
     builder => sub { ref $_[0]->config eq 'HASH' && $_[0]->config->{gads} },
 );
 
 has login_instance => (
     is      => 'ro',
     lazy    => 1,
+    clearer => 1,
     builder => sub { $_[0]->gads->{login_instance} || 1 },
 );
 
 has dateformat => (
     is      => 'ro',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
         ref $self->gads eq 'HASH' && $self->gads->{dateformat} || 'yyyy-MM-dd';
@@ -51,6 +61,7 @@ has dateformat => (
 has dateformat_datepicker => (
     is      => 'ro',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
         my $dateformat = $self->dateformat;

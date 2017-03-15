@@ -45,13 +45,17 @@ has '+option_names' => (
     default => sub { [qw/show_datepicker/] },
 );
 
+# Still counts as string storage for search (value field is string)
+has '+string_storage' => (
+    default => sub {shift->return_type eq 'string'},
+);
+
 has show_datepicker => (
     is      => 'rw',
     isa     => Bool,
-    lazy    => 1,
     coerce  => sub { $_[0] ? 1 : 0 },
     builder => sub { defined $_[0]->options->{show_datepicker} ? $_[0]->options->{show_datepicker} : 1 },
-    trigger => sub { $_[0]->options->{show_datepicker} = $_[1] ? 1 : 0 },
+    trigger => sub { $_[0]->clear_options },
 );
 
 sub validate
@@ -111,7 +115,7 @@ sub validate_search
             value => $value, name => $self->name;
     }
     # Accept both formats. Normal date format used to validate searches
-    return 1 if $self->parse_date($value) || $self->validate($self->split($value));
+    return 1 if $self->parse_date($value) || ($self->split($value) && $self->validate($self->split($value)));
     return 0 unless $options{fatal};
     error "Invalid format {value} for {name}",
         value => $value, name => $self->name;

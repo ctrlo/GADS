@@ -296,7 +296,7 @@ has createdby => (
     builder => sub {
         my $self = shift;
         return unless $self->record;
-        $self->fields->{-3};
+        $self->fields->{-13};
     },
 );
 
@@ -313,6 +313,12 @@ sub _build_created
         $self->record->{created}
     );
 }
+
+# Whether to take results from some previous point in time
+has rewind => (
+    is  => 'ro',
+    isa => Maybe[DateAndTime],
+);
 
 has is_historic => (
     is      => 'lazy',
@@ -350,6 +356,7 @@ sub remove_id
 {   my $self = shift;
     $self->current_id(undef);
     $self->linked_id(undef);
+    $self->clear_new_entry;
 }
 
 sub _check_instance
@@ -389,7 +396,7 @@ sub find_unique
 {   my ($self, $column, $value, @retrieve_columns) = @_;
 
     return $self->find_current_id($value)
-        if $column->id == -1;
+        if $column->id == -11;
 
     # First create a view to search for this value in the column.
     my $filter = encode_json({
@@ -451,6 +458,7 @@ sub _find
         layout           => $self->layout,
         schema           => $self->schema,
         columns          => $self->columns,
+        rewind           => $self->rewind,
         include_approval => $self->include_approval,
     );
 
@@ -507,6 +515,9 @@ sub _find
     else {
         panic "record_id or current_id needs to be passed to _find";
     }
+
+    local $GADS::Schema::Result::Record::REWIND = $records->rewind_formatted
+        if $records->rewind;
 
     my $result = $self->schema->resultset($root_table)->search(
         [
@@ -569,10 +580,13 @@ sub _find
 
 sub versions
 {   my $self = shift;
-    my @records = $self->schema->resultset('Record')->search({
+    my $search = {
         'current_id' => $self->current_id,
         approval     => 0,
-    },{
+    };
+    $search->{'created'} = { '<' => $self->schema->storage->datetime_parser->format_datetime($self->rewind) }
+        if $self->rewind;
+    my @records = $self->schema->resultset('Record')->search($search,{
         order_by => { -desc => 'created' }
     })->all;
     @records;
@@ -621,25 +635,25 @@ sub _transform_values
             layout           => $self->layout,
         );
     }
-    $fields->{-1} = GADS::Datum::ID->new(
+    $fields->{-11} = GADS::Datum::ID->new(
         record_id        => $self->record_id,
         current_id       => $self->current_id,
-        column           => $self->layout->column(-1),
+        column           => $self->layout->column(-11),
         schema           => $self->schema,
         layout           => $self->layout,
     );
-    $fields->{-2} = GADS::Datum::Date->new(
+    $fields->{-12} = GADS::Datum::Date->new(
         record_id        => $self->record_id,
         current_id       => $self->current_id,
-        column           => $self->layout->column(-3),
+        column           => $self->layout->column(-12),
         schema           => $self->schema,
         layout           => $self->layout,
         init_value       => [ { value => $original->{created} } ],
     );
-    $fields->{-3} = GADS::Datum::Person->new(
+    $fields->{-13} = GADS::Datum::Person->new(
         record_id        => $self->record_id,
         current_id       => $self->current_id,
-        column           => $self->layout->column(-3),
+        column           => $self->layout->column(-13),
         schema           => $self->schema,
         layout           => $self->layout,
         init_value       => { value => $original->{createdby} },
@@ -742,6 +756,7 @@ sub move_back
             $self->fields->{$col->id}->value_previous_page(0);
             $self->fields->{$col->id}->_set_written_to(0);
         }
+        $self->fields->{$col->id}->value_current_page(0); # Reset, ready for next write
     }
 }
 
@@ -754,6 +769,7 @@ sub move_forward
             if $self->fields->{$col->id}->written_to;
         $self->fields->{$col->id}->value_next_page(0)
             if $self->fields->{$col->id}->ready_to_write;
+        $self->fields->{$col->id}->value_current_page(0); # Reset, ready for next write
     }
 }
 
@@ -869,6 +885,13 @@ sub write
                 id        => $self->parent_id,
                 parent_id => { '!=' => undef },
             })->count;
+    }
+
+    # Don't allow editing rewind record - would cause unexpected things with
+    # things such as "changed" tests
+    if ($self->rewind)
+    {
+        error __"Unable to edit record that has been retrieved with rewind";
     }
 
     # First loop round: sanitise and see which if any have changed
@@ -1021,10 +1044,10 @@ sub write
         $self->record_id_old($self->record_id) if $self->record_id;
         $self->record_id($id);
     };
-    $self->fields->{-1}->current_id($self->current_id);
-    $self->fields->{-1}->clear_value; # Will rebuild as current_id
-    $self->fields->{-2}->set_value($created_date);
-    $self->fields->{-3}->set_value($createdby, no_validation => 1);
+    $self->fields->{-11}->current_id($self->current_id);
+    $self->fields->{-11}->clear_value; # Will rebuild as current_id
+    $self->fields->{-12}->set_value($created_date);
+    $self->fields->{-13}->set_value($createdby, no_validation => 1);
 
     if ($need_app)
     {
@@ -1293,7 +1316,7 @@ sub _field_write
             {
                 $entry->{value} = $datum_write->value;
                 $entry->{value_index} = lc substr $datum_write->value, 0, 128
-                    if $datum_write->value;
+                    if defined $datum_write->value;
                 push @entries, $entry;
             }
             else {

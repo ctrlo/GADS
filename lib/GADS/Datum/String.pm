@@ -39,6 +39,7 @@ sub set_value
     $self->_set_written_valid(!!$value);
     $self->oldvalue($self->clone);
     $self->value($value);
+    $self->_set_written_to(0) if $self->value_next_page;
 }
 
 has value => (

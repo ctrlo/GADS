@@ -54,6 +54,7 @@ sub set_value
         || (defined $self->id && defined $new_id && $self->id != $new_id && $clone->content ne $self->content);
     $self->oldvalue($clone);
     $self->id($new_id) if defined $new_id || $self->init_no_value;
+    $self->_set_written_to(0) if $self->value_next_page;
 }
 
 has id => (

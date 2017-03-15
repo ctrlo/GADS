@@ -72,6 +72,7 @@ sub set_value
     $self->_set_written_valid(!!$new_id);
     $self->oldvalue($clone);
     $self->id($new_id);
+    $self->_set_written_to(0) if $self->value_next_page;
 }
 
 has schema => (

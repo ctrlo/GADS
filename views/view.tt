@@ -17,15 +17,16 @@
             <table class="table table-striped">
                 <tr><th><input type="checkbox" id="selectall" title="Select/deselect all"></th><th>Name</th></tr>
                 [% FOR column IN all_columns %]
-                <tr>
-                    <td>
-                        <input class="col_check" type="checkbox" name="column" value="[% column.id %]"
-                            [% id = column.id %]
-                            [% IF v.columns.grep("^$id\$").size %]checked[% END %]
-                        >
-                    </td>
-                    <td>[% column.name | html_entity %]</td>
-                </tr>
+                    [% NEXT IF column.internal %]
+                    <tr>
+                        <td>
+                            <input class="col_check" type="checkbox" name="column" value="[% column.id %]"
+                                [% id = column.id %]
+                                [% IF v.columns.grep("^$id\$").size %]checked[% END %]
+                            >
+                        </td>
+                        <td>[% column.name | html_entity %]</td>
+                    </tr>
                 [% END %]
             </table>
         </div>

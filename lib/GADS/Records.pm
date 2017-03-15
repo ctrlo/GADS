@@ -20,6 +20,7 @@ package GADS::Records;
 
 use DateTime;
 use DateTime::Format::Strptime qw( );
+use DBIx::Class::Helper::ResultSet::Util qw(correlate);
 use DBIx::Class::ResultClass::HashRefInflator;
 use GADS::Record;
 use GADS::View;
@@ -30,6 +31,7 @@ use Scalar::Util qw(looks_like_number);
 use Text::CSV::Encoded;
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 
 with 'GADS::RecordsJoin';
 
@@ -138,6 +140,18 @@ has page => (
     is => 'rw',
 );
 
+# Whether to take results from some previous point in time
+has rewind => (
+    is  => 'ro',
+    isa => Maybe[DateAndTime],
+);
+
+sub rewind_formatted
+{   my $self = shift;
+    $self->rewind or return;
+    $self->schema->storage->datetime_parser->format_datetime($self->rewind);
+}
+
 has include_approval => (
     is      => 'rw',
     default => 0,
@@ -186,6 +200,9 @@ sub search_query
     push @search, { "$current.id"          => $self->current_ids} if $self->current_ids;
     push @search, { "$current.instance_id" => $self->layout->instance_id };
     push @search, $self->record_later_search(%options, linked => $linked);
+    push @search, {
+        'record_single.created' => { '<' => $self->rewind_formatted },
+    } if $self->rewind;
     [@search];
 }
 
@@ -533,6 +550,8 @@ sub _build_results
     $select->{rows} = $self->rows if $self->rows;
     $select->{page} = $page if $page;
 
+    local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
+        if $self->rewind;
     # Get the current IDs
     # Only take the latest record_single (no later ones)
     my @cids = $self->schema->resultset('Current')->search(
@@ -568,6 +587,8 @@ sub _build_results
 
     my $search = $self->record_later_search(prefetch => 1, sort => 1, linked => 1);
     $search->{'me.id'} = \@cids;
+    $search->{'record_single.created'} = { '<' => $self->rewind_formatted }
+        if $self->rewind;
     my $result = $self->schema->resultset('Current')->search($search, $select);
 
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
@@ -691,6 +712,8 @@ sub _build_count
     my $search_query = $self->search_query(search => 1, linked => 1);
     my @joins        = $self->jpfetch(search => 1);
     my @linked       = $self->linked_hash(search => 1, linked => 1);
+    local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
+        if $self->rewind;
     my $select = {
         join     => [
             {
@@ -886,7 +909,7 @@ sub _build__sorts
         foreach my $s (@$user_sort)
         {
             push @sorts, {
-                id   => $s->{id} || -1,
+                id   => $s->{id} || -11, # Default ID
                 type => $s->{type} || 'asc',
             } if $self->layout->column($s->{id});
         }
@@ -895,7 +918,7 @@ sub _build__sorts
         foreach my $sort (@{$self->view->sorts})
         {
             push @sorts, {
-                id   => $sort->{layout_id} || -1,
+                id   => $sort->{layout_id} || -11,
                 type => $sort->{type} || 'asc',
             } if $self->layout->column($sort->{layout_id});
         }
@@ -903,13 +926,13 @@ sub _build__sorts
     if (!@sorts && $self->default_sort)
     {
         push @sorts, {
-            id   => $self->default_sort->{id} || -1,
+            id   => $self->default_sort->{id} || -11,
             type => $self->default_sort->{type} || 'asc',
         } if $self->layout->column($self->default_sort->{id});
     }
     unless (@sorts) {
         push @sorts, {
-            id   => -1,
+            id   => -11,
             type => 'asc',
         }
     };
@@ -997,10 +1020,6 @@ sub _search_construct
     my $operator = $ops{$filter->{operator}}
         or error __x"Invalid operator {filter}", filter => $filter->{operator};
 
-
-    $self->add_join($column, search => 1);
-    my $s_table = $self->table_name($column, %options, search => 1);
-
     my @conditions;
     my $transform_date; # Whether to convert date value to database format
     if ($column->type eq "daterange")
@@ -1011,6 +1030,7 @@ sub _search_construct
         if ($operator eq "!=" || $operator eq "=") # Only used for empty / not empty
         {
             push @conditions, {
+                type     => $filter->{operator},
                 operator => $operator,
                 s_field  => "value",
             };
@@ -1019,6 +1039,7 @@ sub _search_construct
         {
             $transform_date = 1;
             push @conditions, {
+                type     => $filter->{operator},
                 operator => $operator,
                 s_field  => "from",
             };
@@ -1027,6 +1048,7 @@ sub _search_construct
         {
             $transform_date = 1;
             push @conditions, {
+                type     => $filter->{operator},
                 operator => $operator,
                 s_field  => "to",
             };
@@ -1036,10 +1058,12 @@ sub _search_construct
             $transform_date = 1;
             # Requires 2 searches ANDed together
             push @conditions, {
+                type     => $filter->{operator},
                 operator => "<=",
                 s_field  => "from",
             };
             push @conditions, {
+                type     => $filter->{operator},
                 operator => ">=",
                 s_field  => "to",
             };
@@ -1051,6 +1075,7 @@ sub _search_construct
     }
     else {
         push @conditions, {
+            type     => $filter->{operator},
             operator => $operator,
             s_field  => $filter->{value_field} || $column->value_field,
         };
@@ -1059,54 +1084,62 @@ sub _search_construct
     my $vprefix = $operator eq '-like' ? '' : '';
     my $vsuffix = $operator eq '-like' ? '%' : '';
 
-    my $value;
-    if ($filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty')
+    my @values;
+    my @original_values = ref $filter->{value} ? @{$filter->{value}} : ($filter->{value});
+    foreach (@original_values)
     {
-        my $comb = $filter->{operator} eq 'is_empty' ? '-or' : '-and';
-        $value = $column->string_storage
-            ? [ $comb => undef, "" ]
-            : undef;
-    }
-    else {
-        $value = $vprefix.$filter->{value}.$vsuffix;
-    }
-
-    return unless $column->validate_search($value);
-
-    # Sub-in current date as required. Ideally we would use the same
-    # code here as the calc/rag fields, but this can be accessed by
-    # any user, so should be a lot tighter.
-    if ($filter->{value} && $filter->{value} =~ "CURDATE")
-    {
-        my $vdt = GADS::View->parse_date_filter($filter->{value});
-        my $dtf = $self->schema->storage->datetime_parser;
-        $value = $dtf->format_date($vdt);
-    }
-    elsif ($transform_date || ($column->return_type eq 'date' && $value))
-    {
-        $value = $self->_date_for_db($column, $value);
-    }
-
-    $value =~ s/\_/\\\_/g if $operator eq '-like';
-
-    if ($value && $value =~ /\[CURUSER\]/)
-    {
-        if ($column->type eq "person")
+        if ($filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty')
         {
-            my $curuser = ($options{user} && $options{user}->id) || ($self->user && $self->user->{id})
-                or warning "FIXME: user not set for person filter";
-            $curuser ||= "";
-            $value =~ s/\[CURUSER\]/$curuser/g;
-            $conditions[0]->{s_field} = "id";
+            push @values, $column->string_storage ? (undef, "") : undef;
+            next;
         }
-        elsif ($column->return_type eq "string")
+
+        $_ = $vprefix.$_.$vsuffix;
+
+        # This shouldn't normally happen, but sometimes we can end up with an
+        # invalid search value, such as if the date format has changed and the
+        # filters still have the old format. In this case, match nothing rather
+        # than matching all or borking.
+        return ( \"0 = 1" ) if !$column->validate_search($_);
+
+        # Sub-in current date as required. Ideally we would use the same
+        # code here as the calc/rag fields, but this can be accessed by
+        # any user, so should be a lot tighter.
+        if ($_ && $_ =~ /CURDATE/)
         {
-            my $curuser = ($options{user} && $options{user}->value) || ($self->user && $self->user->{value})
-                or warning "FIXME: user not set for string filter";
-            $curuser ||= "";
-            $value =~ s/\[CURUSER\]/$curuser/g;
+            my $vdt = GADS::View->parse_date_filter($_);
+            my $dtf = $self->schema->storage->datetime_parser;
+            $_ = $dtf->format_date($vdt);
         }
+        elsif ($transform_date || ($column->return_type eq 'date' && $_))
+        {
+            $_ = $self->_date_for_db($column, $_);
+        }
+
+        $_ =~ s/\_/\\\_/g if $operator eq '-like';
+
+        if ($_ && $_ =~ /\[CURUSER\]/)
+        {
+            if ($column->type eq "person")
+            {
+                my $curuser = ($options{user} && $options{user}->id) || ($self->user && $self->user->{id})
+                    or warning "FIXME: user not set for person filter";
+                $curuser ||= "";
+                $_ =~ s/\[CURUSER\]/$curuser/g;
+                $conditions[0]->{s_field} = "id";
+            }
+            elsif ($column->return_type eq "string")
+            {
+                my $curuser = ($options{user} && $options{user}->value) || ($self->user && $self->user->{value})
+                    or warning "FIXME: user not set for string filter";
+                $curuser ||= "";
+                $_ =~ s/\[CURUSER\]/$curuser/g;
+            }
+        }
+        push @values, $_;
     }
+
+    @values or return;
 
     if ($column->type eq "string")
     {
@@ -1115,35 +1148,67 @@ sub _search_construct
         # the search.
         # $value can be an array ref from above.
         push @conditions, {
+            type     => $filter->{operator},
             operator => $operator,
             s_field  => "value_index",
-            value    => $value && !ref($value) ? lc(substr($value, 0, 128)) : $value,
+            values   => [ map { $_ && lc(substr($_, 0, 128)) } @values ],
         };
     }
 
     my @final = map {
-        # By default SQL will not include NULL values for not equals.
-        # Let's include them. We need to use the original filter operator
-        # value, not the converted SQL one.
-        # XXX Repeated below
-        my $sq = {$_->{operator} => $_->{value} || $value};
-        $sq = [ $sq, undef ] if $filter->{operator} eq 'not_equal';
-        +( "$s_table.$_->{s_field}" => $sq )
+        $self->_resolve($column, $_, \@values, 0, %options);
     } @conditions;
     @final = ('-and' => [@final]);
-    if ($column->link_parent)
+    if (my $link_parent = $column->link_parent)
     {
         my @final2 = map {
-            # XXX Repeated above
-            my $sq = {$_->{operator} => $_->{value} || $value};
-            $sq = [ $sq, undef ] if $filter->{operator} eq 'not_equal';
-            $self->add_join($column->link_parent, linked => 1, search => 1);
-            +( $self->table_name($column->link_parent, %options, search => 1, linked => 1).".$_->{s_field}" => $sq );
+            $self->_resolve($link_parent, $_, \@values, 1, %options);
         } @conditions;
         @final2 = ('-and' => [@final2]);
         @final = (['-or' => [@final], [@final2]]);
     }
     return @final;
+}
+
+sub _resolve
+{   my ($self, $column, $condition, $default_value, $is_linked, %options) = @_;
+
+    my $value = $condition->{values} || $default_value;
+
+    # If the column is a multivalue, then normally a not_equal would match
+    # even if we're not expecting it to (if the record's value contains
+    # "foo" and "bar", then a search for "not foo" would still return the
+    # "bar" and hence the whole record including "foo".  We therefore have
+    # to instead negate the record IDs containing that negative match.
+    if ($column->multivalue && $condition->{type} eq 'not_equal')
+    {
+        $value    = @$value > 1 ? [ '-or' => @$value ] : $value->[0];
+        my $subjoin = $column->subjoin;
+        my $table   = $subjoin || $column->field;
+        +(
+            'me.id' => {
+                -not_in => correlate( $self->schema->resultset('Current'), "record_single" )->search_related(
+                    $column->field, {
+                        "$table.$_->{s_field}" => $value,
+                    },
+                    {
+                        select => "record_later.current_id",
+                        join   => $column->subjoin,
+                    }
+                )->as_query
+            }
+        );
+    }
+    else {
+        my $combiner = $condition->{type} =~ /(is_not_empty|not_equal)/ ? '-and' : '-or';
+        $value    = @$value > 1 ? [ $combiner => @$value ] : $value->[0];
+        $self->add_join($column, search => 1, linked => $is_linked)
+            unless $column->internal;
+        my $s_table = $self->table_name($column, %options, search => 1, linked => $is_linked);
+        my $sq = {$condition->{operator} => $value};
+        $sq = [ $sq, undef ] if $condition->{type} eq 'not_equal';
+        +( "$s_table.$_->{s_field}" => $sq );
+    }
 }
 
 sub _date_for_db

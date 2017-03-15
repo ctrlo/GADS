@@ -174,6 +174,8 @@ sub _build_results
             push @$search, $self->record_later_search(search => 1, prefetch => 1);
         }
 
+        local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
+            if $self->rewind;
         my ($result) = $self->schema->resultset('Current')->search(
             [-and => $search], {
                 select => $select,
@@ -314,6 +316,8 @@ sub _build_results
         group_by => [@g],
     };
 
+    local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
+        if $self->rewind;
     my $result = $self->schema->resultset('Current')->search(
         [-and => $q], $select
     );

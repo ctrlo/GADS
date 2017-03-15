@@ -21,6 +21,7 @@ package GADS::Column;
 use JSON qw(decode_json encode_json);
 use Log::Report;
 use String::CamelCase qw(camelize);
+use GADS::DateTime;
 use GADS::DB;
 use GADS::Filter;
 use GADS::Type::Permission;
@@ -152,6 +153,17 @@ has join => (
     clearer => 1,
 );
 
+has subjoin => (
+    is => 'lazy',
+);
+
+sub _build_subjoin
+{   my $self = shift;
+    return unless ref $self->join;
+    my ($temp, $subjoin) = %{$self->join};
+    $subjoin;
+}
+
 has fixedvals => (
     is  => 'rw',
     isa => Bool,
@@ -177,10 +189,22 @@ has multivalue => (
 );
 
 has options => (
-    is      => 'rw',
+    is      => 'rwp',
     isa     => HashRef,
-    default => sub { +{} },
+    lazy    => 1,
+    builder => 1,
+    clearer => 1,
 );
+
+sub _build_options
+{   my $self = shift;
+    my $options = {};
+    foreach my $option_name (@{$self->option_names})
+    {
+        $options->{$option_name} = $self->$option_name;
+    }
+    $options;
+}
 
 has option_names => (
     is      => 'ro',
@@ -457,10 +481,7 @@ sub parse_date
     # Check whether it's a CURDATE first
     my $dt = GADS::Filter->parse_date_filter($value);
     return $dt if $dt;
-    my $cldr = DateTime::Format::CLDR->new(
-        pattern => $self->dateformat,
-    );
-    $value && $cldr->parse_datetime($value);
+    $value && GADS::DateTime::parse_datetime($value);
 }
 
 sub _build_permissions
@@ -514,7 +535,7 @@ sub build_values
     $self->position($original->{position});
     $self->helptext($original->{helptext});
     my $options = $original->{options} ? decode_json($original->{options}) : {};
-    $self->options($options);
+    $self->_set_options($options);
     $self->description($original->{description});
     $self->field("field$original->{id}");
     $self->type($original->{type});
@@ -842,7 +863,7 @@ sub _filter_remove_colid
     my $filter_dec = decode_json $json;
     _filter_remove_colid_decoded($filter_dec, $self->id);
     # An AND with empty rules causes JSON filter to have JS error
-    $filter_dec = {} unless @{$filter_dec->{rules}};
+    $filter_dec = {} if !$filter_dec->{rules} || !@{$filter_dec->{rules}};
     encode_json $filter_dec;
 }
 

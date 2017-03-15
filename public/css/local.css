@@ -109,3 +109,12 @@ table.floatThead-table {
     }
 }
 
+.bootstrap-select .dropdown-menu li a {
+    white-space: normal;
+    margin: 0 15px 0 0;
+}
+
+.jqplot-table-legend-label {
+    white-space: nowrap;
+}
+

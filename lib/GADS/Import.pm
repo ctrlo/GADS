@@ -239,13 +239,13 @@ sub _build_fields
     {
         if (
             (
-                ($self->update_unique && $self->update_unique == -1) ||
-                ($self->skip_existing_unique && $self->skip_existing_unique == -1)
+                ($self->update_unique && $self->update_unique == -11) ||
+                ($self->skip_existing_unique && $self->skip_existing_unique == -11)
             ) &&
             $field eq 'ID'
         )
         {
-            push @fields, $self->layout->column(-1); # Special case
+            push @fields, $self->layout->column(-11); # Special case
         }
         elsif ($field =~ /^(Version Datetime|Version User ID)$/)
         {
@@ -360,9 +360,9 @@ sub _import_rows
 
             my $col = $self->fields->[$col_count];
 
-            if ($col->id == -1) # ID column
+            if ($col->id == -11) # ID column
             {
-                $input->{-1} = $value;
+                $input->{-11} = $value;
                 $col_count++;
                 next;
             }
@@ -459,7 +459,7 @@ sub _import_rows
             {
                 if (my $unique_value = $input->{$self->update_unique})
                 {
-                    if ($self->update_unique == -1) # ID
+                    if ($self->update_unique == -11) # ID
                     {
                         try { $record->find_current_id($unique_value) };
                         if ($@)

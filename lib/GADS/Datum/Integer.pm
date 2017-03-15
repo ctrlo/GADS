@@ -51,6 +51,7 @@ sub set_value
         || (!defined($value) && defined $self->value)
         || (defined $self->value && defined $value && $self->value != $value);
     $self->value($value) if defined $value || $self->init_no_value;
+    $self->_set_written_to(0) if $self->value_next_page;
 }
 
 has value => (

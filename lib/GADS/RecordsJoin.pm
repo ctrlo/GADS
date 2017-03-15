@@ -153,6 +153,7 @@ sub table_name
     if ($column->internal)
     {
         return 'me' if $column->name eq 'ID';
+        return 'record_single' if $column->sprefix eq 'record';
         return $column->sprefix;
     }
     my $jn = $self->_join_number($column, %options);

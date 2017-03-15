@@ -403,9 +403,27 @@ any '/data' => require_login sub {
     my $user   = logged_in_user;
     my $layout = var 'layout';
 
+    # Check for rewind configuration
+    if (my $rewind = param 'rewind')
+    {
+        if ($rewind eq 'reset' || !param('rewind_date'))
+        {
+            session rewind => undef;
+        }
+        else {
+            my $input = param('rewind_date');
+            $input   .= ' ' . (param('rewind_time') ? param('rewind_time') : '23:59:59');
+            my $dt    = GADS::DateTime::parse_datetime($input)
+                or error __x"Invalid date or time: {datetime}", datetime => $input;
+            session rewind => $dt;
+        }
+    }
+
     # Search submission?
     if (defined(param('search_text')))
     {
+        error __"Not possible to conduct a search when viewing data on a previous date"
+            if session('rewind');
         my $search  = param('clear') ? '' : param('search_text');
         $search =~ s/\h+$//;
         $search =~ s/^\h+//;
@@ -576,6 +594,7 @@ any '/data' => require_login sub {
             user                 => $user,
             layout               => $layout,
             schema               => schema,
+            rewind               => session('rewind'),
             interpolate_children => 0,
         );
         if (param 'tl_update')
@@ -609,7 +628,12 @@ any '/data' => require_login sub {
         my $rows = defined param('download') ? undef : session('rows');
         my $page = defined param('download') ? undef : session('page');
 
-        my $records = GADS::Records->new(user => $user, layout => $layout, schema => schema);
+        my $records = GADS::Records->new(
+            user   => $user,
+            layout => $layout,
+            schema => schema,
+            rewind => session('rewind'),
+        );
         $records->search_all_fields(session 'search')
             if session 'search';
 
@@ -1158,7 +1182,7 @@ any '/view/:id' => require_login sub {
     }
 
     my $output = template 'view' => {
-        all_columns  => [$layout->all(user_can_read => 1)],
+        all_columns  => [$layout->all(user_can_read => 1, include_internal => 1)],
         sort_types   => $view->sort_types,
         v            => $view, # TT does not like variable "view"
         clone        => param('clone'),
@@ -1279,7 +1303,9 @@ any '/layout/?:id?' => require_role 'layout' => sub {
         if (param 'submit')
         {
             $column->$_(param $_)
-                foreach (qw/name name_short type description helptext optional isunique multivalue remember link_parent_id/);
+                foreach (qw/name name_short description helptext optional isunique multivalue remember link_parent_id/);
+            $column->type(param 'type')
+                unless $id; # Can't change type as it would require DBIC resultsets to be removed and re-added
             $column->$_(param $_)
                 foreach @{$column->option_names};
             if (param 'display_condition')
@@ -1827,14 +1853,6 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
     $type eq 'update' || $type eq 'clone'
         or error __x"Invalid bulk type: {type}", type => $type;
 
-    # The records to update
-    my $records = GADS::Records->new(
-        view   => $view,
-        schema => schema,
-        user   => $user,
-        layout => $layout,
-    );
-
     # The dummy record to test for updates
     my $record = GADS::Record->new(
         user     => $user,
@@ -1846,6 +1864,15 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
 
     # Files not supported at this time
     my @columns_to_show = grep { $type eq 'clone' || $_->type ne 'file' } $layout->all(user_can_write_new => 1);
+
+    # The records to update
+    my $records = GADS::Records->new(
+        view          => $view,
+        columns_extra => [map { $_->id } $layout->all], # Need all columns to be able to write updated records
+        schema        => schema,
+        user          => $user,
+        layout        => $layout,
+    );
 
     if (param 'submit')
     {
@@ -2160,7 +2187,21 @@ any '/edit/:id?' => require_login sub {
     $output;
 };
 
-any '/file/:id' => require_login sub {
+get '/file/?' => require_role 'layout' => sub {
+
+    my @files = rset('Fileval')->search({
+        'files.id' => undef,
+    },{
+        join     => 'files',
+        order_by => 'me.id',
+    })->all;
+
+    template 'files' => {
+        files => [@files],
+    };
+};
+
+get '/file/:id' => require_login sub {
     my $id = param 'id';
     my $layout = var 'layout';
 
@@ -2182,6 +2223,50 @@ any '/file/:id' => require_login sub {
     send_file( \($file->content), content_type => $file->mimetype, filename => $file->name );
 };
 
+post '/file/?' => require_login sub {
+
+    my $ajax = defined param('ajax');
+
+    if (my $upload = upload('file'))
+    {
+        my $file;
+        if (process( sub { $file = rset('Fileval')->create({
+            name     => $upload->filename,
+            mimetype => $upload->type,
+            content  => $upload->content,
+        }) } ))
+        {
+            if ($ajax)
+            {
+                return encode_json({
+                    url   => "/file/".$file->id,
+                    is_ok => 1,
+                });
+            }
+            else {
+                my $msg = __x"File has been uploaded as ID {id}", id => $file->id;
+                return forwardHome( { success => "$msg" }, 'file' );
+            }
+        }
+        elsif ($ajax) {
+            return encode_json({
+                is_ok => 0,
+                error => $@,
+            });
+        }
+    }
+    elsif ($ajax) {
+        return encode_json({
+            is_ok => 0,
+            error => "No file was submitted",
+        });
+    }
+    else {
+        error __"No file submitted";
+    }
+
+};
+
 any qr{/(record|history)/([0-9]+)} => require_login sub {
 
     my ($action, $id) = splat;
@@ -2192,6 +2277,7 @@ any qr{/(record|history)/([0-9]+)} => require_login sub {
         user   => $user,
         layout => $layout,
         schema => schema,
+        rewind => session('rewind'),
     );
 
       $action eq 'history'

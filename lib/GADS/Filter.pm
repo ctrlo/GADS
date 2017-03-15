@@ -184,27 +184,14 @@ sub _sub_filter_single
             or return 0; # Failure: record not ready yet
         # First check for multivalue. If it is, we replace the singular rule
         # in this hash with a rule for each value and OR them all together
-        if ($col->multivalue)
+        if ($col->type eq 'curval')
         {
-            my @texts = @{$datum->text_all};
-            if (@texts == 1)
-            {
-                $single->{value} = $texts[0];
-            }
-            else {
-                my $condition = $single->{operator} eq 'not_equal' ? 'AND' : 'OR';
-                my %template = %$single;
-                %$single = (
-                    condition => $condition,
-                    rules     => [],
-                );
-                foreach my $text (@texts)
-                {
-                    my %rule = %template;
-                    $rule{value} = $text;
-                    push @{$single->{rules}}, \%rule;
-                }
-            }
+            # Can't really try and match on a text value
+            $single->{value} = $datum->ids;
+        }
+        elsif ($col->multivalue)
+        {
+            $single->{value} = $datum->text_all;
         }
         else {
             $datum->re_evaluate if !$col->userinput;

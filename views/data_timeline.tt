@@ -77,12 +77,14 @@
 
             [%-# See http://visjs.org/docs/timeline/#Editing_Items %]
             var options = {
-                editable: {
-                    add:         false,
-                    updateTime:  true,
-                    updateGroup: false,
-                    remove:      false
-                },
+                [% UNLESS session.rewind %]
+                    editable: {
+                        add:         false,
+                        updateTime:  true,
+                        updateGroup: false,
+                        remove:      false
+                    },
+                [% END %]
                 margin: {
                     item: {
                         horizontal: 0
