@@ -20,6 +20,11 @@
                 </div>
             </div>
             <p></p>
+            <label for="sort_layout_id">Manage uploaded files:</label>
+            <div class="form-group">
+                <p><a href="/file">Click here to manage files that have been uploaded separately from records</a></p>
+            </div>
+            <p></p>
             <div class="form-group">
                 <label for="homepage_text">Homepage message:</label>
                 [% IF 0 # Add config later for TinyMCE %]
@@ -91,7 +96,7 @@
                         var data = new FormData();
                         data.append('file', file);
                         $.ajax({
-                            url: '/file/ajax',
+                            url: '/file?ajax',
                             type: 'POST',
                             contentType: false,
                             cache: false,

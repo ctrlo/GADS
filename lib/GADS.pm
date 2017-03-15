@@ -1962,6 +1962,20 @@ any '/edit/:id?' => require_login sub {
     $output;
 };
 
+get '/file/?' => require_role 'layout' => sub {
+
+    my @files = rset('Fileval')->search({
+        'files.id' => undef,
+    },{
+        join     => 'files',
+        order_by => 'me.id',
+    })->all;
+
+    template 'files' => {
+        files => [@files],
+    };
+};
+
 get '/file/:id' => require_login sub {
     my $id = param 'id';
     my $layout = var 'layout';
@@ -1984,25 +1998,46 @@ get '/file/:id' => require_login sub {
     send_file( \($file->content), content_type => $file->mimetype, filename => $file->name );
 };
 
-post '/file/ajax' => require_login sub {
+post '/file/?' => require_login sub {
+
+    my $ajax = defined param('ajax');
 
     if (my $upload = upload('file'))
     {
-        my $file = rset('Fileval')->create({
+        my $file;
+        if (process( sub { $file = rset('Fileval')->create({
             name     => $upload->filename,
             mimetype => $upload->type,
             content  => $upload->content,
-        });
-        return encode_json({
-            url   => "/file/".$file->id,
-            is_ok => 1,
-        });
+        }) } ))
+        {
+            if ($ajax)
+            {
+                return encode_json({
+                    url   => "/file/".$file->id,
+                    is_ok => 1,
+                });
+            }
+            else {
+                my $msg = __x"File has been uploaded as ID {id}", id => $file->id;
+                return forwardHome( { success => "$msg" }, 'file' );
+            }
+        }
+        elsif ($ajax) {
+            return encode_json({
+                is_ok => 0,
+                error => $@,
+            });
+        }
     }
-    else {
+    elsif ($ajax) {
         return encode_json({
             is_ok => 0,
             error => "No file was submitted",
         });
+    }
+    else {
+        error __"No file submitted";
     }
 
 };
