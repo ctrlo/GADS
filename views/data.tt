@@ -1,9 +1,9 @@
 [% IF search %]
-    <h3>Search results <small>[% search | html_entity %]</small></h3>
+    <h1>Search results <small>[% search | html_entity %]</small></h1>
 [% ELSIF v %]
-    <h3>[% v.name | html_entity %]</h3>
+    <h1>[% v.name | html_entity %]</h1>
 [% ELSE %]
-    <h3>All data</h3>
+    <h1>All data</h1>
 [% END %]
 <p>
     <div class="row">
