@@ -1257,3 +1257,19 @@ button.close {
     top: -2.7em;
     right: -5em;
 }
+
+/* search form */
+
+form[role="search"] ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+form[role="search"] button {
+    vertical-align: bottom;
+}
+
+form#clear_search {
+    display: inline;
+}
