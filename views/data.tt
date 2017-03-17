@@ -141,13 +141,13 @@
 
 <!-- Modal -->
 [% IF v %]
-    <div class="modal fade" id="modal_alert" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal fade" id="modal_alert" tabindex="-1" role="dialog" aria-labelledby="configure_alert" style="display:none">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form method="post">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title" id="myModalLabel">Configure alert for [% v.name | html_entity %]</h4>
+                    <h4 class="modal-title" id="configure_alert">Configure alert for [% v.name | html_entity %]</h4>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
@@ -168,21 +168,22 @@
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
 [% END %]
-<div class="modal fade" id="modal_rewind" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+
+<div class="modal fade" id="modal_rewind" tabindex="-1" role="dialog" aria-labelledby="historic_view" style="display:none">
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="post">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title" id="myModalLabel">View data as it was at a previous time</h4>
+                    <h4 class="modal-title" id="historic_view">View data as it was at a previous time</h4>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="rewind_date">Date:</label>
+                        <label for="rewind_date">Date (YYYY-MM-DD):</label>
                         <input id="rewind_date" class="form-control datepicker" type="text" value="[% session.rewind.format_cldr(config.dateformat) %]" name="rewind_date">
                     </div>
                     <div class="form-group">
-                        <label for="rewind_time">Time:</label>
+                        <label for="rewind_time">Time (HH:MM:SS):</label>
                         <input id="rewind_time" class="form-control" type="text" value="[% session.rewind.hms %]" name="rewind_time" placeholder="23:59:59">
                     </div>
                 </div>
@@ -197,13 +198,13 @@
 </div><!-- /.modal -->
 <!-- Modal -->
 [% IF viewtype == "timeline" %]
-    <div class="modal fade" id="modal_timeline" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal fade" id="modal_timeline" tabindex="-1" role="dialog" aria-labelledby="timeline_view_options" style="display:none">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form method="post">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title" id="myModalLabel">Timeline view options</h4>
+                    <h4 class="modal-title" id="timeline_view_options">Timeline view options</h4>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
