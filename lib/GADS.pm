@@ -419,12 +419,12 @@ any '/data' => require_login sub {
         }
     }
 
-    # Search submission?
-    if (defined(param('search_text')))
+    # Search submission or clearing a search?
+    if (defined(param('search_text')) || defined(param('clear_search')))
     {
         error __"Not possible to conduct a search when viewing data on a previous date"
             if session('rewind');
-        my $search  = param('clear') ? '' : param('search_text');
+        my $search  = param('clear_search') ? '' : param('search_text');
         $search =~ s/\h+$//;
         $search =~ s/^\h+//;
         session 'search' => $search;
