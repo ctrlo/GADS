@@ -33,7 +33,10 @@
                 [% ELSE %]
                     [% st = "" %]
                 [% END %]
-                <th><a href="?sort=[% col.id %]" style="color:black">[% col.name | html_entity %][% IF col.id == sort.id %][% st %]</a>[% END %]
+                <th>
+                    <a href="?sort=[% col.id %]" style="color:black">
+                        [% col.name | html_entity %][% IF col.id == sort.id %][% st %][% END %]
+                    </a>
                     [% IF col.helptext %]
                         (<a data-toggle="modal" href="/helptext/[% col.id %]" data-target="#helptext_modal">?</a>)
                     [% END %]
