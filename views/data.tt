@@ -34,7 +34,7 @@
                     </a>
                 </div>
                 <div class="btn-group">
-                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
                             View <span class="caret"></span>
                     </button>
                     <ul id="menu_view" class="dropdown-menu scrollable-menu" role="menu">
@@ -75,7 +75,7 @@
                     </ul>
                 </div>
                 <div class="btn-group">
-                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_action">
                             Action <span class="caret"></span>
                     </button>
                     <ul id="menu_action" class="dropdown-menu" role="menu">
