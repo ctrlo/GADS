@@ -97,13 +97,13 @@
         </div>
         [% IF viewtype == "table" %]
             <div class="col-md-6">
-                <form method="get" class="form-horizontal" role="form">
+                <form method="get" class="form-horizontal">
                     <div class="form-group">
                         <div class="col-sm-4">
-                            <label for="rows_per_page" control-label">Rows per page</label>
+                            <label for="rows_per_page" class="control-label">Rows per page</label>
                         </div>
                         <div class="col-sm-8">
-                            <select id="rows_per_page" class="form-control" name="rows" onchange="this.form.submit()">
+                            <select id="rows_per_page" class="form-control" name="rows" onchange="this.form.submit()" role="listbox">
                                 <option value="10" [% IF subset.rows == 10 %]selected[% END %]>10</option>
                                 <option value="25" [% IF subset.rows == 25 %]selected[% END %]>25</option>
                                 <option value="50" [% IF subset.rows == 50 %]selected[% END %]>50</option>
