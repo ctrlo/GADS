@@ -100,7 +100,7 @@
                 <form method="get" class="form-horizontal" role="form">
                     <div class="form-group">
                         <div class="col-sm-4">
-                            <label for="rows_per_page" class="col-sm-2 control-label">Rows per page</label>
+                            <label for="rows_per_page" control-label">Rows per page</label>
                         </div>
                         <div class="col-sm-8">
                             <select id="rows_per_page" class="form-control" name="rows" onchange="this.form.submit()">
