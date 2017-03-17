@@ -147,7 +147,7 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="frequency">Alert me:</label>
-                        <select class="form-control" name="frequency">
+                        <select class="form-control" id="frequency" name="frequency">
                             <option value="" [% IF NOT v.alert %]selected[% END %]>Never</option>
                             <option value="0" [% IF v.alert.frequency == 0 %]selected[% END %]>Instantly</option>
                             <option value="24" [% IF v.alert.frequency == 24 %]selected[% END %]>Every 24 hours</option>
@@ -173,12 +173,12 @@
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="frequency">Date:</label>
-                        <input class="form-control datepicker" type="text" value="[% session.rewind.format_cldr(config.dateformat) %]" name="rewind_date">
+                        <label for="rewind_date">Date:</label>
+                        <input id="rewind_date" class="form-control datepicker" type="text" value="[% session.rewind.format_cldr(config.dateformat) %]" name="rewind_date">
                     </div>
                     <div class="form-group">
-                        <label for="frequency">Time:</label>
-                        <input class="form-control" type="text" value="[% session.rewind.hms %]" name="rewind_time" placeholder="23:59:59">
+                        <label for="rewind_time">Time:</label>
+                        <input id="rewind_time" class="form-control" type="text" value="[% session.rewind.hms %]" name="rewind_time" placeholder="23:59:59">
                     </div>
                 </div>
                 <div class="modal-footer">
