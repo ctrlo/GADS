@@ -10,29 +10,29 @@
         <div class="col-md-6">
             <div class="btn-toolbar" role="toolbar">
                 <div class="btn-group" role="group">
-                    <a href="?viewtype=table" class="btn btn-default" aria-labelledby="view_as_table">
-                        <i class="fa fa-list fa-lg use-icon-font"></i>
+                    <a href="?viewtype=table" class="btn btn-default">
+                        <i aria-hidden="true" class="fa fa-list fa-lg use-icon-font"></i>
                         <img src="/images/icon-data-list.png" class="use-icon-png" style="display:none" alt="">
+                        <span class="visually-hidden">View as table</span>
                     </a>
-                    <span class="visually-hidden" id="view_as_table">View as table</span>
 
-                    <a href="?viewtype=graph" class="btn btn-default" aria-labelledby="view_as_graph">
-                        <i class="fa fa-area-chart fa-lg use-icon-font"></i>
+                    <a href="?viewtype=graph" class="btn btn-default">
+                        <i aria-hidden="true" class="fa fa-area-chart fa-lg use-icon-font"></i>
                         <img src="/images/icon-data-chart.png" class="use-icon-png" style="display:none" alt="">
+                        <span class="visually-hidden">View as graph</span>
                     </a>
-                    <span class="visually-hidden" id="view_as_graph">View as graph</span>
 
-                    <a href="?viewtype=timeline" class="btn btn-default" aria-labelledby="view_on_timeline">
-                        <i class="fa fa-tasks fa-lg use-icon-font"></i>
+                    <a href="?viewtype=timeline" class="btn btn-default">
+                        <i aria-hidden="true" class="fa fa-tasks fa-lg use-icon-font"></i>
                         <img src="/images/icon-data-tasks.png" class="use-icon-png" style="display:none" alt="">
+                        <span class="visually-hidden">View on timeline</span>
                     </a>
-                    <span class="visually-hidden" id="view_on_timeline">View on timeline</span>
 
-                    <a href="?viewtype=calendar" class="btn btn-default" aria-labelledby="view_on_calendar">
-                        <i class="fa fa-calendar fa-lg use-icon-font"></i>
+                    <a href="?viewtype=calendar" class="btn btn-default">
+                        <i aria-hidden="true" class="fa fa-calendar fa-lg use-icon-font"></i>
                         <img src="/images/icon-data-calendar.png" class="use-icon-png" style="display:none" alt="">
+                        <span class="visually-hidden">View on calendar</span>
                     </a>
-                    <span class="visually-hidden" id="view_on_calendar">View on calendar</span>
                 </div>
                 <div class="btn-group">
                     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">

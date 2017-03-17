@@ -1233,3 +1233,27 @@ button.close {
     color: #993300;
     font-size: 1em;
 }
+
+/* Data Overview - show "view as" controls on focus and hover */
+
+[role="toolbar"] a:focus,
+[role="toolbar"] a:hover {
+    position: relative;
+}
+
+[role="toolbar"] a:focus .visually-hidden,
+[role="toolbar"] a:hover .visually-hidden {
+    clip: auto;
+    height: auto;
+    margin: auto;
+    overflow: auto;
+    padding: initial;
+    position: absolute;
+    width: auto;
+
+    border: 1px solid #000;
+    background-color: #fff;
+    padding: .5em;
+    top: -2.7em;
+    right: -5em;
+}
