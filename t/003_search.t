@@ -773,6 +773,7 @@ foreach my $sort (@sorts)
         $view->set_sorts($sort->{sort_by}, $sort->{sort_type});
 
         $records = GADS::Records->new(
+            page    => 1,
             user    => undef,
             view    => $view,
             layout  => $layout,
@@ -786,15 +787,26 @@ foreach my $sort (@sorts)
         {
             my $first = $sort->{max_id} || 9;
             my $last  = $sort->{min_id} || 3;
+            # 1 record per page to test sorting across multiple pages
+            $records->clear;
+            $records->rows(1);
             is( $records->results->[0]->current_id, $first, "Correct first record for sort override and test $sort->{name}");
+            $records->clear;
+            $records->page($sort->{count} || 7);
             is( $records->results->[-1]->current_id, $last, "Correct last record for sort override and test $sort->{name}");
         }
         elsif ($pass == 2)
         {
+            # First check number of results for page of all records
             is( @{$records->results}, $sort->{count}, "Correct number of records in results for sort $sort->{name}" )
                 if $sort->{count};
 
+            # Then switch to 1 record per page to test sorting across multiple pages
+            $records->clear;
+            $records->rows(1);
             like( $records->results->[0]->current_id, $sort->{first}, "Correct first record for sort $sort->{name}");
+            $records->clear;
+            $records->page($sort->{count} || 7);
             like( $records->results->[-1]->current_id, $sort->{last}, "Correct last record for sort $sort->{name}");
         }
         else {

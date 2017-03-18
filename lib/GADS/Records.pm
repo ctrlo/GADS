@@ -540,7 +540,7 @@ sub _build_results
             [$self->linked_hash(search => 1, sort => 1)],
         ],
         '+select' => $self->_plus_select, # Used for additional sort columns
-        order_by  => $self->order_by,
+        order_by  => $self->order_by(search => 1),
         distinct  => 1, # Otherwise multiple records returned for multivalue fields
     };
     my $page = $self->page;
