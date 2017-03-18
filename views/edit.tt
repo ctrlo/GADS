@@ -465,7 +465,7 @@
                                             </span>"
                                         [% END %]
                                     >
-                                    [% UNLESS dispcol.multivalue %][% enumval.value | html_entity %][% END %]
+                                    [% enumval.value | html_entity %]
                                     </option>
                                 [% END %]
                             [% END %]
@@ -581,7 +581,9 @@
     [% IF col.display_depended_by.size %]
         [% FOREACH depends IN dispcol.display_depended_by %]
             [% divid = "depend" _ dispcol.id _ "_" _ depends.id %]
-            [% IF col.type == "enum" || col.type == "person" %]
+            [% IF col.multiselect AND (col.type == "enum" OR col.type == "curval") %]
+                [% js_valget = '$(this).val()' %]
+            [% ELSIF col.type == "enum" || col.type == "person" || col.type == "curval" %]
                 [% js_valget = '$("option:selected", $(this)).text()' %]
             [% ELSE %]
                 [% js_valget = '$(this).val()' %]
