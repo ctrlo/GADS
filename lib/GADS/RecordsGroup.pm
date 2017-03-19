@@ -123,7 +123,7 @@ sub _build_results
                : 'max';
         # Don't use SUM() for non-numeric columns
         $op = 'max' if $op eq 'sum' && !$col->numeric;
-        $self->add_prefetch($col);
+        $self->add_prefetch($col, include_multivalue => 1);
         push @select_fields, {
             $op => $self->fqvalue($col, search => 1, prefetch => 1),
             -as => $col->field
