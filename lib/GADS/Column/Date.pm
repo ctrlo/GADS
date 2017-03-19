@@ -61,7 +61,12 @@ sub validate
 sub validate_search
 {   my $self = shift;
     my ($value, %options) = @_;
-    $value or return 1;
+    if (!$value)
+    {
+        return 0 unless $options{fatal};
+        error __x"Date cannot be blank for {col}.",
+            col => $self->name;
+    }
     GADS::View->parse_date_filter($value) and return 1;
     $self->validate(@_);
 }

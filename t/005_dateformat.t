@@ -183,6 +183,21 @@ foreach my $format (qw/yyyy-MM-dd dd-MM-yyyy/)
     $view->filter($rules);
     try { $view->write };
     ok( $@, "Attempt to create filter with invalid date failed" );
+
+    # Try creating a filter with empty string (invalid)
+    $rules = encode_json({
+        rules => [
+            {
+                id       => $columns->{date1}->id,
+                type     => 'date',
+                value    => '',
+                operator => 'equal',
+            }
+        ],
+    });
+    $view->filter($rules);
+    try { $view->write };
+    ok( $@, "Attempt to create filter with empty string failed" );
 }
 
 done_testing();

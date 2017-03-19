@@ -176,6 +176,16 @@ my @filters = (
         count => 4,
     },
     {
+        name  => 'date is blank string', # Treat as empty
+        rules => [{
+            id       => $columns->{date1}->id,
+            type     => 'date',
+            value    => '',
+            operator => 'equal',
+        }],
+        count => 4,
+    },
+    {
         name  => 'string begins with Foo',
         rules => [{
             id       => $columns->{string1}->id,
