@@ -1100,7 +1100,7 @@ any '/table/?:id?' => require_role layout => sub {
         {
             my $action = param('id') ? 'updated' : 'created';
             return forwardHome(
-                { success => "Table has been $action successfully" }, '/table' );
+                { success => "Table has been $action successfully" }, 'table' );
         }
     }
 
@@ -1109,7 +1109,7 @@ any '/table/?:id?' => require_role layout => sub {
         if (process(sub {$instance->delete}))
         {
             return forwardHome(
-                { success => "The table has been deleted successfully" }, '/table' );
+                { success => "The table has been deleted successfully" }, 'table' );
         }
     }
 
