@@ -1,3 +1,52 @@
+[% BLOCK modal_dialog %]
+
+    [%
+        # modal_id:                 the unique id for the dialog, also used as submit button name
+        # modal_heading:            the heading text
+        # modal_action_text:        the text on the footer button
+        # modal_with_cancel_button: whether to render a cancel button on the dialog
+        # modal_close_only:         only show a close button in the footer
+        # modal_with_form:          whether to wrap the content in a form
+        # modal_form_action:        custom form endpoint
+        # modal_form_method:        custom form method
+    %]
+
+    <div class="modal fade" id="[% modal_id %]" tabindex="-1" role="dialog" aria-labelledby="[% modal_id %]_heading" style="display:none">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            [% IF modal_with_form %]
+                <form class="form-horizontal" [% modal_form_action && 'action="$modal_form_action"' %] method="[% modal_form_method || 'get' %]">
+            [% END %]
+                <div class="modal-header">
+                    <h1 class="modal-title" id="[% modal_id %]_heading">[% modal_heading %]</h1>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span class="close-mark" aria-hidden="true">&times;</span>
+                        close
+                    </button>
+                </div>
+                <div class="modal-body">
+                   [% content %]
+                </div>
+                <div class="modal-footer">
+                [% IF modal_close_only %]
+                    <button type="button" class="btn btn-default" data-dismiss="modal">[% modal_action_text %]</button>
+                [% ELSE %]
+                    [% IF modal_with_cancel_button %]
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    [% END %]
+                        <button type="submit" value="submit" class="btn btn-primary" name="[% modal_id %]">[% modal_action_text %]</button>
+                [% END %]
+                </div>
+            [% IF modal_with_form %]
+                </form>
+            [% END %]
+            </div>
+        </div>
+    </div>
+[% END %]
+
+
+
 [% PROCESS help.tt %]
 
 [% IF edit.defined %]
@@ -9,9 +58,9 @@
 [% ELSE %]
     <h2>New user</h2>
 [% END %]
+<form method="post" style="display: inline"> <!-- Prevent reset password button line break -->
     <div class="row">
         <div class="col-md-6">
-            <form role="form" method="post" style="display: inline"> <!-- Prevent reset password button line break -->
             [% IF edituser.account_request %]
                 <input type="hidden" name="account_request" value="1">
             [% END %]
@@ -25,7 +74,7 @@
                 </div>
             [% END %]
             <div class="form-group">
-                <label for="firstname">Firstname:</label>
+                <label for="firstname">First name:</label>
                 <input type="text" class="form-control" id="firstname" name="firstname" value="[% edituser.firstname | html_entity %]">
             </div>
             <div class="form-group">
@@ -53,7 +102,7 @@
                     <label for="title">
                         Title:
                         [% IF page == "user" %]
-                            (<a data-toggle="modal" data-target="#modalnewtitle" href="">create</a>)
+                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#submitnewtitle">add title</button>
                         [% END %]
                     </label>
                     <select class="form-control" id="title" name="title">
@@ -71,7 +120,7 @@
                     <label for="organisation">
                         [% site.register_organisation_name %]:
                         [% IF page == "user" %]
-                            (<a data-toggle="modal" data-target="#modalneworganisation" href="">create</a>)
+                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#submitneworganisation">add organisation</button>
                         [% END %]
                     </label>
                     <select class="form-control" id="organisation" name="organisation">
@@ -144,8 +193,7 @@
                 [% END %]
             [% END %]
             [% IF page == "account/detail" %]
-                </form>
-                <button type="submit" data-toggle="modal" data-target="#pwdchange" class="btn btn-default">Change password</button>
+                <button type="button" data-toggle="modal" data-target="#newpassword" class="btn btn-default">Change password</button>
             [% END %]
         </div>
         [% IF page == "user" %]
@@ -194,71 +242,31 @@
                         in the tabular data view<ul></ul></dd>
                 </dl>
             </div>
-           <!-- Modal -->
-            <div class="modal fade" id="modalneworganisation" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                            <h4 class="modal-title" id="myModalLabel">Add organisation</h4>
-                        </div>
-                        <div class="modal-body">
-                            <p>Please enter the name of a new [% site.register_organisation_name %]:</p>
-                            <div class="form-group">
-                                <input type="text" class="form-control" id="neworganisation" name="neworganisation" placeholder="New organisation">
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="submit" value="submit" class="btn btn-primary" name="submitneworganisation">Create</button>
-                        </div>
-                    </div><!-- /.modal-content -->
-                </div><!-- /.modal-dialog -->
-            </div><!-- /.modal -->
-           <!-- Modal -->
-            <div class="modal fade" id="modalnewtitle" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                            <h4 class="modal-title" id="myModalLabel">Add title</h4>
-                        </div>
-                        <div class="modal-body">
-                            <p>Please enter the name of a new title:</p>
-                            <div class="form-group">
-                                <input type="text" class="form-control" id="newtitle" name="newtitle" placeholder="New title">
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="submit" value="submit" class="btn btn-primary" name="submitnewtitle">Create</button>
-                        </div>
-                    </div><!-- /.modal-content -->
-                </div><!-- /.modal-dialog -->
-            </div><!-- /.modal -->
-            </form>
+
+            [% WRAPPER modal_dialog modal_id="submitneworganisation" modal_action_text="Create new organisation" modal_heading="Add organisation" %]
+                <p>Please enter the name of a new [% site.register_organisation_name %]:</p>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="neworganisation" name="neworganisation" placeholder="New organisation">
+                </div>
+            [% END %]
+
+            [% WRAPPER modal_dialog modal_id="submitnewtitle" modal_action_text="Create new title" modal_heading="Add title" %] 
+                <p>Please enter the name of a new title:</p>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="newtitle" name="newtitle" placeholder="New title">
+                </div>
+            [% END %]
+
         [% ELSE %]
-           <!-- Modal -->
-            <div class="modal fade" id="pwdchange" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <form role="form" method="post" autocomplete="off">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                <h4 class="modal-title" id="myModalLabel">Change password</h4>
-                            </div>
-                            <div class="modal-body">
-                                <p>Please enter your existing password in order to generate a new password.
-                                    Passwords can only be auto-generated for security reasons.</p>
-                                <div class="form-group">
-                                    <input type="password" class="form-control" name="oldpassword" placeholder="Existing password" autocomplete="off">
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="submit" value="submit" class="btn btn-primary" name="newpassword">Generate new password</button>
-                            </div>
-                        </form>
-                    </div><!-- /.modal-content -->
-                </div><!-- /.modal-dialog -->
-            </div><!-- /.modal -->
+            [% WRAPPER modal_dialog modal_id="newpassword" modal_action_text="Generate new password" modal_heading="Change password" %]
+                <div class="form-group">
+                    <label for="oldpassword">
+                        Please enter your existing password in order to generate a new password.
+                        Passwords can only be auto-generated for security reasons.
+                    </label>
+                    <input id="oldpassword" type="password" class="form-control" name="oldpassword" placeholder="" autocomplete="off">
+                </div>
+            [% END %]
         [% END %]
     </div>
 </form>
@@ -334,66 +342,47 @@
 [% END %]
 [% END %]
 
-<!-- Modal -->
-<div class="modal fade" id="modal-email" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form class="form-horizontal" role="form" method="post">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="myModalLabel">Send an email</h4>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="email_organisation" class="col-sm-2 control-label">Users in:</label>
-                    <div class="col-sm-10">
-                        <select class="form-control" id="email_organisation" name="email_organisation">
-                            <option value="">&lt;All users&gt;</option>
-                            [% FOREACH org IN organisations %]
-                                <option value="[% org.id %]">[% org.name | html_entity %]</option>
-                            [% END %]
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="email_subject" class="col-sm-2 control-label">Subject</label>
-                    <div class="col-sm-10">
-                        <input type="text" class="form-control" name="email_subject" id="email_subject" placeholder="Subject">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="email_text" class="col-sm-2 control-label">Message</label>
-                    <div class="col-sm-10">
-                        <textarea class="form-control" id="email_text" name="email_text" rows="10"></textarea>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                <button type="submit" name="sendemail" value="sendemail" class="btn btn-primary">Send email</button>
-            </div>
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+[% WRAPPER modal_dialog
+    modal_id="sendemail"
+    modal_action_text="Send e-mail"
+    modal_heading="Send an e-mail"
+    modal_with_cancel_button=1
+    modal_with_form=1
+    modal_form_method="post"
+%]
+    <div class="form-group">
+        <label for="email_organisation" class="col-sm-2 control-label">Users in:</label>
+        <div class="col-sm-10">
+            <select class="form-control" id="email_organisation" name="email_organisation">
+                <option value="">&lt;All users&gt;</option>
+                [% FOREACH org IN organisations %]
+                    <option value="[% org.id %]">[% org.name | html_entity %]</option>
+                [% END %]
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="email_subject" class="col-sm-2 control-label">Subject</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" name="email_subject" id="email_subject" placeholder="Subject">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="email_text" class="col-sm-2 control-label">Message</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" id="email_text" name="email_text" rows="10"></textarea>
+        </div>
+    </div>
+[% END %]
 
-<!-- Modal -->
-<div class="modal fade" id="modalhelp_limitdata" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="myModalLabel">Limiting a user's access to records</h4>
-            </div>
-            <div class="modal-body">
-                <p>[% global.helptext.limit_user_data %]</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+[% WRAPPER modal_dialog
+    modal_id="modalhelp_limitdata"
+    modal_action_text="Close"
+    modal_heading="Limiting a user&apos;s access to records"
+    modal_close_only=1
+%]
+    <p>[% global.helptext.limit_user_data %]</p>
+[% END %]
 
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]
