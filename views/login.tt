@@ -28,8 +28,8 @@
                     <h1>Please Sign In</h1>
                     <hr>
                     <div class="form-group">
-                        <label for="email">Email address:</label>
-                        <input type="email" name="username" id="email" class="form-control input-lg" placeholder="name@example.com" value="[% username %]">
+                        <label for="username">Email address:</label>
+                        <input type="email" name="username" id="username" class="form-control input-lg" placeholder="name@example.com" value="[% username %]">
                     </div>
                     <div class="form-group">
                         <label for="password">Password:</label>
@@ -68,7 +68,7 @@
         [% END %]
 
         <!-- Modal -->
-        <div class="modal fade" id="modal-reset-password" tabindex="-1" role="dialog" aria-labelledby="reset-password-heading" aria-hidden="true">
+        <div class="modal fade" id="modal-reset-password" tabindex="-1" role="dialog" aria-labelledby="reset-password-heading" style="display:none">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form method="post" autocomplete="off" enctype="multipart/form-data">
@@ -93,7 +93,7 @@
         </div><!-- /.modal -->
 
         <!-- Modal -->
-        <div class="modal fade" id="modalregister" tabindex="-1" role="dialog" aria-labelledby="request-account-heading" aria-hidden="true">
+        <div class="modal fade" id="modalregister" tabindex="-1" role="dialog" aria-labelledby="request-account-heading" style="display:none">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form method="post" autocomplete="off">
@@ -134,7 +134,7 @@
                         <div class="form-group">
                             <label for="email">Email:
                                 [% IF site.register_email_help %]
-                                    <span style="font-weight:normal !important">[% site.register_email_help %]</span>
+                                    <span style="font-weight:normal">[% site.register_email_help %]</span>
                                 [% END %]
                             </label>
                             <input type="text" class="form-control" id="email" name="email">
