@@ -183,7 +183,8 @@ my @filters = (
             value    => '',
             operator => 'equal',
         }],
-        count => 4,
+        count     => 4,
+        no_errors => 1, # Would normally bork
     },
     {
         name  => 'string begins with Foo',
@@ -433,7 +434,8 @@ my @filters = (
                 operator => 'equal',
             },
         ],
-        count => 0,
+        count     => 0,
+        no_errors => 1,
     },
     {
         name  => 'Search for invalid daterange',
@@ -446,7 +448,8 @@ my @filters = (
                 operator => 'equal',
             },
         ],
-        count => 0,
+        count     => 0,
+        no_errors => 1,
     },
 );
 foreach my $filter (@filters)
@@ -468,7 +471,7 @@ foreach my $filter (@filters)
         schema      => $schema,
         user        => undef,
     );
-    $view->write(no_errors => 1);
+    $view->write(no_errors => $filter->{no_errors});
 
     my $records = GADS::Records->new(
         user    => undef,
