@@ -2215,7 +2215,22 @@ get '/file/:id' => require_login sub {
     # This will control access to the file
     if ($file_rs && $file_rs->layout_id)
     {
-        $file->column($layout->column($file_rs->layout_id));
+        if ($layout->instance_id == $file_rs->layout->instance_id)
+        {
+            $file->column($layout->column($file_rs->layout_id));
+        }
+        else {
+            # XXX At some point the generation of different layouts each
+            # request needs to go, replaced with a persistent object with all
+            # layouts
+            my $layout = GADS::Layout->new(
+                user        => logged_in_user,
+                schema      => schema,
+                config      => GADS::Config->instance,
+                instance_id => $file_rs->layout->instance_id,
+            );
+            $file->column($layout->column($file_rs->layout_id));
+        }
     }
     else {
         $file->schema(schema);
