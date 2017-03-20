@@ -3,21 +3,26 @@
         <div class="jumbotron">
             [% IF password %]
                 <h1>Welcome!</h1>
-                <p>
-                    Thank you for visiting [% config.gads.name %]. Please click the icon below to reveal your password.
-                    Please make a secure note of this password now, as it will not be displayed again.
-                </p>
-                <form>
-                    <div class="form-group">
-                        <input id="password" class="form-control form-control-static" type="password" value="[% password %]" data-toggle="password" readonly style="cursor: text" data-placement="before">
+                <div class="app_welcome">
+                    Thank you for visiting [% config.gads.name %]. You can now <input type="checkbox" id="reveal_password"><label for="reveal_password">reveal your password.</label>
+                    <div class="reveal_area">
+                        <p class="new_password">
+                            Your new password is: "[% password %]".
+                        </p>
+
+                        <p>
+                            Please make a secure note of this password now, as it will not be displayed again.
+                        </p>
+
+                        <p class="text-right">
+                            <a class="btn btn-primary btn-lg" href="[% url.page %]/login">Login</a>
+                        </p>
                     </div>
-                </form>
-                <p class="text-right"><a class="btn btn-primary btn-lg" href="[% url.page %]/login" role="button">Login</a></p>
-            [% ELSE %]
-                <h2>New password</h2>
-                <p></p>
+                </div>
+           [% ELSE %]
+                <h1>New password</h1>
                 <form method="post">
-                    <input type="submit" name="execute_reset" class="btn btn-lg btn-block" value="Please click here to continue the password retrieval process">
+                    <input type="submit" name="execute_reset" class="btn btn-lg btn-block" value="Continue to password retrieval">
                 </form>
             [% END %]
         </div>

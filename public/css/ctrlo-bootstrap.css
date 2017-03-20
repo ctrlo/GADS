@@ -1273,3 +1273,24 @@ form[role="search"] button {
 form#clear_search {
     display: inline;
 }
+
+/* new password */
+
+.app_welcome {
+    font-size: 1.6em;
+}
+
+.new_password {
+    margin: 1em;
+    padding: 1em;
+    background-color: #fff;
+    border: 1px solid #c3c3c3;
+}
+
+#reveal_password ~ .reveal_area {
+    display:none;
+}
+
+#reveal_password:checked ~ .reveal_area {
+    display: block;
+}
