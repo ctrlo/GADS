@@ -1319,6 +1319,10 @@ form#clear_search {
     display: inline;
 }
 
+small.search_term {
+    color: #333;
+}
+
 /* new password */
 
 .app_welcome {

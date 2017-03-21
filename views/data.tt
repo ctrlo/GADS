@@ -1,6 +1,6 @@
 [% IF search %]
     <h1>
-        Search results <small>for term "[% search | html_entity %]"</small>
+        Search results <small class="search_term">for term "[% search | html_entity %]"</small>
         <form id="clear_search" action="/data" method="post">
             <button type="submit" name="clear_search" value="clear_search" class="btn btn-default">
             Clear <span class="visually-hidden">search results</span>
