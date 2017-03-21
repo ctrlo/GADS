@@ -48,7 +48,7 @@ sub _add_jp
             || $toadd eq $j->{join}
         )
         {
-            $j->{prefetch} ||= !$column->multivalue && $options{prefetch};
+            $j->{prefetch} ||= (!$column->multivalue || $options{include_multivalue}) && $options{prefetch};
             $j->{search}   ||= $options{search};
             $j->{linked}   ||= $options{linked};
             $j->{sort}     ||= $options{sort};
@@ -60,7 +60,7 @@ sub _add_jp
     push @$jp_store, {
         join       => $toadd,
         # Never prefetch multivalue columns, which can result in huge numbers of rows being retrieved.
-        prefetch   => !$column->multivalue && $options{prefetch},   # Whether values should be retrieved
+        prefetch   => (!$column->multivalue || $options{include_multivalue}) && $options{prefetch},   # Whether values should be retrieved
         search     => $options{search},     # Whether it's used in a WHERE clause
         linked     => $options{linked},     # Whether it's a linked table
         sort       => $options{sort},       # Whether it's used in an order_by clause

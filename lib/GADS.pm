@@ -1100,7 +1100,7 @@ any '/table/?:id?' => require_role layout => sub {
         {
             my $action = param('id') ? 'updated' : 'created';
             return forwardHome(
-                { success => "Table has been $action successfully" }, '/table' );
+                { success => "Table has been $action successfully" }, 'table' );
         }
     }
 
@@ -1109,7 +1109,7 @@ any '/table/?:id?' => require_role layout => sub {
         if (process(sub {$instance->delete}))
         {
             return forwardHome(
-                { success => "The table has been deleted successfully" }, '/table' );
+                { success => "The table has been deleted successfully" }, 'table' );
         }
     }
 
@@ -2125,7 +2125,7 @@ any '/edit/:id?' => require_login sub {
         $previous->include_approval(1);
         $previous->init_no_value(0);
         $previous->find_record_id($lastrecord->record_id);
-        $record->{fields}->{$_->id} = $previous->{fields}->{$_->id}
+        $record->fields->{$_->id} = $previous->fields->{$_->id}
             foreach @{$previous->columns_retrieved_do};
         if ($record->approval_flag)
         {
@@ -2215,7 +2215,22 @@ get '/file/:id' => require_login sub {
     # This will control access to the file
     if ($file_rs && $file_rs->layout_id)
     {
-        $file->column($layout->column($file_rs->layout_id));
+        if ($layout->instance_id == $file_rs->layout->instance_id)
+        {
+            $file->column($layout->column($file_rs->layout_id));
+        }
+        else {
+            # XXX At some point the generation of different layouts each
+            # request needs to go, replaced with a persistent object with all
+            # layouts
+            my $layout = GADS::Layout->new(
+                user        => logged_in_user,
+                schema      => schema,
+                config      => GADS::Config->instance,
+                instance_id => $file_rs->layout->instance_id,
+            );
+            $file->column($layout->column($file_rs->layout_id));
+        }
     }
     else {
         $file->schema(schema);

@@ -176,6 +176,17 @@ my @filters = (
         count => 4,
     },
     {
+        name  => 'date is blank string', # Treat as empty
+        rules => [{
+            id       => $columns->{date1}->id,
+            type     => 'date',
+            value    => '',
+            operator => 'equal',
+        }],
+        count     => 4,
+        no_errors => 1, # Would normally bork
+    },
+    {
         name  => 'string begins with Foo',
         rules => [{
             id       => $columns->{string1}->id,
@@ -423,7 +434,8 @@ my @filters = (
                 operator => 'equal',
             },
         ],
-        count => 0,
+        count     => 0,
+        no_errors => 1,
     },
     {
         name  => 'Search for invalid daterange',
@@ -436,7 +448,8 @@ my @filters = (
                 operator => 'equal',
             },
         ],
-        count => 0,
+        count     => 0,
+        no_errors => 1,
     },
 );
 foreach my $filter (@filters)
@@ -458,7 +471,7 @@ foreach my $filter (@filters)
         schema      => $schema,
         user        => undef,
     );
-    $view->write(no_errors => 1);
+    $view->write(no_errors => $filter->{no_errors});
 
     my $records = GADS::Records->new(
         user    => undef,
@@ -773,6 +786,7 @@ foreach my $sort (@sorts)
         $view->set_sorts($sort->{sort_by}, $sort->{sort_type});
 
         $records = GADS::Records->new(
+            page    => 1,
             user    => undef,
             view    => $view,
             layout  => $layout,
@@ -786,15 +800,26 @@ foreach my $sort (@sorts)
         {
             my $first = $sort->{max_id} || 9;
             my $last  = $sort->{min_id} || 3;
+            # 1 record per page to test sorting across multiple pages
+            $records->clear;
+            $records->rows(1);
             is( $records->results->[0]->current_id, $first, "Correct first record for sort override and test $sort->{name}");
+            $records->clear;
+            $records->page($sort->{count} || 7);
             is( $records->results->[-1]->current_id, $last, "Correct last record for sort override and test $sort->{name}");
         }
         elsif ($pass == 2)
         {
+            # First check number of results for page of all records
             is( @{$records->results}, $sort->{count}, "Correct number of records in results for sort $sort->{name}" )
                 if $sort->{count};
 
+            # Then switch to 1 record per page to test sorting across multiple pages
+            $records->clear;
+            $records->rows(1);
             like( $records->results->[0]->current_id, $sort->{first}, "Correct first record for sort $sort->{name}");
+            $records->clear;
+            $records->page($sort->{count} || 7);
             like( $records->results->[-1]->current_id, $sort->{last}, "Correct last record for sort $sort->{name}");
         }
         else {

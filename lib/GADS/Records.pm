@@ -540,7 +540,7 @@ sub _build_results
             [$self->linked_hash(search => 1, sort => 1)],
         ],
         '+select' => $self->_plus_select, # Used for additional sort columns
-        order_by  => $self->order_by,
+        order_by  => $self->order_by(search => 1),
         distinct  => 1, # Otherwise multiple records returned for multivalue fields
     };
     my $page = $self->page;
@@ -1016,7 +1016,9 @@ sub _search_construct
     # If testing a comparison but we have no value, then assume search empty/not empty
     # (used during filters on curval against current record values)
     $filter->{operator} = $filter->{operator} eq 'not_equal' ? 'is_not_empty' : 'is_empty'
-        if $filter->{operator} !~ /(is_empty|is_not_empty)/ && !defined $filter->{value};
+        if $filter->{operator} !~ /(is_empty|is_not_empty)/ && !$filter->{value};
+#    $filter->{operator} = $filter->{operator} eq 'not_equal' ? 'is_not_empty' : 'is_empty'
+#        if $filter->{operator} !~ /(is_empty|is_not_empty)/ && !$filter->{value};
     my $operator = $ops{$filter->{operator}}
         or error __x"Invalid operator {filter}", filter => $filter->{operator};
 

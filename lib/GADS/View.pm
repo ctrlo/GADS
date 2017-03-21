@@ -269,7 +269,8 @@ sub write
             }
         }
         else {
-            $col->validate_search($val, fatal => $fatal); # Will bork on failure
+            $col->validate_search($val, fatal => $fatal) # Will bork on failure
+                unless $op eq 'is_empty' || $op eq 'is_not_empty'; # Would normally fail on blank value
         }
 
         error __x "No value can be entered for empty and not empty operators"
