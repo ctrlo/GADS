@@ -33,7 +33,7 @@
             <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap.css">
         [% END %]
 
-        [% IF page == "layout" OR page == "edit" OR page == "approval" OR page =="audit" OR page == "bulk" OR page == "data"%]
+        [% IF page == "layout" OR page == "edit" OR page == "approval" OR page == "audit" OR page == "bulk" OR page == "data"%]
             <link rel="stylesheet" href="[% url.css %]/jstree.min.css" />
             <link rel="stylesheet" href="[% url.css %]/bootstrap-datepicker.min.css" />
             <link rel="stylesheet" href="[% url.css %]/bootstrap-select.min.css" />
@@ -135,21 +135,6 @@
                                     </li>
                                 [% END %]
                             </ul>
-                            [% IF page == "data" OR page == "index" OR page == "record" %]
-                                [% UNLESS session.rewind %]
-                                    <form class="navbar-form navbar-left" role="search" action="/data" method="get">
-                                        <ul class="form-group">
-                                            <li>
-                                                <label for="search_text">Search (use * as wildcard):</label>
-                                            </li>
-                                            <li>
-                                                <input id="search_text" type="text" name="search_text" class="form-control" value="[% search | html_entity %]">
-                                            </li>
-                                        </ul>
-                                        <button type="submit" name="search" value="search" class="btn btn-default">Search</button>
-                                    </form>
-                                [% END %]
-                            [% END %]
                             <ul class="nav navbar-nav navbar-right">
                                 [% IF instances.size > 1 %]
                                     <li class="dropdown">
