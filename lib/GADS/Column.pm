@@ -401,6 +401,7 @@ has depends_on => (
     is      => 'rw',
     isa     => ArrayRef,
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
         return [] if $self->userinput;
@@ -408,19 +409,6 @@ has depends_on => (
             layout_id => $self->id,
         })->all;
         [ map {$_->get_column('depends_on')} @depends ];
-    },
-    trigger => sub {
-        my ($self, $new) = @_;
-        $self->schema->resultset('LayoutDepend')->search({
-            layout_id => $self->id
-        })->delete;
-        foreach (@$new)
-        {
-            $self->schema->resultset('LayoutDepend')->create({
-                layout_id  => $self->id,
-                depends_on => $_,
-            });
-        }
     },
 );
 
@@ -467,7 +455,9 @@ has flags => (
 );
 
 has _rset => (
-    is => 'lazy',
+    is      => 'rwp',
+    lazy    => 1,
+    builder => 1,
 );
 
 sub _build__rset
@@ -665,8 +655,13 @@ sub delete
     $guard->commit;
 }
 
+sub write_special {} # Overridden in children
+sub after_write_special {} # Overridden in children
+
 sub write
-{   my $self = shift;
+{   my ($self, %options) = @_;
+
+    my $guard = $self->schema->txn_scope_guard;
 
     my $newitem;
     $newitem->{name} = $self->name
@@ -728,25 +723,35 @@ sub write
     $newitem->{position}      = $self->position
         if $self->position; # Used on layout import
 
-    my $is_new = !$self->id; # Need to keep this even after writing id
+    my ($new_id, $rset);
 
-    if ($is_new)
+    if (!$self->id)
     {
         $newitem->{id} = $self->set_id if $self->set_id;
         # Add at end of other items
         $newitem->{position} = ($self->schema->resultset('Layout')->get_column('position')->max || 0) + 1;
-        my $id = $self->schema->resultset('Layout')->create($newitem)->id;
-        $self->id($id);
+        $rset = $self->schema->resultset('Layout')->create($newitem);
+        $new_id = $rset->id;
+        $self->_set__rset($rset);
     }
     else {
-        $self->schema->resultset('Layout')->find($self->id)->update($newitem);
+        $rset = $self->schema->resultset('Layout')->find($self->id);
+        $rset->update($newitem);
     }
 
-    if ($is_new)
+    $self->write_special(rset => $rset, id => $new_id || $self->id, %options); # Write any column-specific params
+
+    $guard->commit;
+
+    if ($new_id)
     {
-        push @{$self->layout->columns}, $self;
+        $self->id($new_id);
         GADS::DB->add_column($self->schema, $self);
+        # Ensure new column is properly added to layout
+        $self->layout->clear;
     }
+    $self->after_write_special(%options);
+
     $self->layout->clear_indexes;
 }
 

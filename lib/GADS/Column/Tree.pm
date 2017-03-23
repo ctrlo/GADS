@@ -123,10 +123,12 @@ after build_values => sub {
     $self->end_node_only($original->{end_node_only});
 };
 
-after 'write' => sub {
-    my $self = shift;
-    my $newitem = { end_node_only => $self->end_node_only };
-    $self->schema->resultset('Layout')->find($self->id)->update($newitem);
+sub write_special
+{   my ($self, %options) = @_;
+    my $rset = $options{rset};
+    $rset->update({
+        end_node_only => $self->end_node_only,
+    });
 };
 
 sub cleanup

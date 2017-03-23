@@ -346,12 +346,9 @@ $curval_sheet = t::lib::DataSheet->new(schema => $schema, instance_id => 2);
 $sheet   = t::lib::DataSheet->new(data => $data, schema => $schema, curval => 2);
 $layout  = $sheet->layout;
 $columns = $sheet->columns;
-$layout->clear;
-foreach ($layout->all)
-{
-    $_->type('string');
-    $_->write;
-}
+# We don't normally allow change of type, as the wrong actions will take
+# place. Force it directly via the database.
+$schema->resultset('Layout')->update({ type => 'string' });
 $layout->clear;
 foreach my $col (reverse $layout->all(order_dependencies => 1))
 {

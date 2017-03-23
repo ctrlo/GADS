@@ -187,33 +187,51 @@ sub eval
     }
 }
 
-+around 'write' => sub
-{   my $orig = shift;
+# Internal flag to store whether we should send alerts after update
+has _no_alerts => (
+    is      => 'rw',
+    isa     => Bool,
+    clearer => 1,
+);
 
-    my $guard = $_[0]->schema->txn_scope_guard;
+sub write_special
+{   my ($self, %options) = @_;
 
-    my ($self, %options) = @_;
+    my $id   = $options{id};
+    my $rset = $options{rset};
 
-    my $new = !$self->id || !$self->_rset_code->code;
+    my $new = !$id || !$self->_rset_code->code;
 
-    $orig->(@_); # Standard column write first
-
-    my $no_alerts = $options{no_alerts};
-
-    if ($self->write_code) # Returns true if anything relevant changed
+    if ($self->write_code($id)) # Returns true if anything relevant changed
     {
-        $no_alerts = 1 if $new; # Don't send alerts for new values
+        $self->_no_alerts(1) if $new;
 
         # Stop duplicates
         my %depends_on = map { $_->id => 1 } grep { !$_->internal } $self->param_columns(is_fatal => 1);
         my @depends_on = keys %depends_on;
 
-        $self->depends_on(\@depends_on);
-        $self->update_cached(no_alerts => $no_alerts)
-            unless $options{no_cache_update};
-    }
+        $self->schema->resultset('LayoutDepend')->search({
+            layout_id => $id
+        })->delete;
+        foreach (@depends_on)
+        {
+            $self->schema->resultset('LayoutDepend')->create({
+                layout_id  => $id,
+                depends_on => $_,
+            });
+        }
+        $self->clear_depends_on;
 
-    $guard->commit;
+    }
 };
+
+# We don't really want to do this within a transaction as it can take a
+# significantly long time, so do once the transaction has completed
+sub after_write_special
+{   my ($self, %options) = @_;
+    $self->update_cached(no_alerts => $self->_no_alerts)
+        unless $options{no_cache_update};
+    $self->_clear_no_alerts;
+}
 
 1;

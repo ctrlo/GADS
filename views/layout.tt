@@ -674,7 +674,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     <div class="request-row">
                     <div class="col-md-11">
                     <p>
-                    <input type="text" class="form-control" name="enumvalue">
+                    <input type="text" class="form-control" name="enumval">
                     </p>
                     </div>
                     <button type="button" class="close closeme pull-left">&times;</button>

@@ -321,22 +321,14 @@ sub _get_rows
     $return;
 }
 
-# Use an around so that we can stick the whole lot in transaction
-around 'write' => sub {
-    my $orig  = shift;
+sub write_special
+{   my ($self, %options) = @_;
 
-    # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
-    # an object) and may evaluate to an empty string. If so, txn_scope_guard
-    # warns as such, so undefine to prevent the warning
-    undef $@;
-    my $guard = $_[0]->schema->txn_scope_guard;
+    my $id   = $options{id};
+    my $rset = $options{rset};
 
-    $orig->(@_); # Normal column write
-
-    my $self = shift;
     my $layout_parent = $self->layout_parent
         or error __"Please select a table to link to";
-
 
     !@{$self->curval_field_ids} && !$ENV{GADS_ALLOW_BLANK_CURVAL}
         and error __"Please select some fields to use from the other table";
@@ -364,7 +356,7 @@ around 'write' => sub {
         # Check whether field is a curval - can't refer recursively
         next if $field_full->type eq 'curval';
         my $field_hash = {
-            parent_id => $self->id,
+            parent_id => $id,
             child_id  => $field,
         };
         $self->schema->resultset('CurvalField')->create($field_hash)
@@ -373,21 +365,19 @@ around 'write' => sub {
     }
 
     # Then delete any that no longer exist
-    my $search = { parent_id => $self->id };
+    my $search = { parent_id => $id };
     $search->{child_id} = { '!=' =>  [ -and => @curval_field_ids ] }
         if @curval_field_ids;
     $self->schema->resultset('CurvalField')->search($search)->delete;
 
     # Update typeahead option
-    $self->schema->resultset('Layout')->find($self->id)->update({
+    $rset->update({
         typeahead   => $self->typeahead,
     });
 
     # Clear what may be cached values that should be updated after write
     $self->clear_values;
     $self->clear_view;
-
-    $guard->commit;
 };
 
 sub _build_layout_parent

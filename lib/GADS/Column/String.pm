@@ -52,10 +52,12 @@ after 'build_values' => sub {
     }
 };
 
-after 'write' => sub {
-    my $self = shift;
+sub write_special
+{   my ($self, %options) = @_;
 
-    $self->schema->resultset('Layout')->find($self->id)->update({
+    my $rset = $options{rset};
+
+    $rset->update({
         textbox     => $self->textbox,
         force_regex => $self->force_regex,
     });

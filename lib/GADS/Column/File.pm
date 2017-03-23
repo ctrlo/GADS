@@ -41,8 +41,10 @@ after build_values => sub {
     }
 };
 
-after 'write' => sub {
-    my $self = shift;
+sub write_special
+{   my ($self, %options) = @_;
+
+    my $id   = $options{id};
 
     my $foption = {
         filesize => $self->filesize,
@@ -55,7 +57,7 @@ after 'write' => sub {
         $file_option->update($foption);
     }
     else {
-        $foption->{layout_id} = $self->id;
+        $foption->{layout_id} = $id;
         $self->schema->resultset('FileOption')->create($foption);
     }
 };
