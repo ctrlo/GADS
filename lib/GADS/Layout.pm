@@ -60,6 +60,18 @@ has instance_id => (
     required => 1,
 );
 
+has instance => (
+    is => 'lazy',
+);
+
+sub _build_instance
+{   my $self = shift;
+    GADS::Instance->new(
+        is     => $self->instance_id,
+        schema => $self->schema,
+    );
+}
+
 has name => (
     is      => 'lazy',
     isa     => Str,

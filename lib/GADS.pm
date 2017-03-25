@@ -131,9 +131,6 @@ hook before => sub {
         schema->site_id($site->id);
         var 'site' => $site;
     }
-    GADS::Site->instance(
-        site => var('site'),
-    );
 
     # Add any new relationships for new fields. These are normally
     # added when the field is created, but with multiple processes

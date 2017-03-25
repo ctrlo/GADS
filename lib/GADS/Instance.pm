@@ -39,6 +39,13 @@ has _rset => (
     builder => 1,
 );
 
+has site => (
+    is      => 'ro',
+    isa     => Int,
+    lazy    => 1,
+    builder => sub { $_[0]->_rset && $_[0]->_rset->site; },
+);
+
 has name => (
     is      => 'rw',
     isa     => Maybe[Str],
