@@ -175,6 +175,14 @@ has can_multivalue => (
     default => 0,
 );
 
+# Whether the joins for this column type can be different depending on the
+# columns configuration.
+has variable_join => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
 has has_multivalue_plus => (
     is      => 'ro',
     isa     => Bool,

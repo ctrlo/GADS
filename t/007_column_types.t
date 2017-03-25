@@ -164,13 +164,60 @@ my $curval_filter = GADS::Column::Curval->new(
         },
     ),
     refers_to_instance => $curval_sheet->layout->instance_id,
-    curval_field_ids   => [],
+    curval_field_ids   => [ $curval_sheet->columns->{integer1}->id ], # Purposefully different to previous tests
 );
 $curval_filter->write;
 # Clear the layout to force the column to be build, and also to build
 # dependencies properly in the next test
 $layout->clear;
 is( scalar @{$curval_filter->values}, 1, "Correct number of values for curval field with filter" );
+
+# Create a record with a curval value, change the filter, and check that the
+# value is still set for the legacy record even though it no longer includes that value.
+# This test also checks that different multivalue curvals (with different
+# selected fields) behave as expected (multivalue curvals are fetched
+# separately).
+my $curval_id = $curval_filter->values->[0]->{id};
+my $curval_value = $curval_filter->values->[0]->{value};
+my $record = GADS::Records->new(
+    user    => $sheet->user,
+    layout  => $layout,
+    schema  => $schema,
+)->single;
+$record->fields->{$curval_filter->id}->set_value($curval_id);
+$record->write(no_alerts => 1);
+$curval_filter->filter(
+    GADS::Filter->new(
+        as_hash => {
+            rules => [{
+                id       => $curval_sheet->columns->{string1}->id,
+                type     => 'string',
+                value    => 'Bar',
+                operator => 'equal',
+            }],
+        },
+    ),
+);
+$curval_filter->write;
+$layout->clear;
+isnt( $curval_filter->values->[0]->{id}, $curval_id, "Available curval values has changed after filter change" );
+my $cur_id = $record->current_id;
+$record->clear;
+$record->find_current_id($cur_id);
+is( $record->fields->{$curval_filter->id}->id, $curval_id, "Curval value ID still correct after filter change");
+is( $record->fields->{$curval_filter->id}->as_string, $curval_value, "Curval value still correct after filter change");
+# Same again for multivalue (values are retrieved later using a Records search)
+$curval_filter->multivalue(1);
+$curval_filter->write;
+$layout->clear;
+$record = GADS::Records->new(
+    user    => $sheet->user,
+    layout  => $layout,
+    schema  => $schema,
+)->single;
+is( $record->fields->{$curval_filter->id}->ids->[0], $curval_id, "Curval value ID still correct after filter change (multiple)");
+is( $record->fields->{$curval_filter->id}->as_string, $curval_value, "Curval value still correct after filter change (multiple)");
+is( $record->fields->{$curval_filter->id}->for_code->[0]->{field_values}->{enum1}, 'foo1', "Curval value for code still correct after filter change (multiple)");
 
 # Check that we can filter on a value in the record
 foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid/)

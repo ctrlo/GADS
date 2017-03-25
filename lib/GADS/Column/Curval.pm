@@ -69,6 +69,10 @@ has '+can_multivalue' => (
     default => 1,
 );
 
+has '+variable_join' => (
+    default => 1,
+);
+
 # Tell the column that it needs to include all fields when selecting from
 # the sheet referred to. This can be called at any time, so we need to clear
 # existing properties such as joins which will then be reuilt
