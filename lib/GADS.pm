@@ -1056,7 +1056,7 @@ any '/group/?:id?' => require_role useradmin => sub {
         {
             my $action = param('id') ? 'updated' : 'created';
             return forwardHome(
-                { success => "Group has been $action successfully" }, '/group' );
+                { success => "Group has been $action successfully" }, 'group' );
         }
     }
 
@@ -1065,7 +1065,7 @@ any '/group/?:id?' => require_role useradmin => sub {
         if (process(sub {$group->delete}))
         {
             return forwardHome(
-                { success => "The group has been deleted successfully" }, '/group' );
+                { success => "The group has been deleted successfully" }, 'group' );
         }
     }
 
