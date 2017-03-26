@@ -208,12 +208,16 @@ sub _records_from_db
     my $layout = $self->layout_parent
         or return; # No layout or fields set
 
-    my $view = $self->view
-        or return; # record not ready yet for sub_values
+    my $view;
+    if (!$ids)
+    {
+        $view = $self->view
+            or return; # record not ready yet for sub_values
+    }
 
     my $records = GADS::Records->new(
         user        => undef,
-        view        => $self->view,
+        view        => $view,
         layout      => $layout,
         schema      => $self->schema,
         columns     => $self->curval_field_ids_retrieve,
