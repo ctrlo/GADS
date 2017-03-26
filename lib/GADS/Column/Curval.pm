@@ -222,8 +222,10 @@ sub _records_from_db
         schema      => $self->schema,
         columns     => $self->curval_field_ids_retrieve,
         current_ids => $ids,
-        # Sort on all columns displayed as the Curval
-        sort        => [ map { { id => $_ } } @{$self->curval_field_ids_retrieve} ],
+        # Sort on all columns displayed as the Curval. Don't do all columns
+        # retrieved, as this could include a whole load of multivalues which
+        # are then fetched from the DB
+        sort        => [ map { { id => $_ } } @{$self->curval_field_ids} ],
     );
 
     return $records;
