@@ -476,6 +476,38 @@ sub format_value
 {   shift; join ', ', map { $_ || '' } @_;
 }
 
+sub fetch_multivalues
+{   my ($self, $record_ids) = @_;
+
+    my ($left, $prefetch) = %{$self->join}; # Prefetch table is 2nd part of join
+    my $m_rs = $self->schema->resultset($self->table)->search({
+        'me.record_id'      => $record_ids,
+        'me.layout_id'      => $self->id,
+    });
+    $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    my @values = $m_rs->all;
+    my $records = GADS::Records->new(
+        user        => $self->user,
+        layout      => $self->layout_parent,
+        schema      => $self->schema,
+        columns     => $self->curval_field_ids_retrieve,
+        current_ids => [map { $_->{value} } @values],
+    );
+    my %retrieved;
+    while (my $record = $records->single)
+    {
+        $retrieved{$record->current_id} = $record;
+    }
+
+    map {
+        +{
+            layout_id => $self->id,
+            record_id => $_->{record_id},
+            value     => $_->{value} && $retrieved{$_->{value}},
+        }
+    } @values;
+}
+
 sub cleanup
 {   my ($class, $schema, $id) = @_;
     $schema->resultset('Curval')->search({ layout_id => $id })->delete;

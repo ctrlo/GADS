@@ -570,6 +570,27 @@ sub _build_join
 # is deleted
 sub cleanup {}
 
+# Generic subroutine to fetch all multivalues for a table. Designed to satisfy
+# most standard tables. Overridden for anything complicated.
+sub fetch_multivalues
+{   my ($self, $record_ids) = @_;
+
+    my $select = {
+        join => 'layout',
+    };
+    if (ref $self->join)
+    {
+        my ($left, $prefetch) = %{$self->join}; # Prefetch table is 2nd part of join
+        $select->{prefetch} = $prefetch;
+    }
+    my $m_rs = $self->schema->resultset($self->table)->search({
+        'me.record_id'      => $record_ids,
+        'layout.multivalue' => 1,
+    }, $select);
+    $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    $m_rs->all;
+}
+
 sub delete
 {   my $self = shift;
 

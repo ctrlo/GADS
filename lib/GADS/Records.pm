@@ -644,7 +644,7 @@ sub fetch_multivalues
 {   my ($self, $record_ids) = @_;
 
     my $return; # Return undef if no multivalues
-    my $tables_done = {};
+    my $cols_done = {};
     foreach my $column (@{$self->columns_retrieved_no})
     {
         my @cols = ($column);
@@ -652,49 +652,13 @@ sub fetch_multivalues
         foreach my $col (@cols)
         {
             next unless $col->multivalue;
-            if ($col->variable_join)
+            next if $cols_done->{$col->id};
+            foreach my $val ($col->fetch_multivalues($record_ids))
             {
-                my ($left, $prefetch) = %{$col->join}; # Prefetch table is 2nd part of join
-                my $select = {
-                    join     => 'layout',
-                    prefetch => $prefetch,
-                };
-                my $m_rs = $self->schema->resultset($col->table)->search({
-                    'me.record_id'      => $record_ids,
-                    'me.layout_id'      => $col->id,
-                }, $select);
-                $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
-                foreach my $val ($m_rs->all)
-                {
-                    my $field = "field".$col->id;
-                    $return->{$val->{record_id}}->{$field} ||= [];
-                    push @{$return->{$val->{record_id}}->{$field}}, $val;
-                }
-            }
-            else {
-                if (!$tables_done->{$col->table})
-                {
-                    my $select = {
-                        join => 'layout',
-                    };
-                    if (ref $col->join)
-                    {
-                        my ($left, $prefetch) = %{$col->join}; # Prefetch table is 2nd part of join
-                        $select->{prefetch} = $prefetch;
-                    }
-                    my $m_rs = $self->schema->resultset($col->table)->search({
-                        'me.record_id'      => $record_ids,
-                        'layout.multivalue' => 1,
-                    }, $select);
-                    $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
-                    foreach my $val ($m_rs->all)
-                    {
-                        my $field = "field$val->{layout_id}";
-                        $return->{$val->{record_id}}->{$field} ||= [];
-                        push @{$return->{$val->{record_id}}->{$field}}, $val;
-                    }
-                    $tables_done->{$col->table} = 1;
-                }
+                my $field = "field$val->{layout_id}";
+                $return->{$val->{record_id}}->{$field} ||= [];
+                push @{$return->{$val->{record_id}}->{$field}}, $val;
+                $cols_done->{$val->{layout_id}} = 1;
             }
         }
     }
