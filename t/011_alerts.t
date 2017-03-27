@@ -900,4 +900,21 @@ $alert_send->process;
 # current_ids, minus first one not in view)
 is( $alerts_rs->count, $alert_count + 999, "Correct number of bulk alerts inserted" );
 
+# Create a record on another sheet which does not have alerts. Tests for a
+# previous bug where views with alerts were being searched across all tables
+# rather than just the current one.
+$schema->resultset('AlertCache')->delete;
+my $sheet2 = t::lib::DataSheet->new(schema => $schema, instance_id => 2);
+$sheet2->create_records;
+my $record = GADS::Record->new(
+    user     => undef,
+    layout   => $sheet2->layout,
+    schema   => $schema,
+);
+$record->initialise;
+$record->fields->{$sheet2->columns->{string1}->id}->set_value('FooBar');
+$record->write;
+$schema->resultset('AlertCache')->delete;
+is( $schema->resultset('AlertCache')->count, 0, "No alerts created for sheet with no alerts" );
+
 done_testing();

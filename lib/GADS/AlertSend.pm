@@ -80,6 +80,7 @@ sub process
     # all the views.
     my $search = {
         'alerts.id' => { '!=' => undef },
+        instance_id => $self->layout->instance_id,
     };
     $search->{'filters.layout_id'} = $self->columns
         unless $self->current_new;
