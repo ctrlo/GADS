@@ -67,7 +67,7 @@ has instance => (
 sub _build_instance
 {   my $self = shift;
     GADS::Instance->new(
-        is     => $self->instance_id,
+        id     => $self->instance_id,
         schema => $self->schema,
     );
 }

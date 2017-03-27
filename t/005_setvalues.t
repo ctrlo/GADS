@@ -63,7 +63,8 @@ my $values = {
 
         },
         new_as_string => 'User2, User2',
-    },
+        new_html      => qq(<a style="cursor: pointer" class="personpop" data-toggle="popover"\n        title="User2, User2"\n        data-content="Email: &lt;a href=&#39;mailto:user2\@example.com&#39;&gt;user2\@example.com&lt;/a&gt;">User2, User2</a>),
+        },
     file1 => {
         old_as_string => 'file1.txt',
         new => {
@@ -72,6 +73,7 @@ my $values = {
             content  => 'Text file2',
         },
         new_as_string => 'file2.txt',
+        new_html      => qr(<a href="/file/[0-9]+">file2\.txt</a>),
     },
 };
 
@@ -238,6 +240,14 @@ foreach my $multivalue (0..1)
                 }
                 my $new_as_string = $values->{$type}->{new_as_string};
                 is( $datum->as_string, $new_as_string, "$type is $new_as_string$is_multi for test $test" );
+                my $new_html = $values->{$type}->{new_html} || $new_as_string;
+                if (ref $new_html eq 'Regexp')
+                {
+                    like( $datum->html, $new_html, "$type is $new_html$is_multi for test $test" );
+                }
+                else {
+                    is( $datum->html, $new_html, "$type is $new_html$is_multi for test $test" );
+                }
                 # Check that setting a blank value works
                 if ($test eq 'blank')
                 {

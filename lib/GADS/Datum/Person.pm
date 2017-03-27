@@ -269,8 +269,7 @@ sub html
     my $text = encode_entities $self->text;
     return qq(<a style="cursor: pointer" class="personpop" data-toggle="popover"
         title="$text"
-        data-content="$details">$text</a>
-    );
+        data-content="$details">$text</a>);
 }
 
 sub as_string
