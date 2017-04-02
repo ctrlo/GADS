@@ -404,9 +404,9 @@ any '/data' => require_login sub {
     my $layout = var 'layout';
 
     # Check for rewind configuration
-    if (my $rewind = param 'rewind')
+    if (param('modal_rewind') || param('modal_rewind_reset'))
     {
-        if ($rewind eq 'reset' || !param('rewind_date'))
+        if (param('modal_rewind_reset') || !param('rewind_date'))
         {
             session rewind => undef;
         }
@@ -440,14 +440,14 @@ any '/data' => require_login sub {
     }
 
     # Deal with any alert requests
-    if (my $alert_view = param 'alert')
+    if (param 'modal_alert')
     {
         my $alert = GADS::Alert->new(
             user      => $user,
             layout    => $layout,
             schema    => schema,
             frequency => param('frequency'),
-            view_id   => $alert_view,
+            view_id   => param('view_id'),
         );
         if (process(sub { $alert->write }))
         {
@@ -597,7 +597,7 @@ any '/data' => require_login sub {
             rewind               => session('rewind'),
             interpolate_children => 0,
         );
-        if (param 'tl_update')
+        if (param 'modal_timeline')
         {
             session 'tl_options' => {
                 label => param('tl_label'),
@@ -673,7 +673,7 @@ any '/data' => require_login sub {
             $records->sort(session 'sort');
         }
 
-        if (param 'sendemail')
+        if (param 'modal_sendemail')
         {
             forwardHome({ danger => "There are no records in this view and therefore nobody to email"}, 'data')
                 unless $records->results;

@@ -140,108 +140,69 @@
     [% INCLUDE 'data_table.tt' %]
 [% END %]
 
-<!-- Modal -->
 [% IF v %]
-    <div class="modal fade" id="modal_alert" tabindex="-1" role="dialog" aria-labelledby="configure_alert" style="display:none">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form method="post">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title" id="configure_alert">Configure alert for [% v.name | html_entity %]</h4>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="frequency">Alert me:</label>
-                        <select class="form-control" id="frequency" name="frequency">
-                            <option value="" [% IF NOT v.alert %]selected[% END %]>Never</option>
-                            <option value="0" [% IF v.alert.frequency == 0 %]selected[% END %]>Instantly</option>
-                            <option value="24" [% IF v.alert.frequency == 24 %]selected[% END %]>Every 24 hours</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                    <button type="submit" name="alert" value="[% v.id %]" class="btn btn-primary">Submit</button>
-                </div>
-                </form>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
+    [% WRAPPER modal_dialog.tt
+        modal_id="modal_alert" modal_action_text="Create alert" modal_heading="Configure alert for " _  v.name
+        modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post"
+    %]
+        <input type="hidden" value="[% v.id %]" name="view_id">
+        <div class="form-group">
+            <label for="frequency">Alert me:</label>
+            <select class="form-control" id="frequency" name="frequency">
+                <option value="" [% IF NOT v.alert %]selected[% END %]>Never</option>
+                <option value="0" [% IF v.alert.frequency == 0 %]selected[% END %]>Instantly</option>
+                <option value="24" [% IF v.alert.frequency == 24 %]selected[% END %]>Every 24 hours</option>
+            </select>
+        </div>
+    [% END %]
 [% END %]
 
-<div class="modal fade" id="modal_rewind" tabindex="-1" role="dialog" aria-labelledby="historic_view" style="display:none">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="post">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title" id="historic_view">View data as it was at a previous time</h4>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="rewind_date">Date (YYYY-MM-DD):</label>
-                        <input id="rewind_date" class="form-control datepicker" type="text" value="[% session.rewind.format_cldr(config.dateformat) %]" name="rewind_date">
-                    </div>
-                    <div class="form-group">
-                        <label for="rewind_time">Time (HH:MM:SS):</label>
-                        <input id="rewind_time" class="form-control" type="text" value="[% session.rewind.hms %]" name="rewind_time" placeholder="23:59:59">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                    <button type="submit" name="rewind" value="reset" class="btn btn-default">Reset to current</button>
-                    <button type="submit" name="rewind" value="set" class="btn btn-primary">Submit</button>
-                </div>
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-<!-- Modal -->
+[% WRAPPER modal_dialog.tt
+    modal_id="modal_rewind" modal_action_text="Create alert" modal_heading="View data as it was at a previous time"
+    modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post" modal_extra_action = "modal_rewind_reset"
+    modal_extra_action_text = "Reset to current"
+%]
+    <div class="form-group">
+        <label for="rewind_date">Date ([% config.dateformat %]):</label>
+        <input id="rewind_date" class="form-control datepicker" type="text" value="[% session.rewind.format_cldr(config.dateformat) %]" name="rewind_date">
+    </div>
+    <div class="form-group">
+        <label for="rewind_time">Time (HH:MM:SS):</label>
+        <input id="rewind_time" class="form-control" type="text" value="[% session.rewind.hms %]" name="rewind_time" placeholder="23:59:59">
+    </div>
+[% END %]
+
 [% IF viewtype == "timeline" %]
-    <div class="modal fade" id="modal_timeline" tabindex="-1" role="dialog" aria-labelledby="timeline_view_options" style="display:none">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form method="post">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title" id="timeline_view_options">Timeline view options</h4>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="tl_label">Show label as field:</label>
-                        <select class="form-control" name="tl_label">
-                            <option value="" [% IF NOT tl_options.label %]selected[% END %]>&lt;All fields&gt;</option>
-                            [% FOREACH column IN columns_read %]
-                                <option value="[% column.id %]" [% IF tl_options.label == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
-                            [% END %]
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="tl_group">Group by field:</label>
-                        <select class="form-control" name="tl_group">
-                            <option value="" [% IF NOT tl_options.group %]selected[% END %]>&lt;All fields&gt;</option>
-                            [% FOREACH column IN columns_read %]
-                                <option value="[% column.id %]" [% IF tl_options.group == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
-                            [% END %]
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="tl_color">Colour by field:</label>
-                        <select class="form-control" name="tl_color">
-                            <option value="" [% IF NOT tl_options.color %]selected[% END %]>&lt;All fields&gt;</option>
-                            [% FOREACH column IN columns_read %]
-                                <option value="[% column.id %]" [% IF tl_options.color == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
-                            [% END %]
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                    <button type="submit" name="tl_update" value="update" class="btn btn-primary">Update</button>
-                </div>
-                </form>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
+    [% WRAPPER modal_dialog.tt
+        modal_id="modal_timeline" modal_action_text="Update options" modal_heading="Timeline view options"
+        modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post"
+    %]
+        <div class="form-group">
+            <label for="tl_label">Show label as field:</label>
+            <select class="form-control" name="tl_label">
+                <option value="" [% IF NOT tl_options.label %]selected[% END %]>&lt;All fields&gt;</option>
+                [% FOREACH column IN columns_read %]
+                    <option value="[% column.id %]" [% IF tl_options.label == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                [% END %]
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="tl_group">Group by field:</label>
+            <select class="form-control" name="tl_group">
+                <option value="" [% IF NOT tl_options.group %]selected[% END %]>&lt;All fields&gt;</option>
+                [% FOREACH column IN columns_read %]
+                    <option value="[% column.id %]" [% IF tl_options.group == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                [% END %]
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="tl_color">Colour by field:</label>
+            <select class="form-control" name="tl_color">
+                <option value="" [% IF NOT tl_options.color %]selected[% END %]>&lt;All fields&gt;</option>
+                [% FOREACH column IN columns_read %]
+                    <option value="[% column.id %]" [% IF tl_options.color == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                [% END %]
+            </select>
+        </div>
+    [% END %]
 [% END %]
