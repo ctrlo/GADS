@@ -55,7 +55,7 @@ sub send
 {   my ($self, $args) = @_;
 
     my $emails   = $args->{emails} or error __"Please specify some recipients to send an email to";
-    my $subject  = $args->{subject} or error __"Please enter some text for the email";
+    my $subject  = $args->{subject} or error __"Please enter a subject for the email";
     my $reply_to = $args->{reply_to};
 
     my @parts;
