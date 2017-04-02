@@ -26,8 +26,9 @@ use MooX::Types::MooseLike::Base qw/ArrayRef HashRef/;
 extends 'GADS::Column';
 
 has enumvals => (
-    is => 'rw',
-    lazy => 1,
+    is      => 'rw',
+    isa     => ArrayRef,
+    lazy    => 1,
     builder => sub {
         my $self = shift;
         my $enumrs = $self->schema->resultset('Enumval')->search({
@@ -40,13 +41,48 @@ has enumvals => (
         my @enumvals = $enumrs->all;
         \@enumvals;
     },
+    trigger => sub {
+        my $self = shift;
+        $self->_clear_enumvals_index;
+    },
+    coerce => sub {
+        # Deal with submitted values straight from a HTML form. These will be
+        # *all* submitted parameters, so we need to pull out only the relevant
+        # ones.  We submit like this and not using a single array parameter to
+        # ensure we keep the IDs intact.
+        my $values = shift;
+        ref $values eq 'ARRAY' and return $values; # From DB, already correct
+        my @enumvals;
+        foreach my $v (keys %$values)
+        {
+            next unless $v =~ /^enumval(\d*)/;
+            if (ref $values->{$v} eq 'ARRAY') # New ones
+            {
+                foreach my $w (@{$values->{$v}})
+                {
+                    push @enumvals, {
+                        value => $w, # New, no ID
+                    };
+                }
+            }
+            else {
+                push @enumvals, {
+                    id    => $1,
+                    value => $values->{$v},
+                };
+            }
+        }
+
+        \@enumvals;
+    },
 );
 
 # Indexed list of enumvals
 has _enumvals_index => (
-    is   => 'rw',
-    isa  => HashRef,
-    lazy => 1,
+    is      => 'rw',
+    isa     => HashRef,
+    lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
         my %enumvals = map {$_->{id} => $_} @{$self->enumvals};
@@ -75,13 +111,18 @@ after build_values => sub {
     $self->ordering($original->{ordering});
 };
 
-after 'write' => sub {
-    my $self = shift;
+sub write_special
+{   my ($self, %options) = @_;
 
-    # Trees are dealt with separately using AJAX calls
-    # First insert and update values
+    my $id   = $options{id};
+    my $rset = $options{rset};
+
     foreach my $en (@{$self->enumvals})
     {
+        my $value = $en->{value};
+        error __x"{value} is not a valid value for an item of a drop-down list",
+            value => ($value ? qq('$value') : 'A blank value')
+            unless $value =~ /^[ \S]+$/;
         if ($en->{id})
         {
             my $enumval = $self->schema->resultset('Enumval')->find($en->{id})
@@ -89,18 +130,16 @@ after 'write' => sub {
             $enumval->update({ value => $en->{value} });
         }
         else {
-            my $new = $self->schema->resultset('Enumval')->create({ value => $en->{value}, layout_id => $self->id });
+            my $new = $self->schema->resultset('Enumval')->create({ value => $en->{value}, layout_id => $id });
             $en->{id} = $new->id;
         }
     }
 
-    # And set it again, as new values with have their ID now
-    $self->enumvals($self->enumvals); # Set this for retrieval in form on error
-
     # Then delete any that no longer exist
     $self->_delete_unused_nodes;
-    my $newitem = { ordering => $self->ordering };
-    $self->schema->resultset('Layout')->find($self->id)->update($newitem);
+    $rset->update({
+        ordering => $self->ordering,
+    });
 };
 
 sub _build_join
@@ -142,43 +181,9 @@ sub random
     $hash{(keys %hash)[rand keys %hash]}->{value};
 }
 
-sub enumvals_from_form
-{   my ($self, $original) = @_;
+sub _enumvals_from_form
+{   my $self = shift;
 
-    sub collectenum
-    {
-        my ($value, $id) = @_;
-        error __x"'{value}' is not a valid value for the multiple select", value => $value
-            unless $value =~ /^[ \S]+$/;
-        {
-            id    => $id,
-            value => $value,
-        };
-    };
-
-    # Collect all the enum values. These can be in a variety of formats. New
-    # ones will be a scalar for a single one or an arrayref for multiples.
-    # Existing ones will have a unique field ID. This is maintained to retain
-    # the data associated with that entry.
-    my @enumvals;
-    foreach my $v (keys %$original)
-    {
-        next unless $v =~ /^enumval(\d*)/;
-        if (ref $original->{$v} eq 'ARRAY')
-        {
-            foreach my $w (@{$original->{$v}})
-            {
-                my $e = collectenum($w, 0);
-                push @enumvals, $e if $e;
-            }
-        }
-        else {
-            my $e = collectenum($original->{$v}, $1);
-            push @enumvals, $e if $e;
-        }
-    }
-
-    $self->enumvals(\@enumvals);
 }
    
 sub _delete_unused_nodes

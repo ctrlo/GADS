@@ -29,7 +29,18 @@ sub set_value
 {   my ($self, $value) = @_;
     my $clone = $self->clone; # Copy before changing text
     my $new_id;
-    ($value) = @$value if ref $value eq 'ARRAY';
+    # If an array, $value will either be blank string (no file submitted, empty hidden value),
+    # or 2 values, one the value and one blank
+    if (ref $value eq 'ARRAY')
+    {
+        if (@$value > 1)
+        {
+            ($value) = grep { $_ } @$value;
+        }
+        else {
+            ($value) = @$value;
+        }
+    }
     if (ref $value && $value->{content})
     {
         # New file uploaded

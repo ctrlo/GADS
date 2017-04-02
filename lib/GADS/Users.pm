@@ -21,7 +21,6 @@ package GADS::Users;
 use Email::Valid;
 use GADS::Email;
 use GADS::Instance;
-use GADS::Site;
 use Log::Report;
 use Text::CSV::Encoded;
 
@@ -160,7 +159,7 @@ sub register
     my %new;
     my %params = %$params;
 
-    my $site = GADS::Site->instance->site;
+    my $site = $self->schema->resultset('Site')->find($self->schema->site_id);
 
     error __"Please enter a valid email address"
         unless Email::Valid->address($params{email});
@@ -208,7 +207,7 @@ sub csv
 {   my $self = shift;
     my $csv  = Text::CSV::Encoded->new({ encoding  => undef });
 
-    my $site = GADS::Site->instance->site;
+    my $site = $self->schema->resultset('Site')->find($self->schema->site_id);
     # Column names
     my @columns = qw/ID Surname Forename Email Lastlogin/;
     push @columns, $site->register_freetext1_name if $site->register_freetext1_name;

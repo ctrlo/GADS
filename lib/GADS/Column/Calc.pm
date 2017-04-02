@@ -122,12 +122,12 @@ sub cleanup
 
 # Returns whether an update is needed
 sub write_code
-{   my $self = shift;
+{   my ($self, $layout_id) = @_;
     my $rset = $self->_rset_code;
     my $need_update = !$rset->in_storage
         || $self->_rset_code->code ne $self->code
         || $self->_rset_code->return_format ne $self->return_type;
-    $rset->layout_id($self->id);
+    $rset->layout_id($layout_id);
     $rset->code($self->code);
     $rset->return_format($self->return_type);
     $rset->decimal_places($self->decimal_places);

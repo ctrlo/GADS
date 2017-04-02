@@ -69,6 +69,10 @@ has '+can_multivalue' => (
     default => 1,
 );
 
+has '+variable_join' => (
+    default => 1,
+);
+
 # Tell the column that it needs to include all fields when selecting from
 # the sheet referred to. This can be called at any time, so we need to clear
 # existing properties such as joins which will then be reuilt
@@ -204,18 +208,24 @@ sub _records_from_db
     my $layout = $self->layout_parent
         or return; # No layout or fields set
 
-    my $view = $self->view
-        or return; # record not ready yet for sub_values
+    my $view;
+    if (!$ids)
+    {
+        $view = $self->view
+            or return; # record not ready yet for sub_values
+    }
 
     my $records = GADS::Records->new(
         user        => undef,
-        view        => $self->view,
+        view        => $view,
         layout      => $layout,
         schema      => $self->schema,
         columns     => $self->curval_field_ids_retrieve,
         current_ids => $ids,
-        # Sort on all columns displayed as the Curval
-        sort        => [ map { { id => $_ } } @{$self->curval_field_ids_retrieve} ],
+        # Sort on all columns displayed as the Curval. Don't do all columns
+        # retrieved, as this could include a whole load of multivalues which
+        # are then fetched from the DB
+        sort        => [ map { { id => $_ } } @{$self->curval_field_ids} ],
     );
 
     return $records;
@@ -321,22 +331,14 @@ sub _get_rows
     $return;
 }
 
-# Use an around so that we can stick the whole lot in transaction
-around 'write' => sub {
-    my $orig  = shift;
+sub write_special
+{   my ($self, %options) = @_;
 
-    # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
-    # an object) and may evaluate to an empty string. If so, txn_scope_guard
-    # warns as such, so undefine to prevent the warning
-    undef $@;
-    my $guard = $_[0]->schema->txn_scope_guard;
+    my $id   = $options{id};
+    my $rset = $options{rset};
 
-    $orig->(@_); # Normal column write
-
-    my $self = shift;
     my $layout_parent = $self->layout_parent
         or error __"Please select a table to link to";
-
 
     !@{$self->curval_field_ids} && !$ENV{GADS_ALLOW_BLANK_CURVAL}
         and error __"Please select some fields to use from the other table";
@@ -364,7 +366,7 @@ around 'write' => sub {
         # Check whether field is a curval - can't refer recursively
         next if $field_full->type eq 'curval';
         my $field_hash = {
-            parent_id => $self->id,
+            parent_id => $id,
             child_id  => $field,
         };
         $self->schema->resultset('CurvalField')->create($field_hash)
@@ -373,21 +375,19 @@ around 'write' => sub {
     }
 
     # Then delete any that no longer exist
-    my $search = { parent_id => $self->id };
+    my $search = { parent_id => $id };
     $search->{child_id} = { '!=' =>  [ -and => @curval_field_ids ] }
         if @curval_field_ids;
     $self->schema->resultset('CurvalField')->search($search)->delete;
 
     # Update typeahead option
-    $self->schema->resultset('Layout')->find($self->id)->update({
+    $rset->update({
         typeahead   => $self->typeahead,
     });
 
     # Clear what may be cached values that should be updated after write
     $self->clear_values;
     $self->clear_view;
-
-    $guard->commit;
 };
 
 sub _build_layout_parent
@@ -480,6 +480,38 @@ sub _format_row
 
 sub format_value
 {   shift; join ', ', map { $_ || '' } @_;
+}
+
+sub fetch_multivalues
+{   my ($self, $record_ids) = @_;
+
+    my ($left, $prefetch) = %{$self->join}; # Prefetch table is 2nd part of join
+    my $m_rs = $self->schema->resultset($self->table)->search({
+        'me.record_id'      => $record_ids,
+        'me.layout_id'      => $self->id,
+    });
+    $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    my @values = $m_rs->all;
+    my $records = GADS::Records->new(
+        user        => $self->user,
+        layout      => $self->layout_parent,
+        schema      => $self->schema,
+        columns     => $self->curval_field_ids_retrieve,
+        current_ids => [map { $_->{value} } @values],
+    );
+    my %retrieved;
+    while (my $record = $records->single)
+    {
+        $retrieved{$record->current_id} = $record;
+    }
+
+    map {
+        +{
+            layout_id => $self->id,
+            record_id => $_->{record_id},
+            value     => $_->{value} && $retrieved{$_->{value}},
+        }
+    } @values;
 }
 
 sub cleanup

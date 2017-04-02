@@ -70,7 +70,12 @@ sub _build__init_value_hash
         foreach my $v (@{$self->init_value})
         {
             my $value = $v->{value};
-            if (ref $value)
+            if (ref $value eq 'GADS::Record')
+            {
+                push @records, $value;
+                push @ids, $value->current_id;
+            }
+            elsif (ref $value)
             {
                 push @records, GADS::Record->new(
                     schema               => $self->column->schema,

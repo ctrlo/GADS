@@ -43,22 +43,26 @@ GADS::Email->instance(
 
 tie %{schema->storage->dbh->{CachedKids}}, 'Tie::Cache', 100;
 
-my $instances = GADS::Instances->new(schema => schema);
-
-foreach my $instance (@{$instances->all})
+foreach my $site (schema->resultset('Site')->all)
 {
-    my $layout = GADS::Layout->new(
-        user        => undef,
-        instance_id => $instance->id,
-        schema      => schema,
-        config      => GADS::Config->instance,
-    );
+    schema->site_id($site->id);
+    my $instances = GADS::Instances->new(schema => schema);
 
-    foreach my $column ($layout->all(order_dependencies => 1))
+    foreach my $instance (@{$instances->all})
     {
-        next if $column->userinput;
-        $column->base_url(config->{gads}->{url});
-        $column->update_cached;
+        my $layout = GADS::Layout->new(
+            user        => undef,
+            instance_id => $instance->id,
+            schema      => schema,
+            config      => GADS::Config->instance,
+        );
+
+        foreach my $column ($layout->all(order_dependencies => 1))
+        {
+            next if $column->userinput;
+            $column->base_url(config->{gads}->{url});
+            $column->update_cached;
+        }
     }
 }
 

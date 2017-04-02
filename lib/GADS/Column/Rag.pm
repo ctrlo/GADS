@@ -57,11 +57,11 @@ sub cleanup
 
 # Returns whether an update is needed
 sub write_code
-{   my $self = shift;
+{   my ($self, $layout_id) = @_;
     my $rset = $self->_rset_code;
     my $need_update = !$rset->in_storage
         || $self->_rset_code->code ne $self->code;
-    $rset->layout_id($self->id);
+    $rset->layout_id($layout_id);
     $rset->code($self->code);
     $rset->insert_or_update;
     return $need_update;

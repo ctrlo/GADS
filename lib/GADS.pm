@@ -131,9 +131,6 @@ hook before => sub {
         schema->site_id($site->id);
         var 'site' => $site;
     }
-    GADS::Site->instance(
-        site => var('site'),
-    );
 
     # Add any new relationships for new fields. These are normally
     # added when the field is created, but with multiple processes
@@ -1056,7 +1053,7 @@ any '/group/?:id?' => require_role useradmin => sub {
         {
             my $action = param('id') ? 'updated' : 'created';
             return forwardHome(
-                { success => "Group has been $action successfully" }, '/group' );
+                { success => "Group has been $action successfully" }, 'group' );
         }
     }
 
@@ -1065,7 +1062,7 @@ any '/group/?:id?' => require_role useradmin => sub {
         if (process(sub {$group->delete}))
         {
             return forwardHome(
-                { success => "The group has been deleted successfully" }, '/group' );
+                { success => "The group has been deleted successfully" }, 'group' );
         }
     }
 
@@ -1255,9 +1252,10 @@ any '/layout/?:id?' => require_role 'layout' => sub {
     {
 
         my $id = param('id');
-        my $class = (param('type') && grep {param('type') eq $_} GADS::Column::types)
-                  ? param('type')
-                  : rset('Layout')->find($id)->type;
+        my $class = !$id ? param('type') : rset('Layout')->find($id)->type;
+        grep {$class eq $_} GADS::Column::types
+            or error __x"Invalid column type {class}", class => $class;
+
         $class = "GADS::Column::".camelize($class);
         my $column = $id
             ? $layout->column($id)
@@ -1331,7 +1329,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             elsif ($column->type eq "enum")
             {
                 my $params = params;
-                $column->enumvals_from_form($params);
+                $column->enumvals($params);
                 $column->ordering(param('ordering') || undef);
             }
             elsif ($column->type eq "calc")
