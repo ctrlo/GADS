@@ -66,18 +66,28 @@ has register_requests => (
     isa => ArrayRef,
 );
 
-sub _build_all
+sub _user_rs
 {   my $self = shift;
     my $search = {
         deleted         => undef,
         account_request => 0,
     };
-    my @users = $self->schema->resultset('User')->search($search,{
+    $self->schema->resultset('User')->search($search);
+}
+
+sub _build_all
+{   my $self = shift;
+    my @users = $self->_user_rs->search({}, {
         join     => { user_permissions => 'permission' },
         order_by => 'surname',
         collapse => 1,
     })->all;
     \@users;
+}
+
+sub user_exists
+{   my ($self, $email) = @_;
+    $self->_user_rs->search({ email => $email })->count;
 }
 
 sub all_in_org
@@ -178,19 +188,30 @@ sub register
     $new{freetext2} or delete $new{freetext2};
     $new{title} or delete $new{title};
     $new{organisation} or delete $new{organisation};
-    my $user = $self->schema->resultset('User')->create(\%new);
+
+    my $exists = $self->user_exists($params->{email});
+
+    my $user = !$exists && $self->schema->resultset('User')->create(\%new);
 
     # Email admins with account request
     my $admins = $self->all_admins;
     my @emails = map { $_->email } @$admins;
-    my $text = "A new account request has been received from the following person:\n\n";
+    my $text;
+    if ($exists)
+    {
+        $text = "A new account request has been received, but it has not been added to the request "
+            ."queue as the user already exists. The details of the request were:\n\n";
+    }
+    else {
+        $text = "A new account request has been received from the following person:\n\n";
+    }
     $text .= "First name: $new{firstname}, ";
     $text .= "surname: $new{surname}, ";
     $text .= "email: $new{email}, ";
-    $text .= "title: ".$user->title->name.", " if $user->title;
+    $text .= "title: ".$user->title->name.", " if $user && $user->title;
     $text .= $site->register_freetext1_name.": $new{freetext1}, " if $new{freetext1};
     $text .= $site->register_freetext2_name.": $new{freetext2}, " if $new{freetext2};
-    $text .= $site->register_organisation_name.": ".$user->organisation->name.", " if $user->organisation;
+    $text .= $site->register_organisation_name.": ".$user->organisation->name.", " if $user && $user->organisation;
     $text .= "\n\n";
     $text .= "User notes: $new{account_request_notes}\n";
     my $config = $self->config
