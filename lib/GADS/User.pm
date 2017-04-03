@@ -177,9 +177,9 @@ sub delete
         return unless $options{send_reject_email};
         my $email = GADS::Email->instance;
         $email->send({
-            subject => $self->instance->email_reject_subject,
+            subject => $self->instance->email_reject_subject || "Account request rejected",
             emails  => [$user->email],
-            text    => $self->instance->email_reject_text,
+            text    => $self->instance->email_reject_text || "Your account request has been rejected",
         });
 
         return;
