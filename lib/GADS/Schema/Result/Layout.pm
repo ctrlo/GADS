@@ -156,6 +156,12 @@ __PACKAGE__->table("layout");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 related_field
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -202,6 +208,8 @@ __PACKAGE__->add_columns(
   "instance_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "link_parent",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "related_field",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "filter",
   { data_type => "text", is_nullable => 1 },
@@ -633,6 +641,26 @@ __PACKAGE__->belongs_to(
   "link_parent",
   "GADS::Schema::Result::Layout",
   { id => "link_parent" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 related_field
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Layout>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "related_field",
+  "GADS::Schema::Result::Layout",
+  { id => "related_field" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
