@@ -679,6 +679,14 @@ is( $records->results->[-1]->current_id, 7, "Correct last record for standard so
 
 my @sorts = (
     {
+        name         => 'Sort by ID descending',
+        show_columns => [$columns->{string1}->id, $columns->{enum1}->id],
+        sort_by      => [undef],
+        sort_type    => ['desc'],
+        first        => qr/^9$/,
+        last         => qr/^3$/,
+    },
+    {
         name         => 'Sort by single column in view ascending',
         show_columns => [$columns->{string1}->id, $columns->{enum1}->id],
         sort_by      => [$columns->{enum1}->id],

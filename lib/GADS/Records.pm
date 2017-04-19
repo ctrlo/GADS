@@ -903,9 +903,9 @@ sub _build__sorts
         foreach my $sort (@{$self->view->sorts})
         {
             push @sorts, {
-                id   => $sort->{layout_id} || -11,
+                id   => $sort->{layout_id} || -11, # View column is undef for ID
                 type => $sort->{type} || 'asc',
-            } if $self->layout->column($sort->{layout_id});
+            };
         }
     }
     if (!@sorts && $self->default_sort)
