@@ -96,6 +96,9 @@
                             <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/update/">Update all records in view...</a></li>
                             <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/clone/">Clone all records in view...</a></li>
                         [% END %]
+                        [% IF user.permission.delete %]
+                            <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_delete" style="cursor: pointer">Delete all records in view...</a>
+                        [% END %]
                         [% IF viewtype == "table" AND records.size AND user.permission.download %]
                             <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?download">Download all records in view</a></li>
                         [% END %]
@@ -170,6 +173,14 @@
         <label for="rewind_time">Time (HH:MM:SS):</label>
         <input id="rewind_time" class="form-control" type="text" value="[% session.rewind.hms %]" name="rewind_time" placeholder="23:59:59">
     </div>
+[% END %]
+
+[% WRAPPER modal_dialog.tt
+    modal_id="modal_delete" modal_action_text="Delete" modal_heading="Delete records"
+    modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post"
+%]
+    <p>Are you sure you want to delete all the records that are in the current view?</p>
+    <p><strong>Warning: this will permanently delete [% count %] records.</strong></p>
 [% END %]
 
 [% IF viewtype == "timeline" %]

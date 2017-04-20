@@ -399,6 +399,22 @@ any '/data' => require_login sub {
     my $user   = logged_in_user;
     my $layout = var 'layout';
 
+    # Check for bulk delete
+    if (param 'modal_delete')
+    {
+        my $records = GADS::Records->new(
+            user   => $user,
+            layout => $layout,
+            schema => schema,
+            rewind => session('rewind'),
+            view   => current_view($user, $layout),
+        );
+        while (my $record = $records->single)
+        {
+            $record->delete_current;
+        }
+    }
+
     # Check for rewind configuration
     if (param('modal_rewind') || param('modal_rewind_reset'))
     {
