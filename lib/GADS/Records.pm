@@ -63,21 +63,49 @@ has view => (
 
 # Whether to limit any results to only those
 # in a specific view
-has limit_to_view => (
+has view_limits => (
     is      => 'lazy',
     clearer => 1,
 );
 
-sub _build_limit_to_view
+sub _build_view_limits
 {   my $self = shift;
-    my $limit_to_view = $self->user && $self->user->{limit_to_view} or return;
-    GADS::View->new(
-        user        => undef, # In case user does not have access
-        id          => $limit_to_view,
-        schema      => $self->schema,
-        layout      => $self->layout,
-        instance_id => $self->layout->instance_id,
-    );
+    $self->user or return [];
+    my @view_limits = $self->schema->resultset('ViewLimit')->search({
+        'me.user_id' => $self->user->{id},
+    },{
+        prefetch => 'view',
+    })->all;
+    my @views;
+    foreach my $view_limit (@view_limits)
+    {
+        push @views, GADS::View->new(
+            user        => undef, # In case user does not have access
+            id          => $view_limit->view_id,
+            schema      => $self->schema,
+            layout      => $self->layout,
+            instance_id => $self->layout->instance_id,
+        ) if $view_limit->view->instance_id == $self->layout->instance_id;
+    }
+    \@views;
+}
+
+sub view_limits_search
+{   my ($self, %options) = @_;
+    my @search;
+    foreach my $view (@{$self->view_limits})
+    {
+        if (my $filter = $view->filter)
+        {
+            my $decoded = $filter->as_hash;
+            if (keys %$decoded)
+            {
+                # Get the user search criteria
+                push @search, @{$self->_search_construct($decoded, $self->layout)};
+            }
+        }
+    }
+    [ '-or' => \@search ];
 }
 
 has from => (
@@ -410,17 +438,7 @@ sub search_all_fields
     # Applies to all types of fields being searched
     my @basic_search;
     # Only search limited view if configured for user
-    if (my $view = $self->limit_to_view)
-    {
-        if (my $filter = $view->filter)
-        {
-            my $decoded = $filter->as_hash;
-            if (keys %$decoded)
-            {
-                push @basic_search, @{$self->_search_construct($decoded, $self->layout)};
-            }
-        }
-    }
+    push @basic_search, $self->view_limits_search;
 
     my $date_column = GADS::Column::Date->new(
         schema => $self->schema,
@@ -443,7 +461,7 @@ sub search_all_fields
         # These aren't really needed for current_id, but no harm
         my $plural      = $field->{plural};
         my $value_field = $field->{value_field} || 'value';
-        # Need to get correct "value" number for search, in case it's been incremented through limit_to_view
+        # Need to get correct "value" number for search, in case it's been incremented through view_limits
         my $s           = $field->{sub} ? $self->value_next_join(search => 1).".$value_field" : "$plural.$value_field";
 
         my $joins       = $field->{type} eq 'current_id'
@@ -784,7 +802,7 @@ sub _build_columns_retrieved_no
 sub clear
 {   my $self = shift;
     $self->clear_pages;
-    $self->clear_limit_to_view;
+    $self->clear_view_limits;
     $self->clear_columns_retrieved_no;
     $self->clear_columns_retrieved_do;
     $self->clear_count;
@@ -866,18 +884,7 @@ sub _query_params
                 }
             }
         }
-        if (my $view = $self->limit_to_view)
-        {
-            if (my $filter = $view->filter)
-            {
-                my $decoded = $filter->as_hash;
-                if (keys %$decoded)
-                {
-                    # Get the user search criteria
-                    push @search, @{$self->_search_construct($decoded, $layout, %options)};
-                }
-            }
-        }
+        push @search, $self->view_limits_search(%options);
         # Finish by calling order_by. This may add joins of its own, so it
         # ensures that any are added correctly.
         $self->order_by;

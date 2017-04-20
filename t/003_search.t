@@ -514,7 +514,7 @@ my $rules = GADS::Filter->new(
     },
 );
 
-my $limit_to_view = GADS::View->new(
+my $view_limit = GADS::View->new(
     name        => 'Limit to view',
     filter      => $rules,
     instance_id => 1,
@@ -522,7 +522,7 @@ my $limit_to_view = GADS::View->new(
     schema      => $schema,
     user        => undef,
 );
-$limit_to_view->write;
+$view_limit->write;
 
 $rules = GADS::Filter->new(
     as_hash => {
@@ -546,9 +546,8 @@ my $view = GADS::View->new(
 $view->write;
 
 $records = GADS::Records->new(
-    user    => {
-        limit_to_view => $limit_to_view->id,
-    },
+    view_limits => [ $view_limit ],
+    user    => undef,
     view    => $view,
     layout  => $layout,
     schema  => $schema,
@@ -556,12 +555,44 @@ $records = GADS::Records->new(
 
 is ($records->count, 1, 'Correct number of results when limiting to a view');
 
+# Add a second view limit
+$rules = GADS::Filter->new(
+    as_hash => {
+        rules     => [{
+            id       => $columns->{date1}->id,
+            type     => 'date',
+            value    => '2015-10-10',
+            operator => 'equal',
+        }],
+    },
+);
+
+my $view_limit2 = GADS::View->new(
+    name        => 'Limit to view2',
+    filter      => $rules,
+    instance_id => 1,
+    layout      => $layout,
+    schema      => $schema,
+    user        => undef,
+);
+$view_limit2->write;
+
+$records = GADS::Records->new(
+    view_limits => [ $view_limit, $view_limit2 ],
+    user    => undef,
+    view    => $view,
+    layout  => $layout,
+    schema  => $schema,
+);
+
+is ($records->count, 2, 'Correct number of results when limiting to 2 views');
+
 # Quick searches
 # First with limited view still defined
 is (@{$records->search_all_fields('Foobar')}, 0, 'Correct number of quick search results when limiting to a view');
 
 # Same again but limited by enumval
-$limit_to_view->filter(GADS::Filter->new(
+$view_limit->filter(GADS::Filter->new(
     as_hash => {
         rules     => [{
             id       => $columns->{enum1}->id,
@@ -571,11 +602,10 @@ $limit_to_view->filter(GADS::Filter->new(
         }],
     },
 ));
-$limit_to_view->write;
+$view_limit->write;
 $records = GADS::Records->new(
-    user    => {
-        limit_to_view => $limit_to_view->id,
-    },
+    view_limits => [ $view_limit ],
+    user    => undef,
     layout  => $layout,
     schema  => $schema,
 );

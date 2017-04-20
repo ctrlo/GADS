@@ -10,7 +10,13 @@ GADS::Schema::Result::User
 use strict;
 use warnings;
 
-use base 'DBIx::Class::Core';
+use DateTime;
+use GADS::Config;
+use GADS::Email;
+use GADS::Instance;
+use Moo;
+
+extends 'DBIx::Class::Core';
 
 =head1 COMPONENTS LOADED
 
@@ -416,6 +422,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 view_limits
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::ViewLimit>
+
+=cut
+
+__PACKAGE__->has_many(
+  "view_limits",
+  "GADS::Schema::Result::ViewLimit",
+  { "foreign.user_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 record_approvedbies
 
 Type: has_many
@@ -563,4 +584,179 @@ sub sqlt_deploy_hook {
     $sqlt_table->add_index(name => 'user_idx_username', fields => [ { name => 'username', size => 64 } ]);
 }
 
+# Used to ensure an empty selector is available in the user edit page
+sub view_limits_with_blank
+{   my $self = shift;
+    return $self->view_limits if $self->view_limits->count;
+    return [undef];
+}
+
+sub set_view_limits
+{   my ($self, @view_ids) = @_;
+
+    # remove blank string from form
+    @view_ids = grep { $_ } @view_ids;
+
+    foreach my $view_id (@view_ids)
+    {
+        $self->find_or_create_related('view_limits', { view_id => $view_id });
+    }
+
+    # Delete any groups that no longer exist
+    my $search = {};
+    $search->{view_id} = {
+        '!=' => [ -and => @view_ids ]
+    } if @view_ids;
+    $self->search_related('view_limits', $search)->delete;
+}
+
+sub instance
+{   my $self = shift;
+    my $config = GADS::Config->instance;
+    GADS::Instance->new(
+        id     => $config->login_instance,
+        schema => $self->schema,
+    );
+}
+
+sub graphs
+{   my ($self, $graphs) = @_;
+
+    # Will be a scalar if only one value submitted. If so,
+    # convert to array
+    my @graphs = !$graphs
+               ? ()
+               : ref $graphs eq 'ARRAY'
+               ? @$graphs
+               : ( $graphs );
+
+    foreach my $g (@graphs)
+    {
+        unless($self->search_related('user_graphs', { graph_id => $g })->count)
+        {
+            $self->create_related('user_graphs', { graph_id => $g });
+        }
+    }
+
+    # Delete any graphs that no longer exist
+    my $search = {};
+    $search->{graph_id} = {
+        '!=' => [ -and => @graphs ]
+    } if @graphs;
+    $self->search_related('user_graphs', $search)->delete;
+}
+
+# Used to check if a user has a group
+has has_group => (
+    is => 'lazy',
+);
+
+sub _build_has_group
+{   my $self = shift;
+    +{
+        map { $_->group_id => 1 } $self->user_groups
+    }
+}
+
+sub groups
+{   my ($self, $groups) = @_;
+
+    foreach my $g (@$groups)
+    {
+        unless($self->search_related('user_groups', { group_id => $g })->count)
+        {
+            $self->create_related('user_groups', { group_id => $g });
+        }
+    }
+
+    # Delete any groups that no longer exist
+    my $search = {};
+    $search->{group_id} = {
+        '!=' => [ -and => @$groups ]
+    } if @$groups;
+    $self->search_related('user_groups', $search)->delete;
+}
+
+# Used to check if a user has a permission
+has permission => (
+    is => 'lazy',
+);
+
+sub _build_permission
+{   my $self = shift;
+    my %all = map { $_->id => $_->name } $self->result_source->schema->resultset('Permission')->all;
+    +{
+        map { $all{$_->permission_id} => 1 } $self->user_permissions
+    }
+}
+
+sub permissions
+{   my ($self, $permissions) = @_;
+
+    foreach my $p (@$permissions)
+    {
+        $self->find_or_create_related('user_permissions', { permission_id => $p });
+    }
+
+    # Delete any groups that no longer exist
+    my $search = {};
+    $search->{permission_id} = {
+        '!=' => [ -and => @$permissions ]
+    } if @$permissions;
+    $self->search_related('user_permissions', $search)->delete;
+}
+
+sub retire
+{   my ($self, %options) = @_;
+
+    # Properly delete if account request - no record needed
+    if ($self->account_request)
+    {
+        $self->delete;
+        return unless $options{send_reject_email};
+        my $email = GADS::Email->instance;
+        my $instance = $self->instance;
+        $email->send({
+            subject => $instance->email_reject_subject || "Account request rejected",
+            emails  => [$self->email],
+            text    => $instance->email_reject_text || "Your account request has been rejected",
+        });
+
+        return;
+    }
+    else {
+        $self->search_related('user_graphs', {})->delete;
+        my $alerts = $self->search_related('alerts', {});
+        my @alert_sends = map { $_->id } $alerts->all;
+        $self->schema->resultset('AlertSend')->search({ alert_id => \@alert_sends })->delete;
+        $alerts->delete;
+
+        $self->update({ lastview => undef });
+        my $views = $self->search_related->('views', {});
+        my @views;
+        foreach my $v ($views->all)
+        {
+            push @views, $v->id;
+        }
+        $self->schema->resultset('Filter')->search({ view_id => \@views })->delete;
+        $self->schema->resultset('ViewLayout')->search({ view_id => \@views })->delete;
+        $self->schema->resultset('Sort')->search({ view_id => \@views })->delete;
+        $self->schema->resultset('AlertCache')->search({ view_id => \@views })->delete;
+        $views->delete;
+
+        $self->update({ deleted => DateTime->now });
+
+        if (my $msg = $self->instance->email_delete_text)
+        {
+            my $email = GADS::Email->instance;
+            $email->send({
+                subject => $self->instance->email_delete_subject || "Account deleted",
+                emails  => [$self->email],
+                text    => $msg,
+            });
+        }
+    }
+}
+
 1;
+

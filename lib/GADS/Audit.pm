@@ -32,6 +32,18 @@ has user => (
     is => 'rw',
 );
 
+sub user_id
+{   my $self = shift;
+    $self->user or return;
+    ref $self->user eq 'HASH' ? $self->user->{id} : $self->user->id;
+}
+
+sub username
+{   my $self = shift;
+    $self->user or return;
+    ref $self->user eq 'HASH' ? $self->user->{username} : $self->user->username;
+}
+
 has filtering => (
     is      => 'rw',
     isa     => HashRef,
@@ -62,7 +74,7 @@ sub user_action
 {   my ($self, %options) = @_;
 
     $self->schema->resultset('Audit')->create({
-        user_id     => $self->user ? $self->user->{id} : undef,
+        user_id     => $self->user_id,
         description => $options{description},
         type        => 'user_action',
         method      => $options{method},
@@ -74,9 +86,8 @@ sub user_action
 sub login_change
 {   my ($self, $description) = @_;
 
-    my $user_id = $self->user ? $self->user->{id} : undef;
     $self->schema->resultset('Audit')->create({
-        user_id     => $user_id,
+        user_id     => $self->user_id,
         description => $description,
         type        => 'login_change',
         datetime    => DateTime->now,
@@ -87,8 +98,8 @@ sub login_success
 {   my $self = shift;
 
     $self->schema->resultset('Audit')->create({
-        user_id     => $self->user->{id},
-        description => "Successful login by username ".$self->user->{username},
+        user_id     => $self->user_id,
+        description => "Successful login by username ".$self->username,
         type        => 'login_success',
         datetime    => DateTime->now,
     });
@@ -98,7 +109,7 @@ sub logout
 {   my ($self, $username) = @_;
 
     $self->schema->resultset('Audit')->create({
-        user_id     => $self->user->{id},
+        user_id     => $self->user_id,
         description => "Logout by username $username",
         type        => 'logout',
         datetime    => DateTime->now,

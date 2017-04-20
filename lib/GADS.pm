@@ -54,7 +54,6 @@ use GADS::Record;
 use GADS::Records;
 use GADS::RecordsGroup;
 use GADS::Type::Permissions;
-use GADS::User;
 use GADS::Users;
 use GADS::Util         qw(:all);
 use GADS::View;
@@ -808,7 +807,7 @@ any '/account/?:action?/?' => require_login sub {
 
     if (param 'graphsubmit')
     {
-        my $usero = GADS::User->new(config => config, schema => schema, id => $user->{id});
+        my $usero = rset('User')->find($user->{id});
         if (process( sub { $usero->graphs(param('graphs')) }))
         {
             return forwardHome(
@@ -1426,9 +1425,8 @@ any '/user/?:id?' => require_role useradmin => sub {
         {
             # Check user doesn't already exist
             my $email = param('email');
-            my $usero = GADS::User->new(schema => schema, email => $email, account_request => 0);
             return forwardHome({ danger => "User $email already exists" }, 'user' )
-                if $usero->get_user;
+                if rset('User')->active(email => $email)->count;
         }
         my %values = (
             firstname             => param('firstname'),
@@ -1466,7 +1464,7 @@ any '/user/?:id?' => require_role useradmin => sub {
                 report {is_fatal => 0}, ERROR => __"Please enter a valid email address for the new user";
             }
             else {
-                my $usero = GADS::User->new(schema => schema, config => config, id => $id);
+                my $usero = rset('User')->find($id);
                 # Delete account request user if this is a new account request
                 $usero->delete
                     if param 'account_request';
@@ -1482,9 +1480,11 @@ any '/user/?:id?' => require_role useradmin => sub {
         {
             # Add groups to user
             my @groups = ref param('groups') ? @{param('groups')} : (param('groups') || ());
-            my $usero = GADS::User->new(schema => schema, config => config, id => $newuser->{id});
+            my $usero = rset('User')->find($newuser->{id});
             $usero->groups(\@groups);
             my $audit_groups = join ', ', @groups;
+
+            $usero->set_view_limits(body_parameters->get_all('view_limits'));
 
             # Update permissions. This currently needs to be done here rather than in DPAE
             # due to the addition of the site_id column, which DPAE is not able to take
@@ -1508,6 +1508,12 @@ any '/user/?:id?' => require_role useradmin => sub {
                 { success => "User has been $action successfully" }, 'user' );
         }
         else {
+            my $view_limits_with_blank = [ map {
+                +{
+                    view_id => $_
+                }
+            } body_parameters->get_all('view_limits') ];
+            $values{view_limits_with_blank} = $view_limits_with_blank;
             $users = [\%values];
         }
     }
@@ -1540,17 +1546,23 @@ any '/user/?:id?' => require_role useradmin => sub {
         my %permissions = map { $all_permissions{$_} => 1 } @permissions;
         my @groups      = ref param('groups') ? @{param('groups')} : (param('groups') || ());
         my %groups      = map { $_ => 1 } @groups;
+        my $view_limits_with_blank = [ map {
+            +{
+                view_id => $_
+            }
+        } body_parameters->get_all('view_limits') ];
+
         $users = [{
-            firstname     => param('firstname'),
-            surname       => param('surname'),
-            email         => param('email'),
-            freetext1     => param('freetext1'),
-            freetext2     => param('freetext2'),
-            title         => { id => param('title') },
-            organisation  => { id => param('organisation') },
-            limit_to_view => param('limit_to_view'),
-            permission    => \%permissions,
-            groups        => \%groups,
+            firstname              => param('firstname'),
+            surname                => param('surname'),
+            email                  => param('email'),
+            freetext1              => param('freetext1'),
+            freetext2              => param('freetext2'),
+            title                  => { id => param('title') },
+            organisation           => { id => param('organisation') },
+            view_limits_with_blank => $view_limits_with_blank,
+            permission             => \%permissions,
+            groups                 => \%groups,
         }];
     }
     elsif (my $delete_id = param('delete'))
@@ -1558,7 +1570,7 @@ any '/user/?:id?' => require_role useradmin => sub {
         return forwardHome(
             { danger => "Cannot delete current logged-in User" } )
             if logged_in_user->{id} eq $delete_id;
-        my $usero = GADS::User->new(schema => schema, config => config, id => $delete_id);
+        my $usero = rset('User')->find($delete_id);
         if (process( sub { $usero->delete(send_reject_email => 1) }))
         {
             $audit->login_change("User ID $delete_id deleted");
@@ -1587,12 +1599,19 @@ any '/user/?:id?' => require_role useradmin => sub {
 
     if ($id)
     {
-        my $usero = GADS::User->new(schema => schema, id => $id);
-        $users = [ $usero->get_user ] if !$users;
+        $users = [ rset('User')->find($id) ] if !$users;
     }
     elsif (!defined $id) {
         $users             = $userso->all;
         $register_requests = $userso->register_requests;
+    }
+    else {
+        # Horrible hack to get a limit view drop-down to display
+        $users = [
+            +{
+                view_limits_with_blank => [ undef ],
+            }
+        ] if !$users; # Only if not already submitted
     }
 
     my $output = template 'user' => {
@@ -2607,10 +2626,9 @@ any '/resetpw/:code' => sub {
         if (param 'execute_reset')
         {
             context->destroy_session;
-            my $usero  = GADS::User->new(schema => schema, username => $username, account_request => 0);
-            my $user   = $usero->get_user;
+            my $user   = rset('User')->active(username => $username)->next;
             my $audit  = GADS::Audit->new(schema => schema, user => $user);
-            $audit->login_change("Password reset performed for user ID $user->{id}");
+            $audit->login_change("Password reset performed for user ID ".$user->id);
             $new_password = _random_pw();
             user_password code => param('code'), new_password => $new_password;
         }
