@@ -88,19 +88,31 @@
             [% END %]
             [% IF page == "user" %]
                 <div class="form-group">
-                    <label for="limit_to_view">
-                        Limit user's data to only records in: (<a href="" data-toggle="modal" data-target="#modalhelp_limitdata">?</a>)
+                    <label for="view_limits">
+                        Limit user's data to only records in any of: (<a href="" data-toggle="modal" data-target="#modalhelp_limitdata">?</a>)
                     </label>
-                    <select class="form-control" id="limit_to_view" name="limit_to_view">
-                        <option></option>
-                        [% FOREACH instance IN instances %]
-                            [% FOREACH v IN instance.global_view_summary %]
-                                <option value="[% v.id %]"
-                                    [% IF edituser.limit_to_view == v.id %]selected[% END %]>[% instance.name _ ': ' _ v.name | html_entity %]
-                                </option>
-                            [% END %]
-                        [% END %]
-                    </select>
+                    [% FOREACH view_limit IN edituser.view_limits_with_blank %]
+                        <div class="limit-to-view">
+                            <div class="row">
+                                <div class="col-md-10">
+                                    <select class="form-control" name="view_limits">
+                                        <option></option>
+                                        [% FOREACH instance IN instances %]
+                                            [% FOREACH v IN instance.global_view_summary %]
+                                                <option value="[% v.id %]"
+                                                    [% IF view_limit.view_id == v.id %]selected[% END %]>[% instance.name _ ': ' _ v.name | html_entity %]
+                                                </option>
+                                            [% END %]
+                                        [% END %]
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <a class="btn btn-primary btn-sm"><i class="fa fa-lg fa-plus cloneme" style="cursor: pointer"></i></a>
+                                    <a class="btn btn-primary btn-sm"><i class="fa fa-lg fa-minus removeme" style="cursor: pointer"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    [% END %]
                 </div>
             [% END %]
             [% IF page == "user" %]
@@ -125,7 +137,7 @@
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" name="groups" value="[% group.id %]"
-                                    [% IF edituser.groups.$key %]checked[% END %]>[% group.name | html_entity %]
+                                    [% IF edituser.has_group.$key %]checked[% END %]>[% group.name | html_entity %]
                             </label>
                         </div>
                     [% END %]
@@ -344,6 +356,17 @@
                 });
                 $('#modalneworganisation').on('hidden.bs.modal', function (e) {
                     $('#neworganisation').val("");
+                });
+                $(document).on("click", ".cloneme", function() {
+                    var parent = $(this).parents('.limit-to-view');
+                    var cloned = parent.clone();
+                    cloned.removeAttr('id').insertAfter(parent);
+                });
+                $(document).on("click", ".removeme", function() {
+                    var parent = $(this).parents('.limit-to-view');
+                    if (parent.siblings(".limit-to-view").length > 0) {
+                        parent.remove();
+                    }
                 });
                 [% IF NOT edit.defined %]
                     $('.dtable').dataTable({

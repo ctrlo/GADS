@@ -1,5 +1,5 @@
 [% global.helptext.limit_user_data = BLOCK %]
-By default, a user can see any record in Linkspace, and is only limited to what fields of that record he or she can view. This option makes it possible to also limit the records that a user can view. By selecting a view in the dropdown box, a user can only ever see records that meet the search criteria of that view, regardless of what other search criteria or views they may make themselves.
+By default, a user can see any record in Linkspace, and is only limited to what fields of that record he or she can view. This option makes it possible to also limit the records that a user can view. By selecting a view in the dropdown box, a user can only ever see records that meet the search criteria of that view (of the view's particular table), regardless of what other search criteria or views they may make themselves. By selecting multiple views, a user will only be able to see records contained in any of the listed views. Note that the limitation only applies to the particular table of the view(s). So if only View A from Table A is selected, the user will be limited to only View A's records in Table A, but will be able to see any record in Table B.
 [% END %]
 
 [% global.helptext.layout_groups = BLOCK %]

@@ -1,9 +1,6 @@
 use utf8;
 package GADS::Schema::Result::View;
 
-# Created by DBIx::Class::Schema::Loader
-# DO NOT MODIFY THE FIRST PART OF THIS FILE
-
 =head1 NAME
 
 GADS::Schema::Result::View
@@ -246,10 +243,19 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 view_limits
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xHdQ00ZBBxwbdnqMI09vxg
+Type: has_many
 
+Related object: L<GADS::Schema::Result::ViewLimit>
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+=cut
+
+__PACKAGE__->has_many(
+  "view_limits",
+  "GADS::Schema::Result::ViewLimit",
+  { "foreign.view_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 1;

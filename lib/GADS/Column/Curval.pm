@@ -216,7 +216,7 @@ sub _records_from_db
     }
 
     my $records = GADS::Records->new(
-        user        => undef,
+        user        => $self->layout->user,
         view        => $view,
         layout      => $layout,
         schema      => $self->schema,
@@ -435,7 +435,7 @@ sub values_beginning_with
     );
     $view->filter($filter) if $match;
     my $records = GADS::Records->new(
-        user    => undef, # Do not want to limit by user
+        user    => $self->layout->user,
         rows    => 10,
         view    => $view,
         layout  => $self->layout_parent,
@@ -493,7 +493,7 @@ sub fetch_multivalues
     $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my @values = $m_rs->all;
     my $records = GADS::Records->new(
-        user        => $self->user,
+        user        => $self->layout->user,
         layout      => $self->layout_parent,
         schema      => $self->schema,
         columns     => $self->curval_field_ids_retrieve,
