@@ -393,6 +393,17 @@ sub delete
 
     $self->writable
         or error __x"You do not have permission to delete {id}", id => $self->id;
+    my $vl = $self->schema->resultset('ViewLimit')->search({
+        view_id => $self->id,
+    },{
+        prefetch => 'user',
+    });
+    if ($vl->count)
+    {
+        my $users = join '; ', $vl->get_column('user.value')->all;
+        error __x"This view cannot be deleted as it is used to limit user data. Remove the view from the limited views of the following users before deleting: {users}", users => $users;
+    }
+
     my $view = $self->_view
         or return; # Doesn't exist. May be attempt to delete view not yet written
     $self->schema->resultset('Sort')->search({ view_id => $view->id })->delete;
