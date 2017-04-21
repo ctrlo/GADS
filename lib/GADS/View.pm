@@ -83,6 +83,13 @@ has global => (
     builder => sub { $_[0]->_view && $_[0]->_view->global },
 );
 
+has is_admin => (
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    builder => sub { $_[0]->_view && $_[0]->_view->is_admin },
+);
+
 has name => (
     is      => 'rw',
     lazy    => 1,
@@ -203,7 +210,7 @@ sub BUILD
         # New view or no user defined, therefore writable
         $self->writable(1);
     }
-    elsif ($self->global)
+    elsif ($self->global || $self->is_admin)
     {
         $self->writable(1) if $self->user->{permission}->{layout};
     }
@@ -227,19 +234,24 @@ sub write
     {
         $vu->{global} = 1;
     }
-    elsif ($self->global || $self->user->{permission}->{layout})
+    elsif ($self->user->{permission}->{layout})
     {
+        $vu->{global}   = 0;
+        $vu->{is_admin} = 0;
+        $vu->{user_id}  = $self->user->{id};
         if ($self->global)
         {
             $vu->{global}  = 1;
             $vu->{user_id} = undef;
         }
-        else {
-            $vu->{global}  = 0;
-            $vu->{user_id} = $self->user->{id};
+        if ($self->is_admin)
+        {
+            $vu->{is_admin} = 1;
+            $vu->{user_id}  = undef;
         }
     }
     else {
+        $vu->{global}  = 0;
         $vu->{user_id} = $self->user->{id};
     }
 

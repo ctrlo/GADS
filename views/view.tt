@@ -13,6 +13,11 @@
                         <input type="checkbox" name="global" [% IF v.global %]checked[% END %]>Global view
                     </label>
                 </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="is_admin" [% IF v.is_admin %]checked[% END %]>Administration view (only visible to layout administrators)
+                    </label>
+                </div>
             [% END %]
             <table class="table table-striped">
                 <tr><th><input type="checkbox" id="selectall" title="Select/deselect all"></th><th>Name</th></tr>

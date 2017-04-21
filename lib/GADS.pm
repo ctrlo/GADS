@@ -1167,6 +1167,7 @@ any '/view/:id' => require_login sub {
         my $columns = ref param('column') ? param('column') : [ param('column') // () ]; # Ensure array
         $view->columns($columns);
         $view->global(param('global') ? 1 : 0);
+        $view->is_admin(param('is_admin') ? 1 : 0);
         $view->name  (param 'name');
         $view->filter->as_json(param 'filter');
         if (process( sub { $view->write }))

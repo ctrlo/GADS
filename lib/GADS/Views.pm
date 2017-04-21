@@ -61,14 +61,16 @@ has layout => (
 
 sub _user_views
 {   my $self = shift;
+    my @search = (
+        user_id => $self->user ? $self->user->{id} : undef,
+        global  => 1,
+    );
+    push @search, (is_admin => 1) if !$self->user || $self->user->{permission}->{layout};
     my @views = $self->schema->resultset('View')->search({
-        -or => [
-            user_id => $self->user ? $self->user->{id} : undef,
-            global  => 1,
-        ],
+        -or         => [@search],
         instance_id => $self->instance_id,
     },{
-            order_by => ['global', 'name'],
+            order_by => ['global', 'is_admin', 'name'],
     })->all;
     \@views;
 }

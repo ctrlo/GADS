@@ -61,13 +61,18 @@
                         <li role="presentation" class="divider"></li>
                         [% first = 1 %]
                         [% FOREACH ve IN user_views %]
-                            [% IF first AND NOT ve.global %]
+                            [% IF first AND NOT ve.global AND not ve.is_admin %]
                                 <li role="presentation" class="dropdown-header">Personal views</li>
-                            [% ELSIF (first AND NOT ve.gloabl) OR (lastv AND ve.global != lastv.global) %]
+                            [% ELSIF (first AND ve.global) OR (lastv AND ve.global != lastv.global) %]
                                 [% UNLESS first %]
                                     <li role="presentation" class="divider"></li>
                                 [% END %]
                                 <li role="presentation" class="dropdown-header">Global views</li>
+                            [% ELSIF (first AND ve.is_admin) OR (lastv AND ve.is_admin != lastv.is_admin) %]
+                                [% UNLESS first %]
+                                    <li role="presentation" class="divider"></li>
+                                [% END %]
+                                <li role="presentation" class="dropdown-header">Administration views</li>
                             [% END %]
                             <li role="presentation"
                                     [% IF ve.id == v.id %]class="active"[% END %]
