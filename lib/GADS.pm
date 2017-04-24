@@ -626,9 +626,10 @@ any '/data' => require_login sub {
         $records->columns_extra([@extra]);
         $records->search_all_fields(session 'search')
             if session 'search';
-        my ($items, $groups) = $records->data_timeline(%{$tl_options});
-        $params->{records}      = encode_base64(encode_json($items));
-        $params->{groups}       = encode_base64(encode_json($groups));
+        my $timeline = $records->data_timeline(%{$tl_options});
+        $params->{records}      = encode_base64(encode_json(delete $timeline->{items}));
+        $params->{groups}       = encode_base64(encode_json(delete $timeline->{groups}));
+        $params->{timeline}     = $timeline;
         $params->{tl_options}   = $tl_options;
         $params->{columns_read} = [$layout->all(user_can_read => 1)];
         $params->{viewtype}     = 'timeline';

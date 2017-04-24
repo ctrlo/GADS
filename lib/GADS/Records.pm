@@ -1257,7 +1257,7 @@ sub data_time
     );
 
     # All the data values
-    my $multiple_dates;
+    my ($multiple_dates, $min, $max);
     while (my $record  = $self->single)
     {
         my @dates; my @titles;
@@ -1293,26 +1293,38 @@ sub data_time
                         # It's possible that values from other columns not within
                         # the required range will have been retrieved. Don't bother
                         # adding them
-                        push @dates, {
-                            from  => $range->start,
-                            to    => $range->end,
-                            color => $color,
-                            column=> $column->id,
-                            count => ++$count,
-                        } if (!$self->to || DateTime->compare($self->to, $range->start) >= 0)
-                          && (!$self->from || DateTime->compare($range->end, $self->from) >= 0);
+                        if (
+                            (!$self->to || DateTime->compare($self->to, $range->start) >= 0)
+                            && (!$self->from || DateTime->compare($range->end, $self->from) >= 0)
+                        ) {
+                            push @dates, {
+                                from  => $range->start,
+                                to    => $range->end,
+                                color => $color,
+                                column=> $column->id,
+                                count => ++$count,
+                            };
+                            $min = $range->start->clone if !defined $min || $range->start < $min;
+                            $max = $range->end->clone if !defined $max || $range->end > $max;
+                        }
                     }
                 }
                 else {
                     $d->value or next;
-                    push @dates, {
-                        from  => $d->value,
-                        to    => $d->value,
-                        color => $color,
-                        column=> $column->id,
-                        count => 1,
-                    } if (!$self->from || DateTime->compare($d->value, $self->from) >= 0)
-                      && (!$self->to || DateTime->compare($self->to, $d->value) >= 0);
+                    if (
+                        (!$self->from || DateTime->compare($d->value, $self->from) >= 0)
+                        && (!$self->to || DateTime->compare($self->to, $d->value) >= 0)
+                    ) {
+                        push @dates, {
+                            from  => $d->value,
+                            to    => $d->value,
+                            color => $color,
+                            column=> $column->id,
+                            count => 1,
+                        };
+                        $min = $d->value->clone if !defined $min || $d->value < $min;
+                        $max = $d->value->clone if !defined $max || $d->value > $max;
+                    }
                 }
             }
             else {
@@ -1411,12 +1423,17 @@ sub data_time
         }
     } keys %timeline_groups;
 
-    wantarray ? (\@result, \@groups) : \@result;
+    +{
+        items  => \@result,
+        groups => \@groups,
+        min    => $min->subtract(days => 1),
+        max    => $max->add(days => 2), # one day already added to show period to end of day
+    };
 }
 
 sub data_calendar
 {   my $self = shift;
-    $self->data_time('calendar');
+    $self->data_time('calendar')->{items};
 }
 
 sub data_timeline

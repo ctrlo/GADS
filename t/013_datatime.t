@@ -43,7 +43,7 @@ my $records = GADS::Records->new(
 
 is( @{$records->data_calendar}, 4, "Retrieving all data returns correct number of points to plot for calendar" );
 $records->clear;
-is( @{$records->data_timeline}, 4, "Retrieving all data returns correct number of points to plot for timeline" );
+is( @{$records->data_timeline->{items}}, 4, "Retrieving all data returns correct number of points to plot for timeline" );
 
 # Add a filter and only retrieve one column
 my $rules = encode_json({
@@ -76,7 +76,7 @@ $records = GADS::Records->new(
 
 is( @{$records->data_calendar}, 1, "Filter and single column returns correct number of points to plot for calendar" );
 $records->clear;
-is( @{$records->data_timeline}, 1, "Filter and single column returns correct number of points to plot for timeline" );
+is( @{$records->data_timeline->{items}}, 1, "Filter and single column returns correct number of points to plot for timeline" );
 
 # Now use the same filter and restrict by date
 my $fromdt = DateTime->new(
@@ -101,6 +101,6 @@ $records = GADS::Records->new(
 
 is( @{$records->data_calendar}, 1, "Filter, single column and limited range returns correct number of points to plot for calendar" );
 $records->clear;
-is( @{$records->data_timeline}, 1, "Filter, single column and limited range returns correct number of points to plot for timeline" );
+is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited range returns correct number of points to plot for timeline" );
 
 done_testing();
