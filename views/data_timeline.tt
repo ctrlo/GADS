@@ -91,7 +91,8 @@
                     }
                 },
                 onMove: on_move,
-                snap:   snap_to_day
+                snap:   snap_to_day,
+                orientation: {axis: "both"}
             };
 
             var timeline = new vis.Timeline(container, items, options);
