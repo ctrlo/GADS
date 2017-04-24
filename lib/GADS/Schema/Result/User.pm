@@ -615,7 +615,7 @@ sub instance
     my $config = GADS::Config->instance;
     GADS::Instance->new(
         id     => $config->login_instance,
-        schema => $self->schema,
+        schema => $self->result_source->schema,
     );
 }
 
@@ -728,7 +728,7 @@ sub retire
         $self->search_related('user_graphs', {})->delete;
         my $alerts = $self->search_related('alerts', {});
         my @alert_sends = map { $_->id } $alerts->all;
-        $self->schema->resultset('AlertSend')->search({ alert_id => \@alert_sends })->delete;
+        $self->result_source->schema->resultset('AlertSend')->search({ alert_id => \@alert_sends })->delete;
         $alerts->delete;
 
         $self->update({ lastview => undef });
@@ -738,10 +738,10 @@ sub retire
         {
             push @views, $v->id;
         }
-        $self->schema->resultset('Filter')->search({ view_id => \@views })->delete;
-        $self->schema->resultset('ViewLayout')->search({ view_id => \@views })->delete;
-        $self->schema->resultset('Sort')->search({ view_id => \@views })->delete;
-        $self->schema->resultset('AlertCache')->search({ view_id => \@views })->delete;
+        $self->result_source->schema->resultset('Filter')->search({ view_id => \@views })->delete;
+        $self->result_source->schema->resultset('ViewLayout')->search({ view_id => \@views })->delete;
+        $self->result_source->schema->resultset('Sort')->search({ view_id => \@views })->delete;
+        $self->result_source->schema->resultset('AlertCache')->search({ view_id => \@views })->delete;
         $views->delete;
 
         $self->update({ deleted => DateTime->now });
