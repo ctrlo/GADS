@@ -1588,7 +1588,7 @@ any '/user/?:id?' => require_role useradmin => sub {
             { danger => "Cannot delete current logged-in User" } )
             if logged_in_user->{id} eq $delete_id;
         my $usero = rset('User')->find($delete_id);
-        if (process( sub { $usero->delete(send_reject_email => 1) }))
+        if (process( sub { $usero->retire(send_reject_email => 1) }))
         {
             $audit->login_change("User ID $delete_id deleted");
             return forwardHome(
