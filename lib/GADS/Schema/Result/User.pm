@@ -732,7 +732,7 @@ sub retire
         $alerts->delete;
 
         $self->update({ lastview => undef });
-        my $views = $self->search_related->('views', {});
+        my $views = $self->search_related('views', {});
         my @views;
         foreach my $v ($views->all)
         {
