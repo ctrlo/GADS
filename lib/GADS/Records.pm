@@ -1426,8 +1426,8 @@ sub data_time
     +{
         items  => \@result,
         groups => \@groups,
-        min    => $min->subtract(days => 1),
-        max    => $max->add(days => 2), # one day already added to show period to end of day
+        min    => $min && $min->subtract(days => 1),
+        max    => $max && $max->add(days => 2), # one day already added to show period to end of day
     };
 }
 
