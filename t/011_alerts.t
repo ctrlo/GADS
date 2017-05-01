@@ -347,7 +347,7 @@ my @filters = (
     },
 );
 
-my $user = { id => 1, value => 'User1, User1' };
+my $user = { id => 1, value => 'User1, User1', permission => { layout => 1 } };
 my $user2 = { id => 2, value => 'User2, User2' };
 
 # First write all the filters and alerts

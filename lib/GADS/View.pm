@@ -62,13 +62,20 @@ has _view => (
     clearer => 1,
     builder => sub {
         my $self = shift;
-        $self->schema or return;
         my ($view) = $self->schema->resultset('View')->search({
             'me.id'          => $self->id,
             'me.instance_id' => $self->instance_id,
         },{
             prefetch => ['sorts', 'alerts'],
         })->all;
+        # Check whether user has read access to view
+        if ($self->has_id && $self->user && !$view->global && !$view->is_admin
+            && !$self->user->{permission}->{layout} && $view->user_id != $self->user->{id}
+        )
+        {
+            error __x"User {user} does not have access to view {view}",
+                user => $self->user->{id}, view => $self->id;
+        }
         $view;
     },
 );
@@ -80,14 +87,14 @@ has global => (
     is      => 'rw',
     isa     => Bool,
     lazy    => 1,
-    builder => sub { $_[0]->_view && $_[0]->_view->global },
+    builder => sub { $_[0]->_view && $_[0]->_view->global || 0 },
 );
 
 has is_admin => (
     is      => 'rw',
     isa     => Bool,
     lazy    => 1,
-    builder => sub { $_[0]->_view && $_[0]->_view->is_admin },
+    builder => sub { $_[0]->_view && $_[0]->_view->is_admin || 0 },
 );
 
 has name => (
@@ -198,30 +205,37 @@ has owner => (
     builder => sub { $_[0]->_view && $_[0]->_view->user_id },
 );
 
-has writable => (
-    is => 'rw',
+has _writable => (
+    is      => 'lazy',
+    isa     => Bool,
+    clearer => 1,
 );
 
-# Validate what access the user has
-sub BUILD
+sub _build__writable
 {   my $self = shift;
-    if (!$self->has_id || !$self->user)
+    if (!$self->user)
     {
-        # New view or no user defined, therefore writable
-        $self->writable(1);
+        # Special case - no user means writable (for tests)
+        return 1;
     }
     elsif ($self->global || $self->is_admin)
     {
-        $self->writable(1) if $self->user->{permission}->{layout};
+        return 1 if $self->user->{permission}->{layout};
+    }
+    elsif (!$self->has_id)
+    {
+        # New view, not global
+        return 1;
+    }
+    elsif (!$self->owner && $self->user->{permission}->{layout})
+    {
+        return 1;
     }
     elsif ($self->owner && $self->owner == $self->user->{id})
     {
-        $self->writable(1);
+        return 1;
     }
-    else {
-        error __x"User {user} does not have access to view {view}",
-            user => $self->user->{id}, view => $self->id;
-    }
+    return 0;
 }
 
 sub write
@@ -229,35 +243,21 @@ sub write
 
     my $fatal = $options{no_errors} ? 0 : 1;
 
-    my $vu;
-    if (!$self->user) # Used during tests - no user
-    {
-        $vu->{global} = 1;
-    }
-    elsif ($self->user->{permission}->{layout})
-    {
-        $vu->{global}   = 0;
-        $vu->{is_admin} = 0;
-        $vu->{user_id}  = $self->user->{id};
-        if ($self->global)
-        {
-            $vu->{global}  = 1;
-            $vu->{user_id} = undef;
-        }
-        if ($self->is_admin)
-        {
-            $vu->{is_admin} = 1;
-            $vu->{user_id}  = undef;
-        }
-    }
-    else {
-        $vu->{global}  = 0;
-        $vu->{user_id} = $self->user->{id};
-    }
+    $self->name or error __"Please enter a name for the view";
 
-    $vu->{name}        = $self->name or error __"Please enter a name for the view";
-    $vu->{filter}      = $self->filter->as_json;
-    $vu->{instance_id} = $self->instance_id;
+    my $global   = !$self->user ? 1 : $self->global;
+    my $user_id  = $global || $self->is_admin ? undef : $self->user->{id};
+
+    $self->_clear_writable; # Force rebuild based on any updated values
+
+    my $vu = {
+        name        => $self->name,
+        filter      => $self->filter->as_json,
+        instance_id => $self->instance_id,
+        global      => $global,
+        is_admin    => $self->is_admin,
+        user_id     => $user_id,
+    };
 
     $self->clear_has_curuser;
 
@@ -293,8 +293,8 @@ sub write
 
     if ($self->id)
     {
-        $self->writable
-            or error __x"You do not have access to modify view {id}", id => $self->id;
+        $self->_writable
+            or error __x"User {user_id} does not have access to modify view {id}", user_id => $self->user->{id}, id => $self->id;
         $self->_view->update($vu);
 
         # Update any alert caches for new filter
@@ -391,7 +391,7 @@ sub write
 sub delete
 {   my $self = shift;
 
-    $self->writable
+    $self->_writable
         or error __x"You do not have permission to delete {id}", id => $self->id;
     my $vl = $self->schema->resultset('ViewLimit')->search({
         view_id => $self->id,

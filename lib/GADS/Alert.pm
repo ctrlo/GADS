@@ -84,7 +84,6 @@ has view_id => (
     trigger => sub {
         my ($self, $view_id) = @_;
         # Check that user has access to this view (borks on no access)
-        # XXX Check it does bork
         my $view    = GADS::View->new(
             user        => $self->user,
             id          => $view_id,
