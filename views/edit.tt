@@ -302,7 +302,10 @@
     [%# Skip if it's a child record and the value doesn't exist %]
     [% NEXT IF record.parent_id AND NOT (record.fields.$colid.has_value) AND NOT user.permission.create_child %]
     [%# Skip if it's a linked record and the value is linked %]
-    [% NEXT IF record.linked_id AND dispcol.link_parent %]
+    [% IF record.linked_id AND dispcol.link_parent %]
+        <input type="hidden" name="[% field %]">
+        [% NEXT %]
+    [% END %]
 
     [% IF existing %]
         [% oldvalue = existing.fields.$colid.html %] [%# All value already entity-encoded %]
