@@ -31,6 +31,7 @@ use namespace::clean;
 
 has id => (
     is        => 'rw',
+    clearer   => 1,
     predicate => 1,
 );
 
@@ -68,7 +69,11 @@ has _view => (
         },{
             prefetch => ['sorts', 'alerts'],
         })->all;
-        $view or return;
+        if (!$view)
+        {
+            $self->clear_id;
+            return;
+        }
         # Check whether user has read access to view
         if ($self->has_id && $self->user && !$view->global && !$view->is_admin
             && !$self->user->{permission}->{layout} && $view->user_id != $self->user->{id}
@@ -80,6 +85,11 @@ has _view => (
         $view;
     },
 );
+
+sub exists
+{   my $self = shift;
+    $self->_view && $self->_view->id ? 1 : 0;
+}
 
 # All the following have to be lazily built, otherwise it's
 # possible that the schema object to the database will not

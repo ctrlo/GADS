@@ -107,14 +107,14 @@ sub view
 {   my ($self, $view_id) =  @_;
     my $layout = $self->layout or die "layout needs to be defined to retrieve view";
     # Try to create a view using the ID. Don't bork if it fails
-    my $view    = try { GADS::View->new(
+    my $view = GADS::View->new(
         user        => $self->user,
         id          => $view_id,
         instance_id => $self->instance_id,
         schema      => $self->schema,
         layout      => $self->layout,
-    ); };
-    $view;
+    );
+    $view->exists ? $view : undef;
 }
 
 1;
