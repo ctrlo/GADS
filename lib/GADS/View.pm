@@ -68,6 +68,7 @@ has _view => (
         },{
             prefetch => ['sorts', 'alerts'],
         })->all;
+        $view or return;
         # Check whether user has read access to view
         if ($self->has_id && $self->user && !$view->global && !$view->is_admin
             && !$self->user->{permission}->{layout} && $view->user_id != $self->user->{id}
@@ -176,7 +177,7 @@ has columns => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        $self->_view or return;
+        $self->_view or return [];
         my @view_layouts = map {$_->layout_id} $self->_view->view_layouts;
         \@view_layouts,
     },
