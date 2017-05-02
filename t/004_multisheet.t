@@ -48,7 +48,7 @@ my $record2 = GADS::Record->new(
 );
 
 $record2->initialise;
-$record2->fields->{$columns2->{daterange1}->id}->set_value(['2010-10-10', '2012-10-10']);
+$record2->fields->{$columns2->{daterange1}->id}->set_value(['2010-10-15', '2013-10-10']);
 $record2->fields->{$columns2->{enum1}->id}->set_value([7]);
 $record2->write(no_alerts => 1);
 
@@ -64,15 +64,31 @@ $record2->write_linked_id($record1->current_id);
 
 my @filters = (
     {
-        name  => 'Basic',
+        name  => 'Basic - ascending',
         rules => [{
             id       => $columns2->{daterange1}->id,
             type     => 'daterange',
             value    => '2011-10-10',
             operator => 'contains',
         }],
+        sort   => 'asc',
         values => [
-            'string1: ,integer1: ,enum1: foo1,tree1: ,date1: ,daterange1: 2010-10-10 to 2012-10-10,file1: ,person1: ,rag1: b_red,calc1: 2010,',
+            'string1: Foo,integer1: ,enum1: foo1,tree1: ,date1: ,daterange1: 2010-10-10 to 2012-10-10,file1: ,person1: ,rag1: b_red,calc1: 2010,',
+            'string1: ,integer1: ,enum1: foo1,tree1: ,date1: ,daterange1: 2010-10-15 to 2013-10-10,file1: ,person1: ,rag1: b_red,calc1: 2010,',
+        ],
+        count => 2,
+    },
+    {
+        name  => 'Basic - descending',
+        rules => [{
+            id       => $columns2->{daterange1}->id,
+            type     => 'daterange',
+            value    => '2011-10-10',
+            operator => 'contains',
+        }],
+        sort   => 'desc',
+        values => [
+            'string1: ,integer1: ,enum1: foo1,tree1: ,date1: ,daterange1: 2010-10-15 to 2013-10-10,file1: ,person1: ,rag1: b_red,calc1: 2010,',
             'string1: Foo,integer1: ,enum1: foo1,tree1: ,date1: ,daterange1: 2010-10-10 to 2012-10-10,file1: ,person1: ,rag1: b_red,calc1: 2010,',
         ],
         count => 2,
@@ -96,6 +112,7 @@ foreach my $filter (@filters)
         user        => undef,
     );
     $view->write;
+    $view->set_sorts([ $columns2->{daterange1}->id ], $filter->{sort});
 
     my $records = GADS::Records->new(
         user    => undef,

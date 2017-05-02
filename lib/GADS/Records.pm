@@ -946,16 +946,16 @@ sub order_by
             unless $column->internal;
         my $s_table = $self->table_name($column, sort => 1, %options);
         $sort_count++;
-        my $sort_name = "sort_".$sort_count;
+        my $sort_name;
         if ($column->link_parent)
         {
-            push @{$self->_plus_select}, {
-                concat => [
-                    "$s_table.".$column->value_field,
-                    $self->table_name_linked($column->link_parent, sort => 1, linked => 1, %options).".".$column->value_field,
-                ],
-                -as    => $sort_name,
-            };
+            $self->add_join($column->link_parent, sort => 1);
+            my $main = "$s_table.".$column->value_field;
+            my $link = $self->table_name($column->link_parent, sort => 1, linked => 1, %options).".".$column->value_field;
+            $sort_name = $self->schema->resultset('Current')->helper_concat(
+                 { -ident => $main },
+                 { -ident => $link },
+            );
         }
         else {
             $sort_name = "$s_table.".$column->value_field;

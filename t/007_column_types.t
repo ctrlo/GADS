@@ -4,9 +4,9 @@ use warnings;
 
 use JSON qw(encode_json);
 use Log::Report;
+use GADS::Layout;
 use GADS::Column::Calc;
 use GADS::Filter;
-use GADS::Layout;
 use GADS::Record;
 use GADS::Records;
 use GADS::Schema;
