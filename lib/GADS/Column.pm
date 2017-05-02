@@ -629,6 +629,18 @@ sub delete
             Please remove these references before deletion of this field.", p => $p;
     }
 
+    # Now see if any linked fields depend on this one
+    if (my @linked = $self->schema->resultset('Layout')->search({
+            link_parent => $self->id
+        })->all
+    )
+    {
+        my @ln = map { $_->link_parent->name } @linked;
+        my $l  = join ', ', @ln;
+        error __x"The following fields in another datasheet are linked to this field: {l}.
+            Please remove these links before deletion of this field.", l => $l;
+    }
+
     if (my @graphs = $self->schema->resultset('Graph')->search(
             [
                 { x_axis => $self->id   },
