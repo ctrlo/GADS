@@ -360,7 +360,11 @@ sub _import_rows
 
             my $col = $self->fields->[$col_count];
 
-            if ($col->id == -11) # ID column
+            if (!$col)
+            {
+                push @bad, qq(Extraneous value found on row: "$value");
+            }
+            elsif ($col->id == -11) # ID column
             {
                 $input->{-11} = $value;
                 $col_count++;

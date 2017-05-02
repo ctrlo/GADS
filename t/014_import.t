@@ -56,6 +56,12 @@ my @tests = (
         count_off => 1,
     },
     {
+        data      => "string1\nFoo\nBar,FooBar", # Test for extra invalid values on row
+        option    => undef,
+        count_on  => 1,
+        count_off => 1,
+    },
+    {
         data      => "string1\nString content",
         option    => 'dry_run',
         count_on  => 0,
