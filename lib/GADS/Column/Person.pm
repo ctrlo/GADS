@@ -81,5 +81,16 @@ sub cleanup
     $schema->resultset('Person')->search({ layout_id => $id })->delete;
 }
 
+sub import_hash
+{   my ($self, $values) = @_;
+    $self->import_common($values);
+}
+
+sub export
+{   my $self = shift;
+    my $hash = $self->export_common;
+    $hash;
+}
+
 1;
 

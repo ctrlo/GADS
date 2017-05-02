@@ -76,5 +76,18 @@ sub cleanup
     $schema->resultset('Date')->search({ layout_id => $id })->delete;
 }
 
+sub import_hash
+{   my ($self, $values) = @_;
+    $self->import_common($values);
+    $self->show_datepicker($values->{show_datepicker});
+}
+
+sub export
+{   my $self = shift;
+    my $hash = $self->export_common;
+    $hash->{show_datepicker} = $self->show_datepicker;
+    $hash;
+}
+
 1;
 

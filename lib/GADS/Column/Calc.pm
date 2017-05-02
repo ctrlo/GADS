@@ -162,5 +162,22 @@ sub validate
     return 1;
 }
 
+sub import_hash
+{   my ($self, $values) = @_;
+    $self->import_common($values);
+    $self->code($values->{code});
+    $self->return_type($values->{return_type});
+    $self->decimal_places($values->{decimal_places});
+}
+
+sub export
+{   my $self = shift;
+    my $hash = $self->export_common;
+    $hash->{code}           = $self->code;
+    $hash->{return_type}    = $self->return_type;
+    $hash->{decimal_places} = $self->decimal_places;
+    $hash;
+}
+
 1;
 

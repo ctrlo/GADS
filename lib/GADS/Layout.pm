@@ -32,6 +32,7 @@ use GADS::Column::Person;
 use GADS::Column::Rag;
 use GADS::Column::String;
 use GADS::Column::Tree;
+use GADS::Instance;
 use Log::Report;
 use MIME::Base64;
 use String::CamelCase qw(camelize);
@@ -350,7 +351,7 @@ sub _order_dependencies
     return unless @columns;
 
     my %deps = map {
-        $_->id => $_->depends_on;
+        $_->id => $_->display_field ? [ $_->display_field ] : $_->depends_on,
     } @columns;
 
     my $source = Algorithm::Dependency::Source::HoA->new(\%deps);
@@ -435,6 +436,11 @@ sub user_can
         })->count;
     }
     $self->user_permissions->{$permission};
+}
+
+sub purge
+{   my $self = shift;
+    $_->delete foreach reverse $self->all(order_dependencies => 1);
 }
 
 1;

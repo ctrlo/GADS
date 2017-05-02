@@ -67,5 +67,18 @@ sub write_code
     return $need_update;
 }
 
+sub import_hash
+{   my ($self, $values) = @_;
+    $self->import_common($values);
+    $self->code($values->{code});
+}
+
+sub export
+{   my $self = shift;
+    my $hash = $self->export_common;
+    $hash->{code} = $self->code;
+    $hash;
+}
+
 1;
 

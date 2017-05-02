@@ -221,5 +221,20 @@ sub resultset_for_values
     });
 }
 
+sub import_hash
+{   my ($self, $values) = @_;
+    $self->import_common($values);
+    $self->enumvals($values->{enumvals});
+    $self->ordering($values->{ordering});
+}
+
+sub export
+{   my $self = shift;
+    my $hash = $self->export_common;
+    $hash->{enumvals} = $self->enumvals;
+    $hash->{ordering} = $self->ordering;
+    $hash;
+}
+
 1;
 

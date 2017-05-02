@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Graphs;
 
+use GADS::Graph;
 use Log::Report;
 use Moo;
 
@@ -79,6 +80,14 @@ sub _all
     }
 
     \@graphs;
+}
+
+sub purge
+{   my $self = shift;
+    foreach my $graph (@{$self->all})
+    {
+        $graph->delete;
+    }
 }
 
 sub dategroup

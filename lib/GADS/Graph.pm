@@ -232,6 +232,38 @@ sub write
     }
 }
 
+sub import_hash
+{   my ($self, $values) = @_;
+    $self->title($values->{title});
+    $self->description($values->{description});
+    $self->y_axis($values->{y_axis});
+    $self->y_axis_stack($values->{y_axis_stack});
+    $self->y_axis_label($values->{y_axis_label});
+    $self->x_axis($values->{x_axis});
+    $self->x_axis_grouping($values->{x_axis_grouping});
+    $self->group_by($values->{group_by});
+    $self->stackseries($values->{stackseries});
+    $self->type($values->{type});
+    $self->metric_group($values->{metric_group_id});
+}
+
+sub export
+{   my $self = shift;
+    +{
+        title           => $self->title,
+        description     => $self->description,
+        y_axis          => $self->y_axis,
+        y_axis_stack    => $self->y_axis_stack,
+        y_axis_label    => $self->y_axis_label,
+        x_axis          => $self->x_axis,
+        x_axis_grouping => $self->x_axis_grouping,
+        group_by        => $self->group_by,
+        stackseries     => $self->stackseries,
+        type            => $self->type,
+        metric_group    => $self->metric_group_id,
+    };
+}
+
 1;
 
 

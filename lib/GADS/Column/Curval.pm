@@ -520,4 +520,21 @@ sub cleanup
     $schema->resultset('CurvalField')->search({ parent_id => $id })->delete;
 }
 
+sub import_hash
+{   my ($self, $values) = @_;
+    $self->import_common($values);
+    $self->refers_to_instance($values->{refers_to_instance});
+    $self->typeahead($values->{typeahead});
+    $self->curval_field_ids($values->{curval_field_ids});
+}
+
+sub export
+{   my $self = shift;
+    my $hash = $self->export_common;
+    $hash->{refers_to_instance} = $self->refers_to_instance;
+    $hash->{typeahead}          = $self->typeahead;
+    $hash->{curval_field_ids}   = $self->curval_field_ids;
+    $hash;
+}
+
 1;

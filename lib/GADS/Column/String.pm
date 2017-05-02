@@ -34,7 +34,7 @@ has textbox => (
 
 has force_regex => (
     is      => 'rw',
-    isa     => Str,
+    isa     => Maybe[Str],
     lazy    => 1,
 );
 
@@ -66,6 +66,21 @@ sub write_special
 sub cleanup
 {   my ($class, $schema, $id) = @_;
     $schema->resultset('String')->search({ layout_id => $id })->delete
+}
+
+sub import_hash
+{   my ($self, $values) = @_;
+    $self->import_common($values);
+    $self->textbox($values->{textbox});
+    $self->force_regex($values->{force_regex});
+}
+
+sub export
+{   my $self = shift;
+    my $hash = $self->export_common;
+    $hash->{textbox}     = $self->textbox;
+    $hash->{force_regex} = $self->force_regex;
+    $hash;
 }
 
 1;
