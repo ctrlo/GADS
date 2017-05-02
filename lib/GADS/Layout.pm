@@ -362,9 +362,9 @@ sub _order_dependencies
 }
 
 sub position
-{   my ($self, $position) = @_;
+{   my ($self, @position) = @_;
     my $count;
-    foreach my $id (@$position)
+    foreach my $id (@position)
     {
         $count++;
         $self->schema->resultset('Layout')->find($id)->update({ position => $count });

@@ -1397,7 +1397,8 @@ any '/layout/?:id?' => require_role 'layout' => sub {
 
     if (param 'saveposition')
     {
-        if (process( sub { $layout->position(param('position')) }))
+        my @position = body_parameters->get_all('position');
+        if (process( sub { $layout->position(@position) }))
         {
             return forwardHome(
                 { success => "The ordering has been saved successfully" }, 'layout' );
