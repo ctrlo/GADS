@@ -25,7 +25,12 @@
     margin-bottom:10px;
   }
     .rules-group-header input[name$=_cond] {
-        width: 0px;
+/* Hack to make radio buttons appear (original CSS file includes width 0px).
+ * Normally this would be overridden in another CSS file, but given how much of
+ * a hack has already taken place, and given that we're stuck on this version
+ * for IE8 support, we might as well do this until a mjor upgrade to remove IE8
+ * support.
+/*       width: 0px; */
 /*      display:none; */
     }
 
