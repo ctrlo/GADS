@@ -25,7 +25,6 @@ use GADS::DateTime;
 use GADS::DB;
 use GADS::Filter;
 use GADS::Type::Permission;
-use GADS::Util qw(:all);
 use GADS::View;
 
 use Moo;

@@ -20,7 +20,6 @@ package GADS::AlertSend;
 
 use GADS::Email;
 use GADS::Records;
-use GADS::Util qw(:all);
 use GADS::Views;
 use List::MoreUtils qw/ uniq /;
 use Log::Report 'linkspace';

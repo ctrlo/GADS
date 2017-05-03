@@ -22,7 +22,6 @@ use JSON qw(decode_json encode_json);
 use Log::Report 'linkspace';
 use String::CamelCase qw(camelize);
 use Tree::DAG_Node;
-use GADS::Util qw(:all);
 
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;

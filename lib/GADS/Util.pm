@@ -1,43 +1,25 @@
+=pod
+GADS - Globally Accessible Data Store
+Copyright (C) 2017 Ctrl O Ltd
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+=cut
+
 use warnings;
 use strict;
 
 package GADS::Util;
-use base 'Exporter';
-
-my @permissions = qw/
-  UPDATE
-  UPDATE_NONEED_APPROVAL
-  CREATE
-  CREATE_NONEED_APPROVAL
-  APPROVER
-  ADMIN
-  OPEN
-  APPROVE
-  READONLY
- /;
-
-# push @listconfig, qw(format_email format_from_html format_from_plain format_from_mailto);
-our @EXPORT_OK   = (@permissions, 'rfield');
-our %EXPORT_TAGS =
-  ( permissions => \@permissions
-  , all         => \@EXPORT_OK
-  );
-
-use Carp;
-# listconfig moderate values
-use constant
-  { #### User permissions
-    UPDATE                 => 1   # update records without approval
-  , UPDATE_NONEED_APPROVAL => 2   # update records with approval
-  , CREATE                 => 4   # create new records without approval
-  , CREATE_NONEED_APPROVAL => 8   # create new records with approval
-  , APPROVER               => 16  # Approve update requests
-  , ADMIN                  => 32  # Administrator
-    #### Field permissions
-  , OPEN                   => 0   # Open access, anyone can write
-  , APPROVE                => 1   # Approval needed for writes
-  , READONLY               => 2   # Read-only field
-  };
 
 1;
 
