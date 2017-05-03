@@ -18,9 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Users;
 
-use Email::Valid;
 use GADS::Email;
 use GADS::Instance;
+use GADS::Util;
 use Log::Report 'linkspace';
 use Text::CSV::Encoded;
 
@@ -172,7 +172,7 @@ sub register
     my $site = $self->schema->resultset('Site')->find($self->schema->site_id);
 
     error __"Please enter a valid email address"
-        unless Email::Valid->address($params{email});
+        unless GADS::Util->email_valid($params{email});
 
     my @fields = qw(firstname surname email account_request_notes);
     push @fields, 'organisation' if $site->register_show_organisation;

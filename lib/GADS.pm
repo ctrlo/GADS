@@ -55,10 +55,9 @@ use GADS::Records;
 use GADS::RecordsGroup;
 use GADS::Type::Permissions;
 use GADS::Users;
-use GADS::Util         qw(:all);
+use GADS::Util;
 use GADS::View;
 use GADS::Views;
-use Email::Valid;
 use HTML::Entities;
 use JSON qw(decode_json encode_json);
 use MIME::Base64;
@@ -1465,7 +1464,7 @@ any '/user/?:id?' => require_role useradmin => sub {
         my $newuser; my $result;
         if (!param('account_request') && param('username')) # Original username to update (hidden field)
         {
-            if (!Email::Valid->address(param('email')))
+            if (!GADS::Util->email_valid(param('email')))
             {
                 report {is_fatal=>0}, ERROR => "Please enter a valid email address for the new user";
             }
@@ -1478,7 +1477,7 @@ any '/user/?:id?' => require_role useradmin => sub {
             {
                 report {is_fatal => 0}, ERROR => __"An email address must be specified for the new user";
             }
-            elsif (!Email::Valid->address(param('email')))
+            elsif (!GADS::Util->email_valid(param('email')))
             {
                 report {is_fatal => 0}, ERROR => __"Please enter a valid email address for the new user";
             }

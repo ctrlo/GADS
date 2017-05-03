@@ -21,5 +21,13 @@ use strict;
 
 package GADS::Util;
 
+# Noddy email address validator. Not much point trying to be too clever here.
+# We don't use Email::Valid, as that will check for RFC822 address as opposed
+# to pure email address on its own.
+sub email_valid
+{   my ($class, $email) = @_;
+    $email =~ m/^\S+@\S+\.\S+$/;
+}
+
 1;
 
