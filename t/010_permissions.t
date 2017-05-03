@@ -11,7 +11,6 @@ use GADS::Layout;
 use GADS::Record;
 use GADS::Records;
 use GADS::Schema;
-use GADS::User;
 
 use t::lib::DataSheet;
 
@@ -93,7 +92,7 @@ is( scalar @{$groups->all}, 3, "Groups created successfully");
 my %groups;
 foreach my $group (@{$groups->all})
 {
-    my $usero = GADS::User->new(schema => $schema, id => $users{$group->name}->{id});
+    my $usero = $schema->resultset('User')->find($users{$group->name}->{id});
     $usero->groups([$group->id]);
     $groups{$group->name} = $group->id;
 }
