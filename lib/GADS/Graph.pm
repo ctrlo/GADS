@@ -209,7 +209,7 @@ sub write
     $newgraph->{title}           = $self->title or error __"Please enter a title";
     $newgraph->{description}     = $self->description;
     $newgraph->{y_axis}          = $self->y_axis or error __"Please select a Y-axis";
-    $newgraph->{y_axis_stack}    = $self->y_axis_stack or error __"A valid is required for Y-xis stacking";
+    $newgraph->{y_axis_stack}    = $self->y_axis_stack or error __"A valid value is required for Y-axis stacking";
     $newgraph->{y_axis_label}    = $self->y_axis_label;
     $newgraph->{x_axis}          = $self->x_axis;
     $newgraph->{x_axis_grouping} = $self->x_axis_grouping;
