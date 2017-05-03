@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Datum::Rag;
 
-use Log::Report;
+use Log::Report 'linkspace';
 use Moo;
 use namespace::clean;
 

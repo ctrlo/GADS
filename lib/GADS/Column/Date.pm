@@ -20,7 +20,7 @@ package GADS::Column::Date;
 
 use DateTime::Format::CLDR;
 use GADS::View;
-use Log::Report;
+use Log::Report 'linkspace';
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 

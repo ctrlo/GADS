@@ -33,7 +33,7 @@ use GADS::Column::Rag;
 use GADS::Column::String;
 use GADS::Column::Tree;
 use GADS::Instance;
-use Log::Report;
+use Log::Report 'linkspace';
 use MIME::Base64;
 use String::CamelCase qw(camelize);
 

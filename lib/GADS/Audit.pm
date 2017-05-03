@@ -20,6 +20,7 @@ package GADS::Audit;
 
 use DateTime;
 use GADS::Datum::Person;
+use Log::Report 'linkspace';
 use Moo;
 use MooX::Types::MooseLike::Base qw/ArrayRef HashRef/;
 

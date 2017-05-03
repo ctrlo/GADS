@@ -11,7 +11,7 @@ GADS::Schema::Result::Instance
 use strict;
 use warnings;
 
-use Log::Report;
+use Log::Report 'linkspace';
 
 use base 'DBIx::Class::Core';
 

@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Column::Person;
 
-use Log::Report;
+use Log::Report 'linkspace';
 use GADS::Users;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;

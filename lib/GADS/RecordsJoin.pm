@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::RecordsJoin;
 
 use Data::Compare;
-use Log::Report;
+use Log::Report 'linkspace';
 use Moo::Role;
 use MooX::Types::MooseLike::Base qw(:all);
 

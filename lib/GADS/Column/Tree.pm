@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Column::Tree;
 
 use JSON qw(decode_json encode_json);
-use Log::Report;
+use Log::Report 'linkspace';
 use String::CamelCase qw(camelize);
 use Tree::DAG_Node;
 use GADS::Util qw(:all);

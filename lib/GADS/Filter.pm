@@ -20,7 +20,7 @@ package GADS::Filter;
 
 use Data::Compare qw/Compare/;
 use JSON qw(decode_json encode_json);
-use Log::Report;
+use Log::Report 'linkspace';
 use MIME::Base64;
 
 use Moo;

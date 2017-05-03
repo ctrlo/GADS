@@ -23,7 +23,7 @@ use GADS::Records;
 use GADS::Util qw(:all);
 use GADS::Views;
 use List::MoreUtils qw/ uniq /;
-use Log::Report;
+use Log::Report 'linkspace';
 use Scalar::Util qw(looks_like_number);
 
 use Moo;

@@ -20,7 +20,7 @@ package GADS::Column::Curval;
 
 use GADS::Config;
 use GADS::Records;
-use Log::Report;
+use Log::Report 'linkspace';
 
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;

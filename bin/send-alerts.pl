@@ -26,7 +26,7 @@ use GADS::Alert;
 use GADS::Email;
 use Dancer2;
 use Dancer2::Plugin::DBIC;
-use Dancer2::Plugin::LogReport mode => 'NORMAL';
+use Dancer2::Plugin::LogReport 'linkspace', mode => 'NORMAL';
 
 my $url = config->{gads}->{url};
 $url =~ s!/$!!; # Remove trailing slash

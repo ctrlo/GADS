@@ -22,7 +22,7 @@ use DateTime;
 use DateTime::Format::DateManip;
 use DateTime::Span;
 use GADS::SchemaInstance;
-use Log::Report;
+use Log::Report 'linkspace';
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 

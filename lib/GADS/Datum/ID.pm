@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Datum::ID;
 
-use Log::Report;
+use Log::Report 'linkspace';
 use Moo;
 
 extends 'GADS::Datum';

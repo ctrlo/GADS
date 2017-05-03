@@ -4,7 +4,7 @@ use warnings;
 package GADS::DBICProfiler;
 use base 'DBIx::Class::Storage::Statistics';
 
-use Log::Report;#  import => 'trace';
+use Log::Report 'linkspace';
 use Time::HiRes  qw(time);
 
 my $start;

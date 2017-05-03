@@ -20,7 +20,7 @@ package GADS::Datum::Person;
 
 use DateTime;
 use HTML::Entities;
-use Log::Report;
+use Log::Report 'linkspace';
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 use namespace::clean;

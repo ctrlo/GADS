@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Graphs;
 
 use GADS::Graph;
-use Log::Report;
+use Log::Report 'linkspace';
 use Moo;
 
 # Not required so that dategroup can be called separately

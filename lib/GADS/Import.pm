@@ -21,7 +21,7 @@ package GADS::Import;
 use DateTime;
 use GADS::Record;
 use List::MoreUtils 'first_index';
-use Log::Report;
+use Log::Report 'linkspace';
 use Scope::Guard qw(guard);
 use Text::CSV;
 use Moo;

@@ -36,7 +36,7 @@ use GADS::Datum::Rag;
 use GADS::Datum::String;
 use GADS::Datum::Tree;
 use GADS::Util         qw(:all);
-use Log::Report;
+use Log::Report 'linkspace';
 use JSON qw(encode_json);
 use POSIX ();
 use Scope::Guard qw(guard);

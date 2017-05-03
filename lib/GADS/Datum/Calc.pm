@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Datum::Calc;
 
-use Log::Report;
+use Log::Report 'linkspace';
 use Math::Round qw/round/;
 use Moo;
 use Scalar::Util qw(looks_like_number);

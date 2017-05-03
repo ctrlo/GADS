@@ -21,7 +21,7 @@ package GADS::Datum::Date;
 use GADS::SchemaInstance;
 use DateTime;
 use DateTime::Format::DateManip;
-use Log::Report;
+use Log::Report 'linkspace';
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 use namespace::clean;

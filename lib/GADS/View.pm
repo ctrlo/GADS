@@ -21,7 +21,7 @@ package GADS::View;
 use GADS::Alert;
 use GADS::Filter;
 use GADS::Schema;
-use Log::Report;
+use Log::Report 'linkspace';
 use MIME::Base64;
 use String::CamelCase qw(camelize);
 

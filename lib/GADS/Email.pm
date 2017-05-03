@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Email;
 
-use Log::Report;
+use Log::Report 'linkspace';
 use Mail::Message;
 use Mail::Message::Body::String;
 use Mail::Transport::Sendmail;

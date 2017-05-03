@@ -21,7 +21,7 @@ package GADS::Users;
 use Email::Valid;
 use GADS::Email;
 use GADS::Instance;
-use Log::Report;
+use Log::Report 'linkspace';
 use Text::CSV::Encoded;
 
 use Moo;

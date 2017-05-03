@@ -25,7 +25,7 @@ use DBIx::Class::ResultClass::HashRefInflator;
 use GADS::Record;
 use GADS::View;
 use HTML::Entities;
-use Log::Report;
+use Log::Report 'linkspace';
 use POSIX qw(ceil);
 use Scalar::Util qw(looks_like_number);
 use Text::CSV::Encoded;

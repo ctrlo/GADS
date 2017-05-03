@@ -21,7 +21,7 @@ package GADS::Datum::Code;
 use Data::Dumper;
 use GADS::Safe;
 use String::CamelCase qw(camelize); 
-use Log::Report;
+use Log::Report 'linkspace';
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 use namespace::clean;
