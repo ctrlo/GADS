@@ -408,10 +408,7 @@ sub _import_rows
             }
             elsif ($col->type eq "daterange")
             {
-                $value =~ s!/!-!g; # Change date delimiters from slash to hyphen
-                $value =~ s!^([0-9]{1,2})-([0-9]{1,2})-([0-9]{4})$!$3-$2-$1!; # Allow wrong way round
-                $value =~ s/^([0-9]{4})([0-9]{2})([0-9]{2})$/$1-$2-$3/; # Allow no delimter. Assume yyyymmdd
-                if ($value =~ /^([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})\h*(-|to)\h*([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})$/)
+                if ($value =~ /^(\H+)\h*(-|to)\h*(\H+)$/)
                 {
                     $input->{$col->id} = [$1,$3];
                 }
