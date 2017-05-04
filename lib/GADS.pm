@@ -1919,15 +1919,13 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
         my $failed_initial; my @updated;
         foreach my $col (@columns_to_show)
         {
-            next unless defined body_parameters->get($col->field);
+            next unless body_parameters->get('bulk_inc_'.$col->id); # Is it ticked to be included?
             my $newv = [body_parameters->get_all($col->field)];
-            if (defined $newv)
-            {
-                my $datum = $record->fields->{$col->id};
-                $failed_initial = !process( sub { $datum->set_value($newv, bulk => 1) } ) || $failed_initial;
-                push @updated, $col
-                    if $datum->written_valid;
-            }
+            my $datum = $record->fields->{$col->id};
+            my $success = process( sub { $datum->set_value($newv, bulk => 1) } );
+            push @updated, $col
+                if $success;
+            $failed_initial = $failed_initial || !$success;
         }
         if (!$failed_initial)
         {
@@ -1978,15 +1976,18 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
     my $count_msg = __xn", which contains 1 record.", ", which contains {_count} records.", $count;
     if ($type eq 'update')
     {
-        my $notice = __x qq(Use this page to update all records in the currently selected view.
-            Fields without a value entered will retain their existing value.
+        my $notice = __x qq(Use this page to update all records in the
+            currently selected view.  Tick the fields whose values should be
+            updated. Fields that are not ticked will retain their existing value.
             The current view is "{view}"), view => $view_name;
         notice $notice.$count_msg;
     }
     else {
-        my $notice = __x qq(Use this page to bulk clone all of the records in the currently selected view.
-            The cloned records will be created using the same existing values by default, but replaced with
-            the values below where entered. The current view is "{view}"), view => $view_name;
+        my $notice = __x qq(Use this page to bulk clone all of the records in
+            the currently selected view.  The cloned records will be created using
+            the same existing values by default, but replaced with the values below
+            where that value is ticked. Values that are not ticked will be cloned
+            with their current value. The current view is "{view}"), view => $view_name;
         notice $notice.$count_msg;
     }
 

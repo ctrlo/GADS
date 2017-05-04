@@ -378,6 +378,13 @@
                     > <span [% label_style %]>[% label %]</span> (tick for own value, untick to inherit)
                 </label>
             </div>
+        [% ELSIF page == "bulk" %]
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="bulk_inc_[% dispcol.id %]" value="1"
+                    > <span [% label_style %]>[% label %]</span>
+                </label>
+            </div>
         [% ELSE %]
             <label for="[% dispcol.id %]" [% label_style %]>
                 [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
