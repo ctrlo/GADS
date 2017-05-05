@@ -118,3 +118,13 @@ table.floatThead-table {
     white-space: nowrap;
 }
 
+/* show radio buttons in query-builder and/or buttons */
+.query-builder .rules-group-header input[name$=_cond] {
+    display:inline-block
+}
+
+/* workaround IE8 unable to use calc() in CSS */
+.query-builder .rules-list>*:before,
+  .query-builder .rules-list>*:after {
+    height:60%;
+}
