@@ -143,24 +143,6 @@ sub delete_metric
     })->delete;
 }
 
-sub export
-{   my $self = shift;
-    my $json = {
-        name    => $self->name,
-        metrics => [],
-    };
-    foreach my $metric (@{$self->metrics})
-    {
-        push @{$json->{metrics}}, {
-            id                    => $metric->id,
-            x_axis_value          => $metric->x_axis_value,
-            target                => $metric->target,
-            y_axis_grouping_value => $metric->y_axis_grouping_value,
-        };
-    }
-    $json;
-}
-
 1;
 
 

@@ -47,7 +47,7 @@
                         <option value="">&lt;Not linked&gt;</option>
                         [% FOREACH l IN instance_layouts %]
                             [% FOREACH c IN l.layout.all %]
-                                <option value="[% c.id %]" [% IF column.link_parent.id == c.id %]selected[% END %]>[% l.instance.name %] - [% c.name %]</option>
+                                <option value="[% c.id %]" [% IF column.link_parent_id == c.id %]selected[% END %]>[% l.instance.name %] - [% c.name %]</option>
                             [% END %]
                         [% END %]
                     </select>

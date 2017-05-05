@@ -73,18 +73,5 @@ sub cleanup
     $schema->resultset('FileOption')->search({ layout_id => $id })->delete;
 };
 
-sub import_hash
-{   my ($self, $values) = @_;
-    $self->import_common($values);
-    $self->filesize($values->{filesize});
-}
-
-sub export
-{   my $self = shift;
-    my $hash = $self->export_common;
-    $hash->{filesize} = $self->filesize;
-    $hash;
-}
-
 1;
 

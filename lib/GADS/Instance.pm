@@ -20,8 +20,6 @@ package GADS::Instance;
 
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
-use GADS::Config;
-use GADS::Layout;
 
 use overload 'bool' => sub { 1 }, '""'  => 'as_string', '0+' => 'as_integer', fallback => 1;
 
@@ -218,50 +216,6 @@ sub as_string
 sub as_integer
 {   my $self = shift;
     $self->id;
-}
-
-sub export
-{   my $self = shift;
-    +{
-        name                       => $self->name,
-        homepage_text              => $self->homepage_text,
-        homepage_text2             => $self->homepage_text2,
-        sort_layout_id             => $self->sort_layout_id,
-        sort_type                  => $self->sort_type,
-        register_title_help        => $self->register_title_help,
-        register_email_help        => $self->register_email_help,
-        register_telephone_help    => $self->register_telephone_help,
-        register_organisation_help => $self->register_organisation_help,
-        register_notes_help        => $self->register_notes_help,
-    };
-}
-
-sub purge
-{   my $self = shift;
-
-    my $layout = GADS::Layout->new(
-        user        => undef,
-        instance_id => $self->id,
-        schema      => $self->schema,
-        config      => GADS::Config->instance,
-    );
-
-    GADS::Graphs->new(schema => $self->schema, layout => $layout)->purge;
-    GADS::MetricGroups->new(schema => $self->schema, instance_id => $self->id)->purge;
-    GADS::Views->new(schema => $self->schema, instance_id => $self->id, user => undef, layout => $layout)->purge;
-
-    $layout->purge;
-
-    $self->schema->resultset('UserLastrecord')->delete;
-    $self->schema->resultset('Record')->search({
-        instance_id => $self->id,
-    },{
-        join => 'current',
-    })->delete;
-    $self->schema->resultset('Current')->search({
-        instance_id => $self->id,
-    })->delete;
-    $self->_rset->delete;
 }
 
 1;

@@ -117,13 +117,5 @@ sub view
     $view->exists ? $view : undef;
 }
 
-sub purge
-{   my $self = shift;
-    foreach my $view (@{$self->all})
-    {
-        $view->delete;
-    }
-}
-
 1;
 

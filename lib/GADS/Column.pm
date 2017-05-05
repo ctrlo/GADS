@@ -968,50 +968,5 @@ sub code_regex
     qr/\[\^?\Q$name\E$suffix\Q]/i;
 }
 
-sub import_common
-{   my ($self, $values) = @_;
-    $self->name($values->{name});
-    $self->name_short($values->{name_short});
-    $self->optional($values->{optional});
-    $self->remember($values->{remember});
-    $self->isunique($values->{isunique});
-    $self->position($values->{position});
-    $self->description($values->{description});
-    $self->helptext($values->{helptext});
-    $self->display_field($values->{display_field});
-    $self->display_regex($values->{display_regex});
-    $self->link_parent($values->{link_parent});
-    $self->multivalue($values->{multivalue});
-    $self->filter(GADS::Filter->new(as_hash => $values->{filter}));
-}
-
-sub export_common
-{   my $self = shift;
-    my $permissions;
-    foreach my $perm ($self->schema->resultset('LayoutGroup')->search({ layout_id => $self->id })->all)
-    {
-        $permissions->{$perm->group_id} ||= [];
-        push @{$permissions->{$perm->group_id}}, $perm->permission;
-    }
-    +{
-        id            => $self->id,
-        type          => $self->type,
-        name          => $self->name,
-        name_short    => $self->name_short,
-        optional      => $self->optional,
-        remember      => $self->remember,
-        isunique      => $self->isunique,
-        position      => $self->position,
-        description   => $self->description,
-        helptext      => $self->helptext,
-        display_field => $self->display_field,
-        display_regex => $self->display_regex,
-        link_parent   => $self->link_parent && $self->link_parent->id,
-        multivalue    => $self->multivalue,
-        filter        => $self->filter->as_hash,
-        permissions   => $permissions,
-    };
-}
-
 1;
 

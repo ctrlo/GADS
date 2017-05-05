@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Column::Tree;
 
-use JSON qw(decode_json encode_json);
 use Log::Report 'linkspace';
 use String::CamelCase qw(camelize);
 use Tree::DAG_Node;
@@ -430,21 +429,6 @@ sub resultset_for_values
             deleted   => 0,
         });
     }
-}
-
-sub import_hash
-{   my ($self, $values) = @_;
-    $self->import_common($values);
-    $self->end_node_only($values->{end_node_only});
-    $self->update($values->{tree});
-}
-
-sub export
-{   my $self = shift;
-    my $hash = $self->export_common;
-    $hash->{end_node_only} = $self->end_node_only;
-    $hash->{tree}          = $self->json; # Not actually JSON
-    $hash;
 }
 
 1;
