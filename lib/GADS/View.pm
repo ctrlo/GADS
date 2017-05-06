@@ -395,7 +395,7 @@ sub write
     }
     # Delete those no longer there
     $search = { view_id => $self->id };
-    $search->{layout_id} = { '!=' => [ '-and', map { $_->{field} } @all_filters ] } if @all_filters;
+    $search->{layout_id} = { '!=' => [ '-and', map { $_->{id} } @all_filters ] } if @all_filters;
     $self->schema->resultset('Filter')->search($search)->delete;
 }
 

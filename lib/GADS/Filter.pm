@@ -126,7 +126,7 @@ has column_ids => (
 
 sub _build_column_ids
 {   my $self = shift;
-    [ map { $_->{field} } @{$self->filters} ];
+    [ map { $_->{id} } @{$self->filters} ];
 }
 
 # All the filters in a flat structure
