@@ -1,0 +1,169 @@
+This patch contains the differences from query-builder.js v1.4.2 as released, to
+that which is used in Linkspace.  It contains fixes to make it IE8 compatible,
+and a data option to allow custom values to be passed within rules.
+
+--- dist/query-builder.standalone.js	2017-05-05 13:48:50.356533323 +0100
++++ ../GADS/public/js/query-builder.standalone.js	2017-05-06 16:12:25.331350460 +0100
+@@ -88,7 +88,7 @@
+             if (typeof events === 'object') {
+                 for (var event in events) {
+                     if (events.hasOwnProperty(event) && (event in this._events)) {
+-                        var index = this._events[event].indexOf(events[event]);
++                        var index = _.indexOf(this._events[event],events[event]);
+                         if (index !== -1) this._events[event].splice(index, 1);
+                     }
+                 }
+@@ -97,7 +97,7 @@
+                 events.split(' ').forEach(function(event) {
+                     if (event in this._events) {
+                         if (fct) {
+-                            var index = this._events[event].indexOf(fct);
++                            var index = _.indexOf(this._events[event],fct);
+                             if (index !== -1) this._events[event].splice(index, 1);
+                         }
+                         else {
+@@ -323,7 +323,7 @@
+                 var type = $.isArray(e) ? [] : {};
+                 clone[i] = $.extendext( deep, arrayMode, clone[i] || type, e );
+ 
+-              } else if (clone.indexOf(e) === -1) {
++              } else if (_.indexOf(clone,e) === -1) {
+                 clone.push(e);
+               }
+             });
+@@ -837,7 +837,7 @@
+                     $rule.find('.rule-operator-container [name$=_operator]').val(rule.operator).trigger('change');
+ 
+                     if (operator.accept_values !== 0) {
+-                        that.setRuleValue($rule, rule.value, filter, operator);
++                        that.setRuleValue($rule, rule.value, filter, operator, rule.data);
+                     }
+ 
+                     that.applyRuleFlags($rule, rule);
+@@ -859,7 +859,7 @@
+             if (!filter.id) {
+                 $.error('Missing filter id: '+ i);
+             }
+-            if (definedFilters.indexOf(filter.id) != -1) {
++            if (_.indexOf(definedFilters,filter.id) != -1) {
+                 $.error('Filter already defined: '+ filter.id);
+             }
+             definedFilters.push(filter.id);
+@@ -867,14 +867,14 @@
+             if (!filter.type) {
+                 $.error('Missing filter type: '+ filter.id);
+             }
+-            if (types.indexOf(filter.type) == -1) {
++            if (_.indexOf(types,filter.type) == -1) {
+                 $.error('Invalid type: '+ filter.type);
+             }
+ 
+             if (!filter.input) {
+                 filter.input = 'text';
+             }
+-            else if (typeof filter.input != 'function' && inputs.indexOf(filter.input) == -1) {
++            else if (typeof filter.input != 'function' && _.indexOf(inputs,filter.input) == -1) {
+                 $.error('Invalid input: '+ filter.input);
+             }
+ 
+@@ -1525,12 +1525,12 @@
+         for (var i=0, l=this.operators.length; i<l; i++) {
+             // filter operators check
+             if (filter.operators) {
+-                if (filter.operators.indexOf(this.operators[i].type) == -1) {
++                if (_.indexOf(filter.operators,this.operators[i].type) == -1) {
+                     continue;
+                 }
+             }
+             // type check
+-            else if (this.operators[i].apply_to.indexOf(filter.internalType) == -1) {
++            else if (_.indexOf(this.operators[i].apply_to,filter.internalType) == -1) {
+                 continue;
+             }
+ 
+@@ -1540,7 +1540,7 @@
+         // keep sort order defined for the filter
+         if (filter.operators) {
+             result.sort(function(a, b) {
+-                return filter.operators.indexOf(a.type) - filter.operators.indexOf(b.type);
++                return _.indexOf(filter.operators,a.type) - _.indexOf(filter.operators,b.type);
+             });
+         }
+ 
+@@ -1670,14 +1670,14 @@
+      * @param filter {object}
+      * @param operator {object}
+      */
+-    QueryBuilder.prototype.setRuleValue = function($rule, value, filter, operator) {
++    QueryBuilder.prototype.setRuleValue = function($rule, value, filter, operator, data) {
+         filter = filter || this.getFilterById(this.getRuleFilter($rule));
+         operator = operator || this.getOperatorByType(this.getRuleOperator($rule));
+ 
+         this.trigger('beforeSetRuleValue', $rule, value, filter, operator);
+ 
+         if (filter.valueSetter) {
+-            filter.valueSetter.call(this, $rule, value, filter, operator);
++            filter.valueSetter.call(this, $rule, value, filter, operator, data);
+         }
+         else {
+             var $value = $rule.find('.rule-value-container');
+@@ -1846,6 +1846,7 @@
+         h+= '<option value="-1">'+ this.lang.filter_select_placeholder +'</option>';
+ 
+         $.each(this.filters, function(i, filter) {
++            if (typeof filter == "undefined") return true; // Allows trailing commas of arrays in IE8
+             if (optgroup != filter.optgroup) {
+                 if (optgroup !== null) h+= '</optgroup>';
+                 optgroup = filter.optgroup;
+@@ -2256,7 +2257,7 @@ $.fn.queryBuilder.defaults.set({
+                 if (!data.condition) {
+                     data.condition = that.settings.default_condition;
+                 }
+-                if (['AND', 'OR'].indexOf(data.condition.toUpperCase()) === -1) {
++                if (_.indexOf(['AND', 'OR'],data.condition.toUpperCase()) === -1) {
+                     $.error('Unable to build Loopback query with '+ data.condition +' condition');
+                 }
+ 
+@@ -2421,7 +2422,7 @@ $.fn.queryBuilder.defaults.set({
+                 if (!data.condition) {
+                     data.condition = that.settings.default_condition;
+                 }
+-                if (['AND', 'OR'].indexOf(data.condition.toUpperCase()) === -1) {
++                if (_.indexOf(['AND', 'OR'],data.condition.toUpperCase()) === -1) {
+                     $.error('Unable to build MongoDB query with '+ data.condition +' condition');
+                 }
+ 
+@@ -2487,7 +2488,7 @@ $.fn.queryBuilder.defaults.set({
+                 if (topKeys.length > 1) {
+                     $.error('Invalid MongoDB query format.');
+                 }
+-                if (conditions.indexOf(topKeys[0].toLowerCase()) === -1) {
++                if (_.indexOf(conditions,topKeys[0].toLowerCase()) === -1) {
+                     $.error('Unable to build Rule from MongoDB query with '+ topKeys[0] +' condition');
+                 }
+ 
+@@ -2498,7 +2499,7 @@ $.fn.queryBuilder.defaults.set({
+                 $.each(rules, function(i, rule) {
+                     var keys = Object.keys(rule);
+ 
+-                    if (conditions.indexOf(keys[0].toLowerCase()) !== -1) {
++                    if (_.indexOf(conditions,keys[0].toLowerCase()) !== -1) {
+                         parts.push(parse(rule));
+                     }
+                     else {
+@@ -2798,7 +2799,7 @@ $.fn.queryBuilder.defaults.set({
+                 if (!data.condition) {
+                     data.condition = that.settings.default_condition;
+                 }
+-                if (['AND', 'OR'].indexOf(data.condition.toUpperCase()) === -1) {
++                if (_.indexOf(['AND', 'OR'],data.condition.toUpperCase()) === -1) {
+                     $.error('Unable to build SQL query with '+ data.condition +' condition');
+                 }
+ 
+@@ -2960,4 +2961,4 @@ $.fn.queryBuilder.defaults.set({
+           .replace(/\t/g, '\\t')
+           .replace(/\x1a/g, '\\Z');
+     }
+-}));
+\ No newline at end of file
++}));
