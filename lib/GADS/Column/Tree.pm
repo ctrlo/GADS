@@ -36,6 +36,10 @@ has '+value_field_as_index' => (
     default => 'id',
 );
 
+has '+has_filter_typeahead' => (
+    default => 1,
+);
+
 has end_node_only => (
     is      => 'rw',
     isa     => Bool,

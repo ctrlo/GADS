@@ -73,6 +73,10 @@ has '+variable_join' => (
     default => 1,
 );
 
+has '+has_filter_typeahead' => (
+    default => 1,
+);
+
 # Tell the column that it needs to include all fields when selecting from
 # the sheet referred to. This can be called at any time, so we need to clear
 # existing properties such as joins which will then be reuilt
@@ -268,6 +272,12 @@ sub _build_values_index
     my @values = @{$self->values};
     my %values = map { $_->{id} => $_->{value} } @values;
     \%values;
+}
+
+sub filter_value_to_text
+{   my ($self, $id) = @_;
+    my $rows = $self->ids_to_values([$id]);
+    $rows->[0]->{value};
 }
 
 # Used to return a formatted value for a single datum. Normally called from a

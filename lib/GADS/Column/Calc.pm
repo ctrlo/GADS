@@ -30,6 +30,10 @@ has '+type' => (
     default => 'calc',
 );
 
+has '+has_filter_typeahead' => (
+    default => 1,
+);
+
 sub _build__rset_code
 {   my $self = shift;
     $self->_rset or return;

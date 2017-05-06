@@ -139,8 +139,8 @@ has filter => (
     builder => sub {
         my $self = shift;
         my $filter = $self->_view # Don't trigger changed() in Filter
-            ? GADS::Filter->new(as_json => $self->_view->filter)
-            : GADS::Filter->new;
+            ? GADS::Filter->new(layout => $self->layout, as_json => $self->_view->filter)
+            : GADS::Filter->new(layout => $self->layout);
     },
 );
 
@@ -203,9 +203,9 @@ has has_curuser => (
 sub _build_has_curuser
 {   my $self = shift;
     grep {
-        ($self->layout->column($_->{field})->type eq 'person'
+        ($self->layout->column($_->{id})->type eq 'person'
             && $_->{value} eq '[CURUSER]')
-        || ($self->layout->column($_->{field})->return_type eq 'string'
+        || ($self->layout->column($_->{id})->return_type eq 'string'
             && $_->{value} eq '[CURUSER]')
     } @{$self->filter->filters};
 }
@@ -276,7 +276,7 @@ sub write
     # access to them.
     foreach my $filter (@{$self->filter->filters})
     {
-        my $col   = $self->layout->column($filter->{field});
+        my $col   = $self->layout->column($filter->{id});
         my $val   = $filter->{value};
         my $op    = $filter->{operator};
         my $rtype = $col->return_type;
@@ -298,7 +298,7 @@ sub write
 
         error __x "No value can be entered for empty and not empty operators"
             if ($op eq 'is_empty' || $op eq 'is_not_empty') && $val;
-        error __x"Invalid field ID {id} in filter", id => $filter->{field}
+        error __x"Invalid field ID {id} in filter", id => $filter->{id}
             unless $col->user_can('read');
     }
 
@@ -382,14 +382,14 @@ sub write
     my @all_filters = @{$self->filter->filters};
     foreach my $filter (@all_filters)
     {
-        unless (grep { $_->layout_id == $filter->{field} } @existing)
+        unless (grep { $_->layout_id == $filter->{id} } @existing)
         {
             # Unable to add internal columns to filter table, as they don't
             # reference any columns from the layout table
-            next unless $filter->{field} > 0;
+            next unless $filter->{id} > 0;
             $self->schema->resultset('Filter')->create({
                 view_id   => $self->id,
-                layout_id => $filter->{field},
+                layout_id => $filter->{id},
             });
         }
     }

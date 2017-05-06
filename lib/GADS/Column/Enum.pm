@@ -106,6 +106,10 @@ has '+can_multivalue' => (
     default => 1,
 );
 
+has '+has_filter_typeahead' => (
+    default => 1,
+);
+
 after build_values => sub {
     my ($self, $original) = @_;
     $self->ordering($original->{ordering});

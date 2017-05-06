@@ -29,6 +29,10 @@ has '+value_field_as_index' => (
     default => 'id',
 );
 
+has '+has_filter_typeahead' => (
+    default => 1,
+);
+
 has people => (
     is      => 'rw',
     lazy    => 1,

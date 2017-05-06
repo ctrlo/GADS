@@ -444,6 +444,13 @@ has hascache => (
     },
 );
 
+# Whether this column type has a typeahead when inputting filter values
+has has_filter_typeahead => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
 has dateformat => (
     is      => 'rw',
     isa     => Str,
@@ -562,6 +569,12 @@ sub build_values
 sub _build_join
 {   my $self = shift;
     return $self->field;
+}
+
+# Overridden where required
+sub filter_value_to_text
+{   my ($self, $value) = @_;
+    return $value;
 }
 
 # Overridden in child classes. This function is used

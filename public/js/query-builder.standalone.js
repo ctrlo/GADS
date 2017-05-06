@@ -837,7 +837,7 @@
                     $rule.find('.rule-operator-container [name$=_operator]').val(rule.operator).trigger('change');
 
                     if (operator.accept_values !== 0) {
-                        that.setRuleValue($rule, rule.value, filter, operator);
+                        that.setRuleValue($rule, rule.value, filter, operator, rule.data);
                     }
 
                     that.applyRuleFlags($rule, rule);
@@ -1670,14 +1670,14 @@
      * @param filter {object}
      * @param operator {object}
      */
-    QueryBuilder.prototype.setRuleValue = function($rule, value, filter, operator) {
+    QueryBuilder.prototype.setRuleValue = function($rule, value, filter, operator, data) {
         filter = filter || this.getFilterById(this.getRuleFilter($rule));
         operator = operator || this.getOperatorByType(this.getRuleOperator($rule));
 
         this.trigger('beforeSetRuleValue', $rule, value, filter, operator);
 
         if (filter.valueSetter) {
-            filter.valueSetter.call(this, $rule, value, filter, operator);
+            filter.valueSetter.call(this, $rule, value, filter, operator, data);
         }
         else {
             var $value = $rule.find('.rule-value-container');

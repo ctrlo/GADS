@@ -30,32 +30,43 @@ $('#builder[% builder_id %]').queryBuilder({
                         'a_grey': 'Grey',
                         'e_purple': 'Purple'
                     },
-                [% END %]
-                [%
-                    column_type = col.type;
-                    IF column_type == 'enum'
-                        OR column_type == 'person'
-                        OR column_type == 'calc'
-                        OR column_type == 'tree';
-                %]
-                onAfterCreateRuleInput: function($rule, filter) {
-                    var $ruleInput = $( '#' + $rule.attr('id') + ' .rule-value-container input');
-                    $ruleInput.attr('autocomplete', 'off');
-                    $ruleInput.typeahead({
-                        delay: 100,
-                        matcher: function () { return true; },
-                        sorter: function (items) { return items; },
-                        source: function (query, process) {
-                            return $.ajax({
-                                type: 'GET',
-                                url: '/match/layout/[% col.id | uri %]',
-                                data: { q: query, oi: [% col.layout.instance_id %] },
-                                success: function(result) { process(result) },
-                                dataType: 'json'
-                            });
-                        }
-                    });
-                }
+                [% ELSIF col.has_filter_typeahead %]
+                    input: function(container, rule, input_name) {
+                        return '
+                            <input class="typeahead_text" type="text" name="' + input_name + '_text">
+                            <input class="typeahead_hidden" type="hidden" name="' + input_name + '">
+                        ';
+                    },
+                    valueSetter: function($rule, value, filter, operator, data) {
+                        $rule.find('.typeahead_text').val(data.text);
+                        $rule.find('.typeahead_hidden').val(value);
+                    },
+                    onAfterCreateRuleInput: function($rule, filter) {
+                        var $ruleInputText = $( '#' + $rule.attr('id') + ' .rule-value-container input[type="text"]');
+                        var $ruleInputHidden = $( '#' + $rule.attr('id') + ' .rule-value-container input[type="hidden"]');
+                        $ruleInputText.attr('autocomplete', 'off');
+                        $ruleInputText.typeahead({
+                            delay: 100,
+                            matcher: function () { return true; },
+                            sorter: function (items) { return items; },
+                            afterSelect: function (selected) {
+                                if (typeof selected === 'object') {
+                                    $ruleInputHidden.val(selected.id);
+                                } else {
+                                    $ruleInputHidden.val(selected);
+                                }
+                            },
+                            source: function (query, process) {
+                                return $.ajax({
+                                    type: 'GET',
+                                    url: '/match/layout/[% col.id | uri %]',
+                                    data: { q: query, oi: [% col.layout.instance_id %] },
+                                    success: function(result) { process(result) },
+                                    dataType: 'json'
+                                });
+                            }
+                        });
+                    }
                 [% END %]
             },
         [% END %] 

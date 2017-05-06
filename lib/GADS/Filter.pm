@@ -79,6 +79,10 @@ has has_value => (
     isa => Bool,
 );
 
+has layout => (
+    is => 'rw',
+);
+
 # Clear various lazy accessors that depend on the above values
 sub _clear_lazy
 {   my $self = shift;
@@ -88,6 +92,23 @@ sub _clear_lazy
 
 sub base64
 {   my $self = shift;
+    # First make sure we have the hash version
+    $self->as_hash;
+    # Then clear the JSON version so that we can rebuild it
+    $self->clear_as_json;
+    # Next update the filters
+    foreach my $filter (@{$self->filters})
+    {
+        $self->layout or panic "layout has not been set in filter";
+        my $col = $self->layout->column($filter->{id});
+        if ($col->has_filter_typeahead)
+        {
+            $filter->{data} = {
+                text => $col->filter_value_to_text($filter->{value}),
+            };
+        }
+    }
+    # Now the JSON version will be built with the inserted data values
     encode_base64($self->as_json);
 }
 
@@ -135,11 +156,7 @@ sub _filter_tables
         }
     }
     elsif (my $id = $filter->{id}) {
-        push @$tables, {
-            field    => $filter->{id},
-            value    => $filter->{value},
-            operator => $filter->{operator},
-        };
+        push @$tables, $filter; # Keep as reference so can be updated by other functions
     }
 }
 
