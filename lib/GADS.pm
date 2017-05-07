@@ -516,17 +516,6 @@ any '/data' => require_login sub {
         $params->{viewtype} = 'graph';
         if (my $png = param('png'))
         {
-            $params->{scheme}       = 'http';
-            $params->{single_graph} = 1;
-            my $public              = path(setting('appdir'), 'public');
-            $params->{base}         = "file://$public/";
-            my $graph_html          = template 'data_graph' => $params;
-            my ($fh, $filename)     = tempfile(SUFFIX => '.html');
-            print $fh $graph_html;
-            close $fh;
-            my $mech = WWW::Mechanize::PhantomJS->new;
-            $mech->get_local($filename);
-            unlink $filename;
             my $gdata = _data_graph($png);
             my $json  = encode_json {
                 points  => $gdata->points,
@@ -547,6 +536,7 @@ any '/data' => require_login sub {
                 id           => $png,
             };
 
+            my $mech = _page_as_mech('data_graph', $params);
             $mech->eval_in_page('(function(plotData, options_in){do_plot_json(plotData, options_in)})(arguments[0],arguments[1]);',
                 $json, $options_in
             );
@@ -632,6 +622,15 @@ any '/data' => require_login sub {
         $params->{tl_options}   = $tl_options;
         $params->{columns_read} = [$layout->all(user_can_read => 1)];
         $params->{viewtype}     = 'timeline';
+
+        if (my $png = param('png'))
+        {
+            my $png = _page_as_mech('data_timeline', $params)->content_as_png;
+            return send_file(
+                \$png,
+                content_type => 'image/png',
+            );
+        }
     }
     else {
         session 'rows' => 50 unless session 'rows';
@@ -2748,6 +2747,22 @@ sub _user_value
     my $surname   = $user->{surname}   || '';
     my $value     = "$surname, $firstname";
     $value;
+}
+
+sub _page_as_mech
+{   my ($template, $params) = @_;
+    $params->{scheme}       = 'http';
+    my $public              = path(setting('appdir'), 'public');
+    $params->{base}         = "file://$public/";
+    $params->{page_as_mech} = 1;
+    my $timeline_html       = template $template, $params;
+    my ($fh, $filename)     = tempfile(SUFFIX => '.html');
+    print $fh $timeline_html;
+    close $fh;
+    my $mech = WWW::Mechanize::PhantomJS->new;
+    $mech->get_local($filename);
+    unlink $filename;
+    return $mech;
 }
 
 true;

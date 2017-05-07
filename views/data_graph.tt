@@ -1,4 +1,4 @@
-[% IF single_graph %]
+[% IF page_as_mech %]
     <div id="chartdiv" style="height:400px;width:600px; "></div>
 [% ELSE %]
     [% count = 0 %]
@@ -106,9 +106,9 @@
                     location: 'e',
                     placement: 'outside'
                 };
-                $.jqplot('chartdiv' [% UNLESS single_graph %]+ options_in.id[% END %], plotData.points, plotOptions);
+                $.jqplot('chartdiv' [% UNLESS page_as_mech %]+ options_in.id[% END %], plotData.points, plotOptions);
             };
-            [% UNLESS single_graph %]
+            [% UNLESS page_as_mech %]
                 $(document).ready(function(){
                     if (!FontDetect.isFontLoaded('14px/1 FontAwesome')) {
                         $( ".use-icon-font" ).hide();

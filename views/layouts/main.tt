@@ -29,7 +29,7 @@
         <title>Linkspace [% page %]</title>
 
         <!-- Custom styles for this template -->
-        [% UNLESS single_graph %]
+        [% UNLESS page_as_mech %]
             <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap.css">
         [% END %]
 
@@ -80,11 +80,11 @@
 
     <body>
         <div id="wrapper">
-        [% IF header AND NOT single_graph %]
+        [% IF header AND NOT page_as_mech %]
             <p class="text-center">[% header %]</p>
         [% END %]
         <div class="container-fluid">
-            [% UNLESS page == "login" OR page == "invalidsite" OR single_graph %]
+            [% UNLESS page == "login" OR page == "invalidsite" OR page_as_mech %]
                 <div class="navbar navbar-default" role="navigation">
                         <div class="navbar-header">
                             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-controls="main-navbar">

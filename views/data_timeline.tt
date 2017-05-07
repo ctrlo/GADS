@@ -1,4 +1,7 @@
-<div id="visualization"></div>
+[% UNLESS page_as_mech %]
+    <a href="?png=1">View as PNG image for print or download</a>
+[% END %]
+<div id="visualization" [% IF page_as_mech %]style="width:4096px" [% END %]></div>
 <p></p>
 
 <script type="text/javascript">
