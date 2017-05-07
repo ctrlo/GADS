@@ -524,6 +524,12 @@ my $view_limit = GADS::View->new(
 );
 $view_limit->write;
 
+# XXX Need to get rid of user as a hash. For the time being, we need
+# to variables.
+my $user   = $sheet->user;
+my $user_r = $schema->resultset('User')->find($user->{id});
+$user_r->set_view_limits($view_limit->id);
+
 $rules = GADS::Filter->new(
     as_hash => {
         rules     => [{
@@ -546,14 +552,24 @@ my $view = GADS::View->new(
 $view->write;
 
 $records = GADS::Records->new(
-    view_limits => [ $view_limit ],
-    user    => undef,
+    user    => $user,
     view    => $view,
     layout  => $layout,
     schema  => $schema,
 );
 
 is ($records->count, 1, 'Correct number of results when limiting to a view');
+
+# Check can only directly access correct records
+my $record = GADS::Record->new(
+    user   => $user,
+    layout => $layout,
+    schema => $schema,
+);
+is( $record->find_current_id(5)->current_id, 5, "Retrieved viewable current ID 5 in limited view" );
+$record->clear;
+try { $record->find_current_id(4) };
+ok( $@, "Failed to retrieve non-viewable current ID 4 in limited view" );
 
 # Add a second view limit
 $rules = GADS::Filter->new(
@@ -577,9 +593,11 @@ my $view_limit2 = GADS::View->new(
 );
 $view_limit2->write;
 
+$user_r->set_view_limits($view_limit->id, $view_limit2->id);
+
 $records = GADS::Records->new(
     view_limits => [ $view_limit, $view_limit2 ],
-    user    => undef,
+    user    => $user,
     view    => $view,
     layout  => $layout,
     schema  => $schema,
@@ -625,7 +643,7 @@ is (@{$records->search_all_fields('99')}, 1, 'Quick search for 99');
 is (@{$records->search_all_fields('1979-01-204')}, 0, 'Quick search for invalid date');
 
 # Specific record retrieval
-my $record = GADS::Record->new(
+$record = GADS::Record->new(
     user   => undef,
     layout => $layout,
     schema => $schema,
