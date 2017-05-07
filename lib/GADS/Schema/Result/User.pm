@@ -153,6 +153,11 @@ __PACKAGE__->table("user");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 session_settings
+
+  data_type: 'text'
+  is_nullable: 1
+
 =head2 value
 
   data_type: 'text'
@@ -245,6 +250,8 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "lastview",
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
+  "session_settings",
+  { data_type => "text", is_nullable => 1 },
   "value",
   { data_type => "text", is_nullable => 1 },
   "account_request",

@@ -175,24 +175,35 @@ hook before => sub {
             below to set a new password." }, 'account/detail')
                 unless request->uri eq '/account/detail' || request->uri eq '/logout';
     }
+
+    # Make sure we have suitable persistent hash to update. All these options are
+    # used as hashrefs themselves, so prevent trying to access non-existent hash.
+    my $session_settings;
+    try { $session_settings = decode_json $user->{session_settings} };
+    session 'persistent' => $session_settings || {};
+    my $persistent = session 'persistent';
+    $persistent->{view} = undef if !exists $persistent->{view};
+    $persistent->{viewtype} = undef if !exists $persistent->{viewtype};
+    $persistent->{tl_options} = undef if !exists $persistent->{tl_options};
+
     if ($user)
     {
         if (my $instance_id = param('instance'))
         {
             session 'search' => undef;
         }
-        elsif (!session('instance_id'))
+        elsif (!$persistent->{instance_id})
         {
-            session instance_id => config->{gads}->{default_instance};
+            $persistent->{instance_id} = config->{gads}->{default_instance};
         }
         # Instance ID can be overriden using the parameter "oi". This is
         # a bit hacky, but it allows (for example) the session instance to
         # be one sheet, but then a linked record to be viewed from another
         # sheet. This is used in the links for the Curval column type
-        my $instance_id = param('oi') || param('instance') || session('instance_id');
+        my $instance_id = param('oi') || param('instance') || $persistent->{instance_id};
         my $instances = GADS::Instances->new(schema => schema);
         $instance_id = $instances->is_valid($instance_id) || $instances->all->[0]->id;
-        session instance_id => $instance_id
+        $persistent->{instance_id} = $instance_id
             unless param 'oi';
         my $layout = GADS::Layout->new(
             user        => $user,
@@ -230,21 +241,34 @@ hook before_template => sub {
         $tokens->{user_can_approve} = 1;
         $tokens->{approve_waiting} = $approval->count;
     }
-    $tokens->{instances}     = GADS::Instances->new(schema => schema)->all;
-    $tokens->{instance_id}   = session 'instance_id';
-    $tokens->{instance_name} = var('layout')->name if var('layout');
+    if (logged_in_user)
+    {
+        $tokens->{instances}     = GADS::Instances->new(schema => schema)->all;
+        $tokens->{instance_id}   = session('persistent')->{instance_id};
+        $tokens->{instance_name} = var('layout')->name if var('layout');
+        $tokens->{user}          = $user;
+        $tokens->{search}        = session 'search';
+    }
     $tokens->{messages}      = session('messages');
-    $tokens->{user}          = $user;
-    $tokens->{search}        = session 'search';
     $tokens->{site}          = var 'site';
     $tokens->{config}        = GADS::Config->instance;
     session 'messages' => [];
 };
 
+hook after_template_render => sub {
+    if (logged_in_user)
+    {
+        my $user = schema->resultset('User')->find(logged_in_user->{id});
+        $user->update({
+            session_settings => encode_json(session('persistent')),
+        });
+    }
+};
+
 get '/' => require_login sub {
 
     my $config = GADS::Instance->new(
-        id     => session('instance_id'),
+        id     => session('persistent')->{instance_id},
         schema => schema,
     );
     template 'index' => {
@@ -469,11 +493,10 @@ any '/data' => require_login sub {
 
     if (my $view_id = param('view'))
     {
-        session 'view_id' => $view_id;
+        session('persistent')->{view}->{$layout->instance_id} = $view_id;
         # Save to database for next login.
         # Check that it's valid first, otherwise database will bork
         my $view = current_view($user, $layout);
-        update_current_user lastview => $view->id;
         # When a new view is selected, unset sort, otherwise it's
         # not possible to remove a sort once it's been clicked
         session 'sort' => undef;
@@ -498,11 +521,11 @@ any '/data' => require_login sub {
     {
         if ($viewtype eq 'graph' || $viewtype eq 'table' || $viewtype eq 'calendar' || $viewtype eq 'timeline')
         {
-            session 'viewtype' => $viewtype;
+            session('persistent')->{viewtype}->{$layout->instance_id} = $viewtype;
         }
     }
     else {
-        $viewtype = session('viewtype') || 'table';
+        $viewtype = session('persistent')->{viewtype}->{$layout->instance_id} || 'table';
     }
 
     my $view       = current_view($user, $layout);
@@ -600,14 +623,14 @@ any '/data' => require_login sub {
         );
         if (param 'modal_timeline')
         {
-            session 'tl_options' => {
+            session('persistent')->{tl_options}->{$layout->instance_id} = {
                 label => param('tl_label'),
                 group => param('tl_group'),
                 color => param('tl_color'),
             };
         }
         my @extra;
-        my $tl_options = session('tl_options') || {};
+        my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} || {};
         push @extra, $tl_options->{label} if $tl_options->{label};
         push @extra, $tl_options->{group} if $tl_options->{group};
         push @extra, $tl_options->{color} if $tl_options->{color};
@@ -655,7 +678,7 @@ any '/data' => require_login sub {
 
         # Default sort if not set
         my $config = GADS::Instance->new(
-            id     => session('instance_id'),
+            id     => $layout->instance_id,
             schema => schema,
         );
         my $sort = {
@@ -790,7 +813,7 @@ any '/data' => require_login sub {
         user        => $user,
         schema      => schema,
         layout      => $layout,
-        instance_id => session('instance_id'),
+        instance_id => $layout->instance_id,
     );
 
     $params->{v}               = $view,  # View is reserved TT word
@@ -890,7 +913,7 @@ any '/account/?:action?/?' => require_login sub {
 any '/config/?' => require_role layout => sub {
 
     my $config = GADS::Instance->new(
-        id     => session('instance_id'),
+        id     => session('persistent')->{instance_id},
         schema => schema,
     );
 
@@ -962,7 +985,7 @@ any '/graph/?:id?' => require_role layout => sub {
         $params->{graphtypes}    = [GADS::Graphs->types];
         $params->{metric_groups} = GADS::MetricGroups->new(
             schema      => schema,
-            instance_id => session('instance_id'),
+            instance_id => session('persistent')->{instance_id},
         )->all;
     }
     else {
@@ -987,7 +1010,7 @@ any '/metric/?:id?' => require_role layout => sub {
         my $metricgroup = GADS::MetricGroup->new(
             schema      => schema,
             id          => $id,
-            instance_id => session('instance_id'),
+            instance_id => $layout->instance_id,
         );
 
         if (param 'delete_all')
@@ -1044,7 +1067,7 @@ any '/metric/?:id?' => require_role layout => sub {
     else {
         my $metrics = GADS::MetricGroups->new(
             schema      => schema,
-            instance_id => session('instance_id'),
+            instance_id => $layout->instance_id,
         )->all;
         $params->{metrics} = $metrics;
     }
@@ -1155,7 +1178,7 @@ any '/view/:id' => require_login sub {
         user        => $user,
         schema      => schema,
         layout      => $layout,
-        instance_id => session('instance_id'),
+        instance_id => $layout->instance_id,
     );
     $vp{id} = $view_id if $view_id;
     my $view = GADS::View->new(%vp);
@@ -1173,7 +1196,7 @@ any '/view/:id' => require_login sub {
         {
             $view->set_sorts($params->{sortfield}, $params->{sorttype});
             # Set current view to the one created/edited
-            session 'view_id' => $view->id;
+            session('persistent')->{view}->{$layout->instance_id} = $view->id;
             # And remove any search to avoid confusion
             session search => '';
             # And remove any custom sorting, so that sort of view takes effect
@@ -1185,7 +1208,7 @@ any '/view/:id' => require_login sub {
 
     if (param 'delete')
     {
-        session 'view_id' => undef;
+        session('persistent')->{view}->{$layout->instance_id} = undef;
         if (process( sub { $view->delete }))
         {
             return forwardHome(
@@ -1248,7 +1271,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
         foreach my $instance (@{$instances->all})
         {
             # Ignore current instance
-            next if $instance->id == session('instance_id');
+            next if $instance->id == $layout->instance_id;
             my $layout = GADS::Layout->new(
                 user        => $user,
                 schema      => schema,
@@ -2688,10 +2711,9 @@ sub current_view {
         user        => $user,
         schema      => schema,
         layout      => $layout,
-        instance_id => session('instance_id'),
+        instance_id => session('persistent')->{instance_id},
     );
-    my $saved_view = $user->{lastview};
-    my $view       = $views->view(session('view_id') || $saved_view) || $views->default; # Can still be undef
+    my $view       = $views->view(session('persistent')->{view}->{$layout->instance_id}) || $views->default; # Can still be undef
     $view;
 };
 
