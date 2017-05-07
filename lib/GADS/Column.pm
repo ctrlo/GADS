@@ -196,11 +196,12 @@ has multivalue => (
 );
 
 has options => (
-    is      => 'rwp',
-    isa     => HashRef,
-    lazy    => 1,
-    builder => 1,
-    clearer => 1,
+    is        => 'rwp',
+    isa       => HashRef,
+    lazy      => 1,
+    builder   => 1,
+    clearer   => 1,
+    predicate => 1,
 );
 
 sub _build_options

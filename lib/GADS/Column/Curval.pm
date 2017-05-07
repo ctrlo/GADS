@@ -36,6 +36,24 @@ after 'build_values' => sub {
     }
 };
 
+has '+option_names' => (
+    default => sub { [qw/override_permissions/] },
+);
+
+has override_permissions => (
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    builder => sub {
+        my $self = shift;
+        return 0 unless $self->has_options;
+        $self->options->{override_permissions};
+    },
+    trigger => sub { $_[0]->clear_options },
+    predicated => 1,
+);
+
 has refers_to_instance => (
     is      => 'rw',
     isa     => Maybe[Int],
@@ -220,7 +238,7 @@ sub _records_from_db
     }
 
     my $records = GADS::Records->new(
-        user        => $self->layout->user,
+        user        => $self->override_permissions ? undef : $self->layout->user,
         view        => $view,
         layout      => $layout,
         schema      => $self->schema,
@@ -445,7 +463,7 @@ sub values_beginning_with
     );
     $view->filter($filter) if $match;
     my $records = GADS::Records->new(
-        user    => $self->layout->user,
+        user    => $self->override_permissions ? undef : $self->layout->user,
         rows    => 10,
         view    => $view,
         layout  => $self->layout_parent,
@@ -503,7 +521,7 @@ sub fetch_multivalues
     $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my @values = $m_rs->all;
     my $records = GADS::Records->new(
-        user        => $self->layout->user,
+        user        => $self->override_permissions ? undef : $self->layout->user,
         layout      => $self->layout_parent,
         schema      => $self->schema,
         columns     => $self->curval_field_ids_retrieve,

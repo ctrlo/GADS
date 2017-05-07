@@ -231,6 +231,14 @@
                         </div>
                     </div>
                     <div class="form-group">
+                        <label for="override_permissions">Permissions override:</label>
+                        <div class="checkbox">
+                            <label>
+                                <input id="override_permissions" type="checkbox" name="override_permissions" [% IF column.override_permissions %]checked[% END %]>Override any user permissions when selecting records for this field
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label for="refers_to_instance">Instance to select from:</label>
                         <select class="form-control" id="refers_to_instance" name="refers_to_instance">
                             [% IF NOT rti %]

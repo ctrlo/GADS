@@ -41,8 +41,13 @@ has '+option_names' => (
 has show_datepicker => (
     is      => 'rw',
     isa     => Bool,
+    lazy    => 1,
     coerce  => sub { $_[0] ? 1 : 0 },
-    builder => sub { defined $_[0]->options->{show_datepicker} ? $_[0]->options->{show_datepicker} : 1 },
+    builder => sub {
+        my $self = shift;
+        return 1 unless $self->has_options;
+        $self->options->{show_datepicker};
+    },
     trigger => sub { $_[0]->clear_options },
 );
 
