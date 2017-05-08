@@ -1298,11 +1298,12 @@ sub data_time
                             && (!$self->from || DateTime->compare($range->end, $self->from) >= 0)
                         ) {
                             push @dates, {
-                                from  => $range->start,
-                                to    => $range->end,
-                                color => $color,
-                                column=> $column->id,
-                                count => ++$count,
+                                from      => $range->start,
+                                to        => $range->end,
+                                color     => $color,
+                                column    => $column->id,
+                                count     => ++$count,
+                                daterange => 1,
                             };
                             $min = $range->start->clone if !defined $min || $range->start < $min;
                             $max = $range->end->clone if !defined $max || $range->end > $max;
@@ -1410,7 +1411,7 @@ sub data_time
                 $item->{style} = qq(background-color: $item_color)
                     if $item_color;
                 # Add one day, otherwise ends at 00:00:00, looking like day is not included
-                $item->{end} = $d->{to}->clone->add( days => 1 )->ymd;
+                $item->{end} = $d->{to}->clone->add( days => 1 )->ymd if $item->{daterange};
                 push @result, $item;
             }
         }
