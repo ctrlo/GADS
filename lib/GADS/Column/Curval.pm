@@ -454,6 +454,7 @@ sub values_beginning_with
                 $self->view->filter->as_hash,
             ],
         },
+        layout => $self->layout_parent,
     );
     my $view = GADS::View->new(
         instance_id => $self->refers_to_instance,

@@ -558,6 +558,7 @@ sub build_values
         $self->fixedvals(1);
         $self->sprefix($self->field);
         $self->filter->as_json($original->{filter});
+        $self->filter->layout($self->layout_parent);
     }
     else {
         $self->sprefix($self->field);
