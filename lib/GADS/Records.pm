@@ -1411,7 +1411,7 @@ sub data_time
                 $item->{style} = qq(background-color: $item_color)
                     if $item_color;
                 # Add one day, otherwise ends at 00:00:00, looking like day is not included
-                $item->{end} = $d->{to}->clone->add( days => 1 )->ymd if $item->{daterange};
+                $item->{end} = $d->{to}->clone->add( days => 1 )->ymd if $d->{daterange};
                 push @result, $item;
             }
         }
