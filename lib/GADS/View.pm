@@ -296,8 +296,9 @@ sub write
                 unless $op eq 'is_empty' || $op eq 'is_not_empty'; # Would normally fail on blank value
         }
 
+        my $has_value = $val && (ref $val ne 'ARRAY' || @$val);
         error __x "No value can be entered for empty and not empty operators"
-            if ($op eq 'is_empty' || $op eq 'is_not_empty') && $val;
+            if ($op eq 'is_empty' || $op eq 'is_not_empty') && $has_value;
         error __x"Invalid field ID {id} in filter", id => $filter->{id}
             unless $col->user_can('read');
     }
