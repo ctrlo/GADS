@@ -176,18 +176,18 @@ hook before => sub {
                 unless request->uri eq '/account/detail' || request->uri eq '/logout';
     }
 
-    # Make sure we have suitable persistent hash to update. All these options are
-    # used as hashrefs themselves, so prevent trying to access non-existent hash.
-    my $session_settings;
-    try { $session_settings = decode_json $user->{session_settings} };
-    session 'persistent' => $session_settings || {};
-    my $persistent = session 'persistent';
-    $persistent->{view} = undef if !exists $persistent->{view};
-    $persistent->{viewtype} = undef if !exists $persistent->{viewtype};
-    $persistent->{tl_options} = undef if !exists $persistent->{tl_options};
-
     if ($user)
     {
+        # Make sure we have suitable persistent hash to update. All these options are
+        # used as hashrefs themselves, so prevent trying to access non-existent hash.
+        if (!session 'persistent')
+        {
+            my $session_settings;
+            try { $session_settings = decode_json $user->{session_settings} };
+            session 'persistent' => ($session_settings || {});
+        }
+        my $persistent = session 'persistent';
+
         if (my $instance_id = param('instance'))
         {
             session 'search' => undef;
@@ -244,10 +244,12 @@ hook before_template => sub {
     if (logged_in_user)
     {
         $tokens->{instances}     = GADS::Instances->new(schema => schema)->all;
-        $tokens->{instance_id}   = session('persistent')->{instance_id};
         $tokens->{instance_name} = var('layout')->name if var('layout');
         $tokens->{user}          = $user;
         $tokens->{search}        = session 'search';
+        # Somehow this sets the instance_id session if no persistent session exists
+        $tokens->{instance_id}   = session('persistent')->{instance_id}
+            if session 'persistent';
     }
     $tokens->{messages}      = session('messages');
     $tokens->{site}          = var 'site';
