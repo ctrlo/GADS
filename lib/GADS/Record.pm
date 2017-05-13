@@ -464,9 +464,11 @@ sub _find
     $self->columns_retrieved_do($records->columns_retrieved_do);
     $self->columns_retrieved_no($records->columns_retrieved_no);
 
-    my $search     = $find{current_id} ? $records->search_query : $records->search_query(root_table => 'record');
+    my $search     = $find{current_id}
+        ? $records->search_query(prefetch => 1, linked => 1)
+        : $records->search_query(root_table => 'record', prefetch => 1, linked => 1, no_current => 1);
     my @prefetches = $records->jpfetch(prefetch => 1);
-    my @joins      = $records->jpfetch(search => 1);
+    my @joins; # Nothing - fetching whole record
 
     my $root_table;
     if (my $record_id = $find{record_id})
@@ -486,7 +488,6 @@ sub _find
     elsif (my $current_id = $find{current_id})
     {
         push @$search, { 'me.id' => $current_id };
-        push @$search, $records->record_later_search(linked => 1);
         unshift @prefetches, ('current', {
             'createdby' => 'organisation',
         }

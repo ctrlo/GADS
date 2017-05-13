@@ -90,7 +90,7 @@ sub add_linked_join
 
 sub record_later_search
 {   my ($self, %options) = @_;
-    my $count = 1; # Always at least one
+    my $count = $options{no_current} ? 0 : 1; # Always at least one if joining onto current
     $count++ if $options{linked};
     foreach (@{$self->_jp_store})
     {
