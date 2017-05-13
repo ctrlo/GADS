@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Records;
 
+use Data::Dumper qw/Dumper/;
 use DateTime;
 use DateTime::Format::Strptime qw( );
 use DBIx::Class::Helper::ResultSet::Util qw(correlate);
@@ -1079,61 +1080,62 @@ sub _search_construct
     my $vsuffix = $operator eq '-like' ? '%' : '';
 
     my @values;
-    my @original_values = ref $filter->{value} ? @{$filter->{value}} : ($filter->{value});
-    foreach (@original_values)
+
+    if ($filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty')
     {
-        if ($filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty')
+        push @values, $column->string_storage ? (undef, "") : undef;
+    }
+    else {
+        my @original_values = ref $filter->{value} ? @{$filter->{value}} : ($filter->{value});
+        foreach (@original_values)
         {
-            push @values, $column->string_storage ? (undef, "") : undef;
-            next;
-        }
+            $_ = $vprefix.$_.$vsuffix;
 
-        $_ = $vprefix.$_.$vsuffix;
+            # This shouldn't normally happen, but sometimes we can end up with an
+            # invalid search value, such as if the date format has changed and the
+            # filters still have the old format. In this case, match nothing rather
+            # than matching all or borking.
+            return ( \"0 = 1" ) if !$column->validate_search($_);
 
-        # This shouldn't normally happen, but sometimes we can end up with an
-        # invalid search value, such as if the date format has changed and the
-        # filters still have the old format. In this case, match nothing rather
-        # than matching all or borking.
-        return ( \"0 = 1" ) if !$column->validate_search($_);
-
-        # Sub-in current date as required. Ideally we would use the same
-        # code here as the calc/rag fields, but this can be accessed by
-        # any user, so should be a lot tighter.
-        if ($_ && $_ =~ /CURDATE/)
-        {
-            my $vdt = GADS::View->parse_date_filter($_);
-            my $dtf = $self->schema->storage->datetime_parser;
-            $_ = $dtf->format_date($vdt);
-        }
-        elsif ($transform_date || ($column->return_type eq 'date' && $_))
-        {
-            $_ = $self->_date_for_db($column, $_);
-        }
-
-        $_ =~ s/\_/\\\_/g if $operator eq '-like';
-
-        if ($_ && $_ =~ /\[CURUSER\]/)
-        {
-            if ($column->type eq "person")
+            # Sub-in current date as required. Ideally we would use the same
+            # code here as the calc/rag fields, but this can be accessed by
+            # any user, so should be a lot tighter.
+            if ($_ && $_ =~ /CURDATE/)
             {
-                my $curuser = ($options{user} && $options{user}->id) || ($self->user && $self->user->{id})
-                    or warning "FIXME: user not set for person filter";
-                $curuser ||= "";
-                $_ =~ s/\[CURUSER\]/$curuser/g;
-                $conditions[0]->{s_field} = "id";
+                my $vdt = GADS::View->parse_date_filter($_);
+                my $dtf = $self->schema->storage->datetime_parser;
+                $_ = $dtf->format_date($vdt);
             }
-            elsif ($column->return_type eq "string")
+            elsif ($transform_date || ($column->return_type eq 'date' && $_))
             {
-                my $curuser = ($options{user} && $options{user}->value) || ($self->user && $self->user->{value})
-                    or warning "FIXME: user not set for string filter";
-                $curuser ||= "";
-                $_ =~ s/\[CURUSER\]/$curuser/g;
+                $_ = $self->_date_for_db($column, $_);
             }
+
+            $_ =~ s/\_/\\\_/g if $operator eq '-like';
+
+            if ($_ && $_ =~ /\[CURUSER\]/)
+            {
+                if ($column->type eq "person")
+                {
+                    my $curuser = ($options{user} && $options{user}->id) || ($self->user && $self->user->{id})
+                        or warning "FIXME: user not set for person filter";
+                    $curuser ||= "";
+                    $_ =~ s/\[CURUSER\]/$curuser/g;
+                    $conditions[0]->{s_field} = "id";
+                }
+                elsif ($column->return_type eq "string")
+                {
+                    my $curuser = ($options{user} && $options{user}->value) || ($self->user && $self->user->{value})
+                        or warning "FIXME: user not set for string filter";
+                    $curuser ||= "";
+                    $_ =~ s/\[CURUSER\]/$curuser/g;
+                }
+            }
+            push @values, $_;
         }
-        push @values, $_;
     }
 
-    @values or return;
+    @values or panic "No values defined for filter ".Dumper($filter); # Should always have at least one value by now
 
     if ($column->type eq "string")
     {

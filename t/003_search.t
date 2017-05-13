@@ -176,6 +176,16 @@ my @filters = (
         count => 4,
     },
     {
+        name  => 'date is empty - value as array ref',
+        rules => [{
+            id       => $columns->{date1}->id,
+            type     => 'date',
+            operator => 'is_empty',
+            value    => [],
+        }],
+        count => 4,
+    },
+    {
         name  => 'date is blank string', # Treat as empty
         rules => [{
             id       => $columns->{date1}->id,
