@@ -18,24 +18,38 @@ GADS::Config->instance(
 );
 
 has data => (
-    is      => 'rw',
-    default => sub {
-        [
-            {
-                string1    => 'Foo',
-                integer1   => 50,
-                date1      => '2014-10-10',
-                daterange1 => ['2012-02-10', '2013-06-15'],
-            },
-            {
-                string1    => 'Bar',
-                integer1   => 99,
-                date1      => '2009-01-02',
-                daterange1 => ['2008-05-04', '2008-07-14'],
-            },
-        ];
-    },
+    is      => 'lazy',
 );
+
+has curval_offset => (
+    is  => 'lazy',
+    isa => Int,
+);
+
+sub _build_curval_offset
+{   my $self = shift;
+    $self->curval ? 6 : 0;
+}
+
+sub _build_data
+{   my $self = shift;
+    [
+        {
+            string1    => 'Foo',
+            integer1   => 50,
+            date1      => '2014-10-10',
+            enum1      => 1 + $self->curval_offset,
+            daterange1 => ['2012-02-10', '2013-06-15'],
+        },
+        {
+            string1    => 'Bar',
+            integer1   => 99,
+            date1      => '2009-01-02',
+            enum1      => 2 + $self->curval_offset,
+            daterange1 => ['2008-05-04', '2008-07-14'],
+        },
+    ];
+}
 
 has schema => (
     is => 'lazy',
@@ -140,10 +154,15 @@ has curval_field_ids => (
 );
 
 has calc_code => (
-    is      => 'ro',
-    isa     => Str,
-    default => "function evaluate (daterange1) \n if daterange1 == null then return end \n return daterange1.from.year\nend",
+    is  => 'lazy',
+    isa => Str,
 );
+
+sub _build_calc_code
+{   my $self = shift;
+    my $instance_id = $self->instance_id;
+    "function evaluate (L${instance_id}daterange1) \n if L${instance_id}daterange1 == null then return end \n return L${instance_id}daterange1.from.year\nend";
+}
 
 has calc_return_type => (
     is      => 'ro',
@@ -224,6 +243,7 @@ sub __build_columns
 
     my $schema      = $self->schema;
     my $layout      = $self->layout;
+    my $instance_id = $self->instance_id;
     my $permissions = [qw/read/];
 
     my $columns = {};
@@ -235,7 +255,7 @@ sub __build_columns
     );
     $string1->type('string');
     $string1->name('string1');
-    $string1->name_short('string1');
+    $string1->name_short("L${instance_id}string1");
     try { $string1->write };
     if ($@)
     {
@@ -271,7 +291,7 @@ sub __build_columns
         );
         $enum->type('enum');
         $enum->name("enum$count");
-        $enum->name_short("enum$count");
+        $enum->name_short("L${instance_id}enum$count");
         $enum->multivalue(1) if $self->multivalue;
         $enum->enumvals([
             {
@@ -302,7 +322,7 @@ sub __build_columns
     );
     $tree1->type('tree');
     $tree1->name('tree1');
-    $tree1->name_short('tree1');
+    $tree1->name_short("L${instance_id}tree1");
     try { $tree1->write };
     my $tree_id = $tree1->id;
     if ($@)
@@ -362,7 +382,7 @@ sub __build_columns
     );
     $daterange1->type('daterange');
     $daterange1->name('daterange1');
-    $daterange1->name_short('daterange1');
+    $daterange1->name_short("L${instance_id}daterange1");
     try { $daterange1->write };
     if ($@)
     {
@@ -413,7 +433,7 @@ sub __build_columns
                 schema     => $self->schema,
                 user       => undef,
                 layout     => $self->layout,
-                name_short => "curval$count",
+                name_short => "L${instance_id}curval$count",
             );
             my $refers_to_instance = $self->curval;
             $curval->refers_to_instance($refers_to_instance);
@@ -443,11 +463,11 @@ sub __build_columns
         layout => $layout,
     );
     $rag1->code("
-        function evaluate (daterange1)
-            if daterange1 == nil then return end
-            if daterange1.from.year < 2012 then return 'red' end
-            if daterange1.from.year == 2012 then return 'amber' end
-            if daterange1.from.year > 2012 then return 'green' end
+        function evaluate (L${instance_id}daterange1)
+            if L${instance_id}daterange1 == nil then return end
+            if L${instance_id}daterange1.from.year < 2012 then return 'red' end
+            if L${instance_id}daterange1.from.year == 2012 then return 'amber' end
+            if L${instance_id}daterange1.from.year > 2012 then return 'green' end
         end
     ");
     $rag1->type('rag');
@@ -475,7 +495,7 @@ sub __build_columns
     $calc1->code($self->calc_code);
     $calc1->type('calc');
     $calc1->name('calc1');
-    $calc1->name_short('calc1');
+    $calc1->name_short("L${instance_id}calc1");
     $calc1->return_type($self->calc_return_type);
     try { $calc1->write };
     if ($@)

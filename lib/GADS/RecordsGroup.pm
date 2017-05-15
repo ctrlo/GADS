@@ -103,15 +103,21 @@ sub _build_results
 
     # Build the full query first, to ensure that all join numbers etc are
     # calculated correctly
-    my $search_query    = $self->search_query(search => 1, sort => 1, linked => 1);
+    my $search_query    = $self->search_query(search => 1, sort => 1);
 
     # Work out the field name to select, and the appropriate aggregate function
-    my @select_fields; my @cols;
+    my @select_fields; my @cols; my %curval_fields;
     foreach my $col (@{$self->columns_retrieved_do})
     {
         push @cols, $col;
-        push @cols, @{$col->curval_fields}
-            if $col->type eq 'curval';
+        if ($col->type eq 'curval')
+        {
+            foreach (@{$col->curval_fields})
+            {
+                push @cols, $_;
+                $curval_fields{$_->id} = $col;
+            }
+        }
     }
 
     foreach my $col (@cols)
@@ -123,20 +129,27 @@ sub _build_results
                : 'max';
         # Don't use SUM() for non-numeric columns
         $op = 'max' if $op eq 'sum' && !$col->numeric;
-        $self->add_prefetch($col, include_multivalue => 1);
+        my $parent;
+        if ($curval_fields{$col->id})
+        {
+            $parent = $curval_fields{$col->id};
+        }
+        else {
+            $self->add_prefetch($col, include_multivalue => 1);
+        }
         push @select_fields, {
-            $op => $self->fqvalue($col, search => 1, prefetch => 1),
+            $op => $self->fqvalue($col, prefetch => 1, linked => 0, parent => $parent),
             -as => $col->field
         };
         # Also add linked column if required
         push @select_fields, {
-            $op => $self->fqvalue($col->link_parent, linked => 1, search => 1, prefetch => 1),
+            $op => $self->fqvalue($col->link_parent, linked => 1, prefetch => 1, parent => $parent),
             -as => $col->field."_link",
         } if $col->link_parent;
     }
 
     push @select_fields, {
-        $self->operator => $self->fqvalue($self->column, search => 1, prefetch => 1),
+        $self->operator => $self->fqvalue($self->column, search => 1, prefetch => 1, linked => 0),
         -as             => $self->column->field."_".$self->{operator},
     } if $self->column;
 
@@ -160,7 +173,7 @@ sub _build_results
             { min => "$field.from", -as => 'start_date'},
             { max => "$field.to", -as => 'end_date'},
         ];
-        my $search = $self->search_query(search => 1, prefetch => 1);
+        my $search = $self->search_query(search => 1, prefetch => 1, linked => 0);
         # Include linked field if applicable
         if ($field_link)
         {
@@ -168,10 +181,6 @@ sub _build_results
                 { min => "$field_link.from", -as => 'start_date_link'},
                 { max => "$field_link.to", -as => 'end_date_link'},
             );
-            push @$search, $self->record_later_search(linked => 1, search => 1, prefetch => 1);
-        }
-        else {
-            push @$search, $self->record_later_search(search => 1, prefetch => 1);
         }
 
         local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
@@ -183,7 +192,7 @@ sub _build_results
                     {
                         'record_single' => [
                             'record_later',
-                            $self->jpfetch(search => 1, prefetch => 1),
+                            $self->jpfetch(search => 1, prefetch => 1, linked => 0),
                         ],
                     },
                     $self->linked_hash(search => 1, prefetch => 1),
@@ -286,7 +295,7 @@ sub _build_results
         } else {
             if ($col->link_parent)
             {
-                my $main = $self->fqvalue($col, search => 1, prefetch => 1);
+                my $main = $self->fqvalue($col, search => 1, prefetch => 1, linked => 0);
                 my $link = $self->fqvalue($col->link_parent, search => 1, prefetch => 1, linked => 1);
                 push @g, $self->schema->resultset('Current')->helper_concat(
                      { -ident => $main },
@@ -299,8 +308,7 @@ sub _build_results
         }
     };
 
-    my $q = $self->search_query(prefetch => 1, search => 1); # Called first to generate joins
-    push @$q, $self->record_later_search(search => 1, prefetch => 1, linked => 1);
+    my $q = $self->search_query(prefetch => 1, search => 1, linked => 1); # Called first to generate joins
 
     my $select = {
         select => [@select_fields],
@@ -308,7 +316,7 @@ sub _build_results
             {
                 'record_single' => [
                     'record_later',
-                    $self->jpfetch(prefetch => 1, search => 1),
+                    $self->jpfetch(prefetch => 1, search => 1, linked => 0),
                 ],
             },
             $self->linked_hash(prefetch => 1, search => 1),

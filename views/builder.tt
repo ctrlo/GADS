@@ -1,9 +1,9 @@
 $('#builder[% builder_id %]').queryBuilder({
     filters: [
-        [% FOR col IN all_columns %]
+        [% FOR col IN layout.columns_for_filter %]
             {
-                id: '[% col.id %]',
-                label: '[% col.name | html_entity %]',
+                id: '[% col.filter_id %]',
+                label: '[% col.filter_name | html_entity %]',
                 [% IF col.type == "intgr" %]
                     type: 'string', [%# Allow variable names %]
                 [% ELSIF col.return_type == "date" %]

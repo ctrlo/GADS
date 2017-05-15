@@ -69,7 +69,7 @@ my $sheet   = t::lib::DataSheet->new(
     multivalue       => 1,
     curval           => 2,
     curval_field_ids => [ $curval_sheet->columns->{string1}->id ],
-    calc_code        => "function evaluate (string1) \n return string1 \nend",
+    calc_code        => "function evaluate (L1string1) \n return L1string1 \nend",
     calc_return_type => 'string',
 );
 my $layout  = $sheet->layout;
@@ -85,7 +85,7 @@ is( scalar @{$curval->values}, 3, "Correct number of values for curval field" );
 
 # Create a second curval sheet, and check that we can link to first sheet
 # (which links to second)
-my $curval_sheet2 = t::lib::DataSheet->new(schema => $schema, curval => 1, instance_id => 3);
+my $curval_sheet2 = t::lib::DataSheet->new(schema => $schema, curval => 1, instance_id => 3, curval_offset => 12);
 $curval_sheet2->create_records;
 is( scalar @{$curval_sheet2->columns->{curval1}->values}, 2, "Correct number of values for curval field" );
 
@@ -217,7 +217,7 @@ $record = GADS::Records->new(
 )->single;
 is( $record->fields->{$curval_filter->id}->ids->[0], $curval_id, "Curval value ID still correct after filter change (multiple)");
 is( $record->fields->{$curval_filter->id}->as_string, $curval_value, "Curval value still correct after filter change (multiple)");
-is( $record->fields->{$curval_filter->id}->for_code->[0]->{field_values}->{enum1}, 'foo1', "Curval value for code still correct after filter change (multiple)");
+is( $record->fields->{$curval_filter->id}->for_code->[0]->{field_values}->{L2enum1}, 'foo1', "Curval value for code still correct after filter change (multiple)");
 
 # Check that we can filter on a value in the record
 foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid/)
@@ -229,12 +229,12 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid/)
         : 'string1';
     my $match = $test =~ /(string1|enum1|calc1|multi|negative)/ ? 1 : 0;
     my $value = $test eq 'calc1'
-        ? '$calc1'
+        ? '$L1calc1'
         : $match
-        ? "\$$field"
+        ? "\$L1$field"
         : $test eq 'nomatch'
-        ? '$tree1'
-        : '$string123';
+        ? '$L1tree1'
+        : '$L1string123';
 
     my $rules = $test eq 'multi'
         ? {

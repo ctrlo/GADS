@@ -12,9 +12,27 @@ use GADS::Schema;
 use t::lib::DataSheet;
 
 # Only use multivalue for the referenced sheet. Normal multivalue is tested elsewhere.
-my $sheet1 = t::lib::DataSheet->new(data => [], instance_id => 1, multivalue => 1);
-my $schema = $sheet1->schema;
-my $sheet2 = t::lib::DataSheet->new(data => [], instance_id => 2, schema => $schema);
+my $curval_sheet = t::lib::DataSheet->new(instance_id => 3);
+$curval_sheet->create_records;
+my $curval_columns = $curval_sheet->columns;
+my $curval_string  = $curval_columns->{string1};
+my $curval_enum    = $curval_columns->{enum1};
+my $schema = $curval_sheet->schema;
+my $sheet1 = t::lib::DataSheet->new(
+    data             => [],
+    instance_id      => 1,
+    schema           => $schema,
+    multivalue       => 1,
+    curval           => 3,
+    curval_field_ids => [$curval_string->id, $curval_enum->id],
+);
+my $sheet2 = t::lib::DataSheet->new(
+    data             => [],
+    instance_id      => 2,
+    schema           => $schema,
+    curval           => 3,
+    curval_field_ids => [$curval_string->id, $curval_enum->id],
+);
 
 my $layout1 = $sheet1->layout;
 my $layout2 = $sheet2->layout;
@@ -26,6 +44,8 @@ $columns2->{daterange1}->link_parent_id($columns1->{daterange1}->id);
 $columns2->{daterange1}->write;
 $columns2->{enum1}->link_parent_id($columns1->{enum1}->id);
 $columns2->{enum1}->write;
+$columns2->{curval1}->link_parent_id($columns1->{curval1}->id);
+$columns2->{curval1}->write;
 $layout2->clear; # Need to rebuild columns to get link_parent built
 
 my $record1 = GADS::Record->new(
@@ -37,7 +57,8 @@ my $record1 = GADS::Record->new(
 
 $record1->initialise;
 $record1->fields->{$columns1->{daterange1}->id}->set_value(['2010-10-10', '2012-10-10']);
-$record1->fields->{$columns1->{enum1}->id}->set_value([1]);
+$record1->fields->{$columns1->{enum1}->id}->set_value([7]);
+$record1->fields->{$columns1->{curval1}->id}->set_value([1]);
 $record1->write(no_alerts => 1);
 
 my $record2 = GADS::Record->new(
@@ -49,7 +70,8 @@ my $record2 = GADS::Record->new(
 
 $record2->initialise;
 $record2->fields->{$columns2->{daterange1}->id}->set_value(['2010-10-15', '2013-10-10']);
-$record2->fields->{$columns2->{enum1}->id}->set_value([7]);
+$record2->fields->{$columns2->{enum1}->id}->set_value([13]);
+$record2->fields->{$columns2->{curval1}->id}->set_value([2]);
 $record2->write(no_alerts => 1);
 
 # Clear the record object and write a new one, this time with the
@@ -73,8 +95,8 @@ my @filters = (
         }],
         sort   => 'asc',
         values => [
-            'string1: Foo,integer1: ,enum1: foo1,tree1: ,date1: ,daterange1: 2010-10-10 to 2012-10-10,file1: ,person1: ,rag1: b_red,calc1: 2010,',
-            'string1: ,integer1: ,enum1: foo1,tree1: ,date1: ,daterange1: 2010-10-15 to 2013-10-10,file1: ,person1: ,rag1: b_red,calc1: 2010,',
+            'string1: Foo;integer1: ;enum1: foo1;tree1: ;date1: ;daterange1: 2010-10-10 to 2012-10-10;file1: ;person1: ;curval1: Foo, foo1;rag1: b_red;calc1: 2010;',
+            'string1: ;integer1: ;enum1: foo1;tree1: ;date1: ;daterange1: 2010-10-15 to 2013-10-10;file1: ;person1: ;curval1: Bar, foo2;rag1: b_red;calc1: 2010;',
         ],
         count => 2,
     },
@@ -88,10 +110,66 @@ my @filters = (
         }],
         sort   => 'desc',
         values => [
-            'string1: ,integer1: ,enum1: foo1,tree1: ,date1: ,daterange1: 2010-10-15 to 2013-10-10,file1: ,person1: ,rag1: b_red,calc1: 2010,',
-            'string1: Foo,integer1: ,enum1: foo1,tree1: ,date1: ,daterange1: 2010-10-10 to 2012-10-10,file1: ,person1: ,rag1: b_red,calc1: 2010,',
+            'string1: ;integer1: ;enum1: foo1;tree1: ;date1: ;daterange1: 2010-10-15 to 2013-10-10;file1: ;person1: ;curval1: Bar, foo2;rag1: b_red;calc1: 2010;',
+            'string1: Foo;integer1: ;enum1: foo1;tree1: ;date1: ;daterange1: 2010-10-10 to 2012-10-10;file1: ;person1: ;curval1: Foo, foo1;rag1: b_red;calc1: 2010;',
         ],
         count => 2,
+    },
+    {
+        name  => 'Curval search of ID in parent record',
+        rules => [{
+            id       => $columns2->{curval1}->id,
+            type     => 'string',
+            value    => '1',
+            operator => 'equal',
+        }],
+        sort   => 'desc',
+        values => [
+            'string1: Foo;integer1: ;enum1: foo1;tree1: ;date1: ;daterange1: 2010-10-10 to 2012-10-10;file1: ;person1: ;curval1: Foo, foo1;rag1: b_red;calc1: 2010;',
+        ],
+        count => 1,
+    },
+    {
+        name  => 'Curval search of ID in main record',
+        rules => [{
+            id       => $columns2->{curval1}->id,
+            type     => 'string',
+            value    => '2',
+            operator => 'equal',
+        }],
+        sort   => 'desc',
+        values => [
+            'string1: ;integer1: ;enum1: foo1;tree1: ;date1: ;daterange1: 2010-10-15 to 2013-10-10;file1: ;person1: ;curval1: Bar, foo2;rag1: b_red;calc1: 2010;',
+        ],
+        count => 1,
+    },
+    {
+        name  => 'Curval search of string sub-field in parent record',
+        rules => [{
+            id       => $columns2->{curval1}->id . '_' . $curval_string->id,
+            type     => 'string',
+            value    => 'Foo',
+            operator => 'equal',
+        }],
+        sort   => 'desc',
+        values => [
+            'string1: Foo;integer1: ;enum1: foo1;tree1: ;date1: ;daterange1: 2010-10-10 to 2012-10-10;file1: ;person1: ;curval1: Foo, foo1;rag1: b_red;calc1: 2010;',
+        ],
+        count => 1,
+    },
+    {
+        name  => 'Curval search of enum sub-field in parent record',
+        rules => [{
+            id       => $columns2->{curval1}->id . '_' . $curval_enum->id,
+            type     => 'string',
+            value    => 'foo1',
+            operator => 'equal',
+        }],
+        sort   => 'desc',
+        values => [
+            'string1: Foo;integer1: ;enum1: foo1;tree1: ;date1: ;daterange1: 2010-10-10 to 2012-10-10;file1: ;person1: ;curval1: Foo, foo1;rag1: b_red;calc1: 2010;',
+        ],
+        count => 1,
     },
 );
 
@@ -127,7 +205,7 @@ foreach my $filter (@filters)
     {
         my $retrieved = $records->single;
         my $got = '';
-        $got .= $_->name.': ' . $retrieved->fields->{$_->id} . ','
+        $got .= $_->name.': ' . $retrieved->fields->{$_->id} . ';'
             foreach sort { $a->id <=> $b->id } values %$columns2;
         is( $got, $expected, "Retrieved data correct for test $filter->{name} ID ".$retrieved->current_id );
     }
@@ -141,13 +219,13 @@ my $single = GADS::Record->new(
 );
 
 $single->find_current_id($record2->current_id);
-my $got = join ", ",
+my $got = join ";",
     map { $_->name.': ' . $single->fields->{$_->id} }  sort { $a->id <=> $b->id } values %$columns2;
-my $expected = 'string1: Foo, integer1: , enum1: foo1, tree1: , date1: , daterange1: 2010-10-10 to 2012-10-10, file1: , person1: , rag1: b_red, calc1: 2010';
+my $expected = 'string1: Foo;integer1: ;enum1: foo1;tree1: ;date1: ;daterange1: 2010-10-10 to 2012-10-10;file1: ;person1: ;curval1: Foo, foo1;rag1: b_red;calc1: 2010';
 is( $got, $expected, "Retrieve record with linked field by current ID" );
 $single->clear;
 $single->find_record_id($record2->record_id);
-$got = join ", ",
+$got = join ";",
     map { $_->name.': ' . $single->fields->{$_->id} }  sort { $a->id <=> $b->id } values %$columns2;
 is( $got, $expected, "Retrieve record with linked field by record ID" );
 

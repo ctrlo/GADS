@@ -186,6 +186,16 @@ sub _build_curval_fields
     [ map { $self->layout_parent->column($_) } @{$self->curval_field_ids} ];
 }
 
+sub sort_columns
+{   my $self = shift;
+    @{$self->curval_fields};
+}
+
+sub sort_parent
+{   my $self = shift;
+    $self; # This field is the parent for sort columns
+}
+
 # Does this column reference the field?
 sub has_curval_field
 {   my ($self, $field) = @_;
@@ -253,16 +263,21 @@ sub _records_from_db
     return $records;
 }
 
-sub _build_join
-{   my $self = shift;
-    my @join = map { $_->join } @{$self->curval_fields_retrieve};
+sub make_join
+{   my ($self, @joins) = @_;
+    @joins = map { $_->join } @joins;
     +{
         $self->field => {
             value => {
-                record_single => ['record_later', @join],
+                record_single => ['record_later', @joins],
             }
         }
     };
+}
+
+sub _build_join
+{   my $self = shift;
+    $self->make_join(@{$self->curval_fields_retrieve});
 }
 
 sub _build_values

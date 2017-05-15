@@ -276,7 +276,7 @@ sub write
     # access to them.
     foreach my $filter (@{$self->filter->filters})
     {
-        my $col   = $self->layout->column($filter->{id});
+        my $col   = $self->layout->column($filter->{column_id});
         my $val   = $filter->{value};
         my $op    = $filter->{operator};
         my $rtype = $col->return_type;
@@ -299,7 +299,7 @@ sub write
         my $has_value = $val && (ref $val ne 'ARRAY' || @$val);
         error __x "No value can be entered for empty and not empty operators"
             if ($op eq 'is_empty' || $op eq 'is_not_empty') && $has_value;
-        error __x"Invalid field ID {id} in filter", id => $filter->{id}
+        error __x"Invalid field ID {id} in filter", id => $filter->{column_id}
             unless $col->user_can('read');
     }
 
@@ -383,20 +383,20 @@ sub write
     my @all_filters = @{$self->filter->filters};
     foreach my $filter (@all_filters)
     {
-        unless (grep { $_->layout_id == $filter->{id} } @existing)
+        unless (grep { $_->layout_id == $filter->{column_id} } @existing)
         {
             # Unable to add internal columns to filter table, as they don't
             # reference any columns from the layout table
-            next unless $filter->{id} > 0;
+            next unless $filter->{column_id} > 0;
             $self->schema->resultset('Filter')->create({
                 view_id   => $self->id,
-                layout_id => $filter->{id},
+                layout_id => $filter->{column_id},
             });
         }
     }
     # Delete those no longer there
     $search = { view_id => $self->id };
-    $search->{layout_id} = { '!=' => [ '-and', map { $_->{id} } @all_filters ] } if @all_filters;
+    $search->{layout_id} = { '!=' => [ '-and', map { $_->{column_id} } @all_filters ] } if @all_filters;
     $self->schema->resultset('Filter')->search($search)->delete;
 }
 

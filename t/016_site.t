@@ -13,7 +13,7 @@ my $schema      = $sheet_site1->schema;
 $sheet_site1->create_records;
 # Set the site_id. This should be use throughout the next data sheet creation
 $schema->site_id(2);
-my $sheet_site2 = t::lib::DataSheet->new(schema => $schema, instance_id => 2, user_count => 0);
+my $sheet_site2 = t::lib::DataSheet->new(schema => $schema, instance_id => 2, user_count => 0, curval_offset => 6);
 $sheet_site2->create_records;
 
 # Check site 1 records

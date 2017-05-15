@@ -49,9 +49,9 @@ my $values = {
         addable_result => '2000-11-18 to 2006-11-11',
     },
     curval1 => {
-        old_as_string => 'Foo, 50, , , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012',
+        old_as_string => 'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012',
         new           => 2,
-        new_as_string => 'Bar, 99, , , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+        new_as_string => 'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
     },
     person1 => {
         old_as_string => 'User1, User1',

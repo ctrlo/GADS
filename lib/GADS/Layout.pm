@@ -195,10 +195,7 @@ sub clear
 sub _build_columns
 {   my $self = shift;
 
-    my $cols_rs = $self->schema->resultset('Layout')->search(
-    {
-        'me.instance_id' => $self->instance_id,
-    },{
+    my $cols_rs = $self->schema->resultset('Layout')->search({},{
         order_by => ['me.position', 'enumvals.id'],
         join     => 'enumvals',
         prefetch => ['calcs', 'rags', 'link_parent'],
@@ -215,6 +212,7 @@ sub _build_columns
         my $column = $class->new(
             set_values               => $col,
             user_permission_override => $self->user_permission_override,
+            instance_id              => $col->{instance_id},
             schema                   => $self->schema,
             layout                   => $self
         );
@@ -317,12 +315,31 @@ sub all_with_internal
     $self->all(@_, include_internal => 1);
 }
 
+sub columns_for_filter
+{   my $self = shift;
+    my @columns;
+    foreach my $col ($self->all(user_can_read => 1))
+    {
+        push @columns, $col;
+        if ($col->type eq 'curval')
+        {
+            foreach my $c ($col->layout_parent->all)
+            {
+                $c->filter_id($col->id.'_'.$c->id);
+                $c->filter_name($col->name.' ('.$c->name.')');
+                push @columns, $c;
+            }
+        }
+    }
+    @columns;
+}
+
 sub all
 {   my ($self, %options) = @_;
 
     my $type = $options{type};
 
-    my @columns = @{$self->columns};
+    my @columns = grep { $_->instance_id == $self->instance_id } @{$self->columns};
     @columns = $self->_order_dependencies(@columns) if $options{order_dependencies};
     @columns = grep { !$_->internal } @columns unless $options{include_internal};
     @columns = grep { $_->internal } @columns if $options{only_internal};

@@ -53,16 +53,16 @@ my $sheet   = t::lib::DataSheet->new(
         curval => 2,
     },
     calc_code        => "
-        function evaluate (enum1, curval1)
+        function evaluate (L1enum1, L1curval1)
             values = {}
-            for k, v in pairs(enum1.values) do table.insert(values, v) end
+            for k, v in pairs(L1enum1.values) do table.insert(values, v) end
             table.sort(values)
             local text = ''
             for i,v in ipairs(values) do
                 text = text .. v
             end
-            for i,v in ipairs(curval1) do
-                text = text .. v.field_values.string1
+            for i,v in ipairs(L1curval1) do
+                text = text .. v.field_values.L2string1
             end
             return text
         end
@@ -103,8 +103,8 @@ my @tests = (
         as_string => {
             enum1   => 'foo1, foo2',
             enum2   => 'foo1',
-            curval1 => 'Foo, 50, , , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012; Bar, 99, , , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
-            curval2 => 'Bar, 99, , , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+            curval1 => 'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012; Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+            curval2 => 'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
             tree1   => 'tree1',
             calc1   => 'foo1foo2FooBar', # 2x enum values then 2x string values from curval
         },
@@ -125,8 +125,8 @@ my @tests = (
         as_string => {
             enum1   => 'foo1, foo2',
             enum2   => 'foo1, foo2',
-            curval1 => 'Foo, 50, , , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012; Bar, 99, , , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
-            curval2 => 'Bar, 99, , , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+            curval1 => 'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012; Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+            curval2 => 'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
             tree1   => 'tree1',
             calc1   => 'foo1foo2FooBar', # 2x enum values then 2x string values from curval
         },

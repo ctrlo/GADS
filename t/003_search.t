@@ -25,7 +25,7 @@ my $data = [
         daterange1 => ['', ''],
         enum1      => 7,
         tree1      => 10,
-        curval1    => 2,
+        curval1    => 1,
     },{
         string1    => '',
         integer1   => 5,
@@ -33,6 +33,7 @@ my $data = [
         daterange1 => ['', ''],
         enum1      => 7,
         tree1      => 12,
+        curval1    => 2,
     },{
         string1    => '',
         integer1   => 6,
@@ -53,6 +54,7 @@ my $data = [
         daterange1 => ['2009-01-04', '2017-06-03'],
         enum1      => 8,
         tree1      => 11,
+        curval2    => 1,
     },{
         string1    => "${long}1",
         integer1   => 2,
@@ -67,23 +69,42 @@ my $data = [
 my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
+my $curval_columns = $curval_sheet->columns;
 my $sheet   = t::lib::DataSheet->new(
     data             => $data,
     schema           => $schema,
     curval           => 2,
     multivalue       => 1,
-    calc_code        => "function evaluate (daterange1) \n if daterange1 == nil then return end \n return daterange1.from.epoch \n end",
+    instance_id      => 1,
+    calc_code        => "function evaluate (L1daterange1) \n if L1daterange1 == nil then return end \n return L1daterange1.from.epoch \n end",
     calc_return_type => 'date',
+    column_count     => {
+        enum   => 1,
+        curval => 2,
+    },
 );
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
+# Position curval first, as its internal _value fields are more
+# likely to cause problems and therefore representative test failures
+my @position = (
+    $columns->{curval1}->id,
+    $columns->{string1}->id,
+    $columns->{integer1}->id,
+    $columns->{date1}->id,
+    $columns->{daterange1}->id,
+    $columns->{enum1}->id,
+    $columns->{tree1}->id,
+);
+$layout->position(@position);
+$layout->clear;
 $sheet->create_records;
 
 
 # Manually force one string to be empty and one to be undef.
 # Both should be returned during a search on is_empty
-$schema->resultset('String')->find(1)->update({ value => undef });
-$schema->resultset('String')->find(2)->update({ value => '' });
+$schema->resultset('String')->find(3)->update({ value => undef });
+$schema->resultset('String')->find(4)->update({ value => '' });
 
 my @filters = (
     {
@@ -362,6 +383,17 @@ my @filters = (
         count => 3,
     },
     {
+        name  => 'Search using enum with curval in view',
+        columns => [$columns->{curval1}->id],
+        rules => [{
+            id       => $columns->{enum1}->id,
+            type     => 'string',
+            value    => 'foo1',
+            operator => 'equal',
+        }],
+        count => 3,
+    },
+    {
         name  => 'Search 2 using enum with different tree in view',
         columns => [$columns->{tree1}->id, $columns->{enum1}->id],
         rules => [
@@ -461,7 +493,71 @@ my @filters = (
         count     => 0,
         no_errors => 1,
     },
+    {
+        name  => 'Search by curval ID',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => $columns->{curval1}->id,
+                type     => 'string',
+                value    => '2',
+                operator => 'equal',
+            },
+        ],
+        count     => 1,
+        no_errors => 1,
+    },
+    {
+        name  => 'Search by curval field',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => $columns->{curval1}->id .'_'. $curval_columns->{string1}->id,
+                type     => 'string',
+                value    => 'Bar',
+                operator => 'equal',
+            },
+        ],
+        count     => 1,
+        no_errors => 1,
+    },
+    {
+        name  => 'Search by curval enum field',
+        columns => [$columns->{enum1}->id],
+        rules => [
+            {
+                id       => $columns->{curval1}->id .'_'. $curval_columns->{enum1}->id,
+                type     => 'string',
+                value    => 'foo2',
+                operator => 'equal',
+            },
+        ],
+        count     => 1,
+        no_errors => 1,
+    },
+    {
+        name  => 'Search by curval enum field across 2 curvals',
+        columns => [$columns->{enum1}->id],
+        rules => [
+            {
+                id       => $columns->{curval1}->id .'_'. $curval_columns->{enum1}->id,
+                type     => 'string',
+                value    => 'foo2',
+                operator => 'equal',
+            },
+            {
+                id       => $columns->{curval2}->id .'_'. $curval_columns->{enum1}->id,
+                type     => 'string',
+                value    => 'foo1',
+                operator => 'equal',
+            },
+        ],
+        condition => 'OR',
+        count     => 2,
+        no_errors => 1,
+    },
 );
+
 foreach my $filter (@filters)
 {
     my $rules = GADS::Filter->new(
@@ -646,8 +742,8 @@ $records = GADS::Records->new(
     layout  => $layout,
     schema  => $schema,
 );
-is (@{$records->search_all_fields('2014-10-10')}, 2, 'Quick search for 2014-10-10');
-is (@{$records->search_all_fields('Foo')}, 1, 'Quick search for foo');
+is (@{$records->search_all_fields('2014-10-10')}, 4, 'Quick search for 2014-10-10');
+is (@{$records->search_all_fields('Foo')}, 3, 'Quick search for foo');
 is (@{$records->search_all_fields('Foo*')}, 5, 'Quick search for foo*');
 is (@{$records->search_all_fields('99')}, 1, 'Quick search for 99');
 is (@{$records->search_all_fields('1979-01-204')}, 0, 'Quick search for invalid date');
@@ -827,13 +923,80 @@ my @sorts = (
         first        => qr/^(8|9)$/,
         last         => qr/^(4)$/,
     },
+    {
+        name         => 'Sort by enum with filter on curval',
+        show_columns => [$columns->{enum1}->id,$columns->{curval1}->id,$columns->{tree1}->id],
+        sort_by      => [$columns->{enum1}->id],
+        sort_type    => ['asc'],
+        first        => qr/^(4)$/,
+        last         => qr/^(7)$/,
+        max_id       => 7,
+        min_id       => 4,
+        count        => 2,
+        filter       => {
+            rules => [
+                {
+                    id       => $columns->{curval1}->id .'_'. $curval_columns->{enum1}->id,
+                    type     => 'string',
+                    value    => 'foo2',
+                    operator => 'equal',
+                },
+                {
+                    id       => $columns->{curval2}->id .'_'. $curval_columns->{enum1}->id,
+                    type     => 'string',
+                    value    => 'foo1',
+                    operator => 'equal',
+                },
+            ],
+            condition => 'OR',
+        },
+    },
+    {
+        name         => 'Sort by curval with filter on curval',
+        show_columns => [$columns->{enum1}->id,$columns->{curval1}->id,$columns->{curval2}->id],
+        sort_by      => [$columns->{curval1}->id],
+        sort_type    => ['asc'],
+        first        => qr/^(4)$/,
+        last         => qr/^(3)$/,
+        max_id       => 4,
+        min_id       => 3,
+        count        => 2,
+        filter       => {
+            rules => [
+                {
+                    id       => $columns->{curval1}->id .'_'. $curval_columns->{enum1}->id,
+                    type     => 'string',
+                    value    => 'foo1',
+                    operator => 'equal',
+                },
+                {
+                    id       => $columns->{curval1}->id .'_'. $curval_columns->{enum1}->id,
+                    type     => 'string',
+                    value    => 'foo2',
+                    operator => 'equal',
+                },
+            ],
+            condition => 'OR',
+        },
+    },
+    {
+        name         => 'Sort by curval without curval in view',
+        show_columns => [$columns->{string1}->id],
+        sort_by      => [$columns->{curval1}->id],
+        sort_type    => ['asc'],
+        first        => qr/^(5|6|7|8|9)$/,
+        last         => qr/^(3)$/,
+        max_id       => 9,
+        min_id       => 3,
+        count        => 7,
+    },
 );
 
 foreach my $sort (@sorts)
 {
     # If doing a count with the sort, then do an extra pass, one to check that actual
     # number of rows retrieved, and one to check the count calculation function
-    my $passes = $sort->{count} ? 3 : 2;
+    my $passes = $sort->{count} ? 4 : 3;
     foreach my $pass (1..$passes)
     {
         my $filter = GADS::Filter->new(
@@ -849,7 +1012,18 @@ foreach my $sort (@sorts)
             user        => undef,
         );
         $view->write;
-        $view->set_sorts($sort->{sort_by}, $sort->{sort_type});
+        my $sort_type = @{$sort->{sort_type}} > 1
+            ? $sort->{sort_type}
+            : $sort->{sort_type}->[0] eq 'asc' && $pass == 2
+            ? ['asc']
+            : $sort->{sort_type}->[0] eq 'asc' && $pass == 3
+            ? ['desc']
+            : $sort->{sort_type}->[0] eq 'desc' && $pass == 2
+            ? ['desc']
+            : $sort->{sort_type}->[0] eq 'desc' && $pass == 3
+            ? ['asc']
+            : $sort->{sort_type};
+        $view->set_sorts($sort->{sort_by}, $sort_type);
 
         $records = GADS::Records->new(
             page    => 1,
@@ -874,8 +1048,9 @@ foreach my $sort (@sorts)
             $records->page($sort->{count} || 7);
             is( $records->results->[-1]->current_id, $last, "Correct last record for sort override and test $sort->{name}");
         }
-        elsif ($pass == 2)
+        elsif ($pass == 2 || $pass == 3)
         {
+            next if $pass == 3 && @{$sort->{sort_type}} > 1;
             # First check number of results for page of all records
             is( @{$records->results}, $sort->{count}, "Correct number of records in results for sort $sort->{name}" )
                 if $sort->{count};
@@ -883,10 +1058,19 @@ foreach my $sort (@sorts)
             # Then switch to 1 record per page to test sorting across multiple pages
             $records->clear;
             $records->rows(1);
-            like( $records->results->[0]->current_id, $sort->{first}, "Correct first record for sort $sort->{name}");
-            $records->clear;
-            $records->page($sort->{count} || 7);
-            like( $records->results->[-1]->current_id, $sort->{last}, "Correct last record for sort $sort->{name}");
+            if ($pass == 2)
+            {
+                like( $records->results->[0]->current_id, $sort->{first}, "Correct first record for sort $sort->{name}");
+                $records->clear;
+                $records->page($sort->{count} || 7);
+                like( $records->results->[0]->current_id, $sort->{last}, "Correct last record for sort $sort->{name}");
+            }
+            else {
+                like( $records->results->[0]->current_id, $sort->{last}, "Correct first record for sort $sort->{name} in reverse");
+                $records->clear;
+                $records->page($sort->{count} || 7);
+                like( $records->results->[0]->current_id, $sort->{first}, "Correct last record for sort $sort->{name} in reverse");
+            }
         }
         else {
             is( $records->count, $sort->{count}, "Correct record count for sort $sort->{name}" )

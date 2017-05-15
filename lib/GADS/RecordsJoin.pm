@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::RecordsJoin;
 
 use Data::Compare;
+use Data::Dumper;
 use Log::Report 'linkspace';
 use Moo::Role;
 use MooX::Types::MooseLike::Base qw(:all);
@@ -29,43 +30,117 @@ has _jp_store => (
     default => sub { [] },
 );
 
+sub _all_joins
+{   my $self = shift;
+    my @return;
+    foreach my $j (@{$self->_jp_store})
+    {
+        push @return, $j;
+        push @return, @{$j->{children}}
+            if $j->{children};
+    }
+    @return;
+}
+
+sub _compare_parents
+{   my ($parent1, $parent2) = @_;
+    return 1 if !$parent1 && !$parent2;
+    return 0 if $parent1 xor $parent2;
+    $parent1->id == $parent2->id;
+}
+
+sub _add_children
+{   my ($self, $join, $column) = @_;
+    $join->{children} ||= [];
+    my %existing = map { $_->{column}->id => 1 } @{$join->{children}};
+    foreach my $c (@{$column->curval_fields_retrieve})
+    {
+        # prefetch and linked match the parent.
+        # search and sort are left blank, but may be updated with an
+        # additional direct call with just the child and that option.
+        push @{$join->{children}}, {
+            join       => $c->join,
+            prefetch   => 1,
+            curval     => $c->type eq 'curval' ? 1 : 0,
+            column     => $c,
+            parent     => $column,
+        } if !$existing{$c->id};
+    }
+}
+
 sub _add_jp
 {   my ($self, $column, %options) = @_;
 
     panic "Attempt to generate join for internal column"
         if $column->internal;
 
-    my $jp_store = $self->_jp_store;
     my $key;
     my $toadd = $column->join;
     ($key) = keys %$toadd if ref $toadd eq 'HASH';
 
+    my $prefetch = (!$column->multivalue || $options{include_multivalue}) && $options{prefetch};
+
     # Check whether join is already in store, if so update
-    foreach my $j (@$jp_store)
+    foreach my $j ($self->_all_joins)
     {
         if (
             ($key && ref $j->{join} eq 'HASH' && Compare($toadd, $j->{join}))
             || $toadd eq $j->{join}
         )
         {
-            $j->{prefetch} ||= (!$column->multivalue || $options{include_multivalue}) && $options{prefetch};
-            $j->{search}   ||= $options{search};
-            $j->{linked}   ||= $options{linked};
-            $j->{sort}     ||= $options{sort};
-            return;
+            if ( _compare_parents($options{parent}, $j->{parent}) )
+            {
+                $j->{prefetch} ||= $prefetch;
+                $j->{search}   ||= $options{search};
+                $j->{linked}   ||= $options{linked};
+                $j->{sort}     ||= $options{sort};
+                $self->_add_children($j, $column)
+                    if ($column->type eq 'curval' && $prefetch);
+                return;
+            }
         }
     }
 
-    # Otherwise add it
-    push @$jp_store, {
+    my $join_add = {
         join       => $toadd,
         # Never prefetch multivalue columns, which can result in huge numbers of rows being retrieved.
-        prefetch   => (!$column->multivalue || $options{include_multivalue}) && $options{prefetch},   # Whether values should be retrieved
-        search     => $options{search},     # Whether it's used in a WHERE clause
-        linked     => $options{linked},     # Whether it's a linked table
-        sort       => $options{sort},       # Whether it's used in an order_by clause
+        prefetch   => $prefetch,        # Whether values should be retrieved
+        search     => $options{search}, # Whether it's used in a WHERE clause
+        linked     => $options{linked}, # Whether it's a linked table
+        sort       => $options{sort},   # Whether it's used in an order_by clause
         curval     => $column->type eq 'curval' ? 1 : 0,
+        column     => $column,
+        parent     => $options{parent},
     };
+
+    # If it's a curval field then we need to account for any joins that are
+    # part of the curval
+    $self->_add_children($join_add, $column)
+        if ($column->type eq 'curval' && $prefetch);
+
+    # Otherwise add it
+    if (my $parent = $options{parent})
+    {
+        # Find parent and add to that
+        foreach my $c (@{$self->_jp_store})
+        {
+            if ($c->{column}->id == $parent->id)
+            {
+                my %existing = map { $_->{column}->id => $_ } @{$c->{children}};
+                if (my $exists = $existing{$join_add->{column}->id})
+                {
+                    $exists->{search} ||= $options{search};
+                    $exists->{sort}   ||= $options{sort};
+                }
+                else {
+                    push @{$c->{children}}, $join_add
+                }
+            }
+        }
+    }
+    else {
+        push @{$self->_jp_store}, $join_add;
+    }
 }
 
 sub add_prefetch
@@ -92,7 +167,7 @@ sub record_later_search
 {   my ($self, %options) = @_;
     my $count = $options{no_current} ? 0 : 1; # Always at least one if joining onto current
     $count++ if $options{linked};
-    foreach (@{$self->_jp_store})
+    foreach ($self->_all_joins)
     {
         if ($_->{curval})
         {
@@ -124,19 +199,38 @@ sub _jpfetch
     my @return;
     foreach (@{$self->_jp_store})
     {
-        next if !$options{linked} && $_->{linked};
-        next if $options{linked} && !$_->{linked};
+        if (exists $options{linked})
+        {
+            next if !$options{linked} && $_->{linked};
+            next if $options{linked} && !$_->{linked};
+        }
         next if exists $options{prefetch} && !$options{prefetch} && $_->{prefetch};
-        if ($options{search} && $_->{search}) {
-            push @return, $_;
-            next;
-        }
-        if ($options{sort} && $_->{sort}) {
-            push @return, $_;
-            next;
-        }
-        if ($options{prefetch} && $_->{prefetch}) {
-            push @return, $_;
+        if (
+            ($options{search} && $_->{search})
+            || ($options{sort} && $_->{sort})
+            || ($options{prefetch} && $_->{prefetch})
+        )
+        {
+            if ($_->{column}->type eq 'curval')
+            {
+                my @children;
+                foreach my $child (@{$_->{children}})
+                {
+                    push @children, $child
+                        if ($options{search} && $child->{search})
+                        || ($options{sort} && $child->{sort})
+                        || ($options{prefetch} && $child->{prefetch});
+                }
+                my $simple = {%$_};
+                $simple->{join} = $_->{column}->field;
+                push @return, {
+                    join      => $_->{column}->make_join(map {$_->{column}} @children),
+                    all_joins => [$simple, @children],
+                };
+            }
+            else {
+                push @return, $_;
+            }
             next;
         }
     }
@@ -164,65 +258,77 @@ sub table_name
 sub _join_number
 {   my ($self, $column, %options) = @_;
 
-    my $join = $column->join;
+    $self->dump_jp_store; # Only does anything when logging level high enough
 
     # Find the correct join number, by iterating through all the current
     # joins, and jumping at the matching join with the count number.
     # Joins in the form "field{n} => value" will be counted as the same,
     # but only returned with an exact match.
-    # If this is for a sort, then we need to adjust the options depending on
-    # whether the sort is a column also included in a prefetch. If it's not,
-    # then it will be first in the DBIC query, and therefore the number should
-    # not include other prefetch joins.
-    if ($options{sort} && $options{prefetch})
-    {
-        my ($jp) = grep { Compare $_->{join}, $join } @{$self->_jp_store};
-        $options{prefetch} = $jp->{prefetch};
-    }
+
     my @store = $self->_jpfetch(%options);
     my $stash = {};
     foreach my $j (@store)
     {
-        my $n = _find($join, $j->{join}, $stash);
+        my $n;
+        if ($j->{all_joins})
+        {
+            foreach my $j2 (@{$j->{all_joins}})
+            {
+                $n = _find($column, $j2, $stash, %options);
+                return $n if $n;
+            }
+        }
+        else {
+            $n = _find($column, $j, $stash, %options);
+        }
         return $n if $n;
     }
 
     # This shouldn't happen. If we get here then we're trying to get a
     # join number for a table that hasn't been added.
     my $cid = $column->id;
-    panic "Unable to get join number: column $cid hasn't been added";
+    $options{parent} = $options{parent}->id if $options{parent}; # Prevent dumping of whole object
+    panic "Unable to get join number: column $cid hasn't been added for options ".Dumper(\%options);
 }
 
 sub _find
-{   my ($needle, $join, $stash) = @_;
-    if (ref $join eq 'HASH')
+{   my ($needle, $jp, $stash, %options) = @_;
+    if (ref $jp->{join} eq 'HASH')
     {
-        my ($key, $value) = %$join;
-        $stash->{$key}++;
-        if (Compare $needle, $join)
+        my ($key, $value) = %{$jp->{join}};
+        if ($needle->sprefix eq $value)
         {
-            # Multiple join, as in the case of enumvals
-            # (field{n} => value)
+            $stash->{$key}++;
             $stash->{$value}++;
-            return $stash->{$value};
+            if ($jp->{parent} && !$stash->{parents_included}->{$jp->{parent}->id})
+            {
+                $stash->{value}++;
+                $stash->{parents_included}->{$jp->{parent}->id} = 1;
+            }
+            return $stash->{$value}
+                if $needle->field eq $key && _compare_parents($options{parent}, $jp->{parent});
         }
-        my $n = _find($needle, $value, $stash);
-        return $n if $n;
     }
-    elsif (ref $join eq 'ARRAY')
+    elsif (ref $jp->{join} eq 'ARRAY')
     {
-        foreach (@$join)
+        foreach (@{$jp->{join}})
         {
             my $n = _find($needle, $_, $stash);
             return $n if $n;
         }
     }
     else {
-        $stash->{$join}++;
-        if ($needle eq $join)
+        $stash->{$jp->{join}}++;
+        if ($jp->{parent} && !$stash->{parents_included}->{$jp->{parent}->id})
+        {
+            $stash->{value}++;
+            $stash->{parents_included}->{$jp->{parent}->id} = 1;
+        }
+        if ($needle->sprefix eq $jp->{join})
         {
             # Single table join
-            return $stash->{$needle};
+            return $stash->{$needle->sprefix}
+                if _compare_parents($options{parent}, $jp->{parent});
         }
     }
 }
@@ -248,6 +354,51 @@ sub fqvalue
 {   my ($self, $column, %options) = @_;
     my $tn = $self->table_name($column, %options);
     "$tn." . $column->value_field;
+}
+
+sub dump_jp_store
+{   my $self = shift;
+    my $dumped = "Going to dump the jp store:\n";
+    my $dd = Data::Dumper->new([]);
+    $dd->Indent(0);
+    no warnings 'uninitialized';
+    foreach my $jp (@{$self->_jp_store})
+    {
+        my $children;
+        if (ref $jp->{children})
+        {
+            foreach my $child (@{$jp->{children}})
+            {
+                $dd->Values([$child->{join}]);
+                my $join = ref $child->{join} ? $dd->Dump : $child->{join};
+                chomp $join;
+                my $parent_id = $child->{parent}->id;
+                $children .= "
+            child is ".$child->{column}->id." (".$child->{column}->name.") => {
+                join     => $join,
+                prefetch => $child->{prefetch},
+                curval   => $child->{curval},
+                search   => $child->{search},
+                sort     => $child->{sort},
+                parent   => $parent_id
+            },";
+            }
+        }
+        $dd->Values([$jp->{join}]);
+        my $join = ref $jp->{join} ? $dd->Dump : $jp->{join};
+        chomp $join;
+        $dumped .= "    join for ".$jp->{column}->id." (".$jp->{column}->name.") => {
+        join     => $join,
+        prefetch => $jp->{prefetch},
+        search   => $jp->{search},
+        linked   => $jp->{linked},
+        sort     => $jp->{sort},
+        curval   => $jp->{curval},
+        children => $children
+    },
+";
+    }
+    trace "$dumped\n";
 }
 
 1;

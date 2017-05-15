@@ -541,7 +541,7 @@ sub _build_results
 
     # Build the search query first, to ensure that all join numbers are correct
     my $search_query    = $self->search_query(search => 1, sort => 1, linked => 1); # Need to call first to build joins
-    my @prefetches      = $self->jpfetch(prefetch => 1);
+    my @prefetches      = $self->jpfetch(prefetch => 1, linked => 0);
     my @linked_prefetch = $self->linked_hash(prefetch => 1);
 
     # Run 2 queries. First to get the current IDs of the matching records, then
@@ -553,7 +553,7 @@ sub _build_results
             {
                 'record_single' => [ # The (assumed) single record for the required version of current
                     'record_later',  # The record after the single record (undef when single is latest)
-                    $self->jpfetch(search => 1, sort => 1),
+                    $self->jpfetch(search => 1, sort => 1, linked => 0),
                 ],
             },
             [$self->linked_hash(search => 1, sort => 1)],
@@ -578,7 +578,7 @@ sub _build_results
     )->get_column('me.id')->all;
 
     # Now redo the query with those IDs.
-    @prefetches = $self->jpfetch(prefetch => 1);
+    @prefetches = $self->jpfetch(prefetch => 1, linked => 0);
     unshift @prefetches, (
         {
             'createdby' => 'organisation',
@@ -588,7 +588,7 @@ sub _build_results
     my $rec1 = @prefetches ? { record_single => [@prefetches] } : 'record_single';
     # Add joins for sorts, but only if they're not already a prefetch (otherwise ordering can be messed up).
     # We also add the join for record_later, so that we can take only the latest required record
-    my @j = $self->jpfetch(sort => 1, prefetch => 0);
+    my @j = $self->jpfetch(sort => 1, prefetch => 0, linked => 0);
     my $rec2 = @j ? { record_single => [@j, 'record_later'] } : { record_single => 'record_later' };
 
     $select = {
@@ -714,7 +714,7 @@ sub _build_count
 {   my $self = shift;
 
     my $search_query = $self->search_query(search => 1, linked => 1);
-    my @joins        = $self->jpfetch(search => 1);
+    my @joins        = $self->jpfetch(search => 1, linked => 0);
     my @linked       = $self->linked_hash(search => 1, linked => 1);
     local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
         if $self->rewind;
@@ -938,32 +938,39 @@ sub order_by
     $self->_plus_select([]);
     my @sorts = @{$self->_sorts};
 
-    my @order_by; my $sort_count;
+    my @order_by;
     foreach my $s (@sorts)
     {
         my $type   = "-$s->{type}";
         my $column = $self->layout->column($s->{id});
-        $self->add_join($column, sort => 1)
-            unless $column->internal;
-        my $s_table = $self->table_name($column, sort => 1, %options);
-        $sort_count++;
-        my $sort_name;
-        if ($column->link_parent)
+        my @cols_main = $column->sort_columns;
+        my @cols_link = $column->link_parent ? $column->link_parent->sort_columns : ();
+        foreach my $col_sort (@cols_main)
         {
-            $self->add_join($column->link_parent, sort => 1);
-            my $main = "$s_table.".$column->value_field;
-            my $link = $self->table_name($column->link_parent, sort => 1, linked => 1, %options).".".$column->value_field;
-            $sort_name = $self->schema->resultset('Current')->helper_concat(
-                 { -ident => $main },
-                 { -ident => $link },
-            );
+            $self->add_join($column->sort_parent, sort => 1)
+                if $column->sort_parent;
+            $self->add_join($col_sort, sort => 1, parent => $column->sort_parent)
+                unless $column->internal;
+            my $s_table = $self->table_name($col_sort, sort => 1, %options, parent => $column->sort_parent);
+            my $sort_name;
+            if ($column->link_parent) # Original column, not the sub-column ($col_sort)
+            {
+                my $col_link = shift @cols_link;
+                $self->add_join($col_link, sort => 1);
+                my $main = "$s_table.".$column->value_field;
+                my $link = $self->table_name($col_link, sort => 1, linked => 1, %options).".".$col_link->value_field;
+                $sort_name = $self->schema->resultset('Current')->helper_concat(
+                     { -ident => $main },
+                     { -ident => $link },
+                );
+            }
+            else {
+                $sort_name = "$s_table.".$col_sort->value_field;
+            }
+            push @order_by, {
+                $type => $sort_name,
+            };
         }
-        else {
-            $sort_name = "$s_table.".$column->value_field;
-        }
-        push @order_by, {
-            $type => $sort_name,
-        };
     }
 
     \@order_by;
@@ -1004,14 +1011,21 @@ sub _search_construct
     );
 
     my %permission = $ignore_perms ? () : (permission => 'read');
-    my $column   = $layout->column($filter->{id}, %permission)
+    my ($parent_column, $column);
+    if ($filter->{id} =~ /^([0-9]+)_([0-9]+)$/)
+    {
+        $column        = $layout->column($2, %permission);
+        $parent_column = $layout->column($1, %permission);
+    }
+    else {
+        $column   = $layout->column($filter->{id}, %permission);
+    }
+    $column
         or return;
     # If testing a comparison but we have no value, then assume search empty/not empty
     # (used during filters on curval against current record values)
     $filter->{operator} = $filter->{operator} eq 'not_equal' ? 'is_not_empty' : 'is_empty'
         if $filter->{operator} !~ /(is_empty|is_not_empty)/ && !$filter->{value};
-#    $filter->{operator} = $filter->{operator} eq 'not_equal' ? 'is_not_empty' : 'is_empty'
-#        if $filter->{operator} !~ /(is_empty|is_not_empty)/ && !$filter->{value};
     my $operator = $ops{$filter->{operator}}
         or error __x"Invalid operator {filter}", filter => $filter->{operator};
 
@@ -1152,13 +1166,22 @@ sub _search_construct
     }
 
     my @final = map {
-        $self->_resolve($column, $_, \@values, 0, %options);
+        $self->_resolve($column, $_, \@values, 0, parent => $parent_column, %options);
     } @conditions;
     @final = ('-and' => [@final]);
-    if (my $link_parent = $column->link_parent)
+    my $parent_column_link = $parent_column && $parent_column->link_parent;;
+    if ($parent_column_link || $column->link_parent)
     {
+        my $link_parent;
+        if ($parent_column)
+        {
+            $link_parent = $column;
+        }
+        else {
+            $link_parent = $column->link_parent;
+        }
         my @final2 = map {
-            $self->_resolve($link_parent, $_, \@values, 1, %options);
+            $self->_resolve($link_parent, $_, \@values, 1, parent => $parent_column_link, %options);
         } @conditions;
         @final2 = ('-and' => [@final2]);
         @final = (['-or' => [@final], [@final2]]);
@@ -1198,9 +1221,11 @@ sub _resolve
     else {
         my $combiner = $condition->{type} =~ /(is_not_empty|not_equal)/ ? '-and' : '-or';
         $value    = @$value > 1 ? [ $combiner => @$value ] : $value->[0];
-        $self->add_join($column, search => 1, linked => $is_linked)
+        $self->add_join($options{parent}, search => 1, linked => $is_linked)
+            if $options{parent};
+        $self->add_join($column, search => 1, linked => $is_linked, parent => $options{parent})
             unless $column->internal;
-        my $s_table = $self->table_name($column, %options, search => 1, linked => $is_linked);
+        my $s_table = $self->table_name($column, %options, search => 1);
         my $sq = {$condition->{operator} => $value};
         $sq = [ $sq, undef ] if $condition->{type} eq 'not_equal';
         +( "$s_table.$_->{s_field}" => $sq );

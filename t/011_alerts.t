@@ -748,12 +748,12 @@ is( $schema->resultset('AlertSend')->count, 0, "Start calc column change test wi
 
 # Update calc column to same result (extra space to ensure update), should be no more alerts
 my $calc_col = $columns->{calc1};
-$calc_col->code("function evaluate (daterange1) \n if daterange1 == null then return end \n return daterange1.from.year\nend ");
+$calc_col->code("function evaluate (L1daterange1) \n if L1daterange1 == null then return end \n return L1daterange1.from.year\nend ");
 $calc_col->write;
 is( $schema->resultset('AlertSend')->count, 0, "Correct number of alerts after calc update with no change" );
 
 # Update calc column for different result (one record will change, other has same end year)
-$calc_col->code("function evaluate (daterange1) \n if daterange1 == null then return end \n return daterange1.to.year\nend");
+$calc_col->code("function evaluate (L1daterange1) \n if L1daterange1 == null then return end \n return L1daterange1.to.year\nend");
 $calc_col->write;
 is( $schema->resultset('AlertSend')->count, 1, "Correct number of alerts to send after calc update with change" );
 
@@ -771,7 +771,7 @@ $view->filter->as_hash({
 });
 $view->write;
 is( $schema->resultset('AlertCache')->count, 1, "Correct number of alert caches after filter applied" );
-$calc_col->code("function evaluate (daterange1) \n if daterange1 == null then return end \n return daterange1.from.year\nend");
+$calc_col->code("function evaluate (L1daterange1) \n if L1daterange1 == null then return end \n return L1daterange1.from.year\nend");
 $calc_col->write;
 is( $schema->resultset('AlertSend')->count, 1, "Correct number of alerts to send after calc updated with filter in place" );
 
@@ -779,7 +779,7 @@ is( $schema->resultset('AlertSend')->count, 1, "Correct number of alerts to send
 # Mocking the time in Perl will not affect Lua, so instead we insert the
 # year hard-coded in the Lua code. Years of 2010 and 2014 are used for the tests.
 $sheet = t::lib::DataSheet->new(
-    calc_code => "function evaluate (daterange1) \nif daterange1.from.year < 2010 then return 1 else return 0 end\nend",
+    calc_code => "function evaluate (L1daterange1) \nif L1daterange1.from.year < 2010 then return 1 else return 0 end\nend",
 );
 $schema = $sheet->schema;
 $layout = $sheet->layout;
@@ -823,7 +823,7 @@ is( $schema->resultset('AlertSend')->count, 0, "Start calc column change test wi
 
 # Wind date forward 4 years, should now appear in view
 $schema->resultset('Calc')->update({
-    code => "function evaluate (daterange1) \nif daterange1.from.year < 2014 then return 1 else return 0 end\nend",
+    code => "function evaluate (L1daterange1) \nif L1daterange1.from.year < 2014 then return 1 else return 0 end\nend",
 });
 $layout->clear;
 $columns->{calc1}->update_cached;
@@ -904,7 +904,7 @@ is( $alerts_rs->count, $alert_count + 999, "Correct number of bulk alerts insert
 # previous bug where views with alerts were being searched across all tables
 # rather than just the current one.
 $schema->resultset('AlertCache')->delete;
-my $sheet2 = t::lib::DataSheet->new(schema => $schema, instance_id => 2);
+my $sheet2 = t::lib::DataSheet->new(schema => $schema, instance_id => 2, curval_offset => 6);
 $sheet2->create_records;
 my $record = GADS::Record->new(
     user     => undef,

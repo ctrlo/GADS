@@ -316,8 +316,9 @@ my @update_tests = (
 
 foreach my $test (@update_tests)
 {
-    my $sheet = t::lib::DataSheet->new;
-    $sheet->data($test->{existing_data}) if $test->{existing_data};
+    my $sheet = $test->{existing_data}
+        ? t::lib::DataSheet->new(data => $test->{existing_data})
+        : t::lib::DataSheet->new;
 
     my $schema  = $sheet->schema;
     my $layout  = $sheet->layout;

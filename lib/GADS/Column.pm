@@ -579,10 +579,37 @@ sub filter_value_to_text
     return $value;
 }
 
+# Overridden where required
+sub sort_columns
+{   my $self = shift;
+    ($self);
+}
+
+# Whether the sort columns when added should be added with a parent, and
+# if so what is the paremt
+sub sort_parent
+{   my $self = shift;
+    return undef; # default no, undef in case used in arrays
+}
+
 # Overridden in child classes. This function is used
 # to cleanup specialist column data when a column
 # is deleted
 sub cleanup {}
+
+# ID for the filter
+has filter_id => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->id },
+);
+
+# Name of the column for the filter
+has filter_name => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->name },
+);
 
 # Generic subroutine to fetch all multivalues for a table. Designed to satisfy
 # most standard tables. Overridden for anything complicated.
@@ -734,7 +761,6 @@ sub write
         # Check short name is unique
         my $search = {
             name_short  => $self->name_short,
-            instance_id => $self->instance_id,
         };
         if ($self->id)
         {

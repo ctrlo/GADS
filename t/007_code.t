@@ -51,7 +51,7 @@ my $calc2_col = GADS::Column::Calc->new(
     user   => undef,
     layout => $layout,
     name   => 'calc2',
-    code   => "foobar evaluate (curval)",
+    code   => "foobar evaluate (L1curval)",
 );
 try { $calc2_col->write };
 ok( $@, "Failed to write calc field with invalid function" );
@@ -62,7 +62,7 @@ $calc2_col = GADS::Column::Calc->new(
     user   => undef,
     layout => $layout,
     name   => 'calc2',
-    code   => "function evaluate (curval) \n return curval1.value\nend",
+    code   => "function evaluate (L1curval) \n return L1curval1.value\nend",
 );
 try { $calc2_col->write };
 ok( $@, "Failed to write calc field with invalid short names" );
@@ -73,7 +73,7 @@ my $calc3_col = GADS::Column::Calc->new(
     user   => undef,
     layout => $layout,
     name   => 'calc3',
-    code   => "function evaluate (curval1) \n adsfadsf return curval1.field_values.daterange1.from.year \nend",
+    code   => "function evaluate (L1curval1) \n adsfadsf return L1curval1.field_values.L2daterange1.from.year \nend",
 );
 try { $calc3_col->write } hide => 'ALL';
 my ($warning) = $@->exceptions;
@@ -87,7 +87,7 @@ my $rag3 = GADS::Column::Rag->new(
     layout => $layout,
     name   => 'rag2',
     code   => "
-        function evaluate (daterange1)
+        function evaluate (L1daterange1)
             foobar
         end
     ",
@@ -101,7 +101,7 @@ my @tests = (
     {
         name   => 'return value of curval field not in normal view',
         type   => 'Calc',
-        code   => "function evaluate (curval1,_id) \n return curval1.field_values.daterange1.from.year .. 'X' .. _id \nend",
+        code   => "function evaluate (L1curval1,_id) \n return L1curval1.field_values.L2daterange1.from.year .. 'X' .. _id \nend",
         before => '2012X__ID', # __ID replaced by current ID
         after  => '2008X__ID',
     },
@@ -109,11 +109,11 @@ my @tests = (
         name => 'rag from daterange',
         type => 'Rag',
         code   => "
-            function evaluate (daterange1)
-                if daterange1 == nil then return end
-                if daterange1.from.year < 2012 then return 'red' end
-                if daterange1.from.year == 2012 then return 'amber' end
-                if daterange1.from.year > 2012 then return 'green' end
+            function evaluate (L1daterange1)
+                if L1daterange1 == nil then return end
+                if L1daterange1.from.year < 2012 then return 'red' end
+                if L1daterange1.from.year == 2012 then return 'amber' end
+                if L1daterange1.from.year > 2012 then return 'green' end
             end
         ",
         before => 'b_red',
@@ -122,7 +122,7 @@ my @tests = (
     {
         name           => 'decimal calc',
         type           => 'Calc',
-        code           => "function evaluate (daterange1) \n return daterange1.from.year / 10 \nend",
+        code           => "function evaluate (L1daterange1) \n return L1daterange1.from.year / 10 \nend",
         return_type    => 'numeric',
         decimal_places => 1,
         before         => '200.0',
@@ -131,7 +131,7 @@ my @tests = (
     {
         name        => 'calc fields that returns 0 (int)',
         type        => 'Calc',
-        code        => "function evaluate (curval1) \n return 0 \nend",
+        code        => "function evaluate (L1curval1) \n return 0 \nend",
         return_type => 'integer',
         before      => '0',
         after       => '0',
@@ -139,7 +139,7 @@ my @tests = (
     {
         name        => 'calc fields that returns 0 (string)',
         type        => 'Calc',
-        code        => "function evaluate (curval1) \n return 0 \nend",
+        code        => "function evaluate (L1curval1) \n return 0 \nend",
         return_type => 'string',
         before      => '0',
         after       => '0',

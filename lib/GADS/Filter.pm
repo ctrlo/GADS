@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Filter;
 
 use Data::Compare qw/Compare/;
+use GADS::Config;
 use JSON qw(decode_json encode_json);
 use Log::Report 'linkspace';
 use MIME::Base64;
@@ -100,7 +101,7 @@ sub base64
     foreach my $filter (@{$self->filters})
     {
         $self->layout or panic "layout has not been set in filter";
-        my $col = $self->layout->column($filter->{id});
+        my $col = $self->layout->column($filter->{column_id});
         if ($col->has_filter_typeahead)
         {
             $filter->{data} = {
@@ -156,6 +157,13 @@ sub _filter_tables
         }
     }
     elsif (my $id = $filter->{id}) {
+        if ($id =~ s/^([0-9])+_([0-9]+)$//)
+        {
+            $filter->{column_id} = $2;
+        }
+        else {
+            $filter->{column_id} = $filter->{id};
+        }
         push @$tables, $filter; # Keep as reference so can be updated by other functions
     }
 }
