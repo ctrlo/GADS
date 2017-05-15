@@ -129,5 +129,16 @@ sub equal
     }
 }
 
+sub for_code
+{   my $self = shift;
+    if ($self->column->return_type eq 'date')
+    {
+        $self->_date_for_code($self->value);
+    }
+    else {
+        $self->as_string;
+    }
+}
+
 1;
 

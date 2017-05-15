@@ -36,6 +36,8 @@ my $sheet        = t::lib::DataSheet->new(
     user_count       => 2,
     curval           => 2,
     curval_field_ids => [ $curval_sheet->columns->{string1}->id ],
+    calc_code        => "function evaluate (L1daterange1) \n return L1daterange1.from.epoch \n end",
+    calc_return_type => 'date',
 );
 my $layout       = $sheet->layout;
 my $columns      = $sheet->columns;
@@ -127,6 +129,13 @@ my @tests = (
         decimal_places => 1,
         before         => '200.0',
         after          => '201.4',
+    },
+    {
+        name   => 'use date from another calc field',
+        type   => 'Calc',
+        code   => qq(function evaluate (L1calc1) \n return L1calc1.year \nend),
+        before => '2000',
+        after  => '2014'
     },
     {
         name        => 'calc fields that returns 0 (int)',

@@ -56,7 +56,8 @@ has schema => (
 );
 
 has vars => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_vars
@@ -140,6 +141,7 @@ sub re_evaluate
     my $old = $self->value;
     $self->clear_init_value;
     $self->clear_value;
+    $self->clear_vars;
     my $new = $self->value; # Force new value to be calculated
     $self->changed(1) if ($old xor $new) || !$self->equal($old, $new);
 }
