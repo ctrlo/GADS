@@ -420,6 +420,32 @@ my @filters = (
         count => 1,
     },
     {
+        name  => 'Search for multiple IDs',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => -11, # Special id for ID column
+                type     => 'integer',
+                value    => ['4', '5'],
+                operator => 'equal',
+            }
+        ],
+        count => 2,
+    },
+    {
+        name  => 'Search for empty IDs',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => -11, # Special id for ID column
+                type     => 'integer',
+                value    => [],
+                operator => 'equal',
+            }
+        ],
+        count => 0,
+    },
+    {
         name  => 'Search for version date 1',
         columns => [$columns->{string1}->id],
         rules => [

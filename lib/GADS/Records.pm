@@ -1149,7 +1149,7 @@ sub _search_construct
         }
     }
 
-    @values or panic "No values defined for filter ".Dumper($filter); # Should always have at least one value by now
+    @values or return ( \"0 = 1" ); # Nothing to match, return nothing
 
     if ($column->type eq "string")
     {
