@@ -318,7 +318,7 @@ sub all_with_internal
 sub columns_for_filter
 {   my $self = shift;
     my @columns;
-    foreach my $col ($self->all(user_can_read => 1))
+    foreach my $col ($self->all(user_can_read => 1, include_internal => 1))
     {
         push @columns, $col;
         if ($col->type eq 'curval')
