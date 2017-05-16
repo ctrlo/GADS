@@ -168,16 +168,22 @@ sub record_later_search
     my $count = $options{no_current} ? 0 : 1; # Always at least one if joining onto current
     $count++ if $options{linked};
 
+    # Include a record_later search for each time we join a curval with its
+    # full join structure. Don't add when only a curval value on its own is
+    # being used.
     my %curvals_included;
     foreach ($self->_all_joins)
     {
+        # Include a curval field itself, or one of its children (only the child
+        # might be searched upon)
         if ($_->{curval} || $_->{parent})
         {
             my $curval_id = $_->{curval} ? $_->{column}->id : $_->{parent}->id;
             if (
-                ($options{search} && $_->{search} && $_->{parent})
-                || ($options{sort} && $_->{sort})
-                || ($options{prefetch} && $_->{prefetch})
+                ($options{search} && $_->{search} && $_->{parent}) # Search in child
+                || ($options{sort} && $_->{sort}) # sort is all children
+                # prefetch is all children, but not when the curval has no fields
+                || ($options{prefetch} && $_->{prefetch} && !$_->{parent} && @{$_->{children}})
             )
             {
                 unless ($curvals_included{$curval_id})
