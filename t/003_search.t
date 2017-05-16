@@ -534,6 +534,27 @@ my @filters = (
         no_errors => 1,
     },
     {
+        name  => 'Search curval ID and enum, only curval in view',
+        columns => [$columns->{curval1}->id], # Ensure it's added as first join
+        rules => [
+            {
+                id       => $columns->{curval1}->id,
+                type     => 'string',
+                value    => '1',
+                operator => 'equal',
+            },
+            {
+                id       => $columns->{enum1}->id,
+                type     => 'string',
+                value    => 'foo1',
+                operator => 'equal',
+            },
+        ],
+        condition => 'AND',
+        count     => 1,
+        no_errors => 1,
+    },
+    {
         name  => 'Search by curval field',
         columns => [$columns->{string1}->id],
         rules => [

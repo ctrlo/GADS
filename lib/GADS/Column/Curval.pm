@@ -265,6 +265,8 @@ sub _records_from_db
 
 sub make_join
 {   my ($self, @joins) = @_;
+    return $self->field
+        if !@joins;
     @joins = map { $_->join } @joins;
     +{
         $self->field => {

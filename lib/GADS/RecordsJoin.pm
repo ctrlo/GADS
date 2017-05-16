@@ -167,21 +167,24 @@ sub record_later_search
 {   my ($self, %options) = @_;
     my $count = $options{no_current} ? 0 : 1; # Always at least one if joining onto current
     $count++ if $options{linked};
+
+    my %curvals_included;
     foreach ($self->_all_joins)
     {
-        if ($_->{curval})
+        if ($_->{curval} || $_->{parent})
         {
-            if ($options{search} && $_->{search})
+            my $curval_id = $_->{curval} ? $_->{column}->id : $_->{parent}->id;
+            if (
+                ($options{search} && $_->{search} && $_->{parent})
+                || ($options{sort} && $_->{sort})
+                || ($options{prefetch} && $_->{prefetch})
+            )
             {
-                $count++;
-            }
-            elsif ($options{sort} && $_->{sort})
-            {
-                $count++;
-            }
-            elsif ($options{prefetch} && $_->{prefetch})
-            {
-                $count++;
+                unless ($curvals_included{$curval_id})
+                {
+                    $count++;
+                    $curvals_included{$curval_id} = 1;
+                }
             }
         }
     }
