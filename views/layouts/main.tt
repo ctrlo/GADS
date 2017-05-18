@@ -219,7 +219,9 @@
                                         <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/view/0">Add a view</a></li>
                                     [% END %]
                                     [% IF v %]
-                                        <li [% IF page=="" %]class="active"[% END %]><a href="/view/[% v.id %]">Edit current view</a></li>
+                                        [% IF !v.global OR user.permission.layout %]
+                                            <li [% IF page=="" %]class="active"[% END %]><a href="/view/[% v.id %]">Edit current view</a></li>
+                                        [% END %]
                                         <li [% IF page=="" %]class="active"[% END %]><a href="/view/0?clone=[% v.id %]">Copy current view</a></li>
                                     [% END %]
                                     <li class="divider"></li>
