@@ -8,8 +8,10 @@
         [% END %]
     [% ELSIF child %]
         Create child record of [% child %]
-    [% ELSE %]
+    [% ELSIF clone %]
         New record copied from record ID [% clone | html %]
+    [% ELSE %]
+        New record
     [% END %]
 </h2>
 <p></p>
