@@ -215,7 +215,9 @@
                                     <span class="caret"></span>
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
-                                    <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/view/0">Add a view</a></li>
+                                    [% IF user.permission.view_create %]
+                                        <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/view/0">Add a view</a></li>
+                                    [% END %]
                                     [% IF v %]
                                         <li [% IF page=="" %]class="active"[% END %]><a href="/view/[% v.id %]">Edit current view</a></li>
                                         <li [% IF page=="" %]class="active"[% END %]><a href="/view/0?clone=[% v.id %]">Copy current view</a></li>
