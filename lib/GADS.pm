@@ -1221,7 +1221,7 @@ any '/view/:id' => require_login sub {
     my $output = template 'view' => {
         layout       => $layout,
         sort_types   => $view->sort_types,
-        v            => $view, # TT does not like variable "view"
+        view_edit    => $view, # TT does not like variable "view"
         clone        => param('clone'),
         page         => 'view'
     };
