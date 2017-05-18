@@ -1,6 +1,6 @@
 $HASH1 = {
            description
-                  => 'User can link records between data sets',
+                  => 'link records between tables',
            id     => 9,
            name   => 'link',
            order  => 10

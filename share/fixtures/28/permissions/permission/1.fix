@@ -1,6 +1,6 @@
 $HASH1 = {
            description
-                  => 'User can delete records',
+                  => 'delete records without approval',
            id     => 1,
            name   => 'delete',
            order  => 1

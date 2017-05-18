@@ -86,89 +86,153 @@
         <div class="container-fluid">
             [% UNLESS page == "login" OR page == "invalidsite" OR page_as_mech %]
                 <div class="navbar navbar-default" role="navigation">
-                        <div class="navbar-header">
-                            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-controls="main-navbar">
-                                <span class="hamburger-menu-title">Menu</span>
-                                <span class="hamburger">
-                                    <span class="icon-bar"></span>
-                                    <span class="icon-bar"></span>
-                                    <span class="icon-bar"></span>
-                                </span>
-                            </button>
-                            <a class="navbar-brand" href="[% url.page %]/">Home</a>
-                        </div>
-                        <div class="collapse navbar-collapse" id="main-navbar">
-                            <ul class="nav navbar-nav">
-                                <li [% IF page=="data" %]class="active"[% END %]><a href="[% url.page %]/data">Data</a></li>
-                                [% IF user_can_approve %]
-                                    [% IF approve_waiting %][% appcount = " (" _ approve_waiting _ ")" %][% END %]
-                                    <li [% IF page=="approval" %]class="active"[% END %]>
-                                        <a href="[% url.page %]/approval/">Approval[% appcount %]</a>
+                    <div class="collapse navbar-collapse" id="main-navbar">
+                        <ul class="nav navbar-nav">
+                            <li class="dropdown">
+                                <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
+                                    aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
+                                    <span><i aria-hidden="true" class="fa fa-cog fa-lg use-icon-font"></i></span>
+                                </button>
+                                <ul class="dropdown-menu" id="ciog-menu">
+                                    <li [% IF 0 %]class="active"[% END %]>
+                                        <a href="[% url.page %]/config/">Manage homepage</a>
                                     </li>
-                                [% END %]
-                                [% IF user.permission.layout OR user.permission.useradmin OR user.permission.audit %]
-                                    <li class="dropdown">
+                                    <li [% IF 0 %]class="active"[% END %]>
+                                        <a href="[% url.page %]/file/">Manage uploads</a>
+                                    </li>
+                                    <li [% IF 0 %]class="active"[% END %]>
+                                        <a href="[% url.page %]/audit/">User logs</a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
+                                    aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
+                                    <span>[% instance_name | html_entity %]</span>
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" id="table-menu">
+                                    [% FOREACH instance IN instances %]
+                                        <li [% IF instance.id == instance_id %]class="active"[% END %]>
+                                            <a href="?instance=[% instance.id %]"
+                                            >[% instance.name | html_entity %]</a>
+                                        </li>
+                                    [% END %]
+                                </ul>
+                            </li>
+                        </ul>
+                        <ul class="nav navbar-nav navbar-right">
+                            <li class="dropdown">
+                            <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="User menu"
+                                aria-expanded="false" aria-haspopup="true" aria-controls="user-menu">
+                                <span>[% user.value | html_entity %]</span>
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu" id="user-menu">
+                                <li><a href="[% url.page %]/account/detail">My details</a></li>
+                                <li class="divider"></li>
+                                <li><a href="[% url.page %]/logout">Logout</a></li>
+                            </ul>
+                            </li>
+                        </ul>
+                    </div><!--/.nav-collapse -->
+                </div>
+                <div class="navbar navbar-default" role="navigation">
+                    <div class="collapse navbar-collapse" id="main-navbar">
+                        <ul class="nav navbar-nav">
+                            <li><a href="[% url.page %]/"><i aria-hidden="true" class="fa fa-home fa-lg use-icon-font"></i></a></li>
+                            [% IF user.permission.layout %]
+                                <li class="dropdown">
                                     <button type="button" id="admin-menu" class="dropdown-toggle" 
                                         data-toggle="dropdown" aria-controls="admin-menu-options" aria-expanded="false" aria-haspopup="true">
-                                        <span>Admin menu</span>
+                                        <span>Table editor</span>
                                         <span class="caret"></span>
                                     </button>
                                     <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
-                                        [% IF user.permission.layout %]
-                                            <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/layout/">Data Layout</a></li>
-                                            <li [% IF page=="table" %]class="active"[% END %]><a href="[% url.page %]/table/">Tables</a></li>
-                                            <li [% IF page=="graph" %]class="active"[% END %]><a href="[% url.page %]/graph/">Graphs</a></li>
-                                            <li [% IF page=="metric" %]class="active"[% END %]><a href="[% url.page %]/metric/">Metrics</a></li>
-                                            <li [% IF page=="config" %]class="active"[% END %]><a href="[% url.page %]/config/">General Settings</a></li>
-                                        [% END %]
-                                        [% IF user.permission.useradmin %]
-                                            <li [% IF page=="user" %]class="active"[% END %]><a href="[% url.page %]/user/">Manage Users</a></li>
-                                            <li [% IF page=="group" %]class="active"[% END %]><a href="[% url.page %]/group/">Manage Groups</a></li>
-                                        [% END %]
-                                        [% IF user.permission.layout %]
-                                            <li [% IF page=="import" %]class="active"[% END %]><a href="[% url.page %]/import/">Imports</a></li>
-                                        [% END %]
-                                        [% IF user.permission.audit %]
-                                            <li [% IF page=="audit" %]class="active"[% END %]><a href="[% url.page %]/audit/">Audit logs</a></li>
-                                        [% END %]
+                                        <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/table/0">Add a table</a></li>
+                                        <li [% IF page=="table" %]class="active"[% END %]><a href="[% url.page %]/table/">Manage tables</a></li>
+                                        <li class="divider"></li>
+                                        <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/layout/">Manage fields</a></li>
+                                        <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/layout/0">Add a field</a></li>
                                     </ul>
-                                    </li>
-                                [% END %]
-                            </ul>
-                            <ul class="nav navbar-nav navbar-right">
-                                [% IF instances.size > 1 %]
-                                    <li class="dropdown">
-                                    <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
-                                        aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
-                                        <span>[% instance_name | html_entity %]</span>
+                                </li>
+                            [% END %]
+                            [% IF user.permission.useradmin %]
+                                <li class="dropdown">
+                                    <button type="button" id="admin-menu" class="dropdown-toggle" 
+                                        data-toggle="dropdown" aria-controls="admin-menu-options" aria-expanded="false" aria-haspopup="true">
+                                        <span>Users</span>
                                         <span class="caret"></span>
                                     </button>
-                                    <ul class="dropdown-menu" id="table-menu">
-                                        [% FOREACH instance IN instances %]
-                                            <li [% IF instance.id == instance_id %]class="active"[% END %]>
-                                                <a href="?instance=[% instance.id %]"
-                                                >[% instance.name | html_entity %]</a>
-                                            </li>
-                                        [% END %]
+                                    <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
+                                        <li [% IF page=="user" %]class="active"[% END %]><a href="[% url.page %]/user/">Manage users</a></li>
+                                        <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/user/0">Add a user</a></li>
+                                        <li><a href="" data-toggle="modal" data-target="#modal-sendemail">Email users</a></li>
+                                        <li><a href="/user?download">Download users</a></li>
+                                        <li class="divider"></li>
+                                        <li [% IF page=="group" %]class="active"[% END %]><a href="[% url.page %]/group/">Groups</a></li>
+                                        <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/group/0">Add a group</a></li>
                                     </ul>
-                                    </li>
-                                [% END %]
-                                <li class="dropdown">
-                                <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="User menu"
-                                    aria-expanded="false" aria-haspopup="true" aria-controls="user-menu">
-                                    <span>[% user.value | html_entity %]</span>
+                                </li>
+                            [% END %]
+                            <li class="dropdown">
+                                <button type="button" id="admin-menu" class="dropdown-toggle" 
+                                    data-toggle="dropdown" aria-controls="admin-menu-options" aria-expanded="false" aria-haspopup="true">
+                                    <span>Records</span>
                                     <span class="caret"></span>
                                 </button>
-                                <ul class="dropdown-menu" id="user-menu">
-                                    <li><a href="[% url.page %]/account/detail">My details</a></li>
-                                    <li><a href="[% url.page %]/account/graph">My graphs</a></li>
+                                <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
+                                    <li [% IF page=="data" %]class="active"[% END %]><a href="[% url.page %]/data">See records</a></li>
+                                    [% IF user_can_create %]
+                                        <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/edit/">Add a record</a></li>
+                                    [% END %]
+                                    [% IF user.permission.link AND show_link %]
+                                        <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/link/">Add a linked record</a></li>
+                                    [% END %]
+                                    [% IF user_can_approve %]
+                                        [% IF approve_waiting %][% appcount = " (" _ approve_waiting _ ")" %][% END %]
+                                        <li class="divider"></li>
+                                        <li [% IF page=="approval" %]class="active"[% END %]><a href="[% url.page %]/approval/">Approve records[% appcount %]</a></li>
+                                    [% END %]
                                     <li class="divider"></li>
-                                    <li><a href="[% url.page %]/logout">Logout</a></li>
+                                    <li [% IF page=="import" %]class="active"[% END %]><a href="[% url.page %]/metric/">Import records</a></li>
+                                    [% IF viewtype == "table" AND records.size AND user.permission.download %]
+                                        <li><a href="[% url.page %]/data?download">Download records in current view</a></li>
+                                    [% END %]
+                                    [% IF user.permission.bulk_update %]
+                                        <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/update/">Update all records in view...</a></li>
+                                        <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/clone/">Clone all records in view...</a></li>
+                                    [% END %]
+                                    [% IF user.permission.delete %]
+                                        <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_delete" style="cursor: pointer">Delete all records in view...</a>
+                                    [% END %]
                                 </ul>
-                                </li>
-                            </ul>
-
-                        </div><!--/.nav-collapse -->
+                            </li>
+                            <li class="dropdown">
+                                <button type="button" id="admin-menu" class="dropdown-toggle" 
+                                    data-toggle="dropdown" aria-controls="admin-menu-options" aria-expanded="false" aria-haspopup="true">
+                                    <span>Views</span>
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
+                                    <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/view/0">Add a view</a></li>
+                                    [% IF v %]
+                                        <li [% IF page=="" %]class="active"[% END %]><a href="/view/[% v.id %]">Edit current view</a></li>
+                                        <li [% IF page=="" %]class="active"[% END %]><a href="/view/0?clone=[% v.id %]">Copy current view</a></li>
+                                    [% END %]
+                                    <li class="divider"></li>
+                                    <li [% IF page=="graph" %]class="active"[% END %]><a href="[% url.page %]/graph/">Manage graphs</a></li>
+                                    <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/graph/0">Add a graph</a></li>
+                                    <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/metric/">My graphs</a></li>
+                                    <li class="divider"></li>
+                                    <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_rewind">Historic view...</a></li>
+                                    [% IF v %]
+                                        <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_alert">Set up an alert</a></li>
+                                    [% END %]
+                                </ul>
+                            </li>
+                        </ul>
+                    </div><!--/.nav-collapse -->
                 </div>
 
             [% END %]
@@ -186,6 +250,66 @@
             [% IF session.rewind %]
                 <div class="alert alert-info">You are viewing data as it was on [% session.rewind.format_cldr(config.dateformat) %] at [% session.rewind.hms %]</div>
             [% END %]
+
+            [% WRAPPER modal_dialog.tt
+                modal_id="modal-sendemail"
+                modal_action_text="Send e-mail"
+                modal_heading="Send an e-mail"
+                modal_with_cancel_button=1
+                modal_with_form=1
+                modal_form_method="post"
+            %]
+                <div class="form-group">
+                    <label for="email_organisation">Users in:</label>
+                    <select class="form-control" id="email_organisation" name="email_organisation">
+                        <option value="">&lt;All users&gt;</option>
+                        [% FOREACH org IN organisations %]
+                            <option value="[% org.id %]">[% org.name | html_entity %]</option>
+                        [% END %]
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="email_subject">Subject</label>
+                    <input type="text" class="form-control" name="email_subject" id="email_subject" placeholder="Subject">
+                </div>
+                <div class="form-group">
+                    <label for="email_text">Message</label>
+                    <textarea class="form-control" id="email_text" name="email_text" rows="10"></textarea>
+                </div>
+            [% END %]
+
+            [% IF v %]
+                [% WRAPPER modal_dialog.tt
+                    modal_id="modal_alert" modal_action_text="Create alert" modal_heading="Configure alert for " _  v.name
+                    modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post"
+                %]
+                    <input type="hidden" value="[% v.id %]" name="view_id">
+                    <div class="form-group">
+                        <label for="frequency">Alert me:</label>
+                        <select class="form-control" id="frequency" name="frequency">
+                            <option value="" [% IF NOT v.alert %]selected[% END %]>Never</option>
+                            <option value="0" [% IF v.alert.frequency == 0 %]selected[% END %]>Instantly</option>
+                            <option value="24" [% IF v.alert.frequency == 24 %]selected[% END %]>Every 24 hours</option>
+                        </select>
+                    </div>
+                [% END %]
+            [% END %]
+
+            [% WRAPPER modal_dialog.tt
+                modal_id="modal_rewind" modal_action_text="Submit" modal_heading="View data as it was at a previous time"
+                modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post" modal_extra_action = "modal_rewind_reset"
+                modal_extra_action_text = "Reset to current"
+            %]
+                <div class="form-group">
+                    <label for="rewind_date">Date ([% config.dateformat %]):</label>
+                    <input id="rewind_date" class="form-control datepicker" type="text" value="[% session.rewind.format_cldr(config.dateformat) %]" name="rewind_date">
+                </div>
+                <div class="form-group">
+                    <label for="rewind_time">Time (HH:MM:SS):</label>
+                    <input id="rewind_time" class="form-control" type="text" value="[% session.rewind.hms %]" name="rewind_time" placeholder="23:59:59">
+                </div>
+            [% END %]
+
 
             [% content %]
 

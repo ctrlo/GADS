@@ -1,6 +1,6 @@
 $HASH1 = {
            description
-                  => 'User does not need approval when deleting records',
+                  => 'delete records but requires approval',
            id     => 2,
            name   => 'delete_noneed_approval',
            order  => 2

@@ -23,21 +23,7 @@
 <div class="btn-group">
     [% IF user_can_edit %]
 
-        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">Action <b class="caret"></b></button>
-            <ul class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="edit_action">
-                <li role="presentation"><a role="menuitem" href="/edit/[% record.current_id %]">Edit</a></li>
-                <li role="presentation"><a role="menuitem" href="/edit/?from=[% record.current_id %]">Clone new</a></li>
-                [% IF user.permission.create_child AND NOT record.parent_id %]
-                    <li role="presentation"><a role="menuitem" href="/edit/?child=[% record.current_id %]">Create child</a></li>
-                [% END %]
-                [% IF user.permission.link %]
-                    <li role="presentation"><a role="menuitem" href="/link/[% record.current_id %]">Link record</a></li>
-                [% END %]
-                [% IF user.permission.delete || user.permission.delete_noneed_approval %]
-                    <li role="presentation"><a role="menuitem" href="" data-toggle="modal" data-target="#modaldelete">Delete</a></li>
-                [% END %]
-            </ul>
-        </li>
+        <a href="/edit/[% record.current_id %]" class="btn btn-primary">Edit record</a>
     [% END %]
 </div>
 <p></p>

@@ -1,6 +1,6 @@
 $HASH1 = {
            description
-                  => 'User can download data',
+                  => 'download data',
            id     => 4,
            name   => 'download',
            order  => 4

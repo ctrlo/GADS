@@ -1,8 +1,8 @@
 [% PROCESS help.tt %]
 
-<h2>Edit layout</h2>
-
 [% IF column.defined %]
+<h2>[% IF column.id %]Edit field[% ELSE %]Add a field to [% instance_name | html %][% END %]</h2>
+
 <form role="form" method="post">
     <div class="row">
         <div class="col-md-6">
@@ -11,7 +11,7 @@
             [% END %]
             [% IF column.type == "rag" OR column.type == "calc" %][% noragcalc = 'style="display:none"' %][% END %]
             <div class="form-group">
-                <label for="name">Name:</label>
+                <label for="name">Field name:</label>
                 <input type="text" class="form-control" id="name" name="name" value="[% column.name | html_entity %]">
             </div>
             [% UNLESS column.id %]
@@ -28,7 +28,7 @@
                         <option value="person" [% IF column.type == "person" %]selected[% END %]>Person</option>
                         <option value="rag" [% IF column.type == "rag" %]selected[% END %]>RedAmberGreen status (RAG)</option>
                         <option value="calc" [% IF column.type == "calc" %]selected[% END %]>Calculated value</option>
-                        <option value="curval" [% IF column.type == "curval" %]selected[% END %]>Record from other data sheet</option>
+                        <option value="curval" [% IF column.type == "curval" %]selected[% END %]>Field(s) for records from another table</option>
                     </select>
                 </div>
             [% END %]
@@ -37,11 +37,11 @@
                 <input type="text" class="form-control" id="description" name="description" value="[% column.description | html_entity %]">
             </div>
             <div class="form-group">
-                <label for="name_short">Short name: (<a href="" data-toggle="modal" data-target="#modalhelp_name_short">?</a>)</label>
+                <label for="name_short"><span style="font-weight:normal !important">Short name: (<a href="" data-toggle="modal" data-target="#modalhelp_name_short">?</a>)</span></label>
                 <input type="text" class="form-control" id="name_short" name="name_short" value="[% column.name_short | html_entity %]">
             </div>
             <div class="form-group">
-                <label for="link_parent_id">Linked to field in other datasheet:</label>
+                <label for="link_parent_id">Link to a field in another table:</label>
                 [% IF instance_layouts.size %]
                     <select class="form-control" id="link_parent_id" name="link_parent_id">
                         <option value="">&lt;Not linked&gt;</option>
@@ -58,12 +58,12 @@
                 [% END %]
             </div>
             <div class="form-group">
-                <label for="helptext">User help text:</label>
+                <label for="helptext">Help text for the user:</label>
                 <textarea class="form-control" rows="5" id="helptext" name="helptext">[% column.helptext | html_entity %]</textarea>
             </div>
             <div class="checkbox noragcalc" [% noragcalc %]>
                 <label>
-                    <input type="checkbox" name="optional" [% IF column.optional %]checked[% END %]>Field is optional
+                    <input type="checkbox" name="optional" [% IF column.optional %]checked[% END %]>This field is optional
                 </label>
             </div>
             <div class="checkbox noragcalc" [% noragcalc %]>
@@ -73,7 +73,7 @@
             </div>
             <div class="checkbox noragcalc" [% noragcalc %]>
                 <label>
-                    <input type="checkbox" name="isunique" [% IF column.isunique %]checked[% END %]>Ensure values are unique between records
+                    <input type="checkbox" name="isunique" [% IF column.isunique %]checked[% END %]>The values for this field must be unique
                 </label>
             </div>
             [% IF column.can_multivalue %]
@@ -85,7 +85,7 @@
             [% END %]
             <div class="checkbox noragcalc" [% noragcalc %]>
                 <label>
-                    <input type="checkbox" id="display_condition" name="display_condition" [% IF column.display_field %]checked[% END %]>Only display under the following conditions:
+                    <input type="checkbox" id="display_condition" name="display_condition" [% IF column.display_field %]checked[% END %]>Only display this field under the following conditions:
                 </label>
             </div>
             <div class="form-group" id="display_condition_div" [% UNLESS column.display_field %]style="display:none"[% END %]>
@@ -154,35 +154,38 @@
                     style="display:none"
                 [% END %]
                 >
-                <label for="end_node_only">Node selection:</label>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="end_node_only" [% IF column.end_node_only %]checked[% END %]>
-                        Only allow end-nodes to be selected
-                    </label>
-                </div>
-                <label for="enumval">Tree values:</label>
-                <div class="form-group">
-                    [% IF column.id %]
-                        <button class="btn btn-success btn-sm" onclick="demo_create();" type="button">Create</button>
-                        <button class="btn btn-warning btn-sm" onclick="demo_rename();" type="button">Rename</button>
-                        <button class="btn btn-danger btn-sm" onclick="demo_delete();" type="button">Delete</button>
-                        <button class="btn btn-info btn-sm" onclick="$('#jstree_demo_div').jstree('open_all');" type="button">Expand</button>
-                        <button class="btn btn-info btn-sm" onclick="$('#jstree_demo_div').jstree('close_all');" type="button">Collapse</button>
-                        <div id="jstree_demo_div"></div>
-                    [% ELSE %]
-                        <p>To create your tree, please save this field first, and then edit it.</p>
-                    [% END %]
-                </div>
+                [% IF column.id %]
+                    <h4>Tree field options</h4>
+                    <p>Each value in the tree is referred to as a node.</p>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="end_node_only" [% IF column.end_node_only %]checked[% END %]>
+                            Only let users select an end-node
+                        </label>
+                    </div>
+                    <h4>Tree nodes:</h4>
+                    <div class="form-group">
+                            <button class="btn btn-success btn-sm" onclick="demo_create();" type="button">Add a node</button>
+                            <button class="btn btn-warning btn-sm" onclick="demo_rename();" type="button">Rename</button>
+                            <button class="btn btn-danger btn-sm" onclick="demo_delete();" type="button">Delete</button>
+                            <button class="btn btn-info btn-sm" onclick="$('#jstree_demo_div').jstree('open_all');" type="button">Expand tree</button>
+                            <button class="btn btn-info btn-sm" onclick="$('#jstree_demo_div').jstree('close_all');" type="button">Collapse tree</button>
+                            <div id="jstree_demo_div"></div>
+                    </div>
+                [% ELSE %]
+                    <p>Use a tree to structure the values that users can select into categories and sub-categories.</p>
+                    <p>To create your tree, please save this field first, then edit it.</p>
+                [% END %]
             </div>
             <div id="divenum"
                 [% IF column.type != "enum" %]
                     style="display:none"
                 [% END %]
                 >
+                <h4>Dropdown field options</h4>
                 <div class="col-md-11">
                     <div class="form-group">
-                        <label for="enumval">Multiple select ordering:</label>
+                        <label for="enumval">Order dropdown values:</label>
                         <select class="form-control" name="ordering">
                             <option value="" [% IF NOT column.ordering %]selected[% END %]>As entered</option>
                             <option value="asc" [% IF column.ordering == "asc" %]selected[% END %]>Ascending</option>
@@ -191,7 +194,7 @@
                     </div>
                 </div>
                 <div class="col-md-11">
-                    <label for="enumval">Multiple select values:</label>
+                    <label for="enumval">Add dropdown values:</label>
                 </div>
                 <div id="legs">
                     [% FOREACH enumval IN column.enumvals %]
@@ -220,13 +223,18 @@
                     style="display:none"
                 [% END %]
                 >
+                <h4>Field options</h4>
                 [% IF instance_layouts.size %]
                     [% rti = column.refers_to_instance %]
                     <div class="form-group">
-                        <label for="typeahead">Auto-complete:</label>
-                        <div class="checkbox">
+                        <div class="radio">
                             <label>
-                                <input id="typeahead" type="checkbox" name="typeahead" [% IF column.typeahead %]checked[% END %]>Use auto-complete textbox instead of drop-down
+                                <input type="radio" name="typeahead" value="0" [% IF NOT column.typeahead %]checked[% END %]>Provide values as a dropdown
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label>
+                                <input type="radio" name="typeahead" value="1" [% IF column.typeahead %]checked[% END %]>Provide values as an auto-complete textbox
                             </label>
                         </div>
                     </div>
@@ -239,7 +247,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="refers_to_instance">Instance to select from:</label>
+                        <label for="refers_to_instance">Use this table:</label>
                         <select class="form-control" id="refers_to_instance" name="refers_to_instance">
                             [% IF NOT rti %]
                                 <option></option>
@@ -256,7 +264,7 @@
                             [% END %]
                             >
                             <div class="form-group">
-                                <label for="curval_instance">Columns to show:</label>
+                                <label for="curval_instance">Show these fields:</label>
                                 [% FOREACH c IN instance.layout.all %]
                                     [% NEXT IF c.type == "curval" %]
                                     [% checked = "" %]
@@ -271,7 +279,7 @@
                                 [% END %]
                             </div>
                             <div class="form-group">
-                                    <label for="builder[% instance.layout.instance_id %]">Filter to apply:</label>
+                                    <label for="builder[% instance.layout.instance_id %]">Apply the following filters to records in the selected table::</label>
                                     <div id="builder[% instance.layout.instance_id %]"></div>
                             </div>
                         </div>
@@ -288,8 +296,9 @@
                     style="display:none"
                 [% END %]
                 >
+                <h4>Document field options</h4>
                 <div class="form-group">
-                    <label for="filesize">Maximum file size (KB):</label>
+                    <label for="filesize">Set maximum file size (KB): (Leave blank for no limit)</label>
                     <input type="text" class="form-control" name="filesize" id="filesize"
                         value="[% column.filesize %]" placeholder="Leave blank for no limit">
                 </div>
@@ -299,16 +308,16 @@
                         style="display:none"
                     [% END %]
                 >
+                <h4>Text field options</h4>
                 <div class="form-group">
-                    <label for="textbox">Textbox:</label>
                     <div class="checkbox">
                         <label>
-                            <input id="textbox" type="checkbox" name="textbox" [% IF column.textbox %]checked[% END %]>Multi-line text box
+                            <input id="textbox" type="checkbox" name="textbox" [% IF column.textbox %]checked[% END %]>Make this a multi-line text box
                         </label>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="force_regex">Force input format: (<a href="" data-toggle="modal" data-target="#modalhelp_force_regex">?</a>)</label>
+                    <label for="force_regex">Require the field value to be in a particular format: (<a href="" data-toggle="modal" data-target="#modalhelp_force_regex">?</a>)</label>
                     <input id="force_regex" class="form-control" type="text" name="force_regex" value="[% column.force_regex | html_entity %]">
                 </div>
             </div>
@@ -321,30 +330,28 @@
                     <label for="show_datepicker">Show date picker:</label>
                     <div class="checkbox">
                         <label>
-                            <input id="show_datepicker" type="checkbox" name="show_datepicker" [% IF NOT column.show_datepicker.defined OR column.show_datepicker %]checked[% END %]>Show date picker pop-up to select dates
+                            <input id="show_datepicker" type="checkbox" name="show_datepicker" [% IF NOT column.show_datepicker.defined OR column.show_datepicker %]checked[% END %]>Show date picker pop-up
                         </label>
                     </div>
                 </div>
             </div>
-            <div id="divcode"
-                [% IF column.type != "calc" AND column.type != "rag" %]
+            <div id="divcalc"
+                [% IF column.type != "calc" %]
                     style="display:none"
                 [% END %]
                 >
-                <div id="divcalc"
-                    [% IF column.type != "calc" %]
-                        style="display:none"
-                    [% END %]
-                    >
-                    <div class="form-group">
-                        <label for="return_type">Return value conversion:</label>
-                        <select class="form-control" name="return_type">
-                            <option value="string" [% IF column.return_type == "string" %]selected[% END %]>String</option>
-                            <option value="date" [% IF column.return_type == "date" %]selected[% END %]>Date</option>
-                            <option value="integer" [% IF column.return_type == "integer" %]selected[% END %]>Integer</option>
-                            <option value="numeric" [% IF column.return_type == "numeric" %]selected[% END %]>Decimal</option>
-                        </select>
-                    </div>
+                <p>
+                    A calculated value field automatically generates values based on the values
+                    of other fields. You define your calculation using the Lua programming language.
+                </p>
+                <div class="form-group">
+                    <label for="return_type">Return value conversion:</label>
+                    <select class="form-control" name="return_type">
+                        <option value="string" [% IF column.return_type == "string" %]selected[% END %]>String</option>
+                        <option value="date" [% IF column.return_type == "date" %]selected[% END %]>Date</option>
+                        <option value="integer" [% IF column.return_type == "integer" %]selected[% END %]>Integer</option>
+                        <option value="numeric" [% IF column.return_type == "numeric" %]selected[% END %]>Decimal</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="code">Calculation: (<a href="" data-toggle="modal" data-target="#helpcalc">?</a>)</label>
@@ -360,10 +367,53 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="no_cache_update">Value updates:</label>
+                    <label for="no_cache_update">Status updates:</label>
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="no_cache_update" value="0" checked>Update all existing values immediately
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="no_cache_update" value="1">Do not immediately update all existing values
+                                (values will be updated overnight instead)
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div id="divrag"
+                [% IF column.type != "rag" %]
+                    style="display:none"
+                [% END %]
+                >
+                <p>
+                    Use a RAG field to automatically generate red, amber or green indicators based on
+                    the values of other fields. You set the conditions for the RAG status using the
+                    Lua programming language.
+                </p>
+                <div class="form-group">
+                    <label for="code">Conditions for this RAG status field: (<a href="" data-toggle="modal" data-target="#helpcalc">?</a>)</label>
+                    <textarea class="form-control monospace" id="code" name="code" rows="10">[% column.code | html_entity %]</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="no_alerts_calc">Alerts:</label>
                     <div class="checkbox">
                         <label>
-                            <input id="no_cache_update" type="checkbox" name="no_cache_update">Do not immediately update all existing values
+                            <input id="no_alerts_calc" type="checkbox" name="no_alerts_calc" checked>Do not send alerts when making this update
+                                (alerts will still be sent when records are subsequently edited individually)
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="no_cache_update">Status updates:</label>
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="no_cache_update" value="0" checked>Update all existing values immediately
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label>
+                            <input type="radio" name="no_cache_update" value="1">Do not immediately update all existing values
                                 (values will be updated overnight instead)
                         </label>
                     </div>
@@ -543,12 +593,22 @@
             </div><!-- /.modal-dialog -->
         </div><!-- /.modal -->
 [% ELSE %]
-<p>The layout defines the fields that form the overall dataset. Use this page to add, delete
+<h2>Manage fields in [% instance_name | html %]</h2>
+
+<p class="lead">
+    Each field is a column in your table. You can control which groups of users can see, edit and delete each field.
+</p>
+<p>
+    <strong>Ordering your fields:</strong> Drag and drop the fields below to reorder them at any time.
+    Click the <strong>Save order</strong> button once you are finished.
+</p>
+
+The layout defines the fields that form the overall dataset. Use this page to add, delete
 and edit fields. Each field's permissions can be individually defined; full details of the
 available permissions are detailed in the <a href="[% url.page %]/user/">Users menu</a>.</p>
 <p>Note: drag and drop rows (and click Save order) to reorder the columns.</p>
 <p>
-    <a href="/layout/0" class="btn btn-default" role="button">Create item</a>
+    <a href="/layout/0" class="btn btn-default" role="button">Add a field</a>
 </p>
 <form role="form" method="post">
 <table class="table table-striped">
@@ -730,7 +790,8 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 if (val == "tree") {
                     $('#divenum').hide();
                     $('#divtree').show();
-                    $('#divcode').hide();
+                    $('#divcalc').hide();
+                    $('#divrag').hide();
                     $('#divfile').hide();
                     $('#divcurval').hide();
                     $('#divstring').hide();
@@ -739,14 +800,15 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 } else if (val == "enum") {
                     $('#divenum').show();
                     $('#divtree').hide();
-                    $('#divcode').hide();
+                    $('#divcalc').hide();
+                    $('#divrag').hide();
                     $('#divfile').hide();
                     $('#divcurval').hide();
                     $('#divstring').hide();
                     $('#divdate').hide();
                     $('.noragcalc').show();
                 } else if (val == "rag") {
-                    $('#divcode').show();
+                    $('#divrag').show();
                     $('#divtree').hide();
                     $('#divenum').hide();
                     $('#divcalc').hide();
@@ -756,7 +818,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divdate').hide();
                     $('.noragcalc').hide();
                 } else if (val == "calc") {
-                    $('#divcode').show();
+                    $('#divrag').hide();
                     $('#divtree').hide();
                     $('#divenum').hide();
                     $('#divcalc').show();
@@ -766,7 +828,8 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divdate').hide();
                     $('.noragcalc').hide();
                 } else if (val == "file") {
-                    $('#divcode').hide();
+                    $('#divcalc').hide();
+                    $('#divrag').hide();
                     $('#divtree').hide();
                     $('#divenum').hide();
                     $('#divfile').show();
@@ -775,7 +838,8 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divdate').hide();
                     $('.noragcalc').show();
                 } else if (val == "curval") {
-                    $('#divcode').hide();
+                    $('#divcalc').hide();
+                    $('#divrag').hide();
                     $('#divtree').hide();
                     $('#divenum').hide();
                     $('#divfile').hide();
@@ -784,7 +848,8 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divdate').hide();
                     $('.noragcalc').show();
                 } else if (val == "string") {
-                    $('#divcode').hide();
+                    $('#divcalc').hide();
+                    $('#divrag').hide();
                     $('#divtree').hide();
                     $('#divenum').hide();
                     $('#divfile').hide();
@@ -793,7 +858,8 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divdate').hide();
                     $('.noragcalc').show();
                 } else if (val == "date" || val == "daterange") {
-                    $('#divcode').hide();
+                    $('#divcalc').hide();
+                    $('#divrag').hide();
                     $('#divtree').hide();
                     $('#divenum').hide();
                     $('#divfile').hide();
@@ -804,7 +870,8 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                 } else {
                     $('#divenum').hide();
                     $('#divtree').hide();
-                    $('#divcode').hide();
+                    $('#divcalc').hide();
+                    $('#divrag').hide();
                     $('#divfile').hide();
                     $('#divcurval').hide();
                     $('#divstring').hide();

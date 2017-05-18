@@ -1,5 +1,5 @@
-<h2>Graphs</h2>
 [% IF graph.defined %]
+<h2>[% IF graph.id %]Add a graph[% ELSE %]Edit graph[% END %]</h2>
 <form role="form" method="post">
     <div class="row">
         <div class="col-md-6">
@@ -111,11 +111,13 @@
 </form>
 <p></p>
 [% ELSE %]
+    <h2>Graphs</h2>
     <p>Use this page to create, delete and edit graphs. Graphs can only be created by an
     administrator, and will be displayed (by default) to all users. Users can individually
     de-select graphs that they do not wish to be displayed.</p>
     <p>
         <a href="/graph/0" class="btn btn-default" role="button">Create new graph</a>
+        <a href="/metric/" class="btn btn-default" role="button">Manage metrics</a>
     </p>
     <table class="table table-striped">
         <tr>

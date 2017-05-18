@@ -1,5 +1,5 @@
-<h2>Tables</h2>
 [% IF instance %]
+<h2>[% IF instance.id %]Rename or delete this table[% ELSE %]Add a table[% END %]</h2>
 <form role="form" method="post">
     <div class="row">
         <div class="col-md-6">
@@ -7,11 +7,12 @@
                 <input type="hidden" name="id" value="[% instance.id %]">
             [% END %]
             <div class="form-group">
-                <label for="name">Name:</label>
+                <label for="name">Name of table:</label>
                 <input type="text" name="name" class="form-control" value="[% instance.name | html_entity %]">
             </div>
         </div>
     </div>
+    <p>To delete a table you need to first delete all the fields in it. To delete the fields go to <a href="/layout/">Manage fields</a>.</p>
     <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">Save</button>
     [% IF instance.id %]
         <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
@@ -19,11 +20,12 @@
 </form>
 <p></p>
 [% ELSE %]
-    <p>Use this page to create, delete and edit tables. Think of a table as a sheet
+<h2>Manage tables</h2>
+    <p class="lead">Use this page to create, delete and edit tables. Think of a table as a sheet
     within a spreadsheet.
     </p>
     <p>
-        <a href="/table/0" class="btn btn-default" role="button">Create new table</a>
+        <a href="/table/0" class="btn btn-default" role="button">Add a new table</a>
     </p>
     <table class="table table-striped">
         <tr>

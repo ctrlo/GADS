@@ -1,6 +1,6 @@
 $HASH1 = {
            description
-                  => 'User can send messages',
+                  => 'send messages',
            id     => 6,
            name   => 'message',
            order  => 6

@@ -2,16 +2,30 @@
     [% IF page == "bulk" %]
         Bulk update
     [% ELSIF record.current_id %]
-        Record ID [% record.current_id %]
+        Edit record ID [% record.current_id %]
         [% IF record.parent_id %]
             <small>(child of record [% record.parent_id %])</small>
         [% END %]
     [% ELSIF child %]
         Create child record of [% child %]
     [% ELSE %]
-        New record
+        New record copied from record ID [% clone | html %]
     [% END %]
 </h2>
+<p></p>
+<div class="btn-group">
+    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">Action <b class="caret"></b></button>
+    <ul class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="edit_action">
+        <li role="presentation"><a role="menuitem" href="/edit/?from=[% record.current_id %]">Copy record</a></li>
+        [% IF user.permission.create_child AND NOT record.parent_id %]
+            <li role="presentation"><a role="menuitem" href="/edit/?child=[% record.current_id %]">Create child record</a></li>
+        [% END %]
+        [% IF user.permission.link %]
+            <li role="presentation"><a role="menuitem" href="/link/[% record.current_id %]">Link record</a></li>
+        [% END %]
+        <li role="presentation"><a role="menuitem" href="/record/[% record.current_id %]">View record</a></li>
+    </ul>
+</div>
 <p></p>
 <form role="form" method="post" enctype="multipart/form-data">
     <div class="row">
@@ -40,6 +54,7 @@
             <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
                 [% IF record.has_next_values %]Next[% ELSE %]Save[% END %]
             </button>
+            <a role="button" class="btn btn-default" href="" data-toggle="modal" data-target="#modaldelete">Delete</a></li>
             <a href="/data" class="btn btn-default">Cancel</a>
         </div>
     </nav>

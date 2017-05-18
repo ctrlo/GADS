@@ -1,5 +1,5 @@
-<h2>Groups</h2>
 [% IF group %]
+<h2>[% IF group.id %]Rename a group[% ELSE %]Add a group[% END %]</h2>
 <form role="form" method="post">
     <div class="row">
         <div class="col-md-6">
@@ -7,7 +7,7 @@
                 <input type="hidden" name="id" value="[% group.id %]">
             [% END %]
             <div class="form-group">
-                <label for="name">Name:</label>
+                <label for="name">Group name:</label>
                 <input type="text" name="name" class="form-control" value="[% group.name | html_entity %]">
             </div>
         </div>
@@ -19,18 +19,20 @@
 </form>
 <p></p>
 [% ELSE %]
-    <p>Use this page to create, delete and edit groups. Groups are responsible for
-    the provisioning of permissions to users. A group in itself does not provide
-    any access control: it must be attached to both a user and a field before it
-    takes effect.</p>
+    <h2>Groups</h2>
     <p>
-        <a href="/group/0" class="btn btn-default" role="button">Create new group</a>
+        Groups are the basis for Linkspace's fine-grained access control. Users can be
+        allocated to any number of groups. You then set the group permissions for every
+        field you create to control what fields users can view or edit.
+    </p>
+    <p>
+        <a href="/group/0" class="btn btn-default" role="button">Add a group</a>
     </p>
     <table class="table table-striped">
         <tr>
             <th></th>
             <th>Name</th>
-            <th>Permissions for currently selected table</th>
+            <th>Permissions this group has for each field in the current table</th>
         </tr>
         [% FOREACH group IN groups %]
             <tr>

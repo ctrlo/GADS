@@ -250,6 +250,9 @@ hook before_template => sub {
         # Somehow this sets the instance_id session if no persistent session exists
         $tokens->{instance_id}   = session('persistent')->{instance_id}
             if session 'persistent';
+        $tokens->{user_can_edit} = $layout->user_can('write_existing');
+        $tokens->{user_can_create} = $layout->user_can('write_new');
+        $tokens->{v}               = current_view(logged_in_user, $layout);  # View is reserved TT word
     }
     $tokens->{messages}      = session('messages');
     $tokens->{site}          = var 'site';
@@ -794,7 +797,6 @@ any '/data' => require_login sub {
         my @columns = $view
             ? $layout->view($view->id, user_can_read => 1)
             : $layout->all(user_can_read => 1);
-        $params->{user_can_edit} = $layout->user_can('write_existing');
         $params->{sort}          = $records->sort_first;
         $params->{subset}        = $subset;
         $params->{records}       = $records->results;
@@ -818,10 +820,8 @@ any '/data' => require_login sub {
         instance_id => $layout->instance_id,
     );
 
-    $params->{v}               = $view,  # View is reserved TT word
     $params->{user_views}      = $views->user_views;
     $params->{alerts}          = $alert->all;
-    $params->{user_can_create} = $layout->user_can('write_new');
     $params->{show_link}       = rset('Current')->count;
     template 'data' => $params;
 };
@@ -1134,9 +1134,9 @@ any '/table/?:id?' => require_role layout => sub {
 
         if (process(sub {$instance->update_or_insert}))
         {
-            my $action = param('id') ? 'updated' : 'created';
+            my $msg = param('id') ? 'The table has been updated successfully' : 'Your new table has been created successfully';
             return forwardHome(
-                { success => "Table has been $action successfully" }, 'table' );
+                { success => $msg }, 'table' );
         }
     }
 
@@ -1400,8 +1400,8 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             if (process( sub { $column->write(no_alerts => $no_alerts, no_cache_update => param('no_cache_update')) }))
             {
                 my $msg = param('id')
-                    ? qq(Item has been updated successfully. You can <a href="/layout/0">create another one</a> or return to the <a href="/layout">main data layout page</a>.)
-                    : qq(Item has been created successfully. You can <a href="/layout/0">create another one</a>, <a href="" data-toggle="modal" data-target="#modal_permissions">add permissions to this one</a> or return to the <a href="/layout">main data layout page</a>);
+                    ? qq(Your field has been updated successfully. You can <a href="/layout/0">create another one</a> or return to the <a href="/layout">main data layout page</a>.)
+                    : qq(Your field has been created. Next you need to <a href="" data-toggle="modal" data-target="#modal_permissions">set permissions for this field</a>);
 
                 report NOTICE => $msg, _class => 'html,success';
                 return forwardHome( undef, "layout/".$column->id );
@@ -2241,6 +2241,7 @@ any '/edit/:id?' => require_login sub {
     my $output = template 'edit' => {
         record      => $record,
         child       => $child_rec,
+        clone       => param('from'),
         all_columns => \@columns_to_show,
         page        => 'edit'
     };
@@ -2374,7 +2375,6 @@ any qr{/(record|history)/([0-9]+)} => require_login sub {
     my @columns = $layout->all(user_can_read => 1);
     my $output = template 'record' => {
         record         => $record,
-        user_can_edit  => $layout->user_can('write_existing'),
         versions       => \@versions,
         all_columns    => \@columns,
         page           => 'record'

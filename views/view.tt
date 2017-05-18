@@ -1,5 +1,12 @@
-<h2>Customise view</h2>
-<p>Add and remove columns by clicking the checkboxes</p>
+<h2>
+    [% IF v.id %]
+        Edit current view
+    [% ELSIF clone %]
+        Edit the copy of this view
+    [% ELSE %]
+        Add a customised view
+    [% END %]
+</h2>
 <form role="form" method="post">
     <div class="row">
         <div class="col-md-6">
@@ -10,17 +17,18 @@
             [% IF user.permission.layout %]
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" name="global" [% IF v.global %]checked[% END %]>Global view
+                        <input type="checkbox" name="global" [% IF v.global %]checked[% END %]>Shared view
                     </label>
                 </div>
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" name="is_admin" [% IF v.is_admin %]checked[% END %]>Administration view (only visible to layout administrators)
+                        <input type="checkbox" name="is_admin" [% IF v.is_admin %]checked[% END %]>Administration view (only visible to table administrators)
                     </label>
                 </div>
             [% END %]
+            <p>Select the fields you want to include in your view.</p>
             <table class="table table-striped">
-                <tr><th><input type="checkbox" id="selectall" title="Select/deselect all"></th><th>Name</th></tr>
+                <tr><th><input type="checkbox" id="selectall" title="Select/deselect all"></th><th>Field name</th></tr>
                 [% FOR column IN layout.all(user_can_read, 1) %]
                     <tr>
                         <td>
@@ -38,10 +46,8 @@
             <h4>View help</h4>
             <dl>
                 <dt>General</dt>
-                <dd>Views are used to display only certain items on the &quot;data&quot; page.
-                    Views can be used to only display certain columns (by ticking the relevant
-                    items on the left), or to only display some rows (using the filters below).
-                    Sort orders can also be configured.
+                <dd>
+                    Use views to create reports by filtering the fields and records you see on screen.
                     <ul></ul>
                 </dd>
                 [% IF user.permission.layout %]
@@ -52,21 +58,18 @@
                     <ul></ul>
                 [% END %]
                 <dt>Filters</dt>
-                <dd>Filters can be used to selectively display only some rows of data. Several
-                    filters can be applied to one view, in which case data will only be displayed
-                    that meets the configured criteria. Filters can be either logical AND or 
-                    logical OR, and be grouped at different levels for maximum flexibility.
-                    Any dates entered must be specified in the form [% config.dateformat %], or "CURDATE"
-                    can be used to specify the current date (number of seconds can be added to or
-                    subtracted from CURDATE to adjust the date). [CURUSER] can be used to specify
-                    the user that is logged in when the view is used.
+                <dd>
+                    Use filters to select the records you want to include in
+                    the view. Dates in your filters must be in the format [% config.dateformat %]
+                    or 'CURDATE' for current date.  [CURUSER] can be used to specify the user that
+                    is logged in when the view is used.
                 </dd>
             </dl>
 
             <label>Filters:</label>
             <div id="builder"></div>
             <input id="filter" type="hidden" name="filter" value="[% v.filter | html_entity %]">
-            <label for="sorts">Sorting:</label>
+            <label for="sorts">Sort the records in your view by:</label>
             <div id="sorts">
                 [% FOREACH sort IN v.sorts %]
                     [% PROCESS sortrow %]
