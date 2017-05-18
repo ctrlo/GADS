@@ -7,13 +7,13 @@ $('#builder[% builder_id %]').queryBuilder({
                 [% IF col.type == "intgr" %]
                     type: 'string', [%# Allow variable names %]
                 [% ELSIF col.return_type == "date" %]
-                    type: 'date',
+                    type: 'string',
                     operators: ['equal', 'not_equal', 'less', 'less_or_equal', 'greater',
                         'greater_or_equal',
                         'is_empty', 'is_not_empty'
                     ],
                 [% ELSIF col.return_type == "daterange" %]
-                    type: 'date',
+                    type: 'string',
                     operators: ['equal', 'not_equal', 'less', 'less_or_equal', 'greater',
                         'greater_or_equal', 'contains',
                         'is_empty', 'is_not_empty'
