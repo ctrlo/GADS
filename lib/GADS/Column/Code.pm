@@ -94,8 +94,12 @@ sub param_columns
     grep {
         $_
     } map {
-        $self->layout->column_by_name_short($_)
+        my $col = $self->layout->column_by_name_short($_)
             or $options{is_fatal} && error __x"Unknown short column name \"{name}\" in calculation", name => $_;
+        $col->instance_id == $self->instance_id
+            or $options{is_fatal} && error __x"It is only possible to use fields from the same table ({table1}). \"{name}\" is from {table2}.",
+                name => $_, table1 => $self->instance->name, table2 => $col->instance->name;
+        $col;
     } $self->params;
 }
 

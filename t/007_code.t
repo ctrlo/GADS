@@ -69,6 +69,17 @@ $calc2_col = GADS::Column::Calc->new(
 try { $calc2_col->write };
 ok( $@, "Failed to write calc field with invalid short names" );
 
+# Then with short name from other table (invalid)
+$calc2_col = GADS::Column::Calc->new(
+    schema => $schema,
+    user   => undef,
+    layout => $layout,
+    name   => 'calc2',
+    code   => "function evaluate (L2string1) \n return L2string1\nend",
+);
+try { $calc2_col->write };
+like( $@, qr/It is only possible to use fields from the same table/, "Failed to write calc field with short name from other table" );
+
 # Create a calc field that has something invalid in the nested code
 my $calc3_col = GADS::Column::Calc->new(
     schema => $schema,
