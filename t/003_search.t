@@ -97,8 +97,32 @@ my @position = (
     $columns->{tree1}->id,
 );
 $layout->position(@position);
-$layout->clear;
 $sheet->create_records;
+
+# Add another curval field to a new table
+my $curval_sheet2 = t::lib::DataSheet->new(schema => $schema, instance_id => 3, curval_offset => 12);
+$curval_sheet2->create_records;
+my $curval3 = GADS::Column::Curval->new(
+    name               => 'curval3',
+    type               => 'curval',
+    user               => $sheet->user,
+    layout             => $curval_sheet->layout,
+    schema             => $schema,
+    refers_to_instance => $curval_sheet2->instance_id,
+    curval_field_ids   => [$curval_sheet2->columns->{string1}->id],
+);
+$curval3->write;
+$curval_sheet->layout->clear;
+$layout->clear;
+my $records = GADS::Records->new(
+    user    => undef,
+    layout  => $curval_sheet->layout,
+    schema  => $schema,
+);
+my $r = $records->single;
+my ($curval3_value) = $schema->resultset('Current')->search({ 'instance_id' => $curval_sheet2->instance_id })->get_column('id')->all;
+$r->fields->{$curval3->id}->set_value($curval3_value);
+$r->write(no_alerts => 1);
 
 
 # Manually force one string to be empty and one to be undef.
@@ -583,6 +607,20 @@ my @filters = (
         no_errors => 1,
     },
     {
+        name  => 'Search by curval within curval',
+        columns => [$columns->{curval1}->id],
+        rules => [
+            {
+                id       => $columns->{curval1}->id .'_'. $curval3->id,
+                type     => 'string',
+                value    => $curval3_value,
+                operator => 'equal',
+            },
+        ],
+        count     => 1,
+        no_errors => 1,
+    },
+    {
         name  => 'Search by curval enum field across 2 curvals',
         columns => [$columns->{enum1}->id],
         rules => [
@@ -650,7 +688,7 @@ foreach my $filter (@filters)
 }
 
 # Search with a limited view defined
-my $records = GADS::Records->new(
+$records = GADS::Records->new(
     user    => undef,
     layout  => $layout,
     schema  => $schema,
