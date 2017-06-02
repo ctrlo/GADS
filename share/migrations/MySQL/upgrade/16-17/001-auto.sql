@@ -23,7 +23,7 @@ ALTER TABLE audit ADD COLUMN site_id integer NULL,
                   ADD CONSTRAINT audit_fk_site_id FOREIGN KEY (site_id) REFERENCES site (id) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 ;
-ALTER TABLE "group" ADD COLUMN site_id integer NULL,
+ALTER TABLE `group` ADD COLUMN site_id integer NULL,
                   ADD INDEX group_idx_site_id (site_id),
                   ADD CONSTRAINT group_fk_site_id FOREIGN KEY (site_id) REFERENCES site (id) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
