@@ -5,9 +5,9 @@ BEGIN;
 
 ;
 CREATE TABLE "view_limit" (
-  "id" serial NOT NULL,
+  "id" bigserial NOT NULL,
   "view_id" bigint NOT NULL,
-  "user_id" integer NOT NULL,
+  "user_id" bigint NOT NULL,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "view_limit_idx_user_id" on "view_limit" ("user_id");

@@ -790,9 +790,9 @@ CREATE INDEX "view_layout_idx_view_id" on "view_layout" ("view_id");
 -- Table: view_limit
 --
 CREATE TABLE "view_limit" (
-  "id" serial NOT NULL,
+  "id" bigserial NOT NULL,
   "view_id" bigint NOT NULL,
-  "user_id" integer NOT NULL,
+  "user_id" bigint NOT NULL,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "view_limit_idx_user_id" on "view_limit" ("user_id");
