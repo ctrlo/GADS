@@ -689,7 +689,7 @@ sub delete
         })->all
     )
     {
-        my @ln = map { $_->link_parent->name } @linked;
+        my @ln = map { $_->name } @linked;
         my $l  = join ', ', @ln;
         error __x"The following fields in another datasheet are linked to this field: {l}.
             Please remove these links before deletion of this field.", l => $l;
