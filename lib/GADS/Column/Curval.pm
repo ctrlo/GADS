@@ -188,7 +188,7 @@ sub _build_curval_fields
 
 sub sort_columns
 {   my $self = shift;
-    @{$self->curval_fields};
+    map { $_->sort_columns } @{$self->curval_fields};
 }
 
 sub sort_parent
@@ -267,7 +267,6 @@ sub make_join
 {   my ($self, @joins) = @_;
     return $self->field
         if !@joins;
-    @joins = map { $_->join } @joins;
     +{
         $self->field => {
             value => {
@@ -279,7 +278,7 @@ sub make_join
 
 sub _build_join
 {   my $self = shift;
-    $self->make_join(@{$self->curval_fields_retrieve});
+    $self->make_join(map { $_->join } @{$self->curval_fields_retrieve});
 }
 
 sub _build_values

@@ -36,8 +36,20 @@ sub _all_joins
     foreach my $j (@{$self->_jp_store})
     {
         push @return, $j;
-        push @return, @{$j->{children}}
+        push @return, $self->_all_joins_children($j->{children})
             if $j->{children};
+    }
+    @return;
+}
+
+sub _all_joins_children
+{   my ($self, $children) = @_;
+    my @return;
+    foreach (@$children)
+    {
+        push @return, $self->_all_joins_children($_->{children})
+            if $_->{children};
+        push @return, $_
     }
     @return;
 }
@@ -58,13 +70,17 @@ sub _add_children
         # prefetch and linked match the parent.
         # search and sort are left blank, but may be updated with an
         # additional direct call with just the child and that option.
-        push @{$join->{children}}, {
+        my $child = {
             join       => $c->join,
             prefetch   => 1,
             curval     => $c->type eq 'curval' ? 1 : 0,
             column     => $c,
             parent     => $column,
-        } if !$existing{$c->id};
+        };
+        $self->_add_children($child, $c)
+            if $c->type eq 'curval';
+        push @{$join->{children}}, $child
+            if !$existing{$c->id};
     }
 }
 
@@ -180,7 +196,7 @@ sub record_later_search
         {
             my $curval_id = $_->{curval} ? $_->{column}->id : $_->{parent}->id;
             if (
-                ($options{search} && $_->{search} && $_->{parent}) # Search in child
+                ($options{search} && $_->{search} && $_->{parent} && !$_->{curval}) # Search in child of curval
                 || ($options{sort} && $_->{sort}) # sort is all children
                 # prefetch is all children, but not when the curval has no fields
                 || ($options{prefetch} && $_->{prefetch} && !$_->{parent} && @{$_->{children}})
@@ -205,7 +221,7 @@ sub record_later_search
 
 sub _jpfetch
 {   my ($self, %options) = @_;
-    my @return;
+    my $return = [];
     foreach (@{$self->_jp_store})
     {
         if (exists $options{linked})
@@ -214,36 +230,43 @@ sub _jpfetch
             next if $options{linked} && !$_->{linked};
         }
         next if exists $options{prefetch} && !$options{prefetch} && $_->{prefetch};
-        if (
-            ($options{search} && $_->{search})
-            || ($options{sort} && $_->{sort})
-            || ($options{prefetch} && $_->{prefetch})
-        )
+        $self->_jpfetch_add(options => \%options, join => $_, return => $return);
+    }
+    @$return;
+}
+
+sub _jpfetch_add
+{   my ($self, %params) = @_;
+    my $options = $params{options};
+    my $join    = $params{join};
+    my $return  = $params{return};
+    my $parent  = $params{parent};
+    if (
+        ($options->{search} && $_->{search})
+        || ($options->{sort} && $_->{sort})
+        || ($options->{prefetch} && $_->{prefetch})
+    )
+    {
+        if ($join->{column}->type eq 'curval')
         {
-            if ($_->{column}->type eq 'curval')
+            my $children = [];
+            foreach my $child (@{$join->{children}})
             {
-                my @children;
-                foreach my $child (@{$_->{children}})
-                {
-                    push @children, $child
-                        if ($options{search} && $child->{search})
-                        || ($options{sort} && $child->{sort})
-                        || ($options{prefetch} && $child->{prefetch});
-                }
-                my $simple = {%$_};
-                $simple->{join} = $_->{column}->field;
-                push @return, {
-                    join      => $_->{column}->make_join(map {$_->{column}} @children),
-                    all_joins => [$simple, @children],
-                };
+                $self->_jpfetch_add(options => $options, join => $child, return => $children, parent => $join->{column});
             }
-            else {
-                push @return, $_;
-            }
-            next;
+            my $simple = {%$join};
+            $simple->{join} = $join->{column}->field;
+            push @$return, {
+                parent    => $parent,
+                column    => $join->{column},
+                join      => $join->{column}->make_join(map {$_->{join}} @$children),
+                all_joins => [$simple, @$children],
+            };
+        }
+        else {
+            push @$return, $join;
         }
     }
-    @return;
 }
 
 sub jpfetch
@@ -267,7 +290,7 @@ sub table_name
 sub _join_number
 {   my ($self, $column, %options) = @_;
 
-    $self->dump_jp_store; # Only does anything when logging level high enough
+    $self->_dump_jp_store; # Only does anything when logging level high enough
 
     # Find the correct join number, by iterating through all the current
     # joins, and jumping at the matching join with the count number.
@@ -365,7 +388,35 @@ sub fqvalue
     "$tn." . $column->value_field;
 }
 
-sub dump_jp_store
+sub _dump_child
+{   my ($self, $dd, $child, $indent) = @_;
+    no warnings 'uninitialized';
+    $dd->Values([$child->{join}]);
+    my $children;
+        if (ref $child->{children})
+        {
+            $children .= $self->_dump_child($dd, $_, $indent + 1)
+                foreach @{$child->{children}};
+        }
+    my $join = ref $child->{join} ? $dd->Dump : $child->{join};
+    chomp $join;
+    my $parent_id = $child->{parent}->id;
+my $ret = "
+child is ".$child->{column}->id." (".$child->{column}->name.") => {
+    join     => $join,
+    prefetch => $child->{prefetch},
+    curval   => $child->{curval},
+    search   => $child->{search},
+    sort     => $child->{sort},
+    parent   => $parent_id,
+    children => $children
+},";
+    my $space = '    ' x $indent;
+    $ret =~ s/^(.*)$/$space$1/mg;
+    $ret;
+}
+
+sub _dump_jp_store
 {   my $self = shift;
     my $dumped = "Going to dump the jp store:\n";
     my $dd = Data::Dumper->new([]);
@@ -376,22 +427,8 @@ sub dump_jp_store
         my $children;
         if (ref $jp->{children})
         {
-            foreach my $child (@{$jp->{children}})
-            {
-                $dd->Values([$child->{join}]);
-                my $join = ref $child->{join} ? $dd->Dump : $child->{join};
-                chomp $join;
-                my $parent_id = $child->{parent}->id;
-                $children .= "
-            child is ".$child->{column}->id." (".$child->{column}->name.") => {
-                join     => $join,
-                prefetch => $child->{prefetch},
-                curval   => $child->{curval},
-                search   => $child->{search},
-                sort     => $child->{sort},
-                parent   => $parent_id
-            },";
-            }
+            $children .= $self->_dump_child($dd, $_, 3)
+                foreach @{$jp->{children}};
         }
         $dd->Values([$jp->{join}]);
         my $join = ref $jp->{join} ? $dd->Dump : $jp->{join};

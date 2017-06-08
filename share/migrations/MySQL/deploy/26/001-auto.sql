@@ -794,9 +794,9 @@ CREATE TABLE `view_layout` (
 -- Table: `view_limit`
 --
 CREATE TABLE `view_limit` (
-  `id` integer NOT NULL auto_increment,
+  `id` bigint NOT NULL auto_increment,
   `view_id` bigint NOT NULL,
-  `user_id` integer NOT NULL,
+  `user_id` bigint NOT NULL,
   INDEX `view_limit_idx_user_id` (`user_id`),
   INDEX `view_limit_idx_view_id` (`view_id`),
   PRIMARY KEY (`id`),
