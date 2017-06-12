@@ -20,7 +20,7 @@ WriteMakefile(
         'Algorithm::Dependency::Ordered'            => 0,
         'Dancer2'                                   => 0.201,
         'Dancer2::Plugin::Auth::Extensible'         => 0.601,
-        'Dancer2::Plugin::Auth::Extensible::Provider::DBIC' => 0.600,
+        'Dancer2::Plugin::Auth::Extensible::Provider::DBIC' => 0.623,
         'Dancer2::Plugin::DBIC'                     => 0.0013,
         'Dancer2::Plugin::LogReport'                => 1.10,
         'Data::Compare'                             => 0,

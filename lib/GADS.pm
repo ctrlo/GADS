@@ -70,6 +70,7 @@ use WWW::Mechanize::PhantomJS;
 use Dancer2; # Last to stop Moo generating conflicting namespace
 use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::Auth::Extensible;
+use Dancer2::Plugin::Auth::Extensible::Provider::DBIC 0.623;
 use Dancer2::Plugin::LogReport 'linkspace';
 
 schema->storage->debugobj(new GADS::DBICProfiler);
