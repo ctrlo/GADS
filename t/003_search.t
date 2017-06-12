@@ -252,6 +252,16 @@ my @filters = (
         count => 2,
     },
     {
+        name  => 'string does not begin with Foo',
+        rules => [{
+            id       => $columns->{string1}->id,
+            type     => 'string',
+            value    => 'Foo',
+            operator => 'not_begins_with',
+        }],
+        count => 5,
+    },
+    {
         name  => 'string is empty',
         rules => [{
             id       => $columns->{string1}->id,
