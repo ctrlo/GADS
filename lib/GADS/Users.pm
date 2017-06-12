@@ -231,10 +231,10 @@ sub csv
     my $site = $self->schema->resultset('Site')->find($self->schema->site_id);
     # Column names
     my @columns = qw/ID Surname Forename Email Lastlogin/;
+    push @columns, 'Title' if $site->register_show_title;
+    push @columns, 'Organisation' if $site->register_show_organisation;
     push @columns, $site->register_freetext1_name if $site->register_freetext1_name;
     push @columns, $site->register_freetext2_name if $site->register_freetext2_name;
-    push @columns, 'Organisation' if $site->register_show_organisation;
-    push @columns, 'Title' if $site->register_show_title;
     $csv->combine(@columns)
         or error __x"An error occurred producing the CSV headings: {err}", err => $csv->error_input;
     my $csvout = $csv->string."\n";
@@ -242,9 +242,12 @@ sub csv
     # All the data values
     foreach my $user (@{$self->all})
     {
-        $csv->combine($user->id, $user->surname, $user->firstname, ($user->title && $user->title->name || ''),
-            $user->email, ($user->organisation && $user->organisation->name || ''), $user->telephone, $user->lastlogin
-        )
+        my @csv = ($user->id, $user->surname, $user->firstname, $user->email, $user->lastlogin);
+        push @csv, ($user->title && $user->title->name || '') if $site->register_show_title;
+        push @csv, ($user->organisation && $user->organisation->name || '') if $site->register_show_organisation;
+        push @csv, $user->freetext1 if $site->register_freetext1_name;;
+        push @csv, $user->freetext2 if $site->register_freetext1_name;;
+        $csv->combine(@csv)
             or error __x"An error occurred producing a line of CSV: {err}",
                 err => "".$csv->error_diag;
         $csvout .= $csv->string."\n";
