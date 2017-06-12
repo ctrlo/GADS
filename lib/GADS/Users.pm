@@ -235,18 +235,76 @@ sub csv
     push @columns, 'Organisation' if $site->register_show_organisation;
     push @columns, $site->register_freetext1_name if $site->register_freetext1_name;
     push @columns, $site->register_freetext2_name if $site->register_freetext2_name;
+    push @columns, 'Page hits last month';
     $csv->combine(@columns)
         or error __x"An error occurred producing the CSV headings: {err}", err => $csv->error_input;
     my $csvout = $csv->string."\n";
 
     # All the data values
-    foreach my $user (@{$self->all})
+    my @users = $self->_user_rs->search({}, {
+        select => [
+            {
+                max => 'me.id',
+                -as => 'id_max',
+            },
+            {
+                max => 'surname',
+                -as => 'surname_max',
+            },
+            {
+                max => 'firstname',
+                -as => 'firstname_max',
+            },
+            {
+                max => 'email',
+                -as => 'email_max',
+            },
+            {
+                max => 'lastlogin',
+                -as => 'lastlogin_max',
+            },
+            {
+                max => 'title.name',
+                -as => 'title_max',
+            },
+            {
+                max => 'organisation.name',
+                -as => 'organisation_max',
+            },
+            {
+                max => 'freetext1',
+                -as => 'freetext1_max',
+            },
+            {
+                max => 'freetext2',
+                -as => 'freetext2_max',
+            },
+            {
+                count => 'audits_last_month.id',
+                -as   => 'audit_count',
+            }
+        ],
+        join     => [
+            'audits_last_month', 'organisation', 'title',
+        ],
+        order_by => 'surname_max',
+        group_by => 'me.id',
+    })->all;
+
+    foreach my $user (@users)
     {
-        my @csv = ($user->id, $user->surname, $user->firstname, $user->email, $user->lastlogin);
-        push @csv, ($user->title && $user->title->name || '') if $site->register_show_title;
-        push @csv, ($user->organisation && $user->organisation->name || '') if $site->register_show_organisation;
-        push @csv, $user->freetext1 if $site->register_freetext1_name;;
-        push @csv, $user->freetext2 if $site->register_freetext1_name;;
+        my @csv = (
+            $user->get_column('id_max'),
+            $user->get_column('surname_max'),
+            $user->get_column('firstname_max'),
+            $user->get_column('email_max'),
+            $user->get_column('lastlogin_max')
+        );
+        push @csv, $user->get_column('title_max') if $site->register_show_title;
+        push @csv, $user->get_column('organisation_max') if $site->register_show_organisation;
+        push @csv, $user->get_column('freetext1_max') if $site->register_freetext1_name;
+        push @csv, $user->get_column('freetext2_max') if $site->register_freetext2_name;
+        push @csv, $user->get_column('audit_count');
         $csv->combine(@csv)
             or error __x"An error occurred producing a line of CSV: {err}",
                 err => "".$csv->error_diag;
