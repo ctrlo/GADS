@@ -46,7 +46,7 @@ my $data = [
         integer1   => 7,
         date1      => '2014-10-10',
         daterange1 => ['2013-10-10', '2013-12-03'],
-        enum1      => 8,
+        enum1      => 7, # Changed to 8 after creation to have multiple versions
         tree1      => 10,
     },{
         string1    => 'FooBar',
@@ -98,6 +98,15 @@ my @position = (
 );
 $layout->position(@position);
 $sheet->create_records;
+
+my $record = GADS::Record->new(
+    user   => $sheet->user,
+    layout => $layout,
+    schema => $schema,
+);
+$record->find_current_id(6);
+$record->fields->{$columns->{enum1}->id}->set_value(8);
+$record->write(no_alerts => 1);
 
 # Add another curval field to a new table
 my $curval_sheet2 = t::lib::DataSheet->new(schema => $schema, instance_id => 3, curval_offset => 12);
@@ -415,6 +424,16 @@ my @filters = (
             operator => 'equal',
         }],
         count => 3,
+    },
+    {
+        name  => 'Search negative multivalue enum',
+        rules => [{
+            id       => $columns->{enum1}->id,
+            type     => 'string',
+            value    => 'foo1',
+            operator => 'not_equal',
+        }],
+        count => 4,
     },
     {
         name  => 'Search using enum with curval in view',
@@ -762,7 +781,7 @@ $records = GADS::Records->new(
 is ($records->count, 1, 'Correct number of results when limiting to a view');
 
 # Check can only directly access correct records
-my $record = GADS::Record->new(
+$record = GADS::Record->new(
     user   => $user,
     layout => $layout,
     schema => $schema,

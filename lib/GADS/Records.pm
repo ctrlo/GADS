@@ -1207,13 +1207,27 @@ sub _resolve
         my $table   = $subjoin || $column->field;
         +(
             'me.id' => {
-                -not_in => correlate( $self->schema->resultset('Current'), "record_single" )->search_related(
-                    $column->field, {
+                -not_in => $self->schema->resultset('Current')->search({
+                        'record_later.id' => undef,
                         "$table.$_->{s_field}" => $value,
-                    },
-                    {
-                        select => "record_later.current_id",
-                        join   => $column->subjoin,
+                    }, {
+                        select => "record_single.current_id",
+                        join   => [
+                            {
+                                'record_single' => [
+                                    'record_later',
+                                    $column->join,
+                                ],
+                            },
+                            {
+                                linked => { # XXX needs testing and tests
+                                    'record_single' => [
+                                        'record_later',
+                                        $column->join,
+                                    ],
+                                },
+                            }
+                        ],
                     }
                 )->as_query
             }
