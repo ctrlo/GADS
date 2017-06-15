@@ -2696,6 +2696,9 @@ any '/resetpw/:code' => sub {
         {
             context->destroy_session;
             my $user   = rset('User')->active(username => $username)->next;
+            # Now we know this user is genuine, reset any failure that would
+            # otherwise prevent them logging in
+            $user->update({ failcount => 0 });
             my $audit  = GADS::Audit->new(schema => schema, user => $user);
             $audit->login_change("Password reset performed for user ID ".$user->id);
             $new_password = _random_pw();
