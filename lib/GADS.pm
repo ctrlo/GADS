@@ -2568,14 +2568,39 @@ any '/login' => sub {
     if (param 'register')
     {
         my $params = params;
-        try { $users->register($params) };
-        if(my $exception = $@->wasFatal)
+        # Check whether this user already has an account
+        if ($users->user_exists($params->{email}))
         {
-            $error = $exception->message->toString;
+            my $reset_code = Session::Token->new( length => 32 )->get;
+            my $user       = schema->resultset('User')->active->search({ username => $params->{email} })->next;
+            $user->update({ resetpw => $reset_code });
+            my %welcome_text = welcome_text(undef, code => $reset_code);
+            my $email        = GADS::Email->instance;
+            my $args = {
+                subject => $welcome_text{subject},
+                text    => $welcome_text{plain},
+                emails  => [$params->{email}],
+            };
+
+            if (process( sub { $email->send($args) }))
+            {
+                # Show same message as normal request
+                return forwardHome(
+                    { success => "Your account request has been received successfully" }, 'data' );
+            }
+            $audit->login_change("Account request for $params->{email}. Account already existed, resending welcome email.");
+            return forwardHome({ success => "Your account request has been received successfully" });
         }
         else {
-            $audit->login_change("New user account request for $params->{email}");
-            return forwardHome({ success => "Your account request has been received successfully" });
+            try { $users->register($params) };
+            if(my $exception = $@->wasFatal)
+            {
+                $error = $exception->message->toString;
+            }
+            else {
+                $audit->login_change("New user account request for $params->{email}");
+                return forwardHome({ success => "Your account request has been received successfully" });
+            }
         }
     }
 

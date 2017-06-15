@@ -189,22 +189,13 @@ sub register
     $new{title} or delete $new{title};
     $new{organisation} or delete $new{organisation};
 
-    my $exists = $self->user_exists($params->{email});
-
-    my $user = !$exists && $self->schema->resultset('User')->create(\%new);
+    my $user = $self->schema->resultset('User')->create(\%new);
 
     # Email admins with account request
     my $admins = $self->all_admins;
     my @emails = map { $_->email } @$admins;
     my $text;
-    if ($exists)
-    {
-        $text = "A new account request has been received, but it has not been added to the request "
-            ."queue as the user already exists. The details of the request were:\n\n";
-    }
-    else {
-        $text = "A new account request has been received from the following person:\n\n";
-    }
+    $text = "A new account request has been received from the following person:\n\n";
     $text .= "First name: $new{firstname}, ";
     $text .= "surname: $new{surname}, ";
     $text .= "email: $new{email}, ";
