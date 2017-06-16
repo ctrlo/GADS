@@ -195,7 +195,7 @@
                                         <li [% IF page=="approval" %]class="active"[% END %]><a href="[% url.page %]/approval/">Approve records[% appcount %]</a></li>
                                     [% END %]
                                     <li class="divider"></li>
-                                    <li [% IF page=="import" %]class="active"[% END %]><a href="[% url.page %]/metric/">Import records</a></li>
+                                    <li [% IF page=="import" %]class="active"[% END %]><a href="[% url.page %]/import/">Import records</a></li>
                                     [% IF viewtype == "table" AND records.size AND user.permission.download %]
                                         <li><a href="[% url.page %]/data?download">Download records in current view</a></li>
                                     [% END %]
