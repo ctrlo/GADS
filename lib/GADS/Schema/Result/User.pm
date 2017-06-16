@@ -314,6 +314,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+__PACKAGE__->has_many(
+    "audits_last_month",
+    "GADS::Schema::Result::Audit",
+    sub {
+        my $args = shift;
+        my $schema    = $args->{self_resultsource}->schema;
+        my $month     = DateTime->now->subtract(months => 1);
+        my $formatted = $schema->storage->datetime_parser->format_date($month);
+        +{
+            "$args->{foreign_alias}.user_id"  => { -ident => "$args->{self_alias}.id" },
+            "$args->{foreign_alias}.datetime" => { '>'    => $formatted },
+        };
+    }
+);
+
 =head2 lastrecord
 
 Type: belongs_to

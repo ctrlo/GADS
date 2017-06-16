@@ -70,6 +70,7 @@ use WWW::Mechanize::PhantomJS;
 use Dancer2; # Last to stop Moo generating conflicting namespace
 use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::Auth::Extensible;
+use Dancer2::Plugin::Auth::Extensible::Provider::DBIC 0.623;
 use Dancer2::Plugin::LogReport 'linkspace';
 
 schema->storage->debugobj(new GADS::DBICProfiler);
@@ -2567,14 +2568,39 @@ any '/login' => sub {
     if (param 'register')
     {
         my $params = params;
-        try { $users->register($params) };
-        if(my $exception = $@->wasFatal)
+        # Check whether this user already has an account
+        if ($users->user_exists($params->{email}))
         {
-            $error = $exception->message->toString;
+            my $reset_code = Session::Token->new( length => 32 )->get;
+            my $user       = schema->resultset('User')->active->search({ username => $params->{email} })->next;
+            $user->update({ resetpw => $reset_code });
+            my %welcome_text = welcome_text(undef, code => $reset_code);
+            my $email        = GADS::Email->instance;
+            my $args = {
+                subject => $welcome_text{subject},
+                text    => $welcome_text{plain},
+                emails  => [$params->{email}],
+            };
+
+            if (process( sub { $email->send($args) }))
+            {
+                # Show same message as normal request
+                return forwardHome(
+                    { success => "Your account request has been received successfully" }, 'data' );
+            }
+            $audit->login_change("Account request for $params->{email}. Account already existed, resending welcome email.");
+            return forwardHome({ success => "Your account request has been received successfully" });
         }
         else {
-            $audit->login_change("New user account request for $params->{email}");
-            return forwardHome({ success => "Your account request has been received successfully" });
+            try { $users->register($params) };
+            if(my $exception = $@->wasFatal)
+            {
+                $error = $exception->message->toString;
+            }
+            else {
+                $audit->login_change("New user account request for $params->{email}");
+                return forwardHome({ success => "Your account request has been received successfully" });
+            }
         }
     }
 
@@ -2670,6 +2696,9 @@ any '/resetpw/:code' => sub {
         {
             context->destroy_session;
             my $user   = rset('User')->active(username => $username)->next;
+            # Now we know this user is genuine, reset any failure that would
+            # otherwise prevent them logging in
+            $user->update({ failcount => 0 });
             my $audit  = GADS::Audit->new(schema => schema, user => $user);
             $audit->login_change("Password reset performed for user ID ".$user->id);
             $new_password = _random_pw();

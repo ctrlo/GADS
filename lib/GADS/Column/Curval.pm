@@ -310,6 +310,7 @@ sub _build_values_index
 
 sub filter_value_to_text
 {   my ($self, $id) = @_;
+    $id or return '';
     my $rows = $self->ids_to_values([$id]);
     $rows->[0]->{value};
 }

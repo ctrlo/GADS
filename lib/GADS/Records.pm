@@ -1005,6 +1005,7 @@ sub _search_construct
         less_or_equal    => '<=',
         contains         => '-like',
         begins_with      => '-like',
+        not_begins_with  => '-not_like',
         not_equal        => '!=',
         is_empty         => '=',
         is_not_empty     => '!=',
@@ -1090,8 +1091,8 @@ sub _search_construct
         };
     }
 
-    my $vprefix = $operator eq '-like' ? '' : '';
-    my $vsuffix = $operator eq '-like' ? '%' : '';
+    my $vprefix = $operator eq '-like' || $operator eq '-not_like' ? '' : '';
+    my $vsuffix = $operator eq '-like' || $operator eq '-not_like' ? '%' : '';
 
     my @values;
 
@@ -1206,20 +1207,34 @@ sub _resolve
         my $table   = $subjoin || $column->field;
         +(
             'me.id' => {
-                -not_in => correlate( $self->schema->resultset('Current'), "record_single" )->search_related(
-                    $column->field, {
+                -not_in => $self->schema->resultset('Current')->search({
+                        'record_later.id' => undef,
                         "$table.$_->{s_field}" => $value,
-                    },
-                    {
-                        select => "record_later.current_id",
-                        join   => $column->subjoin,
+                    }, {
+                        select => "record_single.current_id",
+                        join   => [
+                            {
+                                'record_single' => [
+                                    'record_later',
+                                    $column->join,
+                                ],
+                            },
+                            {
+                                linked => { # XXX needs testing and tests
+                                    'record_single' => [
+                                        'record_later',
+                                        $column->join,
+                                    ],
+                                },
+                            }
+                        ],
                     }
                 )->as_query
             }
         );
     }
     else {
-        my $combiner = $condition->{type} =~ /(is_not_empty|not_equal)/ ? '-and' : '-or';
+        my $combiner = $condition->{type} =~ /(is_not_empty|not_equal|not_begins_with)/ ? '-and' : '-or';
         $value    = @$value > 1 ? [ $combiner => @$value ] : $value->[0];
         $self->add_join($options{parent}, search => 1, linked => $is_linked)
             if $options{parent};
@@ -1227,7 +1242,7 @@ sub _resolve
             unless $column->internal;
         my $s_table = $self->table_name($column, %options, search => 1);
         my $sq = {$condition->{operator} => $value};
-        $sq = [ $sq, undef ] if $condition->{type} eq 'not_equal';
+        $sq = [ $sq, undef ] if $condition->{type} eq 'not_equal' || $condition->{type} eq 'not_begins_with';
         +( "$s_table.$_->{s_field}" => $sq );
     }
 }

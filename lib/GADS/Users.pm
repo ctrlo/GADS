@@ -189,22 +189,13 @@ sub register
     $new{title} or delete $new{title};
     $new{organisation} or delete $new{organisation};
 
-    my $exists = $self->user_exists($params->{email});
-
-    my $user = !$exists && $self->schema->resultset('User')->create(\%new);
+    my $user = $self->schema->resultset('User')->create(\%new);
 
     # Email admins with account request
     my $admins = $self->all_admins;
     my @emails = map { $_->email } @$admins;
     my $text;
-    if ($exists)
-    {
-        $text = "A new account request has been received, but it has not been added to the request "
-            ."queue as the user already exists. The details of the request were:\n\n";
-    }
-    else {
-        $text = "A new account request has been received from the following person:\n\n";
-    }
+    $text = "A new account request has been received from the following person:\n\n";
     $text .= "First name: $new{firstname}, ";
     $text .= "surname: $new{surname}, ";
     $text .= "email: $new{email}, ";
@@ -231,20 +222,81 @@ sub csv
     my $site = $self->schema->resultset('Site')->find($self->schema->site_id);
     # Column names
     my @columns = qw/ID Surname Forename Email Lastlogin/;
+    push @columns, 'Title' if $site->register_show_title;
+    push @columns, 'Organisation' if $site->register_show_organisation;
     push @columns, $site->register_freetext1_name if $site->register_freetext1_name;
     push @columns, $site->register_freetext2_name if $site->register_freetext2_name;
-    push @columns, 'Organisation' if $site->register_show_organisation;
-    push @columns, 'Title' if $site->register_show_title;
+    push @columns, 'Page hits last month';
     $csv->combine(@columns)
         or error __x"An error occurred producing the CSV headings: {err}", err => $csv->error_input;
     my $csvout = $csv->string."\n";
 
     # All the data values
-    foreach my $user (@{$self->all})
+    my @users = $self->_user_rs->search({}, {
+        select => [
+            {
+                max => 'me.id',
+                -as => 'id_max',
+            },
+            {
+                max => 'surname',
+                -as => 'surname_max',
+            },
+            {
+                max => 'firstname',
+                -as => 'firstname_max',
+            },
+            {
+                max => 'email',
+                -as => 'email_max',
+            },
+            {
+                max => 'lastlogin',
+                -as => 'lastlogin_max',
+            },
+            {
+                max => 'title.name',
+                -as => 'title_max',
+            },
+            {
+                max => 'organisation.name',
+                -as => 'organisation_max',
+            },
+            {
+                max => 'freetext1',
+                -as => 'freetext1_max',
+            },
+            {
+                max => 'freetext2',
+                -as => 'freetext2_max',
+            },
+            {
+                count => 'audits_last_month.id',
+                -as   => 'audit_count',
+            }
+        ],
+        join     => [
+            'audits_last_month', 'organisation', 'title',
+        ],
+        order_by => 'surname_max',
+        group_by => 'me.id',
+    })->all;
+
+    foreach my $user (@users)
     {
-        $csv->combine($user->id, $user->surname, $user->firstname, ($user->title && $user->title->name || ''),
-            $user->email, ($user->organisation && $user->organisation->name || ''), $user->telephone, $user->lastlogin
-        )
+        my @csv = (
+            $user->get_column('id_max'),
+            $user->get_column('surname_max'),
+            $user->get_column('firstname_max'),
+            $user->get_column('email_max'),
+            $user->get_column('lastlogin_max')
+        );
+        push @csv, $user->get_column('title_max') if $site->register_show_title;
+        push @csv, $user->get_column('organisation_max') if $site->register_show_organisation;
+        push @csv, $user->get_column('freetext1_max') if $site->register_freetext1_name;
+        push @csv, $user->get_column('freetext2_max') if $site->register_freetext2_name;
+        push @csv, $user->get_column('audit_count');
+        $csv->combine(@csv)
             or error __x"An error occurred producing a line of CSV: {err}",
                 err => "".$csv->error_diag;
         $csvout .= $csv->string."\n";
