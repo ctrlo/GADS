@@ -65,7 +65,7 @@
 
             <label>Filters:</label>
             <div id="builder"></div>
-            <input id="filter" type="hidden" name="filter" value="[% v.filter | html_entity %]">
+            <input id="filter" type="hidden" name="filter" value="[% v.filter.as_json | html_entity %]">
             <label for="sorts">Sorting:</label>
             <div id="sorts">
                 [% FOREACH sort IN v.sorts %]
