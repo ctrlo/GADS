@@ -1,0 +1,56 @@
+diff --git a/public/js/query-builder.standalone.js b/public/js/query-builder.standalone.js
+index 77dafed..a0e7cd3 100644
+--- a/public/js/query-builder.standalone.js
++++ b/public/js/query-builder.standalone.js
+@@ -231,16 +231,14 @@
+             }
+         }
+ 
+-        Object.defineProperties(typeof obj === 'function' ? obj.prototype : obj, {
+-            '_events': {
+-                value: {},
+-                writable: true
+-            },
+-            '_once': {
+-                value: {},
+-                writable: true
+-            }
+-        });
++        // IE8 compatibility (changed from Object.defineProperties)
++        if (typeof obj === 'function') {
++            obj.prototype._events = {};
++            obj.prototype._once = {};
++        } else {
++            obj._events = {};
++            obj._once = {};
++        }
+     };
+ 
+     return MicroEvent;
+@@ -2221,7 +2219,7 @@ $.fn.queryBuilder.defaults.set({
+         loopbackOperators: {
+             equal:            function(v){ return v[0]; },
+             not_equal:        function(v){ return {'neq': v[0]}; },
+-            in:               function(v){ return {'inq': v}; },
++            "in":             function(v){ return {'inq': v}; },
+             not_in:           function(v){ return {'nin': v}; },
+             less:             function(v){ return {'lt': v[0]}; },
+             less_or_equal:    function(v){ return {'lte': v[0]}; },
+@@ -2342,7 +2340,7 @@ $.fn.queryBuilder.defaults.set({
+         mongoOperators: {
+             equal:            function(v){ return v[0]; },
+             not_equal:        function(v){ return {'$ne': v[0]}; },
+-            in:               function(v){ return {'$in': v}; },
++            "in":             function(v){ return {'$in': v}; },
+             not_in:           function(v){ return {'$nin': v}; },
+             less:             function(v){ return {'$lt': v[0]}; },
+             less_or_equal:    function(v){ return {'$lte': v[0]}; },
+@@ -2757,7 +2755,7 @@ $.fn.queryBuilder.defaults.set({
+         sqlOperators: {
+             equal:            '= ?',
+             not_equal:        '!= ?',
+-            in:               { op: 'IN(?)',     list: true, sep: ', ' },
++            "in":             { op: 'IN(?)',     list: true, sep: ', ' },
+             not_in:           { op: 'NOT IN(?)', list: true, sep: ', ' },
+             less:             '< ?',
+             less_or_equal:    '<= ?',
