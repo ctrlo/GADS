@@ -84,6 +84,10 @@ has from_id => (
     is      => 'rw',
     trigger => sub {
         my ($self, $value) = @_;
+        # Column needs to be built from its sub-class, otherwise methods only
+        # relavent to that type will not be available
+        ref $self eq 'GADS::Column'
+            and panic "from_id cannot be called on raw GADS::Column object";
         my $cols_rs = $self->schema->resultset('Layout')->search({
             'me.id'          => $value,
             'me.instance_id' => $self->instance_id,
