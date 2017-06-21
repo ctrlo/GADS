@@ -198,6 +198,9 @@
         [% IF hostlocal %]
             <script src="[% url.js %]/jquery-1.12.4.min.js"></script>
             <script src="[% url.js %]/jquery-ui.min.js"></script>
+            <!--[if (gte IE 6)&(lte IE 8)]>
+                <script type="text/javascript" src="[% url.js %]/selectivizr-min.js"></script>
+            <![endif]-->
             <script src="[% url.js %]/bootstrap.min.js"></script>
             <script src="[% url.js %]/tooltip.min.js"></script>
         [% ELSE %]
