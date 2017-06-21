@@ -358,7 +358,7 @@
         [% END %]
         [% IF dispcol.helptext %]
             [% label = label _ " (<a data-toggle='modal' data-load-url='/helptext/"
-                             _ dispcol.id  _ "' data-target='#helptext_modal'>?</a>)" %]
+                             _ dispcol.id  _ "' data-target='#helptext_modal' style='cursor:pointer'>?</a>)" %]
         [% END %]
         [% IF page == "bulk" AND dispcol.addable AND (dispcol.return_type == "date" OR dispcol.return_type == "daterange") %]
             [% label_add = BLOCK %]
