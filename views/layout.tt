@@ -111,8 +111,8 @@
             <h4>Permissions <small>(<a href="" data-toggle="modal" data-target="#modalhelp_groups">?</a>)</small></h4>
                 [% IF column.id %]
                     [% IF column.permissions.size %]
-                        <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_permissions" data-title="Add another group">Access control...</a>
-                        <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_permissions" data-title="Add another group">Approval control...</a>
+                        <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_access_control" data-title="Add another group">Access control...</a>
+                        <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_approval_control" data-title="Add another group">Approval control...</a>
                         <dl>
                             <dt>Groups that can read:</dt>
                             [% FOREACH g IN column.group_summary('read') %]
@@ -130,7 +130,7 @@
                     [% ELSE %]
                         <p>Access must be granted to this field before anyone (including you) can view and edit data in it.
                         [% IF groups.all.size %]
-                            To give access, a group <a data-toggle="modal" data-target="#modal_permissions" data-title="Add group" style="cursor: pointer;">must be assigned to it</a>.
+                            To give access, a group <a data-toggle="modal" data-target="#modal_access_control" data-title="Add group" style="cursor: pointer;">must be assigned to it</a>.
                         [% ELSE %]
                             Groups are used to assign access. You must first <a href="/group">create a group</a>.
                         [% END %]
@@ -541,7 +541,7 @@
                 </div><!-- /.modal-content -->
             </div><!-- /.modal-dialog -->
         </div><!-- /.modal -->
-        <div class="modal fade" id="modal_permissions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal fade" id="modal_access_control" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form role="form" method="post" enctype="multipart/form-data">
@@ -716,28 +716,6 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
         $(document).ready(function () {
             $('#sortable').sortable({
                 cancel: "a"
-            });
-            $('#modal_permissions').on('show.bs.modal', function (event) {
-                var button = $(event.relatedTarget);
-                var title = button.data('title');
-                var group_id = button.data('group_id');
-                if (group_id) {
-                    $('#modal_permissions-group_id').val(group_id);
-                    $('#modal_permissions-group_id').attr('name', 'group_id');
-                    $('#modal_permissions-group_select').attr('name', 'group_id_temp');
-                    $('#modal_permissions-group_select_div').hide();
-                } else {
-                    $('#modal_permissions-group_select').attr('name', 'group_id');
-                    $('#modal_permissions-group_id').attr('name', 'group_id_temp');
-                    $('#modal_permissions-group_select_div').show();
-                }
-                [% FOR perm IN permissions %]
-                    if (button.data('[% perm.short %]')) {
-                        $('#modal_permissions-[% perm.short %]').prop("checked", true );
-                    } else {
-                        $('#modal_permissions-[% perm.short %]').prop("checked", false );
-                    }
-                [% END %]
             });
             $('#display_condition').click(function () {
                 $("#display_condition_div").toggle(400);
