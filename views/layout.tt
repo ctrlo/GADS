@@ -111,31 +111,22 @@
             <h4>Permissions <small>(<a href="" data-toggle="modal" data-target="#modalhelp_groups">?</a>)</small></h4>
                 [% IF column.id %]
                     [% IF column.permissions.size %]
-                        <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_permissions" data-title="Add another group">Add another group</a>
-                        <table class="table table-condensed">
-                            <tr>
-                                <th>Group</th>
-                                <th>Permissions</th>
-                            </tr>
-                            [% FOREACH permission IN column.permissions.pairs %]
-                                [% group = groups.group(permission.key) %]
-                                <tr>
-                                    <td>
-                                    <a href="" data-toggle="modal"
-                                        data-target="#modal_permissions"
-                                        data-title="Permissions for [% group.name %]"
-                                        data-group_id="[% group.id %]"
-                                        [% FOR p IN permission.value %]
-                                            data-[% p.short %]="1"
-                                        [% END %]
-                                        >[% group.name %]</a>
-                                    </td>
-                                    <td>
-                                        [% permission.value.join(', ') %]
-                                    </td>
-                                </tr>
+                        <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_permissions" data-title="Add another group">Access control...</a>
+                        <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_permissions" data-title="Add another group">Approval control...</a>
+                        <dl>
+                            <dt>Groups that can read:</dt>
+                            [% FOREACH g IN column.group_summary('read') %]
+                                <dd>[% g %]</dd>
                             [% END %]
-                        </table>
+                            <dt>Groups that can write new values:</dt>
+                            [% FOREACH g IN column.group_summary('write_new') %]
+                                <dd>[% g %]</dd>
+                            [% END %]
+                            <dt>Groups that can write existing values:</dt>
+                            [% FOREACH g IN column.group_summary('write_existing') %]
+                                <dd>[% g %]</dd>
+                            [% END %]
+                        </dl>
                     [% ELSE %]
                         <p>Access must be granted to this field before anyone (including you) can view and edit data in it.
                         [% IF groups.all.size %]
@@ -556,37 +547,58 @@
                     <form role="form" method="post" enctype="multipart/form-data">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="modal_permissions-title">Permissions for group</h4>
+                        <h4 class="modal-title" id="modal_access-control">Access Control</h4>
                     </div>
                     <div class="modal-body">
                         [% IF groups.all.size %]
-                            <div class="form-group" id="modal_permissions-group_div">
-                                <input type="hidden" name="group_id" id="modal_permissions-group_id" value="">
-                                <div id="modal_permissions-group_select_div">
-                                    <label for="modal_permissions-group_select">Group:</label>
-                                    <select class="form-control" id="modal_permissions-group_select" name="group_id">
-                                        <option value=""></option>
-                                        [% FOR group IN groups.all %]
-                                            <option value="[% group.id %]">[% group.name %]</option>
-                                        [% END %]
-                                    </select>
-                                </div>
-                            </div>
-                            <p>Tick the permissions that this group should have (<a id="selectall" style="cursor: pointer;">select all</a>)</p>
-                            [% FOR perm IN permissions %]
-                                <div class="checkbox">
-                                    <label>
-                                        <input type="checkbox" class="check_perm" name="permissions" value="[% perm.short %]" id="modal_permissions-[% perm.short %]">[% perm %]
-                                    </label>
-                                </div>
-                            [% END %]
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Group</th>
+                                        <th>Read</th>
+                                        <th>Write values to new records</th>
+                                        <th>Edit existing values</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    [% FOREACH perm IN column.permissions.keys %]
+                                        <tr class="permission_row">
+                                            <td>
+                                                <select class="form-control" name="group_id">
+                                                    <option></option>
+                                                    [% FOR group IN groups.all %]
+                                                        <option value="[% group.id %]" [% IF group.id == perm %]selected[% END %]>[% group.name %]</option>
+                                                    [% END %]
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="hidden" name="read" value="holder">
+                                                <input type="checkbox" name="read" [% IF column.group_has(perm, 'read') %]checked[% END %]>
+                                            </td>
+                                            <td>
+                                                <input type="hidden" name="write_new" value="holder">
+                                                <input type="checkbox" name="write_new" [% IF column.group_has(perm, 'write_new') %]checked[% END %]>
+                                            </td>
+                                            <td>
+                                                <input type="hidden" name="write_existing" value="holder">
+                                                <input type="checkbox" name="write_existing" [% IF column.group_has(perm, 'write_existing') %]checked[% END %]>
+                                            </td>
+                                            <td>
+                                                <a class="btn btn-primary btn-sm cloneme"><i class="fa fa-lg fa-plus" style="cursor: pointer"></i></a>
+                                                <a class="btn btn-primary btn-sm removeme"><i class="fa fa-lg fa-minus" style="cursor: pointer"></i></a>
+                                            </td>
+                                        </tr>
+                                    [% END %]
+                                </tbody>
+                            </table>
                         [% ELSE %]
                             <p>No groups have been created yet. <a href="/group">Click here</a> to create a group.</p>
                         [% END %]
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                        <button type="submit" name="update_perms" value="submit" class="btn btn-primary">Save</button>
+                        <button type="submit" name="access_control" value="submit" class="btn btn-primary">Save</button>
                     </div>
                     </form>
                 </div><!-- /.modal-content -->
@@ -654,6 +666,20 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
+
+        $(document).on("click", ".cloneme", function() {
+            var parent = $(this).parents('.permission_row');
+            var cloned = parent.clone(true);
+            cloned.removeAttr('id').insertAfter(parent);
+            cloned.find(".datepicker").datepicker({format: "[% config.dateformat_datepicker %]", autoclose: true});
+        });
+        $('.removeme').click(function() {
+            var parent = $(this).parents('.permission_row');
+            if (parent.siblings(".permission_row").length > 0) {
+                parent.remove();
+            }
+        });
+
         function demo_delete() {
             var ref = $('#jstree_demo_div').jstree(true),
                 sel = ref.get_selected();
@@ -694,7 +720,6 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
             $('#modal_permissions').on('show.bs.modal', function (event) {
                 var button = $(event.relatedTarget);
                 var title = button.data('title');
-                $('#modal_permissions-title').text(title);
                 var group_id = button.data('group_id');
                 if (group_id) {
                     $('#modal_permissions-group_id').val(group_id);

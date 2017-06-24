@@ -107,10 +107,13 @@ foreach my $column ($layout->all)
     my $all  = [qw/read write_new write_existing approve_new approve_existing
         write_new_no_approval write_existing_no_approval
     /];
-    $column->set_permissions($groups{read}, $read);
-    $column->set_permissions($groups{limited}, $all)
+    my $permissions = {
+        $groups{read} => $read,
+    };
+    $permissions->{$groups{limited}} = $all
         if $column->name eq 'string1';
-    $column->set_permissions($groups{readwrite}, $all);
+    $permissions->{$groups{readwrite}} = $all;
+    $column->set_permissions(permissions => $permissions);
 }
 
 my $data_set = 'b';

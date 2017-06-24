@@ -1307,16 +1307,18 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             );
         
         # Update of permissions?
-        if (param 'update_perms')
+        if (param 'access_control')
         {
-            my $permissions = ref param('permissions') eq 'ARRAY' ? param('permissions') : [param('permissions') || ()];
-            # Although the layout form should only return one group_id value
-            # (there are 2, but JS renames them), instances have been observed
-            # when a second empty one has also been sent. There are possibly
-            # problems with the JS, but given the implications of 2 here, we
-            # ensure that only one is present.
-            my ($group_id) = grep { $_ } body_parameters->get_all('group_id');
-            if (process sub { $column->set_permissions($group_id, $permissions) })
+            my $groups         = [body_parameters->get_all('group_id')];
+            my $read           = [body_parameters->get_all('read')];
+            my $write_new      = [body_parameters->get_all('write_new')];
+            my $write_existing = [body_parameters->get_all('write_existing')];
+            if (process sub { $column->set_permissions(
+                groups         => $groups,
+                read           => $read,
+                write_new      => $write_new,
+                write_existing => $write_existing
+            ) })
             {
                 my $msg = qq(Permissions have been updated successfully. <a href="/layout/">Click here</a> to return to Edit Layout.);
                 report NOTICE => $msg, _class => 'html,success';

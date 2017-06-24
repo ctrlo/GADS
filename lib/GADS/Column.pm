@@ -510,6 +510,23 @@ sub _build_permissions
     \%perms;
 }
 
+sub group_has
+{   my ($self, $group_id, $perm) = @_;
+    my $perms = $self->permissions->{$group_id}
+        or return 0;
+    (grep { $_->short eq $perm } @$perms) ? 1 : 0;
+}
+
+sub group_summary
+{   my ($self, $permission) = @_;
+    map { $_->group->name } $self->schema->resultset('LayoutGroup')->search({
+        layout_id  => $self->id,
+        permission => $permission,
+    },{
+        prefetch => 'group',
+    })->all;
+}
+
 sub _build_instance
 {   my $self = shift;
     GADS::Instance->new(
@@ -872,86 +889,142 @@ sub user_id_can
 }
 
 sub set_permissions
-{   my ($self, $group_id, $permissions) = @_;
+{   my ($self, %options) = @_;
 
-    $group_id
-        or error __"Please select a group to add the permissions to";
 
-    my $has_read;
-    foreach my $permission (@$permissions)
+    # These set from web form
+    my $groups         = $options{groups};
+    my $read           = $options{read};
+    my $write_new      = $options{write_new};
+    my $write_existing = $options{write_existing};
+
+    # This for setting permissions directly
+    my $permissions = $options{permissions};
+
+    if ($permissions)
     {
-        $has_read = 1 if $permission eq 'read';
-        # Unique constraint on table. Catch existing.
-        try {
-            $self->schema->resultset('LayoutGroup')->create({
-                layout_id  => $self->id,
-                group_id   => $group_id,
-                permission => $permission,
-            });
-        };
-        # Log any messages from try block, but only as trace
-        $@->reportAll(reason => 'TRACE');
+        $groups = [ keys %$permissions ];
+    }
+    else {
+        foreach my $group_id (@$groups)
+        {
+            my @perms;
+
+            # For each permission type, see if it is set (a value that is not the
+            # next hidden placeholder value). If it is, shift the actual value, to
+            # make sure that the next value is the next placeholder
+
+            shift @$read eq 'holder' or panic "Missing holder for read";
+            push @perms, 'read'
+                if $read->[0] && $read->[0] ne 'holder' && shift @$read;
+
+            shift @$write_new eq 'holder' or panic "Missing holder for write_new";
+            push @perms, 'write_new'
+                if $write_new->[0] && $write_new->[0] ne 'holder' && shift @$write_new;
+
+            shift @$write_existing eq 'holder' or panic "Missing holder for write_existing";
+            push @perms, 'write_existing'
+                if $write_existing->[0] && $write_existing->[0] ne 'holder' && shift @$write_existing;
+
+            $permissions->{$group_id} = [@perms]
+                if $group_id; # May not have been group selected in drop-down
+        }
     }
 
-    # Before we do the catch-all delete, see if there is currently a
-    # read permission there which is about to be removed.
-    my $read_removed = !$has_read && $self->schema->resultset('LayoutGroup')->search({
-        group_id   => $group_id,
-        layout_id  => $self->id,
-        permission => 'read',
-    })->count;
+    $groups = [ grep {$_} @$groups ]; # Remove permissions with blank submitted group
 
-    # Delete those no longer there
-    my $search = { group_id => $group_id, layout_id => $self->id };
-    $search->{permission} = { '!=' => [ '-and', @$permissions ] } if @$permissions;
-    $self->schema->resultset('LayoutGroup')->search($search)->delete;
+    # Search for any groups that were in the permissions but no longer exist
+    push @$groups, $self->schema->resultset('LayoutGroup')->search({
+        layout_id => $self->id,
+        group_id  => { '!=' => [ '-and', @$groups ] },
+    },{
+        select   => {
+            max => 'group_id',
+            -as => 'group_id',
+        },
+        as => 'group_id',
+        group_by => 'group_id',
+    })->get_column('group_id')->all;
 
-    # See if any read permissions have been removed. If so, we need
-    # to remove them from the relevant filters and sorts. The views themselves
-    # don't matter, as they won't be shown anyway.
-    if ($read_removed)
+    foreach my $group_id (@$groups)
     {
-        # First the sorts
-        foreach my $sort ($self->schema->resultset('Sort')->search({
-            layout_id      => $self->id,
-            'view.user_id' => { '!=' => undef },
-        }, {
-            prefetch => 'view',
-        })->all)
+        my $has_read;
+        my @permissions = $permissions->{$group_id} ? @{$permissions->{$group_id}} : ();
+        foreach my $permission (@permissions)
         {
-            # For each sort on this column, which no longer has read.
-            # See if user attached to this view still has access with
-            # another group
-            $sort->delete unless $self->user_id_can($sort->view->user_id, 'read');
+            $has_read = 1 if $permission eq 'read';
+            # Unique constraint on table. Catch existing.
+            try {
+                $self->schema->resultset('LayoutGroup')->create({
+                    layout_id  => $self->id,
+                    group_id   => $group_id,
+                    permission => $permission,
+                });
+            };
+            # Log any messages from try block, but only as trace
+            $@->reportAll(reason => 'TRACE');
         }
-        # Then the filters
-        foreach my $filter ($self->schema->resultset('Filter')->search({
-            layout_id      => $self->id,
-            'view.user_id' => { '!=' => undef },
-        }, {
-            prefetch => 'view',
-        })->all)
+
+        # Before we do the catch-all delete, see if there is currently a
+        # read permission there which is about to be removed.
+        my $read_removed = !$has_read && $self->schema->resultset('LayoutGroup')->search({
+            group_id   => $group_id,
+            layout_id  => $self->id,
+            permission => 'read',
+        })->count;
+
+        # Delete those no longer there
+        my $search = { group_id => $group_id, layout_id => $self->id };
+        $search->{permission} = { '!=' => [ '-and', @permissions ] } if @permissions;
+        $self->schema->resultset('LayoutGroup')->search($search)->delete;
+
+        # See if any read permissions have been removed. If so, we need
+        # to remove them from the relevant filters and sorts. The views themselves
+        # don't matter, as they won't be shown anyway.
+        if ($read_removed)
         {
-            # For each sort on this column, which no longer has read.
-            # See if user attached to this view still has access with
-            # another group
-            unless ($self->user_id_can($filter->view->user_id, 'read'))
+            # First the sorts
+            foreach my $sort ($self->schema->resultset('Sort')->search({
+                layout_id      => $self->id,
+                'view.user_id' => { '!=' => undef },
+            }, {
+                prefetch => 'view',
+            })->all)
             {
-                # Filter cache
-                $filter->delete;
-                # Alert cache
-                $self->schema->resultset('AlertCache')->search({
-                    layout_id => $self->id,
-                    view_id   => $filter->view_id,
-                })->delete;
-                # Column in the view
-                $self->schema->resultset('ViewLayout')->search({
-                    layout_id => $self->id,
-                    view_id   => $filter->view_id,
-                })->delete;
-                # And the JSON filter itself
-                my $filtered = _filter_remove_colid($self, $filter->view->filter);
-                $filter->view->update({ filter => $filtered });
+                # For each sort on this column, which no longer has read.
+                # See if user attached to this view still has access with
+                # another group
+                $sort->delete unless $self->user_id_can($sort->view->user_id, 'read');
+            }
+            # Then the filters
+            foreach my $filter ($self->schema->resultset('Filter')->search({
+                layout_id      => $self->id,
+                'view.user_id' => { '!=' => undef },
+            }, {
+                prefetch => 'view',
+            })->all)
+            {
+                # For each sort on this column, which no longer has read.
+                # See if user attached to this view still has access with
+                # another group
+                unless ($self->user_id_can($filter->view->user_id, 'read'))
+                {
+                    # Filter cache
+                    $filter->delete;
+                    # Alert cache
+                    $self->schema->resultset('AlertCache')->search({
+                        layout_id => $self->id,
+                        view_id   => $filter->view_id,
+                    })->delete;
+                    # Column in the view
+                    $self->schema->resultset('ViewLayout')->search({
+                        layout_id => $self->id,
+                        view_id   => $filter->view_id,
+                    })->delete;
+                    # And the JSON filter itself
+                    my $filtered = _filter_remove_colid($self, $filter->view->filter);
+                    $filter->view->update({ filter => $filtered });
+                }
             }
         }
     }
