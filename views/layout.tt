@@ -567,7 +567,12 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    [% FOREACH perm IN column.permissions.keys %]
+                                    [% IF column.permissions.keys.size %]
+                                        [% all_perms = column.permissions.keys %]
+                                    [% ELSE %]
+                                        [% all_perms = [ 0 ] %]
+                                    [% END %]
+                                    [% FOREACH perm IN all_perms %]
                                         <tr class="permission_row">
                                             <td>
                                                 <select class="form-control" name="group_id">
