@@ -110,9 +110,21 @@
             <hr>
             <h4>Permissions <small>(<a href="" data-toggle="modal" data-target="#modalhelp_groups">?</a>)</small></h4>
                 [% IF column.id %]
-                    [% IF column.permissions.size %]
+                    [% IF NOT column.permissions.size %]
+                        <p>Access must be granted to this field before anyone (including you) can view and edit data in it.</p>
+                        [% IF groups.all.size %]
+                            <p>To give access, a group must be assigned to it using the buttons below:</p>
+                        [% ELSE %]
+                            <p>Groups are used to assign access. You must first <a href="/group">create a group</a></p>
+                        [% END %]
+                    [% END %]
+
+                    [% IF groups.all.size %]
                         <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_access_control" data-title="Add another group">Access control...</a>
                         <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_approval_control" data-title="Add another group">Approval control...</a>
+                    [% END %]
+
+                    [% IF column.permissions.size %]
                         <dl>
                             <dt>Groups that can read:</dt>
                             [% FOREACH g IN column.group_summary('read') %]
@@ -127,13 +139,6 @@
                                 <dd>[% g %]</dd>
                             [% END %]
                         </dl>
-                    [% ELSE %]
-                        <p>Access must be granted to this field before anyone (including you) can view and edit data in it.
-                        [% IF groups.all.size %]
-                            To give access, a group <a data-toggle="modal" data-target="#modal_access_control" data-title="Add group" style="cursor: pointer;">must be assigned to it</a>.
-                        [% ELSE %]
-                            Groups are used to assign access. You must first <a href="/group">create a group</a>.
-                        [% END %]
                     [% END %]
                 [% ELSE %]
                     <p>Please save the field before adding permissions</p>
