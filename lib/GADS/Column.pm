@@ -934,15 +934,17 @@ sub set_permissions
     $groups = [ grep {$_} @$groups ]; # Remove permissions with blank submitted group
 
     # Search for any groups that were in the permissions but no longer exist
-    push @$groups, $self->schema->resultset('LayoutGroup')->search({
+    my $search = {
         layout_id => $self->id,
-        group_id  => { '!=' => [ '-and', @$groups ] },
-    },{
+    };
+    $search->{group_id} = { '!=' => [ '-and', @$groups ] }
+        if @$groups;
+    push @$groups, $self->schema->resultset('LayoutGroup')->search($search,{
         select   => {
             max => 'group_id',
             -as => 'group_id',
         },
-        as => 'group_id',
+        as       => 'group_id',
         group_by => 'group_id',
     })->get_column('group_id')->all;
 
