@@ -402,7 +402,8 @@ __PACKAGE__->might_have(
         my $args = shift;
         my $return = {
             "$args->{foreign_alias}.current_id"  => { -ident => "$args->{self_alias}.current_id" },
-            "$args->{foreign_alias}.id" => { '>' => \"$args->{self_alias}.id" },
+            "$args->{foreign_alias}.id"          => { '>' => \"$args->{self_alias}.id" },
+            "$args->{foreign_alias}.approval"    => 0,
         };
         $return->{"$args->{foreign_alias}.created"} = { '<' => $REWIND }
             if $REWIND;

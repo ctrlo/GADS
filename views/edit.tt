@@ -63,13 +63,19 @@
         </div>
     </nav>
 </form>
-       <!-- Modal -->
-        <div class="modal fade" id="helptext_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                </div><!-- /.modal-content -->
-            </div><!-- /.modal-dialog -->
-        </div><!-- /.modal -->
+
+<div class="modal fade" id="helptext_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
 
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]
@@ -87,9 +93,12 @@
                     parent.remove();
                 }
             });
-            $(document).on('hidden.bs.modal', function (e) {
-                $(e.target).removeData('bs.modal');
+
+            $('#helptext_modal').on('show.bs.modal', function (e) {
+                var loadurl = $(e.relatedTarget).data('load-url');
+                $(this).find('.modal-body').load(loadurl);
             });
+
             $('.input-daterange input.from').each(function (){
                 $(this).on('changeDate', function(e) {
                     var toDatepicker = $(this).parents('.input-daterange').find('.datepicker.to');
@@ -367,8 +376,8 @@
             [% label = label _ ' <span style="font-weight:normal !important">(' _ desc _ ")</span>" %]
         [% END %]
         [% IF dispcol.helptext %]
-            [% label = label _ " (<a data-toggle='modal' href='/helptext/"
-                             _ dispcol.id  _ "' data-target='#helptext_modal'>?</a>)" %]
+            [% label = label _ " (<a data-toggle='modal' data-load-url='/helptext/"
+                             _ dispcol.id  _ "' data-target='#helptext_modal' style='cursor:pointer'>?</a>)" %]
         [% END %]
         [% IF page == "bulk" AND dispcol.addable AND (dispcol.return_type == "date" OR dispcol.return_type == "daterange") %]
             [% label_add = BLOCK %]

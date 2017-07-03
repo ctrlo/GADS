@@ -1800,8 +1800,7 @@ get '/helptext/:id?' => require_login sub {
     my $id     = param 'id';
     my $user   = logged_in_user;
     my $layout = var 'layout';
-    my $column = GADS::Column->new(schema => schema, user => $user, layout => $layout);
-    $column->from_id(param 'id');
+    my $column = $layout->column($id);
     template 'helptext.tt', { column => $column }, { layout => undef };
 };
 
