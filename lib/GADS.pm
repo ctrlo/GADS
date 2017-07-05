@@ -2037,6 +2037,16 @@ any '/edit/:id?' => require_login sub {
         base_url => request->base,
     );
 
+    if (my $delete_id = param 'delete')
+    {
+        $record->find_current_id($delete_id);
+        if (process( sub { $record->delete_current }))
+        {
+            return forwardHome(
+                { success => 'Record has been deleted successfully' }, 'data' );
+        }
+    }
+
     my $child = param 'child';
 
     # XXX Move into user class once properly available
@@ -2364,15 +2374,6 @@ any qr{/(record|history)/([0-9]+)} => require_login sub {
     $layout = $record->layout; # May have changed if record from other datasheet
 
     my @versions = $record->versions;
-
-    if (my $delete_id = param 'delete')
-    {
-        if (process( sub { $record->delete_current }))
-        {
-            return forwardHome(
-                { success => 'Record has been deleted successfully' }, 'data' );
-        }
-    }
 
     my @columns = $layout->all(user_can_read => 1);
     my $output = template 'record' => {
