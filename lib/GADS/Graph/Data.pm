@@ -501,7 +501,8 @@ sub _build_data
     }
 
     my $options = {};
-    $options->{y_max} = 100 if defined $metric_max && $metric_max < 100;
+    $options->{y_max}     = 100 if defined $metric_max && $metric_max < 100;
+    $options->{is_metric} = 1 if defined $metric_max;
 
     +{
         xlabels => \@xlabels, # Populated, but not used for donut

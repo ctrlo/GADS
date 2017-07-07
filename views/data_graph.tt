@@ -86,15 +86,17 @@
                             labelRenderer: $.jqplot.CanvasAxisLabelRenderer
                         },
                         yaxis: {
-                            tickOptions: {
-                                formatString: '%d%'
-                            },
                             label: options_in.y_axis_label,
                             labelRenderer: $.jqplot.CanvasAxisLabelRenderer
                         }
                     };
                     if (plotData.options.y_max) {
                         plotOptions.axes.yaxis.max = plotData.options.y_max;
+                    }
+                    if (plotData.options.is_metric) {
+                        plotOptions.axes.yaxis.tickOptions = {
+                            formatString: '%d%'
+                        };
                     }
                     plotOptions.axesDefaults = {
                         tickRenderer: $.jqplot.CanvasAxisTickRenderer ,
