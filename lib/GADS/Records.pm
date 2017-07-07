@@ -819,7 +819,7 @@ sub _query_params
     my $layout = $self->layout;
 
     my @search_date;                    # The search criteria to narrow-down by date range
-    foreach my $c (@{$self->columns_retrieved_do})
+    foreach my $c (@{$self->columns_retrieved_no})
     {
         if ($c->type eq "date" || $c->type eq "daterange")
         {

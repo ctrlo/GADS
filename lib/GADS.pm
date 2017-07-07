@@ -420,6 +420,7 @@ get '/data_graph/:id/:time' => require_login sub {
         points  => $gdata->points,
         labels  => $gdata->labels_encoded,
         xlabels => $gdata->xlabels,
+        options => $gdata->options,
     });
 };
 

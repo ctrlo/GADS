@@ -86,10 +86,16 @@
                             labelRenderer: $.jqplot.CanvasAxisLabelRenderer
                         },
                         yaxis: {
+                            tickOptions: {
+                                formatString: '%d%'
+                            },
                             label: options_in.y_axis_label,
                             labelRenderer: $.jqplot.CanvasAxisLabelRenderer
                         }
                     };
+                    if (plotData.options.y_max) {
+                        plotOptions.axes.yaxis.max = plotData.options.y_max;
+                    }
                     plotOptions.axesDefaults = {
                         tickRenderer: $.jqplot.CanvasAxisTickRenderer ,
                         tickOptions: {
