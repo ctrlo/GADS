@@ -64,6 +64,12 @@ has points => (
     builder => sub { $_[0]->_data->{points} },
 );
 
+has options => (
+    is      => 'ro',
+    lazy    => 1,
+    builder => sub { $_[0]->_data->{options} },
+);
+
 # Function to fill out the series of data that will be plotted on a graph
 has _data => (
     is      => 'rw',
@@ -419,6 +425,7 @@ sub _build_data
     }
 
     # If this graph is measuring against a metric, recalculate against that
+    my $metric_max;
     if (my $metric_group_id = $self->metric_group_id)
     {
         # Get set of metrics
@@ -442,7 +449,9 @@ sub _build_data
             {
                 my $x = $xlabels[$i];
                 my $target = $metrics->{$line}->{$x};
-                $series->{$line}->{data}->[$i] = $target ? int ($data[$i] * 100 / $target ) : 0;
+                my $val    = $target ? int ($data[$i] * 100 / $target ) : 0;
+                $series->{$line}->{data}->[$i] = $val;
+                $metric_max = $val if !$metric_max || $val > $metric_max;
             }
         }
     }
@@ -491,10 +500,14 @@ sub _build_data
         @labels        = map { $_->{label} } @all_series;
     }
 
+    my $options = {};
+    $options->{y_max} = 100 if defined $metric_max && $metric_max < 100;
+
     +{
         xlabels => \@xlabels, # Populated, but not used for donut
         points  => \@points,
         labels  => \@labels, # Not used for pie/donut
+        options => $options,
     }
 }
 
