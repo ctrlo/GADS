@@ -110,7 +110,7 @@
 </script>
 
 <form role="form" method="post" enctype="multipart/form-data" style="display: none" action="/edits">
-    <input type="hidden" name="q" id="changed_data"></input>
+    <input type="hidden" name="q" id="changed_data">
 
     <div class="row">
         <div class="col-md-8">
