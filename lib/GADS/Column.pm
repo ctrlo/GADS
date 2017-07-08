@@ -981,6 +981,10 @@ sub set_permissions
 
         # Delete those no longer there
         my $search = { group_id => $group_id, layout_id => $self->id };
+        foreach (qw/approve_new approve_existing write_new_no_approval write_existing_no_approval/)
+        {
+            push @permissions, $_ if !$options{permissions} && !exists $options{$_};
+        }
         $search->{permission} = { '!=' => [ '-and', @permissions ] } if @permissions;
         $self->schema->resultset('LayoutGroup')->search($search)->delete;
 
