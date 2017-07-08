@@ -24,6 +24,7 @@ use String::CamelCase qw(camelize);
 use GADS::DateTime;
 use GADS::DB;
 use GADS::Filter;
+use GADS::Groups;
 use GADS::Instance;
 use GADS::Type::Permission;
 use GADS::View;
@@ -521,14 +522,28 @@ sub group_has
     (grep { $_->short eq $perm } @$perms) ? 1 : 0;
 }
 
+# Return a human-readable summary of groups that have a particular permission
 sub group_summary
 {   my ($self, $permission) = @_;
-    map { $_->group->name } $self->schema->resultset('LayoutGroup')->search({
-        layout_id  => $self->id,
-        permission => $permission,
-    },{
-        prefetch => 'group',
-    })->all;
+
+    my $groups = GADS::Groups->new(
+        schema => $self->schema,
+    );
+
+    # First get all group IDs that have this permission
+    my @group_ids = map {
+        (grep { $_->short eq $permission } @{$self->permissions->{$_}}) ? $_ : ();
+    } keys %{$self->permissions};
+
+    # Then turn it into readable format, annotating whether it requires
+    # approval in the case of write permissions
+    map {
+        my $name = $groups->group($_)->name;
+        $name .= ' (with approval only)'
+            if $permission =~ /write/
+                && ! grep { $_->short eq "${permission}_no_approval" } @{$self->permissions->{$_}};
+        $name;
+    } @group_ids;
 }
 
 sub _build_instance
