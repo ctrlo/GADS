@@ -908,12 +908,16 @@ sub set_permissions
 
     # This for setting permissions directly
     my $permissions = $options{permissions};
+    my $type;
 
     if ($permissions)
     {
+        $type = 'all';
         $groups = [ keys %$permissions ];
     }
-    elsif (exists $options{read} && exists $options{write_new} && exists $options{write_existing}) {
+    elsif (exists $options{read} && exists $options{write_new} && exists $options{write_existing})
+    {
+        $type = 'access';
         foreach my $group_id (@$groups)
         {
             my @perms;
@@ -941,6 +945,7 @@ sub set_permissions
     elsif (exists $options{approve_new} && exists $options{approve_existing}
         && exists $options{write_new_no_approval} && exists $options{write_existing_no_approval})
     {
+        $type = 'approval';
         foreach my $group_id (@$groups)
         {
             my @perms;
@@ -992,6 +997,22 @@ sub set_permissions
     {
         my $has_read;
         my @permissions = $permissions->{$group_id} ? @{$permissions->{$group_id}} : ();
+
+        # If no permissions exist for this group, and if we are adding standard
+        # permissions, then also add approval ones to ensure normal access is
+        # possible by default
+        if ($type eq 'access' && !$self->schema->resultset('LayoutGroup')->search({
+                layout_id  => $self->id,
+                group_id   => $group_id,
+            })->count
+        )
+        {
+            # Add both no-approval permissions regardless, in case of future
+            # standard edits. Having these permissions will only allow anything
+            # if a standard write is added anyway
+            push @permissions, 'write_new_no_approval', 'write_existing_no_approval';
+        }
+
         foreach my $permission (@permissions)
         {
             $has_read = 1 if $permission eq 'read';
