@@ -897,10 +897,14 @@ sub set_permissions
 
 
     # These set from web form
-    my $groups         = $options{groups};
-    my $read           = $options{read};
-    my $write_new      = $options{write_new};
-    my $write_existing = $options{write_existing};
+    my $groups                     = $options{groups};
+    my $read                       = $options{read};
+    my $write_new                  = $options{write_new};
+    my $write_existing             = $options{write_existing};
+    my $approve_new                = $options{approve_new};
+    my $approve_existing           = $options{approve_existing};
+    my $write_new_no_approval      = $options{write_new_no_approval};
+    my $write_existing_no_approval = $options{write_existing_no_approval};
 
     # This for setting permissions directly
     my $permissions = $options{permissions};
@@ -909,7 +913,7 @@ sub set_permissions
     {
         $groups = [ keys %$permissions ];
     }
-    else {
+    elsif (exists $options{read} && exists $options{write_new} && exists $options{write_existing}) {
         foreach my $group_id (@$groups)
         {
             my @perms;
@@ -933,6 +937,38 @@ sub set_permissions
             $permissions->{$group_id} = [@perms]
                 if $group_id; # May not have been group selected in drop-down
         }
+    }
+    elsif (exists $options{approve_new} && exists $options{approve_existing}
+        && exists $options{write_new_no_approval} && exists $options{write_existing_no_approval})
+    {
+        foreach my $group_id (@$groups)
+        {
+            my @perms;
+
+            # As above
+
+            shift @$approve_new eq 'holder' or panic "Missing holder for approve_new";
+            push @perms, 'approve_new'
+                if $approve_new->[0] && $approve_new->[0] ne 'holder' && shift @$approve_new;
+
+            shift @$approve_existing eq 'holder' or panic "Missing holder for approve_existing";
+            push @perms, 'approve_existing'
+                if $approve_existing->[0] && $approve_existing->[0] ne 'holder' && shift @$approve_existing;
+
+            shift @$write_new_no_approval eq 'holder' or panic "Missing holder for write_new_no_approval";
+            push @perms, 'write_new_no_approval'
+                if $write_new_no_approval->[0] && $write_new_no_approval->[0] ne 'holder' && shift @$write_new_no_approval;
+
+            shift @$write_existing_no_approval eq 'holder' or panic "Missing holder for write_existing_no_approval";
+            push @perms, 'write_existing_no_approval'
+                if $write_existing_no_approval->[0] && $write_existing_no_approval->[0] ne 'holder' && shift @$write_existing_no_approval;
+
+            $permissions->{$group_id} = [@perms]
+                if $group_id; # May not have been group selected in drop-down
+        }
+    }
+    else {
+        panic "Invalid call of set_permissions";
     }
 
     $groups = [ grep {$_} @$groups ]; # Remove permissions with blank submitted group
@@ -981,7 +1017,8 @@ sub set_permissions
 
         # Delete those no longer there
         my $search = { group_id => $group_id, layout_id => $self->id };
-        foreach (qw/approve_new approve_existing write_new_no_approval write_existing_no_approval/)
+        foreach (qw/read write_new write_existing approve_new approve_existing
+            write_new_no_approval write_existing_no_approval/)
         {
             push @permissions, $_ if !$options{permissions} && !exists $options{$_};
         }

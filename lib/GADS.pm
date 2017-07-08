@@ -1308,7 +1308,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             );
         
         # Update of permissions?
-        if (param 'access_control')
+        if (param 'modal_access_control')
         {
             my $groups         = [body_parameters->get_all('group_id')];
             my $read           = [body_parameters->get_all('read')];
@@ -1319,6 +1319,26 @@ any '/layout/?:id?' => require_role 'layout' => sub {
                 read           => $read,
                 write_new      => $write_new,
                 write_existing => $write_existing
+            ) })
+            {
+                my $msg = qq(Permissions have been updated successfully. <a href="/layout/">Click here</a> to return to Edit Layout.);
+                report NOTICE => $msg, _class => 'html,success';
+                return forwardHome( undef, "layout/".$column->id );
+            }
+        }
+        if (param 'modal_approval_control')
+        {
+            my $groups                     = [body_parameters->get_all('group_id')];
+            my $approve_new                = [body_parameters->get_all('approve_new')];
+            my $approve_existing           = [body_parameters->get_all('approve_existing')];
+            my $write_new_no_approval      = [body_parameters->get_all('write_new_no_approval')];
+            my $write_existing_no_approval = [body_parameters->get_all('write_existing_no_approval')];
+            if (process sub { $column->set_permissions(
+                groups                     => $groups,
+                approve_new                => $approve_new,
+                approve_existing           => $approve_existing,
+                write_new_no_approval      => $write_new_no_approval,
+                write_existing_no_approval => $write_existing_no_approval,
             ) })
             {
                 my $msg = qq(Permissions have been updated successfully. <a href="/layout/">Click here</a> to return to Edit Layout.);
