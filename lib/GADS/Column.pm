@@ -537,7 +537,7 @@ sub group_summary
 
     # Then turn it into readable format, annotating whether it requires
     # approval in the case of write permissions
-    map {
+    sort map {
         my $name = $groups->group($_)->name;
         $name .= ' (with approval only)'
             if $permission =~ /write/
