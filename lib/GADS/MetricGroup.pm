@@ -47,10 +47,12 @@ has _rset => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
+        $self->id or return;
         my ($mg) = $self->schema->resultset('MetricGroup')->search({
             id          => $self->id,
             instance_id => $self->instance_id,
         })->all;
+        $mg or error __x"Metric Group ID {id} not found", id => $self->id;
         $mg;
     },
 );
