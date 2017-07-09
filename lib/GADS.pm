@@ -1386,7 +1386,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             }
             elsif ($column->type eq "rag")
             {
-                $column->code(param 'code');
+                $column->code(param 'code_rag');
                 $column->base_url(request->base); # For alerts
                 $no_alerts = param('no_alerts_rag');
             }
@@ -1398,7 +1398,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             }
             elsif ($column->type eq "calc")
             {
-                $column->code(param 'code');
+                $column->code(param 'code_calc');
                 $column->return_type(param 'return_type');
                 $column->base_url(request->base); # For alerts
                 $no_alerts = param('no_alerts_calc');

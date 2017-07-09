@@ -350,8 +350,8 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="code">Calculation: (<a href="" data-toggle="modal" data-target="#helpcalc">?</a>)</label>
-                    <textarea class="form-control monospace" id="code" name="code" rows="10">[% column.code | html_entity %]</textarea>
+                    <label for="code_calc">Calculation: (<a href="" data-toggle="modal" data-target="#helpcalc">?</a>)</label>
+                    <textarea class="form-control monospace" id="code_calc" name="code_calc" rows="10">[% column.code | html_entity %]</textarea>
                 </div>
                 <div class="form-group">
                     <label for="no_alerts_calc">Alerts:</label>
@@ -388,8 +388,8 @@
                     Lua programming language.
                 </p>
                 <div class="form-group">
-                    <label for="code">Conditions for this RAG status field: (<a href="" data-toggle="modal" data-target="#helpcalc">?</a>)</label>
-                    <textarea class="form-control monospace" id="code" name="code" rows="10">[% column.code | html_entity %]</textarea>
+                    <label for="code_rag">Conditions for this RAG status field: (<a href="" data-toggle="modal" data-target="#helpcalc">?</a>)</label>
+                    <textarea class="form-control monospace" id="code_rag" name="code_rag" rows="10">[% column.code | html_entity %]</textarea>
                 </div>
                 <div class="form-group">
                     <label for="no_alerts_calc">Alerts:</label>
