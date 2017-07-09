@@ -122,6 +122,8 @@ sub equal
     }
     elsif ($rt eq 'date')
     {
+        # Type might have changed and old value be string
+        ref $a eq 'DateTime' && ref $b eq 'DateTime' or return;
         !DateTime->compare($a, $b);
     }
     else {

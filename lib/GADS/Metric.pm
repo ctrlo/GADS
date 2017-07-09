@@ -46,9 +46,9 @@ has x_axis_value => (
     builder => sub { $_[0]->_rset->x_axis_value },
 );
 
+# No type so as to accept anything from input form
 has target => (
     is      => 'rw',
-    isa     => Int,
     lazy    => 1,
     builder => sub { $_[0]->_rset->target },
 );
@@ -81,6 +81,8 @@ sub _build__rset
 
 sub write
 {   my $self = shift;
+    $self->target =~ /^[0-9]+$/
+        or error "Please enter an integer value for the target";
     $self->_rset->update({
         metric_group          => $self->metric_group_id,
         x_axis_value          => $self->x_axis_value,
