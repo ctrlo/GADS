@@ -2268,7 +2268,7 @@ get '/file/:id' => require_login sub {
 
     # Need to get file details first, to be able to populate
     # column details of applicable.
-    my $fileval = schema->resultset('Fileval')->find($id)
+    my $fileval = $id =~ /^[0-9]+$/ && schema->resultset('Fileval')->find($id)
         or error __x"File ID {id} cannot be found", id => $id;
     my ($file_rs) = $fileval->files; # In theory can be more than one, but not in practice (yet)
     my $file = GADS::Datum::File->new(id => $id);
