@@ -610,8 +610,8 @@
                     <thead>
                         <tr>
                             <th>Group</th>
-                            <th>Write new values without approval</th>
-                            <th>Edit existing values without approval</th>
+                            <th>No approval required for new records</th>
+                            <th>No approval required for editing values</th>
                             <th>Approve new values</th>
                             <th>Approve edits</th>
                             <th></th>
