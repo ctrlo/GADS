@@ -1,0 +1,16 @@
+{
+  "name": "Linkspace",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "watch": "npm-watch",
+    "run-sass": "sass --update --sourcemap=none sass:public/css/"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "npm-watch": "^0.2.0"
+  },
+  "watch": {
+    "run-sass": "sass/*.scss"
+  }
+}
