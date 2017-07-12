@@ -4,13 +4,18 @@
   "private": true,
   "scripts": {
     "watch": "npm-watch",
-    "run-sass": "sass --update --sourcemap=none sass:public/css/"
+    "sass": "sass --update --sourcemap=none sass:public/css/",
+    "jshint": "jshint public/js/*.js"
   },
   "dependencies": {},
   "devDependencies": {
+    "jshint": "^2.9.5",
     "npm-watch": "^0.2.0"
   },
   "watch": {
-    "run-sass": "sass/*.scss"
+    "sass": {
+        "patterns": "sass",
+        "extensions": "*.scss"
+    }
   }
 }
