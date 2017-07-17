@@ -1,0 +1,21 @@
+{
+  "name": "Linkspace",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "watch": "npm-watch",
+    "sass": "sass --update --sourcemap=none sass:public/css/",
+    "jshint": "jshint public/js/*.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "jshint": "^2.9.5",
+    "npm-watch": "^0.2.0"
+  },
+  "watch": {
+    "sass": {
+        "patterns": "sass",
+        "extensions": "*.scss"
+    }
+  }
+}
