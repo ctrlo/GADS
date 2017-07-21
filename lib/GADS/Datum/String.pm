@@ -25,6 +25,8 @@ use namespace::clean;
 
 extends 'GADS::Datum';
 
+with 'GADS::Role::Presentation::Datum::String';
+
 sub set_value
 {   my ($self, $value) = @_;
     ($value) = @$value if ref $value eq 'ARRAY';

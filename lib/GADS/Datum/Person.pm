@@ -27,6 +27,8 @@ use namespace::clean;
 
 extends 'GADS::Datum';
 
+with 'GADS::Role::Presentation::Datum::Person';
+
 sub set_value
 {   my ($self, $value, %options) = @_;
     ($value) = @$value if ref $value eq 'ARRAY';
@@ -265,11 +267,9 @@ sub html
         $t = encode_entities $t;
         push @details, $site->register_freetext2_name.": $t";
     }
-    my $details = join '<br>', map {encode_entities $_} @details;
+    my $details = join '<br>', @details;
     my $text = encode_entities $self->text;
-    return qq(<a style="cursor: pointer" class="personpop" data-toggle="popover"
-        title="$text"
-        data-content="$details">$text</a>);
+    return qq(<div>$text<button class="person contact-details trigger" aria-expanded="false"><span aria-hidden="true" class="glyphicon glyphicon-info-sign"></span>contact <span class="visually-hidden">details</span></button><div class="person contact-details expandable">$details</div></div>);
 }
 
 sub as_string
