@@ -2,7 +2,15 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <!-- What a mess. The login screen only renders with IE8 mode, the graphs only with IE7 mode
+             Please Microsoft, don't produce such rubbish. Just ditch IE forever and use an open source browser instead -->
+        <!-- Okay, since the above, rendering the graphs seems to work in some versions of IE8 with IE8
+            compatibility. Let's leave it at 8 and see how it goes -->
+        [% IF page == "data" AND viewtype == "graph" %]
+            <meta http-equiv="X-UA-Compatible" content="IE=8">
+        [% ELSE %]
+            <meta http-equiv="X-UA-Compatible" content="IE=8">
+        [% END %]
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="">
         <meta name="author" content="">
@@ -190,9 +198,6 @@
         [% IF hostlocal %]
             <script src="[% url.js %]/jquery-1.12.4.min.js"></script>
             <script src="[% url.js %]/jquery-ui.min.js"></script>
-            <!--[if (gte IE 6)&(lte IE 8)]>
-                <script type="text/javascript" src="[% url.js %]/selectivizr-min.js"></script>
-            <![endif]-->
             <script src="[% url.js %]/bootstrap.min.js"></script>
             <script src="[% url.js %]/tooltip.min.js"></script>
         [% ELSE %]
@@ -213,7 +218,9 @@
             <script type="text/javascript" src="[% url.js %]/base64decode.js"></script>
         [% END %]
         [% IF page == "login" %]
-            <script type="text/javascript" src="[% url.js %]/bootstrap-show-password.js"></script>
+            <!--[if (gte IE 6)&(lte IE 8)]>
+                <script type="text/javascript" src="[% url.js %]/selectivizr-min.js"></script>
+            <![endif]-->
         [% END %]
         [% IF page == "data" AND viewtype == "graph" %]
             <!--[if lt IE 9]><script language="javascript" type="text/javascript" src="/js/excanvas.min.js"></script><![endif]-->
