@@ -799,9 +799,9 @@ any '/data' => require_login sub {
         $params->{user_can_edit} = $layout->user_can('write_existing');
         $params->{sort}          = $records->sort_first;
         $params->{subset}        = $subset;
-        $params->{records}       = $records->results;
+        $params->{records}       = $records->presentation(@columns);
         $params->{count}         = $records->count;
-        $params->{columns}       = \@columns;
+        $params->{columns}       = [ map $_->presentation, @columns ];
         $params->{viewtype}      = 'table';
 
     }
