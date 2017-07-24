@@ -25,8 +25,9 @@ sub _presentation_details {
         next unless $_->[0];
 
         push @details, {
-            value => sprintf('%s: %s', $_->[1], $_->[0]),
-            type  => 'text',  
+            definition => $_->[0],
+            value      => $_->[1],
+            type       => 'text'
         };
     }
 
@@ -42,3 +43,5 @@ sub presentation {
         details => $self->_presentation_details
     };
 }
+
+1;

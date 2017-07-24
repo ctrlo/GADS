@@ -1354,3 +1354,25 @@ small.search_term {
 #reveal_password:checked ~ .reveal_area {
     display: block;
 }
+
+/* disclosure widget */
+
+.expandable {
+    display: none;
+}
+
+.trigger[aria-expanded="true"] + .expandable {
+    display: block; 
+}
+
+/* Person contact details popover */
+
+.person.contact-details {
+    max-width: 20em;
+    border: 1px solid $primary-navy;
+    border-radius: 6px;
+    -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+    box-shadow: 0 5px 10px rgba(0,0,0,.2);
+}
+
+
