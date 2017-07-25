@@ -5,22 +5,13 @@ use Moo::Role;
 sub _presentation_map_columns {
     my ($self, @columns) = @_;
 
-    my @fields = values %{ $self->fields };
-    
-    my @mapped;
-
-    COLUMN: foreach my $column (@columns) {
-        foreach my $field (@fields) {
-            if ($field->column->name eq $column->name) {
-                push @mapped, {
-                    is_multivalue => $column->multivalue,
-                    value         => $field->presentation
-                };
-
-                next COLUMN;
-            }
+    my @mapped = map {
+        +{
+            is_multivalue => $_->multivalue,
+            type          => $_->type,
+            data          => $self->fields->{$_->id}->presentation,
         }
-    }
+    } @columns;
 
     return \@mapped;
 }
@@ -29,9 +20,9 @@ sub presentation {
     my ($self, @columns) = @_;
 
     return {
-        parent_id => $self->parent_id,
-        id        => $self->current_id,
-        columns   => $self->_presentation_map_columns(@columns) 
+        parent_id  => $self->parent_id,
+        current_id => $self->current_id,
+        columns    => $self->_presentation_map_columns(@columns) 
         
     }
 }

@@ -57,13 +57,13 @@
         <tr>
             <td>
                 [% IF record.parent_id %]<span title="Child record with parent record [% record.parent_id %]">[% record.parent_id %] &#8594;</span>[% END %]
-                <a href="/record/[% record.id %]">[% record.id %]</a>
+                <a href="/record/[% record.current_id %]">[% record.current_id %]</a>
                 [% IF user_can_edit AND NOT session.rewind %]
                     (<a href="/edit/[% record.current_id %]">Edit</a>)
                 [% END %]
             </td>
             [% FOREACH column IN record.columns %]
-                <td>[% render_datum(column.value, column.is_multivalue) %]</td>
+                <td>[% render_datum(column) %]</td>
             [% END %]
         </tr>
         [% END %]
