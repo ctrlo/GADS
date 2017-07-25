@@ -2,8 +2,8 @@ var setupDisclosureWidgets = function () {
     var positionDisclosure = function (offsetTop, offsetLeft, triggerHeight) {
         var $disclosure = this;
 
-        var left = (offsetLeft +  20) + 'px';
-        var top  = (offsetTop + triggerHeight + 10 ) + 'px';
+        var left = (offsetLeft) + 'px';
+        var top  = (offsetTop + triggerHeight ) + 'px';
 
         $disclosure.css({
             'left': left,

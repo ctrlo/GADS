@@ -29,7 +29,7 @@
 
 [% MACRO render_person_datum(person) BLOCK %]
     [% person.text %]
-    <button class="btn btn-primary trigger" aria-expanded="false">
+    <button class="btn btn-xs btn-primary trigger" aria-expanded="false">
         <span aria-hidden="true" class="glyphicon glyphicon-info-sign"></span>
         contact <span class="visually-hidden">details</span>
     </button>
