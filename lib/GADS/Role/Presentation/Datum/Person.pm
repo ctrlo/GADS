@@ -25,8 +25,8 @@ sub _presentation_details {
         next unless $_->[0];
 
         push @details, {
-            definition => $_->[0],
-            value      => $_->[1],
+            definition => $_->[1],
+            value      => $_->[0],
             type       => 'text'
         };
     }

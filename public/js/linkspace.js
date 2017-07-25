@@ -1,29 +1,36 @@
 var setupDisclosureWidgets = function () {
-        var positionDisclosure = function (offset) {
-                var $disclosure = this;
-                console.debug(offset);
-        };
+    var positionDisclosure = function (offsetTop, offsetLeft, triggerHeight) {
+        var $disclosure = this;
 
-        var toggleDisclosure = function () {
-                var $trigger = $(this);
-                var $disclosure = $trigger.next('expandable');
-                
-                return function () {
-                        var offset = $trigger.offset();
-                        positionDisclosure.call($disclosure, offset);
+        var left = (offsetLeft +  20) + 'px';
+        var top  = (offsetTop + triggerHeight + 10 ) + 'px';
 
-                        var currentlyExpanded = $trigger.attr('aria-expanded') === 'true';
-                        $trigger.attr('aria-expanded', !currentlyExpanded');
-                };
-        };
+        $disclosure.css({
+            'left': left,
+            'top' : top
+        });
+    };
 
-        $('.trigger[aria-expandable]').on('click', toggleDisclosure());
+    var toggleDisclosure = function () {
+        var $trigger = $(this);
+        var $disclosure = $trigger.next('.expandable');
+
+        var offset = $trigger.position();
+        positionDisclosure.call(
+            $disclosure, offset.top, offset.left, $trigger.height()
+        );
+
+        var currentlyExpanded = $trigger.attr('aria-expanded') === 'true';
+        $trigger.attr('aria-expanded', !currentlyExpanded);
+    };
+
+    $('.trigger[aria-expanded]').on('click', toggleDisclosure);
 }
 
 var Linkspace = {
-        init: function () {
-                setupDisclosureWidgets();
-        }
+    init: function () {
+        setupDisclosureWidgets();
+    }
 };
 
-$.ready(Linkspace.init);
+$(Linkspace.init);

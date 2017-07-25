@@ -29,15 +29,15 @@
 
 [% MACRO render_person_datum(person) BLOCK %]
     [% person.text %]
-    <button class="person contact-details trigger" aria-expanded="false">
+    <button class="btn btn-primary trigger" aria-expanded="false">
         <span aria-hidden="true" class="glyphicon glyphicon-info-sign"></span>
         contact <span class="visually-hidden">details</span>
     </button>
     <div class="person contact-details expandable">
     [% FOR detail IN person.details %]
         <div>
-            [% IF detail.email %]
-                <a href="mailto:[% detail.value | html %]">[% detail.value | html %]</a>
+            [% IF detail.type == 'email' %]
+                E-mail: <a href="mailto:[% detail.value | html %]">[% detail.value | html %]</a>
             [% ELSE %]
                 [% detail.definition | html %]: [% detail.value | html %]
             [% END %]

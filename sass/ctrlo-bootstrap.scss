@@ -1367,12 +1367,18 @@ small.search_term {
 
 /* Person contact details popover */
 
-.person.contact-details {
+.person.contact-details.expandable {
     max-width: 20em;
+    word-break: break-all;
     border: 1px solid $primary-navy;
     border-radius: 6px;
     -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
     box-shadow: 0 5px 10px rgba(0,0,0,.2);
+    background-color: #fff;
+    padding: .5em;
+    margin: .5em;
+    z-index: 5;
+    position: absolute;
 }
 
 
