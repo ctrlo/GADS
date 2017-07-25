@@ -81,17 +81,29 @@ try { $calc2_col->write };
 like( $@, qr/It is only possible to use fields from the same table/, "Failed to write calc field with short name from other table" );
 
 # Create a calc field that has something invalid in the nested code
-my $calc3_col = GADS::Column::Calc->new(
+my $calc_inv_string = GADS::Column::Calc->new(
     schema => $schema,
     user   => undef,
     layout => $layout,
     name   => 'calc3',
     code   => "function evaluate (L1curval1) \n adsfadsf return L1curval1.field_values.L2daterange1.from.year \nend",
 );
-try { $calc3_col->write } hide => 'ALL';
+try { $calc_inv_string->write } hide => 'ALL';
 my ($warning) = $@->exceptions;
 like($warning, qr/syntax error/, "Warning received for syntax error in calc");
-$calc3_col->delete;
+
+# Invalid Lua code with return value not string
+my $calc_inv_int = GADS::Column::Calc->new(
+    schema      => $schema,
+    user        => undef,
+    layout      => $layout,
+    name        => 'calc3',
+    return_type => 'integer',
+    code        => "function evaluate (L1curval1) \n adsfadsf return L1curval1.field_values.L2daterange1.from.year \nend",
+);
+try { $calc_inv_int->write } hide => 'ALL';
+($warning) = $@->exceptions;
+like($warning, qr/syntax error/, "Warning received for syntax error in calc");
 
 # Same for RAG
 my $rag3 = GADS::Column::Rag->new(
@@ -223,7 +235,7 @@ foreach my $test (@tests)
     $record_new->initialise;
     $record_new->fields->{$columns->{daterange1}->id}->set_value(['2000-10-10', '2001-10-10']);
     $record_new->fields->{$columns->{curval1}->id}->set_value(1);
-    $record_new->write;
+    try { $record_new->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
     my $cid = $record_new->current_id;
     $record_new->clear;
     $record_new->find_current_id($cid);
@@ -241,17 +253,19 @@ foreach my $test (@tests)
         $record->fields->{$columns->{daterange1}->id}->set_value(['2014-10-10', '2015-10-10']);
         $record->fields->{$columns->{curval1}->id}->set_value(2);
         $record->user({ id => 2 });
-        $record->write;
+        try { $record->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
         my $after = $test->{after};
         $after =~ s/__ID/$cid/;
         is( $record->fields->{$code_col->id}->as_string, $after, "Correct code value for test $test->{name}" );
+        is( $record->fields->{$calc_inv_string->id}->as_string, '<evaluation error>', "<evaluation error>or test $test->{name}" );
+        is( $record->fields->{$calc_inv_int->id}->as_string, '', "<evaluation error>2or test $test->{name}" );
 
         # Reset values for next test
         set_fixed_time('10/22/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
         $record->fields->{$columns->{daterange1}->id}->set_value($data->[0]->{daterange1});
         $record->fields->{$columns->{curval1}->id}->set_value($data->[0]->{curval1});
         $record->user({ id => 1 });
-        $record->write;
+        try { $record->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
     }
     $code_col->delete;
 }

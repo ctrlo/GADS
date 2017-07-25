@@ -73,9 +73,10 @@ sub convert_value
 
     if ($in->{error}) # Will have already been reported
     {
-        $return = '<evaluation error>';
+        $value = '<evaluation error>';
     }
-    elsif ($column->return_type eq "date")
+
+    if ($column->return_type eq "date")
     {
         if ($value && looks_like_number($value))
         {
