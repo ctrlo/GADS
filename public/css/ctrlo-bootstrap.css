@@ -1255,3 +1255,24 @@ small.search_term {
   margin: .5em;
   z-index: 5;
   position: absolute; }
+
+/* Column RAG */
+.rag {
+  padding: .2em;
+  border-left-style: solid;
+  border-left-width: 1.5em; }
+
+.rag.undefined {
+  border-left-color: #a09fa0; }
+
+.rag.negative {
+  border-left-color: #800000; }
+
+.rag.average {
+  border-left-color: #eda400; }
+
+.rag.positive {
+  border-left-color: #008400; }
+
+.rag.unexpected {
+  border-left-color: #891e88; }

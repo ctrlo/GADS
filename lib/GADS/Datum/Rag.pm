@@ -24,6 +24,8 @@ use namespace::clean;
 
 extends 'GADS::Datum::Code';
 
+with 'GADS::Role::Presentation::Datum::Rag';
+
 sub convert_value
 {   my ($self, $in) = @_;
 
@@ -64,6 +66,19 @@ sub convert_value
 sub write_value
 {   my $self = shift;
     $self->write_cache('ragval');
+}
+
+sub as_grade
+{
+    my $self = shift;
+    my %mapping = (
+        a_grey   => 'undefined',
+        b_red    => 'negative',
+        c_amber  => 'average',
+        d_green  => 'positive',
+        e_purple => 'unexpected'
+    );
+    return $mapping{ $self->value };
 }
 
 # XXX Why is this needed? Error when creating new record otherwise

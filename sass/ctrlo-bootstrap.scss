@@ -1381,4 +1381,16 @@ small.search_term {
     position: absolute;
 }
 
+/* Column RAG */
 
+.rag {
+    padding: .2em;
+    border-left-style: solid;
+    border-left-width: 1.5em;
+}
+
+.rag.undefined  { border-left-color: $rag-undefined;  }
+.rag.negative   { border-left-color: $rag-negative;   }
+.rag.average    { border-left-color: $rag-average;    }
+.rag.positive   { border-left-color: $rag-positive;   }
+.rag.unexpected { border-left-color: $rag-unexpected; }
