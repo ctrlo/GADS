@@ -63,7 +63,7 @@
                 [% END %]
             </td>
             [% FOREACH column IN record.columns %]
-                <td>[% render_datum(column) %]</td>
+                <td class="[% column.type %]">[% render_datum(column) %]</td>
             [% END %]
         </tr>
         [% END %]

@@ -1383,14 +1383,17 @@ small.search_term {
 
 /* Column RAG */
 
-.rag {
-    padding: .2em;
-    border-left-style: solid;
-    border-left-width: 1.5em;
+td.rag {
+    text-align: center;
 }
 
-.rag.undefined  { border-left-color: $rag-undefined;  }
-.rag.danger     { border-left-color: $rag-danger;     }
-.rag.warning    { border-left-color: $rag-warning;    }
-.rag.success    { border-left-color: $rag-success;    }
-.rag.unexpected { border-left-color: $rag-unexpected; }
+td.rag span {
+    display: inline-block;
+    font-size: 1.8em;
+}
+
+.rag .undefined  { color: $rag-undefined;  }
+.rag .danger     { color: $rag-danger;     }
+.rag .warning    { color: $rag-warning;    }
+.rag .success    { color: $rag-success;    }
+.rag .unexpected { color: $rag-unexpected; }
