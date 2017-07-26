@@ -61,7 +61,7 @@
     [%
         rag_symbols = {
            undefined  => '&#x2753;',
-           danger     => '&#x2713;',
+           danger     => '&#x2717;',
            warning    => '&#x26a0;',
            success    => '&#x2713;',
            unexpected => '&#x2757;'

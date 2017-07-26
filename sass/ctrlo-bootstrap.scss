@@ -372,6 +372,7 @@ select.input-lg {
         font-weight:normal;
         font-size:15px;
         border-radius:0px;
+        cursor: auto;
 }
 .btn-default {
         border-color:$primary-navy;
@@ -1365,6 +1366,7 @@ small.search_term {
     display: block; 
 }
 
+
 /* Person contact details popover */
 
 .person.contact-details.expandable {
@@ -1388,12 +1390,34 @@ td.rag {
 }
 
 td.rag span {
+    min-width: 1.5em;
     display: inline-block;
     font-size: 1.8em;
+    padding: 0 0.2em;
+    border-bottom: 0.2em solid #000;
 }
 
-.rag .undefined  { color: $rag-undefined;  }
-.rag .danger     { color: $rag-danger;     }
-.rag .warning    { color: $rag-warning;    }
-.rag .success    { color: $rag-success;    }
-.rag .unexpected { color: $rag-unexpected; }
+.rag .undefined {
+    border-bottom-color: $rag-undefined;
+    background-color: $rag-undefined-bg;
+}
+
+.rag .danger {
+    border-bottom-color: $rag-danger;
+    background-color: $rag-danger-bg;
+}
+
+.rag .warning {
+    border-bottom-color: $rag-warning;
+    background-color: $rag-warning-bg;
+}
+
+.rag .success {
+    border-bottom-color: $rag-success;
+    background-color: $rag-success-bg;
+}
+
+.rag .unexpected {
+    border-bottom-color: $rag-unexpected;
+    background-color: $rag-unexpected-bg;
+}
