@@ -1265,14 +1265,14 @@ small.search_term {
 .rag.undefined {
   border-left-color: #a09fa0; }
 
-.rag.negative {
-  border-left-color: #800000; }
+.rag.danger {
+  border-left-color: #b94a48; }
 
-.rag.average {
-  border-left-color: #eda400; }
+.rag.warning {
+  border-left-color: #c09853; }
 
-.rag.positive {
-  border-left-color: #008400; }
+.rag.success {
+  border-left-color: #468847; }
 
 .rag.unexpected {
   border-left-color: #891e88; }

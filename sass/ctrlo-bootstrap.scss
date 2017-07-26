@@ -1390,7 +1390,7 @@ small.search_term {
 }
 
 .rag.undefined  { border-left-color: $rag-undefined;  }
-.rag.negative   { border-left-color: $rag-negative;   }
-.rag.average    { border-left-color: $rag-average;    }
-.rag.positive   { border-left-color: $rag-positive;   }
+.rag.danger     { border-left-color: $rag-danger;     }
+.rag.warning    { border-left-color: $rag-warning;    }
+.rag.success    { border-left-color: $rag-success;    }
 .rag.unexpected { border-left-color: $rag-unexpected; }

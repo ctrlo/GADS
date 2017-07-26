@@ -26,6 +26,15 @@ extends 'GADS::Datum::Code';
 
 with 'GADS::Role::Presentation::Datum::Rag';
 
+my %mapping = (
+    a_grey   => 'undefined',
+    b_red    => 'danger',
+    c_amber  => 'warning',
+    d_green  => 'success',
+    e_purple => 'unexpected'
+);
+
+
 sub convert_value
 {   my ($self, $in) = @_;
 
@@ -71,13 +80,6 @@ sub write_value
 sub as_grade
 {
     my $self = shift;
-    my %mapping = (
-        a_grey   => 'undefined',
-        b_red    => 'negative',
-        c_amber  => 'average',
-        d_green  => 'positive',
-        e_purple => 'unexpected'
-    );
     return $mapping{ $self->value };
 }
 
