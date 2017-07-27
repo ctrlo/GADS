@@ -1245,7 +1245,7 @@ small.search_term {
 
 /* Person contact details popover */
 .person.contact-details.expandable {
-  max-width: 20em;
+  max-width: 25em;
   word-break: break-all;
   border: 1px solid #1460aa;
   border-radius: 6px;
