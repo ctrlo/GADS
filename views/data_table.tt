@@ -1,6 +1,25 @@
+[% PROCESS snippets/rag_symbols.tt %]
+
+[% BLOCK rag_legend %]
+    <aside id="rag_legend" role="complementary">
+        <h2>RAG symbol legend</h2>
+        <dl>
+        [% FOREACH symbol IN rag_symbols %]
+            <dt class="rag">
+                <span class="[% symbol.key %]">[% symbol.value %]</span>
+            </dt>
+            <dd id="rag_[% symbol.key %]_meaning">[% symbol.key %]</dd>
+        [% END %]
+        </dl>
+    </aside>
+
+[% END %]
+
 [% FILTER collapse %]
 
 [% PROCESS snippets/datum.tt %]
+
+[% PROCESS rag_legend IF has_rag_column %]
 
 [% IF subset.pages > 1 %]
     [% IF subset.page == subset.pages %]
