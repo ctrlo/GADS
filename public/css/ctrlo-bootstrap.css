@@ -1276,9 +1276,6 @@ small.search_term {
 #rag_legend dd {
   display: inline-block; }
 
-#rag_legend dt span {
-  font-size: 1.2em; }
-
 #rag_legend dd {
   padding-right: 1.5em; }
 
@@ -1289,7 +1286,7 @@ small.search_term {
 .rag span {
   min-width: 1.5em;
   display: inline-block;
-  font-size: 1.8em;
+  font-size: 1.2em;
   padding: 0 0.2em;
   border-bottom: 0.2em solid #000; }
 
