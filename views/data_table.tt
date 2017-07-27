@@ -16,6 +16,9 @@
     <thead>
         <tr>
             [% sort = sort.shift %]
+            [% sort_order = sort.type %]
+            [% sort_label = sort_order == "asc" ? "sort descending" : "sort ascending" %]
+
             [% IF sort.id == -11 AND sort.type == "asc" %]
                 [% st = "&#9650;" %]
             [% ELSIF sort.id == -11 %]
@@ -23,7 +26,11 @@
             [% ELSE %]
                 [% st = "" %]
             [% END %]
-            <th><a href="?sort=-11" style="color:black">ID[% st %]</a></th>
+            <th [% sort.id == -11 && "aria-sort=\"${sort_order}ending\"" %]>
+                <a href="?sort=-11">ID[% st %]
+                    [% sort.id == -11 && "<span class=\"visually-hidden\">${sort_label}</span>" %]
+                </a>
+            </th>
             [% FOREACH col IN columns %]
                 [% IF sort.id == col.id AND sort.type == "asc" %]
                     [% st = "&#9650;" %]
@@ -33,8 +40,9 @@
                     [% st = "" %]
                 [% END %]
                 <th>
-                    <a href="?sort=[% col.id %]" style="color:black">
+                    <a [% sort.id == col.id && "aria-sort=\"${sort_order}ending\"" %] href="?sort=[% col.id %]">
                         [% col.name | html_entity %][% IF col.id == sort.id %][% st %][% END %]
+                        [% sort.id == col.id && "<span class=\"visually-hidden\">${sort_label}</span>" %]
                     </a>
                     [% IF col.helptext %]
                         <button aria-haspopup="true" data-toggle="modal" data-target="#modal_helptext" data-col_id="[% col.id %]" data-col_name="[% col.name | html %]">

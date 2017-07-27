@@ -1357,7 +1357,11 @@ small.search_term {
 
 /* Data table */
 
-thead button {
+.table th * {
+    color: #000;
+}
+
+.table thead button {
     border: 1px solid #bbb;
     background-color: inherit;
     vertical-align: bottom;
