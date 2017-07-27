@@ -1354,3 +1354,13 @@ small.search_term {
 #reveal_password:checked ~ .reveal_area {
     display: block;
 }
+
+/* Data table */
+
+thead button {
+    border: 1px solid #bbb;
+    background-color: inherit;
+    vertical-align: bottom;
+    margin-left: 0.2em;
+    margin-bottom: 0.2em;
+}
