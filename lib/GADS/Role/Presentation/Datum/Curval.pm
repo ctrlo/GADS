@@ -21,13 +21,18 @@ sub _presentation_details {
 sub presentation {
     my $self = shift;
 
-    return {
-        type  => $self->column->type,
-        text  => $self->text,
-        id    => $self->id,
-        ids   => $self->ids,
-        links => $self->_presentation_details
-    };
+    my $multivalue = $self->column->multivalue;
+
+    my %presentation = (
+        type => $self->column->type,
+        text => $self->as_string
+    );
+
+    if ($multivalue) {
+        $presentation{links} = $self->_presentation_details;
+    }
+
+    return \%presentation;
 }
 
 1;

@@ -8,12 +8,16 @@
     </div>
 [% END %]
 
-[% MACRO render_curval_datum(curval) BLOCK %]
+[% MACRO render_curval_datum(is_multivalue, curval) BLOCK %]
     [% IF curval.text.length > MORE_LESS_TRESHOLD %]
         [% WRAPPER more_less_block %]
-            [% FOR link IN curval.links %]
-                <a href="/records/[% link.id %]?oi=[% link.refers_to_instance %]">[% link.href %]</a>
-                [% UNLESS loop.last %]; [% END %]
+            [% IF is_multivalue %]
+                [% FOR link IN curval.links %]
+                    <a href="/records/[% link.id %]?oi=[% link.refers_to_instance %]">[% link.href %]</a>
+                    [% UNLESS loop.last %]; [% END %]
+                [% END %]
+            [% ELSE %]
+                [% curval.text %]
             [% END %]
         [% END %]
     [% ELSE %]
@@ -64,7 +68,7 @@
 [% MACRO render_datum(datum) BLOCK;
     SWITCH datum.type;
         CASE 'curval'; 
-            render_curval_datum(datum.data);
+            render_curval_datum(datum.is_multivalue, datum.data);
         CASE 'file';
             render_file_datum(datum.data);
         CASE 'person';
