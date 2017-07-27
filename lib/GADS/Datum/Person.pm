@@ -247,31 +247,6 @@ sub _set_text
     $self->text($value || "");
 }
 
-sub html
-{   my $self = shift;
-    my @details;
-    return unless $self->id;
-    if (my $e = $self->email)
-    {
-        $e = encode_entities $e;
-        push @details, qq(Email: <a href='mailto:$e'>$e</a>);
-    }
-    my $site = $self->column->layout->instance->site;
-    if (my $t = $self->freetext1)
-    {
-        $t = encode_entities $t;
-        push @details, $site->register_freetext1_name.": $t";
-    }
-    if (my $t = $self->freetext2)
-    {
-        $t = encode_entities $t;
-        push @details, $site->register_freetext2_name.": $t";
-    }
-    my $details = join '<br>', @details;
-    my $text = encode_entities $self->text;
-    return qq(<div>$text<button class="person contact-details trigger" aria-expanded="false"><span aria-hidden="true" class="glyphicon glyphicon-info-sign"></span>contact <span class="visually-hidden">details</span></button><div class="person contact-details expandable">$details</div></div>);
-}
-
 sub as_string
 {   my $self = shift;
     $self->text // "";
