@@ -271,7 +271,7 @@ sub _build_fields
             {
                 foreach my $v (@{$column->enumvals})
                 {
-                    my $text = lc $v->{value};
+                    my $text = _trim(lc $v->{value});
                     # See if it already exists - possible multiple values
                     if (exists $self->selects->{$f->id}->{$text})
                     {
@@ -355,8 +355,7 @@ sub _import_rows
         foreach my $value (@row)
         {
             # Trim value
-            $value =~ s/\h+$//;
-            $value =~ s/^\h+//;
+            $value = _trim($value);
 
             my $col = $self->fields->[$col_count];
 
@@ -641,6 +640,13 @@ sub update_fields
         }
     }
     @bad;
+}
+
+sub _trim
+{   my $in = shift;
+    $in =~ s/\h+$//;
+    $in =~ s/^\h+//;
+    $in;
 }
 
 1;
