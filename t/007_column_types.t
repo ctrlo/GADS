@@ -1,6 +1,7 @@
 use Test::More; # tests => 1;
 use strict;
 use warnings;
+use utf8;
 
 use JSON qw(encode_json);
 use Log::Report;
@@ -78,6 +79,13 @@ $sheet->create_records;
 
 # Various tests for field types
 #
+# Code
+
+my $calc = $columns->{calc1};
+$calc->code('function evaluate (_id) return "test“test" end');
+try { $calc->write };
+ok($@, "Failed to write calc code with invalid character");
+
 # Curval tests
 my $curval = $columns->{curval1};
 

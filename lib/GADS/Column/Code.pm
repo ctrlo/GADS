@@ -267,6 +267,14 @@ sub write_special
 
     my $new = !$id || !$self->_rset_code->code;
 
+    # It is not uncommon for users to accidentally copy auto-corrected
+    # characters such as "smart quotes". These then result in a rather vague
+    # Lua error about invalid char values. Instead, let's disallow all extended
+    # characters, and give the user a sensible error.
+    $self->code =~ /(.....[^\x00-\x7F]+.....)/
+        and error __x"Extended characters are not supported in calculated fields (found here: {here})",
+            here => $1;
+
     if ($self->write_code($id)) # Returns true if anything relevant changed
     {
         $self->_no_alerts(1) if $new;
