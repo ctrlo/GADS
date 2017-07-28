@@ -32,6 +32,7 @@ use GADS::Column::Person;
 use GADS::Column::Rag;
 use GADS::Column::String;
 use GADS::Column::Tree;
+use GADS::Instances;
 use Log::Report 'linkspace';
 use MIME::Base64;
 use String::CamelCase qw(camelize);
@@ -103,6 +104,16 @@ has _columns_name_shorthash => (
     isa     => HashRef,
     clearer => 1,
 );
+
+has instances => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_instances
+{   my $self = shift;
+    GADS::Instances->new(schema => $self->schema)->all;
+}
 
 # The permissions the logged-in user has, for the whole data set
 has user_permissions => (
@@ -195,7 +206,11 @@ sub clear
 sub _build_columns
 {   my $self = shift;
 
-    my $cols_rs = $self->schema->resultset('Layout')->search({},{
+    my @instance_ids = map { $_->id } @{$self->instances};
+
+    my $cols_rs = $self->schema->resultset('Layout')->search({
+        'me.instance_id' => \@instance_ids,
+    },{
         order_by => ['me.position', 'enumvals.id'],
         join     => 'enumvals',
         prefetch => ['calcs', 'rags', 'link_parent'],

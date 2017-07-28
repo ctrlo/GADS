@@ -210,6 +210,7 @@ hook before => sub {
             user        => $user,
             schema      => schema,
             config      => GADS::Config->instance,
+            instances   => $instances->all,
             instance_id => $instance_id,
         );
         var 'layout' => $layout;
