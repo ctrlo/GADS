@@ -34,6 +34,8 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 use namespace::clean; # Otherwise Enum clashes with MooseLike
 
+with 'GADS::Role::Presentation::Column';
+
 sub types
 { qw(date daterange string intgr person tree enum file rag calc curval) }
 

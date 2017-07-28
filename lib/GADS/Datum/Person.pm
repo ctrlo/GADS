@@ -27,6 +27,8 @@ use namespace::clean;
 
 extends 'GADS::Datum';
 
+with 'GADS::Role::Presentation::Datum::Person';
+
 sub set_value
 {   my ($self, $value, %options) = @_;
     ($value) = @$value if ref $value eq 'ARRAY';
@@ -243,33 +245,6 @@ sub _set_text
     # There used to be code here to update the cached value
     # if required. Now all removed to controller
     $self->text($value || "");
-}
-
-sub html
-{   my $self = shift;
-    my @details;
-    return unless $self->id;
-    if (my $e = $self->email)
-    {
-        $e = encode_entities $e;
-        push @details, qq(Email: <a href='mailto:$e'>$e</a>);
-    }
-    my $site = $self->column->layout->instance->site;
-    if (my $t = $self->freetext1)
-    {
-        $t = encode_entities $t;
-        push @details, $site->register_freetext1_name.": $t";
-    }
-    if (my $t = $self->freetext2)
-    {
-        $t = encode_entities $t;
-        push @details, $site->register_freetext2_name.": $t";
-    }
-    my $details = join '<br>', map {encode_entities $_} @details;
-    my $text = encode_entities $self->text;
-    return qq(<a style="cursor: pointer" class="personpop" data-toggle="popover"
-        title="$text"
-        data-content="$details">$text</a>);
 }
 
 sub as_string

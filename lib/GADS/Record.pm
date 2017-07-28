@@ -45,6 +45,8 @@ use MooX::Types::MooseLike::Base qw(:all);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 use namespace::clean;
 
+with 'GADS::Role::Presentation::Record';
+
 # Preferably this is passed in to prevent extra
 # DB reads, but loads it if it isn't
 has layout => (

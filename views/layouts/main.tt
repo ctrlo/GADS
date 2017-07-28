@@ -420,6 +420,9 @@
             }
             $('input, text').placeholder();
         </script>
+
+        <script type="text/javascript" src="[% url.js %]/linkspace.js"></script>
+
         [% IF page == "layout" OR page == "edit" OR page == "approval" OR page == "bulk" %]
             <script src="[% url.js %]/jstree.min.js"></script>
             <script src="[% url.js %]/jstree-misc.js"></script>
