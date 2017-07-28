@@ -66,7 +66,7 @@ has register_requests => (
     isa => ArrayRef,
 );
 
-sub _user_rs
+sub user_rs
 {   my $self = shift;
     my $search = {
         deleted         => undef,
@@ -77,7 +77,7 @@ sub _user_rs
 
 sub _build_all
 {   my $self = shift;
-    my @users = $self->_user_rs->search({}, {
+    my @users = $self->user_rs->search({}, {
         join     => { user_permissions => 'permission' },
         order_by => 'surname',
         collapse => 1,
@@ -87,7 +87,7 @@ sub _build_all
 
 sub user_exists
 {   my ($self, $email) = @_;
-    $self->_user_rs->search({ email => $email })->count;
+    $self->user_rs->search({ email => $email })->count;
 }
 
 sub all_in_org
@@ -232,7 +232,7 @@ sub csv
     my $csvout = $csv->string."\n";
 
     # All the data values
-    my @users = $self->_user_rs->search({}, {
+    my @users = $self->user_rs->search({}, {
         select => [
             {
                 max => 'me.id',
