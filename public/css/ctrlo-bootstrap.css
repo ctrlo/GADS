@@ -1309,3 +1309,14 @@ small.search_term {
 .rag .unexpected {
   border-bottom-color: #891e88;
   background-color: rgba(137, 30, 136, 0.3); }
+
+/* Data table */
+.table th * {
+  color: #000; }
+
+.table thead button {
+  border: 1px solid #bbb;
+  background-color: inherit;
+  vertical-align: bottom;
+  margin-left: 0.2em;
+  margin-bottom: 0.2em; }
