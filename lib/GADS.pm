@@ -797,13 +797,14 @@ any '/data' => require_login sub {
         my @columns = $view
             ? $layout->view($view->id, user_can_read => 1)
             : $layout->all(user_can_read => 1);
-        $params->{user_can_edit} = $layout->user_can('write_existing');
-        $params->{sort}          = $records->sort_first;
-        $params->{subset}        = $subset;
-        $params->{records}       = $records->results;
-        $params->{count}         = $records->count;
-        $params->{columns}       = \@columns;
-        $params->{viewtype}      = 'table';
+        $params->{user_can_edit}  = $layout->user_can('write_existing');
+        $params->{sort}           = $records->sort_first;
+        $params->{subset}         = $subset;
+        $params->{records}        = $records->presentation(@columns);
+        $params->{count}          = $records->count;
+        $params->{columns}        = [ map $_->presentation, @columns ];
+        $params->{has_rag_column} = grep { $_->type eq 'rag' } @columns;
+        $params->{viewtype}       = 'table';
 
     }
 

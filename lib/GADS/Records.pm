@@ -34,7 +34,7 @@ use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 
-with 'GADS::RecordsJoin';
+with 'GADS::RecordsJoin', 'GADS::Role::Presentation::Records';
 
 # Preferably this is passed in to prevent extra
 # DB reads, but loads it if it isn't

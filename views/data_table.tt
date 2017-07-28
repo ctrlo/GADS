@@ -1,4 +1,26 @@
+[% PROCESS snippets/rag_symbols.tt %]
+
+[% BLOCK rag_legend %]
+    <aside id="rag_legend" role="complementary">
+        <h2>RAG symbol legend</h2>
+        <dl>
+        [% FOREACH symbol IN rag_symbols %]
+            <dt class="rag">
+                <span class="[% symbol.key %]">[% symbol.value %]</span>
+            </dt>
+            <dd id="rag_[% symbol.key %]_meaning">[% symbol.key %]</dd>
+        [% END %]
+        </dl>
+    </aside>
+
+[% END %]
+
 [% FILTER collapse %]
+
+[% PROCESS snippets/datum.tt %]
+
+[% PROCESS rag_legend IF has_rag_column %]
+
 [% IF subset.pages > 1 %]
     [% IF subset.page == subset.pages %]
         <a class="disabled btn btn-default pull-right" href="?page=[% subset.page + 1 %]">&raquo;</a>
@@ -59,29 +81,8 @@
                     (<a href="/edit/[% record.current_id %]">Edit</a>)
                 [% END %]
             </td>
-            [% FOREACH column IN columns %]
-                [% colid = column.id %]
-                [% value = record.fields.$colid %]
-                <td>
-                [% IF column.type == "rag" %]
-                    <div class="circ-large
-                        [% value %]
-                        ">
-                    </div>
-                [% ELSIF column.type == "string" OR column.type == "curval" OR column.multivalue %]
-                    [% IF value.as_string.length > 50 %]
-                        <div class="more-less">
-                            <div class="more-block">
-                    [% END %]
-                                <p>[% value.html_withlinks %]</p>
-                    [% IF value.as_string.length > 50 %]
-                            </div>
-                        </div>
-                    [% END %]
-                [% ELSE %]
-                    <p>[% value.html %]</p>
-                [% END %]
-                </td>
+            [% FOREACH column IN record.columns %]
+                <td class="[% column.type %]">[% render_datum(column) %]</td>
             [% END %]
         </tr>
         [% END %]
