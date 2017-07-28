@@ -210,6 +210,7 @@ hook before => sub {
             user        => $user,
             schema      => schema,
             config      => GADS::Config->instance,
+            instances   => $instances->all,
             instance_id => $instance_id,
         );
         var 'layout' => $layout;
@@ -2632,7 +2633,7 @@ any '/login' => sub {
         my $username  = param('username');
         my $lastfail  = DateTime->now->subtract(minutes => 15);
         my $lastfailf = schema->storage->datetime_parser->format_datetime($lastfail);
-        my $fail      = rset('User')->search({
+        my $fail      = $users->user_rs->search({
             username  => $username,
             failcount => { '>=' => 5 },
             lastfail  => { '>' => $lastfailf },
@@ -2667,7 +2668,7 @@ any '/login' => sub {
         }
         else {
             $audit->login_failure($username);
-            my ($user) = rset('User')->search({
+            my ($user) = $users->user_rs->search({
                 username        => $username,
                 account_request => 0,
             })->all;

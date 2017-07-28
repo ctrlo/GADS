@@ -81,6 +81,9 @@ GADS::Config->instance(
     config => config,
 );
 
+my $site = schema->resultset('Site')->next;
+schema->site_id($site->id);
+
 my $csv = Text::CSV->new({ binary => 1 }) # should set binary attribute?
     or die "Cannot use CSV: ".Text::CSV->error_diag ();
 
@@ -140,7 +143,7 @@ foreach my $field (@f)
             my @vals = rset('Enumval')->search({ layout_id => $f->id, deleted => 0 })->all;
             foreach my $v (@vals)
             {
-                my $text = lc $v->value;
+                my $text = _trim(lc $v->value);
                 # See if it already exists - possible multiple values
                 if (exists $selects->{$f->id}->{$text})
                 {
@@ -248,8 +251,7 @@ while (my $row = $csv->getline($fh))
     my %options;
     foreach my $col (@row)
     {
-        $col =~ s/\h+$//;
-        $col =~ s/^\h+//;
+        $col = _trim($col);
 
         my $f = $fields[$col_count];
 
@@ -548,4 +550,11 @@ sub update_fields
         }
     }
     @bad;
+}
+
+sub _trim
+{   my $in = shift;
+    $in =~ s/\h+$//;
+    $in =~ s/^\h+//;
+    $in;
 }

@@ -59,4 +59,15 @@ is( $record->find_current_id(3)->current_id, 3, "Retrieved record from same site
 $record->clear;
 try {$record->find_current_id(1)};
 ok( $@, "Failed to retrieve record from other site (1)" );
+
+# Try and access columns between layouts using ID
+my $string_site1 = $sheet_site1->columns->{string1};
+ok(!$sheet_site2->layout->column($string_site1->id), "Failed to access column from other site by ID");
+# And reverse
+my $string_site2 = $sheet_site2->columns->{string1};
+ok(!$sheet_site1->layout->column($string_site2->id), "Failed to access column from other site by ID - reverse");
+
+# Then same with short name
+ok(!$sheet_site2->layout->column_by_name_short($string_site1->name_short), "Failed to access column from other site by short name");
+
 done_testing();
