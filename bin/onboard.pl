@@ -81,6 +81,9 @@ GADS::Config->instance(
     config => config,
 );
 
+my $site = schema->resultset('Site')->next;
+schema->site_id($site->id);
+
 my $csv = Text::CSV->new({ binary => 1 }) # should set binary attribute?
     or die "Cannot use CSV: ".Text::CSV->error_diag ();
 
