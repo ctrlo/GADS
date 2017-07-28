@@ -11,9 +11,26 @@ use Dancer2::Plugin::DBIC;
 use DateTime::Event::Random;
 use GADS::DB;
 use GADS::Layout;
+use Getopt::Long qw(:config pass_through);
 use Text::CSV;
 
+my ($instance_id, $site_id);
+
+GetOptions (
+    'instance-id=s' => \$instance_id,
+    'site-id=s'     => \$site_id,
+) or exit;
+
+$instance_id or die "Need instance ID with --instance-id";
+$site_id or die "Need site ID with --site-id";
+
 GADS::DB->setup(schema);
+
+GADS::Config->instance(
+    config => config,
+);
+
+schema->site_id($site_id);
 
 my $csv = Text::CSV->new ( { binary => 1 } )  # should set binary attribute.
     or die "Cannot use CSV: ".Text::CSV->error_diag ();
@@ -22,7 +39,7 @@ my $layout = GADS::Layout->new(
     user        => undef,
     schema      => schema,
     config      => config,
-    instance_id => 1,
+    instance_id => $instance_id,
 );
 
 my @row; my @columns;
@@ -59,7 +76,7 @@ for (1..1000)
     foreach my $column (@columns)
     {
         next if $column->type eq "file" || !$column->userinput;
-        if ($column->type eq "enum" || $column->type eq "tree" || $column->type eq "person")
+        if ($column->can('random'))
         {
             push @row, ($column->random || "");
         }

@@ -566,4 +566,23 @@ sub cleanup
     $schema->resultset('CurvalField')->search({ parent_id => $id })->delete;
 }
 
+has all_ids => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_all_ids
+{   my $self = shift;
+    [
+        $self->schema->resultset('Current')->search({
+            instance_id => $self->refers_to_instance,
+        })->get_column('id')->all
+    ];
+}
+
+sub random
+{   my $self = shift;
+    $self->all_ids->[rand @{$self->all_ids}];
+}
+
 1;
