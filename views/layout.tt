@@ -1,4 +1,5 @@
 [% PROCESS help.tt %]
+[% PROCESS snippets/util.tt %]
 
 [% IF column.defined %]
 <h2>[% IF column.id %]Edit field[% ELSE %]Add a field to [% instance_name | html %][% END %]</h2>
@@ -37,7 +38,7 @@
                 <input type="text" class="form-control" id="description" name="description" value="[% column.description | html_entity %]">
             </div>
             <div class="form-group">
-                <label for="name_short"><span style="font-weight:normal">Short name: (<a href="" data-toggle="modal" data-target="#modalhelp_name_short">what&apos;s this?</a>)</span></label>
+                <label for="name_short"><span style="font-weight:normal">Short name: [% whats_this('modalhelp_name_short') %]</span></label>
                 <input type="text" class="form-control" id="name_short" name="name_short" value="[% column.name_short | html_entity %]">
             </div>
             <div class="form-group">
@@ -98,7 +99,7 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <p>matches (<a href="" data-toggle="modal" data-target="#modalhelp_match">what&apos;s this?</a>)</p>
+                        <p>matches [% whats_this('modalhelp_match') %]</p>
                     </div>
                     <div class="col-md-5">
                         <div class="form-group">
@@ -108,7 +109,7 @@
                 </div>
             </div>
             <hr>
-            <h4>Permissions <small>(<a href="" data-toggle="modal" data-target="#modalhelp_groups">what&apos;s this?</a>)</small></h4>
+            <h3>Permissions [% whats_this('modalhelp_groups') %]</h3>
                 [% IF column.id %]
                     [% IF NOT column.permissions.size %]
                         <p>Access must be granted to this field before anyone (including you) can view and edit data in it.</p>
@@ -120,8 +121,8 @@
                     [% END %]
 
                     [% IF groups.all.size %]
-                        <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_access_control" data-title="Add another group">Access control...</a>
-                        <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_approval_control" data-title="Add another group">Approval control...</a>
+                        <button aria-haspopup="true" class="btn btn-default" data-toggle="modal" data-target="#modal_access_control">Configure access</button>
+                        <button aria-haspopup="true" class="btn btn-default" data-toggle="modal" data-target="#modal_approval_control">Configure approval</button>
                     [% END %]
 
                     [% IF column.permissions.size %]
@@ -313,7 +314,7 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="force_regex">Require the field value to be in a particular format: (<a href="" data-toggle="modal" data-target="#modalhelp_force_regex">what&apos;s this?</a>)</label>
+                    <label for="force_regex">Require the field value to be in a particular format: [% whats_this('modalhelp_force_regex') %]</label>
                     <input id="force_regex" class="form-control" type="text" name="force_regex" value="[% column.force_regex | html_entity %]">
                 </div>
             </div>
@@ -350,7 +351,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="code_calc">Calculation: (<a href="" data-toggle="modal" data-target="#helpcalc">what&apos;s this?</a>)</label>
+                    <label for="code_calc">Calculation: [% whats_this('helpcalc') %]</label>
                     <textarea class="form-control monospace" id="code_calc" name="code_calc" rows="10">[% column.code | html_entity %]</textarea>
                 </div>
                 <div class="form-group">
@@ -388,7 +389,7 @@
                     Lua programming language.
                 </p>
                 <div class="form-group">
-                    <label for="code_rag">Conditions for this RAG status field: (<a href="" data-toggle="modal" data-target="#helpcalc">what&apos;s this?</a>)</label>
+                    <label for="code_rag">Conditions for this RAG status field: [% whats_this('helpcalc') %]</label>
                     <textarea class="form-control monospace" id="code_rag" name="code_rag" rows="10">[% column.code | html_entity %]</textarea>
                 </div>
                 <div class="form-group">
@@ -417,11 +418,15 @@
             </div>
         </div>
     </div>
-    <button type="submit" id="submit_save" name="submit" value="submit" class="btn btn-primary">[% IF column.id %]Save[% ELSE %]Save[% END %]</button>
-    [% IF column.id %]
-        <a href="/layout/" class="btn btn-default">Cancel</a>
-        <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
-    [% END %]
+    <div class="row controls">
+        <div class="col-md-12">
+            <button type="submit" id="submit_save" name="submit" value="submit" class="btn btn-primary">[% IF column.id %]Save[% ELSE %]Save[% END %]</button>
+        [% IF column.id %]
+            <a href="/layout/" class="btn btn-default">Cancel</a>
+            <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
+        [% END %]
+        </div>
+    </div>
 </form>
 <p></p>
        <!-- Modal -->

@@ -1320,3 +1320,7 @@ small.search_term {
   vertical-align: bottom;
   margin-left: 0.2em;
   margin-bottom: 0.2em; }
+
+.controls {
+  padding-top: .5em;
+  border-top: 1px solid #ddd; }
