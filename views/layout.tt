@@ -1,6 +1,8 @@
 [% PROCESS help.tt %]
 [% PROCESS snippets/util.tt %]
 
+<div class="manage-fields">
+
 [% IF column.defined %]
 <h2>[% IF column.id %]Edit field[% ELSE %]Add a field to [% instance_name | html %][% END %]</h2>
 
@@ -126,20 +128,28 @@
                     [% END %]
 
                     [% IF column.permissions.size %]
-                        <dl>
-                            <dt>Groups that can read:</dt>
+                    <section class="permissions">
+                        <h4>Groups that can read:</h4>
+                        <ul>
                             [% FOREACH g IN column.group_summary('read') %]
-                                <dd>[% g %]</dd>
+                            <li>[% g %]</li>
                             [% END %]
-                            <dt>Groups that can write new values:</dt>
+                        </ul>
+
+                        <h4>Groups that can write new values:</h4>
+                        <ul>
                             [% FOREACH g IN column.group_summary('write_new') %]
-                                <dd>[% g %]</dd>
+                            <li>[% g %]</li>
                             [% END %]
-                            <dt>Groups that can write existing values:</dt>
+                        </ul>
+
+                        <h4>Groups that can write existing values:</h4>
+                        <ul>
                             [% FOREACH g IN column.group_summary('write_existing') %]
-                                <dd>[% g %]</dd>
+                            <li>[% g %]</li>
                             [% END %]
-                        </dl>
+                        </ul>
+                    </sections>
                     [% END %]
                 [% ELSE %]
                     <p>Please save the field before adding permissions</p>
@@ -721,8 +731,9 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
     </tbody>
 </table>
 <button type="submit" id="submit_saceorder" name="saveposition" value="submit" class="btn btn-primary">Save order</button>
-<p></p>
 </form>
+
+</div> <!-- /manage-fields -->
 [% END %]
 
 <script type="text/javascript">
