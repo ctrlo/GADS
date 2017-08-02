@@ -30,8 +30,18 @@ var setupLessMoreWidgets = function () {
         });
 
         $expandToggle.on('toggle', function (e, state) {
+            var windowWidth = $(window).width();
+            var leftOffset = $expandable.offset().left;
+            var minWidth = 400;
+            var colWidth = $ml.width();
+            var newWidth = colWidth > minWidth ? colWidth : minWidth;
             if (state === 'expanded') {
-                $expandable.css('width', $ml.width() + 'px');
+                $expandable.css('width', newWidth + 'px');
+                if (leftOffset + newWidth + 20 < windowWidth) {
+                    return;
+                }
+                var overflow = windowWidth - (leftOffset + newWidth + 20);
+                $expandable.css('left', (leftOffset + overflow) + 'px');
             }
         });
 
