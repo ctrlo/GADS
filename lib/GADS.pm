@@ -437,10 +437,16 @@ any '/data' => require_login sub {
             rewind => session('rewind'),
             view   => current_view($user, $layout),
         );
+        $records->search_all_fields(session 'search')
+            if session 'search';
+        my $count; # Count actual number deleted, not number reported by search result
         while (my $record = $records->single)
         {
-            $record->delete_current;
+            $count++
+                if (process sub { $record->delete_current });
         }
+        return forwardHome(
+            { success => "$count records successfully deleted" }, 'data' );
     }
 
     # Check for rewind configuration
