@@ -1,5 +1,5 @@
 [% MACRO whats_this(ref, text) BLOCK %]
-    <button class="btn btn-xs btn-default" aria-haspopup="true"
+    <button type="button" class="btn btn-xs btn-default" aria-haspopup="true"
         data-toggle="modal" data-target="#[% ref %]">[% text || 'what&apos;s this?' %]
         <span aria-hidden="true" class="glyphicon glyphicon-info-sign"></span>
     </button>
