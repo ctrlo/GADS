@@ -1031,6 +1031,11 @@ sub _search_construct
     }
     $column
         or return;
+
+    # Empty values can sometimes arrive as empty arrays, which evaluate true
+    # when they should evaluate false. Therefore convert.
+    $filter->{value} = '' if ref $filter->{value} eq 'ARRAY' && !@{$filter->{value}};
+
     # If testing a comparison but we have no value, then assume search empty/not empty
     # (used during filters on curval against current record values)
     $filter->{operator} = $filter->{operator} eq 'not_equal' ? 'is_not_empty' : 'is_empty'

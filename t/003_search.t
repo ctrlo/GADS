@@ -290,6 +290,26 @@ my @filters = (
         count => 6,
     },
     {
+        name  => 'string is not equal to nothing', # should convert to not empty
+        rules => [{
+            id       => $columns->{string1}->id,
+            type     => 'string',
+            value    => '',
+            operator => 'not_equal',
+        }],
+        count => 4,
+    },
+    {
+        name  => 'string is not equal to nothing (array ref)', # should convert to not empty
+        rules => [{
+            id       => $columns->{string1}->id,
+            type     => 'string',
+            value    => [],
+            operator => 'not_equal',
+        }],
+        count => 4,
+    },
+    {
         name  => 'greater than undefined value', # matches against empty instead
         rules => [{
             id       => $columns->{integer1}->id,
