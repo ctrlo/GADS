@@ -118,6 +118,9 @@ has full_path => (
     },
 );
 
+sub value_regex_test
+{   shift->full_path }
+
 has text => (
     is      => 'rw',
     lazy    => 1,

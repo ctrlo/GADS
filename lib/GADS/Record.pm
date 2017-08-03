@@ -894,6 +894,11 @@ sub write
         error __"Unable to edit record that has been retrieved with rewind";
     }
 
+    # This will be called before a write for a normal edit, to allow checks on
+    # next/prev values, but we call it here again now, for other writes that
+    # haven't explicitly called it
+    $self->set_blank_dependents;
+
     # First loop round: sanitise and see which if any have changed
     my %allow_update = map { $_ => 1 } @{$options{allow_update} || []};
     my ($need_app, $need_rec, $child_unique); # Whether a new approval_rs or record_rs needs to be created
@@ -1266,6 +1271,23 @@ sub write
         }
     }
     $self->clear_new_entry; # written to database, no longer new
+}
+
+sub set_blank_dependents
+{   my $self = shift;
+
+    foreach my $column ($self->layout->all)
+    {
+        if (my $display_field = $column->display_field)
+        {
+            my $re           = $column->display_regex;
+            my $regex        = qr(^$re$);
+            my $parent_datum = $self->fields->{$display_field};
+            my $written_to   = $parent_datum->written_to;
+            $self->fields->{$column->id}->set_value('')
+                if $written_to && $parent_datum->value_regex_test !~ $regex;
+        }
+    }
 }
 
 sub _field_write
