@@ -1,0 +1,101 @@
+[% MACRO render_perm(perm, groups, column) BLOCK;
+    FOREACH group IN groups;
+        IF group.id == perm;
+            perm_group = group;
+            LAST;
+        END;
+    END;
+%]
+    <li data-group-id="[% perm %]">
+        <h4>[% group.name %]</h4>
+
+        <div class="form-group">
+            <input type="checkbox" id="can_read" name="read" [% column.group_has(perm, 'read') && 'checked' %]>
+            <label for="can_read">Read</label>
+        </div>
+
+         <div class="form-group">
+            <input type="checkbox" id="can_write_new" name="write_new" [% column.group_has(perm, 'write_new') && 'checked' %]>
+            <label for="can_write_new">Write values to new records</label>
+        </div>
+
+        <div class="form-group">
+            <input type="checkbox" id="can_edit_existing" name="write_existing" [% column.group_has(perm, 'write_existing') && 'checked' %]>
+            <label for="can_edit_existing">Edit existing values</label>
+        </div>
+
+        <button type="button" class="btn btn-sm btn-default" data-perm-id="[% perm %]">Delete rule</button>
+    </li>
+[% END %]
+
+[% BLOCK _permission_configuration %]
+    <h4>Configure permissions</h4>
+
+    <p>Here you can create rules to define the access of group members to this field.</p>
+    <p>No user has access to this field, unless explicitly defined.</p>
+
+    [% IF groups.all.size %]
+        [% existing_perms = column.permissions.keys %]
+        [% IF existing_perms.size %]
+        <ul>
+            [% FOREACH perm IN existing_perms %]
+               [% render_perm(perm, groups.all, column) %]
+            [% END %]
+        </ul>
+        [% END %]
+        <button type="button" class="btn btn-default add-permission">Add access rule</button>
+    [% ELSE %]
+        <p>No groups have been created yet. <a href="/group">Create a group.</a></p>
+    [% END %]
+
+[% END %]
+
+[% BLOCK layout_permissions %]
+    <h3>Permissions [% whats_this('modalhelp_groups') %]</h3>
+    [% IF column.id %]
+
+        [% IF NOT column.permissions.size %]
+            <p>Access must be granted to this field before anyone (including you) can view and edit data in it.</p>
+            [% IF groups.all.size %]
+                <p>To give access, a group must be assigned to it using the buttons below:</p>
+            [% ELSE %]
+                <p>Groups are used to assign access. You must first <a href="/group">create a group</a></p>
+            [% END %]
+        [% END %]
+
+        [% IF column.permissions.size %]
+        <section class="permissions">
+            <h4>Groups that can read:</h4>
+            <ul>
+                [% FOREACH g IN column.group_summary('read') %]
+                <li>[% g %]</li>
+                [% END %]
+            </ul>
+
+            <h4>Groups that can write new values:</h4>
+            <ul>
+                [% FOREACH g IN column.group_summary('write_new') %]
+                <li>[% g %]</li>
+                [% END %]
+            </ul>
+
+            <h4>Groups that can write existing values:</h4>
+            <ul>
+                [% FOREACH g IN column.group_summary('write_existing') %]
+                <li>[% g %]</li>
+                [% END %]
+            </ul>
+        </sections>
+        [% END %]
+    [% ELSE # no column %]
+        [% # TODO: symptom of system. Fix. %]
+        <p>Please save the field before adding permissions</p>
+    [% END %]
+
+    [% IF groups.all.size %]
+        <button id="configure-permissions" type="button" class="btn btn-default">Configure permissions</button>
+        <section id="permission-configuration">
+            [% PROCESS _permission_configuration %]
+        </section>
+    [% END %]
+[% END %]
