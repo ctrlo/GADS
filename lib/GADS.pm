@@ -1943,8 +1943,6 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
 
     if (param 'submit')
     {
-        $record->editor_previous_fields([body_parameters->get_all('previous_fields')]);
-        $record->editor_next_fields([body_parameters->get_all('next_fields')]);
         $record->editor_shown_fields([body_parameters->get_all('shown_fields')]);
 
         # See which ones to update
@@ -1998,7 +1996,6 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
                 mistake $s.$f;
             }
         }
-        $record->move_nowhere;
     }
 
     my $view_name = $view ? $view->name : 'All data';
