@@ -223,14 +223,22 @@ sub _build_view
     return $view;
 }
 
-has values => (
+has filtered_values => (
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
+);
+
+has all_values => (
     is      => 'lazy',
     isa     => ArrayRef,
     clearer => 1,
 );
 
 sub _records_from_db
-{   my ($self, $ids) = @_;
+{   my ($self, %options) = @_;
+
+    my $ids = $options{ids};
 
     # $ids is optional
     panic "Entering curval _build_values and PANIC_ON_CURVAL_BUILD_VALUES is true"
@@ -241,7 +249,7 @@ sub _records_from_db
         or return; # No layout or fields set
 
     my $view;
-    if (!$ids)
+    if (!$ids && !$options{no_filter})
     {
         $view = $self->view
             or return; # record not ready yet for sub_values
@@ -281,9 +289,22 @@ sub _build_join
     $self->make_join(map { $_->join } @{$self->curval_fields_retrieve});
 }
 
-sub _build_values
+sub _build_filtered_values
 {   my $self = shift;
     my $records = $self->_records_from_db
+        or return [];
+    my @values;
+    while (my $r = $records->single)
+    {
+        push @values, $self->_format_row($r);
+    }
+
+    \@values;
+}
+
+sub _build_all_values
+{   my $self = shift;
+    my $records = $self->_records_from_db(no_filter => 1)
         or return [];
     my @values;
     while (my $r = $records->single)
@@ -303,7 +324,7 @@ has values_index => (
 
 sub _build_values_index
 {   my $self = shift;
-    my @values = @{$self->values};
+    my @values = @{$self->all_values};
     my %values = map { $_->{id} => $_->{value} } @values;
     \%values;
 }
@@ -369,7 +390,7 @@ sub _get_rows
         $return = [ map { $self->values_index->{$_} } @$ids ];
     }
     else {
-        $return = $self->_records_from_db($ids)->results;
+        $return = $self->_records_from_db(ids => $ids)->results;
     }
     error __x"Invalid Curval ID list {ids}", ids => "@$ids"
         if @$return != @$ids;
@@ -431,7 +452,9 @@ sub write_special
     });
 
     # Clear what may be cached values that should be updated after write
-    $self->clear_values;
+    $self->clear_filtered_values;
+    $self->clear_values_index;
+    $self->clear_all_values;
     $self->clear_view;
 };
 

@@ -475,7 +475,11 @@
                                     <option></option>
                                 [% END %]
                             [% END %]
-                            [% enumvals = dispcol.values %]
+                            [% IF page == "bulk" %]
+                                [% enumvals = dispcol.all_values %]
+                            [% ELSE %]
+                                [% enumvals = dispcol.filtered_values %]
+                            [% END %]
                             [% FOREACH enumval IN enumvals %]
                                 [% UNLESS enumval.deleted %]
                                     <option value="[% enumval.id %]" [% IF editvalue.id_hash.${enumval.id} %]selected[% END %]
