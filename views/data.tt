@@ -97,12 +97,17 @@
                         [% IF user.permission.link AND show_link %]
                             <li role="presentation"><a role="menuitem" tabindex="-1" href="/link/">New linked record</a></li>
                         [% END %]
+                        [% IF search %]
+                            [% sel_type = "in this search" %]
+                        [% ELSE %]
+                            [% sel_type = "in this view" %]
+                        [% END %]
                         [% IF user.permission.bulk_update %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/update/">Update all records in view...</a></li>
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/clone/">Clone all records in view...</a></li>
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/update/">Update all records [% sel_type %]...</a></li>
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/clone/">Clone all records [% sel_type %]...</a></li>
                         [% END %]
                         [% IF user.permission.delete %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_delete" style="cursor: pointer">Delete all records in view...</a>
+                            <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_delete" style="cursor: pointer">Delete all records [% sel_type %]...</a>
                         [% END %]
                         [% IF viewtype == "table" AND records.size AND user.permission.download %]
                             <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?download">Download all records in view</a></li>

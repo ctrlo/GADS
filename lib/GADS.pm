@@ -1940,6 +1940,8 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
         user                 => $user,
         layout               => $layout,
     );
+    $records->search_all_fields(session 'search')
+        if session 'search';
 
     if (param 'submit')
     {
@@ -2005,18 +2007,29 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
     my $count_msg = __xn", which contains 1 record.", ", which contains {_count} records.", $count;
     if ($type eq 'update')
     {
-        my $notice = __x qq(Use this page to update all records in the
-            currently selected view.  Tick the fields whose values should be
-            updated. Fields that are not ticked will retain their existing value.
-            The current view is "{view}"), view => $view_name;
+        my $notice = session('search')
+            ? __x(qq(Use this page to update all records in the
+                current search results. Tick the fields whose values should be
+                updated. Fields that are not ticked will retain their existing value.
+                The current search is "{search}"), search => session('search'))
+            : __x(qq(Use this page to update all records in the
+                currently selected view. Tick the fields whose values should be
+                updated. Fields that are not ticked will retain their existing value.
+                The current view is "{view}"), view => $view_name);
         notice $notice.$count_msg;
     }
     else {
-        my $notice = __x qq(Use this page to bulk clone all of the records in
-            the currently selected view.  The cloned records will be created using
-            the same existing values by default, but replaced with the values below
-            where that value is ticked. Values that are not ticked will be cloned
-            with their current value. The current view is "{view}"), view => $view_name;
+        my $notice = session('search')
+            ? __x(qq(Use this page to bulk clone all of the records in
+                the current search results. The cloned records will be created using
+                the same existing values by default, but replaced with the values below
+                where that value is ticked. Values that are not ticked will be cloned
+                with their current value. The current search is "{search}"), search => session('search'))
+            : __x(qq(Use this page to bulk clone all of the records in
+                the currently selected view. The cloned records will be created using
+                the same existing values by default, but replaced with the values below
+                where that value is ticked. Values that are not ticked will be cloned
+                with their current value. The current view is "{view}"), view => $view_name);
         notice $notice.$count_msg;
     }
 
