@@ -17,6 +17,9 @@
 html {
   font-family: 'Open Sans remote',sans-serif; }
 
+[hidden] {
+  display: none; }
+
 #wrapper {
   width: 95%;
   border-top: 5px solid #1460aa;
@@ -1327,4 +1330,5 @@ small.search_term {
 
 /* manage-fields */
 .manage-fields .permissions ul {
-  list-style-type: none; }
+  list-style-type: none;
+  padding: 0; }

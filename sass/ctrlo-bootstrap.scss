@@ -58,12 +58,18 @@
 html {
   font-family: 'Open Sans remote',sans-serif;
 }
+
+[hidden] {
+    display: none;
+}
+
 #wrapper{
   width: 95%; 
   border-top: 5px solid $primary-navy; 
   margin-left: auto; 
   margin-right: auto; 
 }
+
 .hscroll{
   overflow-x: visible;
   margin-right: 20px;
@@ -1473,4 +1479,5 @@ small.search_term {
 
 .manage-fields .permissions ul {
     list-style-type: none;
+    padding: 0;
 }
