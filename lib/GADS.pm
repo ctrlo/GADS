@@ -1934,11 +1934,11 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
 
     # The records to update
     my $records = GADS::Records->new(
-        view          => $view,
-        columns_extra => [map { $_->id } $layout->all], # Need all columns to be able to write updated records
-        schema        => schema,
-        user          => $user,
-        layout        => $layout,
+        view                 => $view,
+        retrieve_all_columns => 1, # Need all columns to be able to write updated records
+        schema               => schema,
+        user                 => $user,
+        layout               => $layout,
     );
 
     if (param 'submit')
