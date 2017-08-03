@@ -59,7 +59,7 @@
                     <select class="form-control" id="title" name="title">
                         <option></option>
                         [% FOREACH title IN titles %]
-                            <option value="[% title.id %]" [% IF edituser.title == title.id %]selected[% END %]>[% title.name | html_entity %]</option>
+                            <option value="[% title.id %]" [% IF edituser.title.id == title.id %]selected[% END %]>[% title.name | html_entity %]</option>
                         [% END %]
                     </select>
                 </div>
@@ -76,7 +76,7 @@
                         <option></option>
                         [% FOREACH organisation IN organisations %]
                             <option value="[% organisation.id %]"
-                                [% IF edituser.organisation == organisation.id %]selected[% END %]>[% organisation.name | html_entity %]
+                                [% IF edituser.organisation.id == organisation.id %]selected[% END %]>[% organisation.name | html_entity %]
                             </option>
                         [% END %]
                     </select>
