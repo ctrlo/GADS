@@ -134,9 +134,20 @@ sub equal
 
 sub for_code
 {   my $self = shift;
-    if ($self->column->return_type eq 'date')
+    my $rt = $self->column->return_type;
+    if ($rt eq 'date')
     {
         $self->_date_for_code($self->value);
+    }
+    elsif ($rt eq 'numeric')
+    {
+        # Ensure true numeric value passed to Lua, otherwise "attempt to
+        # compare number with string" errors are encountered
+        $self->as_string + 0;
+    }
+    elsif ($rt eq 'integer')
+    {
+        $self->as_integer;
     }
     else {
         $self->as_string;

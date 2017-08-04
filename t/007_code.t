@@ -122,6 +122,29 @@ try { $rag3->write } hide => 'ALL';
 like($warning, qr/syntax error/, "Warning received for syntax error in rag");
 $rag3->delete;
 
+# Check that numeric return type from calc can be used in another calc
+my $calc_integer = GADS::Column::Calc->new(
+    schema      => $schema,
+    user        => undef,
+    layout      => $layout,
+    name        => 'calc_integer',
+    name_short  => 'calc_integer',
+    return_type => 'integer',
+    code        => "function evaluate (L1string1) \n return 450 \nend",
+);
+$calc_integer->write;
+my $calc_numeric = GADS::Column::Calc->new(
+    schema      => $schema,
+    user        => undef,
+    layout      => $layout,
+    name        => 'calc_numeric',
+    name_short  => 'calc_numeric',
+    return_type => 'numeric',
+    code        => "function evaluate (L1string1) \n return 10.56 \nend",
+);
+$calc_numeric->write;
+$layout->clear;
+
 my @tests = (
     {
         name   => 'return value of curval field not in normal view',
@@ -159,6 +182,20 @@ my @tests = (
         code   => qq(function evaluate (L1calc1) \n return L1calc1.year \nend),
         before => '2000',
         after  => '2014'
+    },
+    {
+        name   => 'use value from another calc field (integer)', # Lua will bork if calc_integer not proper number
+        type   => 'Calc',
+        code   => qq(function evaluate (calc_integer) \n if calc_integer > 200 then return "greater" else return "less" end \nend),
+        before => 'greater',
+        after  => 'greater'
+    },
+    {
+        name   => 'use value from another calc field (numeric)',
+        type   => 'Calc',
+        code   => qq(function evaluate (calc_numeric) \n if calc_numeric > 100 then return "greater" else return "less" end \nend),
+        before => 'less',
+        after  => 'less'
     },
     {
         name        => 'calc fields that returns 0 (int)',
