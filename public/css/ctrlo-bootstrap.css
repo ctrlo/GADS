@@ -1325,10 +1325,16 @@ small.search_term {
   margin-bottom: 0.2em; }
 
 .controls {
-  padding-top: .5em;
-  border-top: 1px solid #ddd; }
+  padding-top: .5em; }
 
 /* manage-fields */
+.manage-fields {
+  border-bottom: 1px solid #bbb;
+  padding-bottom: .5em; }
+
 .manage-fields .permissions ul {
   list-style-type: none;
   padding: 0; }
+
+.manage-fields h4 {
+  display: inline; }

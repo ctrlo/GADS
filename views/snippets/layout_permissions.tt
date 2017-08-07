@@ -74,6 +74,7 @@
 [% END %]
 
 [% BLOCK layout_permissions %]
+<section id="layout_permissions">
     <h3>Permissions [% whats_this('modalhelp_groups') %]</h3>
     [% IF column.id %]
 
@@ -118,4 +119,5 @@
             [% PROCESS _permission_configuration %]
         </section>
     [% END %]
+</section>
 [% END %]
