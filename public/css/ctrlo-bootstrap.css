@@ -1332,7 +1332,7 @@ small.search_term {
   border-bottom: 1px solid #bbb;
   padding-bottom: .5em; }
 
-.manage-fields .permissions ul {
+.manage-fields #permissions ul {
   list-style-type: none;
   padding: 0; }
 

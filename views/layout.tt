@@ -182,8 +182,8 @@
                 </div>
             </div>
         [% ELSE %]
-            <div class="col-md-12">This field is always displayed.</div>
-            <div class="col-md-12">
+            <div>This field is always displayed.</div>
+            <div>
                 <button type="button" class="btn btn-default" id="add_display_regex">Define condition</button>
             </div>
         [% END %]
