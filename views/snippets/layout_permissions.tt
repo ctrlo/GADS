@@ -101,7 +101,7 @@
         [% END %]
 
         [% IF column.permissions.size %]
-        <section class="permissions">
+        <section id="current-permissions">
             <h4>Groups that can read:</h4>
             [% group_list(column.group_summary('read')) %]
 

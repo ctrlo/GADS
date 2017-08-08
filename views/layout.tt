@@ -135,17 +135,17 @@
         <section id="options">
             <h3>Options</h3>
 
-            <div class="checkbox noragcalc" [% noragcalc %]>
+            <div class="checkbox stored-value">
                 <label>
                     <input type="checkbox" name="optional" [% IF column.optional %]checked[% END %]>This field is optional
                 </label>
             </div>
-            <div class="checkbox noragcalc" [% noragcalc %]>
+            <div class="checkbox stored-value">
                 <label>
                     <input type="checkbox" name="remember" [% IF column.remember %]checked[% END %]>Remember last value for new entry
                 </label>
             </div>
-            <div class="checkbox noragcalc" [% noragcalc %]>
+            <div class="checkbox stored-value">
                 <label>
                     <input type="checkbox" name="isunique" [% IF column.isunique %]checked[% END %]>The values for this field must be unique
                 </label>
@@ -252,11 +252,7 @@
 
 [% BLOCK edit_field_right_column %]
    <div class="col-md-6 col-sm-12 col-xs-12">
-        <div id="divtree"
-            [% IF column.type != "tree" %]
-                style="display:none"
-            [% END %]
-            >
+        <div class="field-options tree">
             [% IF column.id %]
                 <h4>Tree field options</h4>
                 <p>Each value in the tree is referred to as a node.</p>
@@ -280,11 +276,7 @@
                 <p>To create your tree, please save this field first, then edit it.</p>
             [% END %]
         </div>
-        <div id="divenum"
-            [% IF column.type != "enum" %]
-                style="display:none"
-            [% END %]
-            >
+        <div class="field-options enum">
             <h4>Dropdown field options</h4>
             <div class="col-md-11">
                 <div class="form-group">
@@ -321,11 +313,7 @@
                 </div>
             </div>
         </div>
-        <div id="divcurval"
-            [% IF column.type != "curval" %]
-                style="display:none"
-            [% END %]
-            >
+        <div class="field-options curval">
             <h4>Field options</h4>
             [% IF instance_layouts.size %]
                 [% rti = column.refers_to_instance %]
@@ -394,11 +382,7 @@
                 </div>
             [% END %]
         </div>
-        <div id="divfile"
-            [% IF column.type != "file" %]
-                style="display:none"
-            [% END %]
-            >
+        <div class="field-options file">
             <h4>Document field options</h4>
             <div class="form-group">
                 <label for="filesize">Set maximum file size (KB): (Leave blank for no limit)</label>
@@ -406,11 +390,7 @@
                     value="[% column.filesize %]" placeholder="Leave blank for no limit">
             </div>
         </div>
-        <div id="divstring"
-                [% IF column.type != "string" %]
-                    style="display:none"
-                [% END %]
-            >
+        <div class="field-options string">
             <h4>Text field options</h4>
             <div class="form-group">
                 <div class="checkbox">
@@ -424,11 +404,7 @@
                 <input id="force_regex" class="form-control" type="text" name="force_regex" value="[% column.force_regex | html_entity %]">
             </div>
         </div>
-        <div id="divdate"
-                [% IF column.type != "date" AND column.type != "daterange" %]
-                    style="display:none"
-                [% END %]
-            >
+        <div class="field-options date daterange">
             <div class="form-group">
                 <label for="show_datepicker">Show date picker:</label>
                 <div class="checkbox">
@@ -438,11 +414,7 @@
                 </div>
             </div>
         </div>
-        <div id="divcalc"
-            [% IF column.type != "calc" %]
-                style="display:none"
-            [% END %]
-            >
+        <div class="field-options calc">
             <p>
                 A calculated value field automatically generates values based on the values
                 of other fields. You define your calculation using the Lua programming language.
@@ -484,11 +456,7 @@
                 </div>
             </div>
         </div>
-        <div id="divrag"
-            [% IF column.type != "rag" %]
-                style="display:none"
-            [% END %]
-            >
+        <div class="field-options rag">
             <p>
                 Use a RAG field to automatically generate red, amber or green indicators based on
                 the values of other fields. You set the conditions for the RAG status using the
@@ -527,8 +495,6 @@
 
 
 [% BLOCK edit_field %]
-    [% IF column.type == "rag" OR column.type == "calc" %][% noragcalc = 'style="display:none"' %][% END %]
-
     <h2>[% IF column.id %]Edit field[% ELSE %]Add a field to [% instance_name | html %][% END %]</h2>
 
     [% PROCESS edit_field_left_column %]
@@ -723,101 +689,14 @@
                     }
                     return true;
                 });
-                $('#type').change(function(){
-                    $('#divenum').hide();
-                    $('#divtree').show();
-                    var val = $(this).val();
-                    if (val == "tree") {
-                        $('#divenum').hide();
-                        $('#divtree').show();
-                        $('#divcalc').hide();
-                        $('#divrag').hide();
-                        $('#divfile').hide();
-                        $('#divcurval').hide();
-                        $('#divstring').hide();
-                        $('#divdate').hide();
-                        $('.noragcalc').show();
-                    } else if (val == "enum") {
-                        $('#divenum').show();
-                        $('#divtree').hide();
-                        $('#divcalc').hide();
-                        $('#divrag').hide();
-                        $('#divfile').hide();
-                        $('#divcurval').hide();
-                        $('#divstring').hide();
-                        $('#divdate').hide();
-                        $('.noragcalc').show();
-                    } else if (val == "rag") {
-                        $('#divrag').show();
-                        $('#divtree').hide();
-                        $('#divenum').hide();
-                        $('#divcalc').hide();
-                        $('#divfile').hide();
-                        $('#divcurval').hide();
-                        $('#divstring').hide();
-                        $('#divdate').hide();
-                        $('.noragcalc').hide();
-                    } else if (val == "calc") {
-                        $('#divrag').hide();
-                        $('#divtree').hide();
-                        $('#divenum').hide();
-                        $('#divcalc').show();
-                        $('#divfile').hide();
-                        $('#divcurval').hide();
-                        $('#divstring').hide();
-                        $('#divdate').hide();
-                        $('.noragcalc').hide();
-                    } else if (val == "file") {
-                        $('#divcalc').hide();
-                        $('#divrag').hide();
-                        $('#divtree').hide();
-                        $('#divenum').hide();
-                        $('#divfile').show();
-                        $('#divcurval').hide();
-                        $('#divstring').hide();
-                        $('#divdate').hide();
-                        $('.noragcalc').show();
-                    } else if (val == "curval") {
-                        $('#divcalc').hide();
-                        $('#divrag').hide();
-                        $('#divtree').hide();
-                        $('#divenum').hide();
-                        $('#divfile').hide();
-                        $('#divcurval').show();
-                        $('#divstring').hide();
-                        $('#divdate').hide();
-                        $('.noragcalc').show();
-                    } else if (val == "string") {
-                        $('#divcalc').hide();
-                        $('#divrag').hide();
-                        $('#divtree').hide();
-                        $('#divenum').hide();
-                        $('#divfile').hide();
-                        $('#divcurval').hide();
-                        $('#divstring').show();
-                        $('#divdate').hide();
-                        $('.noragcalc').show();
-                    } else if (val == "date" || val == "daterange") {
-                        $('#divcalc').hide();
-                        $('#divrag').hide();
-                        $('#divtree').hide();
-                        $('#divenum').hide();
-                        $('#divfile').hide();
-                        $('#divcurval').hide();
-                        $('#divstring').hide();
-                        $('#divdate').show();
-                        $('.noragcalc').show();
-                    } else {
-                        $('#divenum').hide();
-                        $('#divtree').hide();
-                        $('#divcalc').hide();
-                        $('#divrag').hide();
-                        $('#divfile').hide();
-                        $('#divcurval').hide();
-                        $('#divstring').hide();
-                        $('#divdate').hide();
-                        $('.noragcalc').show();
-                    }
+
+                $('#type').on('change', function () {
+                    var $mf = $('#manage-fields');
+                    var current_type = $mf.data('column-type');
+                    var new_type = $(this).val();
+                    $mf.removeClass('column-type-' + current_type);
+                    $mf.addClass('column-type-' + new_type);
+                    $mf.data('column-type', new_type);
                 });
             }); 
     [% END %]
@@ -830,7 +709,7 @@
     <input type="hidden" name="id" value="[% column.id %]">
 [% END %]
 
-    <section class="manage-fields row">
+    <section id="manage-fields" data-column-type="[% column.id ? column.type : 'string' %]" class="row column-type-[% column.id ? column.type : 'string' %]">
         [% 
             IF column.defined;
                 PROCESS edit_field;

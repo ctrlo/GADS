@@ -1476,16 +1476,27 @@ small.search_term {
 
 /* manage-fields */
 
-.manage-fields {
+#manage-fields {
     border-bottom: 1px solid #bbb;
     padding-bottom: .5em;
 }
 
-.manage-fields #permissions ul {
+#manage-fields #permissions ul {
     list-style-type: none;
     padding: 0;
 }
 
-.manage-fields h4 {
+#manage-fields h4 {
     display: inline;
+}
+
+#manage-fields .field-options { display: none; }
+
+@each $column-type in calc rag tree enum file curval string date daterange {
+    #manage-fields.column-type-#{$column-type} .field-options.#{$column-type} { display: block; }
+}
+
+#manage-fields.column-type-rag #options .stored-value,
+#manage-fields.column-type-calc #options .stored-value {
+    display: none;
 }

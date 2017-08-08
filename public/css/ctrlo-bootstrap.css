@@ -1328,13 +1328,47 @@ small.search_term {
   padding-top: .5em; }
 
 /* manage-fields */
-.manage-fields {
+#manage-fields {
   border-bottom: 1px solid #bbb;
   padding-bottom: .5em; }
 
-.manage-fields #permissions ul {
+#manage-fields #permissions ul {
   list-style-type: none;
   padding: 0; }
 
-.manage-fields h4 {
+#manage-fields h4 {
   display: inline; }
+
+#manage-fields .field-options {
+  display: none; }
+
+#manage-fields.column-type-calc .field-options.calc {
+  display: block; }
+
+#manage-fields.column-type-rag .field-options.rag {
+  display: block; }
+
+#manage-fields.column-type-tree .field-options.tree {
+  display: block; }
+
+#manage-fields.column-type-enum .field-options.enum {
+  display: block; }
+
+#manage-fields.column-type-file .field-options.file {
+  display: block; }
+
+#manage-fields.column-type-curval .field-options.curval {
+  display: block; }
+
+#manage-fields.column-type-string .field-options.string {
+  display: block; }
+
+#manage-fields.column-type-date .field-options.date {
+  display: block; }
+
+#manage-fields.column-type-daterange .field-options.daterange {
+  display: block; }
+
+#manage-fields.column-type-rag #options .stored-value,
+#manage-fields.column-type-calc #options .stored-value {
+  display: none; }
