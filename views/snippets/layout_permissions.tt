@@ -7,51 +7,40 @@
     END;
 %]
     <li data-group-id="[% perm %]">
-        <h5>
-            [% group.name %]
-            <button type="button" class="btn btn-sm btn-default" data-perm-id="[% perm %]">Delete rule</button>
-        </h5>
+        <section class="permission-rule">
+            <h5 class="clearfix">
+                Group: [% group.name %]
+                <button type="button" class="btn btn-sm btn-default pull-right" data-perm-id="[% perm %]">Delete rule</button>
+            </h5>
 
-        <section>
-            <h6>Access</h6>
-            <div class="row">
-                <div class="form-group col-md-3">
-                    <input type="checkbox" id="can_read" name="read" [% column.group_has(perm, 'read') && 'checked' %]>
-                    <label for="can_read">Read</label>
-                </div>
+            <p>Members of this group will have the following access rights:</p>
 
-                 <div class="form-group col-md-3">
-                    <input type="checkbox" id="[% perm %]-can_write_new" name="write_new" [% column.group_has(perm, 'write_new') && 'checked' %]>
-                    <label for="[% perm %]-can_write_new">Write values to new records</label>
-                </div>
-
-                <div class="form-group col-md-3">
-                    <input type="checkbox" id="[% perm %]-can_edit_existing" name="write_existing" [% column.group_has(perm, 'write_existing') && 'checked' %]>
-                    <label for="[% perm %]-can_edit_existing">Edit existing values</label>
-                </div>
+            <div class="form-group">
+                <input type="checkbox" id="can_read" name="read" [% column.group_has(perm, 'read') && 'checked' %]>
+                <label for="can_read">Users have read access to this field</label>
             </div>
-        </section>
 
-        <section>
-            <h6>Approval</h6>
-            <div class="row">
-                <div class="form-group col-md-6">
-                    <input type="checkbox" id="[% perm %]-can_create_without_approval" name="write_new_no_approval" [% column.group_has(perm, 'write_new_no_approval') && 'checked' %]>
-                    <label for="[% perm %]-can_create_without_approval">No approval required for new records</label>
-                </div>
-                <div class="form-group col-md-6">
-                    <input type="checkbox" id="[% perm %]-can_edit_without_approval" name="write_existing_no_approval" [% column.group_has(perm, 'write_existing_no_approval') && 'checked' %]>
-                    <label for="[% perm %]-can_edit_without_approval">No approval required for editing values</label>
-                </div>
-                <div class="form-group col-md-6">
+             <div class="form-group permission write-new">
+                <input type="checkbox" id="[% perm %]-can_write_new" name="write_new" [% column.group_has(perm, 'write_new') && 'checked' %]>
+                <label for="[% perm %]-can_write_new">Values can be written to new records</label>
+
+                <div class="form-group permission">
                     <input type="checkbox" id="[% perm %]-can_approve_new" name="approve_new" [% column.group_has(perm, 'approve_new') && 'checked' %]>
-                    <label for="[% perm %]-can_approve_new">Approve new values</label>
-                </div>
-                <div class="form-group col-md-6">
-                    <input type="checkbox" id="[% perm %]-can_approve_edits" name="approve_existing" [% column.group_has(perm, 'approve_existing') && 'checked' %]>
-                    <label for="[% perm %]-can_approve_edits">Approve edits</label>
+                    <label for="[% perm %]-can_approve_new">Values for new records need approval</label>
                 </div>
             </div>
+
+            <div class="form-group permission modify-existing">
+                <input type="checkbox" id="[% perm %]-can_edit_existing" name="write_existing" [% column.group_has(perm, 'write_existing') && 'checked' %]>
+                <label for="[% perm %]-can_edit_existing">Existing values can be modified</label>
+
+                <div class="form-group permission">
+                    <input type="checkbox" id="[% perm %]-can_approve_edits" name="approve_existing" [% column.group_has(perm, 'approve_existing') && 'checked' %]>
+                    <label for="[% perm %]-can_approve_edits">Modifications need approval</label>
+                </div>
+            </div>
+
+                
         </section>
     </li>
 [% END %]
@@ -80,7 +69,7 @@
 
 [% BLOCK layout_permissions %]
 <section id="permissions">
-    <h3>Permissions [% whats_this('modalhelp_groups') %]</h3>
+    <h4>Permissions [% whats_this('modalhelp_groups') %]</h4>
     [% IF column.id %]
 
         [% IF NOT column.permissions.size %]

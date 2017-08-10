@@ -78,12 +78,12 @@
 
     </head>
 
-    <body>
+    <body data-page="[% page %]">
         <div id="wrapper">
         [% IF header AND NOT page_as_mech %]
             <p class="text-center">[% header %]</p>
         [% END %]
-        <div class="container-fluid">
+        <div class="container-fluid [% page %]">
             [% UNLESS page == "login" OR page == "invalidsite" OR page_as_mech %]
                 <div class="navbar navbar-default" role="navigation">
                     <div class="collapse navbar-collapse" id="main-navbar">

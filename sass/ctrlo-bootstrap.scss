@@ -1,5 +1,5 @@
 @import 'branding-colours';
-
+@import 'utility-classes';
 
 /*! normalize.css v3.0.0 | MIT License | git.io/normalize */
 
@@ -1229,23 +1229,6 @@ button.close {
         margin-left: -10px;
 }
 
-/* a11y-related */
-
-.visually-hidden {
-    border: 0;
-    clip: rect(0 0 0 0);
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    padding: 0;
-    position: absolute;
-    width: 1px;
-}
-
-.visually-hidden-opacity {
-    opacity: 0;
-}
-
 /* Login page - Remember Username */
 
 .remember-me, .reset-password {
@@ -1368,7 +1351,8 @@ small.search_term {
     display: none;
 }
 
-.trigger[aria-expanded="true"] + .expandable {
+.trigger[aria-expanded="true"] + .expandable,
+.expandable.expanded {
     display: block; 
 }
 
@@ -1486,11 +1470,14 @@ small.search_term {
     padding: 0;
 }
 
-#manage-fields h4 {
-    display: inline;
+#manage-fields .field-options { 
+    display: none; 
+    border: 1px solid #ccc;
+    padding: .5em;
+    margin: .5em;
+    margin-right: 0;
+    background-color: #eee;
 }
-
-#manage-fields .field-options { display: none; }
 
 @each $column-type in calc rag tree enum file curval string date daterange {
     #manage-fields.column-type-#{$column-type} .field-options.#{$column-type} { display: block; }
@@ -1499,4 +1486,33 @@ small.search_term {
 #manage-fields.column-type-rag #options .stored-value,
 #manage-fields.column-type-calc #options .stored-value {
     display: none;
+}
+
+#manage-fields #advanced-field-settings h3,
+#manage-fields h4 {
+    display: inline-block;
+    border-bottom: 1px solid #bbb;
+    padding-bottom: .5em;
+}
+
+#manage-fields .permission.write-new .permission,
+#manage-fields .permission.modify-existing .permission {
+    display: none;
+    margin-left: 1.5em;
+}
+
+#manage-fields .permission.write-new input:checked ~ .permission,
+#manage-fields .permission.modify-existing input:checked ~ .permission {
+    display: block;
+}
+
+#manage-fields .permission-rule h5 {
+    margin: 0;
+    padding: 0;
+}
+
+#manage-fields .permission-rule {
+    background-color: #eee;
+    border: 1px solid #ccc;
+    padding: .5em;
 }

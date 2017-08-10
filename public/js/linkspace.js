@@ -22,15 +22,40 @@ var setupDisclosureWidgets = function () {
 
         var currentlyExpanded = $trigger.attr('aria-expanded') === 'true';
         $trigger.attr('aria-expanded', !currentlyExpanded);
+        
+        $disclosure.toggleClass('expanded', !currentlyExpanded);
+
+        $trigger.trigger((currentlyExpanded ? 'collapse' : 'expand'), $disclosure);
     };
 
     $('.trigger[aria-expanded]').on('click', toggleDisclosure);
 }
 
+var runPageSpecificCode = function () {
+    var page = $('body').data('page');
+    var handler = Linkspace[page];
+    if (handler !== undefined) {
+        handler();
+    }
+};
+
 var Linkspace = {
     init: function () {
+        console.clear();
         setupDisclosureWidgets();
+        runPageSpecificCode();
+    },
+    debug: function (msg) {
+        console.debug('[LINKSPACE]', msg);
     }
+};
+
+Linkspace.layout = function () {
+    Linkspace.debug('Layout JS firing');
+    $('#show-advanced-field-settings').on('expand', function (event, target) {
+        $(target).find('h3').focus();
+        $(this).remove();
+    });
 };
 
 $(Linkspace.init);
