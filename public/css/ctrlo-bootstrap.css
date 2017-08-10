@@ -1401,7 +1401,8 @@ small.search_term {
   margin: 0;
   padding: 0; }
 
-#manage-fields .permission-rule {
+#manage-fields .permission-rule,
+#manage-fields .display-condition {
   background-color: #eee;
   border: 1px solid #ccc;
   padding: .5em; }
