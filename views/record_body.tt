@@ -1,0 +1,28 @@
+<table class="table table-striped">
+    <tr>
+        <th>Last updated by</th>
+        <td>[% record.createdby.html %]</td>
+    </tr>
+    [% FOREACH col IN all_columns %]
+        [% colid = col.id %]
+        <tr>
+            [% NEXT IF record.parent_id AND NOT (record.fields.$colid.child_unique) %]
+            <th>[% col.name | html_entity %]</th>
+            <td>
+                [% value = record.fields.$colid %]
+                [% IF col.type == "rag" %]
+                    <div class="circ-large
+                        [% value %]
+                        ">
+                    </div>
+                [% ELSIF col.type == "file" AND value.mimetype.match('^image/') %]
+                    <img src="/file/[% value.id %]">
+                [% ELSIF col.type == "string" || col.type == "curval" %]
+                    [% value.html_withlinks %]
+                [% ELSE %]
+                    [% value.html %]
+                [% END %]
+            </td>
+        </tr>
+    [% END %]
+</table>

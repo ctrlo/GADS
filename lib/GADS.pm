@@ -2343,6 +2343,27 @@ post '/file/?' => require_login sub {
 
 };
 
+get '/record_body/:id' => require_login sub {
+
+    my $id = param('id');
+
+    my $user   = logged_in_user;
+    my $layout = var 'layout';
+    my $record = GADS::Record->new(
+        user   => $user,
+        layout => $layout,
+        schema => schema,
+        rewind => session('rewind'),
+    );
+
+    $record->find_current_id($id);
+    my @columns = $layout->all(user_can_read => 1);
+    template 'record_body' => {
+        record         => $record,
+        all_columns    => \@columns,
+    }, { layout => undef };
+};
+
 any qr{/(record|history)/([0-9]+)} => require_login sub {
 
     my ($action, $id) = splat;

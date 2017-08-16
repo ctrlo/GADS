@@ -41,6 +41,9 @@
     [% END %]
 </div>
 <p></p>
+
+[% INCLUDE record_body.tt %]
+
 <table class="table table-striped">
     <tr>
         <th>Last updated by</th>
