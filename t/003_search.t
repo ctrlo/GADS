@@ -896,6 +896,13 @@ $record->clear;
 is( $record->find_record_id(1)->record_id, 1, "Retrieved history record ID 1 from other datasheet" );
 $record->clear;
 is( $record->find_current_id(1)->current_id, 1, "Retrieved current ID 1 from other datasheet" );
+# Records that don't exist
+$record->clear;
+try { $record->find_record_id(100) };
+like( $@, qr/Record version ID 100 not found/, "Correct error when finding record version that does not exist" );
+$record->clear;
+try { $record->find_current_id(100) };
+like( $@, qr/Record ID 100 not found/, "Correct error when finding record ID that does not exist" );
 
 # Check sorting functionality
 # First check default_sort functionality

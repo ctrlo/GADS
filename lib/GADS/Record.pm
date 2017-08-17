@@ -377,7 +377,9 @@ sub _check_instance
 
 sub find_record_id
 {   my ($self, $record_id) = @_;
-    my $instance_id = $self->schema->resultset('Record')->find($record_id)->current->instance_id;
+    my $record = $self->schema->resultset('Record')->find($record_id)
+        or error __x"Record version ID {id} not found", id => $record_id;
+    my $instance_id = $record->current->instance_id;
     $self->_check_instance($instance_id);
     $self->_find(record_id => $record_id);
 }
@@ -385,7 +387,9 @@ sub find_record_id
 sub find_current_id
 {   my ($self, $current_id) = @_;
     return unless $current_id;
-    my $instance_id = $self->schema->resultset('Current')->find($current_id)->instance_id;
+    my $current = $self->schema->resultset('Current')->find($current_id)
+        or error __x"Record ID {id} not found", id => $current_id;
+    my $instance_id = $current->instance_id;
     $self->_check_instance($instance_id);
     $self->_find(current_id => $current_id);
 }
