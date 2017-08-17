@@ -1411,6 +1411,10 @@ sub delete_current
         current_id => $id
     })->all;
 
+    # Get creation details for logging at end
+    my $createdby = $self->createdby;
+    my $created   = $self->created;
+
     # Start transaction.
     # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
     # an object) and may evaluate to an empty string. If so, txn_scope_guard
@@ -1441,6 +1445,10 @@ sub delete_current
     $self->schema->resultset('AlertSend')->search({ current_id => $id })->delete;
     $self->schema->resultset('Current')->find($id)->delete;
     $guard->commit;
+
+    my $user_id = $self->user && $self->user->{id};
+    info __x"Record ID {id} deleted by user ID {user} (originally created by user ID {createdby} at {created}",
+        id => $id, user => $user_id, createdby => $createdby->id, created => $created;
 }
 
 sub _delete_record_values

@@ -25,4 +25,4 @@ engines:
           identity: GADS
           facility: local0
           flags: "pid ndelay nowait"
-          mode: NORMAL
+          mode: VERBOSE
