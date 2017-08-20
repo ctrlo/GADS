@@ -1441,7 +1441,8 @@ any '/layout/?:id?' => require_role 'layout' => sub {
 };
 
 any '/user/?:id?' => require_role useradmin => sub {
-    my $id = param 'id';
+
+    my $id = body_parameters->get('id');
 
     my $user            = logged_in_user;
     my $userso          = GADS::Users->new(schema => schema);
@@ -1472,7 +1473,7 @@ any '/user/?:id?' => require_role useradmin => sub {
     # if the user has pressed enter, in which case ignore it
     if (param('submit') && !param('neworganisation') && !param('newtitle'))
     {
-        if (param 'account_request')
+        if (!$id)
         {
             # Check user doesn't already exist
             my $email = param('email');
@@ -1515,10 +1516,12 @@ any '/user/?:id?' => require_role useradmin => sub {
                 report {is_fatal => 0}, ERROR => __"Please enter a valid email address for the new user";
             }
             else {
-                my $usero = rset('User')->find($id);
-                # Delete account request user if this is a new account request
-                $usero->delete
-                    if param 'account_request';
+                if (param 'account_request')
+                {
+                    # Delete account request user if this is a new account request
+                    my $usero = rset('User')->find($id);
+                    $usero->delete
+                }
                 $result = process( sub { $newuser = create_user %values, realm => 'dbic', email_welcome => 1 });
                 # Check for success - DPAE does not currently call exceptions
                 return forwardHome(
@@ -1648,11 +1651,13 @@ any '/user/?:id?' => require_role useradmin => sub {
         return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
     }
 
-    if ($id)
+    my $route_id = route_parameters->get('id');
+
+    if ($route_id)
     {
-        $users = [ rset('User')->find($id) ] if !$users;
+        $users = [ rset('User')->find($route_id) ] if !$users;
     }
-    elsif (!defined $id) {
+    elsif (!defined $route_id) {
         $users             = $userso->all;
         $register_requests = $userso->register_requests;
     }
@@ -1666,7 +1671,7 @@ any '/user/?:id?' => require_role useradmin => sub {
     }
 
     my $output = template 'user' => {
-        edit              => $id,
+        edit              => $route_id,
         users             => $users,
         groups            => GADS::Groups->new(schema => schema)->all,
         register_requests => $register_requests,
