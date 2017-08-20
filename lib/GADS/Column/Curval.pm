@@ -338,7 +338,10 @@ has has_subvalues => (
 
 sub _build_has_subvalues
 {   my $self = shift;
+    # Always if multivalue to allow multiple select
     return 1 if $self->multivalue;
+    # Always if more fields available then ones selected
+    return 1 if @{$self->curval_fields} < $self->layout_parent->all;
     !! grep { $_->{subvalue} } @{$self->filtered_values};
 }
 
