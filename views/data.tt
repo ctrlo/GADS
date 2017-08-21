@@ -43,6 +43,7 @@
                         [% END %]
                     </ul>
                 </div>
+
                 <div class="btn-group" role="group">
                     <a href="?viewtype=table" class="btn btn-default">
                         <i aria-hidden="true" class="fa fa-list fa-lg use-icon-font"></i>

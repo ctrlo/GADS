@@ -256,10 +256,13 @@ sub _jpfetch_add
             }
             my $simple = {%$join};
             $simple->{join} = $join->{column}->field;
+            # Remove multivalues to prevent huge amount of rows being fetched.
+            # These will be fetched later as individual columns
+            my @children = grep { !$_->{column}->multivalue || $options->{include_multivalue} } @$children;
             push @$return, {
                 parent    => $parent,
                 column    => $join->{column},
-                join      => $join->{column}->make_join(map {$_->{join}} @$children),
+                join      => $join->{column}->make_join(map {$_->{join}} @children),
                 all_joins => [$simple, @$children],
             };
         }

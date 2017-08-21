@@ -114,6 +114,12 @@ sub values
     [@values];
 }
 
+# That value that will be used in an edit form to test the display of a
+# display_field dependent field
+sub value_regex_test
+{   shift->as_string;
+}
+
 has written_to => (
     is      => 'rwp',
     isa     => Bool,

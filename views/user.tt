@@ -17,6 +17,7 @@
             [% END %]
             <input type="hidden" name="page" value="[% page %]">
             <input type="hidden" name="username" value="[% edituser.username | html_entity %]">
+            <input type="hidden" name="id" value="[% edituser.id %]">
             [% IF edituser.account_request_notes %]
                 <div class="form-group">
                     <label for="notes">Notes:</label>
@@ -57,11 +58,9 @@
                         [% END %]
                     </label>
                     <select class="form-control" id="title" name="title">
-                        [% UNLESS edituser.title.id %]
-                            <option></option>
-                        [% END %]
+                        <option></option>
                         [% FOREACH title IN titles %]
-                            <option value="[% title.id %]" [% IF edituser.title == title.id %]selected[% END %]>[% title.name | html_entity %]</option>
+                            <option value="[% title.id %]" [% IF edituser.title.id == title.id %]selected[% END %]>[% title.name | html_entity %]</option>
                         [% END %]
                     </select>
                 </div>
@@ -75,12 +74,10 @@
                         [% END %]
                     </label>
                     <select class="form-control" id="organisation" name="organisation">
-                        [% UNLESS edituser.organisation.id %]
-                            <option></option>
-                        [% END %]
+                        <option></option>
                         [% FOREACH organisation IN organisations %]
                             <option value="[% organisation.id %]"
-                                [% IF edituser.organisation == organisation.id %]selected[% END %]>[% organisation.name | html_entity %]
+                                [% IF edituser.organisation.id == organisation.id %]selected[% END %]>[% organisation.name | html_entity %]
                             </option>
                         [% END %]
                     </select>

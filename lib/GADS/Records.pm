@@ -131,6 +131,15 @@ has columns_extra => (
     is => 'rw',
 );
 
+# Whether to retrieve all columns for this set of records. Needed when going to
+# be writing to the records, to ensure that calc fields are retrieved to
+# subsequently write to
+has retrieve_all_columns => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
 # Value containing the actual columns retrieved.
 # In "normal order" as per layout.
 has columns_retrieved_no => (
@@ -775,13 +784,12 @@ sub _build_columns_retrieved_do
         @col_ids{@col_ids} = undef;
         @columns = grep { $_->id; exists $col_ids{$_->id} } $layout->all(order_dependencies => 1);
     }
-    elsif (my $view = $self->view)
+    elsif (!$self->retrieve_all_columns && $self->view)
     {
         @columns = $layout->view(
-            $view->id,
+            $self->view->id,
             order_dependencies => 1,
             user_can_read      => 1,
-            columns_extra      => $self->columns_extra,
         );
     }
     else {
@@ -1023,6 +1031,11 @@ sub _search_construct
     }
     $column
         or return;
+
+    # Empty values can sometimes arrive as empty arrays, which evaluate true
+    # when they should evaluate false. Therefore convert.
+    $filter->{value} = '' if ref $filter->{value} eq 'ARRAY' && !@{$filter->{value}};
+
     # If testing a comparison but we have no value, then assume search empty/not empty
     # (used during filters on curval against current record values)
     $filter->{operator} = $filter->{operator} eq 'not_equal' ? 'is_not_empty' : 'is_empty'

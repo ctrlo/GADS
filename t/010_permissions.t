@@ -131,7 +131,8 @@ foreach my $user_type (keys %users)
 
     # Check that user has access to all curval values
     my $curval_column = $columns->{curval1};
-    is( @{$curval_column->values}, 2, "User has access to all curval values" );
+    is( @{$curval_column->filtered_values}, 2, "User has access to all curval values (filtered)" );
+    is( @{$curval_column->all_values}, 2, "User has access to all curval values (all)" );
 
     # Now apply a filter. Correct number of curval values should be
     # retrieved, regardless of user perms
@@ -146,7 +147,7 @@ foreach my $user_type (keys %users)
         },
     ));
     $curval_column->write;
-    is( @{$curval_column->values}, 1, "User has access to all curval values" );
+    is( @{$curval_column->filtered_values}, 1, "User has access to all curval values after filter" );
     # Reset for next test
     $curval_column->clear_filter;
     $curval_column->write;

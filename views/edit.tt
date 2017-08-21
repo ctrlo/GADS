@@ -56,7 +56,7 @@
                 <button type="submit" name="submit" value="back" class="btn btn-default submit_button">Previous</button>
             [% END %]
             <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
-                [% IF record.has_next_values %]Next[% ELSE %]Save[% END %]
+                [% IF record.has_next_values AND page != "bulk" %]Next[% ELSE %]Save[% END %]
             </button>
             <a role="button" class="btn btn-default" href="" data-toggle="modal" data-target="#modaldelete">Delete</a></li>
             <a href="/data" class="btn btn-default">Cancel</a>
@@ -335,25 +335,29 @@
 
     [%# Skip if field has a filter (which will alter its values) and the dependent values have not yet been completed %]
 
-    [%# If field's value has already been written to, do not display field by add as hidden value instead %]
-    [% IF record.fields.$colid.value_previous_page OR record.fields.$colid.value_next_page %]
-        [% IF record.fields.$colid.html_form.size %]
-            [% FOREACH val IN record.fields.$colid.html_form %]
-                <input type="hidden" name="[% field %]" value="[% val %]">
+    [%# When bulk updating, just show all fields %]
+    [% UNLESS page == "bulk" %]
+        [%# If field's value has already been written to, do not display field by add as hidden value instead %]
+        [% IF record.fields.$colid.value_previous_page OR record.fields.$colid.value_next_page %]
+            [% IF record.fields.$colid.html_form.size %]
+                [% FOREACH val IN record.fields.$colid.html_form %]
+                    <input type="hidden" name="[% field %]" value="[% val %]">
+                [% END %]
+            [% ELSE %]
+                [%# Ensure a value gets sent back to show this field was shown if nothing selected %]
+                <input type="hidden" name="[% field %]">
             [% END %]
-        [% ELSE %]
-            [%# Ensure a value gets sent back to show this field was shown if nothing selected %]
-            <input type="hidden" name="[% field %]">
+            [% IF record.fields.$colid.value_previous_page %]
+                <input type="hidden" name="previous_fields" value="[% colid %]">
+            [% ELSE %]
+                <input type="hidden" name="next_fields" value="[% colid %]">
+            [% END %]
+            [% NEXT %]
         [% END %]
-        [% IF record.fields.$colid.value_previous_page %]
-            <input type="hidden" name="previous_fields" value="[% colid %]">
-        [% ELSE %]
-            <input type="hidden" name="next_fields" value="[% colid %]">
-        [% END %]
-        [% NEXT %]
+
+        [% NEXT UNLESS record.fields.$colid.show_for_write %]
     [% END %]
 
-    [% NEXT UNLESS record.fields.$colid.show_for_write %]
     <input type="hidden" name="shown_fields" value="[% colid %]">
 
     [%# Skip field if it's an approval request but a value not needing approval %]
@@ -521,7 +525,11 @@
                                     <option></option>
                                 [% END %]
                             [% END %]
-                            [% enumvals = dispcol.values %]
+                            [% IF page == "bulk" %]
+                                [% enumvals = dispcol.all_values %]
+                            [% ELSE %]
+                                [% enumvals = dispcol.filtered_values %]
+                            [% END %]
                             [% FOREACH enumval IN enumvals %]
                                 [% UNLESS enumval.deleted %]
                                     <option value="[% enumval.id %]" [% IF editvalue.id_hash.${enumval.id} %]selected[% END %]

@@ -440,10 +440,16 @@ any '/data' => require_login sub {
             rewind => session('rewind'),
             view   => current_view($user, $layout),
         );
+        $records->search_all_fields(session 'search')
+            if session 'search';
+        my $count; # Count actual number deleted, not number reported by search result
         while (my $record = $records->single)
         {
-            $record->delete_current;
+            $count++
+                if (process sub { $record->delete_current });
         }
+        return forwardHome(
+            { success => "$count records successfully deleted" }, 'data' );
     }
 
     # Check for rewind configuration
@@ -1459,7 +1465,8 @@ any '/layout/?:id?' => require_role 'layout' => sub {
 };
 
 any '/user/?:id?' => require_role useradmin => sub {
-    my $id = param 'id';
+
+    my $id = body_parameters->get('id');
 
     my $user            = logged_in_user;
     my $userso          = GADS::Users->new(schema => schema);
@@ -1490,7 +1497,7 @@ any '/user/?:id?' => require_role useradmin => sub {
     # if the user has pressed enter, in which case ignore it
     if (param('submit') && !param('neworganisation') && !param('newtitle'))
     {
-        if (param 'account_request')
+        if (!$id)
         {
             # Check user doesn't already exist
             my $email = param('email');
@@ -1533,10 +1540,12 @@ any '/user/?:id?' => require_role useradmin => sub {
                 report {is_fatal => 0}, ERROR => __"Please enter a valid email address for the new user";
             }
             else {
-                my $usero = rset('User')->find($id);
-                # Delete account request user if this is a new account request
-                $usero->delete
-                    if param 'account_request';
+                if (param 'account_request')
+                {
+                    # Delete account request user if this is a new account request
+                    my $usero = rset('User')->find($id);
+                    $usero->delete
+                }
                 $result = process( sub { $newuser = create_user %values, realm => 'dbic', email_welcome => 1 });
                 # Check for success - DPAE does not currently call exceptions
                 return forwardHome(
@@ -1666,11 +1675,13 @@ any '/user/?:id?' => require_role useradmin => sub {
         return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
     }
 
-    if ($id)
+    my $route_id = route_parameters->get('id');
+
+    if ($route_id)
     {
-        $users = [ rset('User')->find($id) ] if !$users;
+        $users = [ rset('User')->find($route_id) ] if !$users;
     }
-    elsif (!defined $id) {
+    elsif (!defined $route_id) {
         $users             = $userso->all;
         $register_requests = $userso->register_requests;
     }
@@ -1684,7 +1695,7 @@ any '/user/?:id?' => require_role useradmin => sub {
     }
 
     my $output = template 'user' => {
-        edit              => $id,
+        edit              => $route_id,
         users             => $users,
         groups            => GADS::Groups->new(schema => schema)->all,
         register_requests => $register_requests,
@@ -1952,17 +1963,17 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
 
     # The records to update
     my $records = GADS::Records->new(
-        view          => $view,
-        columns_extra => [map { $_->id } $layout->all], # Need all columns to be able to write updated records
-        schema        => schema,
-        user          => $user,
-        layout        => $layout,
+        view                 => $view,
+        retrieve_all_columns => 1, # Need all columns to be able to write updated records
+        schema               => schema,
+        user                 => $user,
+        layout               => $layout,
     );
+    $records->search_all_fields(session 'search')
+        if session 'search';
 
     if (param 'submit')
     {
-        $record->editor_previous_fields([body_parameters->get_all('previous_fields')]);
-        $record->editor_next_fields([body_parameters->get_all('next_fields')]);
         $record->editor_shown_fields([body_parameters->get_all('shown_fields')]);
 
         # See which ones to update
@@ -2016,7 +2027,6 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
                 mistake $s.$f;
             }
         }
-        $record->move_nowhere;
     }
 
     my $view_name = $view ? $view->name : 'All data';
@@ -2026,18 +2036,29 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
     my $count_msg = __xn", which contains 1 record.", ", which contains {_count} records.", $count;
     if ($type eq 'update')
     {
-        my $notice = __x qq(Use this page to update all records in the
-            currently selected view.  Tick the fields whose values should be
-            updated. Fields that are not ticked will retain their existing value.
-            The current view is "{view}"), view => $view_name;
+        my $notice = session('search')
+            ? __x(qq(Use this page to update all records in the
+                current search results. Tick the fields whose values should be
+                updated. Fields that are not ticked will retain their existing value.
+                The current search is "{search}"), search => session('search'))
+            : __x(qq(Use this page to update all records in the
+                currently selected view. Tick the fields whose values should be
+                updated. Fields that are not ticked will retain their existing value.
+                The current view is "{view}"), view => $view_name);
         notice $notice.$count_msg;
     }
     else {
-        my $notice = __x qq(Use this page to bulk clone all of the records in
-            the currently selected view.  The cloned records will be created using
-            the same existing values by default, but replaced with the values below
-            where that value is ticked. Values that are not ticked will be cloned
-            with their current value. The current view is "{view}"), view => $view_name;
+        my $notice = session('search')
+            ? __x(qq(Use this page to bulk clone all of the records in
+                the current search results. The cloned records will be created using
+                the same existing values by default, but replaced with the values below
+                where that value is ticked. Values that are not ticked will be cloned
+                with their current value. The current search is "{search}"), search => session('search'))
+            : __x(qq(Use this page to bulk clone all of the records in
+                the currently selected view. The cloned records will be created using
+                the same existing values by default, but replaced with the values below
+                where that value is ticked. Values that are not ticked will be cloned
+                with their current value. The current view is "{view}"), view => $view_name);
         notice $notice.$count_msg;
     }
 
@@ -2125,11 +2146,6 @@ any '/edit/:id?' => require_login sub {
         my @display_on_fields;
         foreach my $col (@columns_to_show)
         {
-            # See if it depends on another value. If so, we might not have received
-            # a value, but we need to write one anyway to flag the datum having
-            # been written. We might receive this column before the one it depends on,
-            # so add it to a stash and check it once we've set all values
-            push @display_on_fields, $col if $col->display_field;
             next unless defined body_parameters->get($col->field);
             my $newv = [body_parameters->get_all($col->field)];
             if ($col->userinput && defined $newv) # Not calculated fields
@@ -2157,22 +2173,10 @@ any '/edit/:id?' => require_login sub {
                 $failed = !process( sub { $record->fields->{$col->id}->set_value(undef) } ) || $failed;
             }
         }
-        # Now check all the fields that depended on value in other fields to be
-        # displayed - see comment above
-        foreach my $col (@display_on_fields)
-        {
-            my $depends_on = $layout->column($col->display_field);
-            my $re         = $col->display_regex;
-            my $regex      = qr(^$re$);
-            # Field it depends on will have been written by now, if it is going
-            # to be at all. Check regex condition
-            my $parent_datum = $record->fields->{$col->display_field};
-            if ($parent_datum->written_to && $parent_datum->as_string !~ $regex)
-            {
-                # Doesn't match so won't have been shown, should be blank regardless
-                $record->fields->{$col->id}->set_value('');
-            }
-        }
+
+        # Call this now, to write and blank out any non-displayed values,
+        # before testing has_not_done
+        $record->set_blank_dependents;
 
         if (param('submit') eq 'back')
         {

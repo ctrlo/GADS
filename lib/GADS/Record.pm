@@ -379,7 +379,9 @@ sub _check_instance
 
 sub find_record_id
 {   my ($self, $record_id) = @_;
-    my $instance_id = $self->schema->resultset('Record')->find($record_id)->current->instance_id;
+    my $record = $self->schema->resultset('Record')->find($record_id)
+        or error __x"Record version ID {id} not found", id => $record_id;
+    my $instance_id = $record->current->instance_id;
     $self->_check_instance($instance_id);
     $self->_find(record_id => $record_id);
 }
@@ -387,7 +389,9 @@ sub find_record_id
 sub find_current_id
 {   my ($self, $current_id) = @_;
     return unless $current_id;
-    my $instance_id = $self->schema->resultset('Current')->find($current_id)->instance_id;
+    my $current = $self->schema->resultset('Current')->find($current_id)
+        or error __x"Record ID {id} not found", id => $current_id;
+    my $instance_id = $current->instance_id;
     $self->_check_instance($instance_id);
     $self->_find(current_id => $current_id);
 }
@@ -896,6 +900,11 @@ sub write
         error __"Unable to edit record that has been retrieved with rewind";
     }
 
+    # This will be called before a write for a normal edit, to allow checks on
+    # next/prev values, but we call it here again now, for other writes that
+    # haven't explicitly called it
+    $self->set_blank_dependents;
+
     # First loop round: sanitise and see which if any have changed
     my %allow_update = map { $_ => 1 } @{$options{allow_update} || []};
     my ($need_app, $need_rec, $child_unique); # Whether a new approval_rs or record_rs needs to be created
@@ -1270,6 +1279,23 @@ sub write
     $self->clear_new_entry; # written to database, no longer new
 }
 
+sub set_blank_dependents
+{   my $self = shift;
+
+    foreach my $column ($self->layout->all)
+    {
+        if (my $display_field = $column->display_field)
+        {
+            my $re           = $column->display_regex;
+            my $regex        = qr(^$re$);
+            my $parent_datum = $self->fields->{$display_field};
+            my $written_to   = $parent_datum->written_to;
+            $self->fields->{$column->id}->set_value('')
+                if $written_to && $parent_datum->value_regex_test !~ $regex;
+        }
+    }
+}
+
 sub _field_write
 {   my ($self, $column, $datum, %options) = @_;
 
@@ -1391,6 +1417,10 @@ sub delete_current
         current_id => $id
     })->all;
 
+    # Get creation details for logging at end
+    my $createdby = $self->createdby;
+    my $created   = $self->created;
+
     # Start transaction.
     # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
     # an object) and may evaluate to an empty string. If so, txn_scope_guard
@@ -1421,6 +1451,10 @@ sub delete_current
     $self->schema->resultset('AlertSend')->search({ current_id => $id })->delete;
     $self->schema->resultset('Current')->find($id)->delete;
     $guard->commit;
+
+    my $user_id = $self->user && $self->user->{id};
+    info __x"Record ID {id} deleted by user ID {user} (originally created by user ID {createdby} at {created}",
+        id => $id, user => $user_id, createdby => $createdby->id, created => $created;
 }
 
 sub _delete_record_values
