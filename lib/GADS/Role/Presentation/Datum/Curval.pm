@@ -23,16 +23,11 @@ sub presentation {
 
     my $multivalue = $self->column->multivalue;
 
-    my %presentation = (
-        type => $self->column->type,
-        text => $self->as_string
-    );
-
-    if ($multivalue) {
-        $presentation{links} = $self->_presentation_details;
-    }
-
-    return \%presentation;
+    +{
+        type  => $self->column->type,
+        text  => $self->as_string,
+        links => $self->_presentation_details,
+    };
 }
 
 1;

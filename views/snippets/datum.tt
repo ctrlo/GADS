@@ -11,13 +11,9 @@
 [% MACRO render_curval_datum(is_multivalue, curval) BLOCK %]
     [% IF curval.text.length > MORE_LESS_TRESHOLD %]
         [% WRAPPER more_less_block %]
-            [% IF is_multivalue %]
-                [% FOR link IN curval.links %]
-                    <a href="/records/[% link.id %]?oi=[% link.refers_to_instance %]">[% link.href %]</a>
-                    [% UNLESS loop.last %]; [% END %]
-                [% END %]
-            [% ELSE %]
-                [% curval.text %]
+            [% FOR link IN curval.links %]
+                <a href="/record/[% link.id %]?oi=[% link.refers_to_instance %]">[% link.href %]</a>
+                [% UNLESS loop.last %]; [% END %]
             [% END %]
         [% END %]
     [% ELSE %]
