@@ -86,6 +86,16 @@ $('#builder[% builder_id %]').queryBuilder({
         ]
 
 });
+
+[%# values for the fielter are taken from the hidden field, so ensure that
+  any freetext inputs on the visible control are copied into the hidden field
+  (which is otherwise only populated when a value is selected on the typeahead
+%]
+$(document).on("input", ".typeahead_text", function(e){
+    var value = $(this).val();
+    $(this).next('.typeahead_hidden').val(value);
+});
+
 [% UNLESS update_filter_done %]
     function UpdateFilter(builder) {
         var res = builder.queryBuilder('getRules');
