@@ -294,10 +294,30 @@ has createdby => (
     clearer => 1,
     builder => sub {
         my $self = shift;
-        return unless $self->record;
+        if (!$self->record)
+        {
+            my $user_id = $self->schema->resultset('Record')->find(
+                $self->record_id
+            )->createdby->id;
+            return $self->_construct_createdby({ id => $user_id });
+        }
         $self->fields->{-13};
     },
 );
+
+sub _construct_createdby
+{   my ($self, $value) = @_;
+    GADS::Datum::Person->new(
+        record_id        => $self->record_id,
+        current_id       => $self->current_id,
+        column           => $self->layout->column(-13),
+        schema           => $self->schema,
+        layout           => $self->layout,
+        init_value       => {
+            value => $value,
+        },
+    );
+}
 
 has created => (
     is      => 'lazy',
@@ -307,7 +327,10 @@ has created => (
 
 sub _build_created
 {   my $self = shift;
-    return unless $self->record;
+    if (!$self->record)
+    {
+        return $self->schema->resultset('Record')->find($self->record_id)->created;
+    }
     $self->schema->storage->datetime_parser->parse_datetime(
         $self->record->{created}
     );
@@ -654,14 +677,7 @@ sub _transform_values
         layout           => $self->layout,
         init_value       => [ { value => $original->{created} } ],
     );
-    $fields->{-13} = GADS::Datum::Person->new(
-        record_id        => $self->record_id,
-        current_id       => $self->current_id,
-        column           => $self->layout->column(-13),
-        schema           => $self->schema,
-        layout           => $self->layout,
-        init_value       => { value => $original->{createdby} },
-    );
+    $fields->{-13} = $self->_construct_createdby($original->{createdby});
     $fields;
 }
 

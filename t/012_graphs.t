@@ -52,6 +52,8 @@ foreach my $multivalue (0..1)
     my $layout  = $sheet->layout;
     my $columns = $sheet->columns;
     $sheet->create_records;
+    # Allow records to be deleted in test later
+    $sheet->user->{permission}->{delete_noneed_approval} = 1;
 
     # Add linked record sheet, which will contain the integer1 value for the first
     # record of the first sheet
@@ -67,7 +69,7 @@ foreach my $multivalue (0..1)
     # Create the single record of the second sheet, which will contain the single
     # integer1 value
     my $child = GADS::Record->new(
-        user   => undef,
+        user   => $sheet->user,
         layout => $layout2,
         schema => $schema,
     );
@@ -76,7 +78,7 @@ foreach my $multivalue (0..1)
     $child->write(no_alerts => 1);
     # Set the first record of the first sheet to take its value from the linked sheet
     my $parent = GADS::Records->new(
-        user   => undef,
+        user   => $sheet->user,
         layout => $layout,
         schema => $schema,
     )->single;
@@ -210,7 +212,7 @@ foreach my $multivalue (0..1)
         if (my $child2_value = $g->{child2})
         {
             $child2 = GADS::Record->new(
-                user   => undef,
+                user   => $sheet->user,
                 layout => $layout2,
                 schema => $schema,
             );
@@ -219,7 +221,7 @@ foreach my $multivalue (0..1)
             $child2->write(no_alerts => 1);
             # Set the first record of the first sheet to take its value from the linked sheet
             $parent2 = GADS::Record->new(
-                user   => undef,
+                user   => $sheet->user,
                 layout => $layout,
                 schema => $schema,
             )->find_current_id(4);
@@ -255,13 +257,13 @@ foreach my $multivalue (0..1)
                 instance_id => 1,
                 layout      => $layout,
                 schema      => $schema,
-                user        => undef,
+                user        => $sheet->user,
             );
             $view->write;
         }
 
         my $records = GADS::RecordsGroup->new(
-            user              => undef,
+            user              => $sheet->user,
             layout            => $layout,
             schema            => $schema,
         );
