@@ -43,6 +43,49 @@
     </li>
 [% END %]
 
+[% BLOCK _permissions_for_group %]
+    <div class="form-group">
+        <input data-permission-class="read" type="checkbox" id="[% group %]-can_read" 
+            name="read" [% column.group_has(group, 'read') && 'checked' %]>
+        <label for="[% group %]-can_read">Users have read access to this field</label>
+    </div>
+
+     <div class="form-group permission write-new">
+        <input data-permission-class="write-new-no-approval" type="checkbox" id="[% group %]-can_write_new_no_approval" 
+            name="write_new_no_approval" [% column.group_has(group, 'write_new_no_approval') && 'checked' %]>
+        <label for="[% group %]-can_write_new_no_approval">Values can be written to new records</label>
+
+        <div class="form-group permission">
+            <input data-permission-class="write-new" type="checkbox" id="[% group %]-can_write_new" 
+                name="write_new" [% column.group_has(group, 'write_new') && 'checked' %]>
+            <label for="[% group %]-can_write_new">Values for new records need approval</label>
+        </div>
+    </div>
+
+    <div class="form-group permission modify-existing">
+        <input data-permission-class="write-existing-no-approval" type="checkbox" id="[% group %]-can_write_existing_no_approval" 
+            name="write_existing_no_approval" [% column.group_has(group, 'write_existing_no_approval') && 'checked' %]>
+        <label for="[% group %]-can_write_existing_no_approval">Existing values can be modified</label>
+
+        <div class="form-group permission">
+            <input data-permission-class="write-existing" type="checkbox" id="[% group %]-can_write_existing" name="write_existing" [% column.group_has(group, 'write_existing') && 'checked' %]>
+            <label for="[% group %]-can_write_existing">Modifications need approval</label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <input data-permission-class="approve-new" type="checkbox" id="[% group %]-can_approve_new" 
+            name="approve_new" [% column.group_has(group, 'approve_new') && 'checked' %]>
+        <label for="[% group %]-can_approve_new">Users can approve new values</label>
+    </div>
+
+    <div class="form-group">
+        <input data-permission-class="approve-existing" type="checkbox" id="[% group %]-can_approve_existing" 
+            name="approve_existing" [% column.group_has(group, 'approve_existing') && 'checked' %]>
+        <label for="[% group %]-can_approve_existing">Users can approve modifications</label>
+    </div>
+[% END %]
+
 [% BLOCK _permission_configuration %]
     <h4 tabindex="-1">Add permissions</h4>
 
@@ -103,59 +146,46 @@
     %]
 
         [% IF column.permissions.size %]
-        <section id="current-permissions">
-            <h5>Current permissions</h5>
-            <div class="legend">
-                <h6>Abbreviations</h6>
-                <dl>
-                    <dt>R:</dt>
-                    <dd>Read values</dd>
-
-                    <dt>C:</dt>
-                    <dd>Enter values for new records without requiring approval</dd>
-
-                    <dt>E:</dt>
-                    <dd>Edit values of existing records without requiring approval</dd>
-
-                    <dt>C+A:</dt>
-                    <dd>Write values for new records</dd>
-
-                    <dt>E+A:</dt>
-                    <dd>Edit values of existing records</ds>
-
-                    <dt>A(N):</dt>
-                    <dd>Approve values in new records</dd>
-
-                    <dt>A(E):</dt>
-                    <dd>Approve changes in existing records</dd>
-                </dl>
-            </div>
+        <div id="current-permissions">
             <ul>
                 [% FOREACH group IN groups.all %]
                     [% group_id = group.id %]
                     [% permissions = column.permissions.$group_id %]
                     [% NEXT UNLESS permissions %]
-                <li data-group-id="[% group_id %]" class="permission">
+                    
+                    [% permission_classes = '' %]
+                    
+                    [% FOREACH permission IN permissions %]
+                        [% short = permission.short %]
+                        [% permission_classes = permission_classes _ ' ' _ 'permission-' _ short.replace('_','-') %]
+                    [% END %]
+ 
+                <li data-group-id="[% group_id %]" class="permission [% permission_classes %]">
                     <div class="summary">
                         <h6 class="group-name">[% group.name %]</h6>
-                        <span class="configuration">
+                        <div class="configuration">
                             [% FOREACH permission IN permissions %]
                             [% short = permission.short %]
                             [% abbr = permission_mapping.$short %]
-                            <span tabindex="0" class="abbreviation" role="tooltip" aria-describedby="[% group_id %]_permission_[% short %]">
+                            [% short_class = short.replace('_','-') %]
+                            <span tabindex="0" class="abbreviation abbreviation-[% short_class %]" 
+                                role="tooltip" aria-describedby="[% group_id %]_permission_[% short %]">
                                 [% abbr %]
                             </span>
                             <span id="[% group_id %]_permission_[% short %]" class="visually-hidden tooltip">[% permission.long | html %]</span>
                             [% END %]
-                        </span>
+                        </div>
                     </div>
-                    <button type="button" class="pull-right btn btn-sm btn-primary trigger" aria-expanded="false">Change &rarr;</button>
+                    <button type="button" class="edit pull-right btn btn-sm btn-primary trigger" aria-expanded="false">Change &rarr;</button>
                     <div class="expandable">
+                        <h7 tabindex="-1">Change permissions</h7>
+                        [% PROCESS _permissions_for_group group = group_id %]
+                        <button type="button" class="ok btn btn-sm btn-primary">Ok</button>
                     </div>
                 </li>
                 [% END %]
             </ul>
-        </section>
+        </div>
 
         [% END %]
     [% ELSE # no column %]

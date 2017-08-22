@@ -1530,6 +1530,16 @@ small.search_term {
     margin: 0 .2em;
 }
 
+@each $abbr-type in read write-new write-existing approve-new approve-existing write-new-no-approval write-existing-no-approval {
+    #current-permissions .permission-#{$abbr-type} .abbreviation-#{$abbr-type} { display: inline; }
+}
+
+#current-permissions .abbreviation,
+#current-permissions .permission.edit .configuration,
+#current-permissions .permission.edit button.edit {
+    display: none;
+}
+
 #current-permissions .legend dd,
 #current-permissions .legend dt {
     display: inline-block;
@@ -1546,6 +1556,7 @@ small.search_term {
 #current-permissions .configuration {
     position: relative;
 }
+
 
 @mixin visually-unhide {
     clip: auto;

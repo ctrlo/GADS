@@ -56,6 +56,36 @@ Linkspace.layout = function () {
         $(target).find('h3').focus();
         $(this).remove();
     });
+    $('#current-permissions .permission').each(function () {
+        var $permission = $(this);
+        var $editButton  = $permission.find('button.edit');
+        var $okButton    = $permission.find('button.ok');
+
+        $permission.find('input').on('change', function () {
+            var pClass = 'permission-' + $(this).data('permission-class');
+            var checked = $(this).prop('checked');
+            $permission.toggleClass(pClass, checked);
+
+            if (checked) { return; }
+
+            $(this).siblings('div').find('input').each(function () {
+                $(this).prop(checked);
+                pClass = 'permission-' + $(this).data('permission-class');
+                $permission.toggleClass(pClass, checked);
+            });
+        });
+
+        $editButton.on('expand', function (event, target) {
+            $permission.addClass('edit');
+            $permission.find('h7').focus();
+        });
+
+        $okButton.on('click', function (event) {
+            $permission.removeClass('edit');
+            $okButton.parent().removeClass('expanded');
+            $editButton.attr('aria-expanded', false).focus();
+        });
+    });
 };
 
 $(Linkspace.init);

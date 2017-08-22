@@ -1415,6 +1415,32 @@ small.search_term {
   cursor: help;
   margin: 0 .2em; }
 
+#current-permissions .permission-read .abbreviation-read {
+  display: inline; }
+
+#current-permissions .permission-write-new .abbreviation-write-new {
+  display: inline; }
+
+#current-permissions .permission-write-existing .abbreviation-write-existing {
+  display: inline; }
+
+#current-permissions .permission-approve-new .abbreviation-approve-new {
+  display: inline; }
+
+#current-permissions .permission-approve-existing .abbreviation-approve-existing {
+  display: inline; }
+
+#current-permissions .permission-write-new-no-approval .abbreviation-write-new-no-approval {
+  display: inline; }
+
+#current-permissions .permission-write-existing-no-approval .abbreviation-write-existing-no-approval {
+  display: inline; }
+
+#current-permissions .abbreviation,
+#current-permissions .permission.edit .configuration,
+#current-permissions .permission.edit button.edit {
+  display: none; }
+
 #current-permissions .legend dd,
 #current-permissions .legend dt {
   display: inline-block; }
