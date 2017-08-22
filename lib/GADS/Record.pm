@@ -1378,22 +1378,20 @@ sub _field_write
                 record_id => $entry->{record_id},
                 layout_id => $entry->{layout_id},
             })->all;
-            if (@rows)
+            foreach my $row (@rows)
             {
-                panic "Database error: multiple values for record ID {record_id} field {layout_id}",
-                    record_id => $entry->{record_id}, layout_id => $entry->{layout_id} if @rows > 1;
-                my ($row) = @rows;
-                $row->update($entry);
-            }
-            else {
-                # Doesn't exist, probably new column since record was written
-                $create = 1;
+                if (my $entry = pop @entries)
+                {
+                    $row->update($entry);
+                }
+                else {
+                    $row->delete; # Now less values than before
+                }
             }
         }
-        if (!$options{update_only} || $create) {
-            $self->schema->resultset($table)->create($_)
-                foreach @entries;
-        }
+        # For update_only, there might still be some @entries to be written
+        $self->schema->resultset($table)->create($_)
+            foreach @entries;
     }
     else {
         $datum->record_id($self->record_id);
