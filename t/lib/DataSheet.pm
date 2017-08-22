@@ -175,6 +175,11 @@ has multivalue => (
     default => 0,
 );
 
+has user_permission_override => (
+    is      => 'ro',
+    default => 1,
+);
+
 has config => (
     is => 'lazy',
 );
@@ -219,11 +224,11 @@ sub _build_layout
     });
 
     GADS::Layout->new(
-        user                     => undef,
+        user                     => $self->user,
         schema                   => $self->schema,
         config                   => $self->config,
         instance_id              => $self->instance_id,
-        user_permission_override => 1,
+        user_permission_override => $self->user_permission_override,
     );
 }
 
@@ -244,7 +249,7 @@ sub __build_columns
     my $schema      = $self->schema;
     my $layout      = $self->layout;
     my $instance_id = $self->instance_id;
-    my $permissions = [qw/read/];
+    my $permissions = [qw/read write_new write_existing write_new_no_approval write_existing_no_approval/];
 
     my $columns = {};
 

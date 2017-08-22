@@ -1145,6 +1145,7 @@ sub write
                 if (
                     ($self->new_entry && $column->user_can('write_new_no_approval'))
                     || (!$self->new_entry && $column->user_can('write_existing_no_approval'))
+                    || (!$column->userinput)
                 )
                 {
                     # Write new value

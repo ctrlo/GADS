@@ -74,7 +74,7 @@ my $data = [
     },
 ];
 
-my $sheet = t::lib::DataSheet->new(data => $data);
+my $sheet = t::lib::DataSheet->new(data => $data, user_permission_override => 0);
 
 my $schema = $sheet->schema;
 my $layout = $sheet->layout;
