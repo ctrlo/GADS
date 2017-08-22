@@ -167,7 +167,6 @@
     </div>
     <div class="field-options enum">
         <h4>Dropdown field options</h4>
-        <div class="col-md-11">
             <div class="form-group">
                 <label for="enumval">Order dropdown values:</label>
                 <select class="form-control" name="ordering">
@@ -176,25 +175,20 @@
                     <option value="desc" [% IF column.ordering == "desc" %]selected[% END %]>Descending</option>
                 </select>
             </div>
-        </div>
-        <div class="col-md-11">
+        <div>
             <label for="enumval">Add dropdown values:</label>
         </div>
         <div id="legs">
             [% FOREACH enumval IN column.enumvals %]
                 [% UNLESS enumval.deleted %]
                     <div class="request-row">
-                            <div class="col-md-11">
-                                <p>
-                                <input type="text" class="form-control" name="enumval[% enumval.id %]" value="[% enumval.value | html_entity %]">
-                                </p>
-                            </div>
-                            <button type="button" class="close closeme pull-left">&times;</button>
+                        <input type="text" class="form-control" name="enumval[% enumval.id %]" value="[% enumval.value | html_entity %]">
+                        <button type="button" class="close closeme">&times;</button>
                     </div>
                 [% END %]
             [% END %]
             <div class="request-add">
-                    <div class="col-md-11">
+                    <div class="">
                         <button type="button" class="btn btn-default add">
                             Add value
                         </button>

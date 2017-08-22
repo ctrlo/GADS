@@ -39,14 +39,12 @@
                     <label for="[% perm %]-can_approve_edits">Modifications need approval</label>
                 </div>
             </div>
-
-                
         </section>
     </li>
 [% END %]
 
 [% BLOCK _permission_configuration %]
-    <h4 tabindex="-1">Configure permissions</h4>
+    <h4 tabindex="-1">Add permissions</h4>
 
     <p>Here you can create rules to define the access of group members to this field.</p>
     <p>No user has access to this field, unless explicitly defined.</p>
@@ -60,7 +58,10 @@
             [% END %]
         </ul>
         [% END %]
-        <button type="button" class="btn btn-default add-permission">Add rule</button>
+        <button id="add-permission-rule" type="button" class="btn btn-default add-permission">Add rule</button>
+        <script type="html/template" id="permission-rule-template">
+        </script>
+
     [% ELSE %]
         <p>No groups have been created yet. <a href="/group">Create a group.</a></p>
     [% END %]
@@ -89,16 +90,73 @@
             </ul>
         [% END %]
 
+    [% 
+        permission_mapping = {
+            read                       => 'R',
+            write_new                  => 'C+A',
+            write_existing             => 'E+A',
+            approve_new                => 'A(N)',
+            approve_existing           => 'A(E)',
+            write_new_no_approval      => 'C',
+            write_existing_no_approval => 'E'
+        }
+    %]
+
         [% IF column.permissions.size %]
         <section id="current-permissions">
-            <h4>Groups that can read:</h4>
-            [% group_list(column.group_summary('read')) %]
+            <h5>Current permissions</h5>
+            <div class="legend">
+                <h6>Abbreviations</h6>
+                <dl>
+                    <dt>R:</dt>
+                    <dd>Read values</dd>
 
-            <h4>Groups that can write new values:</h4>
-            [% group_list(column.group_summary('write_new')) %]
+                    <dt>C:</dt>
+                    <dd>Enter values for new records without requiring approval</dd>
 
-            <h4>Groups that can write existing values:</h4>
-            [% group_list(column.group_summary('write_existing')) %]
+                    <dt>E:</dt>
+                    <dd>Edit values of existing records without requiring approval</dd>
+
+                    <dt>C+A:</dt>
+                    <dd>Write values for new records</dd>
+
+                    <dt>E+A:</dt>
+                    <dd>Edit values of existing records</ds>
+
+                    <dt>A(N):</dt>
+                    <dd>Approve values in new records</dd>
+
+                    <dt>A(E):</dt>
+                    <dd>Approve changes in existing records</dd>
+                </dl>
+            </div>
+            <ul>
+                [% FOREACH group IN groups.all %]
+                    [% group_id = group.id %]
+                    [% permissions = column.permissions.$group_id %]
+                    [% NEXT UNLESS permissions %]
+                <li data-group-id="[% group_id %]" class="permission">
+                    <div class="summary">
+                        <h6 class="group-name">[% group.name %]</h6>
+                        <span class="configuration">
+                            [% FOREACH permission IN permissions %]
+                            [% short = permission.short %]
+                            [% abbr = permission_mapping.$short %]
+                            <span tabindex="0" class="abbreviation" role="tooltip" aria-describedby="[% group_id %]_permission_[% short %]">
+                                <span style="font-weight: bold" aria-hidden="true">[</span>
+                                [% abbr %]
+                                <span style="font-weight: bold" aria-hidden="true">]</span>
+                            </span>
+                            <span id="[% group_id %]_permission_[% short %]" class="visually-hidden tooltip">[% permission.long | html %]</span>
+                            [% END %]
+                        </span>
+                    </div>
+                    <button type="button" class="pull-right btn btn-sm btn-primary trigger" aria-expanded="false">Change &rarr;</button>
+                    <div class="expandable">
+                    </div>
+                </li>
+                [% END %]
+            </ul>
         </section>
 
         [% END %]
@@ -108,7 +166,7 @@
     [% END %]
 
     [% IF groups.all.size %]
-        <button id="configure-permissions" type="button" class="btn btn-default">Configure permissions</button>
+        <button id="configure-permissions" type="button" class="btn btn-default">Add permissions</button>
         <section id="permission-configuration" hidden>
             [% PROCESS _permission_configuration %]
         </section>
