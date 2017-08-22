@@ -143,9 +143,7 @@
                             [% short = permission.short %]
                             [% abbr = permission_mapping.$short %]
                             <span tabindex="0" class="abbreviation" role="tooltip" aria-describedby="[% group_id %]_permission_[% short %]">
-                                <span style="font-weight: bold" aria-hidden="true">[</span>
                                 [% abbr %]
-                                <span style="font-weight: bold" aria-hidden="true">]</span>
                             </span>
                             <span id="[% group_id %]_permission_[% short %]" class="visually-hidden tooltip">[% permission.long | html %]</span>
                             [% END %]

@@ -1524,7 +1524,8 @@ small.search_term {
 }
 
 .permission .abbreviation {
-    border-bottom: 1px dashed #000;
+    border: 1px dashed #000;
+    padding: .2em;
     cursor: help;
     margin: 0 .2em;
 }
