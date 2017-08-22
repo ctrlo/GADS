@@ -23,7 +23,7 @@ sub _records
     @results;
 }
 
-my $sheet   = t::lib::DataSheet->new();
+my $sheet   = t::lib::DataSheet->new(multivale => 1);
 my $schema  = $sheet->schema;
 my $columns = $sheet->columns;
 my $layout  = $sheet->layout;
@@ -58,12 +58,21 @@ is( $parent->fields->{$calc1_id}->as_string, 2012, "Parent calc value is correct
 is( $child->fields->{$calc1_id}->as_string, 2011, "Child calc value is correct after first write");
 my $string1_id = $columns->{string1}->id;
 is( $parent->fields->{$string1_id}->as_string, $child->fields->{$string1_id}->as_string, "Parent and child strings are the same");
+my $enum1_id = $columns->{enum1}->id;
+is( $parent->fields->{$enum1_id}->as_string, $child->fields->{$enum1_id}->as_string, "Parent and child enums are the same");
+my $tree1_id = $columns->{tree1}->id;
+is( $parent->fields->{$tree1_id}->as_string, $child->fields->{$tree1_id}->as_string, "Parent and child trees are the same");
+my $date1_id = $columns->{date1}->id;
+is( $parent->fields->{$date1_id}->as_string, $child->fields->{$date1_id}->as_string, "Parent and child dates are the same");
 my $rag1_id = $columns->{rag1}->id;
 isnt( $parent->fields->{$rag1_id}->as_string, $child->fields->{$rag1_id}->as_string, "Parent and child rags are different");
 
 # Now update parent daterange and strings and check relevant changes in child
 $parent->fields->{$daterange1_id}->set_value(['2000-01-01', '2000-02-02']);
 $parent->fields->{$string1_id}->set_value('foo2');
+$parent->fields->{$enum1_id}->set_value('2');
+$parent->fields->{$tree1_id}->set_value('5');
+$parent->fields->{$date1_id}->set_value('2017-04-05');
 $parent->write(no_alerts => 1);
 
 # And fetch records again for testing
@@ -73,7 +82,22 @@ isnt( $parent->fields->{$calc1_id}->as_string, $child->fields->{$calc1_id}->as_s
 is( $parent->fields->{$calc1_id}->as_string, 2000, "Parent calc value is correct after second write");
 is( $child->fields->{$calc1_id}->as_string, 2011, "Child calc value is correct after second write");
 is( $parent->fields->{$string1_id}->as_string, $child->fields->{$string1_id}->as_string, "Parent and child strings are the same");
+is( $parent->fields->{$enum1_id}->as_string, $child->fields->{$enum1_id}->as_string, "Parent and child enums are the same");
+is( $parent->fields->{$tree1_id}->as_string, $child->fields->{$tree1_id}->as_string, "Parent and child trees are the same");
+is( $parent->fields->{$date1_id}->as_string, $child->fields->{$date1_id}->as_string, "Parent and child dates are the same");
 is( $child->fields->{$rag1_id}->as_string, 'b_red', "Child rag is red"); # Same as parent even though DR different
+
+# Test multivalue field
+# First, a second value
+$parent->fields->{$enum1_id}->set_value([qw/2 3/]);
+$parent->write(no_alerts => 1);
+($parent, $other, $child) = _records($schema, $layout, 3);
+is( $parent->fields->{$enum1_id}->as_string, $child->fields->{$enum1_id}->as_string, "Parent and child enums are the same");
+# And second, back to a single value
+$parent->fields->{$enum1_id}->set_value('3');
+$parent->write(no_alerts => 1);
+($parent, $other, $child) = _records($schema, $layout, 3);
+is( $parent->fields->{$enum1_id}->as_string, $child->fields->{$enum1_id}->as_string, "Parent and child enums are the same");
 
 # Now change unique field and check values
 $child->fields->{$daterange1_id}->child_unique(0);

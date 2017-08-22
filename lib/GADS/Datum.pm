@@ -213,11 +213,12 @@ sub clone
     # This will be called from a child class, in which case @extra can specify
     # additional attributes specific to that class
     ref($self)->new(
-        record     => $self->record,
-        column     => $self->column,
-        record_id  => $self->record_id,
-        current_id => $self->current_id,
-        blank      => $self->blank,
+        record         => $self->record,
+        column         => $self->column,
+        record_id      => $self->record_id,
+        current_id     => $self->current_id,
+        blank          => $self->blank,
+        ready_to_write => $self->ready_to_write,
         @extra
     );
 }

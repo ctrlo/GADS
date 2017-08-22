@@ -127,6 +127,7 @@ has user_permissions => (
 has user_permissions_cache => (
     is      => 'rw',
     isa     => HashRef,
+    clearer => 1,
     default => sub { {} },
 );
 
@@ -199,6 +200,7 @@ sub clear
 {   my $self = shift;
     $self->clear_columns;
     $self->clear_indexes;
+    $self->clear_user_permissions_cache;
 }
 
 # Instantiate new class. This builds a list of all

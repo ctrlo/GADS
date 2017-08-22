@@ -23,6 +23,8 @@ use DateTime;
 use DateTime::Format::Strptime qw( );
 use DBIx::Class::Helper::ResultSet::Util qw(correlate);
 use DBIx::Class::ResultClass::HashRefInflator;
+use GADS::Config;
+use GADS::Graph::Data;
 use GADS::Record;
 use GADS::View;
 use HTML::Entities;
@@ -831,6 +833,7 @@ sub _query_params
     {
         if ($c->type eq "date" || $c->type eq "daterange")
         {
+            my $dateformat = GADS::Config->instance->dateformat;
             # Apply any date filters if required
             my @f;
             if (my $to = $self->to)
@@ -838,7 +841,7 @@ sub _query_params
                 my $f = {
                     id       => $c->id,
                     operator => 'less_or_equal',
-                    value    => $self->schema->storage->datetime_parser->format_date($to),
+                    value    => $to->format_cldr($dateformat),
                 };
                 push @f, $f;
             }
@@ -847,7 +850,7 @@ sub _query_params
                 my $f = {
                     id       => $c->id,
                     operator => 'greater_or_equal',
-                    value    => $self->schema->storage->datetime_parser->format_date($from),
+                    value    => $from->format_cldr($dateformat),
                 };
                 push @f, $f;
             }
