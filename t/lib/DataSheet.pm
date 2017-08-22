@@ -175,6 +175,12 @@ has multivalue => (
     default => 0,
 );
 
+# Whether columns should be optional
+has optional => (
+    is      => 'ro',
+    default => 1,
+);
+
 has user_permission_override => (
     is      => 'ro',
     default => 1,
@@ -254,9 +260,10 @@ sub __build_columns
     my $columns = {};
 
     my $string1 = GADS::Column::String->new(
-        schema => $schema,
-        user   => undef,
-        layout => $layout,
+        optional => $self->optional,
+        schema   => $schema,
+        user     => undef,
+        layout   => $layout,
     );
     $string1->type('string');
     $string1->name('string1');
@@ -271,9 +278,10 @@ sub __build_columns
         unless $self->no_groups;
 
     my $integer1 = GADS::Column::Intgr->new(
-        schema => $schema,
-        user   => undef,
-        layout => $layout,
+        optional => $self->optional,
+        schema   => $schema,
+        user     => undef,
+        layout   => $layout,
     );
     $integer1->type('intgr');
     $integer1->name('integer1');
@@ -290,9 +298,10 @@ sub __build_columns
     foreach my $count (1..$self->column_count->{enum})
     {
         my $enum = GADS::Column::Enum->new(
-            schema => $schema,
-            user   => undef,
-            layout => $layout,
+            optional => $self->optional,
+            schema   => $schema,
+            user     => undef,
+            layout   => $layout,
         );
         $enum->type('enum');
         $enum->name("enum$count");
@@ -321,9 +330,10 @@ sub __build_columns
     }
 
     my $tree1 = GADS::Column::Tree->new(
-        schema => $schema,
-        user   => undef,
-        layout => $layout,
+        optional => $self->optional,
+        schema   => $schema,
+        user     => undef,
+        layout   => $layout,
     );
     $tree1->type('tree');
     $tree1->name('tree1');
@@ -356,18 +366,20 @@ sub __build_columns
     }]);
     # Reload to get tree built etc
     $tree1 = GADS::Column::Tree->new(
-        schema => $schema,
-        user   => undef,
-        layout => $layout,
+        optional => $self->optional,
+        schema   => $schema,
+        user     => undef,
+        layout   => $layout,
     );
     $tree1->from_id($tree_id);
     $tree1->set_permissions($self->group->id, $permissions)
         unless $self->no_groups;
 
     my $date1 = GADS::Column::Date->new(
-        schema => $schema,
-        user   => undef,
-        layout => $layout,
+        optional => $self->optional,
+        schema   => $schema,
+        user     => undef,
+        layout   => $layout,
     );
     $date1->type('date');
     $date1->name('date1');
@@ -381,9 +393,10 @@ sub __build_columns
         unless $self->no_groups;
 
     my $daterange1 = GADS::Column::Daterange->new(
-        schema => $schema,
-        user   => undef,
-        layout => $layout,
+        optional => $self->optional,
+        schema   => $schema,
+        user     => undef,
+        layout   => $layout,
     );
     $daterange1->type('daterange');
     $daterange1->name('daterange1');
@@ -398,9 +411,10 @@ sub __build_columns
         unless $self->no_groups;
 
     my $file1 = GADS::Column::File->new(
-        schema => $schema,
-        user   => undef,
-        layout => $layout,
+        optional => $self->optional,
+        schema   => $schema,
+        user     => undef,
+        layout   => $layout,
     );
     $file1->type('file');
     $file1->name('file1');
@@ -414,9 +428,10 @@ sub __build_columns
         unless $self->no_groups;
 
     my $person1 = GADS::Column::Person->new(
-        schema => $schema,
-        user   => undef,
-        layout => $layout,
+        optional => $self->optional,
+        schema   => $schema,
+        user     => undef,
+        layout   => $layout,
     );
     $person1->type('person');
     $person1->name('person1');
@@ -435,6 +450,7 @@ sub __build_columns
         foreach my $count (1..$self->column_count->{curval})
         {
             my $curval = GADS::Column::Curval->new(
+                optional   => $self->optional,
                 schema     => $self->schema,
                 user       => undef,
                 layout     => $self->layout,
