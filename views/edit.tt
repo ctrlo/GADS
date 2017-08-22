@@ -432,7 +432,7 @@
         <div class="row">
             <div class="[% IF dispcol.multivalue AND dispcol.has_multivalue_plus %]col-md-10[% ELSE %]col-md-12[% END %]">
                 [% IF dispcol.type == "enum" %]
-                    <select class="form-control [% IF dispcol.multivalue %]selectpicker [% END %]" name="[% field %]" id="[% dispcol.id %]" [% readonly %] [% IF dispcol.multivalue %]multiple[% END %]>
+                    <select class="form-control [% IF dispcol.multivalue %]selectpicker [% END %]" name="[% field %]" id="[% dispcol.id %]" [% IF readonly %]disabled[% END %] [% IF dispcol.multivalue %]multiple[% END %]>
                         [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
                             [% IF !dispcol.multivalue %]
                                 <option></option>
@@ -465,7 +465,7 @@
                             <input type="hidden" name="[% field %]">
                         [% END %]
                         <select class="form-control [% IF dispcol.multivalue %]selectpicker [% END %]"
-                            name="[% field %]" id="[% dispcol.id %]" [% readonly %]
+                            name="[% field %]" id="[% dispcol.id %]" [% IF readonly %]disabled[% END %]
                             [% IF dispcol.multivalue %]
                                 data-multiple-separator="; " data-window-padding="70"
                                 multiple
