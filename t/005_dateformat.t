@@ -122,6 +122,20 @@ foreach my $format (qw/yyyy-MM-dd dd-MM-yyyy/)
     my $date_id = $columns->{date1}->id;
     is( $record->fields->{$date_id}->as_string, $test->{retrieved}->{date}, "Date format correct for retrieved record");
 
+    # Check additional date filter as used in calendar
+    $records = GADS::Records->new(
+        user    => undef,
+        view    => $view,
+        from    => DateTime->new(year => 2010, month => 10, day => 1),
+        to      => DateTime->new(year => 2010, month => 11, day => 1),
+        layout  => $layout,
+        schema  => $schema,
+    );
+    is( $records->count, 1, "Correct number of records for date filter and additional search");
+    is( @{$records->data_calendar}, 1, "Correct number of records for date filter and additional search");
+    $records->from(undef);
+    $records->to(undef);
+
     # check format of daterange column with search
     $rules = encode_json({
         rules => [
