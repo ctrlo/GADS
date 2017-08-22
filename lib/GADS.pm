@@ -2749,8 +2749,12 @@ sub current_view {
         layout      => $layout,
         instance_id => session('persistent')->{instance_id},
     );
-    my $view       = $views->view(session('persistent')->{view}->{$layout->instance_id}) || $views->default; # Can still be undef
-    $view;
+    my $view;
+    # If an invalid view is stuck in the session, then this can result in the
+    # user in a continuous loop unable to open any other views
+    try { $view = $views->view(session('persistent')->{view}->{$layout->instance_id}) };
+    $@->reportAll(is_fatal => 0); # XXX results in double reporting
+    return $view || $views->default; # Can still be undef
 };
 
 sub forwardHome {
