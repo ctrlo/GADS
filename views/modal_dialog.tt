@@ -9,16 +9,19 @@
     # modal_with_form:          whether to wrap the content in a form
     # modal_form_action:        custom form endpoint
     # modal_form_method:        custom form method
+    # modal_large:              whether a large modal should be rendered
 %]
 
 <div class="modal fade" id="[% modal_id %]" tabindex="-1" role="dialog" aria-labelledby="[% modal_id %]_heading" style="display:none">
-    <div class="modal-dialog">
+    <div class="modal-dialog [% IF modal_large %]modal-lg[% END %]">
         <div class="modal-content">
         [% IF modal_with_form %]
             <form class="form" [% modal_form_action && 'action="$modal_form_action"' %] method="[% modal_form_method || 'get' %]">
         [% END %]
             <div class="modal-header">
-                <h1 class="modal-title" id="[% modal_id %]_heading">[% modal_heading | html %]</h1>
+                [% IF modal_heading %]
+                    <h1 class="modal-title" id="[% modal_id %]_heading">[% modal_heading | html %]</h1>
+                [% END %]
                 <button type="button" class="close" data-dismiss="modal">
                     <span class="close-mark" aria-hidden="true">&times;</span>
                     close

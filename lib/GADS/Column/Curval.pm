@@ -329,6 +329,22 @@ sub _build_values_index
     \%values;
 }
 
+# Whether any of the drop-down items have subvalues (small text). If so,
+# drop-down will be displayed using the selectpicker, to render better.
+has has_subvalues => (
+    is  => 'lazy',
+    isa => Bool,
+);
+
+sub _build_has_subvalues
+{   my $self = shift;
+    # Always if multivalue to allow multiple select
+    return 1 if $self->multivalue;
+    # Always if more fields available then ones selected
+    return 1 if @{$self->curval_fields} < $self->layout_parent->all;
+    !! grep { $_->{subvalue} } @{$self->filtered_values};
+}
+
 sub filter_value_to_text
 {   my ($self, $id) = @_;
     $id or return '';
