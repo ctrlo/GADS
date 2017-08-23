@@ -302,11 +302,7 @@ sub get_user_perms
     unless ($cache->{$user_id})
     {
         # Construct a hash with all the permissions for the different columns
-        my $perms_rs = $self->schema->resultset('User')->search({
-            'me.id' => $user_id,
-        }, {
-            prefetch => { user_groups => { group => 'layout_groups' } },
-        });
+        my $perms_rs = $self->_user_perm_search($user_id);
         $perms_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
         my ($user_perms) = $perms_rs->all; # The overall user. Only one due to query.
         my %perms; # Hash of different columns and their permissions
@@ -461,14 +457,21 @@ sub user_can
     {
         # Full layout has not been built. Shortcut to just a simple
         # SQL query instead
-        return $self->schema->resultset('UserGroup')->search({
-            user_id    => $self->user->{id},
-            permission => $permission,
-        },{
-            join => { group => 'layout_groups' },
+        return $self->_user_perm_search($self->user->{id})->search({
+            'layout_groups.permission' => $permission,
         })->count;
     }
     $self->user_permissions->{$permission};
+}
+
+sub _user_perm_search
+{   my ($self, $user_id) = @_;
+    $self->schema->resultset('User')->search({
+        'me.id'              => $user_id,
+        'layout.instance_id' => $self->instance_id,
+    }, {
+        prefetch => { user_groups => { group => { 'layout_groups' => 'layout' } } },
+    });
 }
 
 1;
