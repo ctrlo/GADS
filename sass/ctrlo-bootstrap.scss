@@ -1530,8 +1530,13 @@ small.search_term {
     margin: 0 .2em;
 }
 
-@each $abbr-type in read write-new write-existing approve-new approve-existing write-new-no-approval write-existing-no-approval {
+@each $abbr-type in read approve-new approve-existing write-new write-new-no-approval write-existing write-existing-no-approval {
     #current-permissions .permission-#{$abbr-type} .abbreviation-#{$abbr-type} { display: inline; }
+}
+
+#current-permissions .permission.permission-write-new .abbreviation-write-new-no-approval,
+#current-permissions .permission.permission-write-existing .abbreviation-write-existing-no-approval {
+    display: none;
 }
 
 #current-permissions .abbreviation,
