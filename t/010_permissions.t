@@ -100,7 +100,9 @@ foreach my $group (@{$groups->all})
 # Should be 3 groups rows now
 is( $schema->resultset('UserGroup')->count, 3, "Correct number of permissions added");
 
-foreach my $column ($layout->all)
+# Write groups such that the limited group only has read/write access to one
+# field in the main sheet, but not the curval sheet
+foreach my $column ($layout->all, $curval_sheet->layout->all)
 {
     # Read only
     my $read = [qw/read/];
@@ -109,9 +111,12 @@ foreach my $column ($layout->all)
     /];
     $column->set_permissions($groups{read}, $read);
     $column->set_permissions($groups{limited}, $all)
-        if $column->name eq 'string1';
+        if $column->name eq 'string1' && $column->layout->instance_id != $curval_sheet->instance_id;
     $column->set_permissions($groups{readwrite}, $all);
 }
+# Turn off the permission override on the curval sheet so that permissions are
+# actually tested (turned on initially to populate records)
+$curval_sheet->layout->user_permission_override(0);
 
 my $data_set = 'b';
 foreach my $user_type (keys %users)
@@ -125,6 +130,39 @@ foreach my $user_type (keys %users)
         config      => GADS::Config->instance,
         instance_id => $sheet->instance_id,
     );
+    my $layout_curval = GADS::Layout->new(
+        user        => $user,
+        schema      => $schema,
+        config      => GADS::Config->instance,
+        instance_id => $curval_sheet->instance_id,
+    );
+
+    # Check overall layout permissions. Having all the columns built in a
+    # layout will affect how permissions are checked, so test both
+    foreach my $with_columns (0..1)
+    {
+        if ($with_columns)
+        {
+            $layout->columns;
+            $layout_curval->columns;
+        }
+        if ($user_type eq 'read')
+        {
+            ok(!$layout->user_can('write_existing'), "User $user_type cannot write to anything");
+        }
+        else {
+            ok($layout->user_can('write_existing'), "User $user_type can write to something in layout");
+        }
+        if ($user_type eq 'readwrite')
+        {
+            ok($layout_curval->user_can('write_existing'), "User $user_type can write to something in layout");
+        }
+        else {
+            ok(!$layout_curval->user_can('write_existing'), "User $user_type cannot write to anything");
+        }
+        $layout->clear;
+        $layout_curval->clear;
+    }
 
     # Check that user has access to all curval values
     my $curval_column = $columns->{curval1};

@@ -294,10 +294,30 @@ has createdby => (
     clearer => 1,
     builder => sub {
         my $self = shift;
-        return unless $self->record;
+        if (!$self->record)
+        {
+            my $user_id = $self->schema->resultset('Record')->find(
+                $self->record_id
+            )->createdby->id;
+            return $self->_construct_createdby({ id => $user_id });
+        }
         $self->fields->{-13};
     },
 );
+
+sub _construct_createdby
+{   my ($self, $value) = @_;
+    GADS::Datum::Person->new(
+        record_id        => $self->record_id,
+        current_id       => $self->current_id,
+        column           => $self->layout->column(-13),
+        schema           => $self->schema,
+        layout           => $self->layout,
+        init_value       => {
+            value => $value,
+        },
+    );
+}
 
 has created => (
     is      => 'lazy',
@@ -307,7 +327,10 @@ has created => (
 
 sub _build_created
 {   my $self = shift;
-    return unless $self->record;
+    if (!$self->record)
+    {
+        return $self->schema->resultset('Record')->find($self->record_id)->created;
+    }
     $self->schema->storage->datetime_parser->parse_datetime(
         $self->record->{created}
     );
@@ -448,6 +471,7 @@ sub clear
     $self->clear_created;
     $self->clear_is_historic;
     $self->clear_new_entry;
+    $self->clear_editor_shown_fields;
 }
 
 sub _find
@@ -654,14 +678,7 @@ sub _transform_values
         layout           => $self->layout,
         init_value       => [ { value => $original->{created} } ],
     );
-    $fields->{-13} = GADS::Datum::Person->new(
-        record_id        => $self->record_id,
-        current_id       => $self->current_id,
-        column           => $self->layout->column(-13),
-        schema           => $self->schema,
-        layout           => $self->layout,
-        init_value       => { value => $original->{createdby} },
-    );
+    $fields->{-13} = $self->_construct_createdby($original->{createdby});
     $fields;
 }
 
@@ -809,9 +826,11 @@ has editor_next_fields => (
 );
 
 has editor_shown_fields => (
-    is      => 'rw',
-    isa     => ArrayRef,
-    trigger => sub {
+    is        => 'rw',
+    isa       => ArrayRef,
+    clearer   => 1,
+    predicate => 1,
+    trigger   => sub {
         my ($self, $fields) = @_;
         $self->fields->{$_}->value_current_page(1)
             foreach @$fields;
@@ -907,6 +926,7 @@ sub write
     my %allow_update = map { $_ => 1 } @{$options{allow_update} || []};
     my ($need_app, $need_rec, $child_unique); # Whether a new approval_rs or record_rs needs to be created
     $need_rec = 1 if $self->changed;
+    my $has_missing; # Whether there are some mandatory fields missing
     foreach my $column ($self->layout->all)
     {
         next unless $column->userinput;
@@ -914,13 +934,30 @@ sub write
             or next; # Will not be set for child records
 
         # Check for blank value
-        if (!$self->parent_id && !$self->linked_id && !$column->optional && $datum->blank && !$options{force_mandatory})
+        if (!$self->parent_id
+            && !$self->linked_id
+            && !$column->optional
+            && $datum->blank
+            && !$options{force_mandatory}
+        )
         {
-            # Only warn if it was previously blank, otherwise it might
-            # be a read-only field for this user
-            !$self->new_entry && !$datum->changed
-                ? mistake __x"'{col}' is no longer optional, but was previously blank for this record.", col => $column->{name}
-                : error __x"'{col}' is not optional. Please enter a value.", col => $column->{name};
+            $has_missing = 1;
+            # Check whether we are in a multiple page write and if the value has been shown.
+            # We first test for editor_shown_fields having been set, as it will be on a normal
+            # page write, and then also check as it would be for a standard write.
+            if ($self->has_editor_shown_fields ? $datum->value_current_page : $datum->ready_to_write)
+            {
+                # Only warn if it was previously blank, otherwise it might
+                # be a read-only field for this user
+                if (!$self->new_entry && !$datum->changed)
+                {
+                    $has_missing = 0; # Let is pass
+                    mistake __x"'{col}' is no longer optional, but was previously blank for this record.", col => $column->{name};
+                }
+                else {
+                    error __x"'{col}' is not optional. Please enter a value.", col => $column->{name};
+                }
+            }
         }
 
         if ($self->doing_approval && $self->approval_of_new)
@@ -1027,6 +1064,9 @@ sub write
     # Dummy run?
     return if $options{dry_run};
 
+    # Return if some dependent mandatory fields not yet written
+    return if $has_missing;
+
     # New record?
     if ($self->new_entry)
     {
@@ -1129,6 +1169,7 @@ sub write
                 if (
                     ($self->new_entry && $column->user_can('write_new_no_approval'))
                     || (!$self->new_entry && $column->user_can('write_existing_no_approval'))
+                    || (!$column->userinput)
                 )
                 {
                     # Write new value
@@ -1361,22 +1402,20 @@ sub _field_write
                 record_id => $entry->{record_id},
                 layout_id => $entry->{layout_id},
             })->all;
-            if (@rows)
+            foreach my $row (@rows)
             {
-                panic "Database error: multiple values for record ID {record_id} field {layout_id}",
-                    record_id => $entry->{record_id}, layout_id => $entry->{layout_id} if @rows > 1;
-                my ($row) = @rows;
-                $row->update($entry);
-            }
-            else {
-                # Doesn't exist, probably new column since record was written
-                $create = 1;
+                if (my $entry = pop @entries)
+                {
+                    $row->update($entry);
+                }
+                else {
+                    $row->delete; # Now less values than before
+                }
             }
         }
-        if (!$options{update_only} || $create) {
-            $self->schema->resultset($table)->create($_)
-                foreach @entries;
-        }
+        # For update_only, there might still be some @entries to be written
+        $self->schema->resultset($table)->create($_)
+            foreach @entries;
     }
     else {
         $datum->record_id($self->record_id);
