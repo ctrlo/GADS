@@ -109,6 +109,7 @@
 [% END %]
 
 [% WRAPPER modal_dialog.tt modal_id="readmore_modal" modal_large=1 %]
+[% END %]
 
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]
