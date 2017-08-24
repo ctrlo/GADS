@@ -1145,6 +1145,8 @@ any '/table/?:id?' => require_role layout => sub {
 
         if (process(sub {$instance->update_or_insert}))
         {
+            # Switch user to new table
+            session('persistent')->{instance_id} = $instance->id;
             my $msg = param('id') ? 'The table has been updated successfully' : 'Your new table has been created successfully';
             return forwardHome(
                 { success => $msg }, 'table' );
@@ -1161,7 +1163,7 @@ any '/table/?:id?' => require_role layout => sub {
     }
 
     my $params = {
-        page => 'table'
+        page => defined $id && !$id ? 'table/0' : 'table'
     };
 
     if (defined $id)
@@ -1272,7 +1274,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
     my @all_columns = $layout->all;
 
     my $params = {
-        page        => 'layout',
+        page        => defined param('id') && !param('id') ? 'layout/0' : 'layout',
         all_columns => \@all_columns,
     };
 

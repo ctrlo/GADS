@@ -672,10 +672,6 @@
     Click the <strong>Save order</strong> button once you are finished.
 </p>
 
-The layout defines the fields that form the overall dataset. Use this page to add, delete
-and edit fields. Each field's permissions can be individually defined; full details of the
-available permissions are detailed in the <a href="[% url.page %]/user/">Users menu</a>.</p>
-<p>Note: drag and drop rows (and click Save order) to reorder the columns.</p>
 <p>
     <a href="/layout/0" class="btn btn-default" role="button">Add a field</a>
 </p>
