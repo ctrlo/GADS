@@ -1,5 +1,5 @@
 [% IF group %]
-<h2>[% IF group.id %]Rename a group[% ELSE %]Add a group[% END %]</h2>
+<h2>[% IF group.id %]Rename group[% ELSE %]Add a group[% END %]</h2>
 <form role="form" method="post">
     <div class="row">
         <div class="col-md-6">

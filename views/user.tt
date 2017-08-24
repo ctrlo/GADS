@@ -5,7 +5,7 @@
 [% IF edituser.account_request %]
     <h2>New account request</h2>
 [% ELSIF edituser.id %]
-    <h2>Edit [% edituser.value | html_entity %]</h2>
+    <h2>Edit: [% edituser.value | html_entity %]</h2>
 [% ELSE %]
     <h2>Add a user</h2>
 [% END %]
@@ -86,7 +86,7 @@
             [% IF page == "user" %]
                 <div class="form-group">
                     <label for="view_limits">
-                        Only allow this user to see records in these tables: (<a href="" data-toggle="modal" data-target="#modalhelp_limitdata">?</a>)
+                        Only allow this user to see records in these views: (<a href="" data-toggle="modal" data-target="#modalhelp_limitdata">?</a>)
                     </label>
                     [% FOREACH view_limit IN edituser.view_limits_with_blank %]
                         <div class="limit-to-view">
@@ -127,7 +127,7 @@
                     </div>
                 [% END %]
                 <label>
-                    Add this to the following groups:
+                    Add this user to the following groups:
                 </label>
                 [% IF groups.size %]
                     [% FOREACH group IN groups %]
