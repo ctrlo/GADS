@@ -904,7 +904,7 @@ any '/account/?:action?/?' => require_login sub {
         template 'account' => {
             graphs => $all_graphs,
             action => $action,
-            page   => 'account',
+            page   => 'account/graph',
         };
     }
     elsif ($action eq 'detail')
@@ -959,7 +959,7 @@ any '/graph/?:id?' => require_role layout => sub {
     my $layout = var 'layout';
     my $params = {
         layout => $layout,
-        page   => 'graph',
+        page   => defined param('id') && !param('id') ? 'graph/0' : 'graph',
     };
 
     my $id = param 'id';
@@ -1231,12 +1231,17 @@ any '/view/:id' => require_login sub {
         }
     }
 
+    my $page = param('clone')
+        ? 'view/clone'
+        : defined param('id') && !param('id')
+        ? 'view/0' : 'view';
+
     my $output = template 'view' => {
         layout       => $layout,
         sort_types   => $view->sort_types,
         view_edit    => $view, # TT does not like variable "view"
         clone        => param('clone'),
-        page         => 'view'
+        page         => $page,
     };
     $output;
 };

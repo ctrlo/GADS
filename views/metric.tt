@@ -95,12 +95,12 @@
     calculated by comparing the absolute value with the relevant metric.
     </p>
     <p>
-        <a href="/metric/0" class="btn btn-default" role="button">Create new metric</a>
+        <a href="/metric/0" class="btn btn-default" role="button">Create new metrics set</a>
     </p>
     <table class="table table-striped">
         <tr>
             <th></th>
-            <th>Name</th>
+            <th>Metric set name</th>
         </tr>
         [% FOREACH metric IN metrics %]
             <tr>

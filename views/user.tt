@@ -4,6 +4,8 @@
 [% edituser = users.shift %]
 [% IF edituser.account_request %]
     <h2>New account request</h2>
+[% ELSIF page == "account/detail" %]
+    <h2>[% edituser.firstname %] [% edituser.surname %] - My details</h2>
 [% ELSIF edituser.id %]
     <h2>Edit: [% edituser.value | html_entity %]</h2>
 [% ELSE %]

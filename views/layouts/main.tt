@@ -33,7 +33,7 @@
             <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap.css">
         [% END %]
 
-        [% IF page == "layout" OR page == "edit" OR page == "approval" OR page == "audit" OR page == "bulk" OR page == "data"%]
+        [% IF page.match('(layout|edit|approval|audit|bulk|data)') %]
             <link rel="stylesheet" href="[% url.css %]/jstree.min.css" />
             <link rel="stylesheet" href="[% url.css %]/bootstrap-datepicker.min.css" />
             <link rel="stylesheet" href="[% url.css %]/bootstrap-select.min.css" />
@@ -48,10 +48,10 @@
                 <link rel="stylesheet" href="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/vis/4.7.0/vis.min.css">
             [% END %]
         [% END %]
-        [% IF page == "view" OR page == "layout" %]
+        [% IF page.match("(view|layout)") %]
             <link rel="stylesheet" href="[% url.css %]/query-builder.css">
         [% END %]
-        [% IF page == "user" OR page == "account" %]
+        [% IF page.match('(user|account)') %]
             [% IF hostlocal %]
                 <link rel="stylesheet" href="[% url.css %]/dataTables.bootstrap.css">
             [% ELSE %]
@@ -221,18 +221,18 @@
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
                                     [% IF user.permission.view_create %]
-                                        <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/view/0">Add a view</a></li>
+                                        <li [% IF page=="view/0" %]class="active"[% END %]><a href="[% url.page %]/view/0">Add a view</a></li>
                                     [% END %]
                                     [% IF v %]
                                         [% IF !v.global OR user.permission.layout %]
-                                            <li [% IF page=="" %]class="active"[% END %]><a href="/view/[% v.id %]">Edit current view</a></li>
+                                            <li [% IF page=="view" %]class="active"[% END %]><a href="/view/[% v.id %]">Edit current view</a></li>
                                         [% END %]
-                                        <li [% IF page=="" %]class="active"[% END %]><a href="/view/0?clone=[% v.id %]">Copy current view</a></li>
+                                        <li [% IF page=="view/clone" %]class="active"[% END %]><a href="/view/0?clone=[% v.id %]">Copy current view</a></li>
                                     [% END %]
                                     <li class="divider"></li>
                                     <li [% IF page=="graph" %]class="active"[% END %]><a href="[% url.page %]/graph/">Manage graphs</a></li>
-                                    <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/graph/0">Add a graph</a></li>
-                                    <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/metric/">My graphs</a></li>
+                                    <li [% IF page=="graph/0" %]class="active"[% END %]><a href="[% url.page %]/graph/0">Add a graph</a></li>
+                                    <li [% IF page=="account/graph" %]class="active"[% END %]><a href="[% url.page %]/account/graph/">My graphs</a></li>
                                     <li class="divider"></li>
                                     <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_rewind">Historic view...</a></li>
                                     [% IF v %]
@@ -339,7 +339,7 @@
             <script src="[% scheme %]://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
             <script src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/js/tooltip.min.js"></script>
         [% END %]
-        [% IF page == "edit" OR page == "approval" OR page == "audit" OR page == "bulk" OR page == "data" %]
+        [% IF page.match('(edit|approval|audit|bulk|data)') %]
             <script type="text/javascript" src="[% url.js %]/bootstrap-datepicker.js"></script>
             <script type="text/javascript">
                 $(document).ready(function() {
@@ -347,7 +347,7 @@
                 });
             </script>
         [% END %]
-        [% IF page == "edit" OR page == "bulk" OR page == "approval" OR page == "view" OR page == "layout" OR (page == "data" AND viewtype == "timeline") %]
+        [% IF page.match('(edit|bulk|approval|view|layout)') OR (page == "data" AND viewtype == "timeline") %]
             <script type="text/javascript" src="[% url.js %]/base64decode.js"></script>
         [% END %]
         [% IF page == "login" %]
@@ -371,13 +371,13 @@
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasTextRenderer.min.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasAxisLabelRenderer.min.js"></script>
         [% END %]
-        [% IF page == "view" OR page == "data" OR page == "layout" %]
+        [% IF page.match('(view|data|layout)') %]
             <script type="text/javascript" src="[% url.js %]/underscore-min.js"></script>
         [% END %]
-        [% IF page == "view" OR page == "layout" %]
+        [% IF page.match('(view|layout)') %]
             <script type="text/javascript" src="[% url.js %]/query-builder.standalone.js"></script>
         [% END %]
-        [% IF page == "view" OR page == "edit" OR page == "layout" OR page == "bulk" %]
+        [% IF page.match('(view|edit|layout|bulk)') %]
             <script type="text/javascript" src="[% url.js %]/bootstrap3-typeahead.min.js"></script>
         [% END %]
         [% IF page == "data" AND viewtype == "calendar" %]
@@ -407,7 +407,7 @@
                 <script src="[% url.js %]/summernote.min.js"></script>
             [% END %]
         [% END %]
-        [% IF page == "user" OR page == "account" %]
+        [% IF page.match('(user|account)') %]
             [% IF hostlocal %]
                 <script type="text/javascript" src="[% url.js %]/jquery.dataTables.min.js"></script>
                 <script type="text/javascript" src="[% url.js %]/dataTables.bootstrap.js"></script>
@@ -428,7 +428,7 @@
 
         <script type="text/javascript" src="[% url.js %]/linkspace.js"></script>
 
-        [% IF page == "layout" OR page == "edit" OR page == "approval" OR page == "bulk" %]
+        [% IF page.match('(layout|edit|approval|bulk)') %]
             <script src="[% url.js %]/jstree.min.js"></script>
             <script src="[% url.js %]/jstree-misc.js"></script>
             <script src="[% url.js %]/bootstrap-select.min.js"></script>
