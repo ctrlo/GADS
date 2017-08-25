@@ -117,5 +117,15 @@ sub view
     $view->exists ? $view : undef;
 }
 
+sub purge
+{   my $self = shift;
+    foreach my $view (@{$self->all})
+    {
+        # Remove any view limits, which would otherwise cause the view to not be deleted
+        $self->schema->resultset('ViewLimit')->search({ view_id => $view->id })->delete;
+        $view->delete;
+    }
+}
+
 1;
 

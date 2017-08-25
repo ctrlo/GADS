@@ -12,6 +12,20 @@ use GADS::Schema;
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
 
+sub clear_not_data
+{   my ($self, %options) = @_;
+    foreach my $key (keys %options)
+    {
+        my $prop = "_set_$key";
+        $self->$prop($options{$key});
+    }
+
+    $self->layout->instance->purge;
+    $self->clear_layout;
+    $self->clear_columns;
+    $self->create_records;
+}
+
 # Set up a config singleton. This will be updated as required
 GADS::Config->instance(
     config => undef,
@@ -22,8 +36,8 @@ has data => (
 );
 
 has curval_offset => (
-    is  => 'lazy',
-    isa => Int,
+   is  => 'lazy',
+   isa => Int,
 );
 
 sub _build_curval_offset
@@ -65,7 +79,8 @@ has instance_id => (
 );
 
 has layout => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 has user_count => (
@@ -81,7 +96,8 @@ has no_groups => (
 );
 
 has user => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_user
@@ -115,12 +131,14 @@ sub _build_user
 }
 
 has group => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 has columns => (
     is      => 'ro',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
         my $columns = $self->__build_columns
@@ -139,10 +157,6 @@ has column_count => (
             curval => 1,
         }
     },
-);
-
-has records => (
-    is => 'lazy',
 );
 
 has curval => (
@@ -171,7 +185,7 @@ has calc_return_type => (
 );
 
 has multivalue => (
-    is      => 'ro',
+    is      => 'rwp',
     default => 0,
 );
 
@@ -567,11 +581,33 @@ sub create_records
         $record->initialise;
         $record->fields->{$columns->{string1}->id}->set_value($datum->{string1});
         $record->fields->{$columns->{integer1}->id}->set_value($datum->{integer1});
-        $record->fields->{$columns->{"enum$_"}->id}->set_value($datum->{"enum$_"})
-            foreach 1..$self->column_count->{enum};
-        $record->fields->{$columns->{tree1}->id}->set_value($datum->{tree1});
         $record->fields->{$columns->{date1}->id}->set_value($datum->{date1});
         $record->fields->{$columns->{daterange1}->id}->set_value($datum->{daterange1});
+
+        # Convert enums and trees from textual values if required
+        foreach my $type (qw/enum tree/)
+        {
+            foreach my $count (1..($self->column_count->{$type} || 1))
+            {
+                my $v      = $datum->{"$type$count"};
+                my @values = ref $v ? @$v : ($v);
+                @values = map {
+                    if ($_ && $_ !~ /^[0-9]+$/)
+                    {
+                        my $col = $columns->{"$type$count"}; # Same for enum and tree
+                        my $in = $_;
+                        my ($e) = grep { $_->{value} eq $in } @{$col->enumvals};
+                        $e->{id};
+                    }
+                    else {
+                        $_;
+                    }
+                } @values;
+                $record->fields->{$columns->{"$type$count"}->id}->set_value([@values])
+            }
+        }
+
+        # $record->fields->{$columns->{tree1}->id}->set_value($datum->{tree1});
         # Create users on the fly as required
         if ($datum->{person1} && !$self->schema->resultset('User')->find($datum->{person1}))
         {
@@ -612,6 +648,51 @@ sub create_records
     }
     1;
 };
+
+# Convert a filter from column names to ids (as required to use)
+sub convert_filter
+{   my ($self, $filter) = @_;
+    $filter or return;
+    my %new_filter = %$filter; # Copy to prevent changing original
+    $new_filter{rules} = []; # Make sure not using original ref in new
+    foreach my $rule (@{$filter->{rules}})
+    {
+        next unless $rule->{name};
+        # Copy again
+        my %new_rule = %$rule;
+        my @colnames = split /\_/, delete $new_rule{name};
+        my @colids = map { /^[0-9]+/ ? $_ : $self->columns->{$_}->id } @colnames;
+        $new_rule{id} = join '_', @colids;
+        push @{$new_filter{rules}}, \%new_rule;
+    }
+    \%new_filter;
+}
+
+# Can be called during debugging to dump data table. Results to be expanded
+# when required.
+sub dump_data
+{   my $self = shift;
+    foreach my $current ($self->schema->resultset('Current')->search({
+        instance_id => $self->layout->instance_id,
+    })->all)
+    {
+        print $current->id.': ';
+        my $record_id = $self->schema->resultset('Record')->search({
+            current_id => $current->id
+        })->get_column('id')->max;
+
+        foreach my $ct (qw/tree1 enum1/)
+        {
+            my $v = $self->schema->resultset('Enum')->search({
+                record_id => $record_id,
+                layout_id => $self->columns->{$ct}->id,
+            })->next;
+            my $val = $v->value && $v->value->value || '';
+            print "$ct ($val) ";
+        }
+        print "\n";
+    }
+}
 
 1;
 

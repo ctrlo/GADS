@@ -5,6 +5,7 @@ use warnings;
 use Test::MockTime qw(set_fixed_time restore_time); # Load before DateTime
 use JSON qw(encode_json);
 use Log::Report;
+use GADS::Instance;
 use GADS::Column::Calc;
 use GADS::Filter;
 use GADS::Layout;

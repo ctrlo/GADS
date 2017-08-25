@@ -23,6 +23,7 @@ use File::Temp qw/ tempfile /;
 use GADS::Alert;
 use GADS::Approval;
 use GADS::Audit;
+use GADS::Instance; # Loaded here to fix circular dependency problem
 use GADS::Column;
 use GADS::Column::Calc;
 use GADS::Column::Curval;
@@ -45,7 +46,6 @@ use GADS::Graphs;
 use GADS::Group;
 use GADS::Groups;
 use GADS::Import;
-use GADS::Instance;
 use GADS::Instances;
 use GADS::Layout;
 use GADS::MetricGroup;
