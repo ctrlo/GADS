@@ -23,6 +23,7 @@ use File::Temp qw/ tempfile /;
 use GADS::Alert;
 use GADS::Approval;
 use GADS::Audit;
+use GADS::Instance; # Loaded here to fix circular dependency problem
 use GADS::Column;
 use GADS::Column::Calc;
 use GADS::Column::Curval;
@@ -45,7 +46,6 @@ use GADS::Graphs;
 use GADS::Group;
 use GADS::Groups;
 use GADS::Import;
-use GADS::Instance;
 use GADS::Instances;
 use GADS::Layout;
 use GADS::MetricGroup;
@@ -202,7 +202,7 @@ hook before => sub {
         # be one sheet, but then a linked record to be viewed from another
         # sheet. This is used in the links for the Curval column type
         my $instance_id = param('oi') || param('instance') || $persistent->{instance_id};
-        my $instances = GADS::Instances->new(schema => schema);
+        my $instances = GADS::Instances->new(schema => schema, user => $user);
         $instance_id = $instances->is_valid($instance_id) || $instances->all->[0]->id;
         $persistent->{instance_id} = $instance_id
             unless param 'oi';
@@ -213,7 +213,8 @@ hook before => sub {
             instances   => $instances->all,
             instance_id => $instance_id,
         );
-        var 'layout' => $layout;
+        var 'layout'    => $layout;
+        var 'instances' => $instances;
     }
 };
 
@@ -245,7 +246,7 @@ hook before_template => sub {
     }
     if (logged_in_user)
     {
-        $tokens->{instances}     = GADS::Instances->new(schema => schema)->all;
+        $tokens->{instances}     = var('instances')->all;
         $tokens->{instance_name} = var('layout')->name if var('layout');
         $tokens->{user}          = $user;
         $tokens->{search}        = session 'search';
@@ -1286,7 +1287,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
     if (defined param('id'))
     {
         # Get all layouts of all instances for field linking
-        my $instances = GADS::Instances->new(schema => schema);
+        my $instances = GADS::Instances->new(schema => schema, user => $user);
         my @instances;
         foreach my $instance (@{$instances->all})
         {
@@ -2227,13 +2228,15 @@ any '/edit/:id?' => require_login sub {
             schema => $record->schema,
         );
         # Prefill previous values, but only those tagged to be remembered
-        my @remember = map {$_->id} $layout->all(remember => 1);
-        $previous->columns(\@remember);
-        $previous->include_approval(1);
-        $previous->init_no_value(0);
-        $previous->find_record_id($lastrecord->record_id);
-        $record->fields->{$_->id} = $previous->fields->{$_->id}
-            foreach @{$previous->columns_retrieved_do};
+        if (my @remember = map {$_->id} $layout->all(remember => 1))
+        {
+            $previous->columns(\@remember);
+            $previous->include_approval(1);
+            $previous->init_no_value(0);
+            $previous->find_record_id($lastrecord->record_id);
+            $record->fields->{$_->id} = $previous->fields->{$_->id}
+                foreach @{$previous->columns_retrieved_do};
+        }
         if ($record->approval_flag)
         {
             # The last edited record was one for approval. This will

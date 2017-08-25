@@ -18,6 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Instance;
 
+use GADS::Graphs;
+use GADS::Layout;
+use GADS::MetricGroups;
+use GADS::Views;
+
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
 
@@ -216,6 +221,34 @@ sub as_string
 sub as_integer
 {   my $self = shift;
     $self->id;
+}
+
+sub purge
+{   my $self = shift;
+
+    my $layout = GADS::Layout->new(
+        user        => undef,
+        instance_id => $self->id,
+        schema      => $self->schema,
+        config      => GADS::Config->instance,
+    );
+
+    GADS::Graphs->new(schema => $self->schema, layout => $layout)->purge;
+    GADS::MetricGroups->new(schema => $self->schema, instance_id => $self->id)->purge;
+    GADS::Views->new(schema => $self->schema, instance_id => $self->id, user => undef, layout => $layout)->purge;
+
+    $layout->purge;
+
+    $self->schema->resultset('UserLastrecord')->delete;
+    $self->schema->resultset('Record')->search({
+        instance_id => $self->id,
+    },{
+        join => 'current',
+    })->delete;
+    $self->schema->resultset('Current')->search({
+        instance_id => $self->id,
+    })->delete;
+    $self->_rset->delete;
 }
 
 1;

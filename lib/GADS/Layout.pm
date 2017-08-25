@@ -380,7 +380,7 @@ sub _order_dependencies
     return unless @columns;
 
     my %deps = map {
-        $_->id => $_->depends_on;
+        $_->id => $_->display_field ? [ $_->display_field ] : $_->depends_on,
     } @columns;
 
     my $source = Algorithm::Dependency::Source::HoA->new(\%deps);
@@ -472,6 +472,11 @@ sub _user_perm_search
     }, {
         prefetch => { user_groups => { group => { 'layout_groups' => 'layout' } } },
     });
+}
+
+sub purge
+{   my $self = shift;
+    $_->delete foreach reverse $self->all(order_dependencies => 1);
 }
 
 1;

@@ -497,7 +497,7 @@ sub _find
     my $search     = $find{current_id}
         ? $records->search_query(prefetch => 1, linked => 1)
         : $records->search_query(root_table => 'record', prefetch => 1, linked => 1, no_current => 1);
-    my @prefetches = $records->jpfetch(prefetch => 1);
+    my @prefetches = $records->jpfetch(prefetch => 1, search => 1); # Still need search in case of view limit
     my @joins; # Nothing - fetching whole record
 
     my $root_table;
@@ -1452,6 +1452,28 @@ sub delete_current
     })->count
         or error "Invalid ID $id";
 
+    if (my @recs = $self->schema->resultset('Current')->search({
+        'curvals.value' => $id,
+    },{
+        prefetch => {
+            records => 'curvals',
+        },
+    })->all)
+    {
+        my $recs = join ', ', map {
+            my %fields;
+            foreach ($_->records) {
+                foreach ($_->curvals) {
+                    $fields{$_->layout->name} = 1;
+                }
+            }
+            my $names = join ', ', keys %fields;
+            $_->id." ($names)";
+        } @recs;
+        error __x"The following records refer to this record as a value (possibly in a historical version): {records}",
+            records => $recs;
+    }
+
     my @records = $self->schema->resultset('Record')->search({
         current_id => $id
     })->all;
@@ -1484,7 +1506,6 @@ sub delete_current
         $self->_delete_record_values($record->id);
     }
     $self->schema->resultset('Record') ->search({ current_id => $id })->update({ record_id => undef });
-    $self->schema->resultset('Curval') ->search({ value => $id })->update({ value => undef });
     $self->schema->resultset('AlertCache')->search({ current_id => $id })->delete;
     $self->schema->resultset('Record')->search({ current_id => $id })->delete;
     $self->schema->resultset('AlertSend')->search({ current_id => $id })->delete;

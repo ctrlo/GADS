@@ -222,7 +222,11 @@ sub record_later_search
 sub _jpfetch
 {   my ($self, %options) = @_;
     my $return = [];
-    foreach (@{$self->_jp_store})
+    my @jpstore = grep { !$_->{prefetch} } @{$self->_jp_store};
+    push @jpstore, grep { $_->{prefetch} } @{$self->_jp_store};
+
+#    foreach (@{$self->_jp_store})
+    foreach (@jpstore)
     {
         if (exists $options{linked})
         {

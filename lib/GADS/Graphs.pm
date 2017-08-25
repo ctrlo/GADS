@@ -81,6 +81,14 @@ sub _all
     \@graphs;
 }
 
+sub purge
+{   my $self = shift;
+    foreach my $graph (@{$self->all})
+    {
+        $graph->delete;
+    }
+}
+
 sub dategroup
 {
     {

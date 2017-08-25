@@ -715,9 +715,9 @@ sub delete
         })->all
     )
     {
-        my @pn = map { $_->parent->name } @parents;
+        my @pn = map { $_->parent->name." (".$_->parent->instance->name.")" } @parents;
         my $p  = join ', ', @pn;
-        error __x"The following fields in another datasheet refer to this field: {p}.
+        error __x"The following fields in another table refer to this field: {p}.
             Please remove these references before deletion of this field.", p => $p;
     }
 
@@ -727,9 +727,9 @@ sub delete
         })->all
     )
     {
-        my @ln = map { $_->name } @linked;
+        my @ln = map { $_->name." (".$_->instance->name.")"; } @linked;
         my $l  = join ', ', @ln;
-        error __x"The following fields in another datasheet are linked to this field: {l}.
+        error __x"The following fields in another table are linked to this field: {l}.
             Please remove these links before deletion of this field.", l => $l;
     }
 
