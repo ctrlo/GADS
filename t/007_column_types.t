@@ -87,6 +87,17 @@ try { $calc->write };
 ok($@, "Failed to write calc code with invalid character");
 
 # Curval tests
+#
+# First check that we cannot delete a record that is referred to
+my $record = GADS::Record->new(
+    user   => undef,
+    layout => $layout,
+    schema => $schema,
+);
+$record->find_current_id(1);
+try { $record->delete_current };
+like($@, qr/The following records refer to this record as a value/, "Failed to delete record in a curval");
+
 my $curval = $columns->{curval1};
 
 is( scalar @{$curval->filtered_values}, 3, "Correct number of values for curval field (filtered)" );
@@ -189,7 +200,7 @@ is( scalar @{$curval_filter->all_values}, 3, "Correct number of values for curva
 # separately).
 my $curval_id = $curval_filter->filtered_values->[0]->{id};
 my $curval_value = $curval_filter->filtered_values->[0]->{value};
-my $record = GADS::Records->new(
+$record = GADS::Records->new(
     user    => $sheet->user,
     layout  => $layout,
     schema  => $schema,
