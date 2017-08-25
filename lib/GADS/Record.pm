@@ -495,7 +495,7 @@ sub _find
     my $search     = $find{current_id}
         ? $records->search_query(prefetch => 1, linked => 1)
         : $records->search_query(root_table => 'record', prefetch => 1, linked => 1, no_current => 1);
-    my @prefetches = $records->jpfetch(prefetch => 1);
+    my @prefetches = $records->jpfetch(prefetch => 1, search => 1); # Still need search in case of view limit
     my @joins; # Nothing - fetching whole record
 
     my $root_table;

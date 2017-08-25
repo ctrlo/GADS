@@ -801,16 +801,25 @@ $records = GADS::Records->new(
 
 is ($records->count, 1, 'Correct number of results when limiting to a view');
 
-# Check can only directly access correct records
-$record = GADS::Record->new(
-    user   => $user,
-    layout => $layout,
-    schema => $schema,
-);
-is( $record->find_current_id(5)->current_id, 5, "Retrieved viewable current ID 5 in limited view" );
-$record->clear;
-try { $record->find_current_id(4) };
-ok( $@, "Failed to retrieve non-viewable current ID 4 in limited view" );
+# Check can only directly access correct records. Test with and without any
+# columns selected.
+for (0..1)
+{
+    my $columns = $_ ? [] : undef;
+    $record = GADS::Record->new(
+        user    => $user,
+        columns => $columns,
+        layout  => $layout,
+        schema  => $schema,
+    );
+    is( $record->find_current_id(5)->current_id, 5, "Retrieved viewable current ID 5 in limited view" );
+    is( $record->find_record_id(5)->current_id, 5, "Retrieved viewable record ID 5 in limited view" );
+    $record->clear;
+    try { $record->find_current_id(4) };
+    ok( $@, "Failed to retrieve non-viewable current ID 4 in limited view" );
+    try { $record->find_record_id(4) };
+    ok( $@, "Failed to retrieve non-viewable record ID 4 in limited view" );
+}
 
 # Add a second view limit
 $rules = GADS::Filter->new(
