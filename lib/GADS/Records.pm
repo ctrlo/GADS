@@ -871,6 +871,7 @@ sub _query_params
     # into account a subsuquent sort, and vice-versa.
     for (1..2)
     {
+        @search = (); # Reset from first loop
         # Add any date ranges to the search from above
         if (@search_date)
         {
