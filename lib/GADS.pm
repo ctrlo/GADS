@@ -2186,13 +2186,15 @@ any '/edit/:id?' => require_login sub {
             schema => $record->schema,
         );
         # Prefill previous values, but only those tagged to be remembered
-        my @remember = map {$_->id} $layout->all(remember => 1);
-        $previous->columns(\@remember);
-        $previous->include_approval(1);
-        $previous->init_no_value(0);
-        $previous->find_record_id($lastrecord->record_id);
-        $record->fields->{$_->id} = $previous->fields->{$_->id}
-            foreach @{$previous->columns_retrieved_do};
+        if (my @remember = map {$_->id} $layout->all(remember => 1))
+        {
+            $previous->columns(\@remember);
+            $previous->include_approval(1);
+            $previous->init_no_value(0);
+            $previous->find_record_id($lastrecord->record_id);
+            $record->fields->{$_->id} = $previous->fields->{$_->id}
+                foreach @{$previous->columns_retrieved_do};
+        }
         if ($record->approval_flag)
         {
             # The last edited record was one for approval. This will
