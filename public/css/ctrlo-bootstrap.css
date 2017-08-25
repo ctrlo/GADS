@@ -1492,7 +1492,8 @@ small.search_term {
 
 #current-permissions .permission .group-name {
   font-size: 1.2em;
-  margin-top: 0; }
+  margin-top: 0;
+  display: inline-block; }
 
 #current-permissions .configuration .tooltip {
   padding: .3em;

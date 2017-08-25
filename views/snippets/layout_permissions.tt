@@ -23,30 +23,30 @@
 [% BLOCK _permissions_for_group %]
     [% MACRO permission_input(name, label, group, nested) BLOCK %]
         <div class="form-group">
-            <input data-permission-class="[% name.replace('_','-') %]" type="checkbox" id="permission_[% name %]_[% group %]" 
-                name="permission_[% name %]_[% group %]" [% column.group_has(group, name) ? 'checked' : '' %]>
-            <label for="permission_[% name %]_[% group %]">[% label %]</label>
+            <input data-permission-class="[% name.replace('_','-') %]" type="checkbox" id="permission_[% name %]_[% group.id %]" 
+                name="permission_[% name %]_[% group.id %]" [% column.group_has(group.id, name) ? 'checked' : '' %]>
+            <label for="permission_[% name %]_[% group.id %]">[% label %]</label>
             [% nested %]
         </div>
     [% END %]
 
-    [% write_new      = permission_input('write_new'     , permission_inputs.write_new)      %]
-    [% write_existing = permission_input('write_existing', permission_inputs.write_existing) %]
+    [% write_new      = permission_input('write_new'     , permission_inputs.write_new, group)      %]
+    [% write_existing = permission_input('write_existing', permission_inputs.write_existing, group) %]
 
-    [% permission_input('read', permission_inputs.read) %]
+    [% permission_input('read', permission_inputs.read, group) %]
 
-    [% permission_input('write_new_no_approval', permission_inputs.write_new_no_approval, '', write_new) %]
-    [% permission_input('write_existing_no_approval', permission_inputs.write_existing_no_approval, '', write_existing) %]
+    [% permission_input('write_new_no_approval', permission_inputs.write_new_no_approval, group, write_new) %]
+    [% permission_input('write_existing_no_approval', permission_inputs.write_existing_no_approval, group, write_existing) %]
 
-    [% permission_input('approve_new', permission_inputs.approve_new) %]
-    [% permission_input('approve_existing', permission_inputs.approve_existing) %]
+    [% permission_input('approve_new', permission_inputs.approve_new, group) %]
+    [% permission_input('approve_existing', permission_inputs.approve_existing, group) %]
 [% END %]
 
 [% BLOCK _permission_rule_template %]
     <script id="permission-rule-template" type="html/template">
             <li data-group-id="" class="permission [% permission_classes %]">
                 <div class="summary">
-                    <h6 class="group-name"></h6>
+                    <h6 tabindex="-1" class="group-name"></h6>
                     <div class="configuration">
                         [% FOREACH permission IN permissions %]
                         [% short = permission.short %]
@@ -63,7 +63,6 @@
                 <button type="button" class="delete pull-right btn btn-sm btn-primary trigger">Delete</button>
                 <button type="button" class="edit pull-right btn btn-sm btn-primary trigger" aria-expanded="false">Change &rarr;</button>
                 <div class="expandable">
-                    <h7 tabindex="-1">Change permissions</h7>
                     [% PROCESS _permissions_for_group %]
                     <button type="button" class="ok btn btn-sm btn-primary">Ok</button>
                 </div>
@@ -83,7 +82,7 @@
             </label>
             <select id="select-permission-group">
             [% FOREACH group IN groups.all %]
-                <option class="permission-group-[% group.id %]" value="[% group.id %]">[% group.name %]</option>
+                <option value="[% group.id %]">[% group.name %]</option>
             [% END %]
             </select>
 
@@ -111,7 +110,6 @@
 
 <section id="permissions" class="[% FOREACH p IN existing_perms; 'permission-group-' _ p _ ' '; END %]">
     <h4>Permissions [% whats_this('modalhelp_groups') %]</h4>
-    [% IF column.id %]
 
         [% IF NOT column.permissions.size %]
             <p>Access must be granted to this field before anyone (including you) can view and edit data in it.</p>
@@ -122,15 +120,6 @@
             [% END %]
         [% END %]
 
-        [% MACRO group_list(groups) BLOCK %]
-            <ul>
-                [% FOREACH group IN groups %]
-                <li>[% group %]</li>
-                [% END %]
-            </ul>
-        [% END %]
-
-        [% IF column.permissions.size %]
         <div id="current-permissions" aria-live="polite">
             <ul>
                 [% FOREACH group IN groups.all %]
@@ -165,7 +154,7 @@
                     <button type="button" class="edit pull-right btn btn-sm btn-primary trigger" aria-expanded="false">Change &rarr;</button>
                     <div class="expandable">
                         <h7 tabindex="-1">Change permissions</h7>
-                        [% PROCESS _permissions_for_group group = group_id %]
+                        [% PROCESS _permissions_for_group %]
                         <button type="button" class="ok btn btn-sm btn-primary">Ok</button>
                     </div>
                 </li>
@@ -173,21 +162,9 @@
             </ul>
         </div>
 
-        [% END %]
-    [% ELSE # no column %]
-        [% # TODO: symptom of system. Fix. %]
-        <p>Please save the field before adding permissions</p>
-    [% END %]
 
     [% IF groups.all.size %]
         <button id="configure-permissions" type="button" class="btn btn-default">Add permissions</button>
-        <style>
-        [% FOREACH group IN groups.all %]
-            #permissions.permission-group-[% group.id %] option.permission-group-[% group.id %] {
-                display: none;
-            }
-        [% END %]
-        </style>
         <section id="permission-configuration" hidden>
             [% PROCESS _permission_configuration %]
         </section>

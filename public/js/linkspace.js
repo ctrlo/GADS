@@ -97,7 +97,7 @@ Linkspace.layout = function () {
 
         $editButton.on('expand', function (event) {
             $permission.addClass('edit');
-            $permission.find('h7').focus();
+            $permission.find('.group-name').focus();
         });
 
         $deleteButton.on('click', function (event) {
@@ -152,8 +152,25 @@ Linkspace.layout = function () {
     });
 
     $('#configure-permissions').on('click', function () {
+        var $permissions = $('#permissions');
+        var selected = false;
+        $('#permission-configuration').find('option').each(function () {
+            var $option = $(this);
+            console.debug($option.text(), $option);
+            $option.removeAttr('disabled');
+            if ($permissions.hasClass('permission-group-' + $option.val())) {
+                $option.attr('disabled', '');
+            } else {
+                // make sure the first non-disabled option gets selected
+                if (!selected) {
+                    $option.attr('selected', '');
+                    selected = true;
+                }
+            }
+        });
         $(this).attr('hidden', '');
         $('#permission-configuration').removeAttr('hidden');
+
         $(this).parent().find('h4').focus();
     }); 
 
