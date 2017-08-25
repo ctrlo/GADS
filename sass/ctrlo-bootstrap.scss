@@ -1545,6 +1545,18 @@ small.search_term {
     display: none;
 }
 
+#current-permissions button.delete {
+    display: none;
+}
+
+#current-permissions .permission {
+    margin-bottom: 1em;
+}
+
+#current-permissions .permission.edit button.delete {
+    display: inline;
+}
+
 #current-permissions .legend dd,
 #current-permissions .legend dt {
     display: inline-block;

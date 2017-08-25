@@ -494,12 +494,6 @@
                     }
                 });
             $(document).ready(function () {
-                $('#configure-permissions').on('click', function () {
-                    $(this).attr('hidden', '');
-                    $('#permission-configuration').removeAttr('hidden');
-                    $(this).parent().find('h4').focus();
-                }); 
-
                 $('#sortable').sortable({
                     cancel: "a"
                 });

@@ -1,108 +1,101 @@
-[% MACRO render_perm(perm, groups, column) BLOCK;
-    FOREACH group IN groups;
-        IF group.id == perm;
-            perm_group = group;
-            LAST;
-        END;
-    END;
+[% 
+    permission_mapping = {
+        'read'                       => 'R',
+        'write_new'                  => 'C+A',
+        'write_existing'             => 'E+A',
+        'approve_new'                => 'A(N)',
+        'approve_existing'           => 'A(E)',
+        'write_new_no_approval'      => 'C',
+        'write_existing_no_approval' => 'E'
+    }
+
+    permission_inputs = {
+        'read'                        => 'Values can be read',
+        'write_new_no_approval'       => 'Values can be written to new records',
+        'write_new'                   => 'Values for new records need approval',
+        'write_existing_no_approval'  => 'Values for existing records can be modified',
+        'write_existing'              => 'Modifications to existing records need approval',
+        'approve_new'                 => 'Values for new records can be approved',
+        'approve_existing'            => 'Modifications to existing records can be approved'
+    } 
 %]
-    <li data-group-id="[% perm %]">
-        <section class="permission-rule">
-            <h5 class="clearfix">
-                Group: [% group.name %]
-                <button type="button" class="btn btn-sm btn-default pull-right" data-perm-id="[% perm %]">Delete rule</button>
-            </h5>
-
-            <p>Members of this group will have the following access rights:</p>
-
-            <div class="form-group">
-                <input type="checkbox" id="can_read" name="read" [% column.group_has(perm, 'read') && 'checked' %]>
-                <label for="can_read">Users have read access to this field</label>
-            </div>
-
-             <div class="form-group permission write-new">
-                <input type="checkbox" id="[% perm %]-can_write_new" name="write_new" [% column.group_has(perm, 'write_new') && 'checked' %]>
-                <label for="[% perm %]-can_write_new">Values can be written to new records</label>
-
-                <div class="form-group permission">
-                    <input type="checkbox" id="[% perm %]-can_approve_new" name="approve_new" [% column.group_has(perm, 'approve_new') && 'checked' %]>
-                    <label for="[% perm %]-can_approve_new">Values for new records need approval</label>
-                </div>
-            </div>
-
-            <div class="form-group permission modify-existing">
-                <input type="checkbox" id="[% perm %]-can_edit_existing" name="write_existing" [% column.group_has(perm, 'write_existing') && 'checked' %]>
-                <label for="[% perm %]-can_edit_existing">Existing values can be modified</label>
-
-                <div class="form-group permission">
-                    <input type="checkbox" id="[% perm %]-can_approve_edits" name="approve_existing" [% column.group_has(perm, 'approve_existing') && 'checked' %]>
-                    <label for="[% perm %]-can_approve_edits">Modifications need approval</label>
-                </div>
-            </div>
-        </section>
-    </li>
-[% END %]
 
 [% BLOCK _permissions_for_group %]
-    <div class="form-group">
-        <input data-permission-class="read" type="checkbox" id="[% group %]-can_read" 
-            name="read" [% column.group_has(group, 'read') && 'checked' %]>
-        <label for="[% group %]-can_read">Users have read access to this field</label>
-    </div>
-
-     <div class="form-group permission write-new">
-        <input data-permission-class="write-new-no-approval" type="checkbox" id="[% group %]-can_write_new_no_approval" 
-            name="write_new_no_approval" [% column.group_has(group, 'write_new_no_approval') && 'checked' %]>
-        <label for="[% group %]-can_write_new_no_approval">Values can be written to new records</label>
-
-        <div class="form-group permission">
-            <input data-permission-class="write-new" type="checkbox" id="[% group %]-can_write_new" 
-                name="write_new" [% column.group_has(group, 'write_new') && 'checked' %]>
-            <label for="[% group %]-can_write_new">Values for new records need approval</label>
+    [% MACRO permission_input(name, label, group, nested) BLOCK %]
+        <div class="form-group">
+            <input data-permission-class="[% name.replace('_','-') %]" type="checkbox" id="permission_[% name %]_[% group %]" 
+                name="permission_[% name %]_[% group %]" [% column.group_has(group, name) ? 'checked' : '' %]>
+            <label for="permission_[% name %]_[% group %]">[% label %]</label>
+            [% nested %]
         </div>
-    </div>
+    [% END %]
 
-    <div class="form-group permission modify-existing">
-        <input data-permission-class="write-existing-no-approval" type="checkbox" id="[% group %]-can_write_existing_no_approval" 
-            name="write_existing_no_approval" [% column.group_has(group, 'write_existing_no_approval') && 'checked' %]>
-        <label for="[% group %]-can_write_existing_no_approval">Existing values can be modified</label>
+    [% write_new      = permission_input('write_new'     , permission_inputs.write_new)      %]
+    [% write_existing = permission_input('write_existing', permission_inputs.write_existing) %]
 
-        <div class="form-group permission">
-            <input data-permission-class="write-existing" type="checkbox" id="[% group %]-can_write_existing" name="write_existing" [% column.group_has(group, 'write_existing') && 'checked' %]>
-            <label for="[% group %]-can_write_existing">Modifications need approval</label>
-        </div>
-    </div>
+    [% permission_input('read', permission_inputs.read) %]
 
-    <div class="form-group">
-        <input data-permission-class="approve-new" type="checkbox" id="[% group %]-can_approve_new" 
-            name="approve_new" [% column.group_has(group, 'approve_new') && 'checked' %]>
-        <label for="[% group %]-can_approve_new">Users can approve new values</label>
-    </div>
+    [% permission_input('write_new_no_approval', permission_inputs.write_new_no_approval, '', write_new) %]
+    [% permission_input('write_existing_no_approval', permission_inputs.write_existing_no_approval, '', write_existing) %]
 
-    <div class="form-group">
-        <input data-permission-class="approve-existing" type="checkbox" id="[% group %]-can_approve_existing" 
-            name="approve_existing" [% column.group_has(group, 'approve_existing') && 'checked' %]>
-        <label for="[% group %]-can_approve_existing">Users can approve modifications</label>
-    </div>
+    [% permission_input('approve_new', permission_inputs.approve_new) %]
+    [% permission_input('approve_existing', permission_inputs.approve_existing) %]
+[% END %]
+
+[% BLOCK _permission_rule_template %]
+    <script id="permission-rule-template" type="html/template">
+            <li data-group-id="" class="permission [% permission_classes %]">
+                <div class="summary">
+                    <h6 class="group-name"></h6>
+                    <div class="configuration">
+                        [% FOREACH permission IN permissions %]
+                        [% short = permission.short %]
+                        [% abbr = permission_mapping.$short %]
+                        [% short_class = short.replace('_','-') %]
+                        <span tabindex="0" class="abbreviation abbreviation-[% short_class %]" 
+                            role="tooltip" aria-describedby="-permission-[% short %]">
+                            [% abbr %]
+                        </span>
+                        <span id="[% group_id %]_permission_[% short %]" class="visually-hidden tooltip">[% permission.long | html %]</span>
+                        [% END %]
+                    </div>
+                </div>
+                <button type="button" class="delete pull-right btn btn-sm btn-primary trigger">Delete</button>
+                <button type="button" class="edit pull-right btn btn-sm btn-primary trigger" aria-expanded="false">Change &rarr;</button>
+                <div class="expandable">
+                    <h7 tabindex="-1">Change permissions</h7>
+                    [% PROCESS _permissions_for_group %]
+                    <button type="button" class="ok btn btn-sm btn-primary">Ok</button>
+                </div>
+            </li>
+    </script>
 [% END %]
 
 [% BLOCK _permission_configuration %]
     <h4 tabindex="-1">Add permissions</h4>
 
-    <p>Here you can create rules to define the access of group members to this field.</p>
-    <p>No user has access to this field, unless explicitly defined.</p>
-
     [% IF groups.all.size %]
-        [% existing_perms = column.permissions.keys %]
-        [% IF existing_perms.size %]
-        <ul>
-            [% FOREACH perm IN existing_perms %]
-               [% render_perm(perm, groups.all, column) %]
+        <section class="permission-rule">
+            <h5>Add permissions</h5>
+
+            <label for="select-permission-group">
+                Group:
+            </label>
+            <select id="select-permission-group">
+            [% FOREACH group IN groups.all %]
+                <option class="permission-group-[% group.id %]" value="[% group.id %]">[% group.name %]</option>
             [% END %]
-        </ul>
-        [% END %]
-        <button id="add-permission-rule" type="button" class="btn btn-default add-permission">Add rule</button>
-        <script type="html/template" id="permission-rule-template">
+            </select>
+
+            <p>Members of this group will have the following access rights:</p>
+
+            [% PROCESS _permissions_for_group %]
+
+            <button id="add-permission-rule" type="button" class="btn btn-default add-permission">Add rule</button>
+            <button id="cancel-permission-rule" type="button" class="btn btn-default cancel-permission">Cancel</button>
+        </section>
+    </li>
+
         </script>
 
     [% ELSE %]
@@ -112,7 +105,11 @@
 [% END %]
 
 [% BLOCK layout_permissions %]
-<section id="permissions">
+    [% existing_perms = column.permissions.keys %]
+
+    [% PROCESS _permission_rule_template %]
+
+<section id="permissions" class="[% FOREACH p IN existing_perms; 'permission-group-' _ p _ ' '; END %]">
     <h4>Permissions [% whats_this('modalhelp_groups') %]</h4>
     [% IF column.id %]
 
@@ -133,20 +130,8 @@
             </ul>
         [% END %]
 
-    [% 
-        permission_mapping = {
-            read                       => 'R',
-            write_new                  => 'C+A',
-            write_existing             => 'E+A',
-            approve_new                => 'A(N)',
-            approve_existing           => 'A(E)',
-            write_new_no_approval      => 'C',
-            write_existing_no_approval => 'E'
-        }
-    %]
-
         [% IF column.permissions.size %]
-        <div id="current-permissions">
+        <div id="current-permissions" aria-live="polite">
             <ul>
                 [% FOREACH group IN groups.all %]
                     [% group_id = group.id %]
@@ -176,6 +161,7 @@
                             [% END %]
                         </div>
                     </div>
+                    <button type="button" class="delete pull-right btn btn-sm btn-primary trigger">Delete</button>
                     <button type="button" class="edit pull-right btn btn-sm btn-primary trigger" aria-expanded="false">Change &rarr;</button>
                     <div class="expandable">
                         <h7 tabindex="-1">Change permissions</h7>
@@ -195,6 +181,13 @@
 
     [% IF groups.all.size %]
         <button id="configure-permissions" type="button" class="btn btn-default">Add permissions</button>
+        <style>
+        [% FOREACH group IN groups.all %]
+            #permissions.permission-group-[% group.id %] option.permission-group-[% group.id %] {
+                display: none;
+            }
+        [% END %]
+        </style>
         <section id="permission-configuration" hidden>
             [% PROCESS _permission_configuration %]
         </section>
