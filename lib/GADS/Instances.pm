@@ -30,9 +30,25 @@ has all => (
     is => 'lazy',
 );
 
+# Only return instances that this user has any access to
+has user => (
+    is => 'ro',
+);
+
 sub _build_all
 {   my $self = shift;
-    my $instance_rs = $self->schema->resultset('Instance')->search({},{
+    my $search = {};
+    $search = { 'user_groups.user_id' => $self->user->{id} }
+        if $self->user && !$self->user->{permission}->{layout};
+    my $instance_rs = $self->schema->resultset('Instance')->search($search,{
+        join     => {
+            layouts => {
+                layout_groups => {
+                    group => 'user_groups',
+                },
+            },
+        },
+        collapse => 1,
         order_by => ['me.name'],
     });
     $instance_rs->result_class('GADS::Instance');
