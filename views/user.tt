@@ -96,8 +96,8 @@
                                 <div class="col-md-10">
                                     <select class="form-control" name="view_limits">
                                         <option></option>
-                                        [% FOREACH instance IN instances %]
-                                            [% FOREACH v IN instance.global_view_summary %]
+                                        [% FOREACH layout IN instances %]
+                                            [% FOREACH v IN layout.global_view_summary %]
                                                 <option value="[% v.id %]"
                                                     [% IF view_limit.view_id == v.id %]selected[% END %]>[% instance.name _ ': ' _ v.name | html_entity %]
                                                 </option>

@@ -25,7 +25,6 @@ use GADS::DateTime;
 use GADS::DB;
 use GADS::Filter;
 use GADS::Groups;
-use GADS::Instance;
 use GADS::Type::Permission;
 use GADS::View;
 
@@ -72,10 +71,6 @@ has user_permission_override => (
 has layout => (
     is       => 'ro',
     weak_ref => 1,
-);
-
-has instance => (
-    is  => 'lazy',
 );
 
 has instance_id => (
@@ -546,14 +541,6 @@ sub group_summary
                 && ! grep { $_->short eq "${permission}_no_approval" } @{$self->permissions->{$_}};
         $name;
     } @group_ids;
-}
-
-sub _build_instance
-{   my $self = shift;
-    GADS::Instance->new(
-        id     => $self->instance_id,
-        schema => $self->schema,
-    );
 }
 
 sub _build_instance_id

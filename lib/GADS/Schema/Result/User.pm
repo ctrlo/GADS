@@ -13,7 +13,6 @@ use warnings;
 use DateTime;
 use GADS::Config;
 use GADS::Email;
-use GADS::Instance;
 use Moo;
 
 extends 'DBIx::Class::Core';
@@ -632,15 +631,6 @@ sub set_view_limits
     $self->search_related('view_limits', $search)->delete;
 }
 
-sub instance
-{   my $self = shift;
-    my $config = GADS::Config->instance;
-    GADS::Instance->new(
-        id     => $config->login_instance,
-        schema => $self->result_source->schema,
-    );
-}
-
 sub graphs
 {   my ($self, $graphs) = @_;
 
@@ -731,17 +721,19 @@ sub permissions
 sub retire
 {   my ($self, %options) = @_;
 
+    my $schema = $self->result_source->schema;
+    my $site   = $schema->resultset('Site')->next;
+
     # Properly delete if account request - no record needed
     if ($self->account_request)
     {
         $self->delete;
         return unless $options{send_reject_email};
         my $email = GADS::Email->instance;
-        my $instance = $self->instance;
         $email->send({
-            subject => $instance->email_reject_subject || "Account request rejected",
+            subject => $site->email_reject_subject || "Account request rejected",
             emails  => [$self->email],
-            text    => $instance->email_reject_text || "Your account request has been rejected",
+            text    => $site->email_reject_text || "Your account request has been rejected",
         });
 
         return;
@@ -768,11 +760,11 @@ sub retire
 
         $self->update({ deleted => DateTime->now });
 
-        if (my $msg = $self->instance->email_delete_text)
+        if (my $msg = $site->email_delete_text)
         {
             my $email = GADS::Email->instance;
             $email->send({
-                subject => $self->instance->email_delete_subject || "Account deleted",
+                subject => $site->email_delete_subject || "Account deleted",
                 emails  => [$self->email],
                 text    => $msg,
             });

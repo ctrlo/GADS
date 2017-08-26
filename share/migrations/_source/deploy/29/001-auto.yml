@@ -2605,46 +2605,6 @@ schema:
           reference_table: layout
           type: FOREIGN KEY
       fields:
-        email_delete_subject:
-          data_type: text
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: email_delete_subject
-          order: 7
-          size:
-            - 0
-        email_delete_text:
-          data_type: text
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: email_delete_text
-          order: 6
-          size:
-            - 0
-        email_reject_subject:
-          data_type: text
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: email_reject_subject
-          order: 9
-          size:
-            - 0
-        email_reject_text:
-          data_type: text
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: email_reject_text
-          order: 8
-          size:
-            - 0
         email_welcome_subject:
           data_type: text
           default_value: ~
@@ -2672,7 +2632,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: homepage_text
-          order: 13
+          order: 8
           size:
             - 0
         homepage_text2:
@@ -2682,7 +2642,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: homepage_text2
-          order: 14
+          order: 9
           size:
             - 0
         id:
@@ -2706,66 +2666,6 @@ schema:
           order: 2
           size:
             - 0
-        register_email_help:
-          data_type: text
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: register_email_help
-          order: 17
-          size:
-            - 0
-        register_notes_help:
-          data_type: text
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: register_notes_help
-          order: 19
-          size:
-            - 0
-        register_organisation_help:
-          data_type: text
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: register_organisation_help
-          order: 18
-          size:
-            - 0
-        register_telephone_help:
-          data_type: text
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: register_telephone_help
-          order: 16
-          size:
-            - 0
-        register_text:
-          data_type: text
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: register_text
-          order: 10
-          size:
-            - 0
-        register_title_help:
-          data_type: text
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: register_title_help
-          order: 15
-          size:
-            - 0
         site_id:
           data_type: integer
           default_value: ~
@@ -2783,7 +2683,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: sort_layout_id
-          order: 11
+          order: 6
           size:
             - 0
         sort_type:
@@ -2793,7 +2693,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: sort_type
-          order: 12
+          order: 7
           size:
             - 45
       indices:
