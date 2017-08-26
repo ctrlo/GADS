@@ -51,7 +51,6 @@ sub _build_all
         collapse => 1,
         order_by => ['me.name'],
     });
-    $instance_rs->result_class('GADS::Instance');
     my @all = $instance_rs->all;
     \@all;
 }

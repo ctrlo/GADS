@@ -62,31 +62,6 @@ __PACKAGE__->table("instance");
   data_type: 'text'
   is_nullable: 1
 
-=head2 email_delete_text
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 email_delete_subject
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 email_reject_text
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 email_reject_subject
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 register_text
-
-  data_type: 'text'
-  is_nullable: 1
-
 =head2 sort_layout_id
 
   data_type: 'integer'
@@ -109,31 +84,6 @@ __PACKAGE__->table("instance");
   data_type: 'text'
   is_nullable: 1
 
-=head2 register_title_help
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 register_telephone_help
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 register_email_help
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 register_organisation_help
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 register_notes_help
-
-  data_type: 'text'
-  is_nullable: 1
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -147,16 +97,6 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "email_welcome_subject",
   { data_type => "text", is_nullable => 1 },
-  "email_delete_text",
-  { data_type => "text", is_nullable => 1 },
-  "email_delete_subject",
-  { data_type => "text", is_nullable => 1 },
-  "email_reject_text",
-  { data_type => "text", is_nullable => 1 },
-  "email_reject_subject",
-  { data_type => "text", is_nullable => 1 },
-  "register_text",
-  { data_type => "text", is_nullable => 1 },
   "sort_layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "sort_type",
@@ -164,16 +104,6 @@ __PACKAGE__->add_columns(
   "homepage_text",
   { data_type => "text", is_nullable => 1 },
   "homepage_text2",
-  { data_type => "text", is_nullable => 1 },
-  "register_title_help",
-  { data_type => "text", is_nullable => 1 },
-  "register_telephone_help",
-  { data_type => "text", is_nullable => 1 },
-  "register_email_help",
-  { data_type => "text", is_nullable => 1 },
-  "register_organisation_help",
-  { data_type => "text", is_nullable => 1 },
-  "register_notes_help",
   { data_type => "text", is_nullable => 1 },
 );
 

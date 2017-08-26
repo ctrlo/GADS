@@ -23,7 +23,6 @@ use File::Temp qw/ tempfile /;
 use GADS::Alert;
 use GADS::Approval;
 use GADS::Audit;
-use GADS::Instance; # Loaded here to fix circular dependency problem
 use GADS::Column;
 use GADS::Column::Calc;
 use GADS::Column::Curval;
@@ -272,13 +271,9 @@ hook after_template_render => sub {
 
 get '/' => require_login sub {
 
-    my $config = GADS::Instance->new(
-        id     => session('persistent')->{instance_id},
-        schema => schema,
-    );
     template 'index' => {
-        instance => $config,
-        page     => 'index'
+        layout => var('layout'),
+        page   => 'index'
     };
 };
 
@@ -689,13 +684,9 @@ any '/data' => require_login sub {
         $records->sort(session 'sort');
 
         # Default sort if not set
-        my $config = GADS::Instance->new(
-            id     => $layout->instance_id,
-            schema => schema,
-        );
         my $sort = {
-            id   => $config->sort_layout_id,
-            type => $config->sort_type,
+            id   => $layout->sort_layout_id,
+            type => $layout->sort_type,
         };
         $records->default_sort($sort);
 
@@ -924,19 +915,16 @@ any '/account/?:action?/?' => require_login sub {
 
 any '/config/?' => require_role layout => sub {
 
-    my $config = GADS::Instance->new(
-        id     => session('persistent')->{instance_id},
-        schema => schema,
-    );
+    my $instance = rset('Instance')->find(var('layout')->instance_id);
 
     if (param 'update')
     {
-        $config->homepage_text(param 'homepage_text');
-        $config->homepage_text2(param 'homepage_text2');
-        $config->sort_layout_id(param 'sort_layout_id');
-        $config->sort_type(param 'sort_type');
+        $instance->homepage_text(param 'homepage_text');
+        $instance->homepage_text2(param 'homepage_text2');
+        $instance->sort_layout_id(param('sort_layout_id') || undef);
+        $instance->sort_type(param 'sort_type');
 
-        if (process( sub { $config->write }))
+        if (process( sub { $instance->update }))
         {
             return forwardHome(
                 { success => "Configuration settings have been updated successfully" } );
@@ -947,7 +935,7 @@ any '/config/?' => require_role layout => sub {
     my @all_columns = $layout->all;
     template 'config' => {
         all_columns => \@all_columns,
-        instance    => $config,
+        instance    => $instance,
         page        => 'config'
     };
 };
@@ -2689,17 +2677,12 @@ any '/login' => sub {
         }
     }
 
-    my $instance = GADS::Instance->new(
-        id     => config->{gads}->{login_instance} || 1,
-        schema => schema,
-    );
     my $output  = template 'login' => {
         error         => "".($error||""),
-        instance      => $instance,
         username      => cookie('remember_me'),
         titles        => $users->titles,
         organisations => $users->organisations,
-        register_text => $instance->register_text,
+        register_text => var('site')->register_text,
         page          => 'login',
     };
     $output;

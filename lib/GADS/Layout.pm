@@ -33,6 +33,9 @@ use GADS::Column::Rag;
 use GADS::Column::String;
 use GADS::Column::Tree;
 use GADS::Instances;
+use GADS::Graphs;
+use GADS::MetricGroups;
+use GADS::Views;
 use Log::Report 'linkspace';
 use MIME::Base64;
 use String::CamelCase qw(camelize);
@@ -61,22 +64,51 @@ has instance_id => (
     required => 1,
 );
 
-has instance => (
+has _rset => (
     is => 'lazy',
 );
 
-sub _build_instance
+sub _build__rset
 {   my $self = shift;
-    GADS::Instance->new(
-        id     => $self->instance_id,
-        schema => $self->schema,
-    );
+    $self->schema->resultset('Instance')->find($self->instance_id);
 }
 
 has name => (
     is      => 'lazy',
     isa     => Str,
     clearer => 1,
+    builder => sub { $_[0]->_rset->name },
+);
+
+has site => (
+    is      => 'ro',
+    lazy    => 1,
+    builder => sub { $_[0]->_rset && $_[0]->_rset->site },
+);
+
+has homepage_text => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->_rset->homepage_text },
+);
+
+has homepage_text2 => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->_rset->homepage_text2 },
+);
+
+has sort_layout_id => (
+    is      => 'rw',
+    isa     => Maybe[Int],
+    lazy    => 1,
+    builder => sub { $_[0]->_rset->sort_layout_id },
+);
+
+has sort_type => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->_rset->sort_type },
 );
 
 # Reference to the relevant record using this layout if applicable. Used for
@@ -290,12 +322,6 @@ sub _build_columns
     \@return;
 }
 
-sub _build_name
-{   my $self = shift;
-    my $instance = $self->schema->resultset('Instance')->find($self->instance_id);
-    $instance->name;
-}
-
 sub get_user_perms
 {   my ($self, $user_id) = @_;
     my $cache = $self->user_permissions_cache;
@@ -474,9 +500,44 @@ sub _user_perm_search
     });
 }
 
+has global_view_summary => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_global_view_summary
+{   my $self = shift;
+    my @views = $self->schema->resultset('View')->search({
+        -or => [
+            global   => 1,
+            is_admin => 1,
+        ],
+        instance_id => $self->id,
+    },{
+        order_by => 'me.name',
+    })->all;
+    \@views;
+}
+
 sub purge
 {   my $self = shift;
+
+    GADS::Graphs->new(schema => $self->schema, layout => $self)->purge;
+    GADS::MetricGroups->new(schema => $self->schema, instance_id => $self->instance_id)->purge;
+    GADS::Views->new(schema => $self->schema, instance_id => $self->instance_id, user => undef, layout => $self)->purge;
+
     $_->delete foreach reverse $self->all(order_dependencies => 1);
+
+    $self->schema->resultset('UserLastrecord')->delete;
+    $self->schema->resultset('Record')->search({
+        instance_id => $self->instance_id,
+    },{
+        join => 'current',
+    })->delete;
+    $self->schema->resultset('Current')->search({
+        instance_id => $self->instance_id,
+    })->delete;
+    $self->_rset->delete;
 }
 
 1;

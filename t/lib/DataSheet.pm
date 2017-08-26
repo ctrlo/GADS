@@ -20,7 +20,7 @@ sub clear_not_data
         $self->$prop($options{$key});
     }
 
-    $self->layout->instance->purge;
+    $self->layout->purge;
     $self->clear_layout;
     $self->clear_columns;
     $self->create_records;

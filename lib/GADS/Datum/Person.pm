@@ -254,7 +254,7 @@ sub html
         $e = encode_entities $e;
         push @details, qq(Email: <a href='mailto:$e'>$e</a>);
     }
-    my $site = $self->column->layout->instance->site;
+    my $site = $self->column->layout->site;
     if (my $t = $self->freetext1)
     {
         $t = encode_entities $t;
