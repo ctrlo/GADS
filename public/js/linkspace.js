@@ -156,7 +156,6 @@ Linkspace.layout = function () {
         var selected = false;
         $('#permission-configuration').find('option').each(function () {
             var $option = $(this);
-            console.debug($option.text(), $option);
             $option.removeAttr('disabled');
             if ($permissions.hasClass('permission-group-' + $option.val())) {
                 $option.attr('disabled', '');

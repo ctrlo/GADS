@@ -63,7 +63,7 @@
                 <button type="button" class="delete pull-right btn btn-sm btn-primary trigger">Delete</button>
                 <button type="button" class="edit pull-right btn btn-sm btn-primary trigger" aria-expanded="false">Change &rarr;</button>
                 <div class="expandable">
-                    [% PROCESS _permissions_for_group %]
+                    [% PROCESS _permissions_for_group group = undef %]
                     <button type="button" class="ok btn btn-sm btn-primary">Ok</button>
                 </div>
             </li>
@@ -88,14 +88,12 @@
 
             <p>Members of this group will have the following access rights:</p>
 
-            [% PROCESS _permissions_for_group %]
+            [% PROCESS _permissions_for_group group = undef %]
 
             <button id="add-permission-rule" type="button" class="btn btn-default add-permission">Add rule</button>
             <button id="cancel-permission-rule" type="button" class="btn btn-default cancel-permission">Cancel</button>
         </section>
     </li>
-
-        </script>
 
     [% ELSE %]
         <p>No groups have been created yet. <a href="/group">Create a group.</a></p>
@@ -154,7 +152,7 @@
                     <button type="button" class="edit pull-right btn btn-sm btn-primary trigger" aria-expanded="false">Change &rarr;</button>
                     <div class="expandable">
                         <h7 tabindex="-1">Change permissions</h7>
-                        [% PROCESS _permissions_for_group %]
+                        [% PROCESS _permissions_for_group group = group_id %]
                         <button type="button" class="ok btn btn-sm btn-primary">Ok</button>
                     </div>
                 </li>
