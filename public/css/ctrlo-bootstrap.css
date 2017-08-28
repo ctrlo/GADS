@@ -1335,4 +1335,6 @@ small.search_term {
   padding: .5em;
   margin-top: .5em;
   width: 80%;
-  word-break: break-word; }
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: initial; }
