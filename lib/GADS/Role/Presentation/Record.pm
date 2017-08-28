@@ -10,6 +10,7 @@ sub _presentation_map_columns {
             is_multivalue => $_->multivalue,
             type          => $_->type,
             data          => $self->fields->{$_->id}->presentation,
+            name          => $_->name
         }
     } @columns;
 

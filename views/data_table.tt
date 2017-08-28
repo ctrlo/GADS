@@ -92,9 +92,7 @@
                 [% END %]
             </td>
             [% FOREACH column IN record.columns %]
-                [% column_index = loop.index %]
-                [% col_header = columns.${column_index} %]
-                <td class="[% column.type %]">[% render_datum(column, col_header.name) %]</td>
+                <td class="[% column.type %]">[% render_datum(column) %]</td>
             [% END %]
         </tr>
         [% END %]

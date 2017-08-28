@@ -48,7 +48,7 @@
     </div>
 [% END %]
 
-[% MACRO render_string_datum(string) BLOCK %]
+[% MACRO render_string_datum(string, header) BLOCK %]
     [% IF string.html.defined && string.html.length > MORE_LESS_TRESHOLD %]
         [% WRAPPER more_less_block %]
             [% string.html %]
@@ -63,16 +63,16 @@
     <span aria-labelledby="rag_[% grade %]_meaning" class="[% grade %]">[% rag_symbols.$grade %]</span>
 [% END %]
 
-[% MACRO render_datum(datum, header) BLOCK;
+[% MACRO render_datum(datum) BLOCK;
     SWITCH datum.type;
         CASE 'curval'; 
-            render_curval_datum(datum.is_multivalue, datum.data, header);
+            render_curval_datum(datum.is_multivalue, datum.data, datum.name);
         CASE 'file';
             render_file_datum(datum.data);
         CASE 'person';
             render_person_datum(datum.data);
         CASE 'string';
-            render_string_datum(datum.data, header);
+            render_string_datum(datum.data, datum.name);
         CASE 'rag';
             render_rag_datum(datum.data);
         CASE;
