@@ -113,7 +113,7 @@ foreach my $column ($layout->all)
     $permissions->{$groups{limited}} = $all
         if $column->name eq 'string1';
     $permissions->{$groups{readwrite}} = $all;
-    $column->set_permissions(permissions => $permissions);
+    $column->set_permissions(%$permissions);
 }
 
 my $data_set = 'b';
