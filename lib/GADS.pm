@@ -205,13 +205,7 @@ hook before => sub {
         $instance_id = $instances->is_valid($instance_id) || $instances->all->[0]->id;
         $persistent->{instance_id} = $instance_id
             unless param 'oi';
-        my $layout = GADS::Layout->new(
-            user        => $user,
-            schema      => schema,
-            config      => GADS::Config->instance,
-            instances   => $instances->all,
-            instance_id => $instance_id,
-        );
+        my $layout = $instances->layout($instance_id);
         var 'layout'    => $layout;
         var 'instances' => $instances;
     }
@@ -252,8 +246,9 @@ hook before_template => sub {
         # Somehow this sets the instance_id session if no persistent session exists
         $tokens->{instance_id}   = session('persistent')->{instance_id}
             if session 'persistent';
-        $tokens->{user_can_edit} = $layout->user_can('write_existing');
+        $tokens->{user_can_edit}   = $layout->user_can('write_existing');
         $tokens->{user_can_create} = $layout->user_can('write_new');
+        $tokens->{layout}          = $layout;
         $tokens->{v}               = current_view(logged_in_user, $layout);  # View is reserved TT word
     }
     $tokens->{messages}      = session('messages');
@@ -720,7 +715,7 @@ any '/data' => require_login sub {
 
             return forwardHome(
                 { danger => 'You do not have permission to send messages' }, 'data' )
-                unless user_has_role 'message';
+                unless $layout->user_can("message");
 
             my $email  = GADS::Email->instance;
             my $args   = {
@@ -739,9 +734,6 @@ any '/data' => require_login sub {
 
         if (defined param('download'))
         {
-            forwardHome({ danger => "You do not have permission to download data"}, 'data')
-                unless user_has_role 'download';
-
             forwardHome({ danger => "There are no records to download in this view"}, 'data')
                 unless $records->count;
 
@@ -825,7 +817,6 @@ any '/data' => require_login sub {
 
     $params->{user_views}      = $views->user_views;
     $params->{alerts}          = $alert->all;
-    $params->{show_link}       = rset('Current')->count;
     template 'data' => $params;
 };
 
@@ -1122,62 +1113,74 @@ any '/group/?:id?' => require_role useradmin => sub {
     template 'group' => $params;
 };
 
-any '/table/?:id?' => require_role layout => sub {
+get '/table/?' => require_role superadmin => sub {
 
-    my $id       = param 'id';
-    my $instance = defined($id) && ($id && rset('Instance')->find($id) || rset('Instance')->new({}));
-    my $layout   = var 'layout';
-
-    if (param 'submit')
-    {
-        $instance->name(param 'name');
-
-        if (process(sub {$instance->update_or_insert}))
-        {
-            # Switch user to new table
-            session('persistent')->{instance_id} = $instance->id;
-            my $msg = param('id') ? 'The table has been updated successfully' : 'Your new table has been created successfully';
-            return forwardHome(
-                { success => $msg }, 'table' );
-        }
-    }
-
-    if (param 'delete')
-    {
-        if (process(sub {$instance->delete}))
-        {
-            return forwardHome(
-                { success => "The table has been deleted successfully" }, 'table' );
-        }
-    }
-
-    my $params = {
-        page => defined $id && !$id ? 'table/0' : 'table'
+    template 'tables' => {
+        page      => 'table',
+        instances => [rset('Instance')->all],
     };
+};
 
-    if (defined $id)
+any '/table/:id' => require_role superadmin => sub {
+
+    my $id          = param 'id';
+    my $user        = logged_in_user;
+    my $layout_edit = $id && var('instances')->layout($id);
+
+    if (param('submit') || param('delete'))
     {
-        # id will be 0 for new group
-        $params->{instance} = $instance;
+        if (param 'submit')
+        {
+            if (!$layout_edit)
+            {
+                $layout_edit = GADS::Layout->new(
+                    user   => $user,
+                    schema => schema,
+                    config => config,
+                );
+            }
+            $layout_edit->name(param 'name');
+            $layout_edit->set_groups([body_parameters->get_all('permissions')]);
+
+            if (process(sub {$layout_edit->write}))
+            {
+                # Switch user to new table
+                my $msg = param('id') ? 'The table has been updated successfully' : 'Your new table has been created successfully';
+                return forwardHome(
+                    { success => $msg }, 'table' );
+            }
+        }
+
+        if (param 'delete')
+        {
+            if (process(sub {$layout_edit->delete}))
+            {
+                return forwardHome(
+                    { success => "The table has been deleted successfully" }, 'table' );
+            }
+        }
     }
-    else {
-        $params->{instances} = [rset('Instance')->all],
+
+    template 'table' => {
+        page        => $id ? 'table' : 'table/0',
+        layout_edit => $layout_edit,
+        groups      => GADS::Groups->new(schema => schema)->all,
     }
-    template 'table' => $params;
 };
 
 any '/view/:id' => require_login sub {
 
+    my $user   = logged_in_user;
+    my $layout = var 'layout';
+
     return forwardHome(
         { danger => 'You do not have permission to edit views' }, 'data' )
-        unless user_has_role 'view_create';
+        unless $layout->user_can("view_create");
 
     my $view_id = param('id');
     $view_id = param('clone') if param('clone') && !request->is_post;
     my @ucolumns; my $view_values;
 
-    my $user   = logged_in_user;
-    my $layout = var 'layout';
     my %vp = (
         user        => $user,
         schema      => schema,
@@ -1261,10 +1264,14 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => require_login sub {
 
 };
 
-any '/layout/?:id?' => require_role 'layout' => sub {
+any '/layout/?:id?' => require_login sub {
 
     my $user        = logged_in_user;
     my $layout      = var 'layout';
+
+    forwardHome({ danger => "You do not have permission to manage fields"}, '')
+        unless $layout->user_can("layout");
+
     my @all_columns = $layout->all;
 
     my $params = {
@@ -1460,7 +1467,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
     template 'layout' => $params;
 };
 
-any '/user/?:id?' => require_role useradmin => sub {
+any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
 
     my $id = body_parameters->get('id');
 
@@ -1468,6 +1475,7 @@ any '/user/?:id?' => require_role useradmin => sub {
     my $userso          = GADS::Users->new(schema => schema);
     my %all_permissions = map { $_->id => $_->name } @{$userso->permissions};
     my $audit           = GADS::Audit->new(schema => schema, user => $user);
+    my $logged_in_user  = rset('User')->find($user->{id}), # XXX Remove once $user is object
     my $users;
 
     if (param 'sendemail')
@@ -1555,17 +1563,21 @@ any '/user/?:id?' => require_role useradmin => sub {
             # Add groups to user
             my @groups = ref param('groups') ? @{param('groups')} : (param('groups') || ());
             my $usero = rset('User')->find($newuser->{id});
-            $usero->groups(\@groups);
+            $usero->groups($logged_in_user, \@groups);
             my $audit_groups = join ', ', @groups;
 
             $usero->set_view_limits(body_parameters->get_all('view_limits'));
 
-            # Update permissions. This currently needs to be done here rather than in DPAE
-            # due to the addition of the site_id column, which DPAE is not able to take
-            # account of, so the permissions could otherwise get applied to the wrong user
-            my @permissions = ref param('permission') ? @{param('permission')} : (param('permission') || ());
-            $usero->permissions(\@permissions);
-            my $audit_perms = join ', ', map { $all_permissions{$_} } @permissions;
+            my $audit_perms = '';
+            if (user_has_role 'superadmin')
+            {
+                # Update permissions. This currently needs to be done here rather than in DPAE
+                # due to the addition of the site_id column, which DPAE is not able to take
+                # account of, so the permissions could otherwise get applied to the wrong user
+                my @permissions = body_parameters->get_all('permission');
+                $usero->permissions(@permissions);
+                $audit_perms = ', permissions updated to: '.join ', ', map { $all_permissions{$_} } @permissions;
+            }
             my $action;
             if ($id) {
                 $audit->login_change(
@@ -1616,8 +1628,6 @@ any '/user/?:id?' => require_role useradmin => sub {
         # Remember values of user creation in progress.
         # XXX This is a mess (repeated code from above). Need to get
         # DPAE to use a user object
-        my @permissions = ref param('permission') ? @{param('permission')} : (param('permission') || ());
-        my %permissions = map { $all_permissions{$_} => 1 } @permissions;
         my @groups      = ref param('groups') ? @{param('groups')} : (param('groups') || ());
         my %groups      = map { $_ => 1 } @groups;
         my $view_limits_with_blank = [ map {
@@ -1635,7 +1645,6 @@ any '/user/?:id?' => require_role useradmin => sub {
             title                  => { id => param('title') },
             organisation           => { id => param('organisation') },
             view_limits_with_blank => $view_limits_with_blank,
-            permission             => \%permissions,
             groups                 => \%groups,
         }];
     }
@@ -1692,6 +1701,7 @@ any '/user/?:id?' => require_role useradmin => sub {
 
     my $output = template 'user' => {
         edit              => $route_id,
+        logged_in_user    => $logged_in_user,
         users             => $users,
         groups            => GADS::Groups->new(schema => schema)->all,
         register_requests => $register_requests,
@@ -1835,7 +1845,7 @@ get '/helptext/:id?' => require_login sub {
     template 'helptext.tt', { column => $column }, { layout => undef };
 };
 
-any '/link/:id?' => require_role link => sub {
+any '/link/:id?' => require_login sub {
     my $id = param 'id';
 
     my $layout = var 'layout';
@@ -1935,12 +1945,15 @@ post '/edits' => require_login sub {
     }
 };
 
-any '/bulk/:type/?' => require_role bulk_update => sub {
+any '/bulk/:type/?' => require_login sub {
 
     my $user   = logged_in_user;
     my $layout = var 'layout';
     my $view   = current_view($user, $layout);
     my $type   = param 'type';
+
+    forwardHome({ danger => "You do not have permission to perform bulk operations"}, 'data')
+        unless $layout->user_can("bulk_update");
 
     $type eq 'update' || $type eq 'clone'
         or error __x"Invalid bulk type: {type}", type => $type;
@@ -2130,7 +2143,7 @@ any '/edit/:id?' => require_login sub {
         my $failed;
 
         error __"You do not have permission to create a child record"
-            if $child && !$id && !user_has_role('create_child');
+            if $child && !$id && !$layout->user_can('create_child');
         $record->parent_id($child);
 
         my %child_inc = map { $_ => 1 } (ref(param 'child_inc') ? @{param 'child_inc'} : (param('child_inc') || ()));
@@ -2156,7 +2169,7 @@ any '/edit/:id?' => require_login sub {
                             || !$child_inc{$col->id} && $datum->child_unique
                         ) {
                             error __"You do not have permission to change the fields of the child record"
-                                unless user_has_role('create_child');
+                                unless $layout->user_can('create_child');
                         }
                         $datum->child_unique($child_inc{$col->id});
                     }
@@ -2264,7 +2277,7 @@ any '/edit/:id?' => require_login sub {
             if !$col->user_can('read');
     }
 
-    my $child_rec = $child && user_has_role('create_child')
+    my $child_rec = $child && $layout->user_can('create_child')
         ? int(param 'child')
         : $record->parent_id
         ? $record->parent_id
@@ -2274,7 +2287,7 @@ any '/edit/:id?' => require_login sub {
         ."(at least one must be ticked). Any fields that are not ticked will inherit their "
         ."value from the parent. Values of the parent record are shown, which will be used "
         ."unless the box is ticked and a different value entered."
-            if $child;
+            if $child_rec;
 
     my $output = template 'edit' => {
         record      => $record,

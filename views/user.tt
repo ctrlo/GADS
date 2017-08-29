@@ -115,16 +115,26 @@
                 </div>
             [% END %]
             [% IF page == "user" %]
-                <label>
-                    User's system-wide permissions:
-                </label>
-                <p>This user can</p>
-                [% FOREACH permission IN permissions %]
-                    [% key = permission.name %]
+                [% IF user.permission.superadmin %]
+                    <label>
+                        User's system-wide permissions:
+                    </label>
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" name="permission" value="[% permission.id %]"
-                                [% IF edituser.permission.$key %]checked[% END %]>[% permission.description | html_entity %]
+                            <input type="checkbox" name="permission" value="superadmin"
+                                [% IF edituser.permission.superadmin %]checked[% END %]>Super-administrator
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="permission" value="useradmin"
+                                [% IF edituser.permission.useradmin %]checked[% END %]>User can manage other user accounts
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="permission" value="audit"
+                                [% IF edituser.permission.audit %]checked[% END %]>User can access audit data
                         </label>
                     </div>
                 [% END %]
@@ -134,10 +144,12 @@
                 [% IF groups.size %]
                     [% FOREACH group IN groups %]
                         [% key = group.id %]
-                        <div class="checkbox">
+                        <div class="checkbox [% UNLESS user.permission.superadmin OR logged_in_user.has_group.$key %]disabled[% END %]">
                             <label>
                                 <input type="checkbox" name="groups" value="[% group.id %]"
-                                    [% IF edituser.has_group.$key %]checked[% END %]>[% group.name | html_entity %]
+                                    [% IF edituser.has_group.$key %]checked[% END %]
+                                    [% UNLESS user.permission.superadmin OR logged_in_user.has_group.$key %]disabled[% END %]
+                                    >[% group.name | html_entity %]
                             </label>
                         </div>
                     [% END %]

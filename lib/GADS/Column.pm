@@ -54,13 +54,6 @@ has permissions => (
     isa => HashRef,
 );
 
-# The permissions the logged-in user has
-has user_permissions => (
-    is      => 'rw',
-    isa     => ArrayRef,
-    default => sub { [] },
-);
-
 has user_permission_override => (
     is      => 'rw',
     isa     => Bool,
@@ -781,6 +774,9 @@ sub after_write_special {} # Overridden in children
 sub write
 {   my ($self, %options) = @_;
 
+    error __"You do not have permission to manage fields"
+        unless $self->layout->user_can("layout");
+
     my $guard = $self->schema->txn_scope_guard;
 
     my $newitem;
@@ -879,11 +875,12 @@ sub user_can
     return 1 if $self->user_permission_override;
     return 1 if $self->internal && $permission eq 'read';
     return 0 if !$self->userinput && $permission ne 'read'; # Can't write to code fields
-    return 1 if grep { $_ eq $permission } @{$self->user_permissions};
+    return 1 if $self->layout->current_user_can_column($self->id, $permission);
     if ($permission eq 'write') # shortcut
     {
-        return 1 if grep { $_ eq 'write_new' || $_ eq 'write_existing' }
-            @{$self->user_permissions};
+        return 1
+            if $self->layout->current_user_can_column($self->id, 'write_new')
+            || $self->layout->current_user_can_column($self->id, 'write_existing');
     }
     0;
 }
@@ -891,9 +888,7 @@ sub user_can
 # Whether a particular user ID has a permission for this column
 sub user_id_can
 {   my ($self, $user_id, $permission) = @_;
-    my $perms = $self->layout->get_user_perms($user_id)->{$self->id}
-        or return;
-    grep { $_ eq $permission } @$perms;
+    return $self->layout->user_can_column($user_id, $self->id, $permission)
 }
 
 sub set_permissions

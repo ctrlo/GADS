@@ -105,6 +105,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 instance_groups
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::InstanceGroup>
+
+=cut
+
+__PACKAGE__->has_many(
+  "instance_groups",
+  "GADS::Schema::Result::InstanceGroup",
+  { "foreign.group_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 site
 
 Type: belongs_to

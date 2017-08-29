@@ -1272,6 +1272,10 @@ sub _date_for_db
 
 sub csv
 {   my $self = shift;
+
+    error __"You do not have permission to download data"
+        unless $self->layout->user_can("download");
+
     my $csv  = Text::CSV::Encoded->new({ encoding  => undef });
 
     # Column names

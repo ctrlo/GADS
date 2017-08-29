@@ -14,7 +14,7 @@
                 <label for="name">View name:</label>
                 <input type="text" class="form-control" id="name" name="name" value="[% view_edit.name | html_entity %]">
             </div>
-            [% IF user.permission.layout %]
+            [% IF layout.user_can("layout") %]
                 <div class="checkbox">
                     <label>
                         <input type="checkbox" name="global" [% IF view_edit.global %]checked[% END %]>Shared view
@@ -50,8 +50,8 @@
                     Use views to create reports by filtering the fields and records you see on screen.
                     <ul></ul>
                 </dd>
-                [% IF user.permission.layout %]
-                    <dt>Global view</dt>
+                [% IF layout.user_can("layout") %]
+                    <dt>Shared view</dt>
                     <dd>If the view is defined as a global view, then it will be visible as an 
                         available view for all users.
                     </dd>

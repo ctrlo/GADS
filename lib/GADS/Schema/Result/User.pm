@@ -667,26 +667,27 @@ sub _build_has_group
 {   my $self = shift;
     +{
         map { $_->group_id => 1 } $self->user_groups
-    }
+    };
 }
 
 sub groups
-{   my ($self, $groups) = @_;
+{   my ($self, $logged_in_user, $groups) = @_;
 
     foreach my $g (@$groups)
     {
-        unless($self->search_related('user_groups', { group_id => $g })->count)
-        {
-            $self->create_related('user_groups', { group_id => $g });
-        }
+        next unless $logged_in_user->permission->{superadmin} || $logged_in_user->has_group->{$g};
+        $self->find_or_create_related('user_groups', { group_id => $g });
     }
 
     # Delete any groups that no longer exist
+    my @allowed = map { $_->id }  grep { $logged_in_user->permission->{superadmin} || $logged_in_user->has_group->{$_->id} }
+        $self->result_source->schema->resultset('Group')->all;
+
     my $search = {};
     $search->{group_id} = {
         '!=' => [ -and => @$groups ]
     } if @$groups;
-    $self->search_related('user_groups', $search)->delete;
+    $self->search_related('user_groups', $search)->search({ group_id => [@allowed] })->delete;
 }
 
 # Used to check if a user has a permission
@@ -699,23 +700,26 @@ sub _build_permission
     my %all = map { $_->id => $_->name } $self->result_source->schema->resultset('Permission')->all;
     +{
         map { $all{$_->permission_id} => 1 } $self->user_permissions
-    }
+    };
 }
 
 sub permissions
-{   my ($self, $permissions) = @_;
+{   my ($self, @permissions) = @_;
 
-    foreach my $p (@$permissions)
+    my %user_perms = map { $_ => 1 } @permissions;
+    my %all_perms  = map { $_->name => $_->id } $self->result_source->schema->resultset('Permission')->all;
+
+    foreach my $perm (qw/useradmin audit superadmin/)
     {
-        $self->find_or_create_related('user_permissions', { permission_id => $p });
+        my $pid = $all_perms{$perm};
+        if ($user_perms{$perm})
+        {
+            $self->find_or_create_related('user_permissions', { permission_id => $pid });
+        }
+        else {
+            $self->search_related('user_permissions', { permission_id => $pid })->delete;
+        }
     }
-
-    # Delete any groups that no longer exist
-    my $search = {};
-    $search->{permission_id} = {
-        '!=' => [ -and => @$permissions ]
-    } if @$permissions;
-    $self->search_related('user_permissions', $search)->delete;
 }
 
 sub retire

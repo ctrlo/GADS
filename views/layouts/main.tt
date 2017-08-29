@@ -113,8 +113,8 @@
                                 </button>
                                 <ul class="dropdown-menu" id="table-menu">
                                     [% FOREACH instance IN instances %]
-                                        <li [% IF instance.id == instance_id %]class="active"[% END %]>
-                                            <a href="?instance=[% instance.id %]"
+                                        <li [% IF instance.instance_id == instance_id %]class="active"[% END %]>
+                                            <a href="?instance=[% instance.instance_id %]"
                                             >[% instance.name | html_entity %]</a>
                                         </li>
                                     [% END %]
@@ -141,7 +141,7 @@
                     <div class="collapse navbar-collapse" id="main-navbar">
                         <ul class="nav navbar-nav">
                             <li><a href="[% url.page %]/"><i aria-hidden="true" class="fa fa-home fa-lg use-icon-font"></i></a></li>
-                            [% IF user.permission.layout %]
+                            [% IF layout.user_can("layout") %]
                                 <li class="dropdown">
                                     <button type="button" id="admin-menu" class="dropdown-toggle" 
                                         data-toggle="dropdown" aria-controls="admin-menu-options" aria-expanded="false" aria-haspopup="true">
@@ -149,15 +149,19 @@
                                         <span class="caret"></span>
                                     </button>
                                     <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
-                                        <li [% IF page=="table/0" %]class="active"[% END %]><a href="[% url.page %]/table/0">Add a table</a></li>
-                                        <li [% IF page=="table" %]class="active"[% END %]><a href="[% url.page %]/table/">Manage tables</a></li>
-                                        <li class="divider"></li>
-                                        <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/layout/">Manage fields</a></li>
-                                        <li [% IF page=="layout/0" %]class="active"[% END %]><a href="[% url.page %]/layout/0">Add a field</a></li>
+                                        [% IF user.permission.superadmin %]
+                                            <li [% IF page=="table/0" %]class="active"[% END %]><a href="[% url.page %]/table/0">Add a table</a></li>
+                                            <li [% IF page=="table" %]class="active"[% END %]><a href="[% url.page %]/table/">Manage tables</a></li>
+                                            <li class="divider"></li>
+                                        [% END %]
+                                        [% IF layout.user_can("layout") %]
+                                            <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/layout/">Manage fields</a></li>
+                                            <li [% IF page=="layout/0" %]class="active"[% END %]><a href="[% url.page %]/layout/0">Add a field</a></li>
+                                        [% END %]
                                     </ul>
                                 </li>
                             [% END %]
-                            [% IF user.permission.useradmin %]
+                            [% IF user.permission.useradmin OR user.permission.superadmin %]
                                 <li class="dropdown">
                                     <button type="button" id="admin-menu" class="dropdown-toggle" 
                                         data-toggle="dropdown" aria-controls="admin-menu-options" aria-expanded="false" aria-haspopup="true">
@@ -186,7 +190,7 @@
                                     [% IF user_can_create %]
                                         <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/edit/">Add a record</a></li>
                                     [% END %]
-                                    [% IF user.permission.link AND show_link %]
+                                    [% IF layout.user_can("link") %]
                                         <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/link/">Add a linked record</a></li>
                                     [% END %]
                                     [% IF user_can_approve %]
@@ -196,7 +200,7 @@
                                     [% END %]
                                     <li class="divider"></li>
                                     <li [% IF page=="import" %]class="active"[% END %]><a href="[% url.page %]/import/">Import records</a></li>
-                                    [% IF viewtype == "table" AND records.size AND user.permission.download %]
+                                    [% IF viewtype == "table" AND records.size AND layout.user_can("download") %]
                                         <li><a href="[% url.page %]/data?download">Download records in current view</a></li>
                                     [% END %]
                                     [% IF search %]
@@ -204,7 +208,7 @@
                                     [% ELSE %]
                                         [% sel_type = "in this view" %]
                                     [% END %]
-                                    [% IF user.permission.bulk_update %]
+                                    [% IF layout.user_can("bulk_update") %]
                                         <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/update/">Update all records [% sel_type %]...</a></li>
                                         <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/clone/">Clone all records [% sel_type %]...</a></li>
                                     [% END %]
@@ -220,16 +224,16 @@
                                     <span class="caret"></span>
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
-                                    [% IF user.permission.view_create %]
+                                    [% IF layout.user_can("view_create") %]
                                         <li [% IF page=="view/0" %]class="active"[% END %]><a href="[% url.page %]/view/0">Add a view</a></li>
-                                    [% END %]
-                                    [% IF v %]
-                                        [% IF !v.global OR user.permission.layout %]
-                                            <li [% IF page=="view" %]class="active"[% END %]><a href="/view/[% v.id %]">Edit current view</a></li>
+                                        [% IF v %]
+                                            [% IF !v.global OR layout.user_can("layout") %]
+                                                <li [% IF page=="view" %]class="active"[% END %]><a href="/view/[% v.id %]">Edit current view</a></li>
+                                            [% END %]
+                                            <li [% IF page=="view/clone" %]class="active"[% END %]><a href="/view/0?clone=[% v.id %]">Copy current view</a></li>
                                         [% END %]
-                                        <li [% IF page=="view/clone" %]class="active"[% END %]><a href="/view/0?clone=[% v.id %]">Copy current view</a></li>
+                                        <li class="divider"></li>
                                     [% END %]
-                                    <li class="divider"></li>
                                     <li [% IF page=="graph" %]class="active"[% END %]><a href="[% url.page %]/graph/">Manage graphs</a></li>
                                     <li [% IF page=="graph/0" %]class="active"[% END %]><a href="[% url.page %]/graph/0">Add a graph</a></li>
                                     <li [% IF page=="account/graph" %]class="active"[% END %]><a href="[% url.page %]/account/graph/">My graphs</a></li>

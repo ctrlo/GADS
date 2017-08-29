@@ -35,11 +35,6 @@ has id => (
     predicate => 1,
 );
 
-has user => (
-    is       => 'rw',
-    required => 1,
-);
-
 has schema => (
     is       => 'rw',
     required => 1,
@@ -75,12 +70,12 @@ has _view => (
             return;
         }
         # Check whether user has read access to view
-        if ($self->has_id && $self->user && !$view->global && !$view->is_admin
-            && !$self->user->{permission}->{layout} && $view->user_id != $self->user->{id}
+        if ($self->has_id && $self->layout->user && !$view->global && !$view->is_admin
+            && !$self->layout->user_can("layout") && $view->user_id != $self->layout->user->{id}
         )
         {
             error __x"User {user} does not have access to view {view}",
-                user => $self->user->{id}, view => $self->id;
+                user => $self->layout->user->{id}, view => $self->id;
         }
         $view;
     },
@@ -156,7 +151,7 @@ has alert => (
     builder => sub {
         my $self = shift;
         $self->_view or return;
-        my ($alert) = grep { $self->user->{id} == $_->user_id } $self->_view->alerts;
+        my ($alert) = grep { $self->layout->user->{id} == $_->user_id } $self->_view->alerts;
         $alert;
     }
 );
@@ -224,27 +219,23 @@ has _writable => (
 
 sub _build__writable
 {   my $self = shift;
-    if (!$self->user)
+    if (!$self->layout->user)
     {
         # Special case - no user means writable (for tests)
         return 1;
     }
     elsif ($self->global || $self->is_admin)
     {
-        return 1 if $self->user->{permission}->{layout};
+        return 1 if $self->layout->user_can("layout");
     }
     elsif (!$self->has_id)
     {
         # New view, not global
-        return 1;
+        return 1 if $self->layout->user_can("view_create");
     }
-    elsif (!$self->owner && $self->user->{permission}->{layout})
+    elsif ($self->owner && $self->owner == $self->layout->user->{id})
     {
-        return 1;
-    }
-    elsif ($self->owner && $self->owner == $self->user->{id})
-    {
-        return 1;
+        return 1 if $self->layout->user_can("view_create");
     }
     return 0;
 }
@@ -256,8 +247,8 @@ sub write
 
     $self->name or error __"Please enter a name for the view";
 
-    my $global   = !$self->user ? 1 : $self->global;
-    my $user_id  = $global || $self->is_admin ? undef : $self->user->{id};
+    my $global   = !$self->layout->user ? 1 : $self->global;
+    my $user_id  = $global || $self->is_admin ? undef : $self->layout->user->{id};
 
     $self->_clear_writable; # Force rebuild based on any updated values
 
@@ -303,17 +294,20 @@ sub write
             unless $col->user_can('read');
     }
 
+    $self->_writable
+        or error $self->id
+            ? __x("User {user_id} does not have access to modify view {id}", user_id => $self->layout->user->{id}, id => $self->id)
+            : __x("User {user_id} does not have permission to create new views", user_id => $self->layout->user->{id});
+
     if ($self->id)
     {
-        $self->_writable
-            or error __x"User {user_id} does not have access to modify view {id}", user_id => $self->user->{id}, id => $self->id;
         $self->_view->update($vu);
 
         # Update any alert caches for new filter
         if ($self->filter->changed && $self->has_alerts)
         {
             my $alert = GADS::Alert->new(
-                user      => $self->user,
+                user      => $self->layout->user,
                 layout    => $self->layout,
                 schema    => $self->schema,
                 view_id   => $self->id,
