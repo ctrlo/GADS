@@ -17,11 +17,8 @@
 html {
   font-family: 'Open Sans remote',sans-serif; }
 
-#wrapper {
-  width: 95%;
-  border-top: 5px solid #1460aa;
-  margin-left: auto;
-  margin-right: auto; }
+header {
+  border-top: 5px solid #1460aa; }
 
 .hscroll {
   overflow-x: visible;
@@ -660,7 +657,7 @@ select.input-group-sm > .form-control, select.input-group-sm > .input-group-addo
   background-color: transparent;
   color: #1460aa; }
 
-#main-navbar .dropdown-toggle {
+nav .dropdown-toggle {
   font-size: 22px;
   border: 0;
   line-height: 21px;
@@ -668,8 +665,8 @@ select.input-group-sm > .form-control, select.input-group-sm > .input-group-addo
   padding-bottom: 14.5px;
   background-color: #fff; }
 
-#main-navbar .dropdown-toggle:focus,
-#main-navbar .dropdown-toggle:hover {
+nav .dropdown-toggle:focus,
+nav .dropdown-toggle:hover {
   outline: 2px solid #85bffd; }
 
 @media (max-width: 767px) {
