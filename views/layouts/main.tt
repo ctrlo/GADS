@@ -77,8 +77,6 @@
         <![endif]-->
     </head>
 
-    [% PROCESS snippets/main_sections.tt %]
-
     <body class="page [% page %]">
         <header role="banner" class="container">
         [% IF header AND NOT page_as_mech %]
@@ -87,7 +85,7 @@
 
         [% 
             UNLESS page == "login" OR page == "invalidsite" OR page_as_mech;
-                PROCESS navigation;
+                PROCESS snippets/navigation.tt;
             END 
         %]
 

@@ -1,12 +1,10 @@
 [% 
-    BLOCK navigation;
-        PROCESS user_nav;
-        PROCESS app_nav;
-    END;
+    PROCESS user_nav;
+    PROCESS app_nav;
 %]
 
 [% BLOCK user_nav %]
-   <nav class="navbar navbar-default" role="navigation">
+   <nav class="row navbar navbar-default" role="navigation">
         <div class="collapse navbar-collapse" id="user-navbar">
             <ul class="nav navbar-nav">
                 [% PROCESS configuration_menu %]
@@ -180,13 +178,14 @@
 [% END %]
 
 [% BLOCK app_nav %]
-   <nav class="navbar navbar-default" role="navigation">
+   <nav class="row navbar navbar-default" role="navigation">
         <div class="collapse navbar-collapse" id="app-navbar">
             <ul class="nav navbar-nav">
                 <li>
-                    <a href="[% url.page %]/">
+                    <a class="home" href="[% url.page %]/">
                         <i aria-hidden="true" class="fa fa-home fa-lg use-icon-font">
                         </i>
+                        <span class="visually-hidden">Home</span>
                     </a>
                 </li>
                 [% IF user.permission.layout %]

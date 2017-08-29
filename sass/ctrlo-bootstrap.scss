@@ -756,6 +756,13 @@ nav .dropdown-toggle:hover {
     outline: 2px solid #85bffd;
 }
 
+
+/* override bootstrap */
+nav.navbar li > a.home {
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
 @media (max-width:767px) {
         .navbar-default .navbar-nav .open .dropdown-menu>li>a {
                         color:#000000;
