@@ -63,11 +63,8 @@ html {
     display: none;
 }
 
-#wrapper{
-  width: 95%; 
+header {
   border-top: 5px solid $primary-navy; 
-  margin-left: auto; 
-  margin-right: auto; 
 }
 
 .hscroll{
@@ -744,7 +741,7 @@ select.input-group-sm>.form-control,select.input-group-sm>.input-group-addon,sel
         color:$primary-navy;
 }
 
-#main-navbar .dropdown-toggle {
+nav .dropdown-toggle {
     font-size: 22px;
     border: 0;
     line-height: 21px;
@@ -754,8 +751,8 @@ select.input-group-sm>.form-control,select.input-group-sm>.input-group-addon,sel
 }
 
 
-#main-navbar .dropdown-toggle:focus,
-#main-navbar .dropdown-toggle:hover {
+nav .dropdown-toggle:focus,
+nav .dropdown-toggle:hover {
     outline: 2px solid #85bffd;
 }
 
