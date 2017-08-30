@@ -1282,24 +1282,7 @@ any '/layout/?:id?' => require_login sub {
     if (defined param('id'))
     {
         # Get all layouts of all instances for field linking
-        my $instances = GADS::Instances->new(schema => schema, user => $user);
-        my @instances;
-        foreach my $instance (@{$instances->all})
-        {
-            # Ignore current instance
-            next if $instance->id == $layout->instance_id;
-            my $layout = GADS::Layout->new(
-                user        => $user,
-                schema      => schema,
-                config      => config,
-                instance_id => $instance->id,
-            );
-            push @instances, {
-                instance => $instance,
-                layout   => $layout,
-            };
-        }
-        $params->{instance_layouts} = [@instances];
+        $params->{instance_layouts} = [grep { $_->instance_id != $layout->instance_id } @{var('instances')->all}];
     }
 
     if (param('id') || param('submit') || param('update_perms'))
