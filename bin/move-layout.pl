@@ -23,6 +23,7 @@ use lib "$FindBin::Bin/../lib";
 
 use Dancer2;
 use Dancer2::Plugin::DBIC;
+use GADS::Config;
 use Getopt::Long qw(:config pass_through);
 use YAML::XS qw/LoadFile DumpFile/;
 
