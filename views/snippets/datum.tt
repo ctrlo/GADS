@@ -1,14 +1,12 @@
 [% MORE_LESS_TRESHOLD = 50 %]
 
 [% BLOCK more_less_block %]
-    <div class="more-less">
-        <div class="more-block">
+    <div class="more-less" data-column="[% header | html %]">
         [% content %]
-        </div>
     </div>
 [% END %]
 
-[% MACRO render_curval_datum(is_multivalue, curval) BLOCK %]
+[% MACRO render_curval_datum(is_multivalue, curval, header) BLOCK %]
     [% IF curval.text.length > MORE_LESS_TRESHOLD %]
         [% WRAPPER more_less_block %]
             [% FOR link IN curval.links %]
@@ -46,7 +44,7 @@
     </div>
 [% END %]
 
-[% MACRO render_string_datum(string) BLOCK %]
+[% MACRO render_string_datum(string, header) BLOCK %]
     [% IF string.html.defined && string.html.length > MORE_LESS_TRESHOLD %]
         [% WRAPPER more_less_block %]
             [% string.html %]
@@ -64,13 +62,13 @@
 [% MACRO render_datum(datum) BLOCK;
     SWITCH datum.type;
         CASE 'curval'; 
-            render_curval_datum(datum.is_multivalue, datum.data);
+            render_curval_datum(datum.is_multivalue, datum.data, datum.name);
         CASE 'file';
             render_file_datum(datum.data);
         CASE 'person';
             render_person_datum(datum.data);
         CASE 'string';
-            render_string_datum(datum.data);
+            render_string_datum(datum.data, datum.name);
         CASE 'rag';
             render_rag_datum(datum.data);
         CASE;
