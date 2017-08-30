@@ -25,6 +25,7 @@ use Dancer2;
 use Dancer2::Plugin::DBIC;
 use GADS::Config;
 use Getopt::Long qw(:config pass_through);
+use String::CamelCase qw(camelize);
 use YAML::XS qw/LoadFile DumpFile/;
 
 GADS::Config->instance(
@@ -53,45 +54,65 @@ my $layout = GADS::Layout->new(
     schema                   => schema,
 );
 
+sub set_props
+{   my ($field, $new) = @_;
+    $field->name          ($new->{name});
+    $field->name_short    ($new->{name_short});
+    $field->type          ($new->{type});
+    $field->optional      ($new->{optional});
+    $field->remember      ($new->{remember});
+    $field->isunique      ($new->{isunique});
+    $field->textbox       ($new->{textbox})
+        if $field->can('textbox');
+    $field->typeahead     ($new->{typeahead})
+        if $field->can('typeahead');
+    $field->force_regex   ($new->{force_regex} || '')
+        if $field->can('force_regex');
+    $field->position      ($new->{position});
+    $field->ordering      ($new->{ordering});
+    $field->end_node_only ($new->{end_node_only})
+        if $field->can('end_node_only');
+    $field->multivalue    ($new->{multivalue});
+    $field->description   ($new->{description});
+    $field->helptext      ($new->{helptext});
+    $field->display_field ($new->{display_field});
+    $field->display_regex ($new->{display_regex});
+    $field->link_parent_id($new->{link_parent_id});
+    $field->filter->as_json($new->{filter});
+    $field->_set_options   ($new->{options});
+    $field->enumvals       ($new->{enumvals})
+        if $field->type eq 'enum';
+    $field->curval_field_ids($new->{curval_field_ids})
+        if $field->type eq 'curval';
+}
+
 if ($load_file)
 {
     my %loaded;
     my $array = LoadFile $load_file;
     $loaded{$_->{id}} = $_ foreach @$array;
 
+    # Find new ones
+    my %missing = %loaded;
+    delete $missing{$_->id} foreach $layout->all;
+    # Create first in case they are referenced
+    foreach my $new (values %missing)
+    {
+        my $class = "GADS::Column::".camelize $new->{type};
+        my $field = $class->new(
+            id     => $new->{id},
+            schema => schema,
+            user   => undef,
+            layout => $layout,
+        );
+        set_props($field, $new);
+    }
+
     foreach my $field ($layout->all)
     {
         if (my $new = $loaded{$field->id})
         {
-            $field->name          ($new->{name});
-            $field->name_short    ($new->{name_short});
-            $field->type          ($new->{type});
-            $field->optional      ($new->{optional});
-            $field->remember      ($new->{remember});
-            $field->isunique      ($new->{isunique});
-            $field->textbox       ($new->{textbox})
-                if $field->can('textbox');
-            $field->typeahead     ($new->{typeahead})
-                if $field->can('typeahead');
-            $field->force_regex   ($new->{force_regex} || '')
-                if $field->can('force_regex');
-            $field->position      ($new->{position});
-            $field->ordering      ($new->{ordering});
-            $field->end_node_only ($new->{end_node_only})
-                if $field->can('end_node_only');
-            $field->multivalue    ($new->{multivalue});
-            $field->description   ($new->{description});
-            $field->helptext      ($new->{helptext});
-            $field->display_field ($new->{display_field});
-            $field->display_regex ($new->{display_regex});
-            $field->link_parent_id($new->{link_parent_id});
-            $field->filter->as_json($new->{filter});
-            $field->_set_options   ($new->{options});
-            $field->enumvals       ($new->{enumvals})
-                if $field->type eq 'enum';
-            $field->curval_field_ids($new->{curval_field_ids})
-                if $field->type eq 'curval';
-
+            set_props($field, $new);
             $field->write(no_cache_update => 1);
         }
         else {
