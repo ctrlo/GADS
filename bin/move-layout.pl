@@ -88,6 +88,8 @@ sub set_props
 
 if ($load_file)
 {
+    my $guard = schema->txn_scope_guard;
+
     my %loaded;
     my $array = LoadFile $load_file;
     $loaded{$_->{id}} = $_ foreach @$array;
@@ -119,6 +121,8 @@ if ($load_file)
             say STDERR "Field ".$field->name." (ID ".$field->id.") not in updated layout - needs manual deletion";
         }
     }
+
+    $guard->commit;
 }
 else {
 
