@@ -89,6 +89,8 @@ if ($load_file)
             $field->_set_options   ($new->{options});
             $field->enumvals       ($new->{enumvals})
                 if $field->type eq 'enum';
+            $field->curval_field_ids($new->{curval_field_ids})
+                if $field->type eq 'curval';
 
             $field->write(no_cache_update => 1);
         }
@@ -126,6 +128,7 @@ else {
             options        => $field->options,
         };
         $hash->{enumvals} = $field->enumvals if $field->type eq 'enum';
+        $hash->{curval_field_ids} = $field->curval_field_ids if $field->type eq 'curval';
         push @out, $hash;
     }
     DumpFile $dump_file, [@out];
