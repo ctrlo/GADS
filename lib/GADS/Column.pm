@@ -838,6 +838,7 @@ sub write
             $rset->update($newitem);
         }
         else {
+            $newitem->{id} = $self->id;
             $rset = $self->schema->resultset('Layout')->create($newitem);
             $self->_set__rset($rset);
         }

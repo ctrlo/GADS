@@ -21,6 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 
+use Algorithm::Dependency::Ordered;
+use Algorithm::Dependency::Source::HoA;
 use Dancer2;
 use Dancer2::Plugin::DBIC;
 use GADS::Config;
@@ -54,7 +56,7 @@ my $layout = GADS::Layout->new(
     schema                   => schema,
 );
 
-sub set_props
+sub write_props
 {   my ($field, $new) = @_;
     $field->name          ($new->{name});
     $field->name_short    ($new->{name_short});
@@ -82,8 +84,13 @@ sub set_props
     $field->_set_options   ($new->{options});
     $field->enumvals       ($new->{enumvals})
         if $field->type eq 'enum';
-    $field->curval_field_ids($new->{curval_field_ids})
-        if $field->type eq 'curval';
+    if ($field->type eq 'curval')
+    {
+        $field->curval_field_ids($new->{curval_field_ids});
+        my ($random) = @{$field->curval_field_ids};
+        $field->refers_to_instance($layout->column($random)->layout->instance_id);
+    }
+    $field->write(no_cache_update => 1, create_missing_id => 1); # Create any new enums, with existing IDs
 }
 
 if ($load_file)
@@ -97,25 +104,39 @@ if ($load_file)
     # Find new ones
     my %missing = %loaded;
     delete $missing{$_->id} foreach $layout->all;
+
     # Create first in case they are referenced
-    foreach my $new (values %missing)
+    if (%missing)
     {
-        my $class = "GADS::Column::".camelize $new->{type};
-        my $field = $class->new(
-            id     => $new->{id},
-            schema => schema,
-            user   => undef,
-            layout => $layout,
-        );
-        set_props($field, $new);
+        my %deps = map {
+            $_->{id} => $_->{display_field} && $missing{$_->{display_field}} ? [ $_->{display_field} ] : []
+        } values %missing;
+
+        my $source = Algorithm::Dependency::Source::HoA->new(\%deps);
+        my $dep = Algorithm::Dependency::Ordered->new(source => $source)
+            or die 'Failed to set up dependency algorithm';
+        my @order = @{$dep->schedule_all};
+        my @missing = map { $missing{$_} } @order;
+
+        foreach my $new (@missing)
+        {
+            say STDERR "Creating missing field $new->{id} ($new->{name})";
+            my $class = "GADS::Column::".camelize $new->{type};
+            my $field = $class->new(
+                id     => $new->{id},
+                schema => schema,
+                user   => undef,
+                layout => $layout,
+            );
+            write_props($field, $new);
+        }
     }
 
     foreach my $field ($layout->all)
     {
         if (my $new = $loaded{$field->id})
         {
-            set_props($field, $new);
-            $field->write(no_cache_update => 1);
+            write_props($field, $new);
         }
         else {
             say STDERR "Field ".$field->name." (ID ".$field->id.") not in updated layout - needs manual deletion";
