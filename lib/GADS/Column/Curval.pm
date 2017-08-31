@@ -619,6 +619,23 @@ sub _build_all_ids
     ];
 }
 
+sub validate_search
+{   my $self = shift;
+    my ($value, %options) = @_;
+    if (!$value)
+    {
+        return 0 unless $options{fatal};
+        error __x"Search value cannot be blank for {col}.",
+            col => $self->name;
+    }
+    elsif ($value !~ /^[0-9]+$/) {
+        return 0 unless $options{fatal};
+        error __x"Search value must be an ID number for {col}.",
+            col => $self->name;
+    }
+    1;
+}
+
 sub random
 {   my $self = shift;
     $self->all_ids->[rand @{$self->all_ids}];
