@@ -1025,6 +1025,7 @@ sub _search_construct
 
     my %permission = $ignore_perms ? () : (permission => 'read');
     my ($parent_column, $column);
+    $filter->{id} or return; # Used to ignore filter
     if ($filter->{id} =~ /^([0-9]+)_([0-9]+)$/)
     {
         $column        = $layout->column($2, %permission);

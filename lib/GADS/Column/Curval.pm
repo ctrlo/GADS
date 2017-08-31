@@ -219,7 +219,7 @@ sub _build_view
     # Replace any "special" $short_name values with their actual value from the
     # record. If sub_values fails (due to record not being ready yet), then the
     # view is not built
-    return unless $view->filter->sub_values($self->layout->record);
+    return unless $view->filter->sub_values($self->layout);
     return $view;
 }
 
