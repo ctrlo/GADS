@@ -820,8 +820,15 @@ sub write
         $self->_set__rset($rset);
     }
     else {
-        $rset = $self->schema->resultset('Layout')->find($self->id);
-        $rset->update($newitem);
+        if ($rset = $self->schema->resultset('Layout')->find($self->id))
+        {
+            $rset->update($newitem);
+        }
+        else {
+            $newitem->{id} = $self->id;
+            $rset = $self->schema->resultset('Layout')->create($newitem);
+            $self->_set__rset($rset);
+        }
     }
 
     $self->write_special(rset => $rset, id => $new_id || $self->id, %options); # Write any column-specific params

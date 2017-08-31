@@ -13,7 +13,7 @@ use t::lib::DataSheet;
 
 my $data = [
     {
-        string1    => '',
+        string1    => 'foobar',
         integer1   => '',
         enum1      => '',
         tree1      => '',
@@ -42,8 +42,14 @@ my ($record) = @$results;
 
 my $string1 = $columns->{'string1'};
 $string1->force_regex('[0-9]+');
+# Try unchanged - should only result in warning
+try { $record->fields->{$string1->id}->set_value("foobar") } hide => 'ALL';
+ok(!$@, "No exception writing unchanged bad string value for force_regex settings" );
+my ($warning) = $@->exceptions;
+like($warning, qr/Invalid value/, "Correct warning writing unchanged bad string value for force_regex settings" );
+# Error with normal changed
 try { $record->fields->{$string1->id}->set_value("foo") };
-ok( $@, "Failed to write bad string value for force_regex settings" );
+like($@, qr/Invalid value/, "Failed to write bad string value for force_regex settings" );
 
 my $integer1 = $columns->{'integer1'};
 try { $record->fields->{$integer1->id}->set_value("bar") };
