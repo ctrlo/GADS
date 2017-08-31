@@ -256,6 +256,11 @@ sub write
 
     $self->name or error __"Please enter a name for the view";
 
+    # XXX Database schema currently restricts length of name. Should be changed
+    # to normal text field at some point
+    length $self->name < 128
+        or error __"View name must be less than 128 characters";
+
     my $global   = !$self->user ? 1 : $self->global;
     my $user_id  = $global || $self->is_admin ? undef : $self->user->{id};
 
