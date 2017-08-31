@@ -347,7 +347,9 @@ sub _build_has_subvalues
 
 sub filter_value_to_text
 {   my ($self, $id) = @_;
-    $id or return '';
+    # Check for valid ID (in case search filter is corrupted) - Pg will choke
+    # on invalid IDs
+    $id =~ /^[0-9]+$/ or return '';
     my $rows = $self->ids_to_values([$id]);
     $rows->[0]->{value};
 }
