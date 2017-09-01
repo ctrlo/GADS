@@ -822,6 +822,9 @@ sub write
     else {
         if ($rset = $self->schema->resultset('Layout')->find($self->id))
         {
+            # Check whether attempt to move between instances - this is a bug
+            $newitem->{instance_id} != $rset->instance_id
+                and panic "Attempt to move column between instances";
             $rset->update($newitem);
         }
         else {
