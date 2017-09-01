@@ -27,6 +27,7 @@ use Dancer2;
 use Dancer2::Plugin::DBIC;
 use GADS::Config;
 use GADS::Layout;
+use GADS::Views;
 use Getopt::Long qw(:config pass_through);
 use String::CamelCase qw(camelize);
 use YAML::XS qw/LoadFile DumpFile/;
@@ -35,12 +36,13 @@ GADS::Config->instance(
     config => config,
 );
 
-my ($instance_id, $site_id, $load_file, $dump_file);
+my ($instance_id, $site_id, $load_file, $dump_file, $global_views);
 GetOptions (
     'instance-id=s' => \$instance_id,
     'site-id=s'     => \$site_id,
     'load-file=s'   => \$load_file,
     'dump-file=s'   => \$dump_file,
+    'global-views'  => \$global_views,
 ) or exit;
 
 $instance_id or die "Need --instance-id";
@@ -55,6 +57,13 @@ my $layout = GADS::Layout->new(
     instance_id              => $instance_id,
     config                   => config,
     schema                   => schema,
+);
+
+my $views = GADS::Views->new(
+    user        => undef,
+    schema      => schema,
+    layout      => $layout,
+    instance_id => $instance_id,
 );
 
 sub write_props
@@ -98,49 +107,86 @@ if ($load_file)
 {
     my $guard = schema->txn_scope_guard;
 
-    my %loaded;
     my $array = LoadFile $load_file;
-    $loaded{$_->{id}} = $_ foreach @$array;
 
-    # Find new ones
-    my %missing = %loaded;
-    delete $missing{$_->id} foreach $layout->all;
-
-    # Create first in case they are referenced
-    if (%missing)
+    if ($global_views)
     {
-        my %deps = map {
-            $_->{id} => $_->{display_field} && $missing{$_->{display_field}} ? [ $_->{display_field} ] : []
-        } values %missing;
-
-        my $source = Algorithm::Dependency::Source::HoA->new(\%deps);
-        my $dep = Algorithm::Dependency::Ordered->new(source => $source)
-            or die 'Failed to set up dependency algorithm';
-        my @order = @{$dep->schedule_all};
-        my @missing = map { $missing{$_} } @order;
-
-        foreach my $new (@missing)
+        foreach my $import (@$array)
         {
-            say STDERR "Creating missing field $new->{id} ($new->{name})";
-            my $class = "GADS::Column::".camelize $new->{type};
-            my $field = $class->new(
-                id     => $new->{id},
-                schema => schema,
-                user   => undef,
-                layout => $layout,
+            schema->resultset('View')->search({
+                id          => $import->{id},
+                instance_id => { '!=' => $instance_id },
+            })->count and die "View ID $import->{id} already exists but for wrong instance";
+            schema->resultset('View')->find_or_create({
+                id          => $import->{id},
+                instance_id => $instance_id,
+            });
+            my $view = GADS::View->new(
+                id          => $import->{id},
+                user        => undef,
+                schema      => schema,
+                layout      => $layout,
+                instance_id => $instance_id,
             );
-            write_props($field, $new);
+            $view->columns($import->{columns});
+            $view->global($import->{is_admin});
+            $view->is_admin($import->{is_admin});
+            $view->name($import->{name});
+            $view->filter->as_json($import->{filter});
+            $view->write;
+            my (@sort_fields, @sort_types);
+            foreach my $sort (@{$import->{sorts}})
+            {
+                push @sort_fields, $sort->{layout_id};
+                push @sort_types, $sort->{type};
+            }
+            $view->set_sorts(\@sort_fields, \@sort_types);
         }
     }
+    else {
+        my %loaded;
+        $loaded{$_->{id}} = $_ foreach @$array;
 
-    foreach my $field ($layout->all)
-    {
-        if (my $new = $loaded{$field->id})
+        # Find new ones
+        my %missing = %loaded;
+        delete $missing{$_->id} foreach $layout->all;
+
+        # Create first in case they are referenced
+        if (%missing)
         {
-            write_props($field, $new);
+            my %deps = map {
+                $_->{id} => $_->{display_field} && $missing{$_->{display_field}} ? [ $_->{display_field} ] : []
+            } values %missing;
+
+            my $source = Algorithm::Dependency::Source::HoA->new(\%deps);
+            my $dep = Algorithm::Dependency::Ordered->new(source => $source)
+                or die 'Failed to set up dependency algorithm';
+            my @order = @{$dep->schedule_all};
+            my @missing = map { $missing{$_} } @order;
+
+            foreach my $new (@missing)
+            {
+                say STDERR "Creating missing field $new->{id} ($new->{name})";
+                my $class = "GADS::Column::".camelize $new->{type};
+                my $field = $class->new(
+                    id     => $new->{id},
+                    schema => schema,
+                    user   => undef,
+                    layout => $layout,
+                );
+                write_props($field, $new);
+            }
         }
-        else {
-            say STDERR "Field ".$field->name." (ID ".$field->id.") not in updated layout - needs manual deletion";
+
+        foreach my $field ($layout->all)
+        {
+            if (my $new = $loaded{$field->id})
+            {
+                write_props($field, $new);
+            }
+            else {
+                say STDERR "Field ".$field->name." (ID ".$field->id.") not in updated layout - needs manual deletion";
+            }
         }
     }
 
@@ -149,35 +195,55 @@ if ($load_file)
 else {
 
     my @out;
-    foreach my $field ($layout->all)
+
+    if ($global_views)
     {
-        my $hash = {
-            id             => $field->id,
-            name           => $field->name,
-            name_short     => $field->name_short,
-            type           => $field->type,
-            optional       => $field->optional,
-            remember       => $field->remember,
-            isunique       => $field->isunique,
-            textbox        => $field->can('textbox') ? $field->textbox : 0,
-            typeahead      => $field->can('typeahead') ? $field->typeahead : 0,
-            force_regex    => $field->can('force_regex') ? $field->force_regex : '',
-            position       => $field->position,
-            ordering       => $field->ordering,
-            end_node_only  => $field->can('end_node_only') ? $field->end_node_only : 0,
-            multivalue     => $field->multivalue,
-            description    => $field->description,
-            helptext       => $field->helptext,
-            display_field  => $field->display_field,
-            display_regex  => $field->display_regex,
-            link_parent_id => $field->link_parent_id,
-            filter         => $field->filter->as_json,
-            options        => $field->options,
-        };
-        $hash->{enumvals} = $field->enumvals if $field->type eq 'enum';
-        $hash->{curval_field_ids} = $field->curval_field_ids if $field->type eq 'curval';
-        push @out, $hash;
+        foreach my $view (@{$views->all})
+        {
+            next unless $view->global || $view->is_admin;
+            push @out, {
+                id       => $view->id,
+                name     => $view->name,
+                global   => $view->global,
+                is_admin => $view->is_admin,
+                filter   => $view->filter->as_json,
+                columns  => $view->columns,
+                sorts    => $view->sorts,
+            };
+        }
     }
+    else {
+        foreach my $field ($layout->all)
+        {
+            my $hash = {
+                id             => $field->id,
+                name           => $field->name,
+                name_short     => $field->name_short,
+                type           => $field->type,
+                optional       => $field->optional,
+                remember       => $field->remember,
+                isunique       => $field->isunique,
+                textbox        => $field->can('textbox') ? $field->textbox : 0,
+                typeahead      => $field->can('typeahead') ? $field->typeahead : 0,
+                force_regex    => $field->can('force_regex') ? $field->force_regex : '',
+                position       => $field->position,
+                ordering       => $field->ordering,
+                end_node_only  => $field->can('end_node_only') ? $field->end_node_only : 0,
+                multivalue     => $field->multivalue,
+                description    => $field->description,
+                helptext       => $field->helptext,
+                display_field  => $field->display_field,
+                display_regex  => $field->display_regex,
+                link_parent_id => $field->link_parent_id,
+                filter         => $field->filter->as_json,
+                options        => $field->options,
+            };
+            $hash->{enumvals} = $field->enumvals if $field->type eq 'enum';
+            $hash->{curval_field_ids} = $field->curval_field_ids if $field->type eq 'curval';
+            push @out, $hash;
+        }
+    }
+
     DumpFile $dump_file, [@out];
 }
 
