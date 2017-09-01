@@ -37,22 +37,30 @@ has user => (
 
 sub _build_all
 {   my $self = shift;
+    # See what tables this user has access to. Perform 2 separate queries,
+    # otherwise the combined number of rows to search through is huge for all
+    # the different user/group/layout combinations making the query very slow.
+    #
+    # First the user's groups, unless it's a layout admin
     my $search = {};
-    $search = { 'user_groups.user_id' => $self->user->{id} }
-        if $self->user && !$self->user->{permission}->{layout};
-    my $instance_rs = $self->schema->resultset('Instance')->search($search,{
+    if ($self->user && !$self->user->{permission}->{layout})
+    {
+        my @groups = $self->schema->resultset('Group')->search({
+            'user_groups.user_id' => $self->user->{id}
+        },{
+            join => 'user_groups',
+        })->get_column('me.id')->all;
+        $search = {'layout_groups.group_id' => [@groups]};
+    }
+    # Then the instances
+    my @instances = $self->schema->resultset('Instance')->search($search,{
         join     => {
-            layouts => {
-                layout_groups => {
-                    group => 'user_groups',
-                },
-            },
+            layouts => 'layout_groups',
         },
         collapse => 1,
         order_by => ['me.name'],
-    });
-    my @all = $instance_rs->all;
-    \@all;
+    })->all;
+    \@instances;
 }
 
 sub is_valid
