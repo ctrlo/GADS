@@ -497,7 +497,7 @@ sub update_fields
         if (ref $col && $col->userinput) # Not calculated fields
         {
             my $newv = $input->{$col->field};
-            if (!$record->current_id || $newv)
+            if (!$record->current_id || defined $newv)
             {
                 if ($col->type eq "daterange" && $ignore_incomplete_dateranges)
                 {
