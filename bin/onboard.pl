@@ -96,7 +96,7 @@ my @f = @$row;
 my $layout = GADS::Layout->new(
     user                     => undef,
     schema                   => schema,
-    config                   => config,
+    config                   => GADS::Config->instance,
     instance_id              => $instance_id,
     user_permission_override => 1
 );
