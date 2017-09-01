@@ -26,6 +26,7 @@ use Algorithm::Dependency::Source::HoA;
 use Dancer2;
 use Dancer2::Plugin::DBIC;
 use GADS::Config;
+use GADS::Layout;
 use Getopt::Long qw(:config pass_through);
 use String::CamelCase qw(camelize);
 use YAML::XS qw/LoadFile DumpFile/;
