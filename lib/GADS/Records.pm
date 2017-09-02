@@ -580,8 +580,6 @@ sub _current_ids_rs
     $select->{rows} = $self->rows if $self->rows;
     $select->{page} = $page if $page;
 
-    local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
-        if $self->rewind;
     # Get the current IDs
     # Only take the latest record_single (no later ones)
     $self->schema->resultset('Current')->search(
@@ -591,6 +589,8 @@ sub _current_ids_rs
 
 sub _build_results
 {   my $self = shift;
+    local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
+        if $self->rewind;
     my @cids = $self->_current_ids_rs->all;
     # Now redo the query with those IDs.
     my @prefetches = $self->jpfetch(prefetch => 1, linked => 0);
