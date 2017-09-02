@@ -314,6 +314,37 @@ my @update_tests = (
         ],
     },
     {
+        name           => 'Invalid values', # Check we're not writing the record at all
+        option         => 'update_unique',
+        data           => "ID,integer1,date1,enum1,tree1,daterange1,curval1\n3,XX,,,,,\n3,,201-9,,,,\n3,,,foo4,,,\n3,,,,tree4,,\n3,,,,,2012-10-10 FF 2013-10-10,\n3,,,,,,9",
+        unique         => 'ID',
+        count          => 1,
+        count_versions => 1,
+        results => {
+            string1    => 'Foo',
+            integer1   => '50',
+            date1      => '2010-10-10',
+            enum1      => 'foo1',
+            tree1      => 'tree1',
+            daterange1 => '2010-10-10 to 2010-11-10',
+            curval1    => 'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012',
+        },
+        written => 0,
+        errors  => 6,
+        skipped => 0,
+        existing_data => [
+            {
+                string1    => 'Foo',
+                integer1   => 50,
+                date1      => '2010-10-10',
+                enum1      => 'foo1',
+                tree1      => 'tree1',
+                daterange1 => ['2010-10-10', '2010-11-10'],
+                curval1    => 1,
+            },
+        ],
+    },
+    {
         name           => 'Update existing records only',
         option         => 'update_only',
         data           => "ID,string1,integer1,date1,enum1,tree1,daterange1,curval1\n3,Bar,200,2011-10-10,foo2,tree2,2011-10-10 to 2011-11-10,2\n4,,,,,,,",

@@ -621,6 +621,23 @@ sub _build_all_ids
     ];
 }
 
+sub validate
+{   my ($self, $value, %options) = @_;
+    return 1 if !$value;
+    my $fatal = $options{fatal};
+    if ($value !~ /^[0-9]+$/)
+    {
+        return 0 if !$fatal;
+        error __x"Value for {column} must be an integer", column => $self->name;
+    }
+    if (!$self->schema->resultset('Current')->search({ instance_id => $self->refers_to_instance, id => $value })->next)
+    {
+        return 0 if !$fatal;
+        error __x"{id} is not a valid record ID for {column}", id => $value, column => $self->name;
+    }
+    1;
+}
+
 sub validate_search
 {   my $self = shift;
     my ($value, %options) = @_;
