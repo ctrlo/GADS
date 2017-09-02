@@ -2,7 +2,9 @@ use Test::More; # tests => 1;
 use strict;
 use warnings;
 
+use JSON qw(decode_json encode_json);
 use Log::Report;
+use MIME::Base64;
 
 use t::lib::DataSheet;
 
@@ -71,6 +73,51 @@ $view = GADS::View->new(%view_template, id => -10);
 is($view->name, undef, "Blank name for invalid view");
 is(@{$view->columns}, 0, "No columns for invalid view");
 
+# Try and load a view with an invalid column in the filter (e.g. deleted)
+my $filter = GADS::Filter->new(
+    as_hash => {
+        rules => [
+            {
+                id       => 100,
+                type     => 'string',
+                value    => 'foo2',
+                operator => 'equal',
+            },
+        ],
+        condition => 'equal',
+    },
+);
+$view = GADS::View->new(
+    name        => 'Test',
+    filter      => $filter,
+    instance_id => $layout->instance_id,
+    layout      => $layout,
+    schema      => $schema,
+    user        => $user_admin,
+);
+try { $view->write };
+like($@, qr/does not exist/, "Sensible error message for invalid field ID");
+# Remove invalid filter to allow view to be written
+$view->filter(undef);
+$view->write;
+# Force it into database (as if field deleted since view written)
+$schema->resultset('View')->find($view->id)->update({
+    filter => $filter->as_json,
+});
+$view = GADS::View->new(
+    id          => $view->id,
+    instance_id => $layout->instance_id,
+    layout      => $layout,
+    schema      => $schema,
+    user        => $user_admin,
+);
+# Check the invalid column as been removed for the base64 representation going
+# to the template.
+# Need to compare as hash to ensure consistency
+my $hash = {rules => [{}], condition => 'equal'};
+is_deeply(decode_json(decode_base64($view->filter->base64)), $hash, "Invalid rule removed from base64 of filter");
+
+# Check view names that are too long for the DB
 my $long = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum';
 
 $view = GADS::View->new(

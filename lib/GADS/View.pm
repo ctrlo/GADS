@@ -281,7 +281,8 @@ sub write
     # access to them.
     foreach my $filter (@{$self->filter->filters})
     {
-        my $col   = $self->layout->column($filter->{column_id});
+        my $col   = $self->layout->column($filter->{column_id})
+            or error __x"Field ID {id} does not exist", id => $filter->{column_id};
         my $val   = $filter->{value};
         my $op    = $filter->{operator};
         my $rtype = $col->return_type;
