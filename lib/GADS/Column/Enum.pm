@@ -129,8 +129,10 @@ sub write_special
             unless $value =~ /^[ \S]+$/;
         if ($en->{id})
         {
-            my $enumval = $self->schema->resultset('Enumval')->find($en->{id})
-                or error __x"Bad ID {id} for multiple select update", id => $en->{id};
+            my $enumval = $options{create_missing_id}
+                ? $self->schema->resultset('Enumval')->find_or_create({ id => $en->{id}, layout_id => $id })
+                : $self->schema->resultset('Enumval')->find($en->{id});
+            $enumval or error __x"Bad ID {id} for multiple select update", id => $en->{id};
             $enumval->update({ value => $en->{value} });
         }
         else {

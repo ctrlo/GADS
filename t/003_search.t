@@ -608,6 +608,20 @@ my @filters = (
         no_errors => 1,
     },
     {
+        name  => 'Search by curval ID not equal',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => $columns->{curval1}->id,
+                type     => 'string',
+                value    => '2',
+                operator => 'not_equal',
+            },
+        ],
+        count     => 6,
+        no_errors => 1,
+    },
+    {
         name  => 'Search curval ID and enum, only curval in view',
         columns => [$columns->{curval1}->id], # Ensure it's added as first join
         rules => [
@@ -640,6 +654,20 @@ my @filters = (
             },
         ],
         count     => 1,
+        no_errors => 1,
+    },
+    {
+        name  => 'Search by curval field not equal',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => $columns->{curval1}->id .'_'. $curval_columns->{string1}->id,
+                type     => 'string',
+                value    => 'Bar',
+                operator => 'not_equal',
+            },
+        ],
+        count     => 6,
         no_errors => 1,
     },
     {

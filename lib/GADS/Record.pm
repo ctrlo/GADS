@@ -410,11 +410,13 @@ sub find_record_id
 }
 
 sub find_current_id
-{   my ($self, $current_id) = @_;
+{   my ($self, $current_id, $search_instance_id) = @_;
     return unless $current_id;
     my $current = $self->schema->resultset('Current')->find($current_id)
         or error __x"Record ID {id} not found", id => $current_id;
     my $instance_id = $current->instance_id;
+    error __x"Record ID {id} invalid for table {table}", id => $current_id, table => $search_instance_id
+        if $search_instance_id && $search_instance_id != $current->instance_id;
     $self->_check_instance($instance_id);
     $self->_find(current_id => $current_id);
 }
@@ -1101,8 +1103,12 @@ sub write
     };
     $self->fields->{-11}->current_id($self->current_id);
     $self->fields->{-11}->clear_value; # Will rebuild as current_id
-    $self->fields->{-12}->set_value($created_date);
-    $self->fields->{-13}->set_value($createdby, no_validation => 1);
+    unless ($options{update_only})
+    {
+        # Keep original record values when only updating the record
+        $self->fields->{-12}->set_value($created_date);
+        $self->fields->{-13}->set_value($createdby, no_validation => 1);
+    }
 
     if ($need_app)
     {
@@ -1360,6 +1366,9 @@ sub _field_write
             {
                 if (!@{$datum_write->values})
                 {
+                    $entry->{from}  = undef;
+                    $entry->{to}    = undef;
+                    $entry->{value} = undef,
                     push @entries, $entry; # No values, but still need to write null value
                 }
                 my @texts = @{$datum_write->text_all};
@@ -1376,6 +1385,7 @@ sub _field_write
             {
                 if (!@{$datum_write->ids})
                 {
+                    $entry->{value} = undef;
                     push @entries, $entry; # No values, but still need to write null value
                 }
                 foreach my $id (@{$datum_write->ids})

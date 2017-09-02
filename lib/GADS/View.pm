@@ -247,6 +247,11 @@ sub write
 
     $self->name or error __"Please enter a name for the view";
 
+    # XXX Database schema currently restricts length of name. Should be changed
+    # to normal text field at some point
+    length $self->name < 128
+        or error __"View name must be less than 128 characters";
+
     my $global   = !$self->layout->user ? 1 : $self->global;
     my $user_id  = $global || $self->is_admin ? undef : $self->layout->user->{id};
 
@@ -267,7 +272,8 @@ sub write
     # access to them.
     foreach my $filter (@{$self->filter->filters})
     {
-        my $col   = $self->layout->column($filter->{column_id});
+        my $col   = $self->layout->column($filter->{column_id})
+            or error __x"Field ID {id} does not exist", id => $filter->{column_id};
         my $val   = $filter->{value};
         my $op    = $filter->{operator};
         my $rtype = $col->return_type;
