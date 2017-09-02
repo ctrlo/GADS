@@ -407,7 +407,11 @@ sub _import_rows
             }
             elsif ($col->type eq "daterange")
             {
-                if ($value =~ /^(\H+)\h*(-|to)\h*(\H+)$/)
+                if (!$value)
+                {
+                    $input->{$col->id} = ['',''];
+                }
+                elsif ($value =~ /^(\H+)\h*(-|to)\h*(\H+)$/)
                 {
                     $input->{$col->id} = [$1,$3];
                 }
@@ -423,15 +427,18 @@ sub _import_rows
             }
             elsif ($col->type eq "intgr")
             {
-                my $qr = $self->round_integers ? qr/^[\.0-9]+$/ : qr/^[0-9]+$/;
-                if ($value =~ $qr)
+                if ($input->{$col->id} = $value)
                 {
-                    # Round decimals if needed
-                    $input->{$col->id} = $value && $self->round_integers ? sprintf("%.0f", $value) : $value;
-                }
-                elsif ($value) {
-                    push @bad, __x"Invalid value '{value}' for integer field '{colname}'",
-                        value => $value, colname => $col->name;
+                    my $qr = $self->round_integers ? qr/^[\.0-9]+$/ : qr/^[0-9]+$/;
+                    if ($value =~ $qr)
+                    {
+                        # Round decimals if needed
+                        $input->{$col->id} = $value && $self->round_integers ? sprintf("%.0f", $value) : $value;
+                    }
+                    elsif ($value) {
+                        push @bad, __x"Invalid value '{value}' for integer field '{colname}'",
+                            value => $value, colname => $col->name;
+                    }
                 }
             }
             else {
@@ -588,7 +595,9 @@ sub update_fields
         if ($col->userinput && !$col->internal) # Not calculated fields
         {
             my $newv = $input->{$col->id};
-            if (!$record->current_id || $newv ne '')
+            # If updating existing record, don't update if invalid value
+            # uploaded (value will be undefined)
+            if (!$record->current_id || defined $newv)
             {
                 my $datum = $record->fields->{$col->id};
                 my $old_value = $datum->as_string;

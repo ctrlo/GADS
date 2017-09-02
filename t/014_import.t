@@ -2,6 +2,7 @@ use Test::More; # tests => 1;
 use strict;
 use warnings;
 
+use Test::MockTime qw(set_fixed_time restore_time); # Load before DateTime
 use Log::Report;
 use GADS::Import;
 
@@ -219,11 +220,11 @@ my @update_tests = (
         existing_data => [
             {
                 string1    => 'Foo',
-                enum1      => 1,
+                enum1      => 'foo1',
             },
             {
                 string1    => 'Bar',
-                enum1      => 2,
+                enum1      => 'foo2',
             },
         ],
     },
@@ -243,11 +244,11 @@ my @update_tests = (
         existing_data => [
             {
                 string1    => 'Foo',
-                tree1      => 4,
+                tree1      => 'tree1',
             },
             {
                 string1    => 'Bar',
-                tree1      => 5,
+                tree1      => 'tree2',
             },
         ],
     },
@@ -312,41 +313,122 @@ my @update_tests = (
             },
         ],
     },
+    {
+        name           => 'Update existing records only',
+        option         => 'update_only',
+        data           => "ID,string1,integer1,date1,enum1,tree1,daterange1,curval1\n3,Bar,200,2011-10-10,foo2,tree2,2011-10-10 to 2011-11-10,2\n4,,,,,,,",
+        unique         => 'ID',
+        count          => 2,
+        count_versions => 2,
+        calc_code      => '
+            function evaluate (_version_user, _version_datetime)
+                return _version_user.firstname .. _version_user.surname
+                    .. _version_datetime.year .. _version_datetime.month .. _version_datetime.day
+            end
+        ',
+        results => {
+            string1    => 'Bar ',
+            integer1   => '200 ',
+            date1      => '2011-10-10 ',
+            enum1      => 'foo2 ',
+            tree1      => 'tree2 ',
+            daterange1 => '2011-10-10 to 2011-11-10 ',
+            curval1    => 'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008 ',
+            calc1      => 'User1User120141010 User1User120141010',
+        },
+        written => 2,
+        errors  => 0,
+        skipped => 0,
+        existing_data => [
+            {
+                string1    => 'Foo',
+                integer1   => 50,
+                date1      => '2010-10-10',
+                enum1      => 'foo1',
+                tree1      => 'tree1',
+                daterange1 => ['2010-10-10', '2010-11-10'],
+                curval1    => 1,
+            },
+            {
+                string1    => 'FooBar',
+                integer1   => 10,
+                date1      => '2010-10-10',
+                enum1      => 'foo1',
+                tree1      => 'tree1',
+                daterange1 => ['2010-10-10', '2010-11-10'],
+                curval1    => 1,
+            },
+        ],
+    },
 );
 
 foreach my $test (@update_tests)
 {
-    my $sheet = $test->{existing_data}
-        ? t::lib::DataSheet->new(data => $test->{existing_data})
-        : t::lib::DataSheet->new;
+    # Create initial records with this datetime
+    set_fixed_time('10/10/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
 
-    my $schema  = $sheet->schema;
+    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+    $curval_sheet->create_records;
+    my $schema = $curval_sheet->schema;
+    my %common = (
+        curval => 2,
+        schema => $schema,
+    );
+    if ($test->{calc_code})
+    {
+        $common{calc_code}        = $test->{calc_code};
+        $common{calc_return_type} = 'string';
+    }
+    my $sheet  = $test->{existing_data}
+        ? t::lib::DataSheet->new(data => $test->{existing_data}, %common)
+        : t::lib::DataSheet->new(%common);
+
     my $layout  = $sheet->layout;
     my $columns = $sheet->columns;
     $sheet->create_records;
+
+    # Then do upload with this datetime. With update_only, previous one
+    # should be used
+    set_fixed_time('05/05/2015 01:00:00', '%m/%d/%Y %H:%M:%S');
 
     my $user = $schema->resultset('User')->create({
         username => 'test',
         password => 'test',
     });
 
-    my $unique = $layout->column_by_name($test->{unique});
-    $unique->isunique(1);
-    $unique->write;
+    my $unique_id;
+    if ($test->{unique})
+    {
+        if ($test->{unique} eq 'ID')
+        {
+            $unique_id = -11;
+        }
+        else {
+            my $unique = $layout->column_by_name($test->{unique});
+            $unique->isunique(1);
+            $unique->write;
+            $unique_id = $unique->id;
+        }
+    }
 
     my %options;
     if ($test->{option} eq 'update_unique')
     {
-        $options{update_unique} = $unique->id;
+        $options{update_unique} = $unique_id;
     }
     if ($test->{option} eq 'skip_existing_unique')
     {
-        $options{skip_existing_unique} = $unique->id;
+        $options{skip_existing_unique} = $unique_id;
     }
     if ($test->{option} eq 'no_change_unless_blank')
     {
-        $options{update_unique} = $unique->id;
+        $options{update_unique} = $unique_id;
         $options{no_change_unless_blank} = 'skip_new';
+    }
+    if ($test->{option} eq 'update_only')
+    {
+        $options{update_only} = 1;
+        $options{update_unique} = $unique_id;
     }
 
     my $import = GADS::Import->new(
@@ -366,6 +448,13 @@ foreach my $test (@update_tests)
     );
 
     is($records->count, $test->{count}, "Correct record count after import test $test->{name}");
+    my $versions = $schema->resultset('Record')->search({
+        instance_id => $sheet->instance_id,
+    },{
+        join => 'current',
+    })->count;
+    is($versions, $test->{count_versions}, "Correct version count after import test $test->{name}")
+        if $test->{count_versions};
 
     foreach my $field_name (keys %{$test->{results}})
     {
