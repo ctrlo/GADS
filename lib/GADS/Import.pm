@@ -595,55 +595,50 @@ sub update_fields
         if ($col->userinput && !$col->internal) # Not calculated fields
         {
             my $newv = $input->{$col->id};
-            # If updating existing record, don't update if invalid value
-            # uploaded (value will be undefined)
-            if (!$record->current_id || defined $newv)
+            my $datum = $record->fields->{$col->id};
+            my $old_value = $datum->as_string;
+            my $was_blank = $datum->blank;
+
+            if ($self->_append_index->{$col->id})
             {
-                my $datum = $record->fields->{$col->id};
-                my $old_value = $datum->as_string;
-                my $was_blank = $datum->blank;
+                $newv =~ s/^\s+// if !$old_value; # Trim preceding line returns if no value to append to
+                # Make sure CR at end of old value if applicable
+                $old_value =~ s/\s+$//;
+                $old_value = "$old_value\n" if $old_value;
+                $newv = $old_value.$newv if $self->_append_index->{$col->id};
+            }
 
-                if ($self->_append_index->{$col->id})
+            # Don't update existing value if no_change_unless_blank is "skip_new"
+            if ($self->no_change_unless_blank eq 'skip_new' && $record->current_id && !$was_blank && !$self->_append_index->{$col->id})
+            {
+                my $colname = $col->name;
+                my $newvalue = $col->fixedvals
+                    ? $self->selects_reverse->{$col->id}->{$newv}
+                    : $col->type eq 'daterange'
+                    ? "$newv->[0] to $newv->[1]"
+                    : $newv;
+                if (lc $old_value ne lc $newvalue)
                 {
-                    $newv =~ s/^\s+// if !$old_value; # Trim preceding line returns if no value to append to
-                    # Make sure CR at end of old value if applicable
-                    $old_value =~ s/\s+$//;
-                    $old_value = "$old_value\n" if $old_value;
-                    $newv = $old_value.$newv if $self->_append_index->{$col->id};
+                    push @$changes, qq(Not going to change value of "$colname" from "$old_value" to "$newvalue")
                 }
-
-                # Don't update existing value if no_change_unless_blank is "skip_new"
-                if ($self->no_change_unless_blank eq 'skip_new' && $record->current_id && !$was_blank && !$self->_append_index->{$col->id})
+                elsif ($old_value ne $newvalue)
+                {
+                    push @$changes, qq(Not going to change case of "$colname" from "$old_value" to "$newvalue")
+                        unless $col->fixedvals;
+                }
+            }
+            else {
+                try { $datum->set_value($newv) };
+                if (my $exception = $@->wasFatal)
+                {
+                    push @bad, $exception->message->toString;
+                }
+                elsif ($self->report_changes && $record->current_id && $datum->changed && !$was_blank && !$self->_append_index->{$col->id})
                 {
                     my $colname = $col->name;
-                    my $newvalue = $col->fixedvals
-                        ? $self->selects_reverse->{$col->id}->{$newv}
-                        : $col->type eq 'daterange'
-                        ? "$newv->[0] to $newv->[1]"
-                        : $newv;
-                    if (lc $old_value ne lc $newvalue)
-                    {
-                        push @$changes, qq(Not going to change value of "$colname" from "$old_value" to "$newvalue")
-                    }
-                    elsif ($old_value ne $newvalue)
-                    {
-                        push @$changes, qq(Not going to change case of "$colname" from "$old_value" to "$newvalue")
-                            unless $col->fixedvals;
-                    }
-                }
-                else {
-                    try { $datum->set_value($newv) };
-                    if (my $exception = $@->wasFatal)
-                    {
-                        push @bad, $exception->message->toString;
-                    }
-                    elsif ($self->report_changes && $record->current_id && $datum->changed && !$was_blank && !$self->_append_index->{$col->id})
-                    {
-                        my $colname = $col->name;
-                        my $newvalue = $datum->as_string;
-                        push @$changes, qq(Change value of "$colname" from "$old_value" to "$newvalue")
-                            if  lc $old_value ne lc $newvalue; # Don't report change of case
-                    }
+                    my $newvalue = $datum->as_string;
+                    push @$changes, qq(Change value of "$colname" from "$old_value" to "$newvalue")
+                        if  lc $old_value ne lc $newvalue; # Don't report change of case
                 }
             }
         }
