@@ -408,11 +408,13 @@ sub find_record_id
 }
 
 sub find_current_id
-{   my ($self, $current_id) = @_;
+{   my ($self, $current_id, $search_instance_id) = @_;
     return unless $current_id;
     my $current = $self->schema->resultset('Current')->find($current_id)
         or error __x"Record ID {id} not found", id => $current_id;
     my $instance_id = $current->instance_id;
+    error __x"Record ID {id} invalid for table {table}", id => $current_id, table => $search_instance_id
+        if $search_instance_id && $search_instance_id != $current->instance_id;
     $self->_check_instance($instance_id);
     $self->_find(current_id => $current_id);
 }

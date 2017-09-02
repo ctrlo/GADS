@@ -345,6 +345,25 @@ my @update_tests = (
         ],
     },
     {
+        name           => 'Attempt to update ID from different table',
+        option         => 'update_unique',
+        data           => "ID,string1\n1,Bar", # ID from curval table
+        unique         => 'ID',
+        count          => 1,
+        count_versions => 1,
+        results => {
+            string1 => 'Foo',
+        },
+        written => 0,
+        errors  => 0,
+        skipped => 1,
+        existing_data => [
+            {
+                string1    => 'Foo',
+            },
+        ],
+    },
+    {
         name           => 'Update existing records only',
         option         => 'update_only',
         data           => "ID,string1,integer1,date1,enum1,tree1,daterange1,curval1\n3,Bar,200,2011-10-10,foo2,tree2,2011-10-10 to 2011-11-10,2\n4,,,,,,,",
