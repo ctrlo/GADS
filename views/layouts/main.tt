@@ -108,7 +108,15 @@
             [% END %]
         </header>
 
-        <main role="main" id="main" class="container-fluid">
+        [% 
+            full_width_pages = {
+                data => 1
+            }
+        %]
+
+        [% main_container_class = full_width_pages.exists(page) ? 'container-fluid' : 'container' %]
+
+        <main role="main" id="main" class="[% main_container_class %]">
             [% content %]
         </main>
 

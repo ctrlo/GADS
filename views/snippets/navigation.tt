@@ -7,32 +7,11 @@
    <nav class="row navbar navbar-default" role="navigation">
         <div class="collapse navbar-collapse" id="user-navbar">
             <ul class="nav navbar-nav">
-                [% PROCESS configuration_menu %]
                 [% PROCESS instance_menu %]
            </ul>
            [% PROCESS user_menu %]
        </div>
     </nav>
-[% END %]
-
-[% BLOCK configuration_menu %]
-    <li class="dropdown">
-        <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
-            aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
-            <span><i aria-hidden="true" class="fa fa-cog fa-lg use-icon-font"></i></span>
-        </button>
-        <ul class="dropdown-menu" id="ciog-menu">
-            <li [% IF 0 %]class="active"[% END %]>
-                <a href="[% url.page %]/config/">Manage homepage</a>
-            </li>
-            <li [% IF 0 %]class="active"[% END %]>
-                <a href="[% url.page %]/file/">Manage uploads</a>
-            </li>
-            <li [% IF 0 %]class="active"[% END %]>
-                <a href="[% url.page %]/audit/">User logs</a>
-            </li>
-        </ul>
-    </li>
 [% END %]
 
 [% BLOCK instance_menu %]
@@ -62,6 +41,15 @@
             <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" id="user-menu">
+            <li [% IF 0 %]class="active"[% END %]>
+                <a href="[% url.page %]/config/">Manage homepage</a>
+            </li>
+            <li [% IF 0 %]class="active"[% END %]>
+                <a href="[% url.page %]/file/">Manage uploads</a>
+            </li>
+            <li [% IF 0 %]class="active"[% END %]>
+                <a href="[% url.page %]/audit/">User logs</a>
+            </li>
             <li><a href="[% url.page %]/account/detail">My details</a></li>
             <li class="divider"></li>
             <li><a href="[% url.page %]/logout">Logout</a></li>
