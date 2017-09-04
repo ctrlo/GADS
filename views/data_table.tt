@@ -12,7 +12,6 @@
         [% END %]
         </dl>
     </aside>
-
 [% END %]
 
 [% FILTER collapse %]
