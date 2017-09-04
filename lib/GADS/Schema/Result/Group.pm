@@ -44,6 +44,48 @@ __PACKAGE__->table("group");
   is_nullable: 1
   size: 128
 
+=head2 default_read
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 default_write_new
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 default_write_existing
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 default_approve_new
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 default_approve_existing
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 default_write_new_no_approval
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 default_write_existing_no_approval
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
 =head2 site_id
 
   data_type: 'integer'
@@ -57,6 +99,20 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "name",
   { data_type => "varchar", is_nullable => 1, size => 128 },
+  "default_read",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "default_write_new",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "default_write_existing",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "default_approve_new",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "default_approve_existing",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "default_write_new_no_approval",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "default_write_existing_no_approval",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "site_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );

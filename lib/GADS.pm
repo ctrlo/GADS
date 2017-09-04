@@ -1075,10 +1075,16 @@ any '/group/?:id?' => require_role useradmin => sub {
     my $layout = var 'layout';
     $group->from_id($id);
 
+    my @permissions = GADS::Type::Permissions->all;
+
     if (param 'submit')
     {
         $group->name(param 'name');
-
+        foreach my $perm (@permissions)
+        {
+            my $name = "default_".$perm->short;
+            $group->$name(param($name) ? 1 : 0);
+        }
         if (process(sub {$group->write}))
         {
             my $action = param('id') ? 'updated' : 'created';
@@ -1104,6 +1110,7 @@ any '/group/?:id?' => require_role useradmin => sub {
     {
         # id will be 0 for new group
         $params->{group} = $group;
+        $params->{permissions} = [@permissions];
     }
     else {
         my $groups = GADS::Groups->new(schema => schema);
