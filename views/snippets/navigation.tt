@@ -18,6 +18,7 @@
    <li class="dropdown">
         <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
             aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
+            <h2 class="heading">Dataset</h2>
             <span>[% instance_name | html_entity %]</span>
             <span class="caret"></span>
         </button>
@@ -37,6 +38,7 @@
         <li class="dropdown">
         <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="User menu"
             aria-expanded="false" aria-haspopup="true" aria-controls="user-menu">
+            <h2 class="heading">Personal menu</h2>
             <span>[% user.value | html_entity %]</span>
             <span class="caret"></span>
         </button>
@@ -167,15 +169,9 @@
 
 [% BLOCK app_nav %]
    <nav class="row navbar navbar-default" role="navigation">
+        <h2 class="heading">Data management</h2>
         <div class="collapse navbar-collapse" id="app-navbar">
             <ul class="nav navbar-nav">
-                <li>
-                    <a class="home" href="[% url.page %]/">
-                        <i aria-hidden="true" class="fa fa-home fa-lg use-icon-font">
-                        </i>
-                        <span class="visually-hidden">Home</span>
-                    </a>
-                </li>
                 [% IF user.permission.layout %]
                     [% PROCESS table_menu %]
                 [% END %]
