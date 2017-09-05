@@ -31,7 +31,7 @@
         <span aria-hidden="true" class="glyphicon glyphicon-info-sign"></span>
         <span class="visually-hidden">contact details</span>
     </button>
-    <div class="person contact-details expandable">
+    <div class="person contact-details expandable popover">
     [% FOR detail IN person.details %]
         <div>
             [% IF detail.type == 'email' %]

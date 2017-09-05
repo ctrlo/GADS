@@ -255,6 +255,7 @@ hook before_template => sub {
     $tokens->{site}          = var 'site';
     $tokens->{config}        = GADS::Config->instance;
     session 'messages' => [];
+    use Data::Dumper; warn Dumper $tokens->{url};
 };
 
 hook after_template_render => sub {
@@ -1328,14 +1329,14 @@ any '/layout/?:id?' => require_login sub {
         if (param 'submit')
         {
 
-            my @permission_params = grep { /^permission_(?:.*?)_\d+$/ } keys %{ params };
+            my @permission_params = grep { /^permission_(?:.*?)_\d+$/ } keys %{ params() };
 
             if (@permission_params) {
                 my %permissions;
 
                 foreach my $p (@permission_params) {
                     my ($name, $group_id) = m/^permission_(.*?)_(\d+)$/;
-                    push ($permissions{$group_id} ||= []), $name;
+                    push @{ $permissions{$group_id} ||= [] }, $name;
                 }
                 
                 $column->set_permissions(%permissions);

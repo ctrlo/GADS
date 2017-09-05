@@ -1356,7 +1356,7 @@ small.search_term {
     display: block; 
 }
 
-.expandable {
+.expandable.popover {
     word-break: break-all;
     border: 1px solid $primary-navy;
     border-radius: 6px;

@@ -15,7 +15,7 @@ var setupLessMoreWidgets = function () {
         $ml.addClass('clipped');
 
         var $expandable = $('<div/>', {
-            'class' : 'expandable column-content',
+            'class' : 'expandable popover column-content',
             'html'  : content
         });
 
@@ -72,9 +72,11 @@ var toggleDisclosure = function () {
 
     var offset = $trigger.position();
 
-    positionDisclosure.call(
-        $disclosure, offset.top, offset.left, $trigger.height()
-    );
+    if ($disclosure.hasClass('popover')) {
+        positionDisclosure.call(
+            $disclosure, offset.top, offset.left, $trigger.height()
+        );
+    }
 
     var currentlyExpanded = $trigger.attr('aria-expanded') === 'true';
     $trigger.attr('aria-expanded', !currentlyExpanded);
@@ -82,11 +84,13 @@ var toggleDisclosure = function () {
     var expandedLabel = $trigger.data('label-expanded');
     var collapsedLabel = $trigger.data('label-collapsed');
 
-    if (collapsedLabel.length && expandedLabel.length) {
+    if (collapsedLabel && expandedLabel) {
         $trigger.html(currentlyExpanded ? collapsedLabel : expandedLabel);
     }
 
-    $trigger.trigger('toggle', currentlyExpanded ? 'collapsed' : 'expanded');
+    $disclosure.toggleClass('expanded', !currentlyExpanded);
+
+    $trigger.trigger((currentlyExpanded ? 'collapse' : 'expand'), $disclosure);
 };
 
 var setupDisclosureWidgets = function () {
@@ -94,8 +98,10 @@ var setupDisclosureWidgets = function () {
 }
 
 var runPageSpecificCode = function () {
-    var page = $('body').data('page');
-    var handler = Linkspace[page];
+    var page = $('body').data('page').match(/^(.*?)(:?\/\d+)?$/);
+    if (page === null) { return; }
+
+    var handler = Linkspace[page[1]];
     if (handler !== undefined) {
         handler();
     }

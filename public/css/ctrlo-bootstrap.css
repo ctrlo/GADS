@@ -1251,7 +1251,7 @@ small.search_term {
 .expandable.expanded {
   display: block; }
 
-.expandable {
+.expandable.popover {
   word-break: break-all;
   border: 1px solid #1460aa;
   border-radius: 6px;
