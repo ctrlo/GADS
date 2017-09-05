@@ -152,7 +152,7 @@
                     <button type="button" class="edit pull-right btn btn-sm btn-primary trigger" aria-expanded="false">Change &rarr;</button>
                     <div class="expandable">
                         <h7 tabindex="-1">Change permissions</h7>
-                        [% PROCESS _permissions_for_group group = group_id %]
+                        [% PROCESS _permissions_for_group group = group %]
                         <button type="button" class="ok btn btn-sm btn-primary">Ok</button>
                     </div>
                 </li>
