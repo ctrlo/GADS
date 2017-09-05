@@ -23,37 +23,37 @@ my $data = [
         integer1   => 4,
         date1      => '',
         daterange1 => ['', ''],
-        enum1      => 7,
-        tree1      => 10,
+        enum1      => 'foo1',
+        tree1      => 'tree1',
         curval1    => 1,
     },{
         string1    => '',
         integer1   => 5,
         date1      => '',
         daterange1 => ['', ''],
-        enum1      => 7,
-        tree1      => 12,
+        enum1      => 'foo1',
+        tree1      => 'tree3',
         curval1    => 2,
     },{
         string1    => '',
         integer1   => 6,
         date1      => '2014-10-10',
         daterange1 => ['2014-03-21', '2015-03-01'],
-        enum1      => 7,
-        tree1      => 11,
+        enum1      => 'foo1',
+        tree1      => 'tree2',
     },{
         string1    => 'Foo',
         integer1   => 7,
         date1      => '2014-10-10',
         daterange1 => ['2013-10-10', '2013-12-03'],
-        enum1      => 7, # Changed to 8 after creation to have multiple versions
-        tree1      => 10,
+        enum1      => 'foo1', # Changed to 8 after creation to have multiple versions
+        tree1      => 'tree1',
     },{
         string1    => 'FooBar',
         date1      => '2015-10-10',
         daterange1 => ['2009-01-04', '2017-06-03'],
-        enum1      => 8,
-        tree1      => 11,
+        enum1      => 'foo2',
+        tree1      => 'tree2',
         curval2    => 1,
     },{
         string1    => "${long}1",
@@ -106,6 +106,7 @@ my $record = GADS::Record->new(
 );
 $record->find_current_id(6);
 $record->fields->{$columns->{enum1}->id}->set_value(8);
+$data->[3]->{enum1} = 'foo2';
 $record->write(no_alerts => 1);
 
 # Add another curval field to a new table
@@ -288,6 +289,26 @@ my @filters = (
             operator => 'not_equal',
         }],
         count => 6,
+    },
+    {
+        name  => 'string is not equal to nothing', # should convert to not empty
+        rules => [{
+            id       => $columns->{string1}->id,
+            type     => 'string',
+            value    => '',
+            operator => 'not_equal',
+        }],
+        count => 4,
+    },
+    {
+        name  => 'string is not equal to nothing (array ref)', # should convert to not empty
+        rules => [{
+            id       => $columns->{string1}->id,
+            type     => 'string',
+            value    => [],
+            operator => 'not_equal',
+        }],
+        count => 4,
     },
     {
         name  => 'greater than undefined value', # matches against empty instead
@@ -587,6 +608,20 @@ my @filters = (
         no_errors => 1,
     },
     {
+        name  => 'Search by curval ID not equal',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => $columns->{curval1}->id,
+                type     => 'string',
+                value    => '2',
+                operator => 'not_equal',
+            },
+        ],
+        count     => 6,
+        no_errors => 1,
+    },
+    {
         name  => 'Search curval ID and enum, only curval in view',
         columns => [$columns->{curval1}->id], # Ensure it's added as first join
         rules => [
@@ -619,6 +654,20 @@ my @filters = (
             },
         ],
         count     => 1,
+        no_errors => 1,
+    },
+    {
+        name  => 'Search by curval field not equal',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => $columns->{curval1}->id .'_'. $curval_columns->{string1}->id,
+                type     => 'string',
+                value    => 'Bar',
+                operator => 'not_equal',
+            },
+        ],
+        count     => 6,
         no_errors => 1,
     },
     {
@@ -780,16 +829,25 @@ $records = GADS::Records->new(
 
 is ($records->count, 1, 'Correct number of results when limiting to a view');
 
-# Check can only directly access correct records
-$record = GADS::Record->new(
-    user   => $user,
-    layout => $layout,
-    schema => $schema,
-);
-is( $record->find_current_id(5)->current_id, 5, "Retrieved viewable current ID 5 in limited view" );
-$record->clear;
-try { $record->find_current_id(4) };
-ok( $@, "Failed to retrieve non-viewable current ID 4 in limited view" );
+# Check can only directly access correct records. Test with and without any
+# columns selected.
+for (0..1)
+{
+    my $columns = $_ ? [] : undef;
+    $record = GADS::Record->new(
+        user    => $user,
+        columns => $columns,
+        layout  => $layout,
+        schema  => $schema,
+    );
+    is( $record->find_current_id(5)->current_id, 5, "Retrieved viewable current ID 5 in limited view" );
+    is( $record->find_record_id(5)->current_id, 5, "Retrieved viewable record ID 5 in limited view" );
+    $record->clear;
+    try { $record->find_current_id(4) };
+    ok( $@, "Failed to retrieve non-viewable current ID 4 in limited view" );
+    try { $record->find_record_id(4) };
+    ok( $@, "Failed to retrieve non-viewable record ID 4 in limited view" );
+}
 
 # Add a second view limit
 $rules = GADS::Filter->new(
@@ -876,6 +934,13 @@ $record->clear;
 is( $record->find_record_id(1)->record_id, 1, "Retrieved history record ID 1 from other datasheet" );
 $record->clear;
 is( $record->find_current_id(1)->current_id, 1, "Retrieved current ID 1 from other datasheet" );
+# Records that don't exist
+$record->clear;
+try { $record->find_record_id(100) };
+like( $@, qr/Record version ID 100 not found/, "Correct error when finding record version that does not exist" );
+$record->clear;
+try { $record->find_current_id(100) };
+like( $@, qr/Record ID 100 not found/, "Correct error when finding record ID that does not exist" );
 
 # Check sorting functionality
 # First check default_sort functionality
@@ -948,7 +1013,7 @@ is( $records->results->[-1]->current_id, 7, "Correct last record for standard so
 my @sorts = (
     {
         name         => 'Sort by ID descending',
-        show_columns => [$columns->{string1}->id, $columns->{enum1}->id],
+        show_columns => [qw/string1 enum1/],
         sort_by      => [undef],
         sort_type    => ['desc'],
         first        => qr/^9$/,
@@ -956,40 +1021,48 @@ my @sorts = (
     },
     {
         name         => 'Sort by single column in view ascending',
-        show_columns => [$columns->{string1}->id, $columns->{enum1}->id],
-        sort_by      => [$columns->{enum1}->id],
+        show_columns => [qw/string1 enum1/],
+        sort_by      => [qw/enum1/],
         sort_type    => ['asc'],
         first        => qr/^(8|9)$/,
         last         => qr/^(6|7)$/,
     },
     {
         name         => 'Sort by single column not in view ascending',
-        show_columns => [$columns->{string1}->id, $columns->{tree1}->id],
-        sort_by      => [$columns->{enum1}->id],
+        show_columns => [qw/string1 tree1/],
+        sort_by      => [qw/enum1/],
         sort_type    => ['asc'],
         first        => qr/^(8|9)$/,
         last         => qr/^(6|7)$/,
     },
     {
         name         => 'Sort by single column not in view descending',
-        show_columns => [$columns->{string1}->id, $columns->{tree1}->id],
-        sort_by      => [$columns->{enum1}->id],
+        show_columns => [qw/string1 tree1/],
+        sort_by      => [qw/enum1/],
         sort_type    => ['desc'],
         first        => qr/^(6|7)$/,
         last         => qr/^(8|9)$/,
     },
     {
+        name         => 'Sort by single column not in view ascending (opposite enum columns)',
+        show_columns => [qw/string1 enum1/],
+        sort_by      => [qw/tree1/],
+        sort_type    => ['asc'],
+        first        => qr/^(8|9)$/,
+        last         => qr/^(4)$/,
+    },
+    {
         name         => 'Sort by two columns, one in view one not in view, asc then desc',
-        show_columns => [$columns->{string1}->id, $columns->{tree1}->id],
-        sort_by      => [$columns->{enum1}->id, $columns->{daterange1}->id],
+        show_columns => [qw/string1 tree1/],
+        sort_by      => [qw/enum1 daterange1/],
         sort_type    => ['asc', 'desc'],
         first        => qr/^(8|9)$/,
         last         => qr/^(7)$/,
     },
     {
         name         => 'Sort with filter on enums',
-        show_columns => [$columns->{enum1}->id,$columns->{curval1}->id,$columns->{tree1}->id],
-        sort_by      => [$columns->{enum1}->id],
+        show_columns => [qw/enum1 curval1 tree1/],
+        sort_by      => [qw/enum1/],
         sort_type    => ['asc'],
         first        => qr/^(3)$/,
         last         => qr/^(6)$/,
@@ -999,7 +1072,7 @@ my @sorts = (
         filter       => {
             rules => [
                 {
-                    id       => $columns->{tree1}->id,
+                    name     => 'tree1',
                     type     => 'string',
                     value    => 'tree1',
                     operator => 'equal',
@@ -1010,8 +1083,8 @@ my @sorts = (
     # Sometimes _value table numbers can get mixed up, so try the opposite way round as well
     {
         name         => 'Sort with filter on enums - opposite filter/sort combo',
-        show_columns => [$columns->{enum1}->id,$columns->{curval1}->id,$columns->{tree1}->id],
-        sort_by      => [$columns->{tree1}->id],
+        show_columns => [qw/enum1 curval1 tree1/],
+        sort_by      => [qw/tree1/],
         sort_type    => ['asc'],
         first        => qr/^(3)$/,
         last         => qr/^(4)$/,
@@ -1021,7 +1094,7 @@ my @sorts = (
         filter       => {
             rules => [
                 {
-                    id       => $columns->{enum1}->id,
+                    name     => 'enum1',
                     type     => 'string',
                     value    => 'foo1',
                     operator => 'equal',
@@ -1031,16 +1104,16 @@ my @sorts = (
     },
     {
         name         => 'Sort by enum that is after another enum in the fetched column',
-        show_columns => [$columns->{enum1}->id,$columns->{curval1}->id,$columns->{tree1}->id],
-        sort_by      => [$columns->{tree1}->id],
+        show_columns => [qw/enum1 curval1 tree1/],
+        sort_by      => [qw/tree1/],
         sort_type    => ['asc'],
         first        => qr/^(8|9)$/,
         last         => qr/^(4)$/,
     },
     {
         name         => 'Sort by enum with filter on curval',
-        show_columns => [$columns->{enum1}->id,$columns->{curval1}->id,$columns->{tree1}->id],
-        sort_by      => [$columns->{enum1}->id],
+        show_columns => [qw/enum1 curval1 tree1/],
+        sort_by      => [qw/enum1/],
         sort_type    => ['asc'],
         first        => qr/^(4)$/,
         last         => qr/^(7)$/,
@@ -1050,13 +1123,13 @@ my @sorts = (
         filter       => {
             rules => [
                 {
-                    id       => $columns->{curval1}->id .'_'. $curval_columns->{enum1}->id,
+                    name     => 'curval1_'.$curval_columns->{enum1}->id,
                     type     => 'string',
                     value    => 'foo2',
                     operator => 'equal',
                 },
                 {
-                    id       => $columns->{curval2}->id .'_'. $curval_columns->{enum1}->id,
+                    name     => 'curval2_'.$curval_columns->{enum1}->id,
                     type     => 'string',
                     value    => 'foo1',
                     operator => 'equal',
@@ -1067,8 +1140,8 @@ my @sorts = (
     },
     {
         name         => 'Sort by curval with filter on curval',
-        show_columns => [$columns->{enum1}->id,$columns->{curval1}->id,$columns->{curval2}->id],
-        sort_by      => [$columns->{curval1}->id],
+        show_columns => [qw/enum1 curval1 curval2/],
+        sort_by      => [qw/curval1/],
         sort_type    => ['asc'],
         first        => qr/^(4)$/,
         last         => qr/^(3)$/,
@@ -1078,13 +1151,13 @@ my @sorts = (
         filter       => {
             rules => [
                 {
-                    id       => $columns->{curval1}->id .'_'. $curval_columns->{enum1}->id,
+                    name     => 'curval1_'.$curval_columns->{enum1}->id,
                     type     => 'string',
                     value    => 'foo1',
                     operator => 'equal',
                 },
                 {
-                    id       => $columns->{curval1}->id .'_'. $curval_columns->{enum1}->id,
+                    name     => 'curval1_'.$curval_columns->{enum1}->id,
                     type     => 'string',
                     value    => 'foo2',
                     operator => 'equal',
@@ -1095,8 +1168,8 @@ my @sorts = (
     },
     {
         name         => 'Sort by curval without curval in view',
-        show_columns => [$columns->{string1}->id],
-        sort_by      => [$columns->{curval1}->id],
+        show_columns => [qw/string1/],
+        sort_by      => [qw/curval1/],
         sort_type    => ['asc'],
         first        => qr/^(5|6|7|8|9)$/,
         last         => qr/^(3)$/,
@@ -1106,88 +1179,112 @@ my @sorts = (
     },
 );
 
-foreach my $sort (@sorts)
+foreach my $multivalue (0.1)
 {
-    # If doing a count with the sort, then do an extra pass, one to check that actual
-    # number of rows retrieved, and one to check the count calculation function
-    my $passes = $sort->{count} ? 4 : 3;
-    foreach my $pass (1..$passes)
+    $sheet->clear_not_data(multivalue => $multivalue);
+    my $layout     = $sheet->layout;
+    my $columns    = $sheet->columns;
+    my $cid_adjust = 9; # For some reason database restarts at same ID second time
+
+    foreach my $sort (@sorts)
     {
-        my $filter = GADS::Filter->new(
-            as_hash => ($sort->{filter} || {}),
-        );
-        my $view = GADS::View->new(
-            name        => 'Test view',
-            columns     => $sort->{show_columns},
-            filter      => $filter,
-            instance_id => 1,
-            layout      => $layout,
-            schema      => $schema,
-            user        => undef,
-        );
-        $view->write;
-        my $sort_type = @{$sort->{sort_type}} > 1
-            ? $sort->{sort_type}
-            : $sort->{sort_type}->[0] eq 'asc' && $pass == 2
-            ? ['asc']
-            : $sort->{sort_type}->[0] eq 'asc' && $pass == 3
-            ? ['desc']
-            : $sort->{sort_type}->[0] eq 'desc' && $pass == 2
-            ? ['desc']
-            : $sort->{sort_type}->[0] eq 'desc' && $pass == 3
-            ? ['asc']
-            : $sort->{sort_type};
-        $view->set_sorts($sort->{sort_by}, $sort_type);
-
-        $records = GADS::Records->new(
-            page    => 1,
-            user    => undef,
-            view    => $view,
-            layout  => $layout,
-            schema  => $schema,
-        );
-        $records->sort({ type => 'desc', id => -11 })
-            if $pass == 1;
-
-        # Test override of sort first
-        if ($pass == 1)
+        # If doing a count with the sort, then do an extra pass, one to check that actual
+        # number of rows retrieved, and one to check the count calculation function
+        my $passes = $sort->{count} ? 4 : 3;
+        foreach my $pass (1..$passes)
         {
-            my $first = $sort->{max_id} || 9;
-            my $last  = $sort->{min_id} || 3;
-            # 1 record per page to test sorting across multiple pages
-            $records->clear;
-            $records->rows(1);
-            is( $records->results->[0]->current_id, $first, "Correct first record for sort override and test $sort->{name}");
-            $records->clear;
-            $records->page($sort->{count} || 7);
-            is( $records->results->[-1]->current_id, $last, "Correct last record for sort override and test $sort->{name}");
-        }
-        elsif ($pass == 2 || $pass == 3)
-        {
-            next if $pass == 3 && @{$sort->{sort_type}} > 1;
-            # First check number of results for page of all records
-            is( @{$records->results}, $sort->{count}, "Correct number of records in results for sort $sort->{name}" )
-                if $sort->{count};
+            my $filter = GADS::Filter->new(
+                as_hash => ($sheet->convert_filter($sort->{filter}) || {}),
+            );
 
-            # Then switch to 1 record per page to test sorting across multiple pages
-            $records->clear;
-            $records->rows(1);
-            if ($pass == 2)
+            my @show_columns = map { $columns->{$_}->id } @{$sort->{show_columns}};
+            my $view = GADS::View->new(
+                name        => 'Test view',
+                columns     => [@show_columns],
+                filter      => $filter,
+                instance_id => 1,
+                layout      => $layout,
+                schema      => $schema,
+                user        => undef,
+            );
+            $view->write;
+            my $sort_type = @{$sort->{sort_type}} > 1
+                ? $sort->{sort_type}
+                : $sort->{sort_type}->[0] eq 'asc' && $pass == 2
+                ? ['asc']
+                : $sort->{sort_type}->[0] eq 'asc' && $pass == 3
+                ? ['desc']
+                : $sort->{sort_type}->[0] eq 'desc' && $pass == 2
+                ? ['desc']
+                : $sort->{sort_type}->[0] eq 'desc' && $pass == 3
+                ? ['asc']
+                : $sort->{sort_type};
+
+            my @sort_by = map { $_ && $columns->{$_}->id } @{$sort->{sort_by}};
+            $view->set_sorts([@sort_by], $sort_type);
+
+            $records = GADS::Records->new(
+                page    => 1,
+                user    => undef,
+                view    => $view,
+                layout  => $layout,
+                schema  => $schema,
+            );
+            $records->sort({ type => 'desc', id => -11 })
+                if $pass == 1;
+
+            # Test override of sort first
+            if ($pass == 1)
             {
-                like( $records->results->[0]->current_id, $sort->{first}, "Correct first record for sort $sort->{name}");
+                my $first = $sort->{max_id} || 9;
+                my $last  = $sort->{min_id} || 3;
+                # 1 record per page to test sorting across multiple pages
+                $records->clear;
+                $records->rows(1);
+                is( $records->results->[0]->current_id - $cid_adjust, $first, "Correct first record for sort override and test $sort->{name}");
                 $records->clear;
                 $records->page($sort->{count} || 7);
-                like( $records->results->[0]->current_id, $sort->{last}, "Correct last record for sort $sort->{name}");
+                is( $records->results->[-1]->current_id - $cid_adjust, $last, "Correct last record for sort override and test $sort->{name}");
+            }
+            elsif ($pass == 2 || $pass == 3)
+            {
+                next if $pass == 3 && @{$sort->{sort_type}} > 1;
+                # First check number of results for page of all records
+                is( @{$records->results}, $sort->{count}, "Correct number of records in results for sort $sort->{name}" )
+                    if $sort->{count};
+
+                # First with full page of results
+                $records->clear;
+                if ($pass == 2)
+                {
+                    like( $records->results->[0]->current_id - $cid_adjust, $sort->{first}, "Correct first record for sort $sort->{name}");
+                    like( $records->results->[-1]->current_id - $cid_adjust, $sort->{last}, "Correct last record for sort $sort->{name}");
+                }
+                else {
+                    like( $records->results->[0]->current_id - $cid_adjust, $sort->{last}, "Correct first record for sort $sort->{name} in reverse");
+                    like( $records->results->[-1]->current_id - $cid_adjust, $sort->{first}, "Correct last record for sort $sort->{name} in reverse");
+                }
+
+                # Then switch to 1 record per page to test sorting across multiple pages
+                $records->clear;
+                $records->rows(1);
+                if ($pass == 2)
+                {
+                    like( $records->results->[0]->current_id - $cid_adjust, $sort->{first}, "Correct first record for sort $sort->{name}");
+                    $records->clear;
+                    $records->page($sort->{count} || 7);
+                    like( $records->results->[0]->current_id - $cid_adjust, $sort->{last}, "Correct last record for sort $sort->{name}");
+                }
+                else {
+                    like( $records->results->[0]->current_id - $cid_adjust, $sort->{last}, "Correct first record for sort $sort->{name} in reverse");
+                    $records->clear;
+                    $records->page($sort->{count} || 7);
+                    like( $records->results->[0]->current_id - $cid_adjust, $sort->{first}, "Correct last record for sort $sort->{name} in reverse");
+                }
             }
             else {
-                like( $records->results->[0]->current_id, $sort->{last}, "Correct first record for sort $sort->{name} in reverse");
-                $records->clear;
-                $records->page($sort->{count} || 7);
-                like( $records->results->[0]->current_id, $sort->{first}, "Correct last record for sort $sort->{name} in reverse");
+                is( $records->count, $sort->{count}, "Correct record count for sort $sort->{name}" )
             }
-        }
-        else {
-            is( $records->count, $sort->{count}, "Correct record count for sort $sort->{name}" )
         }
     }
 }

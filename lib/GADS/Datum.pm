@@ -114,6 +114,12 @@ sub values
     [@values];
 }
 
+# That value that will be used in an edit form to test the display of a
+# display_field dependent field
+sub value_regex_test
+{   shift->as_string;
+}
+
 has written_to => (
     is      => 'rwp',
     isa     => Bool,
@@ -207,11 +213,12 @@ sub clone
     # This will be called from a child class, in which case @extra can specify
     # additional attributes specific to that class
     ref($self)->new(
-        record     => $self->record,
-        column     => $self->column,
-        record_id  => $self->record_id,
-        current_id => $self->current_id,
-        blank      => $self->blank,
+        record         => $self->record,
+        column         => $self->column,
+        record_id      => $self->record_id,
+        current_id     => $self->current_id,
+        blank          => $self->blank,
+        ready_to_write => $self->ready_to_write,
         @extra
     );
 }

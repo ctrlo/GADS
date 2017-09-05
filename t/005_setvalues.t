@@ -63,7 +63,7 @@ my $values = {
 
         },
         new_as_string => 'User2, User2',
-        new_html      => qq(<a style="cursor: pointer" class="personpop" data-toggle="popover"\n        title="User2, User2"\n        data-content="Email: &lt;a href=&#39;mailto:user2\@example.com&#39;&gt;user2\@example.com&lt;/a&gt;">User2, User2</a>),
+        new_html      => 'User2, User2',
         },
     file1 => {
         old_as_string => 'file1.txt',
@@ -384,6 +384,76 @@ foreach my $c (keys %$values)
         $datum->set_value($values->{$c}->{new});
         ok( !$datum->written_to, "$c is not written to when a next page value" );
     }
+}
+
+# Test madatory fields
+{
+    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+    $curval_sheet->create_records;
+    my $sheet = t::lib::DataSheet->new(
+        optional => 0,
+        data     => [],
+        curval   => 2,
+        schema   => $curval_sheet->schema,
+    );
+    $sheet->create_records; # No data, but set up everything else
+    my $record = GADS::Record->new(
+        user   => $sheet->user,
+        layout => $sheet->layout,
+        schema => $sheet->schema,
+    );
+    $record->initialise;
+    foreach my $column ($sheet->layout->all(userinput => 1))
+    {
+        try { $record->write(no_alerts => 1) };
+        my $colname = $column->name;
+        like($@, qr/\Q$colname/, "Correctly failed to write without mandatory value");
+        $record->fields->{$column->id}->set_value($values->{$colname}->{new});
+    }
+
+    # Now with filtered value for next page - should wait until page shown
+    # Count records now to check nothing written
+    my $record_count = $sheet->schema->resultset('Record')->count;
+    foreach my $col ($sheet->layout->all(userinput => 1))
+    {
+        if ($col->name eq 'curval1')
+        {
+            $col->filter(GADS::Filter->new(
+                as_hash => {
+                    rules => [{
+                        id       => $curval_sheet->columns->{string1}->id,
+                        type     => 'string',
+                        value    => '$L1string1',
+                        operator => 'equal',
+                    }],
+                },
+            ));
+        }
+        else {
+            $col->optional(1);
+        }
+        $col->write;
+    }
+    $sheet->layout->clear;
+    $record = GADS::Record->new(
+        user   => $sheet->user,
+        layout => $sheet->layout,
+        schema => $sheet->schema,
+    );
+    $record->initialise;
+    try { $record->write(no_alerts => 1) };
+    is($@, '', "No error when missing curval filtered field value");
+    my $record_count_new = $sheet->schema->resultset('Record')->count;
+    is($record_count_new, $record_count, "No records written despite no error");
+    my $string1 = $sheet->columns->{string1};
+    $record->fields->{$string1->id}->set_value('foobar');
+    $record->editor_shown_fields([$string1->id]);
+    try { $record->write(no_alerts => 1) };
+    is($@, '', "Error for missing curval filtered field value after string write");
+    my $curval1 = $sheet->columns->{curval1};
+    $record->editor_shown_fields([$string1->id, $curval1->id]);
+    try { $record->write(no_alerts => 1) };
+    like($@, qr/curval1/, "Error for missing curval filtered field value after string write");
 }
 
 # Final special test for file with only ID number the same (no new content)

@@ -1,5 +1,5 @@
 [% IF group %]
-<h2>[% IF group.id %]Rename a group[% ELSE %]Add a group[% END %]</h2>
+<h2>[% IF group.id %]Rename group[% ELSE %]Add a group[% END %]</h2>
 <form role="form" method="post">
     <div class="row">
         <div class="col-md-6">
@@ -10,6 +10,17 @@
                 <label for="name">Group name:</label>
                 <input type="text" name="name" class="form-control" value="[% group.name | html_entity %]">
             </div>
+            <label>Default permissions (optional)</label>
+            <p>When a new field is created, by default add this group to it with these permissions</p>
+            [% FOREACH permission IN permissions %]
+                <div class="checkbox">
+                    <label>
+                        [% perm = "default_" _ permission.short %]
+                        <input type="checkbox" name="[% perm %]" value="1"
+                            [% IF group.$perm %]checked[% END %]>[% permission.long | html %]
+                    </label>
+                </div>
+            [% END %]
         </div>
     </div>
     <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">Save</button>

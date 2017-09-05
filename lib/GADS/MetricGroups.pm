@@ -59,6 +59,14 @@ sub _build_all
     \@metrics;
 }
 
+sub purge
+{   my $self = shift;
+    foreach my $mg (@{$self->all})
+    {
+        $mg->delete;
+    }
+}
+
 1;
 
 

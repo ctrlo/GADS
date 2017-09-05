@@ -1251,19 +1251,21 @@ small.search_term {
 .expandable.expanded {
   display: block; }
 
-/* Person contact details popover */
-.person.contact-details.expandable {
-  max-width: 25em;
+.expandable {
   word-break: break-all;
   border: 1px solid #1460aa;
   border-radius: 6px;
   -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
   background-color: #fff;
-  padding: .5em;
-  margin: .5em;
   z-index: 5;
   position: absolute; }
+
+/* Person contact details popover */
+.person.contact-details {
+  max-width: 25em;
+  padding: .5em;
+  margin: .5em; }
 
 /* RAG legend */
 #rag_legend {
@@ -1319,10 +1321,10 @@ small.search_term {
   background-color: rgba(137, 30, 136, 0.3); }
 
 /* Data table */
-.table th * {
+#data-table th * {
   color: #000; }
 
-.table thead button {
+#data-table thead button {
   border: 1px solid #bbb;
   background-color: inherit;
   vertical-align: bottom;
@@ -1505,3 +1507,19 @@ small.search_term {
 #current-permissions .summary {
   width: 75%;
   display: inline-block; }
+
+/* less / more */
+.more-less.clipped {
+  height: 60px;
+  overflow: hidden; }
+
+.more-less.transparent {
+  color: transparent; }
+
+.more-less .column-content {
+  padding: .5em;
+  margin-top: .5em;
+  width: 80%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: initial; }

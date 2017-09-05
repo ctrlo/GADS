@@ -20,7 +20,7 @@
         <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">Action <b class="caret"></b></button>
         <ul class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="edit_action">
             <li role="presentation"><a role="menuitem" href="/edit/?from=[% record.current_id %]">Copy record</a></li>
-            [% IF user.permission.create_child AND NOT record.parent_id %]
+            [% IF layout.user_can("create_child") AND NOT record.parent_id %]
                 <li role="presentation"><a role="menuitem" href="/edit/?child=[% record.current_id %]">Create child record</a></li>
             [% END %]
             [% IF user.permission.link %]
@@ -56,9 +56,11 @@
                 <button type="submit" name="submit" value="back" class="btn btn-default submit_button">Previous</button>
             [% END %]
             <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
-                [% IF record.has_next_values %]Next[% ELSE %]Save[% END %]
+                [% IF record.has_next_values AND page != "bulk" %]Next[% ELSE %]Save[% END %]
             </button>
-            <a role="button" class="btn btn-default" href="" data-toggle="modal" data-target="#modaldelete">Delete</a></li>
+            [% IF record.user_can_delete %]
+                <a role="button" class="btn btn-default" href="" data-toggle="modal" data-target="#modaldelete">Delete</a>
+            [% END %]
             <a href="/data" class="btn btn-default">Cancel</a>
         </div>
     </nav>
@@ -76,7 +78,7 @@
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
-[% IF user.permission.delete || user.permission.delete_noneed_approval %]
+[% IF record.user_can_delete %]
    <!-- Modal -->
     <div class="modal fade" id="modaldelete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -108,6 +110,9 @@
     </div><!-- /.modal -->
 [% END %]
 
+[% WRAPPER modal_dialog.tt modal_id="readmore_modal" modal_large=1 %]
+[% END %]
+
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
@@ -128,6 +133,14 @@
             $('#helptext_modal').on('show.bs.modal', function (e) {
                 var loadurl = $(e.relatedTarget).data('load-url');
                 $(this).find('.modal-body').load(loadurl);
+            });
+
+            $(document).on("mousedown", ".moreinfo", function(e) {
+                var record_id = $(e.target).data('record-id');
+                var m = $("#readmore_modal");
+                m.find('.modal-body').text('Loading...');
+                m.find('.modal-body').load('/record_body/' + record_id + '?oi=2');
+                m.modal();
             });
 
             $('.input-daterange input.from').each(function (){
@@ -335,31 +348,35 @@
 
     [%# Skip if field has a filter (which will alter its values) and the dependent values have not yet been completed %]
 
-    [%# If field's value has already been written to, do not display field by add as hidden value instead %]
-    [% IF record.fields.$colid.value_previous_page OR record.fields.$colid.value_next_page %]
-        [% IF record.fields.$colid.html_form.size %]
-            [% FOREACH val IN record.fields.$colid.html_form %]
-                <input type="hidden" name="[% field %]" value="[% val %]">
+    [%# When bulk updating, just show all fields %]
+    [% UNLESS page == "bulk" %]
+        [%# If field's value has already been written to, do not display field by add as hidden value instead %]
+        [% IF record.fields.$colid.value_previous_page OR record.fields.$colid.value_next_page %]
+            [% IF record.fields.$colid.html_form.size %]
+                [% FOREACH val IN record.fields.$colid.html_form %]
+                    <input type="hidden" name="[% field %]" value="[% val %]">
+                [% END %]
+            [% ELSE %]
+                [%# Ensure a value gets sent back to show this field was shown if nothing selected %]
+                <input type="hidden" name="[% field %]">
             [% END %]
-        [% ELSE %]
-            [%# Ensure a value gets sent back to show this field was shown if nothing selected %]
-            <input type="hidden" name="[% field %]">
+            [% IF record.fields.$colid.value_previous_page %]
+                <input type="hidden" name="previous_fields" value="[% colid %]">
+            [% ELSE %]
+                <input type="hidden" name="next_fields" value="[% colid %]">
+            [% END %]
+            [% NEXT %]
         [% END %]
-        [% IF record.fields.$colid.value_previous_page %]
-            <input type="hidden" name="previous_fields" value="[% colid %]">
-        [% ELSE %]
-            <input type="hidden" name="next_fields" value="[% colid %]">
-        [% END %]
-        [% NEXT %]
+
+        [% NEXT UNLESS record.fields.$colid.show_for_write %]
     [% END %]
 
-    [% NEXT UNLESS record.fields.$colid.show_for_write %]
     <input type="hidden" name="shown_fields" value="[% colid %]">
 
     [%# Skip field if it's an approval request but a value not needing approval %]
     [% NEXT IF page == "approval" AND NOT (record.fields.$colid.has_value)  %]
     [%# Skip if it's a child record and the value doesn't exist %]
-    [% NEXT IF record.parent_id AND NOT (record.fields.$colid.has_value) AND NOT user.permission.create_child %]
+    [% NEXT IF record.parent_id AND NOT (record.fields.$colid.has_value) AND NOT layout.user_can("create_child") %]
     [%# Skip if it's a linked record and the value is linked %]
     [% IF record.linked_id AND dispcol.link_parent %]
         <input type="hidden" name="[% field %]">
@@ -429,7 +446,7 @@
             [% END %]
             [% label = label _ label_add %]
         [% END %]
-        [% IF child AND user.permission.create_child %]
+        [% IF child AND layout.user_can("create_child") %]
             <div class="checkbox">
                 <label>
                     <input type="checkbox" name="child_inc" value="[% dispcol.id %]"
@@ -478,7 +495,7 @@
         <div class="row">
             <div class="[% IF dispcol.multivalue AND dispcol.has_multivalue_plus %]col-md-10[% ELSE %]col-md-12[% END %]">
                 [% IF dispcol.type == "enum" %]
-                    <select class="form-control [% IF dispcol.multivalue %]selectpicker [% END %]" name="[% field %]" id="[% dispcol.id %]" [% readonly %] [% IF dispcol.multivalue %]multiple[% END %]>
+                    <select class="form-control [% IF dispcol.multivalue %]selectpicker [% END %]" name="[% field %]" id="[% dispcol.id %]" [% IF readonly %]disabled[% END %] [% IF dispcol.multivalue %]multiple[% END %]>
                         [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
                             [% IF !dispcol.multivalue %]
                                 <option></option>
@@ -510,27 +527,32 @@
                             [%# Ensure a value gets sent back to show this field was shown if nothing selected %]
                             <input type="hidden" name="[% field %]">
                         [% END %]
-                        <select class="form-control [% IF dispcol.multivalue %]selectpicker [% END %]"
-                            name="[% field %]" id="[% dispcol.id %]" [% readonly %]
-                            [% IF dispcol.multivalue %]
+                        <select class="form-control [% IF dispcol.has_subvalues %]selectpicker [% END %]"
+                            name="[% field %]" id="[% dispcol.id %]" [% IF readonly %]disabled[% END %]
+                            [% IF dispcol.has_subvalues %]
                                 data-multiple-separator="; " data-window-padding="70"
-                                multiple
+                                [% IF dispcol.multivalue %]multiple[% END %]
                             [% END %]>
                             [% IF !dispcol.multivalue %]
                                 [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
                                     <option></option>
                                 [% END %]
                             [% END %]
-                            [% enumvals = dispcol.values %]
+                            [% IF page == "bulk" %]
+                                [% enumvals = dispcol.all_values %]
+                            [% ELSE %]
+                                [% enumvals = dispcol.filtered_values %]
+                            [% END %]
                             [% FOREACH enumval IN enumvals %]
                                 [% UNLESS enumval.deleted %]
                                     <option value="[% enumval.id %]" [% IF editvalue.id_hash.${enumval.id} %]selected[% END %]
-                                        [% IF dispcol.multivalue %]
+                                        [% IF dispcol.has_subvalues %]
                                             title="[% enumval.mainvalue | html_entity %]" [%# only show main title in selection %]
                                             [%# custom content for each option in order to show tooltip text %]
                                             data-content="<span title='[% enumval.value | html_entity %]'>
                                                 [% enumval.mainvalue | html_entity %]
                                                 <small class='text-muted'>[% enumval.subvalue | html_entity %]</small>
+                                                <span class='moreinfo' data-record-id='[% enumval.id %]'>Read more...</span>
                                             </span>"
                                         [% END %]
                                     >

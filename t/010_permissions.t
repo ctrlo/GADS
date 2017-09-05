@@ -40,43 +40,20 @@ my $data = {
     ],
 };
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, no_groups => 1, user_count => 0);
+my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, no_groups => 1);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
-my $sheet   = t::lib::DataSheet->new(data => $data->{a}, schema => $schema, curval => 2, no_groups => 1, user_count => 0);
+my $sheet   = t::lib::DataSheet->new(data => $data->{a}, schema => $schema, curval => 2, no_groups => 1);
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
 $sheet->create_records;
 
 # Create users
 my %users = (
-    read      => { id => 1},
-    limited   => { id => 2},
-    readwrite => { id => 3},
+    read      => { id => $sheet->create_user->{id} },
+    limited   => { id => $sheet->create_user->{id} },
+    readwrite => { id => $sheet->create_user->{id} },
 );
-my $delete_user_id = 4;
-$schema->resultset('User')->populate([
-    {
-        id       => $users{read}->{id}, # Read only
-        username => 'user1@example.com',
-        email    => 'user1@example.com',
-    },
-    {
-        id       => $users{limited}->{id}, # Limited write
-        username => 'user2@example.com',
-        email    => 'user2@example.com',
-    },
-    {
-        id       => $users{readwrite}->{id}, # Read/write
-        username => 'user3@example.com',
-        email    => 'user3@example.com',
-    },
-    {
-        id         => $delete_user_id, # User to delete records
-        username   => 'user4@example.com',
-        email      => 'user4@example.com',
-    },
-]);
 
 # Groups
 foreach my $group_name (qw/read limited readwrite/)
@@ -93,14 +70,16 @@ my %groups;
 foreach my $group (@{$groups->all})
 {
     my $usero = $schema->resultset('User')->find($users{$group->name}->{id});
-    $usero->groups([$group->id]);
+    $usero->groups($schema->resultset('User')->find($sheet->user->{id}), [$group->id]);
     $groups{$group->name} = $group->id;
 }
 
 # Should be 3 groups rows now
 is( $schema->resultset('UserGroup')->count, 3, "Correct number of permissions added");
 
-foreach my $column ($layout->all)
+# Write groups such that the limited group only has read/write access to one
+# field in the main sheet, but not the curval sheet
+foreach my $column ($layout->all, $curval_sheet->layout->all)
 {
     # Read only
     my $read = [qw/read/];
@@ -111,13 +90,15 @@ foreach my $column ($layout->all)
         $groups{read} => $read,
     };
     $permissions->{$groups{limited}} = $all
-        if $column->name eq 'string1';
+        if $column->name eq 'string1' && $column->layout->instance_id != $curval_sheet->instance_id;
     $permissions->{$groups{readwrite}} = $all;
     $column->set_permissions(%$permissions);
 }
+# Turn off the permission override on the curval sheet so that permissions are
+# actually tested (turned on initially to populate records)
+$curval_sheet->layout->user_permission_override(0);
 
-my $data_set = 'b';
-foreach my $user_type (keys %users)
+foreach my $user_type (qw/readwrite read limited/)
 {
     my $user = $users{$user_type};
     # Need to build layout each time, to get user permissions
@@ -128,10 +109,44 @@ foreach my $user_type (keys %users)
         config      => GADS::Config->instance,
         instance_id => $sheet->instance_id,
     );
+    my $layout_curval = GADS::Layout->new(
+        user        => $user,
+        schema      => $schema,
+        config      => GADS::Config->instance,
+        instance_id => $curval_sheet->instance_id,
+    );
+
+    # Check overall layout permissions. Having all the columns built in a
+    # layout will affect how permissions are checked, so test both
+    foreach my $with_columns (0..1)
+    {
+        if ($with_columns)
+        {
+            $layout->columns;
+            $layout_curval->columns;
+        }
+        if ($user_type eq 'read')
+        {
+            ok(!$layout->user_can('write_existing'), "User $user_type cannot write to anything");
+        }
+        else {
+            ok($layout->user_can('write_existing'), "User $user_type can write to something in layout");
+        }
+        if ($user_type eq 'readwrite')
+        {
+            ok($layout_curval->user_can('write_existing'), "User $user_type can write to something in layout");
+        }
+        else {
+            ok(!$layout_curval->user_can('write_existing'), "User $user_type cannot write to anything");
+        }
+        $layout->clear;
+        $layout_curval->clear;
+    }
 
     # Check that user has access to all curval values
     my $curval_column = $columns->{curval1};
-    is( @{$curval_column->values}, 2, "User has access to all curval values" );
+    is( @{$curval_column->filtered_values}, 2, "User has access to all curval values (filtered)" );
+    is( @{$curval_column->all_values}, 2, "User has access to all curval values (all)" );
 
     # Now apply a filter. Correct number of curval values should be
     # retrieved, regardless of user perms
@@ -146,7 +161,7 @@ foreach my $user_type (keys %users)
         },
     ));
     $curval_column->write;
-    is( @{$curval_column->values}, 1, "User has access to all curval values" );
+    is( @{$curval_column->filtered_values}, 1, "User has access to all curval values after filter" );
     # Reset for next test
     $curval_column->clear_filter;
     $curval_column->write;
@@ -173,13 +188,7 @@ foreach my $user_type (keys %users)
 
     foreach my $rec (@records)
     {
-        my $new = $data->{$data_set}->[0];
-        foreach my $column ($layout->all(userinput => 1))
-        {
-            next if $user_type eq 'limited' && $column->name ne 'string1';
-            my $datum = $rec->fields->{$column->id};
-            $datum->set_value($new->{$column->name});
-        }
+        _set_data($data->{b}->[0], $layout, $rec, $user_type);
         my $record_max = $schema->resultset('Record')->get_column('id')->max;
         try { $rec->write(no_alerts => 1) };
         if ($user_type eq 'read')
@@ -189,17 +198,16 @@ foreach my $user_type (keys %users)
         else {
             ok( !$@, "Write for user with write access did not bork" );
             my $record_max_new = $schema->resultset('Record')->get_column('id')->max;
-            is( $record_max_new, $record_max + 1, "Change in record's values took place" );
+            is( $record_max_new, $record_max + 1, "Change in record's values took place for user $user_type" );
+            # Reset values to previous
+            _set_data($data->{a}->[0], $layout, $rec, $user_type);
+            $rec->write(no_alerts => 1);
         }
     }
+    # Delete created record unless one shouldn't have been created (read only test)
     unless ($user_type eq 'read')
     {
-            $data_set = $data_set eq 'a' ? 'b' : 'a';
-        # First try deleting record as user without permission
-        try { $record->delete_current };
-        ok( $@, "User without permission failed to delete record" );
-        # Now user with
-        $record->user({ permission => { delete_noneed_approval => 1 } });
+        $record->user(undef); # undef users are allowed to delete records
         $record->delete_current;
         $records = GADS::Records->new(
             user    => undef,
@@ -212,3 +220,13 @@ foreach my $user_type (keys %users)
 
 
 done_testing();
+
+sub _set_data
+{   my ($data, $layout, $rec, $user_type) = @_;
+    foreach my $column ($layout->all(userinput => 1))
+    {
+        next if $user_type eq 'limited' && $column->name ne 'string1';
+        my $datum = $rec->fields->{$column->id};
+        $datum->set_value($data->{$column->name});
+    }
+}

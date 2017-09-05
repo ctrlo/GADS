@@ -1,0 +1,19 @@
+<h2>Manage tables</h2>
+<p class="lead">Use this page to create, delete and edit tables. Think of a table as a sheet
+within a spreadsheet.
+</p>
+<p>
+    <a href="/table/0" class="btn btn-default" role="button">Add a new table</a>
+</p>
+<table class="table table-striped">
+    <tr>
+        <th></th>
+        <th>Name</th>
+    </tr>
+    [% FOREACH instance IN instances %]
+        <tr>
+            <td><a href="/table/[% instance.instance_id %]">Edit</a></td>
+            <td>[% instance.name | html_entity %]</td>
+        </tr>
+    [% END %]
+</table>

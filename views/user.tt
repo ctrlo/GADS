@@ -4,8 +4,10 @@
 [% edituser = users.shift %]
 [% IF edituser.account_request %]
     <h2>New account request</h2>
+[% ELSIF page == "account/detail" %]
+    <h2>[% edituser.firstname %] [% edituser.surname %] - My details</h2>
 [% ELSIF edituser.id %]
-    <h2>Edit [% edituser.value | html_entity %]</h2>
+    <h2>Edit: [% edituser.value | html_entity %]</h2>
 [% ELSE %]
     <h2>Add a user</h2>
 [% END %]
@@ -17,6 +19,7 @@
             [% END %]
             <input type="hidden" name="page" value="[% page %]">
             <input type="hidden" name="username" value="[% edituser.username | html_entity %]">
+            <input type="hidden" name="id" value="[% edituser.id %]">
             [% IF edituser.account_request_notes %]
                 <div class="form-group">
                     <label for="notes">Notes:</label>
@@ -57,11 +60,9 @@
                         [% END %]
                     </label>
                     <select class="form-control" id="title" name="title">
-                        [% UNLESS edituser.title.id %]
-                            <option></option>
-                        [% END %]
+                        <option></option>
                         [% FOREACH title IN titles %]
-                            <option value="[% title.id %]" [% IF edituser.title == title.id %]selected[% END %]>[% title.name | html_entity %]</option>
+                            <option value="[% title.id %]" [% IF edituser.title.id == title.id %]selected[% END %]>[% title.name | html_entity %]</option>
                         [% END %]
                     </select>
                 </div>
@@ -75,12 +76,10 @@
                         [% END %]
                     </label>
                     <select class="form-control" id="organisation" name="organisation">
-                        [% UNLESS edituser.organisation.id %]
-                            <option></option>
-                        [% END %]
+                        <option></option>
                         [% FOREACH organisation IN organisations %]
                             <option value="[% organisation.id %]"
-                                [% IF edituser.organisation == organisation.id %]selected[% END %]>[% organisation.name | html_entity %]
+                                [% IF edituser.organisation.id == organisation.id %]selected[% END %]>[% organisation.name | html_entity %]
                             </option>
                         [% END %]
                     </select>
@@ -89,7 +88,7 @@
             [% IF page == "user" %]
                 <div class="form-group">
                     <label for="view_limits">
-                        Only allow this user to see records in these tables: (<a href="" data-toggle="modal" data-target="#modalhelp_limitdata">?</a>)
+                        Only allow this user to see records in these views: (<a href="" data-toggle="modal" data-target="#modalhelp_limitdata">?</a>)
                     </label>
                     [% FOREACH view_limit IN edituser.view_limits_with_blank %]
                         <div class="limit-to-view">
@@ -97,8 +96,8 @@
                                 <div class="col-md-10">
                                     <select class="form-control" name="view_limits">
                                         <option></option>
-                                        [% FOREACH instance IN instances %]
-                                            [% FOREACH v IN instance.global_view_summary %]
+                                        [% FOREACH layout IN instances %]
+                                            [% FOREACH v IN layout.global_view_summary %]
                                                 <option value="[% v.id %]"
                                                     [% IF view_limit.view_id == v.id %]selected[% END %]>[% instance.name _ ': ' _ v.name | html_entity %]
                                                 </option>
@@ -116,29 +115,41 @@
                 </div>
             [% END %]
             [% IF page == "user" %]
-                <label>
-                    User's system-wide permissions:
-                </label>
-                <p>This user can</p>
-                [% FOREACH permission IN permissions %]
-                    [% key = permission.name %]
+                [% IF user.permission.superadmin %]
+                    <label>
+                        User's system-wide permissions:
+                    </label>
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" name="permission" value="[% permission.id %]"
-                                [% IF edituser.permission.$key %]checked[% END %]>[% permission.description | html_entity %]
+                            <input type="checkbox" name="permission" value="superadmin"
+                                [% IF edituser.permission.superadmin %]checked[% END %]>Super-administrator
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="permission" value="useradmin"
+                                [% IF edituser.permission.useradmin %]checked[% END %]>User can manage other user accounts
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="permission" value="audit"
+                                [% IF edituser.permission.audit %]checked[% END %]>User can access audit data
                         </label>
                     </div>
                 [% END %]
                 <label>
-                    Add this to the following groups:
+                    Add this user to the following groups:
                 </label>
                 [% IF groups.size %]
                     [% FOREACH group IN groups %]
                         [% key = group.id %]
-                        <div class="checkbox">
+                        <div class="checkbox [% UNLESS user.permission.superadmin OR logged_in_user.has_group.$key %]disabled[% END %]">
                             <label>
                                 <input type="checkbox" name="groups" value="[% group.id %]"
-                                    [% IF edituser.has_group.$key %]checked[% END %]>[% group.name | html_entity %]
+                                    [% IF edituser.has_group.$key %]checked[% END %]
+                                    [% UNLESS user.permission.superadmin OR logged_in_user.has_group.$key %]disabled[% END %]
+                                    >[% group.name | html_entity %]
                             </label>
                         </div>
                     [% END %]

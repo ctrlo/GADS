@@ -7,7 +7,7 @@ sub _presentation_details {
 
     return [] unless $self->id;
 
-    my $site = $self->column->layout->instance->site;
+    my $site = $self->column->layout->site;
 
     my @details;
 

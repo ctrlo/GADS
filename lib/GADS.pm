@@ -45,7 +45,6 @@ use GADS::Graphs;
 use GADS::Group;
 use GADS::Groups;
 use GADS::Import;
-use GADS::Instance;
 use GADS::Instances;
 use GADS::Layout;
 use GADS::MetricGroup;
@@ -202,18 +201,13 @@ hook before => sub {
         # be one sheet, but then a linked record to be viewed from another
         # sheet. This is used in the links for the Curval column type
         my $instance_id = param('oi') || param('instance') || $persistent->{instance_id};
-        my $instances = GADS::Instances->new(schema => schema);
+        my $instances = GADS::Instances->new(schema => schema, user => $user);
         $instance_id = $instances->is_valid($instance_id) || $instances->all->[0]->id;
         $persistent->{instance_id} = $instance_id
             unless param 'oi';
-        my $layout = GADS::Layout->new(
-            user        => $user,
-            schema      => schema,
-            config      => GADS::Config->instance,
-            instances   => $instances->all,
-            instance_id => $instance_id,
-        );
-        var 'layout' => $layout;
+        my $layout = $instances->layout($instance_id);
+        var 'layout'    => $layout;
+        var 'instances' => $instances;
     }
 };
 
@@ -245,15 +239,16 @@ hook before_template => sub {
     }
     if (logged_in_user)
     {
-        $tokens->{instances}     = GADS::Instances->new(schema => schema)->all;
+        $tokens->{instances}     = var('instances')->all;
         $tokens->{instance_name} = var('layout')->name if var('layout');
         $tokens->{user}          = $user;
         $tokens->{search}        = session 'search';
         # Somehow this sets the instance_id session if no persistent session exists
         $tokens->{instance_id}   = session('persistent')->{instance_id}
             if session 'persistent';
-        $tokens->{user_can_edit} = $layout->user_can('write_existing');
+        $tokens->{user_can_edit}   = $layout->user_can('write_existing');
         $tokens->{user_can_create} = $layout->user_can('write_new');
+        $tokens->{layout}          = $layout;
         $tokens->{v}               = current_view(logged_in_user, $layout);  # View is reserved TT word
     }
     $tokens->{messages}      = session('messages');
@@ -274,13 +269,9 @@ hook after_template_render => sub {
 
 get '/' => require_login sub {
 
-    my $config = GADS::Instance->new(
-        id     => session('persistent')->{instance_id},
-        schema => schema,
-    );
     template 'index' => {
-        instance => $config,
-        page     => 'index'
+        layout => var('layout'),
+        page   => 'index'
     };
 };
 
@@ -440,10 +431,16 @@ any '/data' => require_login sub {
             rewind => session('rewind'),
             view   => current_view($user, $layout),
         );
+        $records->search_all_fields(session 'search')
+            if session 'search';
+        my $count; # Count actual number deleted, not number reported by search result
         while (my $record = $records->single)
         {
-            $record->delete_current;
+            $count++
+                if (process sub { $record->delete_current });
         }
+        return forwardHome(
+            { success => "$count records successfully deleted" }, 'data' );
     }
 
     # Check for rewind configuration
@@ -685,13 +682,9 @@ any '/data' => require_login sub {
         $records->sort(session 'sort');
 
         # Default sort if not set
-        my $config = GADS::Instance->new(
-            id     => $layout->instance_id,
-            schema => schema,
-        );
         my $sort = {
-            id   => $config->sort_layout_id,
-            type => $config->sort_type,
+            id   => $layout->sort_layout_id,
+            type => $layout->sort_type,
         };
         $records->default_sort($sort);
 
@@ -722,7 +715,7 @@ any '/data' => require_login sub {
 
             return forwardHome(
                 { danger => 'You do not have permission to send messages' }, 'data' )
-                unless user_has_role 'message';
+                unless $layout->user_can("message");
 
             my $email  = GADS::Email->instance;
             my $args   = {
@@ -741,9 +734,6 @@ any '/data' => require_login sub {
 
         if (defined param('download'))
         {
-            forwardHome({ danger => "You do not have permission to download data"}, 'data')
-                unless user_has_role 'download';
-
             forwardHome({ danger => "There are no records to download in this view"}, 'data')
                 unless $records->count;
 
@@ -827,7 +817,6 @@ any '/data' => require_login sub {
 
     $params->{user_views}      = $views->user_views;
     $params->{alerts}          = $alert->all;
-    $params->{show_link}       = rset('Current')->count;
     template 'data' => $params;
 };
 
@@ -898,7 +887,7 @@ any '/account/?:action?/?' => require_login sub {
         template 'account' => {
             graphs => $all_graphs,
             action => $action,
-            page   => 'account',
+            page   => 'account/graph',
         };
     }
     elsif ($action eq 'detail')
@@ -919,19 +908,16 @@ any '/account/?:action?/?' => require_login sub {
 
 any '/config/?' => require_role layout => sub {
 
-    my $config = GADS::Instance->new(
-        id     => session('persistent')->{instance_id},
-        schema => schema,
-    );
+    my $instance = rset('Instance')->find(var('layout')->instance_id);
 
     if (param 'update')
     {
-        $config->homepage_text(param 'homepage_text');
-        $config->homepage_text2(param 'homepage_text2');
-        $config->sort_layout_id(param 'sort_layout_id');
-        $config->sort_type(param 'sort_type');
+        $instance->homepage_text(param 'homepage_text');
+        $instance->homepage_text2(param 'homepage_text2');
+        $instance->sort_layout_id(param('sort_layout_id') || undef);
+        $instance->sort_type(param 'sort_type');
 
-        if (process( sub { $config->write }))
+        if (process( sub { $instance->update }))
         {
             return forwardHome(
                 { success => "Configuration settings have been updated successfully" } );
@@ -942,7 +928,7 @@ any '/config/?' => require_role layout => sub {
     my @all_columns = $layout->all;
     template 'config' => {
         all_columns => \@all_columns,
-        instance    => $config,
+        instance    => $instance,
         page        => 'config'
     };
 };
@@ -953,7 +939,7 @@ any '/graph/?:id?' => require_role layout => sub {
     my $layout = var 'layout';
     my $params = {
         layout => $layout,
-        page   => 'graph',
+        page   => defined param('id') && !param('id') ? 'graph/0' : 'graph',
     };
 
     my $id = param 'id';
@@ -1089,10 +1075,16 @@ any '/group/?:id?' => require_role useradmin => sub {
     my $layout = var 'layout';
     $group->from_id($id);
 
+    my @permissions = GADS::Type::Permissions->all;
+
     if (param 'submit')
     {
         $group->name(param 'name');
-
+        foreach my $perm (@permissions)
+        {
+            my $name = "default_".$perm->short;
+            $group->$name(param($name) ? 1 : 0);
+        }
         if (process(sub {$group->write}))
         {
             my $action = param('id') ? 'updated' : 'created';
@@ -1118,6 +1110,7 @@ any '/group/?:id?' => require_role useradmin => sub {
     {
         # id will be 0 for new group
         $params->{group} = $group;
+        $params->{permissions} = [@permissions];
     }
     else {
         my $groups = GADS::Groups->new(schema => schema);
@@ -1127,60 +1120,74 @@ any '/group/?:id?' => require_role useradmin => sub {
     template 'group' => $params;
 };
 
-any '/table/?:id?' => require_role layout => sub {
+get '/table/?' => require_role superadmin => sub {
 
-    my $id       = param 'id';
-    my $instance = defined($id) && ($id && rset('Instance')->find($id) || rset('Instance')->new({}));
-    my $layout   = var 'layout';
-
-    if (param 'submit')
-    {
-        $instance->name(param 'name');
-
-        if (process(sub {$instance->update_or_insert}))
-        {
-            my $msg = param('id') ? 'The table has been updated successfully' : 'Your new table has been created successfully';
-            return forwardHome(
-                { success => $msg }, 'table' );
-        }
-    }
-
-    if (param 'delete')
-    {
-        if (process(sub {$instance->delete}))
-        {
-            return forwardHome(
-                { success => "The table has been deleted successfully" }, 'table' );
-        }
-    }
-
-    my $params = {
-        page => 'table'
+    template 'tables' => {
+        page      => 'table',
+        instances => [rset('Instance')->all],
     };
+};
 
-    if (defined $id)
+any '/table/:id' => require_role superadmin => sub {
+
+    my $id          = param 'id';
+    my $user        = logged_in_user;
+    my $layout_edit = $id && var('instances')->layout($id);
+
+    if (param('submit') || param('delete'))
     {
-        # id will be 0 for new group
-        $params->{instance} = $instance;
+        if (param 'submit')
+        {
+            if (!$layout_edit)
+            {
+                $layout_edit = GADS::Layout->new(
+                    user   => $user,
+                    schema => schema,
+                    config => config,
+                );
+            }
+            $layout_edit->name(param 'name');
+            $layout_edit->set_groups([body_parameters->get_all('permissions')]);
+
+            if (process(sub {$layout_edit->write}))
+            {
+                # Switch user to new table
+                my $msg = param('id') ? 'The table has been updated successfully' : 'Your new table has been created successfully';
+                return forwardHome(
+                    { success => $msg }, 'table' );
+            }
+        }
+
+        if (param 'delete')
+        {
+            if (process(sub {$layout_edit->delete}))
+            {
+                return forwardHome(
+                    { success => "The table has been deleted successfully" }, 'table' );
+            }
+        }
     }
-    else {
-        $params->{instances} = [rset('Instance')->all],
+
+    template 'table' => {
+        page        => $id ? 'table' : 'table/0',
+        layout_edit => $layout_edit,
+        groups      => GADS::Groups->new(schema => schema)->all,
     }
-    template 'table' => $params;
 };
 
 any '/view/:id' => require_login sub {
 
+    my $user   = logged_in_user;
+    my $layout = var 'layout';
+
     return forwardHome(
         { danger => 'You do not have permission to edit views' }, 'data' )
-        unless user_has_role 'view_create';
+        unless $layout->user_can("view_create");
 
     my $view_id = param('id');
     $view_id = param('clone') if param('clone') && !request->is_post;
     my @ucolumns; my $view_values;
 
-    my $user   = logged_in_user;
-    my $layout = var 'layout';
     my %vp = (
         user        => $user,
         schema      => schema,
@@ -1223,12 +1230,17 @@ any '/view/:id' => require_login sub {
         }
     }
 
+    my $page = param('clone')
+        ? 'view/clone'
+        : defined param('id') && !param('id')
+        ? 'view/0' : 'view';
+
     my $output = template 'view' => {
         layout       => $layout,
         sort_types   => $view->sort_types,
         view_edit    => $view, # TT does not like variable "view"
         clone        => param('clone'),
-        page         => 'view'
+        page         => $page,
     };
     $output;
 };
@@ -1259,38 +1271,25 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => require_login sub {
 
 };
 
-any '/layout/?:id?' => require_role 'layout' => sub {
+any '/layout/?:id?' => require_login sub {
 
     my $user        = logged_in_user;
     my $layout      = var 'layout';
+
+    forwardHome({ danger => "You do not have permission to manage fields"}, '')
+        unless $layout->user_can("layout");
+
     my @all_columns = $layout->all;
 
     my $params = {
-        page        => 'layout',
+        page        => defined param('id') && !param('id') ? 'layout/0' : 'layout',
         all_columns => \@all_columns,
     };
 
     if (defined param('id'))
     {
         # Get all layouts of all instances for field linking
-        my $instances = GADS::Instances->new(schema => schema);
-        my @instances;
-        foreach my $instance (@{$instances->all})
-        {
-            # Ignore current instance
-            next if $instance->id == $layout->instance_id;
-            my $layout = GADS::Layout->new(
-                user        => $user,
-                schema      => schema,
-                config      => config,
-                instance_id => $instance->id,
-            );
-            push @instances, {
-                instance => $instance,
-                layout   => $layout,
-            };
-        }
-        $params->{instance_layouts} = [@instances];
+        $params->{instance_layouts} = [grep { $_->instance_id != $layout->instance_id } @{var('instances')->all}];
     }
 
     if (param('id') || param('submit') || param('update_perms'))
@@ -1433,13 +1432,15 @@ any '/layout/?:id?' => require_role 'layout' => sub {
     template 'layout' => $params;
 };
 
-any '/user/?:id?' => require_role useradmin => sub {
-    my $id = param 'id';
+any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
+
+    my $id = body_parameters->get('id');
 
     my $user            = logged_in_user;
     my $userso          = GADS::Users->new(schema => schema);
     my %all_permissions = map { $_->id => $_->name } @{$userso->permissions};
     my $audit           = GADS::Audit->new(schema => schema, user => $user);
+    my $logged_in_user  = rset('User')->find($user->{id}), # XXX Remove once $user is object
     my $users;
 
     if (param 'sendemail')
@@ -1465,7 +1466,7 @@ any '/user/?:id?' => require_role useradmin => sub {
     # if the user has pressed enter, in which case ignore it
     if (param('submit') && !param('neworganisation') && !param('newtitle'))
     {
-        if (param 'account_request')
+        if (!$id)
         {
             # Check user doesn't already exist
             my $email = param('email');
@@ -1508,10 +1509,12 @@ any '/user/?:id?' => require_role useradmin => sub {
                 report {is_fatal => 0}, ERROR => __"Please enter a valid email address for the new user";
             }
             else {
-                my $usero = rset('User')->find($id);
-                # Delete account request user if this is a new account request
-                $usero->delete
-                    if param 'account_request';
+                if (param 'account_request')
+                {
+                    # Delete account request user if this is a new account request
+                    my $usero = rset('User')->find($id);
+                    $usero->delete
+                }
                 $result = process( sub { $newuser = create_user %values, realm => 'dbic', email_welcome => 1 });
                 # Check for success - DPAE does not currently call exceptions
                 return forwardHome(
@@ -1525,17 +1528,21 @@ any '/user/?:id?' => require_role useradmin => sub {
             # Add groups to user
             my @groups = ref param('groups') ? @{param('groups')} : (param('groups') || ());
             my $usero = rset('User')->find($newuser->{id});
-            $usero->groups(\@groups);
+            $usero->groups($logged_in_user, \@groups);
             my $audit_groups = join ', ', @groups;
 
             $usero->set_view_limits(body_parameters->get_all('view_limits'));
 
-            # Update permissions. This currently needs to be done here rather than in DPAE
-            # due to the addition of the site_id column, which DPAE is not able to take
-            # account of, so the permissions could otherwise get applied to the wrong user
-            my @permissions = ref param('permission') ? @{param('permission')} : (param('permission') || ());
-            $usero->permissions(\@permissions);
-            my $audit_perms = join ', ', map { $all_permissions{$_} } @permissions;
+            my $audit_perms = '';
+            if (user_has_role 'superadmin')
+            {
+                # Update permissions. This currently needs to be done here rather than in DPAE
+                # due to the addition of the site_id column, which DPAE is not able to take
+                # account of, so the permissions could otherwise get applied to the wrong user
+                my @permissions = body_parameters->get_all('permission');
+                $usero->permissions(@permissions);
+                $audit_perms = ', permissions updated to: '.join ', ', map { $all_permissions{$_} } @permissions;
+            }
             my $action;
             if ($id) {
                 $audit->login_change(
@@ -1586,8 +1593,6 @@ any '/user/?:id?' => require_role useradmin => sub {
         # Remember values of user creation in progress.
         # XXX This is a mess (repeated code from above). Need to get
         # DPAE to use a user object
-        my @permissions = ref param('permission') ? @{param('permission')} : (param('permission') || ());
-        my %permissions = map { $all_permissions{$_} => 1 } @permissions;
         my @groups      = ref param('groups') ? @{param('groups')} : (param('groups') || ());
         my %groups      = map { $_ => 1 } @groups;
         my $view_limits_with_blank = [ map {
@@ -1605,7 +1610,6 @@ any '/user/?:id?' => require_role useradmin => sub {
             title                  => { id => param('title') },
             organisation           => { id => param('organisation') },
             view_limits_with_blank => $view_limits_with_blank,
-            permission             => \%permissions,
             groups                 => \%groups,
         }];
     }
@@ -1641,11 +1645,13 @@ any '/user/?:id?' => require_role useradmin => sub {
         return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
     }
 
-    if ($id)
+    my $route_id = route_parameters->get('id');
+
+    if ($route_id)
     {
-        $users = [ rset('User')->find($id) ] if !$users;
+        $users = [ rset('User')->find($route_id) ] if !$users;
     }
-    elsif (!defined $id) {
+    elsif (!defined $route_id) {
         $users             = $userso->all;
         $register_requests = $userso->register_requests;
     }
@@ -1659,7 +1665,8 @@ any '/user/?:id?' => require_role useradmin => sub {
     }
 
     my $output = template 'user' => {
-        edit              => $id,
+        edit              => $route_id,
+        logged_in_user    => $logged_in_user,
         users             => $users,
         groups            => GADS::Groups->new(schema => schema)->all,
         register_requests => $register_requests,
@@ -1803,7 +1810,7 @@ get '/helptext/:id?' => require_login sub {
     template 'helptext.tt', { column => $column }, { layout => undef };
 };
 
-any '/link/:id?' => require_role link => sub {
+any '/link/:id?' => require_login sub {
     my $id = param 'id';
 
     my $layout = var 'layout';
@@ -1903,12 +1910,15 @@ post '/edits' => require_login sub {
     }
 };
 
-any '/bulk/:type/?' => require_role bulk_update => sub {
+any '/bulk/:type/?' => require_login sub {
 
     my $user   = logged_in_user;
     my $layout = var 'layout';
     my $view   = current_view($user, $layout);
     my $type   = param 'type';
+
+    forwardHome({ danger => "You do not have permission to perform bulk operations"}, 'data')
+        unless $layout->user_can("bulk_update");
 
     $type eq 'update' || $type eq 'clone'
         or error __x"Invalid bulk type: {type}", type => $type;
@@ -1927,17 +1937,17 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
 
     # The records to update
     my $records = GADS::Records->new(
-        view          => $view,
-        columns_extra => [map { $_->id } $layout->all], # Need all columns to be able to write updated records
-        schema        => schema,
-        user          => $user,
-        layout        => $layout,
+        view                 => $view,
+        retrieve_all_columns => 1, # Need all columns to be able to write updated records
+        schema               => schema,
+        user                 => $user,
+        layout               => $layout,
     );
+    $records->search_all_fields(session 'search')
+        if session 'search';
 
     if (param 'submit')
     {
-        $record->editor_previous_fields([body_parameters->get_all('previous_fields')]);
-        $record->editor_next_fields([body_parameters->get_all('next_fields')]);
         $record->editor_shown_fields([body_parameters->get_all('shown_fields')]);
 
         # See which ones to update
@@ -1991,7 +2001,6 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
                 mistake $s.$f;
             }
         }
-        $record->move_nowhere;
     }
 
     my $view_name = $view ? $view->name : 'All data';
@@ -2001,18 +2010,29 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
     my $count_msg = __xn", which contains 1 record.", ", which contains {_count} records.", $count;
     if ($type eq 'update')
     {
-        my $notice = __x qq(Use this page to update all records in the
-            currently selected view.  Tick the fields whose values should be
-            updated. Fields that are not ticked will retain their existing value.
-            The current view is "{view}"), view => $view_name;
+        my $notice = session('search')
+            ? __x(qq(Use this page to update all records in the
+                current search results. Tick the fields whose values should be
+                updated. Fields that are not ticked will retain their existing value.
+                The current search is "{search}"), search => session('search'))
+            : __x(qq(Use this page to update all records in the
+                currently selected view. Tick the fields whose values should be
+                updated. Fields that are not ticked will retain their existing value.
+                The current view is "{view}"), view => $view_name);
         notice $notice.$count_msg;
     }
     else {
-        my $notice = __x qq(Use this page to bulk clone all of the records in
-            the currently selected view.  The cloned records will be created using
-            the same existing values by default, but replaced with the values below
-            where that value is ticked. Values that are not ticked will be cloned
-            with their current value. The current view is "{view}"), view => $view_name;
+        my $notice = session('search')
+            ? __x(qq(Use this page to bulk clone all of the records in
+                the current search results. The cloned records will be created using
+                the same existing values by default, but replaced with the values below
+                where that value is ticked. Values that are not ticked will be cloned
+                with their current value. The current search is "{search}"), search => session('search'))
+            : __x(qq(Use this page to bulk clone all of the records in
+                the currently selected view. The cloned records will be created using
+                the same existing values by default, but replaced with the values below
+                where that value is ticked. Values that are not ticked will be cloned
+                with their current value. The current view is "{view}"), view => $view_name);
         notice $notice.$count_msg;
     }
 
@@ -2088,7 +2108,7 @@ any '/edit/:id?' => require_login sub {
         my $failed;
 
         error __"You do not have permission to create a child record"
-            if $child && !$id && !user_has_role('create_child');
+            if $child && !$id && !$layout->user_can('create_child');
         $record->parent_id($child);
 
         my %child_inc = map { $_ => 1 } (ref(param 'child_inc') ? @{param 'child_inc'} : (param('child_inc') || ()));
@@ -2100,11 +2120,6 @@ any '/edit/:id?' => require_login sub {
         my @display_on_fields;
         foreach my $col (@columns_to_show)
         {
-            # See if it depends on another value. If so, we might not have received
-            # a value, but we need to write one anyway to flag the datum having
-            # been written. We might receive this column before the one it depends on,
-            # so add it to a stash and check it once we've set all values
-            push @display_on_fields, $col if $col->display_field;
             next unless defined body_parameters->get($col->field);
             my $newv = [body_parameters->get_all($col->field)];
             if ($col->userinput && defined $newv) # Not calculated fields
@@ -2119,7 +2134,7 @@ any '/edit/:id?' => require_login sub {
                             || !$child_inc{$col->id} && $datum->child_unique
                         ) {
                             error __"You do not have permission to change the fields of the child record"
-                                unless user_has_role('create_child');
+                                unless $layout->user_can('create_child');
                         }
                         $datum->child_unique($child_inc{$col->id});
                     }
@@ -2132,22 +2147,10 @@ any '/edit/:id?' => require_login sub {
                 $failed = !process( sub { $record->fields->{$col->id}->set_value(undef) } ) || $failed;
             }
         }
-        # Now check all the fields that depended on value in other fields to be
-        # displayed - see comment above
-        foreach my $col (@display_on_fields)
-        {
-            my $depends_on = $layout->column($col->display_field);
-            my $re         = $col->display_regex;
-            my $regex      = qr(^$re$);
-            # Field it depends on will have been written by now, if it is going
-            # to be at all. Check regex condition
-            my $parent_datum = $record->fields->{$col->display_field};
-            if ($parent_datum->written_to && $parent_datum->as_string !~ $regex)
-            {
-                # Doesn't match so won't have been shown, should be blank regardless
-                $record->fields->{$col->id}->set_value('');
-            }
-        }
+
+        # Call this now, to write and blank out any non-displayed values,
+        # before testing has_not_done
+        $record->set_blank_dependents;
 
         if (param('submit') eq 'back')
         {
@@ -2191,13 +2194,15 @@ any '/edit/:id?' => require_login sub {
             schema => $record->schema,
         );
         # Prefill previous values, but only those tagged to be remembered
-        my @remember = map {$_->id} $layout->all(remember => 1);
-        $previous->columns(\@remember);
-        $previous->include_approval(1);
-        $previous->init_no_value(0);
-        $previous->find_record_id($lastrecord->record_id);
-        $record->fields->{$_->id} = $previous->fields->{$_->id}
-            foreach @{$previous->columns_retrieved_do};
+        if (my @remember = map {$_->id} $layout->all(remember => 1))
+        {
+            $previous->columns(\@remember);
+            $previous->include_approval(1);
+            $previous->init_no_value(0);
+            $previous->find_record_id($lastrecord->record_id);
+            $record->fields->{$_->id} = $previous->fields->{$_->id}
+                foreach @{$previous->columns_retrieved_do};
+        }
         if ($record->approval_flag)
         {
             # The last edited record was one for approval. This will
@@ -2237,7 +2242,7 @@ any '/edit/:id?' => require_login sub {
             if !$col->user_can('read');
     }
 
-    my $child_rec = $child && user_has_role('create_child')
+    my $child_rec = $child && $layout->user_can('create_child')
         ? int(param 'child')
         : $record->parent_id
         ? $record->parent_id
@@ -2247,7 +2252,7 @@ any '/edit/:id?' => require_login sub {
         ."(at least one must be ticked). Any fields that are not ticked will inherit their "
         ."value from the parent. Values of the parent record are shown, which will be used "
         ."unless the box is ticked and a different value entered."
-            if $child;
+            if $child_rec;
 
     my $output = template 'edit' => {
         record      => $record,
@@ -2352,6 +2357,27 @@ post '/file/?' => require_login sub {
         error __"No file submitted";
     }
 
+};
+
+get '/record_body/:id' => require_login sub {
+
+    my $id = param('id');
+
+    my $user   = logged_in_user;
+    my $layout = var 'layout';
+    my $record = GADS::Record->new(
+        user   => $user,
+        layout => $layout,
+        schema => schema,
+        rewind => session('rewind'),
+    );
+
+    $record->find_current_id($id);
+    my @columns = $layout->all(user_can_read => 1);
+    template 'record_body' => {
+        record         => $record,
+        all_columns    => \@columns,
+    }, { layout => undef };
 };
 
 any qr{/(record|history)/([0-9]+)} => require_login sub {
@@ -2661,17 +2687,12 @@ any '/login' => sub {
         }
     }
 
-    my $instance = GADS::Instance->new(
-        id     => config->{gads}->{login_instance} || 1,
-        schema => schema,
-    );
     my $output  = template 'login' => {
         error         => "".($error||""),
-        instance      => $instance,
         username      => cookie('remember_me'),
         titles        => $users->titles,
         organisations => $users->organisations,
-        register_text => $instance->register_text,
+        register_text => var('site')->register_text,
         page          => 'login',
     };
     $output;
@@ -2745,8 +2766,12 @@ sub current_view {
         layout      => $layout,
         instance_id => session('persistent')->{instance_id},
     );
-    my $view       = $views->view(session('persistent')->{view}->{$layout->instance_id}) || $views->default; # Can still be undef
-    $view;
+    my $view;
+    # If an invalid view is stuck in the session, then this can result in the
+    # user in a continuous loop unable to open any other views
+    try { $view = $views->view(session('persistent')->{view}->{$layout->instance_id}) };
+    $@->reportAll(is_fatal => 0); # XXX results in double reporting
+    return $view || $views->default; # Can still be undef
 };
 
 sub forwardHome {

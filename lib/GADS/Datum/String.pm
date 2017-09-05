@@ -33,8 +33,14 @@ sub set_value
     $value =~ /\h+$/ if !ref $value && $value;
     if (my $regex = !ref $value && $self->column->force_regex)
     {
-        error __x"Invalid value \"{value}\" for {field}", value => $value, field => $self->column->name
-            if $value && $value !~ /^$regex$/;
+        my $msg = __x"Invalid value \"{value}\" for {field}", value => $value, field => $self->column->name;
+        # Empty values are not checked - these should be done in optional value for field
+        if ($value && $value !~ /^$regex$/)
+        {
+            # Changed code repeated below, but don't want to flag changed if
+            # resulting error
+            ($self->value || '') ne ($value || '') ? error($msg) : warning($msg);
+        }
     }
     $self->changed(1)
         if ($self->value || '') ne ($value || '');

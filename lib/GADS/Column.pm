@@ -25,7 +25,6 @@ use GADS::DateTime;
 use GADS::DB;
 use GADS::Filter;
 use GADS::Groups;
-use GADS::Instance;
 use GADS::Type::Permission;
 use GADS::View;
 
@@ -57,13 +56,6 @@ has permissions => (
     isa => HashRef,
 );
 
-# The permissions the logged-in user has
-has user_permissions => (
-    is      => 'rw',
-    isa     => ArrayRef,
-    default => sub { [] },
-);
-
 has user_permission_override => (
     is      => 'rw',
     isa     => Bool,
@@ -74,10 +66,6 @@ has user_permission_override => (
 has layout => (
     is       => 'ro',
     weak_ref => 1,
-);
-
-has instance => (
-    is  => 'lazy',
 );
 
 has instance_id => (
@@ -550,14 +538,6 @@ sub group_summary
     } @group_ids;
 }
 
-sub _build_instance
-{   my $self = shift;
-    GADS::Instance->new(
-        id     => $self->instance_id,
-        schema => $self->schema,
-    );
-}
-
 sub _build_instance_id
 {   my $self = shift;
     $self->layout
@@ -717,9 +697,9 @@ sub delete
         })->all
     )
     {
-        my @pn = map { $_->parent->name } @parents;
+        my @pn = map { $_->parent->name." (".$_->parent->instance->name.")" } @parents;
         my $p  = join ', ', @pn;
-        error __x"The following fields in another datasheet refer to this field: {p}.
+        error __x"The following fields in another table refer to this field: {p}.
             Please remove these references before deletion of this field.", p => $p;
     }
 
@@ -729,9 +709,9 @@ sub delete
         })->all
     )
     {
-        my @ln = map { $_->name } @linked;
+        my @ln = map { $_->name." (".$_->instance->name.")"; } @linked;
         my $l  = join ', ', @ln;
-        error __x"The following fields in another datasheet are linked to this field: {l}.
+        error __x"The following fields in another table are linked to this field: {l}.
             Please remove these links before deletion of this field.", l => $l;
     }
 
@@ -795,6 +775,9 @@ sub after_write_special {} # Overridden in children
 
 sub write
 {   my ($self, %options) = @_;
+
+    error __"You do not have permission to manage fields"
+        unless $self->layout->user_can("layout");
 
     my $guard = $self->schema->txn_scope_guard;
 
@@ -869,8 +852,18 @@ sub write
         $self->_set__rset($rset);
     }
     else {
-        $rset = $self->schema->resultset('Layout')->find($self->id);
-        $rset->update($newitem);
+        if ($rset = $self->schema->resultset('Layout')->find($self->id))
+        {
+            # Check whether attempt to move between instances - this is a bug
+            $newitem->{instance_id} != $rset->instance_id
+                and panic "Attempt to move column between instances";
+            $rset->update($newitem);
+        }
+        else {
+            $newitem->{id} = $self->id;
+            $rset = $self->schema->resultset('Layout')->create($newitem);
+            $self->_set__rset($rset);
+        }
     }
 
     $self->write_special(rset => $rset, id => $new_id || $self->id, %options); # Write any column-specific params
@@ -894,11 +887,12 @@ sub user_can
     return 1 if $self->user_permission_override;
     return 1 if $self->internal && $permission eq 'read';
     return 0 if !$self->userinput && $permission ne 'read'; # Can't write to code fields
-    return 1 if grep { $_ eq $permission } @{$self->user_permissions};
+    return 1 if $self->layout->current_user_can_column($self->id, $permission);
     if ($permission eq 'write') # shortcut
     {
-        return 1 if grep { $_ eq 'write_new' || $_ eq 'write_existing' }
-            @{$self->user_permissions};
+        return 1
+            if $self->layout->current_user_can_column($self->id, 'write_new')
+            || $self->layout->current_user_can_column($self->id, 'write_existing');
     }
     0;
 }
@@ -906,9 +900,7 @@ sub user_can
 # Whether a particular user ID has a permission for this column
 sub user_id_can
 {   my ($self, $user_id, $permission) = @_;
-    my $perms = $self->layout->get_user_perms($user_id)->{$self->id}
-        or return;
-    grep { $_ eq $permission } @$perms;
+    return $self->layout->user_can_column($user_id, $self->id, $permission)
 }
 
 sub set_permissions {

@@ -9,8 +9,9 @@ sub presentation {
         id            => $self->id,
         type          => $self->type,
         name          => $self->name,
-        is_multivalue => $self->multivalue
-    }
+        is_multivalue => $self->multivalue,
+        helptext      => $self->helptext
+    };
 }
 
 1;

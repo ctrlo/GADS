@@ -219,18 +219,26 @@ sub _build_view
     # Replace any "special" $short_name values with their actual value from the
     # record. If sub_values fails (due to record not being ready yet), then the
     # view is not built
-    return unless $view->filter->sub_values($self->layout->record);
+    return unless $view->filter->sub_values($self->layout);
     return $view;
 }
 
-has values => (
+has filtered_values => (
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
+);
+
+has all_values => (
     is      => 'lazy',
     isa     => ArrayRef,
     clearer => 1,
 );
 
 sub _records_from_db
-{   my ($self, $ids) = @_;
+{   my ($self, %options) = @_;
+
+    my $ids = $options{ids};
 
     # $ids is optional
     panic "Entering curval _build_values and PANIC_ON_CURVAL_BUILD_VALUES is true"
@@ -241,7 +249,7 @@ sub _records_from_db
         or return; # No layout or fields set
 
     my $view;
-    if (!$ids)
+    if (!$ids && !$options{no_filter})
     {
         $view = $self->view
             or return; # record not ready yet for sub_values
@@ -281,9 +289,22 @@ sub _build_join
     $self->make_join(map { $_->join } @{$self->curval_fields_retrieve});
 }
 
-sub _build_values
+sub _build_filtered_values
 {   my $self = shift;
     my $records = $self->_records_from_db
+        or return [];
+    my @values;
+    while (my $r = $records->single)
+    {
+        push @values, $self->_format_row($r);
+    }
+
+    \@values;
+}
+
+sub _build_all_values
+{   my $self = shift;
+    my $records = $self->_records_from_db(no_filter => 1)
         or return [];
     my @values;
     while (my $r = $records->single)
@@ -303,14 +324,32 @@ has values_index => (
 
 sub _build_values_index
 {   my $self = shift;
-    my @values = @{$self->values};
+    my @values = @{$self->all_values};
     my %values = map { $_->{id} => $_->{value} } @values;
     \%values;
 }
 
+# Whether any of the drop-down items have subvalues (small text). If so,
+# drop-down will be displayed using the selectpicker, to render better.
+has has_subvalues => (
+    is  => 'lazy',
+    isa => Bool,
+);
+
+sub _build_has_subvalues
+{   my $self = shift;
+    # Always if multivalue to allow multiple select
+    return 1 if $self->multivalue;
+    # Always if more fields available then ones selected
+    return 1 if @{$self->curval_fields} < $self->layout_parent->all;
+    !! grep { $_->{subvalue} } @{$self->filtered_values};
+}
+
 sub filter_value_to_text
 {   my ($self, $id) = @_;
-    $id or return '';
+    # Check for valid ID (in case search filter is corrupted) - Pg will choke
+    # on invalid IDs
+    $id =~ /^[0-9]+$/ or return '';
     my $rows = $self->ids_to_values([$id]);
     $rows->[0]->{value};
 }
@@ -369,7 +408,7 @@ sub _get_rows
         $return = [ map { $self->values_index->{$_} } @$ids ];
     }
     else {
-        $return = $self->_records_from_db($ids)->results;
+        $return = $self->_records_from_db(ids => $ids)->results;
     }
     error __x"Invalid Curval ID list {ids}", ids => "@$ids"
         if @$return != @$ids;
@@ -431,7 +470,9 @@ sub write_special
     });
 
     # Clear what may be cached values that should be updated after write
-    $self->clear_values;
+    $self->clear_filtered_values;
+    $self->clear_values_index;
+    $self->clear_all_values;
     $self->clear_view;
 };
 
@@ -578,6 +619,40 @@ sub _build_all_ids
             instance_id => $self->refers_to_instance,
         })->get_column('id')->all
     ];
+}
+
+sub validate
+{   my ($self, $value, %options) = @_;
+    return 1 if !$value;
+    my $fatal = $options{fatal};
+    if ($value !~ /^[0-9]+$/)
+    {
+        return 0 if !$fatal;
+        error __x"Value for {column} must be an integer", column => $self->name;
+    }
+    if (!$self->schema->resultset('Current')->search({ instance_id => $self->refers_to_instance, id => $value })->next)
+    {
+        return 0 if !$fatal;
+        error __x"{id} is not a valid record ID for {column}", id => $value, column => $self->name;
+    }
+    1;
+}
+
+sub validate_search
+{   my $self = shift;
+    my ($value, %options) = @_;
+    if (!$value)
+    {
+        return 0 unless $options{fatal};
+        error __x"Search value cannot be blank for {col}.",
+            col => $self->name;
+    }
+    elsif ($value !~ /^[0-9]+$/) {
+        return 0 unless $options{fatal};
+        error __x"Search value must be an ID number for {col}.",
+            col => $self->name;
+    }
+    1;
 }
 
 sub random

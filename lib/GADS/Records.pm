@@ -23,6 +23,8 @@ use DateTime;
 use DateTime::Format::Strptime qw( );
 use DBIx::Class::Helper::ResultSet::Util qw(correlate);
 use DBIx::Class::ResultClass::HashRefInflator;
+use GADS::Config;
+use GADS::Graph::Data;
 use GADS::Record;
 use GADS::View;
 use HTML::Entities;
@@ -102,7 +104,7 @@ sub view_limits_search
             if (keys %$decoded)
             {
                 # Get the user search criteria
-                push @search, @{$self->_search_construct($decoded, $self->layout)};
+                push @search, $self->_search_construct($decoded, $self->layout);
             }
         }
     }
@@ -129,6 +131,15 @@ has columns => (
 # Array ref with any additional column IDs requested
 has columns_extra => (
     is => 'rw',
+);
+
+# Whether to retrieve all columns for this set of records. Needed when going to
+# be writing to the records, to ensure that calc fields are retrieved to
+# subsequently write to
+has retrieve_all_columns => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
 );
 
 # Value containing the actual columns retrieved.
@@ -350,7 +361,7 @@ sub search_views
             {
                 my $search = {
                     'me.instance_id'          => $self->layout->instance_id,
-                    @{$self->_search_construct($decoded, $self->layout, ignore_perms => 1, user => $user)},
+                    $self->_search_construct($decoded, $self->layout, ignore_perms => 1, user => $user),
                     %{$self->record_later_search},
                 };
                 my $i = 0; my @ids;
@@ -536,7 +547,7 @@ sub search_all_fields
 }
 
 # Produce a standard set of results without grouping
-sub _build_results
+sub _current_ids_rs
 {   my $self = shift;
 
     # Build the search query first, to ensure that all join numbers are correct
@@ -569,16 +580,20 @@ sub _build_results
     $select->{rows} = $self->rows if $self->rows;
     $select->{page} = $page if $page;
 
-    local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
-        if $self->rewind;
     # Get the current IDs
     # Only take the latest record_single (no later ones)
-    my @cids = $self->schema->resultset('Current')->search(
+    $self->schema->resultset('Current')->search(
         [-and => $search_query], $select
-    )->get_column('me.id')->all;
+    )->get_column('me.id');
+}
 
+sub _build_results
+{   my $self = shift;
+    local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
+        if $self->rewind;
+    my @cids = $self->_current_ids_rs->all;
     # Now redo the query with those IDs.
-    @prefetches = $self->jpfetch(prefetch => 1, linked => 0);
+    my @prefetches = $self->jpfetch(prefetch => 1, linked => 0);
     unshift @prefetches, (
         {
             'createdby' => 'organisation',
@@ -590,8 +605,9 @@ sub _build_results
     # We also add the join for record_later, so that we can take only the latest required record
     my @j = $self->jpfetch(sort => 1, prefetch => 0, linked => 0);
     my $rec2 = @j ? { record_single => [@j, 'record_later'] } : { record_single => 'record_later' };
+    my @linked_prefetch = $self->linked_hash(prefetch => 1);
 
-    $select = {
+    my $select = {
         prefetch => [
             $rec1,
             [@linked_prefetch],
@@ -775,13 +791,12 @@ sub _build_columns_retrieved_do
         @col_ids{@col_ids} = undef;
         @columns = grep { $_->id; exists $col_ids{$_->id} } $layout->all(order_dependencies => 1);
     }
-    elsif (my $view = $self->view)
+    elsif (!$self->retrieve_all_columns && $self->view)
     {
         @columns = $layout->view(
-            $view->id,
+            $self->view->id,
             order_dependencies => 1,
             user_can_read      => 1,
-            columns_extra      => $self->columns_extra,
         );
     }
     else {
@@ -823,6 +838,7 @@ sub _query_params
     {
         if ($c->type eq "date" || $c->type eq "daterange")
         {
+            my $dateformat = GADS::Config->instance->dateformat;
             # Apply any date filters if required
             my @f;
             if (my $to = $self->to)
@@ -830,7 +846,7 @@ sub _query_params
                 my $f = {
                     id       => $c->id,
                     operator => 'less_or_equal',
-                    value    => $self->schema->storage->datetime_parser->format_date($to),
+                    value    => $to->format_cldr($dateformat),
                 };
                 push @f, $f;
             }
@@ -839,7 +855,7 @@ sub _query_params
                 my $f = {
                     id       => $c->id,
                     operator => 'greater_or_equal',
-                    value    => $self->schema->storage->datetime_parser->format_date($from),
+                    value    => $from->format_cldr($dateformat),
                 };
                 push @f, $f;
             }
@@ -860,11 +876,11 @@ sub _query_params
     # into account a subsuquent sort, and vice-versa.
     for (1..2)
     {
+        @search = (); # Reset from first loop
         # Add any date ranges to the search from above
         if (@search_date)
         {
-            # _search_construct returns an array ref, so dereference it first
-            my @res = @{($self->_search_construct({condition => 'OR', rules => \@search_date}, $layout))};
+            my @res = ($self->_search_construct({condition => 'OR', rules => \@search_date}, $layout));
             push @limit, @res if @res;
         }
 
@@ -881,7 +897,7 @@ sub _query_params
                 if (keys %$decoded)
                 {
                     # Get the user search criteria
-                    @search = @{$self->_search_construct($decoded, $layout, %options)};
+                    @search = $self->_search_construct($decoded, $layout, %options);
                 }
             }
         }
@@ -994,7 +1010,7 @@ sub _search_construct
             push @final, @res if @res;
         }
         my $condition = $filter->{condition} && $filter->{condition} eq 'OR' ? '-or' : '-and';
-        return @final ? [$condition => \@final] : [];
+        return @final ? ($condition => \@final) : ();
     }
 
     my %ops = (
@@ -1013,6 +1029,7 @@ sub _search_construct
 
     my %permission = $ignore_perms ? () : (permission => 'read');
     my ($parent_column, $column);
+    $filter->{id} or return; # Used to ignore filter
     if ($filter->{id} =~ /^([0-9]+)_([0-9]+)$/)
     {
         $column        = $layout->column($2, %permission);
@@ -1023,6 +1040,11 @@ sub _search_construct
     }
     $column
         or return;
+
+    # Empty values can sometimes arrive as empty arrays, which evaluate true
+    # when they should evaluate false. Therefore convert.
+    $filter->{value} = '' if ref $filter->{value} eq 'ARRAY' && !@{$filter->{value}};
+
     # If testing a comparison but we have no value, then assume search empty/not empty
     # (used during filters on curval against current record values)
     $filter->{operator} = $filter->{operator} eq 'not_equal' ? 'is_not_empty' : 'is_empty'
@@ -1167,7 +1189,7 @@ sub _search_construct
     }
 
     my @final = map {
-        $self->_resolve($column, $_, \@values, 0, parent => $parent_column, %options);
+        $self->_resolve($column, $_, \@values, 0, parent => $parent_column, filter => $filter, %options);
     } @conditions;
     @final = ('-and' => [@final]);
     my $parent_column_link = $parent_column && $parent_column->link_parent;;
@@ -1182,7 +1204,7 @@ sub _search_construct
             $link_parent = $column->link_parent;
         }
         my @final2 = map {
-            $self->_resolve($link_parent, $_, \@values, 1, parent => $parent_column_link, %options);
+            $self->_resolve($link_parent, $_, \@values, 1, parent => $parent_column_link, filter => $filter, %options);
         } @conditions;
         @final2 = ('-and' => [@final2]);
         @final = (['-or' => [@final], [@final2]]);
@@ -1200,36 +1222,28 @@ sub _resolve
     # "foo" and "bar", then a search for "not foo" would still return the
     # "bar" and hence the whole record including "foo".  We therefore have
     # to instead negate the record IDs containing that negative match.
-    if ($column->multivalue && $condition->{type} eq 'not_equal')
+    my $multivalue = $options{parent} ? $options{parent}->multivalue : $column->multivalue;
+    if ($multivalue && $condition->{type} eq 'not_equal')
     {
-        $value    = @$value > 1 ? [ '-or' => @$value ] : $value->[0];
-        my $subjoin = $column->subjoin;
-        my $table   = $subjoin || $column->field;
-        +(
+        # Create a non-negative match of all the IDs that we don't want to
+        # match. Use a Records object so that all the normal requirements are
+        # dealt with, and pass it the current filter reversed
+        my $records = GADS::Records->new(
+            schema => $self->schema,
+            user   => $self->user,
+            layout => $self->layout,
+            view   => GADS::View->new(
+                filter      => { %{$options{filter}}, operator => 'equal' }, # Switch
+                instance_id => $self->layout->instance_id,
+                layout      => $self->layout,
+                schema      => $self->schema,
+                user        => $self->user,
+            ),
+        );
+        return (
             'me.id' => {
-                -not_in => $self->schema->resultset('Current')->search({
-                        'record_later.id' => undef,
-                        "$table.$_->{s_field}" => $value,
-                    }, {
-                        select => "record_single.current_id",
-                        join   => [
-                            {
-                                'record_single' => [
-                                    'record_later',
-                                    $column->join,
-                                ],
-                            },
-                            {
-                                linked => { # XXX needs testing and tests
-                                    'record_single' => [
-                                        'record_later',
-                                        $column->join,
-                                    ],
-                                },
-                            }
-                        ],
-                    }
-                )->as_query
+                # We want everything that is *not* those records
+                -not_in => $records->_current_ids_rs->as_query,
             }
         );
     }
@@ -1255,6 +1269,10 @@ sub _date_for_db
 
 sub csv
 {   my $self = shift;
+
+    error __"You do not have permission to download data"
+        unless $self->layout->user_can("download");
+
     my $csv  = Text::CSV::Encoded->new({ encoding  => undef });
 
     # Column names

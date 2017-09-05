@@ -34,7 +34,7 @@
     [% END %]
 [% END %]
 <div class="hscroll">
-<table class="table table-striped" id="datatable">
+<table class="table table-striped" id="data-table">
     <thead>
         <tr>
             [% sort = sort.shift %]
@@ -72,7 +72,7 @@
                         </button>
                     [% END %]
 
-                    [% IF col.type == "person" AND user.permission.message AND records.size %]
+                    [% IF col.type == "person" AND layout.user_can("message") AND records.size %]
                         <button aria-haspopup="true" data-toggle="modal" data-target="#modal_sendemail" data-peopcol_id="[% col.id %]">
                             <span class="visually-hidden">Send e-mail</span>&#x2709;
                         </button>
@@ -167,31 +167,6 @@
                 $("#datatable").floatThead({
                     zIndex: function($table){
                         return 999;
-                    }
-                });
-                var adjustheight = 60;
-                var moreText = '+ More';
-                var lessText = '- Less';
-                var items = $('.more-less .more-block');
-                var $currentItem;
-                for (var i = 0, j = items.length; i < j; i++) {
-                    $currentItem = $(items[i]);
-
-                    if ($currentItem.height() > adjustheight){
-                        $currentItem.css('height', adjustheight).css('overflow', 'hidden');
-                        $currentItem.parent(".more-less").append
-                            ('<a style="cursor:pointer" class="adjust">' + moreText + '</a>');
-                    }
-                };
-                $(".adjust").click(function() {
-                    if ($(this).prev().css('overflow') == 'hidden')
-                    {
-                        $(this).prev().css('height', 'auto').css('overflow', 'visible');
-                        $(this).text(lessText);
-                    }
-                    else {
-                        $(this).prev().css('height', adjustheight).css('overflow', 'hidden');
-                        $(this).text(moreText);
                     }
                 });
                 if (!FontDetect.isFontLoaded('14px/1 FontAwesome')) {

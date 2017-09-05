@@ -12,6 +12,20 @@ use GADS::Schema;
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
 
+sub clear_not_data
+{   my ($self, %options) = @_;
+    foreach my $key (keys %options)
+    {
+        my $prop = "_set_$key";
+        $self->$prop($options{$key});
+    }
+
+    $self->layout->purge;
+    $self->clear_layout;
+    $self->clear_columns;
+    $self->create_records;
+}
+
 # Set up a config singleton. This will be updated as required
 GADS::Config->instance(
     config => undef,
@@ -22,8 +36,8 @@ has data => (
 );
 
 has curval_offset => (
-    is  => 'lazy',
-    isa => Int,
+   is  => 'lazy',
+   isa => Int,
 );
 
 sub _build_curval_offset
@@ -65,13 +79,8 @@ has instance_id => (
 );
 
 has layout => (
-    is => 'lazy',
-);
-
-has user_count => (
-    is      => 'ro',
-    isa     => Int,
-    default => 1,
+    is      => 'lazy',
+    clearer => 1,
 );
 
 has no_groups => (
@@ -81,46 +90,154 @@ has no_groups => (
 );
 
 has user => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_user
 {   my $self = shift;
-    my $user;
-    for my $id (1..$self->user_count)
+    $self->_users->{superadmin};
+}
+
+# The user used to build the layout - will normally be superadmin
+has user_layout => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->user },
+);
+
+has user_normal1 => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_user_normal1
+{   my $self = shift;
+    $self->_users->{normal1};
+}
+
+has user_normal2 => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_user_normal2
+{   my $self = shift;
+    $self->_users->{normal2};
+}
+
+has _users => (
+    is  => 'lazy',
+    isa => HashRef,
+);
+
+sub _build__users
+{   my $self = shift;
+    # If the site_id is defined, then we may be cresating multiple sites.
+    # Therefore, offset the ID with the number of sites, to account that the
+    # row IDs may already have been used.  This assumes that when testing
+    # multiple sites that only the default 5 users are created.
+    my $return; my $count = $self->schema->site_id && ($self->schema->site_id - 1) * 5;
+    foreach my $permission (qw/superadmin audit useradmin normal1 normal2/)
     {
-        my $user_rs = $self->schema->resultset('User')->find_or_create({ # May already be created for schema
-            id        => $id,
-            username  => "user$id\@example.com",
-            email     => "user$id\@example.com",
-            firstname => "User$id",
-            surname   => "User$id",
-            value     => "User$id, User$id",
-        });
-        $self->schema->resultset('UserGroup')->find_or_create({ # May already be created for schema
-            user_id  => $id,
-            group_id => $self->group->id,
-        });
-        # Most of the app expects a hash at the moment. XXX Need to convert to object
-        # Just return first one for use in tests by default
-        $user ||= {
-            id        => $user_rs->id,
-            firstname => $user_rs->firstname,
-            surname   => $user_rs->surname,
-            email     => $user_rs->email,
-            value     => $user_rs->value,
-        };
+        $count++;
+        my $perms = $permission =~ 'normal' ? [] : [$permission];
+        $return->{$permission} = $self->create_user(permissions => $perms, user_id => $count);
+    }
+    $return;
+}
+
+sub create_user
+{   my ($self, %options) = @_;
+    my @permissions = @{$options{permissions} || []};
+    my $instance_id = $options{instance_id} || $self->instance_id;
+    my $user_id     = $options{user_id};
+
+    my $user_rs = $user_id
+        ? $self->schema->resultset('User')->find_or_create({ id => $user_id })
+        : $self->schema->resultset('User')->create({});
+    $user_id ||= $user_rs->id;
+    $user_rs->update({
+        username  => "user$user_id\@example.com",
+        email     => "user$user_id\@example.com",
+        firstname => "User$user_id",
+        surname   => "User$user_id",
+        value     => "User$user_id, User$user_id",
+    });
+    $self->schema->resultset('UserGroup')->find_or_create({ # May already be created for schema
+        user_id  => $user_id,
+        group_id => $self->group->id,
+    }) if $self->group;
+    # Most of the app expects a hash at the moment. XXX Need to convert to object
+    # Just return first one for use in tests by default
+    my $user = {
+        id         => $user_rs->id,
+        firstname  => $user_rs->firstname,
+        surname    => $user_rs->surname,
+        email      => $user_rs->email,
+        value      => $user_rs->value,
+    };
+    foreach my $permission (@permissions)
+    {
+        if (my $permission_id = $self->_permissions->{$permission})
+        {
+            $self->schema->resultset('UserPermission')->find_or_create({
+                user_id       => $user_id,
+                permission_id => $permission_id,
+            });
+            $user->{permission} = {
+                $permission => 1,
+            },
+        }
+        else {
+            # Create a group for each user/permission
+            my $group = $self->schema->resultset('Group')->create({
+                name => "${permission}_$user_id",
+            });
+            $self->schema->resultset('InstanceGroup')->find_or_create({
+                instance_id => $instance_id,
+                group_id    => $group->id,
+                permission  => $permission,
+            });
+            $self->schema->resultset('UserGroup')->find_or_create({
+                user_id  => $user_id,
+                group_id => $group->id,
+            });
+        }
     }
     return $user;
 }
 
+has _permissions => (
+    is  => 'lazy',
+    isa => HashRef,
+);
+
+sub _build__permissions
+{   my $self = shift;
+    my $return;
+    foreach my $permission (qw/superadmin audit useradmin/)
+    {
+        my $existing = $self->schema->resultset('Permission')->search({
+            name => $permission,
+        })->next;
+        my $id = $existing ? $existing->id : $self->schema->resultset('Permission')->create({
+            name => $permission,
+        })->id;
+        $return->{$permission} = $id;
+    }
+    $return;
+}
+
 has group => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 has columns => (
     is      => 'ro',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
         my $columns = $self->__build_columns
@@ -139,10 +256,6 @@ has column_count => (
             curval => 1,
         }
     },
-);
-
-has records => (
-    is => 'lazy',
 );
 
 has curval => (
@@ -171,8 +284,19 @@ has calc_return_type => (
 );
 
 has multivalue => (
-    is      => 'ro',
+    is      => 'rwp',
     default => 0,
+);
+
+# Whether columns should be optional
+has optional => (
+    is      => 'ro',
+    default => 1,
+);
+
+has user_permission_override => (
+    is      => 'ro',
+    default => 1,
 );
 
 has config => (
@@ -219,11 +343,11 @@ sub _build_layout
     });
 
     GADS::Layout->new(
-        user                     => undef,
+        user                     => $self->user_layout,
         schema                   => $self->schema,
         config                   => $self->config,
         instance_id              => $self->instance_id,
-        user_permission_override => 1,
+        user_permission_override => $self->user_permission_override,
     );
 }
 
@@ -244,14 +368,15 @@ sub __build_columns
     my $schema      = $self->schema;
     my $layout      = $self->layout;
     my $instance_id = $self->instance_id;
-    my $permissions = [qw/read/];
+    my $permissions = [qw/read write_new write_existing write_new_no_approval write_existing_no_approval/];
 
     my $columns = {};
 
     my $string1 = GADS::Column::String->new(
-        schema => $schema,
-        user   => undef,
-        layout => $layout,
+        optional => $self->optional,
+        schema   => $schema,
+        user     => undef,
+        layout   => $layout,
     );
     $string1->type('string');
     $string1->name('string1');
@@ -266,9 +391,10 @@ sub __build_columns
         unless $self->no_groups;
 
     my $integer1 = GADS::Column::Intgr->new(
-        schema => $schema,
-        user   => undef,
-        layout => $layout,
+        optional => $self->optional,
+        schema   => $schema,
+        user     => undef,
+        layout   => $layout,
     );
     $integer1->type('intgr');
     $integer1->name('integer1');
@@ -285,9 +411,10 @@ sub __build_columns
     foreach my $count (1..$self->column_count->{enum})
     {
         my $enum = GADS::Column::Enum->new(
-            schema => $schema,
-            user   => undef,
-            layout => $layout,
+            optional => $self->optional,
+            schema   => $schema,
+            user     => undef,
+            layout   => $layout,
         );
         $enum->type('enum');
         $enum->name("enum$count");
@@ -316,9 +443,10 @@ sub __build_columns
     }
 
     my $tree1 = GADS::Column::Tree->new(
-        schema => $schema,
-        user   => undef,
-        layout => $layout,
+        optional => $self->optional,
+        schema   => $schema,
+        user     => undef,
+        layout   => $layout,
     );
     $tree1->type('tree');
     $tree1->name('tree1');
@@ -351,18 +479,20 @@ sub __build_columns
     }]);
     # Reload to get tree built etc
     $tree1 = GADS::Column::Tree->new(
-        schema => $schema,
-        user   => undef,
-        layout => $layout,
+        optional => $self->optional,
+        schema   => $schema,
+        user     => undef,
+        layout   => $layout,
     );
     $tree1->from_id($tree_id);
     $tree1->set_permissions(permissions => {$self->group->id => $permissions})
         unless $self->no_groups;
 
     my $date1 = GADS::Column::Date->new(
-        schema => $schema,
-        user   => undef,
-        layout => $layout,
+        optional => $self->optional,
+        schema   => $schema,
+        user     => undef,
+        layout   => $layout,
     );
     $date1->type('date');
     $date1->name('date1');
@@ -376,9 +506,10 @@ sub __build_columns
         unless $self->no_groups;
 
     my $daterange1 = GADS::Column::Daterange->new(
-        schema => $schema,
-        user   => undef,
-        layout => $layout,
+        optional => $self->optional,
+        schema   => $schema,
+        user     => undef,
+        layout   => $layout,
     );
     $daterange1->type('daterange');
     $daterange1->name('daterange1');
@@ -393,9 +524,10 @@ sub __build_columns
         unless $self->no_groups;
 
     my $file1 = GADS::Column::File->new(
-        schema => $schema,
-        user   => undef,
-        layout => $layout,
+        optional => $self->optional,
+        schema   => $schema,
+        user     => undef,
+        layout   => $layout,
     );
     $file1->type('file');
     $file1->name('file1');
@@ -409,9 +541,10 @@ sub __build_columns
         unless $self->no_groups;
 
     my $person1 = GADS::Column::Person->new(
-        schema => $schema,
-        user   => undef,
-        layout => $layout,
+        optional => $self->optional,
+        schema   => $schema,
+        user     => undef,
+        layout   => $layout,
     );
     $person1->type('person');
     $person1->name('person1');
@@ -430,6 +563,7 @@ sub __build_columns
         foreach my $count (1..$self->column_count->{curval})
         {
             my $curval = GADS::Column::Curval->new(
+                optional   => $self->optional,
                 schema     => $self->schema,
                 user       => undef,
                 layout     => $self->layout,
@@ -546,11 +680,33 @@ sub create_records
         $record->initialise;
         $record->fields->{$columns->{string1}->id}->set_value($datum->{string1});
         $record->fields->{$columns->{integer1}->id}->set_value($datum->{integer1});
-        $record->fields->{$columns->{"enum$_"}->id}->set_value($datum->{"enum$_"})
-            foreach 1..$self->column_count->{enum};
-        $record->fields->{$columns->{tree1}->id}->set_value($datum->{tree1});
         $record->fields->{$columns->{date1}->id}->set_value($datum->{date1});
         $record->fields->{$columns->{daterange1}->id}->set_value($datum->{daterange1});
+
+        # Convert enums and trees from textual values if required
+        foreach my $type (qw/enum tree/)
+        {
+            foreach my $count (1..($self->column_count->{$type} || 1))
+            {
+                my $v      = $datum->{"$type$count"};
+                my @values = ref $v ? @$v : ($v);
+                @values = map {
+                    if ($_ && $_ !~ /^[0-9]+$/)
+                    {
+                        my $col = $columns->{"$type$count"}; # Same for enum and tree
+                        my $in = $_;
+                        my ($e) = grep { $_->{value} eq $in } @{$col->enumvals};
+                        $e->{id};
+                    }
+                    else {
+                        $_;
+                    }
+                } @values;
+                $record->fields->{$columns->{"$type$count"}->id}->set_value([@values])
+            }
+        }
+
+        # $record->fields->{$columns->{tree1}->id}->set_value($datum->{tree1});
         # Create users on the fly as required
         if ($datum->{person1} && !$self->schema->resultset('User')->find($datum->{person1}))
         {
@@ -585,12 +741,55 @@ sub create_records
             $record->fields->{$columns->{file1}->id}->set_value($file);
         }
 
-        try { $record->write(no_alerts => 1) } hide => 'ALL';
-        $@->reportAll(is_fatal => 0);
-        $@ and return;
+        $record->write(no_alerts => 1);
     }
     1;
 };
+
+# Convert a filter from column names to ids (as required to use)
+sub convert_filter
+{   my ($self, $filter) = @_;
+    $filter or return;
+    my %new_filter = %$filter; # Copy to prevent changing original
+    $new_filter{rules} = []; # Make sure not using original ref in new
+    foreach my $rule (@{$filter->{rules}})
+    {
+        next unless $rule->{name};
+        # Copy again
+        my %new_rule = %$rule;
+        my @colnames = split /\_/, delete $new_rule{name};
+        my @colids = map { /^[0-9]+/ ? $_ : $self->columns->{$_}->id } @colnames;
+        $new_rule{id} = join '_', @colids;
+        push @{$new_filter{rules}}, \%new_rule;
+    }
+    \%new_filter;
+}
+
+# Can be called during debugging to dump data table. Results to be expanded
+# when required.
+sub dump_data
+{   my $self = shift;
+    foreach my $current ($self->schema->resultset('Current')->search({
+        instance_id => $self->layout->instance_id,
+    })->all)
+    {
+        print $current->id.': ';
+        my $record_id = $self->schema->resultset('Record')->search({
+            current_id => $current->id
+        })->get_column('id')->max;
+
+        foreach my $ct (qw/tree1 enum1/)
+        {
+            my $v = $self->schema->resultset('Enum')->search({
+                record_id => $record_id,
+                layout_id => $self->columns->{$ct}->id,
+            })->next;
+            my $val = $v->value && $v->value->value || '';
+            print "$ct ($val) ";
+        }
+        print "\n";
+    }
+}
 
 1;
 

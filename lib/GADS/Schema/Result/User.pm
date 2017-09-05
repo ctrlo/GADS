@@ -13,7 +13,6 @@ use warnings;
 use DateTime;
 use GADS::Config;
 use GADS::Email;
-use GADS::Instance;
 use Moo;
 
 extends 'DBIx::Class::Core';
@@ -632,15 +631,6 @@ sub set_view_limits
     $self->search_related('view_limits', $search)->delete;
 }
 
-sub instance
-{   my $self = shift;
-    my $config = GADS::Config->instance;
-    GADS::Instance->new(
-        id     => $config->login_instance,
-        schema => $self->result_source->schema,
-    );
-}
-
 sub graphs
 {   my ($self, $graphs) = @_;
 
@@ -677,26 +667,27 @@ sub _build_has_group
 {   my $self = shift;
     +{
         map { $_->group_id => 1 } $self->user_groups
-    }
+    };
 }
 
 sub groups
-{   my ($self, $groups) = @_;
+{   my ($self, $logged_in_user, $groups) = @_;
 
     foreach my $g (@$groups)
     {
-        unless($self->search_related('user_groups', { group_id => $g })->count)
-        {
-            $self->create_related('user_groups', { group_id => $g });
-        }
+        next unless $logged_in_user->permission->{superadmin} || $logged_in_user->has_group->{$g};
+        $self->find_or_create_related('user_groups', { group_id => $g });
     }
 
     # Delete any groups that no longer exist
+    my @allowed = map { $_->id }  grep { $logged_in_user->permission->{superadmin} || $logged_in_user->has_group->{$_->id} }
+        $self->result_source->schema->resultset('Group')->all;
+
     my $search = {};
     $search->{group_id} = {
         '!=' => [ -and => @$groups ]
     } if @$groups;
-    $self->search_related('user_groups', $search)->delete;
+    $self->search_related('user_groups', $search)->search({ group_id => [@allowed] })->delete;
 }
 
 # Used to check if a user has a permission
@@ -709,27 +700,33 @@ sub _build_permission
     my %all = map { $_->id => $_->name } $self->result_source->schema->resultset('Permission')->all;
     +{
         map { $all{$_->permission_id} => 1 } $self->user_permissions
-    }
+    };
 }
 
 sub permissions
-{   my ($self, $permissions) = @_;
+{   my ($self, @permissions) = @_;
 
-    foreach my $p (@$permissions)
+    my %user_perms = map { $_ => 1 } @permissions;
+    my %all_perms  = map { $_->name => $_->id } $self->result_source->schema->resultset('Permission')->all;
+
+    foreach my $perm (qw/useradmin audit superadmin/)
     {
-        $self->find_or_create_related('user_permissions', { permission_id => $p });
+        my $pid = $all_perms{$perm};
+        if ($user_perms{$perm})
+        {
+            $self->find_or_create_related('user_permissions', { permission_id => $pid });
+        }
+        else {
+            $self->search_related('user_permissions', { permission_id => $pid })->delete;
+        }
     }
-
-    # Delete any groups that no longer exist
-    my $search = {};
-    $search->{permission_id} = {
-        '!=' => [ -and => @$permissions ]
-    } if @$permissions;
-    $self->search_related('user_permissions', $search)->delete;
 }
 
 sub retire
 {   my ($self, %options) = @_;
+
+    my $schema = $self->result_source->schema;
+    my $site   = $schema->resultset('Site')->next;
 
     # Properly delete if account request - no record needed
     if ($self->account_request)
@@ -737,11 +734,10 @@ sub retire
         $self->delete;
         return unless $options{send_reject_email};
         my $email = GADS::Email->instance;
-        my $instance = $self->instance;
         $email->send({
-            subject => $instance->email_reject_subject || "Account request rejected",
+            subject => $site->email_reject_subject || "Account request rejected",
             emails  => [$self->email],
-            text    => $instance->email_reject_text || "Your account request has been rejected",
+            text    => $site->email_reject_text || "Your account request has been rejected",
         });
 
         return;
@@ -768,11 +764,11 @@ sub retire
 
         $self->update({ deleted => DateTime->now });
 
-        if (my $msg = $self->instance->email_delete_text)
+        if (my $msg = $site->email_delete_text)
         {
             my $email = GADS::Email->instance;
             $email->send({
-                subject => $self->instance->email_delete_subject || "Account deleted",
+                subject => $site->email_delete_subject || "Account deleted",
                 emails  => [$self->email],
                 text    => $msg,
             });

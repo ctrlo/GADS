@@ -159,7 +159,7 @@ sub param_columns
             or $options{is_fatal} && error __x"Unknown short column name \"{name}\" in calculation", name => $_;
         $col->instance_id == $self->instance_id
             or $options{is_fatal} && error __x"It is only possible to use fields from the same table ({table1}). \"{name}\" is from {table2}.",
-                name => $_, table1 => $self->instance->name, table2 => $col->instance->name;
+                name => $_, table1 => $self->layout->name, table2 => $col->layout->name;
         $col;
     } $self->params;
 }

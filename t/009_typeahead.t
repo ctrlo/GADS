@@ -51,6 +51,38 @@ is ($value->{name}, "Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , 
 is (scalar @values, 1, "Typeahead returned correct number of results");
 @values = $column->values_beginning_with('');
 is (scalar @values, 2, "Typeahead returns all results for blank search");
+# Add a filter to the curval
+$column->filter(GADS::Filter->new(
+    as_hash => {
+        rules     => [{
+            id       => $curval_sheet->columns->{integer1}->id,
+            type     => 'string',
+            value    => '50',
+            operator => 'equal',
+        }],
+    },
+));
+$column->write;
+@values = $column->values_beginning_with('50');
+is (scalar @values, 1, "Typeahead returned correct number of results (with matching filter)");
+@values = $column->values_beginning_with('99');
+is (scalar @values, 0, "Typeahead returned correct number of results (with no match filter)");
+# Add a filter which has record sub-values in. This should be ignored.
+$column->filter(GADS::Filter->new(
+    as_hash => {
+        rules     => [{
+            id       => $curval_sheet->columns->{integer1}->id,
+            type     => 'string',
+            value    => '$L1string1',
+            operator => 'equal', # String1 field in main sheet
+        }],
+    },
+));
+$column->write;
+@values = $column->values_beginning_with('50');
+is (scalar @values, 1, "Typeahead returned correct number of results (with matching filter)");
+@values = $column->values_beginning_with('99');
+is (scalar @values, 1, "Typeahead returned correct number of results (with no match filter)");
 
 $column = $columns->{calc1};
 @values = $column->values_beginning_with('2');

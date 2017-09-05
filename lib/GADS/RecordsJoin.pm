@@ -222,7 +222,11 @@ sub record_later_search
 sub _jpfetch
 {   my ($self, %options) = @_;
     my $return = [];
-    foreach (@{$self->_jp_store})
+    my @jpstore = grep { !$_->{prefetch} } @{$self->_jp_store};
+    push @jpstore, grep { $_->{prefetch} } @{$self->_jp_store};
+
+#    foreach (@{$self->_jp_store})
+    foreach (@jpstore)
     {
         if (exists $options{linked})
         {
@@ -256,10 +260,13 @@ sub _jpfetch_add
             }
             my $simple = {%$join};
             $simple->{join} = $join->{column}->field;
+            # Remove multivalues to prevent huge amount of rows being fetched.
+            # These will be fetched later as individual columns
+            my @children = grep { !$_->{column}->multivalue || $options->{include_multivalue} } @$children;
             push @$return, {
                 parent    => $parent,
                 column    => $join->{column},
-                join      => $join->{column}->make_join(map {$_->{join}} @$children),
+                join      => $join->{column}->make_join(map {$_->{join}} @children),
                 all_joins => [$simple, @$children],
             };
         }

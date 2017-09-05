@@ -87,15 +87,27 @@ try { $calc->write };
 ok($@, "Failed to write calc code with invalid character");
 
 # Curval tests
+#
+# First check that we cannot delete a record that is referred to
+my $record = GADS::Record->new(
+    user   => undef,
+    layout => $layout,
+    schema => $schema,
+);
+$record->find_current_id(1);
+try { $record->delete_current };
+like($@, qr/The following records refer to this record as a value/, "Failed to delete record in a curval");
+
 my $curval = $columns->{curval1};
 
-is( scalar @{$curval->values}, 3, "Correct number of values for curval field" );
+is( scalar @{$curval->filtered_values}, 3, "Correct number of values for curval field (filtered)" );
+is( scalar @{$curval->all_values}, 3, "Correct number of values for curval field (all)" );
 
 # Create a second curval sheet, and check that we can link to first sheet
 # (which links to second)
 my $curval_sheet2 = t::lib::DataSheet->new(schema => $schema, curval => 1, instance_id => 3, curval_offset => 12);
 $curval_sheet2->create_records;
-is( scalar @{$curval_sheet2->columns->{curval1}->values}, 2, "Correct number of values for curval field" );
+is( scalar @{$curval_sheet2->columns->{curval1}->filtered_values}, 2, "Correct number of values for curval field" );
 
 # Create another curval fields that would cause a recursive loop. Check that it
 # fails
@@ -130,7 +142,7 @@ $curval_blank->write;
 # dependencies properly in the next test
 $layout->clear;
 # Now force the values to be built. This should not bork
-try { $layout->column($curval_blank->id)->values };
+try { $layout->column($curval_blank->id)->filtered_values };
 ok( !$@, "Building values for curval with no fields does not bork" );
 
 # Check that an undefined filter does not cause an exception.  Normally a blank
@@ -151,7 +163,7 @@ $layout->clear;
 # Manually blank the filters
 $schema->resultset('Layout')->update({ filter => undef });
 # Now force the values to be built. This should not bork
-try { $layout->column($curval_blank_filter->id)->values };
+try { $layout->column($curval_blank_filter->id)->filtered_values };
 ok( !$@, "Undefined filter does not cause exception during layout build" );
 
 # Filter on curval tests
@@ -178,16 +190,17 @@ $curval_filter->write;
 # Clear the layout to force the column to be build, and also to build
 # dependencies properly in the next test
 $layout->clear;
-is( scalar @{$curval_filter->values}, 1, "Correct number of values for curval field with filter" );
+is( scalar @{$curval_filter->filtered_values}, 1, "Correct number of values for curval field with filter (filtered)" );
+is( scalar @{$curval_filter->all_values}, 3, "Correct number of values for curval field with filter (all)" );
 
 # Create a record with a curval value, change the filter, and check that the
 # value is still set for the legacy record even though it no longer includes that value.
 # This test also checks that different multivalue curvals (with different
 # selected fields) behave as expected (multivalue curvals are fetched
 # separately).
-my $curval_id = $curval_filter->values->[0]->{id};
-my $curval_value = $curval_filter->values->[0]->{value};
-my $record = GADS::Records->new(
+my $curval_id = $curval_filter->filtered_values->[0]->{id};
+my $curval_value = $curval_filter->filtered_values->[0]->{value};
+$record = GADS::Records->new(
     user    => $sheet->user,
     layout  => $layout,
     schema  => $schema,
@@ -208,7 +221,7 @@ $curval_filter->filter(
 );
 $curval_filter->write;
 $layout->clear;
-isnt( $curval_filter->values->[0]->{id}, $curval_id, "Available curval values has changed after filter change" );
+isnt( $curval_filter->filtered_values->[0]->{id}, $curval_id, "Available curval values has changed after filter change" );
 my $cur_id = $record->current_id;
 $record->clear;
 $record->find_current_id($cur_id);
@@ -325,7 +338,7 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid/)
         : $match
         ? 1
         : 0;
-    is( scalar @{$curval_filter->values}, $count, "Correct number of values for curval field with $field filter, test $test" );
+    is( scalar @{$curval_filter->filtered_values}, $count, "Correct number of values for curval field with $field filter, test $test" );
 
     # Check that we can create a new record with the filtered curval field in
     $layout->clear;
@@ -335,7 +348,7 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid/)
         schema   => $schema,
     );
     $record_new->initialise;
-    is( scalar @{$layout->column($curval_filter->id)->values}, 0, "Correct number of values for curval field with filter" );
+    is( scalar @{$layout->column($curval_filter->id)->filtered_values}, 0, "Correct number of values for curval field with filter" );
     if ($test eq 'invalid')
     {
         # Will be ready already - no proper dependent values

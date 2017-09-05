@@ -5828,7 +5828,7 @@ schema:
           type: FOREIGN KEY
       fields:
         id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_auto_increment: 1
           is_nullable: 0
@@ -5839,7 +5839,7 @@ schema:
           size:
             - 0
         user_id:
-          data_type: integer
+          data_type: bigint
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
