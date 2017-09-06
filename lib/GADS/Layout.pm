@@ -512,7 +512,7 @@ sub _build_global_view_summary
             global   => 1,
             is_admin => 1,
         ],
-        instance_id => $self->id,
+        instance_id => $self->instance_id,
     },{
         order_by => 'me.name',
     })->all;

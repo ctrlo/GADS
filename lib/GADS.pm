@@ -1659,10 +1659,26 @@ any '/user/?:id?' => require_role useradmin => sub {
         ] if !$users; # Only if not already submitted
     }
 
+    # Get all layouts of all instances for view restrictions
+    # (XXX code to be removed for menu branch)
+    my $instances = GADS::Instances->new(schema => schema, user => $user);
+    my @layouts;
+    foreach my $instance (@{$instances->all})
+    {
+        push @layouts, GADS::Layout->new(
+            user        => $user,
+            schema      => schema,
+            config      => config,
+            instance_id => $instance->id,
+            instance    => $instance,
+        );
+    }
+
     my $output = template 'user' => {
         edit              => $route_id,
         users             => $users,
         groups            => GADS::Groups->new(schema => schema)->all,
+        layouts           => [@layouts],
         register_requests => $register_requests,
         titles            => $userso->titles,
         organisations     => $userso->organisations,
