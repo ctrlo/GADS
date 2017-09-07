@@ -357,12 +357,13 @@ sub all_with_internal
 sub columns_for_filter
 {   my $self = shift;
     my @columns;
-    foreach my $col ($self->all(user_can_read => 1, include_internal => 1))
+    my %restriction = (user_can_read => 1, include_internal => 1);
+    foreach my $col ($self->all(%restriction))
     {
         push @columns, $col;
         if ($col->type eq 'curval')
         {
-            foreach my $c ($col->layout_parent->all)
+            foreach my $c ($col->layout_parent->all(%restriction))
             {
                 $c->filter_id($col->id.'_'.$c->id);
                 $c->filter_name($col->name.' ('.$c->name.')');
@@ -371,6 +372,11 @@ sub columns_for_filter
         }
     }
     @columns;
+}
+
+sub all_user_read
+{   my $self = shift;
+    $self->all(user_can_read => 1);
 }
 
 sub all

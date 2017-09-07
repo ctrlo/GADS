@@ -21,7 +21,7 @@
             [% END %]
             <table class="table table-striped">
                 <tr><th><input type="checkbox" id="selectall" title="Select/deselect all"></th><th>Name</th></tr>
-                [% FOR column IN layout.all(user_can_read, 1) %]
+                [% FOR column IN layout.all_user_read %]
                     <tr>
                         <td>
                             <input class="col_check" type="checkbox" name="column" value="[% column.id %]"
@@ -161,7 +161,7 @@
                 <p>
                     <select class="form-control" name="sortfield">
                         <option value="" [% UNLESS sort.column.id %]selected[% END %]>ID</option>
-                        [% FOR column IN layout.all(user_can_read, 1) %]
+                        [% FOR column IN layout.all_user_read %]
                             <option value="[% column.id %]" [% IF sort.layout_id == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
                         [% END %]
                     </select>
