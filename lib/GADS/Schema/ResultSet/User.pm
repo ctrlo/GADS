@@ -138,7 +138,7 @@ sub upload
     my %organisations = map { lc $_->name => $_->id } @{$userso->organisations};
 
     $count = 0; my @errors;
-    foreach my $row ($csv->getline($fh))
+    while (my $row = $csv->getline($fh))
     {
         my $org_id;
         if (defined $user_mapping{$org_name})
