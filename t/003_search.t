@@ -797,7 +797,7 @@ $view_limit->write;
 # to variables.
 my $user   = $sheet->user;
 my $user_r = $schema->resultset('User')->find($user->{id});
-$user_r->set_view_limits($view_limit->id);
+$user_r->set_view_limits([$view_limit->id]);
 
 $rules = GADS::Filter->new(
     as_hash => {
@@ -871,7 +871,7 @@ my $view_limit2 = GADS::View->new(
 );
 $view_limit2->write;
 
-$user_r->set_view_limits($view_limit->id, $view_limit2->id);
+$user_r->set_view_limits([$view_limit->id, $view_limit2->id]);
 
 $records = GADS::Records->new(
     view_limits => [ $view_limit, $view_limit2 ],
