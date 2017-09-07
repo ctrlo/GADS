@@ -54,7 +54,6 @@ use GADS::Records;
 use GADS::RecordsGroup;
 use GADS::Type::Permissions;
 use GADS::Users;
-use GADS::Util;
 use GADS::View;
 use GADS::Views;
 use HTML::Entities;
@@ -1457,6 +1456,57 @@ any '/layout/?:id?' => require_login sub {
     template 'layout' => $params;
 };
 
+any '/user/upload' => require_any_role [qw/useradmin superadmin/] => sub {
+
+    my $userso = GADS::Users->new(schema => schema);
+
+    if (param 'submit')
+    {
+        my $return;
+        if (process sub {
+            $return = rset('User')->upload(upload('file'),
+                request_base => request->base,
+                view_limits  => [body_parameters->get_all('view_limits')],
+                groups       => [body_parameters->get_all('groups')],
+                permissions  => [body_parameters->get_all('permission')],
+            )}
+        )
+        {
+            my $msg = "$return->{count} users have been uploaded successfully.";
+            if (my @errors = @{$return->{errors}})
+            {
+                my @e = map { "$_->{row} ($_->{error})" } @errors;
+                $msg .= " The following rows had errors: ".join '; ', @e;
+            }
+            return forwardHome(
+                { notice => $msg }, 'user' );
+        }
+    }
+
+    # Get all layouts of all instances for view restrictions
+    # (XXX code to be removed for menu branch)
+    my $user = logged_in_user;
+    my $instances = GADS::Instances->new(schema => schema, user => $user);
+    my @layouts;
+    foreach my $instance (@{$instances->all})
+    {
+        push @layouts, GADS::Layout->new(
+            user        => $user,
+            schema      => schema,
+            config      => config,
+            instance_id => $instance->id,
+            instance    => $instance,
+        );
+    }
+
+    template 'user/upload' => {
+        groups      => GADS::Groups->new(schema => schema)->all,
+        layouts     => [@layouts],
+        permissions => $userso->permissions,
+        user_fields => $userso->user_fields,
+    };
+};
+
 any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
 
     my $id = body_parameters->get('id');
@@ -1491,13 +1541,6 @@ any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
     # if the user has pressed enter, in which case ignore it
     if (param('submit') && !param('neworganisation') && !param('newtitle'))
     {
-        if (!$id)
-        {
-            # Check user doesn't already exist
-            my $email = param('email');
-            return forwardHome({ danger => "User $email already exists" }, 'user' )
-                if rset('User')->active(email => $email)->count;
-        }
         my %values = (
             firstname             => param('firstname'),
             surname               => param('surname'),
@@ -1507,91 +1550,43 @@ any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
             freetext2             => param('freetext2'),
             title                 => param('title') || undef,
             organisation          => param('organisation') || undef,
+            account_request       => param('account_request'),
             account_request_notes => param('account_request_notes'),
-            limit_to_view         => param('limit_to_view') || undef,
+            view_limits           => [body_parameters->get_all('view_limits')],
+            groups                => [body_parameters->get_all('groups')],
+            permissions           => [body_parameters->get_all('permission')],
         );
-
         $values{value} = _user_value(\%values);
 
-        my $newuser; my $result;
         if (!param('account_request') && param('username')) # Original username to update (hidden field)
         {
-            if (!GADS::Util->email_valid(param('email')))
+            if (process sub {
+                my $user = rset('User')->active->search({ username => param('username') })->next;
+                # Don't use DBIC update directly, so that permissions etc are updated properly
+                $user->update_user(current_user => $logged_in_user, %values);
+            })
             {
-                report {is_fatal=>0}, ERROR => "Please enter a valid email address for the new user";
-            }
-            else {
-                $result = process( sub { $newuser = update_user param('username'), realm => 'dbic', %values });
-            }
-        }
-        else {
-            if (!param('email'))
-            {
-                report {is_fatal => 0}, ERROR => __"An email address must be specified for the new user";
-            }
-            elsif (!GADS::Util->email_valid(param('email')))
-            {
-                report {is_fatal => 0}, ERROR => __"Please enter a valid email address for the new user";
-            }
-            else {
-                if (param 'account_request')
-                {
-                    # Delete account request user if this is a new account request
-                    my $usero = rset('User')->find($id);
-                    $usero->delete
-                }
-                $result = process( sub { $newuser = create_user %values, realm => 'dbic', email_welcome => 1 });
-                # Check for success - DPAE does not currently call exceptions
                 return forwardHome(
-                    { danger => "Failed to create user. Does the email address already exist?" }, 'user'
-                ) unless $newuser;
-                $id = 0; # Previous ID now deleted
+                    { success => "User has been updated successfully" }, 'user' );
             }
-        }
-        if ($result)
-        {
-            # Add groups to user
-            my @groups = ref param('groups') ? @{param('groups')} : (param('groups') || ());
-            my $usero = rset('User')->find($newuser->{id});
-            $usero->groups($logged_in_user, \@groups);
-            my $audit_groups = join ', ', @groups;
-
-            $usero->set_view_limits(body_parameters->get_all('view_limits'));
-
-            my $audit_perms = '';
-            if (user_has_role 'superadmin')
-            {
-                # Update permissions. This currently needs to be done here rather than in DPAE
-                # due to the addition of the site_id column, which DPAE is not able to take
-                # account of, so the permissions could otherwise get applied to the wrong user
-                my @permissions = body_parameters->get_all('permission');
-                $usero->permissions(@permissions);
-                $audit_perms = ', permissions updated to: '.join ', ', map { $all_permissions{$_} } @permissions;
-            }
-            my $action;
-            if ($id) {
-                $audit->login_change(
-                    "User updated: ID $newuser->{id}, username: $newuser->{username}; groups: $audit_groups, permissions: $audit_perms");
-                $action = 'updated';
-            }
-            else {
-                $audit->login_change(
-                    "New user created: ID $newuser->{id}, username: $newuser->{username}; groups: $audit_groups, permissions: $audit_perms");
-                $action = 'created';
-            }
-
-            return forwardHome(
-                { success => "User has been $action successfully" }, 'user' );
         }
         else {
-            my $view_limits_with_blank = [ map {
-                +{
-                    view_id => $_
-                }
-            } body_parameters->get_all('view_limits') ];
-            $values{view_limits_with_blank} = $view_limits_with_blank;
-            $users = [\%values];
+            # This sends a welcome email etc
+            if (process(sub { rset('User')->create_user(current_user => $logged_in_user, request_base => request->base, %values) }))
+            {
+                return forwardHome(
+                    { success => "User has been created successfully" }, 'user' );
+            }
         }
+
+        # In case of failure, pass back to form
+        my $view_limits_with_blank = [ map {
+            +{
+                view_id => $_
+            }
+        } body_parameters->get_all('view_limits') ];
+        $values{view_limits_with_blank} = $view_limits_with_blank;
+        $users = [\%values];
     }
 
     my $register_requests;
@@ -2813,6 +2808,9 @@ sub forwardHome {
         {
             $lroptions->{is_fatal} = 0;
             report $lroptions, ERROR => $message->{$type};
+        }
+        elsif ($type eq 'notice') {
+            report $lroptions, NOTICE => $message->{$type};
         }
         else {
             report $lroptions, NOTICE => $message->{$type}, _class => 'success';

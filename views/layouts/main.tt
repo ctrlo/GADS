@@ -173,6 +173,7 @@
                                         <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/user/0">Add a user</a></li>
                                         <li><a href="" data-toggle="modal" data-target="#modal-sendemail">Email users</a></li>
                                         <li><a href="/user?download">Download users</a></li>
+                                        <li><a href="/user/upload">Upload users</a></li>
                                         <li class="divider"></li>
                                         <li [% IF page=="group" %]class="active"[% END %]><a href="[% url.page %]/group/">Manage groups</a></li>
                                         <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/group/0">Add a group</a></li>

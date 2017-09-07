@@ -11,8 +11,10 @@ use strict;
 use warnings;
 
 use DateTime;
+use GADS::Audit;
 use GADS::Config;
 use GADS::Email;
+use Log::Report;
 use Moo;
 
 extends 'DBIx::Class::Core';
@@ -613,10 +615,10 @@ sub view_limits_with_blank
 }
 
 sub set_view_limits
-{   my ($self, @view_ids) = @_;
+{   my ($self, $view_ids) = @_;
 
     # remove blank string from form
-    @view_ids = grep { $_ } @view_ids;
+    my @view_ids = grep { $_ } @$view_ids;
 
     foreach my $view_id (@view_ids)
     {
@@ -703,12 +705,52 @@ sub _build_permission
     };
 }
 
+sub update_user
+{   my ($self, %params) = @_;
+
+    my $guard = $self->result_source->schema->txn_scope_guard;
+
+    my $current_user = delete $params{current_user};
+
+    $self->update({
+        firstname             => $params{firstname},
+        surname               => $params{surname},
+        value                 => $params{value},
+        email                 => $params{email},
+        username              => $params{email},
+        freetext1             => $params{freetext1},
+        freetext2             => $params{freetext2},
+        title                 => $params{title} || undef,
+        organisation          => $params{organisation} || undef,
+        account_request_notes => $params{account_request_notes},
+    });
+
+    $self->groups($current_user, $params{groups});
+    $self->permissions(@{$params{permissions}})
+        if $current_user->permission->{superadmin};
+    $self->set_view_limits($params{view_limits});
+
+    my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $current_user);
+
+    my $groups = join ', ', @{$params{groups}};
+    my $permissions = join ', ', @{$params{permissions}};
+
+    $audit->login_change(
+        __x"User updated: ID {id}, username: {username}; groups: {groups}, permissions: {permissions}",
+            id => $self->id, username => $params{username}, groups => $groups, permissions => $permissions
+    );
+
+    $guard->commit;
+
+}
+
 sub permissions
 {   my ($self, @permissions) = @_;
 
     my %user_perms = map { $_ => 1 } @permissions;
     my %all_perms  = map { $_->name => $_->id } $self->result_source->schema->resultset('Permission')->all;
 
+    use Data::Dumper; say STDERR Dumper \%user_perms, \%all_perms;
     foreach my $perm (qw/useradmin audit superadmin/)
     {
         my $pid = $all_perms{$perm};
