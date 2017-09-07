@@ -145,7 +145,7 @@ sub upload
         {
             my $name = $row->[$user_mapping{$org_name}];
             $org_id  = $organisations{lc $name};
-            mistake __x"Organisation name {org} not found", org => $name
+            mistake __x"$org_name {org} not found", org => $name
                 if !$org_id;
         }
         my $title_id;
@@ -153,7 +153,7 @@ sub upload
         {
             my $name  = $row->{$user_mapping{title}};
             $title_id = $titles{lc $name};
-            mistake __x"Organisation name {org} not found", org => $name
+            mistake __x"Title {org} not found", org => $name
                 if !$title_id;
         }
         my %values = (
