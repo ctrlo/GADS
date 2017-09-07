@@ -46,7 +46,7 @@ my $data = [
         integer1   => 7,
         date1      => '2014-10-10',
         daterange1 => ['2013-10-10', '2013-12-03'],
-        enum1      => 'foo1', # Changed to 8 after creation to have multiple versions
+        enum1      => 'foo1', # Changed to foo2 after creation to have multiple versions
         tree1      => 'tree1',
     },{
         string1    => 'FooBar',
@@ -882,6 +882,65 @@ $records = GADS::Records->new(
 );
 
 is ($records->count, 2, 'Correct number of results when limiting to 2 views');
+
+# view limit with a view with negative match multivalue filter
+# (this has caused recusion in the past)
+{
+    # First define limit view
+    $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $columns->{enum1}->id,
+                type     => 'string',
+                value    => 'foo1',
+                operator => 'not_equal',
+            }],
+        },
+    );
+
+    $view_limit = GADS::View->new(
+        name        => 'limit to view',
+        filter      => $rules,
+        instance_id => 1,
+        layout      => $layout,
+        schema      => $schema,
+        user        => undef,
+    );
+    $view_limit->write;
+
+    $user_r->set_view_limits([$view_limit->id]);
+
+    # Then add a normal view
+    $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $columns->{date1}->id,
+                type     => 'string',
+                value    => '2014-10-10',
+                operator => 'equal',
+            }],
+        },
+    );
+    $view = GADS::View->new(
+        name        => 'date1',
+        filter      => $rules,
+        instance_id => 1,
+        layout      => $layout,
+        schema      => $schema,
+        user        => undef,
+    );
+    $view->write;
+
+    $records = GADS::Records->new(
+        user   => $user,
+        view   => $view,
+        layout => $layout,
+        schema => $schema,
+    );
+
+    is ($records->count, 1, 'Correct result count when limiting to negative multivalue view');
+    is (@{$records->results}, 1, 'Correct number of results when limiting to negative multivalue view');
+}
 
 # Quick searches
 # First with limited view still defined
