@@ -1,0 +1,99 @@
+[% PROCESS help.tt %]
+
+<div class="form-group">
+    <label for="view_limits">
+        Limit user's data to only records in any of: (<a href="" data-toggle="modal" data-target="#modalhelp_limitdata">?</a>)
+    </label>
+    [% view_limits = edituser.view_limits_with_blank %]
+    [% IF NOT view_limits OR view_limits.size == 0 %]
+        [% view_limits = [''] %]
+    [% END %]
+    [% FOREACH view_limit IN view_limits %]
+        <div class="limit-to-view">
+            <div class="row">
+                <div class="col-md-10">
+                    <select class="form-control" name="view_limits">
+                        <option></option>
+                        [% FOREACH layout IN layouts %]
+                            [% FOREACH v IN layout.global_view_summary %]
+                                <option value="[% v.id %]"
+                                    [% IF view_limit.view_id == v.id %]selected[% END %]>[% layout.name _ ': ' _ v.name | html_entity %]
+                                </option>
+                            [% END %]
+                        [% END %]
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <a class="btn btn-primary btn-sm"><i class="fa fa-lg fa-plus cloneme" style="cursor: pointer"></i></a>
+                    <a class="btn btn-primary btn-sm"><i class="fa fa-lg fa-minus removeme" style="cursor: pointer"></i></a>
+                </div>
+            </div>
+        </div>
+    [% END %]
+</div>
+<label>
+    Permissions:
+</label>
+[% FOREACH permission IN permissions %]
+    [% key = permission.name %]
+    <div class="checkbox">
+        <label>
+            <input type="checkbox" name="permission" value="[% permission.id %]"
+                [% IF edituser.permission.$key %]checked[% END %]>[% permission.description | html_entity %]
+        </label>
+    </div>
+[% END %]
+<label>
+    Groups:
+</label>
+[% IF groups.size %]
+    [% FOREACH group IN groups %]
+        [% key = group.id %]
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" name="groups" value="[% group.id %]"
+                    [% IF edituser.has_group.$key %]checked[% END %]>[% group.name | html_entity %]
+            </label>
+        </div>
+    [% END %]
+[% ELSE %]
+    <p>No groups have been created yet. Groups can be
+    created in the <a href="/group">Manage Groups</a> menu.
+    </p>
+[% END %]
+
+[% WRAPPER modal_dialog.tt
+    modal_id="modalhelp_limitdata"
+    modal_action_text="Close"
+    modal_heading="Limiting a user's access to records"
+    modal_close_only=1
+%]
+    <p>[% global.helptext.limit_user_data %]</p>
+[% END %]
+
+<script type="text/javascript">
+    var jscode='[% FILTER remove('\n+') %]
+        [% FILTER replace('\'', '\\\'') %]
+            $(document).ready(function () {
+                $('#modalnewtitle').on('hidden.bs.modal', function (e) {
+                    $('#newtitle').val("");
+                });
+                $('#modalneworganisation').on('hidden.bs.modal', function (e) {
+                    $('#neworganisation').val("");
+                });
+                $(document).on("click", ".cloneme", function() {
+                    var parent = $(this).parents('.limit-to-view');
+                    var cloned = parent.clone();
+                    cloned.removeAttr('id').insertAfter(parent);
+                });
+                $(document).on("click", ".removeme", function() {
+                    var parent = $(this).parents('.limit-to-view');
+                    if (parent.siblings(".limit-to-view").length > 0) {
+                        parent.remove();
+                    }
+                });
+            });
+        [% END %]
+    [% END %]';
+</script>
+
