@@ -1434,9 +1434,9 @@ any '/user/upload' => require_role useradmin => sub {
 
     if (param 'submit')
     {
-        my $return;
+        my $count;
         if (process sub {
-            $return = rset('User')->upload(upload('file'),
+            $count = rset('User')->upload(upload('file'),
                 request_base => request->base,
                 view_limits  => [body_parameters->get_all('view_limits')],
                 groups       => [body_parameters->get_all('groups')],
@@ -1444,14 +1444,8 @@ any '/user/upload' => require_role useradmin => sub {
             )}
         )
         {
-            my $msg = "$return->{count} users have been uploaded successfully.";
-            if (my @errors = @{$return->{errors}})
-            {
-                my @e = map { "$_->{row} ($_->{error})" } @errors;
-                $msg .= " The following rows had errors: ".join '; ', @e;
-            }
             return forwardHome(
-                { notice => $msg }, 'user' );
+                { success => "$count users were successfully uploaded" }, 'user' );
         }
     }
 
