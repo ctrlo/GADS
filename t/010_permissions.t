@@ -92,7 +92,7 @@ foreach my $column ($layout->all, $curval_sheet->layout->all)
     $permissions->{$groups{limited}} = $all
         if $column->name eq 'string1' && $column->layout->instance_id != $curval_sheet->instance_id;
     $permissions->{$groups{readwrite}} = $all;
-    $column->set_permissions(permissions => $permissions);
+    $column->set_permissions(%$permissions);
 }
 # Turn off the permission override on the curval sheet so that permissions are
 # actually tested (turned on initially to populate records)

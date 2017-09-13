@@ -254,6 +254,7 @@ hook before_template => sub {
     $tokens->{site}          = var 'site';
     $tokens->{config}        = GADS::Config->instance;
     session 'messages' => [];
+    use Data::Dumper; warn Dumper $tokens->{url};
 };
 
 hook after_template_render => sub {
@@ -1308,45 +1309,6 @@ any '/layout/?:id?' => require_login sub {
                 layout => $layout
             );
         
-        # Update of permissions?
-        if (param 'modal_access_control')
-        {
-            my $groups         = [body_parameters->get_all('group_id')];
-            my $read           = [body_parameters->get_all('read')];
-            my $write_new      = [body_parameters->get_all('write_new')];
-            my $write_existing = [body_parameters->get_all('write_existing')];
-            if (process sub { $column->set_permissions(
-                groups         => $groups,
-                read           => $read,
-                write_new      => $write_new,
-                write_existing => $write_existing
-            ) })
-            {
-                my $msg = qq(Permissions have been updated successfully. <a href="/layout/">Click here</a> to return to Edit Layout.);
-                report NOTICE => $msg, _class => 'html,success';
-                return forwardHome( undef, "layout/".$column->id );
-            }
-        }
-        if (param 'modal_approval_control')
-        {
-            my $groups                     = [body_parameters->get_all('group_id')];
-            my $approve_new                = [body_parameters->get_all('approve_new')];
-            my $approve_existing           = [body_parameters->get_all('approve_existing')];
-            my $write_new_no_approval      = [body_parameters->get_all('write_new_no_approval')];
-            my $write_existing_no_approval = [body_parameters->get_all('write_existing_no_approval')];
-            if (process sub { $column->set_permissions(
-                groups                     => $groups,
-                approve_new                => $approve_new,
-                approve_existing           => $approve_existing,
-                write_new_no_approval      => $write_new_no_approval,
-                write_existing_no_approval => $write_existing_no_approval,
-            ) })
-            {
-                my $msg = qq(Permissions have been updated successfully. <a href="/layout/">Click here</a> to return to Edit Layout.);
-                report NOTICE => $msg, _class => 'html,success';
-                return forwardHome( undef, "layout/".$column->id );
-            }
-        }
 
         if (param 'delete')
         {
@@ -1365,6 +1327,20 @@ any '/layout/?:id?' => require_login sub {
 
         if (param 'submit')
         {
+
+            my @permission_params = grep { /^permission_(?:.*?)_\d+$/ } keys %{ params() };
+
+            if (@permission_params) {
+                my %permissions;
+
+                foreach my $p (@permission_params) {
+                    my ($name, $group_id) = m/^permission_(.*?)_(\d+)$/;
+                    push @{ $permissions{$group_id} ||= [] }, $name;
+                }
+                
+                $column->set_permissions(%permissions);
+            }
+
             $column->$_(param $_)
                 foreach (qw/name name_short description helptext optional isunique multivalue remember link_parent_id/);
             $column->type(param 'type')
