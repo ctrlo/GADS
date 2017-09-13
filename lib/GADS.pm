@@ -550,6 +550,7 @@ any '/data' => require_login sub {
                 points  => $gdata->points,
                 labels  => $gdata->labels_encoded,
                 xlabels => $gdata->xlabels,
+                options => $gdata->options,
             };
             my $graph = GADS::Graph->new(
                 id     => $png,
