@@ -224,9 +224,11 @@ sub _params_from_code
 
 sub _parse_code
 {   my ($self, $code) = @_;
-    $code =~ /^\s*function\s+evaluate\s*\(([A-Za-z0-9_,\s]+)\)(.*?)end\s*$/s
+    !$code || $code =~ /^\s*function\s+evaluate\s*\(([A-Za-z0-9_,\s]+)\)(.*?)end\s*$/s
         or error "Invalid code definition: must contain function evaluate(...)";
-    my @params   = split /[,\s]+/, $1;
+    my @params;
+    @params   = split /[,\s]+/, $1
+        if $1;
     my $run_code = $2;
     +{
         code   => $run_code,
