@@ -173,7 +173,6 @@ sub update_cached
     # an object) and may evaluate to an empty string. If so, txn_scope_guard
     # warns as such, so undefine to prevent the warning
     undef $@;
-    my $guard = $self->schema->txn_scope_guard;
 
     $self->clear; # Refresh calc for updated calculation
     my $layout = $self->layout;
@@ -199,8 +198,6 @@ sub update_cached
         $datum->write_value;
         push @changed, $record->current_id if $datum->changed;
     }
-
-    $guard->commit;
 
     return if $options{no_alert_send}; # E.g. new column, don't want to alert on all
 
