@@ -91,6 +91,9 @@ sub as_string
 
 sub equal
 {   my ($self, $a, $b) = @_;
+   (defined $a xor defined $b)
+        and return;
+    !defined $a && !defined $b and return 1;
     $a eq $b;
 }
 
