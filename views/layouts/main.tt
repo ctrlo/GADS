@@ -252,8 +252,14 @@
         [% END %]
         [% IF page == "data" AND viewtype == "timeline" %]
             [% IF hostlocal %]
+                [% IF page_as_mech %]
+                    <script type="text/javascript" src="[% url.js %]/es5-shim.min.js"></script>
+                [% END %]
                 <script type="text/javascript" src="[% url.js %]/vis.min.js"></script>
             [% ELSE %]
+                [% IF page_as_mech %]
+                    <script type="text/javascript" src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.1.10/es5-shim.min.js"></script>
+                [% END %]
                 <script type="text/javascript" src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/vis/4.7.0/vis.min.js"></script>
             [% END %]
         [% END %]
