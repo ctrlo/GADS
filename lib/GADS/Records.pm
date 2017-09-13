@@ -1229,10 +1229,11 @@ sub _resolve
         # match. Use a Records object so that all the normal requirements are
         # dealt with, and pass it the current filter reversed
         my $records = GADS::Records->new(
-            schema => $self->schema,
-            user   => $self->user,
-            layout => $self->layout,
-            view   => GADS::View->new(
+            schema      => $self->schema,
+            user        => $self->user,
+            layout      => $self->layout,
+            view_limits => [], # Don't limit by view this as well, otherwise recursive loop happens
+            view  => GADS::View->new(
                 filter      => { %{$options{filter}}, operator => 'equal' }, # Switch
                 instance_id => $self->layout->instance_id,
                 layout      => $self->layout,

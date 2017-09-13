@@ -188,6 +188,17 @@ if ($load_file)
                 say STDERR "Field ".$field->name." (ID ".$field->id.") not in updated layout - needs manual deletion";
             }
         }
+
+        # Refresh new layout and load any calc fields (done last as short names
+        # might not otherwise exist)
+        $layout->clear;
+        foreach my $field ($layout->all)
+        {
+            next if $field->userinput;
+            $field->code($loaded{$field->id}->{code})
+                if $loaded{$field->id};
+            $field->write(no_cache_update => 1);
+        }
     }
 
     $guard->commit;
@@ -239,6 +250,7 @@ else {
                 options        => $field->options,
             };
             $hash->{enumvals} = $field->enumvals if $field->type eq 'enum';
+            $hash->{code}     = $field->code if !$field->userinput;
             $hash->{curval_field_ids} = $field->curval_field_ids if $field->type eq 'curval';
             push @out, $hash;
         }

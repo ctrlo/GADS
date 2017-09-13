@@ -61,10 +61,20 @@ sub create_user
         $self->find($id)->delete;
     }
 
-    # Email user welcome email
+    $self->_send_welcome_email(%params, code => $code)
+        unless $params{no_welcome_email};
+
+    $guard->commit;
+
+    return $user;
+}
+
+sub _send_welcome_email
+{   my ($self, %params) = @_;
+
     my $config      = GADS::Config->instance->config;
     my $name        = $config->{gads}->{name};
-    my $url         = $request_base . "resetpw/$code";
+    my $url         = $params{request_base} . "resetpw/$params{code}";
     my $new_account = $config->{gads}->{new_account};
     my $subject     = $new_account && $new_account->{subject}
         || "Your new account details";
@@ -84,14 +94,12 @@ __BODY
         text    => $body,
         emails  => [$params{email}],
     });
-
-    $guard->commit;
-
-    return $user;
 }
 
 sub upload
 {   my ($self, $file, %options) = @_;
+
+    my $guard = $self->result_source->schema->txn_scope_guard;
 
     my $csv = Text::CSV->new({ binary => 1 }) # should set binary attribute?
         or error "Cannot use CSV: ".Text::CSV->error_diag ();
@@ -138,23 +146,28 @@ sub upload
     my %organisations = map { lc $_->name => $_->id } @{$userso->organisations};
 
     $count = 0; my @errors;
-    foreach my $row ($csv->getline($fh))
+    my @welcome_emails;
+    while (my $row = $csv->getline($fh))
     {
         my $org_id;
         if (defined $user_mapping{$org_name})
         {
             my $name = $row->[$user_mapping{$org_name}];
             $org_id  = $organisations{lc $name};
-            mistake __x"Organisation name {org} not found", org => $name
-                if !$org_id;
+            push @errors, {
+                row   => join (',', @$row),
+                error => qq($org_name "$name" not found),
+            } if !$org_id;
         }
         my $title_id;
         if (defined $user_mapping{title})
         {
             my $name  = $row->{$user_mapping{title}};
             $title_id = $titles{lc $name};
-            mistake __x"Organisation name {org} not found", org => $name
-                if !$title_id;
+            push @errors, {
+                row   => join (',', @$row),
+                error => qq(Title "$name" not found),
+            } if !$title_id;
         }
         my %values = (
             firstname             => defined $user_mapping{forename} ? $row->[$user_mapping{forename}] : '',
@@ -171,25 +184,44 @@ sub upload
         );
         $values{value} = _user_value(\%values);
 
-        try { $self->create_user(current_user => $options{current_user}, request_base => $options{request_base}, %values) };
+        my $u;
+        try { $u = $self->create_user(
+                current_user     => $options{current_user},
+                request_base     => $options{request_base},
+                no_welcome_email => 1, # Send at end in case of failures
+                %values) };
         if ($@)
         {
             # ->wasFatal returns the trace message from the DBIC rollback
-            my ($error) = grep { $_->isFatal } $@->exceptions;
+            my ($e) = grep { $_->isFatal } $@->exceptions;
             push @errors, {
                 row   => join (',', @$row),
-                error => $error,
+                error => $e,
             };
         }
         else {
+            $values{code} = $u->resetpw,
             $count++;
         }
+
+        push @welcome_emails, \%values
+            unless @errors; # No point collecting if we're not going to send
     }
 
-    +{
-        count  => $count,
-        errors => \@errors,
+    if (@errors)
+    {
+        my @e = map { "$_->{row} ($_->{error})" } @errors;
+        error __x"The upload failed with errors on the following lines: {errors}",
+            errors => join '; ', @e;
     }
+
+    # Won't get this far if we have any errors in the previous statement
+    $guard->commit;
+
+    $self->_send_welcome_email(%$_, request_base => $options{request_base})
+        foreach @welcome_emails;
+
+    $count;
 }
 
 sub _user_value
