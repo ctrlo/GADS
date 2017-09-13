@@ -248,6 +248,7 @@ sub eval
     +{
         return => $ret,
         error  => $err,
+        code   => $run_code,
     }
 }
 
