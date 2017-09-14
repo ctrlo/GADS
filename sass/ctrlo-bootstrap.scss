@@ -1,6 +1,8 @@
 @import 'branding-colours';
-@import 'navigation';
+@import 'mixins';
 @import 'utility-classes';
+
+@import 'navigation';
 
 /*! normalize.css v3.0.0 | MIT License | git.io/normalize */
 
@@ -1359,17 +1361,6 @@ small.search_term {
     position: relative;
 }
 
-
-@mixin visually-unhide {
-    clip: auto;
-    height: auto;
-    margin: auto;
-    overflow: auto;
-    padding: initial;
-    position: absolute;
-    width: auto;
-    opacity: 1;
-}
 
 [role="tooltip"]   .tooltip,
 [role="tooltip"] + .tooltip {

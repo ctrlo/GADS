@@ -281,4 +281,23 @@ nav button .heading {
     margin-bottom: .3em;
 }
 
+#skip-links ol {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+#skip-links a:focus {
+    @include visually-unhide;
+
+    position: absolute;
+    outline: 0;
+    top: 1em;
+    left: 1em;
+    padding: 1em;
+    border: 3px solid $primary-navy;
+    background-color: #fff;
+    z-index: 2;
+}
+
 

@@ -1,3 +1,23 @@
+/* a11y-related */
+.visually-hidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px; }
+
+.visually-hidden-opacity {
+  opacity: 0; }
+
+/* general util */
+.clearfix::after {
+  content: "";
+  display: block;
+  clear: both; }
+
 .nav > li.disabled > a {
   color: #999999; }
 
@@ -224,25 +244,28 @@ nav .dropdown-toggle {
 nav button .heading {
   margin-bottom: .3em; }
 
-/* a11y-related */
-.visually-hidden {
-  border: 0;
-  clip: rect(0 0 0 0);
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
+#skip-links ol {
+  margin: 0;
   padding: 0;
+  list-style-type: none; }
+
+#skip-links a:focus {
+  clip: auto;
+  height: auto;
+  margin: auto;
+  overflow: auto;
+  padding: initial;
   position: absolute;
-  width: 1px; }
-
-.visually-hidden-opacity {
-  opacity: 0; }
-
-/* general util */
-.clearfix::after {
-  content: "";
-  display: block;
-  clear: both; }
+  width: auto;
+  opacity: 1;
+  position: absolute;
+  outline: 0;
+  top: 1em;
+  left: 1em;
+  padding: 1em;
+  border: 3px solid #1460aa;
+  background-color: #fff;
+  z-index: 2; }
 
 /*! normalize.css v3.0.0 | MIT License | git.io/normalize */
 @font-face {
