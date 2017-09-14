@@ -10,11 +10,12 @@ nav .heading {
     font-size: 1em;
     margin: 0;
     padding: 0;
-    margin-bottom: .3em;
+    margin-bottom: 0;
 }
 
 nav button .heading {
     font-size: .6em;
+    margin-bottom: .3em;
 }
 
 
@@ -247,4 +248,8 @@ nav.navbar li > a.home {
 #app-navbar,
 #admin-menu {
     padding-left: 0;
+}
+
+#app-navbar .dropdown-toggle {
+    padding-top: 0;
 }

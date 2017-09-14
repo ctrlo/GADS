@@ -9,10 +9,11 @@ nav .heading {
   font-size: 1em;
   margin: 0;
   padding: 0;
-  margin-bottom: .3em; }
+  margin-bottom: 0; }
 
 nav button .heading {
-  font-size: .6em; }
+  font-size: .6em;
+  margin-bottom: .3em; }
 
 .nav > li.disabled > a {
   color: #999999; }
@@ -198,6 +199,9 @@ nav.navbar li > a.home {
 #app-navbar,
 #admin-menu {
   padding-left: 0; }
+
+#app-navbar .dropdown-toggle {
+  padding-top: 0; }
 
 /*! normalize.css v3.0.0 | MIT License | git.io/normalize */
 @font-face {

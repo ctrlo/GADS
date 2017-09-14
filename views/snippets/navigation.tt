@@ -1,44 +1,44 @@
-[% 
-    PROCESS user_nav;
-    PROCESS app_nav;
-%]
+<div class="row">
+    [% PROCESS dataset_menu %]
+    [% PROCESS data_menu %]
+    [% PROCESS user_menu %]
+</div>
 
-[% BLOCK user_nav %]
-   <nav class="row navbar navbar-default" role="navigation">
-        <div class="collapse navbar-collapse" id="user-navbar">
+[% BLOCK dataset_menu %]
+   <nav class="col-md-4 navbar navbar-default" role="navigation">
+        <div class="collapse navbar-collapse" id="dataset-navbar">
             <ul class="nav navbar-nav">
-                [% PROCESS instance_menu %]
+               <li class="dropdown">
+                    <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
+                        aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
+                        <h2 class="heading">Dataset</h2>
+                        <span>[% instance_name | html_entity %]</span>
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" id="table-menu">
+                    [% FOREACH instance IN instances %]
+                        <li [% IF instance.id == instance_id %]class="active"[% END %]>
+                            <a href="?instance=[% instance.id %]"
+                            >[% instance.name | html_entity %]</a>
+                        </li>
+                    [% END %]
+                    </ul>
+                </li>
            </ul>
-           [% PROCESS user_menu %]
        </div>
     </nav>
-[% END %]
 
-[% BLOCK instance_menu %]
-   <li class="dropdown">
-        <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
-            aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
-            <h2 class="heading">Dataset</h2>
-            <span>[% instance_name | html_entity %]</span>
-            <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu" id="table-menu">
-            [% FOREACH instance IN instances %]
-                <li [% IF instance.id == instance_id %]class="active"[% END %]>
-                    <a href="?instance=[% instance.id %]"
-                    >[% instance.name | html_entity %]</a>
-                </li>
-            [% END %]
-        </ul>
-    </li>
 [% END %]
 
 [% BLOCK user_menu %]
-    <ul class="nav navbar-nav navbar-right">
+    <nav class="col-md-4 navbar navbar-default" role="navigation">
+        <div class="collapse navbar-collapse" id="user-navbar">
+    
+    <ul class="nav navbar-nav">
         <li class="dropdown">
         <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="User menu"
             aria-expanded="false" aria-haspopup="true" aria-controls="user-menu">
-            <h2 class="heading">Personal menu</h2>
+            <h2 class="heading">Personal settings</h2>
             <span>[% user.value | html_entity %]</span>
             <span class="caret"></span>
         </button>
@@ -58,6 +58,9 @@
         </ul>
         </li>
     </ul>
+
+        </div>
+    </nav>
 [% END %]
 
 [% BLOCK table_menu %]
@@ -167,8 +170,8 @@
     </li>
 [% END %]
 
-[% BLOCK app_nav %]
-   <nav class="row navbar navbar-default" role="navigation">
+[% BLOCK data_menu %]
+   <nav class="col-md-4 navbar navbar-default" role="navigation">
         <h2 class="heading">Data management</h2>
         <div class="collapse navbar-collapse" id="app-navbar">
             <ul class="nav navbar-nav">
@@ -184,5 +187,4 @@
         </div>
     </nav>
 [% END %]
-
 
