@@ -4,6 +4,23 @@
     [% PROCESS user_menu %]
 </div>
 
+<div class="row">
+    [% PROCESS breadcrumbs %]
+</div>
+
+[% BLOCK breadcrumbs %]
+    <nav aria-label="Breadcrumb" class="col-md-12 breadcrumbs" role="navigation">
+        <ol class="items">
+            <li>
+                <a href="/" class="item">
+                    <span aria-hidden="true" class="fa fa-home"></span>
+                    Linkspace Home
+                </a>
+            </li>
+        </ol>
+    </nav>
+[% END %]
+
 [% BLOCK dataset_menu %]
    <nav class="col-md-4 navbar navbar-default" role="navigation">
         <div class="collapse navbar-collapse" id="dataset-navbar">

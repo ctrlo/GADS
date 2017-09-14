@@ -223,6 +223,23 @@ nav.navbar li > a.home {
 #app-navbar .dropdown-toggle {
   padding-top: 0; }
 
+.breadcrumbs {
+  padding: 0.8em 1em;
+  border: 1px solid #ccccdd;
+  background-color: #fff; }
+
+.breadcrumbs .items {
+  margin: 0;
+  padding-left: 0;
+  list-style: none; }
+
+.breadcrumbs .item {
+  color: #034575;
+  text-decoration: none;
+  border-bottom: 1px solid #ccc;
+  padding: 0 1px 0;
+  margin: 0 -1px 0; }
+
 /*! normalize.css v3.0.0 | MIT License | git.io/normalize */
 @font-face {
   font-family: 'Open Sans remote';
