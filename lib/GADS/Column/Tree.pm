@@ -171,6 +171,8 @@ sub node
 {   my ($self, $id) = @_;
 
     $id or return;
+    $self->_nodes->{$id} or return;
+
     {
         node  => $self->_nodes->{$id},
         value => $self->_enumvals_index->{$id}->{value},

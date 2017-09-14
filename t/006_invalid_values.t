@@ -69,4 +69,12 @@ ok( $@, "Failed to write daterange with dates in wrong order" );
 try { $record->fields->{$daterange1->id}->set_value(["20-10-10","2011-10-10"]) };
 ok( $@, "Failed to write daterange with invalid date" );
 
+my $enum1 = $columns->{'enum1'};
+try { $record->fields->{$enum1->id}->set_value(999) };
+like( $@, qr/is not a valid enum/, "Failed to write invalid enum" );
+
+my $tree1 = $columns->{'tree1'};
+try { $record->fields->{$tree1->id}->set_value(999) };
+like( $@, qr/not a valid tree node/, "Failed to write invalid tree" );
+
 done_testing();
