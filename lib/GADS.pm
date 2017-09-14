@@ -254,7 +254,6 @@ hook before_template => sub {
     $tokens->{site}          = var 'site';
     $tokens->{config}        = GADS::Config->instance;
     session 'messages' => [];
-    use Data::Dumper; warn Dumper $tokens->{url};
 };
 
 hook after_template_render => sub {
