@@ -201,17 +201,21 @@ hook before => sub {
         # sheet. This is used in the links for the Curval column type
         my $instance_id = param('oi') || param('instance') || $persistent->{instance_id};
         my $instances = GADS::Instances->new(schema => schema, user => $user);
-        $instance_id = $instances->is_valid($instance_id) || $instances->all->[0]->id;
-        $persistent->{instance_id} = $instance_id
-            unless param 'oi';
-        my $layout = GADS::Layout->new(
+        $instance_id = $instances->is_valid($instance_id) || $instances->all->[0] && $instances->all->[0]->id;
+        if (!$instance_id && request->uri !~ m!^/user!)
+        {
+            forwardHome({ danger => "You do not have any access rights to any data in this application" })
+                unless request->uri eq '/';
+        }
+        var 'layout' => GADS::Layout->new(
             user        => $user,
             schema      => schema,
             config      => GADS::Config->instance,
             instances   => $instances->all,
             instance_id => $instance_id,
-        );
-        var 'layout'    => $layout;
+        ) if $instance_id;
+        $persistent->{instance_id} = $instance_id
+            unless param 'oi';
         var 'instances' => $instances;
     }
 };
@@ -232,7 +236,8 @@ hook before_template => sub {
     $tokens->{header} = config->{gads}->{header};
 
     my $layout = var 'layout';
-    if ($user && ($layout->user_can('approve_new') || $layout->user_can('approve_existing')))
+    # Possible for $layout to be undef if user has no access
+    if ($user && $layout && ($layout->user_can('approve_new') || $layout->user_can('approve_existing')))
     {
         my $approval = GADS::Approval->new(
             schema => schema,
