@@ -1,4 +1,5 @@
 <div class="row">
+    [% PROCESS skip_links %]
     [% PROCESS dataset_menu %]
     [% PROCESS data_menu %]
     [% PROCESS user_menu %]
@@ -7,6 +8,19 @@
 <div class="row">
     [% PROCESS breadcrumbs %]
 </div>
+
+[% BLOCK skip_links %]
+    <nav id="skip-links" role="navigation">
+        <ol>
+            <li>
+                <a href="#main" class="visually-hidden">Skip to content</a>
+            </li>
+            <li>
+                <a href="#footer" class="visually-hidden">Skip to footer</a>
+            </li>
+        </ol>
+    </nav>
+[% END %]
 
 [% BLOCK breadcrumbs %]
     <nav aria-label="Breadcrumb" class="col-md-12 breadcrumbs" role="navigation">
