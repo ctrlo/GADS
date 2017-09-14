@@ -1,5 +1,3 @@
-[% PROCESS help.tt %]
-
 [% IF edit.defined %]
 [% edituser = users.shift %]
 [% IF edituser.account_request %]
@@ -15,7 +13,7 @@
     <div class="row">
         <div class="col-md-6">
             [% IF edituser.account_request %]
-                <input type="hidden" name="account_request" value="1">
+                <input type="hidden" name="account_request" value="[% edituser.id %]">
             [% END %]
             <input type="hidden" name="page" value="[% page %]">
             <input type="hidden" name="username" value="[% edituser.username | html_entity %]">
@@ -86,66 +84,7 @@
                 </div>
             [% END %]
             [% IF page == "user" %]
-                <div class="form-group">
-                    <label for="view_limits">
-                        Only allow this user to see records in these views: (<a href="" data-toggle="modal" data-target="#modalhelp_limitdata">?</a>)
-                    </label>
-                    [% FOREACH view_limit IN edituser.view_limits_with_blank %]
-                        <div class="limit-to-view">
-                            <div class="row">
-                                <div class="col-md-10">
-                                    <select class="form-control" name="view_limits">
-                                        <option></option>
-                                        [% FOREACH layout IN instances %]
-                                            [% FOREACH v IN layout.global_view_summary %]
-                                                <option value="[% v.id %]"
-                                                    [% IF view_limit.view_id == v.id %]selected[% END %]>[% instance.name _ ': ' _ v.name | html_entity %]
-                                                </option>
-                                            [% END %]
-                                        [% END %]
-                                    </select>
-                                </div>
-                                <div class="col-md-2">
-                                    <a class="btn btn-primary btn-sm"><i class="fa fa-lg fa-plus cloneme" style="cursor: pointer"></i></a>
-                                    <a class="btn btn-primary btn-sm"><i class="fa fa-lg fa-minus removeme" style="cursor: pointer"></i></a>
-                                </div>
-                            </div>
-                        </div>
-                    [% END %]
-                </div>
-            [% END %]
-            [% IF page == "user" %]
-                <label>
-                    User's system-wide permissions:
-                </label>
-                <p>This user can</p>
-                [% FOREACH permission IN permissions %]
-                    [% key = permission.name %]
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" name="permission" value="[% permission.id %]"
-                                [% IF edituser.permission.$key %]checked[% END %]>[% permission.description | html_entity %]
-                        </label>
-                    </div>
-                [% END %]
-                <label>
-                    Add this user to the following groups:
-                </label>
-                [% IF groups.size %]
-                    [% FOREACH group IN groups %]
-                        [% key = group.id %]
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" name="groups" value="[% group.id %]"
-                                    [% IF edituser.has_group.$key %]checked[% END %]>[% group.name | html_entity %]
-                            </label>
-                        </div>
-                    [% END %]
-                [% ELSE %]
-                    <p>No groups have been created yet. Groups can be
-                    created in the <a href="/group">Manage Groups</a> menu.
-                    </p>
-                [% END %]
+                [% INCLUDE "snippets/user_permissions.tt" %]
             [% END %]
             <button type="submit" name="submit" value="submit" class="btn btn-primary">[% IF edituser.account_request %]Approve request[% ELSE %]Save[% END %]</button>
             [% IF page == "user" AND edituser.id %]
@@ -336,45 +275,19 @@
     </div>
 [% END %]
 
-[% WRAPPER modal_dialog.tt
-    modal_id="modalhelp_limitdata"
-    modal_action_text="Close"
-    modal_heading="Limiting a user&apos;s access to records"
-    modal_close_only=1
-%]
-    <p>[% global.helptext.limit_user_data %]</p>
-[% END %]
-
-<script type="text/javascript">
-    var jscode='[% FILTER remove('\n+') %]
-        [% FILTER replace('\'', '\\\'') %]
-            $(document).ready(function () {
-                $('#modalnewtitle').on('hidden.bs.modal', function (e) {
-                    $('#newtitle').val("");
-                });
-                $('#modalneworganisation').on('hidden.bs.modal', function (e) {
-                    $('#neworganisation').val("");
-                });
-                $(document).on("click", ".cloneme", function() {
-                    var parent = $(this).parents('.limit-to-view');
-                    var cloned = parent.clone();
-                    cloned.removeAttr('id').insertAfter(parent);
-                });
-                $(document).on("click", ".removeme", function() {
-                    var parent = $(this).parents('.limit-to-view');
-                    if (parent.siblings(".limit-to-view").length > 0) {
-                        parent.remove();
-                    }
-                });
-                [% IF NOT edit.defined %]
+[%# Hack: only do JS if user not edited, as user edit include has its own jscode %]
+[% IF NOT edit.defined %]
+    <script type="text/javascript">
+        var jscode='[% FILTER remove('\n+') %]
+            [% FILTER replace('\'', '\\\'') %]
+                $(document).ready(function () {
                     $('.dtable').dataTable({
                         order: [
                             [ 1, 'asc' ]
                         ]
                     });
-                [% END %]
-            });
-        [% END %]
-    [% END %]';
-</script>
-
+                });
+            [% END %]
+        [% END %]';
+    </script>
+[% END %]

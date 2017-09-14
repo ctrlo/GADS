@@ -77,7 +77,7 @@
         <![endif]-->
     </head>
 
-    <body class="page [% page %]">
+    <body class="page [% page %]" data-page="[% page %]">
         <header role="banner" class="container">
         [% IF header AND NOT page_as_mech %]
             <p class="text-center">[% header %]</p>
@@ -239,10 +239,19 @@
             <script type="text/javascript" src="[% url.js %]/calendar.min.js"></script>
         [% END %]
         [% IF page == "data" AND viewtype == "timeline" %]
+            [% IF page_as_mech %]
+                <script type="text/javascript" src="[% url.js %]/requestAnimationFrame.min.js"></script>
+            [% END %]
             [% IF hostlocal %]
+                [% IF page_as_mech %]
+                    <script type="text/javascript" src="[% url.js %]/es5-shim.min.js"></script>
+                [% END %]
                 <script type="text/javascript" src="[% url.js %]/vis.min.js"></script>
             [% ELSE %]
-                <script type="text/javascript" src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/vis/4.7.0/vis.min.js"></script>
+                [% IF page_as_mech %]
+                    <script type="text/javascript" src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.1.10/es5-shim.min.js"></script>
+                [% END %]
+                <script type="text/javascript" src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/vis/4.20.0/vis.min.js"></script>
             [% END %]
         [% END %]
         [% IF page == "data" AND viewtype == "table" %]

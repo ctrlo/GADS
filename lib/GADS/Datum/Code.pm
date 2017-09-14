@@ -176,7 +176,7 @@ sub _build_value
         {
             my $error = $@ ? $@->wasFatal->message->toString : $value->{error};
             warning __x"Failed to eval calc: {error} (code: {code}, params: {params})",
-                error => $error, code => $code, params => Dumper($self->vars);
+                error => $error, code => $value->{code}, params => Dumper($self->vars);
             $value->{error} = 1;
         }
 

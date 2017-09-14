@@ -63,7 +63,7 @@ my $values = {
 
         },
         new_as_string => 'User2, User2',
-        new_html      => qq(<a style="cursor: pointer" class="personpop" data-toggle="popover"\n        title="User2, User2"\n        data-content="Email: &lt;a href=&#39;mailto:user2\@example.com&#39;&gt;user2\@example.com&lt;/a&gt;">User2, User2</a>),
+        new_html      => 'User2, User2',
         },
     file1 => {
         old_as_string => 'file1.txt',

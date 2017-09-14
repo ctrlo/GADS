@@ -31,6 +31,8 @@ use GADS::View;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 
+use List::Compare ();
+
 use namespace::clean; # Otherwise Enum clashes with MooseLike
 
 with 'GADS::Role::Presentation::Column';
@@ -52,13 +54,6 @@ has user => (
 has permissions => (
     is  => 'lazy',
     isa => HashRef,
-);
-
-# The permissions the logged-in user has
-has user_permissions => (
-    is      => 'rw',
-    isa     => ArrayRef,
-    default => sub { [] },
 );
 
 has user_permission_override => (
@@ -781,6 +776,9 @@ sub after_write_special {} # Overridden in children
 sub write
 {   my ($self, %options) = @_;
 
+    error __"You do not have permission to manage fields"
+        unless $self->layout->user_can("layout");
+
     my $guard = $self->schema->txn_scope_guard;
 
     my $newitem;
@@ -854,8 +852,18 @@ sub write
         $self->_set__rset($rset);
     }
     else {
-        $rset = $self->schema->resultset('Layout')->find($self->id);
-        $rset->update($newitem);
+        if ($rset = $self->schema->resultset('Layout')->find($self->id))
+        {
+            # Check whether attempt to move between instances - this is a bug
+            $newitem->{instance_id} != $rset->instance_id
+                and panic "Attempt to move column between instances";
+            $rset->update($newitem);
+        }
+        else {
+            $newitem->{id} = $self->id;
+            $rset = $self->schema->resultset('Layout')->create($newitem);
+            $self->_set__rset($rset);
+        }
     }
 
     $self->write_special(rset => $rset, id => $new_id || $self->id, %options); # Write any column-specific params
@@ -879,11 +887,12 @@ sub user_can
     return 1 if $self->user_permission_override;
     return 1 if $self->internal && $permission eq 'read';
     return 0 if !$self->userinput && $permission ne 'read'; # Can't write to code fields
-    return 1 if grep { $_ eq $permission } @{$self->user_permissions};
+    return 1 if $self->layout->current_user_can_column($self->id, $permission);
     if ($permission eq 'write') # shortcut
     {
-        return 1 if grep { $_ eq 'write_new' || $_ eq 'write_existing' }
-            @{$self->user_permissions};
+        return 1
+            if $self->layout->current_user_can_column($self->id, 'write_new')
+            || $self->layout->current_user_can_column($self->id, 'write_existing');
     }
     0;
 }
@@ -891,104 +900,23 @@ sub user_can
 # Whether a particular user ID has a permission for this column
 sub user_id_can
 {   my ($self, $user_id, $permission) = @_;
-    my $perms = $self->layout->get_user_perms($user_id)->{$self->id}
-        or return;
-    grep { $_ eq $permission } @$perms;
+    return $self->layout->user_can_column($user_id, $self->id, $permission)
 }
 
-sub set_permissions
-{   my ($self, %options) = @_;
+sub set_permissions {
+    my ($self, %permissions) = @_;
 
-
-    # These set from web form
-    my $groups                     = $options{groups};
-    my $read                       = $options{read};
-    my $write_new                  = $options{write_new};
-    my $write_existing             = $options{write_existing};
-    my $approve_new                = $options{approve_new};
-    my $approve_existing           = $options{approve_existing};
-    my $write_new_no_approval      = $options{write_new_no_approval};
-    my $write_existing_no_approval = $options{write_existing_no_approval};
-
-    # This for setting permissions directly
-    my $permissions = $options{permissions};
-    my $type;
-
-    if ($permissions)
-    {
-        $type = 'all';
-        $groups = [ keys %$permissions ];
-    }
-    elsif (exists $options{read} && exists $options{write_new} && exists $options{write_existing})
-    {
-        $type = 'access';
-        foreach my $group_id (@$groups)
-        {
-            my @perms;
-
-            # For each permission type, see if it is set (a value that is not the
-            # next hidden placeholder value). If it is, shift the actual value, to
-            # make sure that the next value is the next placeholder
-
-            shift @$read eq 'holder' or panic "Missing holder for read";
-            push @perms, 'read'
-                if $read->[0] && $read->[0] ne 'holder' && shift @$read;
-
-            shift @$write_new eq 'holder' or panic "Missing holder for write_new";
-            push @perms, 'write_new'
-                if $write_new->[0] && $write_new->[0] ne 'holder' && shift @$write_new;
-
-            shift @$write_existing eq 'holder' or panic "Missing holder for write_existing";
-            push @perms, 'write_existing'
-                if $write_existing->[0] && $write_existing->[0] ne 'holder' && shift @$write_existing;
-
-            $permissions->{$group_id} = [@perms]
-                if $group_id; # May not have been group selected in drop-down
-        }
-    }
-    elsif (exists $options{approve_new} && exists $options{approve_existing}
-        && exists $options{write_new_no_approval} && exists $options{write_existing_no_approval})
-    {
-        $type = 'approval';
-        foreach my $group_id (@$groups)
-        {
-            my @perms;
-
-            # As above
-
-            shift @$approve_new eq 'holder' or panic "Missing holder for approve_new";
-            push @perms, 'approve_new'
-                if $approve_new->[0] && $approve_new->[0] ne 'holder' && shift @$approve_new;
-
-            shift @$approve_existing eq 'holder' or panic "Missing holder for approve_existing";
-            push @perms, 'approve_existing'
-                if $approve_existing->[0] && $approve_existing->[0] ne 'holder' && shift @$approve_existing;
-
-            shift @$write_new_no_approval eq 'holder' or panic "Missing holder for write_new_no_approval";
-            push @perms, 'write_new_no_approval'
-                if $write_new_no_approval->[0] && $write_new_no_approval->[0] ne 'holder' && shift @$write_new_no_approval;
-
-            shift @$write_existing_no_approval eq 'holder' or panic "Missing holder for write_existing_no_approval";
-            push @perms, 'write_existing_no_approval'
-                if $write_existing_no_approval->[0] && $write_existing_no_approval->[0] ne 'holder' && shift @$write_existing_no_approval;
-
-            $permissions->{$group_id} = [@perms]
-                if $group_id; # May not have been group selected in drop-down
-        }
-    }
-    else {
-        panic "Invalid call of set_permissions";
-    }
-
-    $groups = [ grep {$_} @$groups ]; # Remove permissions with blank submitted group
+    my @groups = keys %permissions;
 
     # Search for any groups that were in the permissions but no longer exist
     my $search = {
         layout_id => $self->id,
     };
-    $search->{group_id} = { '!=' => [ '-and', @$groups ] }
-        if @$groups;
-    push @$groups, $self->schema->resultset('LayoutGroup')->search($search,{
+
+    $search->{group_id} = { '!=' => [ '-and', @groups ] }
+        if @groups;
+        
+    my @removed = $self->schema->resultset('LayoutGroup')->search($search,{
         select   => {
             max => 'group_id',
             -as => 'group_id',
@@ -997,106 +925,100 @@ sub set_permissions
         group_by => 'group_id',
     })->get_column('group_id')->all;
 
-    foreach my $group_id (@$groups)
-    {
-        my $has_read;
-        my @permissions = $permissions->{$group_id} ? @{$permissions->{$group_id}} : ();
+    $self->schema->resultset('LayoutGroup')->search({
+        layout_id => $self->id,
+        group_id  => \@removed
+    })->delete;
 
-        # If no permissions exist for this group, and if we are adding standard
-        # permissions, then also add approval ones to ensure normal access is
-        # possible by default
-        if ($type eq 'access' && !$self->schema->resultset('LayoutGroup')->search({
+    foreach my $group_id (@groups) {
+        my @new_permissions = $permissions{$group_id};  
+
+        my $existing_rs = $self->schema->resultset('LayoutGroup')->search({
+            layout_id  => $self->id,
+            group_id   => $group_id,
+        });
+
+        my @existing_permissions = map { $_->permission } $existing_rs->all;
+
+        my $lc = List::Compare->new(\@new_permissions, \@existing_permissions);
+
+        my @removed_permissions = $lc->get_complement();
+        my @added_permissions = $lc->unique();
+
+        my $read_removed = grep { $_ eq 'read' } @removed_permissions;
+
+        try {
+            $self->schema->resultset('LayoutGroup')->search({
                 layout_id  => $self->id,
                 group_id   => $group_id,
-            })->count
-        )
-        {
-            # Add both no-approval permissions regardless, in case of future
-            # standard edits. Having these permissions will only allow anything
-            # if a standard write is added anyway
-            push @permissions, 'write_new_no_approval', 'write_existing_no_approval';
-        }
+                permission => \@removed_permissions
+            })->delete;
+        };
+        # Log any messages from try block, but only as trace
+        $@->reportAll(reason => 'TRACE');
 
-        foreach my $permission (@permissions)
-        {
-            $has_read = 1 if $permission eq 'read';
-            # Unique constraint on table. Catch existing.
+        foreach my $added (@added_permissions) {
             try {
                 $self->schema->resultset('LayoutGroup')->create({
                     layout_id  => $self->id,
                     group_id   => $group_id,
-                    permission => $permission,
+                    permission => $added
                 });
             };
             # Log any messages from try block, but only as trace
             $@->reportAll(reason => 'TRACE');
         }
 
-        # Before we do the catch-all delete, see if there is currently a
-        # read permission there which is about to be removed.
-        my $read_removed = !$has_read && $self->schema->resultset('LayoutGroup')->search({
-            group_id   => $group_id,
-            layout_id  => $self->id,
-            permission => 'read',
-        })->count;
-
-        # Delete those no longer there
-        my $search = { group_id => $group_id, layout_id => $self->id };
-        foreach (qw/read write_new write_existing approve_new approve_existing
-            write_new_no_approval write_existing_no_approval/)
-        {
-            push @permissions, $_ if !$options{permissions} && !exists $options{$_};
-        }
-        $search->{permission} = { '!=' => [ '-and', @permissions ] } if @permissions;
-        $self->schema->resultset('LayoutGroup')->search($search)->delete;
-
-        # See if any read permissions have been removed. If so, we need
-        # to remove them from the relevant filters and sorts. The views themselves
-        # don't matter, as they won't be shown anyway.
-        if ($read_removed)
-        {
+        if ($read_removed) {
             # First the sorts
-            foreach my $sort ($self->schema->resultset('Sort')->search({
+            my @sorts = $self->schema->resultset('Sort')->search({
                 layout_id      => $self->id,
                 'view.user_id' => { '!=' => undef },
             }, {
                 prefetch => 'view',
-            })->all)
-            {
+            })->all;
+
+            foreach my $sort (@sorts) {
                 # For each sort on this column, which no longer has read.
                 # See if user attached to this view still has access with
                 # another group
                 $sort->delete unless $self->user_id_can($sort->view->user_id, 'read');
             }
+
             # Then the filters
-            foreach my $filter ($self->schema->resultset('Filter')->search({
+            my @filters = $self->schema->resultset('Filter')->search({
                 layout_id      => $self->id,
                 'view.user_id' => { '!=' => undef },
             }, {
                 prefetch => 'view',
-            })->all)
-            {
+            })->all;
+
+            foreach my $filter (@filters) {
                 # For each sort on this column, which no longer has read.
                 # See if user attached to this view still has access with
                 # another group
-                unless ($self->user_id_can($filter->view->user_id, 'read'))
-                {
-                    # Filter cache
-                    $filter->delete;
-                    # Alert cache
-                    $self->schema->resultset('AlertCache')->search({
-                        layout_id => $self->id,
-                        view_id   => $filter->view_id,
-                    })->delete;
-                    # Column in the view
-                    $self->schema->resultset('ViewLayout')->search({
-                        layout_id => $self->id,
-                        view_id   => $filter->view_id,
-                    })->delete;
-                    # And the JSON filter itself
-                    my $filtered = _filter_remove_colid($self, $filter->view->filter);
-                    $filter->view->update({ filter => $filtered });
-                }
+
+                next if $self->user_id_can($filter->view->user_id, 'read');
+
+                # Filter cache
+                $filter->delete;
+
+                # Alert cache
+                $self->schema->resultset('AlertCache')->search({
+                    layout_id => $self->id,
+                    view_id   => $filter->view_id,
+                })->delete;
+
+                # Column in the view
+                $self->schema->resultset('ViewLayout')->search({
+                    layout_id => $self->id,
+                    view_id   => $filter->view_id,
+                })->delete;
+
+                # And the JSON filter itself
+                my $filtered = _filter_remove_colid($self, $filter->view->filter);
+
+                $filter->view->update({ filter => $filtered });
             }
         }
     }

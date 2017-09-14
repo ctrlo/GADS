@@ -101,7 +101,8 @@ sub base64
     foreach my $filter (@{$self->filters})
     {
         $self->layout or panic "layout has not been set in filter";
-        my $col = $self->layout->column($filter->{column_id});
+        my $col = $self->layout->column($filter->{column_id})
+            or next; # Ignore invalid - possibly since deleted
         if ($col->has_filter_typeahead)
         {
             $filter->{data} = {
@@ -140,20 +141,20 @@ has filters => (
 sub _build_filters
 {   my $self = shift;
     my $cols_in_filter = [];
-    _filter_tables($self->as_hash, $cols_in_filter);
+    $self->_filter_tables($self->as_hash, $cols_in_filter);
     $cols_in_filter;
 }
 
 # Recursively find all tables in a nested filter
 sub _filter_tables
-{   my ($filter, $tables) = @_;
+{   my ($self, $filter, $tables) = @_;
 
     if (my $rules = $filter->{rules})
     {
         # Filter has other nested filters
         foreach my $rule (@$rules)
         {
-            _filter_tables($rule, $tables);
+            $self->_filter_tables($rule, $tables);
         }
     }
     elsif (my $id = $filter->{id}) {
@@ -163,6 +164,11 @@ sub _filter_tables
         }
         else {
             $filter->{column_id} = $filter->{id};
+        }
+        # If we have a layout, remove any invalid columns
+        if ($self->layout && !$self->layout->column($filter->{column_id}))
+        {
+            delete $filter->{$_} foreach keys %$filter;
         }
         push @$tables, $filter; # Keep as reference so can be updated by other functions
     }
@@ -177,28 +183,38 @@ sub columns_in_subs
 
 # Sub into the filter values from a record
 sub sub_values
-{   my ($self, $record) = @_;
+{   my ($self, $layout) = @_;
     my $filter = $self->as_hash;
-    foreach (@{$filter->{rules}})
+    if (!$layout->record && @{$self->columns_in_subs($layout)})
     {
-        return 0 unless $self->_sub_filter_single($_, $record);
+        # If we don't have a record (e.g. from typeahead search) and there
+        # are known shortnames in the filter, then don't apply the filter
+        # at all (there are no values to substitute in)
+        $filter = {};
+    }
+    else {
+        foreach (@{$filter->{rules}})
+        {
+            return 0 unless $self->_sub_filter_single($_, $layout);
+        }
     }
     $self->as_hash($filter);
     return 1;
 }
 
 sub _sub_filter_single
-{   my ($self, $single, $record) = @_;
+{   my ($self, $single, $layout) = @_;
+    my $record = $layout->record;
     if ($single->{rules})
     {
         foreach (@{$single->{rules}})
         {
-            return 0 unless $self->_sub_filter_single($_, $record);
+            return 0 unless $self->_sub_filter_single($_, $layout);
         }
     }
     elsif ($single->{value} && $single->{value} =~ /^\$([_0-9a-z]+)$/i)
     {
-        my $col = $record->layout->column_by_name_short($1);
+        my $col = $layout->column_by_name_short($1);
         if (!$col)
         {
             trace "No match for short name $1";

@@ -46,7 +46,7 @@ my $data = [
         integer1   => 7,
         date1      => '2014-10-10',
         daterange1 => ['2013-10-10', '2013-12-03'],
-        enum1      => 'foo1', # Changed to 8 after creation to have multiple versions
+        enum1      => 'foo1', # Changed to foo2 after creation to have multiple versions
         tree1      => 'tree1',
     },{
         string1    => 'FooBar',
@@ -608,6 +608,20 @@ my @filters = (
         no_errors => 1,
     },
     {
+        name  => 'Search by curval ID not equal',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => $columns->{curval1}->id,
+                type     => 'string',
+                value    => '2',
+                operator => 'not_equal',
+            },
+        ],
+        count     => 6,
+        no_errors => 1,
+    },
+    {
         name  => 'Search curval ID and enum, only curval in view',
         columns => [$columns->{curval1}->id], # Ensure it's added as first join
         rules => [
@@ -640,6 +654,20 @@ my @filters = (
             },
         ],
         count     => 1,
+        no_errors => 1,
+    },
+    {
+        name  => 'Search by curval field not equal',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => $columns->{curval1}->id .'_'. $curval_columns->{string1}->id,
+                type     => 'string',
+                value    => 'Bar',
+                operator => 'not_equal',
+            },
+        ],
+        count     => 6,
         no_errors => 1,
     },
     {
@@ -769,7 +797,7 @@ $view_limit->write;
 # to variables.
 my $user   = $sheet->user;
 my $user_r = $schema->resultset('User')->find($user->{id});
-$user_r->set_view_limits($view_limit->id);
+$user_r->set_view_limits([$view_limit->id]);
 
 $rules = GADS::Filter->new(
     as_hash => {
@@ -843,7 +871,7 @@ my $view_limit2 = GADS::View->new(
 );
 $view_limit2->write;
 
-$user_r->set_view_limits($view_limit->id, $view_limit2->id);
+$user_r->set_view_limits([$view_limit->id, $view_limit2->id]);
 
 $records = GADS::Records->new(
     view_limits => [ $view_limit, $view_limit2 ],
@@ -854,6 +882,65 @@ $records = GADS::Records->new(
 );
 
 is ($records->count, 2, 'Correct number of results when limiting to 2 views');
+
+# view limit with a view with negative match multivalue filter
+# (this has caused recusion in the past)
+{
+    # First define limit view
+    $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $columns->{enum1}->id,
+                type     => 'string',
+                value    => 'foo1',
+                operator => 'not_equal',
+            }],
+        },
+    );
+
+    $view_limit = GADS::View->new(
+        name        => 'limit to view',
+        filter      => $rules,
+        instance_id => 1,
+        layout      => $layout,
+        schema      => $schema,
+        user        => undef,
+    );
+    $view_limit->write;
+
+    $user_r->set_view_limits([$view_limit->id]);
+
+    # Then add a normal view
+    $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $columns->{date1}->id,
+                type     => 'string',
+                value    => '2014-10-10',
+                operator => 'equal',
+            }],
+        },
+    );
+    $view = GADS::View->new(
+        name        => 'date1',
+        filter      => $rules,
+        instance_id => 1,
+        layout      => $layout,
+        schema      => $schema,
+        user        => undef,
+    );
+    $view->write;
+
+    $records = GADS::Records->new(
+        user   => $user,
+        view   => $view,
+        layout => $layout,
+        schema => $schema,
+    );
+
+    is ($records->count, 1, 'Correct result count when limiting to negative multivalue view');
+    is (@{$records->results}, 1, 'Correct number of results when limiting to negative multivalue view');
+}
 
 # Quick searches
 # First with limited view still defined

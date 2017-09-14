@@ -14,7 +14,7 @@
                 <label for="name">View name:</label>
                 <input type="text" class="form-control" id="name" name="name" value="[% view_edit.name | html_entity %]">
             </div>
-            [% IF user.permission.layout %]
+            [% IF layout.user_can("layout") %]
                 <div class="checkbox">
                     <label>
                         <input type="checkbox" name="global" [% IF view_edit.global %]checked[% END %]>Shared view
@@ -29,7 +29,7 @@
             <p>Select the fields you want to include in your view.</p>
             <table class="table table-striped">
                 <tr><th><input type="checkbox" id="selectall" title="Select/deselect all"></th><th>Field name</th></tr>
-                [% FOR column IN layout.all(user_can_read, 1) %]
+                [% FOR column IN layout.all_user_read %]
                     <tr>
                         <td>
                             <input class="col_check" type="checkbox" name="column" value="[% column.id %]"
@@ -50,8 +50,8 @@
                     Use views to create reports by filtering the fields and records you see on screen.
                     <ul></ul>
                 </dd>
-                [% IF user.permission.layout %]
-                    <dt>Global view</dt>
+                [% IF layout.user_can("layout") %]
+                    <dt>Shared view</dt>
                     <dd>If the view is defined as a global view, then it will be visible as an 
                         available view for all users.
                     </dd>
@@ -164,7 +164,7 @@
                 <p>
                     <select class="form-control" name="sortfield">
                         <option value="" [% UNLESS sort.column.id %]selected[% END %]>ID</option>
-                        [% FOR column IN layout.all(user_can_read, 1) %]
+                        [% FOR column IN layout.all_user_read %]
                             <option value="[% column.id %]" [% IF sort.layout_id == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
                         [% END %]
                     </select>

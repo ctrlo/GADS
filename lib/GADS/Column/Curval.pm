@@ -219,7 +219,7 @@ sub _build_view
     # Replace any "special" $short_name values with their actual value from the
     # record. If sub_values fails (due to record not being ready yet), then the
     # view is not built
-    return unless $view->filter->sub_values($self->layout->record);
+    return unless $view->filter->sub_values($self->layout);
     return $view;
 }
 
@@ -347,7 +347,9 @@ sub _build_has_subvalues
 
 sub filter_value_to_text
 {   my ($self, $id) = @_;
-    $id or return '';
+    # Check for valid ID (in case search filter is corrupted) - Pg will choke
+    # on invalid IDs
+    $id =~ /^[0-9]+$/ or return '';
     my $rows = $self->ids_to_values([$id]);
     $rows->[0]->{value};
 }
@@ -617,6 +619,40 @@ sub _build_all_ids
             instance_id => $self->refers_to_instance,
         })->get_column('id')->all
     ];
+}
+
+sub validate
+{   my ($self, $value, %options) = @_;
+    return 1 if !$value;
+    my $fatal = $options{fatal};
+    if ($value !~ /^[0-9]+$/)
+    {
+        return 0 if !$fatal;
+        error __x"Value for {column} must be an integer", column => $self->name;
+    }
+    if (!$self->schema->resultset('Current')->search({ instance_id => $self->refers_to_instance, id => $value })->next)
+    {
+        return 0 if !$fatal;
+        error __x"{id} is not a valid record ID for {column}", id => $value, column => $self->name;
+    }
+    1;
+}
+
+sub validate_search
+{   my $self = shift;
+    my ($value, %options) = @_;
+    if (!$value)
+    {
+        return 0 unless $options{fatal};
+        error __x"Search value cannot be blank for {col}.",
+            col => $self->name;
+    }
+    elsif ($value !~ /^[0-9]+$/) {
+        return 0 unless $options{fatal};
+        error __x"Search value must be an ID number for {col}.",
+            col => $self->name;
+    }
+    1;
 }
 
 sub random

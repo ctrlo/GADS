@@ -115,6 +115,7 @@ sub equal
 {   my ($self, $a, $b) = @_;
     (defined $a xor defined $b)
         and return;
+    !defined $a && !defined $b and return 1;
     my $rt = $self->column->return_type;
     if ($rt eq 'numeric' || $rt eq 'integer')
     {

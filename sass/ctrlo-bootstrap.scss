@@ -1,6 +1,6 @@
 @import 'branding-colours';
 @import 'navigation';
-
+@import 'utility-classes';
 
 /*! normalize.css v3.0.0 | MIT License | git.io/normalize */
 
@@ -58,6 +58,10 @@
 
 html {
   font-family: 'Open Sans remote',sans-serif;
+}
+
+[hidden] {
+  display: none;
 }
 
 header {
@@ -951,13 +955,13 @@ a.list-group-item-danger.active,a.list-group-item-danger.active:hover,a.list-gro
 .well-sm {
         border-radius:0px;
 }
-.close {
+
+.modal .close {
         font-size:22.5px;
         font-weight:bold;
+        background: transparent;
 }
-button.close {
-        background:transparent;
-}
+
 .modal {
         overflow:auto;
         overflow-y:scroll;
@@ -1006,23 +1010,6 @@ button.close {
 }
 .carousel-control .icon-prev,.carousel-control .icon-next {
         margin-left: -10px;
-}
-
-/* a11y-related */
-
-.visually-hidden {
-    border: 0;
-    clip: rect(0 0 0 0);
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    padding: 0;
-    position: absolute;
-    width: 1px;
-}
-
-.visually-hidden-opacity {
-    opacity: 0;
 }
 
 /* Login page - Remember Username */
@@ -1147,25 +1134,28 @@ small.search_term {
     display: none;
 }
 
-.trigger[aria-expanded="true"] + .expandable {
+.trigger[aria-expanded="true"] + .expandable,
+.expandable.expanded {
     display: block; 
 }
 
-
-/* Person contact details popover */
-
-.person.contact-details.expandable {
-    max-width: 25em;
+.expandable.popover {
     word-break: break-all;
     border: 1px solid $primary-navy;
     border-radius: 6px;
     -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
     box-shadow: 0 5px 10px rgba(0,0,0,.2);
     background-color: #fff;
-    padding: .5em;
-    margin: .5em;
     z-index: 5;
     position: absolute;
+}
+
+/* Person contact details popover */
+
+.person.contact-details {
+    max-width: 25em;
+    padding: .5em;
+    margin: .5em;
 }
 
 /* RAG legend */
@@ -1237,14 +1227,205 @@ small.search_term {
 
 /* Data table */
 
-.table th * {
+#data-table th * {
     color: #000;
 }
 
-.table thead button {
+#data-table thead button {
     border: 1px solid #bbb;
     background-color: inherit;
     vertical-align: bottom;
     margin-left: 0.2em;
     margin-bottom: 0.2em;
+}
+
+.controls {
+    padding-top: .5em;
+}
+
+/* manage-fields */
+
+#manage-fields {
+    border-bottom: 1px solid #bbb;
+    padding-bottom: .5em;
+}
+
+#manage-fields #permissions {
+    margin-top: 1em;
+}
+
+#manage-fields #permissions ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#manage-fields .field-options { 
+    display: none; 
+    border: 1px solid #ccc;
+    padding: .5em;
+    margin: .5em;
+    margin-right: 0;
+    background-color: #eee;
+}
+
+@each $column-type in calc rag tree enum file curval string date daterange {
+    #manage-fields.column-type-#{$column-type} .field-options.#{$column-type} { display: block; }
+}
+
+#manage-fields.column-type-rag #options .stored-value,
+#manage-fields.column-type-calc #options .stored-value {
+    display: none;
+}
+
+#manage-fields #advanced-field-settings h3,
+#manage-fields h4 {
+    display: inline-block;
+    border-bottom: 1px solid #bbb;
+    padding-bottom: .5em;
+}
+
+#manage-fields .permission.write-new .permission,
+#manage-fields .permission.modify-existing .permission {
+    display: none;
+    margin-left: 1.5em;
+}
+
+#manage-fields .permission.write-new input:checked ~ .permission,
+#manage-fields .permission.modify-existing input:checked ~ .permission {
+    display: block;
+}
+
+#manage-fields .permission-rule h5 {
+    margin: 0;
+    padding: 0;
+}
+
+#manage-fields .permission-rule,
+#manage-fields .display-condition,
+#manage-fields .permission {
+    background-color: #eee;
+    border: 1px solid #ccc;
+    padding: .5em;
+}
+
+.permission .abbreviation {
+    border: 1px dashed #000;
+    padding: .2em;
+    cursor: help;
+    margin: 0 .2em;
+}
+
+@each $abbr-type in read approve-new approve-existing write-new write-new-no-approval write-existing write-existing-no-approval {
+    #current-permissions .permission-#{$abbr-type} .abbreviation-#{$abbr-type} { display: inline; }
+}
+
+#current-permissions .permission.permission-write-new .abbreviation-write-new-no-approval,
+#current-permissions .permission.permission-write-existing .abbreviation-write-existing-no-approval {
+    display: none;
+}
+
+#current-permissions .abbreviation,
+#current-permissions .permission.edit .configuration,
+#current-permissions .permission.edit button.edit {
+    display: none;
+}
+
+#current-permissions button.delete {
+    display: none;
+}
+
+#current-permissions .permission {
+    margin-bottom: 1em;
+}
+
+#current-permissions .permission.edit button.delete {
+    display: inline;
+}
+
+#current-permissions .legend dd,
+#current-permissions .legend dt {
+    display: inline-block;
+}
+
+#current-permissions .legend dt {
+    width: 15%;
+}
+
+#current-permissions .legend dd {
+    width: 84%;
+}
+
+#current-permissions .configuration {
+    position: relative;
+}
+
+
+@mixin visually-unhide {
+    clip: auto;
+    height: auto;
+    margin: auto;
+    overflow: auto;
+    padding: initial;
+    position: absolute;
+    width: auto;
+    opacity: 1;
+}
+
+[role="tooltip"]   .tooltip,
+[role="tooltip"] + .tooltip {
+    padding: .5em;
+    top: -2.7em;
+    right: -5em;
+
+    border: 1px solid #000;
+    background-color: #fff;
+}
+
+[role="tooltip"]:focus    .tooltip.visually-hidden,
+[role="tooltip"]:active   .tooltip.visually-hidden,
+[role="tooltip"]:hover    .tooltip.visually-hidden,
+[role="tooltip"]:focus  + .tooltip.visually-hidden,
+[role="tooltip"]:active + .tooltip.visually-hidden,
+[role="tooltip"]:hover  + .tooltip.visually-hidden {
+ 
+    @include visually-unhide;
+}
+
+#current-permissions .permission .group-name {
+    font-size: 1.2em;
+    margin-top: 0;
+    display: inline-block;
+}
+
+#current-permissions .configuration .tooltip {
+    padding: .3em;
+    font-size: 1em;
+    top: -3em;
+    right: auto;
+    left: 0;
+}
+
+#current-permissions .summary {
+    width: 75%;
+    display: inline-block;
+}
+
+/* less / more */
+
+.more-less.clipped {
+    height: 60px;
+    overflow: hidden;
+}
+
+.more-less.transparent {
+    color: transparent;
+}
+
+.more-less .column-content {
+    padding: .5em;
+    margin-top: .5em;
+    width: 80%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: initial;
 }

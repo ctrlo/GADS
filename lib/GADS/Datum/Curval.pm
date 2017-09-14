@@ -31,9 +31,7 @@ sub set_value
 {   my ($self, $value) = @_;
     my $clone = $self->clone; # Copy before changing text
     my @values = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
-    grep {
-        $_ !~ /^[0-9]+$/;
-    } @values and panic "Invalid value for ID";
+    $self->column->validate($_, fatal => 1) foreach @values;
     my @old     = sort @{$self->ids};
     my $changed = "@values" ne "@old";
     $self->_set_written_valid(!!@values);
