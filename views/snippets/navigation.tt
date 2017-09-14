@@ -15,9 +15,6 @@
             <li>
                 <a href="#main" class="visually-hidden">Skip to content</a>
             </li>
-            <li>
-                <a href="#footer" class="visually-hidden">Skip to footer</a>
-            </li>
         </ol>
     </nav>
 [% END %]
