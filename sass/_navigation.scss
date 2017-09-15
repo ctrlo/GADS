@@ -223,6 +223,7 @@ nav.navbar li > a.home {
 
 #app-navbar .dropdown-toggle {
     padding-top: 0;
+    margin-right: .5em;
 }
 
 .navbar .navbar-collapse,
@@ -248,16 +249,27 @@ nav .dropdown-toggle {
 }
 
 .breadcrumbs .item {
+    display: inline-block;
+}
+
+.breadcrumbs .item .separator {
+    border-right: 2px solid #ccc;
+    margin-left: .5em;
+    margin-right: .2em;
+    display: inline-block;
+    transform: rotate(25deg);
+    height: .7em;
+}
+
+.breadcrumbs .item a {
     color: #034575;
     text-decoration: none;
     border-bottom: 1px solid #ccc;
-    padding: 0 1px 0;
-    margin: 0 -1px 0;        
 }
 
 .nav {
-        list-style:none;
-        font-weight:100;
+    list-style:none;
+    font-weight:100;
 }
 
 #app-navbar {
