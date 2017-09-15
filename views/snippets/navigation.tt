@@ -6,7 +6,7 @@
 </div>
 
 <div class="row">
-    [% PROCESS breadcrumbs %]
+    [% PROCESS crumbs %]
 </div>
 
 [% BLOCK skip_links %]
@@ -19,15 +19,15 @@
     </nav>
 [% END %]
 
-[% BLOCK breadcrumbs %]
+[% BLOCK crumbs %]
+    [% crumb_icons = {
+        home => 'fa fa-home'
+    } %]
     <nav aria-label="Breadcrumb" class="col-md-12 breadcrumbs" role="navigation">
         <ol class="items">
-            <li>
-                <a href="/" class="item">
-                    <span aria-hidden="true" class="fa fa-home"></span>
-                    Linkspace Home
-                </a>
-            </li>
+        [% FOREACH crumb in breadcrumbs %]
+        <li class="item [% 'last' IF loop.last %]"><a href="[% crumb.href %]">[% IF loop.first %]<span aria-hidden="true" class="[% crumb_icons.home %]"></span>[% END %][% crumb.text | html %]</a>[% UNLESS loop.last %]<span class="separator"></span>[% END %]</li>
+        [% END %]
         </ol>
     </nav>
 [% END %]

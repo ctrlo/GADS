@@ -57,6 +57,7 @@ use GADS::Type::Permissions;
 use GADS::Users;
 use GADS::View;
 use GADS::Views;
+use GADS::Helper::BreadCrumbs qw(Crumb);
 use HTML::Entities;
 use JSON qw(decode_json encode_json);
 use MIME::Base64;
@@ -276,8 +277,9 @@ hook after_template_render => sub {
 get '/' => require_login sub {
 
     template 'index' => {
-        layout => var('layout'),
-        page   => 'index'
+        layout      => var('layout'),
+        page        => 'index',
+        breadcrumbs => [Crumb()]
     };
 };
 
@@ -819,6 +821,9 @@ any '/data' => require_login sub {
 
     $params->{user_views}      = $views->user_views;
     $params->{alerts}          = $alert->all;
+
+    $params->{breadcrumbs} = [Crumb() => Crumb( '/data' => 'records' )];
+
     template 'data' => $params;
 };
 
@@ -2407,7 +2412,8 @@ any qr{/(record|history)/([0-9]+)} => require_login sub {
         record         => $record,
         versions       => \@versions,
         all_columns    => \@columns,
-        page           => 'record'
+        page           => 'record',
+        breadcrumbs    => [Crumb() => Crumb( '/data' => 'records' ) => Crumb( request->path, => 'record id ' . $id )]
     };
     $output;
 };
