@@ -476,8 +476,13 @@ sub search_all_fields
         # Need to get correct "value" number for search, in case it's been incremented through view_limits
         my $s           = $field->{sub} ? $self->value_next_join(search => 1).".$value_field" : "$plural.$value_field";
 
-        my $joins       = $field->{type} eq 'current_id'
-                        ? undef
+        my $joins       = $field->{type} eq 'current_id' # Include joins for limited views
+                        ? {
+                              'record_single' => [
+                                  'record_later',
+                                  $self->jpfetch(search => 1),
+                              ]
+                          }
                         : $field->{sub}
                         ? {
                               'record_single' => [
@@ -501,7 +506,7 @@ sub search_all_fields
         my @search = @basic_search;
         push @search,
             $field->{type} eq 'current_id'
-            ? { id => $search_local }
+            ? { 'me.id' => $search_local }
             : $field->{index_field} # string with additional index field
             ? ( { $field->{index_field} => $search_index }, { $s => $search_local } )
             : { $s => $search_local };
