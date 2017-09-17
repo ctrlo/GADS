@@ -898,7 +898,7 @@ is ($records->count, 2, 'Correct number of results when limiting to 2 views');
         },
     );
 
-    $view_limit = GADS::View->new(
+    my $view_limit3 = GADS::View->new(
         name        => 'limit to view',
         filter      => $rules,
         instance_id => 1,
@@ -906,9 +906,9 @@ is ($records->count, 2, 'Correct number of results when limiting to 2 views');
         schema      => $schema,
         user        => undef,
     );
-    $view_limit->write;
+    $view_limit3->write;
 
-    $user_r->set_view_limits([$view_limit->id]);
+    $user_r->set_view_limits([$view_limit3->id]);
 
     # Then add a normal view
     $rules = GADS::Filter->new(
@@ -940,11 +940,24 @@ is ($records->count, 2, 'Correct number of results when limiting to 2 views');
 
     is ($records->count, 1, 'Correct result count when limiting to negative multivalue view');
     is (@{$records->results}, 1, 'Correct number of results when limiting to negative multivalue view');
+
 }
 
 # Quick searches
-# First with limited view still defined
+# Limited view still defined
 is (@{$records->search_all_fields('Foobar')}, 0, 'Correct number of quick search results when limiting to a view');
+# And again with numerical search (also searches record IDs). Current ID in limited view
+is (@{$records->search_all_fields(8)}, 1, 'Correct number of quick search results for number when limiting to a view (match)');
+# This time a current ID that is not in limited view
+is (@{$records->search_all_fields(5)}, 0, 'Correct number of quick search results for number when limiting to a view (no match)');
+# Reset and do again with non-negative view
+$records->clear;
+$user_r->set_view_limits([$view_limit->id]);
+is (@{$records->search_all_fields('Foobar')}, 0, 'Correct number of quick search results when limiting to a view');
+# Current ID in limited view
+is (@{$records->search_all_fields(8)}, 0, 'Correct number of quick search results for number when limiting to a view (match)');
+# Current ID that is not in limited view
+is (@{$records->search_all_fields(5)}, 1, 'Correct number of quick search results for number when limiting to a view (no match)');
 
 # Same again but limited by enumval
 $view_limit->filter(GADS::Filter->new(
