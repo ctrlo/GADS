@@ -164,7 +164,7 @@ sub for_code
         parents => {},
     };
     my $id = $self->id;
-    my @parents = $id ? $self->column->node($id)->{node}->{node}->ancestors : ();
+    my @parents = $self->column->node($id) ? $self->column->node($id)->{node}->{node}->ancestors : ();
     pop @parents; # Remove root
     my $count;
     foreach my $parent (reverse @parents)

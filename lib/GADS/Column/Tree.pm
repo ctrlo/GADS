@@ -62,6 +62,7 @@ has _nodes => (
     is      => 'rw',
     lazy    => 1,
     builder => sub { $_[0]->_tree->{nodes} },
+    clearer => 1,
 );
 
 # An array of all the enumvals. Also gets value from
@@ -143,9 +144,15 @@ sub cleanup
 
 after 'delete' => sub {
     my $self = shift;
+    $self->clear;
+};
+
+sub clear
+{   my $self = shift;
+    $self->_clear_nodes;
     $self->clear_enumvals;
     $self->_clear_enumvals_index;
-};
+}
 
 sub validate
 {   my ($self, $value, %options) = @_;
@@ -370,7 +377,7 @@ sub update
     }
 
     $self->_set__enumvals_index($new_tree);
-    $self->clear_enumvals; # Array shouldn't be used now, but clear in case
+    $self->clear;
     $self->_delete_unused_nodes;
 }
 
