@@ -190,7 +190,8 @@ sub _build__tree
 {   my $self = shift;
 
     my $enumvals;
-    my $tree; my @order;
+    my $tree = {};
+    my @order;
     my @enumvals = @{$self->enumvals};
     foreach my $enumval (@enumvals)
     {

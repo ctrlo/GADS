@@ -174,108 +174,136 @@ foreach my $multivalue (0..1)
         # Values can be set as both array ref and scalar. Test both.
         foreach my $arrayref (0..1)
         {
-            my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
-            $curval_sheet->create_records;
-            my $schema  = $curval_sheet->schema;
-            my $sheet   = t::lib::DataSheet->new(
-                data       => $data->{$test},
-                multivalue => $multivalue,
-                schema     => $schema,
-                curval     => 2
-            );
-            my $layout  = $sheet->layout;
-            my $columns = $sheet->columns;
-            $sheet->create_records;
-
-            my $records = GADS::Records->new(
-                user    => undef,
-                layout  => $layout,
-                schema  => $schema,
-            );
-            my $results = $records->results;
-
-            my $is_multi = $multivalue ? " for multivalue" : '';
-
-            is( scalar @$results, 1, "One record in test dataset$is_multi");
-
-            my ($record) = @$results;
-
-            foreach my $type (keys %$values)
+            foreach my $deleted (0..1) # Test for deleted values of field, where applicable
             {
-                next if $arrayref && $type eq 'daterange1';
-                my $datum = $record->fields->{$columns->{$type}->id};
-                ok( !$datum->written_to, "$type has not been written to$is_multi" );
-                if ($test eq 'blank')
+                my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+                $curval_sheet->create_records;
+                my $schema  = $curval_sheet->schema;
+                my $sheet   = t::lib::DataSheet->new(
+                    data       => $data->{$test},
+                    multivalue => $multivalue,
+                    schema     => $schema,
+                    curval     => 2
+                );
+                my $layout  = $sheet->layout;
+                my $columns = $sheet->columns;
+                $sheet->create_records;
+
+                if ($deleted)
                 {
-                    ok( $datum->blank, "$type is blank$is_multi" );
+                    $schema->resultset('Enumval')->update({ deleted => 1 });
+                    $layout->clear;
                 }
-                else {
-                    ok( !$datum->blank, "$type is not blank$is_multi" );
-                }
-                if ($arrayref)
+
+                my $records = GADS::Records->new(
+                    user    => undef,
+                    layout  => $layout,
+                    schema  => $schema,
+                );
+                my $results = $records->results;
+
+                my $is_multi = $multivalue ? " for multivalue" : '';
+
+                is( scalar @$results, 1, "One record in test dataset$is_multi");
+
+                my ($record) = @$results;
+
+                foreach my $type (keys %$values)
                 {
-                    $datum->set_value([$values->{$type}->{new}])
-                }
-                else {
-                    $datum->set_value($values->{$type}->{new});
-                }
-                ok( $datum->written_to, "$type has been written to$is_multi" );
-                if ($test eq 'blank' || $test eq 'changed')
-                {
-                    ok( $datum->changed, "$type has changed$is_multi" );
-                }
-                else {
-                    ok( !$datum->changed, "$type has not changed$is_multi" );
-                }
-                if ($test eq 'changed' || $test eq 'nochange')
-                {
-                    ok( $datum->oldvalue, "$type oldvalue exists$is_multi" );
-                    my $old = $test eq 'changed' ? $values->{$type}->{old_as_string} : $values->{$type}->{new_as_string};
-                    is( $datum->oldvalue && $datum->oldvalue->as_string, $old, "$type oldvalue exists and matches for test $test$is_multi" );
-                    ok( $datum->written_valid, "$type is written valid for non-blank$is_multi" );
-                }
-                elsif ($test eq 'blank')
-                {
-                    ok( $datum->oldvalue && $datum->oldvalue->blank, "$type was blank$is_multi" );
-                }
-                my $new_as_string = $values->{$type}->{new_as_string};
-                is( $datum->as_string, $new_as_string, "$type is $new_as_string$is_multi for test $test" );
-                my $new_html = $values->{$type}->{new_html} || $new_as_string;
-                if (ref $new_html eq 'Regexp')
-                {
-                    like( $datum->html, $new_html, "$type is $new_html$is_multi for test $test" );
-                }
-                else {
-                    is( $datum->html, $new_html, "$type is $new_html$is_multi for test $test" );
-                }
-                # Check that setting a blank value works
-                if ($test eq 'blank')
-                {
-                    if ($arrayref)
+                    next if $deleted && $type !~ /(enum1|tree1)/;
+
+                    next if $arrayref && $type eq 'daterange1';
+                    my $datum = $record->fields->{$columns->{$type}->id};
+                    ok( !$datum->written_to, "$type has not been written to$is_multi" );
+                    if ($test eq 'blank')
                     {
-                        $datum->set_value([$data->{blank}->[0]->{$type}]);
+                        ok( $datum->blank, "$type is blank$is_multi" );
                     }
                     else {
-                        $datum->set_value($data->{blank}->[0]->{$type});
+                        ok( !$datum->blank, "$type is not blank$is_multi" );
                     }
-                    ok( $datum->blank, "$type has been set to blank$is_multi" );
-                    # Blank values should not be counted as a valid written value
-                    ok( !$datum->written_valid, "$type is not written valid for blank$is_multi" );
-                    # Test writing of addable value applied to an blank existing value.
-                    if (my $addable = $values->{$type}->{addable})
+                    if ($arrayref)
                     {
-                        $datum->set_value($addable, bulk => 1);
-                        ok( $datum->written_valid, "$type is written valid for addable value$is_multi" );
-                        ok( $datum->blank, "$type is blank after writing addable value$is_multi" );
+                        try { $datum->set_value([$values->{$type}->{new}]) };
                     }
-                }
-                elsif ($test eq 'changed') # Doesn't really matter which write test, as long as has value
-                {
-                    if (my $addable = $values->{$type}->{addable})
+                    else {
+                        try { $datum->set_value($values->{$type}->{new}) };
+                    }
+                    if ($deleted)
                     {
-                        $datum->set_value($addable, bulk => 1);
-                        ok( $datum->written_valid, "$type is written valid for addable value$is_multi" );
-                        is( $datum->as_string, $values->{$type}->{addable_result}, "$type is correct after writing addable change$is_multi" );
+                        if ($test eq 'nochange')
+                        {
+                            ok(!$@, "No exception when writing deleted same value with test $test");
+                        }
+                        else {
+                            like($@, qr/is not a valid/, "Unable to write changed value to one that is deleted");
+                        }
+                        # We don't have any sensible values to test against,
+                        # and the subsequent tests are done for a none-deleted
+                        # value anyway, so skip the rest
+                        next;
+                    }
+                    else {
+                        $@->reportAll;
+                    }
+                    ok( $datum->written_to, "$type has been written to$is_multi" );
+                    if ($test eq 'blank' || $test eq 'changed')
+                    {
+                        ok( $datum->changed, "$type has changed$is_multi" );
+                    }
+                    else {
+                        ok( !$datum->changed, "$type has not changed$is_multi" );
+                    }
+                    if ($test eq 'changed' || $test eq 'nochange')
+                    {
+                        ok( $datum->oldvalue, "$type oldvalue exists$is_multi" );
+                        my $old = $test eq 'changed' ? $values->{$type}->{old_as_string} : $values->{$type}->{new_as_string};
+                        is( $datum->oldvalue && $datum->oldvalue->as_string, $old, "$type oldvalue exists and matches for test $test$is_multi" );
+                        ok( $datum->written_valid, "$type is written valid for non-blank$is_multi" );
+                    }
+                    elsif ($test eq 'blank')
+                    {
+                        ok( $datum->oldvalue && $datum->oldvalue->blank, "$type was blank$is_multi" );
+                    }
+                    my $new_as_string = $values->{$type}->{new_as_string};
+                    is( $datum->as_string, $new_as_string, "$type is $new_as_string$is_multi for test $test" );
+                    my $new_html = $values->{$type}->{new_html} || $new_as_string;
+                    if (ref $new_html eq 'Regexp')
+                    {
+                        like( $datum->html, $new_html, "$type is $new_html$is_multi for test $test" );
+                    }
+                    else {
+                        is( $datum->html, $new_html, "$type is $new_html$is_multi for test $test" );
+                    }
+                    # Check that setting a blank value works
+                    if ($test eq 'blank')
+                    {
+                        if ($arrayref)
+                        {
+                            $datum->set_value([$data->{blank}->[0]->{$type}]);
+                        }
+                        else {
+                            $datum->set_value($data->{blank}->[0]->{$type});
+                        }
+                        ok( $datum->blank, "$type has been set to blank$is_multi" );
+                        # Blank values should not be counted as a valid written value
+                        ok( !$datum->written_valid, "$type is not written valid for blank$is_multi" );
+                        # Test writing of addable value applied to an blank existing value.
+                        if (my $addable = $values->{$type}->{addable})
+                        {
+                            $datum->set_value($addable, bulk => 1);
+                            ok( $datum->written_valid, "$type is written valid for addable value$is_multi" );
+                            ok( $datum->blank, "$type is blank after writing addable value$is_multi" );
+                        }
+                    }
+                    elsif ($test eq 'changed') # Doesn't really matter which write test, as long as has value
+                    {
+                        if (my $addable = $values->{$type}->{addable})
+                        {
+                            $datum->set_value($addable, bulk => 1);
+                            ok( $datum->written_valid, "$type is written valid for addable value$is_multi" );
+                            is( $datum->as_string, $values->{$type}->{addable_result}, "$type is correct after writing addable change$is_multi" );
+                        }
                     }
                 }
             }

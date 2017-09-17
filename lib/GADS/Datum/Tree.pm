@@ -29,7 +29,11 @@ sub set_value
     ($value) = @$value if ref $value eq 'ARRAY';
     my $clone = $self->clone; # Copy before changing text
     $value = undef if !$value; # Can be empty string, generating warnings
-    $self->column->validate($value, fatal => 1);
+    $self->changed(1) if (!defined($self->id) && defined $value)
+        || (!defined($value) && defined $self->id)
+        || (defined $self->id && defined $value && $self->id != $value);
+    $self->column->validate($value, fatal => 1) if $self->changed; # Allow retention of deleted unchanged values
+
     # Look up text value
     if (my $node = $self->column->node($value))
     {
