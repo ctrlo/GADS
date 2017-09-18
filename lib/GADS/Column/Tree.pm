@@ -173,6 +173,8 @@ sub validate
     1;
 }
 
+sub validate_search {1} # Anything is valid as a search value
+
 # Get a single node value
 sub node
 {   my ($self, $id) = @_;
