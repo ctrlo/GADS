@@ -21,6 +21,7 @@ package GADS::Layout;
 use Algorithm::Dependency::Ordered;
 use Algorithm::Dependency::Source::HoA;
 use GADS::Column;
+use GADS::Column::Autocur;
 use GADS::Column::Calc;
 use GADS::Column::Curval;
 use GADS::Column::Date;
@@ -494,6 +495,25 @@ sub user_can
         })->count;
     }
     $self->user_permissions->{$permission};
+}
+
+has referred_by => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_referred_by
+{   my $self = shift;
+    [
+        $self->schema->resultset('Layout')->search({
+            'child.instance_id' => $self->instance_id,
+        },{
+            join => {
+                curval_fields_parents => 'child',
+            },
+            distinct => 1,
+        })->all
+    ];
 }
 
 sub _user_perm_search

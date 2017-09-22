@@ -41,6 +41,7 @@ my $data = [
         daterange1 => ['2014-03-21', '2015-03-01'],
         enum1      => 'foo1',
         tree1      => 'tree2',
+        curval1    => 2,
     },{
         string1    => 'Foo',
         integer1   => 7,
@@ -69,7 +70,6 @@ my $data = [
 my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
-my $curval_columns = $curval_sheet->columns;
 my $sheet   = t::lib::DataSheet->new(
     data             => $data,
     schema           => $schema,
@@ -98,6 +98,9 @@ my @position = (
 );
 $layout->position(@position);
 $sheet->create_records;
+$curval_sheet->add_autocur(refers_to_instance_id => 1, related_field_id => $columns->{curval1}->id);
+$curval_sheet->add_autocur(refers_to_instance_id => 1, related_field_id => $columns->{curval2}->id);
+my $curval_columns = $curval_sheet->columns;
 
 my $record = GADS::Record->new(
     user   => $sheet->user,
@@ -113,13 +116,13 @@ $record->write(no_alerts => 1);
 my $curval_sheet2 = t::lib::DataSheet->new(schema => $schema, instance_id => 3, curval_offset => 12);
 $curval_sheet2->create_records;
 my $curval3 = GADS::Column::Curval->new(
-    name               => 'curval3',
-    type               => 'curval',
-    user               => $sheet->user,
-    layout             => $curval_sheet->layout,
-    schema             => $schema,
-    refers_to_instance => $curval_sheet2->instance_id,
-    curval_field_ids   => [$curval_sheet2->columns->{string1}->id],
+    name                  => 'curval3',
+    type                  => 'curval',
+    user                  => $sheet->user,
+    layout                => $curval_sheet->layout,
+    schema                => $schema,
+    refers_to_instance_id => $curval_sheet2->instance_id,
+    curval_field_ids      => [$curval_sheet2->columns->{string1}->id],
 );
 $curval3->write;
 $curval_sheet->layout->clear;
@@ -604,7 +607,7 @@ my @filters = (
                 operator => 'equal',
             },
         ],
-        count     => 1,
+        count     => 2,
         no_errors => 1,
     },
     {
@@ -618,7 +621,7 @@ my @filters = (
                 operator => 'not_equal',
             },
         ],
-        count     => 6,
+        count     => 5,
         no_errors => 1,
     },
     {
@@ -653,7 +656,7 @@ my @filters = (
                 operator => 'equal',
             },
         ],
-        count     => 1,
+        count     => 2,
         no_errors => 1,
     },
     {
@@ -667,7 +670,7 @@ my @filters = (
                 operator => 'not_equal',
             },
         ],
-        count     => 6,
+        count     => 5,
         no_errors => 1,
     },
     {
@@ -681,7 +684,7 @@ my @filters = (
                 operator => 'equal',
             },
         ],
-        count     => 1,
+        count     => 2,
         no_errors => 1,
     },
     {
@@ -716,8 +719,38 @@ my @filters = (
             },
         ],
         condition => 'OR',
-        count     => 2,
+        count     => 3,
         no_errors => 1,
+    },
+    {
+        name  => 'Search by autocur ID',
+        columns => [$curval_columns->{autocur1}->id],
+        rules => [
+            {
+                id       => $curval_columns->{autocur1}->id,
+                type     => 'string',
+                value    => '3',
+                operator => 'equal',
+            },
+        ],
+        count     => 1,
+        no_errors => 1,
+        layout    => $curval_sheet->layout,
+    },
+    {
+        name  => 'Search by autocur ID not equal',
+        columns => [$curval_columns->{autocur1}->id],
+        rules => [
+            {
+                id       => $curval_columns->{autocur1}->id,
+                type     => 'string',
+                value    => '3',
+                operator => 'not_equal',
+            },
+        ],
+        count     => 1,
+        no_errors => 1,
+        layout    => $curval_sheet->layout,
     },
 );
 
@@ -736,7 +769,7 @@ foreach my $filter (@filters)
         filter      => $rules,
         columns     => $view_columns,
         instance_id => 1,
-        layout      => $layout,
+        layout      => $filter->{layout} || $layout,
         schema      => $schema,
         user        => undef,
     );
@@ -745,7 +778,7 @@ foreach my $filter (@filters)
     my $records = GADS::Records->new(
         user    => undef,
         view    => $view,
-        layout  => $layout,
+        layout  => $filter->{layout} || $layout,
         schema  => $schema,
     );
 
@@ -756,7 +789,7 @@ foreach my $filter (@filters)
     $records = GADS::Records->new(
         user    => undef,
         view    => $view,
-        layout  => $layout,
+        layout  => $filter->{layout} || $layout,
         schema  => $schema,
     );
 
@@ -989,7 +1022,7 @@ $records = GADS::Records->new(
 is (@{$records->search_all_fields('2014-10-10')}, 4, 'Quick search for 2014-10-10');
 is (@{$records->search_all_fields('Foo')}, 3, 'Quick search for foo');
 is (@{$records->search_all_fields('Foo*')}, 5, 'Quick search for foo*');
-is (@{$records->search_all_fields('99')}, 1, 'Quick search for 99');
+is (@{$records->search_all_fields('99')}, 2, 'Quick search for 99');
 is (@{$records->search_all_fields('1979-01-204')}, 0, 'Quick search for invalid date');
 
 # Specific record retrieval
@@ -1187,11 +1220,11 @@ my @sorts = (
         show_columns => [qw/enum1 curval1 tree1/],
         sort_by      => [qw/enum1/],
         sort_type    => ['asc'],
-        first        => qr/^(4)$/,
+        first        => qr/^(4|5)$/,
         last         => qr/^(7)$/,
         max_id       => 7,
         min_id       => 4,
-        count        => 2,
+        count        => 3,
         filter       => {
             rules => [
                 {
@@ -1215,11 +1248,11 @@ my @sorts = (
         show_columns => [qw/enum1 curval1 curval2/],
         sort_by      => [qw/curval1/],
         sort_type    => ['asc'],
-        first        => qr/^(4)$/,
+        first        => qr/^(4|5)$/,
         last         => qr/^(3)$/,
-        max_id       => 4,
+        max_id       => 5,
         min_id       => 3,
-        count        => 2,
+        count        => 3,
         filter       => {
             rules => [
                 {
@@ -1243,7 +1276,7 @@ my @sorts = (
         show_columns => [qw/string1/],
         sort_by      => [qw/curval1/],
         sort_type    => ['asc'],
-        first        => qr/^(5|6|7|8|9)$/,
+        first        => qr/^(6|7|8|9)$/,
         last         => qr/^(3)$/,
         max_id       => 9,
         min_id       => 3,

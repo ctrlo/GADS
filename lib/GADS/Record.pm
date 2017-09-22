@@ -23,6 +23,7 @@ use DateTime::Format::Strptime qw( );
 use DBIx::Class::ResultClass::HashRefInflator;
 use GADS::AlertSend;
 use GADS::Config;
+use GADS::Datum::Autocur;
 use GADS::Datum::Calc;
 use GADS::Datum::Curval;
 use GADS::Datum::Date;
@@ -498,7 +499,6 @@ sub _find
         ? $records->search_query(prefetch => 1, linked => 1)
         : $records->search_query(root_table => 'record', prefetch => 1, linked => 1, no_current => 1);
     my @prefetches = $records->jpfetch(prefetch => 1, search => 1); # Still need search in case of view limit
-    my @joins; # Nothing - fetching whole record
 
     my $root_table;
     if (my $record_id = $find{record_id})
@@ -532,14 +532,6 @@ sub _find
                 ],
             },
         );
-        @joins = (
-            {
-                'record_single' => [
-                    'record_later',
-                    @joins,
-                ],
-            },
-        );
         $root_table = 'Current';
     }
     else {
@@ -555,7 +547,6 @@ sub _find
         ],
         {
             prefetch => [@prefetches],
-            join     => [@joins],
         },
     );
 
@@ -1203,6 +1194,26 @@ sub write
                     $self->_field_write($column, $datum, %options);
                 }
             }
+            # Update any records with an autocur field that are referred to by this
+            if ($column->type eq 'curval')
+            {
+                foreach my $autocur (@{$column->autocurs})
+                {
+                    my @ids = @{$datum->ids};
+                    push @ids, @{$datum->oldvalue->ids} if $datum->oldvalue;
+                    foreach my $cid (@ids)
+                    {
+                        my $record = GADS::Record->new(
+                            user     => $self->user,
+                            layout   => $self->layout,
+                            schema   => $self->schema,
+                            base_url => $self->base_url,
+                        );
+                        $record->find_current_id($cid);
+                        $record->write(update_only => 1, re_evaluate => 1);
+                    }
+                }
+            }
         }
         if ($need_app)
         {
@@ -1343,6 +1354,8 @@ sub set_blank_dependents
 
 sub _field_write
 {   my ($self, $column, $datum, %options) = @_;
+
+    return if $column->no_value_to_write;
 
     if ($column->userinput)
     {

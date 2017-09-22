@@ -40,6 +40,12 @@ has '+has_filter_typeahead' => (
     default => 1,
 );
 
+has '+fixedvals' => (
+    default => 1,
+);
+
+sub _build_sprefix { 'value' };
+
 has end_node_only => (
     is      => 'rw',
     isa     => Bool,
@@ -122,10 +128,14 @@ has original => (
 
 after build_values => sub {
     my ($self, $original) = @_;
-    $self->table('Enum');
     $self->original($original);
     $self->end_node_only($original->{end_node_only});
 };
+
+sub _build_table
+{   my $self = shift;
+    'Enum';
+}
 
 sub write_special
 {   my ($self, %options) = @_;

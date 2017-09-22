@@ -24,6 +24,7 @@ use GADS::Alert;
 use GADS::Approval;
 use GADS::Audit;
 use GADS::Column;
+use GADS::Column::Autocur;
 use GADS::Column::Calc;
 use GADS::Column::Curval;
 use GADS::Column::Date;
@@ -1261,11 +1262,10 @@ any '/layout/?:id?' => require_role 'layout' => sub {
 
     my $user        = logged_in_user;
     my $layout      = var 'layout';
-    my @all_columns = $layout->all;
 
     my $params = {
-        page        => 'layout',
-        all_columns => \@all_columns,
+        page   => 'layout',
+        layout => $layout,
     };
 
     if (defined param('id'))
@@ -1394,10 +1394,16 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             elsif ($column->type eq "curval")
             {
                 $column->typeahead(param 'typeahead');
-                $column->refers_to_instance(param 'refers_to_instance');
+                $column->refers_to_instance_id(param 'refers_to_instance_id');
                 $column->filter->as_json(param 'filter');
                 my $curval_field_ids = ref param('curval_field_ids') ? param('curval_field_ids') : [param('curval_field_ids')||()];
                 $column->curval_field_ids($curval_field_ids);
+            }
+            elsif ($column->type eq "autocur")
+            {
+                my @curval_field_ids = body_parameters->get_all('curval_field_ids');
+                $column->curval_field_ids([@curval_field_ids]);
+                $column->related_field_id(param 'related_field_id');
             }
 
             if (process( sub { $column->write(no_alerts => $no_alerts, no_cache_update => param('no_cache_update')) }))

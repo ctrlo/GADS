@@ -16,36 +16,40 @@ my $data = [
         string1    => '',
         date1      => '2014-10-10',
         daterange1 => ['2014-03-21', '2015-03-01'],
-        enum1      => 1,
-        tree1      => 4,
+        enum1      => 'foo1',
+        tree1      => 'tree1',
+        curval1    => 1,
     },
     {
         string1    => 'Foo',
         date1      => '2014-10-10',
         daterange1 => ['2010-01-04', '2011-06-03'],
-        enum1      => 1,
-        tree1      => 4,
+        enum1      => 'foo1',
+        tree1      => 'tree1',
+        curval1    => 1,
     },
     {
         string1    => 'FooBar',
         date1      => '2015-10-10',
         daterange1 => ['2009-01-04', '2017-06-03'],
-        enum1      => 1,
-        tree1      => 4,
+        enum1      => 'foo1',
+        tree1      => 'tree1',
+        curval1    => 2,
     },
     {
         string1    => 'FooBar',
         date1      => '2015-10-10',
         daterange1 => ['2009-01-04', '2017-06-03'],
-        enum1      => 1,
-        tree1      => 4,
+        enum1      => 'foo1',
+        tree1      => 'tree1',
+        curval1    => 2,
     },
     {
         string1    => 'FooBar',
         date1      => '2015-10-10',
         daterange1 => ['2009-01-04', '2017-06-03'],
-        enum1      => 1,
-        tree1      => 4,
+        enum1      => 'foo1',
+        tree1      => 'tree1',
     },
     {
         string1    => 'Disappear',
@@ -72,21 +76,54 @@ my $data = [
     {
         daterange1 => ['2009-01-04', '2017-06-03'],
     },
+    {
+        curval1    => 1,
+        daterange1 => ['2014-01-04', '2017-06-03'],
+    },
 ];
 
-my $sheet = t::lib::DataSheet->new(data => $data, user_permission_override => 0);
+my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, calc_return_type => 'string');
+$curval_sheet->create_records;
+my $curval_columns = $curval_sheet->columns;
+my $schema = $curval_sheet->schema;
 
-my $schema = $sheet->schema;
+my $sheet = t::lib::DataSheet->new(
+    data                     => $data,
+    schema                   => $schema,
+    curval                   => 2,
+    user_permission_override => 0,
+);
+
 my $layout = $sheet->layout;
 my $columns = $sheet->columns;
 $sheet->create_records;
+
+my $autocur1 = $curval_sheet->add_autocur(
+    curval_field_ids      => [$columns->{daterange1}->id],
+    refers_to_instance_id => 1,
+    related_field_id      => $columns->{curval1}->id,
+);
+$layout->clear; # Ensure main layout takes account of its new child autocurs
+my $curval_calc = $curval_sheet->columns->{calc1};
+$curval_calc->code("
+    function evaluate (L2autocur1)
+        return_value = ''
+        for _, v in pairs(L2autocur1) do
+            if v.field_values.L1daterange1.from.year == 2014 then
+                return_value = return_value .. v.field_values.L1daterange1.from.year
+            end
+        end
+        return return_value
+    end
+");
+$curval_calc->write;
 
 my @filters = (
     {
         name       => 'Update of record in no filter view',
         rules      => undef,
         columns    => [], # No columns, only appearance of new record will matter
-        current_id => 1,
+        current_id => 3,
         update     => [
             {
                 column => 'string1',
@@ -104,7 +141,7 @@ my @filters = (
             operator => 'equal',
         }],
         columns => [$columns->{string1}->id],
-        current_id => 1,
+        current_id => 3,
         update => [
             {
                 column => 'string1',
@@ -130,7 +167,7 @@ my @filters = (
             },
         ],
         columns => [$columns->{date1}->id],
-        current_id => 2,
+        current_id => 4,
         update => [
             {
                 column => 'date1',
@@ -154,7 +191,7 @@ my @filters = (
             },
         ],
         columns => [$columns->{string1}->id],
-        current_id => 3,
+        current_id => 5,
         update => [
             {
                 column => 'date1',
@@ -174,7 +211,7 @@ my @filters = (
             },
         ],
         columns => [$columns->{string1}->id],
-        current_id => 4,
+        current_id => 6,
         update => [
             {
                 column => 'string1',
@@ -198,7 +235,7 @@ my @filters = (
             },
         ],
         columns => [$columns->{string1}->id, $columns->{date1}->id],
-        current_id => 5,
+        current_id => 7,
         update => [
             {
                 column => 'string1',
@@ -220,7 +257,7 @@ my @filters = (
             operator => 'equal',
         }],
         columns => [$columns->{string1}->id],
-        current_id => 6,
+        current_id => 8,
         update => [
             {
                 column => 'string1',
@@ -238,7 +275,7 @@ my @filters = (
             operator => 'equal',
         }],
         columns => [$columns->{date1}->id],
-        current_id => 7,
+        current_id => 9,
         update => [
             {
                 column => 'string1',
@@ -251,7 +288,7 @@ my @filters = (
         name  => 'Change of calc field in view',
         rules => undef,
         columns => [$columns->{calc1}->id],
-        current_id => 8,
+        current_id => 10,
         update => [
             {
                 column => 'daterange1',
@@ -269,7 +306,7 @@ my @filters = (
             operator => 'equal',
         }],
         columns => [$columns->{calc1}->id],
-        current_id => 9,
+        current_id => 11,
         update => [
             {
                 column => 'daterange1',
@@ -287,7 +324,7 @@ my @filters = (
             operator => 'equal',
         }],
         columns => [$columns->{calc1}->id],
-        current_id => 10,
+        current_id => 12,
         update => [
             {
                 column => 'daterange1',
@@ -300,7 +337,7 @@ my @filters = (
         name  => 'Change of rag field in view',
         rules => undef,
         columns => [$columns->{rag1}->id],
-        current_id => 11,
+        current_id => 13,
         update => [
             {
                 column => 'daterange1',
@@ -318,7 +355,7 @@ my @filters = (
             operator => 'equal',
         }],
         columns => [$columns->{rag1}->id],
-        current_id => 12,
+        current_id => 14,
         update => [
             {
                 column => 'daterange1',
@@ -336,7 +373,7 @@ my @filters = (
             operator => 'equal',
         }],
         columns => [$columns->{rag1}->id],
-        current_id => 13,
+        current_id => 15,
         update => [
             {
                 column => 'daterange1',
@@ -344,6 +381,33 @@ my @filters = (
             },
         ],
         alerts => 0, # Neither new record nor existing record in view
+    },
+    {
+        name  => 'Change of autocur/calc in other table as a result of curval change',
+        rules => [{
+            id       => $curval_columns->{calc1}->id,
+            type     => 'string',
+            value    => '2014',
+            operator => 'contains',
+        }],
+        alert_layout     => $curval_sheet->layout,
+        columns          => [$curval_columns->{calc1}->id],
+        current_id       => 16,
+        alert_current_id => 2,
+        update => [
+            {
+                column => 'curval1',
+                value  => 2,
+            },
+            {
+                column => 'daterange1',
+                value  => ['2014-01-04', '2017-06-03'],
+            },
+        ],
+        # One when new instance1 record means that 2014 appears in the autocur,
+        # then a second alert when the existing instance1 record is edited and
+        # causes it also to appear in the autocur
+        alerts => 2,
     },
 );
 
@@ -358,11 +422,12 @@ foreach my $filter (@filters)
         condition => $filter->{condition},
     } : {};
 
+    my $alert_layout = $filter->{alert_layout} || $layout;
     my $view = GADS::View->new(
         name        => $filter->{name},
         filter      => encode_json($rules),
-        instance_id => 1,
-        layout      => $layout,
+        instance_id => $alert_layout->instance_id,
+        layout      => $alert_layout,
         schema      => $schema,
         user        => $user,
         columns     => $filter->{columns},
@@ -371,7 +436,7 @@ foreach my $filter (@filters)
 
     my $alert = GADS::Alert->new(
         user      => $user,
-        layout    => $layout,
+        layout    => $filter->{alert_layout} || $layout,
         schema    => $schema,
         frequency => 24,
         view_id   => $view->id,
@@ -386,7 +451,7 @@ $ENV{GADS_NO_FORK} = 1;
 foreach my $filter (@filters)
 {
     my $alert_start = $schema->resultset('AlertSend')->search({
-        current_id => $filter->{current_id},
+        current_id => $filter->{alert_current_id} || $filter->{current_id},
         alert_id   => $filter->{alert_id},
     })->count;
 
@@ -404,11 +469,13 @@ foreach my $filter (@filters)
     }
     $record->write;
 
-    # Count number of alerts for the just-written record
-    my $alert_finish = $schema->resultset('AlertSend')->search({
+    my $alert_finish; # Count for written alerts
+    # Count number of alerts for the just-written record, but not for
+    # autocur tests (new record will affect other record)
+    $alert_finish += $schema->resultset('AlertSend')->search({
         current_id => $record->current_id,
         alert_id   => $filter->{alert_id},
-    })->count;
+    })->count unless $filter->{alert_current_id};
 
     # Now update existing record
     $record->clear;
@@ -423,9 +490,10 @@ foreach my $filter (@filters)
     # Add the number of alerts created as a result of record update to previous
     # alert count
     $alert_finish += $schema->resultset('AlertSend')->search({
-        current_id => $filter->{current_id},
+        current_id => $filter->{alert_current_id} || $filter->{current_id},
         alert_id   => $filter->{alert_id},
     })->count;
+
     # Number of new alerts is the change of values, plus the new record, plus the view without a filter
     is( $alert_finish, $alert_start + $filter->{alerts}, "Correct number of alerts queued to be sent for filter: $filter->{name}" );
 }

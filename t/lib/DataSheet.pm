@@ -20,10 +20,58 @@ sub clear_not_data
         $self->$prop($options{$key});
     }
 
+    # Need to first clear any autocur columns referring to this one. We'll
+    # remember them, then put them back in after.
+    # Find:
+    my @related = $self->schema->resultset('Layout')->search({
+        'me.instance_id'            => { '!=' => $self->layout->instance_id },
+        'related_field.instance_id' => $self->layout->instance_id,
+    },{
+        join => 'related_field',
+    })->all;
+    # Remember:
+    my %related;
+    foreach my $related (@related)
+    {
+        $related{$related->id} = {
+            related_to    => $related->related_field->name,
+            curval_fields => [ map { $_->child->name } $related->curval_fields_parents ],
+        };
+        # Clear:
+        $related->update({ related_field => undef });
+        $related->curval_fields_parents->delete;
+    }
+
     $self->layout->purge;
     $self->clear_layout;
     $self->clear_columns;
     $self->create_records;
+
+    # Return to previous:
+    my $columns = $self->columns;
+    foreach my $related_id (keys %related)
+    {
+        # Find autocur field
+        my $related = $self->schema->resultset('Layout')->find($related_id);
+        # Find curval it is related to
+        my $f = $self->schema->resultset('Layout')->search({
+            instance_id => $self->layout->instance_id,
+            name        => $related{$related_id}->{related_to},
+        })->next;
+        $related->update({ related_field => $f->id });
+        # Find and add related cirval fields
+        foreach my $child_name (@{$related{$related_id}->{curval_fields}})
+        {
+            my $f = $self->schema->resultset('Layout')->search({
+                instance_id => $self->layout->instance_id,
+                name        => $child_name,
+            })->next;
+            $self->schema->resultset('CurvalField')->create({
+                parent_id => $related_id,
+                child_id  => $f->id,
+            });
+        }
+    }
 }
 
 # Set up a config singleton. This will be updated as required
@@ -262,6 +310,14 @@ sub _build_group
     $group;
 }
 
+has default_permissions => (
+    is      => 'ro',
+    isa     => ArrayRef,
+    default => sub {
+        [qw/read write_new write_existing write_new_no_approval write_existing_no_approval/]
+    },
+);
+
 # Exact name of _build_columns causes recursive loop in Moo...
 sub __build_columns
 {   my $self = shift;
@@ -269,7 +325,7 @@ sub __build_columns
     my $schema      = $self->schema;
     my $layout      = $self->layout;
     my $instance_id = $self->instance_id;
-    my $permissions = [qw/read write_new write_existing write_new_no_approval write_existing_no_approval/];
+    my $permissions = $self->default_permissions,
 
     my $columns = {};
 
@@ -470,10 +526,10 @@ sub __build_columns
                 layout     => $self->layout,
                 name_short => "L${instance_id}curval$count",
             );
-            my $refers_to_instance = $self->curval;
-            $curval->refers_to_instance($refers_to_instance);
+            my $refers_to_instance_id = $self->curval;
+            $curval->refers_to_instance_id($refers_to_instance_id);
             my $curval_field_ids_rs = $self->schema->resultset('Layout')->search({
-                instance_id => $refers_to_instance,
+                instance_id => $refers_to_instance_id,
             });
             my $curval_field_ids = $self->curval_field_ids || [ map { $_->id } $curval_field_ids_rs->all ];
             $curval->curval_field_ids($curval_field_ids);
@@ -561,6 +617,38 @@ sub __build_columns
     $columns->{file1}      = $layout->column($file1->id);
     $columns->{person1}    = $layout->column($person1->id);
     $columns;
+}
+
+# Add an autocur column to this sheet
+sub add_autocur
+{   my ($self, %options) = @_;
+    my $autocur = GADS::Column::Autocur->new(
+        schema     => $self->schema,
+        user       => undef,
+        layout     => $self->layout,
+    );
+    my $refers_to_instance_id = $options{refers_to_instance_id};
+    $autocur->refers_to_instance_id($refers_to_instance_id);
+    my $autocur_field_ids_rs = $self->schema->resultset('Layout')->search({
+        instance_id => $refers_to_instance_id,
+    });
+    my $autocur_field_ids = $options{curval_field_ids} || [ map { $_->id } $autocur_field_ids_rs->all ];
+    $autocur->curval_field_ids($autocur_field_ids);
+    $autocur->type('autocur');
+    my $count = $self->schema->resultset('Layout')->search({
+        type        => 'autocur',
+        instance_id => $self->layout->instance_id,
+    })->count;
+    $count++;
+    $autocur->name("autocur$count");
+    my $instance_id = $self->layout->instance_id;
+    $autocur->name_short("L${instance_id}autocur$count");
+    $autocur->related_field_id($options{related_field_id});
+    $autocur->write;
+    $autocur->set_permissions($self->group->id, $self->default_permissions)
+        unless $self->no_groups;
+    $self->columns->{"autocur$count"} = $autocur;
+    $autocur;
 }
 
 sub create_records
