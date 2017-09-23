@@ -1199,9 +1199,18 @@ sub write
             {
                 foreach my $autocur (@{$column->autocurs})
                 {
-                    my @ids = @{$datum->ids};
-                    push @ids, @{$datum->oldvalue->ids} if $datum->oldvalue;
-                    foreach my $cid (@ids)
+                    # Work out which ones have changed. We only want to
+                    # re-evaluate records that have actually changed, for both
+                    # performance reasons and to send the correct alerts
+                    my %old_ids = map { $_ => 1 } $datum->oldvalue ?  @{$datum->oldvalue->ids} : ();
+                    my %new_ids = map { $_ => 1 } @{$datum->ids};
+                    my %changed = map { $_ => 1 } keys %old_ids, keys %new_ids;
+                    foreach (keys %changed)
+                    {
+                        delete $changed{$_}
+                            if $old_ids{$_} && $new_ids{$_};
+                    }
+                    foreach my $cid (keys %changed)
                     {
                         my $record = GADS::Record->new(
                             user     => $self->user,
@@ -1210,6 +1219,7 @@ sub write
                             base_url => $self->base_url,
                         );
                         $record->find_current_id($cid);
+                        $record->fields->{$autocur->id}->changed(1);
                         $record->write(update_only => 1, re_evaluate => 1);
                     }
                 }

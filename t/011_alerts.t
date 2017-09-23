@@ -80,6 +80,10 @@ my $data = [
         curval1    => 1,
         daterange1 => ['2014-01-04', '2017-06-03'],
     },
+    {
+        curval1    => 1,
+        daterange1 => ['2014-01-04', '2017-06-03'],
+    },
 ];
 
 my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, calc_return_type => 'string');
@@ -409,6 +413,29 @@ my @filters = (
         # causes it also to appear in the autocur
         alerts => 2,
     },
+    {
+        name  => 'Change of autocur in other table as a result of curval change',
+        alert_layout     => $curval_sheet->layout,
+        columns          => [$autocur1->id],
+        current_id       => 17,
+        alert_current_id => 2,
+        update => [
+            {
+                column => 'curval1',
+                value  => 2,
+            },
+            {
+                column => 'daterange1',
+                value  => ['2014-01-04', '2017-06-03'],
+            },
+        ],
+        # There are actually 2 changes that take place that will cause alerts,
+        # but both are exactly the same so only one will be written to the
+        # alert cache.  The addition of a new record with "2" as the curval
+        # value will cause a change of current ID 2, and then the change of an
+        # existing record to value "2" will cause another similar change.
+        alerts => 1,
+    },
 );
 
 my $user = { id => 1, value => 'User1, User1', permission => { layout => 1 } };
@@ -450,10 +477,12 @@ $ENV{GADS_NO_FORK} = 1;
 # Now update all the values, checking alerts as we go
 foreach my $filter (@filters)
 {
-    my $alert_start = $schema->resultset('AlertSend')->search({
+    # Clear out any existing alerts, for a fair count and also in case the same
+    # alert is written again
+    $schema->resultset('AlertSend')->search({
         current_id => $filter->{alert_current_id} || $filter->{current_id},
         alert_id   => $filter->{alert_id},
-    })->count;
+    })->delete;
 
     # First add record
     my $record = GADS::Record->new(
@@ -495,7 +524,7 @@ foreach my $filter (@filters)
     })->count;
 
     # Number of new alerts is the change of values, plus the new record, plus the view without a filter
-    is( $alert_finish, $alert_start + $filter->{alerts}, "Correct number of alerts queued to be sent for filter: $filter->{name}" );
+    is( $alert_finish, $filter->{alerts}, "Correct number of alerts queued to be sent for filter: $filter->{name}" );
 }
 
 # Test updates of views
