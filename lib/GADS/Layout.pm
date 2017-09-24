@@ -518,9 +518,10 @@ sub _build_referred_by
 
 sub _user_perm_search
 {   my ($self, $user_id) = @_;
+    # Do not limit by instance ID so that we can build and interrogate
+    # permissions for all columns across all instances
     $self->schema->resultset('User')->search({
         'me.id'              => $user_id,
-        'layout.instance_id' => $self->instance_id,
     }, {
         prefetch => { user_groups => { group => { 'layout_groups' => 'layout' } } },
     });
