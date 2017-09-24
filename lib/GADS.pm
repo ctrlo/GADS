@@ -208,7 +208,7 @@ hook before => sub {
             forwardHome({ danger => "You do not have any access rights to any data in this application" })
                 unless request->uri eq '/';
         }
-        var 'layout' = $instances->layout($instance_id)
+        var 'layout' => $instances->layout($instance_id)
             if $instance_id;
         $persistent->{instance_id} = $instance_id
             unless param 'oi';
