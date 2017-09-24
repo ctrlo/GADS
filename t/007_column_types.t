@@ -116,7 +116,7 @@ my $curval_fail = GADS::Column::Curval->new(
     user   => undef,
     layout => $curval_sheet->layout,
 );
-$curval_fail->refers_to_instance($layout->instance_id);
+$curval_fail->refers_to_instance_id($layout->instance_id);
 $curval_fail->curval_field_ids([$columns->{string1}->id]);
 $curval_fail->type('curval');
 $curval_fail->name('curval fail');
@@ -129,13 +129,13 @@ ok( $@, "Attempt to create curval recursive reference fails" );
 # an env variable to allow it.
 $ENV{GADS_ALLOW_BLANK_CURVAL} = 1;
 my $curval_blank = GADS::Column::Curval->new(
-    schema             => $schema,
-    user               => undef,
-    layout             => $layout,
-    name               => 'curval blank',
-    type               => 'curval',
-    refers_to_instance => $curval_sheet->layout->instance_id,
-    curval_field_ids   => [],
+    schema                => $schema,
+    user                  => undef,
+    layout                => $layout,
+    name                  => 'curval blank',
+    type                  => 'curval',
+    refers_to_instance_id => $curval_sheet->layout->instance_id,
+    curval_field_ids      => [],
 );
 $curval_blank->write;
 # Clear the layout to force the column to be build, and also to build
@@ -149,13 +149,13 @@ ok( !$@, "Building values for curval with no fields does not bork" );
 # filter would be written as an empty JSON string, but that may not be there
 # for columns from old versions
 my $curval_blank_filter = GADS::Column::Curval->new(
-    schema             => $schema,
-    user               => undef,
-    layout             => $layout,
-    name               => 'curval blank',
-    type               => 'curval',
-    refers_to_instance => $curval_sheet->layout->instance_id,
-    curval_field_ids   => [],
+    schema                => $schema,
+    user                  => undef,
+    layout                => $layout,
+    name                  => 'curval blank',
+    type                  => 'curval',
+    refers_to_instance_id => $curval_sheet->layout->instance_id,
+    curval_field_ids      => [],
 );
 $curval_blank_filter->write;
 # Clear the layout to force the column to be build
@@ -183,8 +183,8 @@ my $curval_filter = GADS::Column::Curval->new(
             }],
         },
     ),
-    refers_to_instance => $curval_sheet->layout->instance_id,
-    curval_field_ids   => [ $curval_sheet->columns->{integer1}->id ], # Purposefully different to previous tests
+    refers_to_instance_id => $curval_sheet->layout->instance_id,
+    curval_field_ids      => [ $curval_sheet->columns->{integer1}->id ], # Purposefully different to previous tests
 );
 $curval_filter->write;
 # Clear the layout to force the column to be build, and also to build
@@ -310,8 +310,8 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid/)
         filter             => GADS::Filter->new(
             as_hash => $rules,
         ),
-        refers_to_instance => $curval_sheet->layout->instance_id,
-        curval_field_ids   => [ $curval_sheet->columns->{string1}->id ],
+        refers_to_instance_id => $curval_sheet->layout->instance_id,
+        curval_field_ids      => [ $curval_sheet->columns->{string1}->id ],
     );
     $curval_filter->write;
 

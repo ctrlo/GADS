@@ -110,6 +110,12 @@ has '+has_filter_typeahead' => (
     default => 1,
 );
 
+has '+fixedvals' => (
+    default => 1,
+);
+
+sub _build_sprefix { 'value' };
+
 after build_values => sub {
     my ($self, $original) = @_;
     $self->ordering($original->{ordering});

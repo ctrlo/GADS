@@ -1,6 +1,6 @@
 =pod
 GADS - Globally Accessible Data Store
-Copyright (C) 2014 Ctrl O Ltd
+Copyright (C) 2017 Ctrl O Ltd
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
@@ -16,37 +16,43 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 =cut
 
-package GADS::Datum::Curval;
+package GADS::Datum::Autocur;
 
+use HTML::Entities qw/encode_entities/;
+use Log::Report 'linkspace';
 use Moo;
+use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Datum::Curcommon';
 
 sub _transform_value
-{   my ($self, $v) = @_;
-    my $value = $v->{value};
+{   my ($self, $value) = @_;
     my ($record, $id);
 
-    if (ref $value eq 'GADS::Record')
+    if (!$value || (ref $value eq 'HASH' && !keys %$value))
     {
-        $record = $value;
-        $id = $value->current_id;
+        # Do nothing
     }
-    elsif (ref $value)
+    elsif ($value->{value} && ref $value->{value} eq 'GADS::Record')
+    {
+        $record = $value->{value};
+        $id = $record->current_id;
+    }
+    elsif (my $r = $value->{record})
     {
         $record = GADS::Record->new(
             schema               => $self->column->schema,
             layout               => $self->column->layout_parent,
             user                 => undef,
-            record               => $value->{record_single},
-            linked_id            => $value->{linked_id},
-            parent_id            => $value->{parent_id},
+            record               => $r->{current}->{record_single},
+            linked_id            => $r->{current}->{linked_id},
+            parent_id            => $r->{current}->{parent_id},
             columns_retrieved_do => $self->column->curval_fields_retrieve,
         );
-        $id = $value->{record_single}->{current_id};
+        $id = $r->{current_id};
     }
     else {
-        $id = $value if !ref $value && defined $value; # Just ID
+        panic "Unexpected value: $value";
     }
     ($record, $id);
 }

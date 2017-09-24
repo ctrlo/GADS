@@ -40,6 +40,12 @@ has '+has_filter_typeahead' => (
     default => 1,
 );
 
+has '+fixedvals' => (
+    default => 1,
+);
+
+sub _build_sprefix { 'value' };
+
 has end_node_only => (
     is      => 'rw',
     isa     => Bool,
@@ -62,6 +68,7 @@ has _nodes => (
     is      => 'rw',
     lazy    => 1,
     builder => sub { $_[0]->_tree->{nodes} },
+    clearer => 1,
 );
 
 # An array of all the enumvals. Also gets value from
@@ -121,10 +128,14 @@ has original => (
 
 after build_values => sub {
     my ($self, $original) = @_;
-    $self->table('Enum');
     $self->original($original);
     $self->end_node_only($original->{end_node_only});
 };
+
+sub _build_table
+{   my $self = shift;
+    'Enum';
+}
 
 sub write_special
 {   my ($self, %options) = @_;
@@ -143,9 +154,15 @@ sub cleanup
 
 after 'delete' => sub {
     my $self = shift;
+    $self->clear;
+};
+
+sub clear
+{   my $self = shift;
+    $self->_clear_nodes;
     $self->clear_enumvals;
     $self->_clear_enumvals_index;
-};
+}
 
 sub validate
 {   my ($self, $value, %options) = @_;
@@ -166,11 +183,15 @@ sub validate
     1;
 }
 
+sub validate_search {1} # Anything is valid as a search value
+
 # Get a single node value
 sub node
 {   my ($self, $id) = @_;
 
     $id or return;
+    $self->_nodes->{$id} or return;
+
     {
         node  => $self->_nodes->{$id},
         value => $self->_enumvals_index->{$id}->{value},
@@ -181,7 +202,8 @@ sub _build__tree
 {   my $self = shift;
 
     my $enumvals;
-    my $tree; my @order;
+    my $tree = {};
+    my @order;
     my @enumvals = @{$self->enumvals};
     foreach my $enumval (@enumvals)
     {
@@ -368,7 +390,7 @@ sub update
     }
 
     $self->_set__enumvals_index($new_tree);
-    $self->clear_enumvals; # Array shouldn't be used now, but clear in case
+    $self->clear;
     $self->_delete_unused_nodes;
 }
 

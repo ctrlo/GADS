@@ -33,6 +33,12 @@ has '+has_filter_typeahead' => (
     default => 1,
 );
 
+has '+fixedvals' => (
+    default => 1,
+);
+
+sub _build_sprefix { 'value' };
+
 has people => (
     is      => 'rw',
     lazy    => 1,

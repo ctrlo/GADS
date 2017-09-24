@@ -189,13 +189,13 @@ sub _build_results
             [-and => $search], {
                 select => $select,
                 join   => [
+                    $self->linked_hash(search => 1, prefetch => 1),
                     {
                         'record_single' => [
                             'record_later',
                             $self->jpfetch(search => 1, prefetch => 1, linked => 0),
                         ],
                     },
-                    $self->linked_hash(search => 1, prefetch => 1),
                 ],
             },
         )->all;
@@ -313,13 +313,13 @@ sub _build_results
     my $select = {
         select => [@select_fields],
         join     => [
+            $self->linked_hash(prefetch => 1, search => 1),
             {
                 'record_single' => [
                     'record_later',
                     $self->jpfetch(prefetch => 1, search => 1, linked => 0),
                 ],
             },
-            $self->linked_hash(prefetch => 1, search => 1),
         ],
         group_by => [@g],
     };

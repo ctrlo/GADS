@@ -73,12 +73,12 @@ sub _add_children
         my $child = {
             join       => $c->join,
             prefetch   => 1,
-            curval     => $c->type eq 'curval' ? 1 : 0,
+            curval     => $c->is_curcommon,
             column     => $c,
             parent     => $column,
         };
         $self->_add_children($child, $c)
-            if $c->type eq 'curval';
+            if $c->is_curcommon;
         push @{$join->{children}}, $child
             if !$existing{$c->id};
     }
@@ -111,7 +111,7 @@ sub _add_jp
                 $j->{linked}   ||= $options{linked};
                 $j->{sort}     ||= $options{sort};
                 $self->_add_children($j, $column)
-                    if ($column->type eq 'curval' && $prefetch);
+                    if ($column->is_curcommon && $prefetch);
                 return;
             }
         }
@@ -124,7 +124,6 @@ sub _add_jp
         search     => $options{search}, # Whether it's used in a WHERE clause
         linked     => $options{linked}, # Whether it's a linked table
         sort       => $options{sort},   # Whether it's used in an order_by clause
-        curval     => $column->type eq 'curval' ? 1 : 0,
         column     => $column,
         parent     => $options{parent},
     };
@@ -132,7 +131,7 @@ sub _add_jp
     # If it's a curval field then we need to account for any joins that are
     # part of the curval
     $self->_add_children($join_add, $column)
-        if ($column->type eq 'curval' && $prefetch);
+        if ($column->is_curcommon && $prefetch);
 
     # Otherwise add it
     if (my $parent = $options{parent})
@@ -179,44 +178,56 @@ sub add_linked_join
     $self->_add_jp(@_, linked => 1);
 }
 
-sub record_later_search
+# General additional search parameters that need to be added for correct
+# results
+sub common_search
 {   my ($self, %options) = @_;
+    my @search;
     my $count = $options{no_current} ? 0 : 1; # Always at least one if joining onto current
-    $count++ if $options{linked};
 
-    # Include a record_later search for each time we join a curval with its
-    # full join structure. Don't add when only a curval value on its own is
-    # being used.
-    my %curvals_included;
-    foreach ($self->_all_joins)
+    # Do 2 loops round, first for non-linked, second for linked, adding one to
+    # the count in the middle for the linked record itself
+    foreach my $li (0..!!$options{linked}) # Only do second loop if linked requested
     {
-        # Include a curval field itself, or one of its children (only the child
-        # might be searched upon)
-        if ($_->{curval} || $_->{parent})
+        $count++ if !$li && $options{linked};
+        # Include a record_later search for each time we join a curval with its
+        # full join structure. Don't add when only a curval value on its own is
+        # being used.
+        my %curvals_included;
+        foreach ($self->_all_joins)
         {
-            my $curval_id = $_->{curval} ? $_->{column}->id : $_->{parent}->id;
-            if (
-                ($options{search} && $_->{search} && $_->{parent} && !$_->{curval}) # Search in child of curval
-                || ($options{sort} && $_->{sort}) # sort is all children
-                # prefetch is all children, but not when the curval has no fields
-                || ($options{prefetch} && $_->{prefetch} && !$_->{parent} && @{$_->{children}})
-            )
+            next if ($li xor $_->{linked}); # Only take same as linked loop
+            # Include a curval field itself, or one of its children (only the child
+            # might be searched upon)
+            my $is_curcommon = $_->{column}->is_curcommon;
+            if ($is_curcommon || $_->{parent})
             {
-                unless ($curvals_included{$curval_id})
+                my $curcommon_id = $is_curcommon ? $_->{column}->id : $_->{parent}->id;
+                if (
+                    ($options{search} && $_->{search} && $_->{parent} && !$is_curcommon) # Search in child of curval
+                    || ($options{sort} && $_->{sort}) # sort is all children
+                    # prefetch is all children, but not when the curval has no fields
+                    || ($options{prefetch} && $_->{prefetch} && !$_->{parent} && @{$_->{children}})
+                )
                 {
-                    $count++;
-                    $curvals_included{$curval_id} = 1;
+                    unless ($curvals_included{$curcommon_id})
+                    {
+                        $count++;
+                        $curvals_included{$curcommon_id} = 1;
+                    }
                 }
             }
         }
     }
-    my $search;
+
     for (1..$count)
     {
         my $id = $_ == 1 ? '' : "_$_";
-        $search->{"record_later$id.current_id"} = undef;
+        push @search, {
+            "record_later$id.current_id" => undef,
+        };
     }
-    $search;
+    @search;
 }
 
 sub _jpfetch
@@ -251,7 +262,7 @@ sub _jpfetch_add
         || ($options->{prefetch} && $_->{prefetch})
     )
     {
-        if ($join->{column}->type eq 'curval')
+        if ($join->{column}->is_curcommon)
         {
             my $children = [];
             foreach my $child (@{$join->{children}})
@@ -259,10 +270,12 @@ sub _jpfetch_add
                 $self->_jpfetch_add(options => $options, join => $child, return => $children, parent => $join->{column});
             }
             my $simple = {%$join};
-            $simple->{join} = $join->{column}->field;
+            $simple->{join} = $join->{column}->sprefix;
             # Remove multivalues to prevent huge amount of rows being fetched.
             # These will be fetched later as individual columns
-            my @children = grep { !$_->{column}->multivalue || $options->{include_multivalue} } @$children;
+            my @children = @$children;
+            @children = grep { !$_->{column}->multivalue || $options->{include_multivalue} } @$children
+                if $options->{prefetch};
             push @$return, {
                 parent    => $parent,
                 column    => $join->{column},
@@ -281,12 +294,28 @@ sub jpfetch
     map { $_->{join} } $self->_jpfetch(@_);
 }
 
+sub record_name
+{   my ($self, %options) = @_;
+    my @store = $self->_jpfetch(%options);
+    my $count = 1;
+    if (!$options{linked})
+    {
+        $count++;
+        $count += grep { $_->{column}->type eq 'autocur' && $_->{linked} } @store;
+    }
+    my $c_offset = $count == 1 ? '' : "_$count";
+    return "record_single$c_offset";
+}
+
 sub table_name
 {   my ($self, $column, %options) = @_;
     if ($column->internal)
     {
         return 'me' if $column->name eq 'ID';
-        return 'record_single' if $column->sprefix eq 'record';
+        if ($column->sprefix eq 'record')
+        {
+            return $self->record_name(%options);
+        }
         return $column->sprefix;
     }
     my $jn = $self->_join_number($column, %options);
@@ -360,14 +389,17 @@ sub _find
         $stash->{$jp->{join}}++;
         if ($jp->{parent} && !$stash->{parents_included}->{$jp->{parent}->id})
         {
-            $stash->{value}++;
+            $stash->{value}++ if $jp->{parent}->value_field eq 'value';
             $stash->{parents_included}->{$jp->{parent}->id} = 1;
         }
         if ($needle->sprefix eq $jp->{join})
         {
             # Single table join
             return $stash->{$needle->sprefix}
-                if _compare_parents($options{parent}, $jp->{parent});
+                if _compare_parents($options{parent}, $jp->{parent})
+                    # Account for autocur joins, in which case only match when
+                    # it's the one we need
+                    && ($needle->sprefix ne 'current' || $needle->id == $jp->{column}->id);
         }
     }
 }

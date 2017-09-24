@@ -20,10 +20,12 @@ my $data = [
     {
         daterange1 => ['2000-10-10', '2001-10-10'],
         curval1    => 1,
+        tree1      => 'tree1',
     },
     {
         daterange1 => ['2012-11-11', '2013-11-11'],
         curval1    => 2,
+        tree1      => 'tree1',
     },
 ];
 
@@ -227,6 +229,13 @@ my @tests = (
         before => '22',
         after  => '15'
     },
+    {
+        name   => 'tree node',
+        type   => 'Calc',
+        code   => qq(function evaluate (L1tree1) \n return L1tree1.value \nend),
+        before => 'tree1',
+        after  => 'tree3'
+    },
 );
 
 foreach my $test (@tests)
@@ -272,6 +281,7 @@ foreach my $test (@tests)
     $record_new->initialise;
     $record_new->fields->{$columns->{daterange1}->id}->set_value(['2000-10-10', '2001-10-10']);
     $record_new->fields->{$columns->{curval1}->id}->set_value(1);
+    $record_new->fields->{$columns->{tree1}->id}->set_value(10);
     try { $record_new->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
     my $cid = $record_new->current_id;
     $record_new->clear;
@@ -289,20 +299,39 @@ foreach my $test (@tests)
         set_fixed_time('11/15/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
         $record->fields->{$columns->{daterange1}->id}->set_value(['2014-10-10', '2015-10-10']);
         $record->fields->{$columns->{curval1}->id}->set_value(2);
+        $record->fields->{$columns->{tree1}->id}->set_value(12);
         $record->user({ id => 2 });
         try { $record->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
+        $@->reportFatal; # In case any fatal errors
         my $after = $test->{after};
         $after =~ s/__ID/$cid/;
         is( $record->fields->{$code_col->id}->as_string, $after, "Correct code value for test $test->{name}" );
         is( $record->fields->{$calc_inv_string->id}->as_string, '<evaluation error>', "<evaluation error>or test $test->{name}" );
         is( $record->fields->{$calc_inv_int->id}->as_string, '', "<evaluation error>2or test $test->{name}" );
 
+        # Delete tree node and check calc still correct
+        $schema->resultset('Enumval')->find(12)->update({ deleted => 1 });
+        $layout->clear;
+        my $current_id = $record->current_id;
+        $record->clear;
+        $record->find_current_id($current_id);
+        $record->fields->{$columns->{string1}->id}->set_value('Foobar'); # Ensure change has happened
+        try { $record->write } hide => 'WARNING';
+        $@->reportFatal; # In case any fatal errors
+        $record->clear;
+        $record->find_current_id($current_id);
+        is( $record->fields->{$code_col->id}->as_string, $after, "Correct code value for test $test->{name} after enum deletion" );
+
         # Reset values for next test
+        $schema->resultset('Enumval')->find(12)->update({ deleted => 0 });
         set_fixed_time('10/22/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
         $record->fields->{$columns->{daterange1}->id}->set_value($data->[0]->{daterange1});
         $record->fields->{$columns->{curval1}->id}->set_value($data->[0]->{curval1});
+        $record->fields->{$columns->{string1}->id}->set_value('');
+        $record->fields->{$columns->{tree1}->id}->set_value(10);
         $record->user({ id => 1 });
         try { $record->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
+        $@->reportFatal; # In case any fatal errors
     }
     $code_col->delete;
 }

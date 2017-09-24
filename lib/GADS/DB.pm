@@ -66,17 +66,41 @@ sub add_column
     # Temporary hack
     # very inefficient and needs to go away when the rel options show up
     my $rec_class = $schema->class('Record');
-    $rec_class->has_many(
-        $colname => camelize($coltype),
-        sub {
-            my $args = shift;
+    if ($col->type eq 'autocur')
+    {
+        my $subquery = $schema->resultset('Current')->search({
+            'record_later.id' => undef,
+        },{
+            join => {
+                'record_single' => 'record_later'
+            },
+        })->get_column('record_single.id')->as_query;
+        $rec_class->has_many(
+            $colname => 'Curval',
+            sub {
+                my $args = shift;
 
-            return {
-                "$args->{foreign_alias}.record_id" => { -ident => "$args->{self_alias}.id" },
-                "$args->{foreign_alias}.layout_id" => $col->id,
-            };
-        }
-    );
+                return {
+                    "$args->{foreign_alias}.value"     => { -ident => "$args->{self_alias}.current_id" },
+                    "$args->{foreign_alias}.layout_id" => $col->related_field->id,
+                    "$args->{foreign_alias}.record_id" => { -in => $subquery },
+                };
+            }
+        );
+    }
+    else {
+        $rec_class->has_many(
+            $colname => camelize($coltype),
+            sub {
+                my $args = shift;
+
+                return {
+                    "$args->{foreign_alias}.record_id" => { -ident => "$args->{self_alias}.id" },
+                    "$args->{foreign_alias}.layout_id" => $col->id,
+                };
+            }
+        );
+    }
 
     GADS::Schema->unregister_source('Record');
     GADS::Schema->register_class(Record => $rec_class);

@@ -1,4 +1,4 @@
-package GADS::Role::Presentation::Datum::Curval;
+package GADS::Role::Presentation::Datum::Curcommon;
 
 use Moo::Role;
 

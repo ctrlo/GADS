@@ -38,7 +38,7 @@ use namespace::clean; # Otherwise Enum clashes with MooseLike
 with 'GADS::Role::Presentation::Column';
 
 sub types
-{ qw(date daterange string intgr person tree enum file rag calc curval) }
+{ qw(date daterange string intgr person tree enum file rag calc curval autocur) }
 
 has schema => (
     is       => 'rw',
@@ -144,9 +144,14 @@ has return_type => (
 );
 
 has table => (
-    is  => 'rw',
+    is  => 'lazy',
     isa => Str,
 );
+
+sub _build_table
+{   my $self = shift;
+    camelize $self->type;
+}
 
 has join => (
     is      => 'lazy',
@@ -166,8 +171,9 @@ sub _build_subjoin
 }
 
 has fixedvals => (
-    is  => 'rw',
-    isa => Bool,
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
 );
 
 has can_multivalue => (
@@ -179,6 +185,12 @@ has can_multivalue => (
 # Whether the joins for this column type can be different depending on the
 # columns configuration.
 has variable_join => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
+has is_curcommon => (
     is      => 'ro',
     isa     => Bool,
     default => 0,
@@ -233,9 +245,14 @@ has position => (
 );
 
 has sprefix => (
-    is  => 'rw',
+    is  => 'lazy',
     isa => Str,
 );
+
+sub _build_sprefix
+{   my $self = shift;
+    $self->field;
+}
 
 has remember => (
     is      => 'rw',
@@ -266,6 +283,12 @@ has userinput => (
     is      => 'rw',
     isa     => Bool,
     default => 1,
+);
+
+has no_value_to_write => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
 );
 
 has numeric => (
@@ -401,6 +424,7 @@ has class => (
             rag       => 'GADS::Datum::Rag',
             calc      => 'GADS::Datum::Calc',
             curval    => 'GADS::Datum::Curval',
+            autocur   => 'GADS::Datum::Autocur',
         );
         $classes{$_[0]->type};
     },
@@ -579,25 +603,14 @@ sub build_values
     $self->type($original->{type});
     $self->display_field($original->{display_field});
     $self->display_regex($original->{display_regex});
-    
-    # XXX Move to Column::Enum, Tree and Person classes?
-    if ($self->type eq 'enum' || $self->type eq 'tree' || $self->type eq 'person' || $self->type eq 'file')
+
+    # XXX Move to curval class
+    if ($self->type eq 'curval')
     {
-        $self->sprefix('value');
-        $self->fixedvals(1);
-    }
-    elsif ($self->type eq 'curval')
-    {
-        $self->fixedvals(1);
-        $self->sprefix($self->field);
         $self->filter->as_json($original->{filter});
         $self->filter->layout($self->layout_parent);
     }
-    else {
-        $self->sprefix($self->field);
-    }
 
-    $self->table(camelize $self->type);
 }
 
 # Overriden for most columns

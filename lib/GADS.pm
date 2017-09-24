@@ -24,6 +24,7 @@ use GADS::Alert;
 use GADS::Approval;
 use GADS::Audit;
 use GADS::Column;
+use GADS::Column::Autocur;
 use GADS::Column::Calc;
 use GADS::Column::Curval;
 use GADS::Column::Date;
@@ -201,11 +202,16 @@ hook before => sub {
         # sheet. This is used in the links for the Curval column type
         my $instance_id = param('oi') || param('instance') || $persistent->{instance_id};
         my $instances = GADS::Instances->new(schema => schema, user => $user);
-        $instance_id = $instances->is_valid($instance_id) || $instances->all->[0]->id;
+        $instance_id = $instances->is_valid($instance_id) || $instances->all->[0] && $instances->all->[0]->id;
+        if (!$instance_id && request->uri !~ m!^/user!)
+        {
+            forwardHome({ danger => "You do not have any access rights to any data in this application" })
+                unless request->uri eq '/';
+        }
+        var 'layout' = $instances->layout($instance_id)
+            if $instance_id;
         $persistent->{instance_id} = $instance_id
             unless param 'oi';
-        my $layout = $instances->layout($instance_id);
-        var 'layout'    => $layout;
         var 'instances' => $instances;
     }
 };
@@ -226,7 +232,8 @@ hook before_template => sub {
     $tokens->{header} = config->{gads}->{header};
 
     my $layout = var 'layout';
-    if ($user && ($layout->user_can('approve_new') || $layout->user_can('approve_existing')))
+    # Possible for $layout to be undef if user has no access
+    if ($user && $layout && ($layout->user_can('approve_new') || $layout->user_can('approve_existing')))
     {
         my $approval = GADS::Approval->new(
             schema => schema,
@@ -1392,10 +1399,16 @@ any '/layout/?:id?' => require_login sub {
             elsif ($column->type eq "curval")
             {
                 $column->typeahead(param 'typeahead');
-                $column->refers_to_instance(param 'refers_to_instance');
+                $column->refers_to_instance_id(param 'refers_to_instance_id');
                 $column->filter->as_json(param 'filter');
                 my $curval_field_ids = ref param('curval_field_ids') ? param('curval_field_ids') : [param('curval_field_ids')||()];
                 $column->curval_field_ids($curval_field_ids);
+            }
+            elsif ($column->type eq "autocur")
+            {
+                my @curval_field_ids = body_parameters->get_all('curval_field_ids');
+                $column->curval_field_ids([@curval_field_ids]);
+                $column->related_field_id(param 'related_field_id');
             }
 
             if (process( sub { $column->write(no_alerts => $no_alerts, no_cache_update => param('no_cache_update')) }))

@@ -30,6 +30,12 @@ has filesize => (
     isa     => Maybe[Int],
 );
 
+has '+fixedvals' => (
+    default => 1,
+);
+
+sub _build_sprefix { 'value' };
+
 after build_values => sub {
     my ($self, $original) = @_;
 

@@ -214,12 +214,13 @@ has current_ids => (
 # Produce the overall search condition array
 sub search_query
 {   my ($self, %options) = @_;
-    # Only used by record_later_search(). Will pull wrong query_params
+    # Only used by common_search(). Will pull wrong query_params
     # if left in %options
-    my $linked     = delete $options{linked};
-    my @search     = $self->_query_params(%options);
-    my $root_table = $options{root_table} || 'current';
-    my $current    = $root_table eq 'current' ? 'me' : 'current';
+    my $linked        = delete $options{linked};
+    my @search        = $self->_query_params(%options);
+    my $root_table    = $options{root_table} || 'current';
+    my $current       = $root_table eq 'current' ? 'me' : 'current';
+    my $record_single = $self->record_name;
     unless ($self->include_approval)
     {
         # There is a chance that there will be no approval records. In that case,
@@ -234,14 +235,14 @@ sub search_query
             rows => 1,
         })->all;
         push @search, (
-            { "record_single.approval"  => 0 },
+            { "$record_single.approval" => 0 },
         ) if $approval_exists;
     }
     push @search, { "$current.id"          => $self->current_ids} if $self->current_ids;
     push @search, { "$current.instance_id" => $self->layout->instance_id };
-    push @search, $self->record_later_search(%options, linked => $linked);
+    push @search, $self->common_search(%options, linked => $linked);
     push @search, {
-        'record_single.created' => { '<' => $self->rewind_formatted },
+        "$record_single.created" => { '<' => $self->rewind_formatted },
     } if $self->rewind;
     [@search];
 }
@@ -362,8 +363,9 @@ sub search_views
                 my $search = {
                     'me.instance_id'          => $self->layout->instance_id,
                     $self->_search_construct($decoded, $self->layout, ignore_perms => 1, user => $user),
-                    %{$self->record_later_search},
                 };
+                $search = { %$search, %$_ }
+                    foreach $self->common_search;
                 my $i = 0; my @ids;
                 while ($i < @$current_ids)
                 {
@@ -476,8 +478,13 @@ sub search_all_fields
         # Need to get correct "value" number for search, in case it's been incremented through view_limits
         my $s           = $field->{sub} ? $self->value_next_join(search => 1).".$value_field" : "$plural.$value_field";
 
-        my $joins       = $field->{type} eq 'current_id'
-                        ? undef
+        my $joins       = $field->{type} eq 'current_id' # Include joins for limited views
+                        ? {
+                              'record_single' => [
+                                  'record_later',
+                                  $self->jpfetch(search => 1),
+                              ]
+                          }
                         : $field->{sub}
                         ? {
                               'record_single' => [
@@ -501,7 +508,7 @@ sub search_all_fields
         my @search = @basic_search;
         push @search,
             $field->{type} eq 'current_id'
-            ? { id => $search_local }
+            ? { 'me.id' => $search_local }
             : $field->{index_field} # string with additional index field
             ? ( { $field->{index_field} => $search_index }, { $s => $search_local } )
             : { $s => $search_local };
@@ -511,7 +518,7 @@ sub search_all_fields
         }
         else {
             push @search, { 'layout.id' => \@columns_can_view };
-            push @search, $self->record_later_search(search => 1);
+            push @search, $self->common_search(search => 1);
         }
         my @currents = $self->schema->resultset('Current')->search({ -and => \@search},{
             join => $joins,
@@ -561,13 +568,13 @@ sub _current_ids_rs
     # clauses, which can be very slow (with Pg at least).
     my $select = {
         join     => [
+            [$self->linked_hash(search => 1, sort => 1)],
             {
                 'record_single' => [ # The (assumed) single record for the required version of current
                     'record_later',  # The record after the single record (undef when single is latest)
                     $self->jpfetch(search => 1, sort => 1, linked => 0),
                 ],
             },
-            [$self->linked_hash(search => 1, sort => 1)],
         ],
         '+select' => $self->_plus_select, # Used for additional sort columns
         order_by  => $self->order_by(search => 1),
@@ -609,21 +616,23 @@ sub _build_results
 
     my $select = {
         prefetch => [
-            $rec1,
             [@linked_prefetch],
+            $rec1,
         ],
         join     => [
-            $rec2,
             [$self->linked_hash(sort => 1)],
+            $rec2,
         ],
         '+select' => $self->_plus_select, # Used for additional sort columns
         order_by  => $self->order_by(prefetch => 1),
     };
 
-    my $search = $self->record_later_search(prefetch => 1, sort => 1, linked => 1);
+    my $search = { map { %$_ } $self->common_search(prefetch => 1, sort => 1, linked => 1) };
     $search->{'me.id'} = \@cids;
-    $search->{'record_single.created'} = { '<' => $self->rewind_formatted }
+    my $record_single = $self->record_name(linked => 0);
+    $search->{"$record_single.created"} = { '<' => $self->rewind_formatted }
         if $self->rewind;
+
     my $result = $self->schema->resultset('Current')->search($search, $select);
 
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
@@ -736,13 +745,13 @@ sub _build_count
         if $self->rewind;
     my $select = {
         join     => [
+            [@linked],
             {
                 'record_single' => [
                     'record_later',
                     @joins
                 ],
             },
-            [@linked],
         ],
         distinct => 1, # Otherwise multiple records returned for multivalue fields
     };
@@ -759,13 +768,13 @@ sub _build_has_children
     my $linked = $self->linked_hash(search => 1);
     my $select = {
         join     => [
+            $linked,
             {
                 'record_single' => [
                     'record_later',
                     $self->jpfetch(search => 1),
                 ],
             },
-            $linked,
         ],
         rows => 1,
     };
