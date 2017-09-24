@@ -2052,6 +2052,7 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
         view        => $view,
         record      => $record,
         all_columns => \@columns_to_show,
+        bulk_type   => $type,
         page        => 'bulk'
     };
 };

@@ -1,6 +1,10 @@
 <h2>
     [% IF page == "bulk" %]
-        Bulk update
+        [% IF bulk_type == "update" %]
+            Bulk update
+        [% ELSIF bulk_type == "clone" %]
+            Clone records
+        [% END %]
     [% ELSIF record.current_id %]
         Record ID [% record.current_id %]
         [% IF record.parent_id %]
