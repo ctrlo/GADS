@@ -921,7 +921,10 @@ sub set_permissions {
 
     my @groups = keys %permissions;
 
-    # Search for any groups that were in the permissions but no longer exist
+    # Search for any groups that were in the permissions but no longer exist.
+    # Add these to the set_permissions hash, so they get processed and removed
+    # as per other permissions (in particular ensuring the read_removed flag is
+    # set)
     my $search = {
         layout_id => $self->id,
     };
@@ -938,49 +941,40 @@ sub set_permissions {
         group_by => 'group_id',
     })->get_column('group_id')->all;
 
-    $self->schema->resultset('LayoutGroup')->search({
-        layout_id => $self->id,
-        group_id  => \@removed
-    })->delete;
+    $permissions{$_} = []
+        foreach @removed;
+    @groups = keys %permissions; # Refresh
 
-    foreach my $group_id (@groups) {
-        my @new_permissions = $permissions{$group_id};  
+    foreach my $group_id (@groups)
+    {
+        my @new_permissions = @{$permissions{$group_id}};
 
-        my $existing_rs = $self->schema->resultset('LayoutGroup')->search({
+        my @existing_permissions = $self->schema->resultset('LayoutGroup')->search({
             layout_id  => $self->id,
             group_id   => $group_id,
-        });
-
-        my @existing_permissions = map { $_->permission } $existing_rs->all;
+        })->get_column('permission')->all;
 
         my $lc = List::Compare->new(\@new_permissions, \@existing_permissions);
 
         my @removed_permissions = $lc->get_complement();
-        my @added_permissions = $lc->unique();
+        my @added_permissions   = $lc->get_unique();
 
+        # Has a read permission been removed from this group?
         my $read_removed = grep { $_ eq 'read' } @removed_permissions;
 
-        try {
-            $self->schema->resultset('LayoutGroup')->search({
-                layout_id  => $self->id,
-                group_id   => $group_id,
-                permission => \@removed_permissions
-            })->delete;
-        };
-        # Log any messages from try block, but only as trace
-        $@->reportAll(reason => 'TRACE');
+        # Delete any permissions no longer needed
+        $self->schema->resultset('LayoutGroup')->search({
+            layout_id  => $self->id,
+            group_id   => $group_id,
+            permission => \@removed_permissions
+        })->delete;
 
-        foreach my $added (@added_permissions) {
-            try {
-                $self->schema->resultset('LayoutGroup')->create({
-                    layout_id  => $self->id,
-                    group_id   => $group_id,
-                    permission => $added
-                });
-            };
-            # Log any messages from try block, but only as trace
-            $@->reportAll(reason => 'TRACE');
-        }
+        # Add any new permissions
+        $self->schema->resultset('LayoutGroup')->create({
+            layout_id  => $self->id,
+            group_id   => $group_id,
+            permission => $_,
+        }) foreach @added_permissions;
 
         if ($read_removed) {
             # First the sorts

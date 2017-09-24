@@ -443,7 +443,7 @@ sub __build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $string1->set_permissions(permissions => {$self->group->id => $permissions})
+    $string1->set_permissions($self->group->id => $permissions)
         unless $self->no_groups;
 
     my $integer1 = GADS::Column::Intgr->new(
@@ -460,7 +460,7 @@ sub __build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $integer1->set_permissions(permissions => {$self->group->id => $permissions})
+    $integer1->set_permissions($self->group->id => $permissions)
         unless $self->no_groups;
 
     my @enums;
@@ -493,7 +493,7 @@ sub __build_columns
             $@->wasFatal->throw(is_fatal => 0);
             return;
         }
-        $enum->set_permissions(permissions => {$self->group->id => $permissions})
+        $enum->set_permissions($self->group->id => $permissions)
             unless $self->no_groups;
         push @enums, $enum;
     }
@@ -541,7 +541,7 @@ sub __build_columns
         layout   => $layout,
     );
     $tree1->from_id($tree_id);
-    $tree1->set_permissions(permissions => {$self->group->id => $permissions})
+    $tree1->set_permissions($self->group->id => $permissions)
         unless $self->no_groups;
 
     my $date1 = GADS::Column::Date->new(
@@ -558,7 +558,7 @@ sub __build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $date1->set_permissions(permissions => {$self->group->id => $permissions})
+    $date1->set_permissions($self->group->id => $permissions)
         unless $self->no_groups;
 
     my $daterange1 = GADS::Column::Daterange->new(
@@ -576,7 +576,7 @@ sub __build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $daterange1->set_permissions(permissions => {$self->group->id => $permissions})
+    $daterange1->set_permissions($self->group->id => $permissions)
         unless $self->no_groups;
 
     my $file1 = GADS::Column::File->new(
@@ -593,7 +593,7 @@ sub __build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $file1->set_permissions(permissions => {$self->group->id => $permissions})
+    $file1->set_permissions($self->group->id => $permissions)
         unless $self->no_groups;
 
     my $person1 = GADS::Column::Person->new(
@@ -610,7 +610,7 @@ sub __build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $person1->set_permissions(permissions => {$self->group->id => $permissions})
+    $person1->set_permissions($self->group->id => $permissions)
         unless $self->no_groups;
 
     my @curvals;
@@ -641,7 +641,7 @@ sub __build_columns
                 $@->wasFatal->throw(is_fatal => 0);
                 return;
             }
-            $curval->set_permissions(permissions => {$self->group->id => $permissions})
+            $curval->set_permissions($self->group->id => $permissions)
                 unless $self->no_groups;
             push @curvals, $curval;
         }
@@ -668,7 +668,7 @@ sub __build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $rag1->set_permissions(permissions => {$self->group->id => $permissions})
+    $rag1->set_permissions($self->group->id => $permissions)
         unless $self->no_groups;
 
     # At this point, layout will have been built with current columns (it will
@@ -693,7 +693,7 @@ sub __build_columns
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $calc1->set_permissions(permissions => {$self->group->id => $permissions})
+    $calc1->set_permissions($self->group->id => $permissions)
         unless $self->no_groups;
 
     # Clear the layout again, otherwise it won't include the calc
@@ -744,7 +744,7 @@ sub add_autocur
     $autocur->name_short("L${instance_id}autocur$count");
     $autocur->related_field_id($options{related_field_id});
     $autocur->write;
-    $autocur->set_permissions($self->group->id, $self->default_permissions)
+    $autocur->set_permissions($self->group->id => $self->default_permissions)
         unless $self->no_groups;
     $self->columns->{"autocur$count"} = $autocur;
     $autocur;

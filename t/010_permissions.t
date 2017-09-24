@@ -218,6 +218,91 @@ foreach my $user_type (qw/readwrite read limited/)
     }
 }
 
+# Check deletion of read permissions also updates dependent values
+foreach my $test (qw/single all/)
+{
+    my $sheet   = t::lib::DataSheet->new;
+    my $schema  = $sheet->schema;
+    my $layout  = $sheet->layout;
+    my $columns = $sheet->columns;
+    my $group1  = $sheet->group;
+    my $string1 = $columns->{string1};
+    $sheet->create_records;
+
+    my $group2 = GADS::Group->new(schema => $schema);
+    $group2->name('group2');
+    $group2->write;
+
+    $string1->set_permissions(
+        $group1->id => [qw/read write_new write_existing/],
+        $group2->id => [qw/read write_new write_existing/],
+    );
+
+    my $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $string1->id,
+                type     => 'string',
+                value    => 'Foo',
+                operator => 'equal',
+            }],
+        },
+    );
+
+    my $view = GADS::View->new(
+        name        => 'Foo',
+        filter      => $rules,
+        columns     => [$string1->id],
+        instance_id => 1,
+        layout      => $layout,
+        schema      => $schema,
+        user        => undef,
+    );
+    $view->write;
+
+    my $alert = GADS::Alert->new(
+        user      => $sheet->user,
+        layout    => $layout,
+        schema    => $schema,
+        frequency => 24,
+        view_id   => $view->id,
+    );
+    $alert->write;
+
+    my $filter = $schema->resultset('View')->find($view->id)->filter;
+    like($filter, qr/Foo/, "Filter initially contains Foo search");
+
+    my $alert_rs = $schema->resultset('AlertCache')->search({ layout_id => $string1->id });
+    ok($alert_rs->count, "Alert cache contains string1 column");
+
+    my $view_layout_rs = $schema->resultset('ViewLayout')->search({
+        view_id   => $view->id,
+        layout_id => $string1->id,
+    });
+    is($view_layout_rs->count, 1, "String column initially in view");
+
+    # Start by always keeping one set of permissions
+    my %new_permissions = ($group1->id => [qw/read write_new write_existing/]);
+    # Add second set if required
+    $new_permissions{$group2->id} = [qw/write_new write_existing/]
+        if $test eq 'single';
+    # Should be no change as still as read access
+    $string1->set_permissions(%new_permissions);
+    is($view_layout_rs->count, 1, "View still has column with read access remaining");
+    $filter = $schema->resultset('View')->find($view->id)->filter;
+    like($filter, qr/Foo/, "Filter still contains Foo search");
+    ok($alert_rs->count, "Alert cache still contains string1 column");
+
+    $layout->clear;
+
+    # Now remove read from all groups
+    %new_permissions = $test eq 'all' ? () : ($group2->id => [qw/write_new write_existing/]);
+    $string1->set_permissions(%new_permissions);
+    is($view_layout_rs->count, 0, "String column removed from view when permissions removed");
+    $filter = $schema->resultset('View')->find($view->id)->filter;
+    unlike($filter, qr/Foo/, "Filter no longer contains Foo search");
+    ok(!$alert_rs->count, "Alert cache no longer contains string1 column");
+}
 
 done_testing();
 
