@@ -806,6 +806,7 @@ sub _build_columns_retrieved_do
             $self->view->id,
             order_dependencies => 1,
             user_can_read      => 1,
+            columns_extra      => $self->columns_extra,
         );
     }
     else {
