@@ -137,10 +137,6 @@ has write_cache => (
     default => 1,
 );
 
-has base_url => (
-    is => 'rw',
-);
-
 has '+userinput' => (
     default => 0,
 );
