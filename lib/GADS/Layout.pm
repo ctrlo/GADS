@@ -341,7 +341,8 @@ sub get_user_perms
                 # Push the actual permission onto an array
                 $perms{$layout_group->{layout_id}} ||= [];
                 push @{$perms{$layout_group->{layout_id}}}, $layout_group->{permission};
-                $overall_permissions{$layout_group->{permission}} = 1;
+                $overall_permissions{$layout_group->{permission}} = 1
+                    if $layout_group->{layout}->{instance_id} == $self->instance_id;
             }
         }
         $cache->{$user_id}->{perms} = \%perms;
@@ -491,6 +492,7 @@ sub user_can
         # Full layout has not been built. Shortcut to just a simple
         # SQL query instead
         return $self->_user_perm_search($self->user->{id})->search({
+            'layout.instance_id'       => $self->instance_id,
             'layout_groups.permission' => $permission,
         })->count;
     }
