@@ -985,19 +985,30 @@ is ($records->count, 2, 'Correct number of results when limiting to 2 views');
 
 # Quick searches
 # Limited view still defined
-is (@{$records->search_all_fields('Foobar')}, 0, 'Correct number of quick search results when limiting to a view');
+$records->clear;
+$records->search('Foobar');
+is (@{$records->results}, 0, 'Correct number of quick search results when limiting to a view');
 # And again with numerical search (also searches record IDs). Current ID in limited view
-is (@{$records->search_all_fields(8)}, 1, 'Correct number of quick search results for number when limiting to a view (match)');
+$records->clear;
+$records->search(8);
+is (@{$records->results}, 1, 'Correct number of quick search results for number when limiting to a view (match)');
 # This time a current ID that is not in limited view
-is (@{$records->search_all_fields(5)}, 0, 'Correct number of quick search results for number when limiting to a view (no match)');
+$records->clear;
+$records->search(5);
+is (@{$records->results}, 0, 'Correct number of quick search results for number when limiting to a view (no match)');
 # Reset and do again with non-negative view
 $records->clear;
 $user_r->set_view_limits([$view_limit->id]);
-is (@{$records->search_all_fields('Foobar')}, 0, 'Correct number of quick search results when limiting to a view');
+$records->search('Foobar');
+is (@{$records->results}, 0, 'Correct number of quick search results when limiting to a view');
 # Current ID in limited view
-is (@{$records->search_all_fields(8)}, 0, 'Correct number of quick search results for number when limiting to a view (match)');
+$records->clear;
+$records->search(8);
+is (@{$records->results}, 0, 'Correct number of quick search results for number when limiting to a view (match)');
 # Current ID that is not in limited view
-is (@{$records->search_all_fields(5)}, 1, 'Correct number of quick search results for number when limiting to a view (no match)');
+$records->clear;
+$records->search(5);
+is (@{$records->results}, 1, 'Correct number of quick search results for number when limiting to a view (no match)');
 
 # Same again but limited by enumval
 $view_limit->filter(GADS::Filter->new(
@@ -1018,7 +1029,9 @@ $records = GADS::Records->new(
     schema  => $schema,
 );
 is ($records->count, 2, 'Correct number of results when limiting to a view with enumval');
-is (@{$records->search_all_fields('2014-10-10')}, 1, 'Correct number of quick search results when limiting to a view with enumval');
+$records->clear;
+$records->search('2014-10-10');
+is (@{$records->results}, 1, 'Correct number of quick search results when limiting to a view with enumval');
 
 # Now normal
 $user_r->set_view_limits([]);
@@ -1027,11 +1040,21 @@ $records = GADS::Records->new(
     layout  => $layout,
     schema  => $schema,
 );
-is (@{$records->search_all_fields('2014-10-10')}, 4, 'Quick search for 2014-10-10');
-is (@{$records->search_all_fields('Foo')}, 3, 'Quick search for foo');
-is (@{$records->search_all_fields('Foo*')}, 5, 'Quick search for foo*');
-is (@{$records->search_all_fields('99')}, 2, 'Quick search for 99');
-is (@{$records->search_all_fields('1979-01-204')}, 0, 'Quick search for invalid date');
+$records->clear;
+$records->search('2014-10-10');
+is (@{$records->results}, 4, 'Quick search for 2014-10-10');
+$records->clear;
+$records->search('Foo');
+is (@{$records->results}, 3, 'Quick search for foo');
+$records->clear;
+$records->search('Foo*');
+is (@{$records->results}, 5, 'Quick search for foo*');
+$records->clear;
+$records->search('99');
+is (@{$records->results}, 2, 'Quick search for 99');
+$records->clear;
+$records->search('1979-01-204');
+is (@{$records->results}, 0, 'Quick search for invalid date');
 
 # Specific record retrieval
 $record = GADS::Record->new(
