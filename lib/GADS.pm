@@ -631,6 +631,7 @@ any '/data' => require_login sub {
     {
         my $records = GADS::Records->new(
             user                 => $user,
+            view                 => $view,
             search               => session('search'),
             layout               => $layout,
             schema               => schema,
@@ -645,13 +646,7 @@ any '/data' => require_login sub {
                 color => param('tl_color'),
             };
         }
-        my @extra;
         my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} || {};
-        push @extra, $tl_options->{label} if $tl_options->{label};
-        push @extra, $tl_options->{group} if $tl_options->{group};
-        push @extra, $tl_options->{color} if $tl_options->{color};
-        $records->view($view);
-        $records->columns_extra([@extra]);
         my $timeline = $records->data_timeline(%{$tl_options});
         $params->{records}      = encode_base64(encode_json(delete $timeline->{items}));
         $params->{groups}       = encode_base64(encode_json(delete $timeline->{groups}));

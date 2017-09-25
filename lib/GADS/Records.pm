@@ -1345,6 +1345,13 @@ sub data_time
         records => undef,
     );
 
+    # Add on any extra required columns for labelling etc
+    my @extra;
+    push @extra, $options{label} if $options{label};
+    push @extra, $options{group} if $options{group};
+    push @extra, $options{color} if $options{color};
+    $self->columns_extra([@extra]);
+
     # All the data values
     my ($multiple_dates, $min, $max);
     while (my $record  = $self->single)
