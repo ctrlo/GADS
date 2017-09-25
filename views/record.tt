@@ -1,3 +1,5 @@
+[% linkspace.breadcrumbs = [] %]
+
 <h2>
     Record ID [% record.current_id %]
     [% IF record.parent_id %]
