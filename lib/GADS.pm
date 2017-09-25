@@ -2002,13 +2002,17 @@ any '/bulk/:type/?' => require_role bulk_update => sub {
             }
             elsif ($success && !$failures)
             {
+                my $msg = __xn"{_count} record was {type}d successfully", "{_count} records were {type}d successfully",
+                    $success, type => $type;
                 return forwardHome(
-                    { success => 'All records have been updated successfully' }, 'data' );
+                    { success => $msg->toString }, 'data' );
             }
             else # Failures, back round the buoy
             {
-                my $s = __xn"{_count} record was updated successfully", "{_count} records were updated successfully", $success || 0;
-                my $f = __xn", {_count} record failed to be updated", ", {_count} records failed to be updated", $failures || 0;
+                my $s = __xn"{_count} record was {type}d successfully", "{_count} records were {type}d successfully",
+                    ($success || 0), type => $type;
+                my $f = __xn", {_count} record failed to be {type}d", ", {_count} records failed to be {type}d",
+                    ($failures || 0), type => $type;
                 mistake $s.$f;
             }
         }
