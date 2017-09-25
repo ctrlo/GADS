@@ -226,43 +226,25 @@ sub html_withlinks
 
 sub field_values
 {   my $self = shift;
-    my @return;
-    my $field_values = $self->_records
+    $self->_records
         ? $self->column->field_values(rows => $self->_records)
         : $self->column->field_values(ids => $self->ids);
-    foreach my $id (@{$self->ids})
-    {
-        push @return, {
-            map {
-                $_ => $field_values->{$id}->{$_}
-            } keys %{$field_values->{$id}},
-        };
-    }
-    @return;
 }
 
-sub all_field_values
+sub field_values_for_code
 {   my $self = shift;
     $self->_records
-        ? $self->column->all_field_values(rows => $self->_records)
-        : $self->column->all_field_values(ids => $self->ids);
+        ? $self->column->field_values_for_code(rows => $self->_records)
+        : $self->column->field_values_for_code(ids => $self->ids);
 }
 
 sub for_code
 {   my ($self, %options) = @_;
 
     # Get all field data in one chunk
-    my $field_values = $self->all_field_values;
+    my $field_values = $self->field_values_for_code;
 
     my @values = map {
-#        my $fvs;
-#        foreach my $colid (keys %{$field_values->{$_}})
-#        {
-#            say STDERR "col id is ".$colid;
-#            my $short_name = $self->column->layout_parent->column($colid)->name_short
-#                or next;
-#            $fvs->{$short_name} = $field_values->{$_}->{$colid}->for_code
-#        }
         +{
             id           => $_,
             value        => $self->_text_hash->{$_},

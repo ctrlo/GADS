@@ -371,9 +371,25 @@ sub ids_to_values
     [ map { $self->_format_row($_) } @$rows ];
 }
 
-sub all_field_values
+sub field_values_for_code
 {   my $self = shift;
-    $self->field_values(@_, all_columns => 1);
+    my $values = $self->field_values(@_, all_columns => 1);
+
+    my @retrieve_cols = grep {
+        $_->name_short
+    } @{$self->curval_fields_retrieve};
+
+    my $return = {};
+
+    foreach my $cid (keys %$values)
+    {
+        foreach my $col (@retrieve_cols)
+        {
+            $return->{$cid}->{$col->name_short} = $values->{$cid}->{$col->id} && $values->{$cid}->{$col->id}->for_code;
+        }
+    }
+
+    $return;
 }
 
 sub field_values
@@ -398,18 +414,15 @@ sub field_values
     else {
         panic "Neither rows not ids passed to all_field_values";
     }
-    my @retrieve_cols = grep {
-        $_->name_short
-    } @{$self->curval_fields_retrieve};
     +{
         map {
             my $row = $_;
             $row->current_id => {
                 map {
-                    $_->name_short => $row->has_record && $row->fields->{$_->id}->for_code
+                    $_->id => $row->fields->{$_->id}
                 } grep {
                     $_->type !~ /(autocur|curval)/ # Prevent recursive loops
-                } @retrieve_cols
+                } @{$self->curval_fields_retrieve}
             },
         } @$rows
     }

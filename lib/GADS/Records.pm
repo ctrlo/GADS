@@ -1358,79 +1358,103 @@ sub data_time
     {
         my @dates; my @titles;
         my $had_date_col; # Used to detect multiple date columns in this view
-        foreach my $column (@{$self->columns_retrieved_no})
+        my @columns = @{$self->columns_retrieved_no};
+        my %curcommon_values;
+        foreach my $column (@columns)
         {
-            # Get item value
-            my $d = $record->fields->{$column->id}
-                or next;
-
-            # Only show unique items of children, otherwise will be a lot of
-            # repeated entries
-            next if $record->parent_id && !$d->child_unique;
-
-            if ($column->return_type eq "daterange" || $column->return_type eq "date")
+            if ($column->is_curcommon)
             {
-                $multiple_dates = 1 if $had_date_col;
-                $had_date_col = 1;
-                next unless $column->user_can('read');
-
-                # Create colour if need be
-                $datecolors{$column->id} = shift @colors unless $datecolors{$column->id};
-
-                # Set colour
-                my $color = $datecolors{$column->id};
-
-                # Push value onto stack
-                if ($column->type eq "daterange")
+                push @columns, @{$column->curval_fields};
+                foreach my $row (values %{$record->fields->{$column->id}->field_values})
                 {
-                    my $count;
-                    foreach my $range (@{$d->values})
+                    foreach my $cur_col_id (keys %$row)
                     {
-                        # It's possible that values from other columns not within
-                        # the required range will have been retrieved. Don't bother
-                        # adding them
+                        $curcommon_values{$cur_col_id} ||= [];
+                        push @{$curcommon_values{$cur_col_id}}, $row->{$cur_col_id};
+                    }
+                }
+                next;
+            }
+
+            # Get item value
+            my @d = $curcommon_values{$column->id}
+                ? @{$curcommon_values{$column->id}}
+                : ($record->fields->{$column->id});
+
+            foreach my $d (@d)
+            {
+                $d or next;
+
+                # Only show unique items of children, otherwise will be a lot of
+                # repeated entries
+                next if $record->parent_id && !$d->child_unique;
+
+                if ($column->return_type eq "daterange" || $column->return_type eq "date")
+                {
+                    $multiple_dates = 1 if $had_date_col;
+                    $had_date_col = 1;
+                    next unless $column->user_can('read');
+
+                    # Create colour if need be
+                    $datecolors{$column->id} = shift @colors unless $datecolors{$column->id};
+
+                    # Set colour
+                    my $color = $datecolors{$column->id};
+
+                    # Push value onto stack
+                    if ($column->type eq "daterange")
+                    {
+                        my $count;
+                        foreach my $range (@{$d->values})
+                        {
+                            # It's possible that values from other columns not within
+                            # the required range will have been retrieved. Don't bother
+                            # adding them
+                            if (
+                                (!$self->to || DateTime->compare($self->to, $range->start) >= 0)
+                                && (!$self->from || DateTime->compare($range->end, $self->from) >= 0)
+                            ) {
+                                push @dates, {
+                                    from       => $range->start,
+                                    to         => $range->end,
+                                    color      => $color,
+                                    column     => $column->id,
+                                    count      => ++$count,
+                                    daterange  => 1,
+                                    current_id => $d->record->current_id,
+                                };
+                                $min = $range->start->clone if !defined $min || $range->start < $min;
+                                $max = $range->end->clone if !defined $max || $range->end > $max;
+                            }
+                        }
+                    }
+                    else {
+                        $d->value or next;
                         if (
-                            (!$self->to || DateTime->compare($self->to, $range->start) >= 0)
-                            && (!$self->from || DateTime->compare($range->end, $self->from) >= 0)
+                            (!$self->from || DateTime->compare($d->value, $self->from) >= 0)
+                            && (!$self->to || DateTime->compare($self->to, $d->value) >= 0)
                         ) {
                             push @dates, {
-                                from      => $range->start,
-                                to        => $range->end,
-                                color     => $color,
-                                column    => $column->id,
-                                count     => ++$count,
-                                daterange => 1,
+                                from       => $d->value,
+                                to         => $d->value,
+                                color      => $color,
+                                column     => $column->id,
+                                count      => 1,
+                                current_id => $d->record->current_id,
                             };
-                            $min = $range->start->clone if !defined $min || $range->start < $min;
-                            $max = $range->end->clone if !defined $max || $range->end > $max;
+                            $min = $d->value->clone if !defined $min || $d->value < $min;
+                            $max = $d->value->clone if !defined $max || $d->value > $max;
                         }
                     }
                 }
                 else {
-                    $d->value or next;
-                    if (
-                        (!$self->from || DateTime->compare($d->value, $self->from) >= 0)
-                        && (!$self->to || DateTime->compare($self->to, $d->value) >= 0)
-                    ) {
-                        push @dates, {
-                            from  => $d->value,
-                            to    => $d->value,
-                            color => $color,
-                            column=> $column->id,
-                            count => 1,
-                        };
-                        $min = $d->value->clone if !defined $min || $d->value < $min;
-                        $max = $d->value->clone if !defined $max || $d->value > $max;
-                    }
+                    next if $column->type eq "rag";
+                    # Check if the user has selected only one label
+                    next if $options{label} && $options{label} != $column->id;
+                    # Not a date value, push onto title
+                    # Don't want full HTML, which includes hyperlinks etc
+                    push @titles, $d->as_string if $d->as_string;
                 }
-            }
-            else {
-                next if $column->type eq "rag";
-                # Check if the user has selected only one label
-                next if $options{label} && $options{label} != $column->id;
-                # Not a date value, push onto title
-                # Don't want full HTML, which includes hyperlinks etc
-                push @titles, $d->as_string if $d->as_string;
             }
         }
         if (my $label = $options{label})
@@ -1475,10 +1499,11 @@ sub data_time
             my $add = join ', ', @add;
             my $title_i = $add ? "$title ($add)" : $title;
             my $title_i_abr = $add ? "$title_abr ($add)" : $title_abr;
+            my $cid = $d->{current_id} || $record->current_id;
             if ($type eq 'calendar')
             {
                 my $item = {
-                    "url"   => "/record/" . $record->current_id,
+                    "url"   => "/record/" . $cid,
                     "class" => $d->{color},
                     "title" => $title_i_abr,
                     "id"    => $record->current_id,
@@ -1488,7 +1513,6 @@ sub data_time
                 push @result, $item;
             }
             else {
-                my $cid = $record->current_id;
                 $title_i = encode_entities $title_i;
                 $title_i_abr = encode_entities $title_i_abr;
                 # If this is an item for a single day, then abbreviate the title,
