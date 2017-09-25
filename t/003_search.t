@@ -65,19 +65,19 @@ my $data = [
     },
 ];
 
-
-
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, user_permission_override => 0);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
 my $sheet   = t::lib::DataSheet->new(
-    data             => $data,
-    schema           => $schema,
-    curval           => 2,
-    multivalue       => 1,
-    instance_id      => 1,
-    calc_code        => "function evaluate (L1daterange1) \n if L1daterange1 == nil then return end \n return L1daterange1.from.epoch \n end",
-    calc_return_type => 'date',
+    data                     => $data,
+    schema                   => $schema,
+    curval                   => 2,
+    multivalue               => 1,
+    instance_id              => 1,
+    group                    => $curval_sheet->group,
+    calc_code                => "function evaluate (L1daterange1) \n if L1daterange1 == nil then return end \n return L1daterange1.from.epoch \n end",
+    calc_return_type         => 'date',
+    user_permission_override => 0,
     column_count     => {
         enum   => 1,
         curval => 2,
@@ -101,9 +101,10 @@ $sheet->create_records;
 $curval_sheet->add_autocur(refers_to_instance_id => 1, related_field_id => $columns->{curval1}->id);
 $curval_sheet->add_autocur(refers_to_instance_id => 1, related_field_id => $columns->{curval2}->id);
 my $curval_columns = $curval_sheet->columns;
+my $user = $sheet->user;
 
 my $record = GADS::Record->new(
-    user   => $sheet->user,
+    user   => $user,
     layout => $layout,
     schema => $schema,
 );
@@ -113,22 +114,29 @@ $data->[3]->{enum1} = 'foo2';
 $record->write(no_alerts => 1);
 
 # Add another curval field to a new table
-my $curval_sheet2 = t::lib::DataSheet->new(schema => $schema, instance_id => 3, curval_offset => 12);
+my $curval_sheet2 = t::lib::DataSheet->new(
+    schema                   => $schema,
+    group                    => $curval_sheet->group,
+    instance_id              => 3,
+    curval_offset            => 12,
+    user_permission_override => 0,
+);
 $curval_sheet2->create_records;
 my $curval3 = GADS::Column::Curval->new(
     name                  => 'curval3',
     type                  => 'curval',
-    user                  => $sheet->user,
+    user                  => $user,
     layout                => $curval_sheet->layout,
     schema                => $schema,
     refers_to_instance_id => $curval_sheet2->instance_id,
     curval_field_ids      => [$curval_sheet2->columns->{string1}->id],
 );
 $curval3->write;
+$curval3->set_permissions($sheet->group->id => $sheet->default_permissions);
 $curval_sheet->layout->clear;
 $layout->clear;
 my $records = GADS::Records->new(
-    user    => undef,
+    user    => $user,
     layout  => $curval_sheet->layout,
     schema  => $schema,
 );
@@ -771,12 +779,12 @@ foreach my $filter (@filters)
         instance_id => 1,
         layout      => $filter->{layout} || $layout,
         schema      => $schema,
-        user        => undef,
+        user        => $user,
     );
     $view->write(no_errors => $filter->{no_errors});
 
     my $records = GADS::Records->new(
-        user    => undef,
+        user    => $user,
         view    => $view,
         layout  => $filter->{layout} || $layout,
         schema  => $schema,
@@ -787,7 +795,7 @@ foreach my $filter (@filters)
 
     $view->set_sorts($view_columns, 'asc');
     $records = GADS::Records->new(
-        user    => undef,
+        user    => $user,
         view    => $view,
         layout  => $filter->{layout} || $layout,
         schema  => $schema,
@@ -800,7 +808,7 @@ foreach my $filter (@filters)
 
 # Search with a limited view defined
 $records = GADS::Records->new(
-    user    => undef,
+    user    => $user,
     layout  => $layout,
     schema  => $schema,
 );
@@ -822,13 +830,12 @@ my $view_limit = GADS::View->new(
     instance_id => 1,
     layout      => $layout,
     schema      => $schema,
-    user        => undef,
+    user        => $user,
 );
 $view_limit->write;
 
 # XXX Need to get rid of user as a hash. For the time being, we need
 # to variables.
-my $user   = $sheet->user;
 my $user_r = $schema->resultset('User')->find($user->{id});
 $user_r->set_view_limits([$view_limit->id]);
 
@@ -849,7 +856,7 @@ my $view = GADS::View->new(
     instance_id => 1,
     layout      => $layout,
     schema      => $schema,
-    user        => undef,
+    user        => $user,
 );
 $view->write;
 
@@ -900,7 +907,7 @@ my $view_limit2 = GADS::View->new(
     instance_id => 1,
     layout      => $layout,
     schema      => $schema,
-    user        => undef,
+    user        => $user,
 );
 $view_limit2->write;
 
@@ -937,7 +944,7 @@ is ($records->count, 2, 'Correct number of results when limiting to 2 views');
         instance_id => 1,
         layout      => $layout,
         schema      => $schema,
-        user        => undef,
+        user        => $user,
     );
     $view_limit3->write;
 
@@ -960,7 +967,7 @@ is ($records->count, 2, 'Correct number of results when limiting to 2 views');
         instance_id => 1,
         layout      => $layout,
         schema      => $schema,
-        user        => undef,
+        user        => $user,
     );
     $view->write;
 
@@ -978,19 +985,30 @@ is ($records->count, 2, 'Correct number of results when limiting to 2 views');
 
 # Quick searches
 # Limited view still defined
-is (@{$records->search_all_fields('Foobar')}, 0, 'Correct number of quick search results when limiting to a view');
+$records->clear;
+$records->search('Foobar');
+is (@{$records->results}, 0, 'Correct number of quick search results when limiting to a view');
 # And again with numerical search (also searches record IDs). Current ID in limited view
-is (@{$records->search_all_fields(8)}, 1, 'Correct number of quick search results for number when limiting to a view (match)');
+$records->clear;
+$records->search(8);
+is (@{$records->results}, 1, 'Correct number of quick search results for number when limiting to a view (match)');
 # This time a current ID that is not in limited view
-is (@{$records->search_all_fields(5)}, 0, 'Correct number of quick search results for number when limiting to a view (no match)');
+$records->clear;
+$records->search(5);
+is (@{$records->results}, 0, 'Correct number of quick search results for number when limiting to a view (no match)');
 # Reset and do again with non-negative view
 $records->clear;
 $user_r->set_view_limits([$view_limit->id]);
-is (@{$records->search_all_fields('Foobar')}, 0, 'Correct number of quick search results when limiting to a view');
+$records->search('Foobar');
+is (@{$records->results}, 0, 'Correct number of quick search results when limiting to a view');
 # Current ID in limited view
-is (@{$records->search_all_fields(8)}, 0, 'Correct number of quick search results for number when limiting to a view (match)');
+$records->clear;
+$records->search(8);
+is (@{$records->results}, 0, 'Correct number of quick search results for number when limiting to a view (match)');
 # Current ID that is not in limited view
-is (@{$records->search_all_fields(5)}, 1, 'Correct number of quick search results for number when limiting to a view (no match)');
+$records->clear;
+$records->search(5);
+is (@{$records->results}, 1, 'Correct number of quick search results for number when limiting to a view (no match)');
 
 # Same again but limited by enumval
 $view_limit->filter(GADS::Filter->new(
@@ -1006,28 +1024,41 @@ $view_limit->filter(GADS::Filter->new(
 $view_limit->write;
 $records = GADS::Records->new(
     view_limits => [ $view_limit ],
-    user    => undef,
+    user    => $user,
     layout  => $layout,
     schema  => $schema,
 );
 is ($records->count, 2, 'Correct number of results when limiting to a view with enumval');
-is (@{$records->search_all_fields('2014-10-10')}, 1, 'Correct number of quick search results when limiting to a view with enumval');
+$records->clear;
+$records->search('2014-10-10');
+is (@{$records->results}, 1, 'Correct number of quick search results when limiting to a view with enumval');
 
 # Now normal
+$user_r->set_view_limits([]);
 $records = GADS::Records->new(
-    user    => undef,
+    user    => $user,
     layout  => $layout,
     schema  => $schema,
 );
-is (@{$records->search_all_fields('2014-10-10')}, 4, 'Quick search for 2014-10-10');
-is (@{$records->search_all_fields('Foo')}, 3, 'Quick search for foo');
-is (@{$records->search_all_fields('Foo*')}, 5, 'Quick search for foo*');
-is (@{$records->search_all_fields('99')}, 2, 'Quick search for 99');
-is (@{$records->search_all_fields('1979-01-204')}, 0, 'Quick search for invalid date');
+$records->clear;
+$records->search('2014-10-10');
+is (@{$records->results}, 4, 'Quick search for 2014-10-10');
+$records->clear;
+$records->search('Foo');
+is (@{$records->results}, 3, 'Quick search for foo');
+$records->clear;
+$records->search('Foo*');
+is (@{$records->results}, 5, 'Quick search for foo*');
+$records->clear;
+$records->search('99');
+is (@{$records->results}, 2, 'Quick search for 99');
+$records->clear;
+$records->search('1979-01-204');
+is (@{$records->results}, 0, 'Quick search for invalid date');
 
 # Specific record retrieval
 $record = GADS::Record->new(
-    user   => undef,
+    user   => $user,
     layout => $layout,
     schema => $schema,
 );
@@ -1054,7 +1085,7 @@ $records = GADS::Records->new(
         type => 'asc',
         id   => -11,
     },
-    user    => undef,
+    user    => $user,
     layout  => $layout,
     schema  => $schema,
 );
@@ -1065,7 +1096,7 @@ $records = GADS::Records->new(
         type => 'desc',
         id   => -11,
     },
-    user    => undef,
+    user    => $user,
     layout  => $layout,
     schema  => $schema,
 );
@@ -1076,7 +1107,7 @@ $records = GADS::Records->new(
         type => 'desc',
         id   => $columns->{integer1}->id,
     },
-    user    => undef,
+    user    => $user,
     layout  => $layout,
     schema  => $schema,
 );
@@ -1089,7 +1120,7 @@ $records = GADS::Records->new(
         type => 'desc',
         id   => $columns->{integer1}->id,
     },
-    user    => undef,
+    user    => $user,
     layout  => $layout,
     schema  => $schema,
 );
@@ -1108,7 +1139,7 @@ $records = GADS::Records->new(
         type => 'desc',
         id   => $columns->{integer1}->id,
     },
-    user    => undef,
+    user    => $user,
     layout  => $layout,
     schema  => $schema,
 );
@@ -1310,7 +1341,7 @@ foreach my $multivalue (0.1)
                 instance_id => 1,
                 layout      => $layout,
                 schema      => $schema,
-                user        => undef,
+                user        => $user,
             );
             $view->write;
             my $sort_type = @{$sort->{sort_type}} > 1
@@ -1330,7 +1361,7 @@ foreach my $multivalue (0.1)
 
             $records = GADS::Records->new(
                 page    => 1,
-                user    => undef,
+                user    => $user,
                 view    => $view,
                 layout  => $layout,
                 schema  => $schema,

@@ -60,6 +60,11 @@ sub _build_pages
     $self->rows ? ceil($self->count / $self->rows) : 1;
 }
 
+has search => (
+    is  => 'rw',
+    isa => Maybe[Str],
+);
+
 has view => (
     is => 'rw',
 );
@@ -205,11 +210,18 @@ has interpolate_children => (
     default => 1,
 );
 
-# Limit to specific current IDs
+# Current ID results, or limit to specific current IDs
 has current_ids => (
-    is  => 'rw',
-    isa => Maybe[ArrayRef],
+    is        => 'lazy',
+    isa       => Maybe[ArrayRef], # If undef will be ignored
+    clearer   => 1,
+    predicate => 1,
 );
+
+sub _build_current_ids
+{   my $self = shift;
+    [$self->_current_ids_rs->all];
+}
 
 # Produce the overall search condition array
 sub search_query
@@ -238,7 +250,9 @@ sub search_query
             { "$record_single.approval" => 0 },
         ) if $approval_exists;
     }
-    push @search, { "$current.id"          => $self->current_ids} if $self->current_ids;
+    # Current IDs from quick search if used
+    push @search, { "$current.id"          => $self->_search_all_fields } if $self->search;
+    push @search, { "$current.id"          => $self->current_ids } if $self->has_current_ids && $self->current_ids;
     push @search, { "$current.instance_id" => $self->layout->instance_id };
     push @search, $self->common_search(%options, linked => $linked);
     push @search, {
@@ -409,10 +423,17 @@ sub search_views
     @foundin;
 }
 
-sub search_all_fields
-{   my ($self, $search) = @_;
+has _search_all_fields => (
+    is      => 'lazy',
+    isa     => Maybe[ArrayRef],
+    clearer => 1,
+);
 
-    $search or return;
+sub _build__search_all_fields
+{   my $self = shift;
+
+    my $search = $self->search
+        or return;
 
     my %results;
 
@@ -549,8 +570,7 @@ sub search_all_fields
         }
     }
 
-    my @ids = keys %found;
-    $self->current_ids(\@ids);
+    [keys %found];
 }
 
 # Produce a standard set of results without grouping
@@ -806,6 +826,7 @@ sub _build_columns_retrieved_do
             $self->view->id,
             order_dependencies => 1,
             user_can_read      => 1,
+            columns_extra      => $self->columns_extra,
         );
     }
     else {
@@ -831,6 +852,8 @@ sub clear
     $self->clear_columns_retrieved_no;
     $self->clear_columns_retrieved_do;
     $self->clear_count;
+    $self->clear_current_ids;
+    $self->_clear_search_all_fields;
     $self->clear_results;
     $self->_set__next_single_id(0);
 }
@@ -899,8 +922,8 @@ sub _query_params
         # it to, or use, the prefetch. We use the tracking variables from above.
         if (my $view = $self->view)
         {
-            # Apply view filter, but not if specific current IDs set (as when quick search is used)
-            if ($view->filter && !$self->current_ids)
+            # Apply view filter, but not if quick search has been used
+            if ($view->filter && !$self->search)
             {
                 my $decoded = $view->filter->as_hash;
                 if (keys %$decoded)
@@ -1325,6 +1348,13 @@ sub data_time
         schema  => $self->schema,
         records => undef,
     );
+
+    # Add on any extra required columns for labelling etc
+    my @extra;
+    push @extra, $options{label} if $options{label};
+    push @extra, $options{group} if $options{group};
+    push @extra, $options{color} if $options{color};
+    $self->columns_extra([@extra]);
 
     # All the data values
     my ($multiple_dates, $min, $max);

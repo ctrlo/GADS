@@ -220,10 +220,10 @@ sub _build__user_permissions_overall
 
     # First all the column permissions
     my $perms = $self->_user_permissions_columns->{$user_id};
-    foreach my $col_id (keys %$perms)
+    foreach my $col ($self->all)
     {
         $overall->{$_} = 1
-            foreach keys %{$perms->{$col_id}};
+            foreach keys %{$perms->{$col->id}};
     }
 
     # Then the table permissions
@@ -710,7 +710,6 @@ sub _user_perm_search
     {
         return $self->schema->resultset('User')->search({
             'me.id'              => $user_id,
-            'layout.instance_id' => $self->instance_id,
         },
         {
             prefetch => {

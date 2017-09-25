@@ -175,12 +175,14 @@ foreach my $format (qw/yyyy-MM-dd dd-MM-yyyy/)
 
     # Try a quick search for date field
     $records->clear;
-    my $results = $records->search_all_fields($test->{search}->{valid});
+    $records->search($test->{search}->{valid});
+    my $results = $records->results;
     is( @$results, 1, "Correct number of results for quick search, format $format" );
 
     # Try a quick search for calc field
     $records->clear;
-    $results = $records->search_all_fields($test->{search}->{calc});
+    $records->search($test->{search}->{calc});
+    $results = $records->results;
     is( @$results, 1, "Correct number of results for quick search for calc, format $format" );
 
     # Try creating a filter with invalid date format

@@ -373,10 +373,9 @@ get '/data_calendar/:time' => require_login sub {
         view                 => $view,
         from                 => $fromdt,
         to                   => $todt,
+        search               => session('search'),
         interpolate_children => 0,
     );
-    $records->search_all_fields(session 'search')
-        if session 'search';
 
     header "Cache-Control" => "max-age=0, must-revalidate, private";
     content_type 'application/json';
@@ -393,12 +392,11 @@ sub _data_graph
     my $layout  = var 'layout';
     my $view    = current_view($user, $layout);
     my $records = GADS::RecordsGroup->new(
-        user              => $user,
-        layout            => $layout,
-        schema            => schema,
+        user   => $user,
+        search => session('search'),
+        layout => $layout,
+        schema => schema,
     );
-    $records->search_all_fields(session 'search')
-        if session 'search';
     GADS::Graph::Data->new(
         id      => $id,
         records => $records,
@@ -432,13 +430,12 @@ any '/data' => require_login sub {
     {
         my $records = GADS::Records->new(
             user   => $user,
+            search => session('search'),
             layout => $layout,
             schema => schema,
             rewind => session('rewind'),
             view   => current_view($user, $layout),
         );
-        $records->search_all_fields(session 'search')
-            if session 'search';
         my $count; # Count actual number deleted, not number reported by search result
         while (my $record = $records->single)
         {
@@ -476,8 +473,13 @@ any '/data' => require_login sub {
         session 'search' => $search;
         if ($search)
         {
-            my $records = GADS::Records->new(schema => schema, user => $user, layout => $layout);
-            my $results = $records->search_all_fields($search);
+            my $records = GADS::Records->new(
+                search => $search,
+                schema => schema,
+                user   => $user,
+                layout => $layout,
+            );
+            my $results = $records->current_ids;
 
             # Redirect to record if only one result
             redirect "/record/$results->[0]"
@@ -628,6 +630,8 @@ any '/data' => require_login sub {
     {
         my $records = GADS::Records->new(
             user                 => $user,
+            view                 => $view,
+            search               => session('search'),
             layout               => $layout,
             schema               => schema,
             rewind               => session('rewind'),
@@ -641,15 +645,7 @@ any '/data' => require_login sub {
                 color => param('tl_color'),
             };
         }
-        my @extra;
         my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} || {};
-        push @extra, $tl_options->{label} if $tl_options->{label};
-        push @extra, $tl_options->{group} if $tl_options->{group};
-        push @extra, $tl_options->{color} if $tl_options->{color};
-        $records->view($view);
-        $records->columns_extra([@extra]);
-        $records->search_all_fields(session 'search')
-            if session 'search';
         my $timeline = $records->data_timeline(%{$tl_options});
         $params->{records}      = encode_base64(encode_json(delete $timeline->{items}));
         $params->{groups}       = encode_base64(encode_json(delete $timeline->{groups}));
@@ -676,12 +672,11 @@ any '/data' => require_login sub {
 
         my $records = GADS::Records->new(
             user   => $user,
+            search => session('search'),
             layout => $layout,
             schema => schema,
             rewind => session('rewind'),
         );
-        $records->search_all_fields(session 'search')
-            if session 'search';
 
         $records->view($view);
         $records->rows($rows);
@@ -1941,13 +1936,12 @@ any '/bulk/:type/?' => require_login sub {
     # The records to update
     my $records = GADS::Records->new(
         view                 => $view,
+        search               => session('search'),
         retrieve_all_columns => 1, # Need all columns to be able to write updated records
         schema               => schema,
         user                 => $user,
         layout               => $layout,
     );
-    $records->search_all_fields(session 'search')
-        if session 'search';
 
     if (param 'submit')
     {
@@ -1994,13 +1988,17 @@ any '/bulk/:type/?' => require_login sub {
             }
             elsif ($success && !$failures)
             {
+                my $msg = __xn"{_count} record was {type}d successfully", "{_count} records were {type}d successfully",
+                    $success, type => $type;
                 return forwardHome(
-                    { success => 'All records have been updated successfully' }, 'data' );
+                    { success => $msg->toString }, 'data' );
             }
             else # Failures, back round the buoy
             {
-                my $s = __xn"{_count} record was updated successfully", "{_count} records were updated successfully", $success || 0;
-                my $f = __xn", {_count} record failed to be updated", ", {_count} records failed to be updated", $failures || 0;
+                my $s = __xn"{_count} record was {type}d successfully", "{_count} records were {type}d successfully",
+                    ($success || 0), type => $type;
+                my $f = __xn", {_count} record failed to be {type}d", ", {_count} records failed to be {type}d",
+                    ($failures || 0), type => $type;
                 mistake $s.$f;
             }
         }
@@ -2043,6 +2041,7 @@ any '/bulk/:type/?' => require_login sub {
         view        => $view,
         record      => $record,
         all_columns => \@columns_to_show,
+        bulk_type   => $type,
         page        => 'bulk'
     };
 };

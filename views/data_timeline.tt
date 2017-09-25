@@ -90,7 +90,7 @@
                 [% END %]
                 margin: {
                     item: {
-                        horizontal: 0
+                        horizontal: -1
                     }
                 },
                 onMove: on_move,

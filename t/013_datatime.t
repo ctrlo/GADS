@@ -78,6 +78,12 @@ is( @{$records->data_calendar}, 1, "Filter and single column returns correct num
 $records->clear;
 is( @{$records->data_timeline->{items}}, 1, "Filter and single column returns correct number of points to plot for timeline" );
 
+# When a timeline includes a label, that column should be automatically
+# included even if it's not part of the view
+$records->clear;
+my $items = $records->data_timeline(label => $columns->{string1}->id)->{items};
+like( $items->[0]->{content}, qr/Foo/, "Label included in output even if not in view" );
+
 # Now use the same filter and restrict by date
 my $fromdt = DateTime->new(
     year       => 2010,
