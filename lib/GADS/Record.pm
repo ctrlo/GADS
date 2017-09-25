@@ -1203,8 +1203,25 @@ sub write
                     # Work out which ones have changed. We only want to
                     # re-evaluate records that have actually changed, for both
                     # performance reasons and to send the correct alerts
+                    #
+                    # First, establish which current IDs might be affected
                     my %old_ids = map { $_ => 1 } $datum->oldvalue ?  @{$datum->oldvalue->ids} : ();
                     my %new_ids = map { $_ => 1 } @{$datum->ids};
+
+                    # Then see if any fields depend on this autocur (e.g. code fields)
+                    if ($autocur->layouts_depend_depends_on->count)
+                    {
+                        # If they do, we will need to re-evaluate them all
+                        $update_autocurs{$_} ||= []
+                            foreach keys %old_ids, keys %new_ids;
+                    }
+
+                    # If the value hasn't changed at all, skip on
+                    next unless $datum->changed;
+
+                    # If it has changed, work out which one have been added or
+                    # removed. Annotate these with the autocur ID, so we can
+                    # mark that as changed with this value
                     my %changed = map { $_ => 1 } keys %old_ids, keys %new_ids;
                     foreach (keys %changed)
                     {

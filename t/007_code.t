@@ -258,6 +258,22 @@ my @tests = (
         before => '20002000', # Original first record plus new record
         after  => '2000', # Only one referring record after test
     },
+    {
+        name          => 'autocur code update only',
+        type          => 'Calc',
+        layout        => $curval_sheet->layout,
+        record_check  => 1,
+        curval_update => 0,
+        code          => qq(function evaluate (L2autocur1)
+            return_value = ''
+            for _, v in pairs(L2autocur1) do
+                return_value = return_value .. v.field_values.L1daterange1.from.year
+            end
+            return return_value
+        end),
+        before => '20002000', # Original first record plus new record
+        after  => '20002014', # One record has daterange updated only
+    },
 );
 
 foreach my $test (@tests)
@@ -334,7 +350,8 @@ foreach my $test (@tests)
         # Check we can update the record
         set_fixed_time('11/15/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
         $record->fields->{$columns->{daterange1}->id}->set_value(['2014-10-10', '2015-10-10']);
-        $record->fields->{$columns->{curval1}->id}->set_value(2);
+        $record->fields->{$columns->{curval1}->id}->set_value(2)
+            unless exists $test->{curval_update} && !$test->{curval_update};
         $record->fields->{$columns->{tree1}->id}->set_value(12);
         $record->user({ id => 2 });
         try { $record->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
