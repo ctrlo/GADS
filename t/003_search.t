@@ -97,6 +97,19 @@ my @position = (
     $columns->{tree1}->id,
 );
 $layout->position(@position);
+
+my $calc_int = GADS::Column::Calc->new(
+    schema      => $schema,
+    user        => undef,
+    layout      => $layout,
+    name        => 'calc_int',
+    return_type => 'integer',
+    code        => "function evaluate (L1integer1) return L1integer1 end",
+);
+$calc_int->write;
+$calc_int->set_permissions($sheet->group->id => $sheet->default_permissions);
+$layout->clear;
+
 $sheet->create_records;
 $curval_sheet->add_autocur(refers_to_instance_id => 1, related_field_id => $columns->{curval1}->id);
 $curval_sheet->add_autocur(refers_to_instance_id => 1, related_field_id => $columns->{curval2}->id);
@@ -229,6 +242,16 @@ my @filters = (
             type     => 'date',
             value    => 'CURDATE - '.(86400 * 365), # Might be leap seconds etc, but close enough
             operator => 'equal',
+        }],
+        count => 1,
+    },
+    {
+        name  => 'negative filter for calc',
+        rules => [{
+            id       => $calc_int->id,
+            type     => 'string',
+            value    => -1,
+            operator => 'less',
         }],
         count => 1,
     },

@@ -65,7 +65,8 @@ sub clear_not_data
             my $f = $self->schema->resultset('Layout')->search({
                 instance_id => $self->layout->instance_id,
                 name        => $child_name,
-            })->next;
+            })->next
+                or next; # Skip if no longer exists - may have been additional temporary column
             $self->schema->resultset('CurvalField')->create({
                 parent_id => $related_id,
                 child_id  => $f->id,
@@ -355,6 +356,7 @@ sub __build_columns
     );
     $integer1->type('intgr');
     $integer1->name('integer1');
+    $integer1->name_short("L${instance_id}integer1");
     try { $integer1->write };
     if ($@)
     {
