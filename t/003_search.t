@@ -331,6 +331,16 @@ my @filters = (
         count => 1,
     },
     {
+        name  => 'negative integer filter',
+        rules => [{
+            id       => $columns->{integer1}->id,
+            type     => 'integer',
+            operator => 'less',
+            value    => -1,
+        }],
+        count => 1,
+    },
+    {
         name  => 'daterange less than',
         rules => [{
             id       => $columns->{daterange1}->id,
