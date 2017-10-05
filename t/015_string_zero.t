@@ -49,6 +49,43 @@ foreach my $value ('', '0')
         ok($written->fields->{$integer1->id}->blank, "value '' is blank for integer after write");
     }
     is($written->fields->{$integer1->id}->as_string, $value, "value '$value' correctly written for integer");
+
+    # Check filters
+    foreach my $col_id ($string1->id, $integer1->id)
+    {
+        next if $col_id == $integer1->id && $value eq '';
+        my $rules = GADS::Filter->new(
+            as_hash => {
+                rules => [
+                    {
+                        id       => $col_id,
+                        type     => 'string',
+                        value    => $value,
+                        operator => 'equal',
+                    },
+                ],
+            },
+        );
+
+        my $view = GADS::View->new(
+            name        => 'Zero view',
+            filter      => $rules,
+            columns     => [$col_id],
+            instance_id => 1,
+            layout      => $layout,
+            schema      => $schema,
+            user        => $sheet->user,
+        );
+        $view->write;
+
+        $records = GADS::Records->new(
+            user    => $sheet->user,
+            view    => $view,
+            layout  => $layout,
+            schema  => $schema,
+        );
+        is($records->count, 1, qq(One zero record for value "$value" col ID $col_id));
+    }
 }
 
 done_testing();
