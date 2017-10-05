@@ -20,7 +20,7 @@ my $long = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eius
 my $data = [
     {
         string1    => '',
-        integer1   => 4,
+        integer1   => -4,
         date1      => '',
         daterange1 => ['', ''],
         enum1      => 'foo1',

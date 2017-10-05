@@ -39,7 +39,7 @@ has '+return_type' => (
 sub validate
 {   my ($self, $value, %options) = @_;
 
-    if ($value && $value !~ /^[0-9]+$/)
+    if ($value && $value !~ /^-?[0-9]+$/)
     {
         return 0 unless $options{fatal};
         error __x"'{int}' is not a valid integer for '{col}'",

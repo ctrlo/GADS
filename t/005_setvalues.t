@@ -21,7 +21,7 @@ my $values = {
         old_as_string  => '100',
         new            => 200,
         new_as_string  => '200',
-        addable        => '+ 25',
+        addable        => '(+ 25)',
         addable_result => '225',
     },
     enum1 => {

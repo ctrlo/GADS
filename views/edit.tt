@@ -392,7 +392,7 @@
         [% ELSIF page == "bulk" AND dispcol.addable %]
             [% label_add = BLOCK %]
                 (<span style="font-weight:normal !important"><a style="cursor: pointer" data-toggle="popover" title="Add or subtract for cloned value"
-                data-content="You can add or subtract a value for the new or cloned values by entering an amount, such as &lsquo;+25&rsquo;.
+                data-content="You can add or subtract a value for the new or cloned values by entering an amount in brackets, such as &lsquo;(+25)&rsquo;.
                 Available operators are: &lsquo;+&rsquo;, &lsquo;-&rsquo;, &lsquo;*&rsquo;; and &lsquo;/&rsquo;." data-html="true">add/subtract</a></span>)
             [% END %]
             [% label = label _ label_add %]
