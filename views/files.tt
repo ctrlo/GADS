@@ -1,15 +1,15 @@
-<h2>Uploaded Files</h2>
-<p>This page contains details of any files that have been uploaded to Linkspace that are not associated with records.</p>
+<h2>Manage uploads</h2>
+<p class="lead">Below are all the files that have been uploaded for use on homepages. Click on the file name to download any file.</p>
 
 <div class="row">
     <div class="col-md-12">
-        <a href="" data-toggle="modal" data-target="#modal_upload" class="btn btn-default">Upload new file...</a>
+        <a href="" data-toggle="modal" data-target="#modal_upload" class="btn btn-default">Upload a file...</a>
         <form role="form" method="post">
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Name</th>
+                        <th>ID:</th>
+                        <th>Name:</th>
                     </tr>
                 </thead>
                 <tbody>

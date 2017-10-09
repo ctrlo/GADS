@@ -1,16 +1,16 @@
-<h2>Audit logs</h2>
+<h2>User logs</h2>
 <p>
-    <a href="" data-toggle="modal" data-target="#modal_filter" class="btn btn-default">Filtering...</a>
+    <a href="" data-toggle="modal" data-target="#modal_filter" class="btn btn-default">Filter...</a>
     <a href="/audit?download" class="btn btn-default">Download</a>
 </p>
 
 <table class="table table-striped">
     <tr>
-        <th>ID</th>
-        <th>Username</th>
-        <th>Type</th>
-        <th>Time</th>
-        <th>Description</th>
+        <th>ID:</th>
+        <th>Username:</th>
+        <th>Type:</th>
+        <th>Time:</th>
+        <th>Description:</th>
     </tr>
     [% FOREACH log IN logs %]
         <tr>

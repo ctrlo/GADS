@@ -1,0 +1,12 @@
+@mixin visually-unhide {
+    clip: auto;
+    height: auto;
+    margin: auto;
+    overflow: auto;
+    padding: initial;
+    position: absolute;
+    width: auto;
+    opacity: 1;
+}
+
+

@@ -32,8 +32,8 @@ sub long {
     my $self = shift;
     $self->short or return "";
       $self->short eq 'read'                       ? 'Read values'
-    : $self->short eq 'write_new'                  ? 'Enter values for new records'
-    : $self->short eq 'write_existing'             ? 'Edit values of existing records'
+    : $self->short eq 'write_new'                  ? 'Enter values for new records, requiring approval'
+    : $self->short eq 'write_existing'             ? 'Edit values of existing records, requiring approval'
     : $self->short eq 'approve_new'                ? 'Approve values in new records'
     : $self->short eq 'approve_existing'           ? 'Approve changes in existing records'
     : $self->short eq 'write_new_no_approval'      ? 'Enter values for new records without requiring approval'

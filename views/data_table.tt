@@ -1,4 +1,25 @@
+[% PROCESS snippets/rag_symbols.tt %]
+
+[% BLOCK rag_legend %]
+    <aside id="rag_legend" role="complementary">
+        <h2>RAG symbol legend</h2>
+        <dl>
+        [% FOREACH symbol IN rag_symbols %]
+            <dt class="rag">
+                <span class="[% symbol.key %]">[% symbol.value %]</span>
+            </dt>
+            <dd id="rag_[% symbol.key %]_meaning">[% symbol.key %]</dd>
+        [% END %]
+        </dl>
+    </aside>
+[% END %]
+
 [% FILTER collapse %]
+
+[% PROCESS snippets/datum.tt %]
+
+[% PROCESS rag_legend IF has_rag_column %]
+
 [% IF subset.pages > 1 %]
     [% IF subset.page == subset.pages %]
         <a class="disabled btn btn-default pull-right" href="?page=[% subset.page + 1 %]">&raquo;</a>
@@ -12,10 +33,13 @@
     [% END %]
 [% END %]
 <div class="hscroll">
-<table class="table table-striped" id="datatable">
+<table class="table table-striped" id="data-table">
     <thead>
         <tr>
             [% sort = sort.shift %]
+            [% sort_order = sort.type %]
+            [% sort_label = sort_order == "asc" ? "sort descending" : "sort ascending" %]
+
             [% IF sort.id == -11 AND sort.type == "asc" %]
                 [% st = "&#9650;" %]
             [% ELSIF sort.id == -11 %]
@@ -23,7 +47,11 @@
             [% ELSE %]
                 [% st = "" %]
             [% END %]
-            <th><a href="?sort=-11" style="color:black">ID[% st %]</a></th>
+            <th [% sort.id == -11 && "aria-sort=\"${sort_order}ending\"" %]>
+                <a href="?sort=-11">ID[% st %]
+                    [% sort.id == -11 && "<span class=\"visually-hidden\">${sort_label}</span>" %]
+                </a>
+            </th>
             [% FOREACH col IN columns %]
                 [% IF sort.id == col.id AND sort.type == "asc" %]
                     [% st = "&#9650;" %]
@@ -33,17 +61,20 @@
                     [% st = "" %]
                 [% END %]
                 <th>
-                    <a href="?sort=[% col.id %]" style="color:black">
+                    <a [% sort.id == col.id && "aria-sort=\"${sort_order}ending\"" %] href="?sort=[% col.id %]">
                         [% col.name | html_entity %][% IF col.id == sort.id %][% st %][% END %]
+                        [% sort.id == col.id && "<span class=\"visually-hidden\">${sort_label}</span>" %]
                     </a>
                     [% IF col.helptext %]
-                        (<a data-toggle="modal" href="" data-target="#modal_helptext" data-col_id="[% col.id %]" data-col_name="[% col.name | html %]">?</a>)
+                        <button aria-haspopup="true" data-toggle="modal" data-target="#modal_helptext" data-col_id="[% col.id %]" data-col_name="[% col.name | html %]">
+                             <span class="visually-hidden">Need help</span>?
+                        </button>
                     [% END %]
 
-                    [% IF col.type == "person" AND user.permission.message AND records.size %]
-                        <a href="" data-toggle="modal" data-target="#modal_sendemail" data-peopcol_id="[% col.id %]">
-                            <img src="/images/envw.png">
-                        </a>
+                    [% IF col.type == "person" AND layout.user_can("message") AND records.size %]
+                        <button aria-haspopup="true" data-toggle="modal" data-target="#modal_sendemail" data-peopcol_id="[% col.id %]">
+                            <span class="visually-hidden">Send e-mail</span>&#x2709;
+                        </button>
                     [% END %]
                 </th>
             [% END %]
@@ -59,29 +90,8 @@
                     (<a href="/edit/[% record.current_id %]">Edit</a>)
                 [% END %]
             </td>
-            [% FOREACH column IN columns %]
-                [% colid = column.id %]
-                [% value = record.fields.$colid %]
-                <td>
-                [% IF column.type == "rag" %]
-                    <div class="circ-large
-                        [% value %]
-                        ">
-                    </div>
-                [% ELSIF column.type == "string" OR column.type == "curval" OR column.multivalue %]
-                    [% IF value.as_string.length > 50 %]
-                        <div class="more-less">
-                            <div class="more-block">
-                    [% END %]
-                                <p>[% value.html_withlinks %]</p>
-                    [% IF value.as_string.length > 50 %]
-                            </div>
-                        </div>
-                    [% END %]
-                [% ELSE %]
-                    <p>[% value.html %]</p>
-                [% END %]
-                </td>
+            [% FOREACH column IN record.columns %]
+                <td class="[% column.type %]">[% render_datum(column) %]</td>
             [% END %]
         </tr>
         [% END %]
@@ -156,31 +166,6 @@
                 $("#datatable").floatThead({
                     zIndex: function($table){
                         return 999;
-                    }
-                });
-                var adjustheight = 60;
-                var moreText = '+ More';
-                var lessText = '- Less';
-                var items = $('.more-less .more-block');
-                var $currentItem;
-                for (var i = 0, j = items.length; i < j; i++) {
-                    $currentItem = $(items[i]);
-
-                    if ($currentItem.height() > adjustheight){
-                        $currentItem.css('height', adjustheight).css('overflow', 'hidden');
-                        $currentItem.parent(".more-less").append
-                            ('<a style="cursor:pointer" class="adjust">' + moreText + '</a>');
-                    }
-                };
-                $(".adjust").click(function() {
-                    if ($(this).prev().css('overflow') == 'hidden')
-                    {
-                        $(this).prev().css('height', 'auto').css('overflow', 'visible');
-                        $(this).text(lessText);
-                    }
-                    else {
-                        $(this).prev().css('height', adjustheight).css('overflow', 'hidden');
-                        $(this).text(moreText);
                     }
                 });
                 if (!FontDetect.isFontLoaded('14px/1 FontAwesome')) {

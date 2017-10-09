@@ -25,6 +25,8 @@ use namespace::clean;
 
 extends 'GADS::Datum';
 
+with 'GADS::Role::Presentation::Datum::File';
+
 sub set_value
 {   my ($self, $value) = @_;
     my $clone = $self->clone; # Copy before changing text

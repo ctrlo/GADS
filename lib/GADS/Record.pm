@@ -46,6 +46,8 @@ use MooX::Types::MooseLike::Base qw(:all);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 use namespace::clean;
 
+with 'GADS::Role::Presentation::Record';
+
 # Preferably this is passed in to prevent extra
 # DB reads, but loads it if it isn't
 has layout => (
@@ -730,6 +732,10 @@ sub approver_can_action_column
 
 sub write_linked_id
 {   my ($self, $linked_id) = @_;
+
+    error __"You do not have permission to link records"
+        unless $self->layout->user_can("link");
+
     my $guard = $self->schema->txn_scope_guard;
     # Blank existing values first, otherwise they will be read instead of
     # linked values under some circumstances
@@ -1483,9 +1489,17 @@ sub _field_write
     }
 }
 
+sub user_can_delete
+{   my $self = shift;
+    return 0 unless $self->current_id;
+    return $self->layout->user_can("delete") && $self->layout->user_can("delete_noneed_approval");
+}
+
 # Just delete this version
 sub delete
 {   my $self = shift;
+    error __"You do not have permission to delete records"
+        unless !$self->user || $self->user_can_delete;
     $self->_delete_record_values($self->record_id);
     $self->schema->resultset('Record')->find($self->record_id)->delete;
 }
@@ -1496,9 +1510,7 @@ sub delete_current
 {   my $self = shift;
 
     error __"You do not have permission to delete records"
-        unless !$self->user
-             || $self->user->{permission}->{delete}
-             || $self->user->{permission}->{delete_noneed_approval};
+        unless !$self->user || $self->user_can_delete;
 
     my $id = $self->current_id
         or panic __"No current_id specified for delete";
