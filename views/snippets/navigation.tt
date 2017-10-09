@@ -32,7 +32,6 @@
 
 [% BLOCK dataset_menu %]
    <div class="col-md-4 navbar navbar-default">
-        <div class="collapse navbar-collapse" id="dataset-navbar">
             <ul class="nav navbar-nav">
                <li class="dropdown">
                     <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
@@ -51,14 +50,12 @@
                     </ul>
                 </li>
            </ul>
-       </div>
     </div>
 
 [% END %]
 
 [% BLOCK user_menu %]
     <div class="col-md-4 navbar navbar-default">
-        <div class="collapse navbar-collapse" id="user-navbar">
     
     <ul class="nav navbar-nav">
         <li class="dropdown">
@@ -85,7 +82,6 @@
         </li>
     </ul>
 
-        </div>
     </div>
 [% END %]
 
@@ -199,7 +195,6 @@
 [% BLOCK data_menu %]
    <div class="col-md-4 navbar navbar-default">
         <h2 class="heading">Data management</h2>
-        <div class="collapse navbar-collapse" id="app-navbar">
             <ul class="nav navbar-nav">
                 [% IF user.permission.layout %]
                     [% PROCESS table_menu %]
@@ -210,7 +205,6 @@
                 [% PROCESS records_menu %]
                 [% PROCESS views_menu %]
            </ul>
-        </div>
     </div>
 [% END %]
 
