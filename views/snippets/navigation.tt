@@ -26,7 +26,7 @@
     <nav aria-label="Breadcrumb" class="col-md-12 breadcrumbs" role="navigation">
         <ol class="items">
         [% FOREACH crumb in breadcrumbs %]
-        <li [% 'aria-current="page"' IF loop.last %] class="item [% 'last' IF loop.last %]"><a href="[% crumb.href %]">[% IF loop.first %]<span aria-hidden="true" class="[% crumb_icons.home %]"></span>[% END %][% crumb.text | html %]</a>[% UNLESS loop.last %]<span class="separator"></span>[% END %]</li>
+        <li class="item [% 'last' IF loop.last %]"><a [% 'aria-current="page"' IF loop.last %] href="[% crumb.href %]">[% IF loop.first %]<span aria-hidden="true" class="[% crumb_icons.home %]"></span>[% END %][% crumb.text | html %]</a>[% UNLESS loop.last %]<span class="separator"></span>[% END %]</li>
         [% END %]
         </ol>
     </nav>
