@@ -31,12 +31,12 @@
 [% END %]
 
 [% BLOCK dataset_menu %]
-   <div class="col-md-4 navbar navbar-default">
+   <div class="col-md-4 navbar navbar-default" id="dataset-navbar">
             <ul class="nav navbar-nav">
                <li class="dropdown">
                     <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
                         aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
-                        <h2 class="heading">Dataset</h2>
+                        <h2 class="heading">Dataset <span class="visually-hidden">menu</span></h2>
                         <span>[% instance_name | html_entity %]</span>
                         <span class="caret"></span>
                     </button>
@@ -55,7 +55,7 @@
 [% END %]
 
 [% BLOCK user_menu %]
-    <div class="col-md-4 navbar navbar-default">
+    <div class="col-md-4 navbar navbar-default" id="user-navbar">
     
     <ul class="nav navbar-nav">
         <li class="dropdown">
@@ -193,8 +193,8 @@
 [% END %]
 
 [% BLOCK data_menu %]
-   <div class="col-md-4 navbar navbar-default">
-        <h2 class="heading">Data management</h2>
+   <div class="col-md-4 navbar navbar-default" id="app-navbar">
+        <div class="heading">Data management</div>
             <ul class="nav navbar-nav">
                 [% IF user.permission.layout %]
                     [% PROCESS table_menu %]

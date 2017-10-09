@@ -237,16 +237,30 @@ nav .dropdown-toggle {
   list-style: none;
   font-weight: 100; }
 
-#app-navbar {
-  margin-top: .3em; }
+#app-navbar .nav {
+  margin-top: .4em; }
 
+.navbar {
+  margin-bottom: 1em; }
+
+@media (max-width: 767px) {
+  .navbar {
+    margin-bottom: 0; }
+
+  #app-navbar .heading {
+    margin-left: -10px; }
+
+  .navbar-nav .open .dropdown-menu {
+    margin: 0 1em;
+    border: 1px solid #ccc; } }
 nav .heading {
   text-align: left;
   color: #7276ad;
   margin: 0;
   padding: 0;
   margin-bottom: 0;
-  font-size: 1.5rem; }
+  font-size: 1.5rem;
+  font-weight: 500; }
 
 nav .dropdown-toggle {
   font-size: 1em; }
