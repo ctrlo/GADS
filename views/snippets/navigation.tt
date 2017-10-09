@@ -193,8 +193,8 @@
 [% END %]
 
 [% BLOCK data_menu %]
-   <div class="col-md-4 navbar navbar-default" id="app-navbar">
-        <div class="heading">Data management</div>
+   <div class="col-md-4 navbar navbar-default" id="app-navbar" aria-labelledby="app-navbar-heading">
+        <div class="heading" id="app-navbar-heading">Data management</div>
             <ul class="nav navbar-nav">
                 [% IF user.permission.layout %]
                     [% PROCESS table_menu %]
