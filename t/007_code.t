@@ -45,6 +45,13 @@ my $layout       = $sheet->layout;
 my $columns      = $sheet->columns;
 $sheet->create_records;
 
+my $autocur1 = $curval_sheet->add_autocur(
+    curval_field_ids      => [$columns->{daterange1}->id],
+    refers_to_instance_id => 1,
+    related_field_id      => $columns->{curval1}->id,
+);
+$layout->clear; # Ensure main layout takes account of its new child autocurs
+
 # Attempt to create additional calc field separately.
 # This has been known to cause errors with $layout not
 # being updated properly
@@ -236,6 +243,37 @@ my @tests = (
         before => 'tree1',
         after  => 'tree3'
     },
+    {
+        name   => 'autocur',
+        type   => 'Calc',
+        layout => $curval_sheet->layout,
+        record_check => 1,
+        code   => qq(function evaluate (L2autocur1)
+            return_value = ''
+            for _, v in pairs(L2autocur1) do
+                return_value = return_value .. v.field_values.L1daterange1.from.year
+            end
+            return return_value
+        end),
+        before => '20002000', # Original first record plus new record
+        after  => '2000', # Only one referring record after test
+    },
+    {
+        name          => 'autocur code update only',
+        type          => 'Calc',
+        layout        => $curval_sheet->layout,
+        record_check  => 1,
+        curval_update => 0,
+        code          => qq(function evaluate (L2autocur1)
+            return_value = ''
+            for _, v in pairs(L2autocur1) do
+                return_value = return_value .. v.field_values.L1daterange1.from.year
+            end
+            return return_value
+        end),
+        before => '20002000', # Original first record plus new record
+        after  => '20002014', # One record has daterange updated only
+    },
 );
 
 foreach my $test (@tests)
@@ -244,13 +282,14 @@ foreach my $test (@tests)
     my $code_col = "GADS::Column::$test->{type}"->new(
         schema         => $schema,
         user           => undef,
-        layout         => $layout,
+        layout         => $test->{layout} || $layout,
         name           => 'code col',
         return_type    => $test->{return_type} || 'string',
         decimal_places => $test->{decimal_places},
         code           => $test->{code},
     );
     $code_col->write;
+    $layout->clear;
 
     my @results;
     
@@ -293,37 +332,59 @@ foreach my $test (@tests)
         my $before = $test->{before};
         my $cid = $record->current_id;
         $before =~ s/__ID/$cid/;
-        is( $record->fields->{$code_col->id}->as_string, $before, "Correct code value for test $test->{name}" );
+        my $record_check;
+        if (my $rcid = $test->{record_check})
+        {
+            $record_check = GADS::Record->new(
+                user   => $sheet->user,
+                layout => $test->{layout},
+                schema => $schema,
+            );
+            $record_check->find_current_id($rcid);
+        }
+        else {
+            $record_check = $record;
+        }
+        is( $record_check->fields->{$code_col->id}->as_string, $before, "Correct code value for test $test->{name} (before)" );
 
         # Check we can update the record
         set_fixed_time('11/15/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
         $record->fields->{$columns->{daterange1}->id}->set_value(['2014-10-10', '2015-10-10']);
-        $record->fields->{$columns->{curval1}->id}->set_value(2);
+        $record->fields->{$columns->{curval1}->id}->set_value(2)
+            unless exists $test->{curval_update} && !$test->{curval_update};
         $record->fields->{$columns->{tree1}->id}->set_value(12);
         $record->user({ id => 2 });
         try { $record->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
         $@->reportFatal; # In case any fatal errors
         my $after = $test->{after};
         $after =~ s/__ID/$cid/;
-        is( $record->fields->{$code_col->id}->as_string, $after, "Correct code value for test $test->{name}" );
+        if (my $rcid = $test->{record_check})
+        {
+            $record_check->clear;
+            $record_check->find_current_id($rcid);
+        }
+        is( $record_check->fields->{$code_col->id}->as_string, $after, "Correct code value for test $test->{name} (after)" );
         is( $record->fields->{$calc_inv_string->id}->as_string, '<evaluation error>', "<evaluation error>or test $test->{name}" );
         is( $record->fields->{$calc_inv_int->id}->as_string, '', "<evaluation error>2or test $test->{name}" );
 
-        # Delete tree node and check calc still correct
-        $schema->resultset('Enumval')->find(12)->update({ deleted => 1 });
-        $layout->clear;
-        my $current_id = $record->current_id;
-        $record->clear;
-        $record->find_current_id($current_id);
-        $record->fields->{$columns->{string1}->id}->set_value('Foobar'); # Ensure change has happened
-        try { $record->write } hide => 'WARNING';
-        $@->reportFatal; # In case any fatal errors
-        $record->clear;
-        $record->find_current_id($current_id);
-        is( $record->fields->{$code_col->id}->as_string, $after, "Correct code value for test $test->{name} after enum deletion" );
+        unless ($test->{record_check}) # Test will not work from wrong datasheet
+        {
+            $schema->resultset('Enumval')->find(12)->update({ deleted => 1 });
+            $layout->clear;
+            my $current_id = $record->current_id;
+            $record->clear;
+            $record->find_current_id($current_id);
+            $record->fields->{$columns->{string1}->id}->set_value('Foobar'); # Ensure change has happened
+            try { $record->write } hide => 'WARNING';
+            $@->reportFatal; # In case any fatal errors
+            $record->clear;
+            $record->find_current_id($current_id);
+            is( $record->fields->{$code_col->id}->as_string, $after, "Correct code value for test $test->{name} after enum deletion" );
+        }
 
         # Reset values for next test
         $schema->resultset('Enumval')->find(12)->update({ deleted => 0 });
+        $layout->clear;
         set_fixed_time('10/22/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
         $record->fields->{$columns->{daterange1}->id}->set_value($data->[0]->{daterange1});
         $record->fields->{$columns->{curval1}->id}->set_value($data->[0]->{curval1});
@@ -333,6 +394,9 @@ foreach my $test (@tests)
         try { $record->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
         $@->reportFatal; # In case any fatal errors
     }
+    # XXX Hack to allow record to be deleted
+    $record_new->user->{permission}->{delete} = 1;
+    $record_new->delete_current;
     $code_col->delete;
 }
 

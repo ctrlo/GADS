@@ -29,7 +29,7 @@ sub set_value
     $self->oldvalue($self->clone);
     ($value) = @$value if ref $value eq 'ARRAY';
     $value = undef if defined $value && !$value && $value !~ /^0+$/; # Can be empty string, generating warnings
-    if ($value && $value =~ m!^\h*([\*\+\-/])\h*([0-9]+)\h*$!)
+    if ($value && $value =~ m!^\h*\(\h*([\*\+\-/])\h*([0-9]+)\h*\)\h*$!)
     {
         my $op = $1; my $amount = $2;
         # Still count as valid written if currently blank

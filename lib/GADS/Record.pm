@@ -1137,6 +1137,7 @@ sub write
     # Write all the values
     my %columns_changed = ($self->current_id => []);
     my @columns_cached;
+    my %update_autocurs;
     foreach my $column ($self->layout->all(order_dependencies => 1))
     {
         my $datum = $self->fields->{$column->id};
@@ -1200,7 +1201,7 @@ sub write
                     $self->_field_write($column, $datum, %options);
                 }
             }
-            # Update any records with an autocur field that are referred to by this
+            # Note any records that will need updating that have an autocur field that refers to this
             if ($column->type eq 'curval')
             {
                 foreach my $autocur (@{$column->autocurs})
@@ -1208,8 +1209,25 @@ sub write
                     # Work out which ones have changed. We only want to
                     # re-evaluate records that have actually changed, for both
                     # performance reasons and to send the correct alerts
+                    #
+                    # First, establish which current IDs might be affected
                     my %old_ids = map { $_ => 1 } $datum->oldvalue ?  @{$datum->oldvalue->ids} : ();
                     my %new_ids = map { $_ => 1 } @{$datum->ids};
+
+                    # Then see if any fields depend on this autocur (e.g. code fields)
+                    if ($autocur->layouts_depend_depends_on->count)
+                    {
+                        # If they do, we will need to re-evaluate them all
+                        $update_autocurs{$_} ||= []
+                            foreach keys %old_ids, keys %new_ids;
+                    }
+
+                    # If the value hasn't changed at all, skip on
+                    next unless $datum->changed;
+
+                    # If it has changed, work out which one have been added or
+                    # removed. Annotate these with the autocur ID, so we can
+                    # mark that as changed with this value
                     my %changed = map { $_ => 1 } keys %old_ids, keys %new_ids;
                     foreach (keys %changed)
                     {
@@ -1218,15 +1236,8 @@ sub write
                     }
                     foreach my $cid (keys %changed)
                     {
-                        my $record = GADS::Record->new(
-                            user     => $self->user,
-                            layout   => $self->layout,
-                            schema   => $self->schema,
-                            base_url => $self->base_url,
-                        );
-                        $record->find_current_id($cid);
-                        $record->fields->{$autocur->id}->changed(1);
-                        $record->write(update_only => 1, re_evaluate => 1);
+                        $update_autocurs{$cid} ||= [];
+                        push @{$update_autocurs{$cid}}, $autocur->id;
                     }
                 }
             }
@@ -1295,6 +1306,21 @@ sub write
     # on the alert cache columns. Therefore, commit what we've
     # done so far, and don't do alerts in a transaction
     $guard->commit;
+
+    # Update any records with an autocur field that are referred to by this
+    foreach my $cid (keys %update_autocurs)
+    {
+        my $record = GADS::Record->new(
+            user     => $self->user,
+            layout   => $self->layout,
+            schema   => $self->schema,
+            base_url => $self->base_url,
+        );
+        $record->find_current_id($cid);
+        $record->fields->{$_}->changed(1)
+            foreach @{$update_autocurs{$cid}};
+        $record->write(update_only => 1, re_evaluate => 1);
+    }
 
     # Send any alerts
     unless ($options{no_alerts})

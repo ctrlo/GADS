@@ -157,7 +157,7 @@ sub validate
     }
     elsif ($self->return_type eq 'integer')
     {
-        return $value =~ /^[0-9]+$/;
+        return $value =~ /^-?[0-9]+$/;
     }
     elsif ($self->return_type eq 'numeric')
     {
