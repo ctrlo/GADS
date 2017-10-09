@@ -215,7 +215,7 @@ nav .dropdown-toggle {
 .breadcrumbs .items {
   margin: 0;
   padding-left: 0;
-  list-style: none; }
+  list-style-type: none; }
 
 .breadcrumbs .item {
   display: inline-block; }
@@ -254,7 +254,7 @@ nav .dropdown-toggle {
 nav button .heading {
   margin-bottom: .3em; }
 
-#skip-links ol {
+#skip-links {
   margin: 0;
   padding: 0;
   list-style-type: none; }

@@ -1,39 +1,37 @@
-<div class="row">
+<nav class="row" role="navigation">
     [% PROCESS skip_links %]
     [% PROCESS dataset_menu %]
     [% PROCESS data_menu %]
     [% PROCESS user_menu %]
-</div>
+</nav>
 
 <div class="row">
     [% PROCESS crumbs %]
 </div>
 
 [% BLOCK skip_links %]
-    <nav id="skip-links" role="navigation">
-        <ol>
-            <li>
-                <a href="#main" class="visually-hidden">Skip to content</a>
-            </li>
-        </ol>
-    </nav>
+    <ol id="skip-links">
+        <li>
+            <a href="#main" class="visually-hidden">Skip to content</a>
+        </li>
+    </ol>
 [% END %]
 
 [% BLOCK crumbs %]
     [% crumb_icons = {
         home => 'fa fa-home'
     } %]
-    <nav aria-label="Breadcrumb" class="col-md-12 breadcrumbs" role="navigation">
+    <nav aria-label="Breadcrumbs" class="col-md-12 breadcrumbs" role="navigation">
         <ol class="items">
         [% FOREACH crumb in breadcrumbs %]
-        <li class="item [% 'last' IF loop.last %]"><a [% 'aria-current="page"' IF loop.last %] href="[% crumb.href %]">[% IF loop.first %]<span aria-hidden="true" class="[% crumb_icons.home %]"></span>[% END %][% crumb.text | html %]</a>[% UNLESS loop.last %]<span class="separator"></span>[% END %]</li>
+            <li class="item [% 'last' IF loop.last %]"><a [% 'aria-current="page"' IF loop.last %] href="[% crumb.href %]">[% IF loop.first %]<span aria-hidden="true" class="[% crumb_icons.home %]"></span>[% END %][% crumb.text | html %]</a>[% UNLESS loop.last %]<span class="separator"></span>[% END %]</li>
         [% END %]
         </ol>
     </nav>
 [% END %]
 
 [% BLOCK dataset_menu %]
-   <nav class="col-md-4 navbar navbar-default" role="navigation">
+   <div class="col-md-4 navbar navbar-default">
         <div class="collapse navbar-collapse" id="dataset-navbar">
             <ul class="nav navbar-nav">
                <li class="dropdown">
@@ -54,12 +52,12 @@
                 </li>
            </ul>
        </div>
-    </nav>
+    </div>
 
 [% END %]
 
 [% BLOCK user_menu %]
-    <nav class="col-md-4 navbar navbar-default" role="navigation">
+    <div class="col-md-4 navbar navbar-default">
         <div class="collapse navbar-collapse" id="user-navbar">
     
     <ul class="nav navbar-nav">
@@ -88,7 +86,7 @@
     </ul>
 
         </div>
-    </nav>
+    </div>
 [% END %]
 
 [% BLOCK table_menu %]
@@ -199,7 +197,7 @@
 [% END %]
 
 [% BLOCK data_menu %]
-   <nav class="col-md-4 navbar navbar-default" role="navigation">
+   <div class="col-md-4 navbar navbar-default">
         <h2 class="heading">Data management</h2>
         <div class="collapse navbar-collapse" id="app-navbar">
             <ul class="nav navbar-nav">
@@ -213,6 +211,6 @@
                 [% PROCESS views_menu %]
            </ul>
         </div>
-    </nav>
+    </div>
 [% END %]
 
