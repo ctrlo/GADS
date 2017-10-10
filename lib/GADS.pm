@@ -831,7 +831,7 @@ any '/data' => require_login sub {
 any '/account/?:action?/?' => require_login sub {
 
     my $action = param 'action';
-    my $user   = logged_in_user;
+    my $user   = rset('User')->find(logged_in_user->{id});
     my $audit  = GADS::Audit->new(schema => schema, user => $user);
 
     if (param 'newpassword')
@@ -849,8 +849,7 @@ any '/account/?:action?/?' => require_login sub {
 
     if (param 'graphsubmit')
     {
-        my $usero = rset('User')->find($user->{id});
-        if (process( sub { $usero->graphs(param('graphs')) }))
+        if (process( sub { $user->graphs(param('graphs')) }))
         {
             return forwardHome(
                 { success => "The selected graphs have been updated" }, 'account/graph' );
@@ -902,7 +901,7 @@ any '/account/?:action?/?' => require_login sub {
     {
         my $users = GADS::Users->new(schema => schema);
         template 'user' => {
-            edit          => $user->{id},
+            edit          => $user->id,
             users         => [$user],
             titles        => $users->titles,
             organisations => $users->organisations,

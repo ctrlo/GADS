@@ -51,8 +51,9 @@ sub _all
         # two separate queries
 
         # Get which graphs the user has first
+        my $user_id = ref $self->user eq 'HASH' ? $self->user->{id} : $self->user->id;
         @user_graphs = $self->schema->resultset('Graph')->search({
-            'user_graphs.user_id' => $user->{id},
+            'user_graphs.user_id' => $user_id,
             instance_id           => $self->layout->instance_id,
         },{
             join => 'user_graphs',
