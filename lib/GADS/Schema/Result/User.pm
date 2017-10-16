@@ -724,12 +724,15 @@ sub update_user
         account_request_notes => $params{account_request_notes},
     };
 
+    my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $current_user);
+
     if ($values->{username} ne $self->username)
     {
         $self->result_source->schema->resultset('User')->active->search({
             username => $values->{username},
         })->count
             and error __x"Email address {username} already exists as an active user", username => $values->{username};
+        $audit->login_change("Username ".$self->username." (id ".$self->id.") being changed to $values->{username}");
     }
 
     $values->{value} = _user_value($values);
@@ -741,8 +744,6 @@ sub update_user
         if $params{permissions};
     $self->set_view_limits($params{view_limits})
         if $params{view_limits};
-
-    my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $current_user);
 
     my $msg = __x"User updated: ID {id}, username: {username}",
         id => $self->id, username => $params{username};
