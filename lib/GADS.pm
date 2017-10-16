@@ -869,13 +869,10 @@ any '/account/?:action?/?' => require_login sub {
             freetext2    => param('freetext2')    || undef,
             title        => param('title')        || undef,
             organisation => param('organisation') || undef,
-            value        => _user_value($params),
         );
 
-        if (process( sub { update_current_user realm => 'dbic', %update }))
+        if (process( sub { $user->update_user(current_user => logged_in_user, %update) }))
         {
-            $audit->login_change(
-                "User updated own account details. New (or unchanged) email: $update{email}");
             return forwardHome(
                 { success => "The account details have been updated" }, 'account/detail' );
         }
@@ -1527,7 +1524,6 @@ any '/user/?:id?' => require_role useradmin => sub {
             groups                => [body_parameters->get_all('groups')],
             permissions           => [body_parameters->get_all('permission')],
         );
-        $values{value} = _user_value(\%values);
 
         if (!param('account_request') && param('username')) # Original username to update (hidden field)
         {
@@ -2829,15 +2825,6 @@ sub _random_pw
     );
 
     $foo->("iviiviivi");
-}
-
-sub _user_value
-{   my $user = shift;
-    return unless $user;
-    my $firstname = $user->{firstname} || '';
-    my $surname   = $user->{surname}   || '';
-    my $value     = "$surname, $firstname";
-    $value;
 }
 
 sub _page_as_mech
