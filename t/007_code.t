@@ -223,6 +223,14 @@ my @tests = (
         after       => '0',
     },
     {
+        name        => 'calc fields that returns 0 (date)',
+        type        => 'Calc',
+        code        => "function evaluate (L1curval1) \n return 0 \nend",
+        return_type => 'date',
+        before      => '1970-01-01',
+        after       => '1970-01-01',
+    },
+    {
         name   => 'field with version editor',
         type   => 'Calc',
         code   => qq(function evaluate (_version_user) \n return _version_user.surname \nend),

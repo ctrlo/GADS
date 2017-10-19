@@ -53,6 +53,7 @@ sub create_user
             id => $user->id, username => $params{username}
     );
 
+    $params{value} = _user_value(\%params);
     $user->update_user(%params);
 
     # Delete account request user if this is a new account request

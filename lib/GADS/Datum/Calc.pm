@@ -78,7 +78,7 @@ sub convert_value
 
     if ($column->return_type eq "date")
     {
-        if ($value && looks_like_number($value))
+        if (defined $value && looks_like_number($value))
         {
             try { $return = DateTime->from_epoch(epoch => $value) };
             if (my $exception = $@->wasFatal)

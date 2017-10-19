@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Graphs;
 
 use Log::Report 'linkspace';
+use Scalar::Util qw/blessed/;
 use Moo;
 
 # Not required so that dategroup can be called separately
@@ -52,7 +53,7 @@ sub _all
 
         # Get which graphs the user has first
         @user_graphs = $self->schema->resultset('Graph')->search({
-            'user_graphs.user_id' => $user->{id},
+            'user_graphs.user_id' => (blessed $user ? $user->id : $user->{id}),
             instance_id           => $self->layout->instance_id,
         },{
             join => 'user_graphs',

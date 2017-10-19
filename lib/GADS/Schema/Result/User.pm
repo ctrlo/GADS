@@ -712,7 +712,7 @@ sub update_user
 
     my $current_user = delete $params{current_user};
 
-    $self->update({
+    my $values = {
         firstname             => $params{firstname},
         surname               => $params{surname},
         value                 => $params{value},
@@ -732,13 +732,33 @@ sub update_user
 
     my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $current_user);
 
-    my $groups = join ', ', @{$params{groups}};
-    my $permissions = join ', ', @{$params{permissions}};
+    if ($values->{username} ne $self->username)
+    {
+        $self->result_source->schema->resultset('User')->active->search({
+            username => $values->{username},
+        })->count
+            and error __x"Email address {username} already exists as an active user", username => $values->{username};
+        $audit->login_change("Username ".$self->username." (id ".$self->id.") being changed to $values->{username}");
+    }
 
-    $audit->login_change(
-        __x"User updated: ID {id}, username: {username}; groups: {groups}, permissions: {permissions}",
-            id => $self->id, username => $params{username}, groups => $groups, permissions => $permissions
-    );
+    $values->{value} = _user_value($values);
+    $self->update($values);
+
+    $self->groups($params{groups})
+        if $params{groups};
+    $self->permissions($params{permissions})
+        if $params{permissions};
+    $self->set_view_limits($params{view_limits})
+        if $params{view_limits};
+
+    my $msg = __x"User updated: ID {id}, username: {username}",
+        id => $self->id, username => $params{username};
+    $msg .= __x", groups: {groups}", groups => join ', ', @{$params{groups}}
+        if $params{groups};
+    $msg .= __x", permissions: {permissions}", permissions => join ', ', @{$params{permissions}}
+        if $params{permissions};
+
+    $audit->login_change($msg);
 
     $guard->commit;
 
@@ -816,6 +836,15 @@ sub retire
             });
         }
     }
+}
+
+sub _user_value
+{   my $user = shift;
+    return unless $user;
+    my $firstname = $user->{firstname} || '';
+    my $surname   = $user->{surname}   || '';
+    my $value     = "$surname, $firstname";
+    $value;
 }
 
 1;
