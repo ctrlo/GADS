@@ -1252,6 +1252,7 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => require_login sub {
     # Random number can be used after "tree" to prevent caching
 
     my ($layout_id, $value) = splat;
+    my $layout      = var 'layout';
 
     my $tree = var('layout')->column($layout_id);
 
@@ -1259,7 +1260,7 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => require_login sub {
     {
         return forwardHome(
             { danger => 'You do not have permission to edit trees' } )
-            unless user_has_role 'layout';
+            unless $layout->user_can("layout");
 
         my $newtree = JSON->new->utf8(0)->decode(param 'data');
         $tree->update($newtree);
