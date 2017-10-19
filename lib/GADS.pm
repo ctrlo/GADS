@@ -1337,7 +1337,7 @@ any '/layout/?:id?' => require_login sub {
             if (@permission_params) {
                 my %permissions;
 
-                foreach my $p (@permission_params) {
+                foreach my (@permission_params) {
                     my ($name, $group_id) = m/^permission_(.*?)_(\d+)$/;
                     push @{ $permissions{$group_id} ||= [] }, $name;
                 }
