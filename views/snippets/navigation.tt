@@ -133,7 +133,7 @@
             [% IF user_can_create %]
                 <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/edit/">Add a record</a></li>
             [% END %]
-            [% IF user.permission.link AND show_link %]
+            [% IF layout.user_can("link") AND show_link %]
                 <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/link/">Add a linked record</a></li>
             [% END %]
             [% IF user_can_approve %]
@@ -143,7 +143,7 @@
             [% END %]
             <li class="divider"></li>
             <li [% IF page=="import" %]class="active"[% END %]><a href="[% url.page %]/import/">Import records</a></li>
-            [% IF viewtype == "table" AND records.size AND user.permission.download %]
+            [% IF viewtype == "table" AND records.size AND layout.user_can("download") %]
                 <li><a href="[% url.page %]/data?download">Download records in current view</a></li>
             [% END %]
             [% IF search %]
@@ -151,11 +151,11 @@
             [% ELSE %]
                 [% sel_type = "in this view" %]
             [% END %]
-            [% IF user.permission.bulk_update %]
+            [% IF layout.user_can("bulk_update") %]
                 <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/update/">Update all records [% sel_type %]...</a></li>
                 <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/clone/">Clone all records [% sel_type %]...</a></li>
             [% END %]
-            [% IF user.permission.delete %]
+            [% IF layout.user_can_delete %]
                 <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_delete" style="cursor: pointer">Delete all records [% sel_type %]...</a>
             [% END %]
         </ul>
@@ -170,11 +170,11 @@
             <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
-            [% IF user.permission.view_create %]
+            [% IF layout.user_can("view_create") %]
                 <li [% IF page=="view/0" %]class="active"[% END %]><a href="[% url.page %]/view/0">Add a view</a></li>
             [% END %]
             [% IF v %]
-                [% IF !v.global OR user.permission.layout %]
+                [% IF !v.global OR layout.user_can("layout") %]
                     <li [% IF page=="view" %]class="active"[% END %]><a href="/view/[% v.id %]">Edit current view</a></li>
                 [% END %]
                 <li [% IF page=="view/clone" %]class="active"[% END %]><a href="/view/0?clone=[% v.id %]">Copy current view</a></li>
@@ -196,7 +196,7 @@
    <div class="col-md-4 navbar navbar-default" id="app-navbar" aria-labelledby="app-navbar-heading">
         <div class="heading" id="app-navbar-heading">Data management</div>
             <ul class="nav navbar-nav">
-                [% IF user.permission.layout %]
+                [% IF layout.user_can("layout") %]
                     [% PROCESS table_menu %]
                 [% END %]
                 [% IF user.permission.useradmin %]
