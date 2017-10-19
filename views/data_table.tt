@@ -163,7 +163,7 @@
                         $('#modal_helptext').find('.modal-body').html(data);
                     })
                 });
-                $("#datatable").floatThead({
+                $("#data-table").floatThead({
                     zIndex: function($table){
                         return 999;
                     }
