@@ -723,7 +723,7 @@ sub update_user
         title                 => $params{title} || undef,
         organisation          => $params{organisation} || undef,
         account_request_notes => $params{account_request_notes},
-    });
+    };
 
     $self->groups($current_user, $params{groups});
     $self->permissions(@{$params{permissions}})
