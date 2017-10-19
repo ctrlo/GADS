@@ -139,6 +139,10 @@ sub write_special
     $self->clear;
 };
 
+# Autocurs are defined as not user input, so they get updated during
+# update-cached. This makes sure that it does nothing silently
+sub update_cached {}
+
 sub fetch_multivalues
 {   my ($self, $record_ids) = @_;
 

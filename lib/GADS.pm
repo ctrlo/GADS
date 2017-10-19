@@ -825,7 +825,7 @@ any '/data' => require_login sub {
 any '/account/?:action?/?' => require_login sub {
 
     my $action = param 'action';
-    my $user   = logged_in_user;
+    my $user   = rset('User')->find(logged_in_user->{id});
     my $audit  = GADS::Audit->new(schema => schema, user => $user);
 
     if (param 'newpassword')
@@ -843,8 +843,7 @@ any '/account/?:action?/?' => require_login sub {
 
     if (param 'graphsubmit')
     {
-        my $usero = rset('User')->find($user->{id});
-        if (process( sub { $usero->graphs(param('graphs')) }))
+        if (process( sub { $user->graphs(param('graphs')) }))
         {
             return forwardHome(
                 { success => "The selected graphs have been updated" }, 'account/graph' );
@@ -864,13 +863,10 @@ any '/account/?:action?/?' => require_login sub {
             freetext2    => param('freetext2')    || undef,
             title        => param('title')        || undef,
             organisation => param('organisation') || undef,
-            value        => _user_value($params),
         );
 
-        if (process( sub { update_current_user realm => 'dbic', %update }))
+        if (process( sub { $user->update_user(current_user => logged_in_user, %update) }))
         {
-            $audit->login_change(
-                "User updated own account details. New (or unchanged) email: $update{email}");
             return forwardHome(
                 { success => "The account details have been updated" }, 'account/detail' );
         }
@@ -896,7 +892,7 @@ any '/account/?:action?/?' => require_login sub {
     {
         my $users = GADS::Users->new(schema => schema);
         template 'user' => {
-            edit          => $user->{id},
+            edit          => $user->id,
             users         => [$user],
             titles        => $users->titles,
             organisations => $users->organisations,
@@ -1534,7 +1530,6 @@ any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
             groups                => [body_parameters->get_all('groups')],
             permissions           => [body_parameters->get_all('permission')],
         );
-        $values{value} = _user_value(\%values);
 
         if (!param('account_request') && param('username')) # Original username to update (hidden field)
         {
@@ -2822,15 +2817,6 @@ sub _random_pw
     );
 
     $foo->("iviiviivi");
-}
-
-sub _user_value
-{   my $user = shift;
-    return unless $user;
-    my $firstname = $user->{firstname} || '';
-    my $surname   = $user->{surname}   || '';
-    my $value     = "$surname, $firstname";
-    $value;
 }
 
 sub _page_as_mech
