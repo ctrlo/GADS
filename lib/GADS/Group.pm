@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Group;
 
+use GADS::Type::Permissions;
 use Log::Report 'linkspace';
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
@@ -35,6 +36,41 @@ has id => (
 has name => (
     is  => 'rw',
     isa => Str,
+);
+
+has default_read => (
+    is  => 'rw',
+    isa => Bool,
+);
+
+has default_write_new => (
+    is  => 'rw',
+    isa => Bool,
+);
+
+has default_write_existing => (
+    is  => 'rw',
+    isa => Bool,
+);
+
+has default_approve_new => (
+    is  => 'rw',
+    isa => Bool,
+);
+
+has default_approve_existing => (
+    is  => 'rw',
+    isa => Bool,
+);
+
+has default_write_new_no_approval => (
+    is  => 'rw',
+    isa => Bool,
+);
+
+has default_write_existing_no_approval => (
+    is  => 'rw',
+    isa => Bool,
 );
 
 has columns => (
@@ -90,6 +126,11 @@ sub from_id
 
     $self->_set__rset($group);
     $self->name($group->name);
+    foreach my $perm (GADS::Type::Permissions->all)
+    {
+        my $name = "default_".$perm->short;
+        $self->$name($group->$name);
+    }
     $self->_set_id($id);
 }
 
@@ -107,6 +148,11 @@ sub write
 {   my $self = shift;
     my $newgroup;
     $newgroup->{name} = $self->name or error __"Please enter a name";
+    foreach my $perm (GADS::Type::Permissions->all)
+    {
+        my $name = "default_".$perm->short;
+        $newgroup->{$name} = $self->$name;
+    }
     $self->_rset->update($newgroup);
 }
 

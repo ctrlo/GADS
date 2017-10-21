@@ -7,14 +7,43 @@
             </button>
         </form>
     </h1>
-[% ELSIF v %]
-    <h1>[% v.name | html_entity %]</h1>
-[% ELSE %]
-    <h1>All data</h1>
 [% END %]
     <div class="row">
         <div class="col-md-6">
             <div class="btn-toolbar" role="toolbar">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
+                            Current view: [% IF v %][% v.name | html %][% ELSE %]All data[% END %] <span class="caret"></span>
+                    </button>
+                    <ul id="menu_view" class="dropdown-menu scrollable-menu" role="menu">
+                        [% first = 1 %]
+                        [% FOREACH ve IN user_views %]
+                            [% IF first AND NOT ve.global AND not ve.is_admin %]
+                                <li role="presentation" class="dropdown-header">Personal views</li>
+                            [% ELSIF (first AND ve.global) OR (lastv AND ve.global != lastv.global) %]
+                                [% UNLESS first %]
+                                    <li role="presentation" class="divider"></li>
+                                [% END %]
+                                <li role="presentation" class="dropdown-header">Shared views</li>
+                            [% ELSIF (first AND ve.is_admin) OR (lastv AND ve.is_admin != lastv.is_admin) %]
+                                [% UNLESS first %]
+                                    <li role="presentation" class="divider"></li>
+                                [% END %]
+                                <li role="presentation" class="dropdown-header">Administration views</li>
+                            [% END %]
+                            <li role="presentation"
+                                    [% IF ve.id == v.id %]class="active"[% END %]
+                                >
+                                <a role="menuitem" tabindex="-1" href="/data?view=[% ve.id %]">[% ve.name | html_entity %]
+                                    [% veid = ve.id %]
+                                    [% IF alerts.$veid %]<img src="/images/bell.png">[% END %]
+                                </a>
+                            </li>
+                            [% lastv = ve %][% first = 0 %]
+                        [% END %]
+                    </ul>
+                </div>
+
                 <div class="btn-group" role="group">
                     <a href="?viewtype=table" class="btn btn-default">
                         <i aria-hidden="true" class="fa fa-list fa-lg use-icon-font"></i>
@@ -40,80 +69,6 @@
                         <span class="visually-hidden">View on calendar</span>
                     </a>
                 </div>
-                <div class="btn-group">
-                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
-                            View <span class="caret"></span>
-                    </button>
-                    <ul id="menu_view" class="dropdown-menu scrollable-menu" role="menu">
-                        [% IF user.permission.view_create %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0">Create new view</a></li>
-                        [% END %]
-                        [% IF v %]
-                            [% IF user.permission.view_create %]
-                                [% IF !v.global OR user.permission.layout %]
-                                    <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/[% v.id %]">Edit this view</a></li>
-                                [% END %]
-                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0?clone=[% v.id %]">Clone this view</a></li>
-                            [% END %]
-                            <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_alert">Alert me</a></li>
-                        [% END %]
-                        <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_rewind">Historic view...</a></li>
-                        <li role="presentation" class="divider"></li>
-                        [% first = 1 %]
-                        [% FOREACH ve IN user_views %]
-                            [% IF first AND NOT ve.global AND not ve.is_admin %]
-                                <li role="presentation" class="dropdown-header">Personal views</li>
-                            [% ELSIF (first AND ve.global) OR (lastv AND ve.global != lastv.global) %]
-                                [% UNLESS first %]
-                                    <li role="presentation" class="divider"></li>
-                                [% END %]
-                                <li role="presentation" class="dropdown-header">Global views</li>
-                            [% ELSIF (first AND ve.is_admin) OR (lastv AND ve.is_admin != lastv.is_admin) %]
-                                [% UNLESS first %]
-                                    <li role="presentation" class="divider"></li>
-                                [% END %]
-                                <li role="presentation" class="dropdown-header">Administration views</li>
-                            [% END %]
-                            <li role="presentation"
-                                    [% IF ve.id == v.id %]class="active"[% END %]
-                                >
-                                <a role="menuitem" tabindex="-1" href="/data?view=[% ve.id %]">[% ve.name | html_entity %]
-                                    [% veid = ve.id %]
-                                    [% IF alerts.$veid %]<img src="/images/bell.png">[% END %]
-                                </a>
-                            </li>
-                            [% lastv = ve %][% first = 0 %]
-                        [% END %]
-                    </ul>
-                </div>
-                <div class="btn-group">
-                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_action">
-                            Action <span class="caret"></span>
-                    </button>
-                    <ul id="menu_action" class="dropdown-menu" role="menu">
-                        [% IF user_can_create %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/edit/">New record</a></li>
-                        [% END %]
-                        [% IF user.permission.link AND show_link %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/link/">New linked record</a></li>
-                        [% END %]
-                        [% IF search %]
-                            [% sel_type = "in this search" %]
-                        [% ELSE %]
-                            [% sel_type = "in this view" %]
-                        [% END %]
-                        [% IF user.permission.bulk_update %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/update/">Update all records [% sel_type %]...</a></li>
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/clone/">Clone all records [% sel_type %]...</a></li>
-                        [% END %]
-                        [% IF user.permission.delete %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_delete" style="cursor: pointer">Delete all records [% sel_type %]...</a>
-                        [% END %]
-                        [% IF viewtype == "table" AND records.size AND user.permission.download %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?download">Download all records in view</a></li>
-                        [% END %]
-                    </ul>
-                </div>
                 [% PROCESS search_form.tt %]
                 [% IF viewtype == "timeline" %]
                     <div class="btn-group">
@@ -123,13 +78,10 @@
             </div>
         </div>
         [% IF viewtype == "table" %]
-            <div class="col-md-6">
-                <form method="get" class="form-horizontal">
+            <div class="pull-right">
+                <form method="get" class="form-inline">
                     <div class="form-group">
-                        <div class="col-sm-4">
                             <label for="rows_per_page" class="control-label">Rows per page</label>
-                        </div>
-                        <div class="col-sm-8">
                             <select id="rows_per_page" class="form-control" name="rows" onchange="this.form.submit()" role="listbox">
                                 <option value="10" [% IF subset.rows == 10 %]selected[% END %]>10</option>
                                 <option value="25" [% IF subset.rows == 25 %]selected[% END %]>25</option>
@@ -137,7 +89,6 @@
                                 <option value="100" [% IF subset.rows == 100 %]selected[% END %]>100</option>
                                 <option value="200" [% IF subset.rows == 200 %]selected[% END %]>200</option>
                             </select>
-                        </div>
                     </div>
                 </form>
             </div>

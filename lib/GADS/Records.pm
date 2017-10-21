@@ -36,7 +36,7 @@ use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 
-with 'GADS::RecordsJoin';
+with 'GADS::RecordsJoin', 'GADS::Role::Presentation::Records';
 
 # Preferably this is passed in to prevent extra
 # DB reads, but loads it if it isn't
@@ -1303,6 +1303,10 @@ sub _date_for_db
 
 sub csv
 {   my $self = shift;
+
+    error __"You do not have permission to download data"
+        unless $self->layout->user_can("download");
+
     my $csv  = Text::CSV::Encoded->new({ encoding  => undef });
 
     # Column names

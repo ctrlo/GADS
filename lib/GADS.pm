@@ -57,6 +57,7 @@ use GADS::Type::Permissions;
 use GADS::Users;
 use GADS::View;
 use GADS::Views;
+use GADS::Helper::BreadCrumbs qw(Crumb);
 use HTML::Entities;
 use JSON qw(decode_json encode_json);
 use MIME::Base64;
@@ -208,13 +209,8 @@ hook before => sub {
             forwardHome({ danger => "You do not have any access rights to any data in this application" })
                 unless request->uri eq '/';
         }
-        var 'layout' => GADS::Layout->new(
-            user        => $user,
-            schema      => schema,
-            config      => GADS::Config->instance,
-            instances   => $instances->all,
-            instance_id => $instance_id,
-        ) if $instance_id;
+        var 'layout' => $instances->layout($instance_id)
+            if $instance_id;
         $persistent->{instance_id} = $instance_id
             unless param 'oi';
         var 'instances' => $instances;
@@ -257,6 +253,10 @@ hook before_template => sub {
         # Somehow this sets the instance_id session if no persistent session exists
         $tokens->{instance_id}   = session('persistent')->{instance_id}
             if session 'persistent';
+        $tokens->{user_can_edit}   = $layout->user_can('write_existing');
+        $tokens->{user_can_create} = $layout->user_can('write_new');
+        $tokens->{layout}          = $layout;
+        $tokens->{v}               = current_view(logged_in_user, $layout);  # View is reserved TT word
     }
     $tokens->{messages}      = session('messages');
     $tokens->{site}          = var 'site';
@@ -277,8 +277,9 @@ hook after_template_render => sub {
 get '/' => require_login sub {
 
     template 'index' => {
-        layout => var('layout'),
-        page   => 'index'
+        layout      => var('layout'),
+        page        => 'index',
+        breadcrumbs => [Crumb()]
     };
 };
 
@@ -718,7 +719,7 @@ any '/data' => require_login sub {
 
             return forwardHome(
                 { danger => 'You do not have permission to send messages' }, 'data' )
-                unless user_has_role 'message';
+                unless $layout->user_can("message");
 
             my $email  = GADS::Email->instance;
             my $args   = {
@@ -737,9 +738,6 @@ any '/data' => require_login sub {
 
         if (defined param('download'))
         {
-            forwardHome({ danger => "You do not have permission to download data"}, 'data')
-                unless user_has_role 'download';
-
             forwardHome({ danger => "There are no records to download in this view"}, 'data')
                 unless $records->count;
 
@@ -796,13 +794,14 @@ any '/data' => require_login sub {
         my @columns = $view
             ? $layout->view($view->id, user_can_read => 1)
             : $layout->all(user_can_read => 1);
-        $params->{user_can_edit} = $layout->user_can('write_existing');
-        $params->{sort}          = $records->sort_first;
-        $params->{subset}        = $subset;
-        $params->{records}       = $records->results;
-        $params->{count}         = $records->count;
-        $params->{columns}       = \@columns;
-        $params->{viewtype}      = 'table';
+        $params->{user_can_edit}  = $layout->user_can('write_existing');
+        $params->{sort}           = $records->sort_first;
+        $params->{subset}         = $subset;
+        $params->{records}        = $records->presentation(@columns);
+        $params->{count}          = $records->count;
+        $params->{columns}        = [ map $_->presentation, @columns ];
+        $params->{has_rag_column} = grep { $_->type eq 'rag' } @columns;
+        $params->{viewtype}       = 'table';
 
     }
 
@@ -820,11 +819,11 @@ any '/data' => require_login sub {
         instance_id => $layout->instance_id,
     );
 
-    $params->{v}               = $view,  # View is reserved TT word
     $params->{user_views}      = $views->user_views;
     $params->{alerts}          = $alert->all;
-    $params->{user_can_create} = $layout->user_can('write_new');
-    $params->{show_link}       = rset('Current')->count;
+
+    $params->{breadcrumbs} = [Crumb() => Crumb( '/data' => 'records' )];
+
     template 'data' => $params;
 };
 
@@ -891,7 +890,7 @@ any '/account/?:action?/?' => require_login sub {
         template 'account' => {
             graphs => $all_graphs,
             action => $action,
-            page   => 'account',
+            page   => 'account/graph',
         };
     }
     elsif ($action eq 'detail')
@@ -943,7 +942,7 @@ any '/graph/?:id?' => require_role layout => sub {
     my $layout = var 'layout';
     my $params = {
         layout => $layout,
-        page   => 'graph',
+        page   => defined param('id') && !param('id') ? 'graph/0' : 'graph',
     };
 
     my $id = param 'id';
@@ -1079,10 +1078,16 @@ any '/group/?:id?' => require_role useradmin => sub {
     my $layout = var 'layout';
     $group->from_id($id);
 
+    my @permissions = GADS::Type::Permissions->all;
+
     if (param 'submit')
     {
         $group->name(param 'name');
-
+        foreach my $perm (@permissions)
+        {
+            my $name = "default_".$perm->short;
+            $group->$name(param($name) ? 1 : 0);
+        }
         if (process(sub {$group->write}))
         {
             my $action = param('id') ? 'updated' : 'created';
@@ -1108,6 +1113,7 @@ any '/group/?:id?' => require_role useradmin => sub {
     {
         # id will be 0 for new group
         $params->{group} = $group;
+        $params->{permissions} = [@permissions];
     }
     else {
         my $groups = GADS::Groups->new(schema => schema);
@@ -1117,60 +1123,74 @@ any '/group/?:id?' => require_role useradmin => sub {
     template 'group' => $params;
 };
 
-any '/table/?:id?' => require_role layout => sub {
+get '/table/?' => require_role superadmin => sub {
 
-    my $id       = param 'id';
-    my $instance = defined($id) && ($id && rset('Instance')->find($id) || rset('Instance')->new({}));
-    my $layout   = var 'layout';
-
-    if (param 'submit')
-    {
-        $instance->name(param 'name');
-
-        if (process(sub {$instance->update_or_insert}))
-        {
-            my $action = param('id') ? 'updated' : 'created';
-            return forwardHome(
-                { success => "Table has been $action successfully" }, 'table' );
-        }
-    }
-
-    if (param 'delete')
-    {
-        if (process(sub {$instance->delete}))
-        {
-            return forwardHome(
-                { success => "The table has been deleted successfully" }, 'table' );
-        }
-    }
-
-    my $params = {
-        page => 'table'
+    template 'tables' => {
+        page      => 'table',
+        instances => [rset('Instance')->all],
     };
+};
 
-    if (defined $id)
+any '/table/:id' => require_role superadmin => sub {
+
+    my $id          = param 'id';
+    my $user        = logged_in_user;
+    my $layout_edit = $id && var('instances')->layout($id);
+
+    if (param('submit') || param('delete'))
     {
-        # id will be 0 for new group
-        $params->{instance} = $instance;
+        if (param 'submit')
+        {
+            if (!$layout_edit)
+            {
+                $layout_edit = GADS::Layout->new(
+                    user   => $user,
+                    schema => schema,
+                    config => config,
+                );
+            }
+            $layout_edit->name(param 'name');
+            $layout_edit->set_groups([body_parameters->get_all('permissions')]);
+
+            if (process(sub {$layout_edit->write}))
+            {
+                # Switch user to new table
+                my $msg = param('id') ? 'The table has been updated successfully' : 'Your new table has been created successfully';
+                return forwardHome(
+                    { success => $msg }, 'table' );
+            }
+        }
+
+        if (param 'delete')
+        {
+            if (process(sub {$layout_edit->delete}))
+            {
+                return forwardHome(
+                    { success => "The table has been deleted successfully" }, 'table' );
+            }
+        }
     }
-    else {
-        $params->{instances} = [rset('Instance')->all],
+
+    template 'table' => {
+        page        => $id ? 'table' : 'table/0',
+        layout_edit => $layout_edit,
+        groups      => GADS::Groups->new(schema => schema)->all,
     }
-    template 'table' => $params;
 };
 
 any '/view/:id' => require_login sub {
 
+    my $user   = logged_in_user;
+    my $layout = var 'layout';
+
     return forwardHome(
         { danger => 'You do not have permission to edit views' }, 'data' )
-        unless user_has_role 'view_create';
+        unless $layout->user_can("view_create");
 
     my $view_id = param('id');
     $view_id = param('clone') if param('clone') && !request->is_post;
     my @ucolumns; my $view_values;
 
-    my $user   = logged_in_user;
-    my $layout = var 'layout';
     my %vp = (
         user        => $user,
         schema      => schema,
@@ -1213,12 +1233,17 @@ any '/view/:id' => require_login sub {
         }
     }
 
+    my $page = param('clone')
+        ? 'view/clone'
+        : defined param('id') && !param('id')
+        ? 'view/0' : 'view';
+
     my $output = template 'view' => {
         layout       => $layout,
         sort_types   => $view->sort_types,
-        v            => $view, # TT does not like variable "view"
+        view_edit    => $view, # TT does not like variable "view"
         clone        => param('clone'),
-        page         => 'view'
+        page         => $page,
     };
     $output;
 };
@@ -1227,6 +1252,7 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => require_login sub {
     # Random number can be used after "tree" to prevent caching
 
     my ($layout_id, $value) = splat;
+    my $layout      = var 'layout';
 
     my $tree = var('layout')->column($layout_id);
 
@@ -1234,7 +1260,7 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => require_login sub {
     {
         return forwardHome(
             { danger => 'You do not have permission to edit trees' } )
-            unless user_has_role 'layout';
+            unless $layout->user_can("layout");
 
         my $newtree = JSON->new->utf8(0)->decode(param 'data');
         $tree->update($newtree);
@@ -1249,37 +1275,25 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => require_login sub {
 
 };
 
-any '/layout/?:id?' => require_role 'layout' => sub {
+any '/layout/?:id?' => require_login sub {
 
     my $user        = logged_in_user;
     my $layout      = var 'layout';
 
+    forwardHome({ danger => "You do not have permission to manage fields"}, '')
+        unless $layout->user_can("layout");
+
+    my @all_columns = $layout->all;
+
     my $params = {
-        page   => 'layout',
-        layout => $layout,
+        page        => defined param('id') && !param('id') ? 'layout/0' : 'layout',
+        all_columns => \@all_columns,
     };
 
     if (defined param('id'))
     {
         # Get all layouts of all instances for field linking
-        my $instances = GADS::Instances->new(schema => schema, user => $user);
-        my @instances;
-        foreach my $instance (@{$instances->all})
-        {
-            # Ignore current instance
-            next if $instance->id == $layout->instance_id;
-            my $layout = GADS::Layout->new(
-                user        => $user,
-                schema      => schema,
-                config      => config,
-                instance_id => $instance->id,
-            );
-            push @instances, {
-                instance => $instance,
-                layout   => $layout,
-            };
-        }
-        $params->{instance_layouts} = [@instances];
+        $params->{instance_layouts} = [grep { $_->instance_id != $layout->instance_id } @{var('instances')->all}];
     }
 
     if (param('id') || param('submit') || param('update_perms'))
@@ -1299,23 +1313,6 @@ any '/layout/?:id?' => require_role 'layout' => sub {
                 layout => $layout
             );
         
-        # Update of permissions?
-        if (param 'update_perms')
-        {
-            my $permissions = ref param('permissions') eq 'ARRAY' ? param('permissions') : [param('permissions') || ()];
-            # Although the layout form should only return one group_id value
-            # (there are 2, but JS renames them), instances have been observed
-            # when a second empty one has also been sent. There are possibly
-            # problems with the JS, but given the implications of 2 here, we
-            # ensure that only one is present.
-            my ($group_id) = grep { $_ } body_parameters->get_all('group_id');
-            if (process sub { $column->set_permissions($group_id, $permissions) })
-            {
-                my $msg = qq(Permissions have been updated successfully. <a href="/layout/">Click here</a> to return to Edit Layout.);
-                report NOTICE => $msg, _class => 'html,success';
-                return forwardHome( undef, "layout/".$column->id );
-            }
-        }
 
         if (param 'delete')
         {
@@ -1334,6 +1331,20 @@ any '/layout/?:id?' => require_role 'layout' => sub {
 
         if (param 'submit')
         {
+
+            my @permission_params = grep { /^permission_(?:.*?)_\d+$/ } keys %{ params() };
+
+            if (@permission_params) {
+                my %permissions;
+
+                foreach my (@permission_params) {
+                    my ($name, $group_id) = m/^permission_(.*?)_(\d+)$/;
+                    push @{ $permissions{$group_id} ||= [] }, $name;
+                }
+                
+                $column->set_permissions(%permissions);
+            }
+
             $column->$_(param $_)
                 foreach (qw/name name_short description helptext optional isunique multivalue remember link_parent_id/);
             $column->type(param 'type')
@@ -1356,7 +1367,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             }
             elsif ($column->type eq "rag")
             {
-                $column->code(param 'code');
+                $column->code(param 'code_rag');
                 $column->base_url(request->base); # For alerts
                 $no_alerts = param('no_alerts_rag');
             }
@@ -1368,7 +1379,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             }
             elsif ($column->type eq "calc")
             {
-                $column->code(param 'code');
+                $column->code(param 'code_calc');
                 $column->return_type(param 'return_type');
                 $column->base_url(request->base); # For alerts
                 $no_alerts = param('no_alerts_calc');
@@ -1400,8 +1411,8 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             if (process( sub { $column->write(no_alerts => $no_alerts, no_cache_update => param('no_cache_update')) }))
             {
                 my $msg = param('id')
-                    ? qq(Item has been updated successfully. You can <a href="/layout/0">create another one</a> or return to the <a href="/layout">main data layout page</a>.)
-                    : qq(Item has been created successfully. You can <a href="/layout/0">create another one</a>, <a href="" data-toggle="modal" data-target="#modal_permissions">add permissions to this one</a> or return to the <a href="/layout">main data layout page</a>);
+                    ? qq(Your field has been updated successfully. You can <a href="/layout/0">create another one</a> or return to the <a href="/layout">main data layout page</a>.)
+                    : qq(Your field has been created. Next you need to <a href="" data-toggle="modal" data-target="#modal_permissions">set permissions for this field</a>);
 
                 report NOTICE => $msg, _class => 'html,success';
                 return forwardHome( undef, "layout/".$column->id );
@@ -1431,7 +1442,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
     template 'layout' => $params;
 };
 
-any '/user/upload' => require_role useradmin => sub {
+any '/user/upload' => require_any_role [qw/useradmin superadmin/] => sub {
 
     my $userso = GADS::Users->new(schema => schema);
 
@@ -1476,7 +1487,7 @@ any '/user/upload' => require_role useradmin => sub {
     };
 };
 
-any '/user/?:id?' => require_role useradmin => sub {
+any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
 
     my $id = body_parameters->get('id');
 
@@ -1484,6 +1495,7 @@ any '/user/?:id?' => require_role useradmin => sub {
     my $userso          = GADS::Users->new(schema => schema);
     my %all_permissions = map { $_->id => $_->name } @{$userso->permissions};
     my $audit           = GADS::Audit->new(schema => schema, user => $user);
+    my $logged_in_user  = rset('User')->find($user->{id}), # XXX Remove once $user is object
     my $users;
 
     if (param 'sendemail')
@@ -1530,7 +1542,7 @@ any '/user/?:id?' => require_role useradmin => sub {
             if (process sub {
                 my $user = rset('User')->active->search({ username => param('username') })->next;
                 # Don't use DBIC update directly, so that permissions etc are updated properly
-                $user->update_user(current_user => logged_in_user, %values);
+                $user->update_user(current_user => $logged_in_user, %values);
             })
             {
                 return forwardHome(
@@ -1539,7 +1551,7 @@ any '/user/?:id?' => require_role useradmin => sub {
         }
         else {
             # This sends a welcome email etc
-            if (process(sub { rset('User')->create_user(current_user => logged_in_user, request_base => request->base, %values) }))
+            if (process(sub { rset('User')->create_user(current_user => $logged_in_user, request_base => request->base, %values) }))
             {
                 return forwardHome(
                     { success => "User has been created successfully" }, 'user' );
@@ -1580,8 +1592,6 @@ any '/user/?:id?' => require_role useradmin => sub {
         # Remember values of user creation in progress.
         # XXX This is a mess (repeated code from above). Need to get
         # DPAE to use a user object
-        my @permissions = ref param('permission') ? @{param('permission')} : (param('permission') || ());
-        my %permissions = map { $all_permissions{$_} => 1 } @permissions;
         my @groups      = ref param('groups') ? @{param('groups')} : (param('groups') || ());
         my %groups      = map { $_ => 1 } @groups;
         my $view_limits_with_blank = [ map {
@@ -1599,7 +1609,6 @@ any '/user/?:id?' => require_role useradmin => sub {
             title                  => { id => param('title') },
             organisation           => { id => param('organisation') },
             view_limits_with_blank => $view_limits_with_blank,
-            permission             => \%permissions,
             groups                 => \%groups,
         }];
     }
@@ -1654,26 +1663,11 @@ any '/user/?:id?' => require_role useradmin => sub {
         ] if !$users; # Only if not already submitted
     }
 
-    # Get all layouts of all instances for view restrictions
-    # (XXX code to be removed for menu branch)
-    my $instances = GADS::Instances->new(schema => schema, user => $user);
-    my @layouts;
-    foreach my $instance (@{$instances->all})
-    {
-        push @layouts, GADS::Layout->new(
-            user        => $user,
-            schema      => schema,
-            config      => config,
-            instance_id => $instance->id,
-            instance    => $instance,
-        );
-    }
-
     my $output = template 'user' => {
         edit              => $route_id,
+        logged_in_user    => $logged_in_user,
         users             => $users,
         groups            => GADS::Groups->new(schema => schema)->all,
-        layouts           => [@layouts],
         register_requests => $register_requests,
         titles            => $userso->titles,
         organisations     => $userso->organisations,
@@ -1815,7 +1809,7 @@ get '/helptext/:id?' => require_login sub {
     template 'helptext.tt', { column => $column }, { layout => undef };
 };
 
-any '/link/:id?' => require_role link => sub {
+any '/link/:id?' => require_login sub {
     my $id = param 'id';
 
     my $layout = var 'layout';
@@ -1915,12 +1909,15 @@ post '/edits' => require_login sub {
     }
 };
 
-any '/bulk/:type/?' => require_role bulk_update => sub {
+any '/bulk/:type/?' => require_login sub {
 
     my $user   = logged_in_user;
     my $layout = var 'layout';
     my $view   = current_view($user, $layout);
     my $type   = param 'type';
+
+    forwardHome({ danger => "You do not have permission to perform bulk operations"}, 'data')
+        unless $layout->user_can("bulk_update");
 
     $type eq 'update' || $type eq 'clone'
         or error __x"Invalid bulk type: {type}", type => $type;
@@ -2062,6 +2059,16 @@ any '/edit/:id?' => require_login sub {
         base_url => request->base,
     );
 
+    if (my $delete_id = param 'delete')
+    {
+        $record->find_current_id($delete_id);
+        if (process( sub { $record->delete_current }))
+        {
+            return forwardHome(
+                { success => 'Record has been deleted successfully' }, 'data' );
+        }
+    }
+
     my $child = param 'child';
 
     # XXX Move into user class once properly available
@@ -2104,7 +2111,7 @@ any '/edit/:id?' => require_login sub {
         my $failed;
 
         error __"You do not have permission to create a child record"
-            if $child && !$id && !user_has_role('create_child');
+            if $child && !$id && !$layout->user_can('create_child');
         $record->parent_id($child);
 
         my %child_inc = map { $_ => 1 } (ref(param 'child_inc') ? @{param 'child_inc'} : (param('child_inc') || ()));
@@ -2130,7 +2137,7 @@ any '/edit/:id?' => require_login sub {
                             || !$child_inc{$col->id} && $datum->child_unique
                         ) {
                             error __"You do not have permission to change the fields of the child record"
-                                unless user_has_role('create_child');
+                                unless $layout->user_can('create_child');
                         }
                         $datum->child_unique($child_inc{$col->id});
                     }
@@ -2238,7 +2245,7 @@ any '/edit/:id?' => require_login sub {
             if !$col->user_can('read');
     }
 
-    my $child_rec = $child && user_has_role('create_child')
+    my $child_rec = $child && $layout->user_can('create_child')
         ? int(param 'child')
         : $record->parent_id
         ? $record->parent_id
@@ -2248,11 +2255,12 @@ any '/edit/:id?' => require_login sub {
         ."(at least one must be ticked). Any fields that are not ticked will inherit their "
         ."value from the parent. Values of the parent record are shown, which will be used "
         ."unless the box is ticked and a different value entered."
-            if $child;
+            if $child_rec;
 
     my $output = template 'edit' => {
         record      => $record,
         child       => $child_rec,
+        clone       => param('from'),
         all_columns => \@columns_to_show,
         page        => 'edit'
     };
@@ -2395,22 +2403,13 @@ any qr{/(record|history)/([0-9]+)} => require_login sub {
 
     my @versions = $record->versions;
 
-    if (my $delete_id = param 'delete')
-    {
-        if (process( sub { $record->delete_current }))
-        {
-            return forwardHome(
-                { success => 'Record has been deleted successfully' }, 'data' );
-        }
-    }
-
     my @columns = $layout->all(user_can_read => 1);
     my $output = template 'record' => {
         record         => $record,
-        user_can_edit  => $layout->user_can('write_existing'),
         versions       => \@versions,
         all_columns    => \@columns,
-        page           => 'record'
+        page           => 'record',
+        breadcrumbs    => [Crumb() => Crumb( '/data' => 'records' ) => Crumb( request->path, => 'record id ' . $id )]
     };
     $output;
 };

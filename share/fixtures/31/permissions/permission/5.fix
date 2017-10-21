@@ -1,0 +1,7 @@
+$HASH1 = {
+           description
+                  => 'User can administer layout, views and graph',
+           id     => 5,
+           name   => 'layout',
+           order  => 5
+         };

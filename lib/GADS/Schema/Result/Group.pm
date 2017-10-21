@@ -44,6 +44,48 @@ __PACKAGE__->table("group");
   is_nullable: 1
   size: 128
 
+=head2 default_read
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 default_write_new
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 default_write_existing
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 default_approve_new
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 default_approve_existing
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 default_write_new_no_approval
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 default_write_existing_no_approval
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
 =head2 site_id
 
   data_type: 'integer'
@@ -57,6 +99,20 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "name",
   { data_type => "varchar", is_nullable => 1, size => 128 },
+  "default_read",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "default_write_new",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "default_write_existing",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "default_approve_new",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "default_approve_existing",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "default_write_new_no_approval",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "default_write_existing_no_approval",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "site_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
@@ -101,6 +157,21 @@ Related object: L<GADS::Schema::Result::UserGroup>
 __PACKAGE__->has_many(
   "user_groups",
   "GADS::Schema::Result::UserGroup",
+  { "foreign.group_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 instance_groups
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::InstanceGroup>
+
+=cut
+
+__PACKAGE__->has_many(
+  "instance_groups",
+  "GADS::Schema::Result::InstanceGroup",
   { "foreign.group_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

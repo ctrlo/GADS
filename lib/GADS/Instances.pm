@@ -18,6 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Instances;
 
+use GADS::Config;
+use GADS::Layout;
+use Log::Report;
+
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
 
@@ -26,46 +30,128 @@ has schema => (
     required => 1,
 );
 
+has user => (
+    is       => 'ro',
+    required => 1,
+);
+
 has all => (
     is => 'lazy',
 );
 
-# Only return instances that this user has any access to
-has user => (
-    is => 'ro',
+has all_of_user => (
+    is => 'lazy',
 );
 
 sub _build_all
 {   my $self = shift;
-    # See what tables this user has access to. Perform 2 separate queries,
-    # otherwise the combined number of rows to search through is huge for all
-    # the different user/group/layout combinations making the query very slow.
-    #
-    # First the user's groups, unless it's a layout admin
-    my $search = {};
-    if ($self->user && !$self->user->{permission}->{layout})
-    {
-        my @groups = $self->schema->resultset('Group')->search({
-            'user_groups.user_id' => $self->user->{id}
-        },{
-            join => 'user_groups',
-        })->get_column('me.id')->all;
-        $search = {'layout_groups.group_id' => [@groups]};
-    }
-    # Then the instances
-    my @instances = $self->schema->resultset('Instance')->search($search,{
+    [grep { $_->user_can_anything } @{$self->_layouts}];
+}
+
+has _layouts => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build__layouts
+{   my $self = shift;
+    my @layouts;
+
+    # Get all permissions to save them being built in each instance
+    my $rs = $self->schema->resultset('InstanceGroup')->search({
+        user_id => $self->user->{id},
+    },{
+        select => [
+            {
+                max => 'instance_id',
+            },
+            {
+                max => 'permission',
+            },
+        ],
+        as       => [qw/instance_id permission/],
+        group_by => [qw/permission instance_id/],
         join     => {
-            layouts => 'layout_groups',
+            group => 'user_groups',
         },
-        collapse => 1,
-        order_by => ['me.name'],
-    })->all;
-    \@instances;
+    });
+    $rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+
+    my $perms_table;
+    $perms_table->{$_->{instance_id}}->{$_->{permission}} = 1
+        foreach ($rs->all);
+
+    $rs = $self->schema->resultset('LayoutGroup')->search({
+        user_id => $self->user->{id},
+    },{
+        select => [
+            {
+                max => 'layout.instance_id',
+            },
+            {
+                max => 'me.layout_id',
+            },
+            {
+                max => 'me.permission',
+            },
+        ],
+        as       => [qw/instance_id layout_id permission/],
+        group_by => [qw/me.permission me.layout_id/],
+        join     => [
+            'layout',
+            {
+                group => 'user_groups',
+            },
+        ],
+    });
+    $rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+
+    my $perms_columns;
+    $perms_columns->{$_->{instance_id}}->{$_->{layout_id}}->{$_->{permission}} = 1
+        foreach ($rs->all);
+
+    foreach my $instance ($self->schema->resultset('Instance')->all)
+    {
+        my $p_table   = {
+            $self->user->{id} => $perms_table->{$instance->id} || {},
+        };
+        my $p_columns = {
+            $self->user->{id} => $perms_columns->{$instance->id} || {},
+        };
+        my %params = (
+            user                      => $self->user,
+            schema                    => $self->schema,
+            config                    => GADS::Config->instance,
+            instance_id               => $instance->id,
+            _user_permissions_table   => $p_table,
+            _user_permissions_columns => $p_columns,
+        );
+        $params{cols_db} = $layouts[0]->cols_db if @layouts;
+        push @layouts, GADS::Layout->new(%params);
+    }
+    \@layouts;
+}
+
+has _layouts_index => (
+    is  => 'lazy',
+    isa => HashRef,
+);
+
+sub _build__layouts_index
+{   my $self = shift;
+    my %layouts = map { $_->instance_id => $_ } @{$self->_layouts};
+    \%layouts;
+}
+
+sub layout
+{   my ($self, $instance_id) = @_;
+    $self->_layouts_index->{$instance_id}
+        or panic "Layout for instance ID $instance_id not found";
 }
 
 sub is_valid
 {   my ($self, $id) = @_;
-    grep { $_->id == $id } @{$self->all}
+    grep { $_->instance_id == $id } @{$self->all}
         or return;
     $id; # Return ID to make testing easier
 }
