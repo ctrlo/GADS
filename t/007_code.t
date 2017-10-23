@@ -347,6 +347,7 @@ foreach my $test (@tests)
     $record_new->fields->{$columns->{daterange1}->id}->set_value(['2000-10-10', '2001-10-10']);
     $record_new->fields->{$columns->{curval1}->id}->set_value(1);
     $record_new->fields->{$columns->{tree1}->id}->set_value(10);
+    $record_new->fields->{$columns->{integer1}->id}->set_value(10);
     try { $record_new->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
     my $cid = $record_new->current_id;
     $record_new->clear;
