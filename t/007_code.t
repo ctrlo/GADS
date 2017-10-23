@@ -21,11 +21,13 @@ my $data = [
         daterange1 => ['2000-10-10', '2001-10-10'],
         curval1    => 1,
         tree1      => 'tree1',
+        integer1   => 10,
     },
     {
         daterange1 => ['2012-11-11', '2013-11-11'],
         curval1    => 2,
         tree1      => 'tree1',
+        integer1   => 10,
     },
 ];
 
@@ -281,6 +283,14 @@ my @tests = (
         end),
         before => '20002000', # Original first record plus new record
         after  => '20002014', # One record has daterange updated only
+    },
+    {
+        # In Lua, "10" is not equal to 10
+        name   => 'integer passed to Lua as int type not string',
+        type   => 'Calc',
+        code   => qq(function evaluate (L1integer1) \n if L1integer1 == 10 then return "Yes" else return L1integer1 end \nend),
+        before => 'Yes',
+        after  => 'Yes'
     },
 );
 
