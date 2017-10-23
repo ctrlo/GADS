@@ -92,7 +92,8 @@ foreach my $column ($layout->all, $curval_sheet->layout->all)
     $permissions->{$groups{limited}} = $all
         if $column->name eq 'string1' && $column->layout->instance_id != $curval_sheet->instance_id;
     $permissions->{$groups{readwrite}} = $all;
-    $column->set_permissions(%$permissions);
+    $column->set_permissions($permissions);
+    $column->write;
 }
 # Turn off the permission override on the curval sheet so that permissions are
 # actually tested (turned on initially to populate records)
@@ -233,10 +234,11 @@ foreach my $test (qw/single all/)
     $group2->name('group2');
     $group2->write;
 
-    $string1->set_permissions(
+    $string1->set_permissions({
         $group1->id => [qw/read write_new write_existing/],
         $group2->id => [qw/read write_new write_existing/],
-    );
+    });
+    $string1->write;
 
     my $rules = GADS::Filter->new(
         as_hash => {
@@ -287,7 +289,8 @@ foreach my $test (qw/single all/)
     $new_permissions{$group2->id} = [qw/write_new write_existing/]
         if $test eq 'single';
     # Should be no change as still as read access
-    $string1->set_permissions(%new_permissions);
+    $string1->set_permissions({%new_permissions});
+    $string1->write;
     is($view_layout_rs->count, 1, "View still has column with read access remaining");
     $filter = $schema->resultset('View')->find($view->id)->filter;
     like($filter, qr/Foo/, "Filter still contains Foo search");
@@ -297,7 +300,8 @@ foreach my $test (qw/single all/)
 
     # Now remove read from all groups
     %new_permissions = $test eq 'all' ? () : ($group2->id => [qw/write_new write_existing/]);
-    $string1->set_permissions(%new_permissions);
+    $string1->set_permissions({%new_permissions});
+    $string1->write;
     is($view_layout_rs->count, 0, "String column removed from view when permissions removed");
     $filter = $schema->resultset('View')->find($view->id)->filter;
     unlike($filter, qr/Foo/, "Filter no longer contains Foo search");

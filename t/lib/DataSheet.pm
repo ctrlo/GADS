@@ -438,14 +438,14 @@ sub __build_columns
     $string1->type('string');
     $string1->name('string1');
     $string1->name_short("L${instance_id}string1");
+    $string1->set_permissions({$self->group->id => $permissions})
+        unless $self->no_groups;
     try { $string1->write };
     if ($@)
     {
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $string1->set_permissions($self->group->id => $permissions)
-        unless $self->no_groups;
 
     my $integer1 = GADS::Column::Intgr->new(
         optional => $self->optional,
@@ -456,14 +456,14 @@ sub __build_columns
     $integer1->type('intgr');
     $integer1->name('integer1');
     $integer1->name_short("L${instance_id}integer1");
+    $integer1->set_permissions({$self->group->id => $permissions})
+        unless $self->no_groups;
     try { $integer1->write };
     if ($@)
     {
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $integer1->set_permissions($self->group->id => $permissions)
-        unless $self->no_groups;
 
     my @enums;
     foreach my $count (1..$self->column_count->{enum})
@@ -489,14 +489,14 @@ sub __build_columns
                 value => 'foo3',
             },
         ]);
+        $enum->set_permissions({$self->group->id => $permissions})
+            unless $self->no_groups;
         try { $enum->write };
         if ($@)
         {
             $@->wasFatal->throw(is_fatal => 0);
             return;
         }
-        $enum->set_permissions($self->group->id => $permissions)
-            unless $self->no_groups;
         push @enums, $enum;
     }
 
@@ -509,6 +509,8 @@ sub __build_columns
     $tree1->type('tree');
     $tree1->name('tree1');
     $tree1->name_short("L${instance_id}tree1");
+    $tree1->set_permissions({$self->group->id => $permissions})
+        unless $self->no_groups;
     try { $tree1->write };
     my $tree_id = $tree1->id;
     if ($@)
@@ -543,8 +545,6 @@ sub __build_columns
         layout   => $layout,
     );
     $tree1->from_id($tree_id);
-    $tree1->set_permissions($self->group->id => $permissions)
-        unless $self->no_groups;
 
     my $date1 = GADS::Column::Date->new(
         optional => $self->optional,
@@ -554,14 +554,14 @@ sub __build_columns
     );
     $date1->type('date');
     $date1->name('date1');
+    $date1->set_permissions({$self->group->id => $permissions})
+        unless $self->no_groups;
     try { $date1->write };
     if ($@)
     {
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $date1->set_permissions($self->group->id => $permissions)
-        unless $self->no_groups;
 
     my $daterange1 = GADS::Column::Daterange->new(
         optional => $self->optional,
@@ -572,14 +572,14 @@ sub __build_columns
     $daterange1->type('daterange');
     $daterange1->name('daterange1');
     $daterange1->name_short("L${instance_id}daterange1");
+    $daterange1->set_permissions({$self->group->id => $permissions})
+        unless $self->no_groups;
     try { $daterange1->write };
     if ($@)
     {
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $daterange1->set_permissions($self->group->id => $permissions)
-        unless $self->no_groups;
 
     my $file1 = GADS::Column::File->new(
         optional => $self->optional,
@@ -589,14 +589,14 @@ sub __build_columns
     );
     $file1->type('file');
     $file1->name('file1');
+    $file1->set_permissions({$self->group->id => $permissions})
+        unless $self->no_groups;
     try { $file1->write };
     if ($@)
     {
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $file1->set_permissions($self->group->id => $permissions)
-        unless $self->no_groups;
 
     my $person1 = GADS::Column::Person->new(
         optional => $self->optional,
@@ -606,14 +606,14 @@ sub __build_columns
     );
     $person1->type('person');
     $person1->name('person1');
+    $person1->set_permissions({$self->group->id => $permissions})
+        unless $self->no_groups;
     try { $person1->write };
     if ($@)
     {
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $person1->set_permissions($self->group->id => $permissions)
-        unless $self->no_groups;
 
     my @curvals;
     if ($self->curval)
@@ -637,14 +637,14 @@ sub __build_columns
             $curval->type('curval');
             $curval->name("curval$count");
             $curval->multivalue(1) if $self->multivalue;
+            $curval->set_permissions({$self->group->id => $permissions})
+                unless $self->no_groups;
             try { $curval->write };
             if ($@)
             {
                 $@->wasFatal->throw(is_fatal => 0);
                 return;
             }
-            $curval->set_permissions($self->group->id => $permissions)
-                unless $self->no_groups;
             push @curvals, $curval;
         }
     }
@@ -664,14 +664,14 @@ sub __build_columns
     ");
     $rag1->type('rag');
     $rag1->name('rag1');
+    $rag1->set_permissions({$self->group->id => $permissions})
+        unless $self->no_groups;
     try { $rag1->write };
     if ($@)
     {
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $rag1->set_permissions($self->group->id => $permissions)
-        unless $self->no_groups;
 
     # At this point, layout will have been built with current columns (it will
     # have been built as part of creating the RAG column). Therefore, clear it,
@@ -689,14 +689,14 @@ sub __build_columns
     $calc1->name('calc1');
     $calc1->name_short("L${instance_id}calc1");
     $calc1->return_type($self->calc_return_type);
+    $calc1->set_permissions({$self->group->id => $permissions})
+        unless $self->no_groups;
     try { $calc1->write };
     if ($@)
     {
         $@->wasFatal->throw(is_fatal => 0);
         return;
     }
-    $calc1->set_permissions($self->group->id => $permissions)
-        unless $self->no_groups;
 
     # Clear the layout again, otherwise it won't include the calc
     # column itself (it will have been built as part of its creation)
@@ -745,9 +745,9 @@ sub add_autocur
     my $instance_id = $self->layout->instance_id;
     $autocur->name_short("L${instance_id}autocur$count");
     $autocur->related_field_id($options{related_field_id});
-    $autocur->write;
-    $autocur->set_permissions($self->group->id => $self->default_permissions)
+    $autocur->set_permissions({$self->group->id => $self->default_permissions})
         unless $self->no_groups;
+    $autocur->write;
     $self->columns->{"autocur$count"} = $autocur;
     $autocur;
 }

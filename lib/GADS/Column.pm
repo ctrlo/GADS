@@ -869,6 +869,7 @@ sub write
         $rset = $self->schema->resultset('Layout')->create($newitem);
         $new_id = $rset->id;
         $self->_set__rset($rset);
+        $self->id($new_id);
     }
     else {
         if ($rset = $self->schema->resultset('Layout')->find($self->id))
@@ -886,6 +887,8 @@ sub write
     }
 
     $self->write_special(rset => $rset, id => $new_id || $self->id, %options); # Write any column-specific params
+
+    $self->_write_permissions;
 
     $guard->commit;
 
@@ -922,8 +925,18 @@ sub user_id_can
     return $self->layout->user_can_column($user_id, $self->id, $permission)
 }
 
-sub set_permissions {
-    my ($self, %permissions) = @_;
+has set_permissions => (
+    is        => 'rw',
+    isa       => HashRef,
+    predicate => 1,
+);
+
+sub _write_permissions
+{   my $self = shift;
+
+    $self->has_set_permissions or return;
+
+    my %permissions = %{$self->set_permissions};
 
     my @groups = keys %permissions;
 

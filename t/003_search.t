@@ -99,15 +99,17 @@ my @position = (
 $layout->position(@position);
 
 my $calc_int = GADS::Column::Calc->new(
-    schema      => $schema,
-    user        => undef,
-    layout      => $layout,
-    name        => 'calc_int',
-    return_type => 'integer',
-    code        => "function evaluate (L1integer1) return L1integer1 end",
+    schema          => $schema,
+    user            => undef,
+    layout          => $layout,
+    name            => 'calc_int',
+    return_type     => 'integer',
+    code            => "function evaluate (L1integer1) return L1integer1 end",
+    set_permissions => {
+        $sheet->group->id => $sheet->default_permissions,
+    },
 );
 $calc_int->write;
-$calc_int->set_permissions($sheet->group->id => $sheet->default_permissions);
 $layout->clear;
 
 $sheet->create_records;
@@ -143,9 +145,11 @@ my $curval3 = GADS::Column::Curval->new(
     schema                => $schema,
     refers_to_instance_id => $curval_sheet2->instance_id,
     curval_field_ids      => [$curval_sheet2->columns->{string1}->id],
+    set_permissions       => {
+        $sheet->group->id => $sheet->default_permissions,
+    },
 );
 $curval3->write;
-$curval3->set_permissions($sheet->group->id => $sheet->default_permissions);
 $curval_sheet->layout->clear;
 $layout->clear;
 my $records = GADS::Records->new(

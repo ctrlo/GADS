@@ -1342,7 +1342,7 @@ any '/layout/?:id?' => require_login sub {
                     push @{ $permissions{$group_id} ||= [] }, $name;
                 }
                 
-                $column->set_permissions(%permissions);
+                $column->set_permissions(\%permissions);
             }
 
             $column->$_(param $_)
