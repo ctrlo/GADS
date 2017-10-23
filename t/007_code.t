@@ -292,6 +292,14 @@ my @tests = (
         before => 'Yes',
         after  => 'Yes'
     },
+    {
+        # As previous, but curval ID
+        name   => 'curval ID passed to Lua as int type not string',
+        type   => 'Calc',
+        code   => qq(function evaluate (L1curval1) \n if L1curval1.id == 1 or L1curval1.id == 2 then return "Yes" else return "No" end \nend),
+        before => 'Yes',
+        after  => 'Yes'
+    },
 );
 
 foreach my $test (@tests)

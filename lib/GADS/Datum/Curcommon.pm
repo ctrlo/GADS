@@ -248,7 +248,7 @@ sub for_code
 
     my @values = map {
         +{
-            id           => $_,
+            id           => int $_, # Ensure passed to Lua as number not string
             value        => $self->_text_hash->{$_},
             field_values => $field_values->{$_},
         }
