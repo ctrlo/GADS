@@ -77,7 +77,7 @@
         <![endif]-->
     </head>
 
-    <body class="page [% page %]">
+    <body class="page [% page %]" data-page="[% page %]">
         <header role="banner" class="container">
         [% IF header AND NOT page_as_mech %]
             <p class="text-center">[% header %]</p>
