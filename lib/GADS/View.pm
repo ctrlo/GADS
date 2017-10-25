@@ -68,6 +68,7 @@ has _view => (
             'me.instance_id' => $self->instance_id,
         },{
             prefetch => ['sorts', 'alerts'],
+            order_by => 'sorts.id', # Ensure sorts are retrieve in correct order to apply
         })->all;
         if (!$view)
         {
@@ -377,9 +378,6 @@ sub write
     $self->schema->resultset('ViewLayout')->search($search)->delete;
     $self->schema->resultset('AlertCache')->search($search)->delete;
 
-    # Then update any sorts
-    # $self->sorts($values);
-
     # Then update the filter table, which we use to query what fields are
     # applied to a view's filters when doing alerts.
     # We don't sanitise the columns the user has visible at this point -
@@ -471,6 +469,7 @@ sub _get_sorts
 
     return [] unless $self->_view;
 
+    # Sort order is defined by the database sequential ID of each sort
     my @sorts;
     foreach my $sort ($self->_view->sorts->all)
     {
@@ -510,6 +509,9 @@ sub set_sorts
             layout_id => ($layout_id || undef), # ID will be empty string
             type      => $type,
         };
+        # Assume that each new sort is applied with a new ID greater than the
+        # previous to give correct order.
+        # XXX Would be better having an "order" column in the table
         my $s = $schema->resultset('Sort')->create($sort);
         push @allsorts, $s->id;
         $type_last = $type;
