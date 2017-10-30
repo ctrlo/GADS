@@ -825,7 +825,8 @@ has editor_shown_fields => (
     predicate => 1,
     trigger   => sub {
         my ($self, $fields) = @_;
-        $self->fields->{$_}->value_current_page(1)
+        # Prevent exception if page submits fields that don't exist
+        $self->fields->{$_} && $self->fields->{$_}->value_current_page(1)
             foreach @$fields;
     },
 );
