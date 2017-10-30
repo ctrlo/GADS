@@ -1228,7 +1228,8 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => require_login sub {
 
     my ($layout_id, $value) = splat;
 
-    my $tree = var('layout')->column($layout_id);
+    my $tree = var('layout')->column($layout_id)
+        or error __x"Invalid tree ID {id}", id => $layout_id;
 
     if (param 'data')
     {
