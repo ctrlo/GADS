@@ -39,6 +39,8 @@ has _graph => (
     builder => sub {
         my $self = shift;
         $self->id or return;
+        $self->id =~ /^[0-9]+$/
+            or error __x"Invalid graph ID {id}", id => $self->id;
         my ($graph) = $self->schema->resultset('Graph')->search({
             'me.id' => $self->id
         },{
@@ -69,7 +71,6 @@ has set_values => (
 
 has id => (
     is  => 'rwp',
-    isa => Int,
 );
 
 has title => (
