@@ -74,21 +74,18 @@ has id => (
 
 has title => (
     is      => 'rw',
-    isa     => Maybe[Str],
     lazy    => 1,
     builder => sub { $_[0]->_graph && $_[0]->_graph->title },
 );
 
 has description => (
     is      => 'rw',
-    isa     => Maybe[Str],
     lazy    => 1,
     builder => sub { $_[0]->_graph && $_[0]->_graph->description },
 );
 
 has x_axis => (
     is      => 'rw',
-    isa     => Maybe[Int],
     lazy    => 1,
     coerce  => sub { $_[0] || undef }, # Empty string from form
     builder => sub { $_[0]->_graph && $_[0]->_graph->x_axis && $_[0]->_graph->x_axis->id },
@@ -97,36 +94,25 @@ has x_axis => (
 # X-axis is undef for graph showing all columns in view
 has x_axis_name => (
     is      => 'rw',
-    isa     => Maybe[Str],
     lazy    => 1,
     builder => sub { $_[0]->x_axis ? $_[0]->layout->column($_[0]->x_axis)->name : "" },
 );
 
 has x_axis_grouping => (
     is      => 'rw',
-    isa     => sub {
-        return unless $_[0];
-        grep { $_[0] eq $_ } keys %{GADS::Graphs->new->dategroup}
-            or error __x"{xas} is an invalid value for X-axis grouping", xas => $_[0];
-    },
     lazy    => 1,
+    coerce  => sub { $_[0] || undef },
     builder => sub { $_[0]->_graph && $_[0]->_graph->x_axis_grouping },
 );
 
 has type => (
     is      => 'rw',
-    isa     => sub {
-        return unless $_[0];
-        grep { $_[0] eq $_ } GADS::Graphs->types
-            or error __x"Invalid graph type {type}", type => $_[0];
-    },
     lazy    => 1,
     builder => sub { $_[0]->_graph && $_[0]->_graph->type },
 );
 
 has group_by => (
     is      => 'rw',
-    isa     => Maybe[Int],
     lazy    => 1,
     builder => sub { $_[0]->_graph && $_[0]->_graph->group_by && $_[0]->_graph->group_by->id },
     coerce  => sub { $_[0] || undef },
@@ -134,7 +120,6 @@ has group_by => (
 
 has stackseries => (
     is      => 'rw',
-    isa     => Bool,
     lazy    => 1,
     coerce  => sub { $_[0] ? 1 : 0 },
     builder => sub { $_[0]->_graph && $_[0]->_graph->stackseries },
@@ -142,32 +127,24 @@ has stackseries => (
 
 has y_axis => (
     is      => 'rw',
-    isa     => Maybe[Int],
     lazy    => 1,
     builder => sub { $_[0]->_graph && $_[0]->_graph->y_axis->id },
 );
 
 has y_axis_label => (
     is      => 'rw',
-    isa     => Maybe[Str],
     lazy    => 1,
     builder => sub { $_[0]->_graph && $_[0]->_graph->y_axis_label },
 );
 
 has y_axis_stack => (
     is      => 'rw',
-    isa     => sub {
-        return unless $_[0];
-        error __x"{yas} is an invalid value for Y-axis", yas => $_[0]
-            unless $_[0] eq 'count' || $_[0] eq 'sum';
-    },
     lazy    => 1,
     builder => sub { $_[0]->_graph && $_[0]->_graph->y_axis_stack },
 );
 
 has showlegend => (
     is      => 'rw',
-    isa     => Bool,
     lazy    => 1,
     builder => sub {
         my $graph = $_[0]->_graph or return;
@@ -180,7 +157,6 @@ has showlegend => (
 # doesn't really matter, but would be tidier if it was fixed.
 has metric_group_id => (
     is      => 'rw',
-    isa     => Maybe[Int],
     lazy    => 1,
     coerce  => sub { $_[0] || undef }, # blank string from form
     builder => sub { $_[0]->_graph && $_[0]->_graph->get_column('metric_group') },
@@ -189,7 +165,6 @@ has metric_group_id => (
 # Whether a user has the graph selected. Used by GADS::Graphs
 has selected => (
     is  => 'rw',
-    isa => Bool,
 );
 
 sub delete
@@ -207,16 +182,43 @@ sub write
 
     my $newgraph;
     $newgraph->{title}           = $self->title or error __"Please enter a title";
+
     $newgraph->{description}     = $self->description;
+
     $newgraph->{y_axis}          = $self->y_axis or error __"Please select a Y-axis";
+    $self->layout->column_this_instance($self->y_axis)
+        or error __x"Invalid Y-axis {y_axis}", y_axis => $self->y_axis;
+
     $newgraph->{y_axis_stack}    = $self->y_axis_stack or error __"A valid value is required for Y-axis stacking";
+    !defined $self->y_axis_stack || $self->y_axis_stack eq 'count' || $self->y_axis_stack eq 'sum'
+        or error __x"{yas} is an invalid value for Y-axis", yas => $self->y_axis_stack;
+
     $newgraph->{y_axis_label}    = $self->y_axis_label;
+
     $newgraph->{x_axis}          = $self->x_axis;
+    !defined $self->x_axis || $self->layout->column_this_instance($self->x_axis)
+        or error __x"Invalid X-axis value {x_axis}", x_axis => $self->x_axis;
+
     $newgraph->{x_axis_grouping} = $self->x_axis_grouping;
+    !defined $self->x_axis_grouping || grep { $self->x_axis_grouping eq $_ } keys %{GADS::Graphs->new->dategroup}
+        or error __x"{xas} is an invalid value for X-axis grouping", xas => $self->x_axis_grouping;
+
     $newgraph->{group_by}        = $self->group_by;
+    !defined $self->group_by || $self->layout->column_this_instance($self->group_by)
+        or error __x"Invalid group by value {group_by}", group_by => $self->group_by;
+
     $newgraph->{metric_group}    = $self->metric_group_id;
+    !defined $self->metric_group_id || $self->metric_group_id =~ /^[0-9]+$/
+        or error __x"Invalid metric group ID format {id}", id => $self->metric_group_id;
+    !defined $self->metric_group_id || $self->schema->resultset('MetricGroup')->find($self->metric_group_id)
+        or error __x"Invalid metric group ID {id}", id => $self->metric_group_id;
+
     $newgraph->{stackseries}     = $self->stackseries;
+
     $newgraph->{type}            = $self->type;
+    grep { $self->type eq $_ } GADS::Graphs->types
+        or error __x"Invalid graph type {type}", type => $self->type;
+
     $newgraph->{instance_id}     = $self->layout->instance_id;
 
     error __"A field returning a numberic value must be used for the Y-axis when calculating the sum of values"
