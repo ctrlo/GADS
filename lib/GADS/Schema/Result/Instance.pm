@@ -25,7 +25,7 @@ use base 'DBIx::Class::Core';
 
 =cut
 
-__PACKAGE__->load_components("InflateColumn::DateTime");
+__PACKAGE__->load_components("InflateColumn::DateTime", "+GADS::DBIC");
 
 =head1 TABLE: C<instance>
 
@@ -258,6 +258,14 @@ sub delete
     })->count
         and error __"All fields must be deleted from this table before it can be deleted";
     $self->next::method(@_);
+}
+
+sub validate {
+    my $self = shift;
+    !defined $self->sort_layout_id || $self->sort_layout_id =~ /^[0-9]+$/
+        or error __x"Invalid sort_layout_id {id}", id => $self->sort_layout_id;
+    $self->sort_type eq 'asc' || $self->sort_type eq 'desc'
+        or error __x"Invalid sort type {type}", type => $self->sort_type;
 }
 
 1;
