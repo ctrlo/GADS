@@ -1112,6 +1112,8 @@ try { $record->find_current_id(100) };
 like( $@, qr/Record ID 100 not found/, "Correct error when finding record ID that does not exist" );
 try { $record->find_current_id('XYXY') };
 like( $@, qr/Invalid record ID/, "Correct error when finding record ID that is invalid" );
+try { $record->find_current_id('123XYXY') };
+like( $@, qr/Invalid record ID/, "Correct error when finding record ID that is invalid (2)" );
 
 # Check sorting functionality
 # First check default_sort functionality

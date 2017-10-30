@@ -411,7 +411,7 @@ sub find_record_id
 sub find_current_id
 {   my ($self, $current_id, $search_instance_id) = @_;
     return unless $current_id;
-    $current_id =~ /^[0-9]+/
+    $current_id =~ /^[0-9]+$/
         or error __x"Invalid record ID {id}", id => $current_id;
     my $current = $self->schema->resultset('Current')->find($current_id)
         or error __x"Record ID {id} not found", id => $current_id;
