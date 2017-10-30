@@ -1120,7 +1120,20 @@ any '/group/?:id?' => require_role useradmin => sub {
 any '/table/?:id?' => require_role layout => sub {
 
     my $id       = param 'id';
-    my $instance = defined($id) && ($id && rset('Instance')->find($id) || rset('Instance')->new({}));
+    my $instance;
+    if (defined $id)
+    {
+        if ($id)
+        {
+            $id =~ /^[0-9]+$/
+                or error __x"Invalid instance ID format {id}", id => $id;
+            $instance = rset('Instance')->find($id)
+                or error __x"Instance ID {id} not found", id => $id;
+        }
+        else {
+            $instance = rset('Instance')->new({});
+        }
+    }
     my $layout   = var 'layout';
 
     if (param 'submit')
