@@ -1285,20 +1285,24 @@ any '/layout/?:id?' => require_role 'layout' => sub {
     if (param('id') || param('submit') || param('update_perms'))
     {
 
-        my $id = param('id');
-        my $class = !$id ? param('type') : rset('Layout')->find($id)->type;
-        grep {$class eq $_} GADS::Column::types
-            or error __x"Invalid column type {class}", class => $class;
-
-        $class = "GADS::Column::".camelize($class);
-        my $column = $id
-            ? $layout->column($id)
-            : $class->new(
+        my $column;
+        if (my $id = param('id'))
+        {
+            $column = $layout->column($id)
+                or error __x"Column ID {id} not found", id => $id;
+        }
+        else {
+            my $class = param('type');
+            grep {$class eq $_} GADS::Column::types
+                or error __x"Invalid column type {class}", class => $class;
+            $class = "GADS::Column::".camelize($class);
+            $column = $class->new(
                 schema => schema,
                 user   => $user,
                 layout => $layout
             );
-        
+        }
+
         # Update of permissions?
         if (param 'update_perms')
         {
@@ -1337,7 +1341,7 @@ any '/layout/?:id?' => require_role 'layout' => sub {
             $column->$_(param $_)
                 foreach (qw/name name_short description helptext optional isunique multivalue remember link_parent_id/);
             $column->type(param 'type')
-                unless $id; # Can't change type as it would require DBIC resultsets to be removed and re-added
+                unless param('id'); # Can't change type as it would require DBIC resultsets to be removed and re-added
             $column->$_(param $_)
                 foreach @{$column->option_names};
             if (param 'display_condition')
