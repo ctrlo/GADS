@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS;
 
+use Crypt::URandom; # Make Dancer session generation cryptographically secure
 use DateTime;
 use File::Temp qw/ tempfile /;
 use GADS::Alert;
@@ -59,6 +60,7 @@ use GADS::View;
 use GADS::Views;
 use HTML::Entities;
 use JSON qw(decode_json encode_json);
+use Math::Random::ISAAC::XS; # Make Dancer session generation cryptographically secure
 use MIME::Base64;
 use Session::Token;
 use String::CamelCase qw(camelize);
