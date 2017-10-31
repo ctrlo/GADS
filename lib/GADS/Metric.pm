@@ -29,12 +29,10 @@ has schema => (
 
 has id => (
     is  => 'rwp',
-    isa => Maybe[Int],
 );
 
 has metric_group_id => (
     is      => 'rw',
-    isa     => Int,
     lazy    => 1,
     builder => sub { $_[0]->_rset->get_column('metric_group') },
 );
@@ -69,9 +67,14 @@ sub _build__rset
     my $rset;
     if ($self->id)
     {
-        $rset = $self->schema->resultset('Metric')->find($self->id);
+        $self->id =~ /^[0-9]+$/
+            or error __x"Invalid id {id}", id => $self->id;
+        $rset = $self->schema->resultset('Metric')->find($self->id)
+            or error __x"Metric ID {id} not found", id => $self->id;
     }
     else {
+        $self->metric_group_id =~ /^[0-9]+$/
+            or error __x"Invalid metric group ID {id}", id => $self->metric_group_id;
         $rset = $self->schema->resultset('Metric')->create({
             metric_group => $self->metric_group_id,
         });
