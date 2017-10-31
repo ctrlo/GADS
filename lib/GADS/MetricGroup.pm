@@ -48,6 +48,8 @@ has _rset => (
     builder => sub {
         my $self = shift;
         $self->id or return;
+        $self->id =~ /^[0-9]+$/
+            or error __x"Invalid ID format {id}", id => $self->id;
         my ($mg) = $self->schema->resultset('MetricGroup')->search({
             id          => $self->id,
             instance_id => $self->instance_id,

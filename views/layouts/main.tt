@@ -118,7 +118,7 @@
                                             <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/layout/">Data Layout</a></li>
                                             <li [% IF page=="table" %]class="active"[% END %]><a href="[% url.page %]/table/">Tables</a></li>
                                             <li [% IF page=="graph" %]class="active"[% END %]><a href="[% url.page %]/graph/">Graphs</a></li>
-                                            <li [% IF page=="metric" %]class="active"[% END %]><a href="[% url.page %]/metric/">Metrics</a></li>
+                                            <li [% IF page=="metric" %]class="active"[% END %]><a href="[% url.page %]/metrics/">Metrics</a></li>
                                             <li [% IF page=="config" %]class="active"[% END %]><a href="[% url.page %]/config/">General Settings</a></li>
                                         [% END %]
                                         [% IF user.permission.useradmin %]

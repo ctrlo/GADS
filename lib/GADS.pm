@@ -993,7 +993,25 @@ any '/graph/?:id?' => require_role layout => sub {
     template 'graph' => $params;
 };
 
-any '/metric/?:id?' => require_role layout => sub {
+any '/metrics/?' => require_role layout => sub {
+
+    my $layout = var 'layout';
+
+    my $metrics = GADS::MetricGroups->new(
+        schema      => schema,
+        instance_id => $layout->instance_id,
+    )->all;
+
+    my $params = {
+        layout  => $layout,
+        page    => 'metric',
+        metrics => $metrics,
+    };
+
+    template 'metrics' => $params;
+};
+
+any '/metric/:id' => require_role layout => sub {
 
     my $layout = var 'layout';
     my $params = {
@@ -1002,72 +1020,63 @@ any '/metric/?:id?' => require_role layout => sub {
     };
 
     my $id = param 'id';
-    if (defined $id)
+
+    my $metricgroup = GADS::MetricGroup->new(
+        schema      => schema,
+        id          => $id,
+        instance_id => $layout->instance_id,
+    );
+
+    if (param 'delete_all')
     {
-        my $metricgroup = GADS::MetricGroup->new(
-            schema      => schema,
-            id          => $id,
-            instance_id => $layout->instance_id,
+        if (process( sub { $metricgroup->delete }))
+        {
+            return forwardHome(
+                { success => "The metric has been deleted successfully" }, 'metric' );
+        }
+    }
+
+    # Delete an individual item from a group
+    if (param 'delete_metric')
+    {
+        if (process( sub { $metricgroup->delete_metric(param 'metric_id') }))
+        {
+            return forwardHome(
+                { success => "The metric has been deleted successfully" }, "metric/$id" );
+        }
+    }
+
+    if (param 'submit')
+    {
+        $metricgroup->name(param 'name');
+        if(process( sub { $metricgroup->write }))
+        {
+            my $action = param('id') ? 'updated' : 'created';
+            return forwardHome(
+                { success => "Metric has been $action successfully" }, 'metric' );
+        }
+    }
+
+    # Update/create an individual item in a group
+    if (param 'update_metric')
+    {
+        my $metric = GADS::Metric->new(
+            id                    => param('metric_id') || undef,
+            metric_group_id       => $id,
+            x_axis_value          => param('x_axis_value'),
+            y_axis_grouping_value => param('y_axis_grouping_value'),
+            target                => param('target'),
+            schema                => schema,
         );
-
-        if (param 'delete_all')
+        if(process( sub { $metric->write }))
         {
-            if (process( sub { $metricgroup->delete }))
-            {
-                return forwardHome(
-                    { success => "The metric has been deleted successfully" }, 'metric' );
-            }
+            my $action = param('id') ? 'updated' : 'created';
+            return forwardHome(
+                { success => "Metric has been $action successfully" }, "metric/$id" );
         }
-
-        # Delete an individual item from a group
-        if (param 'delete_metric')
-        {
-            if (process( sub { $metricgroup->delete_metric(param 'metric_id') }))
-            {
-                return forwardHome(
-                    { success => "The metric has been deleted successfully" }, "metric/$id" );
-            }
-        }
-
-        if (param 'submit')
-        {
-            $metricgroup->name(param 'name');
-            if(process( sub { $metricgroup->write }))
-            {
-                my $action = param('id') ? 'updated' : 'created';
-                return forwardHome(
-                    { success => "Metric has been $action successfully" }, 'metric' );
-            }
-        }
-
-        # Update/create an individual item in a group
-        if (param 'update_metric')
-        {
-            my $metric = GADS::Metric->new(
-                id                    => param('metric_id') || undef,
-                metric_group_id       => $id,
-                x_axis_value          => param('x_axis_value'),
-                y_axis_grouping_value => param('y_axis_grouping_value'),
-                target                => param('target'),
-                schema                => schema,
-            );
-            if(process( sub { $metric->write }))
-            {
-                my $action = param('id') ? 'updated' : 'created';
-                return forwardHome(
-                    { success => "Metric has been $action successfully" }, "metric/$id" );
-            }
-        }
-
-        $params->{metricgroup} = $metricgroup;
     }
-    else {
-        my $metrics = GADS::MetricGroups->new(
-            schema      => schema,
-            instance_id => $layout->instance_id,
-        )->all;
-        $params->{metrics} = $metrics;
-    }
+
+    $params->{metricgroup} = $metricgroup;
 
     template 'metric' => $params;
 };
