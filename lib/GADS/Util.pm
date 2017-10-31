@@ -26,7 +26,7 @@ package GADS::Util;
 # to pure email address on its own.
 sub email_valid
 {   my ($class, $email) = @_;
-    $email =~ m/^\S+@\S+\.\S+$/;
+    $email =~ m/^[=+\'a-z0-9._-]+@[a-z0-9.-]+\.[a-z]{2,10}$/i;
 }
 
 1;
