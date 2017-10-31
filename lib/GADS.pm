@@ -1552,10 +1552,10 @@ any '/user/?:id?' => require_role useradmin => sub {
             permissions           => [body_parameters->get_all('permission')],
         );
 
-        if (!param('account_request') && param('username')) # Original username to update (hidden field)
+        if (!param('account_request') && $id) # Original username to update (hidden field)
         {
             if (process sub {
-                my $user = rset('User')->active->search({ username => param('username') })->next;
+                my $user = rset('User')->active->search({ id => $id })->next;
                 # Don't use DBIC update directly, so that permissions etc are updated properly
                 $user->update_user(current_user => logged_in_user, %values);
             })
