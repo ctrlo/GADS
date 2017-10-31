@@ -144,7 +144,12 @@ sub logs
 
     $search->{method}  = uc $filtering->{method} if $filtering->{method};
     $search->{type}    = $filtering->{type} if $filtering->{type};
-    $search->{user_id} = $filtering->{user} if $filtering->{user};
+    if (my $user_id = $filtering->{user})
+    {
+        $user_id =~ /^[0-9]+$/
+            or error __x"Invalid user ID {id}", id => $user_id;
+        $search->{user_id} = $filtering->{user};
+    }
 
     my $rs   = $self->schema->resultset('Audit')->search($search,{
         prefetch => 'user',
