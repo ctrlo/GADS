@@ -993,7 +993,7 @@ any '/graph/?:id?' => require_role layout => sub {
     template 'graph' => $params;
 };
 
-any '/metrics/?' => require_role layout => sub {
+get '/metrics/?' => require_role layout => sub {
 
     my $layout = var 'layout';
 
@@ -1032,7 +1032,7 @@ any '/metric/:id' => require_role layout => sub {
         if (process( sub { $metricgroup->delete }))
         {
             return forwardHome(
-                { success => "The metric has been deleted successfully" }, 'metric' );
+                { success => "The metric has been deleted successfully" }, 'metrics' );
         }
     }
 
@@ -1053,7 +1053,7 @@ any '/metric/:id' => require_role layout => sub {
         {
             my $action = param('id') ? 'updated' : 'created';
             return forwardHome(
-                { success => "Metric has been $action successfully" }, 'metric' );
+                { success => "Metric has been $action successfully" }, 'metrics' );
         }
     }
 
