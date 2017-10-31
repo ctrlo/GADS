@@ -717,7 +717,7 @@ sub update_user
         or error __"Surname must be less than 128 characters";
     length $params{telephone} <= 128
         or error __"Telephone must be less than 128 characters";
-    $params{organisation} =~ /^[0-9]+$/
+    !defined $params{organisation} || $params{organisation} =~ /^[0-9]+$/
         or error __x"Invalid organisation {id}", id => $params{organisation};
 
     my $values = {
