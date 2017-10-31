@@ -711,6 +711,13 @@ sub update_user
 
     my $current_user = delete $params{current_user};
 
+    length $params{firstname} <= 128
+        or error __"Forename must be less than 128 characters";
+    length $params{surname} <= 128
+        or error __"Surname must be less than 128 characters";
+    length $params{telephone} <= 128
+        or error __"Telephone must be less than 128 characters";
+
     my $values = {
         firstname             => $params{firstname},
         surname               => $params{surname},
