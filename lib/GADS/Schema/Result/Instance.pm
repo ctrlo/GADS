@@ -11,6 +11,7 @@ GADS::Schema::Result::Instance
 use strict;
 use warnings;
 
+use HTML::Scrubber;
 use Log::Report 'linkspace';
 
 use base 'DBIx::Class::Core';
@@ -266,6 +267,28 @@ sub validate {
         or error __x"Invalid sort_layout_id {id}", id => $self->sort_layout_id;
     !defined $self->sort_type || $self->sort_type eq 'asc' || $self->sort_type eq 'desc'
         or error __x"Invalid sort type {type}", type => $self->sort_type;
+
+    # Sanitise HTML input. This will be from an administrator so should be
+    # safe, but scrube anyway just in case.
+    my $scrubber = HTML::Scrubber->new(
+        allow => [ qw[ p b i u hr br img h1 h2 h3 h4 h5 h6 font span ul ol li a] ],
+        rules => [
+            p => {
+                align => 1,
+            },
+            font => {
+                face => 1,
+            },
+            span => {
+                style => 1,
+            },
+            a => {
+                href => 1,
+            },
+        ],
+    );
+    $self->homepage_text($scrubber->scrub($self->homepage_text));
+    $self->homepage_text2($scrubber->scrub($self->homepage_text2));
 }
 
 1;

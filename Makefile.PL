@@ -35,6 +35,7 @@ WriteMakefile(
         'DBIx::Class::Migration'                    => 0,
         'DBIx::Class::ResultClass::HashRefInflator' => 0,
         'HTML::FromText'                            => 0,
+        'HTML::Scrubber'                            => 0,
         'Log::Report'                               => 1.16,
         'Mail::Message'                             => 0,
         'Math::Random::ISAAC::XS'                   => 0,
