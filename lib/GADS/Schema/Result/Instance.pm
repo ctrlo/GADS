@@ -26,7 +26,7 @@ use base 'DBIx::Class::Core';
 
 =cut
 
-__PACKAGE__->load_components("InflateColumn::DateTime", "+GADS::DBIC");
+__PACKAGE__->load_components("InflateColumn::DateTime", "+GADS::DBIC", "FilterColumn");
 
 =head1 TABLE: C<instance>
 
@@ -252,6 +252,18 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+# Sanitise HTML input. This will be from an administrator so should be
+# safe, but scrube anyway just in case.
+__PACKAGE__->filter_column( homepage_text => {
+    filter_to_storage => '_scrub',
+    filter_from_storage => '_scrub',
+});
+
+__PACKAGE__->filter_column( homepage_text2 => {
+    filter_to_storage => '_scrub',
+    filter_from_storage => '_scrub',
+});
+
 sub delete
 {   my $self = shift;
     $self->result_source->schema->resultset('Layout')->search({
@@ -267,9 +279,10 @@ sub validate {
         or error __x"Invalid sort_layout_id {id}", id => $self->sort_layout_id;
     !defined $self->sort_type || $self->sort_type eq 'asc' || $self->sort_type eq 'desc'
         or error __x"Invalid sort type {type}", type => $self->sort_type;
+}
 
-    # Sanitise HTML input. This will be from an administrator so should be
-    # safe, but scrube anyway just in case.
+sub _scrub
+{   my ($self, $html) = @_;
     my $scrubber = HTML::Scrubber->new(
         allow => [ qw[ p b i u hr br img h1 h2 h3 h4 h5 h6 font span ul ol li a] ],
         rules => [
@@ -287,8 +300,7 @@ sub validate {
             },
         ],
     );
-    $self->homepage_text($scrubber->scrub($self->homepage_text));
-    $self->homepage_text2($scrubber->scrub($self->homepage_text2));
+    $scrubber->scrub($html);
 }
 
 1;
