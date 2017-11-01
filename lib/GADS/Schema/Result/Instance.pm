@@ -298,6 +298,10 @@ sub _scrub
             a => {
                 href => 1,
             },
+            img => {
+                style => 1,
+                src   => 1,
+            },
         ],
     );
     $scrubber->scrub($html);
