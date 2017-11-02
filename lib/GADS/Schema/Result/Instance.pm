@@ -299,7 +299,7 @@ sub _scrub
                 href => 1,
             },
             img => {
-                style => 1,
+                style => qr{^((?!expression).)*$}i,
                 src   => 1,
             },
         ],
