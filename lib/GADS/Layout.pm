@@ -618,6 +618,14 @@ sub column
     $column;
 }
 
+# Whether the supplied column ID is a valid one for this instance
+sub column_this_instance
+{   my ($self, $id) = @_;
+    my $col = $self->columns_index->{$id}
+        or return;
+    $col->instance_id == $self->instance_id;
+}
+
 sub _build__columns_namehash
 {   my $self = shift;
     my %columns = map { $_->name => $_ } @{$self->columns};

@@ -142,8 +142,8 @@
                         var plotData = ajaxDataRenderer(jsonurl);
                         var options_in = {
                             type: "[% graph.type %]",
-                            x_axis_name: "[% graph.x_axis_name %]",
-                            y_axis_label: "[% graph.y_axis_label %]",
+                            x_axis_name: "[% graph.x_axis_name | replace('"', '\\\"') %]",
+                            y_axis_label: "[% graph.y_axis_label | replace('"', '\\\"') %]",
                             stackseries: [% graph.stackseries %],
                             showlegend: [% IF graph.showlegend %]true[% ELSE %]false[% END %],
                             id: [% graph.id %]

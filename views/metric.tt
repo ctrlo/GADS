@@ -1,4 +1,3 @@
-[% IF metricgroup.defined %]
 <h2>[% IF metricgroup.id %]Edit metric[% ELSE %]Add new metric[% END %]</h2>
 <form role="form" method="post">
     <div class="row">
@@ -87,29 +86,6 @@
     </div>
 </form>
 <p></p>
-[% ELSE %]
-    <h2>Manage metrics</h2>
-    <p>Use this page to create, delete and edit metrics. Metrics are used to measure
-    values on graphs against defined values. When a graph is configured to use a metric,
-    the standard absolute values on the graphs will be replaced by percentage values,
-    calculated by comparing the absolute value with the relevant metric.
-    </p>
-    <p>
-        <a href="/metric/0" class="btn btn-default" role="button">Create new metrics set</a>
-    </p>
-    <table class="table table-striped">
-        <tr>
-            <th></th>
-            <th>Metric set name</th>
-        </tr>
-        [% FOREACH metric IN metrics %]
-            <tr>
-                <td><a href="/metric/[% metric.id %]">Edit</a></td>
-                <td>[% metric.name | html_entity %]
-            </tr>
-        [% END %]
-    </table>
-[% END %]
 
 <!-- Modal -->
 <div class="modal fade" id="modal_delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

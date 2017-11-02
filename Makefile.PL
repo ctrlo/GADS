@@ -18,6 +18,7 @@ WriteMakefile(
     PL_FILES            => {},
     PREREQ_PM => {
         'Algorithm::Dependency::Ordered'            => 0,
+        'Crypt::URandom'                            => 0,
         'Dancer2'                                   => 0.201,
         'Dancer2::Plugin::Auth::Extensible'         => 0.601,
         'Dancer2::Plugin::Auth::Extensible::Provider::DBIC' => 0.623,
@@ -36,8 +37,10 @@ WriteMakefile(
         'DBIx::Class::ResultClass::HashRefInflator' => 0,
         'HTML::FromText'                            => 0,
         'List::Compare'                             => 0,
+        'HTML::Scrubber'                            => 0,
         'Log::Report'                               => 1.16,
         'Mail::Message'                             => 0,
+        'Math::Random::ISAAC::XS'                   => 0,
         'Math::Round'                               => 0,
         'MooX::Singleton'                           => 0,
         'MooX::Types::MooseLike::DateTime'          => 0,

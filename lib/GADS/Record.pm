@@ -413,6 +413,8 @@ sub find_record_id
 sub find_current_id
 {   my ($self, $current_id, $search_instance_id) = @_;
     return unless $current_id;
+    $current_id =~ /^[0-9]+$/
+        or error __x"Invalid record ID {id}", id => $current_id;
     my $current = $self->schema->resultset('Current')->find($current_id)
         or error __x"Record ID {id} not found", id => $current_id;
     my $instance_id = $current->instance_id;
@@ -831,7 +833,8 @@ has editor_shown_fields => (
     predicate => 1,
     trigger   => sub {
         my ($self, $fields) = @_;
-        $self->fields->{$_}->value_current_page(1)
+        # Prevent exception if page submits fields that don't exist
+        $self->fields->{$_} && $self->fields->{$_}->value_current_page(1)
             foreach @$fields;
     },
 );

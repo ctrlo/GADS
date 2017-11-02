@@ -18,13 +18,6 @@
             <input type="hidden" name="page" value="[% page %]">
             <input type="hidden" name="username" value="[% edituser.username | html_entity %]">
             <input type="hidden" name="id" value="[% edituser.id %]">
-            [% IF edituser.account_request_notes %]
-                <div class="form-group">
-                    <label for="notes">Notes:</label>
-                    <p>[% edituser.account_request_notes %]</p>
-                    <input type="hidden" name="account_request_notes" value="[% edituser.account_request_notes | html_entity %]"</input>
-                </div>
-            [% END %]
             <div class="form-group">
                 <label for="firstname">First name:</label>
                 <input type="text" class="form-control" id="firstname" name="firstname" value="[% edituser.firstname | html_entity %]">
@@ -84,6 +77,10 @@
                 </div>
             [% END %]
             [% IF page == "user" %]
+                <div class="form-group">
+                    <label for="account_request_notes">Notes:</label>
+                    <textarea class="form-control" id="account_request_notes" name="account_request_notes">[% edituser.account_request_notes | html_entity %]</textarea>
+                </div>
                 [% INCLUDE "snippets/user_permissions.tt" %]
             [% END %]
             <button type="submit" name="submit" value="submit" class="btn btn-primary">[% IF edituser.account_request %]Approve request[% ELSE %]Save[% END %]</button>

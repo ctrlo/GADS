@@ -59,7 +59,7 @@ plugins:
     session_messages: [ NOTICE, MISTAKE, ERROR, FAULT, ALERT, FAILURE, PANIC ]
   DBIC:
     default:
-      dsn: dbi:mysql:database=dbname;mysql_enable_utf8=1;host=localhost # or dbi:Pg:database=gads
+      dsn: dbi:Pg:database=gads;host=127.0.0.1 # or dbi:mysql:database=dbname;mysql_enable_utf8=1;host=localhost
       schema_class: GADS::Schema
       user: dbuser
       password: dbpass
@@ -67,7 +67,7 @@ plugins:
         RaiseError: 1
         PrintError: 1
         quote_names: 1
-        mysql_enable_utf8: 1 # or  pg_enable_utf8: -1 (should be default)
+#        mysql_enable_utf8: 1
   Auth::Extensible:
     no_default_pages: 1
     no_login_handler: 1

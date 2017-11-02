@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS;
 
+use Crypt::URandom; # Make Dancer session generation cryptographically secure
 use DateTime;
 use File::Temp qw/ tempfile /;
 use GADS::Alert;
@@ -60,6 +61,7 @@ use GADS::Views;
 use GADS::Helper::BreadCrumbs qw(Crumb);
 use HTML::Entities;
 use JSON qw(decode_json encode_json);
+use Math::Random::ISAAC::XS; # Make Dancer session generation cryptographically secure
 use MIME::Base64;
 use Session::Token;
 use String::CamelCase qw(camelize);
@@ -992,7 +994,25 @@ any '/graph/?:id?' => require_role layout => sub {
     template 'graph' => $params;
 };
 
-any '/metric/?:id?' => require_role layout => sub {
+get '/metrics/?' => require_role layout => sub {
+
+    my $layout = var 'layout';
+
+    my $metrics = GADS::MetricGroups->new(
+        schema      => schema,
+        instance_id => $layout->instance_id,
+    )->all;
+
+    my $params = {
+        layout  => $layout,
+        page    => 'metric',
+        metrics => $metrics,
+    };
+
+    template 'metrics' => $params;
+};
+
+any '/metric/:id' => require_role layout => sub {
 
     my $layout = var 'layout';
     my $params = {
@@ -1001,72 +1021,63 @@ any '/metric/?:id?' => require_role layout => sub {
     };
 
     my $id = param 'id';
-    if (defined $id)
+
+    my $metricgroup = GADS::MetricGroup->new(
+        schema      => schema,
+        id          => $id,
+        instance_id => $layout->instance_id,
+    );
+
+    if (param 'delete_all')
     {
-        my $metricgroup = GADS::MetricGroup->new(
-            schema      => schema,
-            id          => $id,
-            instance_id => $layout->instance_id,
+        if (process( sub { $metricgroup->delete }))
+        {
+            return forwardHome(
+                { success => "The metric has been deleted successfully" }, 'metrics' );
+        }
+    }
+
+    # Delete an individual item from a group
+    if (param 'delete_metric')
+    {
+        if (process( sub { $metricgroup->delete_metric(param 'metric_id') }))
+        {
+            return forwardHome(
+                { success => "The metric has been deleted successfully" }, "metric/$id" );
+        }
+    }
+
+    if (param 'submit')
+    {
+        $metricgroup->name(param 'name');
+        if(process( sub { $metricgroup->write }))
+        {
+            my $action = param('id') ? 'updated' : 'created';
+            return forwardHome(
+                { success => "Metric has been $action successfully" }, 'metrics' );
+        }
+    }
+
+    # Update/create an individual item in a group
+    if (param 'update_metric')
+    {
+        my $metric = GADS::Metric->new(
+            id                    => param('metric_id') || undef,
+            metric_group_id       => $id,
+            x_axis_value          => param('x_axis_value'),
+            y_axis_grouping_value => param('y_axis_grouping_value'),
+            target                => param('target'),
+            schema                => schema,
         );
-
-        if (param 'delete_all')
+        if(process( sub { $metric->write }))
         {
-            if (process( sub { $metricgroup->delete }))
-            {
-                return forwardHome(
-                    { success => "The metric has been deleted successfully" }, 'metric' );
-            }
+            my $action = param('id') ? 'updated' : 'created';
+            return forwardHome(
+                { success => "Metric has been $action successfully" }, "metric/$id" );
         }
-
-        # Delete an individual item from a group
-        if (param 'delete_metric')
-        {
-            if (process( sub { $metricgroup->delete_metric(param 'metric_id') }))
-            {
-                return forwardHome(
-                    { success => "The metric has been deleted successfully" }, "metric/$id" );
-            }
-        }
-
-        if (param 'submit')
-        {
-            $metricgroup->name(param 'name');
-            if(process( sub { $metricgroup->write }))
-            {
-                my $action = param('id') ? 'updated' : 'created';
-                return forwardHome(
-                    { success => "Metric has been $action successfully" }, 'metric' );
-            }
-        }
-
-        # Update/create an individual item in a group
-        if (param 'update_metric')
-        {
-            my $metric = GADS::Metric->new(
-                id                    => param('metric_id') || undef,
-                metric_group_id       => $id,
-                x_axis_value          => param('x_axis_value'),
-                y_axis_grouping_value => param('y_axis_grouping_value'),
-                target                => param('target'),
-                schema                => schema,
-            );
-            if(process( sub { $metric->write }))
-            {
-                my $action = param('id') ? 'updated' : 'created';
-                return forwardHome(
-                    { success => "Metric has been $action successfully" }, "metric/$id" );
-            }
-        }
-
-        $params->{metricgroup} = $metricgroup;
     }
-    else {
-        my $metrics = GADS::MetricGroups->new(
-            schema      => schema,
-            instance_id => $layout->instance_id,
-        )->all;
-        $params->{metrics} = $metrics;
-    }
+
+    $params->{metricgroup} = $metricgroup;
 
     template 'metric' => $params;
 };
@@ -1136,6 +1147,9 @@ any '/table/:id' => require_role superadmin => sub {
     my $id          = param 'id';
     my $user        = logged_in_user;
     my $layout_edit = $id && var('instances')->layout($id);
+
+    $id && !$layout_edit
+        and error __x"Instance ID {id} not found", id => $id;
 
     if (param('submit') || param('delete'))
     {
@@ -1254,7 +1268,8 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => require_login sub {
     my ($layout_id, $value) = splat;
     my $layout      = var 'layout';
 
-    my $tree = var('layout')->column($layout_id);
+    my $tree = var('layout')->column($layout_id)
+        or error __x"Invalid tree ID {id}", id => $layout_id;
 
     if (param 'data')
     {
@@ -1299,20 +1314,23 @@ any '/layout/?:id?' => require_login sub {
     if (param('id') || param('submit') || param('update_perms'))
     {
 
-        my $id = param('id');
-        my $class = !$id ? param('type') : rset('Layout')->find($id)->type;
-        grep {$class eq $_} GADS::Column::types
-            or error __x"Invalid column type {class}", class => $class;
-
-        $class = "GADS::Column::".camelize($class);
-        my $column = $id
-            ? $layout->column($id)
-            : $class->new(
+        my $column;
+        if (my $id = param('id'))
+        {
+            $column = $layout->column($id)
+                or error __x"Column ID {id} not found", id => $id;
+        }
+        else {
+            my $class = param('type');
+            grep {$class eq $_} GADS::Column::types
+                or error __x"Invalid column type {class}", class => $class;
+            $class = "GADS::Column::".camelize($class);
+            $column = $class->new(
                 schema => schema,
                 user   => $user,
                 layout => $layout
             );
-        
+        }
 
         if (param 'delete')
         {
@@ -1348,7 +1366,7 @@ any '/layout/?:id?' => require_login sub {
             $column->$_(param $_)
                 foreach (qw/name name_short description helptext optional isunique multivalue remember link_parent_id/);
             $column->type(param 'type')
-                unless $id; # Can't change type as it would require DBIC resultsets to be removed and re-added
+                unless param('id'); # Can't change type as it would require DBIC resultsets to be removed and re-added
             $column->$_(param $_)
                 foreach @{$column->option_names};
             if (param 'display_condition')
@@ -1537,10 +1555,10 @@ any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
             permissions           => [body_parameters->get_all('permission')],
         );
 
-        if (!param('account_request') && param('username')) # Original username to update (hidden field)
+        if (!param('account_request') && $id) # Original username to update (hidden field)
         {
             if (process sub {
-                my $user = rset('User')->active->search({ username => param('username') })->next;
+                my $user = rset('User')->active->search({ id => $id })->next;
                 # Don't use DBIC update directly, so that permissions etc are updated properly
                 $user->update_user(current_user => $logged_in_user, %values);
             })
