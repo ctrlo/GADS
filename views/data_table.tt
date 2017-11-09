@@ -35,7 +35,7 @@
             [% ELSE %]
                 [% st = "" %]
             [% END %]
-            <th [% sort.id == -11 && "aria-sort=\"${sort_order}ending\"" %]>
+            <th scope="col" [% sort.id == -11 && "aria-sort=\"${sort_order}ending\"" %]>
                 <a href="?sort=-11">ID[% st %]
                     [% sort.id == -11 && "<span class=\"visually-hidden\">${sort_label}</span>" %]
                 </a>
@@ -48,7 +48,7 @@
                 [% ELSE %]
                     [% st = "" %]
                 [% END %]
-                <th>
+                <th scope="col">
                     <a [% sort.id == col.id && "aria-sort=\"${sort_order}ending\"" %] href="?sort=[% col.id %]">
                         [% col.name | html_entity %][% IF col.id == sort.id %][% st %][% END %]
                         [% sort.id == col.id && "<span class=\"visually-hidden\">${sort_label}</span>" %]
