@@ -20,8 +20,8 @@
 
 [% PROCESS rag_legend IF has_rag_column %]
 
-<div class="hscroll">
-<table class="table table-striped" id="data-table">
+<div class="hscroll row">
+<table class="table table-striped col-md-12" id="data-table">
     <thead>
         <tr>
             [% sort = sort.shift %]
