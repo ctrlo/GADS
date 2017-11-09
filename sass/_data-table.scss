@@ -1,0 +1,93 @@
+/* Data table */
+
+#data-table th * {
+    color: #000;
+}
+
+#data-table thead button {
+    border: 1px solid #bbb;
+    background-color: inherit;
+    vertical-align: bottom;
+    margin-left: 0.2em;
+    margin-bottom: 0.2em;
+}
+
+.controls {
+    padding-top: .5em;
+}
+
+/* Person contact details popover */
+
+.person.contact-details {
+    max-width: 25em;
+    padding: .5em;
+    margin: .5em;
+}
+
+/* RAG legend */
+
+#rag_legend {
+    display: inline-block;
+    border: 1px solid #c3c3c3;
+    padding: .5em;
+}
+
+#rag_legend h2 {
+    font-size: 1.1em;
+    margin: 0;
+    margin-bottom: .5em;
+}
+
+#rag_legend dl {
+    margin: 0;
+    padding: 0;
+}
+
+#rag_legend dt,
+#rag_legend dd {
+    display: inline-block;
+}
+
+#rag_legend dd {
+    padding-right: 1.5em;
+}
+
+/* Column RAG */
+
+.rag {
+    text-align: center;
+}
+
+.rag span {
+    min-width: 1.5em;
+    display: inline-block;
+    font-size: 1.2em;
+    padding: 0 0.2em;
+    border-bottom: 0.2em solid #000;
+}
+
+.rag .undefined {
+    border-bottom-color: $rag-undefined;
+    background-color: $rag-undefined-bg;
+}
+
+.rag .danger {
+    border-bottom-color: $rag-danger;
+    background-color: $rag-danger-bg;
+}
+
+.rag .warning {
+    border-bottom-color: $rag-warning;
+    background-color: $rag-warning-bg;
+}
+
+.rag .success {
+    border-bottom-color: $rag-success;
+    background-color: $rag-success-bg;
+}
+
+.rag .unexpected {
+    border-bottom-color: $rag-unexpected;
+    background-color: $rag-unexpected-bg;
+}
+
