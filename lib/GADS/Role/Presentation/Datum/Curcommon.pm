@@ -7,12 +7,12 @@ sub _presentation_details {
 
     return [] unless $self->as_string;
 
-    my $rti = $self->column->refers_to_instance;
+    my $rti = $self->column->refers_to_instance_id;
 
     my @links = map +{
         id   => $_->{id},
         href => $_->{value},
-        refers_to_instance => $rti,
+        refers_to_instance_id => $rti,
     }, @{$self->_text_all};
 
     return \@links;

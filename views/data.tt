@@ -1,4 +1,4 @@
-[% IF search %]
+[% IF 0 && search %]
     <h1>
         Search results <small class="search_term">for term "[% search | html_entity %]"</small>
         <form id="clear_search" action="/data" method="post">
@@ -69,7 +69,6 @@
                         <span class="visually-hidden">View on calendar</span>
                     </a>
                 </div>
-                [% PROCESS search_form.tt %]
                 [% IF viewtype == "timeline" %]
                     <div class="btn-group">
                         <a class="btn btn-default" data-toggle="modal" data-target="#modal_timeline" role="button">Timeline options...</a>

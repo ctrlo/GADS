@@ -245,7 +245,7 @@ sub _build_all_ids
 {   my $self = shift;
     [
         $self->schema->resultset('Current')->search({
-            instance_id => $self->refers_to_instance,
+            instance_id => $self->refers_to_instance_id,
         })->get_column('id')->all
     ];
 }

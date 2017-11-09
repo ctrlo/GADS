@@ -5,8 +5,9 @@
     [% PROCESS user_menu %]
 </nav>
 
-<div class="row">
+<div class="row crumbs-and-search">
     [% PROCESS crumbs %]
+    [% PROCESS search %]
 </div>
 
 [% BLOCK skip_links %]
@@ -17,17 +18,32 @@
     </ol>
 [% END %]
 
+[% BLOCK search %]
+    <div class="quicksearch-container col-md-3">
+        <form method="get" action="/data" class="quicksearch">
+                <label for="quick-search">Records quicksearch</label>
+                <input id="quick-search" name="search" value="[% search | html_entity %]">
+            <button class="btn btn-xs btn-primary" type="submit">Go</button>
+        </form>
+    </div>
+[% END %]
+
 [% BLOCK crumbs %]
     [% crumb_icons = {
         home => 'fa fa-home'
     } %]
-    <nav aria-label="Breadcrumbs" class="col-md-12 breadcrumbs" role="navigation">
-        <ol class="items">
-        [% FOREACH crumb in breadcrumbs %]
-            <li class="item [% 'last' IF loop.last %]"><a [% 'aria-current="page"' IF loop.last %] href="[% crumb.href %]">[% IF loop.first %]<span aria-hidden="true" class="[% crumb_icons.home %]"></span>[% END %][% crumb.text | html %]</a>[% UNLESS loop.last %]<span class="separator"></span>[% END %]</li>
-        [% END %]
-        </ol>
-    </nav>
+
+    <div class="breadcrumbs-container col-md-9">
+
+        <nav aria-label="Breadcrumbs" class="breadcrumbs" role="navigation">
+            <ol class="items">
+            [% FOREACH crumb in breadcrumbs %]
+                <li class="item [% 'last' IF loop.last %]"><a [% 'aria-current="page"' IF loop.last %] href="[% crumb.href %]">[% IF loop.first %]<span aria-hidden="true" class="[% crumb_icons.home %]"></span>[% END %][% crumb.text | html %]</a>[% UNLESS loop.last %]<span class="separator"></span>[% END %]</li>
+            [% END %]
+            </ol>
+        </nav>
+    
+    </div>
 [% END %]
 
 [% BLOCK dataset_menu %]
@@ -42,8 +58,8 @@
                     </button>
                     <ul class="dropdown-menu" id="table-menu">
                     [% FOREACH instance IN instances %]
-                        <li [% IF instance.id == instance_id %]class="active"[% END %]>
-                            <a href="?instance=[% instance.id %]"
+                        <li [% IF instance.instance_id == instance_id %]class="active"[% END %]>
+                            <a href="?instance=[% instance.instance_id %]"
                             >[% instance.name | html_entity %]</a>
                         </li>
                     [% END %]

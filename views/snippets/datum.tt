@@ -10,7 +10,7 @@
     [% IF curval.text.length > MORE_LESS_TRESHOLD %]
         [% WRAPPER more_less_block %]
             [% FOR link IN curval.links %]
-                <a href="/record/[% link.id %]?oi=[% link.refers_to_instance %]">[% link.href %]</a>
+                <a href="/record/[% link.id %]?oi=[% link.refers_to_instance_id %]">[% link.href %]</a>
                 [% UNLESS loop.last %]; [% END %]
             [% END %]
         [% END %]
