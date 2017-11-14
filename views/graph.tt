@@ -1,5 +1,4 @@
 <h2>Graphs</h2>
-[% IF graph.defined %]
 <form role="form" method="post">
     <div class="row">
         <div class="col-md-6">
@@ -110,34 +109,6 @@
     [% END %]
 </form>
 <p></p>
-[% ELSE %]
-    <p>Use this page to create, delete and edit graphs. Graphs can only be created by an
-    administrator, and will be displayed (by default) to all users. Users can individually
-    de-select graphs that they do not wish to be displayed.</p>
-    <p>
-        <a href="/graph/0" class="btn btn-default" role="button">Create new graph</a>
-    </p>
-    <table class="table table-striped">
-        <tr>
-            <th></th>
-            <th>Title</th>
-            <th>Type</th>
-            <th>X-axis</th>
-            <th>Y-axis</th>
-            <th>Group by</th>
-        </tr>
-        [% FOREACH graph IN graphs %]
-            <tr>
-                <td><a href="/graph/[% graph.id %]">Edit</a></td>
-                <td>[% graph.title | html_entity %]
-                <td>[% graph.type.ucfirst %]</td>
-                <td>[% layout.column(graph.x_axis).name | html_entity %]</td>
-                <td>[% layout.column(graph.y_axis).name | html_entity %]</td>
-                <td>[% layout.column(graph.group_by).name | html_entity %]</td>
-            </tr>
-        [% END %]
-    </table>
-[% END %]
 
 <!-- Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
