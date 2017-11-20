@@ -1269,7 +1269,7 @@ small.search_term {
     background-color: #eee;
 }
 
-@each $column-type in calc rag tree enum file curval string date daterange {
+@each $column-type in calc rag tree enum file curval string date daterange autocur {
     #manage-fields.column-type-#{$column-type} .field-options.#{$column-type} { display: block; }
 }
 
