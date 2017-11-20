@@ -41,10 +41,10 @@
                         <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu" id="table-menu">
-                    [% FOREACH instance IN instances %]
-                        <li [% IF instance.id == instance_id %]class="active"[% END %]>
-                            <a href="?instance=[% instance.id %]"
-                            >[% instance.name | html_entity %]</a>
+                    [% FOREACH layout IN instances %]
+                        <li [% IF layout.instance_id == instance_id %]class="active"[% END %]>
+                            <a href="?instance=[% layout.instance_id %]"
+                            >[% layout.name | html_entity %]</a>
                         </li>
                     [% END %]
                     </ul>
