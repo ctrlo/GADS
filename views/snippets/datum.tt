@@ -6,7 +6,7 @@
     </div>
 [% END %]
 
-[% MACRO render_curval_datum(is_multivalue, curval, header) BLOCK %]
+[% MACRO render_curcommon_datum(is_multivalue, curval, header) BLOCK %]
     [% IF curval.text.length > MORE_LESS_TRESHOLD %]
         [% WRAPPER more_less_block %]
             [% FOR link IN curval.links %]
@@ -61,8 +61,8 @@
 
 [% MACRO render_datum(datum) BLOCK;
     SWITCH datum.type;
-        CASE 'curval'; 
-            render_curval_datum(datum.is_multivalue, datum.data, datum.name);
+        CASE ['curval', 'autocur'];
+            render_curcommon_datum(datum.is_multivalue, datum.data, datum.name);
         CASE 'file';
             render_file_datum(datum.data);
         CASE 'person';
