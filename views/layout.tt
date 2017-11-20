@@ -471,6 +471,7 @@
                     [% IF col.type == "rag" %]RedAmberGreen (RAG) status[% END %]
                     [% IF col.type == "calc" %]Calculated value[% END %]
                     [% IF col.type == "curval" %]Record from other data sheet[% END %]
+                    [% IF col.type == "autocur" %]Automatic value of other sheet's references to this one[% END %]
                 </td>
                 <td>
                     [% col.description | html_entity %]
