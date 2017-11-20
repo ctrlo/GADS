@@ -939,57 +939,67 @@ any '/config/?' => require_role layout => sub {
 };
 
 
-any '/graph/?:id?' => require_role layout => sub {
+any '/graph/?' => require_role layout => sub {
 
     my $layout = var 'layout';
+    my $graphs = GADS::Graphs->new(schema => schema, layout => $layout)->all;
+
+    my $params = {
+        layout => $layout,
+        page   => 'graph',
+        graphs => $graphs,
+    };
+
+    template 'graphs' => $params;
+};
+
+any '/graph/:id' => require_role layout => sub {
+
+    my $layout = var 'layout';
+
     my $params = {
         layout => $layout,
         page   => defined param('id') && !param('id') ? 'graph/0' : 'graph',
     };
 
     my $id = param 'id';
-    if (defined $id)
+
+    my $graph = GADS::Graph->new(
+        id     => $id,
+        layout => $layout,
+        schema => schema,
+    );
+
+    if (param 'delete')
     {
-        my $graph = GADS::Graph->new(
-            id     => $id,
-            layout => $layout,
-            schema => schema,
-        );
-
-        if (param 'delete')
+        if (process( sub { $graph->delete }))
         {
-            if (process( sub { $graph->delete }))
-            {
-                return forwardHome(
-                    { success => "The graph has been deleted successfully" }, 'graph' );
-            }
+            return forwardHome(
+                { success => "The graph has been deleted successfully" }, 'graph' );
         }
+    }
 
-        if (param 'submit')
+    if (param 'submit')
+    {
+        my $values = params;
+        $graph->$_(param $_)
+            foreach (qw/title description type x_axis x_axis_grouping y_axis
+                y_axis_label y_axis_stack group_by stackseries metric_group_id/);
+        if(process( sub { $graph->write }))
         {
-            my $values = params;
-            $graph->$_(param $_)
-                foreach (qw/title description type x_axis x_axis_grouping y_axis
-                    y_axis_label y_axis_stack group_by stackseries metric_group_id/);
-            if(process( sub { $graph->write }))
-            {
-                my $action = param('id') ? 'updated' : 'created';
-                return forwardHome(
-                    { success => "Graph has been $action successfully" }, 'graph' );
-            }
+            my $action = param('id') ? 'updated' : 'created';
+            return forwardHome(
+                { success => "Graph has been $action successfully" }, 'graph' );
         }
-        $params->{graph}         = $graph;
-        $params->{dategroup}     = GADS::Graphs->dategroup;
-        $params->{graphtypes}    = [GADS::Graphs->types];
-        $params->{metric_groups} = GADS::MetricGroups->new(
-            schema      => schema,
-            instance_id => session('persistent')->{instance_id},
-        )->all;
     }
-    else {
-        my $graphs = GADS::Graphs->new(schema => schema, layout => $layout)->all;
-        $params->{graphs} = $graphs;
-    }
+
+    $params->{graph}         = $graph;
+    $params->{dategroup}     = GADS::Graphs->dategroup;
+    $params->{graphtypes}    = [GADS::Graphs->types];
+    $params->{metric_groups} = GADS::MetricGroups->new(
+        schema      => schema,
+        instance_id => session('persistent')->{instance_id},
+    )->all;
 
     template 'graph' => $params;
 };
@@ -1309,6 +1319,7 @@ any '/layout/?:id?' => require_login sub {
     {
         # Get all layouts of all instances for field linking
         $params->{instance_layouts} = [grep { $_->instance_id != $layout->instance_id } @{var('instances')->all}];
+        $params->{instances_object} = var('instances'); # For autocur. Don't conflict with other instances var
     }
 
     if (param('id') || param('submit') || param('update_perms'))
