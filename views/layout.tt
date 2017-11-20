@@ -382,12 +382,16 @@
             <div class="form-group">
                 <label for="related_field_id">Fields referring to this field:</label>
                 <select class="form-control" id="related_field_id" name="related_field_id">
+                    [% IF NOT column.related_field_id %]
+                        <option></option>
+                    [% END %]
                     [% FOREACH referring IN layout.referred_by %]
                         <option data-instance_id=[% referring.instance_id %] value="[% referring.id %]" [% IF column.related_field_id == referring.id %]selected[% END %]>[% referring.name | html_entity %]</option>
                     [% END %]
                 </select>
             </div>
-            [% FOREACH instance IN instance_layouts %]
+            [% FOREACH instance IN layout.referred_by %]
+                [% instance = instances_object.layout(instance.instance_id) %]
                 <div id="autocur_instance_[% instance.instance_id %]" class="autocur_instance"
                     [% IF !column.refers_to_instance_id OR column.refers_to_instance_id != instance.instance_id %]
                         style="display:none"
@@ -395,7 +399,7 @@
                     >
                     <div class="form-group">
                         <label for="curval_instance">Columns to show:</label>
-                        [% FOREACH c IN instance.layout.all %]
+                        [% FOREACH c IN instance.all %]
                             [% NEXT IF c.type == "curval" %]
                             [% checked = "" %]
                             [% IF instance.instance_id == column.refers_to_instance_id AND column.has_curval_field(c.id) %]
@@ -578,6 +582,12 @@
                     var divid = '#instance_fields_' + $(this).val();
                     $('.instance_fields').hide();
                     $(divid).show();
+                });
+                $('#related_field_id').change(function(){
+                    var divid = $(this).find(':selected').data('instance_id');
+                    alert(divid);
+                    $('.autocur_instance').hide();
+                    $('#autocur_instance_' + divid).show();
                 });
 
                 [% FOREACH instance IN instance_layouts %]

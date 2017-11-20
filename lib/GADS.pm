@@ -1319,6 +1319,7 @@ any '/layout/?:id?' => require_login sub {
     {
         # Get all layouts of all instances for field linking
         $params->{instance_layouts} = [grep { $_->instance_id != $layout->instance_id } @{var('instances')->all}];
+        $params->{instances_object} = var('instances'); # For autocur. Don't conflict with other instances var
     }
 
     if (param('id') || param('submit') || param('update_perms'))
