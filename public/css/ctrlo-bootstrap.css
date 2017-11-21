@@ -206,11 +206,28 @@ nav .dropdown-toggle {
 nav .dropdown-toggle {
   padding: 0; }
 
-.breadcrumbs {
-  padding-top: 1em;
-  padding-bottom: 1em;
+.crumbs-and-search {
+  margin-bottom: .5em; }
+
+.breadcrumbs, .quicksearch {
   border: 1px solid #ccccdd;
   background-color: #fff; }
+
+.quicksearch {
+  padding: .4em .5em; }
+
+.quicksearch label {
+  font-weight: normal; }
+
+.quicksearch input {
+  width: 84%; }
+
+.quicksearch button {
+  font-size: 1.05em;
+  margin-top: -0.2em; }
+
+.breadcrumbs {
+  padding: 1.5em .5em; }
 
 .breadcrumbs .items {
   margin: 0;
