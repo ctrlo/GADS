@@ -1141,3 +1141,69 @@ small.search_term {
 
 @import 'data-table';
 @import 'permissions';
+
+.select-widget .label {
+  font-size: 1em;
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+}
+
+.select-widget button {
+    border: 1px solid #336699;
+    border-radius: 0;
+    font-family: Helvetica, sans-serif;
+    vertical-align: top;
+    margin-top: .3em;
+    margin-bottom: .5em;
+}
+
+.select-widget button:hover, 
+.select-widget button:focus {
+    background-color: #eeefff;
+}
+
+.select-widget .chevron {
+    display: none;
+}
+
+.select-widget [aria-expanded="false"] .chevron.collapsed,
+.select-widget [aria-expanded="true"] .chevron.expanded {
+    display: inline;
+}
+
+.select-widget ul {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+.select-widget .current, 
+.select-widget .current li {
+  display: inline;
+}
+
+.select-widget .current {
+    margin: 0 .5em;
+}
+
+.select-widget .available {
+    border: 1px solid #336699;
+    padding: .5em;
+    margin-left: .5em;
+}
+
+.select-widget .available li {
+    border-bottom: 1px solid #ccc;
+    margin: .5em 0;
+    padding: .3em .2em;
+}
+
+.select-widget .comma-separated::after {
+    content: ',';
+    display: inline;
+}
+
+.select-widget .current [hidden] {
+  display: none;
+}
