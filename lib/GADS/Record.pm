@@ -937,21 +937,30 @@ sub write
             && !$options{force_mandatory}
         )
         {
-            $has_missing = 1;
-            # Check whether we are in a multiple page write and if the value has been shown.
-            # We first test for editor_shown_fields having been set, as it will be on a normal
-            # page write, and then also check as it would be for a standard write.
-            if ($self->has_editor_shown_fields ? $datum->value_current_page : $datum->ready_to_write)
+            # Do not require value if the field has not been showed because of
+            # display condition
+            my $re    = $column->display_regex;
+            my $regex = $re && qr(^$re$);
+            if (!$column->display_field
+                || $self->fields->{$column->display_field}->as_string =~ $regex
+            )
             {
-                # Only warn if it was previously blank, otherwise it might
-                # be a read-only field for this user
-                if (!$self->new_entry && !$datum->changed)
+                $has_missing = 1;
+                # Check whether we are in a multiple page write and if the value has been shown.
+                # We first test for editor_shown_fields having been set, as it will be on a normal
+                # page write, and then also check as it would be for a standard write.
+                if ($self->has_editor_shown_fields ? $datum->value_current_page : $datum->ready_to_write)
                 {
-                    $has_missing = 0; # Let is pass
-                    mistake __x"'{col}' is no longer optional, but was previously blank for this record.", col => $column->{name};
-                }
-                else {
-                    error __x"'{col}' is not optional. Please enter a value.", col => $column->{name};
+                    # Only warn if it was previously blank, otherwise it might
+                    # be a read-only field for this user
+                    if (!$self->new_entry && !$datum->changed)
+                    {
+                        $has_missing = 0; # Let is pass
+                        mistake __x"'{col}' is no longer optional, but was previously blank for this record.", col => $column->{name};
+                    }
+                    else {
+                        error __x"'{col}' is not optional. Please enter a value.", col => $column->{name};
+                    }
                 }
             }
         }
