@@ -161,7 +161,11 @@ foreach my $multivalue (0..1)
             y_axis       => $columns->{integer1}->id,
             y_axis_stack => 'sum',
             group_by     => $columns->{curval1}->id,
-            data         => [[ 15, 0, 20 ], [ 35, 10, 0 ]],
+            data         => [[ 35, 10, 0 ], [ 15, 0, 20 ]],
+            labels       => [
+                'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012',
+                'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+            ],
         },
         {
             name         => 'Linked value on x-axis, count',
@@ -277,6 +281,11 @@ foreach my $multivalue (0..1)
         is_deeply($graph_data->points, $g->{data}, "Graph data for $g->{name} is correct");
         is_deeply($graph_data->xlabels, $g->{xlabels}, "Graph xlabels for $g->{name} is correct")
             if $g->{xlabels};
+        if ($g->{labels})
+        {
+            my @labels = map { $_->{label} } @{$graph_data->labels};
+            is_deeply([@labels], $g->{labels}, "Graph labels for $g->{name} is correct");
+        }
         if ($child2)
         {
             $parent2->write_linked_id(undef);
