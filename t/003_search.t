@@ -649,7 +649,6 @@ my @filters = (
             },
         ],
         count     => 2,
-        no_errors => 1,
     },
     {
         name  => 'Search by curval ID not equal',
@@ -663,7 +662,6 @@ my @filters = (
             },
         ],
         count     => 5,
-        no_errors => 1,
     },
     {
         name  => 'Search curval ID and enum, only curval in view',
@@ -684,7 +682,6 @@ my @filters = (
         ],
         condition => 'AND',
         count     => 1,
-        no_errors => 1,
     },
     {
         name  => 'Search by curval field',
@@ -698,7 +695,6 @@ my @filters = (
             },
         ],
         count     => 2,
-        no_errors => 1,
     },
     {
         name  => 'Search by curval field not equal',
@@ -712,7 +708,6 @@ my @filters = (
             },
         ],
         count     => 5,
-        no_errors => 1,
     },
     {
         name  => 'Search by curval enum field',
@@ -726,7 +721,6 @@ my @filters = (
             },
         ],
         count     => 2,
-        no_errors => 1,
     },
     {
         name  => 'Search by curval within curval',
@@ -740,7 +734,6 @@ my @filters = (
             },
         ],
         count     => 1,
-        no_errors => 1,
     },
     {
         name  => 'Search by curval enum field across 2 curvals',
@@ -761,7 +754,6 @@ my @filters = (
         ],
         condition => 'OR',
         count     => 3,
-        no_errors => 1,
     },
     {
         name  => 'Search by autocur ID',
@@ -775,7 +767,6 @@ my @filters = (
             },
         ],
         count     => 1,
-        no_errors => 1,
         layout    => $curval_sheet->layout,
     },
     {
@@ -790,8 +781,34 @@ my @filters = (
             },
         ],
         count     => 1,
-        no_errors => 1,
         layout    => $curval_sheet->layout,
+    },
+    {
+        name  => 'Search by record ID',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => $layout->column_by_name('ID')->id,
+                type     => 'string',
+                value    => '3',
+                operator => 'equal',
+            },
+        ],
+        count     => 1,
+    },
+    {
+        name  => 'Search by invalid record ID',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => $layout->column_by_name('ID')->id,
+                type     => 'string',
+                value    => '3DD',
+                operator => 'equal',
+            },
+        ],
+        count     => 0,
+        no_errors => 1,
     },
 );
 
@@ -814,6 +831,13 @@ foreach my $filter (@filters)
         schema      => $schema,
         user        => $user,
     );
+    # If the filter is expected to bork, then check that it actually does first
+    if ($filter->{no_errors})
+    {
+        try { $view->write };
+        ok($@, "Failed to write view with invalid value, test: $filter->{name}");
+        is($@->wasFatal->reason, 'ERROR', "Generated user error when writing view with invalid value");
+    }
     $view->write(no_errors => $filter->{no_errors});
 
     my $records = GADS::Records->new(

@@ -301,7 +301,11 @@ sub _build_columns
     # Add on special internal columns
     foreach my $internal (@{$self->internal_columns})
     {
-        my $class = $internal->{return_type} eq 'date' ? 'GADS::Column::Date' : 'GADS::Column';
+        my $class = $internal->{return_type} eq 'date'
+            ? 'GADS::Column::Date'
+            : 'integer'
+            ? 'GADS::Column::Intgr'
+            : 'GADS::Column';
         push @return, $class->new(
             id                       => $internal->{id},
             name                     => $internal->{name},
