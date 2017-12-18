@@ -316,6 +316,7 @@
             [% ELSE %]
                 <input type="hidden" name="next_fields" value="[% colid %]">
             [% END %]
+            [% columns_done.$colid = 1 %]
             [% NEXT %]
         [% END %]
 
@@ -437,8 +438,7 @@
     </div>
 
     [%# Prevent recursive loops %]
-    [% cid = dispcol.id %]
-    [% columns_done.$cid = 1 %]
+    [% columns_done.$colid = 1 %]
 [% END %]
 
 [% BLOCK print_field %]
