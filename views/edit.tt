@@ -717,7 +717,7 @@
     <div class="select-widget multi">
         <input type="hidden" name="[% field %]" id="[% field %]_value">
         <div class="select-widget-label">[% label %]</div>
-        <div class="form-group">
+        <div class="form-group form-control">
             <ul class="current">
                 <li class="none-selected">&lt;blank&gt;</li>
             [% FOREACH value IN values %]
@@ -727,11 +727,13 @@
                 <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">[% value.mainvalue | html_entity %]</li>
             [% END %]
             </ul>
-            <button type="button" aria-controls="[% field %]_available_values" aria-expanded="false">
-                Change 
-                <span class="chevron expanded">&#x25b2;</span>
-                <span class="chevron collapsed">&#x25bc;</span>
-            </button>
+            <span>
+                <button class="change" type="button" aria-controls="[% field %]_available_values" aria-expanded="false">
+                    Change 
+                    <span class="chevron expanded">&larr;</span>
+                    <span class="chevron collapsed">&rarr;</span>
+                </button>
+            </span>
         </div>
         <ul hidden class="available" id="[% field %]_available_values">
         [% FOREACH value IN values %]
@@ -739,10 +741,14 @@
             [% checked = editvalue.id_hash.${value.id} %]
             [% value_id = field _ '_' _ value.id %]
             <li>
-                <input id="[% value_id %]" type="checkbox" [% checked && 'checked' %]>
-                <label for="[% value_id %]">[% value.mainvalue | html_entity %]</label>
-                <span>[% value.subvalue | html_entity %]</span>
-                <button type="button" class="more-info" data-record-id="[% value.id %]">View details</button>      
+                <span class="control">
+                    <input id="[% value_id %]" type="checkbox" [% checked && 'checked' %]>
+                    <label id="[% value_id %]_label"for="[% value_id %]">[% value.mainvalue | html_entity %]</label>
+                    <div>[% value.subvalue | html_entity %]</div>
+                </span>
+                <span>
+                    <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">View details</button>
+                </span>
             </li>
         [% END %]
         </ul>
