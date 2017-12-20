@@ -1,26 +1,18 @@
 var MultiSelectWidget = function () {
-    var addComma = function () {
-        var $visible = $currentItems.filter(function () {
-            return $(this).attr('hidden') !== undefined;
-        });
-
-        $visible.each(function (index) {
-            $(this).toggleClass('comma-separated', index < $visible.length-1); 
-        });
-    };
-
-    var connect = function () {
-        var $item = $(this);
-        var itemId = $item.data('list-item');
-        var $associated = $('#' + itemId);
-        $associated.on('change', function () {
-            if ($(this).prop('checked')) {
-                $item.prop('hidden', false);
-            } else {
-                $item.prop('hidden', true);
-            }
-            addComma();
-        });
+    var connect = function (update) {
+        return function () {
+            var $item = $(this);
+            var itemId = $item.data('list-item');
+            var $associated = $('#' + itemId);
+            $associated.on('change', function () {
+                if ($(this).prop('checked')) {
+                    $item.prop('hidden', false);
+                } else {
+                    $item.prop('hidden', true);
+                }
+                update();
+            });
+        };
     };
  
     var onTriggerClick = function ($target) {
@@ -39,11 +31,20 @@ var MultiSelectWidget = function () {
     };
     
     var $trigger = this.find('button');
-    var $currentItems = this.find('.current li');
-    var $target = this.find('#' + $trigger.attr('aria-controls'));
+    var $current = this.find('.current');
+    var $target  = this.find('#' + $trigger.attr('aria-controls'));
+    var $currentItems = $current.children();
 
-    addComma();
-    $currentItems.each(connect);
+    var updateState = function () {
+        var $visible = $current.children('[data-list-item]:not([hidden])');
+        $current.toggleClass('empty', $visible.length === 0);
+        $visible.each(function (index) {
+            $(this).toggleClass('comma-separated', index < $visible.length-1); 
+        });
+    };
+
+    updateState();
+    $currentItems.each(connect(updateState));
     $trigger.on('click', onTriggerClick($target));   
 };
 

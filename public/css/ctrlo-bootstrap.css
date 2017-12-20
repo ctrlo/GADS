@@ -1269,6 +1269,12 @@ small.search_term {
 .select-widget .current li {
   display: inline; }
 
+.select-widget .current .none-selected {
+  display: none; }
+
+.select-widget .current.empty .none-selected {
+  display: inline; }
+
 .select-widget .current {
   margin: 0 .5em; }
 
