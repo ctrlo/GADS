@@ -139,7 +139,7 @@
                 $(this).find('.modal-body').load(loadurl);
             });
 
-            $(document).on("mousedown", ".moreinfo", function(e) {
+            $(document).on("click", ".more-info", function(e) {
                 var record_id = $(e.target).data('record-id');
                 var m = $("#readmore_modal");
                 m.find('.modal-body').text('Loading...');
@@ -716,20 +716,23 @@
 
     <div class="select-widget multi">
         <input type="hidden" name="[% field %]" id="[% field %]_value">
-        <div class="select-widget-label">[% label %] </div>
-        <ul class="current">
-        [% FOREACH value IN values %]
-            [% NEXT IF value.deleted %]
-            [% checked = editvalue.id_hash.${value.id} %]
-            [% value_id = field _ '_' _ value.id %]
-            <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">[% value.mainvalue | html_entity %]</li>
-        [% END %]
-        </ul>
-        <button type="button" aria-controls="[% field %]_available_values" aria-expanded="false">
-            Change 
-            <span class="chevron expanded">&#x25b2;</span>
-            <span class="chevron collapsed">&#x25bc;</span>
-        </button>
+        <div class="select-widget-label">[% label %]</div>
+        <div class="form-group">
+            <ul class="current">
+                <li class="none-selected">&lt;blank&gt;</li>
+            [% FOREACH value IN values %]
+                [% NEXT IF value.deleted %]
+                [% checked = editvalue.id_hash.${value.id} %]
+                [% value_id = field _ '_' _ value.id %]
+                <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">[% value.mainvalue | html_entity %]</li>
+            [% END %]
+            </ul>
+            <button type="button" aria-controls="[% field %]_available_values" aria-expanded="false">
+                Change 
+                <span class="chevron expanded">&#x25b2;</span>
+                <span class="chevron collapsed">&#x25bc;</span>
+            </button>
+        </div>
         <ul hidden class="available" id="[% field %]_available_values">
         [% FOREACH value IN values %]
             [% NEXT IF value.deleted %]
@@ -739,7 +742,7 @@
                 <input id="[% value_id %]" type="checkbox" [% checked && 'checked' %]>
                 <label for="[% value_id %]">[% value.mainvalue | html_entity %]</label>
                 <span>[% value.subvalue | html_entity %]</span>
-                <button class="more-info" data-record-id="[% value.id %]">View details</button>      
+                <button type="button" class="more-info" data-record-id="[% value.id %]">View details</button>      
             </li>
         [% END %]
         </ul>
