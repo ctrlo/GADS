@@ -180,6 +180,7 @@ hook before => sub {
 
     if ($user)
     {
+        header "X-Frame-Options" => "DENY"; # Prevent clickjacking
         # Make sure we have suitable persistent hash to update. All these options are
         # used as hashrefs themselves, so prevent trying to access non-existent hash.
         if (!session 'persistent')
