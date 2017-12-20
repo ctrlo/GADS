@@ -1355,6 +1355,16 @@ small.search_term {
     display: block;
 }
 
+.select-widget .form-control {
+    height: auto;
+}
+
+.select-widget .form-control > * {
+    width: 6em;
+    display: inline-block;
+    vertical-align: top;
+}
+
 .select-widget .label {
   font-size: 1em;
   font-weight: bold;
@@ -1362,13 +1372,20 @@ small.search_term {
   padding: 0;
 }
 
+.select-widget-label {
+    margin-bottom: .3em;
+}
+
 .select-widget button {
     border: 1px solid #336699;
     border-radius: 0;
     font-family: Helvetica, sans-serif;
     vertical-align: top;
-    margin-top: .3em;
     margin-bottom: .5em;
+}
+
+.select-widget .change {
+    margin-top: .3em;
 }
 
 .select-widget button:hover, 
@@ -1391,7 +1408,6 @@ small.search_term {
   list-style-type: none;
 }
 
-.select-widget .current, 
 .select-widget .current li {
   display: inline;
 }
@@ -1406,23 +1422,46 @@ small.search_term {
 
 .select-widget .current {
     margin: 0 .5em;
+    width: 30em;
+    text-align: left;
+    display: inline-block;
 }
 
 .select-widget .available {
     border: 1px solid #336699;
     padding: .5em;
-    margin-left: .5em;
 }
 
 .select-widget .available li {
     border-bottom: 1px solid #ccc;
     margin: .5em 0;
     padding: .3em .2em;
+    overflow: hidden;
+}
+
+.select-widget .available li > span {
+    width: 7em;
+    display: inline-block;
+    vertical-align: top;
+    float: right;
+}
+
+.select-widget .available .control {
+    width: 30em;
+    text-align: left;
+    float: left;
+}
+
+.select-widget .control label {
+    margin-left: .3em;
+    display: inline;
 }
 
 .select-widget .comma-separated::after {
-    content: ',';
-    display: inline;
+    content: '/';
+    display: inline-block;
+    font-weight: bold;
+    margin: 0 .3em;
 }
 
 .select-widget .current [hidden] {
