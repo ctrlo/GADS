@@ -17,7 +17,7 @@
     [% END %]
 </h2>
 <p></p>
-<form role="form" method="post" enctype="multipart/form-data">
+<form id="edit-form" method="post" enctype="multipart/form-data">
     <div class="row">
         <div class="col-md-6">
             [% IF record.current_id %]
@@ -35,8 +35,7 @@
             [% END %]
         </div>
     </div>
-    <div style="height:55px;"></div>
-    <nav class="navbar navbar-default navbar-fixed-bottom" style="min-height:55px">
+    <div class="navbar navbar-default navbar-fixed-bottom edit-controls">
         <div class="container">
             [% IF record.has_previous_values %]
                 <button type="submit" name="submit" value="back" class="btn btn-default submit_button">Previous</button>
@@ -46,7 +45,7 @@
             </button>
             <a href="/data" class="btn btn-default">Cancel</a>
         </div>
-    </nav>
+    </div>
 </form>
 
 <div class="modal fade" id="helptext_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -643,7 +642,7 @@
 
     <div class="select-widget multi">
         <input type="hidden" name="[% field %]" id="[% field %]_value">
-        <div class="select-widget-label">[% label %]</div>
+        <div id="[% field %]_label"class="select-widget-label">[% label %]</div>
         <div class="form-group form-control">
             <ul class="current">
                 <li class="none-selected">&lt;blank&gt;</li>
@@ -655,7 +654,9 @@
             [% END %]
             </ul>
             <span>
-                <button class="change" type="button" aria-controls="[% field %]_available_values" aria-expanded="false">
+                <button class="change" type="button" aria-controls="[% field %]_available_values" 
+                        aria-expanded="false" aria-describedby="[% field %]_label"
+                >
                     Change 
                     <span class="chevron expanded">&larr;</span>
                     <span class="chevron collapsed">&rarr;</span>

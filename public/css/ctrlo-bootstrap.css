@@ -1326,3 +1326,12 @@ small.search_term {
 
 .select-widget .current [hidden] {
   display: none; }
+
+.edit-controls {
+  min-height: 4em;
+  padding-top: .5em;
+  border: 1px solid #c8c8c8;
+  box-shadow: .5em .5em .5em .5em #000; }
+
+#edit-form {
+  margin-bottom: 4em; }
