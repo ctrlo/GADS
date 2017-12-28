@@ -308,16 +308,16 @@ sub _build_results
         }
     };
 
-    my $q = $self->search_query(prefetch => 1, search => 1, linked => 1); # Called first to generate joins
+    my $q = $self->search_query(prefetch => 1, search => 1, linked => 1, retain_join_order => 1); # Called first to generate joins
 
     my $select = {
         select => [@select_fields],
         join     => [
-            $self->linked_hash(prefetch => 1, search => 1),
+            $self->linked_hash(prefetch => 1, search => 1, retain_join_order => 1),
             {
                 'record_single' => [
                     'record_later',
-                    $self->jpfetch(prefetch => 1, search => 1, linked => 0),
+                    $self->jpfetch(prefetch => 1, search => 1, linked => 0, retain_join_order => 1),
                 ],
             },
         ],

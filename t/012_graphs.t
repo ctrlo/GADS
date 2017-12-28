@@ -155,6 +155,22 @@ foreach my $multivalue (0..1)
             data         => [[20, 35], [ 15, 10 ]],
         },
         {
+            name         => 'Curval on x-axis, filter by enum',
+            type         => 'bar',
+            x_axis       => $columns->{curval1}->id,
+            y_axis       => $columns->{string1}->id,
+            y_axis_stack => 'count',
+            data         => [[ 1, 1 ]],
+            rules => [
+                {
+                    id       => $columns->{enum1}->id,
+                    type     => 'string',
+                    value    => 'foo1',
+                    operator => 'equal',
+                }
+            ],
+        },
+        {
             name         => 'Graph grouped by curvals',
             type         => 'bar',
             x_axis       => $columns->{string1}->id,

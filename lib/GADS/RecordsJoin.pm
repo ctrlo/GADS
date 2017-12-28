@@ -233,10 +233,21 @@ sub common_search
 sub _jpfetch
 {   my ($self, %options) = @_;
     my $return = [];
-    my @jpstore = grep { !$_->{prefetch} } @{$self->_jp_store};
-    push @jpstore, grep { $_->{prefetch} } @{$self->_jp_store};
 
-#    foreach (@{$self->_jp_store})
+    my @jpstore;
+    # Normally we want joins to be added and then prefetches, as they are
+    # numbered in that order by DBIx::Class. However, sometimes prefetches will
+    # be used as joins (during graph creation) in which case we want to retain
+    # the order
+    if ($options{retain_join_order})
+    {
+        @jpstore = @{$self->_jp_store};
+    }
+    else {
+        @jpstore = grep { !$_->{prefetch} } @{$self->_jp_store};
+        push @jpstore, grep { $_->{prefetch} } @{$self->_jp_store};
+    }
+
     foreach (@jpstore)
     {
         if (exists $options{linked})
