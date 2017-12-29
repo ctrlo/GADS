@@ -1479,7 +1479,7 @@ any '/user/upload' => require_role useradmin => sub {
     {
         my $count;
         if (process sub {
-            $count = rset('User')->upload(upload('file'),
+            $count = rset('User')->upload(upload('file') || undef, # if no file then upload() returns empty array
                 request_base => request->base,
                 view_limits  => [body_parameters->get_all('view_limits')],
                 groups       => [body_parameters->get_all('groups')],

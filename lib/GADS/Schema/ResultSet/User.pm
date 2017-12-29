@@ -100,6 +100,8 @@ __BODY
 sub upload
 {   my ($self, $file, %options) = @_;
 
+    $file or error __"Please select a file to upload";
+
     my $guard = $self->result_source->schema->txn_scope_guard;
 
     my $csv = Text::CSV->new({ binary => 1 }) # should set binary attribute?
