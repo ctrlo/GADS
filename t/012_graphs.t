@@ -22,6 +22,7 @@ foreach my $multivalue (0..1)
             date1      => '2013-10-10',
             daterange1 => ['2014-03-21', '2015-03-01'],
             enum1      => 7,
+            tree1      => 'tree1',
             curval1    => 1,
         },{
             string1    => 'Bar',
@@ -29,11 +30,13 @@ foreach my $multivalue (0..1)
             daterange1 => ['2010-01-04', '2011-06-03'],
             integer1   => 15,
             enum1      => 7,
+            tree1      => 'tree1',
             curval1    => 2,
         },{
             string1    => 'Bar',
             integer1   => 35,
             enum1      => 8,
+            tree1      => 'tree1',
             curval1    => 1,
         },{
             string1    => 'FooBar',
@@ -41,6 +44,7 @@ foreach my $multivalue (0..1)
             daterange1 => ['2009-01-04', '2017-06-03'],
             integer1   => 20,
             enum1      => 8,
+            tree1      => 'tree1',
             curval1    => 2,
         },
     ];
@@ -153,6 +157,22 @@ foreach my $multivalue (0..1)
             y_axis_stack => 'sum',
             group_by     => $columns->{enum1}->id,
             data         => [[20, 35], [ 15, 10 ]],
+        },
+        {
+            name         => 'Enum on x-axis, filter by enum',
+            type         => 'bar',
+            x_axis       => $columns->{enum1}->id,
+            y_axis       => $columns->{string1}->id,
+            y_axis_stack => 'count',
+            data         => [[ 2, 2 ]],
+            rules => [
+                {
+                    id       => $columns->{tree1}->id,
+                    type     => 'string',
+                    value    => 'tree1',
+                    operator => 'equal',
+                }
+            ],
         },
         {
             name         => 'Curval on x-axis, filter by enum',
