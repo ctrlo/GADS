@@ -148,15 +148,24 @@ sub _build_results
         } if $col->link_parent;
     }
 
+    my $f = $self->operator eq 'count'
+        ? \1 # Do not count column itself otherwise NULLs are not counted
+        : $self->fqvalue($self->column, search => 1, prefetch => 1, linked => 0);
     push @select_fields, {
-        $self->operator => $self->fqvalue($self->column, search => 1, prefetch => 1, linked => 0),
+        $self->operator => $f,
         -as             => $self->column->field."_".$self->{operator},
     } if $self->column;
 
-    push @select_fields, {
-        $self->operator => $self->fqvalue($self->column->link_parent, linked => 1, search => 1, prefetch => 1),
-        -as             => $self->column->field."_".$self->{operator}."_link",
-    } if $self->column && $self->column->link_parent;
+    if ($self->column && $self->column->link_parent)
+    {
+        $f = $self->operator eq 'count'
+            ? \1 # Do not count column itself otherwise NULLs are not counted
+            : $self->fqvalue($self->column->link_parent, linked => 1, search => 1, prefetch => 1);
+        push @select_fields, {
+            $self->operator => $f,
+            -as             => $self->column->field."_".$self->{operator}."_link",
+        }
+    }
 
     # If we want to aggregate by month, we need to do some tricky conditional
     # summing. We can't do this with the abstraction layer, so need to resort

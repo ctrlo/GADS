@@ -9,6 +9,7 @@ use GADS::Filter;
 use GADS::Layout;
 use GADS::Record;
 use GADS::Records;
+use GADS::RecordsGroup;
 use GADS::Schema;
 
 use t::lib::DataSheet;
@@ -780,8 +781,11 @@ my @filters = (
                 operator => 'not_equal',
             },
         ],
-        count     => 1,
-        layout    => $curval_sheet->layout,
+        count       => 1,
+        # Autocur treated as a multivalue with a single row with 2 different
+        # values that are counted separately on a graph
+        count_graph => 2,
+        layout      => $curval_sheet->layout,
     },
     {
         name  => 'Search by record ID',
@@ -861,6 +865,35 @@ foreach my $filter (@filters)
     is( $records->count, $filter->{count}, "$filter->{name} for record count $filter->{count}");
     is( @{$records->results}, $filter->{count}, "$filter->{name} actual records matches count $filter->{count}");
 
+    # Basic graph test. Total of points on graph should match the number of results
+    my $graph = GADS::Graph->new(
+        layout => $filter->{layout} || $layout,
+        schema => $schema,
+    );
+    $graph->title('Test');
+    $graph->type('bar');
+    my $axis = $filter->{columns}->[0] || $columns->{string1}->id;
+    $graph->x_axis($axis);
+    $graph->y_axis($axis);
+    $graph->y_axis_stack('count');
+    $graph->write;
+
+    my $records_group = GADS::RecordsGroup->new(
+        user              => $user,
+        layout            => $filter->{layout} || $layout,
+        schema => $schema,
+    );
+    my $graph_data = GADS::Graph::Data->new(
+        id      => $graph->id,
+        view    => $view,
+        records => $records_group,
+        schema  => $schema,
+    );
+
+    my $graph_total = 0;
+    $graph_total += $_ foreach @{$graph_data->points->[0]}; # Count total number of records
+    my $count = $filter->{count_graph} || $filter->{count};
+    is($graph_total, $count, "Item total on graph matches table for $filter->{name}");
 }
 
 # Search with a limited view defined
