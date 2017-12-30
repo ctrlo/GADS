@@ -138,19 +138,19 @@ sub _build_results
             $self->add_prefetch($col, include_multivalue => 1);
         }
         push @select_fields, {
-            $op => $self->fqvalue($col, prefetch => 1, linked => 0, parent => $parent),
+            $op => $self->fqvalue($col, prefetch => 1, search => 1, parent => $parent, retain_join_order => 1),
             -as => $col->field
         };
         # Also add linked column if required
         push @select_fields, {
-            $op => $self->fqvalue($col->link_parent, linked => 1, prefetch => 1, parent => $parent),
+            $op => $self->fqvalue($col->link_parent, prefetch => 1, search => 1, linked => 1, parent => $parent, retain_join_order => 1),
             -as => $col->field."_link",
         } if $col->link_parent;
     }
 
     my $f = $self->operator eq 'count'
         ? \1 # Do not count column itself otherwise NULLs are not counted
-        : $self->fqvalue($self->column, search => 1, prefetch => 1, linked => 0);
+        : $self->fqvalue($self->column, search => 1, prefetch => 1);
     push @select_fields, {
         $self->operator => $f,
         -as             => $self->column->field."_".$self->{operator},
@@ -304,8 +304,8 @@ sub _build_results
         } else {
             if ($col->link_parent)
             {
-                my $main = $self->fqvalue($col, search => 1, prefetch => 1, linked => 0);
-                my $link = $self->fqvalue($col->link_parent, search => 1, prefetch => 1, linked => 1);
+                my $main = $self->fqvalue($col, search => 1, prefetch => 1, retain_join_order => 1);
+                my $link = $self->fqvalue($col->link_parent, search => 1, prefetch => 1, linked => 1, retain_join_order => 1);
                 push @g, $self->schema->resultset('Current')->helper_concat(
                      { -ident => $main },
                      { -ident => $link },

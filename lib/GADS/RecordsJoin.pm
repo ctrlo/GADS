@@ -248,7 +248,10 @@ sub _jpfetch
         push @jpstore, grep { $_->{prefetch} } @{$self->_jp_store};
     }
 
-    foreach (@jpstore)
+    my @jpstore2 = grep { $_->{linked} } @jpstore;
+    push @jpstore2, grep { !$_->{linked} } @jpstore;
+
+    foreach (@jpstore2)
     {
         if (exists $options{linked})
         {
@@ -318,6 +321,16 @@ sub record_name
     return "record_single$c_offset";
 }
 
+=pod
+Return a fully-qualified value field for a table.
+
+%options signifies what will be counted when getting the join numbers. For
+example, if tables that are joined for both searches and prefetches should be
+included, then use
+
+  ->table_name($col, search => 1, prefetch => 1)
+
+=cut
 sub table_name
 {   my ($self, $column, %options) = @_;
     if ($column->internal)

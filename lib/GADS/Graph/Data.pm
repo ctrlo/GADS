@@ -364,6 +364,8 @@ sub _build_data
                   : $group_by_col
                   ? $line->get_column($group_by_col->field)
                   : 1;
+            $k ||= $line->get_column($group_by_col->field."_link")
+                  if $group_by_col && $group_by_col->link_parent;
             $k ||= '<blank value>';
             $series{$k} = 1; # Hash to kill duplicate values
 

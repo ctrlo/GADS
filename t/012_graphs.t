@@ -14,14 +14,14 @@ use t::lib::DataSheet;
 foreach my $multivalue (0..1)
 {
     my $linked_value = 10; # See below
+    my $linked_enum  = 13; # ID for foo1
 
     my $data = [
         {
-            # No integer1 - the value will be taken from a linked record ($linked_value)
+            # No integer1 or enum1 - the value will be taken from a linked record ($linked_value)
             string1    => 'Foo',
             date1      => '2013-10-10',
             daterange1 => ['2014-03-21', '2015-03-01'],
-            enum1      => 7,
             tree1      => 'tree1',
             curval1    => 1,
         },{
@@ -68,6 +68,8 @@ foreach my $multivalue (0..1)
     # Set link field of first sheet integer1 to integer1 of second sheet
     $columns->{integer1}->link_parent_id($columns2->{integer1}->id);
     $columns->{integer1}->write;
+    $columns->{enum1}->link_parent_id($columns2->{enum1}->id);
+    $columns->{enum1}->write;
     $layout->clear; # Need to rebuild columns to get link_parent built
 
     # Create the single record of the second sheet, which will contain the single
@@ -79,6 +81,7 @@ foreach my $multivalue (0..1)
     );
     $child->initialise;
     $child->fields->{$columns2->{integer1}->id}->set_value($linked_value);
+    $child->fields->{$columns2->{enum1}->id}->set_value($linked_enum);
     $child->write(no_alerts => 1);
     # Set the first record of the first sheet to take its value from the linked sheet
     my $parent = GADS::Records->new(
