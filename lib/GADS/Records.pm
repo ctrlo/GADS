@@ -239,13 +239,13 @@ sub search_query
         # the search will be a lot quicker without adding the approval search
         # condition (due to indexes not spanning across tables). So, do a quick
         # check first, and only add the condition if needed
-        my ($approval_exists) = $root_table eq 'current' && $self->schema->resultset('Current')->search({
+        my $approval_exists = $root_table eq 'current' && $self->schema->resultset('Current')->search({
             instance_id        => $self->layout->instance_id,
             "records.approval" => 1,
         },{
             join => 'records',
             rows => 1,
-        })->all;
+        })->next;
         push @search, (
             { "$record_single.approval" => 0 },
         ) if $approval_exists;
