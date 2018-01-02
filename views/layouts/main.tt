@@ -27,6 +27,9 @@
         <!-- Custom styles for this template -->
         [% UNLESS page_as_mech %]
             <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap.css">
+            [% IF config.gads.legacy_menu %]
+                <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap-legacy.css">
+            [% END %]
         [% END %]
 
         [% IF page.match('(layout|edit|approval|audit|bulk|data)') %]

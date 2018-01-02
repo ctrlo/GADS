@@ -1,12 +1,19 @@
 <nav class="row" role="navigation">
     [% PROCESS skip_links %]
-    [% PROCESS dataset_menu %]
-    [% PROCESS data_menu %]
-    [% PROCESS user_menu %]
+
+    [% IF config.gads.legacy_menu %]
+        [% PROCESS legacy_menu %]
+    [% ELSE %]
+        [% PROCESS dataset_menu %]
+        [% PROCESS data_menu %]
+        [% PROCESS user_menu %]
+    [% END %]
 </nav>
 
 <div class="row crumbs-and-search">
-    [% PROCESS crumbs %]
+    [% UNLESS config.gads.legacy_menu %]
+        [% PROCESS crumbs %]
+    [% END %]
     [% PROCESS search %]
 </div>
 
@@ -222,5 +229,96 @@
                 [% PROCESS views_menu %]
            </ul>
     </div>
+[% END %]
+
+[% BLOCK legacy_menu %]
+    <div class="navbar navbar-default" role="navigation">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-controls="main-navbar">
+                <span class="hamburger-menu-title">Menu</span>
+                <span class="hamburger">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </span>
+            </button>
+            <a class="navbar-brand" href="[% url.page %]/">Home</a>
+        </div>
+        <div class="collapse navbar-collapse" id="main-navbar">
+            <ul class="nav navbar-nav">
+                <li [% IF page=="data" %]class="active"[% END %]><a href="[% url.page %]/data">Data</a></li>
+                [% IF user_can_approve %]
+                    [% IF approve_waiting %][% appcount = " (" _ approve_waiting _ ")" %][% END %]
+                    <li [% IF page=="approval" %]class="active"[% END %]>
+                        <a href="[% url.page %]/approval/">Approval[% appcount %]</a>
+                    </li>
+                [% END %]
+                [% IF layout.user_can("layout") OR user.permission.superadmin OR user.permission.useradmin OR user.permission.audit %]
+                    <li class="dropdown">
+                    <button type="button" id="admin-menu" class="dropdown-toggle"
+                        data-toggle="dropdown" aria-controls="admin-menu-options" aria-expanded="false" aria-haspopup="true">
+                        <span>Admin menu</span>
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
+                        [% IF layout.user_can("layout") %]
+                            <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/layout/">Data Layout</a></li>
+                        [% END %]
+                        [% IF user.permission.superadmin %]
+                            <li [% IF page=="table" %]class="active"[% END %]><a href="[% url.page %]/table/">Tables</a></li>
+                            <li [% IF page=="graph" %]class="active"[% END %]><a href="[% url.page %]/graph/">Graphs</a></li>
+                            <li [% IF page=="metric" %]class="active"[% END %]><a href="[% url.page %]/metrics/">Metrics</a></li>
+                            <li [% IF page=="config" %]class="active"[% END %]><a href="[% url.page %]/config/">General Settings</a></li>
+                        [% END %]
+                        [% IF user.permission.useradmin OR user.permission.superadmin %]
+                            <li [% IF page=="user" %]class="active"[% END %]><a href="[% url.page %]/user/">Manage Users</a></li>
+                            <li [% IF page=="group" %]class="active"[% END %]><a href="[% url.page %]/group/">Manage Groups</a></li>
+                        [% END %]
+                        [% IF layout.user_can("layout") %]
+                            <li [% IF page=="import" %]class="active"[% END %]><a href="[% url.page %]/import/">Imports</a></li>
+                        [% END %]
+                        [% IF user.permission.audit %]
+                            <li [% IF page=="audit" %]class="active"[% END %]><a href="[% url.page %]/audit/">Audit logs</a></li>
+                        [% END %]
+                    </ul>
+                    </li>
+                [% END %]
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                [% IF instances.size > 1 %]
+                    <li class="dropdown">
+                    <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
+                        aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
+                        <span>[% instance_name | html_entity %]</span>
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" id="table-menu">
+                        [% FOREACH instance IN instances %]
+                            <li [% IF instance.id == instance_id %]class="active"[% END %]>
+                                <a href="?instance=[% instance.instance_id %]"
+                                >[% instance.name | html_entity %]</a>
+                            </li>
+                        [% END %]
+                    </ul>
+                    </li>
+                [% END %]
+                <li class="dropdown">
+                <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="User menu"
+                    aria-expanded="false" aria-haspopup="true" aria-controls="user-menu">
+                    <span>[% user.value | html_entity %]</span>
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" id="user-menu">
+                    <li><a href="[% url.page %]/account/detail">My details</a></li>
+                    <li><a href="[% url.page %]/account/graph">My graphs</a></li>
+                    <li class="divider"></li>
+                    <li><a href="[% url.page %]/logout">Logout</a></li>
+                </ul>
+                </li>
+            </ul>
+
+        </div><!--/.nav-collapse -->
+</div>
+
 [% END %]
 
