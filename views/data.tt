@@ -11,6 +11,9 @@
     <div class="row">
         <div class="col-md-6">
             <div class="btn-toolbar" role="toolbar">
+                [% IF config.gads.legacy_menu %]
+                    [% PROCESS viewtype_buttons %]
+                [% END %]
                 <div class="btn-group">
                     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
                             Current view: [% IF v %][% v.name | html %][% ELSE %]All data[% END %] <span class="caret"></span>
@@ -91,31 +94,12 @@
                     </div>
                 [% END %]
 
-                <div class="btn-group" role="group">
-                    <a href="?viewtype=table" class="btn btn-default">
-                        <i aria-hidden="true" class="fa fa-list fa-lg use-icon-font"></i>
-                        <img src="/images/icon-data-list.png" class="use-icon-png" style="display:none" alt="">
-                        <span class="visually-hidden">View as table</span>
-                    </a>
+                [% IF config.gads.legacy_menu %]
+                    [% PROCESS search_form.tt %]
+                [% ELSE %]
+                    [% PROCESS viewtype_buttons %]
+                [% END %]
 
-                    <a href="?viewtype=graph" class="btn btn-default">
-                        <i aria-hidden="true" class="fa fa-area-chart fa-lg use-icon-font"></i>
-                        <img src="/images/icon-data-chart.png" class="use-icon-png" style="display:none" alt="">
-                        <span class="visually-hidden">View as graph</span>
-                    </a>
-
-                    <a href="?viewtype=timeline" class="btn btn-default">
-                        <i aria-hidden="true" class="fa fa-tasks fa-lg use-icon-font"></i>
-                        <img src="/images/icon-data-tasks.png" class="use-icon-png" style="display:none" alt="">
-                        <span class="visually-hidden">View on timeline</span>
-                    </a>
-
-                    <a href="?viewtype=calendar" class="btn btn-default">
-                        <i aria-hidden="true" class="fa fa-calendar fa-lg use-icon-font"></i>
-                        <img src="/images/icon-data-calendar.png" class="use-icon-png" style="display:none" alt="">
-                        <span class="visually-hidden">View on calendar</span>
-                    </a>
-                </div>
                 [% IF viewtype == "timeline" %]
                     <div class="btn-group">
                         <a class="btn btn-default" data-toggle="modal" data-target="#modal_timeline" role="button">Timeline options...</a>
@@ -223,4 +207,32 @@
             </select>
         </div>
     [% END %]
+[% END %]
+
+[% BLOCK viewtype_buttons %]
+    <div class="btn-group" role="group">
+        <a href="?viewtype=table" class="btn btn-default">
+            <i aria-hidden="true" class="fa fa-list fa-lg use-icon-font"></i>
+            <img src="/images/icon-data-list.png" class="use-icon-png" style="display:none" alt="">
+            <span class="visually-hidden">View as table</span>
+        </a>
+
+        <a href="?viewtype=graph" class="btn btn-default">
+            <i aria-hidden="true" class="fa fa-area-chart fa-lg use-icon-font"></i>
+            <img src="/images/icon-data-chart.png" class="use-icon-png" style="display:none" alt="">
+            <span class="visually-hidden">View as graph</span>
+        </a>
+
+        <a href="?viewtype=timeline" class="btn btn-default">
+            <i aria-hidden="true" class="fa fa-tasks fa-lg use-icon-font"></i>
+            <img src="/images/icon-data-tasks.png" class="use-icon-png" style="display:none" alt="">
+            <span class="visually-hidden">View on timeline</span>
+        </a>
+
+        <a href="?viewtype=calendar" class="btn btn-default">
+            <i aria-hidden="true" class="fa fa-calendar fa-lg use-icon-font"></i>
+            <img src="/images/icon-data-calendar.png" class="use-icon-png" style="display:none" alt="">
+            <span class="visually-hidden">View on calendar</span>
+        </a>
+    </div>
 [% END %]

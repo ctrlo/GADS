@@ -13,8 +13,8 @@
 <div class="row crumbs-and-search">
     [% UNLESS config.gads.legacy_menu %]
         [% PROCESS crumbs %]
+        [% PROCESS search %]
     [% END %]
-    [% PROCESS search %]
 </div>
 
 [% BLOCK skip_links %]
