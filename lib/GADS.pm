@@ -911,7 +911,13 @@ any '/account/?:action?/?' => require_login sub {
     }
 };
 
-any '/config/?' => require_role layout => sub {
+any '/config/?' => require_login sub {
+
+    my $user        = logged_in_user;
+    my $layout      = var 'layout';
+
+    forwardHome({ danger => "You do not have permission to manage general settings"}, '')
+        unless $layout->user_can("layout");
 
     my $instance = rset('Instance')->find(var('layout')->instance_id);
 
@@ -939,9 +945,14 @@ any '/config/?' => require_role layout => sub {
 };
 
 
-any '/graph/?' => require_role layout => sub {
+any '/graph/?' => require_login sub {
 
-    my $layout = var 'layout';
+    my $user        = logged_in_user;
+    my $layout      = var 'layout';
+
+    forwardHome({ danger => "You do not have permission to manage graphs" }, '')
+        unless $layout->user_can("layout");
+
     my $graphs = GADS::Graphs->new(schema => schema, layout => $layout)->all;
 
     my $params = {
@@ -953,9 +964,13 @@ any '/graph/?' => require_role layout => sub {
     template 'graphs' => $params;
 };
 
-any '/graph/:id' => require_role layout => sub {
+any '/graph/:id' => require_login sub {
 
-    my $layout = var 'layout';
+    my $user        = logged_in_user;
+    my $layout      = var 'layout';
+
+    forwardHome({ danger => "You do not have permission to manage graphs" }, '')
+        unless $layout->user_can("layout");
 
     my $params = {
         layout => $layout,
@@ -1004,9 +1019,13 @@ any '/graph/:id' => require_role layout => sub {
     template 'graph' => $params;
 };
 
-get '/metrics/?' => require_role layout => sub {
+get '/metrics/?' => require_login sub {
 
-    my $layout = var 'layout';
+    my $user        = logged_in_user;
+    my $layout      = var 'layout';
+
+    forwardHome({ danger => "You do not have permission to manage metrics" }, '')
+        unless $layout->user_can("layout");
 
     my $metrics = GADS::MetricGroups->new(
         schema      => schema,
@@ -1022,9 +1041,14 @@ get '/metrics/?' => require_role layout => sub {
     template 'metrics' => $params;
 };
 
-any '/metric/:id' => require_role layout => sub {
+any '/metric/:id' => require_login sub {
 
-    my $layout = var 'layout';
+    my $user        = logged_in_user;
+    my $layout      = var 'layout';
+
+    forwardHome({ danger => "You do not have permission to manage metrics" }, '')
+        unless $layout->user_can("layout");
+
     my $params = {
         layout => $layout,
         page   => 'metric',
@@ -2296,7 +2320,13 @@ any '/edit/:id?' => require_login sub {
     $output;
 };
 
-get '/file/?' => require_role 'layout' => sub {
+get '/file/?' => require_login sub {
+
+    my $user        = logged_in_user;
+    my $layout      = var 'layout';
+
+    forwardHome({ danger => "You do not have permission to manage files"}, '')
+        unless $layout->user_can("layout");
 
     my @files = rset('Fileval')->search({
         'files.id' => undef,
@@ -2524,7 +2554,13 @@ any '/import/rows/:import_id' => require_any_role [qw/layout useradmin/] => sub 
     };
 };
 
-any '/import/data/?' => require_role 'layout' => sub {
+any '/import/data/?' => require_login sub {
+
+    my $user        = logged_in_user;
+    my $layout      = var 'layout';
+
+    forwardHome({ danger => "You do not have permission to import data"}, '')
+        unless $layout->user_can("layout");
 
     if (param 'submit')
     {
