@@ -205,7 +205,7 @@ hook before => sub {
         # sheet. This is used in the links for the Curval column type
         my $instance_id = param('oi') || param('instance') || $persistent->{instance_id};
         my $instances = GADS::Instances->new(schema => schema, user => $user);
-        $instance_id = $instances->is_valid($instance_id) || $instances->all->[0] && $instances->all->[0]->id;
+        $instance_id = $instances->is_valid($instance_id) || $instances->all->[0] && $instances->all->[0]->instance_id;
         if (!$instance_id && request->uri !~ m!^/user!)
         {
             forwardHome({ danger => "You do not have any access rights to any data in this application" })
