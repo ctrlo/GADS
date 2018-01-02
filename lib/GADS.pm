@@ -935,7 +935,6 @@ any '/config/?' => require_login sub {
         }
     }
 
-    my $layout      = var 'layout';
     my @all_columns = $layout->all;
     template 'config' => {
         all_columns => \@all_columns,
