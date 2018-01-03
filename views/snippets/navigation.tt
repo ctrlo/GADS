@@ -178,7 +178,7 @@
                 <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/update/">Update all records [% sel_type %]...</a></li>
                 <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/clone/">Clone all records [% sel_type %]...</a></li>
             [% END %]
-            [% IF layout.user_can_delete %]
+            [% IF layout.user_can("delete") %]
                 <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_delete" style="cursor: pointer">Delete all records [% sel_type %]...</a>
             [% END %]
         </ul>
