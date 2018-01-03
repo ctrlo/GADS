@@ -734,11 +734,6 @@ sub update_user
         account_request_notes => $params{account_request_notes},
     };
 
-    $self->groups($current_user, $params{groups});
-    $self->permissions(@{$params{permissions}})
-        if $current_user->permission->{superadmin};
-    $self->set_view_limits($params{view_limits});
-
     my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $current_user);
 
     if ($values->{username} ne $self->username)
@@ -753,7 +748,7 @@ sub update_user
     $values->{value} = _user_value($values);
     $self->update($values);
 
-    $self->groups($params{groups})
+    $self->groups($current_user, $params{groups})
         if $params{groups};
     $self->permissions($params{permissions})
         if $params{permissions};
