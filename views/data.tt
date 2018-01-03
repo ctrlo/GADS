@@ -1,3 +1,20 @@
+[% IF config.gads.legacy_menu %]
+    [% IF search %]
+        <h1>
+            Search results <small class="search_term">for term "[% search | html_entity %]"</small>
+            <form id="clear_search" action="/data" method="post">
+                <button type="submit" name="clear_search" value="clear_search" class="btn btn-default">
+                Clear <span class="visually-hidden">search results</span>
+                </button>
+            </form>
+        </h1>
+    [% ELSIF v %]
+        <h1>[% v.name | html_entity %]</h1>
+    [% ELSE %]
+        <h1>All data</h1>
+    [% END %]
+[% END %]
+
 [% IF 0 && search %]
     <h1>
         Search results <small class="search_term">for term "[% search | html_entity %]"</small>
