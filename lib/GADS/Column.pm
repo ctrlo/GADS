@@ -112,6 +112,12 @@ has internal => (
     default => 0,
 );
 
+has hidden => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
 # Used when updating fields externally and a URL needs to be supplied for alert
 # links
 has base_url => (

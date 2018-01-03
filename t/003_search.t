@@ -924,6 +924,14 @@ for (0..1)
     ok( $@, "Failed to retrieve non-viewable current ID 4 in limited view" );
     try { $record->find_record_id(4) };
     ok( $@, "Failed to retrieve non-viewable record ID 4 in limited view" );
+    # Temporarily flag record as deleted and check it can't be shown
+    $schema->resultset('Current')->find(5)->update({ deleted => DateTime->now });
+    try { $record->find_current_id(5) };
+    like($@, qr/Requested record not found/, "Failed to find deleted current ID 5" );
+    try { $record->find_record_id(5) };
+    like($@, qr/Requested record not found/, "Failed to find deleted record ID 5" );
+    # Reset
+    $schema->resultset('Current')->find(5)->update({ deleted => undef });
 }
 
 # Add a second view limit

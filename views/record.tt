@@ -1,7 +1,7 @@
 [% linkspace.breadcrumbs = [] %]
 
 <h2>
-    Record ID [% record.current_id %]
+    Record ID [% record.current_id %] [% IF record.deleted %](deleted)[% END %]
     [% IF record.parent_id %]
         <small>(child of <a href="/record/[% record.parent_id %]">record [% record.parent_id %]</a>)</small>
     [% END %]
@@ -17,14 +17,20 @@
 <div class="btn-group">
     <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#">Version history <b class="caret"></b></button>
     <ul id="menu1" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop4">
+        [% IF record.deleted %]
+            [% history_link = "purgehistory" %]
+        [% ELSE %]
+            [% history_link = "history" %]
+        [% END %]
         [% FOREACH version IN versions %]
-        <li [% IF version.id == record.record_id %]class="active"[% END %] role="presentation"><a role="menuitem" tabindex="-1" href="/history/[% version.id %]">[% version.created %]</a></li>
+            <li [% IF version.id == record.record_id %]class="active"[% END %] role="presentation">
+                <a role="menuitem" tabindex="-1" href="/[% history_link %]/[% version.id %]">[% version.created %]</a>
+            </li>
         [% END %]
     </ul>
 </div>
 <div class="btn-group">
-    [% IF user_can_edit %]
-
+    [% IF user_can_edit AND NOT record.deleted %]
         <a href="/edit/[% record.current_id %]" class="btn btn-primary">Edit record</a>
     [% END %]
 </div>

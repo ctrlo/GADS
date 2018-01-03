@@ -188,7 +188,7 @@
     modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post"
 %]
     <p>Are you sure you want to delete all the records that are in the current view?</p>
-    <p><strong>Warning: this will permanently delete [% count %] records.</strong></p>
+    <p><strong>Warning: this will delete [% count %] records.</strong></p>
 [% END %]
 
 [% IF viewtype == "timeline" %]

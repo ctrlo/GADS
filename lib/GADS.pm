@@ -829,6 +829,55 @@ any '/data' => require_login sub {
     template 'data' => $params;
 };
 
+any '/purge/?' => require_login sub {
+
+    my $user        = logged_in_user;
+    my $layout      = var 'layout';
+
+    forwardHome({ danger => "You do not have permission to manage deleted records"}, '')
+        unless $layout->user_can("purge");
+
+    if (param('purge') || param('restore'))
+    {
+        my @current_ids = body_parameters->get_all('record_selected')
+            or forwardHome({ danger => "Please select some records before clicking an action" }, 'purge');
+        my $records = GADS::Records->new(
+            current_ids => [@current_ids],
+            columns     => [],
+            user        => $user,
+            is_deleted  => 1,
+            layout      => $layout,
+            schema      => schema,
+        );
+        if (param 'purge')
+        {
+            my $record;
+            $record->purge_current while $record = $records->single;
+            forwardHome({ success => "Records have now been purged" }, 'purge');
+        }
+        if (param 'restore')
+        {
+            my $record;
+            $record->restore while $record = $records->single;
+            forwardHome({ success => "Records have now been restored" }, 'purge');
+        }
+    }
+
+    my $records = GADS::Records->new(
+        columns    => [],
+        user       => $user,
+        is_deleted => 1,
+        layout     => $layout,
+        schema     => schema,
+    );
+
+    my $params = {
+        records => $records->presentation,
+    };
+
+    template 'purge' => $params;
+};
+
 any '/account/?:action?/?' => require_login sub {
 
     my $action = param 'action';
@@ -2441,12 +2490,16 @@ get '/record_body/:id' => require_login sub {
     }, { layout => undef };
 };
 
-any qr{/(record|history)/([0-9]+)} => require_login sub {
+any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
 
     my ($action, $id) = splat;
 
     my $user   = logged_in_user;
     my $layout = var 'layout';
+
+    forwardHome({ danger => "You do not have permission to manage deleted records"}, '')
+        if $action =~ /purge/ && !$layout->user_can("purge");
+
     my $record = GADS::Record->new(
         user   => $user,
         layout => $layout,
@@ -2456,18 +2509,22 @@ any qr{/(record|history)/([0-9]+)} => require_login sub {
 
       $action eq 'history'
     ? $record->find_record_id($id)
+    : $action eq 'purge'
+    ? $record->find_deleted_currentid($id)
+    : $action eq 'purgehistory'
+    ? $record->find_deleted_recordid($id)
     : $record->find_current_id($id);
     $layout = $record->layout; # May have changed if record from other datasheet
 
-    my @versions = $record->versions;
-
-    my @columns = $layout->all(user_can_read => 1);
+    my @versions    = $record->versions;
+    my @columns     = $layout->all(user_can_read => 1);
+    my %first_crumb = $action eq 'purge' ? ( '/purge' => 'deleted records' ) : ( '/data' => 'records' );
     my $output = template 'record' => {
         record         => $record,
         versions       => \@versions,
         all_columns    => \@columns,
         page           => 'record',
-        breadcrumbs    => [Crumb() => Crumb( '/data' => 'records' ) => Crumb( request->path, => 'record id ' . $id )]
+        breadcrumbs    => [Crumb() => Crumb(%first_crumb) => Crumb( request->path, => 'record id ' . $id )]
     };
     $output;
 };

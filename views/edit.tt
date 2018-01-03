@@ -93,7 +93,7 @@
                     <h4 class="modal-title" id="myModalLabel">Delete record</h4>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to delete this record? All previous versions will
+                    <p>Are you sure you want to delete this record? The version history of the record will
                         also be deleted.</p>
                     [% IF record.child_record_ids.size %]
                         <h5>The following child records will also be deleted:</h5>

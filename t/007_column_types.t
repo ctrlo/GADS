@@ -95,8 +95,10 @@ my $record = GADS::Record->new(
     schema => $schema,
 );
 $record->find_current_id(1);
-try { $record->delete_current };
-like($@, qr/The following records refer to this record as a value/, "Failed to delete record in a curval");
+try { $record->delete_current; $record->purge_current };
+like($@, qr/The following records refer to this record as a value/, "Failed to purge record in a curval");
+# Restore deleted record
+$record->restore;
 
 my $curval = $columns->{curval1};
 

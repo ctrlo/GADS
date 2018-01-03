@@ -15,7 +15,7 @@
                         <tr>
                             <th>Group name</th>
                             <th>Delete records</th>
-                            <th>Delete records approval not needed</th>
+                            <th>Purge deleted records</th>
                             <th>Download records</th>
                             <th>Manage fields</th>
                             <th>Send messages</th>
@@ -35,7 +35,7 @@
                                     <input type="checkbox" name="permissions" value="[% group.id %]_delete" [% IF layout_edit.group_has(group.id, 'delete') %]checked[% END %]>
                                 </td>
                                 <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_delete_noneed_approval" [% IF layout_edit.group_has(group.id, 'delete_noneed_approval') %]checked[% END %]>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_purge" [% IF layout_edit.group_has(group.id, 'purge') %]checked[% END %]>
                                 </td>
                                 <td>
                                     <input type="checkbox" name="permissions" value="[% group.id %]_download" [% IF layout_edit.group_has(group.id, 'download') %]checked[% END %]>

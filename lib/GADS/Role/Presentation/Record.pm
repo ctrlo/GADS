@@ -10,7 +10,7 @@ sub _presentation_map_columns {
             is_multivalue => $_->multivalue,
             type          => $_->type,
             data          => $self->fields->{$_->id}->presentation,
-            name          => $_->name
+            name          => $_->name,
         }
     } @columns;
 
@@ -23,8 +23,9 @@ sub presentation {
     return {
         parent_id  => $self->parent_id,
         current_id => $self->current_id,
-        columns    => $self->_presentation_map_columns(@columns) 
-        
+        columns    => $self->_presentation_map_columns(@columns),
+        deleted    => $self->deleted,
+        deletedby  => $self->deletedby,
     }
 }
 

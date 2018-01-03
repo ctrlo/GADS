@@ -78,7 +78,7 @@ $sheet2->create_records;
 {
     foreach my $layout_from (qw/new instances/)
     {
-        foreach my $test (qw/delete delete_noneed_approval download layout message view_create create_child bulk_update link/)
+        foreach my $test (qw/delete purge download layout message view_create create_child bulk_update link/)
         {
             foreach my $pass (1..4)
             {
@@ -98,9 +98,9 @@ $sheet2->create_records;
                     # Test can with first table
                     $test_sheet = $sheet1;
                     # Add permission
-                    my $perms = $test eq 'delete_noneed_approval'
+                    my $perms = $test eq 'purge'
                         # Need both perms for deleting records without approval
-                        ? [$sheet1->group->id.'_delete', $sheet1->group->id.'_delete_noneed_approval']
+                        ? [$sheet1->group->id.'_delete', $sheet1->group->id.'_purge']
                         : [$sheet1->group->id.'_'.$test];
                     $layout1->set_groups($perms);
                     $layout1->write;
@@ -125,27 +125,76 @@ $sheet2->create_records;
                     schema => $schema,
                 );
 
-                if ($test eq 'delete' || $test eq 'delete_noneed_approval')
+                if ($test eq 'delete')
                 {
                     my $record = $records->single;
                     try { $record->delete_current };
 
-                    if ($pass == 3 && $test eq 'delete_noneed_approval')
+                    if ($pass == 3)
                     {
                         ok(!$@, "Able to delete record with correct permission for pass $pass");
                         # Add record back in
-                        $test_sheet->create_records; # Adds 2 more records
+                        $schema->resultset('Current')->find($record->current_id)->update({ deleted => undef });
                     }
                     else {
                         like($@, qr/You do not have permission to delete records/, "Unable to delete record without required permission for pass $pass");
                     }
+                }
+
+                elsif ($test eq 'purge')
+                {
+                    my $record = $records->single;
+
+                    # First check whether the user has access to view the deleted record.
+                    # Temporary deletion
+                    $schema->resultset('Current')->find($record->current_id)->update({ deleted => DateTime->now });
+                    my $record_view = GADS::Record->new(
+                        user   => $user_normal,
+                        layout => $layout,
+                        schema => $schema,
+                    );
+                    try { $record->find_deleted_currentid($record->current_id, $layout->instance_id) };
+                    if ($pass == 3)
+                    {
+                        ok(!$@, "Accessed deleted record successfully");
+                    }
+                    else {
+                        like($@, qr/You do not have access to this deleted record/, "Failed to access deleted record");
+                    }
+                    try { $record->find_deleted_recordid($record->record_id, $layout->instance_id) };
+                    if ($pass == 3)
+                    {
+                        ok(!$@, "Accessed deleted historical record successfully");
+                    }
+                    else {
+                        like($@, qr/You do not have access to this deleted record/, "Failed to access history of deleted record");
+                    }
+                    # Return to undeleted
+                    $schema->resultset('Current')->find($record->current_id)->update({ deleted => undef });
+
+                    try { $record->purge_current };
+
+                    if ($pass == 3)
+                    {
+                        # Should have failed instead with record not being deleted
+                        like($@, qr/Cannot purge record that is not already deleted/, "Cannot purge record not already deleted");
+                        # Now delete and try again
+                        $schema->resultset('Current')->find($record->current_id)->update({ deleted => DateTime->now });
+                        try { $record->purge_current };
+                        ok(!$@, "Able to purge record with correct permission for pass $pass");
+                        # Add record back in
+                        $test_sheet->create_records; # Adds 2 more records
+                    }
+                    else {
+                        like($@, qr/You do not have permission to purge records/, "Unable to purge record without required permission for pass $pass");
+                    }
                     # Try deleting a single version - there won't be one there, but
                     # should still bork, so safety check that this fails as well for
                     # every test where it shouldn't be possible
-                    try { $record->delete };
-                    unless ($pass == 3 && $test eq 'delete_noneed_approval')
+                    try { $record->purge };
+                    unless ($pass == 3)
                     {
-                        like($@, qr/You do not have permission to delete records/, "Unable to delete record version without required permission for pass $pass");
+                        like($@, qr/You do not have permission to purge records/, "Unable to purge record version without required permission for pass $pass");
                     }
                 }
 

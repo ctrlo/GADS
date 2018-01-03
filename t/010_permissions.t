@@ -208,14 +208,15 @@ foreach my $user_type (qw/readwrite read limited/)
     # Delete created record unless one shouldn't have been created (read only test)
     unless ($user_type eq 'read')
     {
-        $record->user(undef); # undef users are allowed to delete records
+        $record->user(undef); # undef users are allowed to purge records
         $record->delete_current;
+        $record->purge_current;
         $records = GADS::Records->new(
             user    => undef,
             layout  => $layout,
             schema  => $schema,
         );
-        is( $records->count, 1, "Record deleted correctly" );
+        is( $records->count, 1, "Record purged correctly" );
     }
 }
 

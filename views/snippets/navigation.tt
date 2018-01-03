@@ -280,6 +280,9 @@
                         [% IF user.permission.audit %]
                             <li [% IF page=="audit" %]class="active"[% END %]><a href="[% url.page %]/audit/">Audit logs</a></li>
                         [% END %]
+                        [% IF layout.user_can("purge") %]
+                            <li [% IF page=="purge" %]class="active"[% END %]><a href="[% url.page %]/purge/">Manage deleted records</a></li>
+                        [% END %]
                     </ul>
                     </li>
                 [% END %]

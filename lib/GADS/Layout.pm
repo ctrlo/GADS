@@ -334,15 +334,15 @@ sub write
         my $delete = {};
 
         my %valid = (
-            delete                 => 1,
-            delete_noneed_approval => 1,
-            download               => 1,
-            layout                 => 1,
-            message                => 1,
-            view_create            => 1,
-            create_child           => 1,
-            bulk_update            => 1,
-            link                   => 1,
+            delete       => 1,
+            purge        => 1,
+            download     => 1,
+            layout       => 1,
+            message      => 1,
+            view_create  => 1,
+            create_child => 1,
+            bulk_update  => 1,
+            link         => 1,
         );
 
         my $existing = $self->_group_permissions;
@@ -421,6 +421,16 @@ has internal_columns => (
                 table       => 'record',
                 column      => 'createdby',
                 isunique    => 0,
+                return_type => 'integer',
+            },
+            {
+                id          => -14,
+                name        => 'Deleted by ID',
+                type        => 'person',
+                table       => 'current',
+                column      => 'deletedby',
+                isunique    => 0,
+                hidden      => 1,
                 return_type => 'integer',
             },
         ];
@@ -517,6 +527,7 @@ sub _build_columns
             return_type              => $internal->{return_type},
             internal                 => 1,
             userinput                => 0,
+            hidden                   => $internal->{hidden} || 0,
             user_permission_override => $self->user_permission_override,
             schema                   => $self->schema,
             layout                   => $self,
@@ -561,7 +572,7 @@ sub all
 
     my $type = $options{type};
 
-    my @columns = grep { $_->instance_id == $self->instance_id } @{$self->columns};
+    my @columns = grep { $_->instance_id == $self->instance_id && !$_->hidden } @{$self->columns};
     @columns = $self->_order_dependencies(@columns) if $options{order_dependencies};
     @columns = grep { !$_->internal } @columns unless $options{include_internal};
     @columns = grep { $_->internal } @columns if $options{only_internal};

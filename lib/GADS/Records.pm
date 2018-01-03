@@ -65,6 +65,12 @@ has search => (
     isa => Maybe[Str],
 );
 
+# Whether to show only deleted records or only records not deleted
+has is_deleted => (
+    is      => 'ro',
+    default => 0,
+);
+
 has view => (
     is => 'rw',
 );
@@ -254,6 +260,13 @@ sub search_query
     push @search, { "$current.id"          => $self->_search_all_fields } if $self->search;
     push @search, { "$current.id"          => $self->current_ids } if $self->has_current_ids && $self->current_ids;
     push @search, { "$current.instance_id" => $self->layout->instance_id };
+    if ($self->is_deleted)
+    {
+        push @search, { "$current.deleted" => { '!=' => undef } };
+    }
+    else {
+        push @search, { "$current.deleted" => undef };
+    }
     push @search, $self->common_search(%options, linked => $linked);
     push @search, {
         "$record_single.created" => { '<' => $self->rewind_formatted },
@@ -636,6 +649,7 @@ sub _build_results
 
     my $select = {
         prefetch => [
+            'deletedby',
             [@linked_prefetch],
             $rec1,
         ],
@@ -680,6 +694,8 @@ sub _build_results
             columns_retrieved_no => $self->columns_retrieved_no,
             columns_retrieved_do => $self->columns_retrieved_do,
             column_flags         => $column_flags,
+            set_deleted          => $rec->{deleted},
+            set_deletedby        => $rec->{deletedby},
         );
         push @record_ids, $rec->{record_single}->{id};
         push @record_ids, $rec->{linked}->{record_single}->{id}

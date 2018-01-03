@@ -52,8 +52,6 @@ foreach my $multivalue (0..1)
     my $layout  = $sheet->layout;
     my $columns = $sheet->columns;
     $sheet->create_records;
-    # Allow records to be deleted in test later
-    $sheet->user->{permission}->{delete_noneed_approval} = 1;
 
     # Add linked record sheet, which will contain the integer1 value for the first
     # record of the first sheet
@@ -280,8 +278,9 @@ foreach my $multivalue (0..1)
         if ($child2)
         {
             $parent2->write_linked_id(undef);
-            $parent2->delete; # Just the record, revert to previous version
+            $parent2->purge; # Just the record, revert to previous version
             $child2->delete_current;
+            $child2->purge_current;
         }
     }
 }
