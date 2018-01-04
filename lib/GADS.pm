@@ -112,10 +112,10 @@ GADS::Email->instance(
 
 hook before => sub {
 
-    return if param 'error';
+    schema->site_id(undef);
 
     # See if there are multiple sites. If so, find site and configure in schema
-    if (schema->resultset('Site')->count > 1 && request->dispatch_path !~ m{/invalidsite})
+    if (schema->resultset('Site')->next && request->dispatch_path !~ m{/invalidsite})
     {
         my ($site) = schema->resultset('Site')->search({
             host => request->base->host,
@@ -128,6 +128,7 @@ hook before => sub {
     }
     else {
         my $site = schema->resultset('Site')->next;
+        trace __x"Single site, site ID is {id}", id => $site->id;
         schema->site_id($site->id);
         var 'site' => $site;
     }
