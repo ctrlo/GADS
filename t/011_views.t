@@ -87,6 +87,21 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
     $view->write;
 }
 
+# Check that view can be deleted, with alerts
+$view = GADS::View->new(%view);
+$view->write;
+my $alert = GADS::Alert->new(
+    user      => $sheet->user,
+    layout    => $layout,
+    schema    => $schema,
+    frequency => 24,
+    view_id   => $view->id,
+);
+$alert->write;
+my $view_count = $schema->resultset('View')->count;
+$view->delete;
+is($schema->resultset('View')->count, $view_count - 1, "View deleted successfully");
+
 # Try and load invalid view. Should return GADS::View with nothing in.
 # Sometimes the app will try and load an invalid view, for example a saved view
 # that no longer exists or a view from a different instance

@@ -14,14 +14,15 @@ use t::lib::DataSheet;
 foreach my $multivalue (0..1)
 {
     my $linked_value = 10; # See below
+    my $linked_enum  = 13; # ID for foo1
 
     my $data = [
         {
-            # No integer1 - the value will be taken from a linked record ($linked_value)
+            # No integer1 or enum1 - the value will be taken from a linked record ($linked_value)
             string1    => 'Foo',
             date1      => '2013-10-10',
             daterange1 => ['2014-03-21', '2015-03-01'],
-            enum1      => 7,
+            tree1      => 'tree1',
             curval1    => 1,
         },{
             string1    => 'Bar',
@@ -29,11 +30,13 @@ foreach my $multivalue (0..1)
             daterange1 => ['2010-01-04', '2011-06-03'],
             integer1   => 15,
             enum1      => 7,
+            tree1      => 'tree1',
             curval1    => 2,
         },{
             string1    => 'Bar',
             integer1   => 35,
             enum1      => 8,
+            tree1      => 'tree1',
             curval1    => 1,
         },{
             string1    => 'FooBar',
@@ -41,6 +44,7 @@ foreach my $multivalue (0..1)
             daterange1 => ['2009-01-04', '2017-06-03'],
             integer1   => 20,
             enum1      => 8,
+            tree1      => 'tree1',
             curval1    => 2,
         },
     ];
@@ -62,6 +66,8 @@ foreach my $multivalue (0..1)
     # Set link field of first sheet integer1 to integer1 of second sheet
     $columns->{integer1}->link_parent_id($columns2->{integer1}->id);
     $columns->{integer1}->write;
+    $columns->{enum1}->link_parent_id($columns2->{enum1}->id);
+    $columns->{enum1}->write;
     $layout->clear; # Need to rebuild columns to get link_parent built
 
     # Create the single record of the second sheet, which will contain the single
@@ -73,6 +79,7 @@ foreach my $multivalue (0..1)
     );
     $child->initialise;
     $child->fields->{$columns2->{integer1}->id}->set_value($linked_value);
+    $child->fields->{$columns2->{enum1}->id}->set_value($linked_enum);
     $child->write(no_alerts => 1);
     # Set the first record of the first sheet to take its value from the linked sheet
     my $parent = GADS::Records->new(
@@ -153,13 +160,49 @@ foreach my $multivalue (0..1)
             data         => [[20, 35], [ 15, 10 ]],
         },
         {
+            name         => 'Enum on x-axis, filter by enum',
+            type         => 'bar',
+            x_axis       => $columns->{enum1}->id,
+            y_axis       => $columns->{string1}->id,
+            y_axis_stack => 'count',
+            data         => [[ 2, 2 ]],
+            rules => [
+                {
+                    id       => $columns->{tree1}->id,
+                    type     => 'string',
+                    value    => 'tree1',
+                    operator => 'equal',
+                }
+            ],
+        },
+        {
+            name         => 'Curval on x-axis, filter by enum',
+            type         => 'bar',
+            x_axis       => $columns->{curval1}->id,
+            y_axis       => $columns->{string1}->id,
+            y_axis_stack => 'count',
+            data         => [[ 1, 1 ]],
+            rules => [
+                {
+                    id       => $columns->{enum1}->id,
+                    type     => 'string',
+                    value    => 'foo1',
+                    operator => 'equal',
+                }
+            ],
+        },
+        {
             name         => 'Graph grouped by curvals',
             type         => 'bar',
             x_axis       => $columns->{string1}->id,
             y_axis       => $columns->{integer1}->id,
             y_axis_stack => 'sum',
             group_by     => $columns->{curval1}->id,
-            data         => [[ 15, 0, 20 ], [ 35, 10, 0 ]],
+            data         => [[ 35, 10, 0 ], [ 15, 0, 20 ]],
+            labels       => [
+                'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012',
+                'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+            ],
         },
         {
             name         => 'Linked value on x-axis, count',
@@ -275,6 +318,11 @@ foreach my $multivalue (0..1)
         is_deeply($graph_data->points, $g->{data}, "Graph data for $g->{name} is correct");
         is_deeply($graph_data->xlabels, $g->{xlabels}, "Graph xlabels for $g->{name} is correct")
             if $g->{xlabels};
+        if ($g->{labels})
+        {
+            my @labels = map { $_->{label} } @{$graph_data->labels};
+            is_deeply([@labels], $g->{labels}, "Graph labels for $g->{name} is correct");
+        }
         if ($child2)
         {
             $parent2->write_linked_id(undef);

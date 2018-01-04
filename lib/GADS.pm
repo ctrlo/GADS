@@ -113,10 +113,10 @@ GADS::Email->instance(
 
 hook before => sub {
 
-    return if param 'error';
+    schema->site_id(undef);
 
     # See if there are multiple sites. If so, find site and configure in schema
-    if (schema->resultset('Site')->count > 1 && request->dispatch_path !~ m{/invalidsite})
+    if (schema->resultset('Site')->next && request->dispatch_path !~ m{/invalidsite})
     {
         my ($site) = schema->resultset('Site')->search({
             host => request->base->host,
@@ -129,6 +129,7 @@ hook before => sub {
     }
     else {
         my $site = schema->resultset('Site')->next;
+        trace __x"Single site, site ID is {id}", id => $site->id;
         schema->site_id($site->id);
         var 'site' => $site;
     }
@@ -181,6 +182,7 @@ hook before => sub {
 
     if ($user)
     {
+        header "X-Frame-Options" => "DENY"; # Prevent clickjacking
         # Make sure we have suitable persistent hash to update. All these options are
         # used as hashrefs themselves, so prevent trying to access non-existent hash.
         if (!session 'persistent')
@@ -1551,7 +1553,7 @@ any '/user/upload' => require_any_role [qw/useradmin superadmin/] => sub {
     {
         my $count;
         if (process sub {
-            $count = rset('User')->upload(upload('file'),
+            $count = rset('User')->upload(upload('file') || undef, # if no file then upload() returns empty array
                 request_base => request->base,
                 view_limits  => [body_parameters->get_all('view_limits')],
                 groups       => [body_parameters->get_all('groups')],

@@ -39,11 +39,14 @@ has '+return_type' => (
 sub validate
 {   my ($self, $value, %options) = @_;
 
-    if ($value && $value !~ /^-?[0-9]+$/)
+    foreach my $v (ref $value ? @$value : $value)
     {
-        return 0 unless $options{fatal};
-        error __x"'{int}' is not a valid integer for '{col}'",
-            int => $value, col => $self->name;
+        if ($v && $v !~ /^-?[0-9]+$/)
+        {
+            return 0 unless $options{fatal};
+            error __x"'{int}' is not a valid integer for '{col}'",
+                int => $v, col => $self->name;
+        }
     }
     1;
 }

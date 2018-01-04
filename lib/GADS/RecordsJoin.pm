@@ -233,11 +233,25 @@ sub common_search
 sub _jpfetch
 {   my ($self, %options) = @_;
     my $return = [];
-    my @jpstore = grep { !$_->{prefetch} } @{$self->_jp_store};
-    push @jpstore, grep { $_->{prefetch} } @{$self->_jp_store};
 
-#    foreach (@{$self->_jp_store})
-    foreach (@jpstore)
+    my @jpstore;
+    # Normally we want joins to be added and then prefetches, as they are
+    # numbered in that order by DBIx::Class. However, sometimes prefetches will
+    # be used as joins (during graph creation) in which case we want to retain
+    # the order
+    if ($options{retain_join_order})
+    {
+        @jpstore = @{$self->_jp_store};
+    }
+    else {
+        @jpstore = grep { !$_->{prefetch} } @{$self->_jp_store};
+        push @jpstore, grep { $_->{prefetch} } @{$self->_jp_store};
+    }
+
+    my @jpstore2 = grep { $_->{linked} } @jpstore;
+    push @jpstore2, grep { !$_->{linked} } @jpstore;
+
+    foreach (@jpstore2)
     {
         if (exists $options{linked})
         {
@@ -307,6 +321,16 @@ sub record_name
     return "record_single$c_offset";
 }
 
+=pod
+Return a fully-qualified value field for a table.
+
+%options signifies what will be counted when getting the join numbers. For
+example, if tables that are joined for both searches and prefetches should be
+included, then use
+
+  ->table_name($col, search => 1, prefetch => 1)
+
+=cut
 sub table_name
 {   my ($self, $column, %options) = @_;
     if ($column->internal)

@@ -336,7 +336,7 @@ sub _build_data
 
             if (!$x_daterange && $x->type eq 'curval' && $x_value)
             {
-                $x_value = $x->format_value(map { $line->get_column($_->field) } @{$x->curval_fields});
+                $x_value = $self->_format_curcommon($x, $line);
             }
 
             if ($x_axis_grouping) # Group by date, round to required interval
@@ -359,9 +359,13 @@ sub _build_data
             $x_value ||= '<no value>';
 
             # The key for this series. May only be one (use "1")
-            my $k = $group_by_col
+            my $k = $group_by_col && $group_by_col->is_curcommon
+                  ? $self->_format_curcommon($group_by_col, $line)
+                  : $group_by_col
                   ? $line->get_column($group_by_col->field)
                   : 1;
+            $k ||= $line->get_column($group_by_col->field."_link")
+                  if $group_by_col && $group_by_col->link_parent;
             $k ||= '<blank value>';
             $series{$k} = 1; # Hash to kill duplicate values
 
@@ -524,6 +528,12 @@ sub _group_date
          : $grouping eq 'day'
          ? DateTime->new(year => $val->year, month => $val->month, day => $val->day)
          : $val
+}
+
+sub _format_curcommon
+{   my ($self, $column, $line) = @_;
+    $line->get_column($column->field) or return;
+    $column->format_value(map { $line->get_column($_->field) } @{$column->curval_fields});
 }
 
 1;
