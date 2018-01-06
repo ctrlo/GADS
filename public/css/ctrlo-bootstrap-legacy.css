@@ -21,3 +21,11 @@ nav .dropdown-toggle {
 .navbar-default .navbar-nav > .active > a:focus {
     outline: 2px solid #85bffd;
 }
+
+.navbar {
+    margin-bottom: 0;
+}
+
+main.container-fluid {
+    margin: 0 1em 1em;
+}
