@@ -117,9 +117,9 @@ hook before => sub {
     # See if there are multiple sites. If so, find site and configure in schema
     if (schema->resultset('Site')->count > 1 && request->dispatch_path !~ m{/invalidsite})
     {
-        my ($site) = schema->resultset('Site')->search({
+        my $site = schema->resultset('Site')->search({
             host => request->base->host,
-        })
+        })->next
             or redirect '/invalidsite';
         var 'site' => $site;
         my $site_id = $site->id;
