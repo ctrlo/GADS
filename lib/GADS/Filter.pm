@@ -20,6 +20,7 @@ package GADS::Filter;
 
 use Data::Compare qw/Compare/;
 use GADS::Config;
+use Encode;
 use JSON qw(decode_json encode_json);
 use Log::Report 'linkspace';
 use MIME::Base64;
@@ -30,14 +31,15 @@ use MooX::Types::MooseLike::Base qw(:all);
 has as_json => (
     is      => 'rw',
     isa     => sub {
-        decode_json($_[0]); # Will die on error
+        decode_json_utf8($_[0]); # Will die on error
     },
     lazy    => 1,
     clearer => 1,
     coerce  => sub {
         # Ensure consistent format
         my $json = shift || '{}';
-        encode_json(decode_json($json));
+        my $hash = decode_json_utf8($json);
+        decode("utf8", encode_json($hash));
     },
     builder => sub {
         my $self = shift;
@@ -48,7 +50,7 @@ has as_json => (
     trigger => sub {
         my ($self, $new) = @_;
         # Need to compare as structures, as stringified JSON could be in different orders
-        $self->_set_changed(1) if $self->has_value && !Compare($self->as_hash, decode_json($new));
+        $self->_set_changed(1) if $self->has_value && !Compare($self->as_hash, decode_json_utf8($new));
         $self->clear_as_hash;
         $self->_clear_lazy;
         $self->_set_has_value(1);
@@ -64,11 +66,11 @@ has as_hash => (
         my $self = shift;
         $self->_set_has_value(1);
         return {} if !$self->has_as_json;
-        decode_json($self->as_json);
+        decode_json_utf8($self->as_json);
     },
     trigger => sub {
         my ($self, $new) = @_;
-        $self->_set_changed(1) if $self->has_value && !Compare(decode_json($self->as_json), $new);
+        $self->_set_changed(1) if $self->has_value && !Compare(decode_json_utf8($self->as_json), $new);
         $self->clear_as_json;
         $self->_clear_lazy;
         $self->_set_has_value(1);
@@ -83,6 +85,13 @@ has has_value => (
 has layout => (
     is => 'rw',
 );
+
+# Takes a JSON string that has wide characters, decodes it into utf8 bytes
+# first, and then decodes the JSON. decode_json() expects utf8 binary
+# characters, otherwise it borks. This module saves to the database and uses
+# JSON as unicode, not utf8.
+sub decode_json_utf8
+{   decode_json(encode("utf8", shift)) }
 
 # Clear various lazy accessors that depend on the above values
 sub _clear_lazy
