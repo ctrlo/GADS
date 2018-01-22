@@ -740,7 +740,7 @@ sub update_user
 
     $self->groups($current_user, $params{groups})
         if $params{groups};
-    $self->permissions($params{permissions})
+    $self->permissions(@{$params{permissions}})
         if $params{permissions};
     $self->set_view_limits($params{view_limits})
         if $params{view_limits};
