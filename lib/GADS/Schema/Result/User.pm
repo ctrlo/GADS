@@ -764,7 +764,6 @@ sub permissions
     my %user_perms = map { $_ => 1 } @permissions;
     my %all_perms  = map { $_->name => $_->id } $self->result_source->schema->resultset('Permission')->all;
 
-    use Data::Dumper; say STDERR Dumper \%user_perms, \%all_perms;
     foreach my $perm (qw/useradmin audit superadmin/)
     {
         my $pid = $all_perms{$perm};
