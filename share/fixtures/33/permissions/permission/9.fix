@@ -1,0 +1,7 @@
+$HASH1 = {
+           description
+                  => 'link records between tables',
+           id     => 9,
+           name   => 'link',
+           order  => 10
+         };

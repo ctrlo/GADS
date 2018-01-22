@@ -85,12 +85,6 @@ __PACKAGE__->table("user");
   is_foreign_key: 1
   is_nullable: 1
 
-=head2 telephone
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 128
-
 =head2 freetext1
 
   data_type: 'text'
@@ -211,8 +205,6 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "organisation",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "telephone",
-  { data_type => "varchar", is_nullable => 1, size => 128 },
   "freetext1",
   { data_type => "text", is_nullable => 1 },
   "freetext2",
@@ -716,8 +708,6 @@ sub update_user
         or error __"Forename must be less than 128 characters";
     length $params{surname} <= 128
         or error __"Surname must be less than 128 characters";
-    length $params{telephone} <= 128
-        or error __"Telephone must be less than 128 characters";
     !defined $params{organisation} || $params{organisation} =~ /^[0-9]+$/
         or error __x"Invalid organisation {id}", id => $params{organisation};
 
