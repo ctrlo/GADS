@@ -145,6 +145,15 @@ foreach my $multivalue (0..1)
             data         => [[ 35, 0, 20 ], [ 15, 10, 0 ]],
         },
         {
+            name         => 'String x-axis, sum y-axis, group by enum',
+            type         => 'bar',
+            x_axis       => $columns->{string1}->id,
+            y_axis       => $columns->{integer1}->id,
+            y_axis_stack => 'sum',
+            group_by     => $columns->{enum1}->id,
+            data         => [[ 35, 0, 20 ], [ 15, 10, 0 ]],
+        },
+        {
             name         => 'Curval on x-axis',
             type         => 'bar',
             x_axis       => $columns->{curval1}->id,
