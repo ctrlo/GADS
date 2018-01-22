@@ -158,8 +158,16 @@ foreach my $multivalue (0..1)
                     type     => 'string',
                     value    => 'foo2',
                     operator => 'equal',
+                },
+                {
+                    id       => $columns->{enum1}->id,
+                    type     => 'string',
+                    value    => 'foo3',
+                    operator => 'equal',
                 }
             ],
+            condition => 'OR',
+
         },
         {
             name         => 'Curval on x-axis',
@@ -308,7 +316,7 @@ foreach my $multivalue (0..1)
         {
             my $rules = encode_json({
                 rules     => $r,
-                # condition => 'AND', # Default
+                condition => $g->{condition} || 'AND',
             });
 
             $view = GADS::View->new(
