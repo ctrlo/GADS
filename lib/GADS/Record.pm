@@ -966,6 +966,10 @@ sub columns_to_show_write
 sub write
 {   my ($self, %options) = @_;
 
+    # See whether this instance is set to not record history. If so, override
+    # update_only option to ensure it is only an update
+    $options{update_only} = 1 if $self->layout->forget_history;
+
     # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
     # an object) and may evaluate to an empty string. If so, txn_scope_guard
     # warns as such, so undefine to prevent the warning
@@ -1182,12 +1186,22 @@ sub write
         })->id;
         $self->record_id_old($self->record_id) if $self->record_id;
         $self->record_id($id);
-    };
+    }
+    elsif ($self->layout->forget_history)
+    {
+        $self->schema->resultset('Record')->find($self->record_id)->update({
+            created   => $created_date,
+            createdby => $createdby,
+        });
+    }
+
     $self->fields->{-11}->current_id($self->current_id);
     $self->fields->{-11}->clear_value; # Will rebuild as current_id
-    unless ($options{update_only})
+    if (!$options{update_only} || $self->layout->forget_history)
     {
-        # Keep original record values when only updating the record
+        # Keep original record values when only updating the record, except
+        # when the update_only is happening for forgetting version history, in
+        # which case we want to record these details
         $self->fields->{-12}->set_value($created_date);
         $self->fields->{-13}->set_value($createdby, no_validation => 1);
     }

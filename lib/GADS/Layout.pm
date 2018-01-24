@@ -65,7 +65,8 @@ has instance_id => (
 );
 
 has _rset => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build__rset
@@ -97,6 +98,14 @@ has homepage_text2 => (
     is      => 'rw',
     lazy    => 1,
     builder => sub { $_[0]->_rset->homepage_text2 },
+);
+
+has forget_history => (
+    is      => 'ro',
+    isa     => Bool,
+    lazy    => 1,
+    builder => sub { $_[0]->_rset->forget_history },
+    clearer => 1,
 );
 
 has sort_layout_id => (
@@ -453,6 +462,8 @@ sub clear
     $self->_clear_user_permissions_columns;
     $self->_clear_user_permissions_table;
     $self->_clear_user_permissions_overall;
+    $self->clear_forget_history;
+    $self->_clear_rset;
 }
 
 # The dump from the database of all the information needed to build the layout.
