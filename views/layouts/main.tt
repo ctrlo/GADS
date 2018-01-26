@@ -201,7 +201,7 @@
             </script>
         [% END %]
         [% IF page.match('(edit|bulk|approval|view|layout)') OR (page == "data" AND viewtype == "timeline") %]
-            <script type="text/javascript" src="[% url.js %]/base64decode.js"></script>
+            <script type="text/javascript" src="[% url.js %]/base64.min.js"></script>
         [% END %]
         [% IF page == "login" %]
             <!--[if (gte IE 6)&(lte IE 8)]>

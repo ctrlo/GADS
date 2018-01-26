@@ -627,12 +627,28 @@ sub _current_ids_rs
     )->get_column('me.id');
 }
 
+# Produce a search query that filters by all the required current IDs. This
+# needs to include the list of current IDs itself, plus a filter to ensure only
+# the required version of a record is retrieved. Assumes that REWIND has
+# already been set by the calling function.
+sub _cid_search_query
+{   my $self = shift;
+    my $search = { map { %$_ } $self->common_search(prefetch => 1, sort => 1, linked => 1) };
+    my @cids = $self->_current_ids_rs->all;
+    $search->{'me.id'} = \@cids;
+    my $record_single = $self->record_name(linked => 0);
+    $search->{"$record_single.created"} = { '<' => $self->rewind_formatted }
+        if $self->rewind;
+    $search;
+}
+
 sub _build_results
 {   my $self = shift;
     local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
         if $self->rewind;
-    my @cids = $self->_current_ids_rs->all;
-    # Now redo the query with those IDs.
+
+    my $search_query = $self->search_query(search => 1, sort => 1, linked => 1); # Need to call first to build joins
+
     my @prefetches = $self->jpfetch(prefetch => 1, linked => 0);
     unshift @prefetches, (
         {
@@ -661,13 +677,7 @@ sub _build_results
         order_by  => $self->order_by(prefetch => 1),
     };
 
-    my $search = { map { %$_ } $self->common_search(prefetch => 1, sort => 1, linked => 1) };
-    $search->{'me.id'} = \@cids;
-    my $record_single = $self->record_name(linked => 0);
-    $search->{"$record_single.created"} = { '<' => $self->rewind_formatted }
-        if $self->rewind;
-
-    my $result = $self->schema->resultset('Current')->search($search, $select);
+    my $result = $self->schema->resultset('Current')->search($self->_cid_search_query, $select);
 
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my $column_flags = {

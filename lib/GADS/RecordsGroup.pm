@@ -326,7 +326,7 @@ sub _build_results
             {
                 'record_single' => [
                     'record_later',
-                    $self->jpfetch(prefetch => 1, search => 1, linked => 0, retain_join_order => 1),
+                    $self->jpfetch(prefetch => 1, search => 0, linked => 0, retain_join_order => 1),
                 ],
             },
         ],
@@ -335,8 +335,9 @@ sub _build_results
 
     local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
         if $self->rewind;
+
     my $result = $self->schema->resultset('Current')->search(
-        [-and => $q], $select
+        $self->_cid_search_query, $select
     );
 
     [$result->all];

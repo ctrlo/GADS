@@ -18,7 +18,8 @@ foreach my $multivalue (0..1)
 
     my $data = [
         {
-            # No integer1 or enum1 - the value will be taken from a linked record ($linked_value)
+            # No integer1 or enum1 - the value will be taken from a linked record ($linked_value).
+            # integer1 will be 10, enum1 will be equivalent of 7.
             string1    => 'Foo',
             date1      => '2013-10-10',
             daterange1 => ['2014-03-21', '2015-03-01'],
@@ -43,7 +44,7 @@ foreach my $multivalue (0..1)
             date1      => '2016-10-10',
             daterange1 => ['2009-01-04', '2017-06-03'],
             integer1   => 20,
-            enum1      => 8,
+            enum1      => $multivalue ? [8, 9] : 8,
             tree1      => 'tree1',
             curval1    => 2,
         },
@@ -140,7 +141,31 @@ foreach my $multivalue (0..1)
             y_axis       => $columns->{integer1}->id,
             y_axis_stack => 'sum',
             group_by     => $columns->{enum1}->id,
-            data         => [[ 35, 0, 20 ], [ 15, 10, 0 ]],
+            data         => $multivalue ? [[ 0, 0, 20 ], [ 35, 0, 20 ], [ 15, 10, 0 ]] : [[ 35, 0, 20 ], [ 15, 10, 0 ]],
+        },
+        {
+            name         => 'Filter on multi-value enum',
+            type         => 'bar',
+            x_axis       => $columns->{string1}->id,
+            y_axis       => $columns->{integer1}->id,
+            y_axis_stack => 'count',
+            data         => [[ 1, 1 ]],
+            rules => [
+                {
+                    id       => $columns->{enum1}->id,
+                    type     => 'string',
+                    value    => 'foo2',
+                    operator => 'equal',
+                },
+                {
+                    id       => $columns->{enum1}->id,
+                    type     => 'string',
+                    value    => 'foo3',
+                    operator => 'equal',
+                }
+            ],
+            condition => 'OR',
+
         },
         {
             name         => 'Curval on x-axis',
@@ -157,7 +182,7 @@ foreach my $multivalue (0..1)
             y_axis       => $columns->{integer1}->id,
             y_axis_stack => 'sum',
             group_by     => $columns->{enum1}->id,
-            data         => [[20, 35], [ 15, 10 ]],
+            data         => $multivalue ? [[ 20, 0 ], [ 20, 35 ], [ 15, 10 ]] : [[ 20, 35 ], [ 15, 10 ]],
         },
         {
             name         => 'Enum on x-axis, filter by enum',
@@ -165,7 +190,7 @@ foreach my $multivalue (0..1)
             x_axis       => $columns->{enum1}->id,
             y_axis       => $columns->{string1}->id,
             y_axis_stack => 'count',
-            data         => [[ 2, 2 ]],
+            data         => $multivalue ? [[ 2, 2, 1 ]] : [[ 2, 2 ]],
             rules => [
                 {
                     id       => $columns->{tree1}->id,
@@ -289,7 +314,7 @@ foreach my $multivalue (0..1)
         {
             my $rules = encode_json({
                 rules     => $r,
-                # condition => 'AND', # Default
+                condition => $g->{condition} || 'AND',
             });
 
             $view = GADS::View->new(
