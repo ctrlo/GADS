@@ -217,7 +217,8 @@ nav .dropdown-toggle {
   padding: .4em .5em; }
 
 .quicksearch-container {
-  margin: -1em; }
+  margin: -1em;
+  padding-right: 0; }
 
 .quicksearch label {
   font-weight: normal; }
