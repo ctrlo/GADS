@@ -638,7 +638,7 @@
                     if (!val) {
                         val = "";
                     }
-                    var data = decodeBase64("' _ depends.regex_b64 _ '");
+                    var data = base64.decode("' _ depends.regex_b64 _ '");
                     var re = new RegExp("^" + data + "$");
                     if (re.test(val)) {
                         $("#' _ divid _ '").show()
