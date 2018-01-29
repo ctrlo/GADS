@@ -206,7 +206,7 @@ nav .dropdown-toggle {
 nav .dropdown-toggle {
   padding: 0; }
 
-.crumbs-and-search {
+.crumbs-container {
   margin-bottom: .5em; }
 
 .breadcrumbs, .quicksearch {
@@ -216,18 +216,23 @@ nav .dropdown-toggle {
 .quicksearch {
   padding: .4em .5em; }
 
+.quicksearch-container {
+  margin: -1em; }
+
 .quicksearch label {
   font-weight: normal; }
 
 .quicksearch input {
-  width: 84%; }
+  width: 70%;
+  display: inline-block;
+  height: 28px; }
 
 .quicksearch button {
   font-size: 1.05em;
   margin-top: -0.2em; }
 
 .breadcrumbs {
-  padding: 1.5em .5em; }
+  padding: .5em; }
 
 .breadcrumbs .items {
   margin: 0;

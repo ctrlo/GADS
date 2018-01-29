@@ -7,15 +7,15 @@
         [% PROCESS dataset_menu %]
         [% PROCESS data_menu %]
         [% PROCESS user_menu %]
+        [% PROCESS search %]
     [% END %]
 </nav>
 
-<div class="row crumbs-and-search">
-    [% UNLESS config.gads.legacy_menu %]
+[% UNLESS config.gads.legacy_menu %]
+    <div class="row crumbs-container">
         [% PROCESS crumbs %]
-        [% PROCESS search %]
-    [% END %]
-</div>
+    </div>
+[% END %]
 
 [% BLOCK skip_links %]
     <ol id="skip-links">
@@ -26,10 +26,10 @@
 [% END %]
 
 [% BLOCK search %]
-    <div class="quicksearch-container col-md-3">
+    <div class="quicksearch-container col-md-2">
         <form method="get" action="/data" class="quicksearch">
                 <label for="quick-search">Records quicksearch</label>
-                <input id="quick-search" name="search" value="[% search | html_entity %]">
+                <input class="form-control" id="quick-search" name="search" value="[% search | html_entity %]">
             <button class="btn btn-xs btn-primary" type="submit">Go</button>
         </form>
     </div>
@@ -40,7 +40,7 @@
         home => 'fa fa-home'
     } %]
 
-    <div class="breadcrumbs-container col-md-9">
+    <div class="breadcrumbs-container col-md-12">
 
         <nav aria-label="Breadcrumbs" class="breadcrumbs" role="navigation">
             <ol class="items">
@@ -54,57 +54,54 @@
 [% END %]
 
 [% BLOCK dataset_menu %]
-   <div class="col-md-4 navbar navbar-default" id="dataset-navbar">
-            <ul class="nav navbar-nav">
-               <li class="dropdown">
-                    <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
-                        aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
-                        <h2 class="heading">Dataset <span class="visually-hidden">menu</span></h2>
-                        <span>[% instance_name | html_entity %]</span>
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu" id="table-menu">
-                    [% FOREACH layout IN instances %]
-                        <li [% IF layout.instance_id == instance_id %]class="active"[% END %]>
-                            <a href="?instance=[% layout.instance_id %]"
-                            >[% layout.name | html_entity %]</a>
-                        </li>
-                    [% END %]
-                    </ul>
-                </li>
-           </ul>
+    <div class="col-md-3 navbar navbar-default" id="dataset-navbar">
+        <ul class="nav navbar-nav">
+            <li class="dropdown">
+                <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
+                    aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
+                    <h2 class="heading">Dataset <span class="visually-hidden">menu</span></h2>
+                    <span>[% instance_name | html_entity %]</span>
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" id="table-menu">
+                [% FOREACH layout IN instances %]
+                    <li [% IF layout.instance_id == instance_id %]class="active"[% END %]>
+                        <a href="?instance=[% layout.instance_id %]"
+                        >[% layout.name | html_entity %]</a>
+                    </li>
+                [% END %]
+                </ul>
+            </li>
+        </ul>
     </div>
-
 [% END %]
 
 [% BLOCK user_menu %]
-    <div class="col-md-4 navbar navbar-default" id="user-navbar">
-    
-    <ul class="nav navbar-nav">
-        <li class="dropdown">
-        <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="User menu"
-            aria-expanded="false" aria-haspopup="true" aria-controls="user-menu">
-            <h2 class="heading">Personal settings</h2>
-            <span>[% user.value | html_entity %]</span>
-            <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu" id="user-menu">
-            <li [% IF 0 %]class="active"[% END %]>
-                <a href="[% url.page %]/config/">Manage homepage</a>
+    <div class="col-md-3 navbar navbar-default" id="user-navbar">
+        <ul class="nav navbar-nav">
+            <li class="dropdown">
+                <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="User menu"
+                    aria-expanded="false" aria-haspopup="true" aria-controls="user-menu">
+                    <h2 class="heading">Personal settings</h2>
+                    <span>[% user.value | html_entity %]</span>
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" id="user-menu">
+                    <li [% IF 0 %]class="active"[% END %]>
+                        <a href="[% url.page %]/config/">Manage homepage</a>
+                    </li>
+                    <li [% IF 0 %]class="active"[% END %]>
+                        <a href="[% url.page %]/file/">Manage uploads</a>
+                    </li>
+                    <li [% IF 0 %]class="active"[% END %]>
+                        <a href="[% url.page %]/audit/">User logs</a>
+                    </li>
+                    <li><a href="[% url.page %]/account/detail">My details</a></li>
+                    <li class="divider"></li>
+                    <li><a href="[% url.page %]/logout">Logout</a></li>
+                </ul>
             </li>
-            <li [% IF 0 %]class="active"[% END %]>
-                <a href="[% url.page %]/file/">Manage uploads</a>
-            </li>
-            <li [% IF 0 %]class="active"[% END %]>
-                <a href="[% url.page %]/audit/">User logs</a>
-            </li>
-            <li><a href="[% url.page %]/account/detail">My details</a></li>
-            <li class="divider"></li>
-            <li><a href="[% url.page %]/logout">Logout</a></li>
         </ul>
-        </li>
-    </ul>
-
     </div>
 [% END %]
 
