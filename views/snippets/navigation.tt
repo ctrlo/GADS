@@ -12,7 +12,7 @@
 </nav>
 
 [% UNLESS config.gads.legacy_menu %]
-    <div class="row crumbs-container">
+    <div class="row crumbs">
         [% PROCESS crumbs %]
     </div>
 [% END %]

@@ -1,3 +1,7 @@
+/***** BREAKPOINTS *****/
+$quicksearch-starts-wrapping: "screen and (max-width: 80em)";
+$header-needs-single-file: "screen and (max-width: 66em)";
+/***********************/
 
 .nav>li.disabled>a {
         color:#999999;
@@ -359,3 +363,23 @@ nav button .heading {
     z-index: 2;
 }
 
+@media #{$quicksearch-starts-wrapping} {
+    .quicksearch input {
+        width: 66%;
+    }
+}
+
+@media #{$header-needs-single-file} {
+    .quicksearch-container {
+        margin-top: auto;
+        padding: auto;
+        margin: 0;
+        margin-bottom: 1em;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    header .navbar-default {
+        margin-left: 1em;
+    }
+}
