@@ -1450,6 +1450,34 @@ small.search_term {
   padding-top: .5em; }
 
 /* manage-fields */
+.tab-interface [role="tablist"] {
+  list-style-type: none;
+  margin: 2.5em 0;
+  margin-bottom: .9em;
+  padding: 0; }
+
+.tab-interface [role="tablist"] li {
+  margin: 0;
+  display: inline-block; }
+
+.tab-interface [role="tablist"] li:not(:first-child) {
+  margin-left: 1em; }
+
+.tab-interface [role="tab"] {
+  padding: 1em;
+  border: 2px solid #1460aa;
+  text-decoration: none;
+  position: relative;
+  top: 2px;
+  border-bottom: 0; }
+
+.tab-interface [role="tab"][aria-selected] {
+  background-color: #fff; }
+
+.tab-interface [role="tabpanel"] {
+  border: 2px solid #1460aa;
+  padding: 1em; }
+
 #manage-fields {
   border-bottom: 1px solid #bbb;
   padding-bottom: .5em; }
