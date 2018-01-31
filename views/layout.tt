@@ -43,37 +43,30 @@
 [% END %]
 
 [% BLOCK advanced_field_settings %]
-    <button type="button" id="show-advanced-field-settings" class="btn btn-default trigger" aria-expanded="false">Advanced settings &rarr;</button>    
-    <div class="expandable" id="advanced-field-settings">
+    <h3>Advanced settings</h3>
 
-        <h3 tabindex="-1">Advanced settings</h3>
+    [% PROCESS field_options %]
 
-        [% PROCESS field_options %]
-
-        <div class="form-group">
-            <label for="name_short"><span style="font-weight:normal">Short name: [% whats_this('modalhelp_name_short') %]</span></label>
-            <input type="text" class="form-control" id="name_short" name="name_short" value="[% column.name_short | html_entity %]">
-        </div>
-        <div class="form-group">
-            <label for="link_parent_id">Link to a field in another table:</label>
-            [% IF instance_layouts.size %]
-                <select class="form-control" id="link_parent_id" name="link_parent_id">
-                    <option value="">&lt;Not linked&gt;</option>
-                    [% FOREACH layout IN instance_layouts %]
-                        [% FOREACH c IN layout.all %]
-                            <option value="[% c.id %]" [% IF column.link_parent.id == c.id %]selected[% END %]>[% layout.name %] - [% c.name %]</option>
-                        [% END %]
+    <div class="form-group">
+        <label for="name_short"><span style="font-weight:normal">Short name: [% whats_this('modalhelp_name_short') %]</span></label>
+        <input type="text" class="form-control" id="name_short" name="name_short" value="[% column.name_short | html_entity %]">
+    </div>
+    <div class="form-group">
+        <label for="link_parent_id">Link to a field in another table:</label>
+        [% IF instance_layouts.size %]
+            <select class="form-control" id="link_parent_id" name="link_parent_id">
+                <option value="">&lt;Not linked&gt;</option>
+                [% FOREACH layout IN instance_layouts %]
+                    [% FOREACH c IN layout.all %]
+                        <option value="[% c.id %]" [% IF column.link_parent.id == c.id %]selected[% END %]>[% layout.name %] - [% c.name %]</option>
                     [% END %]
-                </select>
-            [% ELSE %]
-                <select class="form-control" id="link_parent_id" name="link_parent_id" disabled readonly>
-                    <option value="">&lt;No other datasheets exist&gt;</option>
-                </select>
-            [% END %]
-        </div>
-
-        [% PROCESS field_display_conditions %]
-        [% PROCESS layout_permissions %]
+                [% END %]
+            </select>
+        [% ELSE %]
+            <select class="form-control" id="link_parent_id" name="link_parent_id" disabled readonly>
+                <option value="">&lt;No other datasheets exist&gt;</option>
+            </select>
+        [% END %]
     </div>
 [% END %]
 
@@ -440,12 +433,15 @@
         </section>
 
         <section role="tabpanel" id="advanced" aria-labelledby="advanced-tab">
+            [% PROCESS advanced_field_settings %]
         </section>
 
         <section role="tabpanel" id="display" aria-labelledby="display-tab">
+            [% PROCESS field_display_conditions %]
         </section>
 
         <section role="tabpanel" id="permissions" aria-labelledby="permissions-tab">
+            [% PROCESS layout_permissions %]
         </section>
     </div>
 

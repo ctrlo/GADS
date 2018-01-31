@@ -1474,6 +1474,10 @@ small.search_term {
 .tab-interface [role="tab"][aria-selected] {
   background-color: #fff; }
 
+.tab-interface [role="tab"]:focus,
+.tab-interface [role="tab"]:hover {
+  background-color: #99ccff; }
+
 .tab-interface [role="tabpanel"] {
   border: 2px solid #1460aa;
   padding: 1em; }

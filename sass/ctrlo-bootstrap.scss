@@ -1284,6 +1284,11 @@ small.search_term {
     background-color: #fff;
 }
 
+.tab-interface [role="tab"]:focus,
+.tab-interface [role="tab"]:hover {
+    background-color: #99ccff;
+}
+
 .tab-interface [role="tabpanel"] {
     border: 2px solid $primary-navy;
     padding: 1em;
