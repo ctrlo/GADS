@@ -11,10 +11,10 @@
             var container = document.getElementById('visualization');
 
             var base64 = '[% records %]';
-            var json = decodeBase64(base64);
+            var json = base64.decode(base64);
             var items = new vis.DataSet(JSON.parse(json));
             var groups = '[% groups %]';
-            var json_group = decodeBase64(groups);
+            var json_group = base64.decode(groups);
             var groups = JSON.parse(json_group);
             var changed = {};
 

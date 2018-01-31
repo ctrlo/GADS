@@ -419,10 +419,11 @@ foreach my $c (keys %$values)
     my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
     $curval_sheet->create_records;
     my $sheet = t::lib::DataSheet->new(
-        optional => 0,
-        data     => [],
-        curval   => 2,
-        schema   => $curval_sheet->schema,
+        optional                 => 0,
+        data                     => [],
+        curval                   => 2,
+        schema                   => $curval_sheet->schema,
+        user_permission_override => 0,
     );
     $sheet->create_records; # No data, but set up everything else
     my $record = GADS::Record->new(
@@ -436,7 +437,38 @@ foreach my $c (keys %$values)
         try { $record->write(no_alerts => 1) };
         my $colname = $column->name;
         like($@, qr/\Q$colname/, "Correctly failed to write without mandatory value");
+        # Write a value, so it doesn't stop on same column next time
         $record->fields->{$column->id}->set_value($values->{$colname}->{new});
+    }
+
+    # Test if user without write access to a mandatory field can still save
+    # record
+    {
+        foreach my $col ($sheet->layout->all(userinput => 1))
+        {
+            next if $col->name eq 'string1';
+            $col->optional(1);
+            $col->write;
+        }
+        $sheet->layout->clear;
+        # First check cannot write
+        my $string1 = $sheet->columns->{string1};
+        $record->fields->{$string1->id}->set_value('');
+        try { $record->write(no_alerts => 1) };
+        like($@, qr/is not optional/, "Failed to write with permission to mandatory string value");
+        $string1->set_permissions($sheet->group->id, []);
+        $string1->write;
+        $sheet->layout->clear;
+        try { $record->write(no_alerts => 1) };
+        ok(!$@, "No error when writing record without permission to mandatory value");
+        $string1->set_permissions($sheet->group->id, $sheet->default_permissions);
+        $string1->write;
+        foreach my $col ($sheet->layout->all(userinput => 1))
+        {
+            $col->optional(0);
+            $col->write;
+        }
+        $sheet->layout->clear;
     }
 
     # Now with filtered value for next page - should wait until page shown
@@ -482,6 +514,18 @@ foreach my $c (keys %$values)
     $record->editor_shown_fields([$string1->id, $curval1->id]);
     try { $record->write(no_alerts => 1) };
     like($@, qr/curval1/, "Error for missing curval filtered field value after string write");
+
+    # Test a mandatory field on the second page which the user does not have
+    # write access to
+    my $group = $sheet->group;
+    $curval1->set_permissions($sheet->group->id, []);
+    $curval1->write;
+    $sheet->layout->clear;
+    $record->editor_shown_fields([$string1->id]);
+    $record_count = $sheet->schema->resultset('Record')->count;
+    $record->write(no_alerts => 1);
+    $record_count_new = $sheet->schema->resultset('Record')->count;
+    is($record_count_new, $record_count + 1, "One record written");
 }
 
 # Final special test for file with only ID number the same (no new content)
