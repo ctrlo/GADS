@@ -415,20 +415,20 @@
     <div class="tab-interface">
         <ul role="tablist">
             <li role="presentation">
-                <a role="tab" href="#basic" id="basic-tab" aria-selected="true">Basic settings</a>
+                <a role="tab" aria-controls="#basic" href="#basic" id="basic-tab" aria-selected="true">Basic settings</a>
             </li>
             <li role="presentation">
-                <a role="tab" href="#advanced" id="advanced-tab">Advanced settings</a>
+                <a role="tab" aria-controls="#advanced" href="#advanced" id="advanced-tab" aria-selected="false">Advanced settings</a>
             </li>
             <li role="presentation">
-                <a role="tab" href="#display" id="display-tab">Display conditions</a>
+                <a role="tab" aria-controls="#display" href="#display" id="display-tab" aria-selected="false">Display conditions</a>
             </li>
             <li role="presentation">
-                <a role="tab" href="#permissions" id="permissions-tab">Permissions</a>
+                <a role="tab" aria-controls="#permissions" href="#permissions" id="permissions-tab" aria-selected="false">Permissions</a>
             </li>
         </ul>
 
-        <section role="tabpanel" id="basic" aria-labelledby="basic-tab">
+        <section role="tabpanel" id="basic" aria-labelledby="basic-tab" class="active">
             [% PROCESS field_properties %]
         </section>
 
