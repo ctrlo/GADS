@@ -4,7 +4,7 @@
 [% PROCESS snippets/layout_modals.tt %]
 
 [% BLOCK field_properties %]
-    <h3>Properties</h3>
+    <h3>Field properties</h3>
 
     <div class="form-group">
         <label for="name">Name:</label>
@@ -98,7 +98,7 @@
 
 [% BLOCK field_display_conditions %]
     <section id="display_conditions">
-        <h4>Display</h4>
+        <h3>Display</h3>
     [% UNLESS column.display_regex %]
         <p>This field is always displayed.</p>
         <button type="button" aria-expanded="false" class="trigger btn btn-default" id="add-display-regex">Configure display</button>
@@ -415,32 +415,32 @@
     <div class="tab-interface">
         <ul role="tablist">
             <li role="presentation">
-                <a role="tab" aria-controls="#basic" href="#basic" id="basic-tab" aria-selected="true">Basic settings</a>
+                <a role="tab" aria-controls="#basic-panel" href="#basic-panel" id="basic-tab" aria-selected="true">Basic settings</a>
             </li>
             <li role="presentation">
-                <a role="tab" aria-controls="#advanced" href="#advanced" id="advanced-tab" aria-selected="false">Advanced settings</a>
+                <a role="tab" aria-controls="#advanced-panel" href="#advanced-panel" id="advanced-tab" aria-selected="false">Advanced settings</a>
             </li>
             <li role="presentation">
-                <a role="tab" aria-controls="#display" href="#display" id="display-tab" aria-selected="false">Display conditions</a>
+                <a role="tab" aria-controls="#display-panel" href="#display-panel" id="display-tab" aria-selected="false">Display conditions</a>
             </li>
             <li role="presentation">
-                <a role="tab" aria-controls="#permissions" href="#permissions" id="permissions-tab" aria-selected="false">Permissions</a>
+                <a role="tab" aria-controls="#permissions-panel" href="#permissions-panel" id="permissions-tab" aria-selected="false">Permissions</a>
             </li>
         </ul>
 
-        <section role="tabpanel" id="basic" aria-labelledby="basic-tab" class="active">
+        <section role="tabpanel" id="basic-panel" aria-labelledby="basic-tab" class="active">
             [% PROCESS field_properties %]
         </section>
 
-        <section role="tabpanel" id="advanced" aria-labelledby="advanced-tab">
+        <section role="tabpanel" id="advanced-panel" aria-labelledby="advanced-tab">
             [% PROCESS advanced_field_settings %]
         </section>
 
-        <section role="tabpanel" id="display" aria-labelledby="display-tab">
+        <section role="tabpanel" id="display-panel" aria-labelledby="display-tab">
             [% PROCESS field_display_conditions %]
         </section>
 
-        <section role="tabpanel" id="permissions" aria-labelledby="permissions-tab">
+        <section role="tabpanel" id="permissions-panel" aria-labelledby="permissions-tab">
             [% PROCESS layout_permissions %]
         </section>
     </div>

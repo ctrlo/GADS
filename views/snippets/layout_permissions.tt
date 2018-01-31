@@ -74,9 +74,7 @@
     <h4 tabindex="-1">Add permissions</h4>
 
     [% IF groups.all.size %]
-        <section class="permission-rule">
-            <h5>Add permissions</h5>
-
+        <div class="permission-rule">
             <label for="select-permission-group">
                 Group:
             </label>
@@ -92,7 +90,7 @@
 
             <button id="add-permission-rule" type="button" class="btn btn-default add-permission">Add rule</button>
             <button id="cancel-permission-rule" type="button" class="btn btn-default cancel-permission">Cancel</button>
-        </section>
+        </div>
     </li>
 
     [% ELSE %]
@@ -107,7 +105,7 @@
     [% PROCESS _permission_rule_template %]
 
 <section id="permissions" class="[% FOREACH p IN existing_perms; 'permission-group-' _ p _ ' '; END %]">
-    <h4>Permissions [% whats_this('modalhelp_groups') %]</h4>
+    <h3>Permissions [% whats_this('modalhelp_groups') %]</h3>
 
         [% IF NOT column.permissions.size %]
             <p>Access must be granted to this field before anyone (including you) can view and edit data in it.</p>
@@ -134,7 +132,7 @@
  
                 <li data-group-id="[% group_id %]" class="permission [% permission_classes %]">
                     <div class="summary">
-                        <h6 class="group-name">[% group.name %]</h6>
+                        <h4 class="group-name">[% group.name %]</h4>
                         <div class="configuration">
                             [% FOREACH permission IN permissions %]
                             [% short = permission.short %]
@@ -151,7 +149,7 @@
                     <button type="button" class="delete pull-right btn btn-sm btn-primary trigger">Delete</button>
                     <button type="button" class="edit pull-right btn btn-sm btn-primary trigger" aria-expanded="false">Change &rarr;</button>
                     <div class="expandable">
-                        <h7 tabindex="-1">Change permissions</h7>
+                        <h5 tabindex="-1">Change permissions</h5>
                         [% PROCESS _permissions_for_group group = group %]
                         <button type="button" class="ok btn btn-sm btn-primary">Ok</button>
                     </div>
