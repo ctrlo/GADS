@@ -827,6 +827,8 @@ has editor_shown_fields => (
     predicate => 1,
     trigger   => sub {
         my ($self, $fields) = @_;
+        $self->fields->{$_->id}->value_current_page(0)
+            foreach $self->layout->all;
         # Prevent exception if page submits fields that don't exist
         $self->fields->{$_} && $self->fields->{$_}->value_current_page(1)
             foreach @$fields;
@@ -935,6 +937,7 @@ sub write
             && !$column->optional
             && $datum->blank
             && !$options{force_mandatory}
+            && $column->user_can('write')
         )
         {
             # Do not require value if the field has not been showed because of

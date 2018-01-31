@@ -419,10 +419,11 @@ foreach my $c (keys %$values)
     my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
     $curval_sheet->create_records;
     my $sheet = t::lib::DataSheet->new(
-        optional => 0,
-        data     => [],
-        curval   => 2,
-        schema   => $curval_sheet->schema,
+        optional                 => 0,
+        data                     => [],
+        curval                   => 2,
+        schema                   => $curval_sheet->schema,
+        user_permission_override => 0,
     );
     $sheet->create_records; # No data, but set up everything else
     my $record = GADS::Record->new(
@@ -482,6 +483,18 @@ foreach my $c (keys %$values)
     $record->editor_shown_fields([$string1->id, $curval1->id]);
     try { $record->write(no_alerts => 1) };
     like($@, qr/curval1/, "Error for missing curval filtered field value after string write");
+
+    # Test a mandatory field on the second page which the user does not have
+    # write access to
+    my $group = $sheet->group;
+    $curval1->set_permissions($sheet->group->id, []);
+    $curval1->write;
+    $sheet->layout->clear;
+    $record->editor_shown_fields([$string1->id]);
+    $record_count = $sheet->schema->resultset('Record')->count;
+    $record->write(no_alerts => 1);
+    $record_count_new = $sheet->schema->resultset('Record')->count;
+    is($record_count_new, $record_count + 1, "One record written");
 }
 
 # Final special test for file with only ID number the same (no new content)
