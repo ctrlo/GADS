@@ -302,6 +302,7 @@
             <script src="[% url.js %]/jstree-misc.js"></script>
             <script src="[% url.js %]/bootstrap-select.min.js"></script>
         [% END %]
+        <script src="[% url.js %]/linkspace.js"></script>
     </div>
     </body>
 </html>

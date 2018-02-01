@@ -19,3 +19,4 @@ config.yml
 _Inline/
 .sass-cache/
 node_modules/
+*.swo
