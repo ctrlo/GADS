@@ -15,16 +15,6 @@
     [% END %]
 [% END %]
 
-[% IF 0 && search %]
-    <h1>
-        Search results <small class="search_term">for term "[% search | html_entity %]"</small>
-        <form id="clear_search" action="/data" method="post">
-            <button type="submit" name="clear_search" value="clear_search" class="btn btn-default">
-            Clear <span class="visually-hidden">search results</span>
-            </button>
-        </form>
-    </h1>
-[% END %]
     <div class="row">
         <div class="col-md-6">
             <div class="btn-toolbar" role="toolbar">
@@ -124,22 +114,36 @@
                 [% END %]
             </div>
         </div>
+
         [% IF viewtype == "table" %]
-            <div class="pull-right">
-                <form method="get" class="form-inline">
+            <div class="col-md-offset-3 col-md-3 table-rows-pagination">
+               <form method="get" class="form-inline">
                     <div class="form-group">
-                            <label for="rows_per_page" class="control-label">Rows per page</label>
-                            <select id="rows_per_page" class="form-control" name="rows" onchange="this.form.submit()" role="listbox">
-                                <option value="10" [% IF subset.rows == 10 %]selected[% END %]>10</option>
-                                <option value="25" [% IF subset.rows == 25 %]selected[% END %]>25</option>
-                                <option value="50" [% IF subset.rows == 50 %]selected[% END %]>50</option>
-                                <option value="100" [% IF subset.rows == 100 %]selected[% END %]>100</option>
-                                <option value="200" [% IF subset.rows == 200 %]selected[% END %]>200</option>
-                            </select>
+                        <label for="rows_per_page" class="control-label">Rows per page</label>
+                        <select id="rows_per_page" class="form-control" name="rows" onchange="this.form.submit()" role="listbox">
+                            <option value="10" [% IF subset.rows == 10 %]selected[% END %]>10</option>
+                            <option value="25" [% IF subset.rows == 25 %]selected[% END %]>25</option>
+                            <option value="50" [% IF subset.rows == 50 %]selected[% END %]>50</option>
+                            <option value="100" [% IF subset.rows == 100 %]selected[% END %]>100</option>
+                            <option value="200" [% IF subset.rows == 200 %]selected[% END %]>200</option>
+                        </select>
                     </div>
                 </form>
+            [% IF subset.pages > 1 %]
+                <div class="table-pagination">
+                [% IF subset.page != 1 %]
+                    <a class="btn btn-default" href="?page=[% subset.page - 1 %]">
+                        <span class="visually-hidden">Previous page</span>&laquo;</a>
+                [% END %]
+                [% IF subset.page != subset.pages %]
+                    <a class="btn btn-default" href="?page=[% subset.page + 1 %]">
+                        <span class="visually-hidden">Next page</span>&raquo;</a>
+                [% END %]
+                </div>
+            [% END %]
             </div>
         [% END %]
+
     </div>
 [% IF viewtype == "graph" %]
     [% INCLUDE 'data_graph.tt' %]
@@ -229,25 +233,25 @@
 [% BLOCK viewtype_buttons %]
     <div class="btn-group" role="group">
         <a href="?viewtype=table" class="btn btn-default">
-            <i aria-hidden="true" class="fa fa-list fa-lg use-icon-font"></i>
+            <span aria-hidden="true" class="fa fa-list fa-lg use-icon-font"></span>
             <img src="/images/icon-data-list.png" class="use-icon-png" style="display:none" alt="">
             <span class="visually-hidden">View as table</span>
         </a>
 
         <a href="?viewtype=graph" class="btn btn-default">
-            <i aria-hidden="true" class="fa fa-area-chart fa-lg use-icon-font"></i>
+            <span aria-hidden="true" class="fa fa-area-chart fa-lg use-icon-font"></span>
             <img src="/images/icon-data-chart.png" class="use-icon-png" style="display:none" alt="">
             <span class="visually-hidden">View as graph</span>
         </a>
 
         <a href="?viewtype=timeline" class="btn btn-default">
-            <i aria-hidden="true" class="fa fa-tasks fa-lg use-icon-font"></i>
+            <span aria-hidden="true" class="fa fa-tasks fa-lg use-icon-font"></span>
             <img src="/images/icon-data-tasks.png" class="use-icon-png" style="display:none" alt="">
             <span class="visually-hidden">View on timeline</span>
         </a>
 
         <a href="?viewtype=calendar" class="btn btn-default">
-            <i aria-hidden="true" class="fa fa-calendar fa-lg use-icon-font"></i>
+            <span aria-hidden="true" class="fa fa-calendar fa-lg use-icon-font"></span>
             <img src="/images/icon-data-calendar.png" class="use-icon-png" style="display:none" alt="">
             <span class="visually-hidden">View on calendar</span>
         </a>
