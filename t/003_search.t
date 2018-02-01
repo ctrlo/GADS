@@ -1431,7 +1431,7 @@ my @sorts = (
     },
 );
 
-foreach my $multivalue (0.1)
+foreach my $multivalue (0..1)
 {
     $sheet->clear_not_data(multivalue => $multivalue);
     my $layout     = $sheet->layout;
