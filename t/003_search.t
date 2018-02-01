@@ -896,163 +896,57 @@ foreach my $filter (@filters)
     is($graph_total, $count, "Item total on graph matches table for $filter->{name}");
 }
 
-# Search with a limited view defined
-$records = GADS::Records->new(
-    user    => $user,
-    layout  => $layout,
-    schema  => $schema,
-);
-
-my $rules = GADS::Filter->new(
-    as_hash => {
-        rules     => [{
-            id       => $columns->{date1}->id,
-            type     => 'date',
-            value    => '2014-10-10',
-            operator => 'equal',
-        }],
-    },
-);
-
-my $view_limit = GADS::View->new(
-    name        => 'Limit to view',
-    filter      => $rules,
-    instance_id => 1,
-    layout      => $layout,
-    schema      => $schema,
-    user        => $user,
-);
-$view_limit->write;
-
-# XXX Need to get rid of user as a hash. For the time being, we need
-# to variables.
-my $user_r = $schema->resultset('User')->find($user->{id});
-$user_r->set_view_limits([$view_limit->id]);
-
-$rules = GADS::Filter->new(
-    as_hash => {
-        rules     => [{
-            id       => $columns->{string1}->id,
-            type     => 'string',
-            value    => 'Foo',
-            operator => 'begins_with',
-        }],
-    },
-);
-
-my $view = GADS::View->new(
-    name        => 'Foo',
-    filter      => $rules,
-    instance_id => 1,
-    layout      => $layout,
-    schema      => $schema,
-    user        => $user,
-);
-$view->write;
-
-$records = GADS::Records->new(
-    user    => $user,
-    view    => $view,
-    layout  => $layout,
-    schema  => $schema,
-);
-
-is ($records->count, 1, 'Correct number of results when limiting to a view');
-
-# Check can only directly access correct records. Test with and without any
-# columns selected.
-for (0..1)
+foreach my $multivalue (0..1)
 {
-    my $columns = $_ ? [] : undef;
-    $record = GADS::Record->new(
+    $layout = $sheet->layout;
+    $columns = $sheet->columns;
+
+    # Search with a limited view defined
+    $records = GADS::Records->new(
         user    => $user,
-        columns => $columns,
         layout  => $layout,
         schema  => $schema,
     );
-    is( $record->find_current_id(5)->current_id, 5, "Retrieved viewable current ID 5 in limited view" );
-    is( $record->find_record_id(5)->current_id, 5, "Retrieved viewable record ID 5 in limited view" );
-    $record->clear;
-    try { $record->find_current_id(4) };
-    ok( $@, "Failed to retrieve non-viewable current ID 4 in limited view" );
-    try { $record->find_record_id(4) };
-    ok( $@, "Failed to retrieve non-viewable record ID 4 in limited view" );
-}
 
-# Add a second view limit
-$rules = GADS::Filter->new(
-    as_hash => {
-        rules     => [{
-            id       => $columns->{date1}->id,
-            type     => 'date',
-            value    => '2015-10-10',
-            operator => 'equal',
-        }],
-    },
-);
-
-my $view_limit2 = GADS::View->new(
-    name        => 'Limit to view2',
-    filter      => $rules,
-    instance_id => 1,
-    layout      => $layout,
-    schema      => $schema,
-    user        => $user,
-);
-$view_limit2->write;
-
-$user_r->set_view_limits([$view_limit->id, $view_limit2->id]);
-
-$records = GADS::Records->new(
-    view_limits => [ $view_limit, $view_limit2 ],
-    user    => $user,
-    view    => $view,
-    layout  => $layout,
-    schema  => $schema,
-);
-
-is ($records->count, 2, 'Correct number of results when limiting to 2 views');
-
-# view limit with a view with negative match multivalue filter
-# (this has caused recusion in the past)
-{
-    # First define limit view
-    $rules = GADS::Filter->new(
+    my $rules = GADS::Filter->new(
         as_hash => {
             rules     => [{
-                id       => $columns->{enum1}->id,
-                type     => 'string',
-                value    => 'foo1',
-                operator => 'not_equal',
+                id       => $columns->{date1}->id,
+                type     => 'date',
+                value    => '2014-10-10',
+                operator => 'equal',
             }],
         },
     );
 
-    my $view_limit3 = GADS::View->new(
-        name        => 'limit to view',
+    my $view_limit = GADS::View->new(
+        name        => 'Limit to view',
         filter      => $rules,
         instance_id => 1,
         layout      => $layout,
         schema      => $schema,
         user        => $user,
     );
-    $view_limit3->write;
+    $view_limit->write;
 
-    $user_r->set_view_limits([$view_limit3->id]);
+    # XXX Need to get rid of user as a hash. For the time being, we need
+    # two variables.
+    my $user_r = $schema->resultset('User')->find($user->{id});
+    $user_r->set_view_limits([$view_limit->id]);
 
-    # Then add a normal view
     $rules = GADS::Filter->new(
         as_hash => {
             rules     => [{
-                id       => $columns->{date1}->id,
+                id       => $columns->{string1}->id,
                 type     => 'string',
-                value    => '2014-10-10',
-                operator => 'equal',
+                value    => 'Foo',
+                operator => 'begins_with',
             }],
         },
     );
-    $view = GADS::View->new(
-        name        => 'date1',
+
+    my $view = GADS::View->new(
+        name        => 'Foo',
         filter      => $rules,
         instance_id => 1,
         layout      => $layout,
@@ -1062,115 +956,243 @@ is ($records->count, 2, 'Correct number of results when limiting to 2 views');
     $view->write;
 
     $records = GADS::Records->new(
+        user    => $user,
+        view    => $view,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    is ($records->count, 1, 'Correct number of results when limiting to a view');
+
+    # Check can only directly access correct records. Test with and without any
+    # columns selected.
+    for (0..1)
+    {
+        my $columns = $_ ? [] : undef;
+        $record = GADS::Record->new(
+            user    => $user,
+            columns => $columns,
+            layout  => $layout,
+            schema  => $schema,
+        );
+        is( $record->find_current_id(5)->current_id, 5, "Retrieved viewable current ID 5 in limited view" );
+        is( $record->find_record_id(5)->current_id, 5, "Retrieved viewable record ID 5 in limited view" );
+        $record->clear;
+        try { $record->find_current_id(4) };
+        ok( $@, "Failed to retrieve non-viewable current ID 4 in limited view" );
+        try { $record->find_record_id(4) };
+        ok( $@, "Failed to retrieve non-viewable record ID 4 in limited view" );
+    }
+
+    # Add a second view limit
+    $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $columns->{date1}->id,
+                type     => 'date',
+                value    => '2015-10-10',
+                operator => 'equal',
+            }],
+        },
+    );
+
+    my $view_limit2 = GADS::View->new(
+        name        => 'Limit to view2',
+        filter      => $rules,
+        instance_id => 1,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $user,
+    );
+    $view_limit2->write;
+
+    $user_r->set_view_limits([$view_limit->id, $view_limit2->id]);
+
+    $records = GADS::Records->new(
+        view_limits => [ $view_limit, $view_limit2 ],
+        user    => $user,
+        view    => $view,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    is ($records->count, 2, 'Correct number of results when limiting to 2 views');
+
+    # view limit with a view with negative match multivalue filter
+    # (this has caused recusion in the past)
+    {
+        # First define limit view
+        $rules = GADS::Filter->new(
+            as_hash => {
+                rules     => [{
+                    id       => $columns->{enum1}->id,
+                    type     => 'string',
+                    value    => 'foo1',
+                    operator => 'not_equal',
+                }],
+            },
+        );
+
+        my $view_limit3 = GADS::View->new(
+            name        => 'limit to view',
+            filter      => $rules,
+            instance_id => 1,
+            layout      => $layout,
+            schema      => $schema,
+            user        => $user,
+        );
+        $view_limit3->write;
+
+        $user_r->set_view_limits([$view_limit3->id]);
+
+        # Then add a normal view
+        $rules = GADS::Filter->new(
+            as_hash => {
+                rules     => [{
+                    id       => $columns->{date1}->id,
+                    type     => 'string',
+                    value    => '2014-10-10',
+                    operator => 'equal',
+                }],
+            },
+        );
+        $view = GADS::View->new(
+            name        => 'date1',
+            filter      => $rules,
+            instance_id => 1,
+            layout      => $layout,
+            schema      => $schema,
+            user        => $user,
+        );
+        $view->write;
+
+        $records = GADS::Records->new(
+            user   => $user,
+            view   => $view,
+            layout => $layout,
+            schema => $schema,
+        );
+
+        is ($records->count, 1, 'Correct result count when limiting to negative multivalue view');
+        is (@{$records->results}, 1, 'Correct number of results when limiting to negative multivalue view');
+
+    }
+
+    # Quick searches
+    # Limited view still defined
+    $records->clear;
+    $records->search('Foobar');
+    is (@{$records->results}, 0, 'Correct number of quick search results when limiting to a view');
+    # And again with numerical search (also searches record IDs). Current ID in limited view
+    $records->clear;
+    $records->search(8);
+    is (@{$records->results}, 1, 'Correct number of quick search results for number when limiting to a view (match)');
+    # This time a current ID that is not in limited view
+    $records->clear;
+    $records->search(5);
+    is (@{$records->results}, 0, 'Correct number of quick search results for number when limiting to a view (no match)');
+    # Reset and do again with non-negative view
+    $records->clear;
+    $user_r->set_view_limits([$view_limit->id]);
+    $records->search('Foobar');
+    is (@{$records->results}, 0, 'Correct number of quick search results when limiting to a view');
+    # Current ID in limited view
+    $records->clear;
+    $records->search(8);
+    is (@{$records->results}, 0, 'Correct number of quick search results for number when limiting to a view (match)');
+    # Current ID that is not in limited view
+    $records->clear;
+    $records->search(5);
+    is (@{$records->results}, 1, 'Correct number of quick search results for number when limiting to a view (no match)');
+
+    # Same again but limited by enumval
+    $view_limit->filter(GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $columns->{enum1}->id,
+                type     => 'string',
+                value    => 'foo2',
+                operator => 'equal',
+            }],
+        },
+    ));
+    $view_limit->write;
+    $records = GADS::Records->new(
+        view_limits => [ $view_limit ],
+        user    => $user,
+        layout  => $layout,
+        schema  => $schema,
+    );
+    is ($records->count, 2, 'Correct number of results when limiting to a view with enumval');
+    {
+        my $limit = $schema->resultset('ViewLimit')->create({
+            user_id => $user->{id},
+            view_id => $view_limit->id,
+        });
+        my $record = GADS::Record->new(
+            user   => $user,
+            layout => $layout,
+            schema => $schema,
+        );
+        is( $record->find_current_id(7)->current_id, 7, "Retrieved record within limited view" );
+        $limit->delete;
+    }
+    $records->clear;
+    $records->search('2014-10-10');
+    is (@{$records->results}, 1, 'Correct number of quick search results when limiting to a view with enumval');
+
+    # Now normal
+    $user_r->set_view_limits([]);
+    $records = GADS::Records->new(
+        user    => $user,
+        layout  => $layout,
+        schema  => $schema,
+    );
+    $records->clear;
+    $records->search('2014-10-10');
+    is (@{$records->results}, 4, 'Quick search for 2014-10-10');
+    $records->clear;
+    $records->search('Foo');
+    is (@{$records->results}, 3, 'Quick search for foo');
+    $records->clear;
+    $records->search('Foo*');
+    is (@{$records->results}, 5, 'Quick search for foo*');
+    $records->clear;
+    $records->search('99');
+    is (@{$records->results}, 2, 'Quick search for 99');
+    $records->clear;
+    $records->search('1979-01-204');
+    is (@{$records->results}, 0, 'Quick search for invalid date');
+
+    # Specific record retrieval
+    $record = GADS::Record->new(
         user   => $user,
-        view   => $view,
         layout => $layout,
         schema => $schema,
     );
+    is( $record->find_record_id(3)->record_id, 3, "Retrieved history record ID 3" );
+    $record->clear;
+    is( $record->find_current_id(3)->current_id, 3, "Retrieved current ID 3" );
+    # Find records from different layout
+    $record->clear;
+    is( $record->find_record_id(1)->record_id, 1, "Retrieved history record ID 1 from other datasheet" );
+    $record->clear;
+    is( $record->find_current_id(1)->current_id, 1, "Retrieved current ID 1 from other datasheet" );
+    # Records that don't exist
+    $record->clear;
+    try { $record->find_record_id(100) };
+    like( $@, qr/Record version ID 100 not found/, "Correct error when finding record version that does not exist" );
+    $record->clear;
+    try { $record->find_current_id(100) };
+    like( $@, qr/Record ID 100 not found/, "Correct error when finding record ID that does not exist" );
+    try { $record->find_current_id('XYXY') };
+    like( $@, qr/Invalid record ID/, "Correct error when finding record ID that is invalid" );
+    try { $record->find_current_id('123XYXY') };
+    like( $@, qr/Invalid record ID/, "Correct error when finding record ID that is invalid (2)" );
 
-    is ($records->count, 1, 'Correct result count when limiting to negative multivalue view');
-    is (@{$records->results}, 1, 'Correct number of results when limiting to negative multivalue view');
 
+    $sheet->set_multivalue($multivalue);
 }
-
-# Quick searches
-# Limited view still defined
-$records->clear;
-$records->search('Foobar');
-is (@{$records->results}, 0, 'Correct number of quick search results when limiting to a view');
-# And again with numerical search (also searches record IDs). Current ID in limited view
-$records->clear;
-$records->search(8);
-is (@{$records->results}, 1, 'Correct number of quick search results for number when limiting to a view (match)');
-# This time a current ID that is not in limited view
-$records->clear;
-$records->search(5);
-is (@{$records->results}, 0, 'Correct number of quick search results for number when limiting to a view (no match)');
-# Reset and do again with non-negative view
-$records->clear;
-$user_r->set_view_limits([$view_limit->id]);
-$records->search('Foobar');
-is (@{$records->results}, 0, 'Correct number of quick search results when limiting to a view');
-# Current ID in limited view
-$records->clear;
-$records->search(8);
-is (@{$records->results}, 0, 'Correct number of quick search results for number when limiting to a view (match)');
-# Current ID that is not in limited view
-$records->clear;
-$records->search(5);
-is (@{$records->results}, 1, 'Correct number of quick search results for number when limiting to a view (no match)');
-
-# Same again but limited by enumval
-$view_limit->filter(GADS::Filter->new(
-    as_hash => {
-        rules     => [{
-            id       => $columns->{enum1}->id,
-            type     => 'string',
-            value    => 'foo2',
-            operator => 'equal',
-        }],
-    },
-));
-$view_limit->write;
-$records = GADS::Records->new(
-    view_limits => [ $view_limit ],
-    user    => $user,
-    layout  => $layout,
-    schema  => $schema,
-);
-is ($records->count, 2, 'Correct number of results when limiting to a view with enumval');
-$records->clear;
-$records->search('2014-10-10');
-is (@{$records->results}, 1, 'Correct number of quick search results when limiting to a view with enumval');
-
-# Now normal
-$user_r->set_view_limits([]);
-$records = GADS::Records->new(
-    user    => $user,
-    layout  => $layout,
-    schema  => $schema,
-);
-$records->clear;
-$records->search('2014-10-10');
-is (@{$records->results}, 4, 'Quick search for 2014-10-10');
-$records->clear;
-$records->search('Foo');
-is (@{$records->results}, 3, 'Quick search for foo');
-$records->clear;
-$records->search('Foo*');
-is (@{$records->results}, 5, 'Quick search for foo*');
-$records->clear;
-$records->search('99');
-is (@{$records->results}, 2, 'Quick search for 99');
-$records->clear;
-$records->search('1979-01-204');
-is (@{$records->results}, 0, 'Quick search for invalid date');
-
-# Specific record retrieval
-$record = GADS::Record->new(
-    user   => $user,
-    layout => $layout,
-    schema => $schema,
-);
-is( $record->find_record_id(3)->record_id, 3, "Retrieved history record ID 3" );
-$record->clear;
-is( $record->find_current_id(3)->current_id, 3, "Retrieved current ID 3" );
-# Find records from different layout
-$record->clear;
-is( $record->find_record_id(1)->record_id, 1, "Retrieved history record ID 1 from other datasheet" );
-$record->clear;
-is( $record->find_current_id(1)->current_id, 1, "Retrieved current ID 1 from other datasheet" );
-# Records that don't exist
-$record->clear;
-try { $record->find_record_id(100) };
-like( $@, qr/Record version ID 100 not found/, "Correct error when finding record version that does not exist" );
-$record->clear;
-try { $record->find_current_id(100) };
-like( $@, qr/Record ID 100 not found/, "Correct error when finding record ID that does not exist" );
-try { $record->find_current_id('XYXY') };
-like( $@, qr/Invalid record ID/, "Correct error when finding record ID that is invalid" );
-try { $record->find_current_id('123XYXY') };
-like( $@, qr/Invalid record ID/, "Correct error when finding record ID that is invalid (2)" );
 
 # Check sorting functionality
 # First check default_sort functionality

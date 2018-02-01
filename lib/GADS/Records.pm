@@ -109,7 +109,7 @@ sub view_limits_search
             if (keys %$decoded)
             {
                 # Get the user search criteria
-                push @search, $self->_search_construct($decoded, $self->layout);
+                push @search, $self->_search_construct($decoded, $self->layout, %options);
             }
         }
     }

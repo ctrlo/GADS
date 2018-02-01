@@ -238,6 +238,16 @@ has multivalue => (
     default => 0,
 );
 
+has _multivalue_columns => (
+    is      => 'rw',
+    builder => sub {
+        +{
+            curval => 1,
+            enum   => 1,
+        };
+    },
+);
+
 # Whether columns should be optional
 has optional => (
     is      => 'ro',
@@ -378,7 +388,7 @@ sub __build_columns
         $enum->type('enum');
         $enum->name("enum$count");
         $enum->name_short("L${instance_id}enum$count");
-        $enum->multivalue(1) if $self->multivalue;
+        $enum->multivalue(1) if $self->multivalue && $self->_multivalue_columns->{enum};
         $enum->enumvals([
             {
                 value => 'foo1',
@@ -537,7 +547,7 @@ sub __build_columns
             $curval->curval_field_ids($curval_field_ids);
             $curval->type('curval');
             $curval->name("curval$count");
-            $curval->multivalue(1) if $self->multivalue;
+            $curval->multivalue(1) if $self->multivalue && $self->_multivalue_columns->{curval};
             try { $curval->write };
             if ($@)
             {
@@ -738,6 +748,19 @@ sub create_records
     }
     1;
 };
+
+sub set_multivalue
+{   my ($self, $value) = @_;
+    foreach my $col ($self->layout->all)
+    {
+        if ($self->_multivalue_columns->{$col->type})
+        {
+            $col->multivalue($value);
+            $col->write;
+        }
+    }
+    $self->layout->clear;
+}
 
 # Convert a filter from column names to ids (as required to use)
 sub convert_filter
