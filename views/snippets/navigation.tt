@@ -29,7 +29,7 @@
     <div class="quicksearch-container col-md-2">
         <form method="get" action="/data" class="quicksearch">
                 <label for="quick-search">Records quicksearch</label>
-                <input class="form-control" id="quick-search" name="search" value="[% search | html_entity %]">
+                <input class="form-control" id="quick-search" name="search_text" value="[% search | html_entity %]">
             <button class="btn btn-xs btn-primary" type="submit">Go</button>
         </form>
     </div>

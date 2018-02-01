@@ -350,7 +350,9 @@ html {
   display: none; }
 
 header {
-  border-top: 5px solid #1460aa; }
+  border-top: 5px solid #1460aa;
+  padding-bottom: 1.5em;
+  border-bottom: 1px solid #e7e7e7; }
 
 .hscroll {
   overflow-x: visible;
