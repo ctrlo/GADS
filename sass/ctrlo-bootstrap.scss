@@ -1309,6 +1309,26 @@ small.search_term {
     margin: .5em 0 1em 0;
 }
 
+@media screen and (max-width: 41em) {
+    .tab-interface [role="tablist"] {
+        margin: 0;
+    }
+
+    .tab-interface [role="tablist"] li,
+    .tab-interface [role="tab"] {
+        display: block;
+    }
+
+    .tab-interface [role="tablist"] li:not(:first-child) {
+        margin: 0;
+    }
+
+    .tab-interface [role="tab"] {
+        border: 2px solid;
+    }
+
+}
+
 #manage-fields {
     border-bottom: 1px solid #bbb;
     padding-bottom: .5em;

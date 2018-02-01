@@ -139,7 +139,10 @@ var Linkspace = {
         });
 
         var selectTab = function (e) {
-            if (e) { e.preventDefault(); }
+            if (e) {
+                e.preventDefault();
+            }
+
             var $thisTab = $(this);
 
             if ($thisTab.attr('aria-selected') === 'true') { return false; }
@@ -157,6 +160,8 @@ var Linkspace = {
 
             $thisTab.attr('tabindex', '0');
             $tabs.filter('[aria-selected="false"]').attr('tabindex', '-1');
+
+            return false;
         };
 
         var moveTab = function (e) {

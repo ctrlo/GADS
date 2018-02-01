@@ -10,6 +10,13 @@
         <label for="name">Name:</label>
         <input type="text" class="form-control" id="name" name="name" value="[% column.name | html_entity %]">
     </div>
+
+    <div class="checkbox stored-value">
+        <label>
+            <input type="checkbox" name="optional" [% IF column.optional %]checked[% END %]>This field is optional
+        </label>
+    </div>
+ 
     [% UNLESS column.id %]
         <div class="form-group">
             <label for="type">Type:</label>
@@ -30,7 +37,6 @@
         </div>
     [% END %]
 
-    [% PROCESS field_type_properties %]
 
     <div class="form-group">
         <label for="description">Description:</label>
@@ -46,6 +52,8 @@
     <h3>Advanced settings</h3>
 
     [% PROCESS field_options %]
+
+    [% PROCESS field_type_properties %]
 
     <div class="form-group">
         <label for="name_short"><span style="font-weight:normal">Short name: [% whats_this('modalhelp_name_short') %]</span></label>
@@ -71,12 +79,7 @@
 [% END %]
 
 [% BLOCK field_options %]
-    <div class="checkbox stored-value">
-        <label>
-            <input type="checkbox" name="optional" [% IF column.optional %]checked[% END %]>This field is optional
-        </label>
-    </div>
-    <div class="checkbox stored-value">
+   <div class="checkbox stored-value">
         <label>
             <input type="checkbox" name="remember" [% IF column.remember %]checked[% END %]>Remember last value for new entry
         </label>
