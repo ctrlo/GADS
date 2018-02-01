@@ -4,92 +4,82 @@
 [% PROCESS snippets/layout_modals.tt %]
 
 [% BLOCK field_properties %]
-    <div class="col-lg-4 col-md-6 col-sm-8 col-xs-12">
-        <section id="properties">
-            <h3>Properties</h3>
+    <h3>Field properties</h3>
 
-            <div class="form-group">
-                <label for="name">Name:</label>
-                <input type="text" class="form-control" id="name" name="name" value="[% column.name | html_entity %]">
-            </div>
-            [% UNLESS column.id %]
-                <div class="form-group">
-                    <label for="type">Type:</label>
-                    <select class="form-control" id="type" name="type">
-                        <option value="string"      [% IF column.type == "string" %]selected    [% END %]>Text</option>
-                        <option value="intgr"       [% IF column.type == "intgr" %]selected     [% END %]>Integer</option>
-                        <option value="date"        [% IF column.type == "date" %]selected      [% END %]>Date</option>
-                        <option value="daterange"   [% IF column.type == "daterange" %]selected [% END %]>Date range</option>
-                        <option value="enum"        [% IF column.type == "enum" %]selected      [% END %]>Dropdown list</option>
-                        <option value="tree"        [% IF column.type == "tree" %]selected      [% END %]>Tree</option>
-                        <option value="file"        [% IF column.type == "file" %]selected      [% END %]>Document</option>
-                        <option value="person"      [% IF column.type == "person" %]selected    [% END %]>Person</option>
-                        <option value="rag"         [% IF column.type == "rag" %]selected       [% END %]>RedAmberGreen status (RAG)</option>
-                        <option value="calc"        [% IF column.type == "calc" %]selected      [% END %]>Calculated value</option>
-                        <option value="curval"      [% IF column.type == "curval" %]selected    [% END %]>Field(s) for records from another table</option>
-                        <option value="autocur"     [% IF column.type == "autocur" %]selected   [% END %]>Automatic value of other sheet's references to this one</option>
-                    </select>
-                </div>
-            [% END %]
-
-            [% PROCESS field_type_properties %]
-
-            <div class="form-group">
-                <label for="description">Description:</label>
-                <input type="text" class="form-control" id="description" name="description" value="[% column.description | html_entity %]">
-            </div>
-            <div class="form-group">
-                <label for="helptext">Help text for the user:</label>
-                <textarea class="form-control" rows="5" id="helptext" name="helptext">[% column.helptext | html_entity %]</textarea>
-            </div>
-        </section>
-
-        [% PROCESS advanced_field_settings %]
-   </div>
-[% END %]
-
-[% BLOCK advanced_field_settings %]
-    <button type="button" id="show-advanced-field-settings" class="btn btn-default trigger" aria-expanded="false">Advanced settings &rarr;</button>    
-    <div class="expandable" id="advanced-field-settings">
-
-        <h3 tabindex="-1">Advanced settings</h3>
-
-        [% PROCESS field_options %]
-
-        <div class="form-group">
-            <label for="name_short"><span style="font-weight:normal">Short name: [% whats_this('modalhelp_name_short') %]</span></label>
-            <input type="text" class="form-control" id="name_short" name="name_short" value="[% column.name_short | html_entity %]">
-        </div>
-        <div class="form-group">
-            <label for="link_parent_id">Link to a field in another table:</label>
-            [% IF instance_layouts.size %]
-                <select class="form-control" id="link_parent_id" name="link_parent_id">
-                    <option value="">&lt;Not linked&gt;</option>
-                    [% FOREACH layout IN instance_layouts %]
-                        [% FOREACH c IN layout.all %]
-                            <option value="[% c.id %]" [% IF column.link_parent.id == c.id %]selected[% END %]>[% layout.name %] - [% c.name %]</option>
-                        [% END %]
-                    [% END %]
-                </select>
-            [% ELSE %]
-                <select class="form-control" id="link_parent_id" name="link_parent_id" disabled readonly>
-                    <option value="">&lt;No other datasheets exist&gt;</option>
-                </select>
-            [% END %]
-        </div>
-
-        [% PROCESS field_display_conditions %]
-        [% PROCESS layout_permissions %]
+    <div class="form-group">
+        <label for="name">Name:</label>
+        <input type="text" class="form-control" id="name" name="name" value="[% column.name | html_entity %]">
     </div>
-[% END %]
 
-[% BLOCK field_options %]
     <div class="checkbox stored-value">
         <label>
             <input type="checkbox" name="optional" [% IF column.optional %]checked[% END %]>This field is optional
         </label>
     </div>
-    <div class="checkbox stored-value">
+ 
+    [% UNLESS column.id %]
+        <div class="form-group">
+            <label for="type">Type:</label>
+            <select class="form-control" id="type" name="type">
+                <option value="string"      [% IF column.type == "string" %]selected    [% END %]>Text</option>
+                <option value="intgr"       [% IF column.type == "intgr" %]selected     [% END %]>Integer</option>
+                <option value="date"        [% IF column.type == "date" %]selected      [% END %]>Date</option>
+                <option value="daterange"   [% IF column.type == "daterange" %]selected [% END %]>Date range</option>
+                <option value="enum"        [% IF column.type == "enum" %]selected      [% END %]>Dropdown list</option>
+                <option value="tree"        [% IF column.type == "tree" %]selected      [% END %]>Tree</option>
+                <option value="file"        [% IF column.type == "file" %]selected      [% END %]>Document</option>
+                <option value="person"      [% IF column.type == "person" %]selected    [% END %]>Person</option>
+                <option value="rag"         [% IF column.type == "rag" %]selected       [% END %]>RedAmberGreen status (RAG)</option>
+                <option value="calc"        [% IF column.type == "calc" %]selected      [% END %]>Calculated value</option>
+                <option value="curval"      [% IF column.type == "curval" %]selected    [% END %]>Field(s) for records from another table</option>
+                <option value="autocur"     [% IF column.type == "autocur" %]selected   [% END %]>Automatic value of other sheet's references to this one</option>
+            </select>
+        </div>
+    [% END %]
+
+
+    <div class="form-group">
+        <label for="description">Description:</label>
+        <input type="text" class="form-control" id="description" name="description" value="[% column.description | html_entity %]">
+    </div>
+    <div class="form-group">
+        <label for="helptext">Help text for the user:</label>
+        <textarea class="form-control" rows="5" id="helptext" name="helptext">[% column.helptext | html_entity %]</textarea>
+    </div>
+[% END %]
+
+[% BLOCK advanced_field_settings %]
+    <h3>Advanced settings</h3>
+
+    [% PROCESS field_options %]
+
+    [% PROCESS field_type_properties %]
+
+    <div class="form-group">
+        <label for="name_short"><span style="font-weight:normal">Short name: [% whats_this('modalhelp_name_short') %]</span></label>
+        <input type="text" class="form-control" id="name_short" name="name_short" value="[% column.name_short | html_entity %]">
+    </div>
+    <div class="form-group">
+        <label for="link_parent_id">Link to a field in another table:</label>
+        [% IF instance_layouts.size %]
+            <select class="form-control" id="link_parent_id" name="link_parent_id">
+                <option value="">&lt;Not linked&gt;</option>
+                [% FOREACH layout IN instance_layouts %]
+                    [% FOREACH c IN layout.all %]
+                        <option value="[% c.id %]" [% IF column.link_parent.id == c.id %]selected[% END %]>[% layout.name %] - [% c.name %]</option>
+                    [% END %]
+                [% END %]
+            </select>
+        [% ELSE %]
+            <select class="form-control" id="link_parent_id" name="link_parent_id" disabled readonly>
+                <option value="">&lt;No other datasheets exist&gt;</option>
+            </select>
+        [% END %]
+    </div>
+[% END %]
+
+[% BLOCK field_options %]
+   <div class="checkbox stored-value">
         <label>
             <input type="checkbox" name="remember" [% IF column.remember %]checked[% END %]>Remember last value for new entry
         </label>
@@ -111,7 +101,7 @@
 
 [% BLOCK field_display_conditions %]
     <section id="display_conditions">
-        <h4>Display</h4>
+        <h3>Display</h3>
     [% UNLESS column.display_regex %]
         <p>This field is always displayed.</p>
         <button type="button" aria-expanded="false" class="trigger btn btn-default" id="add-display-regex">Configure display</button>
@@ -422,11 +412,42 @@
     </div>
 [% END %]
 
-
 [% BLOCK edit_field %]
     <h2>[% IF column.id %]Edit field[% ELSE %]Add a field to [% instance_name | html %][% END %]</h2>
 
-    [% PROCESS field_properties %]
+    <div class="tab-interface">
+        <ul role="tablist">
+            <li role="presentation">
+                <a role="tab" aria-controls="#basic-panel" href="#basic-panel" id="basic-tab" aria-selected="true">Basic settings</a>
+            </li>
+            <li role="presentation">
+                <a role="tab" aria-controls="#advanced-panel" href="#advanced-panel" id="advanced-tab" aria-selected="false">Advanced settings</a>
+            </li>
+            <li role="presentation">
+                <a role="tab" aria-controls="#display-panel" href="#display-panel" id="display-tab" aria-selected="false">Display conditions</a>
+            </li>
+            <li role="presentation">
+                <a role="tab" aria-controls="#permissions-panel" href="#permissions-panel" id="permissions-tab" aria-selected="false">Permissions</a>
+            </li>
+        </ul>
+
+        <section role="tabpanel" id="basic-panel" aria-labelledby="basic-tab" class="active">
+            [% PROCESS field_properties %]
+        </section>
+
+        <section role="tabpanel" id="advanced-panel" aria-labelledby="advanced-tab">
+            [% PROCESS advanced_field_settings %]
+        </section>
+
+        <section role="tabpanel" id="display-panel" aria-labelledby="display-tab">
+            [% PROCESS field_display_conditions %]
+        </section>
+
+        <section role="tabpanel" id="permissions-panel" aria-labelledby="permissions-tab">
+            [% PROCESS layout_permissions %]
+        </section>
+    </div>
+
 [% END %]
 
 [% BLOCK list_fields %]
