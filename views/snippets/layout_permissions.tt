@@ -75,14 +75,18 @@
 
     [% IF groups.all.size %]
         <div class="permission-rule">
-            <label for="select-permission-group">
-                Group:
-            </label>
-            <select id="select-permission-group">
-            [% FOREACH group IN groups.all %]
-                <option value="[% group.id %]">[% group.name %]</option>
-            [% END %]
-            </select>
+            <div class="row">
+                <div class="form-group col-md-3">
+                    <label for="select-permission-group">
+                        Group:
+                    </label>
+                    <select id="select-permission-group" class="form-control">
+                    [% FOREACH group IN groups.all %]
+                        <option value="[% group.id %]">[% group.name %]</option>
+                    [% END %]
+                    </select>
+                </div>
+            </div>
 
             <p>Members of this group will have the following access rights:</p>
 
