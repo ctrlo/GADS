@@ -650,6 +650,7 @@
         %]
     </section>
 
+[% IF column.defined %]
     <div class="row controls">
         <div class="col-md-12">
             <button type="submit" id="submit_save" name="submit" value="submit" class="btn btn-primary">[% IF column.id %]Save[% ELSE %]Save[% END %]</button>
@@ -659,6 +660,7 @@
         [% END %]
         </div>
     </div>
+[% END %]
 </form>
 
 [%
