@@ -228,11 +228,11 @@ nav .dropdown-toggle {
 .quicksearch input {
   width: 70%;
   display: inline-block;
-  height: 28px; }
+  height: auto; }
 
 .quicksearch button {
-  font-size: 1.05em;
-  margin-top: -0.2em; }
+  font-size: 1.4em;
+  margin-top: -.1em; }
 
 .breadcrumbs {
   padding: .5em; }
