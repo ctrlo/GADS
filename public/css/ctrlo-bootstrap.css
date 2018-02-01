@@ -1480,8 +1480,7 @@ small.search_term {
 
 .tab-interface [role="tab"]:focus,
 .tab-interface [role="tab"]:hover {
-  font-weight: bold;
-  text-decoration: dashed underline black;
+  text-decoration: solid underline black;
   outline: 0; }
 
 .tab-interface [role="tabpanel"] {
