@@ -26,7 +26,7 @@
 [% END %]
 
 [% BLOCK search %]
-    <div class="quicksearch-container col-md-2">
+    <div class="quicksearch-container col-md-3">
         <form method="get" action="/data" class="quicksearch">
                 <label for="quick-search">Records quicksearch</label>
                 <input class="form-control" id="quick-search" name="search_text" value="[% search | html_entity %]">
@@ -54,7 +54,7 @@
 [% END %]
 
 [% BLOCK dataset_menu %]
-    <div class="col-md-3 navbar navbar-default" id="dataset-navbar">
+    <div class="col-md-2 navbar navbar-default" id="dataset-navbar">
         <ul class="nav navbar-nav">
             <li class="dropdown">
                 <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
