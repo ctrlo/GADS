@@ -18,6 +18,8 @@
   display: block;
   clear: both; }
 
+/***** BREAKPOINTS *****/
+/***********************/
 .nav > li.disabled > a {
   color: #999999; }
 
@@ -206,28 +208,34 @@ nav .dropdown-toggle {
 nav .dropdown-toggle {
   padding: 0; }
 
-.crumbs-and-search {
+.crumbs-container {
   margin-bottom: .5em; }
 
-.breadcrumbs, .quicksearch {
+.breadcrumbs {
   border: 1px solid #ccccdd;
   background-color: #fff; }
 
 .quicksearch {
   padding: .4em .5em; }
 
+.quicksearch-container {
+  margin-top: -1em;
+  padding-right: 0; }
+
 .quicksearch label {
   font-weight: normal; }
 
 .quicksearch input {
-  width: 84%; }
+  width: 85%;
+  display: inline-block;
+  height: 2em; }
 
 .quicksearch button {
-  font-size: 1.05em;
-  margin-top: -0.2em; }
+  line-height: 2em;
+  vertical-align: top; }
 
 .breadcrumbs {
-  padding: 1.5em .5em; }
+  padding: .5em; }
 
 .breadcrumbs .items {
   margin: 0;
@@ -305,6 +313,20 @@ nav button .heading {
   background-color: #fff;
   z-index: 2; }
 
+@media screen and (max-width: 80em) {
+  .quicksearch input {
+    width: 66%; } }
+@media screen and (max-width: 66em) {
+  .quicksearch-container {
+    margin-top: auto;
+    padding: auto;
+    margin: 0;
+    margin-bottom: 1em;
+    padding-left: 15px;
+    padding-right: 15px; }
+
+  header .navbar-default {
+    margin-left: 1em; } }
 /*! normalize.css v3.0.0 | MIT License | git.io/normalize */
 @font-face {
   font-family: 'Open Sans remote';
@@ -328,7 +350,9 @@ html {
   display: none; }
 
 header {
-  border-top: 5px solid #1460aa; }
+  border-top: 5px solid #1460aa;
+  padding-bottom: 1.5em;
+  border-bottom: 1px solid #e7e7e7; }
 
 .hscroll {
   overflow-x: visible;

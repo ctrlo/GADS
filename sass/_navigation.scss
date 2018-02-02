@@ -1,3 +1,7 @@
+/***** BREAKPOINTS *****/
+$quicksearch-starts-wrapping: "screen and (max-width: 80em)";
+$header-needs-single-file: "screen and (max-width: 66em)";
+/***********************/
 
 .nav>li.disabled>a {
         color:#999999;
@@ -235,11 +239,11 @@ nav .dropdown-toggle {
     padding: 0;
 }
 
-.crumbs-and-search {
+.crumbs-container {
     margin-bottom: .5em;
 }
 
-.breadcrumbs, .quicksearch {
+.breadcrumbs {
     border: 1px solid #ccccdd;
     background-color: #fff;
 }
@@ -248,21 +252,28 @@ nav .dropdown-toggle {
     padding: .4em .5em;
 }
 
+.quicksearch-container {
+    margin-top: -1em;
+    padding-right: 0; // line up with crumbs
+}
+
 .quicksearch label {
     font-weight: normal;
 }
 
 .quicksearch input {
-    width: 84%;
+    width: 85%;
+    display: inline-block;
+    height: 2em;
 }
 
 .quicksearch button {
-    font-size: 1.05em;
-    margin-top: -0.2em;
+    line-height: 2em;
+    vertical-align: top;
 }
 
 .breadcrumbs {
-    padding: 1.5em .5em;
+    padding: .5em;
 }
 
 .breadcrumbs .items {
@@ -352,3 +363,23 @@ nav button .heading {
     z-index: 2;
 }
 
+@media #{$quicksearch-starts-wrapping} {
+    .quicksearch input {
+        width: 66%;
+    }
+}
+
+@media #{$header-needs-single-file} {
+    .quicksearch-container {
+        margin-top: auto;
+        padding: auto;
+        margin: 0;
+        margin-bottom: 1em;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    header .navbar-default {
+        margin-left: 1em;
+    }
+}
