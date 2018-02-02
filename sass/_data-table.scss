@@ -1,5 +1,14 @@
 /* Data table */
 
+.table-rows-pagination {
+    text-align: right;
+}
+
+.table-rows-pagination form,
+.table-rows-pagination .table-pagination {
+    display: inline-block;
+}
+
 #data-table th * {
     color: #000;
 }
