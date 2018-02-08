@@ -260,6 +260,23 @@ foreach my $multivalue (0..1)
             xlabels      => [ 15, 20, 35 ],
             child        => 15,
         },
+        {
+            name         => 'All columns x-axis, sum y-axis',
+            type         => 'bar',
+            x_axis       => undef,
+            y_axis       => $columns->{integer1}->id, # Can be anything
+            y_axis_stack => 'sum',
+            data         => [[ 25 ]],
+            view_columns => [$columns->{integer1}->id],
+            rules => [
+                {
+                    id       => $columns->{enum1}->id,
+                    type     => 'string',
+                    value    => 'foo1',
+                    operator => 'equal',
+                }
+            ],
+        },
     ];
 
     foreach my $g (@$graphs)
@@ -326,6 +343,7 @@ foreach my $multivalue (0..1)
                 layout      => $layout,
                 schema      => $schema,
                 user        => $sheet->user,
+                columns     => $g->{view_columns} || [],
             );
             $view->write;
         }
