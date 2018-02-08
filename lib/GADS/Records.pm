@@ -432,7 +432,7 @@ sub _build__search_all_fields
 {   my $self = shift;
 
     my $search = $self->search
-        or return;
+        or return {};
 
     my %results;
 
