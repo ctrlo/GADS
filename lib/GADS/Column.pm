@@ -833,10 +833,12 @@ sub write
     {
         $newitem->{id} = $self->set_id if $self->set_id;
         # Add at end of other items
-        $newitem->{position} = ($self->schema->resultset('Layout')->get_column('position')->max || 0) + 1;
+        $newitem->{position} = ($self->schema->resultset('Layout')->get_column('position')->max || 0) + 1
+            unless $self->position;
         $rset = $self->schema->resultset('Layout')->create($newitem);
         $new_id = $rset->id;
         $self->_set__rset($rset);
+        $self->id($new_id);
     }
     else {
         if ($rset = $self->schema->resultset('Layout')->find($self->id))
@@ -1040,6 +1042,69 @@ sub code_regex
 {   my $self  = shift;
     my $name  = $self->name; my $suffix = $self->suffix;
     qr/\[\^?\Q$name\E$suffix\Q]/i;
+}
+
+sub import_hash
+{   my ($self, $values) = @_;
+    $self->name($values->{name});
+    $self->name_short($values->{name_short});
+    $self->optional($values->{optional});
+    $self->remember($values->{remember});
+    $self->isunique($values->{isunique});
+    $self->position($values->{position});
+    $self->description($values->{description});
+    $self->helptext($values->{helptext});
+    $self->display_regex($values->{display_regex});
+    $self->multivalue($values->{multivalue});
+    $self->filter(GADS::Filter->new(as_hash => $values->{filter}));
+}
+
+sub export_hash
+{   my $self = shift;
+    my $permissions;
+    foreach my $perm ($self->schema->resultset('LayoutGroup')->search({ layout_id => $self->id })->all)
+    {
+        $permissions->{$perm->group_id} ||= [];
+        push @{$permissions->{$perm->group_id}}, $perm->permission;
+    }
+    +{
+        id            => $self->id,
+        type          => $self->type,
+        name          => $self->name,
+        name_short    => $self->name_short,
+        optional      => $self->optional,
+        remember      => $self->remember,
+        isunique      => $self->isunique,
+        position      => $self->position,
+        description   => $self->description,
+        helptext      => $self->helptext,
+        display_field => $self->display_field,
+        display_regex => $self->display_regex,
+        link_parent   => $self->link_parent && $self->link_parent->id,
+        multivalue    => $self->multivalue,
+        filter        => $self->filter->as_hash,
+        permissions   => $permissions,
+    };
+}
+
+# Subroutine to run after a column write has taken place for an import
+sub import_after_write {};
+
+# Subroutine to run after all columns have been imported
+sub import_after_all
+{   my ($self, $values, $mapping) = @_;
+    my @field_ids = map { $mapping->{$_} } @{$values->{curval_field_ids}};
+    if ($values->{display_field})
+    {
+        my $new_id = $mapping->{$values->{display_field}};
+        $self->display_field($new_id);
+    }
+    if ($values->{link_parent})
+    {
+        my $new_id = $mapping->{$values->{link_parent}};
+        $self->link_parent($new_id);
+    }
+    $self->write;
 }
 
 1;

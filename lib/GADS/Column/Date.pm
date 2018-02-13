@@ -81,5 +81,19 @@ sub cleanup
     $schema->resultset('Date')->search({ layout_id => $id })->delete;
 }
 
+before import_hash => sub {
+    my ($self, $values) = @_;
+    $self->show_datepicker($values->{show_datepicker});
+};
+
+around export_hash => sub {
+    my $orig = shift;
+    my ($self, $values) = @_;
+    my $hash = $orig->(@_);
+    $hash->{filesize} = $self->filesize;
+    $hash->{show_datepicker} = $self->show_datepicker;
+    return $hash;
+};
+
 1;
 
