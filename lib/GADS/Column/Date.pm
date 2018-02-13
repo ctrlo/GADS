@@ -90,7 +90,6 @@ around export_hash => sub {
     my $orig = shift;
     my ($self, $values) = @_;
     my $hash = $orig->(@_);
-    $hash->{filesize} = $self->filesize;
     $hash->{show_datepicker} = $self->show_datepicker;
     return $hash;
 };
