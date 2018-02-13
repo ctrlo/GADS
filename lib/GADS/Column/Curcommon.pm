@@ -594,7 +594,7 @@ around export_hash => sub {
     $hash->{refers_to_instance_id} = $self->refers_to_instance_id;
     $hash->{typeahead}             = $self->typeahead;
     $hash->{curval_field_ids}      = $self->curval_field_ids;
-    $hash->{override_permissions}  = $self->curval_field_ids;
+    $hash->{override_permissions}  = $self->override_permissions;
     return $hash;
 };
 
