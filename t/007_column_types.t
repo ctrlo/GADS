@@ -166,6 +166,33 @@ $schema->resultset('Layout')->update({ filter => undef });
 try { $layout->column($curval_blank_filter->id)->filtered_values };
 ok( !$@, "Undefined filter does not cause exception during layout build" );
 
+# Check that we can add and remove curval field IDs
+my $field_count = $schema->resultset('CurvalField')->count;
+my $curval_add_remove = GADS::Column::Curval->new(
+    schema                => $schema,
+    user                  => undef,
+    layout                => $layout,
+    name                  => 'curval fields',
+    type                  => 'curval',
+    refers_to_instance_id => $curval_sheet->layout->instance_id,
+    curval_field_ids      => [$curval_sheet->columns->{string1}->id],
+);
+$curval_add_remove->write;
+# Should be one more
+is($schema->resultset('CurvalField')->count, $field_count + 1, "Correct number of fields after new");
+$layout->clear;
+$curval_add_remove = $layout->column($curval_add_remove->id);
+$curval_add_remove->curval_field_ids([$curval_sheet->columns->{string1}->id, $curval_sheet->columns->{integer1}->id]);
+$curval_add_remove->write;
+is($schema->resultset('CurvalField')->count, $field_count + 2, "Correct number of fields after addition");
+$layout->clear;
+$curval_add_remove = $layout->column($curval_add_remove->id);
+$curval_add_remove->curval_field_ids([$curval_sheet->columns->{integer1}->id]);
+$curval_add_remove->write;
+is($schema->resultset('CurvalField')->count, $field_count + 1, "Correct number of fields after removal");
+$curval_add_remove->delete;
+$layout->clear;
+
 # Filter on curval tests
 my $curval_filter = GADS::Column::Curval->new(
     schema             => $schema,

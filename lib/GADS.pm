@@ -1430,12 +1430,12 @@ any '/layout/?:id?' => require_role 'layout' => sub {
                 $column->typeahead(param 'typeahead');
                 $column->refers_to_instance_id(param 'refers_to_instance_id');
                 $column->filter->as_json(param 'filter');
-                my $curval_field_ids = ref param('curval_field_ids') ? param('curval_field_ids') : [param('curval_field_ids')||()];
-                $column->curval_field_ids($curval_field_ids);
+                my @curval_field_ids = body_parameters->get_all('curval_field_ids');
+                $column->curval_field_ids([@curval_field_ids]);
             }
             elsif ($column->type eq "autocur")
             {
-                my @curval_field_ids = body_parameters->get_all('curval_field_ids');
+                my @curval_field_ids = body_parameters->get_all('autocur_field_ids');
                 $column->curval_field_ids([@curval_field_ids]);
                 $column->related_field_id(param 'related_field_id');
             }

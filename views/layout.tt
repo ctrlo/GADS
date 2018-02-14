@@ -317,7 +317,7 @@
                                     [% END %]
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" name="curval_field_ids" value="[% c.id %]" [% checked %]>[% c.name %]
+                                            <input type="checkbox" name="autocur_field_ids" value="[% c.id %]" [% checked %]>[% c.name %]
                                         </label>
                                     </div>
                                 [% END %]
