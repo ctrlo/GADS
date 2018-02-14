@@ -148,22 +148,25 @@ sub _build_results
         } if $col->link_parent;
     }
 
-    my $f = $self->operator eq 'count'
-        ? \1 # Do not count column itself otherwise NULLs are not counted
-        : $self->fqvalue($self->column, search => 1, prefetch => 1);
-    push @select_fields, {
-        $self->operator => $f,
-        -as             => $self->column->field."_".$self->{operator},
-    } if $self->column;
-
-    if ($self->column && $self->column->link_parent)
+    if ($self->column)
     {
-        $f = $self->operator eq 'count'
+        my $f = $self->operator eq 'count'
             ? \1 # Do not count column itself otherwise NULLs are not counted
-            : $self->fqvalue($self->column->link_parent, linked => 1, search => 1, prefetch => 1);
+            : $self->fqvalue($self->column, search => 1, prefetch => 1);
         push @select_fields, {
             $self->operator => $f,
-            -as             => $self->column->field."_".$self->{operator}."_link",
+            -as             => $self->column->field."_".$self->{operator},
+        };
+
+        if ($self->column->link_parent)
+        {
+            $f = $self->operator eq 'count'
+                ? \1 # Do not count column itself otherwise NULLs are not counted
+                : $self->fqvalue($self->column->link_parent, linked => 1, search => 1, prefetch => 1);
+            push @select_fields, {
+                $self->operator => $f,
+                -as             => $self->column->field."_".$self->{operator}."_link",
+            }
         }
     }
 

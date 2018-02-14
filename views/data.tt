@@ -8,6 +8,9 @@
                 </button>
             </form>
         </h1>
+        [% IF search_limit_reached %]
+            <h3>Only showing first [% search_limit_reached %] of [% count %] results</h3>
+        [% END %]
     [% ELSIF v %]
         <h1>[% v.name | html_entity %]</h1>
     [% ELSE %]

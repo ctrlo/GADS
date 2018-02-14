@@ -32,8 +32,15 @@ sub _build_refers_to_instance_id
     my ($random) = $self->schema->resultset('CurvalField')->search({
         parent_id => $self->id,
     });
-    $random or return;
-    $random->child->instance->id;
+    return $random->child->instance->id if $random;
+    if (@{$self->curval_field_ids})
+    {
+        # Maybe it hasn't been written yet, try again
+        my $random_id = $self->curval_field_ids->[0];
+        my $random = $self->schema->resultset('Layout')->find($random_id);
+        return $random->instance->id if $random;
+    }
+    return undef;
 }
 
 sub make_join
@@ -70,24 +77,26 @@ sub write_special
     my $id   = $options{id};
     my $rset = $options{rset};
 
-    my $layout_parent = $self->layout_parent
-        or error __"Please select a table to link to";
-
-    # Check whether we are linking to a table that already links back to this one
-    if ($self->schema->resultset('Layout')->search({
-        'me.instance_id'    => $layout_parent->instance_id,
-        'me.type'           => 'curval',
-        'child.instance_id' => $self->layout->instance_id,
-    },{
-        join => {'curval_fields_parents' => 'child'},
-    })->count)
+    unless ($options{override})
     {
-        error __x qq(Cannot use columns from table "{table}" as it contains a column that links back to this table),
-            table => $layout_parent->name;
+        my $layout_parent = $self->layout_parent
+            or error __"Please select a table to link to";
 
+        # Check whether we are linking to a table that already links back to this one
+        if ($self->schema->resultset('Layout')->search({
+            'me.instance_id'    => $layout_parent->instance_id,
+            'me.type'           => 'curval',
+            'child.instance_id' => $self->layout->instance_id,
+        },{
+            join => {'curval_fields_parents' => 'child'},
+        })->count)
+        {
+            error __x qq(Cannot use columns from table "{table}" as it contains a column that links back to this table),
+                table => $layout_parent->name;
+
+        }
+        $self->_update_curvals(%options);
     }
-
-    $self->_update_curvals(%options);
 
     # Update typeahead option
     $rset->update({

@@ -653,12 +653,13 @@ any '/data' => require_login sub {
         }
         my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} || {};
         my $timeline = $records->data_timeline(%{$tl_options});
-        $params->{records}      = encode_base64(encode_json(delete $timeline->{items}));
-        $params->{groups}       = encode_base64(encode_json(delete $timeline->{groups}));
-        $params->{timeline}     = $timeline;
-        $params->{tl_options}   = $tl_options;
-        $params->{columns_read} = [$layout->all(user_can_read => 1)];
-        $params->{viewtype}     = 'timeline';
+        $params->{records}              = encode_base64(encode_json(delete $timeline->{items}));
+        $params->{groups}               = encode_base64(encode_json(delete $timeline->{groups}));
+        $params->{timeline}             = $timeline;
+        $params->{tl_options}           = $tl_options;
+        $params->{columns_read}         = [$layout->all(user_can_read => 1)];
+        $params->{viewtype}             = 'timeline';
+        $params->{search_limit_reached} = $records->search_limit_reached;
 
         if (my $png = param('png'))
         {
@@ -798,15 +799,15 @@ any '/data' => require_login sub {
         my @columns = $view
             ? $layout->view($view->id, user_can_read => 1)
             : $layout->all(user_can_read => 1);
-        $params->{user_can_edit}  = $layout->user_can('write_existing');
-        $params->{sort}           = $records->sort_first;
-        $params->{subset}         = $subset;
-        $params->{records}        = $records->presentation(@columns);
-        $params->{count}          = $records->count;
-        $params->{columns}        = [ map $_->presentation, @columns ];
-        $params->{has_rag_column} = grep { $_->type eq 'rag' } @columns;
-        $params->{viewtype}       = 'table';
-
+        $params->{user_can_edit}        = $layout->user_can('write_existing');
+        $params->{sort}                 = $records->sort_first;
+        $params->{subset}               = $subset;
+        $params->{records}              = $records->presentation(@columns);
+        $params->{count}                = $records->count;
+        $params->{columns}              = [ map $_->presentation, @columns ];
+        $params->{has_rag_column}       = grep { $_->type eq 'rag' } @columns;
+        $params->{viewtype}             = 'table';
+        $params->{search_limit_reached} = $records->search_limit_reached;
     }
 
     # Get all alerts

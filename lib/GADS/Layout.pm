@@ -779,6 +779,17 @@ sub _build_global_view_summary
     \@views;
 }
 
+sub export
+{   my $self = shift;
+    +{
+        name                       => $self->name,
+        homepage_text              => $self->homepage_text,
+        homepage_text2             => $self->homepage_text2,
+        sort_layout_id             => $self->sort_layout_id,
+        sort_type                  => $self->sort_type,
+    };
+}
+
 sub purge
 {   my $self = shift;
 

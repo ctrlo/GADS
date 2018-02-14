@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Graphs;
 
+use GADS::Graph;
 use Log::Report 'linkspace';
 use Scalar::Util qw/blessed/;
 use Moo;

@@ -57,7 +57,8 @@ has pages => (
 
 sub _build_pages
 {   my $self = shift;
-    $self->rows ? ceil($self->count / $self->rows) : 1;
+    my $count = $self->search_limit_reached || $self->count;
+    $self->rows ? ceil($count / $self->rows) : 1;
 }
 
 has search => (
@@ -115,7 +116,7 @@ sub view_limits_search
             if (keys %$decoded)
             {
                 # Get the user search criteria
-                push @search, $self->_search_construct($decoded, $self->layout);
+                push @search, $self->_search_construct($decoded, $self->layout, %options);
             }
         }
     }
@@ -174,10 +175,8 @@ has rows => (
 );
 
 has count => (
-    is      => 'rwp',
+    is      => 'lazy',
     isa     => Int,
-    lazy    => 1,
-    builder => 1,
     clearer => 1,
 );
 
@@ -257,7 +256,7 @@ sub search_query
         ) if $approval_exists;
     }
     # Current IDs from quick search if used
-    push @search, { "$current.id"          => $self->_search_all_fields } if $self->search;
+    push @search, { "$current.id"          => $self->_search_all_fields->{cids} } if $self->search;
     push @search, { "$current.id"          => $self->current_ids } if $self->has_current_ids && $self->current_ids;
     push @search, { "$current.instance_id" => $self->layout->instance_id };
     if ($self->is_deleted)
@@ -438,7 +437,7 @@ sub search_views
 
 has _search_all_fields => (
     is      => 'lazy',
-    isa     => Maybe[ArrayRef],
+    isa     => HashRef,
     clearer => 1,
 );
 
@@ -446,7 +445,7 @@ sub _build__search_all_fields
 {   my $self = shift;
 
     my $search = $self->search
-        or return;
+        or return {};
 
     my %results;
 
@@ -583,7 +582,31 @@ sub _build__search_all_fields
         }
     }
 
-    [keys %found];
+    # Limit to maximum of 500 results, otherwise the stack limit is exceeded
+    my @cids = keys %found;
+    my $count = @cids;
+    my $limit;
+    if ($count > 500)
+    {
+        @cids  = @cids[0 .. 499];
+        $limit = 500;
+    }
+
+    +{
+        cids          => \@cids,
+        count         => $count,
+        limit_reached => $limit,
+    };
+}
+
+has search_limit_reached => (
+    is  => 'lazy',
+    isa => Maybe[Int],
+);
+
+sub _build_search_limit_reached
+{   my $self = shift;
+    $self->_search_all_fields->{limit_reached};
 }
 
 # Produce a standard set of results without grouping
@@ -783,6 +806,8 @@ sub single
 
 sub _build_count
 {   my $self = shift;
+
+    return $self->_search_all_fields->{count} if $self->search;
 
     my $search_query = $self->search_query(search => 1, linked => 1);
     my @joins        = $self->jpfetch(search => 1, linked => 0);
