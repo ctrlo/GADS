@@ -420,6 +420,56 @@ ok( $_->fields->{$curval->id}->text, "Curval field of record has a textual value
 
 $layout->clear; # Rebuild layout for dependencies
 
+# Test addition and removal of tree values
+{
+    my $tree = $columns->{tree1};
+    my $count_values = $schema->resultset('Enumval')->search({ layout_id => $tree->id, deleted => 0 })->count;
+    is($count_values, 3, "Number of tree values correct at start");
+
+    $tree->clear;
+    $tree->update([
+        {
+            'children' => [],
+            'data' => {},
+            'text' => 'tree1',
+            'id' => 'j1_1',
+        },
+        {
+            'data' => {},
+            'text' => 'tree2',
+            'children' => [
+                {
+                    'data' => {},
+                    'text' => 'tree3',
+                    'children' => [],
+                    'id' => 'j1_3'
+                },
+            ],
+            'id' => 'j1_2',
+        },
+        {
+            'children' => [],
+            'data' => {},
+            'text' => 'tree4',
+            'id' => 'j1_4',
+        },
+    ]);
+    $count_values = $schema->resultset('Enumval')->search({ layout_id => $tree->id, deleted => 0 })->count;
+    is($count_values, 4, "Number of tree values increased by one after addition");
+
+    $tree->clear;
+    $tree->update([
+        {
+            'children' => [],
+            'data' => {},
+            'text' => 'tree4',
+            'id' => 'j1_4',
+        },
+    ]);
+    $count_values = $schema->resultset('Enumval')->search({ layout_id => $tree->id, deleted => 0 })->count;
+    is($count_values, 1, "Number of tree values decreased after removal");
+}
+
 # Test deletion of columns in first datasheet. But first, remove curval field
 # that refers to this one
 $curval_sheet2->columns->{curval1}->delete;
