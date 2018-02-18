@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS;
 
+use CtrlO::Crypt::XkcdPassword;
 use Crypt::URandom; # Make Dancer session generation cryptographically secure
 use DateTime;
 use File::Temp qw/ tempfile /;
@@ -109,6 +110,8 @@ GADS::SchemaInstance->instance(
 GADS::Email->instance(
     config => config,
 );
+
+my $password_generator = CtrlO::Crypt::XkcdPassword->new;
 
 hook before => sub {
 
@@ -2862,12 +2865,7 @@ sub _token_template {
 }
 
 sub _random_pw
-{   my $foo = _token_template(
-        v => [ 'a', 'e', 'i', 'o', 'u' ],
-        i => [ 'b'..'d', 'f'..'h', 'j'..'n', 'p'..'t', 'v'..'z' ],
-    );
-
-    $foo->("iviiviivi");
+{   $password_generator->xkcd( words => 3, digits => 2 );
 }
 
 sub _page_as_mech
