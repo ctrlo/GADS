@@ -480,6 +480,8 @@ sub _import_rows
                         $record = $existing;
                     }
                     else {
+                        push @changes, __x"Unique identifier '{unique_value}' does not exist. Data will be uploaded as new record.",
+                            unique_value => $unique_value;
                         $record->initialise;
                     }
                 }
