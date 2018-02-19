@@ -2851,19 +2851,6 @@ sub forwardHome {
     redirect "/$page";
 }
 
-# Implementation of String::Random with better entropy
-sub _token_template {
-   my (%m) = @_;
-
-   %m = map { $_ => Session::Token->new(alphabet => $m{$_}, length => 1) } keys %m;
-
-   return sub {
-     my $v = shift;
-     $v =~ s/(.)/$m{$1}->get/eg;
-     return $v;
-   };
-}
-
 sub _random_pw
 {   $password_generator->xkcd( words => 3, digits => 2 );
 }
