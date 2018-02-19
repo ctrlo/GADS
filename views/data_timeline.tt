@@ -10,8 +10,8 @@
         ( function () {
             var container = document.getElementById('visualization');
 
-            var base64 = '[% records %]';
-            var json = base64.decode(base64);
+            var records_base64 = '[% records %]';
+            var json = base64.decode(records_base64);
             var items = new vis.DataSet(JSON.parse(json));
             var groups = '[% groups %]';
             var json_group = base64.decode(groups);
