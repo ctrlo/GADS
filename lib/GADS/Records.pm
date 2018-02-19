@@ -237,7 +237,7 @@ sub search_query
     my @search        = $self->_query_params(%options);
     my $root_table    = $options{root_table} || 'current';
     my $current       = $root_table eq 'current' ? 'me' : 'current';
-    my $record_single = $self->record_name;
+    my $record_single = $self->record_name(%options);
     unless ($self->include_approval)
     {
         # There is a chance that there will be no approval records. In that case,

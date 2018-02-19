@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS;
 
+use CtrlO::Crypt::XkcdPassword;
 use Crypt::URandom; # Make Dancer session generation cryptographically secure
 use DateTime;
 use File::Temp qw/ tempfile /;
@@ -110,6 +111,8 @@ GADS::SchemaInstance->instance(
 GADS::Email->instance(
     config => config,
 );
+
+my $password_generator = CtrlO::Crypt::XkcdPassword->new;
 
 hook before => sub {
 
@@ -2928,26 +2931,8 @@ sub forwardHome {
     redirect "/$page";
 }
 
-# Implementation of String::Random with better entropy
-sub _token_template {
-   my (%m) = @_;
-
-   %m = map { $_ => Session::Token->new(alphabet => $m{$_}, length => 1) } keys %m;
-
-   return sub {
-     my $v = shift;
-     $v =~ s/(.)/$m{$1}->get/eg;
-     return $v;
-   };
-}
-
 sub _random_pw
-{   my $foo = _token_template(
-        v => [ 'a', 'e', 'i', 'o', 'u' ],
-        i => [ 'b'..'d', 'f'..'h', 'j'..'n', 'p'..'t', 'v'..'z' ],
-    );
-
-    $foo->("iviiviivi");
+{   $password_generator->xkcd( words => 3, digits => 2 );
 }
 
 sub _page_as_mech

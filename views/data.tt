@@ -175,10 +175,17 @@
     [% END %]
 [% END %]
 
+[% IF session.rewind %]
+    [% reset_button = "modal_rewind_reset" %]
+    [% submit_button = "Update" %]
+[% ELSE %]
+    [% reset_button = "" %]
+    [% submit_button = "Submit" %]
+[% END %]
 [% WRAPPER modal_dialog.tt
-    modal_id="modal_rewind" modal_action_text="Create alert" modal_heading="View data as it was at a previous time"
-    modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post" modal_extra_action = "modal_rewind_reset"
-    modal_extra_action_text = "Reset to current"
+    modal_id="modal_rewind" modal_action_text = submit_button modal_heading="View data as it was at a previous time"
+    modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post" modal_extra_action = reset_button
+    modal_extra_action_text = "Reset to normal"
 %]
     <div class="form-group">
         <label for="rewind_date">Date ([% config.dateformat %]):</label>
