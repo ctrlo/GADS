@@ -268,6 +268,12 @@ hook before_template => sub {
     $tokens->{messages}      = session('messages');
     $tokens->{site}          = var 'site';
     $tokens->{config}        = GADS::Config->instance;
+
+    if ($tokens->{page} =~ /(data|view)/ && session('views_other_user_id'))
+    {
+        notice __x"You are currently viewing, editing and creating views as {name}",
+            name => rset('User')->find(session 'views_other_user_id')->value;
+    }
     session 'messages' => [];
 };
 
@@ -496,6 +502,23 @@ any '/data' => require_login sub {
         }
     }
 
+    my $new_view_id = param('view');
+    if (param 'views_other_user_clear')
+    {
+        session views_other_user_id => undef;
+        my $views      = GADS::Views->new(
+            user        => $user,
+            schema      => schema,
+            layout      => $layout,
+            instance_id => session('persistent')->{instance_id},
+        );
+        $new_view_id = $views->default->id;
+    }
+    elsif (my $user_id = param 'views_other_user_id')
+    {
+        session views_other_user_id => $user_id;
+    }
+
     # Deal with any alert requests
     if (param 'modal_alert')
     {
@@ -513,9 +536,9 @@ any '/data' => require_login sub {
         }
     }
 
-    if (my $view_id = param('view'))
+    if ($new_view_id)
     {
-        session('persistent')->{view}->{$layout->instance_id} = $view_id;
+        session('persistent')->{view}->{$layout->instance_id} = $new_view_id;
         # Save to database for next login.
         # Check that it's valid first, otherwise database will bork
         my $view = current_view($user, $layout);
@@ -821,16 +844,17 @@ any '/data' => require_login sub {
     );
 
     my $views      = GADS::Views->new(
-        user        => $user,
-        schema      => schema,
-        layout      => $layout,
-        instance_id => $layout->instance_id,
+        user          => $user,
+        other_user_id => session('views_other_user_id'),
+        schema        => schema,
+        layout        => $layout,
+        instance_id   => $layout->instance_id,
     );
 
-    $params->{user_views}      = $views->user_views;
-    $params->{alerts}          = $alert->all;
-
-    $params->{breadcrumbs} = [Crumb() => Crumb( '/data' => 'records' )];
+    $params->{user_views}       = $views->user_views;
+    $params->{alerts}           = $alert->all;
+    $params->{views_other_user} = session('views_other_user_id') && rset('User')->find(session('views_other_user_id')),
+    $params->{breadcrumbs}      = [Crumb() => Crumb( '/data' => 'records' )];
 
     template 'data' => $params;
 };
@@ -1294,10 +1318,11 @@ any '/view/:id' => require_login sub {
     my @ucolumns; my $view_values;
 
     my %vp = (
-        user        => $user,
-        schema      => schema,
-        layout      => $layout,
-        instance_id => $layout->instance_id,
+        user          => $user,
+        other_user_id => session('views_other_user_id'),
+        schema        => schema,
+        layout        => $layout,
+        instance_id   => $layout->instance_id,
     );
     $vp{id} = $view_id if $view_id;
     my $view = GADS::View->new(%vp);
@@ -2886,6 +2911,12 @@ get '/match/layout/:layout_id' => require_login sub {
 
     content_type 'application/json';
     to_json [ $column->values_beginning_with($query) ];
+};
+
+get '/match/user/' => require_role 'layout' => sub {
+    my $query = param('q');
+    content_type 'application/json';
+    to_json [ rset('User')->match($query) ];
 };
 
 sub current_view {

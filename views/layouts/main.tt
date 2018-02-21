@@ -231,7 +231,7 @@
         [% IF page.match('(view|layout)') %]
             <script type="text/javascript" src="[% url.js %]/query-builder.standalone.js"></script>
         [% END %]
-        [% IF page.match('(view|edit|layout|bulk)') %]
+        [% IF page.match('(view|edit|layout|bulk|data)') %]
             <script type="text/javascript" src="[% url.js %]/bootstrap3-typeahead.min.js"></script>
         [% END %]
         [% IF page == "data" AND viewtype == "calendar" %]
