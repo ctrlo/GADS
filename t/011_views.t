@@ -66,6 +66,69 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
     $view->write;
 }
 
+# Test edit other user views functionality
+{
+    # First viewing of other user views
+    my $view = GADS::View->new(%view_template, name => 'FooBar', user => $user_normal1);
+    $view->write;
+
+    my $views = GADS::Views->new(
+        user          => $user_normal2,
+        schema        => $schema,
+        layout        => $layout,
+        instance_id   => $layout->instance_id,
+        other_user_id => $user_normal1->{id},
+    );
+
+    my $has_view = grep { $_->name eq 'FooBar' } @{$views->user_views};
+    ok(!$has_view, "Normal user cannot see views of others");
+
+    $views = GADS::Views->new(
+        user          => $user_admin,
+        schema        => $schema,
+        layout        => $layout,
+        instance_id   => $layout->instance_id,
+        other_user_id => $user_normal1->{id},
+    );
+
+    $has_view = grep { $_->name eq 'FooBar' } @{$views->user_views};
+    ok($has_view, "Admin user can see views of others");
+
+    # Then creating views for other users
+    $view = GADS::View->new(%view_template, name => 'FooBar2', user => $user_normal1, other_user_id => $user_normal2->{id});
+    $view->write;
+
+    $views = GADS::Views->new(
+        user          => $user_normal2,
+        schema        => $schema,
+        layout        => $layout,
+        instance_id   => $layout->instance_id,
+    );
+    $has_view = grep { $_->name eq 'FooBar2' } @{$views->user_views};
+    ok(!$has_view, "Normal user cannot create view as other user");
+    $views = GADS::Views->new(
+        user          => $user_normal1,
+        schema        => $schema,
+        layout        => $layout,
+        instance_id   => $layout->instance_id,
+    );
+    $has_view = grep { $_->name eq 'FooBar2' } @{$views->user_views};
+    ok($has_view, "Normal user created own view when trying to be other user");
+
+    $view = GADS::View->new(%view_template, name => 'FooBar3', user => $user_admin, other_user_id => $user_normal2->{id});
+    $view->write;
+
+    $views = GADS::Views->new(
+        user          => $user_normal2,
+        schema        => $schema,
+        layout        => $layout,
+        instance_id   => $layout->instance_id,
+    );
+
+    $has_view = grep { $_->name eq 'FooBar3' } @{$views->user_views};
+    ok($has_view, "Admin user can create view as other user");
+}
+
 # Check that view can be deleted, with alerts
 $view = GADS::View->new(%view);
 $view->write;

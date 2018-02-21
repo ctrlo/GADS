@@ -40,6 +40,22 @@ has user => (
     required => 1,
 );
 
+# Whether the logged-in user has the layout permission
+has user_has_layout => (
+    is => 'lazy',
+);
+
+sub _build_user_has_layout
+{   my $self = shift;
+    $self->user->{permission}->{layout};
+}
+
+# Whether to write the view as another user
+has other_user_id => (
+    is  => 'rw',
+    isa => Maybe[Int],
+);
+
 has schema => (
     is       => 'rw',
     required => 1,
@@ -247,6 +263,10 @@ sub _build__writable
     {
         return 1;
     }
+    elsif ($self->user->{permission}->{layout})
+    {
+        return 1;
+    }
     return 0;
 }
 
@@ -263,7 +283,6 @@ sub write
         or error __"View name must be less than 128 characters";
 
     my $global   = !$self->user ? 1 : $self->global;
-    my $user_id  = $global || $self->is_admin ? undef : $self->user->{id};
 
     $self->_clear_writable; # Force rebuild based on any updated values
 
@@ -273,8 +292,16 @@ sub write
         instance_id => $self->instance_id,
         global      => $global,
         is_admin    => $self->is_admin,
-        user_id     => $user_id,
     };
+
+    if ($global || $self->is_admin)
+    {
+        $vu->{user_id} = undef;
+    }
+    elsif (!$self->id) # Preserve owner if editing other user's view
+    {
+        $vu->{user_id} = ($self->user_has_layout && $self->other_user_id) || $self->user->{id};
+    }
 
     $self->clear_has_curuser;
 

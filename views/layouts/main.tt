@@ -240,7 +240,7 @@
         [% IF page == "view" OR page == "layout" %]
             <script type="text/javascript" src="[% url.js %]/query-builder.standalone.js"></script>
         [% END %]
-        [% IF page == "view" OR page == "edit" OR page == "layout" OR page == "bulk" %]
+        [% IF page == "view" OR page == "edit" OR page == "layout" OR page == "bulk" OR page == "data" %]
             <script type="text/javascript" src="[% url.js %]/bootstrap3-typeahead.min.js"></script>
         [% END %]
         [% IF page == "data" AND viewtype == "calendar" %]
