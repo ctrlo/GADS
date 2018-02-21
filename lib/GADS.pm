@@ -262,7 +262,7 @@ hook before_template => sub {
             if session 'persistent';
         $tokens->{user_can_edit}   = $layout->user_can('write_existing');
         $tokens->{user_can_create} = $layout->user_can('write_new');
-        $params->{show_link}       = rset('Current')->next ? 1 : 0;
+        $tokens->{show_link}       = rset('Current')->next ? 1 : 0;
         $tokens->{layout}          = $layout;
         $tokens->{v}               = current_view(logged_in_user, $layout);  # View is reserved TT word
     }
