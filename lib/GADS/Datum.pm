@@ -153,6 +153,23 @@ has show_for_write => (
     clearer => 1,
     builder => sub {
         my $self = shift;
+        # If any field before this field is not being shown on this page (as
+        # it's not ready yet), then also don't show this field. This forces
+        # fields after those not-shown to display on the correct page
+        return 0 if grep {
+            # Don't include those on the previous page - will not be shown regardless
+            !$self->record->fields->{$_->id}->value_previous_page
+            # Anything already written to also won't be shown regardless
+            # (only really applies in tests at the time of writing)
+            && !$self->record->fields->{$_->id}->written_to
+            # Only take fields before this one
+            && $self->record->fields->{$_->id}->column->position < $self->column->position
+            # And only ones the user can write, otherwise they will never be shown
+            && $self->record->fields->{$_->id}->column->user_can('write')
+            # Finally, it's not ready to write, so don't show this one
+            && !$self->record->fields->{$_->id}->ready_to_write
+        } $self->column->layout->all;
+
         if (my $col_id = $self->column->display_field)
         {
             return $self->record->fields->{$col_id}->show_for_write;
