@@ -2,20 +2,35 @@
                 $('#jstree[% tree.id %]')
                 .on({
                     'changed.jstree': function (e, data) {
-                        var newval_id = data.instance.get_node(data.selected[0]).id;
-                        if (typeof newval_id == 'undefined') {
-                            newval_id = '';
+                        var selectedElms = $('#jstree[% tree.id %]').jstree("get_selected", true);
+                        $('.[% tree.field %]').remove();
+
+                        var foo = $("body").data("change" + [% tree.id %] );
+                        var re = foo.re;
+                        var show = false;
+                        $.each(selectedElms, function() {
+                            $('#editform').append('<input type="hidden" name="[% tree.field %]" class="[% tree.field %]" value="' + this.id + '" />');
+                            var val_text = data.instance.get_path(this, '#');
+                            if (re.test(val_text)) {
+                                show = true;
+                            }
+                        });
+                        var divid = foo.divid;
+                        if (show) {
+                            $("#" + divid ).show()
                         } else {
-                            var newval_text = data.instance.get_path(data.selected[0], '#');
-                            $('#[% tree.id %]').val(newval_text).trigger('change');
+                            $("#" + divid ).hide()
                         }
-                        $('#treeval_id[% tree.id %]').val(newval_id);
                     }
-                    [% IF tree.end_node_only %],
+                    [% IF tree.end_node_only OR tree.multivalue %],
                         'select_node.jstree': function (e, data) {
                             if (data.node.children.length > 0) {
-                                $('#jstree[% tree.id %]').jstree(true).deselect_node(data.node);
-                                $('#jstree[% tree.id %]').jstree(true).toggle_node(data.node);
+                                [% IF tree.end_node_only %]
+                                    $('#jstree[% tree.id %]').jstree(true).deselect_node(data.node);
+                                    $('#jstree[% tree.id %]').jstree(true).toggle_node(data.node);
+                                [% ELSIF tree.multivalue %]
+                                    $('#jstree[% tree.id %]').jstree(true).open_node(data.node);
+                                [% END %]
                             }
                         }
                     [% END %]
@@ -25,19 +40,36 @@
                         "check_callback" : true,
                         "force_text" : true,
                         "themes" : { "stripes" : true },
+                        [% UNLESS tree.multivalue %]
+                            "multiple" : false,
+                        [% END %]
                         'data' : {
                             'url' : function (node) {
-                                return '/tree' + new Date().getTime() + '/[% tree.id %]/[% tree.value.id %]';
+                                return '/tree' + new Date().getTime() + '/[% tree.id %]?[% tree.value.ids_as_params %]';
                             },
                             'data' : function (node) {
                                 return { 'id' : node.id };
                             }
                         }
                     },
-                    [% IF tree.readonly %]
-                    "plugins" : ['conditionalselect'], "conditionalselect" : function (node) {
-                        return false;
-                    }
+                    [% IF tree.multivalue %]
+                        "checkbox": {
+                            "cascade": "sdfds"
+                        },
+                    [% END %]
+                    [% IF tree.readonly OR tree.multivalue %]
+                        "plugins" : [
+                            [% IF tree.multivalue %]
+                                'checkbox',
+                            [% END %],
+                            [% IF tree.readonly %]
+                                "conditionalselect" : function (node) {
+                                    return false;
+                                }
+                            [% END %]
+                        ]
                     [% END %]
                 });
+                [%# Hack - see https://github.com/vakata/jstree/issues/1955 %]
+                $('#jstree[% tree.id %]').jstree(true).settings.checkbox.cascade = 'undetermined';
             [% END %]

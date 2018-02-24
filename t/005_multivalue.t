@@ -19,6 +19,7 @@ my $data = [
         enum1   => 7,
         enum2   => 10,
         tree1   => 13,
+        tree2   => 16,
         curval1 => 1,
         curval2 => 2,
     },
@@ -27,6 +28,7 @@ my $data = [
         enum1   => 8,
         enum2   => 11,
         tree1   => 14,
+        tree2   => 17,
         curval1 => 1,
         curval2 => 2,
     },
@@ -35,6 +37,7 @@ my $data = [
         enum1   => 9,
         enum2   => 12,
         tree1   => 15,
+        tree2   => 18,
         curval1 => 1,
         curval2 => 2,
     },
@@ -51,9 +54,10 @@ my $sheet   = t::lib::DataSheet->new(
     column_count     => {
         enum   => 2,
         curval => 2,
+        tree   => 2,
     },
     calc_code        => "
-        function evaluate (L1enum1, L1curval1)
+        function evaluate (L1enum1, L1curval1, L1tree1)
             values = {}
             for k, v in pairs(L1enum1.values) do table.insert(values, v) end
             table.sort(values)
@@ -63,6 +67,9 @@ my $sheet   = t::lib::DataSheet->new(
             end
             for i,v in ipairs(L1curval1) do
                 text = text .. v.field_values.L2string1
+            end
+            for i,v in ipairs(L1tree1) do
+                text = text .. v.value
             end
             return text
         end
@@ -75,7 +82,8 @@ my $enum1   = $columns->{enum1};
 my $enum2   = $columns->{enum2};
 my $curval1 = $columns->{curval1};
 my $curval2 = $columns->{curval2};
-my $tree    = $columns->{tree1};
+my $tree1   = $columns->{tree1};
+my $tree2   = $columns->{tree2};
 my $calc    = $columns->{calc1};
 $enum1->multivalue(1);
 $enum1->write;
@@ -85,6 +93,10 @@ $curval1->multivalue(1);
 $curval1->write;
 $curval2->multivalue(1);
 $curval2->write;
+$tree1->multivalue(1);
+$tree1->write;
+$tree2->multivalue(1);
+$tree2->write;
 $sheet->create_records;
 
 my $record = GADS::Record->new(
@@ -99,14 +111,16 @@ my @tests = (
         write     => {
             enum1   => [7, 8],
             curval1 => [1, 2],
+            tree1   => [13, 14],
         },
         as_string => {
             enum1   => 'foo1, foo2',
             enum2   => 'foo1',
             curval1 => 'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012; Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
             curval2 => 'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
-            tree1   => 'tree1',
-            calc1   => 'foo1foo2FooBar', # 2x enum values then 2x string values from curval
+            tree1   => 'tree1, tree2',
+            tree2   => 'tree1',
+            calc1   => 'foo1foo2FooBartree1tree2', # 2x enum values then 2x string values from curval then 2x tree
         },
         search    => [
             {
@@ -121,6 +135,8 @@ my @tests = (
         write     => {
             enum1  => [7, 8],
             enum2  => [10, 11],
+            tree1  => 13,
+            tree2  => 16,
         },
         as_string => {
             enum1   => 'foo1, foo2',
@@ -128,7 +144,8 @@ my @tests = (
             curval1 => 'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012; Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
             curval2 => 'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
             tree1   => 'tree1',
-            calc1   => 'foo1foo2FooBar', # 2x enum values then 2x string values from curval
+            tree2   => 'tree1',
+            calc1   => 'foo1foo2FooBartree1', # 2x enum values then 2x string values from curval, just 1 tree
         },
         search    => [
             {
@@ -138,6 +155,33 @@ my @tests = (
             {
                 column => 'enum2',
                 value  => 'foo1',
+            },
+        ],
+        count     => 1,
+    },
+    {
+        name      => 'Search 2 tree values',
+        write     => {
+            tree1  => [13, 14],
+            tree2  => [16, 17],
+        },
+        as_string => {
+            enum1   => 'foo1, foo2',
+            enum2   => 'foo1, foo2',
+            curval1 => 'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012; Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+            curval2 => 'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+            tree1   => 'tree1, tree2',
+            tree2   => 'tree1, tree2',
+            calc1   => 'foo1foo2FooBartree1tree2', # 2x enum values then 2x string values from curval then 2x tree
+        },
+        search    => [
+            {
+                column => 'tree1',
+                value  => 'tree1',
+            },
+            {
+                column => 'tree2',
+                value  => 'tree1',
             },
         ],
         count     => 1,
@@ -182,6 +226,51 @@ my @tests = (
             {
                 column   => 'enum1',
                 value    => ['foo1', 'foo2'],
+                operator => 'not_equal',
+            },
+        ],
+        count     => 1,
+    },
+    {
+        name      => 'Search negative 1 tree',
+        write     => {
+            tree1  => [13, 14],
+            tree2  => [17, 18],
+        },
+        search    => [
+            {
+                column   => 'tree1',
+                value    => 'tree1',
+                operator => 'not_equal',
+            },
+        ],
+        count     => 2,
+    },
+    {
+        name      => 'Search negative 2 tree',
+        write     => {
+            tree1  => [13, 14],
+            tree2  => [16, 17],
+        },
+        search    => [
+            {
+                column   => 'tree1',
+                value    => 'tree2',
+                operator => 'not_equal',
+            },
+        ],
+        count     => 1,
+    },
+    {
+        name      => 'Search negative 3 tree',
+        write     => {
+            tree1  => [13, 14],
+            tree2  => [17, 18],
+        },
+        search    => [
+            {
+                column   => 'tree1',
+                value    => ['tree1', 'tree2'],
                 operator => 'not_equal',
             },
         ],
