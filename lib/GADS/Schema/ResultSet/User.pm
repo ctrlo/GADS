@@ -227,6 +227,30 @@ sub upload
     $count;
 }
 
+sub match
+{   my ($self, $query) = @_;
+
+    my @ids;
+
+    $query = "%$query%";
+
+    my $result = $self->active->search([
+        firstname => { -like => $query },
+        surname   => { -like => $query },
+        email     => { -like => $query },
+        username  => { -like => $query },
+    ],{
+        columns => [qw/id firstname surname username/],
+    });
+
+    return map {
+        +{
+            id   => $_->id,
+            name => $_->surname.", ".$_->firstname." (".$_->username.")",
+        }
+    } $result->all;
+}
+
 sub _user_value
 {   my $user = shift;
     return unless $user;

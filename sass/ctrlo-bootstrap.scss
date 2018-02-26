@@ -13,7 +13,9 @@ html {
 }
 
 header {
-  border-top: 5px solid $primary-navy; 
+  border-top: 5px solid $primary-navy;
+  padding-bottom: 1.5em;
+  border-bottom: 1px solid #e7e7e7;
 }
 
 .hscroll{

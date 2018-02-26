@@ -456,12 +456,12 @@ foreach my $c (keys %$values)
         $record->fields->{$string1->id}->set_value('');
         try { $record->write(no_alerts => 1) };
         like($@, qr/is not optional/, "Failed to write with permission to mandatory string value");
-        $string1->set_permissions($sheet->group->id, []);
+        $string1->set_permissions({$sheet->group->id => []});
         $string1->write;
         $sheet->layout->clear;
         try { $record->write(no_alerts => 1) };
         ok(!$@, "No error when writing record without permission to mandatory value");
-        $string1->set_permissions($sheet->group->id, $sheet->default_permissions);
+        $string1->set_permissions({$sheet->group->id => $sheet->default_permissions});
         $string1->write;
         foreach my $col ($sheet->layout->all(userinput => 1))
         {
@@ -518,7 +518,7 @@ foreach my $c (keys %$values)
     # Test a mandatory field on the second page which the user does not have
     # write access to
     my $group = $sheet->group;
-    $curval1->set_permissions($sheet->group->id, []);
+    $curval1->set_permissions({$sheet->group->id => []});
     $curval1->write;
     $sheet->layout->clear;
     $record->editor_shown_fields([$string1->id]);

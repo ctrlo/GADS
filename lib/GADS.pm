@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS;
 
+use CtrlO::Crypt::XkcdPassword;
 use Crypt::URandom; # Make Dancer session generation cryptographically secure
 use DateTime;
 use File::Temp qw/ tempfile /;
@@ -110,6 +111,8 @@ GADS::SchemaInstance->instance(
 GADS::Email->instance(
     config => config,
 );
+
+my $password_generator = CtrlO::Crypt::XkcdPassword->new;
 
 hook before => sub {
 
@@ -259,12 +262,19 @@ hook before_template => sub {
             if session 'persistent';
         $tokens->{user_can_edit}   = $layout->user_can('write_existing');
         $tokens->{user_can_create} = $layout->user_can('write_new');
+        $tokens->{show_link}       = rset('Current')->next ? 1 : 0;
         $tokens->{layout}          = $layout;
         $tokens->{v}               = current_view(logged_in_user, $layout);  # View is reserved TT word
     }
     $tokens->{messages}      = session('messages');
     $tokens->{site}          = var 'site';
     $tokens->{config}        = GADS::Config->instance;
+
+    if ($tokens->{page} =~ /(data|view)/ && session('views_other_user_id'))
+    {
+        notice __x"You are currently viewing, editing and creating views as {name}",
+            name => rset('User')->find(session 'views_other_user_id')->value;
+    }
     session 'messages' => [];
 };
 
@@ -493,6 +503,23 @@ any '/data' => require_login sub {
         }
     }
 
+    my $new_view_id = param('view');
+    if (param 'views_other_user_clear')
+    {
+        session views_other_user_id => undef;
+        my $views      = GADS::Views->new(
+            user        => $user,
+            schema      => schema,
+            layout      => $layout,
+            instance_id => session('persistent')->{instance_id},
+        );
+        $new_view_id = $views->default->id;
+    }
+    elsif (my $user_id = param 'views_other_user_id')
+    {
+        session views_other_user_id => $user_id;
+    }
+
     # Deal with any alert requests
     if (param 'modal_alert')
     {
@@ -510,9 +537,9 @@ any '/data' => require_login sub {
         }
     }
 
-    if (my $view_id = param('view'))
+    if ($new_view_id)
     {
-        session('persistent')->{view}->{$layout->instance_id} = $view_id;
+        session('persistent')->{view}->{$layout->instance_id} = $new_view_id;
         # Save to database for next login.
         # Check that it's valid first, otherwise database will bork
         my $view = current_view($user, $layout);
@@ -653,12 +680,13 @@ any '/data' => require_login sub {
         }
         my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} || {};
         my $timeline = $records->data_timeline(%{$tl_options});
-        $params->{records}      = encode_base64(encode_json(delete $timeline->{items}));
-        $params->{groups}       = encode_base64(encode_json(delete $timeline->{groups}));
-        $params->{timeline}     = $timeline;
-        $params->{tl_options}   = $tl_options;
-        $params->{columns_read} = [$layout->all(user_can_read => 1)];
-        $params->{viewtype}     = 'timeline';
+        $params->{records}              = encode_base64(encode_json(delete $timeline->{items}));
+        $params->{groups}               = encode_base64(encode_json(delete $timeline->{groups}));
+        $params->{timeline}             = $timeline;
+        $params->{tl_options}           = $tl_options;
+        $params->{columns_read}         = [$layout->all(user_can_read => 1)];
+        $params->{viewtype}             = 'timeline';
+        $params->{search_limit_reached} = $records->search_limit_reached;
 
         if (my $png = param('png'))
         {
@@ -798,15 +826,15 @@ any '/data' => require_login sub {
         my @columns = $view
             ? $layout->view($view->id, user_can_read => 1)
             : $layout->all(user_can_read => 1);
-        $params->{user_can_edit}  = $layout->user_can('write_existing');
-        $params->{sort}           = $records->sort_first;
-        $params->{subset}         = $subset;
-        $params->{records}        = $records->presentation(@columns);
-        $params->{count}          = $records->count;
-        $params->{columns}        = [ map $_->presentation, @columns ];
-        $params->{has_rag_column} = grep { $_->type eq 'rag' } @columns;
-        $params->{viewtype}       = 'table';
-
+        $params->{user_can_edit}        = $layout->user_can('write_existing');
+        $params->{sort}                 = $records->sort_first;
+        $params->{subset}               = $subset;
+        $params->{records}              = $records->presentation(@columns);
+        $params->{count}                = $records->count;
+        $params->{columns}              = [ map $_->presentation, @columns ];
+        $params->{has_rag_column}       = grep { $_->type eq 'rag' } @columns;
+        $params->{viewtype}             = 'table';
+        $params->{search_limit_reached} = $records->search_limit_reached;
     }
 
     # Get all alerts
@@ -817,16 +845,17 @@ any '/data' => require_login sub {
     );
 
     my $views      = GADS::Views->new(
-        user        => $user,
-        schema      => schema,
-        layout      => $layout,
-        instance_id => $layout->instance_id,
+        user          => $user,
+        other_user_id => session('views_other_user_id'),
+        schema        => schema,
+        layout        => $layout,
+        instance_id   => $layout->instance_id,
     );
 
-    $params->{user_views}      = $views->user_views;
-    $params->{alerts}          = $alert->all;
-
-    $params->{breadcrumbs} = [Crumb() => Crumb( '/data' => 'records' )];
+    $params->{user_views}       = $views->user_views;
+    $params->{alerts}           = $alert->all;
+    $params->{views_other_user} = session('views_other_user_id') && rset('User')->find(session('views_other_user_id')),
+    $params->{breadcrumbs}      = [Crumb() => Crumb( '/data' => 'records' )];
 
     template 'data' => $params;
 };
@@ -1290,10 +1319,11 @@ any '/view/:id' => require_login sub {
     my @ucolumns; my $view_values;
 
     my %vp = (
-        user        => $user,
-        schema      => schema,
-        layout      => $layout,
-        instance_id => $layout->instance_id,
+        user          => $user,
+        other_user_id => session('views_other_user_id'),
+        schema        => schema,
+        layout        => $layout,
+        instance_id   => $layout->instance_id,
     );
     $vp{id} = $view_id if $view_id;
     my $view = GADS::View->new(%vp);
@@ -1501,12 +1531,12 @@ any '/layout/?:id?' => require_login sub {
                 $column->typeahead(param 'typeahead');
                 $column->refers_to_instance_id(param 'refers_to_instance_id');
                 $column->filter->as_json(param 'filter');
-                my $curval_field_ids = ref param('curval_field_ids') ? param('curval_field_ids') : [param('curval_field_ids')||()];
-                $column->curval_field_ids($curval_field_ids);
+                my @curval_field_ids = body_parameters->get_all('curval_field_ids');
+                $column->curval_field_ids([@curval_field_ids]);
             }
             elsif ($column->type eq "autocur")
             {
-                my @curval_field_ids = body_parameters->get_all('curval_field_ids');
+                my @curval_field_ids = body_parameters->get_all('autocur_field_ids');
                 $column->curval_field_ids([@curval_field_ids]);
                 $column->related_field_id(param 'related_field_id');
             }
@@ -2884,6 +2914,12 @@ get '/match/layout/:layout_id' => require_login sub {
     to_json [ $column->values_beginning_with($query) ];
 };
 
+get '/match/user/' => require_role 'layout' => sub {
+    my $query = param('q');
+    content_type 'application/json';
+    to_json [ rset('User')->match($query) ];
+};
+
 sub current_view {
     my ($user, $layout) = @_;
 
@@ -2927,26 +2963,8 @@ sub forwardHome {
     redirect "/$page";
 }
 
-# Implementation of String::Random with better entropy
-sub _token_template {
-   my (%m) = @_;
-
-   %m = map { $_ => Session::Token->new(alphabet => $m{$_}, length => 1) } keys %m;
-
-   return sub {
-     my $v = shift;
-     $v =~ s/(.)/$m{$1}->get/eg;
-     return $v;
-   };
-}
-
 sub _random_pw
-{   my $foo = _token_template(
-        v => [ 'a', 'e', 'i', 'o', 'u' ],
-        i => [ 'b'..'d', 'f'..'h', 'j'..'n', 'p'..'t', 'v'..'z' ],
-    );
-
-    $foo->("iviiviivi");
+{   $password_generator->xkcd( words => 3, digits => 2 );
 }
 
 sub _page_as_mech

@@ -311,7 +311,18 @@ sub jpfetch
 sub record_name
 {   my ($self, %options) = @_;
     my @store = $self->_jpfetch(%options);
-    my $count = 1;
+    my $count;
+    # If the query is being performed on the Record table, then the record name
+    # will start with that. Otherwise, it will start with record_single as the
+    # record will be joined to the Current table.
+    if ($options{root_table} && $options{root_table} eq 'record')
+    {
+        return 'me' if !$options{linked};
+        $count = 0;
+    }
+    else {
+        $count = 1;
+    }
     if (!$options{linked})
     {
         $count++;

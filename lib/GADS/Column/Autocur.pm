@@ -62,7 +62,7 @@ has related_field => (
 
 has related_field_id => (
     is      => 'rw',
-    isa     => Int,
+    isa     => Maybe[Int], # undef when importing and ID not known at creation
     lazy    => 1,
     builder => sub {
         my $self = shift;
@@ -133,7 +133,7 @@ sub write_special
         related_field => $self->related_field_id,
     });
 
-    $self->_update_curvals(%options);
+    $self->_update_curvals(%options) unless $options{override};
 
     # Clear what may be cached values that should be updated after write
     $self->clear;
@@ -195,5 +195,21 @@ sub multivalue_rs
     });
 
 }
+
+around export_hash => sub {
+    my $orig = shift;
+    my $self = shift;
+    my $hash = $orig->($self, @_);
+    $hash->{related_field_id} = $self->related_field_id;
+    $hash;
+};
+
+around import_after_all => sub {
+    my $orig = shift;
+    my ($self, $values, $mapping) = @_;
+    my $new_id = $mapping->{$values->{related_field_id}};
+    $self->related_field_id($new_id);
+    $orig->(@_);
+};
 
 1;

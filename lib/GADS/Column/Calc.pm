@@ -166,5 +166,22 @@ sub validate
     return 1;
 }
 
+before import_hash => sub {
+    my ($self, $values) = @_;
+    $self->code($values->{code});
+    $self->return_type($values->{return_type});
+    $self->decimal_places($values->{decimal_places});
+};
+
+around export_hash => sub {
+    my $orig = shift;
+    my ($self, $values) = @_;
+    my $hash = $orig->(@_);
+    $hash->{code}           = $self->code;
+    $hash->{return_type}    = $self->return_type;
+    $hash->{decimal_places} = $self->decimal_places;
+    return $hash;
+};
+
 1;
 
