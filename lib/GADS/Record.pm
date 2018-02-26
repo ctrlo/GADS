@@ -601,6 +601,16 @@ sub _find
     $self; # Allow chaining
 }
 
+sub clone_as_new_from
+{   my ($self, $from) = @_;
+    $self->find_current_id($from);
+    $self->remove_id;
+    my @next_field_ids = map { $_->id } grep { !$self->fields->{$_->id}->show_for_write }
+        $self->layout->all(user_can_write_new => 1);
+    $self->editor_next_fields([@next_field_ids]);
+    $self;
+}
+
 sub load_remembered_values
 {   my $self = shift;
 

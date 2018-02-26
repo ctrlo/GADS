@@ -2253,8 +2253,7 @@ any '/edit/:id?' => require_login sub {
     }
     elsif (my $from = param('from'))
     {
-        $record->find_current_id($from);
-        $record->remove_id;
+        $record->clone_as_new_from($from);
     }
     else {
         $record->load_remembered_values;
