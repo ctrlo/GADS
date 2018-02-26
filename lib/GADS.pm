@@ -2256,54 +2256,8 @@ any '/edit/:id?' => require_login sub {
         $record->find_current_id($from);
         $record->remove_id;
     }
-    elsif($lastrecord)
-    {
-        my $previous = GADS::Record->new(
-            user   => $record->user,
-            layout => $record->layout,
-            schema => $record->schema,
-        );
-        # Prefill previous values, but only those tagged to be remembered
-        if (my @remember = map {$_->id} $layout->all(remember => 1))
-        {
-            $previous->columns(\@remember);
-            $previous->include_approval(1);
-            $previous->init_no_value(0);
-            $previous->find_record_id($lastrecord->record_id);
-            $record->fields->{$_->id} = $previous->fields->{$_->id}
-                foreach @{$previous->columns_retrieved_do};
-        }
-        if ($record->approval_flag)
-        {
-            # The last edited record was one for approval. This will
-            # be missing values, so get its associated main record,
-            # and use the values for that too.
-            # There will only be an associated main record if some
-            # values did not need approval
-            if ($record->approval_record_id)
-            {
-                my $child = GADS::Record->new(
-                    user             => $user,
-                    layout           => $layout,
-                    schema           => schema,
-                    include_approval => 1,
-                    base_url         => request->base,
-                );
-                $child->find_record_id($record->approval_record_id);
-                foreach my $col (@columns_to_show)
-                {
-                    next unless $col->userinput;
-                    # See if the record above had a value. If not, fill with the
-                    # approval record's value
-                    $record->fields->{$col->id} = $child->fields->{$col->id}
-                        if !$record->fields->{$col->id}->has_value && $col->remember;
-                }
-            }
-        }
-        $record->remove_id;
-    }
     else {
-        $record->initialise;
+        $record->load_remembered_values;
     }
 
     foreach my $col ($layout->all(user_can_write => 1))

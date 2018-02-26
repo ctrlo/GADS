@@ -601,6 +601,58 @@ sub _find
     $self; # Allow chaining
 }
 
+sub load_remembered_values
+{   my $self = shift;
+
+    my @remember = map {$_->id} $self->layout->all(remember => 1)
+        or return;
+
+    my $lastrecord = $self->schema->resultset('UserLastrecord')->search({
+        instance_id => $self->layout->instance_id,
+        user_id     => $self->user->{id},
+    })->next
+        or return;
+
+    my $previous = GADS::Record->new(
+        user   => $self->user,
+        layout => $self->layout,
+        schema => $self->schema,
+    );
+
+    $previous->columns(\@remember);
+    $previous->include_approval(1);
+    $previous->find_record_id($lastrecord->record_id);
+
+    $self->fields->{$_->id} = $previous->fields->{$_->id}->clone(record => $self)
+        foreach @{$previous->columns_retrieved_do};
+
+    if ($previous->approval_flag)
+    {
+        # The last edited record was one for approval. This will
+        # be missing values, so get its associated main record,
+        # and use the values for that too.
+        # There will only be an associated main record if some
+        # values did not need approval
+        if ($previous->approval_record_id)
+        {
+            my $child = GADS::Record->new(
+                user             => $self->user,
+                layout           => $self->layout,
+                schema           => $self->schema,
+                include_approval => 1,
+                base_url         => request->base,
+            );
+            $child->find_record_id($self->approval_record_id);
+            foreach my $col ($self->layout->all(user_can_write_new => 1, userinput => 1))
+            {
+                # See if the record above had a value. If not, fill with the
+                # approval record's value
+                $self->fields->{$col->id} = $child->fields->{$col->id}->clone(record => $self)
+                    if !$self->fields->{$col->id}->has_value && $col->remember;
+            }
+        }
+    }
+}
 sub versions
 {   my $self = shift;
     my $search = {

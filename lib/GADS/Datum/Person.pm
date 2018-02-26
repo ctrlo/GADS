@@ -234,6 +234,7 @@ around 'clone' => sub {
         freetext2    => $self->freetext2,
         organisation => $self->organisation,
         text         => $self->text,
+        @_,
     );
 };
 

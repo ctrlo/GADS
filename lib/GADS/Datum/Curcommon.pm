@@ -193,7 +193,7 @@ around 'clone' => sub {
     );
     $params{_text_all}  = $self->_text_all if $self->_has_text_all;
     $params{init_value} = $self->init_value if $self->has_init_value;
-    $orig->($self, %params);
+    $orig->($self, %params, @_);
 };
 
 sub as_string

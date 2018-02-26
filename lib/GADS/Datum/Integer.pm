@@ -74,7 +74,7 @@ sub _build_blank {
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
-    $orig->($self, value => $self->value);
+    $orig->($self, value => $self->value, @_);
 };
 
 sub as_string

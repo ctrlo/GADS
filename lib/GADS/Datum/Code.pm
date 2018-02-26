@@ -71,7 +71,8 @@ around 'clone' => sub {
     $orig->($self,
         has_value => $self->has_value,
         layout    => $self->layout,
-        schema    => $self->schema
+        schema    => $self->schema,
+        @_,
     );
 };
 

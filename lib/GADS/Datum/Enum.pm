@@ -156,7 +156,7 @@ sub html_form
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
-    $orig->($self, id => $self->id, text => $self->text);
+    $orig->($self, id => $self->id, text => $self->text, @_);
 };
 
 sub as_string
