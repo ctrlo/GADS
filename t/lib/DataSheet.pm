@@ -303,6 +303,7 @@ has column_count => (
         +{
             enum   => 1,
             curval => 1,
+            tree   => 1,
         }
     },
 );
@@ -343,6 +344,7 @@ has _multivalue_columns => (
         +{
             curval => 1,
             enum   => 1,
+            tree   => 1,
         };
     },
 );
@@ -510,51 +512,57 @@ sub __build_columns
         push @enums, $enum;
     }
 
-    my $tree1 = GADS::Column::Tree->new(
-        optional => $self->optional,
-        schema   => $schema,
-        user     => undef,
-        layout   => $layout,
-    );
-    $tree1->type('tree');
-    $tree1->name('tree1');
-    $tree1->name_short("L${instance_id}tree1");
-    $tree1->set_permissions({$self->group->id => $permissions})
-        unless $self->no_groups;
-    try { $tree1->write };
-    my $tree_id = $tree1->id;
-    if ($@)
+    my @trees;
+    foreach my $count (1..($self->column_count->{tree} || 1))
     {
-        $@->wasFatal->throw(is_fatal => 0);
-        return;
+        my $tree = GADS::Column::Tree->new(
+            optional => $self->optional,
+            schema   => $schema,
+            user     => undef,
+            layout   => $layout,
+        );
+        $tree->type('tree');
+        $tree->name("tree$count");
+        $tree->name_short("L${instance_id}tree$count");
+        $tree1->set_permissions({$self->group->id => $permissions})
+            unless $self->no_groups;
+        $tree->multivalue(1) if $self->multivalue && $self->_multivalue_columns->{tree};
+        try { $tree->write };
+        my $tree_id = $tree->id;
+        if ($@)
+        {
+            $@->wasFatal->throw(is_fatal => 0);
+            return;
+        }
+        $tree->update([{
+            'children' => [],
+            'data' => {},
+            'text' => 'tree1',
+            'id' => 'j1_1',
+        },
+        {
+            'data' => {},
+            'text' => 'tree2',
+            'children' => [
+                {
+                    'data' => {},
+                    'text' => 'tree3',
+                    'children' => [],
+                    'id' => 'j1_3'
+                },
+            ],
+            'id' => 'j1_2',
+        }]);
+        # Reload to get tree built etc
+        $tree = GADS::Column::Tree->new(
+            optional => $self->optional,
+            schema   => $schema,
+            user     => undef,
+            layout   => $layout,
+        );
+        $tree->from_id($tree_id);
+        push @trees, $tree;
     }
-    $tree1->update([{
-        'children' => [],
-        'data' => {},
-        'text' => 'tree1',
-        'id' => 'j1_1',
-    },
-    {
-        'data' => {},
-        'text' => 'tree2',
-        'children' => [
-            {
-                'data' => {},
-                'text' => 'tree3',
-                'children' => [],
-                'id' => 'j1_3'
-            },
-        ],
-        'id' => 'j1_2',
-    }]);
-    # Reload to get tree built etc
-    $tree1 = GADS::Column::Tree->new(
-        optional => $self->optional,
-        schema   => $schema,
-        user     => undef,
-        layout   => $layout,
-    );
-    $tree1->from_id($tree_id);
 
     my $date1 = GADS::Column::Date->new(
         optional => $self->optional,
@@ -719,8 +727,7 @@ sub __build_columns
     $columns->{string1}    = $layout->column($string1->id);
     $columns->{integer1}   = $layout->column($integer1->id);
     $columns->{$_->name}   = $layout->column($_->id)
-        foreach (@enums, @curvals);
-    $columns->{tree1}      = $layout->column($tree1->id);
+        foreach (@enums, @curvals, @trees);
     $columns->{date1}      = $layout->column($date1->id);
     $columns->{daterange1} = $layout->column($daterange1->id);
     $columns->{calc1}      = $layout->column($calc1->id);

@@ -45,6 +45,10 @@ has '+fixedvals' => (
     default => 1,
 );
 
+has '+can_multivalue' => (
+    default => 1,
+);
+
 sub _build_sprefix { 'value' };
 
 has end_node_only => (
@@ -85,7 +89,6 @@ sub _build_enumvals
 {   my $self = shift;
     my $enumrs = $self->schema->resultset('Enumval')->search({
         layout_id => $self->id,
-        deleted   => 0,
     },{
         order_by => 'me.value',
     });
@@ -211,6 +214,7 @@ sub _build__tree
     my @enumvals = @{$self->enumvals};
     foreach my $enumval (@enumvals)
     {
+        next if $enumval->{deleted};
         my $parent = $enumval->{parent}; # && $enum->parent->id;
         my $node = Tree::DAG_Node->new();
         $node->name($enumval->{id});
@@ -247,7 +251,9 @@ sub _build__tree
 }
 
 sub json
-{   my ($self, $selected) = @_;
+{   my ($self, @selected) = @_;
+
+    my %selected = map { $_ => 1 } @selected;
 
     my $stash = {
         tree => {
@@ -276,7 +282,7 @@ sub json
                         text => $text,
                         id   => $node->name,
                     };
-                    $leaf->{state} = {selected => \1} if $selected && $node->name == $selected;
+                    $leaf->{state} = {selected => \1} if $selected{$node->name};
                     push @{$parent->{children}}, $leaf;
                     $options->{stash}->{last_node}->{$depth} = $parent->{children}->[-1];
                 }
@@ -336,7 +342,9 @@ sub _delete_unused_nodes
         if ($self->_enumvals_index->{$node->{id}})
         {
             # Node in use somewhere
-            if ($node->{parent} && !$self->_enumvals_index->{$node->{parent}})
+            if ($node->{parent}
+                && (!$self->_enumvals_index->{$node->{parent}} || $self->_enumvals_index->{$node->{parent}}->{deleted})
+            )
             {
                 # Current node still exists, but its parent doesn't
                 # Move current node to the top by undefing the parent

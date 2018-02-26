@@ -35,7 +35,7 @@
     </div>
 [% END %]
 <p></p>
-<form role="form" method="post" enctype="multipart/form-data">
+<form role="form" method="post" enctype="multipart/form-data" id="editform">
     <div class="row">
         <div class="col-md-6">
             [% IF record.current_id %]
@@ -567,20 +567,27 @@
                         </select>
                     [% END %]
                 [% ELSIF dispcol.type == "tree" %]
-                    <input type="hidden" name="[% field %]" id="treeval_id[% dispcol.id %]" value="[% editvalue.id %]">
+                    [% FOREACH val IN editvalue.ids %]
+                        <input type="hidden" name="[% field %]" class="[% field %]" value="[% val %]">
+                    [% END %]
                     [% IF readonly %]
                         <div class="form-group">
                             [% editvalue.html %]
                         </div>
                     [% ELSE %]
-                        [% trees.push({id = dispcol.id, end_node_only = dispcol.end_node_only, value = editvalue }) %]
+                        [% trees.push({
+                            id = dispcol.id,
+                            end_node_only = dispcol.end_node_only,
+                            value = editvalue,
+                            field = field,
+                            multivalue = dispcol.multivalue
+                        }) %]
                         <div class="form-group">
                             <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('open_all');">Expand all</a> |
                             <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('close_all');">Collapse all</a> |
                             <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('refresh');">Reload</a>
                             <div id="jstree[% dispcol.id %]"></div>
                         </div>
-                        <input type="hidden" id="[% dispcol.id %]" value="">
                     [% END %]
                 [% ELSIF dispcol.type == "person" %]
                     <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
@@ -686,20 +693,32 @@
                 [% js_valget = '$(this).val()' %]
             [% END %]
             [% jscode.push('
-                $("#' _ col.id  _ '").change( function () {
-                    var val = ' _ js_valget _ ';
-                    if (!val) {
-                        val = "";
-                    }
-                    var data = base64.decode("' _ depends.regex_b64 _ '");
-                    var re = new RegExp("^" + data + "$");
-                    if (re.test(val)) {
-                        $("#' _ divid _ '").show()
-                    } else {
-                        $("#' _ divid _ '").hide()
-                    }
+                var data = base64.decode("' _ depends.regex_b64 _ '");
+                var re = new RegExp("^" + data + "$");
+                $("body").data("change" + ' _ col.id _ ', {
+                    re: re,
+                    divid: "' _ divid _'"
                 });
             ') %]
+
+            [% UNLESS col.type == "tree" %]
+                [% jscode.push('
+                    $("#' _ col.id  _ '").change( function () {
+                        var val = ' _ js_valget _ ';
+                        if (!val) {
+                            val = "";
+                        }
+                        var foo = $("body").data("change" + ' _ col.id _ ');
+                        var re = foo.re;
+                        var divid = foo.divid;
+                        if (re.test(val)) {
+                            $("#' _ divid _ '").show()
+                        } else {
+                            $("#' _ divid _ '").hide()
+                        }
+                    });
+                ') %]
+            [% END %]
         [% END %]
 
         <div class="row">

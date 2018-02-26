@@ -18,45 +18,57 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Datum::Tree;
 
+use Log::Report;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
-use namespace::clean;
 
 extends 'GADS::Datum';
 
 sub set_value
 {   my ($self, $value) = @_;
-    ($value) = @$value if ref $value eq 'ARRAY';
     my $clone = $self->clone; # Copy before changing text
-    $value = undef if !$value; # Can be empty string, generating warnings
-    $self->changed(1) if (!defined($self->id) && defined $value)
-        || (!defined($value) && defined $self->id)
-        || (defined $self->id && defined $value && $self->id != $value);
-    $self->column->validate($value, fatal => 1) if $self->changed; # Allow retention of deleted unchanged values
-
-    # Look up text value
-    if (my $node = $self->column->node($value))
+    my @values = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
+    my @old    = sort ref $self->id eq 'ARRAY' ? @{$self->id} : $self->id ? $self->id : ();
+    my $changed = "@values" ne "@old";
+    $self->_set_written_valid(!!@values);
+    if ($changed)
     {
-        $self->text($node->{value});
-        $self->_set_written_valid(1);
+        my @text;
+        foreach (@values)
+        {
+            $self->column->validate($_, fatal => 1);
+            push @text, $self->column->node($_)->{value};
+        }
+        $self->clear_text;
+        $self->text_all(\@text);
     }
-    else {
-        $self->_set_written_valid(0);
-    }
-    $self->changed(1) if (!defined($self->id) && defined $value)
-        || (!defined($value) && defined $self->id)
-        || (defined $self->id && defined $value && $self->id != $value);
-    $self->id($value);
+    $self->changed($changed);
     $self->oldvalue($clone);
+    $self->id($self->column->multivalue ? \@values : $values[0]);
     $self->_set_written_to(0) if $self->value_next_page;
 }
 
 has id => (
     is      => 'rw',
+    isa     => sub {
+        my $value = shift;
+        !defined $value and return;
+        ref $value ne 'ARRAY' && $value =~ /^[0-9]+/ and return;
+        my @values = @$value;
+        my @remain = grep {
+            !defined $_ || $_ !~ /^[0-9]+$/;
+        } @values and panic "Invalid value for ID";
+    },
     lazy    => 1,
-    trigger => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
+    trigger => sub {
+        my $self = shift;
+        $self->clear_blank;
+    },
     builder => sub {
-        $_[0]->value_hash->{id};
+        my $self = shift;
+        $self->column->multivalue
+            ? [ grep { defined $_ } @{$self->value_hash->{ids}} ]
+            : $self->value_hash->{ids}->[0];
     },
 );
 
@@ -65,31 +77,54 @@ has has_id => (
     isa => Bool,
 );
 
-sub ids { [ $_[0]->id ] }
+sub ids {
+    my $self = shift;
+    $self->column->multivalue ? $self->id : [ $self->id ];
+}
+
+sub ids_as_params
+{   my $self = shift;
+    join '&', map { "ids=$_" } @{$self->ids};
+}
 
 sub value { $_[0]->id }
 
-sub _build_blank { $_[0]->id ? 0 : 1 }
+sub _build_blank
+{   my $self = shift;
+    if ($self->column->multivalue)
+    {
+        @{$self->id} == 0 ? 1 : 0;
+    }
+    else {
+        defined $self->id ? 0 : 1;
+    }
+}
 
 # Make up for missing predicated value property
 sub has_value { $_[0]->has_id }
 
+sub html_form
+{   my $self = shift;
+    $self->column->multivalue ? $self->id : [ $self->id ];
+}
+
 has value_hash => (
-    is      => 'ro',
+    is      => 'rw',
     lazy    => 1,
     builder => sub {
         my $self = shift;
         $self->has_init_value or return {};
-        my $value = $self->init_value->[0]->{value};
-        my $id = $value->{id};
-        $self->has_id(1) if defined $id || $self->init_no_value;
+        my @values = map { $_->{value} } @{$self->init_value};
+        my @ids    = map { $_->{id} } @values;
+        my @texts  = map { $_->{value} || '' } @values;
+        $self->has_id(1) if (grep { defined $_ } @ids) || $self->init_no_value;
         +{
-            id      => $id,
-            text    => $value->{value},
-            deleted => $value->{deleted},
+            ids  => \@ids,
+            text => \@texts,
         };
     },
 );
+
 
 has ancestors => (
     is      => 'rw',
@@ -128,17 +163,21 @@ sub value_regex_test
 has text => (
     is      => 'rw',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
-        $_[0]->value_hash->{text};
+        my $self = shift;
+        join ', ', @{$self->text_all};
     },
 );
 
-has deleted => (
+# Internal text, array ref of all individual text values
+has text_all => (
     is      => 'rw',
+    isa     => ArrayRef,
     lazy    => 1,
     builder => sub {
-        $_[0]->value_hash->{deleted};
-    },
+        $_[0]->value_hash->{text} || [];
+    }
 );
 
 around 'clone' => sub {
@@ -147,7 +186,6 @@ around 'clone' => sub {
     $orig->($self,
         id      => $self->id,
         text    => $self->text,
-        deleted => $self->deleted,
     );
 };
 
@@ -158,29 +196,36 @@ sub as_string
 
 sub as_integer
 {   my $self = shift;
+    panic "No integer value for multivalue"
+        if $self->column->multivalue;
     $self->id // 0;
 }
 
 sub for_code
 {   my $self = shift;
-    my $return = {
-        value   => $self->blank ? undef : $self->as_string,
-        parents => {},
-    };
-    my $id = $self->id;
-    my @parents = $self->column->node($id) ? $self->column->node($id)->{node}->{node}->ancestors : ();
-    pop @parents; # Remove root
-    my $count;
-    foreach my $parent (reverse @parents)
-    {
-        $count++;
-        my $node_id = $parent->name;
-        my $text    = $self->column->node($node_id)->{value};
-        # Use text for the parent number, as this will not work in Lua:
-        # value.parents.1
-        $return->{parents}->{"parent$count"} = $text;
-    }
-    $return;
+    my @values = map {
+        my @parents = $self->column->node($_)
+            ? $self->column->node($_)->{node}->{node}->ancestors
+            : ();
+        pop @parents; # Remove root
+        my $r = {
+            value   => $self->blank ? undef : $self->column->node($_)->{value},
+            parents => {},
+        };
+        my $count;
+        foreach my $parent (reverse @parents)
+        {
+            $count++;
+            my $node_id = $parent->name;
+            my $text    = $self->column->node($node_id)->{value};
+            # Use text for the parent number, as this will not work in Lua:
+            # value.parents.1
+            $r->{parents}->{"parent$count"} = $text;
+        }
+        $r;
+    } @{$self->ids};
+
+    $self->column->multivalue ? \@values : $values[0];
 }
 
 1;

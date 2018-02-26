@@ -1376,10 +1376,10 @@ any '/view/:id' => require_login sub {
     $output;
 };
 
-any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => require_login sub {
+any qr{/tree[0-9]*/([0-9]*)/?} => require_login sub {
     # Random number can be used after "tree" to prevent caching
 
-    my ($layout_id, $value) = splat;
+    my ($layout_id) = splat;
     my $layout      = var 'layout';
 
     my $tree = var('layout')->column($layout_id)
@@ -1395,7 +1395,8 @@ any qr{/tree[0-9]*/([0-9]*)/?([0-9]*)} => require_login sub {
         $tree->update($newtree);
         return;
     }
-    my $json = $tree->type eq 'tree' ? $tree->json($value) : [];
+    my @ids  = query_parameters->get_all('ids');
+    my $json = $tree->type eq 'tree' ? $tree->json(@ids) : [];
 
     # If record is specified, select the record's value in the returned JSON
     header "Cache-Control" => "max-age=0, must-revalidate, private";

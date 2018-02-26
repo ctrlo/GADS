@@ -270,6 +270,19 @@ is( $record->fields->{$curval_filter->id}->as_string, $curval_value, "Curval val
 is( $record->fields->{$curval_filter->id}->for_code->[0]->{field_values}->{L2enum1}, 'foo1', "Curval value for code still correct after filter change (multiple)");
 
 # Check that we can filter on a value in the record
+my @position = (
+    $columns->{integer1}->id,
+    $columns->{date1}->id,
+    $columns->{daterange1}->id,
+    $columns->{enum1}->id,
+    $columns->{tree1}->id,
+    $columns->{curval1}->id,
+    $curval_filter->id,
+    $columns->{string1}->id,
+);
+$layout->position(@position);
+$layout->clear;
+$curval_filter = $layout->column($curval_filter->id);
 foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid/)
 {
     my $field = $test =~ /(string1|enum1|calc1)/
@@ -330,19 +343,13 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid/)
             }],
         };
 
-    $curval_filter = GADS::Column::Curval->new(
-        schema             => $schema,
-        user               => undef,
-        layout             => $layout,
-        name               => 'curval filter',
-        type               => 'curval',
-        filter             => GADS::Filter->new(
+    $curval_filter->filter(GADS::Filter->new(
             as_hash => $rules,
         ),
-        refers_to_instance_id => $curval_sheet->layout->instance_id,
-        curval_field_ids      => [ $curval_sheet->columns->{string1}->id ],
     );
+    $curval_filter->curval_field_ids([ $curval_sheet->columns->{string1}->id ]);
     $curval_filter->write;
+    $curval_filter->clear;
 
     # Clear the layout to force the column to be build, and also to build
     # dependencies properly in the next test
@@ -389,8 +396,10 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid/)
         ok( !$record_new->fields->{$curval_filter->id}->show_for_write, "Curval field $field with record filter not yet shown for write, test $test" );
     }
     my $ready = $field eq 'calc1' ? 0 : 1;
+    my $shown = $field eq 'calc1' || $field eq 'string1' ? 0 : 1;
+    $shown = 1 if $record_new->fields->{$curval_filter->id}->show_for_write;
     is( $record_new->fields->{$columns->{$field}->id}->ready_to_write, $ready, "Field $field is ready to write, test $test" );
-    is( $record_new->fields->{$columns->{$field}->id}->show_for_write, $ready, "Field $field is shown for write, test $test" );
+    is( $record_new->fields->{$columns->{$field}->id}->show_for_write, $shown, "Field $field is shown for write, test $test" );
     ok( !$record_new->fields->{$columns->{$field}->id}->written_to, "Field $field is written to, test $test" );
     # Write the required value and then check that it is now ready
     # Use the values from previous retrieved record - we know these are valid
