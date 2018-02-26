@@ -59,9 +59,6 @@
                     <li class="helptext">[% col.helptext | html_entity %]</li>
                     [% END %]
                     <li><a href="?sort=-11">[% sort_label %]</a></li>
-                    [% IF col.type == "person" AND layout.user_can("message") AND records.size %]
-                    <li>Email everyone in this column</li>
-                    [% END %]
                 </ul>
             </th>
             [% FOREACH col IN columns %]
@@ -80,8 +77,14 @@
                         <li class="helptext">[% col.helptext | html_entity %]</li>
                         [% END %]
                         <li><a href="?sort=[% col.id %]">[% sort_label %]</a></li>
-                        [% IF 1 || col.type == "person" AND layout.user_can("message") AND records.size %]
-                        <li><button type="button" class="btn btn-sm btn-primary">&#x1f4e7; Email each person in this column</button></li>
+                        [% IF col.type == "person" AND layout.user_can("message") AND records.size %]
+                        <li>
+                            <button aria-haspopup="true" type="button" class="btn btn-sm btn-primary"
+                                data-toggle="modal" data-target="#modal_sendemail" data-peopcol_id="[% col.id %]">
+                                <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
+                                Email each person in this column
+                            </button>
+                        </li>
                         [% END %]
                     </ul>
                 </th>
