@@ -36,7 +36,7 @@ use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 
-with 'GADS::RecordsJoin';
+with 'GADS::RecordsJoin', 'GADS::Role::Presentation::Records';
 
 # Preferably this is passed in to prevent extra
 # DB reads, but loads it if it isn't
@@ -57,12 +57,19 @@ has pages => (
 
 sub _build_pages
 {   my $self = shift;
-    $self->rows ? ceil($self->count / $self->rows) : 1;
+    my $count = $self->search_limit_reached || $self->count;
+    $self->rows ? ceil($count / $self->rows) : 1;
 }
 
 has search => (
     is  => 'rw',
     isa => Maybe[Str],
+);
+
+# Whether to show only deleted records or only records not deleted
+has is_deleted => (
+    is      => 'ro',
+    default => 0,
 );
 
 has view => (
@@ -109,7 +116,7 @@ sub view_limits_search
             if (keys %$decoded)
             {
                 # Get the user search criteria
-                push @search, $self->_search_construct($decoded, $self->layout);
+                push @search, $self->_search_construct($decoded, $self->layout, %options);
             }
         }
     }
@@ -168,10 +175,8 @@ has rows => (
 );
 
 has count => (
-    is      => 'rwp',
+    is      => 'lazy',
     isa     => Int,
-    lazy    => 1,
-    builder => 1,
     clearer => 1,
 );
 
@@ -232,28 +237,35 @@ sub search_query
     my @search        = $self->_query_params(%options);
     my $root_table    = $options{root_table} || 'current';
     my $current       = $root_table eq 'current' ? 'me' : 'current';
-    my $record_single = $self->record_name;
+    my $record_single = $self->record_name(%options);
     unless ($self->include_approval)
     {
         # There is a chance that there will be no approval records. In that case,
         # the search will be a lot quicker without adding the approval search
         # condition (due to indexes not spanning across tables). So, do a quick
         # check first, and only add the condition if needed
-        my ($approval_exists) = $root_table eq 'current' && $self->schema->resultset('Current')->search({
+        my $approval_exists = $root_table eq 'current' && $self->schema->resultset('Current')->search({
             instance_id        => $self->layout->instance_id,
             "records.approval" => 1,
         },{
             join => 'records',
             rows => 1,
-        })->all;
+        })->next;
         push @search, (
             { "$record_single.approval" => 0 },
         ) if $approval_exists;
     }
     # Current IDs from quick search if used
-    push @search, { "$current.id"          => $self->_search_all_fields } if $self->search;
+    push @search, { "$current.id"          => $self->_search_all_fields->{cids} } if $self->search;
     push @search, { "$current.id"          => $self->current_ids } if $self->has_current_ids && $self->current_ids;
     push @search, { "$current.instance_id" => $self->layout->instance_id };
+    if ($self->is_deleted)
+    {
+        push @search, { "$current.deleted" => { '!=' => undef } };
+    }
+    else {
+        push @search, { "$current.deleted" => undef };
+    }
     push @search, $self->common_search(%options, linked => $linked);
     push @search, {
         "$record_single.created" => { '<' => $self->rewind_formatted },
@@ -425,7 +437,7 @@ sub search_views
 
 has _search_all_fields => (
     is      => 'lazy',
-    isa     => Maybe[ArrayRef],
+    isa     => HashRef,
     clearer => 1,
 );
 
@@ -433,7 +445,7 @@ sub _build__search_all_fields
 {   my $self = shift;
 
     my $search = $self->search
-        or return;
+        or return {};
 
     my %results;
 
@@ -570,7 +582,31 @@ sub _build__search_all_fields
         }
     }
 
-    [keys %found];
+    # Limit to maximum of 500 results, otherwise the stack limit is exceeded
+    my @cids = keys %found;
+    my $count = @cids;
+    my $limit;
+    if ($count > 500)
+    {
+        @cids  = @cids[0 .. 499];
+        $limit = 500;
+    }
+
+    +{
+        cids          => \@cids,
+        count         => $count,
+        limit_reached => $limit,
+    };
+}
+
+has search_limit_reached => (
+    is  => 'lazy',
+    isa => Maybe[Int],
+);
+
+sub _build_search_limit_reached
+{   my $self = shift;
+    $self->_search_all_fields->{limit_reached};
 }
 
 # Produce a standard set of results without grouping
@@ -614,12 +650,28 @@ sub _current_ids_rs
     )->get_column('me.id');
 }
 
+# Produce a search query that filters by all the required current IDs. This
+# needs to include the list of current IDs itself, plus a filter to ensure only
+# the required version of a record is retrieved. Assumes that REWIND has
+# already been set by the calling function.
+sub _cid_search_query
+{   my $self = shift;
+    my $search = { map { %$_ } $self->common_search(prefetch => 1, sort => 1, linked => 1) };
+    my @cids = $self->_current_ids_rs->all;
+    $search->{'me.id'} = \@cids;
+    my $record_single = $self->record_name(linked => 0);
+    $search->{"$record_single.created"} = { '<' => $self->rewind_formatted }
+        if $self->rewind;
+    $search;
+}
+
 sub _build_results
 {   my $self = shift;
     local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
         if $self->rewind;
-    my @cids = $self->_current_ids_rs->all;
-    # Now redo the query with those IDs.
+
+    my $search_query = $self->search_query(search => 1, sort => 1, linked => 1); # Need to call first to build joins
+
     my @prefetches = $self->jpfetch(prefetch => 1, linked => 0);
     unshift @prefetches, (
         {
@@ -636,6 +688,7 @@ sub _build_results
 
     my $select = {
         prefetch => [
+            'deletedby',
             [@linked_prefetch],
             $rec1,
         ],
@@ -647,13 +700,7 @@ sub _build_results
         order_by  => $self->order_by(prefetch => 1),
     };
 
-    my $search = { map { %$_ } $self->common_search(prefetch => 1, sort => 1, linked => 1) };
-    $search->{'me.id'} = \@cids;
-    my $record_single = $self->record_name(linked => 0);
-    $search->{"$record_single.created"} = { '<' => $self->rewind_formatted }
-        if $self->rewind;
-
-    my $result = $self->schema->resultset('Current')->search($search, $select);
+    my $result = $self->schema->resultset('Current')->search($self->_cid_search_query, $select);
 
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my $column_flags = {
@@ -680,6 +727,8 @@ sub _build_results
             columns_retrieved_no => $self->columns_retrieved_no,
             columns_retrieved_do => $self->columns_retrieved_do,
             column_flags         => $column_flags,
+            set_deleted          => $rec->{deleted},
+            set_deletedby        => $rec->{deletedby},
         );
         push @record_ids, $rec->{record_single}->{id};
         push @record_ids, $rec->{linked}->{record_single}->{id}
@@ -757,6 +806,8 @@ sub single
 
 sub _build_count
 {   my $self = shift;
+
+    return $self->_search_all_fields->{count} if $self->search;
 
     my $search_query = $self->search_query(search => 1, linked => 1);
     my @joins        = $self->jpfetch(search => 1, linked => 0);
@@ -1303,6 +1354,10 @@ sub _date_for_db
 
 sub csv
 {   my $self = shift;
+
+    error __"You do not have permission to download data"
+        unless $self->layout->user_can("download");
+
     my $csv  = Text::CSV::Encoded->new({ encoding  => undef });
 
     # Column names

@@ -106,6 +106,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "homepage_text2",
   { data_type => "text", is_nullable => 1 },
+  "forget_history",
+  { data_type => "smallint", default_value => 0, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -178,6 +180,21 @@ Related object: L<GADS::Schema::Result::MetricGroup>
 __PACKAGE__->has_many(
   "metric_groups",
   "GADS::Schema::Result::MetricGroup",
+  { "foreign.instance_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 instance_groups
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::InstanceGroup>
+
+=cut
+
+__PACKAGE__->has_many(
+  "instance_groups",
+  "GADS::Schema::Result::InstanceGroup",
   { "foreign.instance_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

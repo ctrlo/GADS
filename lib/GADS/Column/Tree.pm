@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Column::Tree;
 
+use JSON qw(decode_json encode_json);
 use Log::Report 'linkspace';
 use String::CamelCase qw(camelize);
 use Tree::DAG_Node;
@@ -117,6 +118,7 @@ sub _build_join
 has _tree => (
     is        => 'rw',
     lazy      => 1,
+    clearer   => 1,
     builder   => 1,
     predicate => 1,
 );
@@ -162,6 +164,8 @@ sub clear
     $self->_clear_nodes;
     $self->clear_enumvals;
     $self->_clear_enumvals_index;
+    $self->_root->delete_tree if $self->_has_tree;
+    $self->_clear_tree;
 }
 
 sub validate
@@ -318,12 +322,12 @@ sub _delete_unused_nodes
     # from the children up, otherwise there are relationship constraints.
     # We actually only delete nodes that aren't referenced anywhere, in
     # order to keep data integrity for old records
-    my @flat;
+    my $flat = [];
     foreach (@top)
     {
-        _flat $self, $_, \@flat, 0, @all_nodes;
+        _flat $self, $_, $flat, 0, @all_nodes;
     }
-    @flat = sort { $b->{level} <=> $a->{level} } @flat;
+    my @flat = sort { $b->{level} <=> $a->{level} } @$flat;
 
     # Do the actual deletion if they don't exist
     foreach my $node (@flat)
@@ -356,8 +360,6 @@ sub _delete_unused_nodes
             }
             else {
                 $self->schema->resultset('Enumval')->find($node->{id})->delete;
-                # Remove from flattened list
-                @flat = grep {$_->{id} != $node->{id}} @flat;
             }
         }
     }
@@ -390,8 +392,8 @@ sub update
     }
 
     $self->_set__enumvals_index($new_tree);
-    $self->clear;
     $self->_delete_unused_nodes;
+    $self->clear;
 }
 
 sub _update
@@ -456,6 +458,25 @@ sub resultset_for_values
         });
     }
 }
+
+sub import_after_write
+{   my ($self, $values) = @_;
+    $self->update($values->{tree});
+}
+
+before import_hash => sub {
+    my ($self, $values) = @_;
+    $self->end_node_only($values->{end_node_only});
+};
+
+around export_hash => sub {
+    my $orig = shift;
+    my ($self, $values) = @_;
+    my $hash = $orig->(@_);
+    $hash->{end_node_only} = $self->end_node_only;
+    $hash->{tree}          = $self->json; # Not actually JSON
+    return $hash;
+};
 
 1;
 

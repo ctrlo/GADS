@@ -421,9 +421,8 @@ foreach my $test (@tests)
         try { $record->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
         $@->reportFatal; # In case any fatal errors
     }
-    # XXX Hack to allow record to be deleted
-    $record_new->user->{permission}->{delete} = 1;
     $record_new->delete_current;
+    $record_new->purge_current;
     $code_col->delete;
 }
 

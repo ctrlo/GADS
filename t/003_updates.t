@@ -2,6 +2,7 @@ use Test::More; # tests => 1;
 use strict;
 use warnings;
 
+use Test::MockTime qw(set_fixed_time restore_time); # Load before DateTime
 use Log::Report;
 use GADS::Layout;
 use GADS::Record;
@@ -9,6 +10,8 @@ use GADS::Records;
 use GADS::Schema;
 
 use t::lib::DataSheet;
+
+set_fixed_time('10/10/2014 01:00:00', '%m/%d/%Y %H:%M:%S'); # Write initial values as this date
 
 # A number of tests to try updates to records, primarily concerned with making
 # sure the relevant SQL joins pull out the correct number of records. If we get
@@ -183,6 +186,56 @@ foreach my $update (@update2)
     is( $record_single->find_current_id(3)->current_id, 3, "Retrieved record from main table after curval update" );
     is( $record_single->fields->{$curval1_id}->as_string, $update->{curval1_string}, "Correct curval1 value from main table after update");
     is( $record_single->fields->{$curval2_id}->as_string, $update->{curval2_string}, "Correct curval2 value from main table after update");
+}
+
+# Test forget_history functionality
+{
+    $schema->resultset('Instance')->find($layout->instance_id)->update({
+        forget_history => 1,
+    });
+    $layout->clear;
+    my $versions_before = $schema->resultset('Record')->count;
+    my $record = GADS::Record->new(
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->find_current_id(3);
+    like($record->created, qr/2014/, "Record version is old date");
+    $record->fields->{$columns->{string1}->id}->set_value("Foobar");
+    # Write with a new date that we can check
+    set_fixed_time('10/10/2015 01:00:00', '%m/%d/%Y %H:%M:%S');
+    $record->write(no_alerts => 1);
+    my $versions_after = $schema->resultset('Record')->count;
+    is($versions_after, $versions_before, "No new versions written");
+    $record->clear;
+    $record->find_current_id(3);
+    like($record->created, qr/2015/, "Record version is new date");
+
+    # Make sure version history still written for other sheet
+    my $record_curval = GADS::Record->new(
+        user   => undef,
+        layout => $curval_sheet->layout,
+        schema => $schema,
+    );
+    $record_curval->find_current_id(1);
+    $record_curval->fields->{$curval_sheet->columns->{string1}->id}->set_value("Foobar2");
+    $record_curval->write(no_alerts => 1);
+    $versions_after = $schema->resultset('Record')->count;
+    is($versions_after, $versions_before + 1, "One new version written");
+
+    # Revert to normal functionality
+    $schema->resultset('Instance')->find($layout->instance_id)->update({
+        forget_history => 0,
+    });
+    $layout->clear;
+    $versions_before = $schema->resultset('Record')->count;
+    $record->clear;
+    $record->find_current_id(3);
+    $record->fields->{$columns->{string1}->id}->set_value("Foobar3");
+    $record->write(no_alerts => 1);
+    $versions_after = $schema->resultset('Record')->count;
+    is($versions_after, $versions_before + 1, "One new version written");
 }
 
 done_testing();

@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Groups;
 
+use GADS::Group;
 use Log::Report 'linkspace';
 use Moo;
 
@@ -51,7 +52,16 @@ sub _build_all
 
 sub group
 {   my ($self, $id) = @_;
-    grep { $_->id == $id } @{$self->all};
+    my ($group) = grep { $_->id == $id } @{$self->all};
+    $group;
+}
+
+sub purge
+{   my $self = shift;
+    foreach my $group (@{$self->all})
+    {
+        $group->delete;
+    }
 }
 
 1;

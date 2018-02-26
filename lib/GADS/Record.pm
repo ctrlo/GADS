@@ -46,6 +46,8 @@ use MooX::Types::MooseLike::Base qw(:all);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 use namespace::clean;
 
+with 'GADS::Role::Presentation::Record';
+
 # Preferably this is passed in to prevent extra
 # DB reads, but loads it if it isn't
 has layout => (
@@ -300,18 +302,41 @@ has createdby => (
             my $user_id = $self->schema->resultset('Record')->find(
                 $self->record_id
             )->createdby->id;
-            return $self->_construct_createdby({ id => $user_id });
+            return $self->_person({ id => $user_id }, $self->layout->column(-13));
         }
         $self->fields->{-13};
     },
 );
 
-sub _construct_createdby
-{   my ($self, $value) = @_;
+has set_deletedby => (
+    is      => 'rw',
+    trigger => sub { shift->clear_deletedby },
+);
+
+has deletedby => (
+    is      => 'ro',
+    lazy    => 1,
+    clearer => 1,
+    builder => sub {
+        my $self = shift;
+        if (!$self->record)
+        {
+            my $user = $self->schema->resultset('Record')->find(
+                $self->record_id
+            )->deletedby or return undef;
+            return $self->_person({ id => $user->id }, $self->layout->column(-14));
+        }
+        my $value = $self->set_deletedby or return undef;
+        return $self->_person($value, $self->layout->column(-14));
+    },
+);
+
+sub _person
+{   my ($self, $value, $column) = @_;
     GADS::Datum::Person->new(
         record_id        => $self->record_id,
         current_id       => $self->current_id,
-        column           => $self->layout->column(-13),
+        column           => $column,
         schema           => $self->schema,
         layout           => $self->layout,
         init_value       => {
@@ -334,6 +359,29 @@ sub _build_created
     }
     $self->schema->storage->datetime_parser->parse_datetime(
         $self->record->{created}
+    );
+}
+
+has set_deleted => (
+    is      => 'rw',
+    trigger => sub { shift->clear_deleted },
+);
+
+has deleted => (
+    is      => 'lazy',
+    isa     => Maybe[DateAndTime],
+    clearer => 1,
+);
+
+sub _build_deleted
+{   my $self = shift;
+    if (!$self->record)
+    {
+        return $self->schema->resultset('Record')->find($self->record_id)->deleted;
+    }
+    $self->set_deleted or return undef;
+    $self->schema->storage->datetime_parser->parse_datetime(
+        $self->set_deleted
     );
 }
 
@@ -400,17 +448,21 @@ sub _check_instance
 }
 
 sub find_record_id
-{   my ($self, $record_id) = @_;
+{   my ($self, $record_id, %options) = @_;
+    my $search_instance_id = $options{instance_id};
     my $record = $self->schema->resultset('Record')->find($record_id)
         or error __x"Record version ID {id} not found", id => $record_id;
     my $instance_id = $record->current->instance_id;
+    error __x"Record ID {id} invalid for table {table}", id => $record_id, table => $search_instance_id
+        if $search_instance_id && $search_instance_id != $instance_id;
     $self->_check_instance($instance_id);
-    $self->_find(record_id => $record_id);
+    $self->_find(record_id => $record_id, %options);
 }
 
 sub find_current_id
-{   my ($self, $current_id, $search_instance_id) = @_;
+{   my ($self, $current_id, %options) = @_;
     return unless $current_id;
+    my $search_instance_id = $options{instance_id};
     $current_id =~ /^[0-9]+$/
         or error __x"Invalid record ID {id}", id => $current_id;
     my $current = $self->schema->resultset('Current')->find($current_id)
@@ -419,7 +471,17 @@ sub find_current_id
     error __x"Record ID {id} invalid for table {table}", id => $current_id, table => $search_instance_id
         if $search_instance_id && $search_instance_id != $current->instance_id;
     $self->_check_instance($instance_id);
-    $self->_find(current_id => $current_id);
+    $self->_find(current_id => $current_id, %options);
+}
+
+sub find_deleted_currentid
+{   my ($self, $current_id) = @_;
+    $self->find_current_id($current_id, deleted => 1)
+}
+
+sub find_deleted_recordid
+{   my ($self, $record_id) = @_;
+    $self->find_record_id($record_id, deleted => 1)
 }
 
 # Returns new GADS::Record object, doesn't change current one
@@ -485,12 +547,17 @@ sub _find
     # First clear applicable properties
     $self->clear;
 
+    # If deleted, make sure user has access to purged records
+    error __"You do not have access to this deleted record"
+        if $find{deleted} && !$self->layout->user_can("purge");
+
     my $records = GADS::Records->new(
         user             => $self->user,
         layout           => $self->layout,
         schema           => $self->schema,
         columns          => $self->columns,
         rewind           => $self->rewind,
+        is_deleted       => $find{deleted},
         include_approval => $self->include_approval,
     );
 
@@ -507,7 +574,10 @@ sub _find
     {
         unshift @prefetches, (
             {
-                'current' => $records->linked_hash(prefetch => 1),
+                'current' => [
+                    'deletedby',
+                    $records->linked_hash(prefetch => 1),
+                ],
             },
             {
                 'createdby' => 'organisation',
@@ -519,11 +589,18 @@ sub _find
     }
     elsif (my $current_id = $find{current_id})
     {
-        push @$search, { 'me.id' => $current_id };
-        unshift @prefetches, ('current', {
-            'createdby' => 'organisation',
-        }
-        , 'approvedby'); # Add info about related current record
+        push @$search, {
+            'me.id'      => $current_id,
+        };
+        unshift @prefetches, (
+            {
+                current => 'deletedby',
+            },
+            {
+                'createdby' => 'organisation',
+            },
+            'approvedby'
+        ); # Add info about related current record
         @prefetches = (
             $records->linked_hash(prefetch => 1),
             'currents',
@@ -560,6 +637,8 @@ sub _find
     {
         $self->linked_id($record->{linked_id});
         $self->parent_id($record->{parent_id});
+        $self->set_deleted($record->{deleted});
+        $self->set_deletedby($record->{deletedby});
         $self->linked_record_raw($record->{linked}->{record_single_2});
         my @child_record_ids = map { $_->{id} } @{$record->{currents}};
         $self->_set_child_record_ids(\@child_record_ids);
@@ -567,6 +646,8 @@ sub _find
         $record = $record->{record_single};
     }
     else {
+        $self->set_deleted($record->{current}->{deleted});
+        $self->set_deletedby($record->{current}->{deletedby});
         $self->linked_id($record->{current}->{linked_id});
         # Add the whole linked record. If we are building a historic record,
         # then this will not be used. Instead the values will be replaced
@@ -673,7 +754,7 @@ sub _transform_values
         layout           => $self->layout,
         init_value       => [ { value => $original->{created} } ],
     );
-    $fields->{-13} = $self->_construct_createdby($original->{createdby});
+    $fields->{-13} = $self->_person($original->{createdby}, $self->layout->column(-13));
     $fields;
 }
 
@@ -732,6 +813,10 @@ sub approver_can_action_column
 
 sub write_linked_id
 {   my ($self, $linked_id) = @_;
+
+    error __"You do not have permission to link records"
+        unless $self->layout->user_can("link");
+
     my $guard = $self->schema->txn_scope_guard;
     # Blank existing values first, otherwise they will be read instead of
     # linked values under some circumstances
@@ -827,6 +912,8 @@ has editor_shown_fields => (
     predicate => 1,
     trigger   => sub {
         my ($self, $fields) = @_;
+        $self->fields->{$_->id}->value_current_page(0)
+            foreach $self->layout->all;
         # Prevent exception if page submits fields that don't exist
         $self->fields->{$_} && $self->fields->{$_}->value_current_page(1)
             foreach @$fields;
@@ -880,6 +967,10 @@ sub columns_to_show_write
 # - version_userid: user ID for this version if override required
 sub write
 {   my ($self, %options) = @_;
+
+    # See whether this instance is set to not record history. If so, override
+    # update_only option to ensure it is only an update
+    $options{update_only} = 1 if $self->layout->forget_history;
 
     # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
     # an object) and may evaluate to an empty string. If so, txn_scope_guard
@@ -935,23 +1026,33 @@ sub write
             && !$column->optional
             && $datum->blank
             && !$options{force_mandatory}
+            && $column->user_can('write')
         )
         {
-            $has_missing = 1;
-            # Check whether we are in a multiple page write and if the value has been shown.
-            # We first test for editor_shown_fields having been set, as it will be on a normal
-            # page write, and then also check as it would be for a standard write.
-            if ($self->has_editor_shown_fields ? $datum->value_current_page : $datum->ready_to_write)
+            # Do not require value if the field has not been showed because of
+            # display condition
+            my $re    = $column->display_regex;
+            my $regex = $re && qr(^$re$);
+            if (!$column->display_field
+                || $self->fields->{$column->display_field}->as_string =~ $regex
+            )
             {
-                # Only warn if it was previously blank, otherwise it might
-                # be a read-only field for this user
-                if (!$self->new_entry && !$datum->changed)
+                $has_missing = 1;
+                # Check whether we are in a multiple page write and if the value has been shown.
+                # We first test for editor_shown_fields having been set, as it will be on a normal
+                # page write, and then also check as it would be for a standard write.
+                if ($self->has_editor_shown_fields ? $datum->value_current_page : $datum->ready_to_write)
                 {
-                    $has_missing = 0; # Let is pass
-                    mistake __x"'{col}' is no longer optional, but was previously blank for this record.", col => $column->{name};
-                }
-                else {
-                    error __x"'{col}' is not optional. Please enter a value.", col => $column->{name};
+                    # Only warn if it was previously blank, otherwise it might
+                    # be a read-only field for this user
+                    if (!$self->new_entry && !$datum->changed)
+                    {
+                        $has_missing = 0; # Let is pass
+                        mistake __x"'{col}' is no longer optional, but was previously blank for this record.", col => $column->{name};
+                    }
+                    else {
+                        error __x"'{col}' is not optional. Please enter a value.", col => $column->{name};
+                    }
                 }
             }
         }
@@ -1088,12 +1189,22 @@ sub write
         })->id;
         $self->record_id_old($self->record_id) if $self->record_id;
         $self->record_id($id);
-    };
+    }
+    elsif ($self->layout->forget_history)
+    {
+        $self->schema->resultset('Record')->find($self->record_id)->update({
+            created   => $created_date,
+            createdby => $createdby,
+        });
+    }
+
     $self->fields->{-11}->current_id($self->current_id);
     $self->fields->{-11}->clear_value; # Will rebuild as current_id
-    unless ($options{update_only})
+    if (!$options{update_only} || $self->layout->forget_history)
     {
-        # Keep original record values when only updating the record
+        # Keep original record values when only updating the record, except
+        # when the update_only is happening for forgetting version history, in
+        # which case we want to record these details
         $self->fields->{-12}->set_value($created_date);
         $self->fields->{-13}->set_value($createdby, no_validation => 1);
     }
@@ -1486,31 +1597,74 @@ sub _field_write
     }
 }
 
-# Just delete this version
-sub delete
+sub user_can_delete
 {   my $self = shift;
-    $self->_delete_record_values($self->record_id);
-    $self->schema->resultset('Record')->find($self->record_id)->delete;
+    return 0 unless $self->current_id;
+    return $self->layout->user_can("delete");
 }
 
-# Delete the record (version), plus its parent current (entire row)
-# along with all related records
+sub user_can_purge
+{   my $self = shift;
+    return 0 unless $self->current_id;
+    return $self->layout->user_can("purge");
+}
+
+# Mark this entire record and versions as deleted
 sub delete_current
 {   my $self = shift;
 
     error __"You do not have permission to delete records"
-        unless !$self->user
-             || $self->user->{permission}->{delete}
-             || $self->user->{permission}->{delete_noneed_approval};
+        unless !$self->user || $self->user_can_delete;
+
+    my $current = $self->schema->resultset('Current')->search({
+        id          => $self->current_id,
+        instance_id => $self->layout->instance_id,
+    })->next
+        or error "Unable to find current record to delete";
+
+    $current->update({
+        deleted   => DateTime->now,
+        deletedby => $self->user && $self->user->{id}
+    });
+}
+
+# Delete this this version completely from database
+sub purge
+{   my $self = shift;
+    error __"You do not have permission to purge records"
+        unless !$self->user || $self->user_can_purge;
+    $self->_purge_record_values($self->record_id);
+    $self->schema->resultset('Record')->find($self->record_id)->delete;
+}
+
+sub restore
+{   my $self = shift;
+    error __"You do not have permission to restore records"
+        unless !$self->user || $self->user_can_purge;
+    $self->schema->resultset('Current')->find($self->current_id)->update({
+        deleted => undef,
+    });
+}
+
+# Delete the record entirely from the database, plus its parent current (entire
+# row) along with all related records
+sub purge_current
+{   my $self = shift;
+
+    error __"You do not have permission to purge records"
+        unless !$self->user || $self->user_can_purge;
 
     my $id = $self->current_id
-        or panic __"No current_id specified for delete";
+        or panic __"No current_id specified for purge";
 
-    $self->schema->resultset('Current')->search({
+    my $crs = $self->schema->resultset('Current')->search({
         id => $id,
         instance_id => $self->layout->instance_id,
-    })->count
-        or error "Invalid ID $id";
+    })->next
+        or error __x"Invalid ID {id}", id => $id;
+
+    $crs->deleted
+        or error __"Cannot purge record that is not already deleted";
 
     if (my @recs = $self->schema->resultset('Current')->search({
         'curvals.value' => $id,
@@ -1558,12 +1712,12 @@ sub delete_current
             schema => $self->schema,
         );
         $record->find_current_id($child);
-        $record->delete_current;
+        $record->purge_current;
     }
 
     foreach my $record (@records)
     {
-        $self->_delete_record_values($record->id);
+        $self->_purge_record_values($record->id);
     }
     $self->schema->resultset('Record') ->search({ current_id => $id })->update({ record_id => undef });
     $self->schema->resultset('AlertCache')->search({ current_id => $id })->delete;
@@ -1573,11 +1727,11 @@ sub delete_current
     $guard->commit;
 
     my $user_id = $self->user && $self->user->{id};
-    info __x"Record ID {id} deleted by user ID {user} (originally created by user ID {createdby} at {created}",
+    info __x"Record ID {id} purged by user ID {user} (originally created by user ID {createdby} at {created}",
         id => $id, user => $user_id, createdby => $createdby->id, created => $created;
 }
 
-sub _delete_record_values
+sub _purge_record_values
 {   my ($self, $rid) = @_;
     $self->schema->resultset('Ragval')   ->search({ record_id  => $rid })->delete;
     $self->schema->resultset('Calcval')  ->search({ record_id  => $rid })->delete;

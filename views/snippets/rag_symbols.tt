@@ -1,0 +1,10 @@
+[%
+    rag_symbols = {
+        undefined  => '&#x3f;',
+        danger     => '&#x2717;',
+        warning    => '&#x26a0;',
+        success    => '&#x2713;',
+        unexpected => '&#x21;'
+    };
+ %]
+

@@ -31,13 +31,14 @@ engines:
 gads:
   name: "App name" # The local name for the application
   header: "HEADER"
-  hostlocal: 0     # Whether to fetch files such as jquery.js locally
+  hostlocal: 1     # Whether to fetch files such as jquery.js locally
   dateformat: "yyyy-MM-dd" # In CLDR format. Not all options available for datetime picker
   email_from: '"Linkspace" <user@example.com>' # Emails are sent from this
   aup: 0 # Whether to show an acceptable use policy
   login_instance: 1 # The config values used for login page
   default_instance: 1 # The default instance on login, if more than one
   url: https://example.com/ # Used for URLs in overnight email alerts
+  # legacy_menu: 0
   # aup_accept: I accept these terms # Use to change default accept button
   message_prefix: >
     This email has been generated and sent from Linkspace. Replies

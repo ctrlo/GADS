@@ -24,13 +24,18 @@ use String::CamelCase qw(camelize);
 use GADS::DateTime;
 use GADS::DB;
 use GADS::Filter;
+use GADS::Groups;
 use GADS::Type::Permission;
 use GADS::View;
 
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 
+use List::Compare ();
+
 use namespace::clean; # Otherwise Enum clashes with MooseLike
+
+with 'GADS::Role::Presentation::Column';
 
 sub types
 { qw(date daterange string intgr person tree enum file rag calc curval autocur) }
@@ -49,13 +54,6 @@ has user => (
 has permissions => (
     is  => 'lazy',
     isa => HashRef,
-);
-
-# The permissions the logged-in user has
-has user_permissions => (
-    is      => 'rw',
-    isa     => ArrayRef,
-    default => sub { [] },
 );
 
 has user_permission_override => (
@@ -109,6 +107,12 @@ has id => (
 );
 
 has internal => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
+has hidden => (
     is      => 'ro',
     isa     => Bool,
     default => 0,
@@ -539,6 +543,37 @@ sub _build_permissions
     \%perms;
 }
 
+sub group_has
+{   my ($self, $group_id, $perm) = @_;
+    my $perms = $self->permissions->{$group_id}
+        or return 0;
+    (grep { $_->short eq $perm } @$perms) ? 1 : 0;
+}
+
+# Return a human-readable summary of groups that have a particular permission
+sub group_summary
+{   my ($self, $permission) = @_;
+
+    my $groups = GADS::Groups->new(
+        schema => $self->schema,
+    );
+
+    # First get all group IDs that have this permission
+    my @group_ids = map {
+        (grep { $_->short eq $permission } @{$self->permissions->{$_}}) ? $_ : ();
+    } keys %{$self->permissions};
+
+    # Then turn it into readable format, annotating whether it requires
+    # approval in the case of write permissions
+    sort map {
+        my $name = $groups->group($_)->name;
+        $name .= ' (with approval only)'
+            if $permission =~ /write/
+                && ! grep { $_->short eq "${permission}_no_approval" } @{$self->permissions->{$_}};
+        $name;
+    } @group_ids;
+}
+
 sub _build_instance_id
 {   my $self = shift;
     $self->layout
@@ -766,6 +801,9 @@ sub after_write_special {} # Overridden in children
 sub write
 {   my ($self, %options) = @_;
 
+    error __"You do not have permission to manage fields"
+        unless $self->layout->user_can("layout");
+
     my $guard = $self->schema->txn_scope_guard;
 
     my $newitem;
@@ -833,10 +871,12 @@ sub write
     {
         $newitem->{id} = $self->set_id if $self->set_id;
         # Add at end of other items
-        $newitem->{position} = ($self->schema->resultset('Layout')->get_column('position')->max || 0) + 1;
+        $newitem->{position} = ($self->schema->resultset('Layout')->get_column('position')->max || 0) + 1
+            unless $self->position;
         $rset = $self->schema->resultset('Layout')->create($newitem);
         $new_id = $rset->id;
         $self->_set__rset($rset);
+        $self->id($new_id);
     }
     else {
         if ($rset = $self->schema->resultset('Layout')->find($self->id))
@@ -854,6 +894,8 @@ sub write
     }
 
     $self->write_special(rset => $rset, id => $new_id || $self->id, %options); # Write any column-specific params
+
+    $self->_write_permissions;
 
     $guard->commit;
 
@@ -874,11 +916,12 @@ sub user_can
     return 1 if $self->user_permission_override;
     return 1 if $self->internal && $permission eq 'read';
     return 0 if !$self->userinput && $permission ne 'read'; # Can't write to code fields
-    return 1 if grep { $_ eq $permission } @{$self->user_permissions};
+    return 1 if $self->layout->current_user_can_column($self->id, $permission);
     if ($permission eq 'write') # shortcut
     {
-        return 1 if grep { $_ eq 'write_new' || $_ eq 'write_existing' }
-            @{$self->user_permissions};
+        return 1
+            if $self->layout->current_user_can_column($self->id, 'write_new')
+            || $self->layout->current_user_can_column($self->id, 'write_existing');
     }
     0;
 }
@@ -886,91 +929,128 @@ sub user_can
 # Whether a particular user ID has a permission for this column
 sub user_id_can
 {   my ($self, $user_id, $permission) = @_;
-    my $perms = $self->layout->get_user_perms($user_id)->{$self->id}
-        or return;
-    grep { $_ eq $permission } @$perms;
+    return $self->layout->user_can_column($user_id, $self->id, $permission)
 }
 
-sub set_permissions
-{   my ($self, $group_id, $permissions) = @_;
+has set_permissions => (
+    is        => 'rw',
+    isa       => HashRef,
+    predicate => 1,
+);
 
-    $group_id
-        or error __"Please select a group to add the permissions to";
+sub _write_permissions
+{   my $self = shift;
 
-    my $has_read;
-    foreach my $permission (@$permissions)
+    $self->has_set_permissions or return;
+
+    my %permissions = %{$self->set_permissions};
+
+    my @groups = keys %permissions;
+
+    # Search for any groups that were in the permissions but no longer exist.
+    # Add these to the set_permissions hash, so they get processed and removed
+    # as per other permissions (in particular ensuring the read_removed flag is
+    # set)
+    my $search = {
+        layout_id => $self->id,
+    };
+
+    $search->{group_id} = { '!=' => [ '-and', @groups ] }
+        if @groups;
+        
+    my @removed = $self->schema->resultset('LayoutGroup')->search($search,{
+        select   => {
+            max => 'group_id',
+            -as => 'group_id',
+        },
+        as       => 'group_id',
+        group_by => 'group_id',
+    })->get_column('group_id')->all;
+
+    $permissions{$_} = []
+        foreach @removed;
+    @groups = keys %permissions; # Refresh
+
+    foreach my $group_id (@groups)
     {
-        $has_read = 1 if $permission eq 'read';
-        # Unique constraint on table. Catch existing.
-        try {
-            $self->schema->resultset('LayoutGroup')->create({
-                layout_id  => $self->id,
-                group_id   => $group_id,
-                permission => $permission,
-            });
-        };
-        # Log any messages from try block, but only as trace
-        $@->reportAll(reason => 'TRACE');
-    }
+        my @new_permissions = @{$permissions{$group_id}};
 
-    # Before we do the catch-all delete, see if there is currently a
-    # read permission there which is about to be removed.
-    my $read_removed = !$has_read && $self->schema->resultset('LayoutGroup')->search({
-        group_id   => $group_id,
-        layout_id  => $self->id,
-        permission => 'read',
-    })->count;
+        my @existing_permissions = $self->schema->resultset('LayoutGroup')->search({
+            layout_id  => $self->id,
+            group_id   => $group_id,
+        })->get_column('permission')->all;
 
-    # Delete those no longer there
-    my $search = { group_id => $group_id, layout_id => $self->id };
-    $search->{permission} = { '!=' => [ '-and', @$permissions ] } if @$permissions;
-    $self->schema->resultset('LayoutGroup')->search($search)->delete;
+        my $lc = List::Compare->new(\@new_permissions, \@existing_permissions);
 
-    # See if any read permissions have been removed. If so, we need
-    # to remove them from the relevant filters and sorts. The views themselves
-    # don't matter, as they won't be shown anyway.
-    if ($read_removed)
-    {
-        # First the sorts
-        foreach my $sort ($self->schema->resultset('Sort')->search({
-            layout_id      => $self->id,
-            'view.user_id' => { '!=' => undef },
-        }, {
-            prefetch => 'view',
-        })->all)
-        {
-            # For each sort on this column, which no longer has read.
-            # See if user attached to this view still has access with
-            # another group
-            $sort->delete unless $self->user_id_can($sort->view->user_id, 'read');
-        }
-        # Then the filters
-        foreach my $filter ($self->schema->resultset('Filter')->search({
-            layout_id      => $self->id,
-            'view.user_id' => { '!=' => undef },
-        }, {
-            prefetch => 'view',
-        })->all)
-        {
-            # For each sort on this column, which no longer has read.
-            # See if user attached to this view still has access with
-            # another group
-            unless ($self->user_id_can($filter->view->user_id, 'read'))
-            {
+        my @removed_permissions = $lc->get_complement();
+        my @added_permissions   = $lc->get_unique();
+
+        # Has a read permission been removed from this group?
+        my $read_removed = grep { $_ eq 'read' } @removed_permissions;
+
+        # Delete any permissions no longer needed
+        $self->schema->resultset('LayoutGroup')->search({
+            layout_id  => $self->id,
+            group_id   => $group_id,
+            permission => \@removed_permissions
+        })->delete;
+
+        # Add any new permissions
+        $self->schema->resultset('LayoutGroup')->create({
+            layout_id  => $self->id,
+            group_id   => $group_id,
+            permission => $_,
+        }) foreach @added_permissions;
+
+        if ($read_removed) {
+            # First the sorts
+            my @sorts = $self->schema->resultset('Sort')->search({
+                layout_id      => $self->id,
+                'view.user_id' => { '!=' => undef },
+            }, {
+                prefetch => 'view',
+            })->all;
+
+            foreach my $sort (@sorts) {
+                # For each sort on this column, which no longer has read.
+                # See if user attached to this view still has access with
+                # another group
+                $sort->delete unless $self->user_id_can($sort->view->user_id, 'read');
+            }
+
+            # Then the filters
+            my @filters = $self->schema->resultset('Filter')->search({
+                layout_id      => $self->id,
+                'view.user_id' => { '!=' => undef },
+            }, {
+                prefetch => 'view',
+            })->all;
+
+            foreach my $filter (@filters) {
+                # For each sort on this column, which no longer has read.
+                # See if user attached to this view still has access with
+                # another group
+
+                next if $self->user_id_can($filter->view->user_id, 'read');
+
                 # Filter cache
                 $filter->delete;
+
                 # Alert cache
                 $self->schema->resultset('AlertCache')->search({
                     layout_id => $self->id,
                     view_id   => $filter->view_id,
                 })->delete;
+
                 # Column in the view
                 $self->schema->resultset('ViewLayout')->search({
                     layout_id => $self->id,
                     view_id   => $filter->view_id,
                 })->delete;
+
                 # And the JSON filter itself
                 my $filtered = _filter_remove_colid($self, $filter->view->filter);
+
                 $filter->view->update({ filter => $filtered });
             }
         }
@@ -1040,6 +1120,69 @@ sub code_regex
 {   my $self  = shift;
     my $name  = $self->name; my $suffix = $self->suffix;
     qr/\[\^?\Q$name\E$suffix\Q]/i;
+}
+
+sub import_hash
+{   my ($self, $values) = @_;
+    $self->name($values->{name});
+    $self->name_short($values->{name_short});
+    $self->optional($values->{optional});
+    $self->remember($values->{remember});
+    $self->isunique($values->{isunique});
+    $self->position($values->{position});
+    $self->description($values->{description});
+    $self->helptext($values->{helptext});
+    $self->display_regex($values->{display_regex});
+    $self->multivalue($values->{multivalue});
+    $self->filter(GADS::Filter->new(as_hash => $values->{filter}));
+}
+
+sub export_hash
+{   my $self = shift;
+    my $permissions;
+    foreach my $perm ($self->schema->resultset('LayoutGroup')->search({ layout_id => $self->id })->all)
+    {
+        $permissions->{$perm->group_id} ||= [];
+        push @{$permissions->{$perm->group_id}}, $perm->permission;
+    }
+    +{
+        id            => $self->id,
+        type          => $self->type,
+        name          => $self->name,
+        name_short    => $self->name_short,
+        optional      => $self->optional,
+        remember      => $self->remember,
+        isunique      => $self->isunique,
+        position      => $self->position,
+        description   => $self->description,
+        helptext      => $self->helptext,
+        display_field => $self->display_field,
+        display_regex => $self->display_regex,
+        link_parent   => $self->link_parent && $self->link_parent->id,
+        multivalue    => $self->multivalue,
+        filter        => $self->filter->as_hash,
+        permissions   => $permissions,
+    };
+}
+
+# Subroutine to run after a column write has taken place for an import
+sub import_after_write {};
+
+# Subroutine to run after all columns have been imported
+sub import_after_all
+{   my ($self, $values, $mapping) = @_;
+    my @field_ids = map { $mapping->{$_} } @{$values->{curval_field_ids}};
+    if ($values->{display_field})
+    {
+        my $new_id = $mapping->{$values->{display_field}};
+        $self->display_field($new_id);
+    }
+    if ($values->{link_parent})
+    {
+        my $new_id = $mapping->{$values->{link_parent}};
+        $self->link_parent($new_id);
+    }
+    $self->write;
 }
 
 1;

@@ -67,5 +67,18 @@ sub write_code
     return $need_update;
 }
 
+before import_hash => sub {
+    my ($self, $values) = @_;
+    $self->code($values->{code});
+};
+
+around export_hash => sub {
+    my $orig = shift;
+    my ($self, $values) = @_;
+    my $hash = $orig->(@_);
+    $hash->{code} = $self->code;
+    return $hash;
+};
+
 1;
 

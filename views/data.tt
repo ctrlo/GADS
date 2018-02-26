@@ -1,73 +1,62 @@
-[% IF search %]
-    <h1>
-        Search results <small class="search_term">for term "[% search | html_entity %]"</small>
-        <form id="clear_search" action="/data" method="post">
-            <button type="submit" name="clear_search" value="clear_search" class="btn btn-default">
-            Clear <span class="visually-hidden">search results</span>
-            </button>
-        </form>
-    </h1>
-[% ELSIF v %]
-    <h1>[% v.name | html_entity %]</h1>
-[% ELSE %]
-    <h1>All data</h1>
+[% IF config.gads.legacy_menu %]
+    [% IF search %]
+        <h1>
+            Search results <small class="search_term">for term "[% search | html_entity %]"</small>
+            <form id="clear_search" action="/data" method="post">
+                <button type="submit" name="clear_search" value="clear_search" class="btn btn-default">
+                Clear <span class="visually-hidden">search results</span>
+                </button>
+            </form>
+        </h1>
+        [% IF search_limit_reached %]
+            <h3>Only showing first [% search_limit_reached %] of [% count %] results</h3>
+        [% END %]
+    [% ELSIF v %]
+        <h1>[% v.name | html_entity %]</h1>
+    [% ELSE %]
+        <h1>All data</h1>
+    [% END %]
 [% END %]
+
     <div class="row">
         <div class="col-md-6">
             <div class="btn-toolbar" role="toolbar">
-                <div class="btn-group" role="group">
-                    <a href="?viewtype=table" class="btn btn-default">
-                        <i aria-hidden="true" class="fa fa-list fa-lg use-icon-font"></i>
-                        <img src="/images/icon-data-list.png" class="use-icon-png" style="display:none" alt="">
-                        <span class="visually-hidden">View as table</span>
-                    </a>
-
-                    <a href="?viewtype=graph" class="btn btn-default">
-                        <i aria-hidden="true" class="fa fa-area-chart fa-lg use-icon-font"></i>
-                        <img src="/images/icon-data-chart.png" class="use-icon-png" style="display:none" alt="">
-                        <span class="visually-hidden">View as graph</span>
-                    </a>
-
-                    <a href="?viewtype=timeline" class="btn btn-default">
-                        <i aria-hidden="true" class="fa fa-tasks fa-lg use-icon-font"></i>
-                        <img src="/images/icon-data-tasks.png" class="use-icon-png" style="display:none" alt="">
-                        <span class="visually-hidden">View on timeline</span>
-                    </a>
-
-                    <a href="?viewtype=calendar" class="btn btn-default">
-                        <i aria-hidden="true" class="fa fa-calendar fa-lg use-icon-font"></i>
-                        <img src="/images/icon-data-calendar.png" class="use-icon-png" style="display:none" alt="">
-                        <span class="visually-hidden">View on calendar</span>
-                    </a>
-                </div>
+                [% IF config.gads.legacy_menu %]
+                    [% PROCESS viewtype_buttons %]
+                [% END %]
                 <div class="btn-group">
                     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
-                            View <span class="caret"></span>
+                            Current view: [% IF v %][% v.name | html %][% ELSE %]All data[% END %] <span class="caret"></span>
                     </button>
                     <ul id="menu_view" class="dropdown-menu scrollable-menu" role="menu">
-                        [% IF user.permission.view_create %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0">Create new view</a></li>
-                        [% END %]
-                        [% IF v %]
-                            [% IF user.permission.view_create %]
-                                [% IF !v.global OR user.permission.layout %]
-                                    <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/[% v.id %]">Edit this view</a></li>
-                                [% END %]
-                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0?clone=[% v.id %]">Clone this view</a></li>
+                        [% IF config.gads.legacy_menu %]
+                            [% IF layout.user_can("view_create") %]
+                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0">Create new view</a></li>
                             [% END %]
-                            <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_alert">Alert me</a></li>
+                            [% IF v %]
+                                [% IF layout.user_can("view_create") %]
+                                    [% IF !v.global OR layout.user_can("layout") %]
+                                        <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/[% v.id %]">Edit this view</a></li>
+                                    [% END %]
+                                    <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0?clone=[% v.id %]">Clone this view</a></li>
+                                [% END %]
+                                <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_alert">Alert me</a></li>
+                            [% END %]
+                            [% IF layout.user_can("layout") %]
+                                <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_views_other_user">Manage views of another user...</a></li>
+                            [% END %]
+                            <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_rewind">Historic view...</a></li>
+                            <li role="presentation" class="divider"></li>
                         [% END %]
-                        <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_rewind">Historic view...</a></li>
-                        <li role="presentation" class="divider"></li>
                         [% first = 1 %]
                         [% FOREACH ve IN user_views %]
                             [% IF first AND NOT ve.global AND not ve.is_admin %]
-                                <li role="presentation" class="dropdown-header">Personal views</li>
+                                <li role="presentation" class="dropdown-header">[% IF views_other_user %]Views of [% views_other_user.value | html %][% ELSE %]Personal views[% END %]</li>
                             [% ELSIF (first AND ve.global) OR (lastv AND ve.global != lastv.global) %]
                                 [% UNLESS first %]
                                     <li role="presentation" class="divider"></li>
                                 [% END %]
-                                <li role="presentation" class="dropdown-header">Global views</li>
+                                <li role="presentation" class="dropdown-header">Shared views</li>
                             [% ELSIF (first AND ve.is_admin) OR (lastv AND ve.is_admin != lastv.is_admin) %]
                                 [% UNLESS first %]
                                     <li role="presentation" class="divider"></li>
@@ -86,35 +75,44 @@
                         [% END %]
                     </ul>
                 </div>
-                <div class="btn-group">
-                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_action">
-                            Action <span class="caret"></span>
-                    </button>
-                    <ul id="menu_action" class="dropdown-menu" role="menu">
-                        [% IF user_can_create %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/edit/">New record</a></li>
-                        [% END %]
-                        [% IF user.permission.link AND show_link %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/link/">New linked record</a></li>
-                        [% END %]
-                        [% IF search %]
-                            [% sel_type = "in this search" %]
-                        [% ELSE %]
-                            [% sel_type = "in this view" %]
-                        [% END %]
-                        [% IF user.permission.bulk_update %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/update/">Update all records [% sel_type %]...</a></li>
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/clone/">Clone all records [% sel_type %]...</a></li>
-                        [% END %]
-                        [% IF user.permission.delete %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_delete" style="cursor: pointer">Delete all records [% sel_type %]...</a>
-                        [% END %]
-                        [% IF viewtype == "table" AND records.size AND user.permission.download %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?download">Download all records in view</a></li>
-                        [% END %]
-                    </ul>
-                </div>
-                [% PROCESS search_form.tt %]
+
+                [% IF config.gads.legacy_menu %]
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_action">
+                                Action <span class="caret"></span>
+                        </button>
+                        <ul id="menu_action" class="dropdown-menu" role="menu">
+                            [% IF user_can_create %]
+                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/edit/">New record</a></li>
+                            [% END %]
+                            [% IF layout.user_can("link") AND show_link %]
+                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/link/">New linked record</a></li>
+                            [% END %]
+                            [% IF search %]
+                                [% sel_type = "in this search" %]
+                            [% ELSE %]
+                                [% sel_type = "in this view" %]
+                            [% END %]
+                            [% IF layout.user_can("bulk_update") %]
+                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/update/">Update all records [% sel_type %]...</a></li>
+                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/clone/">Clone all records [% sel_type %]...</a></li>
+                            [% END %]
+                            [% IF layout.user_can("delete") %]
+                                <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_delete" style="cursor: pointer">Delete all records [% sel_type %]...</a>
+                            [% END %]
+                            [% IF viewtype == "table" AND records.size AND layout.user_can("download") %]
+                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?download">Download all records in view</a></li>
+                            [% END %]
+                        </ul>
+                    </div>
+                [% END %]
+
+                [% IF config.gads.legacy_menu %]
+                    [% PROCESS search_form.tt %]
+                [% ELSE %]
+                    [% PROCESS viewtype_buttons %]
+                [% END %]
+
                 [% IF viewtype == "timeline" %]
                     <div class="btn-group">
                         <a class="btn btn-default" data-toggle="modal" data-target="#modal_timeline" role="button">Timeline options...</a>
@@ -122,26 +120,36 @@
                 [% END %]
             </div>
         </div>
+
         [% IF viewtype == "table" %]
-            <div class="col-md-6">
-                <form method="get" class="form-horizontal">
+            <div class="col-md-offset-3 col-md-3 table-rows-pagination">
+               <form method="get" class="form-inline">
                     <div class="form-group">
-                        <div class="col-sm-4">
-                            <label for="rows_per_page" class="control-label">Rows per page</label>
-                        </div>
-                        <div class="col-sm-8">
-                            <select id="rows_per_page" class="form-control" name="rows" onchange="this.form.submit()" role="listbox">
-                                <option value="10" [% IF subset.rows == 10 %]selected[% END %]>10</option>
-                                <option value="25" [% IF subset.rows == 25 %]selected[% END %]>25</option>
-                                <option value="50" [% IF subset.rows == 50 %]selected[% END %]>50</option>
-                                <option value="100" [% IF subset.rows == 100 %]selected[% END %]>100</option>
-                                <option value="200" [% IF subset.rows == 200 %]selected[% END %]>200</option>
-                            </select>
-                        </div>
+                        <label for="rows_per_page" class="control-label">Rows per page</label>
+                        <select id="rows_per_page" class="form-control" name="rows" onchange="this.form.submit()" role="listbox">
+                            <option value="10" [% IF subset.rows == 10 %]selected[% END %]>10</option>
+                            <option value="25" [% IF subset.rows == 25 %]selected[% END %]>25</option>
+                            <option value="50" [% IF subset.rows == 50 %]selected[% END %]>50</option>
+                            <option value="100" [% IF subset.rows == 100 %]selected[% END %]>100</option>
+                            <option value="200" [% IF subset.rows == 200 %]selected[% END %]>200</option>
+                        </select>
                     </div>
                 </form>
+            [% IF subset.pages > 1 %]
+                <div class="table-pagination">
+                [% IF subset.page != 1 %]
+                    <a class="btn btn-default" href="?page=[% subset.page - 1 %]">
+                        <span class="visually-hidden">Previous page</span>&laquo;</a>
+                [% END %]
+                [% IF subset.page != subset.pages %]
+                    <a class="btn btn-default" href="?page=[% subset.page + 1 %]">
+                        <span class="visually-hidden">Next page</span>&raquo;</a>
+                [% END %]
+                </div>
+            [% END %]
             </div>
         [% END %]
+
     </div>
 [% IF viewtype == "graph" %]
     [% INCLUDE 'data_graph.tt' %]
@@ -170,10 +178,33 @@
     [% END %]
 [% END %]
 
+[% IF user.permission.layout %]
+    [% IF views_other_user %][% modal_extra_action = "views_other_user_clear" %][% END %]
+    [% WRAPPER modal_dialog.tt
+        modal_id="modal_views_other_user" modal_action_text="Submit" modal_heading="Manage views of other user"
+        modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post" modal_extra_action = modal_extra_action
+        modal_extra_action_text = "Reset to my views"
+    %]
+        <div class="form-group">
+            <label for="views_other_user_id">Select user:</label>
+                <input type="hidden" name="views_other_user_id" id="views_other_user_id" value="[% views_other_user.id %]">
+                <input type="text" class="form-control" id="views_other_user_typeahead" autocomplete="off"
+                    name="views_other_user_typeahead" value="[% views_other_user.value %]" placeholder="Start typing...">
+        </div>
+    [% END %]
+[% END %]
+
+[% IF session.rewind %]
+    [% reset_button = "modal_rewind_reset" %]
+    [% submit_button = "Update" %]
+[% ELSE %]
+    [% reset_button = "" %]
+    [% submit_button = "Submit" %]
+[% END %]
 [% WRAPPER modal_dialog.tt
-    modal_id="modal_rewind" modal_action_text="Create alert" modal_heading="View data as it was at a previous time"
-    modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post" modal_extra_action = "modal_rewind_reset"
-    modal_extra_action_text = "Reset to current"
+    modal_id="modal_rewind" modal_action_text = submit_button modal_heading="View data as it was at a previous time"
+    modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post" modal_extra_action = reset_button
+    modal_extra_action_text = "Reset to normal"
 %]
     <div class="form-group">
         <label for="rewind_date">Date ([% config.dateformat %]):</label>
@@ -190,7 +221,7 @@
     modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post"
 %]
     <p>Are you sure you want to delete all the records that are in the current view?</p>
-    <p><strong>Warning: this will permanently delete [% count %] records.</strong></p>
+    <p><strong>Warning: this will delete [% count %] records.</strong></p>
 [% END %]
 
 [% IF viewtype == "timeline" %]
@@ -226,4 +257,64 @@
             </select>
         </div>
     [% END %]
+[% END %]
+
+[% BLOCK viewtype_buttons %]
+    <div class="btn-group" role="group">
+        <a href="?viewtype=table" class="btn btn-default">
+            <span aria-hidden="true" class="fa fa-list fa-lg use-icon-font"></span>
+            <img src="/images/icon-data-list.png" class="use-icon-png" style="display:none" alt="">
+            <span class="visually-hidden">View as table</span>
+        </a>
+
+        <a href="?viewtype=graph" class="btn btn-default">
+            <span aria-hidden="true" class="fa fa-area-chart fa-lg use-icon-font"></span>
+            <img src="/images/icon-data-chart.png" class="use-icon-png" style="display:none" alt="">
+            <span class="visually-hidden">View as graph</span>
+        </a>
+
+        <a href="?viewtype=timeline" class="btn btn-default">
+            <span aria-hidden="true" class="fa fa-tasks fa-lg use-icon-font"></span>
+            <img src="/images/icon-data-tasks.png" class="use-icon-png" style="display:none" alt="">
+            <span class="visually-hidden">View on timeline</span>
+        </a>
+
+        <a href="?viewtype=calendar" class="btn btn-default">
+            <span aria-hidden="true" class="fa fa-calendar fa-lg use-icon-font"></span>
+            <img src="/images/icon-data-calendar.png" class="use-icon-png" style="display:none" alt="">
+            <span class="visually-hidden">View on calendar</span>
+        </a>
+    </div>
+[% END %]
+
+[% IF layout.user_can("layout") %]
+    <script type="text/javascript">
+        jscode = jscode + '[% FILTER remove('[\n\r]+') %]
+            [% FILTER replace('\'', '\\\'') %]
+                $("#[% typeahead.id %]").change( function() {
+                    if (!($( this ).val()))
+                    {
+                        $("#[% typeahead.id %]_value").val("");
+                    }
+                });
+                $("#views_other_user_typeahead").typeahead({
+                    delay: 500,
+                    matcher: function () { return true; },
+                    sorter: function (items) { return items; },
+                    afterSelect: function (selected) {
+                        $("#views_other_user_id").val(selected.id);
+                    },
+                    source: function (query, process) {
+                        return $.ajax({
+                            type: 'GET',
+                            url: '/match/user/',
+                            data: { q: query },
+                            success: function(result) { process(result) },
+                            dataType: 'json'
+                        });
+                    }
+                });
+            [% END %]
+        [% END %]';
+    </script>
 [% END %]

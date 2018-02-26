@@ -95,8 +95,10 @@ my $record = GADS::Record->new(
     schema => $schema,
 );
 $record->find_current_id(1);
-try { $record->delete_current };
-like($@, qr/The following records refer to this record as a value/, "Failed to delete record in a curval");
+try { $record->delete_current; $record->purge_current };
+like($@, qr/The following records refer to this record as a value/, "Failed to purge record in a curval");
+# Restore deleted record
+$record->restore;
 
 my $curval = $columns->{curval1};
 
@@ -165,6 +167,33 @@ $schema->resultset('Layout')->update({ filter => undef });
 # Now force the values to be built. This should not bork
 try { $layout->column($curval_blank_filter->id)->filtered_values };
 ok( !$@, "Undefined filter does not cause exception during layout build" );
+
+# Check that we can add and remove curval field IDs
+my $field_count = $schema->resultset('CurvalField')->count;
+my $curval_add_remove = GADS::Column::Curval->new(
+    schema                => $schema,
+    user                  => undef,
+    layout                => $layout,
+    name                  => 'curval fields',
+    type                  => 'curval',
+    refers_to_instance_id => $curval_sheet->layout->instance_id,
+    curval_field_ids      => [$curval_sheet->columns->{string1}->id],
+);
+$curval_add_remove->write;
+# Should be one more
+is($schema->resultset('CurvalField')->count, $field_count + 1, "Correct number of fields after new");
+$layout->clear;
+$curval_add_remove = $layout->column($curval_add_remove->id);
+$curval_add_remove->curval_field_ids([$curval_sheet->columns->{string1}->id, $curval_sheet->columns->{integer1}->id]);
+$curval_add_remove->write;
+is($schema->resultset('CurvalField')->count, $field_count + 2, "Correct number of fields after addition");
+$layout->clear;
+$curval_add_remove = $layout->column($curval_add_remove->id);
+$curval_add_remove->curval_field_ids([$curval_sheet->columns->{integer1}->id]);
+$curval_add_remove->write;
+is($schema->resultset('CurvalField')->count, $field_count + 1, "Correct number of fields after removal");
+$curval_add_remove->delete;
+$layout->clear;
 
 # Filter on curval tests
 my $curval_filter = GADS::Column::Curval->new(
@@ -392,6 +421,56 @@ my $records = GADS::Records->new(
 ok( $_->fields->{$curval->id}->text, "Curval field of record has a textual value" ) foreach @{$records->results};
 
 $layout->clear; # Rebuild layout for dependencies
+
+# Test addition and removal of tree values
+{
+    my $tree = $columns->{tree1};
+    my $count_values = $schema->resultset('Enumval')->search({ layout_id => $tree->id, deleted => 0 })->count;
+    is($count_values, 3, "Number of tree values correct at start");
+
+    $tree->clear;
+    $tree->update([
+        {
+            'children' => [],
+            'data' => {},
+            'text' => 'tree1',
+            'id' => 'j1_1',
+        },
+        {
+            'data' => {},
+            'text' => 'tree2',
+            'children' => [
+                {
+                    'data' => {},
+                    'text' => 'tree3',
+                    'children' => [],
+                    'id' => 'j1_3'
+                },
+            ],
+            'id' => 'j1_2',
+        },
+        {
+            'children' => [],
+            'data' => {},
+            'text' => 'tree4',
+            'id' => 'j1_4',
+        },
+    ]);
+    $count_values = $schema->resultset('Enumval')->search({ layout_id => $tree->id, deleted => 0 })->count;
+    is($count_values, 4, "Number of tree values increased by one after addition");
+
+    $tree->clear;
+    $tree->update([
+        {
+            'children' => [],
+            'data' => {},
+            'text' => 'tree4',
+            'id' => 'j1_4',
+        },
+    ]);
+    $count_values = $schema->resultset('Enumval')->search({ layout_id => $tree->id, deleted => 0 })->count;
+    is($count_values, 1, "Number of tree values decreased after removal");
+}
 
 # Test deletion of columns in first datasheet. But first, remove curval field
 # that refers to this one

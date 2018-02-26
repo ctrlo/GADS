@@ -20,11 +20,22 @@ package GADS::Views;
 
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/ArrayRef HashRef Int/;
+use MooX::Types::MooseLike::Base qw/ArrayRef HashRef Int Maybe/;
 
-has user => (
-    is       => 'rw',
-    required => 1,
+# Whether the logged-in user has the layout permission
+has user_has_layout => (
+    is => 'lazy',
+);
+
+sub _build_user_has_layout
+{   my $self = shift;
+    $self->layout->user_can("layout");
+}
+
+# Whether to show another user's views
+has other_user_id => (
+    is  => 'ro',
+    isa => Maybe[Int],
 );
 
 has schema => (
@@ -62,10 +73,11 @@ has layout => (
 sub _user_views
 {   my $self = shift;
     my @search = (
-        user_id => $self->user ? $self->user->{id} : undef,
+        # Allow user ID to be overridden, but only if the logged-in user has permission
+        user_id => ($self->user_has_layout && $self->other_user_id) || ($self->layout->user && $self->layout->user->{id}),
         global  => 1,
     );
-    push @search, (is_admin => 1) if !$self->user || $self->user->{permission}->{layout};
+    push @search, (is_admin => 1) if $self->user_has_layout;
     my @views = $self->schema->resultset('View')->search({
         -or         => [@search],
         instance_id => $self->instance_id,
@@ -108,7 +120,6 @@ sub view
     my $layout = $self->layout or die "layout needs to be defined to retrieve view";
     # Try to create a view using the ID. Don't bork if it fails
     my $view = GADS::View->new(
-        user        => $self->user,
         id          => $view_id,
         instance_id => $self->instance_id,
         schema      => $self->schema,

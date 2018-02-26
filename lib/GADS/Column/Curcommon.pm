@@ -65,6 +65,7 @@ sub clear
     $self->clear_values_index;
     $self->clear_all_values;
     $self->clear_view;
+    $self->clear_layout_parent;
 }
 
 has refers_to_instance_id => (
@@ -84,7 +85,8 @@ has typeahead => (
 );
 
 has layout_parent => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 has '+can_multivalue' => (
@@ -245,7 +247,7 @@ sub _build_all_ids
 {   my $self = shift;
     [
         $self->schema->resultset('Current')->search({
-            instance_id => $self->refers_to_instance,
+            instance_id => $self->refers_to_instance_id,
         })->get_column('id')->all
     ];
 }
@@ -578,5 +580,31 @@ sub cleanup
     $schema->resultset('Curval')->search({ layout_id => $id })->delete;
     $schema->resultset('CurvalField')->search({ parent_id => $id })->delete;
 }
+
+before import_hash => sub {
+    my ($self, $values) = @_;
+    $self->typeahead($values->{typeahead});
+    $self->override_permissions($values->{override_permissions});
+};
+
+around export_hash => sub {
+    my $orig = shift;
+    my ($self, $values) = @_;
+    my $hash = $orig->(@_);
+    $hash->{refers_to_instance_id} = $self->refers_to_instance_id;
+    $hash->{typeahead}             = $self->typeahead;
+    $hash->{curval_field_ids}      = $self->curval_field_ids;
+    $hash->{override_permissions}  = $self->override_permissions;
+    return $hash;
+};
+
+around import_after_all => sub {
+    my $orig = shift;
+    my ($self, $values, $mapping) = @_;
+    my @field_ids = map { $mapping->{$_} } @{$values->{curval_field_ids}};
+    $self->curval_field_ids(\@field_ids);
+    $self->clear;
+    $orig->(@_);
+};
 
 1;

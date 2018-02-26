@@ -85,12 +85,6 @@ __PACKAGE__->table("user");
   is_foreign_key: 1
   is_nullable: 1
 
-=head2 telephone
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 128
-
 =head2 freetext1
 
   data_type: 'text'
@@ -211,8 +205,6 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "organisation",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "telephone",
-  { data_type => "varchar", is_nullable => 1, size => 128 },
   "freetext1",
   { data_type => "text", is_nullable => 1 },
   "freetext2",
@@ -669,26 +661,27 @@ sub _build_has_group
 {   my $self = shift;
     +{
         map { $_->group_id => 1 } $self->user_groups
-    }
+    };
 }
 
 sub groups
-{   my ($self, $groups) = @_;
+{   my ($self, $logged_in_user, $groups) = @_;
 
     foreach my $g (@$groups)
     {
-        unless($self->search_related('user_groups', { group_id => $g })->count)
-        {
-            $self->create_related('user_groups', { group_id => $g });
-        }
+        next unless $logged_in_user->permission->{superadmin} || $logged_in_user->has_group->{$g};
+        $self->find_or_create_related('user_groups', { group_id => $g });
     }
 
     # Delete any groups that no longer exist
+    my @allowed = map { $_->id }  grep { $logged_in_user->permission->{superadmin} || $logged_in_user->has_group->{$_->id} }
+        $self->result_source->schema->resultset('Group')->all;
+
     my $search = {};
     $search->{group_id} = {
         '!=' => [ -and => @$groups ]
     } if @$groups;
-    $self->search_related('user_groups', $search)->delete;
+    $self->search_related('user_groups', $search)->search({ group_id => [@allowed] })->delete;
 }
 
 # Used to check if a user has a permission
@@ -701,7 +694,7 @@ sub _build_permission
     my %all = map { $_->id => $_->name } $self->result_source->schema->resultset('Permission')->all;
     +{
         map { $all{$_->permission_id} => 1 } $self->user_permissions
-    }
+    };
 }
 
 sub update_user
@@ -715,8 +708,6 @@ sub update_user
         or error __"Forename must be less than 128 characters";
     length $params{surname} <= 128
         or error __"Surname must be less than 128 characters";
-    length $params{telephone} <= 128
-        or error __"Telephone must be less than 128 characters";
     !defined $params{organisation} || $params{organisation} =~ /^[0-9]+$/
         or error __x"Invalid organisation {id}", id => $params{organisation};
 
@@ -747,9 +738,9 @@ sub update_user
     $values->{value} = _user_value($values);
     $self->update($values);
 
-    $self->groups($params{groups})
+    $self->groups($current_user, $params{groups})
         if $params{groups};
-    $self->permissions($params{permissions})
+    $self->permissions(@{$params{permissions}})
         if $params{permissions};
     $self->set_view_limits($params{view_limits})
         if $params{view_limits};
@@ -768,19 +759,22 @@ sub update_user
 }
 
 sub permissions
-{   my ($self, $permissions) = @_;
+{   my ($self, @permissions) = @_;
 
-    foreach my $p (@$permissions)
+    my %user_perms = map { $_ => 1 } @permissions;
+    my %all_perms  = map { $_->name => $_->id } $self->result_source->schema->resultset('Permission')->all;
+
+    foreach my $perm (qw/useradmin audit superadmin/)
     {
-        $self->find_or_create_related('user_permissions', { permission_id => $p });
+        my $pid = $all_perms{$perm};
+        if ($user_perms{$perm})
+        {
+            $self->find_or_create_related('user_permissions', { permission_id => $pid });
+        }
+        else {
+            $self->search_related('user_permissions', { permission_id => $pid })->delete;
+        }
     }
-
-    # Delete any groups that no longer exist
-    my $search = {};
-    $search->{permission_id} = {
-        '!=' => [ -and => @$permissions ]
-    } if @$permissions;
-    $self->search_related('user_permissions', $search)->delete;
 }
 
 sub retire

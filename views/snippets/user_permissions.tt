@@ -2,19 +2,15 @@
 
 <div class="form-group">
     <label for="view_limits">
-        Limit user's data to only records in any of: (<a href="" data-toggle="modal" data-target="#modalhelp_limitdata">?</a>)
+        Only allow this user to see records in these views: (<a href="" data-toggle="modal" data-target="#modalhelp_limitdata">?</a>)
     </label>
-    [% view_limits = edituser.view_limits_with_blank %]
-    [% IF NOT view_limits OR view_limits.size == 0 %]
-        [% view_limits = [''] %]
-    [% END %]
-    [% FOREACH view_limit IN view_limits %]
+    [% FOREACH view_limit IN edituser.view_limits_with_blank %]
         <div class="limit-to-view">
             <div class="row">
                 <div class="col-md-10">
                     <select class="form-control" name="view_limits">
                         <option></option>
-                        [% FOREACH layout IN layouts %]
+                        [% FOREACH layout IN instances %]
                             [% FOREACH v IN layout.global_view_summary %]
                                 <option value="[% v.id %]"
                                     [% IF view_limit.view_id == v.id %]selected[% END %]>[% layout.name _ ': ' _ v.name | html_entity %]
@@ -31,28 +27,41 @@
         </div>
     [% END %]
 </div>
-<label>
-    Permissions:
-</label>
-[% FOREACH permission IN permissions %]
-    [% key = permission.name %]
+[% IF user.permission.superadmin %]
+    <label>
+        User's system-wide permissions:
+    </label>
     <div class="checkbox">
         <label>
-            <input type="checkbox" name="permission" value="[% permission.id %]"
-                [% IF edituser.permission.$key %]checked[% END %]>[% permission.description | html_entity %]
+            <input type="checkbox" name="permission" value="superadmin"
+                [% IF edituser.permission.superadmin %]checked[% END %]>Super-administrator
+        </label>
+    </div>
+    <div class="checkbox">
+        <label>
+            <input type="checkbox" name="permission" value="useradmin"
+                [% IF edituser.permission.useradmin %]checked[% END %]>User can manage other user accounts
+        </label>
+    </div>
+    <div class="checkbox">
+        <label>
+            <input type="checkbox" name="permission" value="audit"
+                [% IF edituser.permission.audit %]checked[% END %]>User can access audit data
         </label>
     </div>
 [% END %]
 <label>
-    Groups:
+    Add this user to the following groups:
 </label>
 [% IF groups.size %]
     [% FOREACH group IN groups %]
         [% key = group.id %]
-        <div class="checkbox">
+        <div class="checkbox [% UNLESS user.permission.superadmin OR logged_in_user.has_group.$key %]disabled[% END %]">
             <label>
                 <input type="checkbox" name="groups" value="[% group.id %]"
-                    [% IF edituser.has_group.$key %]checked[% END %]>[% group.name | html_entity %]
+                    [% IF edituser.has_group.$key %]checked[% END %]
+                    [% UNLESS user.permission.superadmin OR logged_in_user.has_group.$key %]disabled[% END %]
+                    >[% group.name | html_entity %]
             </label>
         </div>
     [% END %]

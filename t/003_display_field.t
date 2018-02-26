@@ -62,6 +62,30 @@ $record->find_current_id(1);
     is($record->fields->{$integer1->id}->as_string, '', 'Updated integer value is correct');
 }
 
+# Test that mandatory field is not required if not shown by regex
+{
+    $integer1->optional(0);
+    $integer1->write;
+    $layout->clear;
+
+    # Start with new record, otherwise existing blank value will not bork
+    my $record = GADS::Record->new(
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->initialise;
+    $record->fields->{$string1->id}->set_value('foobar');
+    $record->fields->{$integer1->id}->set_value('');
+    try { $record->write(no_alerts => 1) };
+    like($@, qr/is not optional/, "Record failed to be written with shown mandatory blank");
+
+    $record->fields->{$string1->id}->set_value('foo');
+    $record->fields->{$integer1->id}->set_value('');
+    try { $record->write(no_alerts => 1) };
+    ok(!$@, "Record successfully written with hidden mandatory blank");
+}
+
 # Test value that depends on tree. Full levels of tree values can be tested
 # using the nodes separated by hashes
 {

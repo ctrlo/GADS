@@ -121,6 +121,18 @@ foreach my $multivalue (0..1)
         schema => $schema,
         rewind => $previous,
     );
+    # First check record versions within current window
+    $record->find_record_id(1);
+    is($record->fields->{$string1->id}->as_string, 'Foo1', "Correct old value for first version");
+    $record->clear;
+    $record->find_record_id(2);
+    is($record->fields->{$string1->id}->as_string, 'Foo2', "Correct old value for second version");
+    $record->clear;
+    # Check cannot retrieve latest version with rewind set as-is
+    try { $record->find_record_id(3) };
+    like($@, qr/Requested record not found/, "Cannot retrieve version after current rewind setting");
+    $record->clear;
+    # Check current version
     $record->find_current_id(1);
     is($record->fields->{$string1->id}->as_string, 'Foo2', "Correct old value for first record (2015), single retrieve");
     # Try an edit - should bork

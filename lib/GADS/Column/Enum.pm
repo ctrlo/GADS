@@ -233,5 +233,20 @@ sub resultset_for_values
     });
 }
 
+before import_hash => sub {
+    my ($self, $values) = @_;
+    $self->enumvals($values->{enumvals});
+    $self->ordering($values->{ordering});
+};
+
+around export_hash => sub {
+    my $orig = shift;
+    my ($self, $values) = @_;
+    my $hash = $orig->(@_);
+    $hash->{enumvals} = $self->enumvals;
+    $hash->{ordering} = $self->ordering;
+    return $hash;
+};
+
 1;
 

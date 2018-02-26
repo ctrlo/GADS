@@ -468,7 +468,7 @@ sub _import_rows
                 {
                     if ($self->update_unique == -11) # ID
                     {
-                        try { $record->find_current_id($unique_value, $self->layout->instance_id) };
+                        try { $record->find_current_id($unique_value, instance_id => $self->layout->instance_id) };
                         if ($@)
                         {
                             push @bad, qq(Failed to retrieve record ID $unique_value ($@). Data will not be uploaded.);
@@ -480,6 +480,8 @@ sub _import_rows
                         $record = $existing;
                     }
                     else {
+                        push @changes, __x"Unique identifier '{unique_value}' does not exist. Data will be uploaded as new record.",
+                            unique_value => $unique_value;
                         $record->initialise;
                     }
                 }

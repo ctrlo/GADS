@@ -138,25 +138,37 @@ sub _build_results
             $self->add_prefetch($col, include_multivalue => 1);
         }
         push @select_fields, {
-            $op => $self->fqvalue($col, prefetch => 1, linked => 0, parent => $parent),
+            $op => $self->fqvalue($col, prefetch => 1, search => 1, parent => $parent, retain_join_order => 1),
             -as => $col->field
         };
         # Also add linked column if required
         push @select_fields, {
-            $op => $self->fqvalue($col->link_parent, linked => 1, prefetch => 1, parent => $parent),
+            $op => $self->fqvalue($col->link_parent, prefetch => 1, search => 1, linked => 1, parent => $parent, retain_join_order => 1),
             -as => $col->field."_link",
         } if $col->link_parent;
     }
 
-    push @select_fields, {
-        $self->operator => $self->fqvalue($self->column, search => 1, prefetch => 1, linked => 0),
-        -as             => $self->column->field."_".$self->{operator},
-    } if $self->column;
+    if ($self->column)
+    {
+        my $f = $self->operator eq 'count'
+            ? \1 # Do not count column itself otherwise NULLs are not counted
+            : $self->fqvalue($self->column, search => 1, prefetch => 1);
+        push @select_fields, {
+            $self->operator => $f,
+            -as             => $self->column->field."_".$self->{operator},
+        };
 
-    push @select_fields, {
-        $self->operator => $self->fqvalue($self->column->link_parent, linked => 1, search => 1, prefetch => 1),
-        -as             => $self->column->field."_".$self->{operator}."_link",
-    } if $self->column && $self->column->link_parent;
+        if ($self->column->link_parent)
+        {
+            $f = $self->operator eq 'count'
+                ? \1 # Do not count column itself otherwise NULLs are not counted
+                : $self->fqvalue($self->column->link_parent, linked => 1, search => 1, prefetch => 1);
+            push @select_fields, {
+                $self->operator => $f,
+                -as             => $self->column->field."_".$self->{operator}."_link",
+            }
+        }
+    }
 
     # If we want to aggregate by month, we need to do some tricky conditional
     # summing. We can't do this with the abstraction layer, so need to resort
@@ -295,29 +307,29 @@ sub _build_results
         } else {
             if ($col->link_parent)
             {
-                my $main = $self->fqvalue($col, search => 1, prefetch => 1, linked => 0);
-                my $link = $self->fqvalue($col->link_parent, search => 1, prefetch => 1, linked => 1);
+                my $main = $self->fqvalue($col, search => 1, prefetch => 1, retain_join_order => 1);
+                my $link = $self->fqvalue($col->link_parent, search => 1, prefetch => 1, linked => 1, retain_join_order => 1);
                 push @g, $self->schema->resultset('Current')->helper_concat(
                      { -ident => $main },
                      { -ident => $link },
                 );
             }
             else {
-                push @g, $self->fqvalue($col, search => 1, prefetch => 1);
+                push @g, $self->fqvalue($col, search => 1, prefetch => 1, retain_join_order => 1);
             }
         }
     };
 
-    my $q = $self->search_query(prefetch => 1, search => 1, linked => 1); # Called first to generate joins
+    my $q = $self->search_query(prefetch => 1, search => 1, linked => 1, retain_join_order => 1); # Called first to generate joins
 
     my $select = {
         select => [@select_fields],
         join     => [
-            $self->linked_hash(prefetch => 1, search => 1),
+            $self->linked_hash(prefetch => 1, search => 1, retain_join_order => 1),
             {
                 'record_single' => [
                     'record_later',
-                    $self->jpfetch(prefetch => 1, search => 1, linked => 0),
+                    $self->jpfetch(prefetch => 1, search => 0, linked => 0, retain_join_order => 1),
                 ],
             },
         ],
@@ -326,8 +338,9 @@ sub _build_results
 
     local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
         if $self->rewind;
+
     my $result = $self->schema->resultset('Current')->search(
-        [-and => $q], $select
+        $self->_cid_search_query, $select
     );
 
     [$result->all];

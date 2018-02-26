@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::MetricGroups;
 
+use GADS::MetricGroup;
 use Log::Report 'linkspace';
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
@@ -50,10 +51,12 @@ sub _build_all
     });
     foreach my $metric (@all)
     {
-        push @metrics, {
-            id   => $metric->id,
-            name => $metric->name,
-        };
+        push @metrics, GADS::MetricGroup->new({
+            id          => $metric->id,
+            name        => $metric->name,
+            schema      => $self->schema,
+            instance_id => $self->instance_id,
+        });
     }
 
     \@metrics;

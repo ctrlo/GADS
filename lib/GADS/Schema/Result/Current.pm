@@ -56,6 +56,18 @@ __PACKAGE__->table("current");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 deleted
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  is_nullable: 1
+
+=head2 deletedby
+
+  data_type: 'bigint'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -66,6 +78,14 @@ __PACKAGE__->add_columns(
   "instance_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "linked_id",
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
+  "deleted",
+  {
+    data_type => "datetime",
+    datetime_undef_if_invalid => 1,
+    is_nullable => 1,
+  },
+  "deletedby",
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
 );
 
@@ -210,6 +230,26 @@ __PACKAGE__->belongs_to(
   "parent",
   "GADS::Schema::Result::Current",
   { id => "parent_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 deletedby
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::User>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "deletedby",
+  "GADS::Schema::Result::User",
+  { id => "deletedby" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",

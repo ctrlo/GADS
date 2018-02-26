@@ -1,4 +1,4 @@
-<h2>Graphs</h2>
+<h2>[% IF graph.id %]Edit graph[% ELSE %]Add a graph[% END %]</h2>
 <form role="form" method="post">
     <div class="row">
         <div class="col-md-6">

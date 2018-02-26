@@ -100,6 +100,8 @@ __BODY
 sub upload
 {   my ($self, $file, %options) = @_;
 
+    $file or error __"Please select a file to upload";
+
     my $guard = $self->result_source->schema->txn_scope_guard;
 
     my $csv = Text::CSV->new({ binary => 1 }) # should set binary attribute?
@@ -223,6 +225,30 @@ sub upload
         foreach @welcome_emails;
 
     $count;
+}
+
+sub match
+{   my ($self, $query) = @_;
+
+    my @ids;
+
+    $query = "%$query%";
+
+    my $result = $self->active->search([
+        firstname => { -like => $query },
+        surname   => { -like => $query },
+        email     => { -like => $query },
+        username  => { -like => $query },
+    ],{
+        columns => [qw/id firstname surname username/],
+    });
+
+    return map {
+        +{
+            id   => $_->id,
+            name => $_->surname.", ".$_->firstname." (".$_->username.")",
+        }
+    } $result->all;
 }
 
 sub _user_value

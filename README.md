@@ -101,3 +101,12 @@ bin/generate.pl # Generate random data
 bin/onboard.pl --take-first-enum new.csv # Import random data
 ```
 
+## Front-end workflow
+
+### CSS
+CSS is written in SCSS, and compiled.
+
+The main SCSS files live in `scss/`. A changes monitor and compiler is used by running `npm run watch`.
+
+### Javascript
+A bootstrapping snippet lives in `public/js/linkspace.js`.

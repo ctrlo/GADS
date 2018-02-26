@@ -2,7 +2,7 @@
     [% IF record.current_id %]
         Record ID [% record.current_id %]
     [% ELSE %]
-        New linked record
+        Add a linked record
     [% END %]
 </h2>
 <p></p>

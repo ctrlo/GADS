@@ -2,10 +2,12 @@
 [% edituser = users.shift %]
 [% IF edituser.account_request %]
     <h2>New account request</h2>
+[% ELSIF page == "account/detail" %]
+    <h2>[% edituser.firstname %] [% edituser.surname %] - My details</h2>
 [% ELSIF edituser.id %]
-    <h2>User - [% edituser.value | html_entity %]</h2>
+    <h2>Edit: [% edituser.value | html_entity %]</h2>
 [% ELSE %]
-    <h2>New user</h2>
+    <h2>Add a user</h2>
 [% END %]
 <form method="post" style="display: inline"> <!-- Prevent reset password button line break -->
     <div class="row">
@@ -45,7 +47,7 @@
                     <label for="title">
                         Title:
                         [% IF page == "user" %]
-                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#submitnewtitle">add title</button>
+                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#submitnewtitle">Add title</button>
                         [% END %]
                     </label>
                     <select class="form-control" id="title" name="title">
@@ -61,7 +63,7 @@
                     <label for="organisation">
                         [% site.register_organisation_name %]:
                         [% IF page == "user" %]
-                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#submitneworganisation">add organisation</button>
+                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#submitneworganisation">Add organisation</button>
                         [% END %]
                     </label>
                     <select class="form-control" id="organisation" name="organisation">
@@ -81,10 +83,10 @@
                 </div>
                 [% INCLUDE "snippets/user_permissions.tt" %]
             [% END %]
-            <button type="submit" name="submit" value="submit" class="btn btn-primary">[% IF edituser.id %]Save[% ELSE %]Save[% END %]</button>
+            <button type="submit" name="submit" value="submit" class="btn btn-primary">[% IF edituser.account_request %]Approve request[% ELSE %]Save[% END %]</button>
             [% IF page == "user" AND edituser.id %]
                 [% IF edituser.account_request %]
-                    <button type="submit" name="delete" value="[% edituser.id %]" class="btn btn-default">Reject</button>
+                    <button type="submit" name="delete" value="[% edituser.id %]" class="btn btn-default">Reject request</button>
                 [% ELSE %]
                     <button type="submit" name="delete" value="[% edituser.id %]" class="btn btn-default">Delete</button>
                 [% END %]
@@ -169,10 +171,7 @@
 </form>
 [% ELSE %]
 <p>
-    <a href="/user/0" class="btn btn-default" role="button">Create user</a>
-    <a href="" data-toggle="modal" data-target="#modal-email" class="btn btn-default" role="button">Email users</a>
-    <a href="/user?download" class="btn btn-default" role="button">Download</a>
-    <a href="/user/upload" class="btn btn-default" role="button">Upload</a>
+    <a href="/user/0" class="btn btn-default" role="button">Add a user</a>
 </p>
 [% IF register_requests.size %]
     <h4>Active accounts</h4>
