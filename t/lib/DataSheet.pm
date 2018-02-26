@@ -524,7 +524,7 @@ sub __build_columns
         $tree->type('tree');
         $tree->name("tree$count");
         $tree->name_short("L${instance_id}tree$count");
-        $tree1->set_permissions({$self->group->id => $permissions})
+        $tree->set_permissions({$self->group->id => $permissions})
             unless $self->no_groups;
         $tree->multivalue(1) if $self->multivalue && $self->_multivalue_columns->{tree};
         try { $tree->write };
