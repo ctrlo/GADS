@@ -342,24 +342,6 @@ nav button .heading {
 
   header .navbar-default {
     margin-left: 1em; } }
-
-/*! normalize.css v3.0.0 | MIT License | git.io/normalize */
-@font-face {
-  font-family: 'Open Sans remote';
-  font-style: normal;
-  font-weight: 300;
-  src: local("Open Sans Light"), local("OpenSans-Light"), url("/fonts/Open_Sans_300.eot?#iefix") format("embedded-opentype"), url("/fonts/Open_Sans_300.woff") format("woff"), url("/fonts/Open_Sans_300.woff2") format("woff2"), url("/fonts/Open_Sans_300.svg#OpenSans") format("svg"); }
-@font-face {
-  font-family: 'Open Sans remote';
-  font-style: normal;
-  font-weight: 400;
-  src: local("Open Sans"), local("OpenSans"), url("/fonts/Open_Sans_400.eot?#iefix") format("embedded-opentype"), url("/fonts/Open_Sans_400.woff") format("woff"), url("/fonts/Open_Sans_400.woff2") format("woff2"), url("/fonts/Open_Sans_400.svg#OpenSans") format("svg"); }
-@font-face {
-  font-family: 'Open Sans remote';
-  font-style: normal;
-  font-weight: 700;
-  src: local("Open Sans Bold"), local("OpenSans-Bold"), url("/fonts/Open_Sans_700.eot?#iefix") format("embedded-opentype"), url("/fonts/Open_Sans_700.woff") format("woff"), url("/fonts/Open_Sans_700.woff2") format("woff2"), url("/fonts/Open_Sans_700.svg#OpenSans") format("svg"); }
-
 html {
   font-family: 'Open Sans remote',sans-serif; }
 
@@ -1459,10 +1441,6 @@ small.search_term {
 #data-table th * {
   color: #000; }
 
-#data-table th h2 {
-  margin: 0;
-  font-size: 1.2em; }
-
 #data-table thead button {
   border: 1px solid #bbb;
   background-color: inherit;
@@ -1471,20 +1449,17 @@ small.search_term {
 
 #data-table thead .popover {
   word-break: break-word;
-  margin-top: .5em; }
-
-#data-table thead ul {
-  list-style-type: none;
+  margin-top: 1.2em;
   padding: .5em; }
-
-#data-table thead li {
-  margin: .5em 0; }
 
 #data-table thead .helptext {
   border-bottom: 1px solid #ccc; }
 
 #data-table thead .helptext + * {
   margin: 1em 0 0 0; }
+
+#data-table thead button {
+  margin-top: .5em; }
 
 .controls {
   padding-top: .5em; }

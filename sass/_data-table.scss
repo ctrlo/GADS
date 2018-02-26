@@ -13,11 +13,6 @@
     color: #000;
 }
 
-#data-table th h2 {
-    margin: 0;
-    font-size: 1.2em;
-}
-
 #data-table thead button {
     border: 1px solid #bbb;
     background-color: inherit;
@@ -27,16 +22,8 @@
 
 #data-table thead .popover {
     word-break: break-word;
-    margin-top: .5em;
-}
-
-#data-table thead ul {
-    list-style-type: none;
+    margin-top: 1.2em;
     padding: .5em;
-}
-
-#data-table thead li {
-    margin: .5em 0;
 }
 
 #data-table thead .helptext {
@@ -45,6 +32,10 @@
 
 #data-table thead .helptext + * {
     margin: 1em 0 0 0;
+}
+
+#data-table thead button {
+    margin-top: .5em;
 }
 
 .controls {
