@@ -611,7 +611,7 @@
                     $('#autocur_instance_' + divid).show();
                 });
 
-                [% FOREACH instance IN instance_layouts %]
+                [% FOREACH layout IN instance_layouts %]
                     [% PROCESS builder.tt builder_id = layout.instance_id layout = layout filter_normal = column.filter filter_base64 = column.filter.base64 %]
                 [% END %]
                 [% IF column.filter.as_json AND NOT column.filter.as_json.match('^[{}\s]*$') %]
