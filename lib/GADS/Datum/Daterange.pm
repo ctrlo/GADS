@@ -106,6 +106,7 @@ around 'clone' => sub {
         $self,
         values => $self->values,
         schema => $self->schema,
+        @_,
     );
 };
 

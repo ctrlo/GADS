@@ -236,7 +236,10 @@ foreach my $multivalue (0..1)
                             ok(!$@, "No exception when writing deleted same value with test $test");
                         }
                         else {
-                            like($@, qr/is not a valid/, "Unable to write changed value to one that is deleted");
+                            # As it stands, tree gets a specific deleted error
+                            # message, enum just errors as invalid
+                            my $msg = $type =~ /tree/ ? qr/has been deleted/ : qr/is not a valid/;
+                            like($@, $msg, "Unable to write changed value to one that is deleted");
                         }
                         # We don't have any sensible values to test against,
                         # and the subsequent tests are done for a none-deleted

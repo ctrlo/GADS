@@ -181,7 +181,7 @@ sub validate
         error __x"'{int}' is not a valid tree node ID for '{col}'",
             int => $value, col => $self->name;
     }
-    if ($self->node($value)->{node}->{deleted})
+    if ($self->node($value)->{node}->{attributes}->{deleted})
     {
         return 0 unless $options{fatal};
         error __x"Node '{int}' has been deleted and can therefore not be used"
@@ -214,13 +214,18 @@ sub _build__tree
     my @enumvals = @{$self->enumvals};
     foreach my $enumval (@enumvals)
     {
-        next if $enumval->{deleted};
-        my $parent = $enumval->{parent}; # && $enum->parent->id;
+        # If a node is deleted then still add to the tree, in case it is still
+        # in use and needed for things like code evaluation. However, don't add
+        # it in the tree with a parent, just have it "loose"
+        my $parent = !$enumval->{deleted} && $enumval->{parent}; # && $enum->parent->id;
         my $node = Tree::DAG_Node->new();
         $node->name($enumval->{id});
         $tree->{$enumval->{id}} = {
-            node   => $node,
-            parent => $parent,
+            node       => $node,
+            parent     => $parent,
+            attributes => {
+                deleted => $enumval->{deleted},
+            },
         };
         # Keep order in a list
         push @order, $enumval->{id};

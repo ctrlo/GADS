@@ -186,6 +186,7 @@ around 'clone' => sub {
     $orig->($self,
         id      => $self->id,
         text    => $self->text,
+        @_,
     );
 };
 

@@ -161,7 +161,8 @@ around 'clone' => sub {
         id       => $self->id,
         name     => $self->name,
         mimetype => $self->mimetype,
-        content  => $self->content
+        content  => $self->content,
+        @_,
     );
 };
 

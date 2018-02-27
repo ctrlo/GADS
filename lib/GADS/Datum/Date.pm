@@ -75,7 +75,7 @@ has has_value => (
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
-    $orig->($self, value => $self->value);
+    $orig->($self, value => $self->value, @_);
 };
 
 sub _to_dt

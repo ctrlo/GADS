@@ -157,8 +157,10 @@ has show_for_write => (
         my $self = shift;
         # If any field before this field is not being shown on this page (as
         # it's not ready yet), then also don't show this field. This forces
-        # fields after those not-shown to display on the correct page
-        return 0 if grep {
+        # fields after those not-shown to display on the correct page.
+        # The only exception is if the field depends on another field for
+        # display - in that case, keep it with that field
+        my $is_after_noshow = grep {
             # Don't include those on the previous page - will not be shown regardless
             !$self->record->fields->{$_->id}->value_previous_page
             # Anything already written to also won't be shown regardless
@@ -171,6 +173,8 @@ has show_for_write => (
             # Finally, it's not ready to write, so don't show this one
             && !$self->record->fields->{$_->id}->ready_to_write
         } $self->column->layout->all;
+
+        return 0 if $is_after_noshow && !$self->column->display_field;
 
         if (my $col_id = $self->column->display_field)
         {
