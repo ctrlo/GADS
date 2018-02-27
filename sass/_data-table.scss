@@ -1,0 +1,132 @@
+/* Data table */
+
+.table-rows-pagination {
+    text-align: right;
+}
+
+.table-rows-pagination form,
+.table-rows-pagination .table-pagination {
+    display: inline-block;
+}
+
+#data-table th * {
+    color: #000;
+}
+
+#data-table thead button {
+    border: 1px solid #bbb;
+    background-color: inherit;
+    vertical-align: bottom;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 15em;
+    text-overflow: ellipsis;
+    -ms-text-overflow: ellipsis;
+}
+
+#data-table thead .column-name {
+    font-weight: bold;
+    font-style: italic;
+    font-size: 1.2em;
+    margin-bottom: .2em;
+}
+
+#data-table thead .popover {
+    word-break: keep-all;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    margin-top: 1.2em;
+    padding: .5em;
+}
+
+#data-table thead .helptext {
+    border-bottom: 1px solid #ccc;
+}
+
+#data-table thead .helptext + * {
+    margin: 1em 0 0 0;
+}
+
+#data-table thead button {
+    margin-top: .5em;
+}
+
+.controls {
+    padding-top: .5em;
+}
+
+/* Person contact details popover */
+
+.person.contact-details {
+    max-width: 25em;
+    padding: .5em;
+    margin: .5em;
+}
+
+/* RAG legend */
+
+#rag_legend {
+    display: inline-block;
+    border: 1px solid #c3c3c3;
+    padding: .5em;
+}
+
+#rag_legend h2 {
+    font-size: 1.1em;
+    margin: 0;
+    margin-bottom: .5em;
+}
+
+#rag_legend dl {
+    margin: 0;
+    padding: 0;
+}
+
+#rag_legend dt,
+#rag_legend dd {
+    display: inline-block;
+}
+
+#rag_legend dd {
+    padding-right: 1.5em;
+}
+
+/* Column RAG */
+
+.rag {
+    text-align: center;
+}
+
+.rag span {
+    min-width: 1.5em;
+    display: inline-block;
+    font-size: 1.2em;
+    padding: 0 0.2em;
+    border-bottom: 0.2em solid #000;
+}
+
+.rag .undefined {
+    border-bottom-color: $rag-undefined;
+    background-color: $rag-undefined-bg;
+}
+
+.rag .danger {
+    border-bottom-color: $rag-danger;
+    background-color: $rag-danger-bg;
+}
+
+.rag .warning {
+    border-bottom-color: $rag-warning;
+    background-color: $rag-warning-bg;
+}
+
+.rag .success {
+    border-bottom-color: $rag-success;
+    background-color: $rag-success-bg;
+}
+
+.rag .unexpected {
+    border-bottom-color: $rag-unexpected;
+    background-color: $rag-unexpected-bg;
+}
+

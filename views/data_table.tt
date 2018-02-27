@@ -36,50 +36,55 @@
     </div>
 [% END %]
 
-<div class="hscroll">
-<table class="table table-striped" id="data-table">
+<div class="hscroll row">
+<table class="table table-striped col-md-12" id="data-table">
     <thead>
         <tr>
             [% sort = sort.shift %]
             [% sort_order = sort.type %]
-            [% sort_label = sort_order == "asc" ? "sort descending" : "sort ascending" %]
+            [% sort_label = '&udarr; sort ' _ (sort_order == "asc" ? "descending" : "ascending") %]
 
             [% IF sort.id == -11 AND sort.type == "asc" %]
-                [% st = "&#9650;" %]
+                [% st = "&darr;" %]
             [% ELSIF sort.id == -11 %]
-                [% st = "&#9660;" %]
+                [% st = "&uarr;" %]
             [% ELSE %]
                 [% st = "" %]
             [% END %]
-            <th [% sort.id == -11 && "aria-sort=\"${sort_order}ending\"" %]>
-                <a href="?sort=-11">ID[% st %]
-                    [% sort.id == -11 && "<span class=\"visually-hidden\">${sort_label}</span>" %]
-                </a>
+            <th scope="col" [% sort.id == -11 && "aria-sort=\"${sort_order}ending\"" %]>
+                <button type="button" class="trigger" aria-expanded="false" aria-controls="col--11-options">[% st %]ID &rsaquo;</button>
+                <div class="expandable popover" id="col--11-options">
+                    <div class="column-name">ID</div>
+                    [% IF col.helptext %]
+                    <p class="helptext">[% col.helptext | html_entity %]</p>
+                    [% END %]
+                    <a href="?sort=-11">[% sort_label %]</a>
+                </div>
             </th>
             [% FOREACH col IN columns %]
                 [% IF sort.id == col.id AND sort.type == "asc" %]
-                    [% st = "&#9650;" %]
+                    [% st = "&darr;" %]
                 [% ELSIF sort.id == col.id %]
-                    [% st = "&#9660;" %]
+                    [% st = "&uarr;" %]
                 [% ELSE %]
                     [% st = "" %]
                 [% END %]
-                <th>
-                    <a [% sort.id == col.id && "aria-sort=\"${sort_order}ending\"" %] href="?sort=[% col.id %]">
-                        [% col.name | html_entity %][% IF col.id == sort.id %][% st %][% END %]
-                        [% sort.id == col.id && "<span class=\"visually-hidden\">${sort_label}</span>" %]
-                    </a>
-                    [% IF col.helptext %]
-                        <button aria-haspopup="true" data-toggle="modal" data-target="#modal_helptext" data-col_id="[% col.id %]" data-col_name="[% col.name | html %]">
-                             <span class="visually-hidden">Need help</span>?
-                        </button>
-                    [% END %]
-
-                    [% IF col.type == "person" AND layout.user_can("message") AND records.size %]
-                        <button aria-haspopup="true" data-toggle="modal" data-target="#modal_sendemail" data-peopcol_id="[% col.id %]">
-                            <span class="visually-hidden">Send e-mail</span>&#x2709;
-                        </button>
-                    [% END %]
+                <th scope="col" [% sort.id == col.id && "aria-sort=\"${sort_order}ending\"" %]>
+                    <button type="button" class="trigger" aria-expanded="false" aria-controls="col-[% col.id %]-options">[% st %][% col.name | html_entity %] &rsaquo; </button>
+                    <div class="expandable popover" id="col-[% col.id %]-options">
+                        <div class="column-name">[% col.name | html_entity %]</div>
+                        [% IF col.helptext %]
+                        <p class="helptext">[% col.helptext | html_entity %]</p>
+                        [% END %]
+                        <a href="?sort=[% col.id %]">[% sort_label %]</a>
+                        [% IF col.type == "person" AND layout.user_can("message") AND records.size %]
+                            <button aria-haspopup="true" type="button" class="btn btn-sm btn-primary"
+                                data-toggle="modal" data-target="#modal_sendemail" data-peopcol_id="[% col.id %]">
+                                <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
+                                Email each person in this column
+                            </button>
+                        [% END %]
+                    </div>
                 </th>
             [% END %]
         </tr>
