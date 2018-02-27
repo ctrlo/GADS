@@ -18,6 +18,17 @@
     background-color: inherit;
     vertical-align: bottom;
     white-space: nowrap;
+    overflow: hidden;
+    max-width: 15em;
+    text-overflow: ellipsis;
+    -ms-text-overflow: ellipsis;
+}
+
+#data-table thead .column-name {
+    font-weight: bold;
+    font-style: italic;
+    font-size: 1.2em;
+    margin-bottom: .2em;
 }
 
 #data-table thead .popover {

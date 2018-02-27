@@ -1445,7 +1445,17 @@ small.search_term {
   border: 1px solid #bbb;
   background-color: inherit;
   vertical-align: bottom;
-  white-space: nowrap; }
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 15em;
+  text-overflow: ellipsis;
+  -ms-text-overflow: ellipsis; }
+
+#data-table thead .column-name {
+  font-weight: bold;
+  font-style: italic;
+  font-size: 1.2em;
+  margin-bottom: .2em; }
 
 #data-table thead .popover {
   word-break: break-word;

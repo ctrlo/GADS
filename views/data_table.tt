@@ -54,6 +54,7 @@
             <th scope="col" [% sort.id == -11 && "aria-sort=\"${sort_order}ending\"" %]>
                 <button type="button" class="trigger" aria-expanded="false" aria-controls="col--11-options">[% st %]ID &rsaquo;</button>
                 <div class="expandable popover" id="col--11-options">
+                    <div class="column-name">ID</div>
                     [% IF col.helptext %]
                     <p class="helptext">[% col.helptext | html_entity %]</p>
                     [% END %]
@@ -71,6 +72,7 @@
                 <th scope="col" [% sort.id == col.id && "aria-sort=\"${sort_order}ending\"" %]>
                     <button type="button" class="trigger" aria-expanded="false" aria-controls="col-[% col.id %]-options">[% st %][% col.name | html_entity %] &rsaquo; </button>
                     <div class="expandable popover" id="col-[% col.id %]-options">
+                        <div class="column-name">[% col.name | html_entity %]</div>
                         [% IF col.helptext %]
                         <p class="helptext">[% col.helptext | html_entity %]</p>
                         [% END %]
