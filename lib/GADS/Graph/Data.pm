@@ -20,6 +20,8 @@ package GADS::Graph::Data;
 
 use HTML::Entities;
 use JSON qw(decode_json encode_json);
+use List::Util qw(sum);
+use Math::Round qw(round);
 use Text::CSV::Encoded;
 use Scalar::Util qw(looks_like_number);
 
@@ -428,6 +430,25 @@ sub _build_data
         }
     }
 
+    if ($self->as_percent && $self->type ne "pie" && $self->type ne "donut")
+    {
+        if ($group_by_col)
+        {
+            my ($random) = keys %$series;
+            my $count = @{$series->{$random}->{data}}; # Number of data points for each series
+            for my $i (0..$count-1)
+            {
+                my $sum = _sum( map { $series->{$_}->{data}->[$i] } keys %$series );
+                $series->{$_}->{data}->[$i] = _to_percent($sum, $series->{$_}->{data}->[$i])
+                    foreach keys %$series;
+            }
+        }
+        else {
+            my $sum = _sum( @{$series->{1}->{data}} );
+            $series->{1}->{data} = [ map { _to_percent($sum, $_) } @{$series->{1}->{data}} ];
+        }
+    }
+
     # If this graph is measuring against a metric, recalculate against that
     my $metric_max;
     if (my $metric_group_id = $self->metric_group_id)
@@ -470,10 +491,15 @@ sub _build_data
         foreach my $k (keys %$series)
         {
             my @ps;
-            my $s = $series->{$k}->{data};
+            my @data = @{$series->{$k}->{data}};
             my $idx = 0;
+            if ($self->as_percent)
+            {
+                my $sum = _sum(@data);
+                @data = map { _to_percent($sum, $_) } @data;
+            }
             push @ps, [
-                $_, ($s->[$idx++]||0),
+                $_, ($data[$idx++]||0),
             ] foreach @xlabels;
             push @points, \@ps;
         }
@@ -535,6 +561,13 @@ sub _format_curcommon
     $line->get_column($column->field) or return;
     $column->format_value(map { $line->get_column($_->field) } @{$column->curval_fields});
 }
+
+sub _to_percent
+{   my ($sum, $value) = @_;
+    round(($value / $sum) * 100 ) + 0;
+}
+
+sub _sum { sum(map {$_ || 0} @_) }
 
 1;
 

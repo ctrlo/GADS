@@ -92,6 +92,12 @@ __PACKAGE__->table("graph");
   default_value: 0
   is_nullable: 0
 
+=head2 as_percent
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
 =head2 type
 
   data_type: 'varchar'
@@ -132,6 +138,8 @@ __PACKAGE__->add_columns(
   "group_by",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "stackseries",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "as_percent",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "type",
   { data_type => "varchar", is_nullable => 1, size => 45 },

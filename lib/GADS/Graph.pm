@@ -62,6 +62,7 @@ has set_values => (
         $self->y_axis_stack($original->{y_axis_stack});
         $self->description($original->{description});
         $self->stackseries($original->{stackseries});
+        $self->as_percent($original->{as_percent});
         $self->type($original->{type});
         $self->group_by($original->{group_by});
         $self->title($original->{title});
@@ -124,6 +125,13 @@ has stackseries => (
     lazy    => 1,
     coerce  => sub { $_[0] ? 1 : 0 },
     builder => sub { $_[0]->_graph && $_[0]->_graph->stackseries },
+);
+
+has as_percent => (
+    is      => 'rw',
+    lazy    => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    builder => sub { $_[0]->_graph && $_[0]->_graph->as_percent },
 );
 
 has y_axis => (
@@ -215,6 +223,7 @@ sub write
         or error __x"Invalid metric group ID {id}", id => $self->metric_group_id;
 
     $newgraph->{stackseries}     = $self->stackseries;
+    $newgraph->{as_percent}      = $self->as_percent;
 
     $newgraph->{type}            = $self->type;
     grep { $self->type eq $_ } GADS::Graphs->types
@@ -246,6 +255,7 @@ sub import_hash
     $self->x_axis_grouping($values->{x_axis_grouping});
     $self->group_by($values->{group_by});
     $self->stackseries($values->{stackseries});
+    $self->as_percent($values->{as_percent});
     $self->type($values->{type});
     $self->metric_group($values->{metric_group_id});
 }
@@ -262,6 +272,7 @@ sub export_hash
         x_axis_grouping => $self->x_axis_grouping,
         group_by        => $self->group_by,
         stackseries     => $self->stackseries,
+        as_percent      => $self->as_percent,
         type            => $self->type,
         metric_group    => $self->metric_group_id,
     };

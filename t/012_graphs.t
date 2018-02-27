@@ -101,6 +101,24 @@ foreach my $multivalue (0..1)
             data         => [[ 50, 10, 20 ]],
         },
         {
+            name         => 'String x-axis, integer sum y-axis as percent',
+            type         => 'bar',
+            x_axis       => $columns->{string1}->id,
+            y_axis       => $columns->{integer1}->id,
+            y_axis_stack => 'sum',
+            as_percent   => 1,
+            data         => [[ 63, 13, 25 ]],
+        },
+        {
+            name         => 'Pie as percent',
+            type         => 'pie',
+            x_axis       => $columns->{string1}->id,
+            y_axis       => $columns->{integer1}->id,
+            y_axis_stack => 'sum',
+            as_percent   => 1,
+            data         => [[[ 'Bar', 63 ], ['Foo', 13], ['FooBar', 25 ]]],
+        },
+        {
             name         => 'String x-axis, integer sum y-axis with view filter',
             type         => 'bar',
             x_axis       => $columns->{string1}->id,
@@ -142,6 +160,16 @@ foreach my $multivalue (0..1)
             y_axis_stack => 'sum',
             group_by     => $columns->{enum1}->id,
             data         => $multivalue ? [[ 0, 0, 20 ], [ 35, 0, 20 ], [ 15, 10, 0 ]] : [[ 35, 0, 20 ], [ 15, 10, 0 ]],
+        },
+        {
+            name         => 'String x-axis, sum y-axis, group by enum as percent',
+            type         => 'bar',
+            x_axis       => $columns->{string1}->id,
+            y_axis       => $columns->{integer1}->id,
+            y_axis_stack => 'sum',
+            group_by     => $columns->{enum1}->id,
+            as_percent   => 1,
+            data         => $multivalue ? [[ 0, 0, 50 ], [ 70, 0, 50 ], [ 30, 100, 0 ]] : [[ 70, 0, 100 ], [ 30, 100, 0 ]],
         },
         {
             name         => 'Filter on multi-value enum',
@@ -324,6 +352,7 @@ foreach my $multivalue (0..1)
         $graph->y_axis_stack($g->{y_axis_stack});
         $graph->group_by($g->{group_by})
             if $g->{group_by};
+        $graph->as_percent($g->{as_percent});
         $graph->write;
 
         my $view;
