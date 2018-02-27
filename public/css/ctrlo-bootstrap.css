@@ -1458,6 +1458,7 @@ small.search_term {
   margin-bottom: .2em; }
 
 #data-table thead .popover {
+  word-break: keep-all;
   word-break: break-word;
   overflow-wrap: break-word;
   margin-top: 1.2em;
