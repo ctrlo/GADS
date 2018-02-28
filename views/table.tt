@@ -20,6 +20,7 @@
                             <th>Manage fields</th>
                             <th>Send messages</th>
                             <th>Create and edit views</th>
+                            <th>Create and edit group views</th>
                             <th>Create and edit child records</th>
                             <th>Bulk update records</th>
                             <th>Create and manage linked records</th>
@@ -48,6 +49,9 @@
                                 </td>
                                 <td>
                                     <input type="checkbox" name="permissions" value="[% group.id %]_view_create" [% IF layout_edit.group_has(group.id, 'view_create') %]checked[% END %]>
+                                </td>
+                                <td>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_view_group" [% IF layout_edit.group_has(group.id, 'view_group') %]checked[% END %]>
                                 </td>
                                 <td>
                                     <input type="checkbox" name="permissions" value="[% group.id %]_create_child" [% IF layout_edit.group_has(group.id, 'create_child') %]checked[% END %]>

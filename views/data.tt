@@ -35,7 +35,7 @@
                             [% END %]
                             [% IF v %]
                                 [% IF layout.user_can("view_create") %]
-                                    [% IF !v.global OR layout.user_can("layout") %]
+                                    [% IF v.writable %]
                                         <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/[% v.id %]">Edit this view</a></li>
                                     [% END %]
                                     <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0?clone=[% v.id %]">Clone this view</a></li>

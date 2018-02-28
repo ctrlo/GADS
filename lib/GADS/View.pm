@@ -87,9 +87,12 @@ has _view => (
             return;
         }
         # Check whether user has read access to view
-        if ($self->has_id && $self->layout->user && !$view->global && !$view->is_admin
-            && !$self->layout->user_can("layout") && $view->user_id != $self->layout->user->{id}
-        )
+        my $user_id = $self->layout->user->{id};
+        my $no_access = $self->has_id && $self->layout->user && !$view->global && !$view->is_admin
+            && !$self->layout->user_can("layout") && $view->user_id != $user_id;
+        $no_access ||= $view->global && $view->group_id
+            && !$self->schema->resultset('User')->find($user_id)->has_group->{$view->group_id};
+        if ($no_access)
         {
             error __x"User {user} does not have access to view {view}",
                 user => $self->layout->user->{id}, view => $self->id;
@@ -118,6 +121,14 @@ has is_admin => (
     isa     => Bool,
     lazy    => 1,
     builder => sub { $_[0]->_view && $_[0]->_view->is_admin || 0 },
+);
+
+has group_id => (
+    is      => 'rw',
+    isa     => Maybe[Int],
+    lazy    => 1,
+    coerce  => sub { $_[0] || undef },
+    builder => sub { $_[0]->_view && $_[0]->_view->group_id },
 );
 
 has name => (
@@ -228,22 +239,27 @@ has owner => (
     builder => sub { $_[0]->_view && $_[0]->_view->user_id },
 );
 
-has _writable => (
+has writable => (
     is      => 'lazy',
     isa     => Bool,
     clearer => 1,
 );
 
-sub _build__writable
+sub _build_writable
 {   my $self = shift;
     if (!$self->layout->user)
     {
         # Special case - no user means writable (for tests)
         return 1;
     }
-    elsif ($self->global || $self->is_admin)
+    elsif ($self->is_admin)
     {
         return 1 if $self->layout->user_can("layout");
+    }
+    elsif ($self->global)
+    {
+        return 1 if !$self->group_id && $self->layout->user_can("layout");
+        return 1 if $self->group_id && $self->layout->user_can("view_group");
     }
     elsif (!$self->has_id)
     {
@@ -275,7 +291,7 @@ sub write
 
     my $global   = !$self->layout->user ? 1 : $self->global;
 
-    $self->_clear_writable; # Force rebuild based on any updated values
+    $self->clear_writable; # Force rebuild based on any updated values
 
     my $vu = {
         name        => $self->name,
@@ -283,6 +299,7 @@ sub write
         instance_id => $self->instance_id,
         global      => $global,
         is_admin    => $self->is_admin,
+        group_id    => $self->group_id,
     };
 
     if ($global || $self->is_admin)
@@ -328,7 +345,7 @@ sub write
             unless $col->user_can('read');
     }
 
-    $self->_writable
+    $self->writable
         or error $self->id
             ? __x("User {user_id} does not have access to modify view {id}", user_id => $self->layout->user->{id}, id => $self->id)
             : __x("User {user_id} does not have permission to create new views", user_id => $self->layout->user->{id});
@@ -428,7 +445,7 @@ sub write
 sub delete
 {   my $self = shift;
 
-    $self->_writable
+    $self->writable
         or error __x"You do not have permission to delete {id}", id => $self->id;
     my $vl = $self->schema->resultset('ViewLimit')->search({
         view_id => $self->id,

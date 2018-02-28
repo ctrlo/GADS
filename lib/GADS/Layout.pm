@@ -349,6 +349,7 @@ sub write
             layout       => 1,
             message      => 1,
             view_create  => 1,
+            view_group   => 1,
             create_child => 1,
             bulk_update  => 1,
             link         => 1,

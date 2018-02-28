@@ -72,17 +72,27 @@ has layout => (
 
 sub _user_views
 {   my $self = shift;
-    my @search = (
-        # Allow user ID to be overridden, but only if the logged-in user has permission
-        user_id => ($self->user_has_layout && $self->other_user_id) || ($self->layout->user && $self->layout->user->{id}),
-        global  => 1,
-    );
-    push @search, (is_admin => 1) if $self->user_has_layout;
+    # Allow user ID to be overridden, but only if the logged-in user has permission
+    my $user_id = ($self->user_has_layout && $self->other_user_id) || ($self->layout->user && $self->layout->user->{id});
+    my $search = [
+        'me.user_id' => $user_id,
+        {
+            global  => 1,
+            -or     => [
+                'me.group_id'         => undef,
+                'user_groups.user_id' => $user_id,
+            ],
+        }
+    ];
+    push @$search, (is_admin => 1) if $self->user_has_layout;
     my @views = $self->schema->resultset('View')->search({
-        -or         => [@search],
+        -or         => $search,
         instance_id => $self->instance_id,
     },{
-            order_by => ['global', 'is_admin', 'name'],
+        join     => {
+            group => 'user_groups',
+        },
+        order_by => ['me.global', 'me.is_admin', 'me.name'],
     })->all;
     \@views;
 }

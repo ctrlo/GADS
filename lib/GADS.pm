@@ -256,6 +256,7 @@ hook before_template => sub {
         $tokens->{instances}     = var('instances')->all;
         $tokens->{instance_name} = var('layout')->name if var('layout');
         $tokens->{user}          = $user;
+        $tokens->{user_rs}       = rset('User')->find(logged_in_user->{id});
         $tokens->{search}        = session 'search';
         # Somehow this sets the instance_id session if no persistent session exists
         $tokens->{instance_id}   = session('persistent')->{instance_id}
@@ -1335,6 +1336,7 @@ any '/view/:id' => require_login sub {
         $view->columns($columns);
         $view->global(param('global') ? 1 : 0);
         $view->is_admin(param('is_admin') ? 1 : 0);
+        $view->group_id(param 'group_id');
         $view->name  (param 'name');
         $view->filter->as_json(param 'filter');
         if (process( sub { $view->write }))

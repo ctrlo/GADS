@@ -14,17 +14,34 @@
                 <label for="name">View name:</label>
                 <input type="text" class="form-control" id="name" name="name" value="[% view_edit.name | html_entity %]">
             </div>
-            [% IF layout.user_can("layout") %]
+            [% IF layout.user_can("layout") OR layout.user_can("view_group") %]
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" name="global" [% IF view_edit.global %]checked[% END %]>Shared view
+                        <input id="global" type="checkbox" name="global" [% IF view_edit.global %]checked[% END %]>Shared view
                     </label>
                 </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="is_admin" [% IF view_edit.is_admin %]checked[% END %]>Administration view (only visible to table administrators)
-                    </label>
+                <div id="group_id_div">
+                    <label for="group_id">Share with:</label>
+                    <select class="form-control" id="group_id" name="group_id">
+                        [% IF layout.user_can("layout") %]
+                            <option value="" [% IF NOT view_edit.group_id %]selected[% END %]>&lt;All users&gt;</option>
+                        [% END %]
+                        [% IF layout.user_can("view_group") %]
+                            [% FOREACH group IN user_rs.groups %]
+                                <option value="[% group.id %]"
+                                    [% IF view_edit.group_id == group.id %]selected[% END %]>[% group.name | html_entity %]
+                                </option>
+                            [% END %]
+                        [% END %]
+                    </select>
                 </div>
+                [% IF layout.user_can("layout") %]
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="is_admin" [% IF view_edit.is_admin %]checked[% END %]>Administration view (only visible to table administrators)
+                        </label>
+                    </div>
+                [% END %]
             [% END %]
             <p>Select the fields you want to include in your view.</p>
             <table class="table table-striped">
@@ -130,6 +147,9 @@
         $('#selectall').click(function() {
             $('.col_check').prop('checked', this.checked);
         });
+        $('#global').change(function () {
+            $('#group_id_div').toggle(this.checked);
+        }).change();
         $(document).ready(function () {
             $('div#sorts').on('click','.closeme', function(){
                 var c = $(".request-row").length;

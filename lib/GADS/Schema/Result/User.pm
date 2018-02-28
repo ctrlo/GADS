@@ -667,6 +667,12 @@ sub _build_has_group
 sub groups
 {   my ($self, $logged_in_user, $groups) = @_;
 
+    if (!$logged_in_user && !$groups)
+    {
+        # Just return current value
+        return map { $_->group } $self->user_groups;
+    }
+
     foreach my $g (@$groups)
     {
         next unless $logged_in_user->permission->{superadmin} || $logged_in_user->has_group->{$g};

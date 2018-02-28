@@ -17,12 +17,16 @@ my $columns = $sheet->columns;
 $sheet->create_records;
 
 # Standard users with permission to create views
-my $user_create1 = $sheet->create_user(permissions => [qw/view_create/]);
-my $user_create2 = $sheet->create_user(permissions => [qw/view_create/]);
+my $user_create1    = $sheet->create_user(permissions => [qw/view_create/]);
+my $user_create2    = $sheet->create_user(permissions => [qw/view_create/]);
+my $user_create2_rs = $schema->resultset('User')->find($user_create2->{id});
 # Super-admin user
-my $user_admin   = $sheet->user;
+my $user_admin    = $sheet->user;
+my $user_admin_rs = $schema->resultset('User')->find($user_admin->{id});
 # User with manage fields permission
 my $user_layout  = $sheet->create_user(permissions => [qw/layout/]);
+# User with manage group views
+my $user_view_group  = $sheet->create_user(permissions => [qw/view_create view_group/]);
 # User with no manage view permissions
 my $user_nothing = $sheet->create_user;
 
@@ -67,9 +71,53 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
     try { $view->write };
     ok($@, "Failed to write $test view as normal user");
 
+    # Create view as user with group view permission
+    $layout->user($user_view_group);
+    $layout->clear;
+    try { $view->write };
+    ok($@, "Failed to write $test view as view_group user and no group");
+    $view->group_id($sheet->group->id);
+    try { $view->write };
+    my $success = $test eq 'global';
+    ok($success ? !$@ : $@, "Created view with group as view_group user test $test");
+
+    # Read group view as normal user in that group, only if global view not admin view
+    $view2 = GADS::View->new(%view_template, id => $view->id);
+    my @current_groups = map { $_->id } $user_create2_rs->groups;
+    $user_create2_rs->groups($user_admin_rs, [$sheet->group->id]);
+    $layout->user($user_create2);
+    $layout->clear;
+    try { $view2->filter };
+    ok($success ? !$@ : $@, "Read group view as normal user of $test view in that group");
+    my $views = GADS::Views->new(
+        schema      => $schema,
+        layout      => $layout,
+        instance_id => $layout->instance_id,
+    );
+    my $has_view = grep { $_->id == $view->id } @{$views->user_views};
+    ok($success && $has_view || !$success, "User has view in list of available views");
+
+    # Read group view as normal user not in that group
+    $view2 = GADS::View->new(%view_template, id => $view->id);
+    $user_create2_rs->groups($user_admin_rs, []);
+    $layout->user($user_create2);
+    $layout->clear;
+    try { $view2->filter };
+    ok($@, "Read group view as normal user of $test view not in that group");
+    $views = GADS::Views->new(
+        schema      => $schema,
+        layout      => $layout,
+        instance_id => $layout->instance_id,
+    );
+    $has_view = grep { $_->id == $view->id } @{$views->user_views};
+    ok($success && !$has_view || !$success, "User has view in list of available views");
+    # Return to previous setting
+    $user_create2_rs->groups($user_admin_rs, [@current_groups]);
+
     # Now as admin user
     $layout->user($user_admin);
     $layout->clear;
+    $view->group_id(undef);
     try { $view->write };
     ok(!$@, "Created $test view as admin user");
 
