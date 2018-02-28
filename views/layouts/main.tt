@@ -289,13 +289,13 @@
             $('input, text').placeholder();
         </script>
 
-        <script type="text/javascript" src="[% url.js %]/linkspace.js"></script>
 
         [% IF page.match('(layout|edit|approval|bulk)') %]
             <script src="[% url.js %]/jstree.min.js"></script>
             <script src="[% url.js %]/jstree-misc.js"></script>
             <script src="[% url.js %]/bootstrap-select.min.js"></script>
         [% END %]
+
         <script src="[% url.js %]/linkspace.js"></script>
     </body>
 </html>
