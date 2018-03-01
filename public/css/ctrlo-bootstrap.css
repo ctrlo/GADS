@@ -1373,44 +1373,8 @@ small.search_term {
 #reveal_password:checked ~ .reveal_area {
   display: block; }
 
-<<<<<<< HEAD
 /* disclosure widget */
 .expandable {
-=======
-.select-widget .form-control {
-  height: auto;
-  margin-bottom: .2em; }
-
-.select-widget .form-control > * {
-  width: 6em;
-  display: inline-block;
-  vertical-align: top; }
-
-.select-widget .label {
-  font-size: 1em;
-  font-weight: bold;
-  margin: 0;
-  padding: 0; }
-
-.select-widget-label {
-  margin-bottom: .3em; }
-
-.select-widget button {
-  border: 1px solid #336699;
-  border-radius: 0;
-  font-family: Helvetica, sans-serif;
-  vertical-align: top;
-  margin-bottom: .5em; }
-
-.select-widget .change {
-  margin-top: .3em; }
-
-.select-widget button:hover,
-.select-widget button:focus {
-  background-color: #eeefff; }
-
-.select-widget .chevron {
->>>>>>> Support single/multi value selection widget
   display: none; }
 
 .trigger[aria-expanded="true"] + .expandable,
@@ -1455,17 +1419,8 @@ small.search_term {
   height: 60px;
   overflow: hidden; }
 
-<<<<<<< HEAD
 .more-less.transparent {
   color: transparent; }
-=======
-.select-widget .current {
-  margin: 0 .5em;
-  margin-top: .2em;
-  width: 27em;
-  text-align: left;
-  display: inline-block; }
->>>>>>> Support single/multi value selection widget
 
 .more-less .column-content {
   padding: .5em;
@@ -1475,31 +1430,16 @@ small.search_term {
   overflow-wrap: break-word;
   word-break: initial; }
 
-<<<<<<< HEAD
 /* Data table */
 .table-rows-pagination {
   text-align: right; }
-=======
-.select-widget .available .answer {
-  border-bottom: 1px solid #ccc;
-  margin: .5em 0;
-  padding: .3em .2em;
-  overflow: hidden; }
->>>>>>> Support single/multi value selection widget
 
 .table-rows-pagination form,
 .table-rows-pagination .table-pagination {
   display: inline-block; }
 
-<<<<<<< HEAD
 #data-table th * {
   color: #000; }
-=======
-.select-widget .available .control {
-  width: 26em;
-  text-align: left;
-  float: left; }
->>>>>>> Support single/multi value selection widget
 
 #data-table thead button {
   border: 1px solid #bbb;
@@ -1517,21 +1457,12 @@ small.search_term {
   font-size: 1.2em;
   margin-bottom: .2em; }
 
-<<<<<<< HEAD
 #data-table thead .popover {
   word-break: keep-all;
   word-break: break-word;
   overflow-wrap: break-word;
   margin-top: 1.2em;
   padding: .5em; }
-=======
-.edit-controls {
-  min-height: 4em;
-  padding-top: .5em;
-  border: 1px solid #c8c8c8;
-  box-shadow: .5em .5em .5em .5em #000;
-  margin-bottom: 0; }
->>>>>>> Support single/multi value selection widget
 
 #data-table thead .helptext {
   border-bottom: 1px solid #ccc; }
@@ -1756,7 +1687,8 @@ small.search_term {
   display: inline-block; }
 
 .select-widget .form-control {
-  height: auto; }
+  height: auto;
+  margin-bottom: .2em; }
 
 .select-widget .form-control > * {
   width: 6em;
@@ -1809,7 +1741,8 @@ small.search_term {
 
 .select-widget .current {
   margin: 0 .5em;
-  width: 30em;
+  margin-top: .2em;
+  width: 27em;
   text-align: left;
   display: inline-block; }
 
@@ -1817,7 +1750,7 @@ small.search_term {
   border: 1px solid #336699;
   padding: .5em; }
 
-.select-widget .available li {
+.select-widget .available .answer {
   border-bottom: 1px solid #ccc;
   margin: .5em 0;
   padding: .3em .2em;
@@ -1830,7 +1763,7 @@ small.search_term {
   float: right; }
 
 .select-widget .available .control {
-  width: 30em;
+  width: 26em;
   text-align: left;
   float: left; }
 
@@ -1851,7 +1784,8 @@ small.search_term {
   min-height: 4em;
   padding-top: .5em;
   border: 1px solid #c8c8c8;
-  box-shadow: .5em .5em .5em .5em #000; }
+  box-shadow: .5em .5em .5em .5em #000;
+  margin-bottom: 0; }
 
 #edit-form {
   margin-bottom: 4em; }
