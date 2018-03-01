@@ -692,7 +692,6 @@
     [% END %]
 
     <div class="select-widget multi">
-        <input type="hidden" name="[% field %]" id="[% field %]_value">
         <div id="[% field %]_label"class="select-widget-label">[% label %]</div>
         <div class="form-group form-control">
             <ul class="current">
@@ -721,7 +720,7 @@
             [% value_id = field _ '_' _ value.id %]
             <li>
                 <span class="control">
-                    <input id="[% value_id %]" type="checkbox" [% checked && 'checked' %]>
+                    <input id="[% value_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %]>
                     <label id="[% value_id %]_label"for="[% value_id %]">[% value.mainvalue | html_entity %]</label>
                     <div>[% value.subvalue | html_entity %]</div>
                 </span>
@@ -746,7 +745,6 @@
 
 [% BLOCK enum_multivalue_column %]
     <div class="select-widget multi">
-        <input type="hidden" name="[% field %]" id="[% field %]_value">
         <div id="[% field %]_label"class="select-widget-label">[% label %]</div>
         <div class="form-group form-control">
             <ul class="current">
@@ -775,7 +773,7 @@
             [% value_id = field _ '_' _ value.id %]
             <li class="answer">
                 <span class="control">
-                    <input id="[% value_id %]" type="checkbox" [% checked && 'checked' %]>
+                    <input id="[% value_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %]>
                     <label id="[% value_id %]_label"for="[% value_id %]">[% value.value | html_entity %]</label>
                     <div>[% value.subvalue | html_entity %]</div>
                 </span>
@@ -790,7 +788,6 @@
 
 [% BLOCK enum_singlevalue_column %]
     <div class="select-widget single">
-        <input type="hidden" name="[% field %]" id="[% field %]_value">
         <div id="[% field %]_label"class="select-widget-label">[% label %]</div>
         <div class="form-group form-control">
             <ul class="current">
@@ -820,7 +817,7 @@
             [% value_id = field _ '_' _ value.id %]
             <li class="answer">
                 <span class="control">
-                    <input id="[% value_id %]" type="radio" name="[% field %]_available_value" [% checked && 'checked' %]>
+                    <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %]>
                     <label id="[% value_id %]_label"for="[% value_id %]">[% value.value | html_entity %]</label>
                     <div>[% value.subvalue | html_entity %]</div>
                 </span>
