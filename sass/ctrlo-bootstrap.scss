@@ -1151,6 +1151,7 @@ small.search_term {
     width: 6em;
     display: inline-block;
     vertical-align: top;
+    text-align: right;
 }
 
 .select-widget .label {
@@ -1181,12 +1182,13 @@ small.search_term {
     background-color: #eeefff;
 }
 
-.select-widget .chevron {
+.select-widget .expanded,
+.select-widget .collapsed {
     display: none;
 }
 
-.select-widget [aria-expanded="false"] .chevron.collapsed,
-.select-widget [aria-expanded="true"] .chevron.expanded {
+.select-widget [aria-expanded="false"] .collapsed,
+.select-widget [aria-expanded="true"] .expanded {
     display: inline;
 }
 

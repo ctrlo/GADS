@@ -707,9 +707,8 @@
                 <button class="change" type="button" aria-controls="[% field %]_available_values" 
                         aria-expanded="false" aria-describedby="[% field %]_label"
                 >
-                    Change 
-                    <span class="chevron expanded">&larr;</span>
-                    <span class="chevron collapsed">&rarr;</span>
+                    <span class="expanded">Confirm</span>
+                    <span class="collapsed">Change</span>
                 </button>
             </span>
         </div>
@@ -760,9 +759,8 @@
                 <button class="change" type="button" aria-controls="[% field %]_available_values" 
                         aria-expanded="false" aria-describedby="[% field %]_label"
                 >
-                    Change 
-                    <span class="chevron expanded">&larr;</span>
-                    <span class="chevron collapsed">&rarr;</span>
+                    <span class="expanded">Confirm</span>
+                    <span class="collapsed">Change</span>
                 </button>
             </span>
         </div>
@@ -773,9 +771,8 @@
             [% value_id = field _ '_' _ value.id %]
             <li class="answer">
                 <span class="control">
-                    <input id="[% value_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %] value="[% value.value | html_entity %]">
+                    <input id="[% value_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %] value="[% value.id %]">
                     <label id="[% value_id %]_label"for="[% value_id %]">[% value.value | html_entity %]</label>
-                    <div>[% value.subvalue | html_entity %]</div>
                 </span>
                 <span>
                     <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">View details</button>
@@ -803,9 +800,9 @@
                 <button class="change" type="button" aria-controls="[% field %]_available_values" 
                         aria-expanded="false" aria-describedby="[% field %]_label"
                 >
-                    Change 
-                    <span class="chevron expanded">&larr;</span>
-                    <span class="chevron collapsed">&rarr;</span>
+                    <span class="expanded">Confirm</span>
+                    <span class="collapsed">Change</span>
+ 
                 </button>
             </span>
         </div>
@@ -817,9 +814,8 @@
             [% value_id = field _ '_' _ value.id %]
             <li class="answer">
                 <span class="control">
-                    <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="[% value.value | html_entity %]">
-                    <label id="[% value_id %]_label"for="[% value_id %]">[% value.value | html_entity %]</label>
-                    <div>[% value.subvalue | html_entity %]</div>
+                    <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="[% value.id %]">
+                    <label id="[% value_id %]_label" for="[% value_id %]">[% value.value | html_entity %]</label>
                 </span>
                 <span>
                     <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">View details</button>

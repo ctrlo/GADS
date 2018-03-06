@@ -1693,7 +1693,8 @@ small.search_term {
 .select-widget .form-control > * {
   width: 6em;
   display: inline-block;
-  vertical-align: top; }
+  vertical-align: top;
+  text-align: right; }
 
 .select-widget .label {
   font-size: 1em;
@@ -1718,11 +1719,12 @@ small.search_term {
 .select-widget button:focus {
   background-color: #eeefff; }
 
-.select-widget .chevron {
+.select-widget .expanded,
+.select-widget .collapsed {
   display: none; }
 
-.select-widget [aria-expanded="false"] .chevron.collapsed,
-.select-widget [aria-expanded="true"] .chevron.expanded {
+.select-widget [aria-expanded="false"] .collapsed,
+.select-widget [aria-expanded="true"] .expanded {
   display: inline; }
 
 .select-widget ul {
