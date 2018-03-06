@@ -71,6 +71,7 @@ var SelectWidget = function (multi) {
                 $(this).prop('hidden', true);
             });
 
+            $current.toggleClass('empty', false);
             $connected.prop('hidden', false);
         }));
     }

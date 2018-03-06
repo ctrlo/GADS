@@ -1758,6 +1758,11 @@ small.search_term {
   padding: .3em .2em;
   overflow: hidden; }
 
+.select-widget .available .answer:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+  margin-bottom: 0; }
+
 .select-widget .available li > span {
   width: 7em;
   display: inline-block;

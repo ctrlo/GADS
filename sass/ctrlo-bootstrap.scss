@@ -1230,6 +1230,12 @@ small.search_term {
     overflow: hidden;
 }
 
+.select-widget .available .answer:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
 .select-widget .available li > span {
     width: 7em;
     display: inline-block;

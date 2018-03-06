@@ -839,6 +839,9 @@
     IF dispcol.multivalue;
         PROCESS enum_multivalue_column;
     ELSE;
+        IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id;
+            %] <input type="hidden" name="[% field %]"> [%
+        END;
         PROCESS enum_singlevalue_column;
     END;
 END %]
