@@ -36,7 +36,7 @@
 [% END %]
 <p></p>
 
-<form id="edit-form" method="post" enctype="multipart/form-data" id="editform">
+<form id="edit-form" method="post" enctype="multipart/form-data">
     <div class="row">
         <div class="col-md-6">
             [% IF record.current_id %]
