@@ -1754,7 +1754,10 @@ small.search_term {
 
 .select-widget .available {
   border: 1px solid #336699;
-  padding: .5em; }
+  padding: .5em;
+  max-height: 17e;
+  overflow-x: hidden;
+  overflow-y: scroll; }
 
 .select-widget .available .answer {
   border-bottom: 1px solid #ccc;
