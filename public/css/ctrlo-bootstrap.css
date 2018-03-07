@@ -1686,9 +1686,13 @@ small.search_term {
   width: 75%;
   display: inline-block; }
 
-.select-widget .form-control {
-  height: auto;
+.select-widget.single .form-control {
+  height: 35px;
   margin-bottom: .2em; }
+
+.select-widget.multi .form-control {
+  height: auto;
+  padding-bottom: 0; }
 
 .select-widget .form-control > * {
   width: 6em;
@@ -1712,8 +1716,9 @@ small.search_term {
   vertical-align: top;
   margin-bottom: .5em; }
 
-.select-widget .change {
-  margin-top: .3em; }
+.select-widget.single .change {
+  margin-top: -.15em;
+  padding-top: 0; }
 
 .select-widget button:hover,
 .select-widget button:focus {
@@ -1743,7 +1748,6 @@ small.search_term {
 
 .select-widget .current {
   margin: 0 .5em;
-  margin-top: .2em;
   width: 27em;
   text-align: left;
   display: inline-block; }

@@ -1142,9 +1142,14 @@ small.search_term {
 @import 'data-table';
 @import 'permissions';
 
-.select-widget .form-control {
-    height: auto;
+.select-widget.single .form-control {
+    height: 35px;
     margin-bottom: .2em;
+}
+
+.select-widget.multi .form-control {
+    height: auto;
+    padding-bottom: 0;
 }
 
 .select-widget .form-control > * {
@@ -1173,8 +1178,9 @@ small.search_term {
     margin-bottom: .5em;
 }
 
-.select-widget .change {
-    margin-top: .3em;
+.select-widget.single .change {
+    margin-top: -.15em;
+    padding-top: 0;
 }
 
 .select-widget button:hover, 
@@ -1203,7 +1209,7 @@ small.search_term {
 }
 
 .select-widget .current .none-selected {
-    display: none;
+    display: none//;
 }
 
 .select-widget .current.empty .none-selected {
@@ -1212,7 +1218,7 @@ small.search_term {
 
 .select-widget .current {
     margin: 0 .5em;
-    margin-top: .2em;
+//    margin-top: .2em;
     width: 27em;
     text-align: left;
     display: inline-block;
