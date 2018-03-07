@@ -1695,9 +1695,9 @@ small.search_term {
   padding-bottom: 0; }
 
 .select-widget .form-control > * {
-  width: 6em;
   display: inline-block;
   vertical-align: top;
+  width: 15%;
   text-align: right; }
 
 .select-widget .label {
@@ -1708,6 +1708,9 @@ small.search_term {
 
 .select-widget-label {
   margin-bottom: .3em; }
+
+.select-widget-label.required {
+  font-weight: bold; }
 
 .select-widget button {
   border: 1px solid #336699;
@@ -1748,7 +1751,7 @@ small.search_term {
 
 .select-widget .current {
   margin: 0 .5em;
-  width: 27em;
+  width: 80%;
   text-align: left;
   display: inline-block; }
 

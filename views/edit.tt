@@ -692,7 +692,7 @@
     [% END %]
 
     <div class="select-widget multi">
-        <div id="[% field %]_label"class="select-widget-label">[% label %]</div>
+        <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="form-group form-control">
             <ul class="current">
                 <li class="none-selected">&lt;blank&gt;</li>
@@ -732,8 +732,11 @@
     </div>
 [% END %]
 
-[%  
+[%
     BLOCK curval_column;
+
+        required = !(column.optional OR page == "bulk");
+
         IF column.typeahead;
             PROCESS curval_typeahead_column;
         ELSIF column.multivalue;
@@ -744,7 +747,7 @@
 
 [% BLOCK enum_multivalue_column %]
     <div class="select-widget multi">
-        <div id="[% field %]_label"class="select-widget-label">[% label %]</div>
+        <div id="[% field %]_label"class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="form-group form-control">
             <ul class="current">
                 <li class="none-selected">&lt;blank&gt;</li>
@@ -785,7 +788,7 @@
 
 [% BLOCK enum_singlevalue_column %]
     <div class="select-widget single">
-        <div id="[% field %]_label"class="select-widget-label">[% label %]</div>
+        <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="form-group form-control">
             <ul class="current">
                 <li class="none-selected">&lt;blank&gt;</li>
@@ -828,6 +831,9 @@
 
 
 [% BLOCK enum_column;
+
+    required = !(dispcol.optional OR page == "bulk");
+
     IF dispcol.ordering == "desc";
         values = dispcol.enumvals.sort('value').reverse;
     ELSIF dispcol.ordering == "asc";

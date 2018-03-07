@@ -1153,9 +1153,9 @@ small.search_term {
 }
 
 .select-widget .form-control > * {
-    width: 6em;
     display: inline-block;
     vertical-align: top;
+    width: 15%;
     text-align: right;
 }
 
@@ -1168,6 +1168,10 @@ small.search_term {
 
 .select-widget-label {
     margin-bottom: .3em;
+}
+
+.select-widget-label.required {
+    font-weight: bold;
 }
 
 .select-widget button {
@@ -1219,7 +1223,7 @@ small.search_term {
 .select-widget .current {
     margin: 0 .5em;
 //    margin-top: .2em;
-    width: 27em;
+    width: 80%;
     text-align: left;
     display: inline-block;
 }
