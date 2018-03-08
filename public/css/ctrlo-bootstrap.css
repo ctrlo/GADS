@@ -1686,9 +1686,12 @@ small.search_term {
   width: 75%;
   display: inline-block; }
 
+.select-widget .form-control {
+  margin-bottom: .1em; }
+
 .select-widget.single .form-control {
-  height: 35px;
-  margin-bottom: .2em; }
+  min-height: 35px;
+  height: auto; }
 
 .select-widget.multi .form-control {
   height: auto;
@@ -1758,7 +1761,7 @@ small.search_term {
 .select-widget .available {
   border: 1px solid #336699;
   padding: .5em;
-  max-height: 17e;
+  max-height: 17em;
   overflow-x: hidden;
   overflow-y: scroll; }
 
@@ -1768,21 +1771,26 @@ small.search_term {
   padding: .3em .2em;
   overflow: hidden; }
 
-.select-widget .available .answer:last-child {
+.select-widget.multi .available li {
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 0.4em;
+  padding-bottom: .2em; }
+
+.select-widget .available .answer:last-child,
+.select-widget.multi .available li:last-child {
   border-bottom: 0;
   padding-bottom: 0;
   margin-bottom: 0; }
 
 .select-widget .available li > span {
-  width: 7em;
+  width: 17%;
   display: inline-block;
   vertical-align: top;
-  float: right; }
+  text-align: right; }
 
 .select-widget .available .control {
-  width: 26em;
-  text-align: left;
-  float: left; }
+  width: 81%;
+  text-align: left; }
 
 .select-widget .control label {
   margin-left: .3em;

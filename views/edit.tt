@@ -684,13 +684,50 @@
     [% typeaheads.push({id = dispcol.id, field = field }) %]
 [% END %]
 
-[% BLOCK curval_multivalue_column %]
-    [% IF page == "bulk" %]
-        [% values = column.all_values %]
-    [% ELSE %]
-        [% values = column.filtered_values %]
-    [% END %]
+[% BLOCK curval_singlevalue_column %]
+    <div class="select-widget single">
+        <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
+        <div class="form-group form-control">
+            <ul class="current">
+                <li class="none-selected">&lt;blank&gt;</li>
+            [% FOREACH value IN values %]
+                [% NEXT IF value.deleted %]
+                [% checked = editvalue.id_hash.${value.id} %]
+                [% value_id = field _ '_' _ value.id %]
+                <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">[% value.value | html_entity %]</li>
+            [% END %]
+            </ul>
+            <span>
+                <button class="change" type="button" aria-controls="[% field %]_available_values" 
+                        aria-expanded="false" aria-describedby="[% field %]_label"
+                >
+                    <span class="expanded">Confirm</span>
+                    <span class="collapsed">Change</span>
+ 
+                </button>
+            </span>
+        </div>
 
+        <ul hidden class="available" id="[% field %]_available_values">
+        [% FOREACH value IN values %]
+            [% NEXT IF value.deleted %]
+            [% checked = editvalue.id_hash.${value.id} %]
+            [% value_id = field _ '_' _ value.id %]
+            <li class="answer">
+                <span class="control">
+                    <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="[% value.id %]">
+                    <label id="[% value_id %]_label" for="[% value_id %]">[% value.value | html_entity %]</label>
+                </span>
+                <span>
+                    <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">Details</button>
+                </span>
+            </li>
+        [% END %]
+        </ul>
+    </div>
+[% END %]
+
+[% BLOCK curval_multivalue_column %]
     <div class="select-widget multi">
         <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="form-group form-control">
@@ -724,7 +761,7 @@
                     <div>[% value.subvalue | html_entity %]</div>
                 </span>
                 <span>
-                    <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">View details</button>
+                    <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">Details</button>
                 </span>
             </li>
         [% END %]
@@ -734,13 +771,20 @@
 
 [%
     BLOCK curval_column;
-
         required = !(column.optional OR page == "bulk");
+
+        IF page == "bulk";
+            values = column.all_values;
+        ELSE;
+            values = column.filtered_values;
+        END;
 
         IF column.typeahead;
             PROCESS curval_typeahead_column;
         ELSIF column.multivalue;
             PROCESS curval_multivalue_column;
+        ELSE;
+            PROCESS curval_singlevalue_column;
         END;
     END;
 %]
@@ -778,7 +822,7 @@
                     <label id="[% value_id %]_label"for="[% value_id %]">[% value.value | html_entity %]</label>
                 </span>
                 <span>
-                    <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">View details</button>
+                    <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">Details</button>
                 </span>
             </li>
         [% END %]
@@ -821,7 +865,7 @@
                     <label id="[% value_id %]_label" for="[% value_id %]">[% value.value | html_entity %]</label>
                 </span>
                 <span>
-                    <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">View details</button>
+                    <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">Details</button>
                 </span>
             </li>
         [% END %]
