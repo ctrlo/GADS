@@ -1760,7 +1760,8 @@ small.search_term {
   padding-bottom: .4em;
   width: 92%;
   text-align: left;
-  display: inline-block; }
+  display: inline-block;
+  cursor: default; }
 
 .select-widget .available {
   border: 1px solid #336699;
