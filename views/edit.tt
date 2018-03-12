@@ -703,7 +703,7 @@
                 <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
             </button>
         </div>
-        <ul hidden class="available" id="[% field %]_available_values">
+        <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values">
         [% FOREACH value IN values %]
             [% NEXT IF value.deleted %]
             [% checked = editvalue.id_hash.${value.id} %]
@@ -713,9 +713,11 @@
                     <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="[% value.id %]">
                     <label id="[% value_id %]_label" for="[% value_id %]">[% value.value | html_entity %]</label>
                 </span>
+                [% IF details %]
                 <span>
                     <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">Details</button>
                 </span>
+                [% END %]
             </li>
         [% END %]
         </ul>
@@ -725,6 +727,7 @@
 [%
     BLOCK curval_column;
         required = !(column.optional OR page == "bulk");
+        details = 1;
 
         IF page == "bulk";
             values = column.all_values;
@@ -761,7 +764,7 @@
                 <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
             </button>
         </div>
-        <ul hidden class="available" id="[% field %]_available_values">
+        <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values">
         [% FOREACH value IN values %]
             [% NEXT IF value.deleted %]
             [% checked = editvalue.id_hash.${value.id} %]
@@ -771,9 +774,11 @@
                     <input id="[% value_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %] value="[% value.id %]">
                     <label id="[% value_id %]_label"for="[% value_id %]">[% value.value | html_entity %]</label>
                 </span>
+                [% IF details %]
                 <span>
                     <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">Details</button>
                 </span>
+                [% END %]
             </li>
         [% END %]
         </ul>

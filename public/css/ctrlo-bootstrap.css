@@ -1793,8 +1793,11 @@ small.search_term {
   text-align: right; }
 
 .select-widget .available .control {
-  width: 81%;
-  text-align: left; }
+  text-align: left;
+  width: 100%; }
+
+.select-widget .available.with-details .control {
+  width: 81%; }
 
 .select-widget .control label {
   margin-left: .3em;
