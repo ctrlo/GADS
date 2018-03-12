@@ -1719,7 +1719,8 @@ small.search_term {
 
 .select-widget [aria-expanded] {
   border: none;
-  vertical-align: top; }
+  position: absolute;
+  right: 1.5em; }
 
 .select-widget.single .change {
   margin-top: -.15em;
