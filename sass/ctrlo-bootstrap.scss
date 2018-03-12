@@ -1144,15 +1144,14 @@ small.search_term {
 
 .select-widget .form-control {
     margin-bottom: .1em;
-}
-
-.select-widget.single .form-control {
+    border: 1px solid #336699;
+    box-shadow: 0 3px 3px rgba(0,0,0,.075);
+    border-radius: 5px;    
     min-height: 35px;
     height: auto;
 }
 
 .select-widget.multi .form-control {
-    height: auto;
     padding-bottom: 0;
 }
 
@@ -1184,6 +1183,7 @@ small.search_term {
     font-family: Helvetica, sans-serif;
     vertical-align: top;
     margin-bottom: .5em;
+    text-align: left;
 }
 
 .select-widget.single .change {
@@ -1204,6 +1204,8 @@ small.search_term {
 .select-widget [aria-expanded="false"] .collapsed,
 .select-widget [aria-expanded="true"] .expanded {
     display: inline;
+    margin-top: .2em;
+    float: right;
 }
 
 .select-widget ul {
@@ -1217,16 +1219,16 @@ small.search_term {
 }
 
 .select-widget .current .none-selected {
-    display: none//;
+    display: none;
 }
 
 .select-widget .current.empty .none-selected {
     display: inline;
+    font-style: italic;
 }
 
 .select-widget .current {
-    margin: 0 .5em;
-//    margin-top: .2em;
+    padding-bottom: .4em;
     width: 80%;
     text-align: left;
     display: inline-block;
@@ -1298,4 +1300,8 @@ small.search_term {
 
 #edit-form {
     margin-bottom: 4em;
+}
+
+.input_holder .datepicker {
+    padding-left: 1em;        
 }

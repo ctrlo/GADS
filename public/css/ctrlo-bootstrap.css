@@ -1687,14 +1687,14 @@ small.search_term {
   display: inline-block; }
 
 .select-widget .form-control {
-  margin-bottom: .1em; }
-
-.select-widget.single .form-control {
+  margin-bottom: .1em;
+  border: 1px solid #336699;
+  box-shadow: 0 3px 3px rgba(0, 0, 0, 0.075);
+  border-radius: 5px;
   min-height: 35px;
   height: auto; }
 
 .select-widget.multi .form-control {
-  height: auto;
   padding-bottom: 0; }
 
 .select-widget .form-control > * {
@@ -1720,7 +1720,8 @@ small.search_term {
   border-radius: 0;
   font-family: Helvetica, sans-serif;
   vertical-align: top;
-  margin-bottom: .5em; }
+  margin-bottom: .5em;
+  text-align: left; }
 
 .select-widget.single .change {
   margin-top: -.15em;
@@ -1736,7 +1737,9 @@ small.search_term {
 
 .select-widget [aria-expanded="false"] .collapsed,
 .select-widget [aria-expanded="true"] .expanded {
-  display: inline; }
+  display: inline;
+  margin-top: .2em;
+  float: right; }
 
 .select-widget ul {
   margin: 0;
@@ -1750,10 +1753,11 @@ small.search_term {
   display: none; }
 
 .select-widget .current.empty .none-selected {
-  display: inline; }
+  display: inline;
+  font-style: italic; }
 
 .select-widget .current {
-  margin: 0 .5em;
+  padding-bottom: .4em;
   width: 80%;
   text-align: left;
   display: inline-block; }
@@ -1814,3 +1818,6 @@ small.search_term {
 
 #edit-form {
   margin-bottom: 4em; }
+
+.input_holder .datepicker {
+  padding-left: 1em; }
