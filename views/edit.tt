@@ -687,8 +687,7 @@
 [% BLOCK singlevalue_column %]
     <div class="select-widget single">
         <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
-        <button type="button" class="form-group form-control" aria-controls="[% field %]_available_values" 
-                        aria-expanded="false" aria-describedby="[% field %]_label">
+        <div class="form-group form-control" >
             <ul class="current">
                 <li class="none-selected">blank</li>
             [% FOREACH value IN values %]
@@ -698,9 +697,12 @@
                 <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">[% value.value | html_entity %]</li>
             [% END %]
             </ul>
-            <span class="expanded glyphicon glyphicon-chevron-up" aria-hidden="true"></span>
-            <span class="collapsed glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
-        </button>
+            <button type="button" aria-controls="[% field %]_available_values" 
+                        aria-expanded="false" aria-describedby="[% field %]_label">
+                <span class="expanded glyphicon glyphicon-chevron-up" aria-label="Confirm"></span>
+                <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
+            </button>
+        </div>
         <ul hidden class="available" id="[% field %]_available_values">
         [% FOREACH value IN values %]
             [% NEXT IF value.deleted %]
@@ -742,9 +744,8 @@
 
 [% BLOCK multivalue_column %]
     <div class="select-widget multi">
-        <div id="[% field %]_label"class="select-widget-label [% required && 'required' %]">[% label %]</div>
-        <button type="button" class="form-group form-control" aria-controls="[% field %]_available_values" 
-                        aria-expanded="false" aria-describedby="[% field %]_label">
+        <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
+        <div class="form-group form-control" >
             <ul class="current">
                 <li class="none-selected">blank</li>
             [% FOREACH value IN values %]
@@ -754,9 +755,12 @@
                 <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">[% value.value | html_entity %]</li>
             [% END %]
             </ul>
-            <span class="expanded glyphicon glyphicon-chevron-up" aria-hidden="true"></span>
-            <span class="collapsed glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
-        </button>
+            <button type="button" aria-controls="[% field %]_available_values" 
+                        aria-expanded="false" aria-describedby="[% field %]_label">
+                <span class="expanded glyphicon glyphicon-chevron-up" aria-label="Confirm"></span>
+                <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
+            </button>
+        </div>
         <ul hidden class="available" id="[% field %]_available_values">
         [% FOREACH value IN values %]
             [% NEXT IF value.deleted %]

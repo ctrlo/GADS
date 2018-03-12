@@ -30,16 +30,16 @@ var SelectWidget = function (multi) {
         };
     };
  
-    var onTriggerClick = function ($target) {
+    var onTriggerClick = function ($triger, $target) {
         return function (event) {
-            var isCurrentlyExpanded = $(this).attr('aria-expanded') === 'true';
+            var isCurrentlyExpanded = $trigger.attr('aria-expanded') === 'true';
             var willExpandNext = !isCurrentlyExpanded;
 
             if (willExpandNext) {
                 $target.prop('hidden', false);
-                $(this).attr('aria-expanded', true);
+                $trigger.attr('aria-expanded', true);
             } else {
-                $(this).attr('aria-expanded', false);
+                $trigger.attr('aria-expanded', false);
                 $target.prop('hidden', true);
             }
         }
@@ -76,7 +76,7 @@ var SelectWidget = function (multi) {
         }));
     }
 
-    $trigger.on('click', onTriggerClick($target));   
+    this.on('click', onTriggerClick($trigger, $target));
 };
 
 var setupSelectWidgets = function () {
