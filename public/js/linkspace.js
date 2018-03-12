@@ -45,7 +45,8 @@ var SelectWidget = function (multi) {
         }
     };
     
-    var $trigger = this.find('[aria-expanded]');
+    var $widget = this.find('.form-control');
+    var $trigger = $widget.find('[aria-expanded]');
     var $current = this.find('.current');
     var $availableItems = this.find('.available').children();
     var $target  = this.find('#' + $trigger.attr('aria-controls'));
@@ -76,7 +77,7 @@ var SelectWidget = function (multi) {
         }));
     }
 
-    this.on('click', onTriggerClick($trigger, $target));
+    $widget.on('click', onTriggerClick($trigger, $target));
 };
 
 var setupSelectWidgets = function () {
