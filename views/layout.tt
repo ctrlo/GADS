@@ -115,7 +115,7 @@
             <div class="form-group col-md-12">
                 <label for="display_field">Column</label>
                 <select class="form-control" id="display_field" name="display_field">
-                    [% FOREACH field in layout.all %]
+                    [% FOREACH field in all_columns %]
                         <option value="[% field.id %]" [% IF column.display_field == field.id %]selected[% END %]>[% field.name | html_entity %]</option>
                     [% END %]
                 </select>
