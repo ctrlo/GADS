@@ -1236,17 +1236,21 @@ small.search_term {
 
 .select-widget .available {
     border: 1px solid #336699;
-    padding: .5em;
     max-height: 17em;
     overflow-x: hidden;
     overflow-y: scroll;
 }
 
 .select-widget .available .answer {
-    border-bottom: 1px solid #ccc;
-    margin: .5em 0;
-    padding: .3em .2em;
+    border-bottom: 1px solid #ededed;
+    margin: 0;
+    padding: 0;
     overflow: hidden;
+}
+
+.select-widget .available .answer:focus,
+.select-widget .available .answer:hover {
+    background-color: #ccc;
 }
 
 .select-widget.multi .available li {
@@ -1271,6 +1275,7 @@ small.search_term {
 
 .select-widget .available .control {
     text-align: left;
+    padding: .3em .7em;
     width: 100%;
 }
 
@@ -1280,7 +1285,20 @@ small.search_term {
 
 .select-widget .control label {
     margin-left: .3em;
-    display: inline;
+    display: inline-block;
+    width: 90%;
+}
+
+.select-widget .available .answer [type="radio"] {
+    vertical-align: top;
+}
+
+.select-widget .available .answer .details {
+    padding: .5em .3em;
+}
+
+.select-widget .available .answer .more-info {
+    margin-bottom: 0;
 }
 
 .select-widget .comma-separated::after {

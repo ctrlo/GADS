@@ -714,7 +714,7 @@
                     <label id="[% value_id %]_label" for="[% value_id %]">[% value.value | html_entity %]</label>
                 </span>
                 [% IF details %]
-                <span>
+                <span class="details">
                     <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">Details</button>
                 </span>
                 [% END %]
@@ -775,7 +775,7 @@
                     <label id="[% value_id %]_label"for="[% value_id %]">[% value.value | html_entity %]</label>
                 </span>
                 [% IF details %]
-                <span>
+                <span class="details">
                     <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">Details</button>
                 </span>
                 [% END %]
