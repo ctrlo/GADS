@@ -1243,15 +1243,14 @@ small.search_term {
 }
 
 .select-widget .available .answer {
-    border-bottom: 1px solid #ededed;
+    border-bottom: 1px solid #ccc;
     margin: 0;
     padding: 0;
     overflow: hidden;
 }
 
-.select-widget .available .answer:focus,
 .select-widget .available .answer:hover {
-    background-color: #ccc;
+    background-color: #ededed;
 }
 
 .select-widget.multi .available li {
