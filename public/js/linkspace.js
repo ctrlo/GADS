@@ -44,11 +44,13 @@ var SelectWidget = function (multi) {
             }
         }
     };
+
+    var isSingle = this.hasClass('single');
     
     var $widget = this.find('.form-control');
     var $trigger = $widget.find('[aria-expanded]');
     var $current = this.find('.current');
-    var $availableItems = this.find('.available').children();
+    var $availableItems = this.find('.available input');
     var $target  = this.find('#' + $trigger.attr('aria-controls'));
     var $currentItems = $current.children();
 
@@ -76,6 +78,11 @@ var SelectWidget = function (multi) {
             $connected.prop('hidden', false);
         }));
     }
+
+    $availableItems.on('click', function () {
+        if (!isSingle) return;
+        onTriggerClick($trigger, $target)();
+    });
 
     $widget.on('click', onTriggerClick($trigger, $target));
 };
