@@ -1141,3 +1141,189 @@ small.search_term {
 
 @import 'data-table';
 @import 'permissions';
+
+.select-widget .form-control {
+    margin-bottom: .1em;
+    border: 1px solid #336699;
+    box-shadow: 0 3px 3px rgba(0,0,0,.075);
+    border-radius: 5px;    
+    min-height: 35px;
+    height: auto;
+}
+
+.select-widget.multi .form-control {
+    padding-bottom: 0;
+}
+
+.select-widget .label {
+  font-size: 1em;
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+}
+
+.select-widget-label {
+    margin-bottom: .3em;
+}
+
+.select-widget-label.required {
+    font-weight: bold;
+}
+
+.select-widget button {
+    border: 1px solid #336699;
+    border-radius: 0;
+    font-family: Helvetica, sans-serif;
+    vertical-align: top;
+    margin-bottom: .5em;
+    text-align: left;
+}
+
+.select-widget [aria-expanded] {
+    border: none;
+    position: absolute;
+    right: 1.5em;
+}
+
+.select-widget.single .change {
+    margin-top: -.15em;
+    padding-top: 0;
+}
+
+.select-widget .form-group:hover,
+.select-widget .form-group:hover button,
+.select-widget .form-group button:hover,
+.select-widget .form-group button:focus {
+    background-color: #eeefff;
+}
+
+.select-widget .expanded,
+.select-widget .collapsed {
+    display: none;
+}
+
+.select-widget [aria-expanded="false"] .collapsed,
+.select-widget [aria-expanded="true"] .expanded {
+    display: inline;
+    margin-top: .2em;
+}
+
+.select-widget ul {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+.select-widget .current li {
+  display: inline;
+}
+
+.select-widget .current .none-selected {
+    display: none;
+}
+
+.select-widget .current.empty .none-selected {
+    display: inline;
+    font-style: italic;
+}
+
+.select-widget .current {
+    padding-bottom: .4em;
+    width: 92%;
+    text-align: left;
+    display: inline-block;
+    cursor: default;
+}
+
+.select-widget .available {
+    border: 1px solid #336699;
+    max-height: 17em;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+.select-widget .available .answer {
+    border-bottom: 1px solid #ccc;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.select-widget .available .answer:hover {
+    background-color: #ededed;
+}
+
+.select-widget.multi .available li {
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 0.4em;
+    padding-bottom: .2em;
+}
+
+.select-widget .available .answer:last-child,
+.select-widget.multi .available li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+.select-widget .available li > span {
+    width: 17%;
+    display: inline-block;
+    vertical-align: top;
+    text-align: right;
+}
+
+.select-widget .available .control {
+    text-align: left;
+    padding: .3em .7em;
+    width: 100%;
+}
+
+.select-widget .available.with-details .control {
+    width: 81%;
+}
+
+.select-widget .control label {
+    margin-left: .3em;
+    display: inline-block;
+    width: 90%;
+}
+
+.select-widget .available .answer [type="radio"] {
+    vertical-align: top;
+}
+
+.select-widget .available .answer .details {
+    padding: .5em .3em;
+}
+
+.select-widget .available .answer .more-info {
+    margin-bottom: 0;
+}
+
+.select-widget .comma-separated::after {
+    content: '/';
+    display: inline-block;
+    font-weight: bold;
+    margin: 0 .3em;
+}
+
+.select-widget .current [hidden] {
+    display: none;
+}
+
+.edit-controls {
+    min-height: 4em;
+    padding-top: .5em;
+    border: 1px solid #c8c8c8;
+    box-shadow: .5em .5em .5em .5em #000;
+    margin-bottom: 0;
+}
+
+#edit-form {
+    margin-bottom: 4em;
+}
+
+.input_holder .datepicker {
+    padding-left: 1em;        
+}
