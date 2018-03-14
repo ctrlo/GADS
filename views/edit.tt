@@ -740,6 +740,8 @@
         ELSIF column.multivalue;
             PROCESS multivalue_column;
         ELSE;
+            # Ensure a blank value is sent if nothing is selected
+            %] <input type="hidden" name="[% field %]"> [%
             PROCESS singlevalue_column;
         END;
     END;
@@ -801,9 +803,8 @@
     IF dispcol.multivalue;
         PROCESS multivalue_column;
     ELSE;
-        IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id;
-            %] <input type="hidden" name="[% field %]"> [%
-        END;
+        # Ensure a blank value is sent if nothing is selected
+        %] <input type="hidden" name="[% field %]"> [%
         PROCESS singlevalue_column;
     END;
 END %]

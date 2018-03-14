@@ -492,6 +492,7 @@ child is ".$child->{column}->id." (".$child->{column}->name.") => {
 
 sub _dump_jp_store
 {   my $self = shift;
+    return;
     my $dumped = "Going to dump the jp store:\n";
     my $dd = Data::Dumper->new([]);
     $dd->Indent(0);
