@@ -1075,7 +1075,6 @@ sub write
     my %allow_update = map { $_ => 1 } @{$options{allow_update} || []};
     my ($need_app, $need_rec, $child_unique); # Whether a new approval_rs or record_rs needs to be created
     $need_rec = 1 if $self->changed;
-    my $has_missing; # Whether there are some mandatory fields missing
     foreach my $column ($self->layout->all)
     {
         next unless $column->userinput;
@@ -1099,7 +1098,6 @@ sub write
                 || $self->fields->{$column->display_field}->as_string =~ $regex
             )
             {
-                $has_missing = 1;
                 # Check whether we are in a multiple page write and if the value has been shown.
                 # We first test for editor_shown_fields having been set, as it will be on a normal
                 # page write, and then also check as it would be for a standard write.
@@ -1109,7 +1107,6 @@ sub write
                     # be a read-only field for this user
                     if (!$self->new_entry && !$datum->changed)
                     {
-                        $has_missing = 0; # Let is pass
                         mistake __x"'{col}' is no longer optional, but was previously blank for this record.", col => $column->{name};
                     }
                     else {
@@ -1222,9 +1219,6 @@ sub write
 
     # Dummy run?
     return if $options{dry_run};
-
-    # Return if some dependent mandatory fields not yet written
-    return if $has_missing;
 
     # New record?
     if ($self->new_entry)
