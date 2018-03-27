@@ -19,7 +19,7 @@
                     </label>
                 </div>
             [% END %]
-            <label for="name">Columns to show in view:</label>
+            <label for="name">Select the fields you want to include in your view:</label>
             <table class="table table-striped">
                 <tr>
                     <th>
