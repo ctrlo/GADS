@@ -188,7 +188,10 @@
             [% END %]
             <th>Email</th>
             [% IF site.register_show_organisation %]
-                <th>[% site.register_organisation_name %]</th>
+                <th>[% site.register_organisation_name | html %]</th>
+            [% END %]
+            [% IF site.register_freetext1_name %]
+                <th>[% site.register_freetext1_name | html %]</th>
             [% END %]
             <th>Last login</th>
         </tr>
@@ -205,6 +208,9 @@
                 <td>[% edituser.email | html_entity %]</td>
                 [% IF site.register_show_organisation %]
                     <td>[% edituser.organisation.name | html_entity %]</td>
+                [% END %]
+                [% IF site.register_freetext1_name %]
+                    <td>[% edituser.freetext1 | html_entity %]</td>
                 [% END %]
                 <td>[% edituser.lastlogin OR "Never logged in" %]</td>
             </tr>
