@@ -241,7 +241,7 @@ sub csv
     push @columns, 'Organisation' if $site->register_show_organisation;
     push @columns, $site->register_freetext1_name if $site->register_freetext1_name;
     push @columns, $site->register_freetext2_name if $site->register_freetext2_name;
-    push @columns, 'Groups';
+    push @columns, 'Permissions', 'Groups';
     push @columns, 'Page hits last month';
     $csv->combine(@columns)
         or error __x"An error occurred producing the CSV headings: {err}", err => $csv->error_input;
@@ -301,6 +301,9 @@ sub csv
     my %user_groups = map { $_->id => [$_->user_groups] }
         $self->user_rs->search({}, { prefetch => { user_groups => 'group' }})->all;
 
+    my %user_permissions = map { $_->id => [$_->user_permissions] }
+        $self->user_rs->search({}, { prefetch => { user_permissions => 'permission' }})->all;
+
     foreach my $user (@users)
     {
         my $id = $user->get_column('id_max');
@@ -315,7 +318,8 @@ sub csv
         push @csv, $user->get_column('organisation_max') if $site->register_show_organisation;
         push @csv, $user->get_column('freetext1_max') if $site->register_freetext1_name;
         push @csv, $user->get_column('freetext2_max') if $site->register_freetext2_name;
-        push @csv, join ',', map { $_->group->name } @{$user_groups{$id}};
+        push @csv, join '; ', map { $_->permission->description } @{$user_permissions{$id}};
+        push @csv, join '; ', map { $_->group->name } @{$user_groups{$id}};
         push @csv, $user->get_column('audit_count');
         $csv->combine(@csv)
             or error __x"An error occurred producing a line of CSV: {err}",
