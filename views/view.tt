@@ -43,18 +43,29 @@
                     </div>
                 [% END %]
             [% END %]
-            <p>Select the fields you want to include in your view.</p>
+            <label for="name">Select the fields you want to include in your view</label>
             <table class="table table-striped">
-                <tr><th><input type="checkbox" id="selectall" title="Select/deselect all"></th><th>Field name</th></tr>
+                <tr>
+                    <th>
+                        <div class="checkbox" style="margin-top:0; margin-bottom:0"> [%# XXX Hack to be fixed %]
+                            <label>
+                                <input type="checkbox" id="selectall" title="Select/deselect all">(select all)
+                            </label>
+                        </div>
+                    </th>
+                </tr>
                 [% FOR column IN layout.all_user_read %]
                     <tr>
                         <td>
-                            <input class="col_check" type="checkbox" name="column" value="[% column.id %]"
-                                [% id = column.id %]
-                                [% IF view_edit.columns.grep("^$id\$").size %]checked[% END %]
-                            >
+                            <div class="checkbox" style="margin-top:0; margin-bottom:0"> [%# XXX Hack to be fixed %]
+                                <label>
+                                    <input class="col_check" type="checkbox" name="column" value="[% column.id %]"
+                                        [% id = column.id %]
+                                        [% IF v.columns.grep("^$id\$").size %]checked[% END %]
+                                    >[% column.name | html_entity %]
+                                </label>
+                            </div>
                         </td>
-                        <td>[% column.name | html_entity %]</td>
                     </tr>
                 [% END %]
             </table>
