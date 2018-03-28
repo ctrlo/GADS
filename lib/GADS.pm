@@ -76,6 +76,8 @@ use Dancer2::Plugin::Auth::Extensible;
 use Dancer2::Plugin::Auth::Extensible::Provider::DBIC 0.623;
 use Dancer2::Plugin::LogReport 'linkspace';
 
+use GADS::API; # API routes
+
 schema->storage->debugobj(new GADS::DBICProfiler);
 schema->storage->debug(1);
 
