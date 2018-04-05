@@ -202,11 +202,11 @@ sub create_user
     my $instance_id = $options{instance_id} || $self->instance_id;
     my $user_id     = $options{user_id};
 
-    my $user_rs = $user_id
+    my $user = $user_id
         ? $self->schema->resultset('User')->find_or_create({ id => $user_id })
         : $self->schema->resultset('User')->create({});
-    $user_id ||= $user_rs->id;
-    $user_rs->update({
+    $user_id ||= $user->id;
+    $user->update({
         username  => "user$user_id\@example.com",
         email     => "user$user_id\@example.com",
         firstname => "User$user_id",
@@ -217,15 +217,7 @@ sub create_user
         user_id  => $user_id,
         group_id => $self->group->id,
     }) if $self->group;
-    # Most of the app expects a hash at the moment. XXX Need to convert to object
-    # Just return first one for use in tests by default
-    my $user = {
-        id         => $user_rs->id,
-        firstname  => $user_rs->firstname,
-        surname    => $user_rs->surname,
-        email      => $user_rs->email,
-        value      => $user_rs->value,
-    };
+
     foreach my $permission (@permissions)
     {
         if (my $permission_id = $self->_permissions->{$permission})
@@ -234,9 +226,7 @@ sub create_user
                 user_id       => $user_id,
                 permission_id => $permission_id,
             });
-            $user->{permission} = {
-                $permission => 1,
-            },
+            $user->clear_permission;
         }
         else {
             # Create a group for each user/permission

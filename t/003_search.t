@@ -933,10 +933,7 @@ foreach my $multivalue (0..1)
     );
     $view_limit->write;
 
-    # XXX Need to get rid of user as a hash. For the time being, we need
-    # two variables.
-    my $user_r = $schema->resultset('User')->find($user->{id});
-    $user_r->set_view_limits([$view_limit->id]);
+    $user->set_view_limits([$view_limit->id]);
 
     $rules = GADS::Filter->new(
         as_hash => {
@@ -1018,7 +1015,7 @@ foreach my $multivalue (0..1)
     );
     $view_limit2->write;
 
-    $user_r->set_view_limits([$view_limit->id, $view_limit2->id]);
+    $user->set_view_limits([$view_limit->id, $view_limit2->id]);
 
     $records = GADS::Records->new(
         view_limits => [ $view_limit, $view_limit2 ],
@@ -1055,7 +1052,7 @@ foreach my $multivalue (0..1)
         );
         $view_limit3->write;
 
-        $user_r->set_view_limits([$view_limit3->id]);
+        $user->set_view_limits([$view_limit3->id]);
 
         # Then add a normal view
         $rules = GADS::Filter->new(
@@ -1105,7 +1102,7 @@ foreach my $multivalue (0..1)
     is (@{$records->results}, 0, 'Correct number of quick search results for number when limiting to a view (no match)');
     # Reset and do again with non-negative view
     $records->clear;
-    $user_r->set_view_limits([$view_limit->id]);
+    $user->set_view_limits([$view_limit->id]);
     $records->search('Foobar');
     is (@{$records->results}, 0, 'Correct number of quick search results when limiting to a view');
     # Current ID in limited view
@@ -1138,7 +1135,7 @@ foreach my $multivalue (0..1)
     is ($records->count, 2, 'Correct number of results when limiting to a view with enumval');
     {
         my $limit = $schema->resultset('ViewLimit')->create({
-            user_id => $user->{id},
+            user_id => $user->id,
             view_id => $view_limit->id,
         });
         my $record = GADS::Record->new(
@@ -1154,7 +1151,7 @@ foreach my $multivalue (0..1)
     is (@{$records->results}, 1, 'Correct number of quick search results when limiting to a view with enumval');
 
     # Now normal
-    $user_r->set_view_limits([]);
+    $user->set_view_limits([]);
     $records = GADS::Records->new(
         user    => $user,
         layout  => $layout,

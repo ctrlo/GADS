@@ -73,7 +73,7 @@ has layout => (
 sub _user_views
 {   my $self = shift;
     # Allow user ID to be overridden, but only if the logged-in user has permission
-    my $user_id = ($self->user_has_layout && $self->other_user_id) || ($self->layout->user && $self->layout->user->{id});
+    my $user_id = ($self->user_has_layout && $self->other_user_id) || ($self->layout->user && $self->layout->user->id);
     my $search = [
         'me.user_id' => $user_id,
         {

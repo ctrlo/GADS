@@ -84,6 +84,7 @@ plugins:
     realms:
       dbic:
         provider: DBIC
+        user_as_object: 1
         users_source: user
         roles_source: permission
         user_roles_source: user_permission

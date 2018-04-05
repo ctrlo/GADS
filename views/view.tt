@@ -27,7 +27,7 @@
                             <option value="" [% IF NOT view_edit.group_id %]selected[% END %]>&lt;All users&gt;</option>
                         [% END %]
                         [% IF layout.user_can("view_group") %]
-                            [% FOREACH group IN user_rs.groups %]
+                            [% FOREACH group IN user.groups %]
                                 <option value="[% group.id %]"
                                     [% IF view_edit.group_id == group.id %]selected[% END %]>[% group.name | html_entity %]
                                 </option>

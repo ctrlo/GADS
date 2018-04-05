@@ -87,7 +87,7 @@ has _view => (
             return;
         }
         # Check whether user has read access to view
-        my $user_id = $self->layout->user->{id};
+        my $user_id = $self->layout->user->id;
         my $no_access = $self->has_id && $self->layout->user && !$view->global && !$view->is_admin
             && !$self->layout->user_can("layout") && $view->user_id != $user_id;
         $no_access ||= $view->global && $view->group_id
@@ -95,7 +95,7 @@ has _view => (
         if ($no_access)
         {
             error __x"User {user} does not have access to view {view}",
-                user => $self->layout->user->{id}, view => $self->id;
+                user => $self->layout->user->id, view => $self->id;
         }
         $view;
     },
@@ -179,7 +179,7 @@ has alert => (
     builder => sub {
         my $self = shift;
         $self->_view or return;
-        my ($alert) = grep { $self->layout->user->{id} == $_->user_id } $self->_view->alerts;
+        my ($alert) = grep { $self->layout->user->id == $_->user_id } $self->_view->alerts;
         $alert;
     }
 );
@@ -266,11 +266,11 @@ sub _build_writable
         # New view, not global
         return 1 if $self->layout->user_can("view_create");
     }
-    elsif ($self->owner && $self->owner == $self->layout->user->{id})
+    elsif ($self->owner && $self->owner == $self->layout->user->id)
     {
         return 1 if $self->layout->user_can("view_create");
     }
-    elsif ($self->user->{permission}->{layout})
+    elsif ($self->user->permission->{layout})
     {
         return 1;
     }
@@ -308,7 +308,7 @@ sub write
     }
     elsif (!$self->id) # Preserve owner if editing other user's view
     {
-        $vu->{user_id} = ($self->user_has_layout && $self->other_user_id) || $self->layout->user->{id};
+        $vu->{user_id} = ($self->user_has_layout && $self->other_user_id) || $self->layout->user->id;
     }
 
     $self->clear_has_curuser;
@@ -347,8 +347,8 @@ sub write
 
     $self->writable
         or error $self->id
-            ? __x("User {user_id} does not have access to modify view {id}", user_id => $self->layout->user->{id}, id => $self->id)
-            : __x("User {user_id} does not have permission to create new views", user_id => $self->layout->user->{id});
+            ? __x("User {user_id} does not have access to modify view {id}", user_id => $self->layout->user->id, id => $self->id)
+            : __x("User {user_id} does not have permission to create new views", user_id => $self->layout->user->id);
 
     if ($self->id)
     {

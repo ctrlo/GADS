@@ -380,7 +380,7 @@ foreach my $test (@tests)
         $record->fields->{$columns->{curval1}->id}->set_value(2)
             unless exists $test->{curval_update} && !$test->{curval_update};
         $record->fields->{$columns->{tree1}->id}->set_value(12);
-        $record->user({ id => 2 });
+        $record->user($schema->resultset('User')->find(2));
         try { $record->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
         $@->reportFatal; # In case any fatal errors
         my $after = $test->{after};
@@ -417,7 +417,7 @@ foreach my $test (@tests)
         $record->fields->{$columns->{curval1}->id}->set_value($data->[0]->{curval1});
         $record->fields->{$columns->{string1}->id}->set_value('');
         $record->fields->{$columns->{tree1}->id}->set_value(10);
-        $record->user({ id => 1 });
+        $record->user($schema->resultset('User')->find(1));
         try { $record->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
         $@->reportFatal; # In case any fatal errors
     }

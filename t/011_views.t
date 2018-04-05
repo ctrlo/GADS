@@ -19,10 +19,8 @@ $sheet->create_records;
 # Standard users with permission to create views
 my $user_create1    = $sheet->create_user(permissions => [qw/view_create/]);
 my $user_create2    = $sheet->create_user(permissions => [qw/view_create/]);
-my $user_create2_rs = $schema->resultset('User')->find($user_create2->{id});
 # Super-admin user
 my $user_admin    = $sheet->user;
-my $user_admin_rs = $schema->resultset('User')->find($user_admin->{id});
 # User with manage fields permission
 my $user_layout  = $sheet->create_user(permissions => [qw/layout/]);
 # User with manage group views
@@ -83,8 +81,8 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
 
     # Read group view as normal user in that group, only if global view not admin view
     $view2 = GADS::View->new(%view_template, id => $view->id);
-    my @current_groups = map { $_->id } $user_create2_rs->groups;
-    $user_create2_rs->groups($user_admin_rs, [$sheet->group->id]);
+    my @current_groups = map { $_->id } $user_create2->groups;
+    $user_create2->groups($user_admin, [$sheet->group->id]);
     $layout->user($user_create2);
     $layout->clear;
     try { $view2->filter };
@@ -99,7 +97,7 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
 
     # Read group view as normal user not in that group
     $view2 = GADS::View->new(%view_template, id => $view->id);
-    $user_create2_rs->groups($user_admin_rs, []);
+    $user_create2->groups($user_admin, []);
     $layout->user($user_create2);
     $layout->clear;
     try { $view2->filter };
@@ -112,7 +110,7 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
     $has_view = grep { $_->id == $view->id } @{$views->user_views};
     ok($success && !$has_view || !$success, "User has view in list of available views");
     # Return to previous setting
-    $user_create2_rs->groups($user_admin_rs, [@current_groups]);
+    $user_create2->groups($user_admin, [@current_groups]);
 
     # Now as admin user
     $layout->user($user_admin);
@@ -149,7 +147,7 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
         schema        => $schema,
         layout        => $layout,
         instance_id   => $layout->instance_id,
-        other_user_id => $user_create1->{id},
+        other_user_id => $user_create1->id,
     );
 
     my $has_view = grep { $_->name eq 'FooBar' } @{$views->user_views};
@@ -161,14 +159,14 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
         schema        => $schema,
         layout        => $layout,
         instance_id   => $layout->instance_id,
-        other_user_id => $user_create1->{id},
+        other_user_id => $user_create1->id,
     );
 
     $has_view = grep { $_->name eq 'FooBar' } @{$views->user_views};
     ok($has_view, "Admin user can see views of others");
 
     # Then creating views for other users
-    $view = GADS::View->new(%view_template, name => 'FooBar2', other_user_id => $user_create2->{id});
+    $view = GADS::View->new(%view_template, name => 'FooBar2', other_user_id => $user_create2->id);
     $layout->user($user_create1);
     $layout->clear;
     $view->write;
@@ -192,7 +190,7 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
     $has_view = grep { $_->name eq 'FooBar2' } @{$views->user_views};
     ok($has_view, "Normal user created own view when trying to be other user");
 
-    $view = GADS::View->new(%view_template, name => 'FooBar3', other_user_id => $user_create2->{id});
+    $view = GADS::View->new(%view_template, name => 'FooBar3', other_user_id => $user_create2->id);
     $layout->user($user_admin);
     $layout->clear;
     $view->write;

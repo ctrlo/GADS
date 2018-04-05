@@ -36,13 +36,13 @@ has user => (
 sub user_id
 {   my $self = shift;
     $self->user or return undef;
-    ref $self->user eq 'HASH' ? $self->user->{id} : $self->user->id;
+    $self->user->id;
 }
 
 sub username
 {   my $self = shift;
     $self->user or return undef;
-    ref $self->user eq 'HASH' ? $self->user->{username} : $self->user->username;
+    $self->user->username;
 }
 
 has filtering => (

@@ -114,19 +114,18 @@ is( $parent->fields->{$rag1_id}->as_string, $child->fields->{$rag1_id}->as_strin
 
 # Set new daterange value in parent, check it propagates to child calc and alerts set correctly
 $ENV{GADS_NO_FORK} = 1;
-my $user = { id => 1 };
 my $view = GADS::View->new(
     name        => 'view1',
     instance_id => 1,
     layout      => $layout,
     schema      => $schema,
-    user        => $user,
+    user        => $sheet->user,
     global      => 1,
     columns     => [$columns->{calc1}->id],
 );
 $view->write;
 my $alert = GADS::Alert->new(
-    user      => $user,
+    user      => $sheet->user,
     layout    => $layout,
     schema    => $schema,
     frequency => 24,

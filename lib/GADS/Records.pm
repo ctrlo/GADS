@@ -87,7 +87,7 @@ sub _build_view_limits
 {   my $self = shift;
     $self->user or return [];
     my @view_limits = $self->schema->resultset('ViewLimit')->search({
-        'me.user_id' => $self->user->{id},
+        'me.user_id' => $self->user->id,
     },{
         prefetch => 'view',
     })->all;
@@ -1238,7 +1238,7 @@ sub _search_construct
             {
                 if ($column->type eq "person")
                 {
-                    my $curuser = ($options{user} && $options{user}->id) || ($self->user && $self->user->{id})
+                    my $curuser = ($options{user} && $options{user}->id) || ($self->user && $self->user->id)
                         or warning "FIXME: user not set for person filter";
                     $curuser ||= "";
                     $_ =~ s/\[CURUSER\]/$curuser/g;
@@ -1246,7 +1246,7 @@ sub _search_construct
                 }
                 elsif ($column->return_type eq "string")
                 {
-                    my $curuser = ($options{user} && $options{user}->value) || ($self->user && $self->user->{value})
+                    my $curuser = ($options{user} && $options{user}->value) || ($self->user && $self->user->value)
                         or warning "FIXME: user not set for string filter";
                     $curuser ||= "";
                     $_ =~ s/\[CURUSER\]/$curuser/g;

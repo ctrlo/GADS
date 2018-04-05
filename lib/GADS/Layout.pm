@@ -157,7 +157,7 @@ sub _build__user_permissions_columns
 {   my $self = shift;
     $self->user or return {};
 
-    my $user_id  = $self->user->{id};
+    my $user_id  = $self->user->id;
 
     +{
         $user_id => $self->_get_user_permissions($user_id),
@@ -194,7 +194,7 @@ sub _build__user_permissions_table
 {   my $self = shift;
     $self->user or return {};
 
-    my $user_id  = $self->user->{id};
+    my $user_id  = $self->user->id;
     my $perms_rs = $self->_user_perm_search('table', $user_id);
     my ($user_perms) = $perms_rs->all; # The overall user. Only one due to query.
     my $return = {};
@@ -224,7 +224,7 @@ has _user_permissions_overall => (
 sub _build__user_permissions_overall
 {   my $self = shift;
     $self->user or return {};
-    my $user_id = $self->user->{id};
+    my $user_id = $self->user->id;
     my $overall = {};
 
     # First all the column permissions
@@ -240,7 +240,7 @@ sub _build__user_permissions_overall
     $overall->{$_} = 1
         foreach keys %$perms;
 
-    if ($self->user->{permission}->{superadmin})
+    if ($self->user->permission->{superadmin})
     {
         $overall->{layout} = 1;
         $overall->{view_create} = 1;
@@ -253,7 +253,7 @@ sub current_user_can_column
 {   my ($self, $column_id, $permission) = @_;
     my $user = $self->user
         or return;
-    my $user_id  = $user->{id};
+    my $user_id  = $user->id;
     return $self->user_can_column($user_id, $column_id, $permission);
 }
 
@@ -333,7 +333,7 @@ sub write
     }
 
     $rset->update({
-        name => $self->name,
+        name       => $self->name,
     });
 
     # Now set any groups if needed
@@ -680,7 +680,6 @@ sub view
 
     return unless $view_id;
     my $view    = GADS::View->new(
-        user        => $self->user,
         id          => $view_id,
         schema      => $self->schema,
         layout      => $self,

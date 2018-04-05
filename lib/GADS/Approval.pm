@@ -73,7 +73,7 @@ sub _build__records
         'current.instance_id'      => $self->layout->instance_id,
         'record.approval'          => 1,
         'layout_groups.permission' => 'approve_new',
-        'user_id'                  => $self->user->{id},
+        'user_id'                  => $self->user->id,
         'record_previous.id'       => undef,
     };
     
@@ -139,7 +139,7 @@ sub _build__records
         'current.instance_id'      => $self->layout->instance_id,
         'record.approval'          => 1,
         'layout_groups.permission' => 'approve_existing',
-        'user_id'                  => $self->user->{id},
+        'user_id'                  => $self->user->id,
         'record_previous.id'       => { '!=' => undef },
     };
 

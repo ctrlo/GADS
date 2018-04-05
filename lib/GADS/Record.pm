@@ -700,7 +700,7 @@ sub load_remembered_values
 
     my $lastrecord = $self->schema->resultset('UserLastrecord')->search({
         instance_id => $self->layout->instance_id,
-        user_id     => $self->user->{id},
+        user_id     => $self->user->id,
     })->next
         or return;
 
@@ -1232,7 +1232,7 @@ sub write
         $self->current_id($id);
     }
 
-    my $user_id = $self->user ? $self->user->{id} : undef;
+    my $user_id = $self->user ? $self->user->id : undef;
 
     my $created_date = $options{version_datetime} || DateTime->now;
     my $createdby = $options{version_userid} || $user_id;
@@ -1680,7 +1680,7 @@ sub delete_current
 
     $current->update({
         deleted   => DateTime->now,
-        deletedby => $self->user && $self->user->{id}
+        deletedby => $self->user && $self->user->id
     });
 }
 
@@ -1782,7 +1782,7 @@ sub purge_current
     $self->schema->resultset('Current')->find($id)->delete;
     $guard->commit;
 
-    my $user_id = $self->user && $self->user->{id};
+    my $user_id = $self->user && $self->user->id;
     info __x"Record ID {id} purged by user ID {user} (originally created by user ID {createdby} at {created}",
         id => $id, user => $user_id, createdby => $createdby->id, created => $created;
 }

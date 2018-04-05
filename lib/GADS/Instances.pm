@@ -59,7 +59,7 @@ sub _build__layouts
 
     # Get all permissions to save them being built in each instance
     my $rs = $self->schema->resultset('InstanceGroup')->search({
-        user_id => $self->user->{id},
+        user_id => $self->user->id,
     },{
         select => [
             {
@@ -82,7 +82,7 @@ sub _build__layouts
         foreach ($rs->all);
 
     $rs = $self->schema->resultset('LayoutGroup')->search({
-        user_id => $self->user->{id},
+        user_id => $self->user->id,
     },{
         select => [
             {
@@ -113,10 +113,10 @@ sub _build__layouts
     foreach my $instance ($self->schema->resultset('Instance')->all)
     {
         my $p_table   = {
-            $self->user->{id} => $perms_table->{$instance->id} || {},
+            $self->user->id => $perms_table->{$instance->id} || {},
         };
         my $p_columns = {
-            $self->user->{id} => $perms_columns->{$instance->id} || {},
+            $self->user->id => $perms_columns->{$instance->id} || {},
         };
         my %params = (
             user                      => $self->user,

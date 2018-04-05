@@ -114,6 +114,9 @@ GADS::Email->instance(
     config => config,
 );
 
+config->{plugins}->{Auth::Extensible}->{realms}->{dbic}->{user_as_object}
+    or panic "Auth::Extensible DBIC provider needs to be configured with user_as_object";
+
 my $password_generator = CtrlO::Crypt::XkcdPassword->new;
 
 hook before => sub {
@@ -148,52 +151,58 @@ hook before => sub {
     my $user = logged_in_user;
 
     # Log to audit
-    my $method = request->method;
-    my $path   = request->path;
-    my $query  = request->query_string;
-    my $audit  = GADS::Audit->new(schema => schema, user => $user);
+    my $method      = request->method;
+    my $path        = request->path;
+    my $query       = request->query_string;
+    my $audit       = GADS::Audit->new(schema => schema, user => $user);
+    my $username    = $user && $user->username;
     my $description = $user
-        ? qq(User "$user->{username}" made "$method" request to "$path")
+        ? qq(User "$username" made "$method" request to "$path")
         : qq(Unauthenticated user made "$method" request to "$path");
     $description .= qq( with query "$query") if $query;
     $audit->user_action(description => $description, url => $path, method => $method)
         if $user;
 
-    if (config->{gads}->{aup} && $user)
+    my $instances = $user && GADS::Instances->new(schema => schema, user => $user);
+    var 'instances' => $instances;
+
+    # The following use logged_in_user so as not to apply for API requests
+    if (logged_in_user)
     {
-        # Redirect if AUP not signed
-        my $aup_accepted;
-        if (my $aup_date = $user->{aup_accepted})
+        if (config->{gads}->{aup})
         {
-            my $db_parser   = schema->storage->datetime_parser;
-            my $aup_date_dt = $db_parser->parse_datetime($aup_date);
-            $aup_accepted   = $aup_date_dt && DateTime->compare( $aup_date_dt, DateTime->now->subtract(months => 12) ) > 0;
+            # Redirect if AUP not signed
+            my $aup_accepted;
+            if (my $aup_date = $user->aup_accepted)
+            {
+                my $db_parser   = schema->storage->datetime_parser;
+                my $aup_date_dt = $db_parser->parse_datetime($aup_date);
+                $aup_accepted   = $aup_date_dt && DateTime->compare( $aup_date_dt, DateTime->now->subtract(months => 12) ) > 0;
+            }
+            redirect '/aup' unless $aup_accepted || request->uri =~ m!^/aup!;
         }
-        redirect '/aup' unless $aup_accepted || request->uri =~ m!^/aup!;
-    }
 
-    if (logged_in_user && config->{gads}->{user_status} && !session('status_accepted'))
-    {
-        # Redirect to user status page if required and not seen this session
-        redirect '/user_status' unless request->uri =~ m!^/(user_status|aup)!;
-    }
-    elsif (logged_in_user_password_expired)
-    {
-        # Redirect to user details page if password expired
-        forwardHome({ danger => "Your password has expired. Please use the Change password button
-            below to set a new password." }, 'account/detail')
-                unless request->uri eq '/account/detail' || request->uri eq '/logout';
-    }
+        if (config->{gads}->{user_status} && !session('status_accepted'))
+        {
+            # Redirect to user status page if required and not seen this session
+            redirect '/user_status' unless request->uri =~ m!^/(user_status|aup)!;
+        }
+        elsif (logged_in_user_password_expired)
+        {
+            # Redirect to user details page if password expired
+            forwardHome({ danger => "Your password has expired. Please use the Change password button
+                below to set a new password." }, 'account/detail')
+                    unless request->uri eq '/account/detail' || request->uri eq '/logout';
+        }
 
-    if ($user)
-    {
         header "X-Frame-Options" => "DENY"; # Prevent clickjacking
+
         # Make sure we have suitable persistent hash to update. All these options are
         # used as hashrefs themselves, so prevent trying to access non-existent hash.
         if (!session 'persistent')
         {
             my $session_settings;
-            try { $session_settings = decode_json $user->{session_settings} };
+            try { $session_settings = decode_json $user->session_settings };
             session 'persistent' => ($session_settings || {});
         }
         my $persistent = session 'persistent';
@@ -211,7 +220,6 @@ hook before => sub {
         # be one sheet, but then a linked record to be viewed from another
         # sheet. This is used in the links for the Curval column type
         my $instance_id = param('oi') || param('instance') || $persistent->{instance_id};
-        my $instances = GADS::Instances->new(schema => schema, user => $user);
         $instance_id = $instances->is_valid($instance_id) || $instances->all->[0] && $instances->all->[0]->instance_id;
         if (!$instance_id && request->uri !~ m!^/user!)
         {
@@ -222,7 +230,6 @@ hook before => sub {
             if $instance_id;
         $persistent->{instance_id} = $instance_id
             unless param 'oi';
-        var 'instances' => $instances;
     }
 };
 
@@ -258,7 +265,6 @@ hook before_template => sub {
         $tokens->{instances}     = var('instances')->all;
         $tokens->{instance_name} = var('layout')->name if var('layout');
         $tokens->{user}          = $user;
-        $tokens->{user_rs}       = rset('User')->find(logged_in_user->{id});
         $tokens->{search}        = session 'search';
         # Somehow this sets the instance_id session if no persistent session exists
         $tokens->{instance_id}   = session('persistent')->{instance_id}
@@ -282,9 +288,8 @@ hook before_template => sub {
 };
 
 hook after_template_render => sub {
-    if (logged_in_user)
+    if (my $user = logged_in_user)
     {
-        my $user = schema->resultset('User')->find(logged_in_user->{id});
         $user->update({
             session_settings => encode_json(session('persistent')),
         });
@@ -915,7 +920,7 @@ any '/purge/?' => require_login sub {
 any '/account/?:action?/?' => require_login sub {
 
     my $action = param 'action';
-    my $user   = rset('User')->find(logged_in_user->{id});
+    my $user   = logged_in_user;
     my $audit  = GADS::Audit->new(schema => schema, user => $user);
 
     if (param 'newpassword')
@@ -1458,7 +1463,8 @@ any '/layout/?:id?' => require_login sub {
             my $colname = $column->name;
             trace __x"Starting deletion of column {name}", name => $colname;
             my $audit  = GADS::Audit->new(schema => schema, user => $user);
-            my $description = qq(User "$user->{username}" deleted field "$colname");
+            my $username = $user->username;
+            my $description = qq(User "$username" deleted field "$colname");
             $audit->user_action(description => $description);
             if (process( sub { $column->delete }))
             {
@@ -1604,7 +1610,7 @@ any '/user/upload' => require_any_role [qw/useradmin superadmin/] => sub {
     # Get all layouts of all instances for view restrictions
     # (XXX code to be removed for menu branch)
     my $user = logged_in_user;
-    my $instances = GADS::Instances->new(schema => schema, user => $user);
+    my $instances = var('instances');
     my @layouts;
     foreach my $instance (@{$instances->all})
     {
@@ -1633,7 +1639,6 @@ any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
     my $userso          = GADS::Users->new(schema => schema);
     my %all_permissions = map { $_->id => $_->name } @{$userso->permissions};
     my $audit           = GADS::Audit->new(schema => schema, user => $user);
-    my $logged_in_user  = rset('User')->find($user->{id}), # XXX Remove once $user is object
     my $users;
 
     if (param 'sendemail')
@@ -1680,7 +1685,7 @@ any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
             if (process sub {
                 my $user = rset('User')->active->search({ id => $id })->next;
                 # Don't use DBIC update directly, so that permissions etc are updated properly
-                $user->update_user(current_user => $logged_in_user, %values);
+                $user->update_user(current_user => $user, %values);
             })
             {
                 return forwardHome(
@@ -1689,7 +1694,7 @@ any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
         }
         else {
             # This sends a welcome email etc
-            if (process(sub { rset('User')->create_user(current_user => $logged_in_user, request_base => request->base, %values) }))
+            if (process(sub { rset('User')->create_user(current_user => $user, request_base => request->base, %values) }))
             {
                 return forwardHome(
                     { success => "User has been created successfully" }, 'user' );
@@ -1754,7 +1759,7 @@ any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
     {
         return forwardHome(
             { danger => "Cannot delete current logged-in User" } )
-            if logged_in_user->{id} eq $delete_id;
+            if logged_in_user->id eq $delete_id;
         my $usero = rset('User')->find($delete_id);
         if (process( sub { $usero->retire(send_reject_email => 1) }))
         {
@@ -1803,7 +1808,6 @@ any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
 
     my $output = template 'user' => {
         edit              => $route_id,
-        logged_in_user    => $logged_in_user,
         users             => $users,
         groups            => GADS::Groups->new(schema => schema)->all,
         register_requests => $register_requests,
@@ -2209,10 +2213,10 @@ any '/edit/:id?' => require_login sub {
 
     my $child = param 'child';
 
-    # XXX Move into user class once properly available
+    # XXX Move into user class
     my ($lastrecord) = rset('UserLastrecord')->search({
         instance_id => $layout->instance_id,
-        user_id     => $user->{id},
+        user_id     => $user->id,
     })->all;
 
     if ($id)
@@ -2620,7 +2624,7 @@ any '/import/data/?' => require_login sub {
                 file     => $upload->tempname,
                 schema   => schema,
                 layout   => var('layout'),
-                user_id  => logged_in_user->{id},
+                user_id  => $user->id,
                 %options,
             );
 
@@ -2778,7 +2782,7 @@ any '/login' => sub {
             $user = logged_in_user;
             $audit->user($user);
             $audit->login_success;
-            rset('User')->find($user->{id})->update({
+            $user->update({
                 failcount => 0,
                 lastfail  => undef,
             });

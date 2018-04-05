@@ -50,9 +50,9 @@ $sheet->create_records;
 
 # Create users
 my %users = (
-    read      => { id => $sheet->create_user->{id} },
-    limited   => { id => $sheet->create_user->{id} },
-    readwrite => { id => $sheet->create_user->{id} },
+    read      => $sheet->create_user,
+    limited   => $sheet->create_user,
+    readwrite => $sheet->create_user,
 );
 
 # Groups
@@ -69,8 +69,8 @@ is( scalar @{$groups->all}, 3, "Groups created successfully");
 my %groups;
 foreach my $group (@{$groups->all})
 {
-    my $usero = $schema->resultset('User')->find($users{$group->name}->{id});
-    $usero->groups($schema->resultset('User')->find($sheet->user->{id}), [$group->id]);
+    my $usero = $users{$group->name};
+    $usero->groups($schema->resultset('User')->find($sheet->user->id), [$group->id]);
     $groups{$group->name} = $group->id;
 }
 

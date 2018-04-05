@@ -692,7 +692,8 @@ sub groups
 
 # Used to check if a user has a permission
 has permission => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_permission

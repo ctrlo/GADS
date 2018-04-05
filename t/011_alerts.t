@@ -438,9 +438,6 @@ my @filters = (
     },
 );
 
-my $user = { id => 1, value => 'User1, User1', permission => { layout => 1 } };
-my $user2 = { id => 2, value => 'User2, User2' };
-
 # First write all the filters and alerts
 foreach my $filter (@filters)
 {
@@ -456,13 +453,13 @@ foreach my $filter (@filters)
         instance_id => $alert_layout->instance_id,
         layout      => $alert_layout,
         schema      => $schema,
-        user        => $user,
+        user        => $sheet->user,
         columns     => $filter->{columns},
     );
     $view->write;
 
     my $alert = GADS::Alert->new(
-        user      => $user,
+        user      => $sheet->user,
         layout    => $filter->{alert_layout} || $layout,
         schema    => $schema,
         frequency => 24,
@@ -486,7 +483,7 @@ foreach my $filter (@filters)
 
     # First add record
     my $record = GADS::Record->new(
-        user     => $user,
+        user     => $sheet->user,
         layout   => $layout,
         schema   => $schema,
     );
@@ -571,13 +568,13 @@ my $view = GADS::View->new(
     instance_id => 1,
     layout      => $layout,
     schema      => $schema,
-    user        => $user,
+    user        => $sheet->user,
     columns     => [$columns->{date1}->id],
 );
 $view->write;
 
 my $alert = GADS::Alert->new(
-    user      => $user,
+    user      => $sheet->user,
     layout    => $layout,
     schema    => $schema,
     frequency => 24,
@@ -613,6 +610,9 @@ is( $schema->resultset('AlertCache')->count, 5, "Correct number of alerts after 
 # Do some tests on CURUSER alerts. One for filter on person field, other on string
 foreach my $curuser_type (qw/person string/)
 {
+    # Hard-coded user IDs. Ideally we would take these from the users that have
+    # been created, but they need to be defined now to pass to the datasheet
+    # creation
     $data = $curuser_type eq 'person'
         ? [
             {
@@ -625,7 +625,7 @@ foreach my $curuser_type (qw/person string/)
             },
             {
                 string1 => 'Foo',
-                person1 => 2,
+                person1 => 4,
             },
             {
                 string1 => 'Foo',
@@ -647,7 +647,7 @@ foreach my $curuser_type (qw/person string/)
             },
             {
                 integer1 => '100',
-                string1  => 'User2, User2',
+                string1  => 'User4, User4',
             },
             {
                 integer1 => '100',
@@ -675,14 +675,13 @@ foreach my $curuser_type (qw/person string/)
         instance_id => 1,
         layout      => $layout,
         schema      => $schema,
-        user        => $user,
         global      => 1,
         columns     => $col_ids,
     );
     $view->write;
 
     $alert = GADS::Alert->new(
-        user      => $user,
+        user      => $sheet->user,
         layout    => $layout,
         schema    => $schema,
         frequency => 24,
@@ -710,7 +709,7 @@ foreach my $curuser_type (qw/person string/)
     is( $schema->resultset('AlertCache')->search({ user_id => 2 })->count, 0, "Correct number of alerts for initial CURUSER filter addition (user2)" );
 
     $alert = GADS::Alert->new(
-        user      => $user2,
+        user      => $sheet->user_normal1,
         layout    => $layout,
         schema    => $schema,
         frequency => 24,
@@ -719,7 +718,7 @@ foreach my $curuser_type (qw/person string/)
     $alert->write;
 
     is( $schema->resultset('AlertCache')->search({ user_id => 1 })->count, 4, "Still correct number of alerts for CURUSER filter addition (user1)" );
-    is( $schema->resultset('AlertCache')->search({ user_id => 2 })->count, 2, "Correct number of alerts for new CURUSER filter addition (user2)" );
+    is( $schema->resultset('AlertCache')->search({ user_id => $sheet->user_normal1->id })->count, 2, "Correct number of alerts for new CURUSER filter addition (user2)" );
     is( $schema->resultset('AlertCache')->search({ user_id => undef })->count, 0, "No null user_id values inserted for CURUSER filter addition" );
 
     # Change global view slightly, check alerts
@@ -761,12 +760,12 @@ foreach my $curuser_type (qw/person string/)
     $view->write;
 
     is( $schema->resultset('AlertCache')->search({ user_id => 1 })->count, 2, "Correct number of CURUSER alerts after filter change (user1)" );
-    is( $schema->resultset('AlertCache')->search({ user_id => 2 })->count, 2, "Correct number of CURUSER alerts after filter change (user2)" );
+    is( $schema->resultset('AlertCache')->search({ user_id => $sheet->user_normal1->id })->count, 2, "Correct number of CURUSER alerts after filter change (user2)" );
     is( $schema->resultset('AlertCache')->search({ user_id => undef })->count, 0, "No null user_id values after filter change" );
 
     # Update a record so as to cause a search_views with CURUSER
     my $record = GADS::Record->new(
-        user     => $user,
+        user     => $sheet->user,
         layout   => $layout,
         schema   => $schema,
     );
@@ -825,14 +824,14 @@ $view = GADS::View->new(
     instance_id => 1,
     layout      => $layout,
     schema      => $schema,
-    user        => $user,
+    user        => $sheet->user,
     global      => 1,
     columns     => [$columns->{calc1}->id],
 );
 $view->write;
 
 $alert = GADS::Alert->new(
-    user      => $user,
+    user      => $sheet->user,
     layout    => $layout,
     schema    => $schema,
     frequency => 24,
@@ -889,7 +888,7 @@ $view = GADS::View->new(
     instance_id => 1,
     layout      => $layout,
     schema      => $schema,
-    user        => $user,
+    user        => $sheet->user,
     global      => 1,
     columns     => [$columns->{calc1}->id],
     filter      => GADS::Filter->new->as_hash({
@@ -906,7 +905,7 @@ $view = GADS::View->new(
 $view->write;
 
 $alert = GADS::Alert->new(
-    user      => $user,
+    user      => $sheet->user,
     layout    => $layout,
     schema    => $schema,
     frequency => 24,
@@ -966,13 +965,13 @@ $view = GADS::View->new(
     instance_id => 1,
     layout      => $layout,
     schema      => $schema,
-    user        => $user,
+    user        => $sheet->user,
     columns     => [$columns->{string1}->id],
 );
 $view->write;
 
 $alert = GADS::Alert->new(
-    user      => $user,
+    user      => $sheet->user,
     layout    => $layout,
     schema    => $schema,
     frequency => 24,
@@ -986,7 +985,7 @@ pop @ids; # Again, not all current_ids, otherwise current_ids will not be search
 my $alert_send = GADS::AlertSend->new(
     layout      => $layout,
     schema      => $schema,
-    user        => $user,
+    user        => $sheet->user,
     base_url    => undef, # $self->base_url,
     current_ids => [@ids],
     columns     => [$columns->{string1}->id],
