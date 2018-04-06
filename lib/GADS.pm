@@ -148,7 +148,9 @@ hook before => sub {
     # This subroutine checks for missing ones and adds them.
     GADS::DB->update(schema);
 
-    my $user = logged_in_user;
+    my $user = request->uri =~ m!^/api/!
+        ? var('api_user')
+        : logged_in_user;
 
     # Log to audit
     my $method      = request->method;
@@ -1285,6 +1287,7 @@ any '/table/:id' => require_role superadmin => sub {
                 );
             }
             $layout_edit->name(param 'name');
+            $layout_edit->name_short(param 'name_short');
             $layout_edit->set_groups([body_parameters->get_all('permissions')]);
 
             if (process(sub {$layout_edit->write}))

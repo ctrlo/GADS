@@ -24,6 +24,17 @@ use Net::OAuth2::AuthorizationServer::PasswordGrant;
 
 use Dancer2 appname => 'GADS';
 use Dancer2::Plugin::DBIC;
+use Dancer2::Plugin::LogReport 'linkspace';
+
+# Special error handler for JSON requests (as used in API)
+ctype_error_handler 'application/json' => sub {
+    my ($dsl, $msg, $reason) = @_;
+    status $reason eq 'PANIC' ? 'Internal Server Error' : 'Bad Request';
+    $dsl->send_as(JSON => {
+        error             => 1,
+        error_description => $msg->toString },
+    { content_type => 'application/json; charset=UTF-8' });
+};
 
 my $verify_user_password_sub = sub {
     my %args = @_;
@@ -111,14 +122,58 @@ my $Grant = Net::OAuth2::AuthorizationServer::PasswordGrant->new(
     verify_access_token_cb  => $verify_access_token_sub,
 );  
 
-# Example, to be changed
-post '/api/record' => sub {
-
+hook before => sub {
     my ($client, $error) = $Grant->verify_token_and_scope(
         auth_header => request->header('authorization'),
     );
+    if ($client)
+    {
+        var api_user => $client->user;
+    }
+};
 
-    say STDOUT "Authenticated user ID is ".$client->user_id;
+sub require_api_user {
+    my $route = shift;
+    return sub {
+        return $route->()
+            if var('api_user');
+        status('Forbidden');
+        error "Authentication needed to access this resource";
+    };
+};
+
+post '/api/record/:sheet' => require_api_user sub {
+
+    my $sheetname = param 'sheet';
+    my $layout    = var('instances')->layout_by_shortname($sheetname); # borks on not found
+    my $user      = var('api_user');
+
+    my $request = decode_json request->body;
+
+    error "Invalid field: id; Use the PUT method to update an existing record"
+        if exists $request->{id};
+
+    my $record = GADS::Record->new(
+        user     => $user,
+        layout   => $layout,
+        schema   => schema,
+        base_url => request->base,
+    );
+
+    $record->initialise;
+
+    foreach my $field (keys %$request)
+    {
+        my $col = $layout->column_by_name_short($field)
+            or error __x"Column not found: {name}", name => $field;
+        $record->fields->{$col->id}->set_value($request->{$field});
+    }
+    $record->write; # borks on error
+
+    status 'Created';
+    header 'Location' => request->base.'record/'.$record->current_id;
+
+    return;
 };
 
 post '/api/token' => sub {

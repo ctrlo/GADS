@@ -47,6 +47,12 @@ __PACKAGE__->table("instance");
   data_type: 'text'
   is_nullable: 1
 
+=head2 name_short
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 64
+
 =head2 site_id
 
   data_type: 'integer'
@@ -92,6 +98,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "name",
   { data_type => "text", is_nullable => 1 },
+  "name_short",
+  { data_type => "varchar", is_nullable => 1, size => 64 },
   "site_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "email_welcome_text",

@@ -1,0 +1,7 @@
+$HASH1 = {
+           description
+                  => 'delete records without approval',
+           id     => 1,
+           name   => 'delete',
+           order  => 1
+         };

@@ -82,6 +82,14 @@ has name => (
     builder => sub { $_[0]->_rset->name },
 );
 
+has name_short => (
+    is      => 'rw',
+    isa     => Maybe[Str],
+    lazy    => 1,
+    clearer => 1,
+    builder => sub { $_[0]->_rset->name_short },
+);
+
 has site => (
     is      => 'ro',
     lazy    => 1,
@@ -334,6 +342,7 @@ sub write
 
     $rset->update({
         name       => $self->name,
+        name_short => $self->name_short,
     });
 
     # Now set any groups if needed

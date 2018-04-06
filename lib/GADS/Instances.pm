@@ -149,6 +149,15 @@ sub layout
         or panic "Layout for instance ID $instance_id not found";
 }
 
+sub layout_by_shortname
+{   my ($self, $shortname) = @_;
+    my $layout = $self->schema->resultset('Instance')->search({
+        name_short => $shortname,
+    })->next
+        or error __x"Table not found: {name}", name => $shortname;
+    return $self->_layouts_index->{$layout->id};
+}
+
 sub is_valid
 {   my ($self, $id) = @_;
     grep { $_->instance_id == $id } @{$self->all}
