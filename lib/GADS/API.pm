@@ -228,7 +228,7 @@ get '/api/record/:sheet/:id' => require_api_user sub {
     return $record->as_json;
 };
 
-get '/api/clientcredentials/?' => require_any_role [qw/superadmin/] => sub {
+get '/clientcredentials/?' => require_any_role [qw/superadmin/] => sub {
 
     my $credentials = rset('Oauthclient')->next;
     $credentials ||= rset('Oauthclient')->create({
