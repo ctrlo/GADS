@@ -142,6 +142,18 @@ sub require_api_user {
     };
 };
 
+sub _update_record
+{   my ($record, $request) = @_;
+    foreach my $field (keys %$request)
+    {
+        my $col = $record->layout->column_by_name_short($field)
+            or error __x"Column not found: {name}", name => $field;
+        $record->fields->{$col->id}->set_value($request->{$field});
+    }
+    $record->write; # borks on error
+};
+
+# Create new record
 post '/api/record/:sheet' => require_api_user sub {
 
     my $sheetname = param 'sheet';
@@ -162,15 +174,34 @@ post '/api/record/:sheet' => require_api_user sub {
 
     $record->initialise;
 
-    foreach my $field (keys %$request)
-    {
-        my $col = $layout->column_by_name_short($field)
-            or error __x"Column not found: {name}", name => $field;
-        $record->fields->{$col->id}->set_value($request->{$field});
-    }
-    $record->write; # borks on error
+    _update_record($record, $request);
 
     status 'Created';
+    header 'Location' => request->base.'record/'.$record->current_id;
+
+    return;
+};
+
+# Edit existing record
+put '/api/record/:sheet/:id' => require_api_user sub {
+
+    my $sheetname = param 'sheet';
+    my $layout    = var('instances')->layout_by_shortname($sheetname); # borks on not found
+    my $user      = var('api_user');
+
+    my $request = decode_json request->body;
+
+    my $record = GADS::Record->new(
+        user     => $user,
+        layout   => $layout,
+        schema   => schema,
+        base_url => request->base,
+    );
+    $record->find_current_id(param 'id');
+
+    _update_record($record, $request);
+
+    status 'No Content';
     header 'Location' => request->base.'record/'.$record->current_id;
 
     return;
