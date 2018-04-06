@@ -1704,6 +1704,17 @@ sub restore
     });
 }
 
+sub as_json
+{   my $self = shift;
+    my $return;
+    foreach my $col ($self->layout->all_user_read)
+    {
+        my $short = $col->name_short or next;
+        $return->{$short} = $self->fields->{$col->id}->as_string;
+    }
+    encode_json $return;
+}
+
 # Delete the record entirely from the database, plus its parent current (entire
 # row) along with all related records
 sub purge_current

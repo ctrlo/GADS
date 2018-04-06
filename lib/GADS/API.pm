@@ -207,6 +207,25 @@ put '/api/record/:sheet/:id' => require_api_user sub {
     return;
 };
 
+# Get existing record
+get '/api/record/:sheet/:id' => require_api_user sub {
+
+    my $sheetname = param 'sheet';
+    my $layout    = var('instances')->layout_by_shortname($sheetname); # borks on not found
+    my $user      = var('api_user');
+
+    my $record = GADS::Record->new(
+        user     => $user,
+        layout   => $layout,
+        schema   => schema,
+        base_url => request->base,
+    );
+    $record->find_current_id(param 'id');
+
+    content_type 'application/json; charset=UTF-8';
+    return $record->as_json;
+};
+
 post '/api/token' => sub {
 
     my ($client_id_submit, $client_secret);
