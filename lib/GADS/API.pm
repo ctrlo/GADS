@@ -21,8 +21,10 @@ package GADS::API;
 use Crypt::SaltedHash;
 use MIME::Base64 qw/decode_base64/;
 use Net::OAuth2::AuthorizationServer::PasswordGrant;
+use Session::Token;
 
 use Dancer2 appname => 'GADS';
+use Dancer2::Plugin::Auth::Extensible;
 use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::LogReport 'linkspace';
 
@@ -224,6 +226,19 @@ get '/api/record/:sheet/:id' => require_api_user sub {
 
     content_type 'application/json; charset=UTF-8';
     return $record->as_json;
+};
+
+get '/api/clientcredentials/?' => require_any_role [qw/superadmin/] => sub {
+
+    my $credentials = rset('Oauthclient')->next;
+    $credentials ||= rset('Oauthclient')->create({
+        client_id     => Session::Token->new( length => 12 )->get,
+        client_secret => Session::Token->new( length => 12 )->get,
+    });
+
+    return template 'api/clientcredentials' => {
+        credentials => $credentials,
+    };
 };
 
 post '/api/token' => sub {

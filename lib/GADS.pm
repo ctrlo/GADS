@@ -148,7 +148,7 @@ hook before => sub {
     # This subroutine checks for missing ones and adds them.
     GADS::DB->update(schema);
 
-    my $user = request->uri =~ m!^/api/!
+    my $user = request->uri =~ m#^/api/(?!clientcredentials)#
         ? var('api_user')
         : logged_in_user;
 
