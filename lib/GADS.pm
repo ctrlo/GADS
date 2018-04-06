@@ -114,7 +114,7 @@ GADS::Email->instance(
     config => config,
 );
 
-config->{plugins}->{Auth::Extensible}->{realms}->{dbic}->{user_as_object}
+config->{plugins}->{'Auth::Extensible'}->{realms}->{dbic}->{user_as_object}
     or panic "Auth::Extensible DBIC provider needs to be configured with user_as_object";
 
 my $password_generator = CtrlO::Crypt::XkcdPassword->new;
