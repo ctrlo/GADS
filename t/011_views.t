@@ -205,6 +205,30 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
 
     $has_view = grep { $_->name eq 'FooBar3' } @{$views->user_views};
     ok($has_view, "Admin user can create view as other user");
+
+    # Edit other user's view
+    $layout->user($user_admin);
+    $layout->clear;
+    $view = GADS::View->new(
+        id          => $view->id,
+        schema      => $schema,
+        layout      => $layout,
+        instance_id => $layout->instance_id,
+    );
+    $view->name('FooBar4');
+    $view->write;
+
+    $layout->user($user_create2);
+    $layout->clear;
+    $views = GADS::Views->new(
+        schema        => $schema,
+        layout        => $layout,
+        instance_id   => $layout->instance_id,
+    );
+
+    my ($view_other) = grep { $_->name eq 'FooBar4' } @{$views->user_views};
+    is($view_other->id, $view->id, "Admin user updated other user's view");
+
 }
 
 # Check that view can be deleted, with alerts

@@ -270,7 +270,7 @@ sub _build_writable
     {
         return 1 if $self->layout->user_can("view_create");
     }
-    elsif ($self->user->permission->{layout})
+    elsif ($self->layout->user_can("layout"))
     {
         return 1;
     }
