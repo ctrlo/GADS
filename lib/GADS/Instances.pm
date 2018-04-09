@@ -35,6 +35,12 @@ has user => (
     required => 1,
 );
 
+has user_permission_override => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
 has all => (
     is => 'lazy',
 );
@@ -59,7 +65,7 @@ sub _build__layouts
 
     # Get all permissions to save them being built in each instance
     my $rs = $self->schema->resultset('InstanceGroup')->search({
-        user_id => $self->user->id,
+        user_id => $self->user && $self->user->id,
     },{
         select => [
             {
@@ -82,7 +88,7 @@ sub _build__layouts
         foreach ($rs->all);
 
     $rs = $self->schema->resultset('LayoutGroup')->search({
-        user_id => $self->user->id,
+        user_id => $self->user && $self->user->id,
     },{
         select => [
             {
@@ -112,19 +118,24 @@ sub _build__layouts
 
     foreach my $instance ($self->schema->resultset('Instance')->all)
     {
-        my $p_table   = {
-            $self->user->id => $perms_table->{$instance->id} || {},
-        };
-        my $p_columns = {
-            $self->user->id => $perms_columns->{$instance->id} || {},
-        };
+        my ($p_table, $p_columns);
+        if ($self->user)
+        {
+            $p_table   = {
+                $self->user->id => $perms_table->{$instance->id} || {},
+            };
+            $p_columns = {
+                $self->user->id => $perms_columns->{$instance->id} || {},
+            };
+        }
         my %params = (
             user                      => $self->user,
             schema                    => $self->schema,
             config                    => GADS::Config->instance,
             instance_id               => $instance->id,
-            _user_permissions_table   => $p_table,
-            _user_permissions_columns => $p_columns,
+            user_permission_override  => $self->user_permission_override,
+            _user_permissions_table   => $p_table || {},
+            _user_permissions_columns => $p_columns || {},
         );
         $params{cols_db} = $layouts[0]->cols_db if @layouts;
         push @layouts, GADS::Layout->new(%params);

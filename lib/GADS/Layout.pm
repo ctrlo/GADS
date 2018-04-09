@@ -710,6 +710,7 @@ sub user_can
 # Whether the user has got any sort of access
 sub user_can_anything
 {   my $self = shift;
+    return 1 if $self->user_permission_override;
     !! keys %{$self->_user_permissions_overall};
 }
 

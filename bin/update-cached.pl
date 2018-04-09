@@ -46,17 +46,14 @@ tie %{schema->storage->dbh->{CachedKids}}, 'Tie::Cache', 100;
 foreach my $site (schema->resultset('Site')->all)
 {
     schema->site_id($site->id);
-    my $instances = GADS::Instances->new(schema => schema);
+    my $instances = GADS::Instances->new(
+        schema                   => schema,
+        user                     => undef,
+        user_permission_override => 1,
+    );
 
-    foreach my $instance (@{$instances->all})
+    foreach my $layout (@{$instances->all})
     {
-        my $layout = GADS::Layout->new(
-            user        => undef,
-            instance_id => $instance->id,
-            schema      => schema,
-            config      => GADS::Config->instance,
-        );
-
         foreach my $column ($layout->all(order_dependencies => 1))
         {
             next if $column->userinput;
