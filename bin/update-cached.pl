@@ -54,6 +54,7 @@ foreach my $site (schema->resultset('Site')->all)
 
     foreach my $layout (@{$instances->all})
     {
+        next if $layout->no_overnight_update;
         foreach my $column ($layout->all(order_dependencies => 1))
         {
             next if $column->userinput;

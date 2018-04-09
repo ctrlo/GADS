@@ -116,6 +116,14 @@ has forget_history => (
     clearer => 1,
 );
 
+has no_overnight_update => (
+    is      => 'ro',
+    isa     => Bool,
+    lazy    => 1,
+    builder => sub { $_[0]->_rset->no_overnight_update },
+    clearer => 1,
+);
+
 has sort_layout_id => (
     is      => 'rw',
     isa     => Maybe[Int],
@@ -473,6 +481,7 @@ sub clear
     $self->_clear_user_permissions_table;
     $self->_clear_user_permissions_overall;
     $self->clear_forget_history;
+    $self->clear_no_overnight_update;
     $self->_clear_rset;
 }
 
