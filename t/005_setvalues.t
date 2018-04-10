@@ -531,6 +531,36 @@ foreach my $c (keys %$values)
     is($record_count_new, $record_count + 1, "One record written");
 }
 
+# Test setting person field as textual value instead of ID
+{
+    my $sheet = t::lib::DataSheet->new(user_count => 2);
+    $sheet->create_records;
+    my $record = GADS::Records->new(
+        user    => undef,
+        layout  => $sheet->layout,
+        schema  => $sheet->schema,
+    )->single;
+    my $person_id = $sheet->columns->{person1}->id;
+
+    my $datum = $record->fields->{$person_id};
+    ok(!$record->fields->{$person_id}->id, "Person field initially blank" );
+
+    # Standard format (surname, forename)
+    $datum->set_value('User1, User1');
+    my $current_id = $record->current_id;
+    $record->write(no_alerts => 1);
+    $record->clear;
+    $record->find_current_id($current_id);
+    is($record->fields->{$person_id}->id, 1, "Person field correctly updated using textual name" );
+
+    # Forename then surname, format without a comma
+    $record->fields->{$person_id}->set_value('User2 User2');
+    $record->write(no_alerts => 1);
+    $record->clear;
+    $record->find_current_id($current_id);
+    is($record->fields->{$person_id}->id, 2, "Person field correctly updated using textual name (2)" );
+}
+
 # Final special test for file with only ID number the same (no new content)
 $sheet = t::lib::DataSheet->new(
     data => [

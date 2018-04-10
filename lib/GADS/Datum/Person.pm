@@ -42,7 +42,16 @@ sub set_value
         }
     }
     else {
-        # User input
+        # User input.
+        # First check if a textual value has been provided (e.g. import)
+        if ($value && $value !~ /^[0-9]+$/)
+        {
+            # Swap surname/forename if no comma
+            $value =~ s/(.*)\h+(.*)/$2, $1/ if $value !~ /,/;
+            # Try and find in users
+            (my $p) = grep {$value eq $_->value} @{$self->column->people};
+            $value = $p->id if $p;
+        }
         !$value || $options{no_validation} || (grep {$value == $_->id} @{$self->column->people}) || $value == $self->id # Unchanged deleted user
             or error __x"'{int}' is not a valid person ID"
                 , int => $value;
