@@ -821,6 +821,7 @@ sub retire
         $self->result_source->schema->resultset('ViewLayout')->search({ view_id => \@views })->delete;
         $self->result_source->schema->resultset('Sort')->search({ view_id => \@views })->delete;
         $self->result_source->schema->resultset('AlertCache')->search({ view_id => \@views })->delete;
+        $self->result_source->schema->resultset('Alert')->search({ view_id => \@views })->delete;
         $views->delete;
 
         $self->update({ deleted => DateTime->now });
