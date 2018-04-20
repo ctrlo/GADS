@@ -170,7 +170,7 @@
 [% ELSE %]
 <p>
     <a href="/user/0" class="btn btn-default" role="button">Create user</a>
-    <a href="" data-toggle="modal" data-target="#modal-email" class="btn btn-default" role="button">Email users</a>
+    <a href="" data-toggle="modal" data-target="#sendemail" class="btn btn-default" role="button">Email users</a>
     <a href="/user?download" class="btn btn-default" role="button">Download</a>
     <a href="/user/upload" class="btn btn-default" role="button">Upload</a>
 </p>
@@ -255,27 +255,21 @@
     modal_form_method="post"
 %]
     <div class="form-group">
-        <label for="email_organisation" class="col-sm-2 control-label">Users in:</label>
-        <div class="col-sm-10">
+        <label for="email_organisation" class="control-label">Users in:</label>
             <select class="form-control" id="email_organisation" name="email_organisation">
                 <option value="">&lt;All users&gt;</option>
                 [% FOREACH org IN organisations %]
                     <option value="[% org.id %]">[% org.name | html_entity %]</option>
                 [% END %]
             </select>
-        </div>
     </div>
     <div class="form-group">
-        <label for="email_subject" class="col-sm-2 control-label">Subject</label>
-        <div class="col-sm-10">
+        <label for="email_subject" class="control-label">Subject</label>
             <input type="text" class="form-control" name="email_subject" id="email_subject" placeholder="Subject">
-        </div>
     </div>
     <div class="form-group">
-        <label for="email_text" class="col-sm-2 control-label">Message</label>
-        <div class="col-sm-10">
+        <label for="email_text" class="control-label">Message</label>
             <textarea class="form-control" id="email_text" name="email_text" rows="10"></textarea>
-        </div>
     </div>
 [% END %]
 
