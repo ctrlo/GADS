@@ -34,7 +34,9 @@ has message_prefix => (
 
 sub _build_message_prefix
 {   my $self = shift;
-    $self->config->{gads}->{message_prefix} || "";
+    my $prefix = $self->config->{gads}->{message_prefix} || "";
+    $prefix .= "\n" if $prefix;
+    $prefix;
 }
 
 has config => (
