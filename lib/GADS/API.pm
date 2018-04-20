@@ -127,7 +127,7 @@ my $Grant = Net::OAuth2::AuthorizationServer::PasswordGrant->new(
 
 hook before => sub {
     my ($client, $error) = $Grant->verify_token_and_scope(
-        auth_header => request->header('authorization'),
+        auth_header => request->header('authorization') || undef, # Otherwise treated as array
     );
     if ($client)
     {
