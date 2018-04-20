@@ -5,26 +5,28 @@
                         var selectedElms = $('#jstree[% tree.id %]').jstree("get_selected", true);
                         $('.[% tree.field %]').remove();
 
-                        var field_on_change = $("body").data("change" + [% tree.id %] );
-                        var re = field_on_change && field_on_change.re;
-                        var show = false;
-                        $.each(selectedElms, function() {
-                            $('#editform').append('<input type="hidden" name="[% tree.field %]" class="[% tree.field %]" value="' + this.id + '" />');
+                        var fields_on_change = $("body").data("change" + [% tree.id %] );
+                        fields_on_change.forEach(function(field_on_change) {
+                            var re = field_on_change && field_on_change.re;
+                            var show = false;
+                            $.each(selectedElms, function() {
+                                $('#editform').append('<input type="hidden" name="[% tree.field %]" class="[% tree.field %]" value="' + this.id + '" />');
+                                if (re) {
+                                    var val_text = data.instance.get_path(this, '#');
+                                    if (re.test(val_text)) {
+                                        show = true;
+                                    }
+                                }
+                            });
                             if (re) {
-                                var val_text = data.instance.get_path(this, '#');
-                                if (re.test(val_text)) {
-                                    show = true;
+                                var divid = field_on_change.divid;
+                                if (show) {
+                                    $("#" + divid ).show()
+                                } else {
+                                    $("#" + divid ).hide()
                                 }
                             }
                         });
-                        if (re) {
-                            var divid = field_on_change.divid;
-                            if (show) {
-                                $("#" + divid ).show()
-                            } else {
-                                $("#" + divid ).hide()
-                            }
-                        }
                     }
                     [% IF tree.end_node_only OR tree.multivalue %],
                         'select_node.jstree': function (e, data) {

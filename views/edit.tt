@@ -628,13 +628,19 @@
             [% END %]
             [% jscode.push('
                 var data = base64.decode("' _ depends.regex_b64 _ '");
-                var re = new RegExp("^" + data + "$");
-                $("body").data("change" + ' _ col.id _ ', {
-                    re: re,
+                var regex   = new RegExp("^" + data + "$");
+                var dataid  = "change" + ' _ col.id _ ';
+                var dataval = $("body").data(dataid);
+                if (!dataval) {
+                    $("body").data(dataid, []);
+                };
+                $("body").data(dataid).push( {
+                    re: regex,
                     divid: "' _ divid _'"
                 });
             ') %]
 
+        [% END %]
             [% UNLESS col.type == "tree" %]
                 [% jscode.push('
                     $("#' _ col.id  _ '").change( function () {
@@ -642,18 +648,19 @@
                         if (!val) {
                             val = "";
                         }
-                        var foo = $("body").data("change" + ' _ col.id _ ');
-                        var re = foo.re;
-                        var divid = foo.divid;
-                        if (re.test(val)) {
-                            $("#' _ divid _ '").show()
-                        } else {
-                            $("#' _ divid _ '").hide()
-                        }
+                        var dataval = $("body").data("change" + ' _ col.id _ ');
+                        dataval.forEach(function(element) {
+                            var re = element.re;
+                            var divid = element.divid;
+                            if (re.test(val)) {
+                                $("#" + divid).show()
+                            } else {
+                                $("#" + divid).hide()
+                            }
+                        });
                     });
                 ') %]
             [% END %]
-        [% END %]
 
         <div class="row">
             <div class="col-md-11 col-md-offset-1">

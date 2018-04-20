@@ -378,7 +378,7 @@ sub _import_rows
             {
                 $options{version_userid} = $value;
             }
-            elsif ($col->type eq "enum" || $col->type eq "tree" || $col->type eq "person")
+            elsif ($col->type eq "enum" || $col->type eq "tree")
             {
                 # Get enum ID value
                 if ($value eq "")
