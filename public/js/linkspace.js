@@ -8,11 +8,10 @@ var SelectWidget = function (multi) {
             var itemId = $item.data('list-item');
             var $associated = $('#' + itemId);
             $associated.on('change', function () {
-                console.log(this.id, $(this).prop('checked'));
                 if ($(this).prop('checked')) {
-                    $item.prop('hidden', false);
+                    $item.removeAttr('hidden');
                 } else {
-                    $item.prop('hidden', true);
+                    $item.attr('hidden', '');
                 }
                 update();
             });
@@ -30,17 +29,17 @@ var SelectWidget = function (multi) {
         };
     };
  
-    var onTriggerClick = function ($triger, $target) {
+    var onTriggerClick = function ($trigger, $target) {
         return function (event) {
             var isCurrentlyExpanded = $trigger.attr('aria-expanded') === 'true';
             var willExpandNext = !isCurrentlyExpanded;
 
+            $trigger.attr('aria-expanded', willExpandNext);
+
             if (willExpandNext) {
-                $target.prop('hidden', false);
-                $trigger.attr('aria-expanded', true);
+                $target.removeAttr('hidden');
             } else {
-                $trigger.attr('aria-expanded', false);
-                $target.prop('hidden', true);
+                $target.attr('hidden', '');
             }
         }
     };
@@ -71,11 +70,11 @@ var SelectWidget = function (multi) {
     } else {
         $currentItems.each(connectSingle(function ($connected) {
             $currentItems.each(function () {
-                $(this).prop('hidden', true);
+                $(this).attr('hidden', '');
             });
 
             $current.toggleClass('empty', false);
-            $connected.prop('hidden', false);
+            $connected.removeAttr('hidden');
         }));
     }
 
