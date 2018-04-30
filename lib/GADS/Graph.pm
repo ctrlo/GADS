@@ -247,7 +247,7 @@ sub import_hash
     $self->group_by($values->{group_by});
     $self->stackseries($values->{stackseries});
     $self->type($values->{type});
-    $self->metric_group($values->{metric_group_id});
+    $self->metric_group_id($values->{metric_group_id});
 }
 
 sub export_hash
