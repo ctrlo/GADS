@@ -1,0 +1,13 @@
+# Add metrics to your metric set
+
+Once you have created your metric set you will be returned to the **Manage metrics** screen.&nbsp;
+
+1. Click **Edit&nbsp;**next to the name of the metric set.&nbsp;
+2. Click **Add target metric**
+3. Each target metric must have an **X-axis field value** and a **target metric**. The count ??<u>or the sum of??</u> the X-axis field values will be compared to your target metric and displayed on your graph as a relative percentage. &nbsp;
+4. If your **X-axis field is a date field**, &nbsp;then the X-axis field value must be entered as a unix timestamp that reflects the X-axis grouping. For example, if grouping by month, then May 2015 would be 1 May 2015 12:00AM, which would be entered into your X-axis value box as 1430438400. (You can calculate the values using a unix timestamp converter.)&nbsp;
+5. If in your graph you want to group your X-axis values according to another field's values (i.e. you want to use the *Group by* function of the graph), you also need to specify the relevant&nbsp;**Group by field value**&nbsp;for each target metric.&nbsp;
+   <br>
+   <br>**Example:** You need to have a minimum of 150 students achieve a grade A, 200 achieve a grade B, and 300 achieve a grade C. You create a graph where the X-axis is the *Grade&nbsp;*field. Next you create a set of grade metrics. To the set you add a target metric for each grade. The first target metric has the X-axis value A and the target metric 150; the second metric has the X-axis value B and the target value 200; the third metric has X-axis value C and a target metric of 300. &nbsp;If the total number of A, B and C grades is 100, 200 and 150 respectively, then on your graph you would see A grades as 75%, B grades as 100%, and C grades as 50%.&nbsp;
+   <br>
+   <br>If you needed a certain number of those grades to come from a specific category of students then you could use the Group by function. In your graph you could choose to group by a&nbsp;*Student type* for example. You would then have to define a metric for each *Grade*(X-axis field)*&nbsp;*value and each *Student type*(Group by field) you wanted to monitor. So, if you had two types of student - *Full-time* and *Part-time* you would need to add target metrics for each of these: the first target metric has the X-axis value *A,*the Group by field value of *Part-time*&nbsp;and the target metric *75*; the second metric has the X-axis value A the Group by field value of *Full-time*&nbsp;and the target metric 100, etc
