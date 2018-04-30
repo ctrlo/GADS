@@ -1,0 +1,1 @@
+# Use alerts to track changes made to records in a view
