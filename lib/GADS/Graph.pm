@@ -257,7 +257,7 @@ sub import_hash
     $self->stackseries($values->{stackseries});
     $self->as_percent($values->{as_percent});
     $self->type($values->{type});
-    $self->metric_group($values->{metric_group_id});
+    $self->metric_group_id($values->{metric_group_id});
 }
 
 sub export_hash

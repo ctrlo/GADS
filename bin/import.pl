@@ -192,9 +192,10 @@ foreach my $ins (readdir $root)
     foreach my $g (dir("_export/$ins/graphs"))
     {
         # Convert to new column IDs
-        $g->{x_axis} = $group_mapping->{$g->{x_axis}};
-        $g->{y_axis} = $group_mapping->{$g->{y_axis}};
-        $g->{group_by} = $group_mapping->{$g->{group_by}};
+        $g->{x_axis} = $column_mapping->{$g->{x_axis}};
+        $g->{y_axis} = $column_mapping->{$g->{y_axis}};
+        $g->{group_by} = $column_mapping->{$g->{group_by}}
+            if $g->{group_by};
         my $graph = GADS::Graph->new(
             layout => $layout,
             schema => schema,
