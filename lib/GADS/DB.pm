@@ -18,6 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::DB;
 
+use strict;
+use warnings;
+
 use String::CamelCase qw(camelize);
 
 sub setup
@@ -68,6 +71,9 @@ sub add_column
     my $rec_class = $schema->class('Record');
     if ($col->type eq 'autocur')
     {
+        # Capture now before any weakrefs go out of scope
+        my $related_field_id = $col->related_field->id;
+
         my $subquery = $schema->resultset('Current')->search({
             'record_later.id' => undef,
         },{
@@ -82,7 +88,7 @@ sub add_column
 
                 return {
                     "$args->{foreign_alias}.value"     => { -ident => "$args->{self_alias}.current_id" },
-                    "$args->{foreign_alias}.layout_id" => $col->related_field->id,
+                    "$args->{foreign_alias}.layout_id" => $related_field_id,
                     "$args->{foreign_alias}.record_id" => { -in => $subquery },
                 };
             }
