@@ -67,7 +67,7 @@ sub convert_value
     my $column = $self->column;
 
     my $value = $in->{return};
-    trace "Value into convert_value is: $value";
+    trace __x"Value into convert_value is: {value}", value => $value;
 
     my $return;
 
