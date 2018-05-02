@@ -436,7 +436,7 @@ sub find_unique
             id          => $column->id,
             type        => $column->type,
             value       => $value,
-            value_field => $column->value_field_as_index, # Need to use value ID not string as search
+            value_field => $column->value_field_as_index($value), # May need to use value ID instead of string as search
             operator    => 'equal',
         }]
     });

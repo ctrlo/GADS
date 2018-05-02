@@ -98,9 +98,9 @@ has ordering => (
     }
 );
 
-has '+value_field_as_index' => (
-    default => 'id',
-);
+sub value_field_as_index
+{   return 'id';
+}
 
 has '+can_multivalue' => (
     default => 1,

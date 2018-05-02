@@ -25,9 +25,12 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
-has '+value_field_as_index' => (
-    default => 'id',
-);
+# Convert based on whether ID or full name provided
+sub value_field_as_index
+{   my ($self, $value) = @_;
+    return 'id' if $value =~ /^[0-9]+$/;
+    return $self->value_field;
+}
 
 has '+has_filter_typeahead' => (
     default => 1,
