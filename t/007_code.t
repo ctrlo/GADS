@@ -247,6 +247,13 @@ my @tests = (
         after  => '15'
     },
     {
+        name   => 'field with created date',
+        type   => 'Calc',
+        code   => qq(function evaluate (_created) \n return _created.day \nend),
+        before => '22',
+        after  => '22'
+    },
+    {
         name   => 'tree node',
         type   => 'Calc',
         code   => qq(function evaluate (L1tree1) \n return L1tree1.value \nend),

@@ -460,6 +460,17 @@ has internal_columns => (
                 hidden      => 1,
                 return_type => 'integer',
             },
+            {
+                id          => -15,
+                name        => 'Record created',
+                type        => 'date',
+                name_short  => '_created',
+                table       => 'record',
+                column      => 'created',
+                isunique    => 0,
+                return_type => 'date',
+
+            },
         ];
     },
 );

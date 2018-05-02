@@ -102,6 +102,17 @@ sub _build_linked_record
     $linked;
 }
 
+has record_created => (
+    is => 'lazy',
+);
+
+sub _build_record_created
+{   my $self = shift;
+    $self->schema->resultset('Record')->search({
+        current_id => $self->current_id,
+    })->get_column('created')->min;
+}
+
 # Should be set true if we are processing an approval
 has doing_approval => (
     is      => 'ro',
@@ -498,7 +509,7 @@ sub find_unique
             id          => $column->id,
             type        => $column->type,
             value       => $value,
-            value_field => $column->value_field_as_index, # Need to use value ID not string as search
+            value_field => $column->value_field_as_index($value), # May need to use value ID instead of string as search
             operator    => 'equal',
         }]
     });
@@ -817,6 +828,14 @@ sub _transform_values
         init_value       => [ { value => $original->{created} } ],
     );
     $fields->{-13} = $self->_person($original->{createdby}, $self->layout->column(-13));
+    $fields->{-15} = GADS::Datum::Date->new(
+        record_id        => $self->record_id,
+        current_id       => $self->current_id,
+        column           => $self->layout->column(-15),
+        schema           => $self->schema,
+        layout           => $self->layout,
+        init_value       => [ { value => $self->record_created } ],
+    );
     $fields;
 }
 
@@ -1220,6 +1239,8 @@ sub write
     # Dummy run?
     return if $options{dry_run};
 
+    my $created_date = $options{version_datetime} || DateTime->now;
+
     # New record?
     if ($self->new_entry)
     {
@@ -1230,11 +1251,11 @@ sub write
         };
         my $id = $self->schema->resultset('Current')->create($current)->id;
         $self->current_id($id);
+        $self->fields->{-15}->set_value($created_date);
     }
 
     my $user_id = $self->user ? $self->user->id : undef;
 
-    my $created_date = $options{version_datetime} || DateTime->now;
     my $createdby = $options{version_userid} || $user_id;
     if ($need_rec && !$options{update_only})
     {

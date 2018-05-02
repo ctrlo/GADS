@@ -33,9 +33,9 @@ sub DESTROY
     $self->_root->delete_tree if $self->_has_tree;
 }
 
-has '+value_field_as_index' => (
-    default => 'id',
-);
+sub value_field_as_index
+{   return 'id';
+}
 
 has '+has_filter_typeahead' => (
     default => 1,
