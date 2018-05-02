@@ -598,6 +598,19 @@ my @filters = (
         count => 0,
     },
     {
+        name  => 'Search for created date',
+        columns => [$columns->{string1}->id],
+        rules => [
+            {
+                id       => -14, # Special id for created column
+                type     => 'date',
+                value    => '2014-10-15',
+                operator => 'less',
+            },
+        ],
+        count => 7,
+    },
+    {
         name  => 'Search for version editor',
         columns => [$columns->{string1}->id],
         rules => [

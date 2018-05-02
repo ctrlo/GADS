@@ -683,6 +683,12 @@ sub _build_results
             $rec2,
         ],
         '+select' => $self->_plus_select, # Used for additional sort columns
+        '+columns' => {
+            record_created => $self->schema->resultset('Current')
+              ->correlate('records')
+              ->get_column('created')
+              ->min_rs->as_query,
+        },
         order_by  => $self->order_by(prefetch => 1),
     };
 
@@ -713,6 +719,7 @@ sub _build_results
             columns_retrieved_no => $self->columns_retrieved_no,
             columns_retrieved_do => $self->columns_retrieved_do,
             column_flags         => $column_flags,
+            record_created       => $rec->{record_created},
         );
         push @record_ids, $rec->{record_single}->{id};
         push @record_ids, $rec->{linked}->{record_single}->{id}

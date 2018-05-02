@@ -5,6 +5,10 @@ use warnings;
 
 use parent 'DBIx::Class::ResultSet';
 
-__PACKAGE__->load_components(qw/Helper::ResultSet::DateMethods1 +GADS::Helper::Concat/);
+__PACKAGE__->load_components(qw/
+    Helper::ResultSet::DateMethods1
+    +GADS::Helper::Concat
+    Helper::ResultSet::CorrelateRelationship/
+);
 
 1;

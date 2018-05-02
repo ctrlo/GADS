@@ -217,6 +217,16 @@ has internal_columns => (
                 isunique    => 0,
                 return_type => 'integer',
             },
+            {
+                id          => -14,
+                name        => 'Record created',
+                type        => 'date',
+                name_short  => '_created',
+                table       => 'record',
+                column      => 'created',
+                isunique    => 0,
+                return_type => 'date',
+            },
         ];
     },
 );
