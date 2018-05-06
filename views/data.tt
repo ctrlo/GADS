@@ -19,7 +19,7 @@
 [% END %]
 
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-9">
             <div class="btn-toolbar" role="toolbar">
                 [% IF config.gads.legacy_menu %]
                     [% PROCESS viewtype_buttons %]
@@ -122,7 +122,7 @@
         </div>
 
         [% IF viewtype == "table" %]
-            <div class="col-md-offset-3 col-md-3 table-rows-pagination">
+            <div class="col-md-3 table-rows-pagination">
                <form method="get" class="form-inline">
                     <div class="form-group">
                         <label for="rows_per_page" class="control-label">Rows per page</label>
