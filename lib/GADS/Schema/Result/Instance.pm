@@ -81,6 +81,12 @@ __PACKAGE__->table("instance");
   is_nullable: 1
   size: 45
 
+=head2 default_view_limit_extra_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =head2 homepage_text
 
   data_type: 'text'
@@ -110,6 +116,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "sort_type",
   { data_type => "varchar", is_nullable => 1, size => 45 },
+  "default_view_limit_extra_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "homepage_text",
   { data_type => "text", is_nullable => 1 },
   "homepage_text2",
@@ -241,6 +249,26 @@ __PACKAGE__->belongs_to(
   "sort_layout",
   "GADS::Schema::Result::Layout",
   { id => "sort_layout_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 default_view_limit_extra
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Layout>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "default_view_limit_extra",
+  "GADS::Schema::Result::View",
+  { id => "default_view_limit_extra_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",

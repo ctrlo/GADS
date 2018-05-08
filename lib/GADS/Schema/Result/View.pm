@@ -68,6 +68,12 @@ __PACKAGE__->table("view");
   default_value: 0
   is_nullable: 0
 
+=head2 is_limit_extra
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
 =head2 filter
 
   data_type: 'text'
@@ -93,6 +99,8 @@ __PACKAGE__->add_columns(
   "global",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "is_admin",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "is_limit_extra",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "filter",
   { data_type => "text", is_nullable => 1 },

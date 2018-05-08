@@ -78,14 +78,16 @@ has view => (
 
 # Whether to limit any results to only those
 # in a specific view
-has view_limits => (
+has _view_limits => (
     is      => 'lazy',
     clearer => 1,
 );
 
-sub _build_view_limits
+sub _build__view_limits
 {   my $self = shift;
     $self->user or return [];
+
+    # User view limits first
     my @view_limits = $self->schema->resultset('ViewLimit')->search({
         'me.user_id' => $self->user->id,
     },{
@@ -95,20 +97,44 @@ sub _build_view_limits
     foreach my $view_limit (@view_limits)
     {
         push @views, GADS::View->new(
-            user        => undef, # In case user does not have access
             id          => $view_limit->view_id,
             schema      => $self->schema,
             layout      => $self->layout,
             instance_id => $self->layout->instance_id,
         ) if $view_limit->view->instance_id == $self->layout->instance_id;
     }
+
+    # Then any additional ones
+    if (my $extra = $self->view_limit_extra_id)
+    {
+        my $view_limit = $self->schema->resultset('View')->search({
+            'me.id' => $extra,
+        })->next;
+        push @views, GADS::View->new(
+            id          => $view_limit->id,
+            schema      => $self->schema,
+            layout      => $self->layout,
+            instance_id => $self->layout->instance_id,
+        ) if $view_limit->instance_id == $self->layout->instance_id;
+    }
     \@views;
 }
 
-sub view_limits_search
+# Any extra view limits in addition to those applied per-user
+has view_limit_extra_id => (
+    is  => 'lazy',
+    isa => Maybe[Int],
+);
+
+sub _build_view_limit_extra_id
+{   my $self = shift;
+    $self->layout->default_view_limit_extra_id;
+}
+
+sub _view_limits_search
 {   my ($self, %options) = @_;
     my @search;
-    foreach my $view (@{$self->view_limits})
+    foreach my $view (@{$self->_view_limits})
     {
         if (my $filter = $view->filter)
         {
@@ -485,7 +511,7 @@ sub _build__search_all_fields
     # Applies to all types of fields being searched
     my @basic_search;
     # Only search limited view if configured for user
-    push @basic_search, $self->view_limits_search;
+    push @basic_search, $self->_view_limits_search;
 
     my $date_column = GADS::Column::Date->new(
         schema => $self->schema,
@@ -906,7 +932,7 @@ sub _build_columns_retrieved_no
 sub clear
 {   my $self = shift;
     $self->clear_pages;
-    $self->clear_view_limits;
+    $self->_clear_view_limits;
     $self->clear_columns_retrieved_no;
     $self->clear_columns_retrieved_do;
     $self->clear_count;
@@ -991,7 +1017,7 @@ sub _query_params
                 }
             }
         }
-        push @search, $self->view_limits_search(%options);
+        push @search, $self->_view_limits_search(%options);
         # Finish by calling order_by. This may add joins of its own, so it
         # ensures that any are added correctly.
         $self->order_by;
@@ -1320,10 +1346,10 @@ sub _resolve
         # match. Use a Records object so that all the normal requirements are
         # dealt with, and pass it the current filter reversed
         my $records = GADS::Records->new(
-            schema      => $self->schema,
-            user        => $self->user,
-            layout      => $self->layout,
-            view_limits => [], # Don't limit by view this as well, otherwise recursive loop happens
+            schema       => $self->schema,
+            user         => $self->user,
+            layout       => $self->layout,
+            _view_limits => [], # Don't limit by view this as well, otherwise recursive loop happens
             view  => GADS::View->new(
                 filter      => { %{$options{filter}}, operator => 'equal' }, # Switch
                 instance_id => $self->layout->instance_id,

@@ -76,6 +76,23 @@
                     </ul>
                 </div>
 
+		[% IF views_limit_extra.size %]
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
+                            [% current_view_limit_extra.name | html %] <span class="caret"></span>
+                        </button>
+                        <ul id="menu_view" class="dropdown-menu scrollable-menu" role="menu">
+                            [% FOR view_limit IN views_limit_extra %]
+                                <li role="presentation">
+                                    <a role="menuitem" tabindex="-1" href="/data?extra=[% view_limit.id %]">
+                                        [% view_limit.name | html %]
+                                    </a>
+                                </li>
+                            [% END %]
+                        </ul>
+                    </div>
+                [% END %]
+
                 [% IF config.gads.legacy_menu %]
                     <div class="btn-group">
                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_action">

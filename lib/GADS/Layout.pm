@@ -131,6 +131,19 @@ has sort_layout_id => (
     builder => sub { $_[0]->_rset->sort_layout_id },
 );
 
+has default_view_limit_extra => (
+    is      => 'ro',
+    lazy    => 1,
+    builder => sub { $_[0]->_rset->default_view_limit_extra },
+);
+
+has default_view_limit_extra_id => (
+    is      => 'ro',
+    isa     => Maybe[Int],
+    lazy    => 1,
+    builder => sub { $_[0]->_rset->default_view_limit_extra_id },
+);
+
 has sort_type => (
     is      => 'rw',
     lazy    => 1,

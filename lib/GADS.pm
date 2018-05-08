@@ -400,6 +400,7 @@ get '/data_calendar/:time' => require_login sub {
         from                 => $fromdt,
         to                   => $todt,
         search               => session('search'),
+        view_limit_extra_id  => current_view_limit_extra_id($user, $layout),
         interpolate_children => 0,
     );
 
@@ -418,10 +419,11 @@ sub _data_graph
     my $layout  = var 'layout';
     my $view    = current_view($user, $layout);
     my $records = GADS::RecordsGroup->new(
-        user   => $user,
-        search => session('search'),
-        layout => $layout,
-        schema => schema,
+        user                => $user,
+        search              => session('search'),
+        view_limit_extra_id => current_view_limit_extra_id($user, $layout),
+        layout              => $layout,
+        schema              => schema,
     );
     GADS::Graph::Data->new(
         id      => $id,
@@ -455,12 +457,13 @@ any '/data' => require_login sub {
     if (param 'modal_delete')
     {
         my $records = GADS::Records->new(
-            user   => $user,
-            search => session('search'),
-            layout => $layout,
-            schema => schema,
-            rewind => session('rewind'),
-            view   => current_view($user, $layout),
+            user                => $user,
+            search              => session('search'),
+            layout              => $layout,
+            schema              => schema,
+            rewind              => session('rewind'),
+            view                => current_view($user, $layout),
+            view_limit_extra_id => current_view_limit_extra_id($user, $layout),
         );
         my $count; # Count actual number deleted, not number reported by search result
         while (my $record = $records->single)
@@ -500,10 +503,11 @@ any '/data' => require_login sub {
         if ($search)
         {
             my $records = GADS::Records->new(
-                search => $search,
-                schema => schema,
-                user   => $user,
-                layout => $layout,
+                search              => $search,
+                schema              => schema,
+                user                => $user,
+                layout              => $layout,
+                view_limit_extra_id => current_view_limit_extra_id($user, $layout),
             );
             my $results = $records->current_ids;
 
@@ -511,6 +515,12 @@ any '/data' => require_login sub {
             redirect "/record/$results->[0]"
                 if @$results == 1;
         }
+    }
+
+    # Setting a new view limit extra
+    if (my $extra = $layout->user_can('view_limit_extra') && param('extra'))
+    {
+        session('persistent')->{view_limit_extra}->{$layout->instance_id} = $extra;
     }
 
     my $new_view_id = param('view');
@@ -678,6 +688,7 @@ any '/data' => require_login sub {
             layout               => $layout,
             schema               => schema,
             rewind               => session('rewind'),
+            view_limit_extra_id  => current_view_limit_extra_id($user, $layout),
             interpolate_children => 0,
         );
         if (param 'modal_timeline')
@@ -715,11 +726,12 @@ any '/data' => require_login sub {
         my $page = defined param('download') ? undef : session('page');
 
         my $records = GADS::Records->new(
-            user   => $user,
-            search => session('search'),
-            layout => $layout,
-            schema => schema,
-            rewind => session('rewind'),
+            user                => $user,
+            search              => session('search'),
+            layout              => $layout,
+            schema              => schema,
+            rewind              => session('rewind'),
+            view_limit_extra_id => current_view_limit_extra_id($user, $layout),
         );
 
         $records->view($view);
@@ -862,10 +874,12 @@ any '/data' => require_login sub {
         instance_id   => $layout->instance_id,
     );
 
-    $params->{user_views}       = $views->user_views;
-    $params->{alerts}           = $alert->all;
-    $params->{views_other_user} = session('views_other_user_id') && rset('User')->find(session('views_other_user_id')),
-    $params->{breadcrumbs}      = [Crumb() => Crumb( '/data' => 'records' )];
+    $params->{user_views}               = $views->user_views;
+    $params->{views_limit_extra}        = $views->views_limit_extra;
+    $params->{current_view_limit_extra} = current_view_limit_extra($user, $layout) || $layout->default_view_limit_extra;
+    $params->{alerts}                   = $alert->all;
+    $params->{views_other_user}         = session('views_other_user_id') && rset('User')->find(session('views_other_user_id')),
+    $params->{breadcrumbs}              = [Crumb() => Crumb( '/data' => 'records' )];
 
     template 'data' => $params;
 };
@@ -2087,6 +2101,7 @@ any '/bulk/:type/?' => require_login sub {
         schema               => schema,
         user                 => $user,
         layout               => $layout,
+        view_limit_extra_id  => current_view_limit_extra_id($user, $layout),
     );
 
     if (param 'submit')
@@ -2901,6 +2916,26 @@ sub current_view {
     $@->reportAll(is_fatal => 0); # XXX results in double reporting
     return $view || $views->default; # Can still be undef
 };
+
+sub current_view_limit_extra
+{   my ($user, $layout) = @_;
+    my $extra_id = session('persistent')->{view_limit_extra}->{$layout->instance_id};
+    $extra_id ||= $layout->default_view_limit_extra_id;
+    if ($extra_id)
+    {
+        # Check it's valid
+        my $extra = schema->resultset('View')->find($extra_id);
+        return $extra
+            if $extra && $extra->instance_id == $layout->instance_id;
+    }
+    return undef;
+}
+
+sub current_view_limit_extra_id
+{   my ($user, $layout) = @_;
+    my $view = current_view_limit_extra($user, $layout);
+    $view ? $view->id : undef;
+}
 
 sub forwardHome {
     my ($message, $page, %options) = @_;

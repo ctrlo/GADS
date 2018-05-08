@@ -1216,6 +1216,80 @@ foreach my $multivalue (0..1)
     $sheet->set_multivalue($multivalue);
 }
 
+{
+    # Test view_limit_extra functionality
+    my $sheet = t::lib::DataSheet->new;
+    $sheet->create_records;
+    my $schema  = $sheet->schema;
+    my $layout  = $sheet->layout;
+    my $columns = $sheet->columns;
+
+    my $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $columns->{date1}->id,
+                type     => 'date',
+                value    => '2014-10-10',
+                operator => 'equal',
+            }],
+        },
+    );
+
+    my $limit_extra1 = GADS::View->new(
+        name        => 'Limit to view extra',
+        filter      => $rules,
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+    );
+    $limit_extra1->write;
+
+    $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $columns->{date1}->id,
+                type     => 'date',
+                value    => '2009-01-02',
+                operator => 'equal',
+            }],
+        },
+    );
+
+    my $limit_extra2 = GADS::View->new(
+        name        => 'Limit to view extra',
+        filter      => $rules,
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+    );
+    $limit_extra2->write;
+
+    $schema->resultset('Instance')->find($layout->instance_id)->update({
+        default_view_limit_extra_id => $limit_extra1->id,
+    });
+    $layout->clear;
+
+    my $records = GADS::Records->new(
+        user    => $sheet->user,
+        layout  => $layout,
+        schema  => $schema,
+    );
+    my $string1 = $columns->{string1}->id;
+    is($records->count, 1, 'Correct number of results when limiting to a view limit extra');
+    is($records->single->fields->{$string1}->as_string, "Foo", "Correct limited record");
+
+    $records = GADS::Records->new(
+        user                => $sheet->user,
+        layout              => $layout,
+        schema              => $schema,
+        view_limit_extra_id => $limit_extra2->id,
+    );
+    is ($records->count, 1, 'Correct number of results when changing view limit extra');
+    is($records->single->fields->{$string1}->as_string, "Bar", "Correct limited record when changed");
+}
+
 # Check sorting functionality
 # First check default_sort functionality
 $records = GADS::Records->new(

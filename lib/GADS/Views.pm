@@ -97,6 +97,20 @@ sub _user_views
     \@views;
 }
 
+has views_limit_extra => (
+    is => 'lazy',
+);
+
+sub _build_views_limit_extra
+{   my $self = shift;
+    return [] if !$self->layout->user_can('view_limit_extra');
+    my @views = $self->schema->resultset('View')->search({
+        is_limit_extra => 1,
+        instance_id    => $self->instance_id,
+    });
+    \@views;
+}
+
 sub _build_global
 {   my $self = shift;
     my @views = $self->schema->resultset('View')->search({
