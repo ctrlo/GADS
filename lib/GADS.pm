@@ -1688,7 +1688,7 @@ any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
             if (process sub {
                 my $user = rset('User')->active->search({ id => $id })->next;
                 # Don't use DBIC update directly, so that permissions etc are updated properly
-                $user->update_user(current_user => $user, %values);
+                $user->update_user(current_user => logged_in_user, %values);
             })
             {
                 return forwardHome(
