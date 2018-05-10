@@ -563,13 +563,14 @@ sub _find
         if $find{deleted} && !$self->layout->user_can("purge");
 
     my $records = GADS::Records->new(
-        user             => $self->user,
-        layout           => $self->layout,
-        schema           => $self->schema,
-        columns          => $self->columns,
-        rewind           => $self->rewind,
-        is_deleted       => $find{deleted},
-        include_approval => $self->include_approval,
+        user                => $self->user,
+        layout              => $self->layout,
+        schema              => $self->schema,
+        columns             => $self->columns,
+        rewind              => $self->rewind,
+        is_deleted          => $find{deleted},
+        include_approval    => $self->include_approval,
+        view_limit_extra_id => undef, # Remove any default extra view
     );
 
     $self->columns_retrieved_do($records->columns_retrieved_do);
