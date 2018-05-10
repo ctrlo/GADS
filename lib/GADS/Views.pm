@@ -107,6 +107,8 @@ sub _build_views_limit_extra
     my @views = $self->schema->resultset('View')->search({
         is_limit_extra => 1,
         instance_id    => $self->instance_id,
+    },{
+        order_by => 'me.name',
     });
     \@views;
 }
