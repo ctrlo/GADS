@@ -180,6 +180,12 @@ has _users => (
     isa => HashRef,
 );
 
+has users_to_create => (
+    is => 'ro',
+    isa => ArrayRef,
+    default => sub { [qw/superadmin audit useradmin normal1 normal2/] },
+);
+
 sub _build__users
 {   my $self = shift;
     # If the site_id is defined, then we may be cresating multiple sites.
@@ -187,7 +193,7 @@ sub _build__users
     # row IDs may already have been used.  This assumes that when testing
     # multiple sites that only the default 5 users are created.
     my $return; my $count = $self->schema->site_id && ($self->schema->site_id - 1) * 5;
-    foreach my $permission (qw/superadmin audit useradmin normal1 normal2/)
+    foreach my $permission (@{$self->users_to_create})
     {
         $count++;
         # Give view create permission as default, so that normal user can
@@ -232,8 +238,12 @@ sub create_user
         }
         else {
             # Create a group for each user/permission
-            my $group = $self->schema->resultset('Group')->create({
-                name => "${permission}_$user_id",
+            my $name  = "${permission}_$user_id";
+            my $group = $self->schema->resultset('Group')->search({
+                name => $name,
+            })->next;
+            $group ||= $self->schema->resultset('Group')->create({
+                name => $name,
             });
             $self->schema->resultset('InstanceGroup')->find_or_create({
                 instance_id => $instance_id,
