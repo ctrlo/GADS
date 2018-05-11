@@ -1163,11 +1163,12 @@ sub _search_construct
 
     # If testing a comparison but we have no value, then assume search empty/not empty
     # (used during filters on curval against current record values)
-    $filter->{operator} = $filter->{operator} eq 'not_equal' ? 'is_not_empty' : 'is_empty'
-        if $filter->{operator} !~ /(is_empty|is_not_empty)/
+    my $filter_operator = $filter->{operator}; # Copy so as not to affect original hash ref
+    $filter_operator = $filter_operator eq 'not_equal' ? 'is_not_empty' : 'is_empty'
+        if $filter_operator !~ /(is_empty|is_not_empty)/
             && (!defined $filter->{value} || $filter->{value} eq ''); # Not zeros (valid search)
-    my $operator = $ops{$filter->{operator}}
-        or error __x"Invalid operator {filter}", filter => $filter->{operator};
+    my $operator = $ops{$filter_operator}
+        or error __x"Invalid operator {filter}", filter => $filter_operator;
 
     my @conditions;
     my $transform_date; # Whether to convert date value to database format
@@ -1179,7 +1180,7 @@ sub _search_construct
         if ($operator eq "!=" || $operator eq "=") # Only used for empty / not empty
         {
             push @conditions, {
-                type     => $filter->{operator},
+                type     => $filter_operator,
                 operator => $operator,
                 s_field  => "value",
             };
@@ -1188,7 +1189,7 @@ sub _search_construct
         {
             $transform_date = 1;
             push @conditions, {
-                type     => $filter->{operator},
+                type     => $filter_operator,
                 operator => $operator,
                 s_field  => "from",
             };
@@ -1197,7 +1198,7 @@ sub _search_construct
         {
             $transform_date = 1;
             push @conditions, {
-                type     => $filter->{operator},
+                type     => $filter_operator,
                 operator => $operator,
                 s_field  => "to",
             };
@@ -1207,12 +1208,12 @@ sub _search_construct
             $transform_date = 1;
             # Requires 2 searches ANDed together
             push @conditions, {
-                type     => $filter->{operator},
+                type     => $filter_operator,
                 operator => "<=",
                 s_field  => "from",
             };
             push @conditions, {
-                type     => $filter->{operator},
+                type     => $filter_operator,
                 operator => ">=",
                 s_field  => "to",
             };
@@ -1224,7 +1225,7 @@ sub _search_construct
     }
     else {
         push @conditions, {
-            type     => $filter->{operator},
+            type     => $filter_operator,
             operator => $operator,
             s_field  => $filter->{value_field} || $column->value_field,
         };
@@ -1235,7 +1236,7 @@ sub _search_construct
 
     my @values;
 
-    if ($filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty')
+    if ($filter_operator eq 'is_empty' || $filter_operator eq 'is_not_empty')
     {
         push @values, $column->string_storage ? (undef, "") : undef;
     }
@@ -1298,7 +1299,7 @@ sub _search_construct
         # the search.
         # $value can be an array ref from above.
         push @conditions, {
-            type     => $filter->{operator},
+            type     => $filter_operator,
             operator => $operator,
             s_field  => "value_index",
             values   => [ map { $_ && lc(substr($_, 0, 128)) } @values ],

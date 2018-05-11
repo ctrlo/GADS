@@ -190,7 +190,9 @@ sub _build__users
     foreach my $permission (qw/superadmin audit useradmin normal1 normal2/)
     {
         $count++;
-        my $perms = $permission =~ 'normal' ? [] : [$permission];
+        # Give view create permission as default, so that normal user can
+        # create views for tests
+        my $perms = $permission =~ 'normal' ? ['view_create'] : [$permission];
         $return->{$permission} = $self->create_user(permissions => $perms, user_id => $count);
     }
     $return;

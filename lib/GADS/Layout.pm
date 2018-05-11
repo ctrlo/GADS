@@ -851,6 +851,9 @@ sub purge
     $self->schema->resultset('Current')->search({
         instance_id => $self->instance_id,
     })->delete;
+    $self->schema->resultset('InstanceGroup')->search({
+        instance_id => $self->instance_id,
+    })->delete;
     $self->_rset->delete;
 }
 

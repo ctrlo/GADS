@@ -113,7 +113,7 @@ sub _build__layouts
     $rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
     my $perms_columns;
-    $perms_columns->{$_->{instance_id}}->{$_->{layout_id}}->{$_->{permission}} = 1
+    $perms_columns->{$_->{layout_id}}->{$_->{permission}} = 1
         foreach ($rs->all);
 
     foreach my $instance ($self->schema->resultset('Instance')->all)
@@ -125,7 +125,7 @@ sub _build__layouts
                 $self->user->id => $perms_table->{$instance->id} || {},
             };
             $p_columns = {
-                $self->user->id => $perms_columns->{$instance->id} || {},
+                $self->user->id => $perms_columns || {},
             };
         }
         my %params = (

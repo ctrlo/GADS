@@ -117,7 +117,7 @@ $sheet->create_records;
 $curval_sheet->add_autocur(refers_to_instance_id => 1, related_field_id => $columns->{curval1}->id);
 $curval_sheet->add_autocur(refers_to_instance_id => 1, related_field_id => $columns->{curval2}->id);
 my $curval_columns = $curval_sheet->columns;
-my $user = $sheet->user;
+my $user = $sheet->user_normal1;
 
 my $record = GADS::Record->new(
     user   => $user,
@@ -621,11 +621,11 @@ my @filters = (
             {
                 id       => -13, # Special id for version editor ID
                 type     => 'integer',
-                value    => '1',
+                value    => $user->id,
                 operator => 'equal',
             },
         ],
-        count => 7,
+        count => 1, # Other records written by superadmin user on start
     },
     {
         name  => 'Search for invalid date',
@@ -833,84 +833,99 @@ my @filters = (
     },
 );
 
-foreach my $filter (@filters)
+# Run 2 loops, one without the standard layout from the initial build, and a
+# second with the layouts all built from scratch using GADS::Instances
+foreach my $layout_from_instances (0..1)
 {
-    my $rules = GADS::Filter->new(
-        as_hash => {
-            rules     => $filter->{rules},
-            condition => $filter->{condition},
-        },
-    );
-
-    my $view_columns = $filter->{columns} || [$columns->{string1}->id, $columns->{tree1}->id];
-    my $view = GADS::View->new(
-        name        => 'Test view',
-        filter      => $rules,
-        columns     => $view_columns,
-        instance_id => 1,
-        layout      => $filter->{layout} || $layout,
-        schema      => $schema,
-        user        => $user,
-    );
-    # If the filter is expected to bork, then check that it actually does first
-    if ($filter->{no_errors})
+    my $instances;
+    if ($layout_from_instances)
     {
-        try { $view->write };
-        ok($@, "Failed to write view with invalid value, test: $filter->{name}");
-        is($@->wasFatal->reason, 'ERROR', "Generated user error when writing view with invalid value");
+        $instances = GADS::Instances->new(schema => $schema, user => $user);
+        $layout = $instances->layout($layout->instance_id);
     }
-    $view->write(no_errors => $filter->{no_errors});
 
-    my $records = GADS::Records->new(
-        user    => $user,
-        view    => $view,
-        layout  => $filter->{layout} || $layout,
-        schema  => $schema,
-    );
+    foreach my $filter (@filters)
+    {
+        my $layout_filter = $filter->{layout};
+        $layout_filter &&= $instances->layout($layout_filter->instance_id)
+            if $layout_from_instances;
+        my $rules = GADS::Filter->new(
+            as_hash => {
+                rules     => $filter->{rules},
+                condition => $filter->{condition},
+            },
+        );
 
-    is( $records->count, $filter->{count}, "$filter->{name} for record count $filter->{count}");
-    is( @{$records->results}, $filter->{count}, "$filter->{name} actual records matches count $filter->{count}");
+        my $view_columns = $filter->{columns} || [$columns->{string1}->id, $columns->{tree1}->id];
+        my $view = GADS::View->new(
+            name        => 'Test view',
+            filter      => $rules,
+            columns     => $view_columns,
+            instance_id => 1,
+            layout      => $layout_filter || $layout,
+            schema      => $schema,
+            user        => $user,
+        );
+        # If the filter is expected to bork, then check that it actually does first
+        if ($filter->{no_errors})
+        {
+            try { $view->write };
+            ok($@, "Failed to write view with invalid value, test: $filter->{name}");
+            is($@->wasFatal->reason, 'ERROR', "Generated user error when writing view with invalid value");
+        }
+        $view->write(no_errors => $filter->{no_errors});
 
-    $view->set_sorts($view_columns, 'asc');
-    $records = GADS::Records->new(
-        user    => $user,
-        view    => $view,
-        layout  => $filter->{layout} || $layout,
-        schema  => $schema,
-    );
+        my $records = GADS::Records->new(
+            user    => $user,
+            view    => $view,
+            layout  => $layout_filter || $layout,
+            schema  => $schema,
+        );
 
-    is( $records->count, $filter->{count}, "$filter->{name} for record count $filter->{count}");
-    is( @{$records->results}, $filter->{count}, "$filter->{name} actual records matches count $filter->{count}");
+        is( $records->count, $filter->{count}, "$filter->{name} for record count $filter->{count}");
+        is( @{$records->results}, $filter->{count}, "$filter->{name} actual records matches count $filter->{count}");
 
-    # Basic graph test. Total of points on graph should match the number of results
-    my $graph = GADS::Graph->new(
-        layout => $filter->{layout} || $layout,
-        schema => $schema,
-    );
-    $graph->title('Test');
-    $graph->type('bar');
-    my $axis = $filter->{columns}->[0] || $columns->{string1}->id;
-    $graph->x_axis($axis);
-    $graph->y_axis($axis);
-    $graph->y_axis_stack('count');
-    $graph->write;
+        $view->set_sorts($view_columns, 'asc');
+        $records = GADS::Records->new(
+            user    => $user,
+            view    => $view,
+            layout  => $layout_filter || $layout,
+            schema  => $schema,
+        );
 
-    my $records_group = GADS::RecordsGroup->new(
-        user              => $user,
-        layout            => $filter->{layout} || $layout,
-        schema => $schema,
-    );
-    my $graph_data = GADS::Graph::Data->new(
-        id      => $graph->id,
-        view    => $view,
-        records => $records_group,
-        schema  => $schema,
-    );
+        is( $records->count, $filter->{count}, "$filter->{name} for record count $filter->{count}");
+        is( @{$records->results}, $filter->{count}, "$filter->{name} actual records matches count $filter->{count}");
 
-    my $graph_total = 0;
-    $graph_total += $_ foreach @{$graph_data->points->[0]}; # Count total number of records
-    my $count = $filter->{count_graph} || $filter->{count};
-    is($graph_total, $count, "Item total on graph matches table for $filter->{name}");
+        # Basic graph test. Total of points on graph should match the number of results
+        my $graph = GADS::Graph->new(
+            layout => $layout_filter || $layout,
+            schema => $schema,
+        );
+        $graph->title('Test');
+        $graph->type('bar');
+        my $axis = $filter->{columns}->[0] || $columns->{string1}->id;
+        $graph->x_axis($axis);
+        $graph->y_axis($axis);
+        $graph->y_axis_stack('count');
+        $graph->write;
+
+        my $records_group = GADS::RecordsGroup->new(
+            user              => $user,
+            layout            => $layout_filter || $layout,
+            schema => $schema,
+        );
+        my $graph_data = GADS::Graph::Data->new(
+            id      => $graph->id,
+            view    => $view,
+            records => $records_group,
+            schema  => $schema,
+        );
+
+        my $graph_total = 0;
+        $graph_total += $_ foreach @{$graph_data->points->[0]}; # Count total number of records
+        my $count = $filter->{count_graph} || $filter->{count};
+        is($graph_total, $count, "Item total on graph matches table for $filter->{name}");
+    }
 }
 
 foreach my $multivalue (0..1)
