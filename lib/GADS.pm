@@ -2112,10 +2112,13 @@ any '/bulk/:type/?' => require_login sub {
         my $failed_initial; my @updated;
         foreach my $col (@columns_to_show)
         {
+            my @newv = body_parameters->get_all($col->field);
+            my $included = body_parameters->get('bulk_inc_'.$col->id); # Is it ticked to be included?
+            report WARNING => __x"Field \"{name}\" contained a submitted value but was not checked to be included", name => $col->name
+                if join('', @newv) && !$included;
             next unless body_parameters->get('bulk_inc_'.$col->id); # Is it ticked to be included?
-            my $newv = [body_parameters->get_all($col->field)];
             my $datum = $record->fields->{$col->id};
-            my $success = process( sub { $datum->set_value($newv, bulk => 1) } );
+            my $success = process( sub { $datum->set_value(\@newv, bulk => 1) } );
             push @updated, $col
                 if $success;
             $failed_initial = $failed_initial || !$success;
