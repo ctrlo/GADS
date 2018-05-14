@@ -380,8 +380,10 @@
 
     [%# Skip field if it's an approval request but a value not needing approval %]
     [% NEXT IF page == "approval" AND NOT (record.fields.$colid.has_value)  %]
+
     [%# Skip if it's a child record and the value doesn't exist %]
     [% NEXT IF record.parent_id AND NOT (record.fields.$colid.has_value) AND NOT layout.user_can("create_child") %]
+
     [%# Skip if it's a linked record and the value is linked %]
     [% IF record.linked_id AND dispcol.link_parent %]
         <input type="hidden" name="[% field %]">
@@ -416,7 +418,10 @@
         [% readonly = "" %]
     [% END %]
 
-    <div class="form-group">
+    <div class="form-group" data-column-id="[% dispcol.id %]" data-column-type="[% dispcol.type %]"
+        [% dependency && 'data-has-dependency="' _ parent.id _ '"' %]
+        [% parent && dependency && 'data-dependency="' _ depends.regex_b64 _ '"' %]
+        >
         [% label = dispcol.name | html_entity %]
         [% IF dispcol.optional OR page == "bulk" %]
             [% label_style = 'style="font-weight:normal !important"' %]
@@ -495,7 +500,7 @@
 [% END %]
 
 [% BLOCK print_field %]
-    <div class="input_holder">
+    <div class="input_holder" >
         <div class="row">
             <div class="[% IF dispcol.multivalue AND dispcol.has_multivalue_plus %]col-md-10[% ELSE %]col-md-12[% END %]">
             [% IF dispcol.type == "enum" %]
@@ -611,71 +616,20 @@
         or it's meant to be displayed because we're within the parent %]
     [% IF !columns_done.$cid AND col.display_field == parent.id  OR NOT col.display_field %]
         [% dispcol = col %]
-        [% PROCESS showcol %]
+        [% PROCESS showcol dependency=dependency parent=parent %]
     [% END %]
 
     [%# Then add all the columns that depend on it. Put them in a JS code array,
         which gets output at the end of this templte. Each of these is in its own div %]
     [% IF col.display_depended_by.size %]
-        [% FOREACH depends IN dispcol.display_depended_by %]
-            [% divid = "depend" _ dispcol.id _ "_" _ depends.id %]
-            [% IF col.multiselect AND (col.type == "enum" OR col.type == "curval") %]
-                [% js_valget = '$(this).val()' %]
-            [% ELSIF col.type == "enum" || col.type == "person" || col.type == "curval" %]
-                [% js_valget = '$("option:selected", $(this)).text()' %]
-            [% ELSE %]
-                [% js_valget = '$(this).val()' %]
-            [% END %]
-            [% jscode.push('
-                var data = base64.decode("' _ depends.regex_b64 _ '");
-                var regex   = new RegExp("^" + data + "$");
-                var dataid  = "change" + ' _ col.id _ ';
-                var dataval = $("body").data(dataid);
-                if (!dataval) {
-                    $("body").data(dataid, []);
-                };
-                $("body").data(dataid).push( {
-                    re: regex,
-                    divid: "' _ divid _'"
-                });
-            ') %]
-
-        [% END %]
-            [% UNLESS col.type == "tree" %]
-                [% jscode.push('
-                    $("#' _ col.id  _ '").change( function () {
-                        var val = ' _ js_valget _ ';
-                        if (!val) {
-                            val = "";
-                        }
-                        var dataval = $("body").data("change" + ' _ col.id _ ');
-                        dataval.forEach(function(element) {
-                            var re = element.re;
-                            var divid = element.divid;
-                            if (re.test(val)) {
-                                $("#" + divid).show()
-                            } else {
-                                $("#" + divid).hide()
-                            }
-                        });
-                    });
-                ') %]
-            [% END %]
-
         <div class="row">
             <div class="col-md-11 col-md-offset-1">
-                [% IF col.type == "tree" %]
-                    [% textval = record.fields.$cid.full_path  %]
-                [% ELSE %]
-                    [% textval = record.fields.$cid.as_string  %]
-                [% END %]
                 [% FOREACH c IN col.display_depended_by %]
                     [% FOREACH cc IN all_columns %]
                         [% IF cc.id == c.id %]
-                            <div id="depend[% col.id %]_[% cc.id %]" [% UNLESS textval.match(c.regex) %]style="display:none" [% END %]>
-                                [% INCLUDE do_col parent = col col = cc %]
-                            </div>
-                            [% jscode.push('$("#' _ col.id _ '").trigger("change");') %]
+                        <div class="dependency-wrapper">
+                            [% INCLUDE do_col parent=col col=cc dependency=c %]
+                        </div>
                         [% END %]
                     [% END %]
                 [% END %]

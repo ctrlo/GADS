@@ -1,5 +1,12 @@
 'use strict';
 
+/* 
+ * A SelectWidget is a custom disclosure widget
+ * with multi or single options selectable.
+ * SelectWidgets can depend on each other;
+ * for instance if Value "1" is selected in Widget "A",
+ * Widget "B" might not be displayed.
+ */
 var SelectWidget = function (multi) {
 
     var connectMulti = function (update) {
@@ -7,7 +14,8 @@ var SelectWidget = function (multi) {
             var $item = $(this);
             var itemId = $item.data('list-item');
             var $associated = $('#' + itemId);
-            $associated.on('change', function () {
+            $associated.on('change', function (e) {
+                e.stopPropagation();
                 if ($(this).prop('checked')) {
                     $item.removeAttr('hidden');
                 } else {
@@ -23,7 +31,8 @@ var SelectWidget = function (multi) {
             var $item = $(this);
             var itemId = $item.data('list-item');
             var $associated = $('#' + itemId);
-            $associated.on('change', function () {
+            $associated.on('change', function (e) {
+                e.stopPropagation();
                 update($item);
             });
         };
@@ -45,7 +54,8 @@ var SelectWidget = function (multi) {
     };
 
     var isSingle = this.hasClass('single');
-    
+
+    var $container = $('main');
     var $widget = this.find('.form-control');
     var $trigger = $widget.find('[aria-expanded]');
     var $current = this.find('.current');
@@ -55,12 +65,16 @@ var SelectWidget = function (multi) {
 
     var updateState = function () {
         var $visible = $current.children('[data-list-item]:not([hidden])');
+
         $current.toggleClass('empty', $visible.length === 0);
+
         if (multi) {
             $visible.each(function (index) {
-                $(this).toggleClass('comma-separated', index < $visible.length-1); 
+                $(this).toggleClass('comma-separated', index < $visible.length-1);
             });
         }
+
+        $widget.trigger('change');
     };
 
     updateState();
@@ -75,6 +89,8 @@ var SelectWidget = function (multi) {
 
             $current.toggleClass('empty', false);
             $connected.removeAttr('hidden');
+
+            $widget.trigger('change');
         }));
     }
 
@@ -150,54 +166,54 @@ var setupLessMoreWidgets = function () {
     $widgets.each(convert);
 };
 
-var MultiSelectWidget = function () {
-    var connect = function (update) {
-        return function () {
-            var $item = $(this);
-            var itemId = $item.data('list-item');
-            var $associated = $('#' + itemId);
-            $associated.on('change', function () {
-                if ($(this).prop('checked')) {
-                    $item.prop('hidden', false);
-                } else {
-                    $item.prop('hidden', true);
-                }
-                update();
-            });
-        };
-    };
- 
-    var onTriggerClick = function ($target) {
-        return function (event) {
-            var isCurrentlyExpanded = $(this).attr('aria-expanded') === 'true';
-            var willExpandNext = !isCurrentlyExpanded;
+var setupDependentField = function () {
+    var $field   = this.field;
+    var $depends = this.dependsOn;
+    var regexp   = this.regexp;
 
-            if (willExpandNext) {
-                $target.prop('hidden', false);
-                $(this).attr('aria-expanded', 'true');
-            } else {
-                $(this).attr('aria-expanded', 'false');
-                $target.prop('hidden', true);
-            }
+    // get the value from a field, depending on its type
+    var getFieldValue = function ($depends, $target) {
+        var type = $depends.data('column-type');
+        var value;
+
+        if (type === 'enum' || type === 'curval') {
+            var $visible = $depends.find('.select-widget .current [data-list-item]:not([hidden])');
+            var items = [];
+            $visible.each(function () { items.push($(this).text()) });
+            value = items.join(' ');
+        } else if (type === 'person') {
+            value = $target.find('option:selected').text();
+        } else {
+            value = $target.val();
         }
-    };
-    
-    var $trigger = this.find('button');
-    var $current = this.find('.current');
-    var $target  = this.find('#' + $trigger.attr('aria-controls'));
-    var $currentItems = $current.children();
 
-    var updateState = function () {
-        var $visible = $current.children('[data-list-item]:not([hidden])');
-        $current.toggleClass('empty', $visible.length === 0);
-        $visible.each(function (index) {
-            $(this).toggleClass('comma-separated', index < $visible.length-1); 
-        });
+        return value;
     };
 
-    updateState();
-    $currentItems.each(connect(updateState));
-    $trigger.on('click', onTriggerClick($target));   
+    $depends.on('change', function (e) {
+        var $target = $(e.target);
+        var value = getFieldValue($depends, $target);
+        regexp.test(value) ? $field.show() : $field.hide();
+    });
+
+    // trigger a change to toggle all dependencies
+    $depends.trigger('change');
+};
+
+var setupDependentFields = function () {
+    var fields = $('[data-has-dependency]').map(function () {
+        var dependence = $(this).data('has-dependency');
+        var pattern    = $(this).data('dependency');
+        var regexp     = (new RegExp("^" + base64.decode(pattern) + "$"))
+
+        return {
+            field     : $(this).parent(),
+            dependsOn : $('[data-column-id="' + dependence + '"]'),
+            regexp    : regexp
+        };
+    });
+
+    fields.each(setupDependentField);
 };
 
 var positionDisclosure = function (offsetTop, offsetLeft, triggerHeight) {
@@ -330,9 +346,12 @@ var Linkspace = {
     }
 };
 
-Linkspace.layout = function () {
-    Linkspace.debug('Layout JS firing');
+Linkspace.edit = function () {
+    Linkspace.debug('Record edit JS firing');
+    setupDependentFields();
+}
 
+Linkspace.layout = function () {
     $('.tab-interface').each(Linkspace.TabPanel);
 
     var $config = $('#permission-configuration');
