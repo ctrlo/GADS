@@ -9,11 +9,11 @@
     display: inline-block;
 }
 
-#data-table th * {
+.data-table th * {
     color: #000;
 }
 
-#data-table thead button {
+.data-table thead button {
     border: 1px solid #bbb;
     background-color: inherit;
     vertical-align: bottom;
@@ -24,14 +24,14 @@
     -ms-text-overflow: ellipsis;
 }
 
-#data-table thead .column-name {
+.data-table thead .column-name {
     font-weight: bold;
     font-style: italic;
     font-size: 1.2em;
     margin-bottom: .2em;
 }
 
-#data-table thead .popover {
+.data-table thead .popover {
     word-break: keep-all;
     word-break: break-word;
     overflow-wrap: break-word;
@@ -39,15 +39,15 @@
     padding: .5em;
 }
 
-#data-table thead .helptext {
+.data-table thead .helptext {
     border-bottom: 1px solid #ccc;
 }
 
-#data-table thead .helptext + * {
+.data-table thead .helptext + * {
     margin: 1em 0 0 0;
 }
 
-#data-table thead button {
+.data-table thead button {
     margin-top: .5em;
 }
 

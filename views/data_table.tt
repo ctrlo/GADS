@@ -37,7 +37,7 @@
 [% END %]
 
 <div class="hscroll row">
-<table class="table table-striped col-md-12" id="data-table">
+<table class="data-table table table-striped col-md-12" id="data-table">
     <thead>
         <tr>
             [% sort = sort.shift %]
