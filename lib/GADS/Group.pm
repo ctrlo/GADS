@@ -139,6 +139,7 @@ sub delete
 
     my $schema = $self->schema;
     $self->schema->resultset('LayoutGroup')->search({ group_id => $self->id })->delete;
+    $self->schema->resultset('InstanceGroup')->search({ group_id => $self->id })->delete;
     $self->schema->resultset('UserGroup')->search({ group_id => $self->id })->delete;
     $self->_rset->delete;
 }
