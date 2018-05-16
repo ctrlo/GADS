@@ -185,27 +185,49 @@ post '/api/record/:sheet' => require_api_user sub {
     return;
 };
 
-# Edit existing record
+# Edit existing record or new record with non-Linkspace index ID
 put '/api/record/:sheet/:id' => require_api_user sub {
 
     my $sheetname = param 'sheet';
     my $layout    = var('instances')->layout_by_shortname($sheetname); # borks on not found
     my $user      = var('api_user');
+    my $id        = param 'id';
 
     my $request = decode_json request->body;
 
-    my $record = GADS::Record->new(
+    my $record_find = GADS::Record->new(
         user     => $user,
         layout   => $layout,
         schema   => schema,
         base_url => request->base,
     );
-    $record->find_current_id(param 'id');
+    my $record_to_update;
 
-    _update_record($record, $request);
+    if (my $api_index = $layout->api_index_layout)
+    {
+        $record_to_update = $record_find->find_unique($api_index, $id);
+        if (!$record_to_update)
+        {
+            $record_to_update = GADS::Record->new(
+                user     => $user,
+                layout   => $layout,
+                schema   => schema,
+                base_url => request->base,
+            );
+            $record_to_update->initialise;
+            $request->{$api_index->name_short} = $id;
+        }
+    }
+    else {
+        $record_to_update = $record_find->find_current_id($id);
+    }
+
+    _update_record($record_to_update, $request);
 
     status 'No Content';
-    header 'Location' => request->base.'record/'.$record->current_id;
+    # Use supplied ID for return - will either have been created as that or
+    # will have borked early with error and not got here
+    header 'Location' => request->base."record/$id";
 
     return;
 };
@@ -216,6 +238,7 @@ get '/api/record/:sheet/:id' => require_api_user sub {
     my $sheetname = param 'sheet';
     my $layout    = var('instances')->layout_by_shortname($sheetname); # borks on not found
     my $user      = var('api_user');
+    my $id        = param 'id';
 
     my $record = GADS::Record->new(
         user     => $user,
@@ -223,7 +246,15 @@ get '/api/record/:sheet/:id' => require_api_user sub {
         schema   => schema,
         base_url => request->base,
     );
-    $record->find_current_id(param 'id');
+    if (my $api_index = $layout->api_index_layout)
+    {
+        $record = $record->find_unique($api_index, $id)
+            or error __x"Record ID {id} not found", id => $id; # XXX Would be nice to reuse GADS::Record error
+        $record->find_current_id($record->current_id);
+    }
+    else {
+        $record->find_current_id($id);
+    }
 
     content_type 'application/json; charset=UTF-8';
     return $record->as_json;

@@ -126,6 +126,8 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 1 },
   "no_overnight_update",
   { data_type => "smallint", default_value => 0, is_nullable => 1 },
+  "api_index_layout_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -269,6 +271,26 @@ __PACKAGE__->belongs_to(
   "default_view_limit_extra",
   "GADS::Schema::Result::View",
   { id => "default_view_limit_extra_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 api_index_layout
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Layout>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "api_index_layout",
+  "GADS::Schema::Result::Layout",
+  { id => "api_index_layout_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
