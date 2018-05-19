@@ -288,6 +288,16 @@
             </div>
         </div>
     </div>
+    <div class="field-options date">
+        <div class="form-group">
+            <label for="default_today">Default value:</label>
+            <div class="checkbox">
+                <label>
+                    <input id="default_today" type="checkbox" name="default_today" [% IF column.default_today %]checked[% END %]>Default new values to today's date
+                </label>
+            </div>
+        </div>
+    </div>
     <div class="field-options calc">
         <h4>Calculated value field options</h4>
         <p>

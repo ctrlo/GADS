@@ -35,7 +35,7 @@ has '+addable' => (
 );
 
 has '+option_names' => (
-    default => sub { [qw/show_datepicker/] },
+    default => sub { [qw/show_datepicker default_today/] },
 );
 
 has show_datepicker => (
@@ -47,6 +47,19 @@ has show_datepicker => (
         my $self = shift;
         return 1 unless $self->has_options;
         $self->options->{show_datepicker};
+    },
+    trigger => sub { $_[0]->clear_options },
+);
+
+has default_today => (
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    builder => sub {
+        my $self = shift;
+        return 1 unless $self->has_options;
+        $self->options->{default_today};
     },
     trigger => sub { $_[0]->clear_options },
 );
@@ -84,6 +97,7 @@ sub cleanup
 before import_hash => sub {
     my ($self, $values) = @_;
     $self->show_datepicker($values->{show_datepicker});
+    $self->default_today($values->{default_today});
 };
 
 around export_hash => sub {
@@ -91,6 +105,7 @@ around export_hash => sub {
     my ($self, $values) = @_;
     my $hash = $orig->(@_);
     $hash->{show_datepicker} = $self->show_datepicker;
+    $hash->{default_today} = $self->default_today;
     return $hash;
 };
 
