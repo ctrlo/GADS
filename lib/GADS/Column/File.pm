@@ -56,7 +56,7 @@ sub write_special
         filesize => $self->filesize,
     };
     my ($file_option) = $self->schema->resultset('FileOption')->search({
-        layout_id => $self->id
+        layout_id => $id,
     })->all;
     if ($file_option)
     {

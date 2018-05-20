@@ -836,7 +836,9 @@ sub write
         $rset = $self->schema->resultset('Layout')->create($newitem);
         $new_id = $rset->id;
         $self->_set__rset($rset);
-        $self->id($new_id);
+        # Don't set $self->id here, as we could yet bail out and the object
+        # would be left with an id, which would signify it is not a new field
+        # (affects display of type when creating field)
     }
     else {
         if ($rset = $self->schema->resultset('Layout')->find($self->id))
