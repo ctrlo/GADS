@@ -862,9 +862,12 @@ sub write
     if ($new_id)
     {
         $self->id($new_id);
-        GADS::DB->add_column($self->schema, $self);
-        # Ensure new column is properly added to layout
-        $self->layout->clear;
+        unless ($options{no_db_add})
+        {
+            GADS::DB->add_column($self->schema, $self);
+            # Ensure new column is properly added to layout
+            $self->layout->clear;
+        }
     }
     $self->after_write_special(%options);
 
