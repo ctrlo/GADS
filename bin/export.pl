@@ -33,11 +33,11 @@ use Getopt::Long qw(:config pass_through);
 use JSON qw();
 use Log::Report syntax => 'LONG';
 
-my ($site_id, $instance_id);
+my ($site_id, @instance_ids);
 
 GetOptions (
     'site-id=s'              => \$site_id,
-    'instance-id=s'              => \$instance_id,
+    'instance-id=s'              => \@instance_ids,
 #    'ignore-incomplete-dateranges' => \$ignore_incomplete_dateranges,
 #    'dry-run'                      => \$dry_run,
 #    'ignore-string-zeros'          => \$ignore_string_zeros,
@@ -65,8 +65,8 @@ GADS::Config->instance(
 
 schema->site_id($site_id);
 
-my @instances = $instance_id
-    ? (resultset('Instance')->find($instance_id))
+my @instances = @instance_ids
+    ? (map { resultset('Instance')->find($_) } @instance_ids)
     : @{GADS::Instances->new(schema => schema)->all};
 
 my $encoder = JSON->new->pretty;
