@@ -16,7 +16,9 @@
                         ">
                     </div>
                 [% ELSIF col.type == "file" AND value.mimetype.match('^image/') %]
-                    <img src="/file/[% value.id %]">
+                    <a href="/file/[% value.id %]">
+                        <img class="autosize" src="/file/[% value.id %]">
+                    </a>
                 [% ELSIF col.type == "string" || col.type == "curval" || col.type == "autocur" %]
                     [% value.html_withlinks %]
                 [% ELSE %]

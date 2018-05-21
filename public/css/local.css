@@ -128,3 +128,10 @@ table.floatThead-table {
   .query-builder .rules-list>*:after {
     height:60%;
 }
+
+img.autosize {
+    max-height:200px;
+    max-width:200px;
+    height:auto;
+    width:auto;
+}
