@@ -91,7 +91,6 @@ my $group_mapping; # ID mapping
 my $groups = GADS::Groups->new(schema => schema);
 foreach my $group (dir('_export/groups'))
 {
-    schema->resultset('Group')->create({ name => 'ddd' });
     my ($new) = grep { $_->name eq $group->{name} } @{$groups->all};
 
     if (!$new)
