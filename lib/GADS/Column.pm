@@ -895,7 +895,7 @@ sub write
 
     $self->write_special(rset => $rset, id => $new_id || $self->id, %options); # Write any column-specific params
 
-    $self->_write_permissions;
+    $self->_write_permissions(id => $new_id);
 
     $guard->commit;
 
@@ -942,7 +942,9 @@ has set_permissions => (
 );
 
 sub _write_permissions
-{   my $self = shift;
+{   my ($self, %options) = @_;
+
+    my $id = $options{id} || $self->id;
 
     $self->has_set_permissions or return;
 
@@ -955,7 +957,7 @@ sub _write_permissions
     # as per other permissions (in particular ensuring the read_removed flag is
     # set)
     my $search = {
-        layout_id => $self->id,
+        layout_id => $id,
     };
 
     $search->{group_id} = { '!=' => [ '-and', @groups ] }
@@ -979,7 +981,7 @@ sub _write_permissions
         my @new_permissions = @{$permissions{$group_id}};
 
         my @existing_permissions = $self->schema->resultset('LayoutGroup')->search({
-            layout_id  => $self->id,
+            layout_id  => $id,
             group_id   => $group_id,
         })->get_column('permission')->all;
 
@@ -993,14 +995,14 @@ sub _write_permissions
 
         # Delete any permissions no longer needed
         $self->schema->resultset('LayoutGroup')->search({
-            layout_id  => $self->id,
+            layout_id  => $id,
             group_id   => $group_id,
             permission => \@removed_permissions
         })->delete;
 
         # Add any new permissions
         $self->schema->resultset('LayoutGroup')->create({
-            layout_id  => $self->id,
+            layout_id  => $id,
             group_id   => $group_id,
             permission => $_,
         }) foreach @added_permissions;
@@ -1008,7 +1010,7 @@ sub _write_permissions
         if ($read_removed) {
             # First the sorts
             my @sorts = $self->schema->resultset('Sort')->search({
-                layout_id      => $self->id,
+                layout_id      => $id,
                 'view.user_id' => { '!=' => undef },
             }, {
                 prefetch => 'view',
@@ -1023,7 +1025,7 @@ sub _write_permissions
 
             # Then the filters
             my @filters = $self->schema->resultset('Filter')->search({
-                layout_id      => $self->id,
+                layout_id      => $id,
                 'view.user_id' => { '!=' => undef },
             }, {
                 prefetch => 'view',
@@ -1041,13 +1043,13 @@ sub _write_permissions
 
                 # Alert cache
                 $self->schema->resultset('AlertCache')->search({
-                    layout_id => $self->id,
+                    layout_id => $id,
                     view_id   => $filter->view_id,
                 })->delete;
 
                 # Column in the view
                 $self->schema->resultset('ViewLayout')->search({
-                    layout_id => $self->id,
+                    layout_id => $id,
                     view_id   => $filter->view_id,
                 })->delete;
 
