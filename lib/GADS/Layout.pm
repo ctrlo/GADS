@@ -500,6 +500,17 @@ has internal_columns => (
                 return_type => 'date',
 
             },
+            {
+                id          => -16,
+                name        => 'Serial',
+                type        => 'serial',
+                name_short  => '_serial',
+                table       => 'current',
+                column      => 'serial',
+                isunique    => 1,
+                return_type => 'integer',
+
+            },
         ];
     },
 );

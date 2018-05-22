@@ -34,6 +34,7 @@ use GADS::Datum::ID;
 use GADS::Datum::Integer;
 use GADS::Datum::Person;
 use GADS::Datum::Rag;
+use GADS::Datum::Serial;
 use GADS::Datum::String;
 use GADS::Datum::Tree;
 use Log::Report 'linkspace';
@@ -237,6 +238,16 @@ has child_record_ids => (
         \@children;
     },
 );
+
+has serial => (
+    is  => 'lazy',
+    isa => Int,
+);
+
+sub _build_serial
+{   my $self = shift;
+    $self->schema->resultset('Current')->find($self->current_id)->serial;
+}
 
 has approval_id => (
     is => 'rw',
@@ -485,6 +496,19 @@ sub find_current_id
     $self->_find(current_id => $current_id, %options);
 }
 
+sub find_serial_id
+{   my ($self, $serial_id) = @_;
+    return unless $serial_id;
+    $serial_id =~ /^[0-9]+$/
+        or error __x"Invalid serial ID {id}", id => $serial_id;
+    my $current = $self->schema->resultset('Current')->search({
+        serial      => $serial_id,
+        instance_id => $self->layout->instance_id,
+    })->next
+        or error __x"Serial ID {id} not found", id => $serial_id;
+    $self->_find(current_id => $current->id);
+}
+
 sub find_deleted_currentid
 {   my ($self, $current_id) = @_;
     $self->find_current_id($current_id, deleted => 1)
@@ -501,6 +525,9 @@ sub find_unique
 
     return $self->find_current_id($value)
         if $column->id == -11;
+
+    return $self->find_serial_id($value)
+        if $column->id == -16;
 
     # First create a view to search for this value in the column.
     my $filter = encode_json({
@@ -836,6 +863,14 @@ sub _transform_values
         schema           => $self->schema,
         layout           => $self->layout,
         init_value       => [ { value => $self->record_created } ],
+    );
+    $fields->{-16} = GADS::Datum::Serial->new(
+        value            => $self->serial,
+        record_id        => $self->record_id,
+        current_id       => $self->current_id,
+        column           => $self->layout->column(-16),
+        schema           => $self->schema,
+        layout           => $self->layout,
     );
     $fields;
 }
@@ -1245,13 +1280,38 @@ sub write
     # New record?
     if ($self->new_entry)
     {
-        my $current = {
+        my $instance_id = $self->layout->instance_id;
+        my $current = $self->schema->resultset('Current')->create({
             parent_id   => $self->parent_id,
             linked_id   => $self->linked_id,
-            instance_id => $self->layout->instance_id,
-        };
-        my $id = $self->schema->resultset('Current')->create($current)->id;
-        $self->current_id($id);
+            instance_id => $instance_id,
+        });
+
+        # Create unique serial. This should normally only take one attempt, but
+        # if multiple records are being written concurrently, then the unique
+        # constraint on the serial column will fail on a duplicate. In that
+        # case, roll back to the save point and try again.
+        while (1)
+        {
+            my $serial = $self->schema->resultset('Current')->search({
+                instance_id => $instance_id,
+            })->get_column('serial')->max;
+            $serial++;
+
+            my $svp = $self->schema->storage->svp_begin;
+            try {
+                $current->update({ serial => $serial });
+            };
+            if ($@) {
+                $self->schema->storage->svp_rollback;
+            }
+            else {
+                $self->schema->storage->svp_release;
+                last;
+            }
+        }
+
+        $self->current_id($current->id);
         $self->fields->{-15}->set_value($created_date);
     }
 

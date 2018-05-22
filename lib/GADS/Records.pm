@@ -750,6 +750,7 @@ sub _build_results
         push @all, GADS::Record->new(
             schema               => $self->schema,
             record               => $rec->{record_single},
+            serial               => $rec->{serial},
             linked_record_raw    => $rec->{linked}->{record_single},
             child_records        => \@children,
             parent_id            => $rec->{parent_id},

@@ -143,7 +143,7 @@ has name_short => (
 has type => (
     is  => 'rw',
     isa => sub {
-        $_[0] eq 'id' || grep { $_[0] eq $_ } GADS::Column::types
+        $_[0] =~ /^(id|serial)$/ || grep { $_[0] eq $_ } GADS::Column::types
             or error __x"Invalid field type {type}", type => $_[0];
     },
 );
@@ -423,6 +423,7 @@ has class => (
     builder => sub {
         my %classes = (
             id        => 'GADS::Datum::ID',
+            serial    => 'GADS::Datum::Serial',
             date      => 'GADS::Datum::Date',
             daterange => 'GADS::Datum::Daterange',
             string    => 'GADS::Datum::String',
@@ -773,7 +774,7 @@ sub delete
     # Clean up any specialist data for all column types. The column's
     # type may have changed during its life, but the data may not
     # have been removed on change, so we have to check all classes.
-    foreach my $type ($self->types)
+    foreach my $type (grep { $_ ne 'serial' } $self->types)
     {
         my $class = "GADS::Column::".camelize $type;
         $class->cleanup($self->schema, $self->id);

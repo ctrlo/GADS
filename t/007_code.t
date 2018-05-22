@@ -165,6 +165,13 @@ my @tests = (
         after  => '2008X__ID',
     },
     {
+        name   => 'serial value of record',
+        type   => 'Calc',
+        code   => "function evaluate (_serial) \n return _serial \nend",
+        before => '__SERIAL', # __SERIAL replaced by record serial
+        after  => '__SERIAL',
+    },
+    {
         name => 'rag from daterange',
         type => 'Rag',
         code   => "
@@ -366,6 +373,10 @@ foreach my $test (@tests)
         my $before = $test->{before};
         my $cid = $record->current_id;
         $before =~ s/__ID/$cid/;
+        my $serial = $schema->resultset('Current')->find($cid)->serial;
+        # Check that a serial was actually produced, so we're not comparing 2 null values
+        ok($serial, "Serial is not blank");
+        $before =~ s/__SERIAL/$serial/;
         my $record_check;
         if (my $rcid = $test->{record_check})
         {
@@ -392,6 +403,7 @@ foreach my $test (@tests)
         $@->reportFatal; # In case any fatal errors
         my $after = $test->{after};
         $after =~ s/__ID/$cid/;
+        $after =~ s/__SERIAL/$serial/;
         if (my $rcid = $test->{record_check})
         {
             $record_check->clear;

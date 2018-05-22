@@ -38,6 +38,11 @@ __PACKAGE__->table("current");
   is_auto_increment: 1
   is_nullable: 0
 
+=head2 serial
+
+  data_type: 'bigint'
+  is_nullable: 1
+
 =head2 parent_id
 
   data_type: 'bigint'
@@ -73,6 +78,8 @@ __PACKAGE__->table("current");
 __PACKAGE__->add_columns(
   "id",
   { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
+  "serial",
+  { data_type => "bigint", is_nullable => 1 },
   "parent_id",
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "instance_id",
@@ -100,6 +107,8 @@ __PACKAGE__->add_columns(
 =cut
 
 __PACKAGE__->set_primary_key("id");
+
+__PACKAGE__->add_unique_constraint("current_ux_instance_serial", ["instance_id", "serial"]);
 
 =head1 RELATIONS
 
