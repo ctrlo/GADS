@@ -896,7 +896,7 @@ sub write
 
     $self->write_special(rset => $rset, id => $new_id || $self->id, %options); # Write any column-specific params
 
-    $self->_write_permissions(id => $new_id);
+    $self->_write_permissions(id => $new_id || $self->id);
 
     $guard->commit;
 
