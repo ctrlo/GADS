@@ -58,7 +58,7 @@ has default_today => (
     coerce  => sub { $_[0] ? 1 : 0 },
     builder => sub {
         my $self = shift;
-        return 1 unless $self->has_options;
+        return 0 unless $self->has_options;
         $self->options->{default_today};
     },
     trigger => sub { $_[0]->clear_options },
