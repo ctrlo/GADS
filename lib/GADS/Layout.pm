@@ -389,16 +389,17 @@ sub write
         my $delete = {};
 
         my %valid = (
-            delete       => 1,
-            purge        => 1,
-            download     => 1,
-            layout       => 1,
-            message      => 1,
-            view_create  => 1,
-            view_group   => 1,
-            create_child => 1,
-            bulk_update  => 1,
-            link         => 1,
+            delete           => 1,
+            purge            => 1,
+            download         => 1,
+            layout           => 1,
+            message          => 1,
+            view_create      => 1,
+            view_group       => 1,
+            create_child     => 1,
+            bulk_update      => 1,
+            link             => 1,
+            view_limit_extra => 1,
         );
 
         my $existing = $self->_group_permissions;
