@@ -93,6 +93,7 @@ sub _user_views
             group => 'user_groups',
         },
         order_by => ['me.global', 'me.is_admin', 'me.name'],
+        collapse => 1,
     })->all;
     \@views;
 }
