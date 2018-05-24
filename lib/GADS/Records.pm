@@ -103,10 +103,16 @@ sub _build__view_limits
             instance_id => $self->layout->instance_id,
         ) if $view_limit->view->instance_id == $self->layout->instance_id;
     }
+    \@views;
+}
 
-    # Then any additional ones
+has _view_limit_extra => (
+    is => 'lazy',
+);
 
-    my $extra = $self->view_limit_extra_id;
+sub _build__view_limit_extra
+{   my $self = shift;
+    my $extra   = $self->view_limit_extra_id;
     my $default = $self->_build_view_limit_extra_id;
     # Validate first - can the user set this? (may be from session and have
     # had permission removed)
@@ -117,14 +123,14 @@ sub _build__view_limits
         my $view_limit = $self->schema->resultset('View')->search({
             'me.id' => $extra,
         })->next;
-        push @views, GADS::View->new(
+        return GADS::View->new(
             id          => $view_limit->id,
             schema      => $self->schema,
             layout      => $self->layout,
             instance_id => $self->layout->instance_id,
         ) if $view_limit->instance_id == $self->layout->instance_id;
     }
-    \@views;
+    return;
 }
 
 # Any extra view limits in addition to those applied per-user
@@ -153,7 +159,21 @@ sub _view_limits_search
             }
         }
     }
-    [ '-or' => \@search ];
+    my $limit = [ '-or' => \@search ];
+
+    if (my $filter = $self->_view_limit_extra && $self->_view_limit_extra->filter)
+    {
+        my $decoded = $filter->as_hash;
+        if (keys %$decoded)
+        {
+            # Get the user search criteria
+            $limit = [
+                -and => [ $limit, $self->_search_construct($decoded, $self->layout, %options) ],
+            ];
+        }
+    }
+
+    return $limit;
 }
 
 has from => (

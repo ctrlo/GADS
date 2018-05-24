@@ -134,6 +134,7 @@ has sort_layout_id => (
 has default_view_limit_extra => (
     is      => 'ro',
     lazy    => 1,
+    clearer => 1,
     builder => sub { $_[0]->_rset->default_view_limit_extra },
 );
 
@@ -141,6 +142,7 @@ has default_view_limit_extra_id => (
     is      => 'ro',
     isa     => Maybe[Int],
     lazy    => 1,
+    clearer => 1,
     builder => sub { $_[0]->_rset->default_view_limit_extra_id },
 );
 
@@ -535,6 +537,8 @@ sub clear
     $self->clear_forget_history;
     $self->clear_no_overnight_update;
     $self->_clear_rset;
+    $self->clear_default_view_limit_extra;
+    $self->clear_default_view_limit_extra_id;
 }
 
 # The dump from the database of all the information needed to build the layout.

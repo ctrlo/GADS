@@ -1046,7 +1046,6 @@ foreach my $multivalue (0..1)
     $user->set_view_limits([$view_limit->id, $view_limit2->id]);
 
     $records = GADS::Records->new(
-        view_limits => [ $view_limit, $view_limit2 ],
         user    => $user,
         view    => $view,
         layout  => $layout,
@@ -1155,7 +1154,6 @@ foreach my $multivalue (0..1)
     ));
     $view_limit->write;
     $records = GADS::Records->new(
-        view_limits => [ $view_limit ],
         user    => $user,
         layout  => $layout,
         schema  => $schema,
@@ -1233,7 +1231,25 @@ foreach my $multivalue (0..1)
 
 {
     # Test view_limit_extra functionality
-    my $sheet = t::lib::DataSheet->new;
+    my $sheet = t::lib::DataSheet->new(data =>
+    [
+        {
+            string1    => 'FooBar',
+            integer1   => 50,
+        },
+        {
+            string1    => 'Bar',
+            integer1   => 100,
+        },
+        {
+            string1    => 'Foo',
+            integer1   => 150,
+        },
+        {
+            string1    => 'FooBar',
+            integer1   => 200,
+        },
+    ]);
     $sheet->create_records;
     my $schema  = $sheet->schema;
     my $layout  = $sheet->layout;
@@ -1242,9 +1258,9 @@ foreach my $multivalue (0..1)
     my $rules = GADS::Filter->new(
         as_hash => {
             rules     => [{
-                id       => $columns->{date1}->id,
-                type     => 'date',
-                value    => '2014-10-10',
+                id       => $columns->{string1}->id,
+                type     => 'string',
+                value    => 'FooBar',
                 operator => 'equal',
             }],
         },
@@ -1263,10 +1279,10 @@ foreach my $multivalue (0..1)
     $rules = GADS::Filter->new(
         as_hash => {
             rules     => [{
-                id       => $columns->{date1}->id,
-                type     => 'date',
-                value    => '2009-01-02',
-                operator => 'equal',
+                id       => $columns->{integer1}->id,
+                type     => 'string',
+                value    => '75',
+                operator => 'greater',
             }],
         },
     );
@@ -1292,8 +1308,8 @@ foreach my $multivalue (0..1)
         schema  => $schema,
     );
     my $string1 = $columns->{string1}->id;
-    is($records->count, 1, 'Correct number of results when limiting to a view limit extra');
-    is($records->single->fields->{$string1}->as_string, "Foo", "Correct limited record");
+    is($records->count, 2, 'Correct number of results when limiting to a view limit extra');
+    is($records->single->fields->{$string1}->as_string, "FooBar", "Correct limited record");
 
     $records = GADS::Records->new(
         user                => $sheet->user,
@@ -1301,8 +1317,19 @@ foreach my $multivalue (0..1)
         schema              => $schema,
         view_limit_extra_id => $limit_extra2->id,
     );
-    is ($records->count, 1, 'Correct number of results when changing view limit extra');
+    is ($records->count, 3, 'Correct number of results when changing view limit extra');
     is($records->single->fields->{$string1}->as_string, "Bar", "Correct limited record when changed");
+
+    my $user = $sheet->user;
+    $user->set_view_limits([ $limit_extra1->id ]);
+    $records = GADS::Records->new(
+        user                => $user,
+        layout              => $layout,
+        schema              => $schema,
+        view_limit_extra_id => $limit_extra2->id,
+    );
+    is ($records->count, 1, 'Correct number of results with both view limits and extra limits');
+    is($records->single->fields->{$string1}->as_string, "FooBar", "Correct limited record for both types of limit");
 }
 
 # Check sorting functionality
