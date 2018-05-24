@@ -241,11 +241,12 @@ has child_record_ids => (
 
 has serial => (
     is  => 'lazy',
-    isa => Int,
+    isa => Maybe[Int],
 );
 
 sub _build_serial
 {   my $self = shift;
+    return unless $self->current_id;
     $self->schema->resultset('Current')->find($self->current_id)->serial;
 }
 

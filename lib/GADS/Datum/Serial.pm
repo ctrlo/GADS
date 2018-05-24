@@ -26,7 +26,7 @@ extends 'GADS::Datum';
 
 has value => (
     is  => 'lazy',
-    isa => Int,
+    isa => Maybe[Int],
 );
 
 sub _build_value
