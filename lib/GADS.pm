@@ -1353,6 +1353,11 @@ any '/view/:id' => require_login sub {
     $vp{id} = $view_id if $view_id;
     my $view = GADS::View->new(%vp);
 
+    # If this is a clone of a full global view, but the user only has group
+    # view creation rights, then remove the global parameter, otherwise it
+    # means that it is ticked by default but only for a group instead
+    $view->global(0) if param('clone') && !$view->group_id && !$layout->user_can('layout');
+
     if (param 'update')
     {
         my $params = params;
