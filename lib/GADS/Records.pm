@@ -105,7 +105,14 @@ sub _build__view_limits
     }
 
     # Then any additional ones
-    if (my $extra = $self->view_limit_extra_id)
+
+    my $extra = $self->view_limit_extra_id;
+    my $default = $self->_build_view_limit_extra_id;
+    # Validate first - can the user set this? (may be from session and have
+    # had permission removed)
+    $extra = $default
+        if $default && !$self->layout->user_can("view_limit_extra");
+    if ($extra)
     {
         my $view_limit = $self->schema->resultset('View')->search({
             'me.id' => $extra,
