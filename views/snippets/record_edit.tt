@@ -1,0 +1,17 @@
+<div class="btn-group">
+    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">Action <b class="caret"></b></button>
+    <ul class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="edit_action">
+        [% IF with_view %]
+            <li role="presentation"><a role="menuitem" href="/record/[% record.current_id %]">View record</a></li>
+        [% ELSE %]
+            <li role="presentation"><a role="menuitem" href="/edit/[% record.current_id %]">Edit record</a></li>
+        [% END %]
+        <li role="presentation"><a role="menuitem" href="/edit/?from=[% record.current_id %]">Copy record</a></li>
+        [% IF layout.user_can("create_child") AND NOT record.parent_id %]
+            <li role="presentation"><a role="menuitem" href="/edit/?child=[% record.current_id %]">Create child record</a></li>
+        [% END %]
+        [% IF user.permission.link %]
+            <li role="presentation"><a role="menuitem" href="/link/[% record.current_id %]">Link record</a></li>
+        [% END %]
+    </ul>
+</div>

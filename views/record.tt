@@ -31,7 +31,7 @@
 </div>
 <div class="btn-group">
     [% IF user_can_edit AND NOT record.deleted %]
-        <a href="/edit/[% record.current_id %]" class="btn btn-primary">Edit record</a>
+        [% PROCESS snippets/record_edit.tt %]
     [% END %]
 </div>
 <p></p>
