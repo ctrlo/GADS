@@ -78,7 +78,7 @@ var SelectWidget = function (multi) {
     };
 
     updateState();
-    
+
     if (multi) {
         $currentItems.each(connectMulti(updateState));
     } else {
@@ -174,26 +174,34 @@ var setupDependentField = function () {
     // get the value from a field, depending on its type
     var getFieldValue = function ($depends, $target) {
         var type = $depends.data('column-type');
-        var value;
 
         if (type === 'enum' || type === 'curval') {
             var $visible = $depends.find('.select-widget .current [data-list-item]:not([hidden])');
             var items = [];
             $visible.each(function () { items.push($(this).text()) });
-            value = items.join(' ');
+            return items;
         } else if (type === 'person') {
-            value = $target.find('option:selected').text();
+            return [$target.find('option:selected').text()];
         } else {
-            value = $target.val();
+            return [$target.val()];
         }
+    };
 
-        return value;
+    var some = function (set, test) {
+        for (var i = 0, j = set.length; i < j; i++) {
+            if (test(set[i])) {
+                return true;
+            }
+        }
+        return false;
     };
 
     $depends.on('change', function (e) {
         var $target = $(e.target);
-        var value = getFieldValue($depends, $target);
-        regexp.test(value) ? $field.show() : $field.hide();
+        var values = getFieldValues($depends, $target);
+        some(values, function (value) {
+            return regexp.test(value)
+        }) ? $field.show() : $field.hide();
     });
 
     // trigger a change to toggle all dependencies
