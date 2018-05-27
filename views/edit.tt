@@ -491,7 +491,9 @@
             [% ELSIF dispcol.type == "curval" %]
                 [% PROCESS curval_column column = dispcol %]
             [% ELSIF dispcol.type == "tree" %]
-                    <input type="hidden" name="[% field %]" id="treeval_id[% dispcol.id %]" value="[% editvalue.id %]">
+                    [% FOREACH val IN editvalue.ids %]
+                        <input type="hidden" name="[% field %]" class="[% field %]" value="[% val %]">
+                    [% END %]
                     [% IF readonly %]
                         <div class="form-group">
                             [% editvalue.html %]
