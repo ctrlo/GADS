@@ -338,7 +338,6 @@
 
             setup_calculator('.intcalculator');
 
-            [% INCLUDE tree.tt %]
             [% jscode.join('') %]
         }); 
 [% END %]
@@ -421,7 +420,9 @@
     <div class="form-group" data-column-id="[% dispcol.id %]" data-column-type="[% dispcol.type %]"
         [% dependency && 'data-has-dependency="' _ parent.id _ '"' %]
         [% parent && dependency && 'data-dependency="' _ depends.regex_b64 _ '"' %]
-        >
+        [% dispcol.multivalue && 'data-is-multivalue="true"' %]
+        [% dispcol.readonly && 'data-is-readonly="true"' %]
+    >
         [% label = dispcol.name | html_entity %]
         [% IF dispcol.optional OR page == "bulk" %]
             [% label_style = 'style="font-weight:normal !important"' %]
@@ -522,10 +523,15 @@
                             multivalue = dispcol.multivalue
                         }) %]
                         <div class="form-group">
+                            [% # TODO: These anchors need to become buttons %]
                             <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('open_all');">Expand all</a> |
                             <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('close_all');">Collapse all</a> |
                             <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('refresh');">Reload</a>
-                            <div id="jstree[% dispcol.id %]"></div>
+                            <div class="tree-widget-container"
+                                data-field="[% field %]"
+                                [% dispcol.end_node_only && 'data-end-node-only="true"' %]
+                                data-ids-as-params="[% editvalue.ids_as_params %]"
+                            ></div>
                         </div>
                     [% END %]
                 [% ELSIF dispcol.type == "person" %]

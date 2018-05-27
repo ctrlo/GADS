@@ -166,6 +166,16 @@ var setupLessMoreWidgets = function () {
     $widgets.each(convert);
 };
 
+/***
+ *
+ * Handle the dependency connections between fields
+ * via regular expression checks on field values
+ *
+ * FIXME: It would be an improvement to abstract the
+ * different field types in GADS behind a common interface
+ * as opposed to using dom-attributes.
+ *
+ */
 var setupDependentField = function () {
     var $field   = this.field;
     var $depends = this.dependsOn;
@@ -182,6 +192,11 @@ var setupDependentField = function () {
             return items;
         } else if (type === 'person') {
             return [$target.find('option:selected').text()];
+        } else if (type === 'tree') {
+            // get the hidden children of $target, their value attr is the selected values
+            var items = [];
+            $target.find('.selected-tree-value').each(function() { items.push($(this.val())) });
+            return items;
         } else {
             return [$target.val()];
         }
@@ -222,6 +237,86 @@ var setupDependentFields = function () {
     });
 
     fields.each(setupDependentField);
+};
+
+var setupTreeField = function () {
+    var $this = $(this);
+    var id = $this.data('column-id');
+    var multiValue = $this.data('is-multivalue');
+    var readOnly = $this.data('is-readonly');
+    var $treeContainer = $this.find('.tree-widget-container');
+    var field = $treeContainer.data('field');
+    var endNodeOnly = $treeContainer.data('end-node-only');
+    var idsAsParams = $treeContainer.data('ids-as-params');
+    var $treeFields = ('[name="' + field + '"]');
+
+    var treeConfig = {
+        check_callback : true,
+        force_text : true,
+        themes : { stripes : true },
+        data : {
+            url : function (node) {
+                return '/tree' + new Date().getTime() + '/' + id + '?' + idsAsParams;
+            },
+            data : function (node) {
+                return { 'id' : node.id };
+            }
+        },
+        plugins : []
+    };
+
+    if (!multiValue) {
+        treeConfig.multiple = false;
+    } else {
+        treeConfig.checkbox = {
+            cascade: "sdfds" // TODO: is this needed?
+        }
+        treeConfig.plugins.push('checkbox');
+    }
+
+    if (readOnly) {
+        treeConfig.plugins.push('conditionalselect');
+    }
+
+    $treeContainer.on('changed.jstree', function (e, value) {
+        // remove all existing hidden value fields
+        $treeFields.remove();
+        var selectedElms = $treeContainer.jstree("get_selected", true);
+
+        var values = [];
+
+        $.each(selectedElms, function () {
+            // store the selected values in hidden fields as children of the element
+            $treeContainer.append(
+                '<input type="hidden" class="selected-tree-value" name="' + field + '" value="' + id + '" />'
+            );
+        });
+
+        $treeContainer.trigger('change', values);
+    });
+
+    $treeContainer.on('select_node.jstree', function (e, data) {
+        if (data.node.children.length = 0) { return; }
+        if (endNodeOnly) {
+            $treeContainer.jstree(true).deselect_node(data.node);
+            $treeContainer.jstree(true).toggle_node(data.node);
+        } else if (multiValue) {
+            $treeContainer.jstree(true).open_node(data.node);
+        }
+    });
+
+    $treeContainer.jstree({ core: treeConfig });
+
+    // hack - see https://github.com/vakata/jstree/issues/1955
+    $treeContainer.jstree(true).settings.checkbox.cascade = 'undetermined';
+
+};
+
+var setupTreeFields = function () {
+    var $fields = $('[data-column-type="tree"]');
+    $fields.filter(function () {
+        return $(this).find('.tree-widget-container').length;
+    }).each(setupTreeField);
 };
 
 var positionDisclosure = function (offsetTop, offsetLeft, triggerHeight) {
