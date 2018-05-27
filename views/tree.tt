@@ -64,23 +64,11 @@
                         }
                     },
                     [% IF tree.multivalue %]
-                        "checkbox": {
-                            "cascade": "sdfds"
-                        },
-                    [% END %]
-                    [% IF tree.readonly OR tree.multivalue %]
-                        "plugins" : [
-                            [% IF tree.multivalue %]
-                                'checkbox',
-                            [% END %],
-                            [% IF tree.readonly %]
-                                "conditionalselect" : function (node) {
-                                    return false;
-                                }
-                            [% END %]
-                        ]
+                        "plugins" : ['checkbox']
                     [% END %]
                 });
-                [%# Hack - see https://github.com/vakata/jstree/issues/1955 %]
-                $('#jstree[% tree.id %]').jstree(true).settings.checkbox.cascade = 'undetermined';
+                [% IF tree.multivalue %]
+                    [%# Hack - see https://github.com/vakata/jstree/issues/1955 %]
+                    $('#jstree[% tree.id %]').jstree(true).settings.checkbox.cascade = 'undetermined';
+                [% END %]
             [% END %]
