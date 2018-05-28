@@ -62,6 +62,9 @@ sub _introspector
         $d->decorate_driver_unconnected(SQLite =>
             least => sub {
                 sub {
+                    # Under some circumstances, sqlite doesn't like only one
+                    # value in a MIN()
+                    return [ $_[0] ] if @_ == 1;
                     my $fields = join ', ', @_;
                     [ "MIN( $fields )" ];
                 },
