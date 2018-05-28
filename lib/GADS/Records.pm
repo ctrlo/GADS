@@ -26,6 +26,7 @@ use DBIx::Class::ResultClass::HashRefInflator;
 use GADS::Config;
 use GADS::Graph::Data;
 use GADS::Record;
+use GADS::Timeline;
 use GADS::View;
 use HTML::Entities;
 use Log::Report 'linkspace';
@@ -118,11 +119,24 @@ sub view_limits_search
 }
 
 has from => (
-    is => 'rw',
+    is     => 'rw',
+    coerce => sub {
+        my $value = shift
+            or return;
+        $value->truncate(to => 'day');
+        return $value;
+    },
 );
 
 has to => (
-    is => 'rw',
+    is     => 'rw',
+    coerce => sub {
+        my $value = shift
+            or return;
+        return $value if $value->hms('') eq '000000';
+        $value->truncate(to => 'day')->add(days => 1);
+        return $value;
+    },
 );
 
 has remembered_only => (
@@ -162,6 +176,10 @@ has columns_retrieved_do => (
     is      => 'lazy',
     isa     => ArrayRef,
     clearer => 1,
+);
+
+has max_results => (
+    is => 'rw',
 );
 
 has rows => (
@@ -312,9 +330,10 @@ has default_sort => (
 );
 
 has results => (
-    is      => 'lazy',
-    isa     => ArrayRef,
-    clearer => 1,
+    is        => 'lazy',
+    isa       => ArrayRef,
+    clearer   => 1,
+    predicate => 1,
 );
 
 sub _search_construct;
@@ -620,7 +639,7 @@ sub _current_ids_rs
             },
         ],
         '+select' => $self->_plus_select, # Used for additional sort columns
-        order_by  => $self->order_by(search => 1),
+        order_by  => $self->order_by(search => 1, with_min => 'group'),
         distinct  => 1, # Otherwise multiple records returned for multivalue fields
     };
     my $page = $self->page;
@@ -689,7 +708,7 @@ sub _build_results
               ->get_column('created')
               ->min_rs->as_query,
         },
-        order_by  => $self->order_by(prefetch => 1),
+        order_by  => $self->order_by(prefetch => 1, with_min => 'each'),
     };
 
     my $result = $self->schema->resultset('Current')->search($self->_cid_search_query, $select);
@@ -777,12 +796,14 @@ has _next_single_id => (
 
 # This could be called thousands of times (e.g. download), so fetch
 # the rows in chunks
+my $chunk = 100;
 sub single
 {   my $self = shift;
-    my $chunk = 100; # Size of chunks to retrieve each time
+#    my $chunk = 100; # Size of chunks to retrieve each time
     $self->rows($chunk) unless $self->rows;
-    $self->page(1) unless $self->page;
+    $self->page(1) if !$self->has_results;
     my $next_id = $self->_next_single_id;
+    return if $self->max_results && $self->records_retrieved_count >= $self->max_results;
     if ($next_id >= $chunk)
     {
         return if $self->page == $self->pages;
@@ -793,6 +814,11 @@ sub single
     my $row = $self->results->[$next_id];
     $self->_set__next_single_id($next_id + 1);
     $row;
+}
+
+sub records_retrieved_count
+{   my $self = shift;
+    return ($self->page - 1) * $chunk + $self->_next_single_id;
 }
 
 sub _build_count
@@ -987,9 +1013,24 @@ sub _query_params
 sub _build__sorts
 {   my $self = shift;
     my @sorts;
-    if (my $user_sort = $self->sort)
+
+    # First, special test where we are retrieving from a date for a number of
+    # records until an unknown date. In this case, order by all the date
+    # fields.
+    if ($self->from && !$self->to)
     {
-        foreach my $s (@$user_sort)
+        foreach my $col (@{$self->columns_retrieved_no})
+        {
+            next unless $col->return_type =~ /date/;
+            push @sorts, {
+                id   => $col->id,
+                type => 'asc',
+            };
+        }
+    }
+    if (!@sorts && $self->sort)
+    {
+        foreach my $s (@{$self->sort})
         {
             push @sorts, {
                 id   => $s->{id} || -11, # Default ID
@@ -1047,20 +1088,60 @@ sub order_by
             {
                 my $col_link = shift @cols_link;
                 $self->add_join($col_link, sort => 1);
-                my $main = "$s_table.".$column->value_field;
-                my $link = $self->table_name($col_link, sort => 1, linked => 1, %options).".".$col_link->value_field;
+                my $main = "$s_table.".$column->sort_field;
+                my $link = $self->table_name($col_link, sort => 1, linked => 1, %options).".".$col_link->sort_field;
                 $sort_name = $self->schema->resultset('Current')->helper_concat(
                      { -ident => $main },
                      { -ident => $link },
                 );
             }
             else {
-                $sort_name = "$s_table.".$col_sort->value_field;
+                $sort_name = "$s_table.".$col_sort->sort_field;
             }
             push @order_by, {
                 $type => $sort_name,
             };
         }
+    }
+
+    # That special condition again, retrieving a number of records from a
+    # certain date. We have to order by the date of any field in each record.
+    if ($self->from && !$self->to && $options{with_min})
+    {
+        my $date = $self->schema->storage->datetime_parser->format_datetime($self->from);
+        @order_by = map {
+            my ($field) = values %$_;
+            my $quoted = $self->quote($field);
+            if ($field =~ /from/) # Date range
+            {
+                (my $to = $field) =~ s/from/to/;
+                my $quoted_to = $self->quote($to);
+                # For a date range, take either the "from" or the "to" value,
+                # whichever is just past the start date of our range
+                \"CASE
+                    WHEN ($quoted > '$date') THEN $quoted
+                    WHEN ($quoted_to > '$date') THEN $quoted_to
+                    ELSE NULL END";
+            }
+            else {
+                \"CASE
+                    WHEN ($quoted > '$date') THEN $quoted
+                    ELSE NULL END";
+            }
+        } @order_by;
+
+        if ($options{with_min} eq 'group')
+        {
+            # When we have a group_by, we need an additional aggregate function
+            @order_by = map { +{ min => { -ident => $_ } } } @order_by;
+        }
+        elsif ($options{with_min} eq 'each') {
+            @order_by = map { +{ -ident => $_ } } @order_by;
+        }
+        else {
+            panic "Invalid with_min option";
+        }
+        return +{ -asc => $self->schema->resultset('Current')->helper_least(@order_by) };
     }
 
     \@order_by;
@@ -1372,237 +1453,102 @@ sub csv
     $csvout;
 }
 
-# Base function for calendar and timeline
-sub data_time
-{   my ($self, $type, %options) = @_;
+sub data_timeline
+{   my ($self, %options) = @_;
 
-    my @colors = qw/event-important event-success event-warning event-info event-inverse event-special/;
-    my @result;
-    my %datecolors;
-    my %timeline_groups;
-    my $group_count;
+    my $original_from = $self->from;
+    my $original_to   = $self->to;
 
-    # Need a Graph::Data instance to get relevant colors
-    my $graph = GADS::Graph::Data->new(
-        schema  => $self->schema,
-        records => undef,
+    my $timeline = GADS::Timeline->new(
+        type         => 'timeline',
+        records      => $self,
+        label_col_id => $options{label},
+        group_col_id => $options{group},
+        color_col_id => $options{color},
     );
 
-    # Add on any extra required columns for labelling etc
-    my @extra;
-    push @extra, $options{label} if $options{label};
-    push @extra, $options{group} if $options{group};
-    push @extra, $options{color} if $options{color};
-    $self->columns_extra([@extra]);
+    # Initial retrieval will be 100 records from today (center)
+    $self->max_results(100);
+    my @retrieved = @{$timeline->items};
 
-    # All the data values
-    my ($multiple_dates, $min, $max);
-    while (my $record  = $self->single)
+    return {
+        items  => [],
+        groups => [],
+    } if !@retrieved;
+
+    my $min   = $timeline->retrieved_from;
+    my $max   = $timeline->retrieved_to;
+
+    # We may have retrieved values other than the ones we want, for example
+    # additional date fields in records where we wanted the other one. Normally
+    # we don't want these. However, we will want to add them on if there are
+    # not many records in the original set
+    my (@over, @items);
+    foreach (@retrieved)
     {
-        my @dates; my @titles;
-        my $had_date_col; # Used to detect multiple date columns in this view
-        my @columns = @{$self->columns_retrieved_no};
-        my %curcommon_values;
-        foreach my $column (@columns)
-        {
-            if ($column->is_curcommon)
-            {
-                push @columns, @{$column->curval_fields};
-                foreach my $row (values %{$record->fields->{$column->id}->field_values})
-                {
-                    foreach my $cur_col_id (keys %$row)
-                    {
-                        $curcommon_values{$cur_col_id} ||= [];
-                        push @{$curcommon_values{$cur_col_id}}, $row->{$cur_col_id};
-                    }
-                }
-                next;
-            }
-
-            # Get item value
-            my @d = $curcommon_values{$column->id}
-                ? @{$curcommon_values{$column->id}}
-                : ($record->fields->{$column->id});
-
-            foreach my $d (@d)
-            {
-                $d or next;
-
-                # Only show unique items of children, otherwise will be a lot of
-                # repeated entries
-                next if $record->parent_id && !$d->child_unique;
-
-                if ($column->return_type eq "daterange" || $column->return_type eq "date")
-                {
-                    $multiple_dates = 1 if $had_date_col;
-                    $had_date_col = 1;
-                    next unless $column->user_can('read');
-
-                    # Create colour if need be
-                    $datecolors{$column->id} = shift @colors unless $datecolors{$column->id};
-
-                    # Set colour
-                    my $color = $datecolors{$column->id};
-
-                    # Push value onto stack
-                    if ($column->type eq "daterange")
-                    {
-                        my $count;
-                        foreach my $range (@{$d->values})
-                        {
-                            # It's possible that values from other columns not within
-                            # the required range will have been retrieved. Don't bother
-                            # adding them
-                            if (
-                                (!$self->to || DateTime->compare($self->to, $range->start) >= 0)
-                                && (!$self->from || DateTime->compare($range->end, $self->from) >= 0)
-                            ) {
-                                push @dates, {
-                                    from       => $range->start,
-                                    to         => $range->end,
-                                    color      => $color,
-                                    column     => $column->id,
-                                    count      => ++$count,
-                                    daterange  => 1,
-                                    current_id => $d->record->current_id,
-                                };
-                                $min = $range->start->clone if !defined $min || $range->start < $min;
-                                $max = $range->end->clone if !defined $max || $range->end > $max;
-                            }
-                        }
-                    }
-                    else {
-                        $d->value or next;
-                        if (
-                            (!$self->from || DateTime->compare($d->value, $self->from) >= 0)
-                            && (!$self->to || DateTime->compare($self->to, $d->value) >= 0)
-                        ) {
-                            push @dates, {
-                                from       => $d->value,
-                                to         => $d->value,
-                                color      => $color,
-                                column     => $column->id,
-                                count      => 1,
-                                current_id => $d->record->current_id,
-                            };
-                            $min = $d->value->clone if !defined $min || $d->value < $min;
-                            $max = $d->value->clone if !defined $max || $d->value > $max;
-                        }
-                    }
-                }
-                else {
-                    next if $column->type eq "rag";
-                    # Check if the user has selected only one label
-                    next if $options{label} && $options{label} != $column->id;
-                    # Not a date value, push onto title
-                    # Don't want full HTML, which includes hyperlinks etc
-                    push @titles, $d->as_string if $d->as_string;
-                }
-            }
+        if ($_->{dt} < $max) {
+            push @items, $_;
+        } else {
+            push @over, $_;
         }
-        if (my $label = $options{label})
+    }
+    if ($self->records_retrieved_count < 100)
+    {
+        my $r = $self->records_retrieved_count;
+        # Sort is expensive, but will only be called if there weren't many
+        # records to begin with
+        @over = sort { DateTime->compare($a->{dt}, $b->{dt}) } @over;
+        while ($r < 100 && @over)
         {
-            @titles = ($record->fields->{$label}->as_string)
-                # Value for this record may not exist or be blank
-                if $record->fields->{$label} && $record->fields->{$label}->as_string;
-        }
-        my $item_color; my $color_key = '';
-        if (my $color = $options{color})
-        {
-            if ($record->fields->{$color})
-            {
-                $color_key = $record->fields->{$color}->as_string;
-                $item_color = $graph->get_color($color_key);
-            }
-        }
-        my $item_group;
-        if (my $group = $options{group})
-        {
-            if ($record->fields->{$group})
-            {
-                my $val = $record->fields->{$group}->as_string;
-                unless ($item_group = $timeline_groups{$val})
-                {
-                    $item_group = ++$group_count;
-                    $timeline_groups{$val} = $item_group;
-                }
-            }
-        }
-
-        # Create title label
-        my $title = join ' - ', @titles;
-        my $title_abr = length $title > 50 ? substr($title, 0, 45).'...' : $title;
-
-        foreach my $d (@dates)
-        {
-            next unless $d->{from} && $d->{to};
-            my @add;
-            push @add, $self->layout->column($d->{column})->name if $multiple_dates;
-            push @add, $color_key if $options{color};
-            my $add = join ', ', @add;
-            my $title_i = $add ? "$title ($add)" : $title;
-            my $title_i_abr = $add ? "$title_abr ($add)" : $title_abr;
-            my $cid = $d->{current_id} || $record->current_id;
-            if ($type eq 'calendar')
-            {
-                my $item = {
-                    "url"   => "/record/" . $cid,
-                    "class" => $d->{color},
-                    "title" => $title_i_abr,
-                    "id"    => $record->current_id,
-                    "start" => $d->{from}->epoch*1000,
-                    "end"   => $d->{to}->epoch*1000,
-                };
-                push @result, $item;
-            }
-            else {
-                $title_i = encode_entities $title_i;
-                $title_i_abr = encode_entities $title_i_abr;
-                # If this is an item for a single day, then abbreviate the title,
-                # otherwise it can appear as a very long item on the timeline.
-                # If it's multiple day, the timeline plugin will automatically shorten it.
-                my $t = $d->{from}->epoch == $d->{to}->epoch ? $title_i_abr : $title_i;
-                my $item = {
-                    "content" => qq(<a title="$title_i" href="/record/$cid" style="color:inherit;">$t</a>),
-                    "id"      => "$cid+$d->{column}+$d->{count}",
-                    current_id => $cid,
-                    "start"   => $d->{from}->ymd,
-                    "group"   => $item_group,
-                    column    => $d->{column},
-                    title     => $title_i,
-                };
-                $item->{style} = qq(background-color: $item_color)
-                    if $item_color;
-                # Add one day, otherwise ends at 00:00:00, looking like day is not included
-                $item->{end} = $d->{to}->clone->add( days => 1 )->ymd if $d->{daterange};
-                push @result, $item;
-            }
+            push @items, pop @over;
+            $r++;
         }
     }
 
+    # Now add a quarter of the retreived time period onto today
+    my $days  = int $min->delta_days($max)->in_units('days') / 4;
+    $timeline->clear;
+    # Retrieve up to but not including the previous retrieval
+    my $new_min = $original_from->clone->subtract(days => $days);
+    $self->from($new_min);
+    $self->to($min->subtract(seconds => 1));
+    # Don't limit by a number - take whatever is in that period
+    $self->max_results(undef);
+
+    push @items, @{$timeline->items};
+
+    # Remove dt (DateTime) value, otherwise JSON encoding borks
+    delete $_->{dt}
+        foreach @items;
+
     my @groups = map {
         {
-            id      => $timeline_groups{$_},
+            id      => $timeline->groups->{$_},
             content => encode_entities $_,
         }
-    } keys %timeline_groups;
+    } keys %{$timeline->groups};
+
+    $self->from($original_from);
+    $self->to($original_to);
 
     +{
-        items  => \@result,
+        items  => \@items,
         groups => \@groups,
-        min    => $min && $min->subtract(days => 1),
+        min    => $new_min && $new_min->subtract(days => 1),
         max    => $max && $max->add(days => 2), # one day already added to show period to end of day
     };
 }
 
 sub data_calendar
-{   my $self = shift;
-    $self->data_time('calendar')->{items};
-}
+{   my ($self, %options) = @_;
+    my $timeline = GADS::Timeline->new(
+        type    => 'calendar',
+        records => $self,
+        from    => $options{from},
+        to      => $options{to},
+    );
 
-sub data_timeline
-{   my $self = shift;
-    $self->data_time('timeline', @_);
+    return $timeline->items;
 }
 
 sub quote

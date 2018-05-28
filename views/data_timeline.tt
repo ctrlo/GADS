@@ -95,8 +95,8 @@
                 },
                 onMove: on_move,
                 snap:   snap_to_day,
-                min: "[% timeline.min.ymd %]",
-                max: "[% timeline.max.ymd %]",
+                start: "[% timeline.min.ymd %]",
+                end: "[% timeline.max.ymd %]",
                 orientation: {axis: "both"}
             };
 

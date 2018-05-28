@@ -50,6 +50,10 @@ has '+string_storage' => (
     default => sub {shift->return_type eq 'string'},
 );
 
+has '+sort_field' => (
+    default => 'from',
+);
+
 has show_datepicker => (
     is      => 'rw',
     isa     => Bool,

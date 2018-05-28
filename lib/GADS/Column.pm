@@ -392,6 +392,14 @@ has value_field => (
     default => 'value',
 );
 
+has sort_field => (
+    is => 'lazy',
+);
+
+sub _build_sort_field
+{   shift->value_field;
+}
+
 # Used when searching for a value's index value as opposed to string value
 # (e.g. enums)
 sub value_field_as_index

@@ -385,15 +385,16 @@ get '/data_calendar/:time' => require_login sub {
         layout               => $layout,
         schema               => schema,
         view                 => $view,
-        from                 => $fromdt,
-        to                   => $todt,
         search               => session('search'),
         interpolate_children => 0,
     );
 
     header "Cache-Control" => "max-age=0, must-revalidate, private";
     content_type 'application/json';
-    my $data = $records->data_calendar;
+    my $data = $records->data_calendar(
+        from => $fromdt,
+        to   => $todt,
+    );
     encode_json({
         "success" => 1,
         "result"  => $data,
@@ -664,6 +665,8 @@ any '/data' => require_login sub {
             view                 => $view,
             search               => session('search'),
             layout               => $layout,
+            # No "to" - will take appropriate number from today
+            from                 => DateTime->now,
             schema               => schema,
             rewind               => session('rewind'),
             interpolate_children => 0,
