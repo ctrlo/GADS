@@ -232,18 +232,20 @@ sub _build_results
             $self->_set_dr_to  ($daterange_to);
 
             # The literal CASE statement, which we reuse for each required period
-            my $from_field   = $self->schema->storage->dbh->quote_identifier('from');
-            my $to_field     = $self->schema->storage->dbh->quote_identifier('to');
-            my $col_val      = $self->fqvalue($self->column, search => 1, prefetch => 1);
-            my $col_val_link = $self->column->link_parent && $self->fqvalue($self->column->link_parent, linked => 1, search => 1, prefetch => 1);
+            my $from_field      = $self->quote("$field.from");
+            my $to_field        = $self->quote("$field.to");
+            my $from_field_link = $field_link && $self->quote($field_link.".from");
+            my $to_field_link   = $field_link && $self->quote($field_link.".to");
+            my $col_val         = $self->fqvalue($self->column, search => 1, prefetch => 1);
+            my $col_val_link    = $self->column->link_parent && $self->fqvalue($self->column->link_parent, linked => 1, search => 1, prefetch => 1);
 
             my $case = $field_link
                 ? "CASE WHEN "
-                  . "($field.$from_field < %s OR $field_link.$from_field < %s) "
-                  . "AND ($field.$to_field >= %s OR $field_link.$to_field >= %s) "
+                  . "($from_field < %s OR $from_field_link < %s) "
+                  . "AND ($to_field >= %s OR $to_field_link >= %s) "
                   . "THEN %s ELSE 0 END"
-                : "CASE WHEN $field.$from_field"
-                  . " < %s AND $field.$to_field"
+                : "CASE WHEN $from_field"
+                  . " < %s AND $to_field"
                   . " >= %s THEN %s ELSE 0 END";
 
             my $pointer = $daterange_from->clone;

@@ -1605,6 +1605,15 @@ sub data_timeline
     $self->data_time('timeline', @_);
 }
 
+sub quote
+{   my ($self, $name) = @_;
+    my $dbh = $self->schema->storage->dbh;
+    return $dbh->quote_identifier($name) if $name !~ /\./;
+    panic "Unexpected identifier $name" if $name =~ /\./ > 1;
+    my ($table, $field) = split /\./, $name;
+    return $dbh->quote_identifier($table).".".$dbh->quote_identifier($field);
+}
+
 sub _min_date { shift->_min_max_date('min', @_) };
 sub _max_date { shift->_min_max_date('max', @_) };
 
