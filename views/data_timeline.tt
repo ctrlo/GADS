@@ -148,6 +148,11 @@
                     range. Now work out whether we need to fill to the left or
                     right (or both)
                 %]
+                if (!have_range.min) {
+                    var from = props.start.getTime();
+                    var to = props.end.getTime();
+                    load_items(from, to);
+                }
                 if (props.start < have_range.min) {
                     var from = props.start.getTime();
                     var to = have_range.min.getTime() - 86400000;
