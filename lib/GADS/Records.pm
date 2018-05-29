@@ -1544,7 +1544,7 @@ sub data_timeline
         elsif ($self->exclusive_of_from)
         {
             @items = grep {
-                $_->{start} > $original_from->epoch * 1000;
+                $_->{single} || $_->{start} > $original_from->epoch * 1000;
             } @retrieved;
         }
         else {
