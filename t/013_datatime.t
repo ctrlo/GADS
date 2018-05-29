@@ -228,6 +228,43 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     like( $items->[0]->{title}, qr/foo2/, "Correct first record for exclusive from" );
 }
 
+# Date from a calc field
+{
+    my $data = [
+        {
+            string1    => 'foo1',
+            daterange1 => ['2009-01-01', '2009-06-01'],
+        },
+        {
+            string1    => 'foo2',
+            daterange1 => ['2010-01-01', '2010-06-01'],
+        },
+    ];
+
+    my $year = 86400 * 365;
+    my $sheet = t::lib::DataSheet->new(
+        data             => $data,
+        calc_code        => "function evaluate (L1daterange1) \n return L1daterange1.from.epoch - $year \nend",
+        calc_return_type => 'date',
+    );
+
+    $sheet->create_records;
+    my $schema = $sheet->schema;
+    my $layout = $sheet->layout;
+    my $dr1    = $sheet->columns->{daterange1}->id;
+
+    my $records = GADS::Records->new(
+        from   => DateTime->new(year => 2007, month => 01, day => 01),
+        to     => DateTime->new(year => 2008, month => 12, day => 31),
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
+    );
+
+    # Normal - should include dateranges that go over the from/to values
+    is( @{$records->data_timeline->{items}}, 1, "Records retrieved inclusive" );
+}
+
 # No records to display
 {
     my $sheet = t::lib::DataSheet->new(data => []);

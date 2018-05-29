@@ -950,7 +950,7 @@ sub _query_params
     my @search_date;                    # The search criteria to narrow-down by date range
     foreach my $c (@{$self->columns_retrieved_no})
     {
-        if ($c->type eq "date" || $c->type eq "daterange")
+        if ($c->return_type =~ /date/)
         {
             my $dateformat = GADS::Config->instance->dateformat;
             # Apply any date filters if required
