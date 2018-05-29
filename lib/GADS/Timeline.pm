@@ -301,7 +301,7 @@ sub _build_items
                     "content"  => qq(<a title="$title_i" href="/record/$cid" style="color:inherit;">$t</a>),
                     "id"       => $uid,
                     current_id => $cid,
-                    "start"    => $d->{from}->ymd,
+                    "start"    => $d->{from}->epoch * 1000,
                     "group"    => $item_group,
                     column     => $d->{column},
                     title      => $title_i,
@@ -310,7 +310,8 @@ sub _build_items
                 $item->{style} = qq(background-color: $item_color)
                     if $item_color;
                 # Add one day, otherwise ends at 00:00:00, looking like day is not included
-                $item->{end} = $d->{to}->clone->add( days => 1 )->ymd if $d->{daterange};
+                $item->{end}    = $d->{to}->clone->add( days => 1 )->epoch * 1000 if $d->{daterange};
+                $item->{single} = $d->{from}->epoch * 1000 if !$d->{daterange};
                 $self->_all_items_index->{$item->{id}} = 1;
                 push @items, $item;
             }

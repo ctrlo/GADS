@@ -157,6 +157,75 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     # 100 records/days from start, plus quarter of 99 before (99 days between
     # the 100 records)
     is( @{$records->data_timeline->{items}}, 123, "Retrieved correct subset of records for large timeline" );
+
+    $records = GADS::Records->new(
+        from   => DateTime->now, # Rounded down to midnight 1st Jan 2018
+        to     => DateTime->now->add(days => 10), # Rounded up to midnight 12th Jan 2018
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
+    );
+
+    # 10 days, plus one either side including rounding up/down
+    is( @{$records->data_timeline->{items}}, 12, "Retrieved correct subset of records for large timeline" );
+
+    # Test from exactly midnight - should be no rounding
+    $records = GADS::Records->new(
+        from   => DateTime->new(year => 2008, month => 1, day => 1),
+        to     => DateTime->new(year => 2008, month => 1, day => 10),
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
+    );
+
+    is( @{$records->data_timeline->{items}}, 10, "Retrieved correct subset of records for large timeline" );
+}
+
+# Test exclusive functionality
+{
+    my $data = [
+        {
+            string1    => 'foo1',
+            daterange1 => ['2009-01-01', '2009-06-01'],
+        },
+        {
+            string1    => 'foo2',
+            daterange1 => ['2010-01-01', '2010-06-01'],
+        },
+        {
+            string1    => 'foo3',
+            daterange1 => ['2011-01-01', '2011-06-01'],
+        },
+    ];
+
+    my $sheet = t::lib::DataSheet->new(data => $data);
+    $sheet->create_records;
+    my $schema = $sheet->schema;
+    my $layout = $sheet->layout;
+    my $dr1    = $sheet->columns->{daterange1}->id;
+
+    my $records = GADS::Records->new(
+        from   => DateTime->new(year => 2009, month => 03, day => 01),
+        to     => DateTime->new(year => 2011, month => 03, day => 01),
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
+    );
+
+    # Normal - should include dateranges that go over the from/to values
+    is( @{$records->data_timeline->{items}}, 3, "Records retrieved inclusive" );
+    $records->clear;
+    # Should not include dateranges that go over the to
+    $records->exclusive('to');
+    my $items = $records->data_timeline->{items};
+    is( @$items, 2, "Records retrieved exclusive to" );
+    like( $items->[0]->{title}, qr/foo1/, "Correct first record for exclusive to" );
+    $records->clear;
+    # Should not include dateranges that go over the from
+    $records->exclusive('from');
+    $items = $records->data_timeline->{items};
+    is( @$items, 2, "Records retrieved exclusive from" );
+    like( $items->[0]->{title}, qr/foo2/, "Correct first record for exclusive from" );
 }
 
 # No records to display

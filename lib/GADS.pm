@@ -401,6 +401,38 @@ get '/data_calendar/:time' => require_login sub {
     });
 };
 
+get '/data_timeline/:time' => require_login sub {
+
+    # Time variable is used to prevent caching by browser
+
+    my $fromdt  = DateTime->from_epoch( epoch => int ( param('from') / 1000 ) );
+    my $todt    = DateTime->from_epoch( epoch => int ( param('to') / 1000 ) );
+
+    my $user    = logged_in_user;
+    my $layout  = var 'layout';
+    my $view    = current_view($user, $layout);
+
+    my $records = GADS::Records->new(
+        from                 => $fromdt,
+        to                   => $todt,
+        exclusive            => param('exclusive'),
+        user                 => $user,
+        layout               => $layout,
+        schema               => schema,
+        view                 => $view,
+        search               => session('search'),
+        rewind               => session('rewind'),
+        interpolate_children => 0,
+    );
+
+    header "Cache-Control" => "max-age=0, must-revalidate, private";
+    content_type 'application/json';
+
+    my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} || {};
+    my $timeline = $records->data_timeline(%{$tl_options});
+    encode_json($timeline->{items});
+};
+
 sub _data_graph
 {   my $id = shift;
     my $user    = logged_in_user;

@@ -104,6 +104,71 @@
             if (groups.length > 0) {
                 timeline.setGroups(groups);
             }
+            [%# functionality to add new items on range change %]
+            timeline.on('rangechanged', function (props) {
+                if (!props.byUser) {
+                    return;
+                }
+
+                [%# Calculate the range of the current items. This will min/max
+                    values for normal dates, but for dateranges we need to work
+                    out the dates of what was retrieved. E.g. the earliest
+                    end of a daterange will be the start of the range of
+                    the current items (otherwise it wouldn't have been
+                    retrieved)
+                %]
+                var val = items.min('start');
+                var min_start = val ? new Date(val.start) : undefined;
+                val = items.max('start');
+                var max_start = val ? new Date(val.start) : undefined;
+                val = items.min('end');
+                var min_end = val ? new Date(val.end) : undefined;
+                val = items.max('end');
+                var max_end = val ? new Date(val.end) : undefined;
+                val = items.min('single');
+                var min_single = val ? new Date(val.single) : undefined;
+                val = items.max('single');
+                var max_single = val ? new Date(val.single) : undefined;
+                var have_range = {};
+                if (min_end && min_single) {
+                    have_range.min = min_end < min_single ? min_end : min_single;
+                } else {
+                    have_range.min = min_end || min_single;
+                }
+                if (max_start && max_single) {
+                    have_range.max = max_start > max_single ? max_start : max_single;
+                } else {
+                    have_range.max = max_start || max_single;
+                }
+                [%# haverange now contains the min and max of the current
+                    range. Now work out whether we need to fill to the left or
+                    right (or both)
+                %]
+                if (props.start < have_range.min) {
+                    var from = props.start.getTime();
+                    var to = have_range.min.getTime() - 86400000;
+                    load_items(from, to, "to");
+                }
+                if (props.end > have_range.max) {
+                    var from = have_range.max.getTime() + 86400000;
+                    var to = props.end.getTime();
+                    load_items(from, to, "from");
+                }
+            });
+            function load_items(from, to, exclusive) {
+                $.ajax({
+                    async: false,
+                    [%# we use the exclusive parameter to not include ranges
+                        that go over that date, otherwise we will retrieve
+                        items that we already have
+                    %]
+                    url: "/data_timeline/" + "10" + "?from=" + from + "&to=" + to + "&exclusive=" + exclusive,
+                    dataType:'json',
+                    success: function(data) {
+                        items.add(data);
+                    }
+                });
+            }
         } )();
         [% END %]
     [% END %]';

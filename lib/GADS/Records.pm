@@ -139,6 +139,20 @@ has to => (
     },
 );
 
+has exclusive => (
+    is => 'rw',
+);
+
+sub exclusive_of_from {
+    my $ex = $_[0]->exclusive || '';
+    $ex eq 'from';
+}
+
+sub exclusive_of_to {
+    my $ex = $_[0]->exclusive || '';
+    $ex eq 'to';
+}
+
 has remembered_only => (
     is => 'rw',
 );
@@ -945,7 +959,7 @@ sub _query_params
             {
                 my $f = {
                     id       => $c->id,
-                    operator => 'less_or_equal',
+                    operator => $self->exclusive_of_to ? 'less' : 'less_or_equal',
                     value    => $to->format_cldr($dateformat),
                 };
                 push @f, $f;
@@ -954,7 +968,7 @@ sub _query_params
             {
                 my $f = {
                     id       => $c->id,
-                    operator => 'greater_or_equal',
+                    operator => $self->exclusive_of_from ? 'greater' : 'greater_or_equal',
                     value    => $from->format_cldr($dateformat),
                 };
                 push @f, $f;
@@ -1458,6 +1472,7 @@ sub data_timeline
 
     my $original_from = $self->from;
     my $original_to   = $self->to;
+    my $limit_qty     = $self->from && !$self->to;
 
     my $timeline = GADS::Timeline->new(
         type         => 'timeline',
@@ -1468,7 +1483,7 @@ sub data_timeline
     );
 
     # Initial retrieval will be 100 records from today (center)
-    $self->max_results(100);
+    $self->max_results(100) if $limit_qty;
     my @retrieved = @{$timeline->items};
 
     return {
@@ -1484,38 +1499,61 @@ sub data_timeline
     # we don't want these. However, we will want to add them on if there are
     # not many records in the original set
     my (@over, @items);
-    foreach (@retrieved)
+    if ($limit_qty)
     {
-        if ($_->{dt} < $max) {
-            push @items, $_;
-        } else {
-            push @over, $_;
-        }
-    }
-    if ($self->records_retrieved_count < 100)
-    {
-        my $r = $self->records_retrieved_count;
-        # Sort is expensive, but will only be called if there weren't many
-        # records to begin with
-        @over = sort { DateTime->compare($a->{dt}, $b->{dt}) } @over;
-        while ($r < 100 && @over)
+        foreach (@retrieved)
         {
-            push @items, pop @over;
-            $r++;
+            if ($_->{dt} < $max) {
+                push @items, $_;
+            } else {
+                push @over, $_;
+            }
         }
+        if ($self->records_retrieved_count < 100)
+        {
+            my $r = $self->records_retrieved_count;
+            # Sort is expensive, but will only be called if there weren't many
+            # records to begin with
+            @over = sort { DateTime->compare($a->{dt}, $b->{dt}) } @over;
+            while ($r < 100 && @over)
+            {
+                push @items, pop @over;
+                $r++;
+            }
+        }
+
+        # Now add a quarter of the retreived time period onto today
+        my $days  = int $min->delta_days($max)->in_units('days') / 4;
+        $timeline->clear;
+        # Retrieve up to but not including the previous retrieval
+        $self->to($min->clone->subtract(seconds => 1));
+        $min = $original_from->clone->subtract(days => $days);
+        $self->from($min);
+        # Don't limit by a number - take whatever is in that period
+        $self->max_results(undef);
+
+        push @items, @{$timeline->items};
     }
-
-    # Now add a quarter of the retreived time period onto today
-    my $days  = int $min->delta_days($max)->in_units('days') / 4;
-    $timeline->clear;
-    # Retrieve up to but not including the previous retrieval
-    my $new_min = $original_from->clone->subtract(days => $days);
-    $self->from($new_min);
-    $self->to($min->subtract(seconds => 1));
-    # Don't limit by a number - take whatever is in that period
-    $self->max_results(undef);
-
-    push @items, @{$timeline->items};
+    else {
+        if ($self->exclusive_of_to)
+        {
+            @items = grep {
+                $_->{single} || $_->{end} < $original_to->epoch * 1000;
+            } @retrieved;
+        }
+        elsif ($self->exclusive_of_from)
+        {
+            @items = grep {
+                $_->{start} > $original_from->epoch * 1000;
+            } @retrieved;
+        }
+        else {
+            @items = @retrieved;
+        }
+        @items = grep {
+            !$_->{single} || ($_->{dt} >= $original_from && $_->{dt} <= $original_to)
+        } @items;
+    }
 
     # Remove dt (DateTime) value, otherwise JSON encoding borks
     delete $_->{dt}
@@ -1534,7 +1572,7 @@ sub data_timeline
     +{
         items  => \@items,
         groups => \@groups,
-        min    => $new_min && $new_min->subtract(days => 1),
+        min    => $min && $min->subtract(days => 1),
         max    => $max && $max->add(days => 2), # one day already added to show period to end of day
     };
 }
