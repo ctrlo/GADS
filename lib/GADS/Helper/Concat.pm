@@ -70,6 +70,15 @@ sub _introspector
                 },
             }
         );
+        $d->decorate_driver_unconnected(SQLite =>
+            greatest => sub {
+                sub {
+                    return [ $_[0] ] if @_ == 1;
+                    my $fields = join ', ', @_;
+                    [ "MAX( $fields )" ];
+                },
+            }
+        );
     }
 
     PG: {
@@ -86,6 +95,14 @@ sub _introspector
                 sub {
                     my $fields = join ', ', @_;
                     [ "LEAST( $fields )" ];
+                },
+            }
+        );
+        $d->decorate_driver_unconnected(Pg =>
+            greatest => sub {
+                sub {
+                    my $fields = join ', ', @_;
+                    [ "GREATEST( $fields )" ];
                 },
             }
         );
@@ -108,6 +125,14 @@ sub _introspector
                 }
             }
         );
+        $d->decorate_driver_unconnected(mysql =>
+            greatest => sub {
+                sub {
+                    my $fields = join ', ', @_;
+                    [ "GREATEST( $fields )" ];
+                }
+            }
+        );
     }
 
     return $d;
@@ -116,7 +141,7 @@ sub _introspector
 sub _helper
 {   my ($self, $type, @things) = @_;
 
-    $type eq 'concat' || $type eq 'least'
+    $type eq 'concat' || $type eq 'least' || $type eq 'greatest'
         or panic "Invalid type $type";
 
     my $storage = $self->result_source->storage;
@@ -141,6 +166,11 @@ sub helper_concat
 sub helper_least
 {   my $self = shift;
     $self->_helper('least', @_);
+}
+
+sub helper_greatest
+{   my $self = shift;
+    $self->_helper('greatest', @_);
 }
 
 1;

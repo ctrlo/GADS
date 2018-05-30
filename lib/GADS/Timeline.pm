@@ -117,13 +117,15 @@ sub _build_items
     my $multiple_dates;
     my $records  = $self->records;
     my $find_min = $self->records->from && !$self->records->to ? $self->records->from->clone->truncate(to => 'day') : undef;
+    my $find_max = !$self->records->from && $self->records->to ? $self->records->to->clone->truncate(to => 'day')->add(days => 1) : undef;
+    my $count;
     while (my $record  = $records->single)
     {
         my @dates; my @titles;
         my $had_date_col; # Used to detect multiple date columns in this view
         my @columns = @{$records->columns_retrieved_no};
         my %curcommon_values;
-        my $min_of_this;
+        my ($min_of_this, $max_of_this);
         foreach my $column (@columns)
         {
             if ($column->is_curcommon)
@@ -187,18 +189,36 @@ sub _build_items
                                     daterange  => 1,
                                     current_id => $d->record->current_id,
                                 };
-                                $self->_set_retrieved_from($range->start->clone)
-                                    if (!$find_min || $range->start > $find_min)
-                                        && (!defined $self->retrieved_from || $range->start < $self->retrieved_from);
-                                $self->_set_retrieved_from($range->end->clone)
-                                    if (!$find_min || $range->end > $find_min)
-                                        && (!defined $self->retrieved_from || $range->end < $self->retrieved_from);
-                                $min_of_this = $range->start->clone
-                                    if (!$find_min || $range->start > $find_min)
-                                        && (!defined $min_of_this || $range->start < $min_of_this);
-                                $min_of_this = $range->end->clone
-                                    if (!$find_min || $range->end > $find_min)
-                                        && (!defined $min_of_this || $range->end < $min_of_this);
+                                if ($find_min)
+                                {
+                                    $self->_set_retrieved_from($range->start->clone)
+                                        if (!$find_min || $range->start > $find_min)
+                                            && (!defined $self->retrieved_from || $range->start < $self->retrieved_from);
+                                    $self->_set_retrieved_from($range->end->clone)
+                                        if (!$find_min || $range->end > $find_min)
+                                            && (!defined $self->retrieved_from || $range->end < $self->retrieved_from);
+                                    $min_of_this = $range->start->clone
+                                        if (!$find_min || $range->start > $find_min)
+                                            && (!defined $min_of_this || $range->start < $min_of_this);
+                                    $min_of_this = $range->end->clone
+                                        if (!$find_min || $range->end > $find_min)
+                                            && (!defined $min_of_this || $range->end < $min_of_this);
+                                }
+                                if ($find_max)
+                                {
+                                    $self->_set_retrieved_to($range->end->clone)
+                                        if (!$find_max || $range->end < $find_max)
+                                            && (!defined $self->retrieved_to || $range->end > $self->retrieved_to);
+                                    $self->_set_retrieved_to($range->start->clone)
+                                        if (!$find_max || $range->start < $find_max)
+                                            && (!defined $self->retrieved_to || $range->start > $self->retrieved_to);
+                                    $max_of_this = $range->end->clone
+                                        if (!$find_max || $range->end < $find_max)
+                                            && (!defined $max_of_this || $range->end > $max_of_this);
+                                    $max_of_this = $range->start->clone
+                                        if (!$find_max || $range->start < $find_max)
+                                            && (!defined $max_of_this || $range->start > $max_of_this);
+                                }
                             }
                         }
                     }
@@ -216,10 +236,22 @@ sub _build_items
                                 count      => 1,
                                 current_id => $d->record->current_id,
                             };
-                            $self->_set_retrieved_from($d->value->clone) if !defined $self->retrieved_from || $d->value < $self->retrieved_from;
-                            $min_of_this = $d->value->clone
-                                if (!$find_min || $d->value > $find_min)
-                                    && (!defined $min_of_this || $d->value < $min_of_this);
+                            if ($find_min)
+                            {
+                                $self->_set_retrieved_from($d->value->clone)
+                                    if !defined $self->retrieved_from || $d->value < $self->retrieved_from;
+                                $min_of_this = $d->value->clone
+                                    if (!$find_min || $d->value > $find_min)
+                                        && (!defined $min_of_this || $d->value < $min_of_this);
+                            }
+                            if ($find_max)
+                            {
+                                $self->_set_retrieved_to($d->value->clone)
+                                    if !defined $self->retrieved_to || $d->value > $self->retrieved_to;
+                                $max_of_this = $d->value->clone
+                                    if (!$find_max || $d->value < $find_max)
+                                        && (!defined $max_of_this || $d->value > $max_of_this);
+                            }
                         }
                     }
                 }
@@ -316,7 +348,10 @@ sub _build_items
                 push @items, $item;
             }
         }
-        $self->_set_retrieved_to($min_of_this) if !$self->retrieved_to || $min_of_this > $self->retrieved_to;
+        $self->_set_retrieved_to($min_of_this)
+            if $find_min && (!$self->retrieved_to || $min_of_this > $self->retrieved_to);
+        $self->_set_retrieved_from($max_of_this)
+            if $find_max && (!$self->retrieved_from || $max_of_this < $self->retrieved_from);
     }
 
     \@items;

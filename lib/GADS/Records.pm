@@ -139,6 +139,13 @@ has to => (
     },
 );
 
+sub limit_qty
+{   my $self = shift;
+    return unless ($self->from xor $self->to);
+    return 'from' if $self->from;
+    return 'to' if $self->to;
+}
+
 has exclusive => (
     is => 'rw',
 );
@@ -1031,14 +1038,14 @@ sub _build__sorts
     # First, special test where we are retrieving from a date for a number of
     # records until an unknown date. In this case, order by all the date
     # fields.
-    if ($self->from && !$self->to)
+    if (my $type = $self->limit_qty)
     {
         foreach my $col (@{$self->columns_retrieved_no})
         {
             next unless $col->return_type =~ /date/;
             push @sorts, {
                 id   => $col->id,
-                type => 'asc',
+                type => $type eq 'from' ? 'asc' : 'desc',
             };
         }
     }
@@ -1120,9 +1127,9 @@ sub order_by
 
     # That special condition again, retrieving a number of records from a
     # certain date. We have to order by the date of any field in each record.
-    if ($self->from && !$self->to && $options{with_min})
+    if ($self->limit_qty && $options{with_min})
     {
-        my $date = $self->schema->storage->datetime_parser->format_datetime($self->from);
+        my $date = $self->schema->storage->datetime_parser->format_datetime($self->from || $self->to);
         @order_by = map {
             my ($field) = values %$_;
             my $quoted = $self->quote($field);
@@ -1132,22 +1139,40 @@ sub order_by
                 my $quoted_to = $self->quote($to);
                 # For a date range, take either the "from" or the "to" value,
                 # whichever is just past the start date of our range
-                \"CASE
-                    WHEN ($quoted > '$date') THEN $quoted
-                    WHEN ($quoted_to > '$date') THEN $quoted_to
-                    ELSE NULL END";
+                if ($self->limit_qty eq 'from')
+                {
+                    \"CASE
+                        WHEN ($quoted > '$date') THEN $quoted
+                        WHEN ($quoted_to > '$date') THEN $quoted_to
+                        ELSE NULL END";
+                }
+                else { # to
+                    \"CASE
+                        WHEN ($quoted_to < '$date') THEN $quoted_to
+                        WHEN ($quoted < '$date') THEN $quoted
+                        ELSE NULL END";
+                }
             }
             else {
-                \"CASE
-                    WHEN ($quoted > '$date') THEN $quoted
-                    ELSE NULL END";
+                if ($self->limit_qty eq 'from')
+                {
+                    \"CASE
+                        WHEN ($quoted > '$date') THEN $quoted
+                        ELSE NULL END";
+                }
+                else {
+                    \"CASE
+                        WHEN ($quoted < '$date') THEN $quoted
+                        ELSE NULL END";
+                }
             }
         } @order_by;
 
         if ($options{with_min} eq 'group')
         {
             # When we have a group_by, we need an additional aggregate function
-            @order_by = map { +{ min => { -ident => $_ } } } @order_by;
+            my $func = $self->limit_qty eq 'from' ? 'min' : 'max';
+            @order_by = map { +{ $func => { -ident => $_ } } } @order_by;
         }
         elsif ($options{with_min} eq 'each') {
             @order_by = map { +{ -ident => $_ } } @order_by;
@@ -1155,7 +1180,13 @@ sub order_by
         else {
             panic "Invalid with_min option";
         }
-        return +{ -asc => $self->schema->resultset('Current')->helper_least(@order_by) };
+        if ($self->limit_qty eq 'from')
+        {
+            return +{ -asc => $self->schema->resultset('Current')->helper_least(@order_by) };
+        }
+        else {
+            return +{ -desc => $self->schema->resultset('Current')->helper_greatest(@order_by) };
+        }
     }
 
     \@order_by;
@@ -1482,59 +1513,69 @@ sub data_timeline
         color_col_id => $options{color},
     );
 
-    # Initial retrieval will be 100 records from today (center)
-    $self->max_results(100) if $limit_qty;
-    my @retrieved = @{$timeline->items};
-
-    return {
-        items  => [],
-        groups => [],
-    } if !@retrieved;
-
-    my $min   = $timeline->retrieved_from;
-    my $max   = $timeline->retrieved_to;
+    my ($min, $max);
 
     # We may have retrieved values other than the ones we want, for example
     # additional date fields in records where we wanted the other one. Normally
     # we don't want these. However, we will want to add them on if there are
     # not many records in the original set
-    my (@over, @items);
+    my (@items);
     if ($limit_qty)
     {
-        foreach (@retrieved)
+        $self->max_results(100);
+        foreach my $run (qw/after before/)
         {
-            if ($_->{dt} < $max) {
-                push @items, $_;
-            } else {
-                push @over, $_;
-            }
-        }
-        if ($self->records_retrieved_count < 100)
-        {
-            my $r = $self->records_retrieved_count;
-            # Sort is expensive, but will only be called if there weren't many
-            # records to begin with
-            @over = sort { DateTime->compare($a->{dt}, $b->{dt}) } @over;
-            while ($r < 100 && @over)
+            my @over;
+            # Initial retrieval will be 100 records from today (center)
+            my @retrieved = @{$timeline->items};
+            $max = $timeline->retrieved_to if $run eq 'after';
+            $min = $timeline->retrieved_from if $run eq 'before';
+
+            foreach (@retrieved)
             {
-                push @items, pop @over;
-                $r++;
+                if (
+                    ($run eq 'after' && $_->{dt} < $max)
+                    || ($run eq 'before' && $_->{dt} > $min)
+                )
+                {
+                    push @items, $_;
+                } else {
+                    push @over, $_;
+                }
+            }
+            if (
+                ($run eq 'after' && $self->records_retrieved_count < 100)
+                || ($run eq 'before' && $self->records_retrieved_count < 50)
+            )
+            {
+                my $r = $self->records_retrieved_count;
+                # Sort is expensive, but will only be called if there weren't many
+                # records to begin with
+                @over = sort { DateTime->compare($a->{dt}, $b->{dt}) } @over;
+                @over = reverse @over if $run eq 'before';
+                while ($r < 100 && @over)
+                {
+                    push @items, pop @over;
+                    $r++;
+                }
+            }
+
+            # Now add a smaller subset of before the required time
+            # my $days  = int $min->delta_days($max)->in_units('days') / 4;
+            $timeline->clear;
+            # Retrieve up to but not including the previous retrieval
+            if ($run eq 'after')
+            {
+                $self->to($original_from->clone->subtract(days => 1));
+                # $min = $original_from->clone->subtract(days => $days);
+                $self->from(undef);
+                # Don't limit by a number - take whatever is in that period
+                $self->max_results(50);
             }
         }
-
-        # Now add a quarter of the retreived time period onto today
-        my $days  = int $min->delta_days($max)->in_units('days') / 4;
-        $timeline->clear;
-        # Retrieve up to but not including the previous retrieval
-        $self->to($min->clone->subtract(seconds => 1));
-        $min = $original_from->clone->subtract(days => $days);
-        $self->from($min);
-        # Don't limit by a number - take whatever is in that period
-        $self->max_results(undef);
-
-        push @items, @{$timeline->items};
     }
     else {
+        my @retrieved = @{$timeline->items};
         if ($self->exclusive_of_to)
         {
             @items = grep {

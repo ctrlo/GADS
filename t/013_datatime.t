@@ -54,15 +54,15 @@ is( @{$records->data_calendar}, 8, "Retrieving all data returns correct number o
 $records->clear;
 is( @{$records->data_timeline->{items}}, 8, "Retrieving all data returns correct number of points to plot for timeline" );
 
-# Test from a later date. Only records from that date, plus a selection before
-# should appear
+# Test from a later date. The records from that date should be retrieved, and
+# then the ones before as the total number is less than the threshold
 $records = GADS::Records->new(
     from   => DateTime->new(year => 2011, month => 10, day => 01),
     user   => undef,
     layout => $layout,
     schema => $schema,
 );
-is( @{$records->data_timeline->{items}}, 6, "Retrieving all data returns correct number of points to plot for timeline" );
+is( @{$records->data_timeline->{items}}, 8, "Retrieving all data returns correct number of points to plot for timeline" );
 
 # Add a filter and only retrieve one column
 my $rules = encode_json({
@@ -154,9 +154,10 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         schema => $schema,
     );
 
-    # 100 records/days from start, plus quarter of 99 before (99 days between
-    # the 100 records)
-    is( @{$records->data_timeline->{items}}, 123, "Retrieved correct subset of records for large timeline" );
+    # 99 records/days from start, 49 records/days back from start. Each extreme
+    # is not counted, so that the range can be loaded from that date (as there
+    # may be more records of the same date)
+    is( @{$records->data_timeline->{items}}, 148, "Retrieved correct subset of records for large timeline" );
 
     $records = GADS::Records->new(
         from   => DateTime->now, # Rounded down to midnight 1st Jan 2018
