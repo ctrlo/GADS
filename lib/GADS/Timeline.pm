@@ -259,6 +259,8 @@ sub _build_items
                     next if $column->type eq "rag";
                     # Check if the user has selected only one label
                     next if $self->label_col_id && $self->label_col_id != $column->id;
+                    # Don't add grouping text to title
+                    next if $self->group_col_id && $self->group_col_id == $column->id;
                     # Not a date value, push onto title
                     # Don't want full HTML, which includes hyperlinks etc
                     push @titles, $d->as_string if $d->as_string;
