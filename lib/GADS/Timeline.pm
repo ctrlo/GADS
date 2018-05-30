@@ -122,7 +122,7 @@ sub _build_items
     while (my $record  = $records->single)
     {
         my @group_to_add = $self->group_col_id
-	    ? @{$record->fields->{$self->group_col_id}->text_all}
+            ? @{$record->fields->{$self->group_col_id}->text_all}
             : (undef);
 
         my $count;
@@ -291,11 +291,11 @@ sub _build_items
             my $item_group;
             if ($group_to_add)
             {
-		unless ($item_group = $self->groups->{$group_to_add})
-		{
-		    $item_group = $self->_group_count($self->_group_count + 1);
-		    $self->groups->{$group_to_add} = $item_group;
-		}
+                unless ($item_group = $self->groups->{$group_to_add})
+                {
+                    $item_group = $self->_group_count($self->_group_count + 1);
+                    $self->groups->{$group_to_add} = $item_group;
+                }
             }
 
             # Create title label
