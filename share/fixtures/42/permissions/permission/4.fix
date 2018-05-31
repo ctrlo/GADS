@@ -1,7 +1,0 @@
-$HASH1 = {
-           description
-                  => 'download data',
-           id     => 4,
-           name   => 'download',
-           order  => 4
-         };

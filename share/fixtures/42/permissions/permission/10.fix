@@ -1,6 +1,6 @@
 $HASH1 = {
            description
-                  => 'access user logs',
+                  => 'User can access audit data',
            id     => 10,
            name   => 'audit',
            order  => 11

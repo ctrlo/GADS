@@ -1,7 +1,0 @@
-$HASH1 = {
-           description
-                  => 'create child records and edit fields of existing child records',
-           id     => 8,
-           name   => 'create_child',
-           order  => 8
-         };

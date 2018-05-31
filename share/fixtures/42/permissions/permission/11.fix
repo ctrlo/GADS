@@ -1,7 +1,0 @@
-$HASH1 = {
-           description
-                  => 'User can bulk update records',
-           id     => 11,
-           name   => 'bulk_update',
-           order  => 9
-         };

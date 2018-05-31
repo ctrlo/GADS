@@ -1,7 +1,0 @@
-$HASH1 = {
-           description
-                  => 'send messages',
-           id     => 6,
-           name   => 'message',
-           order  => 6
-         };
