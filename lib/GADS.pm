@@ -1219,7 +1219,7 @@ any '/metric/:id' => require_login sub {
     template 'metric' => $params;
 };
 
-any '/group/?:id?' => require_role useradmin => sub {
+any '/group/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
 
     my $id = param 'id';
     my $group  = GADS::Group->new(schema => schema);
