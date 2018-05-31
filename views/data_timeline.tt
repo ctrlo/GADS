@@ -1,7 +1,15 @@
 [% UNLESS page_as_mech %]
     <a href="?png=1">View as PNG image for print or download</a>
 [% END %]
-<div id="visualization" [% IF page_as_mech %]style="width:4096px" [% END %]></div>
+
+<div class="wrapper">
+    <div id="loading-div" class="centered-overlay">
+         <div class="loader"></div>
+    </div>
+    <div id="visualization" [% IF page_as_mech %]style="width:4096px" [% END %]>
+    </div>
+</div>
+
 <p></p>
 
 <script type="text/javascript">
@@ -134,6 +142,8 @@
                     return;
                 }
 
+                $('#loading-div').show();
+
                 [%# Calculate the range of the current items. This will min/max
                     values for normal dates, but for dateranges we need to work
                     out the dates of what was retrieved. E.g. the earliest
@@ -183,6 +193,8 @@
                     var to = props.end.getTime();
                     load_items(from, to, "from");
                 }
+
+                $('#loading-div').hide();
             });
             function load_items(from, to, exclusive) {
                 $.ajax({
