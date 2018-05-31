@@ -241,7 +241,7 @@
             <a class = "moreinfo" data-record-id="{{current_id}}">Read more...</a>
         </div>
     </div>
-    <p>{{content}}</p>
+    {{content}}
   </script>
 
 <form role="form" method="post" enctype="multipart/form-data" style="display: none" action="/edits">
