@@ -135,6 +135,8 @@ sub _build_items
             my %curcommon_values;
             foreach my $column (@columns)
             {
+                next if $self->color_col_id && $self->color_col_id == $column->id;
+
                 if ($column->is_curcommon)
                 {
                     push @columns, @{$column->curval_fields};
