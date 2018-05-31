@@ -137,11 +137,19 @@
                 }
             });
             [%# functionality to add new items on range change %]
+            var persistent_max;
+            var persistent_min;
             timeline.on('rangechanged', function (props) {
                 if (!props.byUser) {
+                    if (!persistent_min) { persistent_min = props.start.getTime(); }
+                    if (!persistent_max) { persistent_max = props.end.getTime(); }
                     return;
                 }
 
+                [%# Shortcut - see if we actually need to continue with calculations %]
+                if (props.start.getTime() > persistent_min && props.end.getTime() < persistent_max) {
+                    return;
+                }
                 $('#loading-div').show();
 
                 [%# Calculate the range of the current items. This will min/max
@@ -192,6 +200,12 @@
                     var from = have_range.max.getTime() + 86400000;
                     var to = props.end.getTime();
                     load_items(from, to, "from");
+                }
+                if (!persistent_max || persistent_max < props.end.getTime()) {
+                    persistent_max = props.end.getTime();
+                }
+                if (!persistent_min || persistent_min > props.start.getTime()) {
+                    persistent_min = props.start.getTime();
                 }
 
                 $('#loading-div').hide();
