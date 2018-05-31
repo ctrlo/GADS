@@ -190,3 +190,26 @@ img.autosize {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+.vis-item .vis-item-overflow {
+    overflow: visible;
+}
+
+.timeline-color {
+    padding: 10px;
+    display: inline-block;
+}
+
+.timeline-color-key {
+    vertical-align: top;
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+}
+
+.timeline-color-text {
+    vertical-align: top;
+    display: inline-block;
+    margin-left: 5px;
+    white-space: nowrap;
+}

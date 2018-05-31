@@ -56,6 +56,24 @@ has color_col_id => (
     is => 'ro',
 );
 
+has _used_color_keys => (
+    is => 'ro',
+    default => sub { +{} },
+);
+
+has colors => (
+    is => 'lazy',
+);
+
+sub _build_colors
+{   my $self = shift;
+    my %keys = %{$self->_used_color_keys};
+    [ map {
+        my $color = $self->graph->get_color($_);
+        +{ key => $_, color => $color };
+    } keys %keys ];
+}
+
 has groups => (
     is => 'ro',
     default => sub { +{} },
@@ -97,14 +115,21 @@ has items => (
     clearer => 1,
 );
 
-sub _build_items
-{   my $self = shift;
+has graph => (
+    is => 'lazy',
+);
 
-    # Need a Graph::Data instance to get relevant colors
-    my $graph = GADS::Graph::Data->new(
+# Need a Graph::Data instance to get relevant colors
+sub _build_graph
+{   my $self = shift;
+    GADS::Graph::Data->new(
         schema  => $self->records->schema,
         records => undef,
     );
+}
+
+sub _build_items
+{   my $self = shift;
 
     # Add on any extra required columns for labelling etc
     my @extra;
@@ -289,8 +314,11 @@ sub _build_items
             {
                 if ($record->fields->{$color})
                 {
-                    $color_key = $record->fields->{$color}->as_string;
-                    $item_color = $graph->get_color($color_key);
+                    if ($color_key = $record->fields->{$color}->as_string)
+                    {
+                        $item_color = $self->graph->get_color($color_key);
+                        $self->_used_color_keys->{$color_key} = 1;
+                    }
                 }
             }
             my $item_group;
@@ -310,10 +338,7 @@ sub _build_items
             foreach my $d (@dates)
             {
                 next unless $d->{from} && $d->{to};
-                my @add;
-                push @add, $records->layout->column($d->{column})->name if $multiple_dates;
-                push @add, $color_key if $self->color_col_id;
-                my $add = join ', ', @add;
+                my $add = $multiple_dates && $records->layout->column($d->{column})->name;
                 my $title_i = $add ? "$title ($add)" : $title;
                 my $title_i_abr = $add ? "$title_abr ($add)" : $title_abr;
                 my $cid = $d->{current_id} || $record->current_id;
