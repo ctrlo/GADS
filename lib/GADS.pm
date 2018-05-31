@@ -271,8 +271,8 @@ hook before_template => sub {
         # Somehow this sets the instance_id session if no persistent session exists
         $tokens->{instance_id}   = session('persistent')->{instance_id}
             if session 'persistent';
-        $tokens->{user_can_edit}   = $layout->user_can('write_existing');
-        $tokens->{user_can_create} = $layout->user_can('write_new');
+        $tokens->{user_can_edit}   = $layout && $layout->user_can('write_existing');
+        $tokens->{user_can_create} = $layout && $layout->user_can('write_new');
         $tokens->{show_link}       = rset('Current')->next ? 1 : 0;
         $tokens->{layout}          = $layout;
         $tokens->{v}               = current_view(logged_in_user, $layout);  # View is reserved TT word
@@ -2910,6 +2910,8 @@ get '/match/user/' => require_role 'layout' => sub {
 
 sub current_view {
     my ($user, $layout) = @_;
+
+    $layout or return;
 
     my $views      = GADS::Views->new(
         user        => $user,
