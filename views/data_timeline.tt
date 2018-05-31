@@ -18,6 +18,8 @@
             var groups = JSON.parse(json_group);
             var changed = {};
 
+            var template = Handlebars.compile(document.getElementById('item-template').innerHTML);
+
             var save_elem_sel    = '#submit_button',
                 cancel_elem_sel  = '#cancel_button',
                 changed_elem_sel = '#visualization_changes',
@@ -93,8 +95,9 @@
                         horizontal: -1
                     }
                 },
-                onMove: on_move,
-                snap:   snap_to_day,
+                onMove:   on_move,
+                snap:     snap_to_day,
+                template: template,
                 [% IF timeline.min %]
                     start: "[% timeline.min.ymd %]",
                 [% END %]
@@ -108,6 +111,23 @@
             if (groups.length > 0) {
                 timeline.setGroups(groups);
             }
+            timeline.on('click', function(e) {
+                if (!e.item) {
+                    $('.item-popup').hide();
+                }
+                else {
+                    var target = $( e.event.target );
+                    if (target.hasClass('moreinfo')) {
+                        var record_id = target.data('record-id');
+                        var m = $("#readmore_modal");
+                        m.find('.modal-body').text('Loading...');
+                        m.find('.modal-body').load('/record_body/' + record_id);
+                        m.modal();
+                    } else {
+                        target.closest('.vis-item').find('.item-popup').toggle();
+                    }
+                }
+            });
             [%# functionality to add new items on range change %]
             timeline.on('rangechanged', function (props) {
                 if (!props.byUser) {
@@ -183,6 +203,21 @@
     [% END %]';
 </script>
 
+<script id="item-template" type="text/x-handlebars-template">
+    <div class="item-popup" >
+        <div class="item-popup-inner" >
+            <b>Record {{current_id}}</b><br>
+            <ul class="list-unstyled">
+                {{#each values}}
+                    <li>{{name}}: {{value}}</li>
+                {{/each}}
+            </ul>
+            <a class = "moreinfo" data-record-id="{{current_id}}">Read more...</a>
+        </div>
+    </div>
+    <p>{{content}}</p>
+  </script>
+
 <form role="form" method="post" enctype="multipart/form-data" style="display: none" action="/edits">
     <input type="hidden" name="q" id="changed_data">
 
@@ -218,3 +253,6 @@
         </div>
     </div>
 </div>
+
+[% WRAPPER modal_dialog.tt modal_id="readmore_modal" modal_large=1 %]
+[% END %]

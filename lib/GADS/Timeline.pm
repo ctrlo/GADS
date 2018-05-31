@@ -20,6 +20,7 @@ package GADS::Timeline;
 
 use DateTime;
 use HTML::Entities qw/encode_entities/;
+use JSON qw(encode_json);
 use GADS::Graph::Data;
 use Log::Report 'linkspace';
 use Moo;
@@ -118,7 +119,7 @@ sub _build_items
     my $records  = $self->records;
     my $find_min = $self->records->from && !$self->records->to ? $self->records->from->clone->truncate(to => 'day') : undef;
     my $find_max = !$self->records->from && $self->records->to ? $self->records->to->clone->truncate(to => 'day')->add(days => 1) : undef;
-    my $count;
+    my @columns = @{$records->columns_retrieved_no};
     while (my $record  = $records->single)
     {
         my @group_to_add = $self->group_col_id
@@ -131,7 +132,6 @@ sub _build_items
         {
             my @dates; my @titles;
             my $had_date_col; # Used to detect multiple date columns in this view
-            my @columns = @{$records->columns_retrieved_no};
             my %curcommon_values;
             foreach my $column (@columns)
             {
@@ -269,15 +269,18 @@ sub _build_items
                         next if $self->group_col_id && $self->group_col_id == $column->id;
                         # Not a date value, push onto title
                         # Don't want full HTML, which includes hyperlinks etc
-                        push @titles, $d->as_string if $d->as_string;
+                        push @titles, {name => $column->name, value => $d->as_string} if $d->as_string;
                     }
                 }
             }
             if (my $label = $self->label_col_id)
             {
-                @titles = ($record->fields->{$label}->as_string)
-                    # Value for this record may not exist or be blank
-                    if $record->fields->{$label} && $record->fields->{$label}->as_string;
+                @titles = ({
+                    name  => $records->layout->column($label),
+                    value => $record->fields->{$label}->as_string,
+                })
+                # Value for this record may not exist or be blank
+                if $record->fields->{$label} && $record->fields->{$label}->as_string;
             }
             my $item_color; my $color_key = '';
             if (my $color = $self->color_col_id)
@@ -299,7 +302,7 @@ sub _build_items
             }
 
             # Create title label
-            my $title = join ' - ', @titles;
+            my $title = join ' - ', map { $_->{value} } @titles;
             my $title_abr = length $title > 50 ? substr($title, 0, 45).'...' : $title;
 
             foreach my $d (@dates)
@@ -327,21 +330,15 @@ sub _build_items
                 else {
                     my $uid  = "$cid+$d->{column}+$d->{count}";
                     next if $self->_all_items_index->{$uid};
-                    $title_i = encode_entities $title_i;
-                    $title_i_abr = encode_entities $title_i_abr;
-                    # If this is an item for a single day, then abbreviate the title,
-                    # otherwise it can appear as a very long item on the timeline.
-                    # If it's multiple day, the timeline plugin will automatically shorten it.
-                    my $t = $d->{from}->epoch == $d->{to}->epoch ? $title_i_abr : $title_i;
                     my $item = {
-                        "content"  => qq(<a title="$title_i" href="/record/$cid" style="color:inherit;">$t</a>),
+                        "content"  => $title_i,
                         "id"       => $uid,
                         current_id => $cid,
                         "start"    => $d->{from}->epoch * 1000,
                         "group"    => $item_group,
                         column     => $d->{column},
-                        title      => $title_i,
                         dt         => $d->{from},
+                        values     => \@titles,
                     };
                     $item->{style} = qq(background-color: $item_color)
                         if $item_color;

@@ -135,3 +135,20 @@ img.autosize {
     height:auto;
     width:auto;
 }
+
+.moreinfo {
+    cursor: pointer;
+}
+
+.item-popup {
+    position: absolute;
+    bottom: 50px;
+    display: none;
+}
+
+.item-popup-inner {
+    border: 1px solid black;
+    background-color: white;
+    border-radius: 3px;
+    padding: 10px;
+}
