@@ -283,4 +283,35 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     is( @{$records->data_timeline->{items}}, 0, "No timeline entries for no records" );
 }
 
+
+# View with no date column. XXX This test doesn't actually check the bug that
+# prompted its inclusion, which was a PostgreSQL error as a result of comparing
+# an integer (current_id field) with a date. Sqlite does not enforce typing.
+{
+    my $sheet = t::lib::DataSheet->new;
+    $sheet->create_records;
+    my $schema = $sheet->schema;
+    my $layout = $sheet->layout;
+
+    my $view = GADS::View->new(
+        name        => 'Test view',
+        columns     => [$sheet->columns->{string1}->id],
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        user        => undef,
+    );
+    $view->write;
+
+    my $records = GADS::Records->new(
+        view   => $view,
+        from   => DateTime->now,
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
+    );
+
+    is( @{$records->data_timeline->{items}}, 0, "No timeline entries for no records" );
+}
+
 done_testing();

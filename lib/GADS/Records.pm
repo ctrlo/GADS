@@ -1048,6 +1048,7 @@ sub _build__sorts
                 type => $type eq 'from' ? 'asc' : 'desc',
             };
         }
+        return [] if !@sorts;
     }
     if (!@sorts && $self->sort)
     {
@@ -1127,7 +1128,7 @@ sub order_by
 
     # That special condition again, retrieving a number of records from a
     # certain date. We have to order by the date of any field in each record.
-    if ($self->limit_qty && $options{with_min})
+    if ($self->limit_qty && $options{with_min} && @order_by)
     {
         my $date = $self->schema->storage->datetime_parser->format_datetime($self->from || $self->to);
         @order_by = map {
