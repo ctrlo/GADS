@@ -438,7 +438,7 @@ get '/data_timeline/:time' => require_login sub {
 post '/data_timeline' => require_login sub {
 
     my $layout             = var 'layout';
-    my $tl_options         = session('persistent')->{tl_options}->{$layout->instance_id} || {};
+    my $tl_options         = session('persistent')->{tl_options}->{$layout->instance_id} ||= {};
     $tl_options->{from}    = int(param('from') / 1000) if param('from');
     $tl_options->{to}      = int(param('to') / 1000) if param('to');
     my $view               = current_view(logged_in_user, $layout);
@@ -722,7 +722,7 @@ any '/data' => require_login sub {
             rewind               => session('rewind'),
             interpolate_children => 0,
         );
-        my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} || {};
+        my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} ||= {};
         if (param 'modal_timeline')
         {
             $tl_options->{label} = param('tl_label');
