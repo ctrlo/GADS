@@ -300,7 +300,7 @@ sub _build_items
                         next if $self->group_col_id && $self->group_col_id == $column->id;
                         # Not a date value, push onto title
                         # Don't want full HTML, which includes hyperlinks etc
-                        push @titles, {col => $column, name => $column->name, value => $d->html} if $d->as_string;
+                        push @titles, {col => $column, value => $d} if $d->as_string;
                     }
                 }
             }
@@ -308,8 +308,7 @@ sub _build_items
             {
                 @titles = ({
                     col   => $records->layout->column($label_id),
-                    name  => $records->layout->column($label_id)->name,
-                    value => $record->fields->{$label_id}->as_html,
+                    value => $record->fields->{$label_id},
                 })
                 # Value for this record may not exist or be blank
                 if $record->fields->{$label_id} && $record->fields->{$label_id}->as_string;
@@ -337,10 +336,7 @@ sub _build_items
             }
 
             # Create title label
-            my $title = join ' - ', map { $_->{value} } grep {
-                my $col = delete $_->{col};
-                $col->type ne 'file'
-            } @titles;
+            my $title = join ' - ', map { $_->{value}->as_string } grep { $_->{col}->type ne 'file' } @titles;
             my $title_abr = length $title > 50 ? substr($title, 0, 45).'...' : $title;
 
             foreach my $d (@dates)
@@ -365,6 +361,12 @@ sub _build_items
                 else {
                     my $uid  = "$cid+$d->{column}+$d->{count}";
                     next if $self->_all_items_index->{$uid};
+                    my @values = map {
+                        +{
+                            name  => $_->{col}->name,
+                            value => $_->{value}->html,
+                        };
+                    } @titles;
                     my $item = {
                         "content"  => $title_i,
                         "id"       => $uid,
@@ -373,7 +375,7 @@ sub _build_items
                         "group"    => $item_group,
                         column     => $d->{column},
                         dt         => $d->{from},
-                        values     => \@titles,
+                        values     => \@values,
                     };
                     $item->{style} = qq(background-color: $item_color)
                         if $item_color;
