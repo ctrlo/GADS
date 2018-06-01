@@ -151,6 +151,7 @@ img.autosize {
     background-color: white;
     border-radius: 3px;
     padding: 10px;
+    text-align: left;
 }
 
 .centered-overlay {
