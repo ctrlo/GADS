@@ -192,8 +192,21 @@ img.autosize {
     100% { transform: rotate(360deg); }
 }
 
-.vis-item .vis-item-overflow {
+.vis-range .vis-item-overflow {
     overflow: visible;
+}
+
+.vis-range .vis-item-shown-content {
+    max-width: calc(100% + 100px);
+    margin-right: -240px;
+    overflow: hidden;
+    padding: 0;
+}
+
+.vis-box .vis-item-shown-content {
+    max-width: 150px;
+    overflow: hidden;
+    padding: 0;
 }
 
 .timeline-color {

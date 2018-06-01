@@ -258,8 +258,10 @@
             <a class = "moreinfo" data-record-id="{{current_id}}">Read more...</a>
         </div>
     </div>
-    {{content}}
-  </script>
+    <div class="vis-item-shown-content">
+        {{content}}
+    </div>
+</script>
 
 <form role="form" method="post" enctype="multipart/form-data" style="display: none" action="/edits">
     <input type="hidden" name="q" id="changed_data">
