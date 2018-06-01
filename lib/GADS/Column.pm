@@ -396,6 +396,14 @@ has value_field => (
     default => 'value',
 );
 
+has sort_field => (
+    is => 'lazy',
+);
+
+sub _build_sort_field
+{   shift->value_field;
+}
+
 # Used when searching for a value's index value as opposed to string value
 # (e.g. enums)
 sub value_field_as_index
@@ -900,9 +908,9 @@ sub write
 
     $guard->commit;
 
-    if ($new_id)
+    if ($new_id || $options{add_db})
     {
-        $self->id($new_id);
+        $self->id($new_id) if $new_id;
         unless ($options{no_db_add})
         {
             GADS::DB->add_column($self->schema, $self);
@@ -1188,7 +1196,7 @@ sub import_after_all
         my $new_id = $mapping->{$values->{link_parent}};
         $self->link_parent($new_id);
     }
-    $self->write;
+    $self->write(no_cache_update => 1);
 }
 
 1;

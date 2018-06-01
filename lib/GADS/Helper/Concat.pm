@@ -17,76 +17,160 @@ use strict;
 use warnings;
 
 use DBIx::Introspector;
+use Log::Report 'linkspace';
 use Safe::Isa;
 
-sub _flatten_thing {
-   my ($self, $thing) = @_;
+sub _flatten_thing
+{
+    my ($self, $thing) = @_;
 
-   die 'you dummy' unless defined $thing;
-   my $ref = ref $thing;
+    die 'you dummy' unless defined $thing;
+    my $ref = ref $thing;
 
-   return ('?', $thing) if !$ref;
+    return ('?', $thing) if !$ref;
 
-   if ($ref eq 'HASH' && exists $thing->{'-ident'}) {
-      my $thing = $thing->{'-ident'};
-      $thing = $self->current_source_alias . $thing if $thing =~ m/^\./;
-      return $self->result_source->storage->sql_maker->_quote($thing)
-   }
+    if ($ref eq 'HASH') {
+        if (exists $thing->{'-ident'}) {
+            my $thing = $thing->{'-ident'};
+            $thing = $self->current_source_alias . $thing if $thing =~ m/^\./;
+            return $self->result_source->storage->sql_maker->_quote($thing)
+        }
+        else {
+            my ($func, $thing2) = %$thing;
+            return "$func(".$self->_flatten_thing($thing2).")";
+        }
+    }
 
-   return ${$thing} if $ref eq 'SCALAR';
+    return ${$thing} if $ref eq 'SCALAR';
 
-   return @{${$thing}};
+    return @{${$thing}};
 }
 
-sub _introspector {
+sub _introspector
+{
+    my $d = DBIx::Introspector->new(drivers => '2013-12.01');
 
-   my $d = DBIx::Introspector->new(drivers => '2013-12.01');
+    SQLITE: {
+        $d->decorate_driver_unconnected(SQLite =>
+            concat => sub {
+                sub {
+                    my @fields = map { "COALESCE($_, '')" } @_;
+                    [ join ' || ', @fields ];
+                },
+            }
+        );
+        $d->decorate_driver_unconnected(SQLite =>
+            least => sub {
+                sub {
+                    # Under some circumstances, sqlite doesn't like only one
+                    # value in a MIN()
+                    return [ $_[0] ] if @_ == 1;
+                    my $fields = join ', ', @_;
+                    [ "MIN( $fields )" ];
+                },
+            }
+        );
+        $d->decorate_driver_unconnected(SQLite =>
+            greatest => sub {
+                sub {
+                    return [ $_[0] ] if @_ == 1;
+                    my $fields = join ', ', @_;
+                    [ "MAX( $fields )" ];
+                },
+            }
+        );
+    }
 
-   SQLITE: {
-      $d->decorate_driver_unconnected(SQLite => concat => sub {
-         sub {
-             my @fields = map { "COALESCE($_, '')" } @_;
-             [ join ' || ', @fields ];
-         }
-      });
-   }
+    PG: {
+        $d->decorate_driver_unconnected(Pg =>
+            concat => sub {
+                sub {
+                    my $fields = join ', ', @_;
+                    [ "CONCAT( $fields )" ];
+                },
+            }
+        );
+        $d->decorate_driver_unconnected(Pg =>
+            least => sub {
+                sub {
+                    my $fields = join ', ', @_;
+                    [ "LEAST( $fields )" ];
+                },
+            }
+        );
+        $d->decorate_driver_unconnected(Pg =>
+            greatest => sub {
+                sub {
+                    my $fields = join ', ', @_;
+                    [ "GREATEST( $fields )" ];
+                },
+            }
+        );
+    }
 
-   PG: {
-      $d->decorate_driver_unconnected(Pg => concat => sub {
-         sub {
-             my $fields = join ', ', @_;
-             [ "CONCAT( $fields )" ];
-         }
-      });
-   }
+    MYSQL: {
+        $d->decorate_driver_unconnected(mysql =>
+            concat => sub {
+                sub {
+                    my $fields = join ', ', @_;
+                    [ "CONCAT( $fields )" ];
+                },
+            }
+        );
+        $d->decorate_driver_unconnected(mysql =>
+            least => sub {
+                sub {
+                    my $fields = join ', ', @_;
+                    [ "LEAST( $fields )" ];
+                }
+            }
+        );
+        $d->decorate_driver_unconnected(mysql =>
+            greatest => sub {
+                sub {
+                    my $fields = join ', ', @_;
+                    [ "GREATEST( $fields )" ];
+                }
+            }
+        );
+    }
 
-   MYSQL: {
-      $d->decorate_driver_unconnected(mysql => concat => sub {
-         sub {
-             my $fields = join ', ', @_;
-             [ "CONCAT( $fields )" ];
-         }
-      });
-   }
-
-   return $d;
+    return $d;
 }
 
-sub helper_concat {
-   my ($self, @things) = @_;
+sub _helper
+{   my ($self, $type, @things) = @_;
 
-   my $storage = $self->result_source->storage;
-   $storage->ensure_connected;
+    $type eq 'concat' || $type eq 'least' || $type eq 'greatest'
+        or panic "Invalid type $type";
 
-   my $d = _introspector();
+    my $storage = $self->result_source->storage;
+    $storage->ensure_connected;
 
-   @things = map { _flatten_thing $self, $_ } @things;
+    my $d = _introspector();
 
-   return \(
-      $d->get($storage->dbh, undef, 'concat')->(
-          @things
-      )
-   );
+    @things = map { _flatten_thing $self, $_ } @things;
+
+    return \(
+        $d->get($storage->dbh, undef, $type)->(
+            @things
+        )
+    );
+}
+
+sub helper_concat
+{   my $self = shift;
+    $self->_helper('concat', @_);
+}
+
+sub helper_least
+{   my $self = shift;
+    $self->_helper('least', @_);
+}
+
+sub helper_greatest
+{   my $self = shift;
+    $self->_helper('greatest', @_);
 }
 
 1;

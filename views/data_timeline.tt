@@ -1,7 +1,22 @@
 [% UNLESS page_as_mech %]
-    <a href="?png=1">View as PNG image for print or download</a>
+    <p><a href="?png=1">View as PNG image for print or download</a></p>
 [% END %]
-<div id="visualization" [% IF page_as_mech %]style="width:4096px" [% END %]></div>
+
+[% FOREACH color IN colors %]
+    <div class="timeline-color">
+        <div class="timeline-color-key" style="background-color:[% color.color %]"></div>
+        <div class="timeline-color-text">[% color.key | html_entity %]</div>
+    </div>
+[% END %]
+
+<div class="wrapper">
+    <div id="loading-div" class="centered-overlay">
+         <div class="loader"></div>
+    </div>
+    <div id="visualization" [% IF page_as_mech %]style="width:4096px" [% END %]>
+    </div>
+</div>
+
 <p></p>
 
 <script type="text/javascript">
@@ -17,6 +32,8 @@
             var json_group = base64.decode(groups);
             var groups = JSON.parse(json_group);
             var changed = {};
+
+            var template = Handlebars.compile(document.getElementById('item-template').innerHTML);
 
             var save_elem_sel    = '#submit_button',
                 cancel_elem_sel  = '#cancel_button',
@@ -93,10 +110,15 @@
                         horizontal: -1
                     }
                 },
-                onMove: on_move,
-                snap:   snap_to_day,
-                min: "[% timeline.min.ymd %]",
-                max: "[% timeline.max.ymd %]",
+                onMove:   on_move,
+                snap:     snap_to_day,
+                template: template,
+                [% IF timeline.min %]
+                    start: "[% timeline.min.ymd %]",
+                [% END %]
+                [% IF timeline.max %]
+                    end: "[% timeline.max.ymd %]",
+                [% END %]
                 orientation: {axis: "both"}
             };
 
@@ -104,9 +126,141 @@
             if (groups.length > 0) {
                 timeline.setGroups(groups);
             }
+            timeline.on('click', function(e) {
+                if (!e.item) {
+                    $('.item-popup').hide();
+                }
+                else {
+                    var target = $( e.event.target );
+                    if (target.hasClass('moreinfo')) {
+                        var record_id = target.data('record-id');
+                        var m = $("#readmore_modal");
+                        m.find('.modal-body').text('Loading...');
+                        m.find('.modal-body').load('/record_body/' + record_id);
+                        m.modal();
+                    } else {
+                        target.closest('.vis-item').find('.item-popup').toggle();
+                    }
+                }
+            });
+            [%# functionality to add new items on range change %]
+            var persistent_max;
+            var persistent_min;
+            timeline.on('rangechanged', function (props) {
+                if (!props.byUser) {
+                    if (!persistent_min) { persistent_min = props.start.getTime(); }
+                    if (!persistent_max) { persistent_max = props.end.getTime(); }
+                    return;
+                }
+
+                [%# Shortcut - see if we actually need to continue with calculations %]
+                if (props.start.getTime() > persistent_min && props.end.getTime() < persistent_max) {
+                    update_range_session(props);
+                    return;
+                }
+                $('#loading-div').show();
+
+                [%# Calculate the range of the current items. This will min/max
+                    values for normal dates, but for dateranges we need to work
+                    out the dates of what was retrieved. E.g. the earliest
+                    end of a daterange will be the start of the range of
+                    the current items (otherwise it wouldn't have been
+                    retrieved)
+                %]
+                var val = items.min('start');
+                var min_start = val ? new Date(val.start) : undefined;
+                val = items.max('start');
+                var max_start = val ? new Date(val.start) : undefined;
+                val = items.min('end');
+                var min_end = val ? new Date(val.end) : undefined;
+                val = items.max('end');
+                var max_end = val ? new Date(val.end) : undefined;
+                val = items.min('single');
+                var min_single = val ? new Date(val.single) : undefined;
+                val = items.max('single');
+                var max_single = val ? new Date(val.single) : undefined;
+                var have_range = {};
+                if (min_end && min_single) {
+                    have_range.min = min_end < min_single ? min_end : min_single;
+                } else {
+                    have_range.min = min_end || min_single;
+                }
+                if (max_start && max_single) {
+                    have_range.max = max_start > max_single ? max_start : max_single;
+                } else {
+                    have_range.max = max_start || max_single;
+                }
+                [%# haverange now contains the min and max of the current
+                    range. Now work out whether we need to fill to the left or
+                    right (or both)
+                %]
+                if (!have_range.min) {
+                    var from = props.start.getTime();
+                    var to = props.end.getTime();
+                    load_items(from, to);
+                }
+                if (props.start < have_range.min) {
+                    var from = props.start.getTime();
+                    var to = have_range.min.getTime() - 86400000;
+                    load_items(from, to, "to");
+                }
+                if (props.end > have_range.max) {
+                    var from = have_range.max.getTime() + 86400000;
+                    var to = props.end.getTime();
+                    load_items(from, to, "from");
+                }
+                if (!persistent_max || persistent_max < props.end.getTime()) {
+                    persistent_max = props.end.getTime();
+                }
+                if (!persistent_min || persistent_min > props.start.getTime()) {
+                    persistent_min = props.start.getTime();
+                }
+
+                $('#loading-div').hide();
+
+                [%# leave to end in case of problems rendering this range %]
+                update_range_session(props);
+            });
+            function update_range_session(props) {
+                $.post({
+                    url: "/data_timeline",
+                    data: "from=" + props.start.getTime() + "&to=" + props.end.getTime(),
+                });
+            }
+            function load_items(from, to, exclusive) {
+                $.ajax({
+                    async: false,
+                    [%# we use the exclusive parameter to not include ranges
+                        that go over that date, otherwise we will retrieve
+                        items that we already have
+                    %]
+                    url: "/data_timeline/" + "10" + "?from=" + from + "&to=" + to + "&exclusive=" + exclusive,
+                    dataType:'json',
+                    success: function(data) {
+                        items.add(data);
+                    }
+                });
+            }
         } )();
         [% END %]
     [% END %]';
+</script>
+
+<script id="item-template" type="text/x-handlebars-template">
+    <div class="item-popup" >
+        <div class="item-popup-inner" >
+            <b>Record {{current_id}}</b><br>
+            <ul class="list-unstyled">
+                {{#each values}}
+                    <li>{{name}}: {{{value}}}</li>
+                {{/each}}
+            </ul>
+            <a class = "moreinfo" data-record-id="{{current_id}}">Read more...</a>
+        </div>
+    </div>
+    <div class="vis-item-shown-content">
+        {{content}}
+    </div>
 </script>
 
 <form role="form" method="post" enctype="multipart/form-data" style="display: none" action="/edits">
@@ -144,3 +298,6 @@
         </div>
     </div>
 </div>
+
+[% WRAPPER modal_dialog.tt modal_id="readmore_modal" modal_large=1 %]
+[% END %]

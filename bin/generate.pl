@@ -46,13 +46,7 @@ my @row; my @columns;
 foreach my $col ($layout->all)
 {
     next if $col->type eq "file" || !$col->userinput;
-    if ($col->type eq "daterange")
-    {
-        push @row, ($col->name, $col->name);
-    }
-    else {
-        push @row, $col->name;
-    }
+    push @row, $col->name;
     push @columns, $col;
 }
 
@@ -65,7 +59,7 @@ my $start = DateTime->new(
 );
 
 my $end = DateTime->new(
-      year       => 2015,
+      year       => 2020,
       month      => 8,
       day        => 23,
 );
@@ -93,7 +87,7 @@ for (1..1000)
             my $date1 = DateTime::Event::Random->datetime( after => $start, before => $end );
             my $date2 = DateTime::Event::Random->datetime( after => $start, before => $end );
             ($date2, $date1) = ($date1, $date2) if DateTime->compare($date1, $date2) > 0;
-            push @row, ($date1->ymd, $date2->ymd);
+            push @row, ($date1->ymd." - ".$date2->ymd);
         }
         else {
             push @row, "String text";
