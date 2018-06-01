@@ -155,6 +155,7 @@
 
                 [%# Shortcut - see if we actually need to continue with calculations %]
                 if (props.start.getTime() > persistent_min && props.end.getTime() < persistent_max) {
+                    update_range_session(props);
                     return;
                 }
                 $('#loading-div').show();
@@ -216,7 +217,16 @@
                 }
 
                 $('#loading-div').hide();
+
+                [%# leave to end in case of problems rendering this range %]
+                update_range_session(props);
             });
+            function update_range_session(props) {
+                $.post({
+                    url: "/data_timeline",
+                    data: "from=" + props.start.getTime() + "&to=" + props.end.getTime(),
+                });
+            }
             function load_items(from, to, exclusive) {
                 $.ajax({
                     async: false,

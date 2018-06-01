@@ -278,14 +278,16 @@ hook before_template => sub {
 };
 
 hook after_template_render => sub {
-    if (logged_in_user)
-    {
-        my $user = schema->resultset('User')->find(logged_in_user->{id});
-        $user->update({
-            session_settings => encode_json(session('persistent')),
-        });
-    }
+    _update_persistent() if logged_in_user;
 };
+
+sub _update_persistent
+{
+    my $user = schema->resultset('User')->find(logged_in_user->{id});
+    $user->update({
+        session_settings => encode_json(session('persistent')),
+    });
+}
 
 get '/' => require_login sub {
 
@@ -431,6 +433,23 @@ get '/data_timeline/:time' => require_login sub {
     my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} || {};
     my $timeline = $records->data_timeline(%{$tl_options});
     encode_json($timeline->{items});
+};
+
+post '/data_timeline' => require_login sub {
+
+    my $layout             = var 'layout';
+    my $tl_options         = session('persistent')->{tl_options}->{$layout->instance_id} || {};
+    $tl_options->{from}    = int(param('from') / 1000) if param('from');
+    $tl_options->{to}      = int(param('to') / 1000) if param('to');
+    my $view               = current_view(logged_in_user, $layout);
+    $tl_options->{view_id} = $view && $view->id;
+    # Note the current time so that we can decide later if it's relevant to
+    # load these settings
+    $tl_options->{now}  = DateTime->now->epoch;
+
+    # XXX Application session settings do not seem to be updated without
+    # calling template (even calling _update_persistent does not help)
+    return template 'index' => {};
 };
 
 sub _data_graph
@@ -698,20 +717,31 @@ any '/data' => require_login sub {
             search               => session('search'),
             layout               => $layout,
             # No "to" - will take appropriate number from today
-            from                 => DateTime->now,
+            from                 => DateTime->now, # Default
             schema               => schema,
             rewind               => session('rewind'),
             interpolate_children => 0,
         );
+        my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} || {};
         if (param 'modal_timeline')
         {
-            session('persistent')->{tl_options}->{$layout->instance_id} = {
-                label => param('tl_label'),
-                group => param('tl_group'),
-                color => param('tl_color'),
-            };
+            $tl_options->{label} = param('tl_label');
+            $tl_options->{group} = param('tl_group');
+            $tl_options->{color} = param('tl_color');
         }
-        my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} || {};
+
+        # See whether to restore remembered range
+        if (
+            defined $tl_options->{from}   # Remembered range exists?
+            && defined $tl_options->{to}
+            && $tl_options->{view_id} == $view->id # Using the same view
+            && $tl_options->{now} > DateTime->now->subtract(days => 7)->epoch # Within sensible window
+        )
+        {
+            $records->from(DateTime->from_epoch(epoch => $tl_options->{from}));
+            $records->to(DateTime->from_epoch(epoch => $tl_options->{to}));
+        }
+
         my $timeline = $records->data_timeline(%{$tl_options});
         $params->{records}              = encode_base64(encode_json(delete $timeline->{items}));
         $params->{groups}               = encode_base64(encode_json(delete $timeline->{groups}));

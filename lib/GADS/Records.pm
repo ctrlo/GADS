@@ -1572,6 +1572,10 @@ sub data_timeline
                 # Don't limit by a number - take whatever is in that period
                 $self->max_results(50);
             }
+
+            # Set the times for the display range
+            $min && $min->subtract(days => 1),
+            $max && $max->add(days => 2), # one day already added to show period to end of day
         }
     }
     else {
@@ -1594,6 +1598,10 @@ sub data_timeline
         @items = grep {
             !$_->{single} || ($_->{dt} >= $original_from && $_->{dt} <= $original_to)
         } @items;
+
+        # Set the times for the display range
+        $min = $self->from;
+        $max = $self->to;
     }
 
     # Remove dt (DateTime) value, otherwise JSON encoding borks
@@ -1614,8 +1622,8 @@ sub data_timeline
         items  => \@items,
         groups => \@groups,
         colors => $timeline->colors,
-        min    => $min && $min->subtract(days => 1),
-        max    => $max && $max->add(days => 2), # one day already added to show period to end of day
+        min    => $min,
+        max    => $max,
     };
 }
 
