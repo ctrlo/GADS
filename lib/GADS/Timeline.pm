@@ -145,6 +145,11 @@ sub _build_items
     my $find_min = $self->records->from && !$self->records->to ? $self->records->from->clone->truncate(to => 'day') : undef;
     my $find_max = !$self->records->from && $self->records->to ? $self->records->to->clone->truncate(to => 'day')->add(days => 1) : undef;
     my @columns = @{$records->columns_retrieved_no};
+    foreach my $column (@columns)
+    {
+        push @columns, @{$column->curval_fields}
+            if $column->is_curcommon;
+    }
     while (my $record  = $records->single)
     {
         my @group_to_add = $self->group_col_id
@@ -164,7 +169,6 @@ sub _build_items
 
                 if ($column->is_curcommon)
                 {
-                    push @columns, @{$column->curval_fields};
                     foreach my $row (values %{$record->fields->{$column->id}->field_values})
                     {
                         foreach my $cur_col_id (keys %$row)
