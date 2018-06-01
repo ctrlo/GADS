@@ -220,13 +220,13 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     $records->exclusive('to');
     my $items = $records->data_timeline->{items};
     is( @$items, 2, "Records retrieved exclusive to" );
-    like( $items->[0]->{title}, qr/foo1/, "Correct first record for exclusive to" );
+    like( $items->[0]->{content}, qr/foo1/, "Correct first record for exclusive to" );
     $records->clear;
     # Should not include dateranges that go over the from
     $records->exclusive('from');
     $items = $records->data_timeline->{items};
     is( @$items, 2, "Records retrieved exclusive from" );
-    like( $items->[0]->{title}, qr/foo2/, "Correct first record for exclusive from" );
+    like( $items->[0]->{content}, qr/foo2/, "Correct first record for exclusive from" );
 }
 
 # Date from a calc field
