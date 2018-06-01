@@ -196,16 +196,19 @@ img.autosize {
     overflow: visible;
 }
 
-.vis-range .vis-item-shown-content {
-    max-width: calc(100% + 100px);
-    margin-right: -240px;
+.vis-item-shown-content {
+    text-overflow: ellipsis;
     overflow: hidden;
+}
+
+.vis-range .vis-item-shown-content {
+    max-width: calc(100% + 150px);
+    margin-right: -240px;
     padding: 0;
 }
 
 .vis-box .vis-item-shown-content {
     max-width: 150px;
-    overflow: hidden;
     padding: 0;
 }
 
