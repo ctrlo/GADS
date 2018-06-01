@@ -154,7 +154,7 @@ foreach my $ins (readdir $root)
         $column->import_hash($col);
         # Don't add to the DBIx schema yet, as we may not have all the
         # information needed (e.g. related field IDs)
-        $column->write(override => 1, no_db_add => 1);
+        $column->write(override => 1, no_db_add => 1, no_cache_update => 1);
         $column->import_after_write($col);
 
         foreach my $old_id (keys %{$col->{permissions}})
@@ -211,8 +211,12 @@ foreach (@all_columns)
     my $col = $_->{column};
     $col->import_after_all($_->{values}, $column_mapping);
     # Now add to the DBIx schema
-    $col->write;
+    $col->write(no_cache_update => 1, add_db => 1);
 }
+
+$_->{column}->can('update_cached') && $_->{column}->update_cached(no_alerts => 1)
+    foreach @all_columns;
+
 
 $guard->commit;
 
