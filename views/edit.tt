@@ -419,7 +419,7 @@
 
     <div class="form-group" data-column-id="[% dispcol.id %]" data-column-type="[% dispcol.type %]"
         [% dependency && 'data-has-dependency="' _ parent.id _ '"' %]
-        [% parent && dependency && 'data-dependency="' _ depends.regex_b64 _ '"' %]
+        [% (parent && dependency) && 'data-dependency="' _ depends.regex_b64 _ '"' %]
         [% dispcol.multivalue && 'data-is-multivalue="true"' %]
         [% dispcol.readonly && 'data-is-readonly="true"' %]
     >
@@ -515,13 +515,6 @@
                             [% editvalue.html %]
                         </div>
                     [% ELSE %]
-                        [% trees.push({
-                            id = dispcol.id,
-                            end_node_only = dispcol.end_node_only,
-                            value = editvalue,
-                            field = field,
-                            multivalue = dispcol.multivalue
-                        }) %]
                         <div class="form-group">
                             [% # TODO: These anchors need to become buttons %]
                             <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('open_all');">Expand all</a> |
@@ -531,6 +524,7 @@
                                 data-field="[% field %]"
                                 [% dispcol.end_node_only && 'data-end-node-only="true"' %]
                                 data-ids-as-params="[% editvalue.ids_as_params %]"
+                                id="jstree[% dispcol.id %]"
                             ></div>
                         </div>
                     [% END %]

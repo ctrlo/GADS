@@ -182,7 +182,7 @@ var setupDependentField = function () {
     var regexp   = this.regexp;
 
     // get the value from a field, depending on its type
-    var getFieldValue = function ($depends, $target) {
+    var getFieldValues = function ($depends, $target) {
         var type = $depends.data('column-type');
 
         if (type === 'enum' || type === 'curval') {
@@ -214,6 +214,7 @@ var setupDependentField = function () {
     $depends.on('change', function (e) {
         var $target = $(e.target);
         var values = getFieldValues($depends, $target);
+        console.debug($target, $depends, values);
         some(values, function (value) {
             return regexp.test(value)
         }) ? $field.show() : $field.hide();
@@ -248,7 +249,7 @@ var setupTreeField = function () {
     var field = $treeContainer.data('field');
     var endNodeOnly = $treeContainer.data('end-node-only');
     var idsAsParams = $treeContainer.data('ids-as-params');
-    var $treeFields = ('[name="' + field + '"]');
+    var $treeFields = $this.find('[name="' + field + '"]');
 
     var treeConfig = {
         check_callback : true,
@@ -268,14 +269,7 @@ var setupTreeField = function () {
     if (!multiValue) {
         treeConfig.multiple = false;
     } else {
-        treeConfig.checkbox = {
-            cascade: "sdfds" // TODO: is this needed?
-        }
         treeConfig.plugins.push('checkbox');
-    }
-
-    if (readOnly) {
-        treeConfig.plugins.push('conditionalselect');
     }
 
     $treeContainer.on('changed.jstree', function (e, value) {
@@ -451,6 +445,7 @@ var Linkspace = {
 
 Linkspace.edit = function () {
     Linkspace.debug('Record edit JS firing');
+    setupTreeFields();
     setupDependentFields();
 }
 
