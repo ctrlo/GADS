@@ -393,6 +393,14 @@ sub _build_items
             if $find_max && (!$self->retrieved_from || $max_of_this < $self->retrieved_from);
     }
 
+    if (!@items)
+    {
+        # XXX Results in multiple warnings when this routine is called more
+        # than once per page
+        mistake __"There are no date fields in this view to display"
+            if !grep { $_->return_type =~ /date/ } @columns;
+    }
+
     \@items;
 }
 
