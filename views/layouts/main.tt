@@ -45,6 +45,7 @@
                 <link rel="stylesheet" href="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/vis/4.7.0/vis.min.css">
                 <script type='text/javascript' src='[% scheme %]://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js'></script>
             [% END %]
+            <script type='text/javascript' src='[% url.js %]/handlebars-timeline-item-template.js'></script>
         [% END %]
         [% IF page == "view" OR page == "layout" %]
             <link rel="stylesheet" href="[% url.css %]/query-builder.css">
