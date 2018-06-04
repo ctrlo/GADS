@@ -283,6 +283,36 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     is( @{$records->data_timeline->{items}}, 0, "No timeline entries for no records" );
 }
 
+# Calc field as group
+{
+    my $data = [
+        {
+            string1    => 'foo1',
+            daterange1 => ['2009-01-01', '2009-06-01'],
+        },
+        {
+            string1    => 'foo2',
+            daterange1 => ['2010-01-01', '2010-06-01'],
+        },
+    ];
+    my $sheet = t::lib::DataSheet->new(data => $data);
+
+    $sheet->create_records;
+    my $schema = $sheet->schema;
+    my $layout = $sheet->layout;
+
+    my $records = GADS::Records->new(
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
+    );
+
+    my $return = $records->data_timeline(group => $sheet->columns->{calc1}->id);
+
+    # Normal - should include dateranges that go over the from/to values
+    is( @{$return->{items}}, 2, "Correct number of items for group by calc" );
+    is( @{$return->{groups}}, 2, "Correct number of groups for group by calc" );
+}
 
 # View with no date column. XXX This test doesn't actually check the bug that
 # prompted its inclusion, which was a PostgreSQL error as a result of comparing

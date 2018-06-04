@@ -216,6 +216,11 @@ has written_valid => (
     default => 0,
 );
 
+sub text_all
+{   my $self = shift;
+    [$self->as_string];
+}
+
 sub html
 {   my $self = shift;
     encode_entities $self->as_string;
