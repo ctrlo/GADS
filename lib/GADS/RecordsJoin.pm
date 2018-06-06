@@ -387,6 +387,8 @@ sub _join_number
         return $n if $n;
     }
 
+    return $stash->{value} if $options{find_value};
+
     # This shouldn't happen. If we get here then we're trying to get a
     # join number for a table that hasn't been added.
     my $cid = $column->id;
@@ -394,12 +396,17 @@ sub _join_number
     panic "Unable to get join number: column $cid hasn't been added for options ".Dumper(\%options);
 }
 
+# The find_value option will not match any joins, but will instead allow the
+# number of joins called "value" to be counted. Each iteration updates the
+# stash, which can be retrieved at the end (used by value_next_join)
 sub _find
 {   my ($needle, $jp, $stash, %options) = @_;
     if (ref $jp->{join} eq 'HASH')
     {
         my ($key, $value) = %{$jp->{join}};
-        if ($needle->sprefix eq $value)
+        if (
+            ($options{find_value} && $value eq 'value')
+            || $needle->sprefix eq $value)
         {
             $stash->{$key}++;
             $stash->{$value}++;
@@ -409,7 +416,8 @@ sub _find
                 $stash->{parents_included}->{$jp->{parent}->id} = 1;
             }
             return $stash->{$value}
-                if $needle->field eq $key && _compare_parents($options{parent}, $jp->{parent});
+                if !$options{find_value}
+                    && $needle->field eq $key && _compare_parents($options{parent}, $jp->{parent});
         }
     }
     elsif (ref $jp->{join} eq 'ARRAY')
@@ -427,7 +435,7 @@ sub _find
             $stash->{value}++ if $jp->{parent}->value_field eq 'value';
             $stash->{parents_included}->{$jp->{parent}->id} = 1;
         }
-        if ($needle->sprefix eq $jp->{join})
+        if (!$options{find_value} && $needle->sprefix eq $jp->{join})
         {
             # Single table join
             return $stash->{$needle->sprefix}
@@ -442,15 +450,8 @@ sub _find
 # Get the next join by the name of "value"
 sub value_next_join
 {   my ($self, %options) = @_;
-    my $count = 1;
-    foreach my $j ($self->_jpfetch(%options))
-    {
-        if (ref $j->{join})
-        {
-            my ($val) = values %{$j->{join}};
-            $count++ if $val eq 'value';
-        }
-    }
+    my $count = $self->_join_number(undef, %options, find_value => 1);
+    $count++; # Add one for the next join, prevent uninit errors
     my $id = $count == 1 ? '' : "_$count";
     "value$id";
 }

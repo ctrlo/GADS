@@ -1154,6 +1154,42 @@ foreach my $multivalue (0..1)
     $records->search('2014-10-10');
     is (@{$records->results}, 1, 'Correct number of quick search results when limiting to a view with enumval');
 
+    # Same again but limited by curval
+    $view_limit->filter(GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $columns->{curval1}->id,
+                type     => 'string',
+                value    => '1',
+                operator => 'equal',
+            }],
+        },
+    ));
+    $view_limit->write;
+    $records = GADS::Records->new(
+        view_limits => [ $view_limit ],
+        user    => $user,
+        layout  => $layout,
+        schema  => $schema,
+    );
+    is ($records->count, 1, 'Correct number of results when limiting to a view with curval');
+    {
+        my $limit = $schema->resultset('ViewLimit')->create({
+            user_id => $user->{id},
+            view_id => $view_limit->id,
+        });
+        my $record = GADS::Record->new(
+            user   => $user,
+            layout => $layout,
+            schema => $schema,
+        );
+        is( $record->find_current_id(3)->current_id, 3, "Retrieved record within limited view" );
+        $limit->delete;
+    }
+    $records->clear;
+    $records->search('foo1');
+    is (@{$records->results}, 1, 'Correct number of quick search results when limiting to a view with curval');
+
     # Now normal
     $user_r->set_view_limits([]);
     $records = GADS::Records->new(
