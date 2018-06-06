@@ -488,7 +488,7 @@ sub _build_layout_parent
 {   my $self = shift;
     $self->refers_to_instance_id or return;
     GADS::Layout->new(
-        user                     => undef, # Allow all columns
+        user                     => $self->layout->user,
         user_permission_override => 1,
         schema                   => $self->schema,
         config                   => GADS::Config->instance,

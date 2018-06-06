@@ -100,6 +100,7 @@ like($@, qr/The following records refer to this record as a value/, "Failed to p
 # Restore deleted record
 $record->restore;
 
+my $user = $sheet->user_normal1;
 my $curval = $columns->{curval1};
 
 is( scalar @{$curval->filtered_values}, 3, "Correct number of values for curval field (filtered)" );
@@ -115,7 +116,7 @@ is( scalar @{$curval_sheet2->columns->{curval1}->filtered_values}, 2, "Correct n
 # fails
 my $curval_fail = GADS::Column::Curval->new(
     schema => $schema,
-    user   => undef,
+    user   => $user,
     layout => $curval_sheet->layout,
 );
 $curval_fail->refers_to_instance_id($layout->instance_id);
@@ -132,7 +133,7 @@ ok( $@, "Attempt to create curval recursive reference fails" );
 $ENV{GADS_ALLOW_BLANK_CURVAL} = 1;
 my $curval_blank = GADS::Column::Curval->new(
     schema                => $schema,
-    user                  => undef,
+    user                  => $user,
     layout                => $layout,
     name                  => 'curval blank',
     type                  => 'curval',
@@ -152,7 +153,7 @@ ok( !$@, "Building values for curval with no fields does not bork" );
 # for columns from old versions
 my $curval_blank_filter = GADS::Column::Curval->new(
     schema                => $schema,
-    user                  => undef,
+    user                  => $user,
     layout                => $layout,
     name                  => 'curval blank',
     type                  => 'curval',
@@ -172,7 +173,7 @@ ok( !$@, "Undefined filter does not cause exception during layout build" );
 my $field_count = $schema->resultset('CurvalField')->count;
 my $curval_add_remove = GADS::Column::Curval->new(
     schema                => $schema,
-    user                  => undef,
+    user                  => $user,
     layout                => $layout,
     name                  => 'curval fields',
     type                  => 'curval',
@@ -198,7 +199,7 @@ $layout->clear;
 # Filter on curval tests
 my $curval_filter = GADS::Column::Curval->new(
     schema             => $schema,
-    user               => undef,
+    user               => $user,
     layout             => $layout,
     name               => 'curval filter',
     type               => 'curval',
@@ -230,7 +231,7 @@ is( scalar @{$curval_filter->all_values}, 3, "Correct number of values for curva
 my $curval_id = $curval_filter->filtered_values->[0]->{id};
 my $curval_value = $curval_filter->filtered_values->[0]->{value};
 $record = GADS::Records->new(
-    user    => $sheet->user,
+    user    => $user,
     layout  => $layout,
     schema  => $schema,
 )->single;
@@ -261,13 +262,61 @@ $curval_filter->multivalue(1);
 $curval_filter->write;
 $layout->clear;
 $record = GADS::Records->new(
-    user    => $sheet->user,
+    user    => $user,
     layout  => $layout,
     schema  => $schema,
 )->single;
 is( $record->fields->{$curval_filter->id}->ids->[0], $curval_id, "Curval value ID still correct after filter change (multiple)");
 is( $record->fields->{$curval_filter->id}->as_string, $curval_value, "Curval value still correct after filter change (multiple)");
 is( $record->fields->{$curval_filter->id}->for_code->[0]->{field_values}->{L2enum1}, 'foo1', "Curval value for code still correct after filter change (multiple)");
+
+# Add view limit to user
+{
+    $layout->user($user); # Default sheet layout user is superadmin. Change to normal user
+    $layout->clear;
+    is( scalar @{$curval_filter->filtered_values}, 2, "Correct number of filted values for curval before view_limit" );
+
+    # Add a view limit
+    my $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $curval_sheet->columns->{enum1}->id,
+                type     => 'string',
+                value    => 'foo2',
+                operator => 'equal',
+            }],
+        },
+    );
+
+    my $view_limit = GADS::View->new(
+        name        => 'Limit to view',
+        filter      => $rules,
+        instance_id => 2,
+        layout      => $curval_sheet->layout,
+        schema      => $schema,
+        user        => $user,
+    );
+    $view_limit->write;
+
+    $user->set_view_limits([$view_limit->id]);
+
+    $layout->clear;
+    $curval_filter = $layout->column($curval_filter->id);
+    is( scalar @{$curval_filter->filtered_values}, 1, "Correct number of filtered values after view_limit applied" );
+    is( scalar @{$curval_filter->all_values}, 1, "Correct number of values after view_limit applied (all)" );
+
+    # Check that an override ignores the view_limit
+    $curval_filter->override_permissions(1);
+    $curval_filter->write;
+    $layout->clear;
+    $curval_filter = $layout->column($curval_filter->id);
+    is( scalar @{$curval_filter->filtered_values}, 2, "Correct number of values for curval field with filter (filtered)" );
+
+    # Return to normal for remainder of tests
+    $user->set_view_limits([]);
+    $layout->clear;
+    $curval_filter = $layout->column($curval_filter->id);
+}
 
 # Check that we can filter on a value in the record
 my @position = (
