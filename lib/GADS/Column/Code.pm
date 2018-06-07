@@ -180,10 +180,11 @@ sub update_cached
     $_->type eq 'curval' && $_->build_all_columns foreach $layout->all;
 
     my $records = GADS::Records->new(
-        user         => $self->user,
-        layout       => $layout,
-        schema       => $self->schema,
-        columns      => [@{$self->depends_on},$self->id],
+        user                => $self->user,
+        layout              => $layout,
+        schema              => $self->schema,
+        columns             => [@{$self->depends_on},$self->id],
+        view_limit_extra_id => undef,
     );
 
     my @changed;
