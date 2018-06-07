@@ -89,6 +89,30 @@
                 );
             }
 
+            function on_select (properties) {
+                var items = properties.items;
+                if (items.length == 0) {
+                    $('.bulk_href').on('click', function(e) {
+                        e.preventDefault();
+                        alert("Please select some records on the timeline first");
+                        return false;
+                    });
+                } else {
+                    var hrefs = [];
+                    $("#delete_ids").empty();
+                    properties.items.forEach(function(item) {
+                        var id = item.replace(/\\+.*/, '');
+                        hrefs.push("id=" + id);
+                        $("#delete_ids").append('<input type="hidden" name="delete_id" value="' + id + '">');
+                    });
+                    var href = hrefs.join('&');
+                    $('#update_href').attr("href", "/bulk/update/?" + href);
+                    $('#clone_href').attr("href", "/bulk/clone/?" + href);
+                    $('#count_delete').text(items.length);
+                    $('.bulk_href').off();
+                }
+            }
+
             [%-# Set up form button behaviour %]
             $( save_elem_sel ).bind( 'click', before_submit );
             $( cancel_elem_sel ).bind( 'click', function (e) {
@@ -104,6 +128,7 @@
                         updateGroup: false,
                         remove:      false
                     },
+                    multiselect: true,
                 [% END %]
                 margin: {
                     item: {
@@ -143,6 +168,8 @@
                     }
                 }
             });
+            timeline.on('select', on_select);
+            on_select({ items: [] });
             [%# functionality to add new items on range change %]
             var persistent_max;
             var persistent_min;

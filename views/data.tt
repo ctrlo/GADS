@@ -106,16 +106,18 @@
                                 <li role="presentation"><a role="menuitem" tabindex="-1" href="/link/">New linked record</a></li>
                             [% END %]
                             [% IF search %]
-                                [% sel_type = "in this search" %]
+                                [% sel_type = "records in this search" %]
+                            [% ELSIF viewtype == "timeline" %]
+                                [% sel_type = "selected records" %]
                             [% ELSE %]
-                                [% sel_type = "in this view" %]
+                                [% sel_type = "records in this view" %]
                             [% END %]
                             [% IF layout.user_can("bulk_update") %]
-                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/update/">Update all records [% sel_type %]...</a></li>
-                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/clone/">Clone all records [% sel_type %]...</a></li>
+                                <li role="presentation"><a role="menuitem" id="update_href" class="bulk_href" tabindex="-1" href="/bulk/update/">Update all [% sel_type %]...</a></li>
+                                <li role="presentation"><a role="menuitem" id="clone_href" class="bulk_href" tabindex="-1" href="/bulk/clone/">Clone all [% sel_type %]...</a></li>
                             [% END %]
                             [% IF layout.user_can("delete") %]
-                                <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_delete" style="cursor: pointer">Delete all records [% sel_type %]...</a>
+                                <li role="presentation"><a role="menuitem" id="delete_href" class="bulk_href" tabindex="-1" data-toggle="modal" data-target="#modal_delete" style="cursor: pointer">Delete all [% sel_type %]...</a>
                             [% END %]
                             [% IF viewtype == "table" AND records.size AND layout.user_can("download") %]
                                 <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?download">Download all records in view</a></li>
@@ -237,8 +239,9 @@
     modal_id="modal_delete" modal_action_text="Delete" modal_heading="Delete records"
     modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post"
 %]
+    <div id="delete_ids"></div>
     <p>Are you sure you want to delete all the records that are in the current view?</p>
-    <p><strong>Warning: this will delete [% count %] records.</strong></p>
+    <p><strong>Warning: this will delete <span id="count_delete">[% count %]</span> records.</strong></p>
 [% END %]
 
 [% IF viewtype == "timeline" %]

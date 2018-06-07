@@ -511,7 +511,7 @@ any '/data' => require_login sub {
     # Check for bulk delete
     if (param 'modal_delete')
     {
-        my $records = GADS::Records->new(
+        my %params = (
             user                => $user,
             search              => session('search'),
             layout              => $layout,
@@ -520,6 +520,10 @@ any '/data' => require_login sub {
             view                => current_view($user, $layout),
             view_limit_extra_id => current_view_limit_extra_id($user, $layout),
         );
+        $params{current_ids} = [body_parameters->get_all('delete_id')]
+            if body_parameters->get_all('delete_id');
+        my $records = GADS::Records->new(%params);
+
         my $count; # Count actual number deleted, not number reported by search result
         while (my $record = $records->single)
         {
@@ -2168,7 +2172,7 @@ any '/bulk/:type/?' => require_login sub {
     my @columns_to_show = grep { $type eq 'clone' || $_->type ne 'file' } $layout->all(user_can_write_new => 1);
 
     # The records to update
-    my $records = GADS::Records->new(
+    my %params = (
         view                 => $view,
         search               => session('search'),
         retrieve_all_columns => 1, # Need all columns to be able to write updated records
@@ -2177,6 +2181,9 @@ any '/bulk/:type/?' => require_login sub {
         layout               => $layout,
         view_limit_extra_id  => current_view_limit_extra_id($user, $layout),
     );
+    $params{current_ids} = [query_parameters->get_all('id')]
+        if query_parameters->get_all('id');
+    my $records = GADS::Records->new(%params);
 
     if (param 'submit')
     {
@@ -2254,11 +2261,18 @@ any '/bulk/:type/?' => require_login sub {
                 current search results. Tick the fields whose values should be
                 updated. Fields that are not ticked will retain their existing value.
                 The current search is "{search}"), search => session('search'))
+            : $params{current_ids}
+            ? __x(qq(Use this page to update all currently selected records.
+                Tick the fields whose values should be updated. Fields that are
+                not ticked will retain their existing value.
+                The current number of selected records is {count}.), count => scalar @{$params{current_ids}})
             : __x(qq(Use this page to update all records in the
                 currently selected view. Tick the fields whose values should be
                 updated. Fields that are not ticked will retain their existing value.
                 The current view is "{view}"), view => $view_name);
-        notice $notice.$count_msg;
+        my $msg = $notice;
+        $msg .= $count_msg unless $params{current_ids};
+        notice $msg;
     }
     else {
         my $notice = session('search')
@@ -2267,12 +2281,21 @@ any '/bulk/:type/?' => require_login sub {
                 the same existing values by default, but replaced with the values below
                 where that value is ticked. Values that are not ticked will be cloned
                 with their current value. The current search is "{search}"), search => session('search'))
+            : $params{current_ids}
+            ? __x(qq(Use this page to bulk clone all currently selected records.
+                The cloned records will be created using
+                the same existing values by default, but replaced with the values below
+                where that value is ticked. Values that are not ticked will be cloned
+                with their current value.
+                The current number of selected records is {count}.), count => scalar @{$params{current_ids}})
             : __x(qq(Use this page to bulk clone all of the records in
                 the currently selected view. The cloned records will be created using
                 the same existing values by default, but replaced with the values below
                 where that value is ticked. Values that are not ticked will be cloned
                 with their current value. The current view is "{view}"), view => $view_name);
-        notice $notice.$count_msg;
+        my $msg = $notice;
+        $msg .= $count_msg unless $params{current_ids};
+        notice $msg;
     }
 
     template 'edit' => {
