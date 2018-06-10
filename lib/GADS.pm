@@ -42,6 +42,7 @@ use GADS::Config;
 use GADS::DB;
 use GADS::DBICProfiler;
 use GADS::Email;
+use GADS::Globe;
 use GADS::Graph;
 use GADS::Graph::Data;
 use GADS::Graphs;
@@ -615,7 +616,7 @@ any '/data' => require_login sub {
     my $viewtype;
     if ($viewtype = param('viewtype'))
     {
-        if ($viewtype eq 'graph' || $viewtype eq 'table' || $viewtype eq 'calendar' || $viewtype eq 'timeline')
+        if ($viewtype =~ /^(graph|table|calendar|timeline|globe)$/)
         {
             session('persistent')->{viewtype}->{$layout->instance_id} = $viewtype;
         }
@@ -627,7 +628,8 @@ any '/data' => require_login sub {
     my $view       = current_view($user, $layout);
 
     my $params = {
-        page => 'data',
+        page   => 'data',
+        layout => var('layout'),
     }; # Variable for the template
 
     if ($viewtype eq 'graph')
@@ -760,6 +762,36 @@ any '/data' => require_login sub {
                 content_type => 'image/png',
             );
         }
+    }
+    elsif ($viewtype eq 'globe')
+    {
+        my $globe_options = session('persistent')->{globe_options}->{$layout->instance_id} ||= {};
+        if (param 'modal_globe')
+        {
+            $globe_options->{group} = param('globe_group');
+            $globe_options->{color} = param('globe_color');
+        }
+
+        my $records_options = {
+            user                 => $user,
+            view                 => $view,
+            search               => session('search'),
+            layout               => $layout,
+            schema               => schema,
+            rewind               => session('rewind'),
+            interpolate_children => 0,
+        };
+        my $globe = GADS::Globe->new(
+            group_col_id    => $globe_options->{group},
+            color_col_id    => $globe_options->{color},
+            records_options => $records_options,
+        );
+        $params->{globe_data} = encode_base64(encode_json($globe->data));
+        $params->{colors}               = $globe->colors;
+        $params->{globe_options}        = $globe_options;
+        $params->{columns_read}         = [$layout->all(user_can_read => 1)];
+        $params->{viewtype}             = 'globe';
+        $params->{search_limit_reached} = $globe->records->search_limit_reached;
     }
     else {
         session 'rows' => 50 unless session 'rows';

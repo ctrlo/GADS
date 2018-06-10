@@ -337,6 +337,15 @@ sub _build_columns
     \@return;
 }
 
+has has_globe => (
+    is => 'lazy',
+);
+
+sub _build_has_globe
+{   my $self = shift;
+    !! grep { $_->return_type eq "globe" } @{$self->columns};
+}
+
 sub get_user_perms
 {   my ($self, $user_id) = @_;
     my $cache = $self->user_permissions_cache;

@@ -170,6 +170,11 @@ sub _build_results
         }
     }
 
+    push @select_fields, {
+        count => \1,
+        -as   => 'id_count',
+    };
+
     # If we want to aggregate by month, we need to do some tricky conditional
     # summing. We can't do this with the abstraction layer, so need to resort
     # to literal SQL
