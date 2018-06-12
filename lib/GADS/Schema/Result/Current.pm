@@ -73,6 +73,12 @@ __PACKAGE__->table("current");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 draftuser_id
+
+  data_type: 'bigint'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -93,6 +99,8 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
   },
   "deletedby",
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
+  "draftuser_id",
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
 );
 
@@ -259,6 +267,30 @@ __PACKAGE__->belongs_to(
   "deletedby",
   "GADS::Schema::Result::User",
   { id => "deletedby" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 records
+
+Type: has_many
+
+=head2 draftuser
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::User>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "draftuser_id",
+  "GADS::Schema::Result::User",
+  { id => "draftuser_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",

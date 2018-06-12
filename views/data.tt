@@ -100,7 +100,11 @@
                         </button>
                         <ul id="menu_action" class="dropdown-menu" role="menu">
                             [% IF user_can_create %]
-                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/edit/">New record</a></li>
+                                [% IF user.has_draft(layout.instance_id) %]
+                                    <li role="presentation"><a role="menuitem" tabindex="-1" href="/edit/">Continue draft record</a></li>
+                                [% ELSE %]
+                                    <li role="presentation"><a role="menuitem" tabindex="-1" href="/edit/">New record</a></li>
+                                [% END %]
                             [% END %]
                             [% IF layout.user_can("link") AND show_link %]
                                 <li role="presentation"><a role="menuitem" tabindex="-1" href="/link/">New linked record</a></li>

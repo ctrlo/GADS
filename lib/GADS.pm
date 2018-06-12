@@ -2349,7 +2349,7 @@ any '/edit/:id?' => require_login sub {
 
     $record->initialise unless $id;
 
-    if (param 'submit')
+    if (param('submit') || param('draft'))
     {
         $record->editor_previous_fields([body_parameters->get_all('previous_fields')]);
         $record->editor_next_fields([body_parameters->get_all('next_fields')]);
@@ -2418,6 +2418,11 @@ any '/edit/:id?' => require_login sub {
         if (param('submit') eq 'back')
         {
             $record->move_back;
+        }
+        elsif (param('draft') && $record->write(draft => 1))
+        {
+            return forwardHome(
+                { success => 'Draft has been saved successfully'}, 'data' );
         }
         elsif ($record->has_not_done)
         {

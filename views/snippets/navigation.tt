@@ -151,7 +151,11 @@
         <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
             <li [% IF page=="data" %]class="active"[% END %]><a href="[% url.page %]/data">See records</a></li>
             [% IF user_can_create %]
-                <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/edit/">Add a record</a></li>
+                [% IF user.has_draft(layout.instance_id) %]
+                    <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/edit/">Continue draft record</a></li>
+                [% ELSE %]
+                    <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/edit/">Add a record</a></li>
+                [% END %]
             [% END %]
             [% IF layout.user_can("link") AND show_link %]
                 <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/link/">Add a linked record</a></li>

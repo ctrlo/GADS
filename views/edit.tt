@@ -48,8 +48,13 @@
                 <button type="submit" name="submit" value="back" class="btn btn-default submit_button">Previous</button>
             [% END %]
             <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
-                [% IF record.has_next_values AND page != "bulk" %]Next[% ELSE %]Save[% END %]
+                [% IF record.has_next_values AND page != "bulk" %]Next[% ELSE %]Submit[% END %]
             </button>
+            [% IF NOT record.current_id %]
+                <button type="submit" name="draft" value="submit" class="btn btn-primary submit_button">
+                    Save draft
+                </button>
+            [% END %]
             [% IF record.user_can_delete %]
                 <a role="button" class="btn btn-default" href="" data-toggle="modal" data-target="#modaldelete">Delete</a>
             [% END %]

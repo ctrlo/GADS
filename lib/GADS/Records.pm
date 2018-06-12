@@ -73,6 +73,12 @@ has is_deleted => (
     default => 0,
 );
 
+# Whether to show only draft records or only live records
+has is_draft => (
+    is      => 'ro',
+    default => 0,
+);
+
 has view => (
     is => 'rw',
 );
@@ -357,6 +363,10 @@ sub search_query
     }
     else {
         push @search, { "$current.deleted" => undef };
+    }
+    unless ($self->is_draft)
+    {
+        push @search, { "$current.draftuser_id" => undef }; # not draft records
     }
     push @search, $self->common_search(%options, linked => $linked);
     push @search, {

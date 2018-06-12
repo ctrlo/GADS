@@ -497,6 +497,14 @@ sub find_current_id
     $self->_find(current_id => $current_id, %options);
 }
 
+sub find_draftuser_id
+{   my ($self, $draftuser_id, %options) = @_;
+    $draftuser_id =~ /^[0-9]+$/
+        or error __x"Invalid draft user ID {id}", id => $draftuser_id;
+    # Don't normally want to throw fatal errors if a draft does not exist
+    $self->_find(draftuser_id => $draftuser_id, no_errors => 1, %options);
+}
+
 sub find_serial_id
 {   my ($self, $serial_id) = @_;
     return unless $serial_id;
@@ -597,6 +605,7 @@ sub _find
         columns             => $self->columns,
         rewind              => $self->rewind,
         is_deleted          => $find{deleted},
+        is_draft            => $find{draftuser_id} ? 1 : 0,
         include_approval    => $self->include_approval,
         view_limit_extra_id => undef, # Remove any default extra view
     );
@@ -604,7 +613,7 @@ sub _find
     $self->columns_retrieved_do($records->columns_retrieved_do);
     $self->columns_retrieved_no($records->columns_retrieved_no);
 
-    my $search     = $find{current_id}
+    my $search     = $find{current_id} || $find{draftuser_id}
         ? $records->search_query(prefetch => 1, linked => 1)
         : $records->search_query(root_table => 'record', prefetch => 1, linked => 1, no_current => 1);
     my @prefetches = $records->jpfetch(prefetch => 1, search => 1); # Still need search in case of view limit
@@ -627,11 +636,23 @@ sub _find
         push @$search, { 'me.id' => $record_id };
         $root_table = 'Record';
     }
-    elsif (my $current_id = $find{current_id})
+    elsif ($find{current_id} || $find{draftuser_id})
     {
-        push @$search, {
-            'me.id'      => $current_id,
-        };
+        if ($find{current_id})
+        {
+            push @$search, {
+                'me.id' => $find{current_id},
+            };
+        }
+        elsif ($find{draftuser_id})
+        {
+            push @$search, {
+                'me.draftuser_id' => $find{draftuser_id},
+            };
+        }
+        else {
+            panic "Unexpected find parameters";
+        }
         unshift @prefetches, (
             {
                 current => 'deletedby',
@@ -672,8 +693,9 @@ sub _find
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
     my ($record) = $result->all;
+    return if !$record && $find{no_errors};
     $record or error __"Requested record not found";
-    if ($find{current_id})
+    if ($find{current_id} || $find{draftuser_id})
     {
         $self->linked_id($record->{linked_id});
         $self->parent_id($record->{parent_id});
@@ -734,6 +756,14 @@ sub clone_as_new_from
 
 sub load_remembered_values
 {   my $self = shift;
+
+    # First see if there's a draft. If so, use that instead
+    if ($self->user->has_draft($self->layout->instance_id))
+    {
+        $self->find_draftuser_id($self->user->id);
+        $self->remove_id;
+        return;
+    }
 
     my @remember = map {$_->id} $self->layout->all(remember => 1)
         or return;
@@ -1096,6 +1126,8 @@ sub write
     undef $@;
     my $guard = $self->schema->txn_scope_guard;
 
+    error __"Cannot save draft of existing record" if $options{draft} && !$self->new_entry;
+
     # Create a new overall record if it's new, otherwise
     # load the old values
     if ($self->new_entry)
@@ -1143,6 +1175,7 @@ sub write
             && !$column->optional
             && $datum->blank
             && !$options{force_mandatory}
+            && !$options{draft}
             && $column->user_can('write')
         )
         {
@@ -1234,7 +1267,7 @@ sub write
         elsif ($self->new_entry)
         {
             # New record. Approval needed?
-            if ($column->user_can('write_new_no_approval'))
+            if ($column->user_can('write_new_no_approval') || $options{draft})
             {
                 # User has permission to not need approval
                 $need_rec = 1;
@@ -1278,14 +1311,17 @@ sub write
 
     my $created_date = $options{version_datetime} || DateTime->now;
 
+    my $user_id = $self->user ? $self->user->id : undef;
+
     # New record?
     if ($self->new_entry)
     {
         my $instance_id = $self->layout->instance_id;
         my $current = $self->schema->resultset('Current')->create({
-            parent_id   => $self->parent_id,
-            linked_id   => $self->linked_id,
-            instance_id => $instance_id,
+            parent_id    => $self->parent_id,
+            linked_id    => $self->linked_id,
+            instance_id  => $instance_id,
+            draftuser_id => $options{draft} && $user_id,
         });
 
         # Create unique serial. This should normally only take one attempt, but
@@ -1294,6 +1330,7 @@ sub write
         # case, roll back to the save point and try again.
         while (1)
         {
+            last if $options{draft};
             my $serial = $self->schema->resultset('Current')->search({
                 instance_id => $instance_id,
             })->get_column('serial')->max;
@@ -1315,8 +1352,6 @@ sub write
         $self->current_id($current->id);
         $self->fields->{-15}->set_value($created_date);
     }
-
-    my $user_id = $self->user ? $self->user->id : undef;
 
     my $createdby = $options{version_userid} || $user_id;
     if ($need_rec && !$options{update_only})
@@ -1360,7 +1395,7 @@ sub write
         $self->approval_id($id);
     }
 
-    if ($self->new_entry && $user_id)
+    if ($self->new_entry && $user_id && !$options{draft})
     {
         # New entry, so save record ID to user for retrieval of previous
         # values if needed for another new entry. Use the approval ID id
@@ -1378,6 +1413,22 @@ sub write
         else {
             $this_last->{record_id} = $id;
             $self->schema->resultset('UserLastrecord')->create($this_last);
+        }
+
+        # Assume success now - delete any draft
+        if ($self->user->has_draft($self->layout->instance_id))
+        {
+            my $draft = GADS::Record->new(
+                user     => undef,
+                layout   => $self->layout,
+                schema   => $self->schema,
+            );
+            $draft->find_draftuser_id($self->user->id);
+            if ($draft)
+            {
+                $draft->delete_current;
+                $draft->purge_current;
+            }
         }
     }
 
@@ -1527,26 +1578,44 @@ sub write
 
     # Do we need to update any child records that rely on the
     # values of this parent record?
-    foreach my $child_id (@{$self->child_record_ids})
+    if (!$options{draft})
     {
-        my $child = GADS::Record->new(
-            user   => undef,
-            layout => $self->layout,
-            schema => $self->schema,
-        );
-        $child->find_current_id($child_id);
-        foreach my $col ($self->layout->all(order_dependencies => 1))
+        foreach my $child_id (@{$self->child_record_ids})
         {
-            my $datum_child = $child->fields->{$col->id};
-            if ($col->userinput)
+            my $child = GADS::Record->new(
+                user   => undef,
+                layout => $self->layout,
+                schema => $self->schema,
+            );
+            $child->find_current_id($child_id);
+            foreach my $col ($self->layout->all(order_dependencies => 1))
             {
-                my $datum_parent = $self->fields->{$col->id};
-                $datum_child->set_value($datum_parent->html_form)
-                    unless $datum_child->child_unique;
+                my $datum_child = $child->fields->{$col->id};
+                if ($col->userinput)
+                {
+                    my $datum_parent = $self->fields->{$col->id};
+                    $datum_child->set_value($datum_parent->html_form)
+                        unless $datum_child->child_unique;
+                }
+                # Calc/rag values will be evaluated during write()
             }
-            # Calc/rag values will be evaluated during write()
+            $child->write(%options, update_only => 1);
         }
-        $child->write(%options, update_only => 1);
+
+        # Update any records with an autocur field that are referred to by this
+        foreach my $cid (keys %update_autocurs)
+        {
+            my $record = GADS::Record->new(
+                user     => $self->user,
+                layout   => $self->layout,
+                schema   => $self->schema,
+                base_url => $self->base_url,
+            );
+            $record->find_current_id($cid);
+            $record->fields->{$_}->changed(1)
+                foreach @{$update_autocurs{$cid}};
+            $record->write(update_only => 1, re_evaluate => 1);
+        }
     }
 
     # Alerts can cause SQL errors, due to the unique constraints
@@ -1554,23 +1623,8 @@ sub write
     # done so far, and don't do alerts in a transaction
     $guard->commit;
 
-    # Update any records with an autocur field that are referred to by this
-    foreach my $cid (keys %update_autocurs)
-    {
-        my $record = GADS::Record->new(
-            user     => $self->user,
-            layout   => $self->layout,
-            schema   => $self->schema,
-            base_url => $self->base_url,
-        );
-        $record->find_current_id($cid);
-        $record->fields->{$_}->changed(1)
-            foreach @{$update_autocurs{$cid}};
-        $record->write(update_only => 1, re_evaluate => 1);
-    }
-
     # Send any alerts
-    unless ($options{no_alerts})
+    if (!$options{no_alerts} && !$options{draft})
     {
         # Possibly not the best way to do alerts, but certainly the
         # simplest. Spin up a new alert sender for each changed record

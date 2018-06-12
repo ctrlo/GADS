@@ -839,6 +839,15 @@ sub retire
     }
 }
 
+sub has_draft
+{   my ($self, $instance_id) = @_;
+    $instance_id or panic "Need instance ID for draft test";
+    $self->result_source->schema->resultset('Current')->search({
+        instance_id  => $instance_id,
+        draftuser_id => $self->id,
+    })->next;
+}
+
 sub _user_value
 {   my $user = shift;
     return unless $user;
