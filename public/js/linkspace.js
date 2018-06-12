@@ -251,22 +251,24 @@ var setupTreeField = function () {
     var $treeFields = $this.find('[name="' + field + '"]');
 
     var treeConfig = {
-        check_callback : true,
-        force_text : true,
-        themes : { stripes : true },
-        data : {
-            url : function (node) {
-                return '/tree' + new Date().getTime() + '/' + id + '?' + idsAsParams;
+        core: {
+            check_callback : true,
+            force_text : true,
+            themes : { stripes : true },
+            data : {
+                url : function (node) {
+                    return '/tree' + new Date().getTime() + '/' + id + '?' + idsAsParams;
+                },
+                data : function (node) {
+                    return { 'id' : node.id };
+                }
             },
-            data : function (node) {
-                return { 'id' : node.id };
-            }
         },
         plugins : []
     };
 
     if (!multiValue) {
-        treeConfig.multiple = false;
+        treeConfig.core.multiple = false;
     } else {
         treeConfig.plugins.push('checkbox');
     }
@@ -299,7 +301,7 @@ var setupTreeField = function () {
         }
     });
 
-    $treeContainer.jstree({ core: treeConfig });
+    $treeContainer.jstree(treeConfig);
 
     // hack - see https://github.com/vakata/jstree/issues/1955
     $treeContainer.jstree(true).settings.checkbox.cascade = 'undetermined';
