@@ -1,5 +1,12 @@
 'use strict';
 
+/* 
+ * A SelectWidget is a custom disclosure widget
+ * with multi or single options selectable.
+ * SelectWidgets can depend on each other;
+ * for instance if Value "1" is selected in Widget "A",
+ * Widget "B" might not be displayed.
+ */
 var SelectWidget = function (multi) {
 
     var connectMulti = function (update) {
@@ -7,7 +14,8 @@ var SelectWidget = function (multi) {
             var $item = $(this);
             var itemId = $item.data('list-item');
             var $associated = $('#' + itemId);
-            $associated.on('change', function () {
+            $associated.on('change', function (e) {
+                e.stopPropagation();
                 if ($(this).prop('checked')) {
                     $item.removeAttr('hidden');
                 } else {
@@ -23,7 +31,8 @@ var SelectWidget = function (multi) {
             var $item = $(this);
             var itemId = $item.data('list-item');
             var $associated = $('#' + itemId);
-            $associated.on('change', function () {
+            $associated.on('change', function (e) {
+                e.stopPropagation();
                 update($item);
             });
         };
@@ -45,7 +54,8 @@ var SelectWidget = function (multi) {
     };
 
     var isSingle = this.hasClass('single');
-    
+
+    var $container = $('main');
     var $widget = this.find('.form-control');
     var $trigger = $widget.find('[aria-expanded]');
     var $current = this.find('.current');
@@ -55,16 +65,20 @@ var SelectWidget = function (multi) {
 
     var updateState = function () {
         var $visible = $current.children('[data-list-item]:not([hidden])');
+
         $current.toggleClass('empty', $visible.length === 0);
+
         if (multi) {
             $visible.each(function (index) {
-                $(this).toggleClass('comma-separated', index < $visible.length-1); 
+                $(this).toggleClass('comma-separated', index < $visible.length-1);
             });
         }
+
+        $widget.trigger('change');
     };
 
     updateState();
-    
+
     if (multi) {
         $currentItems.each(connectMulti(updateState));
     } else {
@@ -75,6 +89,8 @@ var SelectWidget = function (multi) {
 
             $current.toggleClass('empty', false);
             $connected.removeAttr('hidden');
+
+            $widget.trigger('change');
         }));
     }
 
@@ -150,54 +166,151 @@ var setupLessMoreWidgets = function () {
     $widgets.each(convert);
 };
 
-var MultiSelectWidget = function () {
-    var connect = function (update) {
-        return function () {
-            var $item = $(this);
-            var itemId = $item.data('list-item');
-            var $associated = $('#' + itemId);
-            $associated.on('change', function () {
-                if ($(this).prop('checked')) {
-                    $item.prop('hidden', false);
-                } else {
-                    $item.prop('hidden', true);
-                }
-                update();
-            });
-        };
-    };
- 
-    var onTriggerClick = function ($target) {
-        return function (event) {
-            var isCurrentlyExpanded = $(this).attr('aria-expanded') === 'true';
-            var willExpandNext = !isCurrentlyExpanded;
+/***
+ *
+ * Handle the dependency connections between fields
+ * via regular expression checks on field values
+ *
+ * FIXME: It would be an improvement to abstract the
+ * different field types in GADS behind a common interface
+ * as opposed to using dom-attributes.
+ *
+ */
+var setupDependentField = function () {
+    var $field   = this.field;
+    var $depends = this.dependsOn;
+    var regexp   = this.regexp;
 
-            if (willExpandNext) {
-                $target.prop('hidden', false);
-                $(this).attr('aria-expanded', 'true');
-            } else {
-                $(this).attr('aria-expanded', 'false');
-                $target.prop('hidden', true);
-            }
+    // get the value from a field, depending on its type
+    var getFieldValues = function ($depends, $target) {
+        var type = $depends.data('column-type');
+
+        if (type === 'enum' || type === 'curval') {
+            var $visible = $depends.find('.select-widget .current [data-list-item]:not([hidden])');
+            var items = [];
+            $visible.each(function () { items.push($(this).text()) });
+            return items;
+        } else if (type === 'person') {
+            return [$target.find('option:selected').text()];
+        } else if (type === 'tree') {
+            // get the hidden children of $target, their value attr is the selected values
+            var items = [];
+            $target.find('.selected-tree-value').each(function() { items.push($(this.val())) });
+            return items;
+        } else {
+            return [$target.val()];
         }
     };
-    
-    var $trigger = this.find('button');
-    var $current = this.find('.current');
-    var $target  = this.find('#' + $trigger.attr('aria-controls'));
-    var $currentItems = $current.children();
 
-    var updateState = function () {
-        var $visible = $current.children('[data-list-item]:not([hidden])');
-        $current.toggleClass('empty', $visible.length === 0);
-        $visible.each(function (index) {
-            $(this).toggleClass('comma-separated', index < $visible.length-1); 
-        });
+    var some = function (set, test) {
+        for (var i = 0, j = set.length; i < j; i++) {
+            if (test(set[i])) {
+                return true;
+            }
+        }
+        return false;
     };
 
-    updateState();
-    $currentItems.each(connect(updateState));
-    $trigger.on('click', onTriggerClick($target));   
+    $depends.on('change', function (e) {
+        var $target = $(e.target);
+        var values = getFieldValues($depends, $target);
+        console.debug($target, $depends, values);
+        some(values, function (value) {
+            return regexp.test(value)
+        }) ? $field.show() : $field.hide();
+    });
+
+    // trigger a change to toggle all dependencies
+    $depends.trigger('change');
+};
+
+var setupDependentFields = function () {
+    var fields = $('[data-has-dependency]').map(function () {
+        var dependence = $(this).data('has-dependency');
+        var pattern    = $(this).data('dependency');
+        var regexp     = (new RegExp("^" + base64.decode(pattern) + "$"))
+
+        return {
+            field     : $(this).parent(),
+            dependsOn : $('[data-column-id="' + dependence + '"]'),
+            regexp    : regexp
+        };
+    });
+
+    fields.each(setupDependentField);
+};
+
+var setupTreeField = function () {
+    var $this = $(this);
+    var id = $this.data('column-id');
+    var multiValue = $this.data('is-multivalue');
+    var readOnly = $this.data('is-readonly');
+    var $treeContainer = $this.find('.tree-widget-container');
+    var field = $treeContainer.data('field');
+    var endNodeOnly = $treeContainer.data('end-node-only');
+    var idsAsParams = $treeContainer.data('ids-as-params');
+    var $treeFields = $this.find('[name="' + field + '"]');
+
+    var treeConfig = {
+        check_callback : true,
+        force_text : true,
+        themes : { stripes : true },
+        data : {
+            url : function (node) {
+                return '/tree' + new Date().getTime() + '/' + id + '?' + idsAsParams;
+            },
+            data : function (node) {
+                return { 'id' : node.id };
+            }
+        },
+        plugins : []
+    };
+
+    if (!multiValue) {
+        treeConfig.multiple = false;
+    } else {
+        treeConfig.plugins.push('checkbox');
+    }
+
+    $treeContainer.on('changed.jstree', function (e, value) {
+        // remove all existing hidden value fields
+        $treeFields.remove();
+        var selectedElms = $treeContainer.jstree("get_selected", true);
+
+        var values = [];
+
+        $.each(selectedElms, function () {
+            // store the selected values in hidden fields as children of the element
+            $treeContainer.append(
+                '<input type="hidden" class="selected-tree-value" name="' + field + '" value="' + id + '" />'
+            );
+        });
+
+        $treeContainer.trigger('change', values);
+    });
+
+    $treeContainer.on('select_node.jstree', function (e, data) {
+        if (data.node.children.length = 0) { return; }
+        if (endNodeOnly) {
+            $treeContainer.jstree(true).deselect_node(data.node);
+            $treeContainer.jstree(true).toggle_node(data.node);
+        } else if (multiValue) {
+            $treeContainer.jstree(true).open_node(data.node);
+        }
+    });
+
+    $treeContainer.jstree({ core: treeConfig });
+
+    // hack - see https://github.com/vakata/jstree/issues/1955
+    $treeContainer.jstree(true).settings.checkbox.cascade = 'undetermined';
+
+};
+
+var setupTreeFields = function () {
+    var $fields = $('[data-column-type="tree"]');
+    $fields.filter(function () {
+        return $(this).find('.tree-widget-container').length;
+    }).each(setupTreeField);
 };
 
 var positionDisclosure = function (offsetTop, offsetLeft, triggerHeight) {
@@ -330,9 +443,13 @@ var Linkspace = {
     }
 };
 
-Linkspace.layout = function () {
-    Linkspace.debug('Layout JS firing');
+Linkspace.edit = function () {
+    Linkspace.debug('Record edit JS firing');
+    setupTreeFields();
+    setupDependentFields();
+}
 
+Linkspace.layout = function () {
     $('.tab-interface').each(Linkspace.TabPanel);
 
     var $config = $('#permission-configuration');
