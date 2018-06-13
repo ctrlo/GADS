@@ -54,7 +54,7 @@ sub _format_to_field
     ? 'value_int'
     : $return_type eq 'numeric'
     ? 'value_numeric'
-    : 'value_text'
+    : 'value_text' # includes globe data type
 }
 
 has unique_key => (
@@ -83,7 +83,7 @@ has '+table' => (
 has '+return_type' => (
     isa => sub {
         return unless $_[0];
-        $_[0] =~ /(string|date|integer|numeric)/
+        $_[0] =~ /(string|date|integer|numeric|globe)/
             or error __x"Bad return type {type}", type => $_[0];
     },
     lazy    => 1,
@@ -108,7 +108,7 @@ has '+value_field' => (
 );
 
 has '+string_storage' => (
-    default => sub {shift->return_type eq 'string'},
+    default => sub {shift->value_field eq 'value_text'},
 );
 
 has '+numeric' => (
@@ -145,7 +145,7 @@ sub resultset_for_values
         layout_id => $self->id,
     },{
         group_by  => 'me.'.$self->value_field,
-    }) if $self->return_type eq 'string';
+    }) if $self->value_field eq 'value_text';
 }
 
 sub validate

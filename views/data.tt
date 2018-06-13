@@ -140,6 +140,10 @@
                     <div class="btn-group">
                         <a class="btn btn-default" data-toggle="modal" data-target="#modal_timeline" role="button">Timeline options...</a>
                     </div>
+                [% ELSIF viewtype == "globe" %]
+                    <div class="btn-group">
+                        <a class="btn btn-default" data-toggle="modal" data-target="#modal_globe" role="button">Globe options...</a>
+                    </div>
                 [% END %]
             </div>
         </div>
@@ -180,6 +184,8 @@
     [% INCLUDE 'data_calendar.tt' %]
 [% ELSIF viewtype == "timeline" %]
     [% INCLUDE 'data_timeline.tt' %]
+[% ELSIF viewtype == "globe" %]
+    [% INCLUDE 'data_globe.tt' %]
 [% ELSE %]
     [% INCLUDE 'data_table.tt' %]
 [% END %]
@@ -283,6 +289,7 @@
     [% END %]
 [% END %]
 
+<<<<<<< HEAD
 [% BLOCK viewtype_buttons %]
     <div class="btn-group" role="group">
         <a href="?viewtype=table" class="btn btn-default">
@@ -308,7 +315,41 @@
             <img src="/images/icon-data-calendar.png" class="use-icon-png" style="display:none" alt="">
             <span class="visually-hidden">View on calendar</span>
         </a>
+
+	[% IF layout.has_globe %]
+	    <a href="?viewtype=globe" class="btn btn-default">
+		<i aria-hidden="true" class="fa fa-globe fa-lg use-icon-font"></i>
+		<img src="/images/icon-data-globe.png" class="use-icon-png" style="display:none" alt="">
+		<span class="visually-hidden">View on globe</span>
+	    </a>
+	[% END %]
     </div>
+[% END %]
+
+[% IF viewtype == "globe" %]
+    [% WRAPPER modal_dialog.tt
+        modal_id="modal_globe" modal_action_text="Update options" modal_heading="Globe view options"
+        modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post"
+    %]
+        <div class="form-group">
+            <label for="globe_group">Group by field:</label>
+            <select class="form-control" name="globe_group">
+                <option value="" [% IF NOT globe_options.group %]selected[% END %]>&lt;All fields&gt;</option>
+                [% FOREACH column IN columns_read %]
+                    <option value="[% column.id %]" [% IF globe_options.group == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                [% END %]
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="globe_color">Colour by field:</label>
+            <select class="form-control" name="globe_color">
+                <option value="" [% IF NOT globe_options.color %]selected[% END %]>&lt;All fields&gt;</option>
+                [% FOREACH column IN columns_read %]
+                    <option value="[% column.id %]" [% IF globe_options.color == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                [% END %]
+            </select>
+        </div>
+    [% END %]
 [% END %]
 
 [% IF layout.user_can("layout") %]

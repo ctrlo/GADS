@@ -627,6 +627,15 @@ sub _build_columns
     \@return;
 }
 
+has has_globe => (
+    is => 'lazy',
+);
+
+sub _build_has_globe
+{   my $self = shift;
+    !! grep { $_->return_type eq "globe" } @{$self->columns};
+}
+
 sub all_with_internal
 {   my $self = shift;
     $self->all(@_, include_internal => 1);
