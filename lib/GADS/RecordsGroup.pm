@@ -230,8 +230,8 @@ sub _build_results
 
         if ($daterange_from && $daterange_to)
         {
-            $daterange_from->truncate(to => 'month');
-            $daterange_to->truncate(to => 'month');
+            $daterange_from->truncate(to => $self->dr_interval);
+            $daterange_to->truncate(to => $self->dr_interval);
             # Pass dates back to caller
             $self->_set_dr_from($daterange_from);
             $self->_set_dr_to  ($daterange_to);
