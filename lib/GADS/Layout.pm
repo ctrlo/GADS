@@ -343,7 +343,7 @@ has has_globe => (
 
 sub _build_has_globe
 {   my $self = shift;
-    !! grep { $_->return_type eq "globe" } @{$self->columns};
+    !! grep { $_->return_type eq "globe" } $self->all;
 }
 
 sub get_user_perms
