@@ -40,6 +40,23 @@ has '+fixedvals' => (
     default => 1,
 );
 
+has '+option_names' => (
+    default => sub { [qw/default_to_login/] },
+);
+
+has default_to_login => (
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    builder => sub {
+        my $self = shift;
+        return 0 unless $self->has_options;
+        $self->options->{default_to_login};
+    },
+    trigger => sub { $_[0]->clear_options },
+);
+
 sub _build_sprefix { 'value' };
 
 has people => (
@@ -93,6 +110,19 @@ sub cleanup
 {   my ($class, $schema, $id) = @_;
     $schema->resultset('Person')->search({ layout_id => $id })->delete;
 }
+
+before import_hash => sub {
+    my ($self, $values) = @_;
+    $self->default_to_login($values->{default_to_login});
+};
+
+around export_hash => sub {
+    my $orig = shift;
+    my ($self, $values) = @_;
+    my $hash = $orig->(@_);
+    $hash->{default_to_login} = $self->default_to_login;
+    return $hash;
+};
 
 1;
 

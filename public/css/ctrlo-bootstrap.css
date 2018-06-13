@@ -1639,6 +1639,9 @@ small.search_term {
 #manage-fields.column-type-daterange .field-options.daterange {
   display: block; }
 
+#manage-fields.column-type-person .field-options.person {
+  display: block; }
+
 #manage-fields.column-type-rag #options .stored-value,
 #manage-fields.column-type-calc #options .stored-value {
   display: none; }

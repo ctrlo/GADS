@@ -298,6 +298,16 @@
             </div>
         </div>
     </div>
+    <div class="field-options person">
+        <div class="form-group">
+            <label for="default_to_login">Default value:</label>
+            <div class="checkbox">
+                <label>
+                    <input id="default_to_login" type="checkbox" name="default_to_login" [% IF column.default_to_login %]checked[% END %]>Default new values to current logged-in user
+                </label>
+            </div>
+        </div>
+    </div>
     <div class="field-options calc">
         <h4>Calculated value field options</h4>
         <p>

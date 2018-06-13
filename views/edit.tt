@@ -523,9 +523,10 @@
                         [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
                             <option></option>
                         [% END %]
+                        [% selected = "" %]
                         [% IF editvalue.id %]
                             [% selected = editvalue.id %]
-                        [% ELSIF NOT record.current_id %] [%# default to current user for new records only %]
+                        [% ELSIF dispcol.default_to_login AND NOT record.current_id %] [%# default to current user for new records only %]
                             [% selected = user.id %]
                         [% END %]
                         [% is_selected = 0 %]
