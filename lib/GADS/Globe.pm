@@ -324,16 +324,17 @@ sub _build_data
         },
     };
 
-    return +{
+    my $return = {
         z             => [ map { $_->{z} } @return ],
         text          => [ map { $_->{text} } @return ],
         locations     => [ map { $_->{location} } @return ],
         showscale     => $self->is_choropleth ? \1 : \0,
         type          => $self->is_group ? 'choropleth' : 'scattergeo',
         hoverinfo     => 'text',
-        marker        => $marker,
         countrycolors => $self->is_choropleth ? undef : [map { $_->{color}} @return],
     };
+    $return->{marker} = $marker if $marker;
+    $return;
 }
 
 1;
