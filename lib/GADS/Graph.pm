@@ -44,7 +44,7 @@ has _graph => (
         my ($graph) = $self->schema->resultset('Graph')->search({
             'me.id' => $self->id
         },{
-            prefetch => [qw/x_axis y_axis group_by/],
+            prefetch => [qw/x_axis x_axis_link y_axis group_by/],
         })->all;
         $graph
             or error __x"Requested graph ID {id} not found", id => $self->id;
@@ -57,6 +57,7 @@ has set_values => (
         my ($self, $original) = @_;
         $self->_set_id($original->{id});
         $self->x_axis($original->{x_axis});
+        $self->x_axis_link($original->{x_axis_link});
         $self->x_axis_grouping($original->{x_axis_grouping});
         $self->y_axis($original->{y_axis});
         $self->y_axis_stack($original->{y_axis_stack});
@@ -86,12 +87,36 @@ has description => (
     builder => sub { $_[0]->_graph && $_[0]->_graph->description },
 );
 
+sub set_x_axis
+{   my ($self, $value) = @_;
+    if ($value =~ /^([0-9]+)_([0-9]+)$/)
+    {
+        $self->x_axis($2);
+        $self->x_axis_link($1);
+        return;
+    }
+    $self->x_axis($value);
+}
+
 has x_axis => (
     is      => 'rw',
     lazy    => 1,
     coerce  => sub { $_[0] || undef }, # Empty string from form
     builder => sub { $_[0]->_graph && $_[0]->_graph->x_axis && $_[0]->_graph->x_axis->id },
 );
+
+has x_axis_link => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->_graph && $_[0]->_graph->x_axis_link && $_[0]->_graph->x_axis_link->id },
+);
+
+sub x_axis_full
+{   my $self = shift;
+    return $self->x_axis_link."_".$self->x_axis
+        if $self->x_axis_link;
+    return $self->x_axis;
+}
 
 # X-axis is undef for graph showing all columns in view
 has x_axis_name => (
@@ -205,8 +230,9 @@ sub write
     $newgraph->{y_axis_label}    = $self->y_axis_label;
 
     $newgraph->{x_axis}          = $self->x_axis;
-    !defined $self->x_axis || $self->layout->column_this_instance($self->x_axis)
+    !defined $self->x_axis || $self->layout->column($self->x_axis)
         or error __x"Invalid X-axis value {x_axis}", x_axis => $self->x_axis;
+    $newgraph->{x_axis_link}     = $self->x_axis_link;
 
     $newgraph->{x_axis_grouping} = $self->x_axis_grouping;
     !defined $self->x_axis_grouping || grep { $self->x_axis_grouping eq $_ } keys %{GADS::Graphs->new->dategroup}
@@ -252,6 +278,7 @@ sub import_hash
     $self->y_axis_stack($values->{y_axis_stack});
     $self->y_axis_label($values->{y_axis_label});
     $self->x_axis($values->{x_axis});
+    $self->x_axis_link($values->{x_axis_link});
     $self->x_axis_grouping($values->{x_axis_grouping});
     $self->group_by($values->{group_by});
     $self->stackseries($values->{stackseries});
@@ -269,6 +296,7 @@ sub export_hash
         y_axis_stack    => $self->y_axis_stack,
         y_axis_label    => $self->y_axis_label,
         x_axis          => $self->x_axis,
+        x_axis_link     => $self->x_axis_link,
         x_axis_grouping => $self->x_axis_grouping,
         group_by        => $self->group_by,
         stackseries     => $self->stackseries,

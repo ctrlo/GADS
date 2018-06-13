@@ -144,6 +144,16 @@ foreach my $multivalue (0..1)
             data            => [[ 20, 35, 35, 20, 20, 30, 30, 20, 20 ]],
         },
         {
+            name            => 'Date range x-axis from curval, integer sum y-axis',
+            type            => 'bar',
+            x_axis          => $curval_sheet->columns->{daterange1}->id,
+            x_axis_link     => $columns->{curval1}->id,
+            x_axis_grouping => 'year',
+            y_axis          => $columns->{integer1}->id,
+            y_axis_stack    => 'sum',
+            data            => [[ 35, 0, 0, 0, 45, 45 ]],
+        },
+        {
             name            => 'Date x-axis, integer count y-axis',
             type            => 'bar',
             x_axis          => $columns->{date1}->id,
@@ -202,6 +212,16 @@ foreach my $multivalue (0..1)
             y_axis       => $columns->{integer1}->id,
             y_axis_stack => 'sum',
             data         => [[ 35, 45 ]],
+        },
+        {
+            name         => 'Field from curval on x-axis',
+            type         => 'bar',
+            x_axis       => $curval_sheet->columns->{string1}->id,
+            x_axis_link  => $columns->{curval1}->id,
+            y_axis       => $columns->{integer1}->id,
+            y_axis_stack => 'sum',
+            data         => [[ 35, 45 ]],
+            xlabels      => ['Bar', 'Foo'],
         },
         {
             name         => 'Curval on x-axis grouped by enum',
@@ -346,6 +366,8 @@ foreach my $multivalue (0..1)
         $graph->title($g->{name});
         $graph->type($g->{type});
         $graph->x_axis($g->{x_axis});
+        $graph->x_axis_link($g->{x_axis_link})
+            if $g->{x_axis_link};
         $graph->x_axis_grouping($g->{x_axis_grouping})
             if $g->{x_axis_grouping};
         $graph->y_axis($g->{y_axis});

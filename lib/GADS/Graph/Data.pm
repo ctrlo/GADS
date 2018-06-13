@@ -237,6 +237,17 @@ sub _build_data
         ? @{$self->view->columns}
         : $self->records->layout->all(user_can_read => 1);
 
+    # If the x-axis field is one from a curval (and therefore another table) we
+    # need to replace it with the curval field, but one only containing the
+    # referenced field
+    my $link;
+    if ($self->x_axis_link)
+    {
+        $link = $self->records->layout->column($self->x_axis_link);
+        $link->curval_field_ids([$self->x_axis]);
+        $columns[0] = $link->id;
+    }
+
     my $layout      = $self->records->layout;
     # $x_axis is undefined if all the fields are to appear on it
     my $x_axis      = $self->x_axis ? $layout->column($self->x_axis) : undef;
@@ -251,8 +262,9 @@ sub _build_data
 
     my $group_by_db = [];
     push @$group_by_db, {
-        id    => $self->x_axis,
-        pluck => $x_axis_grouping, # Whether to group x-axis dates
+        id     => $self->x_axis,
+        pluck  => $x_axis_grouping, # Whether to group x-axis dates
+        parent => $link, # What the parent curval is, if we're picking a child value
     } if !$x_daterange && $self->x_axis;
 
     my $records = $self->records;
@@ -533,6 +545,15 @@ sub _build_data
     my $options = {};
     $options->{y_max}     = 100 if defined $metric_max && $metric_max < 100;
     $options->{is_metric} = 1 if defined $metric_max;
+
+    # If we had a curval as a link, then we need to reset its retrieved fields,
+    # otherwise anything else using the field after this procedure will be
+    # using the reduced columns that we used for the graph
+    if ($link)
+    {
+        $link->clear_curval_field_ids;
+        $link->clear;
+    }
 
     +{
         xlabels => \@xlabels, # Populated, but not used for donut

@@ -322,7 +322,7 @@ sub _build_results
                 );
             }
             else {
-                push @g, $self->fqvalue($col, search => 1, prefetch => 1, retain_join_order => 1);
+                push @g, $self->fqvalue($col, search => 1, prefetch => 1, retain_join_order => 1, parent => $_->{parent});
             }
         }
     };

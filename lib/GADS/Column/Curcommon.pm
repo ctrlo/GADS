@@ -68,6 +68,7 @@ sub clear
     $self->clear_layout_parent;
     $self->clear_curval_field_ids_retrieve;
     $self->clear_curval_fields_retrieve;
+    $self->clear_curval_fields;
 }
 
 has refers_to_instance_id => (
