@@ -1734,27 +1734,12 @@ any '/user/upload' => require_any_role [qw/useradmin superadmin/] => sub {
         }
     }
 
-    # Get all layouts of all instances for view restrictions
-    # (XXX code to be removed for menu branch)
-    my $user = logged_in_user;
-    my $instances = var('instances');
-    my @layouts;
-    foreach my $instance (@{$instances->all})
-    {
-        push @layouts, GADS::Layout->new(
-            user        => $user,
-            schema      => schema,
-            config      => config,
-            instance_id => $instance->id,
-            instance    => $instance,
-        );
-    }
-
     template 'user/upload' => {
         groups      => GADS::Groups->new(schema => schema)->all,
-        layouts     => [@layouts],
         permissions => $userso->permissions,
         user_fields => $userso->user_fields,
+        # XXX Horrible hack - see single user edit route
+        edituser    => +{ view_limits_with_blank => [ undef ] },
     };
 };
 
