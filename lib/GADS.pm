@@ -1726,6 +1726,7 @@ any '/user/upload' => require_any_role [qw/useradmin superadmin/] => sub {
                 view_limits  => [body_parameters->get_all('view_limits')],
                 groups       => [body_parameters->get_all('groups')],
                 permissions  => [body_parameters->get_all('permission')],
+                current_user => logged_in_user,
             )}
         )
         {
