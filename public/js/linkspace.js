@@ -195,7 +195,7 @@ var setupDependentField = function () {
         } else if (type === 'tree') {
             // get the hidden children of $target, their value attr is the selected values
             var items = [];
-            $target.find('.selected-tree-value').each(function() { items.push($(this.val())) });
+            $target.find('.selected-tree-value').each(function() { items.push($(this).val()) });
             return items;
         } else {
             return [$target.val()];
@@ -211,10 +211,9 @@ var setupDependentField = function () {
         return false;
     };
 
-    $depends.on('change', function (e) {
+    $depends.on('change', function (e, params) {
         var $target = $(e.target);
-        var values = getFieldValues($depends, $target);
-        console.debug($target, $depends, values);
+        var values = params ? params.values : getFieldValues($depends, $target);
         some(values, function (value) {
             return regexp.test(value)
         }) ? $field.show() : $field.hide();
@@ -272,9 +271,9 @@ var setupTreeField = function () {
         treeConfig.plugins.push('checkbox');
     }
 
-    $treeContainer.on('changed.jstree', function (e, value) {
+    $treeContainer.on('changed.jstree', function (e, data) {
         // remove all existing hidden value fields
-        $treeFields.remove();
+        $treeContainer.find('.selected-tree-value').remove();
         var selectedElms = $treeContainer.jstree("get_selected", true);
 
         var values = [];
@@ -282,15 +281,16 @@ var setupTreeField = function () {
         $.each(selectedElms, function () {
             // store the selected values in hidden fields as children of the element
             $treeContainer.append(
-                '<input type="hidden" class="selected-tree-value" name="' + field + '" value="' + id + '" />'
+                '<input type="hidden" class="selected-tree-value" name="' + field + '" value="' + this.id + '" />'
             );
+            values.push(data.instance.get_path(this, '#'));
         });
 
-        $treeContainer.trigger('change', values);
+        $treeContainer.trigger('change', { values: values });
     });
 
     $treeContainer.on('select_node.jstree', function (e, data) {
-        if (data.node.children.length = 0) { return; }
+        if (data.node.children.length == 0) { return; }
         if (endNodeOnly) {
             $treeContainer.jstree(true).deselect_node(data.node);
             $treeContainer.jstree(true).toggle_node(data.node);
