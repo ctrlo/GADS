@@ -381,6 +381,20 @@
                     </div>
                 </div>
             </div>
+            <div id="divperson"
+                    [% IF column.type != "person" %]
+                        style="display:none"
+                    [% END %]
+                >
+                <div class="form-group">
+                    <label for="default_to_login">Default value:</label>
+                    <div class="checkbox">
+                        <label>
+                            <input id="default_to_login" type="checkbox" name="default_to_login" [% IF column.default_to_login %]checked[% END %]>Default to current logged-in user
+                        </label>
+                    </div>
+                </div>
+            </div>
             <div id="divcode"
                 [% IF column.type != "calc" AND column.type != "rag" %]
                     style="display:none"
@@ -797,6 +811,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divautocur').hide();
                     $('#divstring').hide();
                     $('#divdate').hide();
+                    $('#divperson').hide();
                     $('.noragcalc').show();
                 } else if (val == "enum") {
                     $('#divenum').show();
@@ -807,6 +822,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divautocur').hide();
                     $('#divstring').hide();
                     $('#divdate').hide();
+                    $('#divperson').hide();
                     $('.noragcalc').show();
                 } else if (val == "rag") {
                     $('#divcode').show();
@@ -818,6 +834,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divautocur').hide();
                     $('#divstring').hide();
                     $('#divdate').hide();
+                    $('#divperson').hide();
                     $('.noragcalc').hide();
                 } else if (val == "calc") {
                     $('#divcode').show();
@@ -829,6 +846,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divautocur').hide();
                     $('#divstring').hide();
                     $('#divdate').hide();
+                    $('#divperson').hide();
                     $('.noragcalc').hide();
                 } else if (val == "file") {
                     $('#divcode').hide();
@@ -839,6 +857,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divautocur').hide();
                     $('#divstring').hide();
                     $('#divdate').hide();
+                    $('#divperson').hide();
                     $('.noragcalc').show();
                 } else if (val == "curval") {
                     $('#divcode').hide();
@@ -849,6 +868,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divautocur').hide();
                     $('#divstring').hide();
                     $('#divdate').hide();
+                    $('#divperson').hide();
                     $('.noragcalc').show();
                 } else if (val == "autocur") {
                     $('#divcode').hide();
@@ -859,6 +879,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divautocur').show();
                     $('#divstring').hide();
                     $('#divdate').hide();
+                    $('#divperson').hide();
                     $('.noragcalc').show();
                 } else if (val == "string") {
                     $('#divcode').hide();
@@ -869,6 +890,18 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divautocur').hide();
                     $('#divstring').show();
                     $('#divdate').hide();
+                    $('#divperson').hide();
+                    $('.noragcalc').show();
+                } else if (val == "person") {
+                    $('#divcode').hide();
+                    $('#divtree').hide();
+                    $('#divenum').hide();
+                    $('#divfile').hide();
+                    $('#divcurval').hide();
+                    $('#divautocur').hide();
+                    $('#divstring').show();
+                    $('#divdate').hide();
+                    $('#divperson').hide();
                     $('.noragcalc').show();
                 } else if (val == "date" || val == "daterange") {
                     $('#divcode').hide();
@@ -879,6 +912,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divautocur').hide();
                     $('#divstring').hide();
                     $('#divdate').show();
+                    $('#divperson').hide();
                     $('.noragcalc').show();
                 } else {
                     $('#divenum').hide();
@@ -889,6 +923,7 @@ available permissions are detailed in the <a href="[% url.page %]/user/">Users m
                     $('#divautocur').hide();
                     $('#divstring').hide();
                     $('#divdate').hide();
+                    $('#divperson').hide();
                     $('.noragcalc').show();
                 }
             });
