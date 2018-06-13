@@ -289,7 +289,6 @@
     [% END %]
 [% END %]
 
-<<<<<<< HEAD
 [% BLOCK viewtype_buttons %]
     <div class="btn-group" role="group">
         <a href="?viewtype=table" class="btn btn-default">
