@@ -54,7 +54,6 @@ foreach my $enum (
 ){
     my $parent = $enum->parent && $enum->parent->id;
     my $node = Tree::DAG_Node->new();
-    say STDERR $enum->value;
     $node->name($enum->value);
     $tree->{$enum->id} = {
         node   => $node,
@@ -79,7 +78,7 @@ foreach my $n (@order)
     }
 }
 
-foreach ($root->dump_names)
+foreach ($root->dump_names({indent => ',', tick => ''}))
 {
     s/\\x26/&/g;
     s/\\x19/'/g;
@@ -87,6 +86,7 @@ foreach ($root->dump_names)
     s/"/'/g;
     s/^(\h*)'/$1/g;
     s/'$//g;
+    s/,'/,/g;
     print;
 }
 
