@@ -13,7 +13,7 @@
 
             Plotly.setPlotConfig({locale: 'en-GB'});
 
-            var data = [ JSON.parse(base64.decode("[% globe_data %]")) ];
+            var data = JSON.parse(base64.decode("[% globe_data %]"));
 
             var layout = {
                 margin: {

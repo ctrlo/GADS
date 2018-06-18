@@ -126,6 +126,8 @@ sub _build_results
                ? 'max'
                : $self->aggregate_all
                ? $self->operator
+               : $col->numeric
+               ? 'sum'
                : 'max';
         # Don't use SUM() for non-numeric columns
         $op = 'max' if $op eq 'sum' && !$col->numeric;

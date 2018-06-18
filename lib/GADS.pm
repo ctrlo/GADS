@@ -771,6 +771,7 @@ any '/data' => require_login sub {
         {
             $globe_options->{group} = param('globe_group');
             $globe_options->{color} = param('globe_color');
+            $globe_options->{label} = param('globe_label');
         }
 
         my $records_options = {
@@ -785,6 +786,7 @@ any '/data' => require_login sub {
         my $globe = GADS::Globe->new(
             group_col_id    => $globe_options->{group},
             color_col_id    => $globe_options->{color},
+            label_col_id    => $globe_options->{label},
             records_options => $records_options,
         );
         $params->{globe_data} = encode_base64(encode_json($globe->data));
