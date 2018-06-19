@@ -357,6 +357,19 @@ sub _build_data
                 }
             }
 
+            # group
+            if ($self->group_col)
+            {
+                if ($self->group_col->numeric)
+                {
+                    $values->{group_sum} ||= 0;
+                    $values->{group_sum} += $item->{group_label} if $item->{group_label};
+                }
+                else {
+                    $values->{group_text}->{$item->{value_group}} = 1;
+                }
+            }
+
             # hover
             if (!$self->is_group)
             {
@@ -377,18 +390,22 @@ sub _build_data
             && join('<br>', map { _to_svg("$_->{text}: $_->{sum}") } @{$values->{group_sums}});
 
         # Hover will depend on the display options
-        my $hover = $self->is_choropleth && $self->group_col
+        my $hover = $self->is_choropleth && $self->group_col # Colour by number, and grouped
             ? $group_sums
-            : $self->is_choropleth
+            : $self->is_choropleth # Colour by number, just that number
             ? "Total: $values->{color_sum}"
-            : $self->label_col && $self->label_col->numeric && $self->group_col
+            : $self->label_col && $self->label_col->numeric && $self->group_col # Numeric label and grouped
             ? $group_sums
-            : $self->label_col && $self->label_col->numeric
+            : $self->label_col && $self->label_col->numeric # Numeric label, just that on its own
             ? "Total: $values->{label_sum}"
-            : $self->color_col
+            : $self->color_col # Colour by text
             ? join('<br>', keys %{$values->{color_text}})
-            : $self->label_col
+            : $self->label_col # Label by text
             ? join('<br>', keys %{$values->{label_text}})
+            : $self->group_col && $self->group_col->numeric # Group by number
+            ? join('<br>', keys %{$values->{group_sum}})
+            : $self->group_col
+            ? join('<br>', keys %{$values->{group_text}})
             : join('<br>', @{$values->{hover}});
         my $r = {
             hover    => $hover,
