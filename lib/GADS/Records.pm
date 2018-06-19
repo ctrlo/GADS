@@ -684,8 +684,7 @@ sub _current_ids_rs
 sub _cid_search_query
 {   my $self = shift;
     my $search = { map { %$_ } $self->common_search(prefetch => 1, sort => 1, linked => 1) };
-    my @cids = $self->_current_ids_rs->all;
-    $search->{'me.id'} = \@cids;
+    $search->{'me.id'} = { -in => $self->_current_ids_rs->as_query };
     my $record_single = $self->record_name(linked => 0);
     $search->{"$record_single.created"} = { '<' => $self->rewind_formatted }
         if $self->rewind;
@@ -820,17 +819,18 @@ has _next_single_id => (
 my $chunk = 100;
 sub single
 {   my $self = shift;
-#    my $chunk = 100; # Size of chunks to retrieve each time
-    $self->rows($chunk) unless $self->rows;
-    $self->page(1) if !$self->has_results;
+    my $is_group = $self->isa('GADS::RecordsGroup');
+    $self->rows($chunk) unless $is_group || $self->rows;
+    $self->page(1) if !$self->has_results && !$is_group;
     my $next_id = $self->_next_single_id;
     return if $self->max_results && $self->records_retrieved_count >= $self->max_results;
     if ($next_id >= $chunk)
     {
-        return if $self->page == $self->pages;
+        return if !$is_group && $self->page == $self->pages;
         $next_id = $next_id - $chunk;
         $self->clear_results;
-        $self->page($self->page + 1);
+        $self->page($self->page + 1)
+            unless $is_group;
     }
     my $row = $self->results->[$next_id];
     $self->_set__next_single_id($next_id + 1);

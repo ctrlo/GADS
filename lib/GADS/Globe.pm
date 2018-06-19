@@ -110,12 +110,12 @@ sub _build__group_by
 
     push @group_by, { id => $self->label_col_id }
         if $self->label_col_id && !$self->label_col->numeric
-            && $self->label_col_id != $self->color_col_id;
+            && (!$self->color_col_id || $self->label_col_id != $self->color_col_id);
 
     push @group_by, { id => $self->group_col_id }
         if $self->group_col_id && !$self->group_col->numeric
-            && $self->group_col_id != $self->color_col_id
-            && $self->group_col_id != $self->label_col_id ;
+            && (!$self->color_col_id || $self->group_col_id != $self->color_col_id)
+            && (!$self->label_col_id || $self->group_col_id != $self->label_col_id);
 
     \@group_by;
 }
