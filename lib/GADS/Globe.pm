@@ -335,7 +335,8 @@ sub _build_data
                         if $self->group_col;
                 }
                 else {
-                    $values->{label_text}->{$item->{value_label}} = 1;
+                    $values->{label_text}->{$item->{value_label}} ||= 0;
+                    $values->{label_text}->{$item->{value_label}} += $item->{id_count};
                 }
             }
 
@@ -352,7 +353,8 @@ sub _build_data
                         if $self->group_col && !($self->label_col && $self->color_col->id == $self->label_col->id);
                 }
                 else {
-                    $values->{color_text}->{$item->{value_color}} = 1;
+                    $values->{color_text}->{$item->{value_color}} ||= 0;
+                    $values->{color_text}->{$item->{value_color}} += $item->{id_count};
                     $values->{color} = !$values->{color} || $values->{color} eq $item->{color} ? $item->{color} : 'grey';
                 }
             }
@@ -366,7 +368,8 @@ sub _build_data
                     $values->{group_sum} += $item->{group_label} if $item->{group_label};
                 }
                 else {
-                    $values->{group_text}->{$item->{value_group}} = 1;
+                    $values->{group_text}->{$item->{value_group}} ||= 0;
+                    $values->{group_text}->{$item->{value_group}} += $item->{id_count};
                 }
             }
 
@@ -399,13 +402,13 @@ sub _build_data
             : $self->label_col && $self->label_col->numeric # Numeric label, just that on its own
             ? "Total: $values->{label_sum}"
             : $self->color_col # Colour by text
-            ? join('<br>', keys %{$values->{color_text}})
+            ? join('<br>', map { "$_: $values->{color_text}->{$_}" } keys %{$values->{color_text}})
             : $self->label_col # Label by text
-            ? join('<br>', keys %{$values->{label_text}})
+            ? join('<br>', map { $_: $values->{label_text}->{$_} } keys %{$values->{label_text}})
             : $self->group_col && $self->group_col->numeric # Group by number
             ? join('<br>', keys %{$values->{group_sum}})
             : $self->group_col
-            ? join('<br>', keys %{$values->{group_text}})
+            ? join('<br>', map { "$_: $values->{group_text}->{$_}" } keys %{$values->{group_text}})
             : join('<br>', @{$values->{hover}});
         my $r = {
             hover    => $hover,
