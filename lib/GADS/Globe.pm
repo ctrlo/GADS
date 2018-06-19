@@ -404,7 +404,7 @@ sub _build_data
             : $self->color_col # Colour by text
             ? join('<br>', map { "$_: $values->{color_text}->{$_}" } keys %{$values->{color_text}})
             : $self->label_col # Label by text
-            ? join('<br>', map { $_: $values->{label_text}->{$_} } keys %{$values->{label_text}})
+            ? join('<br>', map { "$_: $values->{label_text}->{$_}" } keys %{$values->{label_text}})
             : $self->group_col && $self->group_col->numeric # Group by number
             ? join('<br>', keys %{$values->{group_sum}})
             : $self->group_col
