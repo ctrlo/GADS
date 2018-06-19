@@ -423,7 +423,7 @@ sub _build_data
             ? $group_sums
             : $self->label_col->numeric
             ? $values->{label_sum}
-            : join('<br>', keys %{$values->{label_text}})
+            : join('<br>', map { "$_: $values->{label_text}->{$_}" } keys %{$values->{label_text}})
             if $self->label_col;
 
         push @item_return, $r;
