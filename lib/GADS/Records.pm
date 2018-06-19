@@ -904,7 +904,7 @@ sub single
     $self->page(1) if !$self->has_results && !$is_group;
     my $next_id = $self->_next_single_id;
     return if $self->max_results && $self->records_retrieved_count >= $self->max_results;
-    if ($next_id >= $chunk)
+    if ($next_id >= $chunk && !$is_group)
     {
         return if !$is_group && $self->page == $self->pages;
         $next_id = $next_id - $chunk;
