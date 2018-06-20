@@ -238,13 +238,14 @@ sub _build_data
         : $self->records->layout->all(user_can_read => 1);
 
     # If the x-axis field is one from a curval (and therefore another table) we
-    # need to replace it with the curval field, but one only containing the
-    # referenced field
+    # need to make sure that we are retrieving that value via the curval (which
+    # may not be a normally-displayed curval field)
     my $link;
     if ($self->x_axis_link)
     {
         $link = $self->records->layout->column($self->x_axis_link);
-        $link->curval_field_ids([$self->x_axis]);
+        push @{$link->curval_field_ids}, $self->x_axis
+            if ! grep { $_ == $self->x_axis } @{$link->curval_field_ids};
         $columns[0] = $link->id;
     }
 

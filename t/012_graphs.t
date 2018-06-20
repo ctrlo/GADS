@@ -154,6 +154,21 @@ foreach my $multivalue (0..1)
             data            => [[ 35, 0, 0, 0, 45, 45 ]],
         },
         {
+            name            => 'Date range x-axis from curval, integer sum y-axis, group by curval',
+            type            => 'bar',
+            x_axis          => $curval_sheet->columns->{daterange1}->id,
+            x_axis_link     => $columns->{curval1}->id,
+            x_axis_grouping => 'year',
+            y_axis          => $columns->{integer1}->id,
+            y_axis_stack    => 'sum',
+            group_by        => $columns->{curval1}->id,
+            data            => [[ 0, 0, 0, 0, 45, 45 ], [ 35, 0, 0, 0, 0, 0 ]],
+            labels       => [
+                'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012',
+                'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+            ],
+        },
+        {
             name            => 'Date x-axis, integer count y-axis',
             type            => 'bar',
             x_axis          => $columns->{date1}->id,

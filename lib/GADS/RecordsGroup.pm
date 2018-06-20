@@ -126,7 +126,7 @@ sub _build_results
                ? 'max'
                : $self->aggregate_all
                ? $self->operator
-               : $col->numeric
+               : !$curval_fields{$col->id} && $col->numeric
                ? 'sum'
                : 'max';
         # Don't use SUM() for non-numeric columns
