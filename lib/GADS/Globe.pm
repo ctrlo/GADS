@@ -87,6 +87,8 @@ has label_col => (
 
 sub _build_label_col
 {   my $self = shift;
+    !$self->label_col_id || $self->label_col_id < 0
+        and return;
     $self->records->layout->column($self->label_col_id);
 }
 
@@ -109,7 +111,7 @@ sub _build__group_by
         if $self->color_col_id && !$self->color_col->numeric;
 
     push @group_by, { id => $self->label_col_id }
-        if $self->label_col_id && !$self->label_col->numeric
+        if $self->label_col && !$self->label_col->numeric
             && (!$self->color_col_id || $self->label_col_id != $self->color_col_id);
 
     push @group_by, { id => $self->group_col_id }
@@ -209,7 +211,7 @@ sub _build_data
     my @extra;
     push @extra, $self->group_col_id if $self->group_col_id;
     push @extra, $self->color_col_id if $self->color_col_id;
-    push @extra, $self->label_col_id if $self->label_col_id;
+    push @extra, $self->label_col_id if $self->label_col;
     $self->records->columns_extra([@extra]);
 
     # All the data values
@@ -235,14 +237,6 @@ sub _build_data
                     $color = $self->graph->get_color($value_color);
                     $self->_used_color_keys->{$value_color} = 1;
                 }
-            }
-
-            if ($self->label_col)
-            {
-                my $op = $self->label_col->numeric ? 'sum' : 'max';
-                $value_label = $self->label_col->type eq 'curval'
-                    ? $self->_format_curcommon($self->label_col, $record)
-                    : $record->get_column($self->label_col->field);
             }
 
             if ($self->label_col)
@@ -325,9 +319,9 @@ sub _build_data
         foreach my $item (@items)
         {
             # label
-            if ($self->label_col)
+            if ($self->label_col_id)
             {
-                if ($self->label_col->numeric)
+                if ($self->label_col && $self->label_col->numeric)
                 {
                     $values->{label_sum} ||= 0;
                     $values->{label_sum} += $item->{value_label} if $item->{value_label};
@@ -335,8 +329,8 @@ sub _build_data
                         if $self->group_col;
                 }
                 else {
-                    $values->{label_text}->{$item->{value_label}} ||= 0;
-                    $values->{label_text}->{$item->{value_label}} += $item->{id_count};
+                    $values->{label_text}->{$item->{value_label} || '_count'} ||= 0;
+                    $values->{label_text}->{$item->{value_label} || '_count'} += $item->{id_count};
                 }
             }
 
@@ -403,12 +397,12 @@ sub _build_data
             ? "Total: $values->{label_sum}"
             : $self->color_col # Colour by text
             ? join('<br>', map { "$_: $values->{color_text}->{$_}" } keys %{$values->{color_text}})
-            : $self->label_col # Label by text
-            ? join('<br>', map { "$_: $values->{label_text}->{$_}" } keys %{$values->{label_text}})
             : $self->group_col && $self->group_col->numeric # Group by number
             ? join('<br>', keys %{$values->{group_sum}})
             : $self->group_col
             ? join('<br>', map { "$_: $values->{group_text}->{$_}" } keys %{$values->{group_text}})
+            : $self->label_col_id # Label by text
+            ? join('<br>', map { $_ eq '_count' ? $values->{label_text}->{$_} : "$_: $values->{label_text}->{$_}" } keys %{$values->{label_text}})
             : join('<br>', @{$values->{hover}});
         my $r = {
             hover    => $hover,
@@ -419,12 +413,12 @@ sub _build_data
         };
 
         # Only add a label if selected by user
-        $r->{label}    = $self->group_col && $self->label_col->numeric
+        $r->{label}    = $self->group_col && $self->label_col && $self->label_col->numeric
             ? $group_sums
-            : $self->label_col->numeric
+            : $self->label_col && $self->label_col->numeric
             ? $values->{label_sum}
-            : join('<br>', map { "$_: $values->{label_text}->{$_}" } keys %{$values->{label_text}})
-            if $self->label_col;
+            : join('<br>', map { $_ eq '_count' ? $values->{label_text}->{$_} : "$_: $values->{label_text}->{$_}" } keys %{$values->{label_text}})
+            if $self->label_col_id;
 
         push @item_return, $r;
     }
