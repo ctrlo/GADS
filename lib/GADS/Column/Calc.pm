@@ -30,9 +30,14 @@ has '+type' => (
     default => 'calc',
 );
 
-has '+has_filter_typeahead' => (
-    default => 1,
+has 'has_filter_typeahead' => (
+    is      => 'lazy',
 );
+
+sub _build_has_filter_typeahead
+{   my $self = shift;
+    $self->return_type eq 'string' ? 1 : 0;
+}
 
 sub _build__rset_code
 {   my $self = shift;

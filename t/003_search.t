@@ -515,6 +515,9 @@ my @filters = (
             operator => 'equal',
         }],
         count => 3,
+        values => {
+            $columns->{curval1}->id => "Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012",
+        },
     },
     {
         name  => 'Search 2 using enum with different tree in view',
@@ -884,6 +887,13 @@ foreach my $layout_from_instances (0..1)
 
         is( $records->count, $filter->{count}, "$filter->{name} for record count $filter->{count}");
         is( @{$records->results}, $filter->{count}, "$filter->{name} actual records matches count $filter->{count}");
+        if (my $test_values = $filter->{values})
+        {
+            foreach my $field (keys %$test_values)
+            {
+                is($records->results->[0]->fields->{$field}->as_string, $test_values->{$field}, "Test value of $filter->{name} correct");
+            }
+        }
 
         $view->set_sorts($view_columns, 'asc');
         $records = GADS::Records->new(
@@ -1491,7 +1501,9 @@ my @sorts = (
         sort_by      => [qw/enum1/],
         sort_type    => ['asc'],
         first        => qr/^(3)$/,
+        first_string => { curval1 => '' },
         last         => qr/^(6)$/,
+        last_string  => { curval1 => 'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012' },
         max_id       => 6,
         min_id       => 3,
         count        => 2,
@@ -1668,9 +1680,33 @@ foreach my $multivalue (0..1)
                 $records->clear;
                 $records->rows(1);
                 is( $records->results->[0]->current_id - $cid_adjust, $first, "Correct first record for sort override and test $sort->{name}");
+                if ($sort->{first_string})
+                {
+                    foreach my $colname (keys %{$sort->{first_string}})
+                    {
+                        my $colid = $columns->{$colname}->id;
+                        is(
+                            $records->results->[0]->fields->{$colid}->as_string,
+                            $sort->{first_string}->{$colname},
+                            "Correct first record value for $colname in test $sort->{name}"
+                        );
+                    }
+                }
                 $records->clear;
                 $records->page($sort->{count} || 7);
                 is( $records->results->[-1]->current_id - $cid_adjust, $last, "Correct last record for sort override and test $sort->{name}");
+                if ($sort->{last_string})
+                {
+                    foreach my $colname (keys %{$sort->{last_string}})
+                    {
+                        my $colid = $columns->{$colname}->id;
+                        is(
+                            $records->results->[0]->fields->{$colid}->as_string,
+                            $sort->{last_string}->{$colname},
+                            "Correct last record value for $colname in test $sort->{name}"
+                        );
+                    }
+                }
             }
             elsif ($pass == 2 || $pass == 3)
             {

@@ -442,4 +442,40 @@ foreach my $multivalue (0..1)
     }
 }
 
+# Test graph of large number of records
+my @data;
+push @data, {
+    string1  => 'foobar',
+    integer1 => 2,
+} for (1..1000);
+
+my $sheet = t::lib::DataSheet->new(data => \@data);
+$sheet->create_records;
+my $columns = $sheet->columns;
+
+my $graph = GADS::Graph->new(
+    title        => 'Test graph',
+    type         => 'bar',
+    x_axis       => $columns->{string1}->id,
+    y_axis       => $columns->{integer1}->id,
+    y_axis_stack => 'sum',
+    layout       => $sheet->layout,
+    schema       => $sheet->schema,
+);
+$graph->write;
+
+my $records = GADS::RecordsGroup->new(
+    user   => $sheet->user,
+    layout => $sheet->layout,
+    schema => $sheet->schema,
+);
+
+my $graph_data = GADS::Graph::Data->new(
+    id      => $graph->id,
+    records => $records,
+    schema  => $sheet->schema,
+);
+
+is_deeply($graph_data->points, [[2000]], "Graph data for large number of records is correct");
+
 done_testing();

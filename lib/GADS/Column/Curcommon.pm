@@ -163,6 +163,18 @@ sub _build_curval_field_ids_index
     \%vals;
 }
 
+# All the curval fields that are multivalue
+has curval_fields_multivalue => (
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
+);
+
+sub _build_curval_fields_multivalue
+{   my $self = shift;
+    [grep { $_->multivalue } @{$self->curval_fields}];
+}
+
 # The fields to actually retrieve. This will either be the same as
 # the standard curval_fields, or will include additional fields that
 # will be stored for calculated fields
