@@ -588,27 +588,20 @@ sub _find
     # Fetch and merge and multi-values
     my @record_ids = ($record->{id});
     push @record_ids, $self->linked_record_raw->{id} if $self->linked_record_raw;
-    if (my $multi = $records->fetch_multivalues([@record_ids]))
-    {
-        # At this point we could have either or both of record and linked.
-        # Check normal record first
-        if ($multi->{$record->{id}})
-        {
-            my $record_id = $record->{id};
-            $record->{$_} = $multi->{$record_id}->{$_} foreach keys %{$multi->{$record_id}};
-        }
-        # Now linked
-        if (my $linked = $self->linked_record_raw)
-        {
-            my $linked_id = $linked->{id};
-            $linked->{$_} = $multi->{$linked_id}->{$_} foreach keys %{$multi->{$linked_id}};
-        }
-    }
+
     if ($self->_set_approval_flag($record->{approval}))
     {
         $self->_set_approval_record_id($record->{record_id}); # Related record if this is approval record
     }
     $self->record($record);
+
+    # Fetch and add multi-values
+    $records->fetch_multivalues(
+        record_ids => \@record_ids,
+        retrieved  => [$record],
+        records    => [$self],
+    );
+
     $self; # Allow chaining
 }
 

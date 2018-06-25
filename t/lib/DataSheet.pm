@@ -549,6 +549,7 @@ sub __build_columns
             my $refers_to_instance_id = $self->curval;
             $curval->refers_to_instance_id($refers_to_instance_id);
             my $curval_field_ids_rs = $self->schema->resultset('Layout')->search({
+                type        => { '!=' => 'autocur' },
                 instance_id => $refers_to_instance_id,
             });
             my $curval_field_ids = $self->curval_field_ids || [ map { $_->id } $curval_field_ids_rs->all ];

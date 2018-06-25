@@ -743,7 +743,8 @@ sub _build_results
     };
 
     my @all; my @record_ids;
-    foreach my $rec ($result->all)
+    my @retrieved = $result->all;
+    foreach my $rec (@retrieved)
     {
         my @children = map { $_->{id} } @{$rec->{currents}};
         push @all, GADS::Record->new(
@@ -766,46 +767,97 @@ sub _build_results
     }
 
     # Fetch and add multi-values
-    my $multi = $self->fetch_multivalues([@record_ids]);
-    foreach my $row (@all)
-    {
-        my $record    = $row->record;
-        my $record_id = $record->{id};
-        $record->{$_} = $multi->{$record_id}->{$_} foreach keys %{$multi->{$record_id}};
-        if ($row->linked_record_raw)
-        {
-            my $record_linked = $row->linked_record_raw;
-            my $record_id_linked = $record_linked->{id};
-            $record_linked->{$_} = $multi->{$record_id_linked}->{$_} foreach keys %{$multi->{$record_id_linked}};
-        }
-    };
+    $self->fetch_multivalues(
+        record_ids => \@record_ids,
+        retrieved  => \@retrieved,
+        records    => \@all,
+    );
 
     \@all;
 }
 
 sub fetch_multivalues
-{   my ($self, $record_ids) = @_;
+{   my ($self, %params) = @_;
 
-    my $return; # Return undef if no multivalues
+    my $record_ids    = $params{record_ids};
+    my $retrieved     = $params{retrieved};
+    my $records       = $params{records};
+    my %curval_fields;
+
+    my %multi; # Stash of all the multivalues to fetch and insert
     my $cols_done = {};
     foreach my $column (@{$self->columns_retrieved_no})
     {
         my @cols = ($column);
         push @cols, $column->link_parent if $column->link_parent;
+        if ($column->type eq 'curval')
+        {
+            push @cols, @{$column->curval_fields_multivalue};
+            # Flag any curval multivalue fields as also requiring fetching
+            $curval_fields{$_->field} = $column->field
+                foreach @{$column->curval_fields_multivalue};
+        }
         foreach my $col (@cols)
         {
             next unless $col->multivalue;
             next if $cols_done->{$col->id};
-            foreach my $val ($col->fetch_multivalues($record_ids))
+            my @rids; # Used for the record IDs of the curval field values (different to main record IDs)
+            if (my $field = $curval_fields{$col->field})
+            {
+                foreach my $rec (@$retrieved)
+                {
+#                    next if !$rec->{record_single};
+                    foreach (@{$rec->{record_single}->{$field}})
+                    {
+                        push @rids, $_->{value}->{record_single}->{id}
+                            if $_->{value};
+                    }
+                }
+            }
+            # Fetch the multivalues for either the main record IDs or the
+            # records within the curval values. Then pass all back to the
+            # calling function
+            foreach my $val ($col->fetch_multivalues((@rids && \@rids) || $record_ids))
             {
                 my $field = "field$val->{layout_id}";
-                $return->{$val->{record_id}}->{$field} ||= [];
-                push @{$return->{$val->{record_id}}->{$field}}, $val;
+                $multi{$val->{record_id}}->{$field} ||= [];
+                push @{$multi{$val->{record_id}}->{$field}}, $val;
                 $cols_done->{$val->{layout_id}} = 1;
             }
         }
     }
-    $return;
+
+    foreach my $row (@$records)
+    {
+        my $record    = $row->record;
+        my $record_id = $record->{id};
+        # %multi is set with each record ID and then its multi-value
+        # fields within it. Sub-fields that are multivalue within curval fields
+        # are also fetched, but stored with the ID of the record of the
+        # curval value rather than the record from this retrieval.
+        # First normal values:
+        foreach my $field (keys %{$multi{$record_id}})
+        {
+            $record->{$field} = $multi{$record_id}->{$field};
+        }
+        # Then the curval sub-fields
+        foreach my $curval_subfield (keys %curval_fields)
+        {
+            my $curval_field = $curval_fields{$curval_subfield};
+            foreach my $subrecord (@{$record->{$curval_field}}) # Foreach whole curval value
+            {
+                my $sub_record2 = $subrecord->{value}->{record_single}
+                    or next; # blank curval value, no need to populate subfields
+                $sub_record2->{$curval_subfield} = $multi{$sub_record2->{id}}->{$curval_subfield};
+            }
+        }
+        if ($row->linked_record_raw)
+        {
+            my $record_linked = $row->linked_record_raw;
+            my $record_id_linked = $record_linked->{id};
+            $record_linked->{$_} = $multi{$record_id_linked}->{$_} foreach keys %{$multi{$record_id_linked}};
+        }
+    };
 }
 
 has _next_single_id => (
