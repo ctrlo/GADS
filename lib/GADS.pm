@@ -756,6 +756,8 @@ any '/data' => require_login sub {
             interpolate_children => 0,
         );
         my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} ||= {};
+        $tl_options->{width} ||= 3508;
+        $tl_options->{height} ||= 2480;
         if (param 'modal_timeline')
         {
             $tl_options->{label} = param('tl_label');
@@ -787,6 +789,10 @@ any '/data' => require_login sub {
 
         if (my $png = param('png'))
         {
+            $params->{tl_options}->{width} = int(param 'png_width')
+                if int(param 'png_width');
+            $params->{tl_options}->{height} = int(param 'png_height')
+                if int(param 'png_height');
             my $png = _page_as_mech('data_timeline', $params)->content_as_png;
             return send_file(
                 \$png,

@@ -140,6 +140,9 @@
                     <div class="btn-group">
                         <a class="btn btn-default" data-toggle="modal" data-target="#modal_timeline" role="button">Timeline options...</a>
                     </div>
+                    <div class="btn-group">
+                        <a class="btn btn-default" data-toggle="modal" data-target="#modal_png" role="button">Download...</a>
+                    </div>
                 [% ELSIF viewtype == "globe" %]
                     <div class="btn-group">
                         <a class="btn btn-default" data-toggle="modal" data-target="#modal_globe" role="button">Globe options...</a>
