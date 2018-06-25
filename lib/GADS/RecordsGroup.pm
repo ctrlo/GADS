@@ -334,11 +334,11 @@ sub _build_results
     my $select = {
         select => [@select_fields],
         join     => [
-            $self->linked_hash(prefetch => 1, search => 1, retain_join_order => 1),
+            $self->linked_hash(prefetch => 1, search => 1, retain_join_order => 1, include_multivalue => 1),
             {
                 'record_single' => [
                     'record_later',
-                    $self->jpfetch(prefetch => 1, search => 0, linked => 0, retain_join_order => 1),
+                    $self->jpfetch(prefetch => 1, search => 0, linked => 0, retain_join_order => 1, include_multivalue => 1),
                 ],
             },
         ],

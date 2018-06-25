@@ -50,7 +50,7 @@ foreach my $multivalue (0..1)
         },
     ];
 
-    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, multivalue => $multivalue);
     $curval_sheet->create_records;
     my $schema  = $curval_sheet->schema;
     my $sheet   = t::lib::DataSheet->new(data => $data, schema => $schema, curval => 2, multivalue => $multivalue);
@@ -237,6 +237,34 @@ foreach my $multivalue (0..1)
             y_axis_stack => 'sum',
             data         => [[ 35, 45 ]],
             xlabels      => ['Bar', 'Foo'],
+        },
+        {
+            name         => 'Enum field from curval on x-axis',
+            type         => 'bar',
+            x_axis       => $curval_sheet->columns->{enum1}->id,
+            x_axis_link  => $columns->{curval1}->id,
+            y_axis       => $columns->{integer1}->id,
+            y_axis_stack => 'sum',
+            data         => [[ 45, 35 ]],
+            xlabels      => ['foo1', 'foo2'],
+        },
+        {
+            name         => 'Enum field from curval on x-axis, enum on y, with filter',
+            type         => 'bar',
+            x_axis       => $curval_sheet->columns->{enum1}->id,
+            x_axis_link  => $columns->{curval1}->id,
+            y_axis       => $columns->{tree1}->id,
+            y_axis_stack => 'count',
+            data         => [[ 1, 1 ]],
+            xlabels      => ['foo1', 'foo2'],
+            rules => [
+                {
+                    id       => $columns->{enum1}->id,
+                    type     => 'string',
+                    value    => 'foo1',
+                    operator => 'equal',
+                }
+            ],
         },
         {
             name         => 'Curval on x-axis grouped by enum',
