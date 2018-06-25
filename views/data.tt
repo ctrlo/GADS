@@ -16,7 +16,7 @@
     <h1>All data</h1>
 [% END %]
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-8">
             <div class="btn-toolbar" role="toolbar">
                 <div class="btn-group" role="group">
                     <a href="?viewtype=table" class="btn btn-default">
@@ -133,6 +133,9 @@
                     <div class="btn-group">
                         <a class="btn btn-default" data-toggle="modal" data-target="#modal_timeline" role="button">Timeline options...</a>
                     </div>
+                    <div class="btn-group">
+                        <a class="btn btn-default" data-toggle="modal" data-target="#modal_png" role="button">Download...</a>
+                    </div>
                 [% ELSIF viewtype == "globe" %]
                     <div class="btn-group">
                         <a class="btn btn-default" data-toggle="modal" data-target="#modal_globe" role="button">Globe options...</a>
@@ -141,7 +144,7 @@
             </div>
         </div>
         [% IF viewtype == "table" %]
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <form method="get" class="form-horizontal">
                     <div class="form-group">
                         <div class="col-sm-4">

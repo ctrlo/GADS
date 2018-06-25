@@ -1,7 +1,4 @@
-[% UNLESS page_as_mech %]
-    <p><a href="?png=1">View as PNG image for print or download</a></p>
-[% END %]
-
+<p></p>
 [% FOREACH color IN colors %]
     <div class="timeline-color">
         <div class="timeline-color-key" style="background-color:[% color.color %]"></div>
@@ -13,7 +10,7 @@
     <div id="loading-div" class="centered-overlay">
          <div class="loader"></div>
     </div>
-    <div id="visualization" [% IF page_as_mech %]style="width:4096px" [% END %]>
+    <div id="visualization">
     </div>
 </div>
 
@@ -104,6 +101,12 @@
                         updateGroup: false,
                         remove:      false
                     },
+                [% END %]
+                [% IF page_as_mech AND tl_options.width %]
+                    width: [% tl_options.width %],
+                [% END %]
+                [% IF page_as_mech AND tl_options.height %]
+                    height: [% tl_options.height %],
                 [% END %]
                 margin: {
                     item: {
@@ -283,4 +286,19 @@
 </div>
 
 [% WRAPPER modal_dialog.tt modal_id="readmore_modal" modal_large=1 %]
+[% END %]
+
+[% WRAPPER modal_dialog.tt
+    modal_id="modal_png" modal_action_text="View" modal_heading="View timeline as PNG"
+    modal_with_form = 1 modal_form_method = "get"
+%]
+    <input type="hidden" name="png" value="1">
+    <div class="form-group">
+        <label for="png_height">Height of PNG (pixels):</label>
+        <input type="text" class="form-control" name="png_height" value="[% tl_options.height %]">
+    </div>
+    <div class="form-group">
+        <label for="png_width">Width of PNG (pixels):</label>
+        <input type="text" class="form-control" name="png_width" value="[% tl_options.width %]">
+    </div>
 [% END %]
