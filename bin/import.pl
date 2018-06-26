@@ -124,10 +124,11 @@ foreach my $ins (readdir $root)
     });
 
     my $layout = GADS::Layout->new(
-       user        => undef,
-       schema      => schema,
-       config      => GADS::Config->instance,
-       instance_id => $instance->id,
+       user                     => undef,
+       user_permission_override => 1,
+       schema                   => schema,
+       config                   => GADS::Config->instance,
+       instance_id              => $instance->id,
     );
 
     # The layout in a column is a weakref, so it will have been destroyed by
@@ -160,7 +161,7 @@ foreach my $ins (readdir $root)
         foreach my $old_id (keys %{$col->{permissions}})
         {
             my $new_id = $group_mapping->{$old_id};
-            $column->set_permissions($new_id, $col->{permissions}->{$old_id});
+            $column->set_permissions({ $new_id => $col->{permissions}->{$old_id} });
         }
 
         $column_mapping->{$col->{id}} = $column->id;
