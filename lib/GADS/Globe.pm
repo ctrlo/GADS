@@ -40,6 +40,17 @@ has records_options => (
     isa => HashRef,
 );
 
+has layout => (
+    is => 'lazy',
+);
+
+sub _build_layout
+{   my $self = shift;
+    # Need to get direct from options not from the records object, as layout is
+    # needed to establish the value of is_group when building records attribute
+    $self->records_options->{layout};
+}
+
 sub clear
 {   my $self = shift;
     $self->records->clear;
@@ -61,7 +72,7 @@ has group_col => (
 
 sub _build_group_col
 {   my $self = shift;
-    $self->records->layout->column($self->group_col_id);
+    $self->layout->column($self->group_col_id);
 }
 
 has color_col_id => (
@@ -74,7 +85,7 @@ has color_col => (
 
 sub _build_color_col
 {   my $self = shift;
-    $self->records->layout->column($self->color_col_id);
+    $self->layout->column($self->color_col_id);
 }
 
 has label_col_id => (
@@ -89,7 +100,19 @@ sub _build_label_col
 {   my $self = shift;
     !$self->label_col_id || $self->label_col_id < 0
         and return;
-    $self->records->layout->column($self->label_col_id);
+    $self->layout->column($self->label_col_id);
+}
+
+has has_label_col => (
+    is  => 'lazy',
+    isa => Bool,
+);
+
+sub _build_has_label_col
+{   my $self = shift;
+    return 1 if $self->label_col;
+    return 1 if $self->label_col_id && $self->label_col_id < 0;
+    return 0;
 }
 
 has _group_by => (
@@ -107,17 +130,17 @@ sub _build__group_by
         $_->return_type eq "globe"
     } @{$self->_columns};
 
-    push @group_by, { id => $self->color_col_id }
-        if $self->color_col_id && !$self->color_col->numeric;
+    push @group_by, { id => $self->color_col->id }
+        if $self->color_col && !$self->color_col->numeric;
 
     push @group_by, { id => $self->label_col_id }
         if $self->label_col && !$self->label_col->numeric
-            && (!$self->color_col_id || $self->label_col_id != $self->color_col_id);
+            && (!$self->color_col || $self->label_col_id != $self->color_col->id);
 
-    push @group_by, { id => $self->group_col_id }
-        if $self->group_col_id && !$self->group_col->numeric
-            && (!$self->color_col_id || $self->group_col_id != $self->color_col_id)
-            && (!$self->label_col_id || $self->group_col_id != $self->label_col_id);
+    push @group_by, { id => $self->group_col->id }
+        if $self->group_col && !$self->group_col->numeric
+            && (!$self->color_col || $self->group_col->id != $self->color_col->id)
+            && (!$self->label_col || $self->group_col->id != $self->label_col->id);
 
     \@group_by;
 }
@@ -137,7 +160,7 @@ has is_group => (
 
 sub _build_is_group
 {   my $self = shift;
-    return 1 if $self->color_col_id || $self->group_col_id || $self->label_col_id;
+    return 1 if $self->color_col || $self->group_col || $self->has_label_col;
     return 0;
 }
 
@@ -209,9 +232,9 @@ sub _build_data
 
     # Add on any extra required columns for labelling etc
     my @extra;
-    push @extra, $self->group_col_id if $self->group_col_id;
-    push @extra, $self->color_col_id if $self->color_col_id;
-    push @extra, $self->label_col_id if $self->label_col;
+    push @extra, $self->group_col->id if $self->group_col;
+    push @extra, $self->color_col->id if $self->color_col;
+    push @extra, $self->label_col->id if $self->label_col;
     $self->records->columns_extra([@extra]);
 
     # All the data values
@@ -319,7 +342,7 @@ sub _build_data
         foreach my $item (@items)
         {
             # label
-            if ($self->label_col_id)
+            if ($self->has_label_col)
             {
                 if ($self->label_col && $self->label_col->numeric)
                 {
@@ -401,13 +424,13 @@ sub _build_data
             ? join('<br>', keys %{$values->{group_sum}})
             : $self->group_col
             ? join('<br>', map { "$_: $values->{group_text}->{$_}" } keys %{$values->{group_text}})
-            : $self->label_col_id # Label by text
+            : $self->has_label_col # Label by text
             ? join('<br>', map { $_ eq '_count' ? $values->{label_text}->{$_} : "$_: $values->{label_text}->{$_}" } keys %{$values->{label_text}})
             : join('<br>', @{$values->{hover}});
         my $r = {
             hover    => $hover,
             location => $country,
-            index    => $self->color_col_id ? $count : 1,
+            index    => $self->color_col ? $count : 1,
             color    => $values->{color},
             z        => $values->{color_sum},
         };
@@ -418,7 +441,7 @@ sub _build_data
             : $self->label_col && $self->label_col->numeric
             ? $values->{label_sum}
             : join('<br>', map { $_ eq '_count' ? $values->{label_text}->{$_} : "$_: $values->{label_text}->{$_}" } keys %{$values->{label_text}})
-            if $self->label_col_id;
+            if $self->has_label_col;
 
         push @item_return, $r;
     }
@@ -446,14 +469,14 @@ sub _build_data
     };
     $r->{countrycolors} = $self->is_choropleth
         ? undef
-        : $self->color_col_id
+        : $self->color_col
         ? [map { $_->{color}} @item_return]
         : [('#D3D3D3') x scalar @item_return];
 
     $r->{marker} = $marker if $marker;
     my @return = ($r);
 
-    if ($self->label_col_id) # Add as second trace
+    if ($self->has_label_col) # Add as second trace
     {
         # Need to add a hover as well, otherwise there is a dead area where the
         # hover doesn't appear
