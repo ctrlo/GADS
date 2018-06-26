@@ -8,22 +8,22 @@ use GADS::Globe;
 
 use t::lib::DataSheet;
 
+my $simple_data = [
+    {
+        string1    => 'FRA',
+        integer1   => 10,
+        enum1      => 'foo2',
+    },{
+        string1    => 'GBR',
+        integer1   => 15,
+        enum1      => 'foo3',
+    },
+];
+
 # Simple test first
 {
-    my $data = [
-        {
-            string1    => 'FRA',
-            integer1   => 10,
-            enum1      => 'foo2',
-        },{
-            string1    => 'GBR',
-            integer1   => 15,
-            enum1      => 'foo3',
-        },
-    ];
-
     my $sheet = t::lib::DataSheet->new(
-        data             => $data,
+        data             => $simple_data,
         calc_code        => "function evaluate (L1string1) \n return L1string1 end",
         calc_return_type => 'globe',
     );
@@ -84,12 +84,14 @@ use t::lib::DataSheet;
         interpolate_children => 0,
     };
 
-    foreach my $test (qw/group label color/)
+    foreach my $test (qw/group label color group_numeric/)
     {
         my %options = $test eq 'group'
             ? (group_col_id => $columns->{enum1}->id)
             : $test eq 'color'
             ? (color_col_id => $columns->{integer1}->id)
+            : $test eq 'group_numeric'
+            ? (group_col_id => $columns->{integer1}->id)
             : (label_col_id => $columns->{string1}->id);
 
         $options{records_options} = $records_options;
@@ -106,6 +108,13 @@ use t::lib::DataSheet;
                 my $total = $1 + $2 + $3;
                 is($total, 50, "Total correct for all country items in group");
             }
+        }
+        elsif ($test eq 'group_numeric')
+        {
+            my $data = $globe->data->[0];
+            my $exp = [ ('Total: 500') x 10 ];
+            is($data->{hoverinfo}, 'text', "Show hover labels as text for group by numeric column");
+            is_deeply($data->{text}, $exp, "Labels correct for group by numeric column");
         }
         elsif ($test eq 'label')
         {
@@ -126,7 +135,7 @@ use t::lib::DataSheet;
             is_deeply($trace1->{text}, $text, "Correct text for first trace in label");
             my $trace2 = _sort_items($globe->data->[1]);
             is_deeply($trace2->{hovertext}, $text, "Correct hovertext for second trace in label");
-            is_deeply($trace2->{text}, \@countries, "Correct text for second trace in label");
+            is_deeply($trace2->{text}, $text, "Label of second trace is same as first trace");
         }
         else {
             my $got = $globe->data->[0]->{z};
@@ -135,6 +144,38 @@ use t::lib::DataSheet;
         }
 
         $globe->clear;
+    }
+}
+
+# Invalid columns
+{
+    my $sheet = t::lib::DataSheet->new(
+        data             => $simple_data,
+        calc_code        => "function evaluate (L1string1) \n return L1string1 end",
+        calc_return_type => 'globe',
+    );
+
+    $sheet->create_records;
+    my $schema  = $sheet->schema;
+    my $layout  = $sheet->layout;
+    my $columns = $sheet->columns;
+
+    my $records_options = {
+        user                 => $sheet->user,
+        layout               => $layout,
+        schema               => $schema,
+        interpolate_children => 0,
+    };
+
+    foreach my $test (qw/group_col_id label_col_id color_col_id/)
+    {
+        my $globe = GADS::Globe->new(
+            $test           => 999,
+            records_options => $records_options,
+        );
+
+        my $trace = $globe->data->[0];
+        is(@{$trace->{locations}}, 2, "Country count correct for invalid column");
     }
 }
 
