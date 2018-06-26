@@ -135,7 +135,7 @@ my $simple_data = [
             is_deeply($trace1->{text}, $text, "Correct text for first trace in label");
             my $trace2 = _sort_items($globe->data->[1]);
             is_deeply($trace2->{hovertext}, $text, "Correct hovertext for second trace in label");
-            is_deeply($trace2->{text}, \@countries, "Correct text for second trace in label");
+            is_deeply($trace2->{text}, $text, "Label of second trace is same as first trace");
         }
         else {
             my $got = $globe->data->[0]->{z};
