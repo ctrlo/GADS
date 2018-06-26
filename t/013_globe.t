@@ -84,12 +84,14 @@ my $simple_data = [
         interpolate_children => 0,
     };
 
-    foreach my $test (qw/group label color/)
+    foreach my $test (qw/group label color group_numeric/)
     {
         my %options = $test eq 'group'
             ? (group_col_id => $columns->{enum1}->id)
             : $test eq 'color'
             ? (color_col_id => $columns->{integer1}->id)
+            : $test eq 'group_numeric'
+            ? (group_col_id => $columns->{integer1}->id)
             : (label_col_id => $columns->{string1}->id);
 
         $options{records_options} = $records_options;
@@ -106,6 +108,13 @@ my $simple_data = [
                 my $total = $1 + $2 + $3;
                 is($total, 50, "Total correct for all country items in group");
             }
+        }
+        elsif ($test eq 'group_numeric')
+        {
+            my $data = $globe->data->[0];
+            my $exp = [ ('Total: 500') x 10 ];
+            is($data->{hoverinfo}, 'text', "Show hover labels as text for group by numeric column");
+            is_deeply($data->{text}, $exp, "Labels correct for group by numeric column");
         }
         elsif ($test eq 'label')
         {

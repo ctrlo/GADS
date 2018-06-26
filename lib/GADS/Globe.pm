@@ -382,7 +382,7 @@ sub _build_data
                 if ($self->group_col->numeric)
                 {
                     $values->{group_sum} ||= 0;
-                    $values->{group_sum} += $item->{group_label} if $item->{group_label};
+                    $values->{group_sum} += $item->{value_group} if $item->{value_group};
                 }
                 else {
                     $values->{group_text}->{$item->{value_group}} ||= 0;
@@ -421,7 +421,7 @@ sub _build_data
             : $self->color_col # Colour by text
             ? join('<br>', map { "$_: $values->{color_text}->{$_}" } keys %{$values->{color_text}})
             : $self->group_col && $self->group_col->numeric # Group by number
-            ? join('<br>', keys %{$values->{group_sum}})
+            ? "Total: $values->{group_sum}"
             : $self->group_col
             ? join('<br>', map { "$_: $values->{group_text}->{$_}" } keys %{$values->{group_text}})
             : $self->has_label_col # Label by text
