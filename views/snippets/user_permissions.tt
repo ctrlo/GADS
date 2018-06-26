@@ -56,7 +56,7 @@
 [% IF groups.size %]
     [% FOREACH group IN groups %]
         [% key = group.id %]
-        <div class="checkbox [% UNLESS user.permission.superadmin OR logged_in_user.has_group.$key %]disabled[% END %]">
+        <div class="checkbox [% UNLESS user.permission.superadmin OR user.has_group.$key %]disabled[% END %]">
             <label>
                 <input type="checkbox" name="groups" value="[% group.id %]"
                     [% IF edituser.has_group.$key %]checked[% END %]
