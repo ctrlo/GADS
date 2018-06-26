@@ -131,11 +131,16 @@ sub _build_graph
 sub _build_items
 {   my $self = shift;
 
+    my $layout = $self->records->layout;
+
     # Add on any extra required columns for labelling etc
     my @extra;
-    push @extra, $self->label_col_id if $self->label_col_id;
-    push @extra, $self->group_col_id if $self->group_col_id;
-    push @extra, $self->color_col_id if $self->color_col_id;
+    push @extra, $self->label_col_id
+        if $self->label_col_id && $layout->column($self->label_col_id);
+    push @extra, $self->group_col_id
+        if $self->group_col_id && $layout->column($self->group_col_id);
+    push @extra, $self->color_col_id
+        if $self->color_col_id && $layout->column($self->color_col_id);
     $self->records->columns_extra([@extra]);
 
     # All the data values
@@ -152,7 +157,7 @@ sub _build_items
     }
     while (my $record  = $records->single)
     {
-        my @group_to_add = $self->group_col_id
+        my @group_to_add = $self->group_col_id && $layout->column($self->group_col_id)
             ? @{$record->fields->{$self->group_col_id}->text_all}
             : (undef);
 

@@ -99,9 +99,10 @@ $records->clear;
 is( @{$records->data_timeline->{items}}, 1, "Filter and single column returns correct number of points to plot for timeline" );
 
 # When a timeline includes a label, that column should be automatically
-# included even if it's not part of the view
+# included even if it's not part of the view. Also include invalid group and
+# color and check it has no effect.
 $records->clear;
-my $items = $records->data_timeline(label => $columns->{string1}->id)->{items};
+my $items = $records->data_timeline(label => $columns->{string1}->id, group => 999, color => 999)->{items};
 like( $items->[0]->{content}, qr/Foo/, "Label included in output even if not in view" );
 
 # Now use the same filter and restrict by date
