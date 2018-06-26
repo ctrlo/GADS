@@ -57,7 +57,7 @@ has value => (
         my $value = $self->init_value && $self->init_value->[0];
         my $v = $self->_to_dt($value, source => 'db');
         $self->has_value(1) if defined $value || $self->init_no_value;
-        $v ||= DateTime->now if $self->column->default_today;
+        $v ||= DateTime->now if $self->column->default_today && !$self->record_id;
         $v;
     },
 );
