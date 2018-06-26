@@ -634,17 +634,11 @@ sub set_view_limits
 }
 
 sub graphs
-{   my ($self, $graphs) = @_;
+{   my ($self, $instance_id, $graphs) = @_;
 
-    # Will be a scalar if only one value submitted. If so,
-    # convert to array
-    my @graphs = !$graphs
-               ? ()
-               : ref $graphs eq 'ARRAY'
-               ? @$graphs
-               : ( $graphs );
+    ref $graphs eq 'ARRAY' or panic "Invalid call to graphs";
 
-    foreach my $g (@graphs)
+    foreach my $g (@$graphs)
     {
         unless($self->search_related('user_graphs', { graph_id => $g })->count)
         {
@@ -653,11 +647,11 @@ sub graphs
     }
 
     # Delete any graphs that no longer exist
-    my $search = {};
+    my $search = { 'graph.instance_id' => $instance_id };
     $search->{graph_id} = {
-        '!=' => [ -and => @graphs ]
-    } if @graphs;
-    $self->search_related('user_graphs', $search)->delete;
+        '!=' => [ -and => @$graphs ]
+    } if @$graphs;
+    $self->search_related('user_graphs', $search, { join => 'graph' })->delete;
 }
 
 # Used to check if a user has a group
