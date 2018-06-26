@@ -60,7 +60,7 @@
             <label>
                 <input type="checkbox" name="groups" value="[% group.id %]"
                     [% IF edituser.has_group.$key %]checked[% END %]
-                    [% UNLESS user.permission.superadmin OR logged_in_user.has_group.$key %]disabled[% END %]
+                    [% UNLESS user.permission.superadmin OR user.has_group.$key %]disabled[% END %]
                     >[% group.name | html_entity %]
             </label>
         </div>
