@@ -157,7 +157,9 @@ sub _build_items
     }
     while (my $record  = $records->single)
     {
-        my @group_to_add = $self->group_col_id && $layout->column($self->group_col_id)
+        my @group_to_add = $self->group_col_id
+                && $layout->column($self->group_col_id)
+                && $layout->column($self->group_col_id)->user_can('read')
             ? @{$record->fields->{$self->group_col_id}->text_all}
             : (undef);
 
