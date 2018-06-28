@@ -465,7 +465,7 @@
                     > <span [% label_style %]>[% label %]</span>
                 </label>
             </div>
-        [% ELSIF (dispcol.type != "curval" && dispcol.type != "enum") %]
+        [% ELSIF (dispcol.type != "curval" && dispcol.type != "enum") || dispcol.typeahead %]
             <label for="[% dispcol.id %]" [% label_style %]>
                 [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
             </label>
