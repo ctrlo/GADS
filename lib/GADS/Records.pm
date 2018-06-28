@@ -636,6 +636,15 @@ sub _build_search_limit_reached
     $self->_search_all_fields->{limit_reached};
 }
 
+has is_group => (
+    is  => 'lazy',
+    isa => Bool,
+);
+
+sub _build_is_group
+{   shift->isa('GADS::RecordsGroup');
+}
+
 # Produce a standard set of results without grouping
 sub _current_ids_rs
 {   my $self = shift;
@@ -684,7 +693,23 @@ sub _current_ids_rs
 sub _cid_search_query
 {   my $self = shift;
     my $search = { map { %$_ } $self->common_search(prefetch => 1, sort => 1, linked => 1) };
-    $search->{'me.id'} = { -in => $self->_current_ids_rs->as_query };
+
+    # If this is a group query then we will not be limiting by number of
+    # records (but will be reducing number of results by group), and therefore
+    # it's best to pass the current IDs required as a SQL query (otherwise we
+    # could be passing in 1000s of ID values). If we're doing the opposite,
+    # then we would be creating some very big queries with the sub-query, and
+    # therefore performance (Pg at least) has been shown to be better if we run
+    # the ID subquery first and only pass the IDs in to the main query
+    if ($self->is_group)
+    {
+        $search->{'me.id'} = { -in => $self->_current_ids_rs->as_query };
+    }
+    else {
+        my @cids = $self->_current_ids_rs->all;
+        $search->{'me.id'} = \@cids;
+    }
+
     my $record_single = $self->record_name(linked => 0);
     $search->{"$record_single.created"} = { '<' => $self->rewind_formatted }
         if $self->rewind;
@@ -871,7 +896,7 @@ has _next_single_id => (
 my $chunk = 100;
 sub single
 {   my $self = shift;
-    my $is_group = $self->isa('GADS::RecordsGroup');
+    my $is_group = $self->is_group;
     $self->rows($chunk) unless $is_group || $self->rows;
     $self->page(1) if !$self->has_results && !$is_group;
     my $next_id = $self->_next_single_id;
