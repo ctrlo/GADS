@@ -100,6 +100,16 @@ var SelectWidget = function (multi) {
     });
 
     $widget.on('click', onTriggerClick($trigger, $target));
+
+    $(document).on('click', function(e) {
+        var clickedOutside = !this.is(e.target) && this.has(e.target).length === 0;
+        if (clickedOutside) {
+            var isCurrentlyExpanded = $trigger.attr('aria-expanded') === 'true';
+            if (isCurrentlyExpanded) {
+                onTriggerClick($trigger, $target)();
+            }
+        }
+    }.bind(this));
 };
 
 var setupSelectWidgets = function () {
