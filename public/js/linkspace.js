@@ -110,6 +110,15 @@ var SelectWidget = function (multi) {
             }
         }
     }.bind(this));
+
+    $(document).keyup(function(e) {
+        if (e.keyCode == 27) {
+            var isCurrentlyExpanded = $trigger.attr('aria-expanded') === 'true';
+            if (isCurrentlyExpanded) {
+                onTriggerClick($trigger, $target)();
+            }
+        }
+    });
 };
 
 var setupSelectWidgets = function () {
