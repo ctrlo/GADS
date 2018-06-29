@@ -1268,6 +1268,11 @@ small.search_term {
 }
 
 .select-widget .available {
+    position: absolute;
+    left: 15px;
+    right: 15px;
+    z-index: 3;
+    background-color: #ffffff;
     border: 1px solid #336699;
     max-height: 19em;
     overflow-x: hidden;
