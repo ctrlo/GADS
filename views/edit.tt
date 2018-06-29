@@ -667,8 +667,10 @@
             [% value_id = field _ '_' _ value.id %]
             <li class="answer">
                 <span class="control">
-                    <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="[% value.id %]">
-                    <label id="[% value_id %]_label" for="[% value_id %]">[% value.value | html_entity %]</label>
+                    <label id="[% value_id %]_label" for="[% value_id %]">
+                        <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="[% value.id %]">
+                        [% value.value | html_entity %]
+                    </label>
                 </span>
                 [% IF details %]
                 <span class="details">
@@ -730,8 +732,10 @@
             [% value_id = field _ '_' _ value.id %]
             <li class="answer">
                 <span class="control">
-                    <input id="[% value_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %] value="[% value.id %]">
-                    <label id="[% value_id %]_label" for="[% value_id %]">[% value.value | html_entity %]</label>
+                    <label id="[% value_id %]_label" for="[% value_id %]">
+                        <input id="[% value_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %] value="[% value.id %]">
+                        [% value.value | html_entity %]
+                    </label>
                 </span>
                 [% IF details %]
                 <span class="details">
