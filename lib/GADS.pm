@@ -1068,7 +1068,7 @@ any '/account/?:action?/?' => require_login sub {
 
     if (param 'graphsubmit')
     {
-        if (process( sub { $user->graphs(param('graphs')) }))
+        if (process( sub { $user->graphs(var('layout')->instance_id, [body_parameters->get_all('graphs')]) }))
         {
             return forwardHome(
                 { success => "The selected graphs have been updated" }, 'account/graph' );
