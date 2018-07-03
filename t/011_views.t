@@ -66,6 +66,21 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
     $view->write;
 }
 
+# Check that user ID is written correctly for global/personal
+{
+    my $view = GADS::View->new(%view, user => $user_admin);
+    $view->write;
+    is( $schema->resultset('View')->find($view->id)->user_id, $user_admin->{id}, "User ID set for personal view");
+
+    $view->global(1);
+    $view->write;
+    is( $schema->resultset('View')->find($view->id)->user_id, undef, "User ID not set for global view");
+
+    $view->global(0);
+    $view->write;
+    is( $schema->resultset('View')->find($view->id)->user_id, $user_admin->{id}, "User ID set back for personal view");
+}
+
 # Test edit other user views functionality
 {
     # First viewing of other user views
