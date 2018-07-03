@@ -306,8 +306,7 @@ sub write
     {
         $vu->{user_id} = undef;
     }
-    elsif (!$self->id) # Preserve owner if editing other user's view
-    {
+    else { # Preserve owner if editing other user's view
         $vu->{user_id} = ($self->user_has_layout && $self->other_user_id) || $self->layout->user->id;
     }
 

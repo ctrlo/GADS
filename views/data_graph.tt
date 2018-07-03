@@ -43,7 +43,8 @@
                         renderer:$.jqplot.BarRenderer,
                         rendererOptions: {
                             shadow: false,
-                            fillToZero: true
+                            fillToZero: true,
+                            barMinWidth: 10
                         },
                         pointLabels: {
                             show: false,
