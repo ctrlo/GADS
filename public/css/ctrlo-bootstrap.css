@@ -1757,6 +1757,20 @@ small.search_term {
 .select-widget.multi .form-control {
   padding-bottom: 0; }
 
+.select-widget .form-control-search {
+  width: 100%;
+  height: 35px;
+  padding: 6px 12px 6px 30px;
+  background: url(/images/icon-search.png) no-repeat 6px 50%;
+  border: 1px solid #ccc;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s; }
+
+.select-widget .form-control-search:focus {
+  border-color: #66afe9;
+  outline: 0;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6); }
+
 .select-widget .label {
   font-size: 1em;
   font-weight: bold;
@@ -1825,12 +1839,12 @@ small.search_term {
 
 .select-widget .available {
   border: 1px solid #336699;
-  max-height: 17em;
+  max-height: 19em;
   overflow-x: hidden;
   overflow-y: scroll; }
 
 .select-widget .available .answer {
-  border-bottom: 1px solid #ccc;
+  border-top: 1px solid #ccc;
   margin: 0;
   padding: 0;
   overflow: hidden; }
@@ -1838,9 +1852,11 @@ small.search_term {
 .select-widget .available .answer:hover {
   background-color: #ededed; }
 
+.select-widget .available .search {
+  padding: .5em; }
+
 .select-widget.multi .available li {
-  border-bottom: 1px solid #ccc;
-  margin-bottom: 0.4em;
+  padding-top: .2em;
   padding-bottom: .2em; }
 
 .select-widget .available .answer:last-child,
