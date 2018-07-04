@@ -38,7 +38,7 @@ var SelectWidget = function (multi) {
         };
     };
  
-    var onTriggerClick = function ($trigger, $target) {
+    var onTriggerClick = function ($widget, $trigger, $target) {
         return function (event) {
             var isCurrentlyExpanded = $trigger.attr('aria-expanded') === 'true';
             var willExpandNext = !isCurrentlyExpanded;
@@ -46,6 +46,15 @@ var SelectWidget = function (multi) {
             $trigger.attr('aria-expanded', willExpandNext);
 
             if (willExpandNext) {
+                var widgetTop = $widget.offset().top;
+                var widgetBottom = widgetTop + $widget.outerHeight();
+                var viewportTop = $(window).scrollTop();
+                var viewportBottom = viewportTop + $(window).height();
+                var minimumRequiredSpace = 200;
+                var fitsBelow = widgetBottom + minimumRequiredSpace < viewportBottom;
+                var fitsAbove = widgetTop - minimumRequiredSpace > viewportTop;
+                var expandAtTop = fitsAbove && !fitsBelow;
+                $target.toggleClass('available--top', expandAtTop);
                 $target.removeAttr('hidden');
             } else {
                 $target.attr('hidden', '');
@@ -102,17 +111,17 @@ var SelectWidget = function (multi) {
 
     $availableItems.on('click', function () {
         if (!isSingle) return;
-        onTriggerClick($trigger, $target)();
+        onTriggerClick($widget, $trigger, $target)();
     });
 
-    $widget.on('click', onTriggerClick($trigger, $target));
+    $widget.on('click', onTriggerClick($widget, $trigger, $target));
 
     $(document).on('click', function(e) {
         var clickedOutside = !this.is(e.target) && this.has(e.target).length === 0;
         if (clickedOutside) {
             var isCurrentlyExpanded = $trigger.attr('aria-expanded') === 'true';
             if (isCurrentlyExpanded) {
-                onTriggerClick($trigger, $target)();
+                onTriggerClick($widget, $trigger, $target)();
             }
         }
     }.bind(this));
@@ -121,7 +130,7 @@ var SelectWidget = function (multi) {
         if (e.keyCode == 27) {
             var isCurrentlyExpanded = $trigger.attr('aria-expanded') === 'true';
             if (isCurrentlyExpanded) {
-                onTriggerClick($trigger, $target)();
+                onTriggerClick($widget, $trigger, $target)();
             }
         }
     });

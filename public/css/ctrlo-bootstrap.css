@@ -1795,6 +1795,9 @@ small.search_term {
 .select-widget-label.required {
   font-weight: bold; }
 
+.select-widget-dropdown {
+  position: relative; }
+
 .select-widget button {
   border: 1px solid #336699;
   border-radius: 0;
@@ -1851,14 +1854,21 @@ small.search_term {
 
 .select-widget .available {
   position: absolute;
-  left: 15px;
-  right: 15px;
+  left: 0;
+  right: 0;
   z-index: 3;
   background-color: #ffffff;
   border: 1px solid #336699;
   max-height: 19em;
   overflow-x: hidden;
   overflow-y: scroll; }
+
+.select-widget .available--top {
+  top: -1px;
+  transform: translateY(-100%); }
+
+.ie8 .select-widget .available--top {
+  top: auto; }
 
 .select-widget .available .answer {
   border-top: 1px solid #ccc;
