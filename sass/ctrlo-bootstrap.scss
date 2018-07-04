@@ -1276,7 +1276,6 @@ small.search_term {
 
 .select-widget .available .control {
     text-align: left;
-    padding: .3em .7em;
     width: 100%;
 }
 
@@ -1285,13 +1284,18 @@ small.search_term {
 }
 
 .select-widget .control label {
-    margin-left: .3em;
-    display: inline-block;
-    width: 90%;
+    display: block;
+    padding: .4em .7em;
+    margin: 0;
 }
 
 .select-widget .available .answer [type="radio"] {
+    margin-right: .3em;
     vertical-align: top;
+}
+
+.select-widget .available .answer [type="checkbox"] {
+    margin-right: .3em;
 }
 
 .select-widget .available .answer .details {
