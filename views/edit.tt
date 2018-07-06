@@ -644,46 +644,48 @@
 [% BLOCK singlevalue_column %]
     <div class="select-widget single">
         <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
-        <div class="form-group form-control" >
-            <ul class="current">
-                <li class="none-selected">blank</li>
+        <div class="select-widget-dropdown">
+            <div class="form-group form-control" >
+                <ul class="current">
+                    <li class="none-selected">blank</li>
+                [% FOREACH value IN values %]
+                    [% NEXT IF value.deleted %]
+                    [% checked = editvalue.id_hash.${value.id} %]
+                    [% value_id = field _ '_' _ value.id %]
+                    <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">[% value.value | html_entity %]</li>
+                [% END %]
+                </ul>
+                <button type="button" aria-controls="[% field %]_available_values"
+                            aria-expanded="false" aria-describedby="[% field %]_label">
+                    <span class="expanded glyphicon glyphicon-chevron-up" aria-label="Confirm"></span>
+                    <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
+                </button>
+            </div>
+            <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values">
+                <li class="search">
+                    <input type="search" class="form-control-search">
+                    <span hidden class="form-control-search__clear">&times;</span>
+                </li>
             [% FOREACH value IN values %]
                 [% NEXT IF value.deleted %]
                 [% checked = editvalue.id_hash.${value.id} %]
                 [% value_id = field _ '_' _ value.id %]
-                <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">[% value.value | html_entity %]</li>
+                <li class="answer">
+                    <span class="control">
+                        <label id="[% value_id %]_label" for="[% value_id %]">
+                            <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="[% value.id %]">
+                            [% value.value | html_entity %]
+                        </label>
+                    </span>
+                    [% IF details %]
+                    <span class="details">
+                        <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">Details</button>
+                    </span>
+                    [% END %]
+                </li>
             [% END %]
             </ul>
-            <button type="button" aria-controls="[% field %]_available_values" 
-                        aria-expanded="false" aria-describedby="[% field %]_label">
-                <span class="expanded glyphicon glyphicon-chevron-up" aria-label="Confirm"></span>
-                <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
-            </button>
         </div>
-        <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values">
-          <li class="search">
-            <input type="search" class="form-control-search">
-            <span hidden class="form-control-search__clear">&times;</span>
-          </li>
-        [% FOREACH value IN values %]
-            [% NEXT IF value.deleted %]
-            [% checked = editvalue.id_hash.${value.id} %]
-            [% value_id = field _ '_' _ value.id %]
-            <li class="answer">
-                <span class="control">
-                    <label id="[% value_id %]_label" for="[% value_id %]">
-                        <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="[% value.id %]">
-                        [% value.value | html_entity %]
-                    </label>
-                </span>
-                [% IF details %]
-                <span class="details">
-                    <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">Details</button>
-                </span>
-                [% END %]
-            </li>
-        [% END %]
-        </ul>
     </div>
 [% END %]
 
@@ -713,46 +715,48 @@
 [% BLOCK multivalue_column %]
     <div class="select-widget multi">
         <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
-        <div class="form-group form-control" >
-            <ul class="current">
-                <li class="none-selected">blank</li>
+        <div class="select-widget-dropdown">
+            <div class="form-group form-control" >
+                <ul class="current">
+                    <li class="none-selected">blank</li>
+                [% FOREACH value IN values %]
+                    [% NEXT IF value.deleted %]
+                    [% checked = editvalue.id_hash.${value.id} %]
+                    [% value_id = field _ '_' _ value.id %]
+                    <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">[% value.value | html_entity %]</li>
+                [% END %]
+                </ul>
+                <button type="button" aria-controls="[% field %]_available_values"
+                            aria-expanded="false" aria-describedby="[% field %]_label">
+                    <span class="expanded glyphicon glyphicon-chevron-up" aria-label="Confirm"></span>
+                    <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
+                </button>
+            </div>
+            <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values">
+                <li class="search">
+                    <input type="search" class="form-control-search">
+                    <span hidden class="form-control-search__clear">&times;</span>
+                </li>
             [% FOREACH value IN values %]
                 [% NEXT IF value.deleted %]
                 [% checked = editvalue.id_hash.${value.id} %]
                 [% value_id = field _ '_' _ value.id %]
-                <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">[% value.value | html_entity %]</li>
+                <li class="answer">
+                    <span class="control">
+                        <label id="[% value_id %]_label" for="[% value_id %]">
+                            <input id="[% value_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %] value="[% value.id %]">
+                            [% value.value | html_entity %]
+                        </label>
+                    </span>
+                    [% IF details %]
+                    <span class="details">
+                        <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">Details</button>
+                    </span>
+                    [% END %]
+                </li>
             [% END %]
             </ul>
-            <button type="button" aria-controls="[% field %]_available_values" 
-                        aria-expanded="false" aria-describedby="[% field %]_label">
-                <span class="expanded glyphicon glyphicon-chevron-up" aria-label="Confirm"></span>
-                <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
-            </button>
         </div>
-        <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values">
-          <li class="search">
-            <input type="search" class="form-control-search">
-            <span hidden class="form-control-search__clear">&times;</span>
-          </li>
-        [% FOREACH value IN values %]
-            [% NEXT IF value.deleted %]
-            [% checked = editvalue.id_hash.${value.id} %]
-            [% value_id = field _ '_' _ value.id %]
-            <li class="answer">
-                <span class="control">
-                    <label id="[% value_id %]_label" for="[% value_id %]">
-                        <input id="[% value_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %] value="[% value.id %]">
-                        [% value.value | html_entity %]
-                    </label>
-                </span>
-                [% IF details %]
-                <span class="details">
-                    <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">Details</button>
-                </span>
-                [% END %]
-            </li>
-        [% END %]
-        </ul>
     </div>
 [% END %]
 

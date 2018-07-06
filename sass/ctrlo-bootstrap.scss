@@ -1202,6 +1202,10 @@ small.search_term {
     font-weight: bold;
 }
 
+.select-widget-dropdown {
+    position: relative;
+}
+
 .select-widget button {
     border: 1px solid #336699;
     border-radius: 0;
@@ -1268,10 +1272,25 @@ small.search_term {
 }
 
 .select-widget .available {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    background-color: #ffffff;
     border: 1px solid #336699;
     max-height: 19em;
     overflow-x: hidden;
     overflow-y: scroll;
+}
+
+.select-widget .available--top {
+    top: -1px;
+    transform: translateY(-100%);
+}
+
+// transform is not supported in IE8, so reset some styles.
+.ie8 .select-widget .available--top {
+    top: auto;
 }
 
 .select-widget .available .answer {

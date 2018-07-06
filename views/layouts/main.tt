@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
+<!--[if IE 8]>        <html lang="en" class="ie8"><![endif]-->
+<!--[if gt IE 8]><!--><html lang="en"><!--<![endif]-->
     <head>
         <meta charset="utf-8">
         [% IF page == "data" AND viewtype == "graph" %]
