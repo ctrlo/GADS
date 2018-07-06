@@ -1760,16 +1760,28 @@ small.search_term {
 .select-widget .form-control-search {
   width: 100%;
   height: 35px;
-  padding: 6px 12px 6px 30px;
+  padding: 6px 24px 6px 30px;
   background: url(/images/icon-search.png) no-repeat 6px 50%;
   border: 1px solid #ccc;
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
   transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s; }
+  .select-widget .form-control-search::-ms-clear {
+    display: none; }
 
 .select-widget .form-control-search:focus {
   border-color: #66afe9;
   outline: 0;
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6); }
+
+.select-widget .form-control-search__clear {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-weight: bold;
+  font-size: 1.4em;
+  padding: 0 0.2em;
+  line-height: 1em;
+  cursor: pointer; }
 
 .select-widget .label {
   font-size: 1em;
@@ -1853,29 +1865,29 @@ small.search_term {
   background-color: #ededed; }
 
 .select-widget .available .search {
-  padding: .5em; }
+  padding: .5em;
+  position: relative; }
 
-.select-widget.multi .available li {
+.select-widget.multi .available .answer li {
   padding-top: .2em;
   padding-bottom: .2em; }
 
-.select-widget .available .answer:last-child,
-.select-widget.multi .available li:last-child {
+.select-widget .available .answer:last-child {
   border-bottom: 0;
   padding-bottom: 0;
   margin-bottom: 0; }
 
-.select-widget .available li > span {
+.select-widget .available li.answer > span {
   width: 17%;
   display: inline-block;
   vertical-align: top;
   text-align: right; }
 
-.select-widget .available .control {
+.select-widget .available .answer .control {
   text-align: left;
   width: 100%; }
 
-.select-widget .available.with-details .control {
+.select-widget .available.with-details .answer .control {
   width: 81%; }
 
 .select-widget .control label {

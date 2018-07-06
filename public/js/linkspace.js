@@ -51,6 +51,7 @@ var SelectWidget = function (multi) {
                 $target.attr('hidden', '');
                 $search.val('');
                 $answers.removeAttr('hidden');
+                $clearSearch.attr('hidden', '');
             }
         }
     };
@@ -66,6 +67,7 @@ var SelectWidget = function (multi) {
     var $currentItems = $current.children();
     var $answers = this.find('.answer');
     var $search = this.find('.form-control-search');
+    var $clearSearch = this.find('.form-control-search__clear');
 
     var updateState = function () {
         var $visible = $current.children('[data-list-item]:not([hidden])');
@@ -135,8 +137,20 @@ var SelectWidget = function (multi) {
         } else {
             $(this).removeAttr('hidden', '');
         }
-      })
-    })
+      });
+
+      if (searchValue.length) {
+        $clearSearch.removeAttr('hidden');
+      } else {
+        $clearSearch.attr('hidden', '');
+      }
+    });
+
+    $clearSearch.on('click', function() {
+        $search.val('');
+        $answers.removeAttr('hidden');
+        $clearSearch.attr('hidden', '');
+    });
 };
 
 var setupSelectWidgets = function () {
