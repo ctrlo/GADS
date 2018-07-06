@@ -49,6 +49,9 @@ var SelectWidget = function (multi) {
                 $target.removeAttr('hidden');
             } else {
                 $target.attr('hidden', '');
+                $search.val('');
+                $answers.removeAttr('hidden');
+                $clearSearch.attr('hidden', '');
             }
         }
     };
@@ -59,9 +62,12 @@ var SelectWidget = function (multi) {
     var $widget = this.find('.form-control');
     var $trigger = $widget.find('[aria-expanded]');
     var $current = this.find('.current');
-    var $availableItems = this.find('.available input');
+    var $availableItems = this.find('.available .answer input');
     var $target  = this.find('#' + $trigger.attr('aria-controls'));
     var $currentItems = $current.children();
+    var $answers = this.find('.answer');
+    var $search = this.find('.form-control-search');
+    var $clearSearch = this.find('.form-control-search__clear');
 
     var updateState = function () {
         var $visible = $current.children('[data-list-item]:not([hidden])');
@@ -118,6 +124,32 @@ var SelectWidget = function (multi) {
                 onTriggerClick($trigger, $target)();
             }
         }
+    });
+
+    $search.on('keyup', function() {
+      var searchValue = $(this).val().toLowerCase();
+
+      // hide the answers that do not contain the searchvalue
+      $.each($answers, function() {
+        var labelValue = $(this).find('label')[0].innerHTML.toLowerCase();
+        if (labelValue.indexOf(searchValue) === -1) {
+            $(this).attr('hidden', '');
+        } else {
+            $(this).removeAttr('hidden', '');
+        }
+      });
+
+      if (searchValue.length) {
+        $clearSearch.removeAttr('hidden');
+      } else {
+        $clearSearch.attr('hidden', '');
+      }
+    });
+
+    $clearSearch.on('click', function() {
+        $search.val('');
+        $answers.removeAttr('hidden');
+        $clearSearch.attr('hidden', '');
     });
 };
 

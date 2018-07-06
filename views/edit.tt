@@ -661,6 +661,10 @@
             </button>
         </div>
         <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values">
+          <li class="search">
+            <input type="search" class="form-control-search">
+            <span hidden class="form-control-search__clear">&times;</span>
+          </li>
         [% FOREACH value IN values %]
             [% NEXT IF value.deleted %]
             [% checked = editvalue.id_hash.${value.id} %]
@@ -726,6 +730,10 @@
             </button>
         </div>
         <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values">
+          <li class="search">
+            <input type="search" class="form-control-search">
+            <span hidden class="form-control-search__clear">&times;</span>
+          </li>
         [% FOREACH value IN values %]
             [% NEXT IF value.deleted %]
             [% checked = editvalue.id_hash.${value.id} %]
