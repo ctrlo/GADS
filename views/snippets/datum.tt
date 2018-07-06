@@ -29,22 +29,24 @@
 [% END %]
 
 [% MACRO render_person_datum(person) BLOCK %]
-    <button class="btn btn-xs btn-primary trigger" aria-expanded="false">
-        [% person.text | html %]
-        <span aria-hidden="true" class="glyphicon glyphicon-info-sign"></span>
-        <span class="visually-hidden">contact details</span>
-    </button>
-    <div class="person contact-details expandable popover">
-    [% FOR detail IN person.details %]
-        <div>
-            [% IF detail.type == 'email' %]
-                E-mail: <a href="mailto:[% detail.value | html %]">[% detail.value | html %]</a>
-            [% ELSE %]
-                [% detail.definition | html %]: [% detail.value | html %]
-            [% END %]
+    [% IF person %]
+        <button class="btn btn-xs btn-primary trigger" aria-expanded="false">
+            [% person.text | html %]
+            <span aria-hidden="true" class="glyphicon glyphicon-info-sign"></span>
+            <span class="visually-hidden">contact details</span>
+        </button>
+        <div class="person contact-details expandable popover">
+        [% FOR detail IN person.details %]
+            <div>
+                [% IF detail.type == 'email' %]
+                    E-mail: <a href="mailto:[% detail.value | html %]">[% detail.value | html %]</a>
+                [% ELSE %]
+                    [% detail.definition | html %]: [% detail.value | html %]
+                [% END %]
+            </div>
+        [% END %]
         </div>
     [% END %]
-    </div>
 [% END %]
 
 [% MACRO render_string_datum(string, header) BLOCK %]

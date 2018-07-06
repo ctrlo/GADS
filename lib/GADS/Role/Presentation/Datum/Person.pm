@@ -37,6 +37,8 @@ sub _presentation_details {
 sub presentation {
     my $self = shift;
 
+    return undef if $self->blank;
+
     return {
         type    => $self->column->type,
         text    => $self->text,
