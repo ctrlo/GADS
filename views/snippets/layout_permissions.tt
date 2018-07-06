@@ -1,12 +1,12 @@
 [% 
     permission_mapping = {
-        'read'                       => 'R',
-        'write_new'                  => 'C+A',
-        'write_existing'             => 'E+A',
-        'approve_new'                => 'A(N)',
-        'approve_existing'           => 'A(E)',
-        'write_new_no_approval'      => 'C',
-        'write_existing_no_approval' => 'E'
+        'read'                       => 'Read',
+        'write_new'                  => 'Write new',
+        'write_existing'             => 'Edit',
+        'approve_new'                => 'Approve new',
+        'approve_existing'           => 'Approve existing',
+        'write_new_no_approval'      => 'Write without approval',
+        'write_existing_no_approval' => 'Edit without approval'
     }
 
     permission_inputs = {
