@@ -13,5 +13,8 @@
         [% IF user.permission.link %]
             <li role="presentation"><a role="menuitem" href="/link/[% record.current_id %]">Link record</a></li>
         [% END %]
+        [% IF record.user_can_delete %]
+            <li role="presentation"><a role="menuitem" href="" data-toggle="modal" data-target="#modaldelete">Delete</a></li>
+        [% END %]
     </ul>
 </div>
