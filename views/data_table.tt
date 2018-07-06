@@ -20,22 +20,6 @@
 
 [% PROCESS rag_legend IF has_rag_column %]
 
-[% IF !config.gads.legacy_menu && search %]
-    <div class="row search-results">
-        <h1 class="col-md-12">
-            Search results <small class="search_term">for term "[% search | html_entity %]" ([% count %] results)</small>
-            <form id="clear_search" action="/data" method="post">
-                <button type="submit" name="clear_search" value="clear_search" class="btn btn-default">
-                Clear <span class="visually-hidden">search results</span>
-                </button>
-            </form>
-        </h1>
-        [% IF search_limit_reached %]
-            <h3>Only showing first [% search_limit_reached %] of [% count %] results</h3>
-        [% END %]
-    </div>
-[% END %]
-
 <div class="hscroll row">
 <table class="data-table table table-striped col-md-12" id="data-table">
     <thead>
