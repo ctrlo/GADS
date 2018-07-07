@@ -197,19 +197,22 @@
 [% END %]
 
 [% BLOCK data_menu %]
-   <div class="col-md-3 navbar navbar-default" id="app-navbar" aria-labelledby="app-navbar-heading">
-        <div class="heading" id="app-navbar-heading">System Administration</div>
-            <ul class="nav navbar-nav">
-                [% IF layout.user_can("layout") %]
-                    [% PROCESS table_menu %]
-                [% END %]
-                [% IF user.permission.useradmin %]
-                    [% PROCESS user_admin_menu %]
-                [% END %]
-                [% IF layout.user_can("layout") %]
-                    [% PROCESS graphs_menu %]
-                [% END %]
-           </ul>
+    <div class="col-md-3 navbar navbar-default" id="app-navbar" aria-labelledby="app-navbar-heading">
+        [% IF layout.user_can("layout") OR user.permission.useradmin %]
+            <div class="heading" id="app-navbar-heading">System Administration</div>
+                <ul class="nav navbar-nav">
+                    [% IF layout.user_can("layout") %]
+                        [% PROCESS table_menu %]
+                    [% END %]
+                    [% IF user.permission.useradmin %]
+                        [% PROCESS user_admin_menu %]
+                    [% END %]
+                    [% IF layout.user_can("layout") %]
+                        [% PROCESS graphs_menu %]
+                    [% END %]
+                </ul>
+            </div>
+        [% END %]
     </div>
 [% END %]
 
