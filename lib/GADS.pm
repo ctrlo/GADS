@@ -1732,11 +1732,10 @@ any '/layout/?:id?' => require_login sub {
             if (process( sub { $column->write(no_alerts => $no_alerts, no_cache_update => param('no_cache_update')) }))
             {
                 my $msg = param('id')
-                    ? qq(Your field has been updated successfully. You can <a href="/layout/0">create another one</a> or return to the <a href="/layout">main data layout page</a>.)
-                    : qq(Your field has been created. Next you need to <a href="" data-toggle="modal" data-target="#modal_permissions">set permissions for this field</a>);
+                    ? qq(Your field has been updated successfully)
+                    : qq(Your field has been created successfully);
 
-                report NOTICE => $msg, _class => 'html,success';
-                return forwardHome( undef, "layout/".$column->id );
+                return forwardHome( { success => $msg }, 'layout' );
             }
         }
         $params->{column} = $column;
