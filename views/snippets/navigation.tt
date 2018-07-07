@@ -120,12 +120,12 @@
         </button>
         <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
             <li [% IF page=="user" %]class="active"[% END %]><a href="[% url.page %]/user/">Manage users</a></li>
-            <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/user/0">Add a user</a></li>
+            <li [% IF page=="user/0" %]class="active"[% END %]><a href="[% url.page %]/user/0">Add a user</a></li>
             <li><a href="" data-toggle="modal" data-target="#modal-sendemail">Email users</a></li>
             <li><a href="/user?download">Download users</a></li>
             <li class="divider"></li>
             <li [% IF page=="group" %]class="active"[% END %]><a href="[% url.page %]/group/">Manage groups</a></li>
-            <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/group/0">Add a group</a></li>
+            <li [% IF page=="group/0" %]class="active"[% END %]><a href="[% url.page %]/group/0">Add a group</a></li>
         </ul>
     </li>
 [% END %]

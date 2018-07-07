@@ -1369,7 +1369,7 @@ any '/group/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
     }
 
     my $params = {
-        page => 'group'
+        page => defined $id && !$id ? 'group/0' : 'group'
     };
 
     if (defined $id)
@@ -1937,7 +1937,7 @@ any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
         titles            => $userso->titles,
         organisations     => $userso->organisations,
         permissions       => $userso->permissions,
-        page              => 'user'
+        page              => defined $route_id && !$route_id ? 'user/0' : 'user'
     };
     $output;
 };
