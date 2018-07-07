@@ -171,8 +171,12 @@
                 <li class="divider"></li>
                 <li [% IF page=="approval" %]class="active"[% END %]><a href="[% url.page %]/approval/">Approve records[% appcount %]</a></li>
             [% END %]
-            <li class="divider"></li>
-            <li [% IF page=="import" %]class="active"[% END %]><a href="[% url.page %]/import/">Import records</a></li>
+            [% IF layout.user_can("layout") %]
+                <li [% IF page=="import" %]class="active"[% END %]><a href="[% url.page %]/import/">Import records</a></li>
+            [% END %]
+	    [% IF layout.user_can("purge") %]
+		<li [% IF page=="purge" %]class="active"[% END %]><a href="[% url.page %]/purge/">Manage deleted records</a></li>
+	    [% END %]
         </ul>
     </li>
 [% END %]
