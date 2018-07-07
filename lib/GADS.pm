@@ -307,10 +307,12 @@ sub _update_persistent
 
 get '/' => require_login sub {
 
+    my $layout = var 'layout';
+    my $instance_name = $layout->name;
     template 'index' => {
-        layout      => var('layout'),
+        layout      => $layout,
         page        => 'index',
-        breadcrumbs => [Crumb()]
+        breadcrumbs => [Crumb($instance_name)]
     };
 };
 
@@ -993,7 +995,7 @@ any '/data' => require_login sub {
     $params->{current_view_limit_extra} = current_view_limit_extra($user, $layout) || $layout->default_view_limit_extra;
     $params->{alerts}                   = $alert->all;
     $params->{views_other_user}         = session('views_other_user_id') && rset('User')->find(session('views_other_user_id')),
-    $params->{breadcrumbs}              = [Crumb() => Crumb( '/data' => 'records' )];
+    $params->{breadcrumbs}              = [Crumb($layout->name) => Crumb( '/data' => 'records' )];
 
     template 'data' => $params;
 };
@@ -1045,6 +1047,7 @@ any '/purge/?' => require_login sub {
         records => $records->presentation,
     };
 
+    $params->{breadcrumbs} = [Crumb($layout->name) => Crumb( '/data' => 'records' ) => Crumb( '/purge' => 'purge records' )];
     template 'purge' => $params;
 };
 
@@ -1109,9 +1112,10 @@ any '/account/?:action?/?' => require_login sub {
         );
         my $all_graphs = $graphs->all;
         template 'account' => {
-            graphs => $all_graphs,
-            action => $action,
-            page   => 'account/graph',
+            graphs      => $all_graphs,
+            action      => $action,
+            page        => 'account/graph',
+            breadcrumbs => [Crumb(var('layout')->name) => Crumb( '/account/graph' => 'my graphs' )],
         };
     }
     elsif ($action eq 'detail')
@@ -1122,7 +1126,8 @@ any '/account/?:action?/?' => require_login sub {
             users         => [$user],
             titles        => $users->titles,
             organisations => $users->organisations,
-            page          => 'account/detail'
+            page          => 'account/detail',
+            breadcrumbs   => [Crumb(var('layout')->name) => Crumb( '/account/detail' => 'my details' )],
         };
     }
     else {
@@ -1158,7 +1163,8 @@ any '/config/?' => require_login sub {
     template 'config' => {
         all_columns => \@all_columns,
         instance    => $instance,
-        page        => 'config'
+        page        => 'config',
+        breadcrumbs => [Crumb(var('layout')->name) => Crumb( '/config' => 'manage homepage' )],
     };
 };
 
@@ -1174,9 +1180,10 @@ any '/graph/?' => require_login sub {
     my $graphs = GADS::Graphs->new(schema => schema, layout => $layout)->all;
 
     my $params = {
-        layout => $layout,
-        page   => 'graph',
-        graphs => $graphs,
+        layout      => $layout,
+        page        => 'graph',
+        graphs      => $graphs,
+        breadcrumbs => [Crumb($layout->name) => Crumb( '/data' => 'records' ) => Crumb( '/graph' => 'manage graphs' )],
     };
 
     template 'graphs' => $params;
@@ -1234,6 +1241,13 @@ any '/graph/:id' => require_login sub {
         instance_id => session('persistent')->{instance_id},
     )->all;
 
+    my $graph_name = $id ? $graph->title : "new graph";
+    my $graph_id   = $id ? $graph->id : 0;
+    $params->{breadcrumbs}   = [
+        Crumb($layout->name) => Crumb( '/data' => 'records' )
+            => Crumb( '/graph' => 'graphs' ) => Crumb( "/graph/$graph_id" => $graph_name )
+    ],
+
     template 'graph' => $params;
 };
 
@@ -1251,9 +1265,13 @@ get '/metrics/?' => require_login sub {
     )->all;
 
     my $params = {
-        layout  => $layout,
-        page    => 'metric',
-        metrics => $metrics,
+        layout      => $layout,
+        page        => 'metric',
+        metrics     => $metrics,
+        breadcrumbs => [Crumb($layout->name) => Crumb( '/data' => 'records' )
+            => Crumb( '/graph' => 'graphs' )
+            => Crumb( '/metric' => 'metrics' )
+        ],
     };
 
     template 'metrics' => $params;
@@ -1331,6 +1349,13 @@ any '/metric/:id' => require_login sub {
 
     $params->{metricgroup} = $metricgroup;
 
+    my $metric_name = $id ? $metricgroup->name : "new metric";
+    my $metric_id   = $id ? $metricgroup->id : 0;
+    $params->{breadcrumbs} = [Crumb($layout->name) => Crumb( '/data' => 'records' )
+            => Crumb( '/graph' => 'graphs' )
+            => Crumb( '/metric' => 'metrics' ) => Crumb( "/metric/$metric_id" => $metric_name )
+    ],
+
     template 'metric' => $params;
 };
 
@@ -1375,13 +1400,17 @@ any '/group/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
     if (defined $id)
     {
         # id will be 0 for new group
-        $params->{group} = $group;
+        $params->{group}       = $group;
         $params->{permissions} = [@permissions];
+        my $group_name = $id ? $group->name : 'new group';
+        my $group_id   = $id ? $group->id : 0;
+        $params->{breadcrumbs} = [Crumb($layout->name) => Crumb( '/group' => 'groups' ) => Crumb( "/group/$group_id" => $group_name )];
     }
     else {
         my $groups = GADS::Groups->new(schema => schema);
-        $params->{groups} = $groups->all;
-        $params->{layout} = $layout;
+        $params->{groups}      = $groups->all;
+        $params->{layout}      = $layout;
+        $params->{breadcrumbs} = [Crumb($layout->name) => Crumb( '/group' => 'groups' )];
     }
     template 'group' => $params;
 };
@@ -1389,8 +1418,9 @@ any '/group/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
 get '/table/?' => require_role superadmin => sub {
 
     template 'tables' => {
-        page      => 'table',
-        instances => [rset('Instance')->all],
+        page        => 'table',
+        instances   => [rset('Instance')->all],
+        breadcrumbs => [Crumb(var('layout')->name) => Crumb( '/table' => 'tables' )],
     };
 };
 
@@ -1438,10 +1468,13 @@ any '/table/:id' => require_role superadmin => sub {
         }
     }
 
+    my $table_name = $id ? $layout_edit->name : 'new table';
+    my $table_id   = $id ? $layout_edit->instance_id : 0;
     template 'table' => {
         page        => $id ? 'table' : 'table/0',
         layout_edit => $layout_edit,
         groups      => GADS::Groups->new(schema => schema)->all,
+        breadcrumbs => [Crumb(var('layout')->name) => Crumb( '/table' => 'tables' ) => Crumb( "/table/$table_id" => $table_name )],
     }
 };
 
@@ -1512,12 +1545,18 @@ any '/view/:id' => require_login sub {
         : defined param('id') && !param('id')
         ? 'view/0' : 'view';
 
+    my $breadcrumbs = [Crumb($layout->name) => Crumb( '/data' => 'records' )];
+    push @$breadcrumbs, Crumb( "/view/0?clone=$view_id" => 'clone view "'.$view->name.'"' ) if param('clone');
+    push @$breadcrumbs, Crumb( "/view/$view_id" => 'edit view "'.$view->name.'"' ) if $view_id && !param('clone');
+    push @$breadcrumbs, Crumb( "/view/0" => 'new view' ) if !$view_id && defined $view_id;
+
     my $output = template 'view' => {
-        layout       => $layout,
-        sort_types   => $view->sort_types,
-        view_edit    => $view, # TT does not like variable "view"
-        clone        => param('clone'),
-        page         => $page,
+        layout      => $layout,
+        sort_types  => $view->sort_types,
+        view_edit   => $view, # TT does not like variable "view"
+        clone       => param('clone'),
+        page        => $page,
+        breadcrumbs => $breadcrumbs,
     };
     $output;
 };
@@ -1573,6 +1612,7 @@ any '/layout/?:id?' => require_login sub {
         $params->{instances_object} = var('instances'); # For autocur. Don't conflict with other instances var
     }
 
+    my $breadcrumbs = [Crumb($layout->name) => Crumb( '/layout' => 'fields' )];
     if (param('id') || param('submit') || param('update_perms'))
     {
 
@@ -1702,12 +1742,14 @@ any '/layout/?:id?' => require_login sub {
         $params->{column} = $column;
         $params->{groups} = GADS::Groups->new(schema => schema);
         $params->{permissions} = [GADS::Type::Permissions->all];
+        push @$breadcrumbs, Crumb( "/layout/".$column->id => 'edit field "'.$column->name.'"' );
     }
     elsif (defined param('id'))
     {
         $params->{column} = 0; # New
         $params->{groups} = GADS::Groups->new(schema => schema);
         $params->{permissions} = [GADS::Type::Permissions->all];
+        push @$breadcrumbs, Crumb( "/layout/0" => 'new field' );
     }
 
     if (param 'saveposition')
@@ -1720,6 +1762,7 @@ any '/layout/?:id?' => require_login sub {
         }
     }
 
+    $params->{breadcrumbs} = $breadcrumbs;
     template 'layout' => $params;
 };
 
@@ -1749,6 +1792,7 @@ any '/user/upload' => require_any_role [qw/useradmin superadmin/] => sub {
         groups      => GADS::Groups->new(schema => schema)->all,
         permissions => $userso->permissions,
         user_fields => $userso->user_fields,
+        breadcrumbs => [Crumb(var('layout')->name) => Crumb( '/user' => 'users' ), Crumb( '/user/upload' => "user upload" ) ],
         # XXX Horrible hack - see single user edit route
         edituser    => +{ view_limits_with_blank => [ undef ] },
     };
@@ -1929,6 +1973,9 @@ any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
         ] if !$users; # Only if not already submitted
     }
 
+    my $breadcrumbs = [Crumb(var('layout')->name) => Crumb( '/user' => 'users' )];
+    push @$breadcrumbs, Crumb( "/user/$route_id" => "edit user $route_id" ) if $route_id;
+    push @$breadcrumbs, Crumb( "/user/$route_id" => "new user" ) if defined $route_id && !$route_id;
     my $output = template 'user' => {
         edit              => $route_id,
         users             => $users,
@@ -1937,7 +1984,8 @@ any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
         titles            => $userso->titles,
         organisations     => $userso->organisations,
         permissions       => $userso->permissions,
-        page              => defined $route_id && !$route_id ? 'user/0' : 'user'
+        page              => defined $route_id && !$route_id ? 'user/0' : 'user',
+        breadcrumbs       => $breadcrumbs,
     };
     $output;
 };
@@ -2052,6 +2100,8 @@ any '/approval/?:id?' => require_login sub {
             $params->{existing} = $existing;
         }
         $page  = 'edit';
+        $params->{breadcrumbs} = [Crumb($layout->name) =>
+            Crumb( '/approval' => 'approve records' ), Crumb( "/approval/$id" => "approve record $id" ) ];
     }
     else {
         $page  = 'approval';
@@ -2061,6 +2111,8 @@ any '/approval/?:id?' => require_login sub {
             layout => $layout
         );
         $params->{records} = $approval->records;
+        $params->{breadcrumbs} = [Crumb($layout->name) =>
+            Crumb( '/approval' => 'approve records' ) ];
     }
 
     template $page => $params;
@@ -2109,7 +2161,16 @@ any '/link/:id?' => require_login sub {
         }
     }
 
+    my $breadcrumbs = [Crumb($layout->name)];
+    if ($id)
+    {
+        push @$breadcrumbs, Crumb( "/link/$id" => "edit linked record $id" );
+    }
+    else {
+        push @$breadcrumbs, Crumb( '/link/' => 'add linked record' );
+    }
     template 'link' => {
+        breadcrumbs => $breadcrumbs,
         record      => $record,
         page        => 'link',
     };
@@ -2331,7 +2392,8 @@ any '/bulk/:type/?' => require_login sub {
         record      => $record,
         all_columns => \@columns_to_show,
         bulk_type   => $type,
-        page        => 'bulk'
+        page        => 'bulk',
+        breadcrumbs => [Crumb($layout->name), Crumb( "/data" => 'records' ), Crumb( "/bulk/$type" => "bulk $type records" )],
     };
 };
 
@@ -2503,12 +2565,22 @@ any '/edit/:id?' => require_login sub {
         ."unless the box is ticked and a different value entered."
             if $child_rec;
 
+    my $breadcrumbs = [Crumb($layout->name), Crumb( "/data" => 'records' )];
+    if ($id)
+    {
+        push @$breadcrumbs, Crumb( "/edit/$id" => "edit record $id" );
+    }
+    else {
+        push @$breadcrumbs, Crumb( "/edit/" => "new record" );
+    }
+
     my $output = template 'edit' => {
         record      => $record,
         child       => $child_rec,
         clone       => param('from'),
         all_columns => \@columns_to_show,
-        page        => 'edit'
+        page        => 'edit',
+        breadcrumbs => $breadcrumbs,
     };
     $output;
 };
@@ -2529,7 +2601,8 @@ get '/file/?' => require_login sub {
     })->all;
 
     template 'files' => {
-        files => [@files],
+        files       => [@files],
+        breadcrumbs => [Crumb($layout->name), Crumb( "/file" => 'files' )],
     };
 };
 
@@ -2669,7 +2742,7 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
         versions       => \@versions,
         all_columns    => \@columns,
         page           => 'record',
-        breadcrumbs    => [Crumb() => Crumb(%first_crumb) => Crumb( request->path, => 'record id ' . $id )]
+        breadcrumbs    => [Crumb($layout->name) => Crumb(%first_crumb) => Crumb( request->path => 'record id ' . $id )]
     };
     $output;
 };
@@ -2717,6 +2790,7 @@ any '/audit/?' => require_role audit => sub {
         filtering   => $audit->filtering,
         audit_types => GADS::Audit::audit_types,
         page        => 'audit',
+        breadcrumbs => [Crumb(var('layout')->name), Crumb( "/audit" => 'audit logs' )],
     };
 };
 
@@ -2730,14 +2804,16 @@ any '/import/?' => require_any_role [qw/layout useradmin/] => sub {
     }
 
     template 'import' => {
-        imports => [rset('Import')->search({},{ order_by => { -desc => 'me.completed' } })->all],
-        page    => 'import',
+        imports     => [rset('Import')->search({},{ order_by => { -desc => 'me.completed' } })->all],
+        page        => 'import',
+        breadcrumbs => [Crumb(var('layout')->name) => Crumb( "/data" => 'records' ) => Crumb( "/import" => 'imports' )],
     };
 };
 
 any '/import/rows/:import_id' => require_any_role [qw/layout useradmin/] => sub {
 
-    rset('Import')->find(param 'import_id')
+    my $import_id = param 'import_id';
+    rset('Import')->find($import_id)
         or error __"Requested import not found";
 
     my $rows = rset('ImportRow')->search({
@@ -2749,9 +2825,11 @@ any '/import/rows/:import_id' => require_any_role [qw/layout useradmin/] => sub 
     });
 
     template 'import/rows' => {
-        import_id => param('import_id'),
-        rows      => $rows,
-        page      => 'import',
+        import_id   => param('import_id'),
+        rows        => $rows,
+        page        => 'import',
+        breadcrumbs => [Crumb(var('layout')->name) => Crumb( "/data" => 'records' )
+            => Crumb( "/import" => 'imports' ), Crumb( "/import/rows/$import_id" => "import ID $import_id" ) ],
     };
 };
 
@@ -2791,8 +2869,10 @@ any '/import/data/?' => require_login sub {
     }
 
     template 'import/data' => {
-        layout => var('layout'),
-        page   => 'import',
+        layout      => var('layout'),
+        page        => 'import',
+        breadcrumbs => [Crumb(var('layout')->name) => Crumb( "/data" => 'records' )
+            => Crumb( "/import" => 'imports' ), Crumb( "/import/data" => 'new import' ) ],
     };
 };
 

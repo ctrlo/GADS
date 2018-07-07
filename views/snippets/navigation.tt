@@ -11,11 +11,9 @@
     [% END %]
 </nav>
 
-[% IF 0 %]
-    <div class="row crumbs">
-        [% PROCESS crumbs %]
-    </div>
-[% END %]
+<div class="row crumbs">
+    [% PROCESS crumbs %]
+</div>
 
 [% BLOCK skip_links %]
     <ol id="skip-links">

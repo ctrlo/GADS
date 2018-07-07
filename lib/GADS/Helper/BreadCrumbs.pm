@@ -6,15 +6,20 @@ our @EXPORT_OK = qw(
     Crumb
 );
 
-sub BreadCrumbHome {
+sub _breadcrumb_home
+{   my $instance_name = shift;
     +{
-        text => 'Linkspace home', # FIXME System name instead
+        text => "$instance_name home",
         href => '/',
     }
 };
 
-sub Crumb {
-    return BreadCrumbHome() unless @_;
+sub Crumb
+{   if (@_ == 1)
+    {
+        my $instance_name = shift;
+        return _breadcrumb_home($instance_name) unless @_;
+    }
 
     my ($href, $text) = @_;
     return +{

@@ -244,7 +244,8 @@ nav .dropdown-toggle {
 }
 
 .breadcrumbs {
-    border: 1px solid #ccccdd;
+    border: solid #e7e7e7;
+    border-width: 1px 0px 1px 0px;
     background-color: #fff;
 }
 
@@ -298,7 +299,6 @@ nav .dropdown-toggle {
 .breadcrumbs .item a {
     color: #034575;
     text-decoration: none;
-    border-bottom: 1px solid #ccc;
 }
 
 .nav {
