@@ -171,10 +171,7 @@
 </form>
 [% ELSE %]
 <p>
-    <a href="/user/0" class="btn btn-default" role="button">Add a user</a>
     <a href="" data-toggle="modal" data-target="#sendemail" class="btn btn-default" role="button">Email users</a>
-    <a href="/user?download" class="btn btn-default" role="button">Download</a>
-    <a href="/user/upload" class="btn btn-default" role="button">Upload</a>
 </p>
 [% IF register_requests.size %]
     <h4>Active accounts</h4>
