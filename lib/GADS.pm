@@ -1041,6 +1041,7 @@ any '/purge/?' => require_login sub {
     );
 
     my $params = {
+        page    => 'purge',
         records => $records->presentation,
     };
 
