@@ -11,7 +11,7 @@
     [% END %]
 </nav>
 
-[% UNLESS config.gads.legacy_menu %]
+[% IF 0 %]
     <div class="row crumbs">
         [% PROCESS crumbs %]
     </div>
@@ -55,24 +55,12 @@
 
 [% BLOCK dataset_menu %]
     <div class="col-md-2 navbar navbar-default" id="dataset-navbar">
+        <div class="heading" id="app-navbar-heading">Data</div>
         <ul class="nav navbar-nav">
-            <li class="dropdown">
-                <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
-                    aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
-                    <h2 class="heading">Dataset <span class="visually-hidden">menu</span></h2>
-                    <span>[% instance_name | html_entity %]</span>
-                    <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu" id="table-menu">
-                [% FOREACH layout IN instances %]
-                    <li [% IF layout.instance_id == instance_id %]class="active"[% END %]>
-                        <a href="?instance=[% layout.instance_id %]"
-                        >[% layout.name | html_entity %]</a>
-                    </li>
-                [% END %]
-                </ul>
-            </li>
+            [% PROCESS table_selector %]
+            [% PROCESS records_menu %]
         </ul>
+    </div>
     </div>
 [% END %]
 
@@ -141,6 +129,24 @@
     </li>
 [% END %]
 
+[% BLOCK table_selector %]
+    <li class="dropdown">
+        <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
+            aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
+            <span>[% instance_name | html_entity %]</span>
+            <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" id="table-menu">
+        [% FOREACH layout IN instances %]
+            <li [% IF layout.instance_id == instance_id %]class="active"[% END %]>
+                <a href="?instance=[% layout.instance_id %]"
+                >[% layout.name | html_entity %]</a>
+            </li>
+        [% END %]
+        </ul>
+    </li>
+[% END %]
+
 [% BLOCK records_menu %]
     <li class="dropdown">
         <button type="button" id="admin-menu" class="dropdown-toggle" 
@@ -167,58 +173,28 @@
             [% END %]
             <li class="divider"></li>
             <li [% IF page=="import" %]class="active"[% END %]><a href="[% url.page %]/import/">Import records</a></li>
-            [% IF viewtype == "table" AND records.size AND layout.user_can("download") %]
-                <li><a href="[% url.page %]/data?download">Download records in current view</a></li>
-            [% END %]
-            [% IF search %]
-                [% sel_type = "in this search" %]
-            [% ELSE %]
-                [% sel_type = "in this view" %]
-            [% END %]
-            [% IF layout.user_can("bulk_update") %]
-                <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/update/">Update all records [% sel_type %]...</a></li>
-                <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/clone/">Clone all records [% sel_type %]...</a></li>
-            [% END %]
-            [% IF layout.user_can("delete") %]
-                <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_delete" style="cursor: pointer">Delete all records [% sel_type %]...</a>
-            [% END %]
         </ul>
     </li>
 [% END %]
 
-[% BLOCK views_menu %]
+[% BLOCK graphs_menu %]
     <li class="dropdown">
         <button type="button" id="admin-menu" class="dropdown-toggle" 
             data-toggle="dropdown" aria-controls="admin-menu-options" aria-expanded="false" aria-haspopup="true">
-            <span>Views</span>
+            <span>Graphs</span>
             <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
-            [% IF layout.user_can("view_create") %]
-                <li [% IF page=="view/0" %]class="active"[% END %]><a href="[% url.page %]/view/0">Add a view</a></li>
-            [% END %]
-            [% IF v %]
-                [% IF v.writable %]
-                    <li [% IF page=="view" %]class="active"[% END %]><a href="/view/[% v.id %]">Edit current view</a></li>
-                [% END %]
-                <li [% IF page=="view/clone" %]class="active"[% END %]><a href="/view/0?clone=[% v.id %]">Copy current view</a></li>
-            [% END %]
-            <li class="divider"></li>
             <li [% IF page=="graph" %]class="active"[% END %]><a href="[% url.page %]/graph/">Manage graphs</a></li>
             <li [% IF page=="graph/0" %]class="active"[% END %]><a href="[% url.page %]/graph/0">Add a graph</a></li>
             <li [% IF page=="account/graph" %]class="active"[% END %]><a href="[% url.page %]/account/graph/">My graphs</a></li>
-            <li class="divider"></li>
-            <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_rewind">Historic view...</a></li>
-            [% IF v %]
-                <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_alert">Set up an alert</a></li>
-            [% END %]
         </ul>
     </li>
 [% END %]
 
 [% BLOCK data_menu %]
    <div class="col-md-4 navbar navbar-default" id="app-navbar" aria-labelledby="app-navbar-heading">
-        <div class="heading" id="app-navbar-heading">Data management</div>
+        <div class="heading" id="app-navbar-heading">System Administration</div>
             <ul class="nav navbar-nav">
                 [% IF layout.user_can("layout") %]
                     [% PROCESS table_menu %]
@@ -226,8 +202,9 @@
                 [% IF user.permission.useradmin %]
                     [% PROCESS user_admin_menu %]
                 [% END %]
-                [% PROCESS records_menu %]
-                [% PROCESS views_menu %]
+                [% IF layout.user_can("layout") %]
+                    [% PROCESS graphs_menu %]
+                [% END %]
            </ul>
     </div>
 [% END %]

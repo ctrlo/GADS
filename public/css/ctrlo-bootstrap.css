@@ -212,7 +212,7 @@ nav.navbar li > a.home {
 .navbar-inverse .navbar-link {
   color: #999999; }
 
-#app-navbar .dropdown-toggle {
+nav .dropdown-toggle {
   padding-top: 0;
   margin-right: .5em; }
 
