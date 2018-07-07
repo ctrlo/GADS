@@ -130,21 +130,23 @@
 [% END %]
 
 [% BLOCK table_selector %]
-    <li class="dropdown">
-        <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
-            aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
-            <span>[% instance_name | html_entity %]</span>
-            <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu" id="table-menu">
-        [% FOREACH layout IN instances %]
-            <li [% IF layout.instance_id == instance_id %]class="active"[% END %]>
-                <a href="?instance=[% layout.instance_id %]"
-                >[% layout.name | html_entity %]</a>
-            </li>
-        [% END %]
-        </ul>
-    </li>
+    [% IF instances.count > 1 %]
+        <li class="dropdown">
+            <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
+                aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
+                <span>[% instance_name | html_entity %]</span>
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" id="table-menu">
+            [% FOREACH layout IN instances %]
+                <li [% IF layout.instance_id == instance_id %]class="active"[% END %]>
+                    <a href="?instance=[% layout.instance_id %]"
+                    >[% layout.name | html_entity %]</a>
+                </li>
+            [% END %]
+            </ul>
+        </li>
+    [% END %]
 [% END %]
 
 [% BLOCK records_menu %]
