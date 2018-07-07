@@ -46,7 +46,7 @@
                 <div class="form-group">
                     <label for="title">
                         Title:
-                        [% IF page == "user" %]
+                        [% IF page.match("user") %]
                             <button type="button" class="btn btn-default" data-toggle="modal" data-target="#submitnewtitle">Add title</button>
                         [% END %]
                     </label>
@@ -62,7 +62,7 @@
                 <div class="form-group">
                     <label for="organisation">
                         [% site.register_organisation_name %]:
-                        [% IF page == "user" %]
+                        [% IF page.match("user") %]
                             <button type="button" class="btn btn-default" data-toggle="modal" data-target="#submitneworganisation">Add organisation</button>
                         [% END %]
                     </label>
@@ -76,7 +76,7 @@
                     </select>
                 </div>
             [% END %]
-            [% IF page == "user" %]
+            [% IF page.match("user") %]
                 <div class="form-group">
                     <label for="account_request_notes">Notes:</label>
                     <textarea class="form-control" id="account_request_notes" name="account_request_notes">[% edituser.account_request_notes | html_entity %]</textarea>
@@ -84,7 +84,7 @@
                 [% INCLUDE "snippets/user_permissions.tt" %]
             [% END %]
             <button type="submit" name="submit" value="submit" class="btn btn-primary">[% IF edituser.account_request %]Approve request[% ELSE %]Save[% END %]</button>
-            [% IF page == "user" AND edituser.id %]
+            [% IF page.match("user") AND edituser.id %]
                 [% IF edituser.account_request %]
                     <button type="submit" name="delete" value="[% edituser.id %]" class="btn btn-default">Reject request</button>
                 [% ELSE %]
@@ -95,7 +95,7 @@
                 <button type="button" data-toggle="modal" data-target="#newpassword" class="btn btn-default">Change password</button>
             [% END %]
         </div>
-        [% IF page == "user" %]
+        [% IF page.match("user") %]
             <div class="col-md-6">
                 <h4>Permissions help</h4>
                 <dl>
