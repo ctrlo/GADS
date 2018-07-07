@@ -76,9 +76,6 @@
                 </button>
                 <ul class="dropdown-menu" id="user-menu">
                     <li [% IF 0 %]class="active"[% END %]>
-                        <a href="[% url.page %]/config/">Manage homepage</a>
-                    </li>
-                    <li [% IF 0 %]class="active"[% END %]>
                         <a href="[% url.page %]/file/">Manage uploads</a>
                     </li>
                     <li [% IF 0 %]class="active"[% END %]>
@@ -106,6 +103,10 @@
             <li class="divider"></li>
             <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/layout/">Manage fields</a></li>
             <li [% IF page=="layout/0" %]class="active"[% END %]><a href="[% url.page %]/layout/0">Add a field</a></li>
+            <li class="divider"></li>
+            <li [% IF page=="config" %]class="active"[% END %]>
+                <a href="[% url.page %]/config/">Manage homepage</a>
+            </li>
         </ul>
     </li>
 [% END %]
