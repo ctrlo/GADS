@@ -192,6 +192,7 @@
         <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
             <li [% IF page=="graph" %]class="active"[% END %]><a href="[% url.page %]/graph/">Manage graphs</a></li>
             <li [% IF page=="graph/0" %]class="active"[% END %]><a href="[% url.page %]/graph/0">Add a graph</a></li>
+            <li [% IF page=="metric" %]class="active"[% END %]><a href="[% url.page %]/metrics/">Metrics</a></li>
         </ul>
     </li>
 [% END %]
