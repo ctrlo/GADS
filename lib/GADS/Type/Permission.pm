@@ -31,13 +31,26 @@ has short => (
 sub long {
     my $self = shift;
     $self->short or return "";
-      $self->short eq 'read'                       ? 'Read values'
-    : $self->short eq 'write_new'                  ? 'Enter values for new records, requiring approval'
-    : $self->short eq 'write_existing'             ? 'Edit values of existing records, requiring approval'
-    : $self->short eq 'approve_new'                ? 'Approve values in new records'
-    : $self->short eq 'approve_existing'           ? 'Approve changes in existing records'
-    : $self->short eq 'write_new_no_approval'      ? 'Enter values for new records without requiring approval'
-    : $self->short eq 'write_existing_no_approval' ? 'Edit values of existing records without requiring approval'
+      $self->short eq 'read'                       ? 'Values can be read'
+    : $self->short eq 'write_new'                  ? 'Values can be written to new records'
+    : $self->short eq 'write_existing'             ? 'Modifications can be made to existing records'
+    : $self->short eq 'approve_new'                ? 'Values for new records can be approved'
+    : $self->short eq 'approve_existing'           ? 'Modifications to existing records can be approved'
+    : $self->short eq 'write_new_no_approval'      ? 'Values for new records do not require approval'
+    : $self->short eq 'write_existing_no_approval' ? 'Modifications to existing records do not require approval'
+    : '';
+}
+
+sub medium {
+    my $self = shift;
+    $self->short or return "";
+      $self->short eq 'read'                       ? 'Read'
+    : $self->short eq 'write_new'                  ? 'Write new'
+    : $self->short eq 'write_existing'             ? 'Edit'
+    : $self->short eq 'approve_new'                ? 'Approve new'
+    : $self->short eq 'approve_existing'           ? 'Approve existing'
+    : $self->short eq 'write_new_no_approval'      ? 'Write without approval'
+    : $self->short eq 'write_existing_no_approval' ? 'Edit without approval'
     : '';
 }
 

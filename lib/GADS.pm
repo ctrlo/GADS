@@ -1739,17 +1739,17 @@ any '/layout/?:id?' => require_login sub {
             }
         }
         $params->{column} = $column;
-        $params->{groups} = GADS::Groups->new(schema => schema);
-        $params->{permissions} = [GADS::Type::Permissions->all];
         push @$breadcrumbs, Crumb( "/layout/".$column->id => 'edit field "'.$column->name.'"' );
     }
     elsif (defined param('id'))
     {
         $params->{column} = 0; # New
-        $params->{groups} = GADS::Groups->new(schema => schema);
-        $params->{permissions} = [GADS::Type::Permissions->all];
         push @$breadcrumbs, Crumb( "/layout/0" => 'new field' );
     }
+    $params->{groups}             = GADS::Groups->new(schema => schema);
+    $params->{permissions}        = [GADS::Type::Permissions->all];
+    $params->{permission_mapping} = GADS::Type::Permissions->permission_mapping;
+    $params->{permission_inputs}  = GADS::Type::Permissions->permission_inputs;
 
     if (param 'saveposition')
     {

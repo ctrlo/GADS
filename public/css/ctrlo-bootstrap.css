@@ -1698,10 +1698,6 @@ small.search_term {
 #current-permissions .permission-write-existing-no-approval .abbreviation-write-existing-no-approval {
   display: inline; }
 
-#current-permissions .permission.permission-write-new .abbreviation-write-new-no-approval,
-#current-permissions .permission.permission-write-existing .abbreviation-write-existing-no-approval {
-  display: none; }
-
 #current-permissions .abbreviation,
 #current-permissions .permission.edit .configuration,
 #current-permissions .permission.edit button.edit {

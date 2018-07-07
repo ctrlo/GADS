@@ -1,24 +1,3 @@
-[% 
-    permission_mapping = {
-        'read'                       => 'Read',
-        'write_new'                  => 'Write new',
-        'write_existing'             => 'Edit',
-        'approve_new'                => 'Approve new',
-        'approve_existing'           => 'Approve existing',
-        'write_new_no_approval'      => 'Write without approval',
-        'write_existing_no_approval' => 'Edit without approval'
-    }
-
-    permission_inputs = {
-        'read'                        => 'Values can be read',
-        'write_new_no_approval'       => 'Values can be written to new records',
-        'write_new'                   => 'Values for new records need approval',
-        'write_existing_no_approval'  => 'Values for existing records can be modified',
-        'write_existing'              => 'Modifications to existing records need approval',
-        'approve_new'                 => 'Values for new records can be approved',
-        'approve_existing'            => 'Modifications to existing records can be approved'
-    } 
-%]
 
 [% BLOCK _permissions_for_group %]
     [% MACRO permission_input(name, label, group, nested) BLOCK %]
@@ -124,12 +103,12 @@
             <ul>
                 [% FOREACH group IN groups.all %]
                     [% group_id = group.id %]
-                    [% permissions = column.permissions.$group_id %]
-                    [% NEXT UNLESS permissions %]
+                    [% col_permissions = column.permissions.$group_id %]
+                    [% NEXT UNLESS col_permissions %]
                     
                     [% permission_classes = '' %]
                     
-                    [% FOREACH permission IN permissions %]
+                    [% FOREACH permission IN col_permissions %]
                         [% short = permission.short %]
                         [% permission_classes = permission_classes _ ' ' _ 'permission-' _ short.replace('_','-') %]
                     [% END %]
@@ -138,7 +117,7 @@
                     <div class="summary">
                         <h4 class="group-name">[% group.name %]</h4>
                         <div class="configuration">
-                            [% FOREACH permission IN permissions %]
+                            [% FOREACH permission IN col_permissions %]
                             [% short = permission.short %]
                             [% abbr = permission_mapping.$short %]
                             [% short_class = short.replace('_','-') %]
