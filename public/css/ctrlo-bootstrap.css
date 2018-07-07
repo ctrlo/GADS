@@ -300,7 +300,8 @@ nav .heading {
   font-weight: 500; }
 
 nav .dropdown-toggle {
-  font-size: 1em; }
+  font-size: 1em;
+  text-align: left; }
 
 nav button .heading {
   margin-bottom: .3em; }
