@@ -249,13 +249,6 @@ sub eval
     }
 }
 
-# Internal flag to store whether we should send alerts after update
-has _no_alerts => (
-    is      => 'rw',
-    isa     => Bool,
-    clearer => 1,
-);
-
 sub write_special
 {   my ($self, %options) = @_;
 
@@ -272,9 +265,10 @@ sub write_special
         and error __x"Extended characters are not supported in calculated fields (found here: {here})",
             here => $1;
 
+    my %return_options;
     if ($self->write_code($id)) # Returns true if anything relevant changed
     {
-        $self->_no_alerts(1) if $new;
+        $return_options{no_alerts} = 1 if $new;
 
         # Stop duplicates
         my %depends_on = map { $_->id => 1 } grep { !$_->internal } $self->param_columns(is_fatal => 1);
@@ -293,15 +287,18 @@ sub write_special
         $self->clear_depends_on;
 
     }
+    else {
+        $return_options{no_cache_update} = 1;
+    }
+    return %return_options;
 };
 
 # We don't really want to do this within a transaction as it can take a
 # significantly long time, so do once the transaction has completed
 sub after_write_special
 {   my ($self, %options) = @_;
-    $self->update_cached(no_alerts => $self->_no_alerts)
+    $self->update_cached(no_alerts => $options{no_alerts})
         unless $options{no_cache_update};
-    $self->_clear_no_alerts;
 }
 
 1;

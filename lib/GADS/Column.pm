@@ -902,7 +902,9 @@ sub write
         }
     }
 
-    $self->write_special(rset => $rset, id => $new_id || $self->id, %options); # Write any column-specific params
+    # Write any column-specific params
+    my %write_options = $self->write_special(rset => $rset, id => $new_id || $self->id, %options);
+    %options = (%options, %write_options);
 
     $self->_write_permissions(id => $new_id || $self->id);
 
