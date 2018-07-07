@@ -76,9 +76,6 @@
                 </button>
                 <ul class="dropdown-menu" id="user-menu">
                     <li [% IF 0 %]class="active"[% END %]>
-                        <a href="[% url.page %]/file/">Manage uploads</a>
-                    </li>
-                    <li [% IF 0 %]class="active"[% END %]>
                         <a href="[% url.page %]/audit/">User logs</a>
                     </li>
                     <li><a href="[% url.page %]/account/detail">My details</a></li>
@@ -106,6 +103,9 @@
             <li class="divider"></li>
             <li [% IF page=="config" %]class="active"[% END %]>
                 <a href="[% url.page %]/config/">Manage homepage</a>
+            </li>
+            <li [% IF page=="file" %]class="active"[% END %]>
+                <a href="[% url.page %]/file/">Manage files</a>
             </li>
         </ul>
     </li>
