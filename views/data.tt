@@ -141,6 +141,10 @@
                     <div class="btn-group">
                         <a class="btn btn-default" data-toggle="modal" data-target="#modal_globe" role="button">Globe options...</a>
                     </div>
+                [% ELSIF viewtype == "graph" %]
+                    <div class="btn-group">
+                        <a href="[% url.page %]/account/graph/" class="btn btn-default" role="button">Select graphs...</a>
+                    </div>
                 [% END %]
             </div>
         </div>
