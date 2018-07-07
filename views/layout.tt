@@ -253,7 +253,7 @@
                         [% END %]
                     </div>
                     <div class="form-group">
-                            <label for="builder[% layout.instance_id %]">Apply the following filters to records in the selected table::</label>
+                            <label for="builder[% layout.instance_id %]">Apply the following filters to records in the selected table:</label>
                             <div id="builder[% layout.instance_id %]"></div>
                     </div>
                 </div>
