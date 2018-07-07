@@ -54,7 +54,7 @@
 [% END %]
 
 [% BLOCK dataset_menu %]
-    <div class="col-md-2 navbar navbar-default" id="dataset-navbar">
+    <div class="col-md-3 navbar navbar-default" id="dataset-navbar">
         <div class="heading" id="app-navbar-heading">Data</div>
         <ul class="nav navbar-nav">
             [% PROCESS table_selector %]
@@ -193,7 +193,7 @@
 [% END %]
 
 [% BLOCK data_menu %]
-   <div class="col-md-4 navbar navbar-default" id="app-navbar" aria-labelledby="app-navbar-heading">
+   <div class="col-md-3 navbar navbar-default" id="app-navbar" aria-labelledby="app-navbar-heading">
         <div class="heading" id="app-navbar-heading">System Administration</div>
             <ul class="nav navbar-nav">
                 [% IF layout.user_can("layout") %]
