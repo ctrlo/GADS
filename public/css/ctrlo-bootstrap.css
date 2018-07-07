@@ -349,8 +349,7 @@ html {
   display: none; }
 
 header {
-  border-top: 5px solid #1460aa;
-  padding-bottom: 1.5em; }
+  border-top: 5px solid #1460aa; }
 
 .hscroll {
   overflow-x: visible;
@@ -361,7 +360,7 @@ body {
   font-weight: 100; }
 
 main.container-fluid {
-  margin: 1em; }
+  margin: 0 1em 0 1em; }
 
 a {
   background: transparent;

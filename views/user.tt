@@ -1,13 +1,13 @@
 [% IF edit.defined %]
 [% edituser = users.shift %]
 [% IF edituser.account_request %]
-    <h2>New account request</h2>
+    <h1>New account request</h1>
 [% ELSIF page == "account/detail" %]
-    <h2>[% edituser.firstname %] [% edituser.surname %] - My details</h2>
+    <h1>[% edituser.firstname %] [% edituser.surname %] - My details</h1>
 [% ELSIF edituser.id %]
-    <h2>Edit: [% edituser.value | html_entity %]</h2>
+    <h1>Edit: [% edituser.value | html_entity %]</h1>
 [% ELSE %]
-    <h2>Add a user</h2>
+    <h1>Add a user</h1>
 [% END %]
 <form method="post" style="display: inline"> <!-- Prevent reset password button line break -->
     <div class="row">
@@ -170,6 +170,7 @@
     </div>
 </form>
 [% ELSE %]
+<h1>Manage users</h1>
 <p>
     <a href="" data-toggle="modal" data-target="#sendemail" class="btn btn-default" role="button">Email users</a>
 </p>
