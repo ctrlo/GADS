@@ -1,6 +1,6 @@
 [% IF search %]
     <div class="row search-results">
-        <h1 class="col-md-12">
+        <h1>
             Search results <small class="search_term">for term "[% search | html_entity %]" ([% count %] results)</small>
 	    <form id="clear_search" action="/data" method="post">
 		<button type="submit" name="clear_search" value="clear_search" class="btn btn-default">
@@ -13,9 +13,9 @@
 	<h3>Only showing first [% search_limit_reached %] of [% count %] results</h3>
     [% END %]
 [% ELSIF v %]
-    <h1 class="col-md-12">[% v.name | html_entity %]</h1>
+    <h1 >[% v.name | html_entity %]</h1>
 [% ELSE %]
-    <h1 class="col-md-12">All data</h1>
+    <h1>All data</h1>
 [% END %]
 
     <div class="row">
