@@ -178,8 +178,12 @@
             [% FOREACH enumval IN column.enumvals %]
                 [% UNLESS enumval.deleted %]
                     <div class="request-row">
-                        <input type="text" class="form-control" name="enumval[% enumval.id %]" value="[% enumval.value | html_entity %]">
-                        <button type="button" class="close closeme">&times;</button>
+                        <div class="col-md-11">
+                            <p>
+                                <input type="text" class="form-control" name="enumval[% enumval.id %]" value="[% enumval.value | html_entity %]">
+                            </p>
+                        </div>
+                        <button type="button" class="close closeme pull-left">&times;</button>
                     </div>
                 [% END %]
             [% END %]
