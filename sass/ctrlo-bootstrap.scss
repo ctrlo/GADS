@@ -1218,6 +1218,16 @@ small.search_term {
     padding-top: 0;
 }
 
+.select-widget.single .available .answer [type="radio"] {
+  &:focus + span {
+    border: 1px solid #336699;
+  }
+
+  &:checked + span {
+    color: #336699;
+  }
+}
+
 .select-widget .form-group:hover,
 .select-widget .form-group:hover button,
 .select-widget .form-group button:hover,
