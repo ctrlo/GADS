@@ -428,6 +428,28 @@ var runPageSpecificCode = function () {
     }
 };
 
+var setupDisplayConditions = function() {
+    $('#toggle-display-regex').on('click', function() {
+        var $displayToggleButton = $(this),
+            $displayConditionField = $displayToggleButton.siblings('#display_condition').first(),
+            $displayField = $('#display_field'),
+            $displayRegex = $('#display_regex');
+
+        // Open and hide expanded element
+        toggleDisclosure.bind($displayToggleButton).call();
+
+        // Toggle field values
+        var currentlyExpanded = $displayToggleButton.attr('aria-expanded') === 'true';
+        $displayToggleButton.text(currentlyExpanded ? 'Delete condition' : 'Configure display');
+        $displayConditionField.val(currentlyExpanded);
+
+        if (!currentlyExpanded) {
+            $displayField.val('');
+            $displayRegex.val('');
+        }
+    });
+}
+
 var Linkspace = {
     constants: {
         ARROW_LEFT: 37,
@@ -438,6 +460,7 @@ var Linkspace = {
         setupLessMoreWidgets();
         setupDisclosureWidgets();
         setupSelectWidgets();
+        setupDisplayConditions();
         runPageSpecificCode();
     },
 
