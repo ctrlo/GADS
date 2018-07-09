@@ -16,7 +16,7 @@
             <input type="checkbox" name="optional" [% IF column.optional %]checked[% END %]>This field is optional
         </label>
     </div>
- 
+
     [% UNLESS column.id %]
         <div class="form-group">
             <label for="type">Type:</label>
@@ -686,7 +686,7 @@
                     $mf.addClass('column-type-' + new_type);
                     $mf.data('column-type', new_type);
                 });
-            }); 
+            });
     [% END %]
     [% END %]';
     </script>
@@ -698,7 +698,7 @@
 [% END %]
 
     <section id="manage-fields" data-column-type="[% column.id ? column.type : 'string' %]" class="row column-type-[% column.id ? column.type : 'string' %]">
-        [% 
+        [%
             IF column.defined;
                 PROCESS edit_field;
             ELSE;
@@ -725,4 +725,3 @@
     PROCESS layout_modals;
     PROCESS javascript;
 %]
-

@@ -1,6 +1,6 @@
 'use strict';
 
-/* 
+/*
  * A SelectWidget is a custom disclosure widget
  * with multi or single options selectable.
  * SelectWidgets can depend on each other;
@@ -37,7 +37,7 @@ var SelectWidget = function (multi) {
             });
         };
     };
- 
+
     var onTriggerClick = function ($widget, $trigger, $target) {
         return function (event) {
             var isCurrentlyExpanded = $trigger.attr('aria-expanded') === 'true';
@@ -519,7 +519,7 @@ Linkspace.layout = function () {
 
     var $ruleTemplate = $('#permission-rule-template');
     var $cancelRuleButton = $rule.find('button.cancel-permission');
-    var $addRuleButton = $rule.find('button.add-permission'); 
+    var $addRuleButton = $rule.find('button.add-permission');
 
     var closePermissionConfig = function () {
         $config.find('input').each(function () {
@@ -627,7 +627,7 @@ Linkspace.layout = function () {
         $('#permission-configuration').removeAttr('hidden');
 
         $(this).parent().find('h4').focus();
-    }); 
+    });
 
     $('#current-permissions .permission').each(handlePermissionChange);
 };
