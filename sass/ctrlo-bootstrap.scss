@@ -994,7 +994,7 @@ a.list-group-item-danger.active,a.list-group-item-danger.active:hover,a.list-gro
 
 #remember:checked + label span::before {
     content: "\e067";
-} 
+}
 
 /* Login page - reset password dialog */
 
@@ -1083,7 +1083,7 @@ small.search_term {
 
 .trigger[aria-expanded="true"] + .expandable,
 .expandable.expanded {
-    display: block; 
+    display: block;
 }
 
 .expandable.popover {
@@ -1113,7 +1113,7 @@ small.search_term {
 [role="tooltip"]:focus  + .tooltip.visually-hidden,
 [role="tooltip"]:active + .tooltip.visually-hidden,
 [role="tooltip"]:hover  + .tooltip.visually-hidden {
- 
+
     @include visually-unhide;
 }
 
@@ -1381,5 +1381,5 @@ small.search_term {
 }
 
 .input_holder .datepicker {
-    padding-left: 1em;        
+    padding-left: 1em;
 }
