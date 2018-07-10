@@ -26,7 +26,7 @@ engines:
       session_dir: "/tmp/dancer-sessions"
       cookie_duration: 3600
       cookie_name: linkspace.session
-      is_secure: 1
+      is_secure: 1 # Comment out or remove if using HTTP
 
 gads:
   name: "App name" # The local name for the application
