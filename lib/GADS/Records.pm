@@ -1547,33 +1547,40 @@ sub _date_for_db
     $self->schema->storage->datetime_parser->format_date($dt);
 }
 
-sub csv
-{   my $self = shift;
-    my $csv  = Text::CSV::Encoded->new({ encoding  => undef });
+has _csv => (
+    is => 'lazy',
+);
 
-    # Column names
-    my @columns = $self->view
-        ? $self->layout->view($self->view->id, user_can_read => 1)
-        : $self->layout->all(user_can_read => 1);
+sub _build__csv { Text::CSV::Encoded->new({ encoding  => undef }) }
+
+sub csv_header
+{   my $self = shift;
+
+    my @columns = @{$self->columns_retrieved_no};
     my @colnames = ("ID");
     push @colnames, "Parent" if $self->has_children;
     push @colnames, map { $_->name } @columns;
+    my $csv = $self->_csv;
     $csv->combine(@colnames)
         or error __x"An error occurred producing the CSV headings: {err}", err => $csv->error_input;
-    my $csvout = $csv->string."\n";
+    return $csv->string."\n";
+}
 
+sub csv_line
+{   my $self = shift;
     # All the data values
-    while (my $line = $self->single)
-    {
-        my @items = ($line->current_id);
-        push @items, $line->parent_id if $self->has_children;
-        push @items, map { $line->fields->{$_->id} } @columns;
-        $csv->combine(@items)
-            or error __x"An error occurred producing a line of CSV: {err} {items}",
-                err => "".$csv->error_diag, items => "@items";
-        $csvout .= $csv->string."\n";
-    }
-    $csvout;
+    my $line = $self->single
+        or return;
+
+    my @columns = @{$self->columns_retrieved_no};
+    my @items = ($line->current_id);
+    push @items, $line->parent_id if $self->has_children;
+    push @items, map { $line->fields->{$_->id} } @columns;
+    my $csv = $self->_csv;
+    $csv->combine(@items)
+        or error __x"An error occurred producing a line of CSV: {err} {items}",
+            err => "".$csv->error_diag, items => "@items";
+    return $csv->string."\n";
 }
 
 sub data_timeline
