@@ -113,11 +113,11 @@
                     }
                 });
             });
-            var confirmOnPageExit = function (e) 
+            var confirmOnPageExit = function (e)
             {
                 e = e || window.event;
                 var message = 'Please note that any changes will be lost.';
-                if (e) 
+                if (e)
                 {
                     e.returnValue = message;
                 }
@@ -297,7 +297,7 @@
             setup_calculator('.intcalculator');
 
             [% jscode.join('') %]
-        }); 
+        });
 [% END %]
 [% END %]';
 </script>
@@ -368,7 +368,7 @@
               (record.current_id AND !dispcol.user_can("write_existing"))
               OR (!record.current_id AND !dispcol.user_can("write_new"))
           )
-       AND page != "approval" 
+       AND page != "approval"
     %]
         [% readonly = "readonly" %]
     [% ELSE %]
@@ -531,7 +531,7 @@
                 [% ELSIF dispcol.type == "daterange" %]
                     [% IF dispcol.show_datepicker %][% datepicker = "datepicker" %][% ELSE %][% datepicker = "" %][% END %]
                     <div class="input-group input-daterange">
-                            <input type="text" name="[% field %]" class="form-control [% datepicker %] from datepicker[% dispcol.id %]" value="[% editvalue.html_form.shift | html_entity %]" 
+                            <input type="text" name="[% field %]" class="form-control [% datepicker %] from datepicker[% dispcol.id %]" value="[% editvalue.html_form.shift | html_entity %]"
                                 [% IF NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %] [% readonly %]>
                             <span class="input-group-addon">to</span>
                             <input type="text" name="[% field %]" class="form-control [% datepicker %] to datepicker[% dispcol.id %]" value="[% editvalue.html_form.shift | html_entity %]"
@@ -638,8 +638,8 @@
                 <li class="answer">
                     <span class="control">
                         <label id="[% value_id %]_label" for="[% value_id %]">
-                            <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="[% value.id %]">
-                            [% value.value | html_entity %]
+                            <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="[% value.id %]" class="visually-hidden">
+                            <span>[% value.value | html_entity %]</span>
                         </label>
                     </span>
                     [% IF details %]
@@ -710,7 +710,7 @@
                     <span class="control">
                         <label id="[% value_id %]_label" for="[% value_id %]">
                             <input id="[% value_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %] value="[% value.id %]">
-                            [% value.value | html_entity %]
+                            <span>[% value.value | html_entity %]</span>
                         </label>
                     </span>
                     [% IF details %]

@@ -1805,6 +1805,11 @@ small.search_term {
   margin-top: -.15em;
   padding-top: 0; }
 
+.select-widget.single .available .answer [type="radio"]:focus + span {
+  border: 1px solid #336699; }
+.select-widget.single .available .answer [type="radio"]:checked + span {
+  color: #336699; }
+
 .select-widget .form-group:hover,
 .select-widget .form-group:hover button,
 .select-widget .form-group button:hover,
