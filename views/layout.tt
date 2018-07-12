@@ -16,7 +16,7 @@
             <input type="checkbox" name="optional" [% IF column.optional %]checked[% END %]>This field is optional
         </label>
     </div>
- 
+
     [% UNLESS column.id %]
         <div class="form-group">
             <label for="type">Type:</label>
@@ -109,14 +109,15 @@
         <h3>Display</h3>
     [% UNLESS column.display_regex %]
         <p>This field is always displayed.</p>
-        <button type="button" aria-expanded="false" class="trigger btn btn-default" id="add-display-regex">Configure display</button>
     [% END %]
+
+    <button type="button" aria-expanded="[% column.display_regex ? 'true' : 'false' %]" class="btn btn-default" id="toggle-display-regex">
+        [% IF column.display_regex %]Delete condition[% ELSE %]Configure display[% END %]
+    </button>
+    <input type="hidden" name="display_condition" id="display_condition" value="[% column.display_regex && 'true' %]">
     <div class="expandable [% column.display_regex && 'expanded' %]">
         <p>This field will only be displayed under the following condition:</p>
         <div class="display-condition clearfix">
-            <div class="clearfix">
-                    <button type="button" class="btn btn-sm btn-default pull-right" id="delete-display-condition">Delete condition</button>
-            </div>
             <div class="form-group col-md-12">
                 <label for="display_field">Column</label>
                 <select class="form-control" id="display_field" name="display_field">
@@ -686,7 +687,7 @@
                     $mf.addClass('column-type-' + new_type);
                     $mf.data('column-type', new_type);
                 });
-            }); 
+            });
     [% END %]
     [% END %]';
     </script>
@@ -698,7 +699,7 @@
 [% END %]
 
     <section id="manage-fields" data-column-type="[% column.id ? column.type : 'string' %]" class="row column-type-[% column.id ? column.type : 'string' %]">
-        [% 
+        [%
             IF column.defined;
                 PROCESS edit_field;
             ELSE;
@@ -725,4 +726,3 @@
     PROCESS layout_modals;
     PROCESS javascript;
 %]
-

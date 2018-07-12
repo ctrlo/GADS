@@ -1,6 +1,6 @@
 'use strict';
 
-/* 
+/*
  * A SelectWidget is a custom disclosure widget
  * with multi or single options selectable.
  * SelectWidgets can depend on each other;
@@ -37,7 +37,7 @@ var SelectWidget = function (multi) {
             });
         };
     };
- 
+
     var onTriggerClick = function ($widget, $trigger, $target) {
         return function (event) {
             var isCurrentlyExpanded = $trigger.attr('aria-expanded') === 'true';
@@ -428,6 +428,28 @@ var runPageSpecificCode = function () {
     }
 };
 
+var setupDisplayConditions = function() {
+    $('#toggle-display-regex').on('click', function() {
+        var $displayToggleButton = $(this),
+            $displayConditionField = $displayToggleButton.siblings('#display_condition').first(),
+            $displayField = $('#display_field'),
+            $displayRegex = $('#display_regex');
+
+        // Open and hide expanded element
+        toggleDisclosure.bind($displayToggleButton).call();
+
+        // Toggle field values
+        var currentlyExpanded = $displayToggleButton.attr('aria-expanded') === 'true';
+        $displayToggleButton.text(currentlyExpanded ? 'Delete condition' : 'Configure display');
+        $displayConditionField.val(currentlyExpanded);
+
+        if (!currentlyExpanded) {
+            $displayField.val('');
+            $displayRegex.val('');
+        }
+    });
+}
+
 var Linkspace = {
     constants: {
         ARROW_LEFT: 37,
@@ -438,6 +460,7 @@ var Linkspace = {
         setupLessMoreWidgets();
         setupDisclosureWidgets();
         setupSelectWidgets();
+        setupDisplayConditions();
         runPageSpecificCode();
     },
 
@@ -519,7 +542,7 @@ Linkspace.layout = function () {
 
     var $ruleTemplate = $('#permission-rule-template');
     var $cancelRuleButton = $rule.find('button.cancel-permission');
-    var $addRuleButton = $rule.find('button.add-permission'); 
+    var $addRuleButton = $rule.find('button.add-permission');
 
     var closePermissionConfig = function () {
         $config.find('input').each(function () {
@@ -627,7 +650,7 @@ Linkspace.layout = function () {
         $('#permission-configuration').removeAttr('hidden');
 
         $(this).parent().find('h4').focus();
-    }); 
+    });
 
     $('#current-permissions .permission').each(handlePermissionChange);
 };
