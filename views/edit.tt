@@ -612,7 +612,9 @@
         <div class="select-widget-dropdown">
             <div class="form-group form-control" >
                 <ul class="current">
-                    <li class="none-selected">blank</li>
+                    [% checked = !editvalue.id %]
+                    [% value_id = field _ '__blank' %]
+                    <li [% !checked && 'hidden' %] data-list-item="[% value_id %]" class="current__blank">blank</li>
                 [% FOREACH value IN values %]
                     [% NEXT IF value.deleted %]
                     [% checked = editvalue.id_hash.${value.id} %]
@@ -633,6 +635,16 @@
                         <span hidden class="form-control-search__clear">&times;</span>
                     </li>
                 [% END %]
+                <li class="answer answer--blank">
+                    <span class="control">
+                        [% checked = !editvalue.id %]
+                        [% value_id = field _ '__blank' %]
+                        <label id="blank_label" for="[% value_id %]">
+                            <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="" class="visually-hidden">
+                            <span>blank</span>
+                        </label>
+                    </span>
+                </li>
             [% FOREACH value IN values %]
                 [% NEXT IF value.deleted %]
                 [% checked = editvalue.id_hash.${value.id} %]

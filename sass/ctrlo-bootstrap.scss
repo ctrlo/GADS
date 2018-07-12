@@ -1259,6 +1259,7 @@ small.search_term {
     display: none;
 }
 
+.select-widget .current .current__blank,
 .select-widget .current.empty .none-selected {
     display: inline;
     font-style: italic;
@@ -1299,6 +1300,13 @@ small.search_term {
     margin: 0;
     padding: 0;
     overflow: hidden;
+}
+
+.select-widget .available .answer--blank {
+    label {
+        font-weight: normal;
+        font-style: italic;
+    }
 }
 
 .select-widget .available .answer:hover {
