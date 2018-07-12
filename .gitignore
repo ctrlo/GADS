@@ -20,3 +20,4 @@ _Inline/
 .sass-cache/
 node_modules/
 *.swo
+.vagrant
