@@ -2,7 +2,7 @@
 
 [% BLOCK rag_legend %]
     <aside id="rag_legend" role="complementary">
-        <h2>RAG symbol legend</h2>
+        <span>RAG symbol legend:</span>
         <dl>
         [% FOREACH symbol IN rag_symbols %]
             <dt class="rag">
