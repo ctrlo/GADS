@@ -9,6 +9,10 @@
     display: inline-block;
 }
 
+.data-table th {
+    position: relative;
+}
+
 .data-table th * {
     color: #000;
 }
@@ -22,6 +26,11 @@
     max-width: 15em;
     text-overflow: ellipsis;
     -ms-text-overflow: ellipsis;
+    &:hover {
+        & + .popover {
+            display: block;
+        }
+    }
 }
 
 .data-table thead .column-name {
@@ -35,8 +44,24 @@
     word-break: keep-all;
     word-break: break-word;
     overflow-wrap: break-word;
-    margin-top: 1.2em;
     padding: .5em;
+    margin-top: 6px;
+    top: auto !important; /* Overwrite the custom inline style as applied by positionDisclosure(). */
+    left: 8px !important; /* Overwrite the custom inline style as applied by positionDisclosure(). */
+
+    /* Add a ::before to expand the hover area so there's no gap anymore between the button and the popover. */
+    &::before {
+        content: "";
+        width: 100%;
+        height: 7px;
+        position: absolute;
+        left: 0;
+        top: -7px;
+    }
+
+    &:hover {
+        display: block;
+    }
 }
 
 .data-table thead .helptext {
