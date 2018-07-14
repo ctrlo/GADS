@@ -911,20 +911,33 @@ any '/data' => require_login sub {
             forwardHome({ danger => "There are no records to download in this view"}, 'data')
                 unless $records->count;
 
-            my $csv = $records->csv;
-            my $now = DateTime->now();
-            my $header;
-            if ($header = config->{gads}->{header})
-            {
-                $csv       = "$header\n$csv" if $header;
-                $header    = "-$header" if $header;
-            }
-            # XXX Is this correct? We can't send native utf-8 without getting the error
-            # "Strings with code points over 0xFF may not be mapped into in-memory file handles".
-            # So, encode the string (e.g. "\x{100}"  becomes "\xc4\x80) and then send it,
-            # telling the browser it's utf-8
-            utf8::encode($csv);
-            return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
+            # Return CSV as a streaming response, otherwise a long delay whilst
+            # the CSV is generated can cause a client to timeout
+            return delayed {
+                # XXX delayed() does not seem to use normal Dancer error
+                # handling - make sure any fatal errors are caught
+                try {
+                    my $now = DateTime->now;
+                    my $header = config->{gads}->{header} || '';
+                    $header = "-$header" if $header;
+                    header 'Content-Disposition' => "attachment; filename=\"$now$header.csv\"";
+                    content_type 'text/csv; charset="utf-8"';
+
+                    flush; # Required to start the async send
+                    content $records->csv_header;
+
+                    while ( my $row = $records->csv_line ) {
+                        utf8::encode($row);
+                        content $row;
+                    }
+                    done;
+                };
+                # Not ideal, but throw exceptions somewhere...
+                say STDERR "$@" if $@;
+            } on_error => sub {
+                # This doesn't seen to get called
+                say STDERR "Failed to stream: @_";
+           };
         }
 
         my $pages = $records->pages;
