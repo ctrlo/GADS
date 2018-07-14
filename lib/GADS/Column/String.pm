@@ -61,6 +61,8 @@ sub write_special
         textbox     => $self->textbox,
         force_regex => $self->force_regex,
     });
+
+    return ();
 };
 
 sub cleanup

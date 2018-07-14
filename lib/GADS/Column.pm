@@ -802,7 +802,7 @@ sub delete
     $guard->commit;
 }
 
-sub write_special {} # Overridden in children
+sub write_special { () } # Overridden in children
 sub after_write_special {} # Overridden in children
 
 sub write

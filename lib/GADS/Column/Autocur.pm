@@ -137,6 +137,8 @@ sub write_special
 
     # Clear what may be cached values that should be updated after write
     $self->clear;
+
+    return ();
 };
 
 # Autocurs are defined as not user input, so they get updated during

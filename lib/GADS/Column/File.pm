@@ -66,6 +66,8 @@ sub write_special
         $foption->{layout_id} = $id;
         $self->schema->resultset('FileOption')->create($foption);
     }
+
+    return ();
 };
 
 sub _build_join

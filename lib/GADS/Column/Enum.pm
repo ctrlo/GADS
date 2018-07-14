@@ -152,6 +152,8 @@ sub write_special
     $rset->update({
         ordering => $self->ordering,
     });
+
+    return ();
 };
 
 sub _build_join

@@ -148,6 +148,7 @@ sub write_special
     $rset->update({
         end_node_only => $self->end_node_only,
     });
+    return ();
 };
 
 sub cleanup
