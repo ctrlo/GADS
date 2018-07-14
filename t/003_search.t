@@ -1207,7 +1207,7 @@ foreach my $multivalue (0..1)
     is ($records->count, 1, 'Correct number of results when limiting to a view with curval');
     {
         my $limit = $schema->resultset('ViewLimit')->create({
-            user_id => $user->{id},
+            user_id => $user->id,
             view_id => $view_limit->id,
         });
         my $record = GADS::Record->new(
