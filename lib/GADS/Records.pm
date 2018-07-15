@@ -1652,6 +1652,10 @@ sub csv_header
 
 sub csv_line
 {   my $self = shift;
+
+    error __"You do not have permission to download data"
+        unless $self->layout->user_can("download");
+
     # All the data values
     my $line = $self->single
         or return;

@@ -200,13 +200,16 @@ $sheet2->create_records;
 
                 elsif ($test eq 'download')
                 {
-                    try { $records->csv };
+                    try { $records->csv_header };
+                    my $failed = $@ =~ /You do not have permission to download data/;
+                    try { $records->csv_line };
+                    $failed = $failed && $@ =~ /You do not have permission to download data/;
                     if ($pass == 3)
                     {
-                        ok(!$@, "Able to download records with correct permission for pass $pass");
+                        ok(!$failed, "Able to download records with correct permission for pass $pass");
                     }
                     else {
-                        like($@, qr/You do not have permission to download data/, "Unable to download records with correct permission for pass $pass");
+                        ok($failed, "Unable to download records with correct permission for pass $pass");
                     }
                 }
 
