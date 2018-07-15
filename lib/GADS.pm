@@ -2715,7 +2715,8 @@ get '/record_body/:id' => require_login sub {
     $record->find_current_id($id);
     my @columns = $layout->all(user_can_read => 1);
     template 'record_body' => {
-        record         => $record,
+        record         => $record->presentation(@columns),
+        has_rag_column => !!(grep { $_->type eq 'rag' } @columns),
         all_columns    => \@columns,
     }, { layout => undef };
 };
