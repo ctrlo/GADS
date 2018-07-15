@@ -4,11 +4,11 @@
     <aside id="rag_legend" role="complementary">
         <span>RAG symbol legend:</span>
         <dl>
-        [% FOREACH symbol IN rag_symbols %]
+        [% FOREACH rag_grade IN rag_grades %]
             <dt class="rag">
-                <span class="[% symbol.key %]">[% symbol.value %]</span>
+                <span class="[% rag_grade %]">[% rag_symbols.$rag_grade %]</span>
             </dt>
-            <dd id="rag_[% symbol.key %]_meaning">[% symbol.key %]</dd>
+            <dd id="rag_[% rag_grade %]_meaning">[% rag_grade %]</dd>
         [% END %]
         </dl>
     </aside>

@@ -6,5 +6,7 @@
         success    => '&#x2713;',
         unexpected => '&#x21;'
     };
+
+    rag_grades = ['danger', 'warning', 'success', 'undefined', 'unexpected'];
  %]
 
