@@ -1729,7 +1729,6 @@ any '/layout/?:id?' => require_login sub {
             }
             elsif ($column->type eq "curval")
             {
-                $column->typeahead(param 'typeahead');
                 $column->refers_to_instance_id(param 'refers_to_instance_id');
                 $column->filter->as_json(param 'filter');
                 my @curval_field_ids = body_parameters->get_all('curval_field_ids');
@@ -2445,9 +2444,20 @@ any '/edit/:id?' => require_login sub {
         $layout = $record->layout; # May have changed if record from other datasheet
     }
 
+    my $modal = param('modal') && int param('modal');
+
+    my $params = {
+        record => $record,
+        modal  => $modal,
+        page   => 'edit'
+    };
+
     my @columns_to_show = $id || $child # show all cols for new child, to allow inc/exc of field
         ? $layout->all(user_can_readwrite_existing => 1)
         : $layout->all(user_can_write_new => 1);
+
+    $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids
+        if $modal;
 
     $record->initialise unless $id;
 
@@ -2586,15 +2596,13 @@ any '/edit/:id?' => require_login sub {
         push @$breadcrumbs, Crumb( "/edit/" => "new record" );
     }
 
-    my $output = template 'edit' => {
-        record      => $record,
-        child       => $child_rec,
-        clone       => param('from'),
-        all_columns => \@columns_to_show,
-        page        => 'edit',
-        breadcrumbs => $breadcrumbs,
-    };
-    $output;
+    my $options = $modal ? { layout => undef } : {};
+    $params->{child}       = $child_rec;
+    $params->{all_columns} = \@columns_to_show;
+    $params->{clone}       = param('from'),
+    $params->{breadcrumbs} = $breadcrumbs;
+
+    template 'edit' => $params, $options;
 };
 
 get '/file/?' => require_login sub {

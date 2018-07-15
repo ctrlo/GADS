@@ -202,14 +202,26 @@
         [% IF instance_layouts.size %]
             [% rti = column.refers_to_instance_id %]
             <div class="form-group">
-                <div class="radio">
+                <label for="value_selector">Type of value selector:</label>
+                <select class="form-control" id="value_selector" name="value_selector">
+                    <option value="dropdown" [% IF column.value_selector == "dropdown" %]selected[% END %]>Drop-down box</option>
+                    <option value="typeahead" [% IF column.value_selector == "typeahead" %]selected[% END %]>Auto-complete textbox</option>
+                    <option value="noshow" [% IF column.value_selector == "noshow" %]selected[% END %]>Do not show selector</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="show_add">New values:</label>
+                <div class="checkbox">
                     <label>
-                        <input type="radio" name="typeahead" value="0" [% IF NOT column.typeahead %]checked[% END %]>Provide values as a dropdown
+                        <input id="show_add" type="checkbox" name="show_add" [% IF column.show_add %]checked[% END %]>Allow new values to be added when editing
                     </label>
                 </div>
-                <div class="radio">
+            </div>
+            <div class="form-group">
+                <label for="delete_not_used">Old values:</label>
+                <div class="checkbox">
                     <label>
-                        <input type="radio" name="typeahead" value="1" [% IF column.typeahead %]checked[% END %]>Provide values as an auto-complete textbox
+                        <input id="delete_not_used" type="checkbox" name="delete_not_used" [% IF column.delete_not_used %]checked[% END %]>Delete records from other table if deselected from this field
                     </label>
                 </div>
             </div>
@@ -354,6 +366,7 @@
                     <input type="radio" name="no_cache_update" value="0" checked>Update all existing values immediately
                 </label>
             </div>
+
             <div class="radio">
                 <label>
                     <input type="radio" name="no_cache_update" value="1">Do not immediately update all existing values

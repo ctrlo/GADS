@@ -41,6 +41,7 @@ use Log::Report 'linkspace';
 use JSON qw(encode_json);
 use POSIX ();
 use Scope::Guard qw(guard);
+use CGI::Deurl::XS 'parse_query_string';
 
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
@@ -1502,15 +1503,14 @@ sub write
                     # performance reasons and to send the correct alerts
                     #
                     # First, establish which current IDs might be affected
-                    my %old_ids = map { $_ => 1 } $datum->oldvalue ?  @{$datum->oldvalue->ids} : ();
-                    my %new_ids = map { $_ => 1 } @{$datum->ids};
+                    my %affected = map { $_ => 1 } @{$datum->ids_affected};
 
                     # Then see if any fields depend on this autocur (e.g. code fields)
                     if ($autocur->layouts_depend_depends_on->count)
                     {
                         # If they do, we will need to re-evaluate them all
                         $update_autocurs{$_} ||= []
-                            foreach keys %old_ids, keys %new_ids;
+                            foreach keys %affected;
                     }
 
                     # If the value hasn't changed at all, skip on
@@ -1519,11 +1519,11 @@ sub write
                     # If it has changed, work out which one have been added or
                     # removed. Annotate these with the autocur ID, so we can
                     # mark that as changed with this value
-                    my %changed = map { $_ => 1 } keys %old_ids, keys %new_ids;
+                    my %changed = map { $_ => 1 } keys %affected;
                     foreach (keys %changed)
                     {
                         delete $changed{$_}
-                            if $old_ids{$_} && $new_ids{$_};
+                            if $affected{$_};
                     }
                     foreach my $cid (keys %changed)
                     {
@@ -1735,9 +1735,83 @@ sub _field_write
                 }
                 foreach my $id (@{$datum_write->ids})
                 {
+                    if ($column->type eq 'curval' && $column->show_add && $id =~ /field/) # Create related record
+                    {
+                        my $params = parse_query_string($id);
+                        my $record = GADS::Record->new(
+                            user     => $self->user,
+                            layout   => $column->layout_parent,
+                            schema   => $self->schema,
+                            base_url => $self->base_url,
+                        );
+                        $record->initialise;
+                        foreach my $col ($column->layout_parent->all(user_can_write_new => 1))
+                        {
+                            my $newv = $params->{$col->field};
+                            $record->fields->{$col->id}->set_value($newv)
+                                if defined $params->{$col->field} && $col->userinput && defined $newv;
+                        }
+                        $record->set_blank_dependents; # XXX Move to write() once back/forward functionality rewritten?
+                        $record->write(%options);
+                        $id = $record->current_id;
+                    }
                     my %entry = %$entry; # Copy to stop referenced id being overwritten
                     $entry{value} = $id;
                     push @entries, \%entry;
+                }
+                if ($column->type eq 'curval' && $column->delete_not_used)
+                {
+                    foreach my $deleted_id (@{$datum->ids_deleted})
+                    {
+                        my $is_used;
+                        foreach my $refers (@{$column->layout_parent->referred_by})
+                        {
+                            my $refers_layout = GADS::Layout->new(
+                                user                     => $self->layout->user,
+                                user_permission_override => 1,
+                                schema                   => $self->schema,
+                                config                   => GADS::Config->instance,
+                                instance_id              => $refers->instance_id,
+                            );
+                            my $rules = GADS::Filter->new(
+                                as_hash => {
+                                    rules     => [{
+                                        id       => $refers->id,
+                                        type     => 'string',
+                                        value    => $deleted_id,
+                                        operator => 'equal',
+                                    }],
+                                },
+                            );
+                            my $view = GADS::View->new( # Do not write to database!
+                                name        => 'Temp',
+                                filter      => $rules,
+                                instance_id => $refers->instance_id,
+                                layout      => $refers_layout,
+                                schema      => $self->schema,
+                                user        => undef,
+                            );
+                            my $refers_records = GADS::Records->new(
+                                user    => undef,
+                                view    => $view,
+                                columns => [],
+                                layout  => $refers_layout,
+                                schema  => $self->schema,
+                            );
+                            $is_used = $refers_records->count;
+                            last if $is_used;
+                        }
+                        if (!$is_used)
+                        {
+                            my $record = GADS::Record->new(
+                                user     => $self->user,
+                                layout   => $column->layout_parent,
+                                schema   => $self->schema,
+                            );
+                            $record->find_current_id($deleted_id);
+                            $record->delete_current(override => 1);
+                        }
+                    }
                 }
             }
             elsif ($column->type eq 'string')
@@ -1799,10 +1873,10 @@ sub user_can_purge
 
 # Mark this entire record and versions as deleted
 sub delete_current
-{   my $self = shift;
+{   my ($self, %options) = @_;
 
     error __"You do not have permission to delete records"
-        unless !$self->user || $self->user_can_delete;
+        if !$options{override} && $self->user && !$self->user_can_delete;
 
     my $current = $self->schema->resultset('Current')->search({
         id          => $self->current_id,

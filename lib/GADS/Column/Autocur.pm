@@ -27,6 +27,10 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column::Curcommon';
 
+has '+option_names' => (
+    default => sub { [qw/override_permissions/] },
+);
+
 has '+multivalue' => (
     coerce => sub { 1 },
 );

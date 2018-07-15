@@ -7,7 +7,7 @@
                         [%# Add all currently selected values %]
                         var selectedElms = $('#jstree[% tree.id %]').jstree("get_selected", true);
                         $.each(selectedElms, function() {
-                            $('#edit-form').append('<input type="hidden" name="[% tree.field %]" class="[% tree.field %]" value="' + this.id + '" />');
+                            $('#jstree[% tree.id %]').closest('.edit-form').append('<input type="hidden" name="[% tree.field %]" class="[% tree.field %]" value="' + this.id + '" />');
                         });
 
                         [%# Check for any display-dependent fields %]

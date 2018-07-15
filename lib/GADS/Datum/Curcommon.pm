@@ -141,7 +141,7 @@ has _text_all => (
             return [ map { $self->column->_format_row($_) } @{$self->_records} ];
         }
         else {
-            return $self->column->ids_to_values($self->ids, fatal => 1);
+            return $self->column->ids_to_values($self->ids_filtered, fatal => 1);
         }
     }
 );
@@ -178,6 +178,39 @@ has ids => (
         $self->_init_value_hash->{ids} || [];
     },
 );
+
+has ids_deleted => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+# The IDs of any records removed from this field's value
+sub _build_ids_deleted
+{   my $self = shift;
+    return [] if !$self->changed;
+    my %old = map { $_ => 1 } @{$self->oldvalue->ids};
+    delete $old{$_} foreach @{$self->ids};
+    return [ keys %old ];
+}
+
+# All relevant ids (old and new), minus deleted ones
+has ids_affected => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_ids_affected
+{   my $self = shift;
+    my %old_ids = map { $_ => 1 } $self->oldvalue ?  @{$self->oldvalue->ids} : ();
+    my %new_ids = map { $_ => 1 } @{$self->ids};
+    my %deleted = map { $_ => 1 } @{$self->ids_deleted};
+    [ grep { !$deleted{$_} } keys %old_ids, keys %new_ids ];
+}
+
+sub ids_filtered
+{   my $self = shift;
+    [grep { $_ =~ /^[0-9]+$/ } @{$self->ids}];
+}
 
 sub id
 {   my $self = shift;
@@ -230,14 +263,20 @@ sub field_values
 {   my $self = shift;
     $self->_records
         ? $self->column->field_values(rows => $self->_records)
-        : $self->column->field_values(ids => $self->ids);
+        : $self->column->field_values(ids => $self->ids_filtered);
 }
 
 sub field_values_for_code
 {   my $self = shift;
     $self->_records
         ? $self->column->field_values_for_code(rows => $self->_records)
-        : $self->column->field_values_for_code(ids => $self->ids);
+        : $self->column->field_values_for_code(ids => $self->ids_filtered);
+}
+
+sub for_edit
+{   my $self = shift;
+    my $values = $self->for_code;
+    return ref $values eq 'ARRAY' ? $values : [$values];
 }
 
 sub for_code
@@ -252,7 +291,7 @@ sub for_code
             value        => $self->_text_hash->{$_},
             field_values => $field_values->{$_},
         }
-    } (@{$self->ids});
+    } (@{$self->ids_filtered});
 
     $self->column->multivalue ? \@values : $values[0];
 }
