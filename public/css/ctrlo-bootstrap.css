@@ -1503,16 +1503,16 @@ small.search_term {
 
 /* RAG legend */
 #rag_legend {
-  display: inline-block;
-  border: 1px solid #c3c3c3;
-  padding: .5em; }
-
-#rag_legend h2 {
-  font-size: 1.1em;
-  margin: 0;
+  margin-top: 1em;
   margin-bottom: .5em; }
 
+#rag_legend > span {
+  font-size: .85em;
+  font-weight: bold;
+  margin-right: 1em; }
+
 #rag_legend dl {
+  display: inline-block;
   margin: 0;
   padding: 0; }
 
@@ -1521,7 +1521,8 @@ small.search_term {
   display: inline-block; }
 
 #rag_legend dd {
-  padding-right: 1.5em; }
+  padding-right: 1em;
+  font-size: 85%; }
 
 /* Column RAG */
 .rag {
@@ -1530,7 +1531,7 @@ small.search_term {
 .rag span {
   min-width: 1.5em;
   display: inline-block;
-  font-size: 1.2em;
+  font-size: 1em;
   padding: 0 0.2em;
   border-bottom: 0.2em solid #000; }
 
