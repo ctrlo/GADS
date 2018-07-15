@@ -12,13 +12,7 @@
             [% NEXT IF record.parent_id AND NOT (record.fields.$colid.child_unique) %]
             <th>[% col.name | html_entity %]</th>
             <td class="[% col.type %]">
-                [% IF col.type == "file" AND value.mimetype.match('^image/') %]
-                    <a href="/file/[% value.id %]">
-                        <img class="autosize" src="/file/[% value.id %]">
-                    </a>
-                [% ELSE %]
                 [% render_datum(col, 1) %]
-                [% END %]
             </td>
         </tr>
     [% END %]
