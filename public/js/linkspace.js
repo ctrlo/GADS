@@ -450,6 +450,18 @@ var setupDisplayConditions = function() {
     });
 }
 
+var setupClickToEdit = function() {
+    $('.click-to-edit').on('click', function() {
+        var $editToggleButton = $(this);
+
+        // Open and hide expanded element
+        toggleDisclosure.bind($editToggleButton).call();
+
+        $editToggleButton.siblings('.topic-click-to-edit-fields').hide();
+        $editToggleButton.hide();
+    });
+}
+
 var Linkspace = {
     constants: {
         ARROW_LEFT: 37,
@@ -532,6 +544,7 @@ Linkspace.edit = function () {
     Linkspace.debug('Record edit JS firing');
     setupTreeFields();
     setupDependentFields();
+    setupClickToEdit();
 }
 
 Linkspace.layout = function () {

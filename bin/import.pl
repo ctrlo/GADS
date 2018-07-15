@@ -123,6 +123,21 @@ foreach my $ins (readdir $root)
         name   => $instance_info->{name},
     });
 
+    my $topic_mapping; # topic ID mapping
+    if (-d '_export/topics')
+    {
+        foreach my $topic (dir('_export/topics'))
+        {
+            my $new = schema->resultset('Topic')->create({
+                name          => $topic->{name},
+                initial_state => $topic->{initial_state},
+                click_to_edit => $topic->{click_to_edit},
+            });
+
+            $topic_mapping->{$topic->{id}} = $new->id;
+        }
+    }
+
     my $layout = GADS::Layout->new(
        user                     => undef,
        user_permission_override => 1,
@@ -153,6 +168,7 @@ foreach my $ins (readdir $root)
             layout => $layout,
         );
         $column->import_hash($col);
+        $column->topic_id($topic_mapping->{$col->{topic_id}}) if $col->{topic_id};
         # Don't add to the DBIx schema yet, as we may not have all the
         # information needed (e.g. related field IDs)
         $column->write(override => 1, no_db_add => 1, no_cache_update => 1);

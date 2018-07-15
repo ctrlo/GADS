@@ -11,6 +11,18 @@
         <input type="text" class="form-control" id="name" name="name" value="[% column.name | html_entity %]">
     </div>
 
+    [% IF topics.size %]
+        <div class="form-group">
+            <label for="topic_id">Topic:</label>
+            <select class="form-control" id="topic_id" name="topic_id">
+                <option></option>
+                [% FOREACH topic IN topics %]
+                    <option value="[% topic.id %]" [% IF column.topic_id == topic.id %]selected[% END %]>[% topic.name | html %]</option>
+                [% END %]
+            </select>
+        </div>
+    [% END %]
+
     <div class="checkbox stored-value">
         <label>
             <input type="checkbox" name="optional" [% IF column.optional %]checked[% END %]>This field is optional

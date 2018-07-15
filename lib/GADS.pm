@@ -1428,6 +1428,73 @@ any '/group/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
     template 'group' => $params;
 };
 
+any '/topic/:id' => require_login sub {
+
+    my $user        = logged_in_user;
+    my $layout      = var 'layout';
+    my $instance_id = $layout->instance_id;
+
+    forwardHome({ danger => "You do not have permission to manage topics"}, '')
+        unless $layout->user_can("layout");
+
+    my $id = param 'id';
+    my $topic = $id && schema->resultset('Topic')->search({
+        id          => $id,
+        instance_id => $instance_id,
+    })->next;
+
+    if (param 'submit')
+    {
+        $topic = schema->resultset('Topic')->new({ instance_id => $instance_id })
+            if !$id;
+
+        $topic->name(param 'name');
+        $topic->click_to_edit(param 'click_to_edit');
+        $topic->initial_state(param 'initial_state');
+
+        if (process(sub {$topic->update_or_insert}))
+        {
+            my $action = param('id') ? 'updated' : 'created';
+            return forwardHome(
+                { success => "Topic has been $action successfully" }, 'topics' );
+        }
+    }
+
+    if (param 'delete_topic')
+    {
+        if (process(sub {$topic->delete}))
+        {
+            return forwardHome(
+                { success => "The topic has been deleted successfully" }, 'topics' );
+        }
+    }
+
+    my $topic_name = $id ? $topic->name : 'new topic';
+    my $topic_id   = $id ? $topic->id : 0;
+    template 'topic' => {
+        topic       => $topic,
+        breadcrumbs => [Crumb($layout->name) => Crumb( '/topics' => 'topics' ) => Crumb( "/topic/$topic_id" => $topic_name )],
+        page        => !$id ? 'topic/0' : 'topics',
+    }
+};
+
+any '/topics/?' => require_login sub {
+
+    my $user        = logged_in_user;
+    my $layout      = var 'layout';
+    my $instance_id = $layout->instance_id;
+
+    forwardHome({ danger => "You do not have permission to manage topics"}, '')
+        unless $layout->user_can("layout");
+
+    template 'topics' => {
+        layout      => $layout,
+        topics      => [schema->resultset('Topic')->search({ instance_id => $instance_id })->all],
+        breadcrumbs => [Crumb($layout->name) => Crumb( '/topic' => 'topics' )],
+        page        => 'topics',
+    };
+};
+
 get '/table/?' => require_role superadmin => sub {
 
     template 'tables' => {
@@ -1680,7 +1747,7 @@ any '/layout/?:id?' => require_login sub {
             }
 
             $column->$_(param $_)
-                foreach (qw/name name_short description helptext optional isunique multivalue remember link_parent_id/);
+                foreach (qw/name name_short description helptext optional isunique multivalue remember link_parent_id topic_id/);
             $column->type(param 'type')
                 unless param('id'); # Can't change type as it would require DBIC resultsets to be removed and re-added
             $column->$_(param $_)
@@ -1763,6 +1830,7 @@ any '/layout/?:id?' => require_login sub {
     $params->{permissions}        = [GADS::Type::Permissions->all];
     $params->{permission_mapping} = GADS::Type::Permissions->permission_mapping;
     $params->{permission_inputs}  = GADS::Type::Permissions->permission_inputs;
+    $params->{topics}             = [schema->resultset('Topic')->search({ instance_id => $layout->instance_id })->all];
 
     if (param 'saveposition')
     {
@@ -2446,8 +2514,8 @@ any '/edit/:id?' => require_login sub {
     }
 
     my @columns_to_show = $id || $child # show all cols for new child, to allow inc/exc of field
-        ? $layout->all(user_can_readwrite_existing => 1)
-        : $layout->all(user_can_write_new => 1);
+        ? $layout->all(sort_by_topics => 1, user_can_readwrite_existing => 1)
+        : $layout->all(sort_by_topics => 1, user_can_write_new => 1);
 
     $record->initialise unless $id;
 
@@ -2587,12 +2655,13 @@ any '/edit/:id?' => require_login sub {
     }
 
     my $output = template 'edit' => {
-        record      => $record,
-        child       => $child_rec,
-        clone       => param('from'),
-        all_columns => \@columns_to_show,
-        page        => 'edit',
-        breadcrumbs => $breadcrumbs,
+        record              => $record,
+        record_presentation => $record->presentation(@columns_to_show),
+        child               => $child_rec,
+        clone               => param('from'),
+        all_columns         => \@columns_to_show,
+        page                => 'edit',
+        breadcrumbs         => $breadcrumbs,
     };
     $output;
 };

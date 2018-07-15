@@ -6,12 +6,7 @@ sub _presentation_map_columns {
     my ($self, @columns) = @_;
 
     my @mapped = map {
-        +{
-            is_multivalue => $_->multivalue,
-            type          => $_->type,
-            data          => $self->fields->{$_->id}->presentation,
-            name          => $_->name,
-        }
+        $_->presentation(datum_presentation => $self->fields->{$_->id}->presentation);
     } @columns;
 
     return \@mapped;

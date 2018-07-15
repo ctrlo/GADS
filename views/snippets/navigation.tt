@@ -93,8 +93,11 @@
             <li [% IF page=="table/0" %]class="active"[% END %]><a href="[% url.page %]/table/0">Add a table</a></li>
             <li [% IF page=="table" %]class="active"[% END %]><a href="[% url.page %]/table/">Manage tables</a></li>
             <li class="divider"></li>
-            <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/layout/">Manage fields</a></li>
             <li [% IF page=="layout/0" %]class="active"[% END %]><a href="[% url.page %]/layout/0">Add a field</a></li>
+            <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/layout/">Manage fields</a></li>
+            <li class="divider"></li>
+            <li [% IF page=="topic/0" %]class="active"[% END %]><a href="[% url.page %]/topic/0">Add a topic</a></li>
+            <li [% IF page=="topics" %]class="active"[% END %]><a href="[% url.page %]/topics/">Manage topics</a></li>
             <li class="divider"></li>
             <li [% IF page=="config" %]class="active"[% END %]>
                 <a href="[% url.page %]/config/">Manage homepage</a>

@@ -98,6 +98,23 @@ foreach my $layout (@instances)
         or report FAULT => "Error opening $file for write";
     print $fh $json;
 
+    mkdir "$ins_dir/topics"
+        or report FAULT => "Unable to create topics directory";
+    foreach my $topic (schema->resultset('Topic')->search({ instance_id => $instance_id })->all)
+    {
+        my $json = $encoder->encode({
+            id            => $topic->id,
+            name          => $topic->name,
+            initial_state => $topic->initial_state,
+            click_to_edit => $topic->click_to_edit,
+            instance_id   => $topic->instance_id,
+        });
+        my $file = "$ins_dir/topics/".$topic->id;
+        open(my $fh, ">:encoding(UTF-8)", $file)
+            or report FAULT => "Error opening $file for write";
+        print $fh $json;
+    }
+
     mkdir "$ins_dir/layout"
         or report FAULT => "Unable to create layout directory";
 

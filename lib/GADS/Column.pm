@@ -339,6 +339,22 @@ has description => (
     isa => Maybe[Str],
 );
 
+has topic_id => (
+    is     => 'rw',
+    isa    => Maybe[Int],
+    coerce => sub { $_[0] || undef }, # Account for empty string from form
+);
+
+has topic => (
+    is => 'lazy',
+);
+
+sub _build_topic
+{   my $self = shift;
+    $self->topic_id or return;
+    $self->schema->resultset('Topic')->find($self->topic_id);
+}
+
 has display_field => (
     is  => 'rw',
     isa => Maybe[Int],
@@ -609,6 +625,7 @@ sub build_values
     $self->id($original->{id});
     $self->name($original->{name});
     $self->name_short($original->{name_short});
+    $self->topic_id($original->{topic_id});
     $self->optional($original->{optional});
     $self->remember($original->{remember});
     $self->isunique($original->{isunique});
@@ -857,6 +874,7 @@ sub write
         }
     }
 
+    $newitem->{topic_id}      = $self->topic_id;
     $newitem->{optional}      = $self->optional;
     $newitem->{remember}      = $self->remember;
     $newitem->{isunique}      = $self->isunique;
@@ -1166,6 +1184,7 @@ sub export_hash
         type          => $self->type,
         name          => $self->name,
         name_short    => $self->name_short,
+        topic_id      => $self->topic_id,
         optional      => $self->optional,
         remember      => $self->remember,
         isunique      => $self->isunique,
