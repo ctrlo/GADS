@@ -344,6 +344,7 @@ has deletedby => (
         my $self = shift;
         if (!$self->record)
         {
+            $self->record_id or return;
             my $user = $self->schema->resultset('Record')->find(
                 $self->record_id
             )->deletedby or return undef;
@@ -400,6 +401,7 @@ sub _build_deleted
 {   my $self = shift;
     if (!$self->record)
     {
+        $self->record_id or return;
         return $self->schema->resultset('Record')->find($self->record_id)->deleted;
     }
     $self->set_deleted or return undef;
