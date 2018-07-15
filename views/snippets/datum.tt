@@ -22,9 +22,15 @@
     [% END %]
 [% END %]
 
-[% MACRO render_file_datum(file) BLOCK %]
+[% MACRO render_file_datum(file, show_images) BLOCK %]
     [% IF file.id %]
-        <a href="/file/[% file.id %]">[% file.name %]</a>
+        <a href="/file/[% file.id %]">
+            [% IF show_images %]
+                <img class="autosize" src="/file/[% file.id %]">
+            [% ELSE %]
+                [% file.name %]
+            [% END %]
+        </a>
     [% END %]
 [% END %]
 
@@ -64,12 +70,12 @@
     <span aria-labelledby="rag_[% grade %]_meaning" class="[% grade %]">[% rag_symbols.$grade %]</span>
 [% END %]
 
-[% MACRO render_datum(datum) BLOCK;
+[% MACRO render_datum(datum, show_images) BLOCK;
     SWITCH datum.type;
         CASE ['curval', 'autocur'];
             render_curcommon_datum(datum.is_multivalue, datum.data, datum.name);
         CASE 'file';
-            render_file_datum(datum.data);
+            render_file_datum(datum.data, show_images);
         CASE 'person';
             render_person_datum(datum.data);
         CASE 'string';

@@ -2749,10 +2749,12 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
     my @versions    = $record->versions;
     my @columns     = $layout->all(user_can_read => 1);
     my %first_crumb = $action eq 'purge' ? ( '/purge' => 'deleted records' ) : ( '/data' => 'records' );
+
     my $output = template 'record' => {
-        record         => $record,
+        record         => $record->presentation(@columns),
         versions       => \@versions,
         all_columns    => \@columns,
+        has_rag_column => !!(grep { $_->type eq 'rag' } @columns),
         page           => 'record',
         breadcrumbs    => [Crumb($layout->name) => Crumb(%first_crumb) => Crumb( request->path => 'record id ' . $id )]
     };

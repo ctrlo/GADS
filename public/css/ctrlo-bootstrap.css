@@ -1524,14 +1524,11 @@ small.search_term {
   padding-right: 1em;
   font-size: 85%; }
 
-/* Column RAG */
-.rag {
-  text-align: center; }
-
 .rag span {
   min-width: 1.5em;
   display: inline-block;
   font-size: 1em;
+  text-align: center;
   padding: 0 0.2em;
   border-bottom: 0.2em solid #000; }
 

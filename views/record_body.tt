@@ -1,28 +1,23 @@
+[% PROCESS snippets/datum.tt %]
+[% PROCESS snippets/rag_legend.tt IF has_rag_column %]
+
 <table class="table table-striped">
     <tr>
         <th>Last updated by</th>
         <td>[% record.createdby.html %]</td>
     </tr>
-    [% FOREACH col IN all_columns %]
+    [% FOREACH col IN record.columns %]
         [% colid = col.id %]
         <tr>
             [% NEXT IF record.parent_id AND NOT (record.fields.$colid.child_unique) %]
             <th>[% col.name | html_entity %]</th>
-            <td>
-                [% value = record.fields.$colid %]
-                [% IF col.type == "rag" %]
-                    <div class="circ-large
-                        [% value %]
-                        ">
-                    </div>
-                [% ELSIF col.type == "file" AND value.mimetype.match('^image/') %]
+            <td class="[% col.type %]">
+                [% IF col.type == "file" AND value.mimetype.match('^image/') %]
                     <a href="/file/[% value.id %]">
                         <img class="autosize" src="/file/[% value.id %]">
                     </a>
-                [% ELSIF col.type == "string" || col.type == "curval" || col.type == "autocur" %]
-                    [% value.html_withlinks %]
                 [% ELSE %]
-                    [% value.html %]
+                [% render_datum(col, 1) %]
                 [% END %]
             </td>
         </tr>
