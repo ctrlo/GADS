@@ -1451,6 +1451,7 @@ any '/topic/:id' => require_login sub {
         $topic->name(param 'name');
         $topic->click_to_edit(param 'click_to_edit');
         $topic->initial_state(param 'initial_state');
+        $topic->prevent_edit_topic_id(param('prevent_edit_topic_id') || undef);
 
         if (process(sub {$topic->update_or_insert}))
         {
@@ -1473,6 +1474,7 @@ any '/topic/:id' => require_login sub {
     my $topic_id   = $id ? $topic->id : 0;
     template 'topic' => {
         topic       => $topic,
+        topics      => [schema->resultset('Topic')->search({ instance_id => $instance_id })->all],
         breadcrumbs => [Crumb($layout->name) => Crumb( '/topics' => 'topics' ) => Crumb( "/topic/$topic_id" => $topic_name )],
         page        => !$id ? 'topic/0' : 'topics',
     }
