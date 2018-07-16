@@ -717,7 +717,6 @@ sub all
         foreach my $col (@columns)
         {
             next if $done{$col->id};
-            push @new, $col;
             $done{$col->id} = 1;
             if ($col->topic_id && $col->topic_id != $previous_topic_id)
             {
@@ -726,6 +725,10 @@ sub all
                     push @new, $_;
                     $done{$_->id} = 1;
                 }
+            }
+            else {
+                push @new, $col;
+                $done{$col->id} = 1;
             }
             $previous_topic_id = $col->topic_id || 0;
         }
