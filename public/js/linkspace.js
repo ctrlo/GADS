@@ -255,7 +255,7 @@ var setupDependentField = function () {
         } else if (type === 'tree') {
             // get the hidden children of $target, their value attr is the selected values
             var items = [];
-            $target.find('.selected-tree-value').each(function() { items.push($(this).val()) });
+            $target.nextAll('.selected-tree-value').each(function() { items.push($(this).val()) });
             return items;
         } else {
             return [$target.val()];
@@ -335,18 +335,26 @@ var setupTreeField = function () {
 
     $treeContainer.on('changed.jstree', function (e, data) {
         // remove all existing hidden value fields
-        $treeContainer.find('.selected-tree-value').remove();
+        $treeContainer.nextAll('.selected-tree-value').remove();
         var selectedElms = $treeContainer.jstree("get_selected", true);
 
         var values = [];
 
         $.each(selectedElms, function () {
             // store the selected values in hidden fields as children of the element
-            $treeContainer.append(
+            $treeContainer.after(
                 '<input type="hidden" class="selected-tree-value" name="' + field + '" value="' + this.id + '" />'
             );
             values.push(data.instance.get_path(this, '#'));
         });
+        // Hacky: we need to submit at least an empty value if nothing is
+        // selected, to ensure the forward/back functionality works. XXX If the
+        // forward/back functionality is removed, this can be removed too.
+        if (selectedElms.length == 0) {
+            $treeContainer.after(
+                '<input type="hidden" class="selected-tree-value" name="' + field + '" value="" />'
+            );
+        }
 
         $treeContainer.trigger('change', { values: values });
     });

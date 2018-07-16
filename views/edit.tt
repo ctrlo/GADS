@@ -565,11 +565,13 @@
                                 [% dispcol.end_node_only && 'data-end-node-only="true"' %]
                                 data-ids-as-params="[% editvalue.ids_as_params %]"
                                 id="jstree[% dispcol.id %]"
-                            >
+                            ></div>
+                            [% IF NOT editvalue.ids.size %]
+                                <input type="hidden" name="[% field %]" class="selected-tree-value" value="">
+                            [% END %]
                             [% FOREACH val IN editvalue.ids %]
                                 <input type="hidden" name="[% field %]" class="selected-tree-value" value="[% val %]">
                             [% END %]
-                            </div>
                         </div>
                     [% END %]
                 [% ELSIF dispcol.type == "person" %]
