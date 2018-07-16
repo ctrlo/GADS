@@ -727,7 +727,7 @@ sub all
                     $done{$_->id} = 1;
                 }
             }
-            $previous_topic_id = $col->topic_id;
+            $previous_topic_id = $col->topic_id || 0;
         }
         @columns = @new;
     }
