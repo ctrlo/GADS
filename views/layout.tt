@@ -525,6 +525,9 @@
                 <th></th>
                 <th>Name</th>
                 <th>Type</th>
+                [% IF layout.has_topics %]
+                    <th>Topic</th>
+                [% END %]
                 <th>Description</th>
             </tr>
         </thead>
@@ -548,6 +551,9 @@
                     [% IF col.type == "curval" %]Record from other data sheet[% END %]
                     [% IF col.type == "autocur" %]Automatic value of other sheet's references to this one[% END %]
                 </td>
+                [% IF layout.has_topics %]
+                    <td>[% col.topic.name | html %]</td>
+                [% END %]
                 <td>
                     [% col.description | html_entity %]
                 </td>
