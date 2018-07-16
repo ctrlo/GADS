@@ -543,9 +543,6 @@
             [% ELSIF dispcol.type == "curval" %]
                 [% PROCESS curval_column column = dispcol %]
             [% ELSIF dispcol.type == "tree" %]
-                    [% FOREACH val IN editvalue.ids %]
-                        <input type="hidden" name="[% field %]" class="[% field %]" value="[% val %]">
-                    [% END %]
                     [% IF readonly %]
                         <div class="form-group">
                             [% editvalue.html %]
@@ -561,7 +558,11 @@
                                 [% dispcol.end_node_only && 'data-end-node-only="true"' %]
                                 data-ids-as-params="[% editvalue.ids_as_params %]"
                                 id="jstree[% dispcol.id %]"
-                            ></div>
+                            >
+                            [% FOREACH val IN editvalue.ids %]
+                                <input type="hidden" name="[% field %]" class="selected-tree-value" value="[% val %]">
+                            [% END %]
+                            </div>
                         </div>
                     [% END %]
                 [% ELSIF dispcol.type == "person" %]
