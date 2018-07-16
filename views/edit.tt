@@ -815,7 +815,7 @@
 [% END %]
 
 [% BLOCK curval_add_button %]
-    <p><a data-toggle='modal' data-target='#curval_modal' class="curval-modal"
+    <p><a class="curval-modal"
         data-instance-id="[% dispcol.refers_to_instance_id %]" data-layout-id="[% dispcol.id %]" style='cursor:pointer'>Add...
     </a></p>
 [% END %]
