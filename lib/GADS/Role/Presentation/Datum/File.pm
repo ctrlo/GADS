@@ -6,9 +6,10 @@ sub presentation {
     my $self = shift;
 
     return {
-        type => $self->column->type,
-        name => $self->name,
-        id   => $self->id
+        type     => $self->column->type,
+        name     => $self->name,
+        id       => $self->id,
+        mimetype => $self->mimetype,
     };
 }
 

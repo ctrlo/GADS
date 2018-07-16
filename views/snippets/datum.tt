@@ -25,7 +25,7 @@
 [% MACRO render_file_datum(file, show_images) BLOCK %]
     [% IF file.id %]
         <a href="/file/[% file.id %]">
-            [% IF show_images %]
+            [% IF show_images AND file.mimetype.match('^image/') %]
                 <img class="autosize" src="/file/[% file.id %]">
             [% ELSE %]
                 [% file.name %]
