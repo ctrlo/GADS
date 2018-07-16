@@ -96,7 +96,7 @@
     [% END %]
 >
     <div class="row">
-        <div class="col-md-6">
+        <div class="[% IF modal %]col-md-12[% ELSE %]col-md-6[% END %]">
             [% IF record.current_id %]
                 <input type="hidden" name="current_id" value="[% record.current_id %]">
             [% END %]
