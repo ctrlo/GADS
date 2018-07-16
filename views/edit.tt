@@ -90,7 +90,6 @@
             [% IF child %]
                 <input type="hidden" name="child" value="[% child %]">
             [% END %]
-            [% trees = [] %]
             [% jscode = [] %]
             [% typeaheads = [] %]
             [% columns_done = {} %]
