@@ -1735,16 +1735,14 @@ any '/layout/?:id?' => require_login sub {
 
             my @permission_params = grep { /^permission_(?:.*?)_\d+$/ } keys %{ params() };
 
-            if (@permission_params) {
-                my %permissions;
+            my %permissions;
 
-                foreach (@permission_params) {
-                    my ($name, $group_id) = m/^permission_(.*?)_(\d+)$/;
-                    push @{ $permissions{$group_id} ||= [] }, $name;
-                }
-                
-                $column->set_permissions(\%permissions);
+            foreach (@permission_params) {
+                my ($name, $group_id) = m/^permission_(.*?)_(\d+)$/;
+                push @{ $permissions{$group_id} ||= [] }, $name;
             }
+
+            $column->set_permissions(\%permissions);
 
             $column->$_(param $_)
                 foreach (qw/name name_short description helptext optional isunique multivalue remember link_parent_id topic_id/);
