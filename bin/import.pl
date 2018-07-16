@@ -174,11 +174,13 @@ foreach my $ins (readdir $root)
         $column->write(override => 1, no_db_add => 1, no_cache_update => 1);
         $column->import_after_write($col);
 
+        my $perms_to_set;
         foreach my $old_id (keys %{$col->{permissions}})
         {
             my $new_id = $group_mapping->{$old_id};
-            $column->set_permissions({ $new_id => $col->{permissions}->{$old_id} });
+            $perms_to_set->{$new_id} = $col->{permissions}->{$old_id};
         }
+        $column->set_permissions($perms_to_set);
 
         $column_mapping->{$col->{id}} = $column->id;
 
