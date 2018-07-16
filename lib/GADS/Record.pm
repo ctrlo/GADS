@@ -345,6 +345,7 @@ has deletedby => (
         my $self = shift;
         if (!$self->record)
         {
+            $self->record_id or return;
             my $user = $self->schema->resultset('Record')->find(
                 $self->record_id
             )->deletedby or return undef;
@@ -401,6 +402,7 @@ sub _build_deleted
 {   my $self = shift;
     if (!$self->record)
     {
+        $self->record_id or return;
         return $self->schema->resultset('Record')->find($self->record_id)->deleted;
     }
     $self->set_deleted or return undef;
@@ -1157,6 +1159,9 @@ sub write
     my %allow_update = map { $_ => 1 } @{$options{allow_update} || []};
     my ($need_app, $need_rec, $child_unique); # Whether a new approval_rs or record_rs needs to be created
     $need_rec = 1 if $self->changed;
+    # Whether any topics cannot be written because of missing fields in
+    # other topics
+    my %no_write_topics;
     foreach my $column ($self->layout->all)
     {
         next unless $column->userinput;
@@ -1186,14 +1191,27 @@ sub write
                 # page write, and then also check as it would be for a standard write.
                 if ($self->has_editor_shown_fields ? $datum->value_current_page : $datum->ready_to_write)
                 {
-                    # Only warn if it was previously blank, otherwise it might
-                    # be a read-only field for this user
-                    if (!$self->new_entry && !$datum->changed)
+                    if (my $topic = $column->topic && $column->topic->prevent_edit_topic)
                     {
-                        mistake __x"'{col}' is no longer optional, but was previously blank for this record.", col => $column->{name};
+                        # This setting means that we can write this missing
+                        # value, but we will be unable to write another topic
+                        # later
+                        $no_write_topics{$topic->id} ||= {
+                            topic   => $topic,
+                            columns => [],
+                        };
+                        push @{$no_write_topics{$topic->id}->{columns}}, $column;
                     }
                     else {
-                        error __x"'{col}' is not optional. Please enter a value.", col => $column->{name};
+                        # Only warn if it was previously blank, otherwise it might
+                        # be a read-only field for this user
+                        if (!$self->new_entry && !$datum->changed)
+                        {
+                            mistake __x"'{col}' is no longer optional, but was previously blank for this record.", col => $column->{name};
+                        }
+                        else {
+                            error __x"'{col}' is not optional. Please enter a value.", col => $column->{name};
+                        }
                     }
                 }
             }
@@ -1291,6 +1309,18 @@ sub write
             }
         }
         $child_unique = 1 if $datum->child_unique;
+    }
+
+    # Check whether any values have been written to topics which cannot be
+    # written to yet
+    foreach my $topic (values %no_write_topics)
+    {
+        foreach my $col ($topic->{topic}->fields)
+        {
+            error __x"You cannot write to {col} until the following fields have been completed: {fields}",
+                col => $col->name, fields => join ', ', map { $_->name } @{$topic->{columns}}
+                    if !$self->fields->{$col->id}->blank;
+        }
     }
 
     # Error if child record as no fields selected

@@ -636,6 +636,15 @@ sub _build_has_globe
     !! grep { $_->return_type eq "globe" } $self->all;
 }
 
+has has_topics => (
+    is => 'lazy',
+);
+
+sub _build_has_topics
+{   my $self = shift;
+    !! $self->schema->resultset('Topic')->search({ instance_id => $self->instance_id })->next;
+}
+
 sub all_with_internal
 {   my $self = shift;
     $self->all(@_, include_internal => 1);
@@ -672,6 +681,8 @@ sub all
     my $type = $options{type};
 
     my @columns = grep { $_->instance_id == $self->instance_id && !$_->hidden } @{$self->columns};
+    @columns = grep { $options{topic_id} ? $_->topic_id == $options{topic_id} : !$_->topic_id } @columns
+        if exists $options{topic_id};
     @columns = $self->_order_dependencies(@columns) if $options{order_dependencies};
     @columns = grep { !$_->internal } @columns unless $options{include_internal};
     @columns = grep { $_->internal } @columns if $options{only_internal};
@@ -688,6 +699,39 @@ sub all
     @columns = grep { $_->user_can('write_existing') || $_->user_can('read') } @columns if $options{user_can_readwrite_existing};
     @columns = grep { $_->user_can('approve_new') } @columns if $options{user_can_approve_new};
     @columns = grep { $_->user_can('approve_existing') } @columns if $options{user_can_approve_existing};
+
+    if ($options{sort_by_topics})
+    {
+        # Sorting by topic involves keeping the order of fields that do not
+        # have a defined topic, but slotting in those together that have the
+        # same topic.
+        # First build up an index of topics and their fields
+        my %topics;
+        foreach my $col (@columns)
+        {
+            $col->topic_id or next;
+            $topics{$col->topic_id} ||= [];
+            push @{$topics{$col->topic_id}}, $col;
+        }
+        my @new; my $previous_topic_id = 0; my %done;
+        foreach my $col (@columns)
+        {
+            next if $done{$col->id};
+            push @new, $col;
+            $done{$col->id} = 1;
+            if ($col->topic_id && $col->topic_id != $previous_topic_id)
+            {
+                foreach (@{$topics{$col->topic_id}})
+                {
+                    push @new, $_;
+                    $done{$_->id} = 1;
+                }
+            }
+            $previous_topic_id = $col->topic_id;
+        }
+        @columns = @new;
+    }
+
     @columns;
 }
 

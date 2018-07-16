@@ -1,0 +1,21 @@
+<h2>Topics</h2>
+<p>
+    Topics are a way to group together related fields within a table. Once
+    fields are allocated to topics, they will be shown within these topics
+    when editing a record.
+</p>
+<p>
+    <a href="/topic/0" class="btn btn-default" role="button">Add a topic</a>
+</p>
+<table class="table table-striped">
+    <tr>
+        <th></th>
+        <th>Name</th>
+    </tr>
+    [% FOREACH topic IN topics %]
+        <tr>
+            <td><a href="/topic/[% topic.id %]">Edit</a></td>
+            <td>[% topic.name | html_entity %]</td>
+        </tr>
+    [% END %]
+</table>

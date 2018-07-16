@@ -67,7 +67,7 @@ schema->site_id($site_id);
 
 my @instances = @instance_ids
     ? (map { resultset('Instance')->find($_) } @instance_ids)
-    : @{GADS::Instances->new(schema => schema)->all};
+    : @{GADS::Instances->new(schema => schema, user => undef, user_permission_override => 1)->all};
 
 my $encoder = JSON->new->pretty;
 
@@ -86,16 +86,10 @@ foreach my $group (schema->resultset('Group')->all)
     print $fh $json;
 }
 
-foreach my $instance (@instances)
+foreach my $layout (@instances)
 {
-    my $layout = GADS::Layout->new(
-       user        => undef,
-       instance_id => $instance->id,
-       schema      => schema,
-       config      => GADS::Config->instance,
-    );
-
-    my $ins_dir = '_export/instance'.$instance->id;
+    my $instance_id = $layout->instance_id;
+    my $ins_dir = "_export/instance$instance_id";
     mkdir $ins_dir
         or report FAULT => "Unable to create instance directory";
     my $json = $encoder->encode($layout->export);
@@ -104,6 +98,23 @@ foreach my $instance (@instances)
         or report FAULT => "Error opening $file for write";
     print $fh $json;
 
+    mkdir "$ins_dir/topics"
+        or report FAULT => "Unable to create topics directory";
+    foreach my $topic (schema->resultset('Topic')->search({ instance_id => $instance_id })->all)
+    {
+        my $json = $encoder->encode({
+            id            => $topic->id,
+            name          => $topic->name,
+            initial_state => $topic->initial_state,
+            click_to_edit => $topic->click_to_edit,
+            instance_id   => $topic->instance_id,
+        });
+        my $file = "$ins_dir/topics/".$topic->id;
+        open(my $fh, ">:encoding(UTF-8)", $file)
+            or report FAULT => "Error opening $file for write";
+        print $fh $json;
+    }
+
     mkdir "$ins_dir/layout"
         or report FAULT => "Unable to create layout directory";
 
@@ -111,7 +122,7 @@ foreach my $instance (@instances)
 
     mkdir "$ins_dir/metrics"
         or report FAULT => "Unable to create metrics directory";
-    dump_all("$ins_dir/metrics/", @{GADS::MetricGroups->new(schema => schema, instance_id => $instance->id)->all});
+    dump_all("$ins_dir/metrics/", @{GADS::MetricGroups->new(schema => schema, instance_id => $instance_id)->all});
 
     mkdir "$ins_dir/graphs"
         or report FAULT => "Unable to create graphs directory";

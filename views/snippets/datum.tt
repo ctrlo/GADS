@@ -25,7 +25,7 @@
 [% MACRO render_file_datum(file, show_images) BLOCK %]
     [% IF file.id %]
         <a href="/file/[% file.id %]">
-            [% IF show_images %]
+            [% IF show_images AND file.mimetype.match('^image/') %]
                 <img class="autosize" src="/file/[% file.id %]">
             [% ELSE %]
                 [% file.name %]
@@ -55,8 +55,8 @@
     [% END %]
 [% END %]
 
-[% MACRO render_string_datum(string, header) BLOCK %]
-    [% IF string.html.defined && string.html.length > MORE_LESS_TRESHOLD %]
+[% MACRO render_string_datum(string, header, full_content) BLOCK %]
+    [% IF !full_content && string.html.defined && string.html.length > MORE_LESS_TRESHOLD %]
         [% WRAPPER more_less_block %]
             [% string.html %]
         [% END %]
@@ -65,21 +65,23 @@
     [% END %]
 [% END %]
 
+[% PROCESS snippets/rag_symbols.tt %]
+
 [% MACRO render_rag_datum(rag) BLOCK %]
     [% grade = rag.grade %]
     <span aria-labelledby="rag_[% grade %]_meaning" class="[% grade %]">[% rag_symbols.$grade %]</span>
 [% END %]
 
-[% MACRO render_datum(datum, show_images) BLOCK;
+[% MACRO render_datum(datum, full_content) BLOCK;
     SWITCH datum.type;
         CASE ['curval', 'autocur'];
             render_curcommon_datum(datum.is_multivalue, datum.data, datum.name);
         CASE 'file';
-            render_file_datum(datum.data, show_images);
+            render_file_datum(datum.data, full_content);
         CASE 'person';
             render_person_datum(datum.data);
         CASE 'string';
-            render_string_datum(datum.data, datum.name);
+            render_string_datum(datum.data, datum.name, full_content);
         CASE 'rag';
             render_rag_datum(datum.data);
         CASE;

@@ -140,6 +140,9 @@ sub _build__layouts
         $params{cols_db} = $layouts[0]->cols_db if @layouts;
         push @layouts, GADS::Layout->new(%params);
     }
+
+    @layouts = sort { $a->name cmp $b->name } @layouts;
+
     \@layouts;
 }
 
