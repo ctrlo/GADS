@@ -276,7 +276,11 @@ sub field_values_for_code
 sub for_edit
 {   my $self = shift;
     my $values = $self->for_code;
-    return ref $values eq 'ARRAY' ? $values : [$values];
+    return !defined $values
+        ? []
+        : ref $values eq 'ARRAY'
+        ? $values
+        : [$values];
 }
 
 sub for_code
