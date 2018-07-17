@@ -118,7 +118,8 @@ var SelectWidget = function (multi) {
 
     $(document).on('click', function(e) {
         var clickedOutside = !this.is(e.target) && this.has(e.target).length === 0;
-        if (clickedOutside) {
+        var clickedInDialog = $(e.target).closest(".modal").length !== 0;
+        if (clickedOutside && !clickedInDialog) {
             var isCurrentlyExpanded = $trigger.attr('aria-expanded') === 'true';
             if (isCurrentlyExpanded) {
                 onTriggerClick($widget, $trigger, $target)();
