@@ -96,7 +96,7 @@
     background-color: #eee;
 }
 
-@each $column-type in calc rag tree enum file curval string date daterange person {
+@each $column-type in calc rag tree enum file curval string date daterange person autocur {
     #manage-fields.column-type-#{$column-type} .field-options.#{$column-type} { display: block; }
 }
 
