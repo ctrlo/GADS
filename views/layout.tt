@@ -662,7 +662,6 @@
                 });
                 $('#related_field_id').change(function(){
                     var divid = $(this).find(':selected').data('instance_id');
-                    alert(divid);
                     $('.autocur_instance').hide();
                     $('#autocur_instance_' + divid).show();
                 });
