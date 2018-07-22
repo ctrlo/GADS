@@ -256,7 +256,7 @@ var setupDependentField = function () {
         } else if (type === 'tree') {
             // get the hidden children of $target, their value attr is the selected values
             var items = [];
-            $target.nextAll('.selected-tree-value').each(function() { items.push($(this).val()) });
+            $target.nextAll('.selected-tree-value').each(function() { items.push($(this).data('text-value')) });
             return items;
         } else {
             return [$target.val()];
@@ -272,9 +272,9 @@ var setupDependentField = function () {
         return false;
     };
 
-    $depends.on('change', function (e, params) {
+    $depends.on('change', function (e) {
         var $target = $(e.target);
-        var values = params ? params.values : getFieldValues($depends, $target);
+        var values = getFieldValues($depends, $target);
         some(values, function (value) {
             return regexp.test(value)
         }) ? $field.show() : $field.hide();
@@ -343,10 +343,9 @@ var setupTreeField = function () {
 
         $.each(selectedElms, function () {
             // store the selected values in hidden fields as children of the element
-            $treeContainer.after(
-                '<input type="hidden" class="selected-tree-value" name="' + field + '" value="' + this.id + '" />'
-            );
-            values.push(data.instance.get_path(this, '#'));
+            var node = $('<input type="hidden" class="selected-tree-value" name="' + field + '" value="' + this.id + '" />').insertAfter($treeContainer);
+            var text_value = data.instance.get_path(this, '#');
+            node.data('text-value', text_value);
         });
         // Hacky: we need to submit at least an empty value if nothing is
         // selected, to ensure the forward/back functionality works. XXX If the
@@ -357,7 +356,7 @@ var setupTreeField = function () {
             );
         }
 
-        $treeContainer.trigger('change', { values: values });
+        $treeContainer.trigger('change');
     });
 
     $treeContainer.on('select_node.jstree', function (e, data) {
