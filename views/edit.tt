@@ -216,6 +216,14 @@
                 var m = $("#curval_modal");
                 m.find('.modal-body').text('Loading...');
                 m.find('.modal-body').load('/edit/?modal=' + layout_id + '&oi=' + instance_id);
+                m.on("focus", ".datepicker", function(e) {
+                    $(this).datepicker({format: "[% config.dateformat_datepicker %]", autoclose: true});
+                });
+                m.on("focus", ".select-widget", function(e) {
+                    var multi = $(this).hasClass('multi');
+                    SelectWidget.call($(this), multi);
+                });
+
                 m.modal();
             });
 
@@ -223,15 +231,14 @@
                 e.preventDefault();
                 var form = $(this);
                 var form_data = form.serialize();
-                var form_values = form.serializeArray();
                 var modal_field_ids = form.data("modal-field-ids");
                 var col_id = form.data( "curval-id" );
                 var hidden_input = $('<input>').attr({type: 'hidden', name: 'field' + col_id, value: form_data});
 
                 var text_values = modal_field_ids.map(function(element) {
-                    var field = 'field' + element;
-                    var text = $.grep(form_values, function(obj){return obj.name === field;})[0];
-                    return text.value;
+                    var control = form.find('[data-column-id="' + element + '"]');
+                    var value = getFieldValues(control);
+                    return value;
                 });
 
                 var remove_link = $('<a href="#" class="curval_remove">').append('(remove)');
@@ -753,7 +760,7 @@
 [% END %]
 
 [% BLOCK singlevalue_column %]
-    <div class="select-widget single">
+    <div class="select-widget single" tabindex="0">
         <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="select-widget-dropdown">
             <div class="form-group form-control" >
@@ -861,7 +868,7 @@
 %]
 
 [% BLOCK multivalue_column %]
-    <div class="select-widget multi">
+    <div class="select-widget multi" tabindex="0">
         <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="select-widget-dropdown">
             <div class="form-group form-control" >
