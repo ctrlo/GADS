@@ -47,6 +47,7 @@ migrate {
             # For each group entry, add the permissions into the users of that group
             foreach my $user_group ($table_perm->group->user_groups)
             {
+                next unless $permissions{$table_perm->permission}; # New permission not applicable
                 $schema->resultset('UserPermission')->find_or_create({
                     user_id       => $user_group->user->id,
                     permission_id => $permissions{$table_perm->permission}->id,
@@ -66,7 +67,7 @@ migrate {
             if ($rs->count == 1)
             {
                 $_->user_groups->delete foreach $rs->all;
-                $rs->delete;
+                $rs->delete unless $rs->next->layout_groups;
             }
         }
     }
