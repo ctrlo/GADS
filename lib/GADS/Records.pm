@@ -1563,7 +1563,15 @@ sub csv_header
     my $csv = $self->_csv;
     $csv->combine(@colnames)
         or error __x"An error occurred producing the CSV headings: {err}", err => $csv->error_input;
-    return $csv->string."\n";
+    # See if a header is defined and prepend that
+    my $config = GADS::Config->instance;
+    my $return = $csv->string."\n";
+    if (my $header = $config && $config->gads && $config->gads->{header})
+    {
+        $return = "$header\n$return";
+    }
+
+    return $return;
 }
 
 sub csv_line
