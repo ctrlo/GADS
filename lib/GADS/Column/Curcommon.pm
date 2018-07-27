@@ -28,19 +28,6 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
-after 'build_values' => sub {
-    my ($self, $original) = @_;
-
-    if ($original->{typeahead})
-    {
-        $self->typeahead(1);
-    }
-};
-
-has '+option_names' => (
-    default => sub { [qw/override_permissions/] },
-);
-
 has '+is_curcommon' => (
     default => 1,
 );
@@ -77,14 +64,6 @@ has refers_to_instance_id => (
     lazy    => 1,
     coerce  => sub { $_[0] || undef },
     builder => '_build_refers_to_instance_id',
-);
-
-has typeahead => (
-    is      => 'rw',
-    isa     => Bool,
-    lazy    => 1,
-    default => 0,
-    coerce  => sub { $_[0] ? 1 : 0 },
 );
 
 has layout_parent => (
@@ -596,20 +575,12 @@ sub cleanup
     $schema->resultset('CurvalField')->search({ parent_id => $id })->delete;
 }
 
-before import_hash => sub {
-    my ($self, $values) = @_;
-    $self->typeahead($values->{typeahead});
-    $self->override_permissions($values->{override_permissions});
-};
-
 around export_hash => sub {
     my $orig = shift;
     my ($self, $values) = @_;
     my $hash = $orig->(@_);
     $hash->{refers_to_instance_id} = $self->refers_to_instance_id;
-    $hash->{typeahead}             = $self->typeahead;
     $hash->{curval_field_ids}      = $self->curval_field_ids;
-    $hash->{override_permissions}  = $self->override_permissions;
     return $hash;
 };
 

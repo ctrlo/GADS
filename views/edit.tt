@@ -89,9 +89,14 @@
     </div>
 [% END %]
 
-<form id="edit-form" method="post" enctype="multipart/form-data">
+<form class="edit-form" method="post" enctype="multipart/form-data"
+    [% IF modal %]
+        data-curval-id="[% modal %]"
+        data-modal-field-ids="[% modal_field_ids %]"
+    [% END %]
+>
     <div class="row">
-        <div class="col-md-6">
+        <div class="[% IF modal %]col-md-12[% ELSE %]col-md-6[% END %]">
             [% IF record.current_id %]
                 <input type="hidden" name="current_id" value="[% record.current_id %]">
             [% END %]
@@ -125,22 +130,27 @@
             [% END %]
         </div>
     </div>
-    <div class="navbar navbar-default navbar-fixed-bottom edit-controls">
-        <div class="container">
-            [% IF record.has_previous_values %]
-                <button type="submit" name="submit" value="back" class="btn btn-default submit_button">Previous</button>
-            [% END %]
-            <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
-                [% IF record.has_next_values AND page != "bulk" %]Next[% ELSE %]Submit[% END %]
-            </button>
-            [% IF NOT record.current_id %]
-                <button type="submit" name="draft" value="submit" class="btn btn-primary submit_button">
-                    Save draft
+    [% IF modal %]
+        <button type="submit" class="btn btn-primary" id="curval-add">Add</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+    [% ELSE %]
+        <div class="navbar navbar-default navbar-fixed-bottom edit-controls">
+            <div class="container">
+                [% IF record.has_previous_values %]
+                    <button type="submit" name="submit" value="back" class="btn btn-default submit_button">Previous</button>
+                [% END %]
+                <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
+                    [% IF record.has_next_values AND page != "bulk" %]Next[% ELSE %]Submit[% END %]
                 </button>
-            [% END %]
-            <a href="/data" class="btn btn-default">Cancel</a>
+                [% IF NOT record.current_id %]
+                    <button type="submit" name="draft" value="submit" class="btn btn-primary submit_button">
+                        Save draft
+                    </button>
+                [% END %]
+                <a href="/data" class="btn btn-default">Cancel</a>
+            </div>
         </div>
-    </div>
+    [% END %]
 </form>
 
 <div class="modal fade" id="helptext_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -158,6 +168,18 @@
 [% WRAPPER modal_dialog.tt modal_id="readmore_modal" modal_large=1 %]
 [% END %]
 
+<div class="modal fade" id="curval_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+[% UNLESS modal %]
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
@@ -186,6 +208,50 @@
                 m.find('.modal-body').text('Loading...');
                 m.find('.modal-body').load('/record_body/' + record_id + '?oi=2');
                 m.modal();
+            });
+
+            $(document).on("mousedown", ".curval-modal", function(e) {
+                var layout_id = $(e.target).data('layout-id');
+                var instance_id = $(e.target).data('instance-id');
+                var m = $("#curval_modal");
+                m.find('.modal-body').text('Loading...');
+                m.find('.modal-body').load('/edit/?modal=' + layout_id + '&oi=' + instance_id);
+                m.on("focus", ".datepicker", function(e) {
+                    $(this).datepicker({format: "[% config.dateformat_datepicker %]", autoclose: true});
+                });
+                m.on("focus", ".select-widget", function(e) {
+                    var multi = $(this).hasClass('multi');
+                    SelectWidget.call($(this), multi);
+                });
+
+                m.modal();
+            });
+
+            $("#curval_modal").on('submit', '.edit-form', function(e){
+                e.preventDefault();
+                var form = $(this);
+                var form_data = form.serialize();
+                var modal_field_ids = form.data("modal-field-ids");
+                var col_id = form.data( "curval-id" );
+                var hidden_input = $('<input>').attr({type: 'hidden', name: 'field' + col_id, value: form_data});
+
+                var text_values = modal_field_ids.map(function(element) {
+                    var control = form.find('[data-column-id="' + element + '"]');
+                    var value = getFieldValues(control);
+                    return value;
+                });
+
+                var remove_link = $('<a href="#" class="curval_remove">').append('(remove)');
+                var curval_text = text_values.join(', ') + ' ';
+                curval_text = $('<div />').text(curval_text).html();
+
+                $('#curval_list_' + col_id).append($('<li class="curval_item">')
+                    .append(curval_text).append(remove_link).append(hidden_input));
+                $('.modal.in').modal('hide');
+	    });
+
+            $(".curval_group").on('click', '.curval_remove', function() {
+                $(this).closest('.curval_item').remove();
             });
 
             $('.input-daterange input.from').each(function (){
@@ -384,6 +450,7 @@
 [% END %]
 [% END %]';
 </script>
+[% END %]
 
 [% BLOCK showcol %]
     [% NEXT IF dispcol.type == "rag" OR dispcol.type == "calc" %]
@@ -513,7 +580,7 @@
                     > <span [% label_style %]>[% label %]</span>
                 </label>
             </div>
-        [% ELSIF (dispcol.type != "curval" && dispcol.type != "enum") || dispcol.typeahead %]
+        [% ELSIF (dispcol.type != "curval" && dispcol.type != "enum") || dispcol.value_selector == "typeahead" || dispcol.value_selector == "noshow" %]
             <label for="[% dispcol.id %]" [% label_style %]>
                 [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
             </label>
@@ -693,7 +760,7 @@
 [% END %]
 
 [% BLOCK singlevalue_column %]
-    <div class="select-widget single">
+    <div class="select-widget single" tabindex="0">
         <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="select-widget-dropdown">
             <div class="form-group form-control" >
@@ -754,6 +821,23 @@
     </div>
 [% END %]
 
+[% BLOCK curval_add_button %]
+    <p><a class="curval-modal"
+        data-instance-id="[% dispcol.refers_to_instance_id %]" data-layout-id="[% dispcol.id %]" style='cursor:pointer'>Add...
+    </a></p>
+[% END %]
+
+[% BLOCK curval_noshow %]
+    <ul id="curval_list_[% dispcol.id %]" class="curval_group">
+        [% FOREACH val IN editvalue.for_edit %]
+            <li class="curval_item">
+                [% val.value | html %] (<a href="#" class="curval_remove">remove</a>)
+                <input type="hidden" name="[% field %]" value="[% val.id %]">
+            </li>
+        [% END %]
+    </ul>
+[% END %]
+
 [%
     BLOCK curval_column;
         required = !(column.optional OR page == "bulk");
@@ -765,8 +849,14 @@
             values = column.filtered_values;
         END;
 
-        IF column.typeahead;
+        IF column.show_add;
+            PROCESS curval_add_button;
+        END;
+
+        IF column.value_selector == "typeahead";
             PROCESS curval_typeahead_column;
+        ELSIF dispcol.value_selector == "noshow";
+            PROCESS curval_noshow;
         ELSIF column.multivalue;
             PROCESS multivalue_column;
         ELSE;
@@ -778,7 +868,7 @@
 %]
 
 [% BLOCK multivalue_column %]
-    <div class="select-widget multi">
+    <div class="select-widget multi" tabindex="0">
         <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="select-widget-dropdown">
             <div class="form-group form-control" >

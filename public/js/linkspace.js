@@ -9,6 +9,12 @@
  */
 var SelectWidget = function (multi) {
 
+    var $widget = this.find('.form-control');
+
+    if ($widget.hasClass("hasSelectWidget")) {
+        return;
+    }
+
     var connectMulti = function (update) {
         return function () {
             var $item = $(this);
@@ -68,7 +74,6 @@ var SelectWidget = function (multi) {
     var isSingle = this.hasClass('single');
 
     var $container = $('main');
-    var $widget = this.find('.form-control');
     var $trigger = $widget.find('[aria-expanded]');
     var $current = this.find('.current');
     var $availableItems = this.find('.available .answer input');
@@ -161,6 +166,9 @@ var SelectWidget = function (multi) {
         $answers.removeAttr('hidden');
         $clearSearch.attr('hidden', '');
     });
+
+    $widget.addClass("hasSelectWidget");
+    $widget.prop('tabIndex', -1);
 };
 
 var setupSelectWidgets = function () {
@@ -227,6 +235,34 @@ var setupLessMoreWidgets = function () {
     $widgets.each(convert);
 };
 
+// get the value from a field, depending on its type
+var getFieldValues = function ($depends) {
+    var type = $depends.data('column-type');
+
+    if (type === 'enum' || type === 'curval') {
+        var $visible = $depends.find('.select-widget .current [data-list-item]:not([hidden])');
+        var items = [];
+        $visible.each(function () { items.push($(this).text()) });
+        return items;
+    } else if (type === 'person') {
+        return [$depends.find('option:selected').text()];
+    } else if (type === 'tree') {
+        // get the hidden fields of the control - their textual value is located in a dat field
+        var items = [];
+        $depends.find('.selected-tree-value').each(function() { items.push($(this).data('text-value')) });
+        return items;
+    } else if (type === 'daterange') {
+        var $f = $depends.find('.form-control');
+        var dates = $f.map(function() {
+            return $(this).val();
+        }).get().join(' - ');
+        return [dates];
+    } else {
+        var $f = $depends.find('.form-control');
+        return [$f.val()];
+    }
+};
+
 /***
  *
  * Handle the dependency connections between fields
@@ -242,27 +278,6 @@ var setupDependentField = function () {
     var $depends = this.dependsOn;
     var regexp   = this.regexp;
 
-    // get the value from a field, depending on its type
-    var getFieldValues = function ($depends, $target) {
-        var type = $depends.data('column-type');
-
-        if (type === 'enum' || type === 'curval') {
-            var $visible = $depends.find('.select-widget .current [data-list-item]:not([hidden])');
-            var items = [];
-            $visible.each(function () { items.push($(this).text()) });
-            return items;
-        } else if (type === 'person') {
-            return [$target.find('option:selected').text()];
-        } else if (type === 'tree') {
-            // get the hidden children of $target, their value attr is the selected values
-            var items = [];
-            $target.nextAll('.selected-tree-value').each(function() { items.push($(this).data('text-value')) });
-            return items;
-        } else {
-            return [$target.val()];
-        }
-    };
-
     var some = function (set, test) {
         for (var i = 0, j = set.length; i < j; i++) {
             if (test(set[i])) {
@@ -273,8 +288,7 @@ var setupDependentField = function () {
     };
 
     $depends.on('change', function (e) {
-        var $target = $(e.target);
-        var values = getFieldValues($depends, $target);
+        var values = getFieldValues($depends);
         some(values, function (value) {
             return regexp.test(value)
         }) ? $field.show() : $field.hide();

@@ -1962,7 +1962,7 @@ small.search_term {
   box-shadow: .5em .5em .5em .5em #000;
   margin-bottom: 0; }
 
-#edit-form {
+.edit-form {
   margin-bottom: 4em; }
 
 .input_holder .datepicker {

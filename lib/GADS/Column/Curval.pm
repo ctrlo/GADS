@@ -27,6 +27,49 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column::Curcommon';
 
+has '+option_names' => (
+    default => sub { [qw/override_permissions value_selector show_add delete_not_used/] },
+);
+
+has value_selector => (
+    is      => 'rw',
+    isa     => sub { $_[0] =~ /^(typeahead|dropdown|noshow)$/ or panic "Invalid value_selector: $_[0]" },
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        my $default = $self->_rset && $self->_rset->typeahead ? 'typeahead' : 'dropdown';
+        return $default unless $self->has_options;
+        exists $self->options->{value_selector} ? $self->options->{value_selector} : $default;
+    },
+    trigger => sub { $_[0]->clear_options },
+);
+
+has show_add => (
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    builder => sub {
+        my $self = shift;
+        return 0 unless $self->has_options;
+        $self->options->{show_add};
+    },
+    trigger => sub { $_[0]->clear_options },
+);
+
+has delete_not_used => (
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    builder => sub {
+        my $self = shift;
+        return 0 unless $self->has_options;
+        $self->options->{delete_not_used};
+    },
+    trigger => sub { $_[0]->clear_options },
+);
+
 sub _build_refers_to_instance_id
 {   my $self = shift;
     my ($random) = $self->schema->resultset('CurvalField')->search({
@@ -100,7 +143,7 @@ sub write_special
 
     # Update typeahead option
     $rset->update({
-        typeahead   => $self->typeahead,
+        typeahead   => 0, # No longer used, replaced with value_selector
     });
 
     # Clear what may be cached values that should be updated after write
@@ -113,6 +156,7 @@ sub validate
 {   my ($self, $value, %options) = @_;
     return 1 if !$value;
     my $fatal = $options{fatal};
+    return 1 if $self->show_add;
     if ($value !~ /^[0-9]+$/)
     {
         return 0 if !$fatal;

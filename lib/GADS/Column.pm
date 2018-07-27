@@ -538,6 +538,7 @@ has _rset => (
 
 sub _build__rset
 {   my $self = shift;
+    $self->id or return;
     $self->schema->resultset('Layout')->find($self->id);
 }
 
@@ -1169,6 +1170,10 @@ sub import_hash
     $self->display_regex($values->{display_regex});
     $self->multivalue($values->{multivalue});
     $self->filter(GADS::Filter->new(as_hash => $values->{filter}));
+    foreach my $option (@{$self->option_names})
+    {
+        $self->$option = $values->{$option};
+    }
 }
 
 sub export_hash
@@ -1179,7 +1184,7 @@ sub export_hash
         $permissions->{$perm->group_id} ||= [];
         push @{$permissions->{$perm->group_id}}, $perm->permission;
     }
-    +{
+    my $return = {
         id            => $self->id,
         type          => $self->type,
         name          => $self->name,
@@ -1198,6 +1203,11 @@ sub export_hash
         filter        => $self->filter->as_hash,
         permissions   => $permissions,
     };
+    foreach my $option (@{$self->option_names})
+    {
+        $return->{$option} = $self->$option;
+    }
+    return $return;
 }
 
 # Subroutine to run after a column write has taken place for an import
