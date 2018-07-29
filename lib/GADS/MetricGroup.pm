@@ -147,7 +147,7 @@ sub delete_metric
     })->delete;
 }
 
-sub export
+sub export_hash
 {   my $self = shift;
     my $json = {
         name    => $self->name,

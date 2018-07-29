@@ -727,7 +727,7 @@ sub update_user
 
     my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $current_user);
 
-    if ($values->{username} ne $self->username)
+    if (lc $values->{username} ne lc $self->username)
     {
         $self->result_source->schema->resultset('User')->active->search({
             username => $values->{username},
