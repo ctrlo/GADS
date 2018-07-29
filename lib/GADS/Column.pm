@@ -1172,7 +1172,7 @@ sub import_hash
     $self->filter(GADS::Filter->new(as_json => $values->{filter}));
     foreach my $option (@{$self->option_names})
     {
-        $self->$option = $values->{$option};
+        $self->$option($values->{$option});
     }
 }
 
