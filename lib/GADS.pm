@@ -724,24 +724,27 @@ any '/data' => require_login sub {
     elsif ($viewtype eq 'calendar')
     {
         # Get details of the view and work out color markers for date fields
-        my @colors = qw/event-important event-success event-warning event-info event-inverse event-special/;
-        my %datecolors;
-
         my @columns = $view
             ? $layout->view($view->id, user_can_read => 1)
             : $layout->all(user_can_read => 1);
+        my @colors;
+        my $graph = GADS::Graph::Data->new(
+            schema  => schema,
+            records => undef,
+        );
 
         foreach my $column (@columns)
         {
             if ($column->type eq "daterange" || ($column->return_type && $column->return_type eq "date"))
             {
-                $datecolors{$column->name} = shift @colors;
+                my $color = $graph->get_color($column->name);
+                push @colors, { key => $column->name, color => $color};
             }
         }
 
-        $params->{calendar}   = session('calendar'); # Remember previous day viewed
-        $params->{datecolors} = \%datecolors;
-        $params->{viewtype}   = 'calendar';
+        $params->{calendar} = session('calendar'); # Remember previous day viewed
+        $params->{colors}   = \@colors;
+        $params->{viewtype} = 'calendar';
     }
     elsif ($viewtype eq 'timeline')
     {

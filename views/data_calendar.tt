@@ -1,9 +1,13 @@
 <div class="row">
 
     <div style="margin-bottom:25px; margin-top:50px;" class="cal-key">
-    [% FOREACH color IN datecolors.pairs %]
-        <div class=" float-left circ-large [% color.value %]"></div><span class="cal-key-label">[% color.key | html_entity %]</span>
+    [% FOREACH color IN colors %]
+        <div class="timeline-color">
+            <div class="timeline-color-key" style="background-color:[% color.color %]"></div>
+            <div class="timeline-color-text">[% color.key | html_entity %]</div>
+        </div>
     [% END %]
+
     </div>
     <div style="clear:both;"></div>
     <div style="margin-bottom:25px;" class="cal-title">

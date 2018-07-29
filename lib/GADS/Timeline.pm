@@ -32,18 +32,6 @@ has type => (
     required => 1,
 );
 
-has _date_colors => (
-    is      => 'ro',
-    default => sub { +{} },
-);
-
-has _available_colors => (
-    is      => 'ro',
-    default => sub {
-        [qw/event-important event-success event-warning event-info event-inverse event-special/];
-    },
-);
-
 has label_col_id => (
     is => 'ro',
 );
@@ -155,6 +143,8 @@ sub _build_items
         push @columns, @{$column->curval_fields}
             if $column->is_curcommon;
     }
+    my $date_column_count = grep { $_->return_type eq "daterange" || $_->return_type eq "date" } @columns;
+
     while (my $record  = $records->single)
     {
         my @group_to_add = $self->group_col_id
@@ -207,10 +197,12 @@ sub _build_items
                         next unless $column->user_can('read');
 
                         # Create colour if need be
-                        $self->_date_colors->{$column->id} = shift @{$self->_available_colors} unless $self->_date_colors->{$column->id};
-
-                        # Set colour
-                        my $color = $self->_date_colors->{$column->id};
+                        my $color;
+                        if ($self->type eq 'calendar' || (!$self->color_col_id && $date_column_count > 1))
+                        {
+                            $color = $self->graph->get_color($column->name);
+                            $self->_used_color_keys->{$column->name} = 1;
+                        }
 
                         # Push value onto stack
                         if ($column->type eq "daterange")
@@ -332,6 +324,7 @@ sub _build_items
                     }
                 }
             }
+
             my $item_group;
             if ($group_to_add)
             {
@@ -357,7 +350,7 @@ sub _build_items
                 {
                     my $item = {
                         "url"   => "/record/" . $cid,
-                        "class" => $d->{color},
+                        "color" => $d->{color},
                         "title" => $title_i_abr,
                         "id"    => $record->current_id,
                         "start" => $d->{from}->epoch*1000,
@@ -384,6 +377,8 @@ sub _build_items
                         dt         => $d->{from},
                         values     => \@values,
                     };
+                    $item_color = $d->{color}
+                        if $date_column_count > 1;
                     $item->{style} = qq(background-color: $item_color)
                         if $item_color;
                     # Add one day, otherwise ends at 00:00:00, looking like day is not included
