@@ -279,7 +279,7 @@ var getFieldValues = function ($depends) {
         var $f = $depends.find('.form-control');
         var dates = $f.map(function() {
             return $(this).val();
-        }).get().join(' - ');
+        }).get().join(' to ');
         return [dates];
     } else {
         var $f = $depends.find('.form-control');
