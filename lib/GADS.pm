@@ -774,7 +774,7 @@ any '/data' => require_login sub {
         if (
             defined $tl_options->{from}   # Remembered range exists?
             && defined $tl_options->{to}
-            && $tl_options->{view_id} == $view->id # Using the same view
+            && ((!$tl_options->{view_id} && !$view) || ($view && $tl_options->{view_id} == $view->id)) # Using the same view
             && $tl_options->{now} > DateTime->now->subtract(days => 7)->epoch # Within sensible window
         )
         {
