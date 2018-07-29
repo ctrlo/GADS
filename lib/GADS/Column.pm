@@ -1169,7 +1169,7 @@ sub import_hash
     $self->helptext($values->{helptext});
     $self->display_regex($values->{display_regex});
     $self->multivalue($values->{multivalue});
-    $self->filter(GADS::Filter->new(as_hash => $values->{filter}));
+    $self->filter(GADS::Filter->new(as_json => $values->{filter}));
     foreach my $option (@{$self->option_names})
     {
         $self->$option = $values->{$option};
@@ -1200,7 +1200,7 @@ sub export_hash
         display_regex => $self->display_regex,
         link_parent   => $self->link_parent && $self->link_parent->id,
         multivalue    => $self->multivalue,
-        filter        => $self->filter->as_hash,
+        filter        => $self->filter->as_json,
         permissions   => $permissions,
     };
     foreach my $option (@{$self->option_names})

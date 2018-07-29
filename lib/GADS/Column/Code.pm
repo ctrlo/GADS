@@ -266,12 +266,14 @@ sub write_special
             here => $1;
 
     my %return_options;
-    if ($self->write_code($id)) # Returns true if anything relevant changed
+    my $changed = $self->write_code($id); # Returns true if anything relevant changed
+    my $update_deps = exists $options{update_dependents} ? $options{update_dependents} : $changed;
+    if ($update_deps)
     {
         $return_options{no_alerts} = 1 if $new;
 
         # Stop duplicates
-        my %depends_on = map { $_->id => 1 } grep { !$_->internal } $self->param_columns(is_fatal => 1);
+        my %depends_on = map { $_->id => 1 } grep { !$_->internal } $self->param_columns(is_fatal => $options{override} ? 1 : 0);
         my @depends_on = keys %depends_on;
 
         $self->schema->resultset('LayoutDepend')->search({
