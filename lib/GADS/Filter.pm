@@ -167,6 +167,9 @@ sub _filter_tables
         }
     }
     elsif (my $id = $filter->{id}) {
+        # XXX column_id should not really be stored in the hash, as it is
+        # temporary but may be written out with the JSON later for permanent
+        # use
         if ($id =~ s/^([0-9])+_([0-9]+)$//)
         {
             $filter->{column_id} = $2;

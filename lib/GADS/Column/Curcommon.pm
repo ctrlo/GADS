@@ -617,6 +617,19 @@ around import_after_all => sub {
     my ($self, $values, $mapping) = @_;
     my @field_ids = map { $mapping->{$_} } @{$values->{curval_field_ids}};
     $self->curval_field_ids(\@field_ids);
+
+    # Update any field IDs contained within a filter - need to recurse deeply
+    # into the JSON structure
+    my $filter = GADS::Filter->new(as_json => $values->{filter});
+    foreach my $f (@{$filter->filters})
+    {
+        $f->{id} = $mapping->{$f->{id}};
+        $f->{field} = $mapping->{$f->{field}};
+        delete $f->{column_id}; # XXX See comments in GADS::Filter
+    }
+    $filter->clear_as_json;
+    $self->filter($filter);
+
     $self->clear;
     $orig->(@_);
 };

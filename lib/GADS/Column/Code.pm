@@ -271,12 +271,14 @@ sub write_special
         and error __x"Extended characters are not supported in calculated fields (found here: {here})",
             here => $1;
 
-    if ($self->write_code($id)) # Returns true if anything relevant changed
+    my $changed = $self->write_code($id); # Returns true if anything relevant changed
+    my $update_deps = exists $options{update_dependents} ? $options{update_dependents} : $changed;
+    if ($update_deps)
     {
         $self->_no_alerts(1) if $new;
 
         # Stop duplicates
-        my %depends_on = map { $_->id => 1 } grep { !$_->internal } $self->param_columns(is_fatal => 1);
+        my %depends_on = map { $_->id => 1 } grep { !$_->internal } $self->param_columns(is_fatal => $options{override} ? 1 : 0);
         my @depends_on = keys %depends_on;
 
         $self->schema->resultset('LayoutDepend')->search({

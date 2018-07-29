@@ -154,7 +154,7 @@ foreach my $ins (readdir $root)
         $column->import_hash($col);
         # Don't add to the DBIx schema yet, as we may not have all the
         # information needed (e.g. related field IDs)
-        $column->write(override => 1, no_db_add => 1, no_cache_update => 1);
+        $column->write(override => 1, no_db_add => 1, no_cache_update => 1, update_dependents => 0);
         $column->import_after_write($col);
 
         foreach my $old_id (keys %{$col->{permissions}})
@@ -174,8 +174,9 @@ foreach my $ins (readdir $root)
     foreach my $mg (dir("_export/$ins/metrics"))
     {
         my $metric_group = GADS::MetricGroup->new(
-            name   => $mg->{name},
-            schema => schema,
+            name        => $mg->{name},
+            instance_id => $layout->instance_id,
+            schema      => schema,
         );
         $metric_group->write;
         foreach my $metric (@{$mg->{metrics}})
@@ -185,6 +186,7 @@ foreach my $ins (readdir $root)
                 metric_group_id       => $metric_group->id,
                 x_axis_value          => $metric->{x_axis_value},
                 y_axis_grouping_value => $metric->{y_axis_grouping_value},
+                schema                => schema,
             )->write;
         }
 
@@ -211,7 +213,7 @@ foreach (@all_columns)
     my $col = $_->{column};
     $col->import_after_all($_->{values}, $column_mapping);
     # Now add to the DBIx schema
-    $col->write(no_cache_update => 1, add_db => 1);
+    $col->write(no_cache_update => 1, add_db => 1, update_dependents => 1);
 }
 
 $_->{column}->can('update_cached') && $_->{column}->update_cached(no_alerts => 1)
