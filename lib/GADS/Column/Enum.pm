@@ -31,9 +31,9 @@ has enumvals => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        my $sort = $self->ordering eq 'asc'
+        my $sort = $self->ordering && $self->ordering eq 'asc'
             ? 'me.value'
-            : $self->ordering eq 'desc'
+            : $self->ordering && $self->ordering eq 'desc'
             ? { -desc => 'me.value' }
             : ['me.position', 'me.id'];
         my $enumrs = $self->schema->resultset('Enumval')->search({
