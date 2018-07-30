@@ -248,7 +248,7 @@
                 $('#curval_list_' + col_id).append($('<li class="curval_item">')
                     .append(curval_text).append(remove_link).append(hidden_input));
                 $('.modal.in').modal('hide');
-	    });
+            });
 
             $(".curval_group").on('click', '.curval_remove', function() {
                 $(this).closest('.curval_item').remove();
@@ -640,11 +640,11 @@
     <div class="input_holder" >
         <div class="row">
             <div class="[% IF dispcol.multivalue AND dispcol.has_multivalue_plus %]col-md-10[% ELSE %]col-md-12[% END %]">
-            [% IF dispcol.type == "enum" %]
-                [% PROCESS enum_column %]
-            [% ELSIF dispcol.type == "curval" %]
-                [% PROCESS curval_column column = dispcol %]
-            [% ELSIF dispcol.type == "tree" %]
+                [% IF dispcol.type == "enum" %]
+                    [% PROCESS enum_column %]
+                [% ELSIF dispcol.type == "curval" %]
+                    [% PROCESS curval_column column = dispcol %]
+                [% ELSIF dispcol.type == "tree" %]
                     [% IF readonly %]
                         <div class="form-group">
                             [% editvalue.html %]

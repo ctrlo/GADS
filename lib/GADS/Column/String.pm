@@ -38,6 +38,14 @@ has force_regex => (
     lazy    => 1,
 );
 
+has '+can_multivalue' => (
+    default => 1,
+);
+
+has '+has_multivalue_plus' => (
+    default => 1,
+);
+
 after 'build_values' => sub {
     my ($self, $original) = @_;
     $self->string_storage(1);
