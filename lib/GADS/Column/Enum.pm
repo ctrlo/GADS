@@ -147,7 +147,11 @@ sub write_special
             $enumval->update({ value => $en->{value}, position => ++$position });
         }
         else {
-            my $new = $self->schema->resultset('Enumval')->create({ value => $en->{value}, layout_id => $id, ++$position });
+            my $new = $self->schema->resultset('Enumval')->create({
+                value     => $en->{value},
+                layout_id => $id,
+                position  => ++$position,
+            });
             $en->{id} = $new->id;
         }
     }
