@@ -662,13 +662,13 @@
                 $('div#legs').on('click','.add', function(){
                     $(this).parents('.request-add').before( '
                         <div class="request-row">
-                        <div class="col-md-11">
-                        <p>
-                        <input type="hidden" name="enumval_id">
-                        <input type="text" class="form-control" name="enumval">
-                        </p>
-                        </div>
-                        <button type="button" class="close closeme pull-left">&times;</button>
+                            <p>
+                                [%# XXX hacky formatting - to be fixed %]
+                                <input type="hidden" name="enumval_id">
+                                <input type="text" class="form-control" style="width:80%; display:inline" name="enumval">
+                                <button type="button" class="close closeme" style="float:none">&times;</button>
+                                <span class="fa fa-hand-paper-o fa-lg use-icon-font close drag" style="float:none"></span>
+                            </p>
                         </div>
                     ' );
                 });
