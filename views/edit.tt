@@ -528,17 +528,21 @@
     [% IF dispcol.display_field %]
         [% dependency = dispcol %]
         [% parent = dispcol.display_field %]
-        [% IF parent == last_column.id OR (parent == last_column.display_field AND indented) %]
-            [% indented = indented + 1 %]
-            [% FOREACH i IN [1..indented] %]
+        [% IF parent == last_column.id OR (indents.grep('^' _ parent _ '$')) %]
+            [% IF parent == last_column.id %]
+                [% indents.push(parent) %]
+            [% ELSE %]
+                [% WHILE indents.size AND parent != indents.last %]
+                    [% nothing = indents.pop %]
+                [% END %]
+            [% END %]
+            [% FOREACH i IN [1..indents.size] %]
                 <div class="row">
                     <div class="col-md-11 col-md-offset-1">
             [% END %]
-        [% ELSE %]
-            [% indented = indented - 1 %]
         [% END %]
     [% ELSE %]
-        [% indented = 0 %]
+        [% indents = [] %]
         [% dependency = "" %]
         [% parent = "" %]
     [% END %]
@@ -621,11 +625,9 @@
         [% END %]
     </div>
 
-    [% IF indented %]
-        [% FOREACH i IN [1..indented] %]
-            </div>
+    [% FOREACH i IN [1..indents.size] %]
         </div>
-        [% END %]
+    </div>
     [% END %]
 
     [% last_column = dispcol %]
