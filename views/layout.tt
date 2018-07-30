@@ -179,7 +179,7 @@
             <div class="form-group">
                 <label for="enumval">Order dropdown values:</label>
                 <select class="form-control" name="ordering">
-                    <option value="" [% IF NOT column.ordering %]selected[% END %]>As entered</option>
+                    <option value="" [% IF NOT column.ordering %]selected[% END %]>As shown (drag hand to reorder)</option>
                     <option value="asc" [% IF column.ordering == "asc" %]selected[% END %]>Ascending</option>
                     <option value="desc" [% IF column.ordering == "desc" %]selected[% END %]>Descending</option>
                 </select>
@@ -188,18 +188,21 @@
             <label for="enumval">Add dropdown values:</label>
         </div>
         <div id="legs">
-            [% FOREACH enumval IN column.enumvals %]
-                [% UNLESS enumval.deleted %]
+            <div class="sortable">
+                [% FOREACH enumval IN column.enumvals %]
+                    [% UNLESS enumval.deleted %]
                     <div class="request-row">
-                        <div class="col-md-11">
-                            <p>
-                                <input type="text" class="form-control" name="enumval[% enumval.id %]" value="[% enumval.value | html_entity %]">
-                            </p>
-                        </div>
-                        <button type="button" class="close closeme pull-left">&times;</button>
+                        <p>
+                            [%# XXX hacky formatting - to be fixed %]
+                            <input type="hidden" name="enumval_id" value="[% enumval.id %]">
+                            <input type="text" class="form-control" style="width:80%; display:inline" name="enumval" value="[% enumval.value | html_entity %]">
+                            <button type="button" class="close closeme" style="float:none">&times;</button>
+                            <span class="fa fa-hand-paper-o fa-lg use-icon-font close drag" style="float:none"></span>
+                        </p>
                     </div>
+                    [% END %]
                 [% END %]
-            [% END %]
+            </ul>
             <div class="request-add">
                     <div class="">
                         <button type="button" class="btn btn-default add">
@@ -544,13 +547,13 @@
                 <th>Description</th>
             </tr>
         </thead>
-        <tbody id="sortable">
+        <tbody class="sortable">
             [% FOREACH col IN layout.all %]
             <tr>
                 <input type="hidden" name="position" value="[% col.id %]">
                 <td><a href="/layout/[% col.id %]">Edit</a></td>
-                <td>[% col.name | html_entity %]
-                <td>
+                <td class="drag">[% col.name | html_entity %]
+                <td class="drag">
                     [% IF col.type == "string" %]Text[% END %]
                     [% IF col.type == "intgr" %]Integer[% END %]
                     [% IF col.type == "date" %]Date[% END %]
@@ -565,9 +568,9 @@
                     [% IF col.type == "autocur" %]Automatic value of other sheet's references to this one[% END %]
                 </td>
                 [% IF layout.has_topics %]
-                    <td>[% col.topic.name | html %]</td>
+                    <td class="drag">[% col.topic.name | html %]</td>
                 [% END %]
-                <td>
+                <td class="drag">
                     [% col.description | html_entity %]
                 </td>
             </tr>
@@ -630,8 +633,8 @@
                     }
                 });
             $(document).ready(function () {
-                $('#sortable').sortable({
-                    cancel: "a"
+                $('.sortable').sortable({
+                    handle: ".drag"
                 });
                 $('#display_condition').click(function () {
                     $("#display_condition_div").toggle(400);
@@ -661,6 +664,7 @@
                         <div class="request-row">
                         <div class="col-md-11">
                         <p>
+                        <input type="hidden" name="enumval_id">
                         <input type="text" class="form-control" name="enumval">
                         </p>
                         </div>

@@ -1778,7 +1778,10 @@ any '/layout/?:id?' => require_login sub {
             elsif ($column->type eq "enum")
             {
                 my $params = params;
-                $column->enumvals($params);
+                $column->enumvals({
+                    enumvals    => [body_parameters->get_all('enumval')],
+                    enumval_ids => [body_parameters->get_all('enumval_id')],
+                });
                 $column->ordering(param('ordering') || undef);
             }
             elsif ($column->type eq "calc")

@@ -64,6 +64,11 @@ __PACKAGE__->table("enumval");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 position
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -77,6 +82,8 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "parent",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "position",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY

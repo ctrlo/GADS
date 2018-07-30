@@ -31,11 +31,16 @@ has enumvals => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
+        my $sort = $self->ordering eq 'asc'
+            ? 'me.value'
+            : $self->ordering eq 'desc'
+            ? { -desc => 'me.value' }
+            : ['me.position', 'me.id'];
         my $enumrs = $self->schema->resultset('Enumval')->search({
             layout_id => $self->id,
             deleted   => 0,
         }, {
-            order_by => 'me.id'
+            order_by => $sort
         });
         $enumrs->result_class('DBIx::Class::ResultClass::HashRefInflator');
         my @enumvals = $enumrs->all;
@@ -53,22 +58,21 @@ has enumvals => (
         my $values = shift;
         ref $values eq 'ARRAY' and return $values; # From DB, already correct
         my @enumvals;
-        foreach my $v (keys %$values)
+        my @enumvals_in = @{$values->{enumvals}};
+        my @enumval_ids = @{$values->{enumval_ids}};
+        foreach my $v (@enumvals_in)
         {
-            next unless $v =~ /^enumval(\d*)/;
-            if (ref $values->{$v} eq 'ARRAY') # New ones
+            my $id = shift @enumval_ids;
+            if (!$id) # New one
             {
-                foreach my $w (@{$values->{$v}})
-                {
-                    push @enumvals, {
-                        value => $w, # New, no ID
-                    };
-                }
+                push @enumvals, {
+                    value => $v, # New, no ID
+                };
             }
             else {
                 push @enumvals, {
-                    id    => $1,
-                    value => $values->{$v},
+                    id    => $id,
+                    value => $v,
                 };
             }
         }
@@ -127,6 +131,7 @@ sub write_special
     my $id   = $options{id};
     my $rset = $options{rset};
 
+    my $position;
     foreach my $en (@{$self->enumvals})
     {
         my $value = $en->{value};
@@ -139,10 +144,10 @@ sub write_special
                 ? $self->schema->resultset('Enumval')->find_or_create({ id => $en->{id}, layout_id => $id })
                 : $self->schema->resultset('Enumval')->find($en->{id});
             $enumval or error __x"Bad ID {id} for multiple select update", id => $en->{id};
-            $enumval->update({ value => $en->{value} });
+            $enumval->update({ value => $en->{value}, position => ++$position });
         }
         else {
-            my $new = $self->schema->resultset('Enumval')->create({ value => $en->{value}, layout_id => $id });
+            my $new = $self->schema->resultset('Enumval')->create({ value => $en->{value}, layout_id => $id, ++$position });
             $en->{id} = $new->id;
         }
     }

@@ -922,13 +922,7 @@
     required = !(dispcol.optional OR page == "bulk");
     details = 0;
 
-    IF dispcol.ordering == "desc";
-        values = dispcol.enumvals.sort('value').reverse;
-    ELSIF dispcol.ordering == "asc";
-        values = dispcol.enumvals.sort('value');
-    ELSE;
-        values = dispcol.enumvals;
-    END;
+    values = dispcol.enumvals;
 
     IF dispcol.multivalue;
         PROCESS multivalue_column;
