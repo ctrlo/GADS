@@ -202,7 +202,7 @@
                     </div>
                     [% END %]
                 [% END %]
-            </ul>
+            </div>
             <div class="request-add">
                     <div class="">
                         <button type="button" class="btn btn-default add">
