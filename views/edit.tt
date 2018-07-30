@@ -525,8 +525,25 @@
         [% readonly = "" %]
     [% END %]
 
+    [% IF dispcol.display_field %]
+        [% dependency = dispcol %]
+        [% parent = dispcol.display_field %]
+        [% IF parent == last_column.id OR (parent == last_column.display_field AND indented) %]
+            [% indented = indented + 1 %]
+            [% FOREACH i IN [1..indented] %]
+                <div class="row">
+                    <div class="col-md-11 col-md-offset-1">
+            [% END %]
+        [% ELSE %]
+            [% indented = indented - 1 %]
+        [% END %]
+    [% ELSE %]
+        [% indented = 0 %]
+        [% dependency = "" %]
+        [% parent = "" %]
+    [% END %]
     <div class="form-group" data-column-id="[% dispcol.id %]" data-column-type="[% dispcol.type %]"
-        [% dependency && 'data-has-dependency="' _ parent.id _ '"' %]
+        [% dependency && 'data-has-dependency="' _ parent _ '"' %]
         [% (parent && dependency) && 'data-dependency="' _ dependency.regex_b64 _ '"' %]
         [% dispcol.multivalue && 'data-is-multivalue="true"' %]
         [% dispcol.readonly && 'data-is-readonly="true"' %]
@@ -603,6 +620,15 @@
             [% PROCESS print_field %]
         [% END %]
     </div>
+
+    [% IF indented %]
+        [% FOREACH i IN [1..indented] %]
+            </div>
+        </div>
+        [% END %]
+    [% END %]
+
+    [% last_column = dispcol %]
 
     [%# Prevent recursive loops %]
     [% columns_done.$colid = 1 %]
@@ -728,28 +754,11 @@
 
     [%# First display the actual column, only if it doesn't depend on others,
         or it's meant to be displayed because we're within the parent %]
-    [% IF !columns_done.$cid AND col.display_field == parent.id  OR NOT col.display_field %]
+    [% IF !columns_done.$cid %]
         [% dispcol = col %]
-        [% PROCESS showcol dependency=dependency parent=parent %]
+        [% PROCESS showcol %]
     [% END %]
 
-    [%# Then add all the columns that depend on it. Put them in a JS code array,
-        which gets output at the end of this templte. Each of these is in its own div %]
-    [% IF col.display_depended_by.size %]
-        <div class="row">
-            <div class="col-md-11 col-md-offset-1">
-                [% FOREACH c IN col.display_depended_by %]
-                    [% FOREACH cc IN all_columns %]
-                        [% IF cc.id == c.id %]
-                        <div class="dependency-wrapper">
-                            [% INCLUDE do_col parent=col col=cc dependency=c %]
-                        </div>
-                        [% END %]
-                    [% END %]
-                [% END %]
-            </div>
-        </div>
-    [% END %]
 [% END %]
 
 [% BLOCK curval_typeahead_column %]

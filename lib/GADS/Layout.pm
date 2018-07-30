@@ -38,7 +38,6 @@ use GADS::Graphs;
 use GADS::MetricGroups;
 use GADS::Views;
 use Log::Report 'linkspace';
-use MIME::Base64;
 use String::CamelCase qw(camelize);
 
 use Moo;
@@ -580,21 +579,6 @@ sub _build_columns
             layout                   => $self
         );
         push @return, $column;
-    }
-
-    # Now that we have everything built, we need to tag on dependent cols and permissions
-    foreach my $col (@return)
-    {
-        # And also any columns that are children (in the layout)
-        my @depends = grep {$_->display_field && $_->display_field == $col->id} @return;
-        my @display_depended_by = map {
-            {
-                id        => $_->id,
-                regex     => $_->display_regex,
-                regex_b64 => encode_base64($_->display_regex),
-            }
-        } @depends;
-        $col->display_depended_by(\@display_depended_by);
     }
 
     # Add on special internal columns

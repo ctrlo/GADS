@@ -329,7 +329,7 @@ var setupDependentFields = function () {
         var regexp     = (new RegExp("^" + base64.decode(pattern) + "$"))
 
         return {
-            field     : $(this).parent(),
+            field     : $(this),
             dependsOn : $('[data-column-id="' + dependence + '"]'),
             regexp    : regexp
         };

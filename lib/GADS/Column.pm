@@ -27,6 +27,7 @@ use GADS::Filter;
 use GADS::Groups;
 use GADS::Type::Permission;
 use GADS::View;
+use MIME::Base64 /encode_base64/;
 
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
@@ -365,10 +366,11 @@ has display_regex => (
     isa => Maybe[Str],
 );
 
-has display_depended_by => (
-    is  => 'rw',
-    isa => ArrayRef,
-);
+sub regex_b64
+{   my $self = shift;
+    return unless $self->display_regex;
+    encode_base64 $self->display_regex;
+}
 
 has helptext => (
     is  => 'rw',
