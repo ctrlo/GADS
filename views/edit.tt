@@ -53,7 +53,7 @@
                             have been completed.
                         </div>
                     [% END %]
-                [% IF col.topic.click_to_edit %]
+                [% IF col.topic.click_to_edit AND record.current_id %]
                     [% click_to_edit = 1 %]
                     <button class="btn btn-default pull-right click-to-edit" type="button" aria-expanded="false">Edit</button>
                     <div id="topic_forms[% col.topic_id %]" class="expandable">
