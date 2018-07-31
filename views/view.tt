@@ -61,7 +61,7 @@
                                 <label>
                                     <input class="col_check" type="checkbox" name="column" value="[% column.id %]"
                                         [% id = column.id %]
-                                        [% IF v.columns.grep("^$id\$").size %]checked[% END %]
+                                        [% IF view_edit.columns.grep("^$id\$").size %]checked[% END %]
                                     >[% column.name | html_entity %]
                                 </label>
                             </div>
@@ -96,7 +96,7 @@
 
             <label>Filters:</label>
             <div id="builder"></div>
-            <input id="filter" type="hidden" name="filter" value="[% v.filter.as_json | html_entity %]">
+            <input id="filter" type="hidden" name="filter" value="[% view_edit.filter.as_json | html_entity %]">
             <label for="sorts">Sort the records in your view by:</label>
             <div id="sorts">
                 [% FOREACH sort IN view_edit.sorts %]
