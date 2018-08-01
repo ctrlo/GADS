@@ -663,7 +663,8 @@
                             val = "";
                         }
                         var dataval = $("body").data("change" + ' _ col.id _ ');
-                        dataval.forEach(function(element) {
+                        for (var i = 0; i < dataval.length; i++) {
+                            var element = dataval[i];
                             var re = element.re;
                             var divid = element.divid;
                             if (re.test(val)) {
@@ -671,7 +672,7 @@
                             } else {
                                 $("#" + divid).hide()
                             }
-                        });
+                        };
                     });
                 ') %]
             [% END %]
