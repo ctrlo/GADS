@@ -1549,13 +1549,7 @@ sub write
                     # If it has changed, work out which one have been added or
                     # removed. Annotate these with the autocur ID, so we can
                     # mark that as changed with this value
-                    my %changed = map { $_ => 1 } keys %affected;
-                    foreach (keys %changed)
-                    {
-                        delete $changed{$_}
-                            if $affected{$_};
-                    }
-                    foreach my $cid (keys %changed)
+                    foreach my $cid (@{$datum->ids_changed})
                     {
                         $update_autocurs{$cid} ||= [];
                         push @{$update_autocurs{$cid}}, $autocur->id;
