@@ -656,8 +656,7 @@ sub build_values
     # XXX Move to curval class
     if ($self->type eq 'curval')
     {
-        $self->filter->as_json($original->{filter});
-        $self->filter->layout($self->layout_parent);
+        $self->set_filter($original->{filter});
         $self->multivalue(1) if $self->show_add;
     }
 
