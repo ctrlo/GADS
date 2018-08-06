@@ -114,7 +114,9 @@ has value_hash => (
     builder => sub {
         my $self = shift;
         $self->has_init_value or return {};
-        my @values = map { $_->{value} } @{$self->init_value};
+        # XXX - messy to account for different initial values. Can be tidied once
+        # we are no longer pre-fetching multiple records
+        my @values = map { exists $_->{record_id} ? $_->{value} : $_ } @{$self->init_value};
         my @ids    = map { $_->{id} } @values;
         my @texts  = map { $_->{value} || '' } @values;
         $self->has_id(1) if (grep { defined $_ } @ids) || $self->init_no_value;

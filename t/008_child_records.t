@@ -146,4 +146,47 @@ $parent->write(no_alerts => 1);
 ($parent, $other, $child) = _records($schema, $layout, 3);
 is( $schema->resultset('AlertSend')->count, 2, "Correct number");
 
+# Check that each record's parent/child IDs are correct
+{
+    my $parent_id        = $parent->current_id;
+    my $child_id         = $child->current_id;
+    my $parent_record_id = $parent->current_id;
+    my $child_record_id  = $child->current_id;
+
+    # First as single fetch
+    my $child = GADS::Record->new(
+        user     => undef,
+        layout   => $layout,
+        schema   => $schema,
+    );
+    $child->find_current_id($child_id);
+
+    my $parent = GADS::Record->new(
+        user     => undef,
+        layout   => $layout,
+        schema   => $schema,
+    );
+    $parent->find_current_id($parent_id);
+
+    is($child->parent_id, $parent_id, "Child record has correct parent ID");
+    my $chid = pop @{$parent->child_record_ids};
+    is($chid, $child_id, "Parent record has correct child ID");
+
+    # Then single record_id
+    $child->clear;
+    $child->find_record_id($child_record_id);
+    $parent->clear;
+    $parent->find_record_id($parent_record_id);
+
+    is($child->parent_id, $parent_id, "Child record has correct parent ID");
+    $chid = pop @{$parent->child_record_ids};
+    is($chid, $child_id, "Parent record has correct child ID");
+
+    # Now as bulk retrieval
+    ($parent, $other, $child) = _records($schema, $layout, 3);
+    is($child->parent_id, $parent_id, "Child record has correct parent ID");
+    $chid = pop @{$parent->child_record_ids};
+    is($chid, $child_id, "Parent record has correct child ID");
+}
+
 done_testing();

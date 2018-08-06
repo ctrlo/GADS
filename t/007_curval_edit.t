@@ -50,7 +50,7 @@ foreach my $delete_not_used (0..1)
     $record->find_current_id(3);
     $curval_datum = $record->fields->{$curval->id};
     is($curval_datum->as_string, 'foo1', "Curval value contains new record");
-    my $curval_record_id = $curval_datum->id;
+    my $curval_record_id = $curval_datum->ids->[0];
 
     # Add a new value, keep existing
     $curval_count = $schema->resultset('Current')->search({ instance_id => 2 })->count;

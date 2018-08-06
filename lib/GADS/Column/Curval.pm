@@ -54,7 +54,11 @@ has show_add => (
         return 0 unless $self->has_options;
         $self->options->{show_add};
     },
-    trigger => sub { $_[0]->clear_options },
+    trigger => sub {
+        my ($self, $value) = @_;
+        $self->multivalue(1) if $value;
+        $self->clear_options;
+    },
 );
 
 has delete_not_used => (

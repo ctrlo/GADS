@@ -25,6 +25,8 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
+our @person_properties = qw/id email username firstname surname freetext1 freetext2 organisation value/;
+
 # Convert based on whether ID or full name provided
 sub value_field_as_index
 {   my ($self, $value) = @_;
@@ -43,6 +45,11 @@ has '+fixedvals' => (
 has '+option_names' => (
     default => sub { [qw/default_to_login/] },
 );
+
+sub _build_retrieve_fields
+{   my $self = shift;
+    \@person_properties;
+}
 
 has default_to_login => (
     is      => 'rw',

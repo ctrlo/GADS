@@ -286,15 +286,17 @@ sub _jpfetch_add
             my $simple = {%$join};
             $simple->{join} = $join->{column}->sprefix;
             # Remove multivalues to prevent huge amount of rows being fetched.
-            # These will be fetched later as individual columns
+            # These will be fetched later as individual columns.
+            # Keep any for a sort - these still need to be used when fetching rows.
             my @children = @$children;
-            @children = grep { !$_->{column}->multivalue || $options->{include_multivalue} } @$children
+            @children = grep { $_->{sort} || !$_->{column}->multivalue || $options->{include_multivalue} } @$children
                 if $options->{prefetch};
             push @$return, {
                 parent    => $parent,
                 column    => $join->{column},
                 join      => $join->{column}->make_join(map {$_->{join}} @children),
-                all_joins => [$simple, @$children],
+                all_joins => [$simple, @children],
+                children  => \@children,
             };
         }
         else {
@@ -306,6 +308,32 @@ sub _jpfetch_add
 sub jpfetch
 {   my $self = shift;
     map { $_->{join} } $self->_jpfetch(@_);
+}
+
+sub columns_fetch
+{   my ($self, %options) = @_;
+    my @prefetch;
+    foreach my $jp ($self->_jpfetch(prefetch => 1, %options))
+    {
+        my $column = $jp->{column};
+        my $table = $self->table_name($column, prefetch => 1, %options);
+        my @values = @{$column->retrieve_fields};
+        push @prefetch, {$column->field.".$_" => "$table.$_"} foreach @values; # unless $column->is_curcommon;
+        push @prefetch, $column->field.'.child_unique'
+            if $column->userinput;
+        if ($jp->{children})
+        {
+            foreach my $child (@{$jp->{children}})
+            {
+                my $column2 = $child->{column};
+                my $table = $self->table_name($column2, prefetch => 1, %options, parent => $column);
+                my @values = @{$column2->retrieve_fields};
+                push @prefetch, {$column->field.".".$column2->field.".$_" => "$table.$_"} foreach @values;
+            }
+        }
+    }
+
+    return @prefetch;
 }
 
 sub record_name

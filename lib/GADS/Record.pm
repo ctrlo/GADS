@@ -301,7 +301,8 @@ has current_id => (
     clearer => 1,
     builder => sub {
         my $self = shift;
-        $self->_set_current_id($self->record);
+        $self->record or return undef;
+        $self->record->{current_id};
     },
 );
 
@@ -364,9 +365,7 @@ sub _person
         column           => $column,
         schema           => $self->schema,
         layout           => $self->layout,
-        init_value       => {
-            value => $value,
-        },
+        init_value       => $value,
     );
 }
 
@@ -619,7 +618,7 @@ sub _find
     my $search     = $find{current_id} || $find{draftuser_id}
         ? $records->search_query(prefetch => 1, linked => 1)
         : $records->search_query(root_table => 'record', prefetch => 1, linked => 1, no_current => 1);
-    my @prefetches = $records->jpfetch(prefetch => 1, search => 1); # Still need search in case of view limit
+    my @prefetches = $records->jpfetch(prefetch => 1, search => 1, linked => 0); # Still need search in case of view limit
 
     my $root_table;
     if (my $record_id = $find{record_id})
@@ -658,15 +657,13 @@ sub _find
         }
         unshift @prefetches, (
             {
-                current => 'deletedby',
-            },
-            {
                 'createdby' => 'organisation',
             },
             'approvedby'
         ); # Add info about related current record
         @prefetches = (
             $records->linked_hash(prefetch => 1),
+            'deletedby',
             'currents',
             {
                 'record_single' => [
@@ -684,12 +681,25 @@ sub _find
     local $GADS::Schema::Result::Record::REWIND = $records->rewind_formatted
         if $records->rewind;
 
+    my @columns_fetch = $records->columns_fetch(search => 1); # Still need search in case of view limit
+    push @columns_fetch, $records->columns_fetch(search => 1, linked => 1); # Still need search in case of view limit
+    my $base = $find{record_id} ? 'me' : 'record_single_2';
+    push @columns_fetch, {id => "$base.id"};
+    push @columns_fetch, $find{record_id} ? {deleted => "current.deleted"} : {deleted => "me.deleted"};
+    push @columns_fetch, {linked_id => "linked.id"};
+    push @columns_fetch, {'linked.record_id' => "record_single.id"};
+    push @columns_fetch, {current_id => "$base.current_id"};
+    push @columns_fetch, {created => "$base.created"};
+    push @columns_fetch, "createdby.$_" foreach @GADS::Column::Person::person_properties;
+    push @columns_fetch, "deletedby.$_" foreach @GADS::Column::Person::person_properties;
+
     my $result = $self->schema->resultset($root_table)->search(
         [
             -and => $search
         ],
         {
-            prefetch => [@prefetches],
+            join    => [@prefetches],
+            columns => \@columns_fetch,
         },
     );
 
@@ -698,31 +708,15 @@ sub _find
     my ($record) = $result->all;
     return if !$record && $find{no_errors};
     $record or error __"Requested record not found";
-    if ($find{current_id} || $find{draftuser_id})
-    {
-        $self->linked_id($record->{linked_id});
-        $self->parent_id($record->{parent_id});
-        $self->set_deleted($record->{deleted});
-        $self->set_deletedby($record->{deletedby});
-        $self->linked_record_raw($record->{linked}->{record_single_2});
-        my @child_record_ids = map { $_->{id} } @{$record->{currents}};
-        $self->_set_child_record_ids(\@child_record_ids);
-        $self->linked_record_raw($record->{linked}->{record_single});
-        $record = $record->{record_single};
-    }
-    else {
-        $self->set_deleted($record->{current}->{deleted});
-        $self->set_deletedby($record->{current}->{deletedby});
-        $self->linked_id($record->{current}->{linked_id});
-        # Add the whole linked record. If we are building a historic record,
-        # then this will not be used. Instead the values will be replaced
-        # with the actual values of that record, which may or may not have
-        # values
-        $self->linked_record_raw($record->{current}->{linked}->{record_single});
-    }
+
+    $self->linked_id($record->{linked_id});
+    $self->set_deleted($record->{deleted});
+    $self->set_deletedby($record->{deletedby});
+
     # Fetch and merge and multi-values
     my @record_ids = ($record->{id});
-    push @record_ids, $self->linked_record_raw->{id} if $self->linked_record_raw;
+    push @record_ids, $record->{linked}->{record_id}
+        if $record->{linked} && $record->{linked}->{record_id};
 
     if ($self->_set_approval_flag($record->{approval}))
     {
@@ -829,11 +823,6 @@ sub _set_record_id
     $record->{id};
 }
 
-sub _set_current_id
-{   my ($self, $record) = @_;
-    $record->{current_id};
-}
-
 sub _transform_values
 {   my $self = shift;
 
@@ -849,18 +838,21 @@ sub _transform_values
     # column values may not exist for the calc values.
     foreach my $column (@{$self->columns_retrieved_do})
     {
-        my $value = $original->{$column->field};
+        my $value = $self->linked_id && $column->link_parent ? $original->{$column->link_parent->field} : $original->{$column->field};
         $value = $self->linked_record_raw && $self->linked_record_raw->{$column->link_parent->field}
-            if $self->linked_id && $column->link_parent && !$self->is_historic;
+            if $self->linked_record_raw && $column->link_parent && !$self->is_historic;
 
-        # FIXME XXX Don't collect file content in sql query
-        delete $value->[0]->{value}->{content} if $column->type eq "file";
+        my $child_unique = ref $value eq 'ARRAY' && @$value > 0
+            ? $value->[0]->{child_unique} # Assume same for all parts of value
+            : ref $value eq 'HASH' && exists $value->{child_unique}
+            ? $value->{child_unique}
+            : undef;
         $fields->{$column->id} = $column->class->new(
             record           => $self,
             record_id        => $self->record_id,
             current_id       => $self->current_id,
-            init_value       => $value,
-            child_unique     => $value->[0]->{child_unique}, # Assume same for all parts of value
+            init_value       => ref $value eq 'ARRAY' ? $value : defined $value ? [$value] : [],
+            child_unique     => $child_unique,
             column           => $column,
             init_no_value    => $self->init_no_value,
             schema           => $self->schema,

@@ -23,8 +23,11 @@ use Moo;
 extends 'GADS::Datum::Curcommon';
 
 sub _transform_value
-{   my ($self, $v) = @_;
-    my $value = $v->{value};
+{   my ($self, $value) = @_;
+    # XXX - messy to account for different initial values. Can be tidied once
+    # we are no longer pre-fetching multiple records
+    $value = $value->{value} if exists $value->{value}
+        && (!defined $value->{value} || ref $value->{value} eq 'HASH' || ref $value->{value} eq 'GADS::Record');
     my ($record, $id);
 
     if (ref $value eq 'GADS::Record')
@@ -34,16 +37,17 @@ sub _transform_value
     }
     elsif (ref $value)
     {
+        $id = exists $value->{record_single} ? $value->{record_single}->{current_id} : $value->{value}; # XXX see above comment
         $record = GADS::Record->new(
             schema               => $self->column->schema,
             layout               => $self->column->layout_parent,
             user                 => undef,
-            record               => $value->{record_single},
+            record               => exists $value->{record_single} ? $value->{record_single} : $value, # XXX see above comment
+            current_id           => $id,
             linked_id            => $value->{linked_id},
             parent_id            => $value->{parent_id},
             columns_retrieved_do => $self->column->curval_fields_retrieve,
         );
-        $id = $value->{record_single}->{current_id};
     }
     else {
         $id = $value if !ref $value && defined $value; # Just ID

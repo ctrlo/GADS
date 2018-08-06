@@ -904,25 +904,33 @@ sub fetch_multivalues
         }
         foreach my $col (@cols)
         {
+            my @retrieve_ids = @$record_ids;
             next unless $col->multivalue;
             next if $cols_done->{$col->id};
             my @rids; # Used for the record IDs of the curval field values (different to main record IDs)
-            if (my $field = $curval_fields{$col->field})
+            if (my $field = $curval_fields{$col->field}) # $field is parent curval field
             {
+                @retrieve_ids = ();
                 foreach my $rec (@$retrieved)
                 {
-#                    next if !$rec->{record_single};
-                    foreach (@{$rec->{record_single}->{$field}})
+                    if ($rec->{$field})
                     {
-                        push @rids, $_->{value}->{record_single}->{id}
-                            if $_->{value};
+                        push @retrieve_ids, $rec->{$field}->{value};
+                    }
+                    elsif ($rec->{record_single}) # XXX Legacy prefetch - can be removed once all prefetching removed
+                    {
+                        foreach (@{$rec->{record_single}->{$field}})
+                        {
+                            push @retrieve_ids, $_->{value}->{record_single}->{id}
+                               if $_->{value};
+                        }
                     }
                 }
             }
             # Fetch the multivalues for either the main record IDs or the
             # records within the curval values. Then pass all back to the
             # calling function
-            foreach my $val ($col->fetch_multivalues((@rids && \@rids) || $record_ids))
+            foreach my $val ($col->fetch_multivalues(\@retrieve_ids))
             {
                 my $field = "field$val->{layout_id}";
                 $multi{$val->{record_id}}->{$field} ||= [];
@@ -949,11 +957,18 @@ sub fetch_multivalues
         foreach my $curval_subfield (keys %curval_fields)
         {
             my $curval_field = $curval_fields{$curval_subfield};
-            foreach my $subrecord (@{$record->{$curval_field}}) # Foreach whole curval value
+            my @subs = ref $record->{$curval_field} eq 'ARRAY' ? @{$record->{$curval_field}} : $record->{$curval_field};
+            foreach my $subrecord (@subs) # Foreach whole curval value
             {
-                my $sub_record2 = $subrecord->{value}->{record_single}
-                    or next; # blank curval value, no need to populate subfields
-                $sub_record2->{$curval_subfield} = $multi{$sub_record2->{id}}->{$curval_subfield};
+                $subrecord->{value} or next;
+
+                if (my $sub_record2 = ref $subrecord->{value} && $subrecord->{value}->{record_single}) # XXX Legacy prefetch
+                {
+                    $sub_record2->{$curval_subfield} = $multi{$sub_record2->{id}}->{$curval_subfield};
+                }
+                else {
+                    $subrecord->{$curval_subfield} = $multi{$subrecord->{value}}->{$curval_subfield};
+                }
             }
         }
         if ($row->linked_record_raw)
@@ -961,6 +976,10 @@ sub fetch_multivalues
             my $record_linked = $row->linked_record_raw;
             my $record_id_linked = $record_linked->{id};
             $record_linked->{$_} = $multi{$record_id_linked}->{$_} foreach keys %{$multi{$record_id_linked}};
+        }
+        elsif ($row->linked_id)
+        {
+            $record->{$_} = $multi{$row->linked_id}->{$_} foreach keys %{$multi{$row->linked_id}};
         }
     };
 }
