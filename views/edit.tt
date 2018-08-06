@@ -736,9 +736,9 @@
                 [% END %]
             </div>
             [% IF dispcol.multivalue AND dispcol.has_multivalue_plus %]
-                <div class="col-md-2">
-                    <a class="btn btn-primary btn-sm"><i class="fa fa-lg fa-plus cloneme" style="cursor: pointer"></i></a>
-                    <a class="btn btn-primary btn-sm"><i class="fa fa-lg fa-minus removeme" style="cursor: pointer"></i></a>
+                <div class="col-md-2" style="padding-left:0">
+                    <a class="btn btn-primary btn-sm cloneme"><i class="fa fa-lg fa-plus" style="cursor: pointer"></i></a>
+                    <a class="btn btn-primary btn-sm removeme"><i class="fa fa-lg fa-minus" style="cursor: pointer"></i></a>
                 </div>
             [% END %]
         </div>
