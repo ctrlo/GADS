@@ -868,6 +868,7 @@
             PROCESS curval_typeahead_column;
         ELSIF dispcol.value_selector == "noshow";
             PROCESS curval_noshow;
+            %] <input type="hidden" name="[% field %]"> [%
         ELSIF column.multivalue;
             PROCESS multivalue_column;
         ELSE;
