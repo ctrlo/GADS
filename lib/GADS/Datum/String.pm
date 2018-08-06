@@ -65,6 +65,15 @@ has value => (
     },
 );
 
+has html_form => (
+    is => 'lazy',
+);
+
+sub _build_html_form
+{   my $self = shift;
+    [ $self->value ];
+}
+
 sub _build_blank {
     length $_[0]->value ? 0 : 1;
 }

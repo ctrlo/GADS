@@ -727,10 +727,10 @@
                         [% class = "form-control" %]
                     [% END %]
                     [% IF dispcol.textbox %]
-                        <textarea [%readonly %] class="form-control" id="[% dispcol.id %]" name="[% field %]" rows="10">[% IF record %][% editvalue.html %][% END %]</textarea>
+                        <textarea [%readonly %] class="form-control" id="[% dispcol.id %]" name="[% field %]" rows="10">[% editvalue.html_form.shift | html %]</textarea>
                     [% ELSE %]
                         <input type="text" class="[% class %]" id="[% dispcol.id %]"
-                            name="[% field %]" value="[% IF record %][% editvalue.html %][% END %]" [% readonly %]
+                            name="[% field %]" value="[% editvalue.html_form.shift | html %]" [% readonly %]
                             [% IF dispcol.type == "date" AND NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %]>
                     [% END %]
                 [% END %]
