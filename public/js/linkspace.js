@@ -229,6 +229,7 @@ var setupLessMoreWidgets = function () {
         var $expandToggle = $('<button/>', {
             'class' : 'btn btn-xs btn-primary trigger',
             'html'  : toggleLabel,
+            'type'  : 'button',
             'aria-expanded' : false,
             'data-label-expanded' : 'Hide ' + column,
             'data-label-collapsed' : toggleLabel

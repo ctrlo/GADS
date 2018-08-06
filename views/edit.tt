@@ -73,7 +73,7 @@
                                          col_click.presentation(
                                            'datum_presentation', record.fields.${col_click.id}.presentation
                                          ),
-                                         1 # show images
+                                         'semi' # show images but not full render for other fields
                                        )
                                     %]
                                     </span>
