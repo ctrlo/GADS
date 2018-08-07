@@ -238,7 +238,7 @@ sub html_withlinks { $_[0]->html }
 sub dependent_not_shown
 {   my $self = shift;
     my $display_field_id = $self->column->display_field
-        or return;
+        or return 0;
     my $display_regex = $self->column->display_regex;
     $self->record->fields->{$display_field_id}->value_regex_test !~ /^$display_regex/;
 }
