@@ -240,7 +240,7 @@ sub dependent_not_shown
     my $display_field_id = $self->column->display_field
         or return;
     my $display_regex = $self->column->display_regex;
-    $self->record->fields->{$display_field_id}->as_string !~ /^$display_regex/;
+    $self->record->fields->{$display_field_id}->value_regex_test !~ /^$display_regex/;
 }
 
 sub clone

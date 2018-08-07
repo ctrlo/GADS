@@ -132,6 +132,32 @@ $record->find_current_id(1);
 
     is($record->fields->{$tree1->id}->as_string, 'tree3', 'Tree value is correct');
     is($record->fields->{$integer1->id}->as_string, '400', 'Updated integer value with full tree path is correct');
+
+    # Same but reversed - int should not be written
+    $record->fields->{$tree1->id}->set_value(5);
+    $record->fields->{$integer1->id}->set_value('500');
+    $record->write(no_alerts => 1);
+
+    $record->clear;
+    $record->find_current_id(1);
+
+    is($record->fields->{$tree1->id}->as_string, 'tree2', 'Tree value is correct');
+    is($record->fields->{$integer1->id}->as_string, '', 'Updated integer value with full tree path is correct');
+
+    # Same, but test higher level of full tree path
+    $integer1->display_regex('tree2#');
+    $integer1->write;
+    $layout->clear;
+    # Set matching value of tree - int should be written
+    $record->fields->{$tree1->id}->set_value(6);
+    $record->fields->{$integer1->id}->set_value('600');
+    $record->write(no_alerts => 1);
+
+    $record->clear;
+    $record->find_current_id(1);
+
+    is($record->fields->{$tree1->id}->as_string, 'tree3', 'Tree value is correct');
+    is($record->fields->{$integer1->id}->as_string, '600', 'Updated integer value with full tree path is correct');
 }
 
 done_testing();
