@@ -1495,7 +1495,7 @@ any '/topics/?' => require_login sub {
     template 'topics' => {
         layout      => $layout,
         topics      => [schema->resultset('Topic')->search({ instance_id => $instance_id })->all],
-        breadcrumbs => [Crumb($layout->name) => Crumb( '/topic' => 'topics' )],
+        breadcrumbs => [Crumb($layout->name) => Crumb( '/topics' => 'topics' )],
         page        => 'topics',
     };
 };
