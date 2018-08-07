@@ -5,10 +5,13 @@ use Moo::Role;
 sub presentation {
     my $self = shift;
 
-    return {
-        type    => $self->column->type,
-        grade   => $self->as_grade
-    };
+    my $base = $self->presentation_base;
+
+    delete $base->{value};
+
+    $base->{grade} = $self->as_grade;
+
+    return $base;
 }
 
 1;

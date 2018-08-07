@@ -8,8 +8,9 @@
     </tr>
     [% FOREACH col IN record.columns %]
         [% colid = col.id %]
+        [% NEXT IF record.parent_id AND NOT (record.fields.$colid.child_unique) %]
+        [% NEXT IF col.data.dependent_not_shown %]
         <tr>
-            [% NEXT IF record.parent_id AND NOT (record.fields.$colid.child_unique) %]
             <th>[% col.name | html_entity %]</th>
             <td class="[% col.type %]">
                 [% render_datum(col, 'full') %]

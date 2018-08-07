@@ -5,12 +5,14 @@ use Moo::Role;
 sub presentation {
     my $self = shift;
 
-    return {
-        type     => $self->column->type,
-        name     => $self->name,
-        id       => $self->id,
-        mimetype => $self->mimetype,
-    };
+    my $base = $self->presentation_base;
+    delete $base->{value};
+
+    $base->{name}     = $self->name;
+    $base->{id}       = $self->id;
+    $base->{mimetype} = $self->mimetype;
+
+    return $base;
 }
 
 1;

@@ -1172,11 +1172,7 @@ sub write
         {
             # Do not require value if the field has not been showed because of
             # display condition
-            my $re    = $column->display_regex;
-            my $regex = $re && qr(^$re$);
-            if (!$column->display_field
-                || $self->fields->{$column->display_field}->as_string =~ $regex
-            )
+            if (!$datum->dependent_not_shown)
             {
                 # Check whether we are in a multiple page write and if the value has been shown.
                 # We first test for editor_shown_fields having been set, as it will be on a normal
@@ -1696,12 +1692,11 @@ sub set_blank_dependents
     {
         if (my $display_field = $column->display_field)
         {
-            my $re           = $column->display_regex;
-            my $regex        = qr(^$re$);
             my $parent_datum = $self->fields->{$display_field};
             my $written_to   = $parent_datum->written_to;
-            $self->fields->{$column->id}->set_value('')
-                if $written_to && $parent_datum->value_regex_test !~ $regex;
+            my $datum = $self->fields->{$column->id};
+            $datum->set_value('')
+                if $written_to && $datum->dependent_not_shown;
         }
     }
 }
