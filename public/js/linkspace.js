@@ -509,6 +509,15 @@ var setupClickToEdit = function() {
     });
 }
 
+// Used to hide and then display blank fields when viewing a record
+var setupClickToViewBlank = function() {
+    $('.click-to-view-blank').on('click', function() {
+        var $viewToggleButton = $(this);
+        $('.click-to-view-blank-field').show();
+        $viewToggleButton.hide();
+    });
+}
+
 var Linkspace = {
     constants: {
         ARROW_LEFT: 37,
@@ -592,6 +601,10 @@ Linkspace.edit = function () {
     setupTreeFields();
     setupDependentFields();
     setupClickToEdit();
+}
+
+Linkspace.record = function () {
+    setupClickToViewBlank();
 }
 
 Linkspace.layout = function () {

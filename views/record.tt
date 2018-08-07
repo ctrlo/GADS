@@ -29,6 +29,7 @@
         [% END %]
     </ul>
 </div>
+<button class="btn btn-default pull-right click-to-view-blank" type="button" aria-expanded="false">Show blank values</button>
 <div class="btn-group">
     [% IF user_can_edit AND NOT record.deleted %]
         [% PROCESS snippets/record_edit.tt %]

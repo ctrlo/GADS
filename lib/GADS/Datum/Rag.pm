@@ -114,5 +114,7 @@ sub equal
     $a eq $b;
 }
 
+sub _build_blank { 0 } # Will always have value, even if it's an invalid one
+
 1;
 
