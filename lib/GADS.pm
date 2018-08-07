@@ -2624,8 +2624,9 @@ any '/edit/:id?' => require_login sub {
         }
         elsif (!$failed && process( sub { $record->write }))
         {
+            my $forward = !$id && $layout->forward_record_after_create ? 'record/'.$record->current_id : 'data';
             return forwardHome(
-                { success => 'Submission has been completed successfully for record ID '.$record->current_id }, 'data' );
+                { success => 'Submission has been completed successfully for record ID '.$record->current_id }, $forward );
         }
         else {
             # Something wasn't correct, keep field display same as submitted
