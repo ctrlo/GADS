@@ -124,9 +124,9 @@ foreach my $ins (readdir $root)
     });
 
     my $topic_mapping; # topic ID mapping
-    if (-d '_export/topics')
+    if (-d "_export/$ins/topics")
     {
-        foreach my $topic (dir('_export/topics'))
+        foreach my $topic (dir("_export/$ins/topics"))
         {
             my $new = schema->resultset('Topic')->create({
                 name          => $topic->{name},
