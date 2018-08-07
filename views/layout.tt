@@ -660,7 +660,7 @@
                     $(this).parents('.request-row').remove();
                 });
                 $('div#legs').on('click','.add', function(){
-                    $(this).parents('.request-add').before( '
+                    $(this).closest('#legs').find('.sortable').append('
                         <div class="request-row">
                             <p>
                                 [%# XXX hacky formatting - to be fixed %]
@@ -671,6 +671,7 @@
                             </p>
                         </div>
                     ' );
+                    $('.sortable').sortable('refresh');
                 });
                 $('#refers_to_instance_id').change(function(){
                     var divid = '#instance_fields_' + $(this).val();
