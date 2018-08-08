@@ -322,6 +322,7 @@ has createdby => (
     clearer => 1,
     builder => sub {
         my $self = shift;
+        return undef if $self->new_entry;
         if (!$self->record)
         {
             my $user_id = $self->schema->resultset('Record')->find(
