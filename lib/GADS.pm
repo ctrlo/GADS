@@ -1452,6 +1452,7 @@ any '/topic/:id' => require_login sub {
             if !$id;
 
         $topic->name(param 'name');
+        $topic->description(param 'description');
         $topic->click_to_edit(param 'click_to_edit');
         $topic->initial_state(param 'initial_state');
         $topic->prevent_edit_topic_id(param('prevent_edit_topic_id') || undef);
