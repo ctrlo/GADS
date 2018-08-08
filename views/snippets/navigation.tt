@@ -27,7 +27,7 @@
     <div class="quicksearch-container col-md-3">
         <form method="get" action="/data" class="quicksearch">
                 <label for="quick-search">Search [% instance_name | html %] table</label>
-                <input class="form-control" id="quick-search" name="search_text" value="[% search | html_entity %]">
+                <input class="form-control" id="quick-search" name="search_text" placeholder="Use * for wildcard" value="[% search | html_entity %]">
             <button class="btn btn-xs btn-primary" type="submit">Go</button>
         </form>
     </div>
