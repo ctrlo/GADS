@@ -771,7 +771,7 @@
 [% END %]
 
 [% BLOCK singlevalue_column %]
-    <div class="select-widget single" tabindex="0">
+    <div class="select-widget single">
         <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="select-widget-dropdown">
             <div class="form-group form-control" >
@@ -880,7 +880,7 @@
 %]
 
 [% BLOCK multivalue_column %]
-    <div class="select-widget multi" tabindex="0">
+    <div class="select-widget multi">
         <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="select-widget-dropdown">
             <div class="form-group form-control" >
