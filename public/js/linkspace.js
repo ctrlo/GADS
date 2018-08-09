@@ -195,15 +195,15 @@ var SelectWidget = function (multi) {
     $widget.prop('tabIndex', -1);
 };
 
-var setupSelectWidgets = function () {
-    var $nodes = $('.select-widget');
+var setupSelectWidgets = function (context) {
+    var $nodes = $('.select-widget', context);
     $nodes.each(function () {
         var multi = $(this).hasClass('multi');
         SelectWidget.call($(this), multi);
     });
 };
 
-var setupLessMoreWidgets = function () {
+var setupLessMoreWidgets = function (context) {
     var MAX_HEIGHT = 100;
 
     var convert = function () {
@@ -256,7 +256,7 @@ var setupLessMoreWidgets = function () {
            .append($expandable);
     };
 
-    var $widgets = $('.more-less');
+    var $widgets = $('.more-less', context);
     $widgets.each(convert);
 };
 
@@ -323,7 +323,7 @@ var setupDependentField = function () {
     $depends.trigger('change');
 };
 
-var setupDependentFields = function () {
+var setupDependentFields = function (context) {
     var fields = $('[data-has-dependency]').map(function () {
         var dependence = $(this).data('has-dependency');
         var pattern    = $(this).data('dependency');
@@ -415,8 +415,8 @@ var setupTreeField = function () {
 
 };
 
-var setupTreeFields = function () {
-    var $fields = $('[data-column-type="tree"]');
+var setupTreeFields = function (context) {
+    var $fields = $('[data-column-type="tree"]', context);
     $fields.filter(function () {
         return $(this).find('.tree-widget-container').length;
     }).each(setupTreeField);
@@ -461,22 +461,22 @@ var toggleDisclosure = function () {
     $trigger.trigger((currentlyExpanded ? 'collapse' : 'expand'), $disclosure);
 };
 
-var setupDisclosureWidgets = function () {
-    $('.trigger[aria-expanded]').on('click', toggleDisclosure);
+var setupDisclosureWidgets = function (context) {
+    $('.trigger[aria-expanded]', context).on('click', toggleDisclosure);
 }
 
-var runPageSpecificCode = function () {
+var runPageSpecificCode = function (context) {
     var page = $('body').data('page').match(/^(.*?)(:?\/\d+)?$/);
     if (page === null) { return; }
 
     var handler = Linkspace[page[1]];
     if (handler !== undefined) {
-        handler();
+        handler(context);
     }
 };
 
-var setupDisplayConditions = function() {
-    $('#toggle-display-regex').on('click', function() {
+var setupDisplayConditions = function(context) {
+    $('#toggle-display-regex', context).on('click', function() {
         var $displayToggleButton = $(this),
             $displayConditionField = $displayToggleButton.siblings('#display_condition').first(),
             $displayField = $('#display_field'),
@@ -497,8 +497,8 @@ var setupDisplayConditions = function() {
     });
 }
 
-var setupClickToEdit = function() {
-    $('.click-to-edit').on('click', function() {
+var setupClickToEdit = function(context) {
+    $('.click-to-edit', context).on('click', function() {
         var $editToggleButton = $(this);
 
         // Open and hide expanded element
@@ -524,12 +524,12 @@ var Linkspace = {
         ARROW_RIGHT: 39
     },
 
-    init: function () {
-        setupLessMoreWidgets();
-        setupDisclosureWidgets();
-        setupSelectWidgets();
-        setupDisplayConditions();
-        runPageSpecificCode();
+    init: function (context) {
+        setupLessMoreWidgets(context);
+        setupDisclosureWidgets(context);
+        setupSelectWidgets(context);
+        setupDisplayConditions(context);
+        runPageSpecificCode(context);
     },
 
     debug: function (msg) {
@@ -596,11 +596,11 @@ var Linkspace = {
     }
 };
 
-Linkspace.edit = function () {
+Linkspace.edit = function (context) {
     Linkspace.debug('Record edit JS firing');
-    setupTreeFields();
-    setupDependentFields();
-    setupClickToEdit();
+    setupTreeFields(context);
+    setupDependentFields(context);
+    setupClickToEdit(context);
 }
 
 Linkspace.record = function () {
@@ -728,4 +728,4 @@ Linkspace.layout = function () {
     $('#current-permissions .permission').each(handlePermissionChange);
 };
 
-$(Linkspace.init);
+Linkspace.init();

@@ -218,15 +218,12 @@
                 var instance_id = $(e.target).data('instance-id');
                 var m = $("#curval_modal");
                 m.find('.modal-body').text('Loading...');
-                m.find('.modal-body').load('/edit/?modal=' + layout_id + '&oi=' + instance_id);
+                m.find('.modal-body').load('/edit/?modal=' + layout_id + '&oi=' + instance_id, function() {
+                    Linkspace.init(m);
+                });
                 m.on("focus", ".datepicker", function(e) {
                     $(this).datepicker({format: "[% config.dateformat_datepicker %]", autoclose: true});
                 });
-                m.on("focus", ".select-widget", function(e) {
-                    var multi = $(this).hasClass('multi');
-                    SelectWidget.call($(this), multi);
-                });
-
                 m.modal();
             });
 
