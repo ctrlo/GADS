@@ -43,7 +43,7 @@ my $data = [
     },
 ];
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, multivalue => 1);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
 
@@ -53,7 +53,7 @@ my $sheet   = t::lib::DataSheet->new(
     curval           => 2,
     column_count     => {
         enum   => 2,
-        curval => 2,
+        curval => 3, # 2 multi and 1 single (with multi fields)
         tree   => 2,
     },
     calc_code        => "
@@ -82,6 +82,7 @@ my $enum1   = $columns->{enum1};
 my $enum2   = $columns->{enum2};
 my $curval1 = $columns->{curval1};
 my $curval2 = $columns->{curval2};
+my $curval3 = $columns->{curval3};
 my $tree1   = $columns->{tree1};
 my $tree2   = $columns->{tree2};
 my $calc    = $columns->{calc1};
@@ -111,6 +112,7 @@ my @tests = (
         write     => {
             enum1   => [7, 8],
             curval1 => [1, 2],
+            curval3 => [1],
             tree1   => [13, 14],
         },
         as_string => {
@@ -118,6 +120,7 @@ my @tests = (
             enum2   => 'foo1',
             curval1 => 'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012; Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
             curval2 => 'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+            curval3 => 'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012',
             tree1   => 'tree1, tree2',
             tree2   => 'tree1',
             calc1   => 'foo1foo2FooBartree1tree2', # 2x enum values then 2x string values from curval then 2x tree

@@ -65,9 +65,11 @@ GADS::Config->instance(
 
 schema->site_id($site_id);
 
+my $instances_object = GADS::Instances->new(schema => schema, user => undef, user_permission_override => 1);
+
 my @instances = @instance_ids
-    ? (map { resultset('Instance')->find($_) } @instance_ids)
-    : @{GADS::Instances->new(schema => schema, user => undef, user_permission_override => 1)->all};
+    ? (map { $instances_object->layout($_) } @instance_ids)
+    : @{$instances_object->all};
 
 my $encoder = JSON->new->pretty;
 

@@ -6,7 +6,9 @@ use HTML::FromText qw(text2html);
 sub presentation {
     my $self = shift;
 
-    my $raw = $self->as_string;
+    my $base = $self->presentation_base;
+
+    my $raw = delete $base->{value};
 
     my $html = text2html(
         $raw,
@@ -15,11 +17,10 @@ sub presentation {
         metachars => 1,
     );
 
-    return {
-        type => $self->column->type,
-        raw  => $raw,
-        html => $html
-    };
+    $base->{raw}  = $raw;
+    $base->{html} = $html;
+
+    return $base;
 }
 
 1;

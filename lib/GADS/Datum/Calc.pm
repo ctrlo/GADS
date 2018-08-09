@@ -155,5 +155,6 @@ sub for_code
     }
 }
 
-1;
+sub _build_blank { !shift->as_string }
 
+1;

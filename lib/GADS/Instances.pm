@@ -95,6 +95,34 @@ sub _build__layouts
                 max => 'layout.instance_id',
             },
             {
+                max => 'me.permission',
+            },
+        ],
+        as       => [qw/instance_id permission/],
+        group_by => [qw/me.permission layout.instance_id/],
+        join     => [
+            'layout',
+            {
+                group => 'user_groups',
+            },
+        ],
+    });
+    $rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    my $layout_perms = {};
+    foreach my $p ($rs->all)
+    {
+        $layout_perms->{$p->{instance_id}} ||= [];
+        push @{$layout_perms->{$p->{instance_id}}}, $p->{permission};
+    }
+
+    $rs = $self->schema->resultset('LayoutGroup')->search({
+        user_id => $self->user && $self->user->id,
+    },{
+        select => [
+            {
+                max => 'layout.instance_id',
+            },
+            {
                 max => 'me.layout_id',
             },
             {
@@ -133,6 +161,7 @@ sub _build__layouts
             schema                    => $self->schema,
             config                    => GADS::Config->instance,
             instance_id               => $instance->id,
+            layout_perms              => $layout_perms->{$instance->id},
             user_permission_override  => $self->user_permission_override,
             _user_permissions_table   => $p_table || {},
             _user_permissions_columns => $p_columns || {},

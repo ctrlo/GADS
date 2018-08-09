@@ -21,6 +21,7 @@ sub presentation {
         columns    => $self->_presentation_map_columns(@columns),
         deleted    => $self->deleted,
         deletedby  => $self->deletedby,
+        createdby  => $self->createdby,
     }
 }
 

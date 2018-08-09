@@ -45,6 +45,11 @@ has '+option_names' => (
     default => sub { [qw/show_datepicker/] },
 );
 
+sub _build_retrieve_fields
+{   my $self = shift;
+    [qw/from to/];
+}
+
 # Still counts as string storage for search (value field is string)
 has '+string_storage' => (
     default => sub {shift->return_type eq 'string'},

@@ -115,6 +115,14 @@ has forget_history => (
     clearer => 1,
 );
 
+has forward_record_after_create => (
+    is      => 'ro',
+    isa     => Bool,
+    lazy    => 1,
+    builder => sub { $_[0]->_rset->forward_record_after_create },
+    clearer => 1,
+);
+
 has no_overnight_update => (
     is      => 'ro',
     isa     => Bool,
@@ -261,6 +269,12 @@ sub _build__user_permissions_table
     };
 }
 
+# Shortcut to producing the overall permissions the user has on the columns of
+# this table
+has layout_perms => (
+    is => 'ro',
+);
+
 has _user_permissions_overall => (
     is      => 'lazy',
     isa     => HashRef,
@@ -274,15 +288,22 @@ sub _build__user_permissions_overall
     my $overall = {};
 
     # First all the column permissions
-    my $perms = $self->_user_permissions_columns->{$user_id};
-    foreach my $col ($self->all)
+    if ($self->layout_perms)
     {
         $overall->{$_} = 1
-            foreach keys %{$perms->{$col->id}};
+            foreach @{$self->layout_perms};
+    }
+    else {
+        my $perms = $self->_user_permissions_columns->{$user_id};
+        foreach my $col ($self->all)
+        {
+            $overall->{$_} = 1
+                foreach keys %{$perms->{$col->id}};
+        }
     }
 
     # Then the table permissions
-    $perms = $self->_user_permissions_table->{$user_id};
+    my $perms = $self->_user_permissions_table->{$user_id};
     $overall->{$_} = 1
         foreach keys %$perms;
 

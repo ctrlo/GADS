@@ -23,11 +23,12 @@ sub presentation {
 
     my $multivalue = $self->column->multivalue;
 
-    +{
-        type  => $self->column->type,
-        text  => $self->as_string,
-        links => $self->_presentation_details,
-    };
+    my $base = $self->presentation_base;
+
+    $base->{text}  = delete $base->{value};
+    $base->{links} = $self->_presentation_details;
+
+    return $base;
 }
 
 1;

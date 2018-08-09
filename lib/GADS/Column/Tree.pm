@@ -51,6 +51,11 @@ has '+can_multivalue' => (
 
 sub _build_sprefix { 'value' };
 
+sub _build_retrieve_fields
+{   my $self = shift;
+    [qw/id value/];
+}
+
 has end_node_only => (
     is      => 'rw',
     isa     => Bool,

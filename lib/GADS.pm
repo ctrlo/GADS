@@ -1452,6 +1452,7 @@ any '/topic/:id' => require_login sub {
             if !$id;
 
         $topic->name(param 'name');
+        $topic->description(param 'description');
         $topic->click_to_edit(param 'click_to_edit');
         $topic->initial_state(param 'initial_state');
         $topic->prevent_edit_topic_id(param('prevent_edit_topic_id') || undef);
@@ -1495,7 +1496,7 @@ any '/topics/?' => require_login sub {
     template 'topics' => {
         layout      => $layout,
         topics      => [schema->resultset('Topic')->search({ instance_id => $instance_id })->all],
-        breadcrumbs => [Crumb($layout->name) => Crumb( '/topic' => 'topics' )],
+        breadcrumbs => [Crumb($layout->name) => Crumb( '/topics' => 'topics' )],
         page        => 'topics',
     };
 };
@@ -2624,8 +2625,9 @@ any '/edit/:id?' => require_login sub {
         }
         elsif (!$failed && process( sub { $record->write }))
         {
+            my $forward = !$id && $layout->forward_record_after_create ? 'record/'.$record->current_id : 'data';
             return forwardHome(
-                { success => 'Submission has been completed successfully for record ID '.$record->current_id }, 'data' );
+                { success => 'Submission has been completed successfully for record ID '.$record->current_id }, $forward );
         }
         else {
             # Something wasn't correct, keep field display same as submitted

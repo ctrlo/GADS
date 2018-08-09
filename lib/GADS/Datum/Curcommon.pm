@@ -193,7 +193,7 @@ sub _build_ids_deleted
     return [ keys %old ];
 }
 
-# All relevant ids (old and new), minus deleted ones
+# All relevant ids (old and new)
 has ids_affected => (
     is  => 'lazy',
     isa => ArrayRef,
@@ -201,10 +201,26 @@ has ids_affected => (
 
 sub _build_ids_affected
 {   my $self = shift;
+    my %ids = map { $_ => 1 } $self->oldvalue ?  @{$self->oldvalue->ids} : ();
+    $ids{$_} = 1 foreach @{$self->ids};
+    [ keys %ids ];
+}
+
+# ids that have been added or removed
+has ids_changed => (
+    is => 'lazy',
+);
+
+sub _build_ids_changed
+{   my $self = shift;
     my %old_ids = map { $_ => 1 } $self->oldvalue ?  @{$self->oldvalue->ids} : ();
     my %new_ids = map { $_ => 1 } @{$self->ids};
-    my %deleted = map { $_ => 1 } @{$self->ids_deleted};
-    [ grep { !$deleted{$_} } keys %old_ids, keys %new_ids ];
+    my %changed = map { $_ => 1 } @{$self->ids_affected};
+    foreach (keys %changed)
+    {
+        delete $changed{$_} if $old_ids{$_} && $new_ids{$_};
+    }
+    [ keys %changed ];
 }
 
 sub ids_filtered

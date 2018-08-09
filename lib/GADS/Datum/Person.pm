@@ -113,8 +113,11 @@ has value_hash => (
         # property such as created_by
         my $init_value = $self->init_value;
         my $value = ref $init_value eq 'ARRAY'
-            ? $init_value->[0]->{value}
-            : $init_value->{value};
+            ? $init_value->[0]
+            : $init_value;
+        # XXX - messy to account for different initial values. Can be tidied once
+        # we are no longer pre-fetching multiple records
+        $value = $value->{value} if exists $value->{record_id};
         my $id = $value->{id};
         $self->has_id(1) if defined $id || $self->init_no_value;
         +{

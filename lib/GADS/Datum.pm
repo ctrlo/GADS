@@ -234,6 +234,15 @@ sub html_form
 # Overridden where applicable
 sub html_withlinks { $_[0]->html }
 
+# Not lazy, otherwise changes in display_field will not update this
+sub dependent_not_shown
+{   my $self = shift;
+    my $display_field_id = $self->column->display_field
+        or return 0;
+    my $display_regex = $self->column->display_regex;
+    $self->record->fields->{$display_field_id}->value_regex_test !~ /^$display_regex/;
+}
+
 sub clone
 {   my ($self, @extra) = @_;
     # This will be called from a child class, in which case @extra can specify

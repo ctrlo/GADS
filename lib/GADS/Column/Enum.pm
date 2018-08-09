@@ -125,6 +125,11 @@ after build_values => sub {
     $self->ordering($original->{ordering});
 };
 
+sub _build_retrieve_fields
+{   my $self = shift;
+    [qw/id value/];
+}
+
 sub write_special
 {   my ($self, %options) = @_;
 

@@ -46,12 +46,15 @@
             <div id="topic[% col.id %]" class="panel-collapse collapse[% IF open %] in[% END %]" role="tabpanel" aria-labelledby="headingOne">
                 <div class="panel-body">
                     [% IF col.topic.need_completed_topics_count %]
-                        <div role="alert" class="alert alert-info">
+                        <div role="alert" class="alert alert-warning">
                             Fields in this section cannot be completed until mandatory fields
                             in the [% col.topic.need_completed_topics_as_string | html %]
                             section[% IF col.topic.need_completed_topics_count > 1 %]s[% END %]
                             have been completed.
                         </div>
+                    [% END %]
+                    [% IF col.topic.description %]
+                        <div role="alert" class="alert alert-info">[% col.topic.description | html %]</div>
                     [% END %]
                 [% IF col.topic.click_to_edit AND record.current_id %]
                     [% click_to_edit = 1 %]
@@ -73,7 +76,7 @@
                                          col_click.presentation(
                                            'datum_presentation', record.fields.${col_click.id}.presentation
                                          ),
-                                         1 # show images
+                                         'semi' # show images but not full render for other fields
                                        )
                                     %]
                                     </span>
@@ -727,18 +730,18 @@
                         [% class = "form-control" %]
                     [% END %]
                     [% IF dispcol.textbox %]
-                        <textarea [%readonly %] class="form-control" id="[% dispcol.id %]" name="[% field %]" rows="10">[% IF record %][% editvalue.html %][% END %]</textarea>
+                        <textarea [%readonly %] class="form-control" id="[% dispcol.id %]" name="[% field %]" rows="10">[% editvalue.html_form.shift | html %]</textarea>
                     [% ELSE %]
                         <input type="text" class="[% class %]" id="[% dispcol.id %]"
-                            name="[% field %]" value="[% IF record %][% editvalue.html %][% END %]" [% readonly %]
+                            name="[% field %]" value="[% editvalue.html_form.shift | html %]" [% readonly %]
                             [% IF dispcol.type == "date" AND NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %]>
                     [% END %]
                 [% END %]
             </div>
             [% IF dispcol.multivalue AND dispcol.has_multivalue_plus %]
-                <div class="col-md-2">
-                    <a class="btn btn-primary btn-sm"><i class="fa fa-lg fa-plus cloneme" style="cursor: pointer"></i></a>
-                    <a class="btn btn-primary btn-sm"><i class="fa fa-lg fa-minus removeme" style="cursor: pointer"></i></a>
+                <div class="col-md-2" style="padding-left:0">
+                    <a class="btn btn-primary btn-sm cloneme"><i class="fa fa-lg fa-plus" style="cursor: pointer"></i></a>
+                    <a class="btn btn-primary btn-sm removeme"><i class="fa fa-lg fa-minus" style="cursor: pointer"></i></a>
                 </div>
             [% END %]
         </div>
@@ -868,6 +871,7 @@
             PROCESS curval_typeahead_column;
         ELSIF dispcol.value_selector == "noshow";
             PROCESS curval_noshow;
+            %] <input type="hidden" name="[% field %]"> [%
         ELSIF column.multivalue;
             PROCESS multivalue_column;
         ELSE;

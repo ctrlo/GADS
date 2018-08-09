@@ -414,6 +414,16 @@ has value_field => (
     default => 'value',
 );
 
+has retrieve_fields => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_retrieve_fields
+{   my $self = shift;
+    [$self->value_field];
+}
+
 has sort_field => (
     is => 'lazy',
 );
@@ -646,8 +656,8 @@ sub build_values
     # XXX Move to curval class
     if ($self->type eq 'curval')
     {
-        $self->filter->as_json($original->{filter});
-        $self->filter->layout($self->layout_parent);
+        $self->set_filter($original->{filter});
+        $self->multivalue(1) if $self->show_add;
     }
 
 }

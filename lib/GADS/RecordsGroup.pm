@@ -140,12 +140,12 @@ sub _build_results
             $self->add_prefetch($col, include_multivalue => 1);
         }
         push @select_fields, {
-            $op => $self->fqvalue($col, prefetch => 1, search => 1, parent => $parent, retain_join_order => 1),
+            $op => $self->fqvalue($col, prefetch => 1, search => 1, parent => $parent, retain_join_order => 1, include_multivalue => 1),
             -as => $col->field
         };
         # Also add linked column if required
         push @select_fields, {
-            $op => $self->fqvalue($col->link_parent, prefetch => 1, search => 1, linked => 1, parent => $parent, retain_join_order => 1),
+            $op => $self->fqvalue($col->link_parent, prefetch => 1, search => 1, linked => 1, parent => $parent, retain_join_order => 1, include_multivalue => 1),
             -as => $col->field."_link",
         } if $col->link_parent;
     }
@@ -316,15 +316,15 @@ sub _build_results
         } else {
             if ($col->link_parent)
             {
-                my $main = $self->fqvalue($col, search => 1, prefetch => 1, retain_join_order => 1);
-                my $link = $self->fqvalue($col->link_parent, search => 1, prefetch => 1, linked => 1, retain_join_order => 1);
+                my $main = $self->fqvalue($col, search => 1, prefetch => 1, retain_join_order => 1, include_multivalue => 1);
+                my $link = $self->fqvalue($col->link_parent, search => 1, prefetch => 1, linked => 1, retain_join_order => 1, include_multivalue => 1);
                 push @g, $self->schema->resultset('Current')->helper_concat(
                      { -ident => $main },
                      { -ident => $link },
                 );
             }
             else {
-                push @g, $self->fqvalue($col, search => 1, prefetch => 1, retain_join_order => 1, parent => $_->{parent});
+                push @g, $self->fqvalue($col, search => 1, prefetch => 1, retain_join_order => 1, parent => $_->{parent}, include_multivalue => 1);
             }
         }
     };

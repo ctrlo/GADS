@@ -10,6 +10,10 @@
                 <input type="text" name="name" class="form-control" value="[% topic.name | html_entity %]">
             </div>
             <div class="form-group">
+                <label for="description">Description:</label>
+                <textarea class="form-control" rows="5" id="description" name="description">[% topic.description | html %]</textarea>
+            </div>
+            <div class="form-group">
                 <label for="initial_state">Initial state of topic's fields when editing</label>
                 <select class="form-control" id="initial_state" name="initial_state">
                     <option value="open" [% IF topic.initial_state == "expanded" %]selected[% END %]>Expanded</option>

@@ -128,6 +128,8 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 1 },
   "api_index_layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "forward_record_after_create",
+  { data_type => "smallint", default_value => 0, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY

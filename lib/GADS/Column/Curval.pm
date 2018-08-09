@@ -54,7 +54,11 @@ has show_add => (
         return 0 unless $self->has_options;
         $self->options->{show_add};
     },
-    trigger => sub { $_[0]->clear_options },
+    trigger => sub {
+        my ($self, $value) = @_;
+        $self->multivalue(1) if $value;
+        $self->clear_options;
+    },
 );
 
 has delete_not_used => (
@@ -68,6 +72,20 @@ has delete_not_used => (
         $self->options->{delete_not_used};
     },
     trigger => sub { $_[0]->clear_options },
+);
+
+has set_filter => (
+    is => 'rw',
+);
+
+has '+filter' => (
+    builder => sub {
+        my $self = shift;
+        GADS::Filter->new(
+            as_json => $self->set_filter,
+            layout  => $self->layout_parent,
+        )
+    },
 );
 
 sub _build_refers_to_instance_id

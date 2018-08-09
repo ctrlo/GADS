@@ -39,11 +39,13 @@ sub presentation {
 
     return undef if $self->blank;
 
-    return {
-        type    => $self->column->type,
-        text    => $self->text,
-        details => $self->_presentation_details
-    };
+    my $base = $self->presentation_base;
+    delete $base->{value};
+
+    $base->{text}    = $self->text;
+    $base->{details} = $self->_presentation_details;
+
+    return $base;
 }
 
 1;
