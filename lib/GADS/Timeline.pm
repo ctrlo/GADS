@@ -259,34 +259,38 @@ sub _build_items
                             }
                         }
                         else {
-                            $d->value or next;
-                            if (
-                                (!$records->from || $d->value >= $records->from)
-                                && (!$records->to || $d->value <= $records->to)
-                            ) {
-                                push @dates, {
-                                    from       => $d->value,
-                                    to         => $d->value,
-                                    color      => $color,
-                                    column     => $column->id,
-                                    count      => 1,
-                                    current_id => $d->record->current_id,
-                                };
-                                if ($find_min)
-                                {
-                                    $self->_set_retrieved_from($d->value->clone)
-                                        if !defined $self->retrieved_from || $d->value < $self->retrieved_from;
-                                    $min_of_this = $d->value->clone
-                                        if (!$find_min || $d->value > $find_min)
-                                            && (!defined $min_of_this || $d->value < $min_of_this);
-                                }
-                                if ($find_max)
-                                {
-                                    $self->_set_retrieved_to($d->value->clone)
-                                        if !defined $self->retrieved_to || $d->value > $self->retrieved_to;
-                                    $max_of_this = $d->value->clone
-                                        if (!$find_max || $d->value < $find_max)
-                                            && (!defined $max_of_this || $d->value > $max_of_this);
+                            my @vs = ref $d->value eq 'ARRAY' ? @{$d->value} : ($d->value); # Either depending on Date/Calc type
+                            foreach my $val (@vs)
+                            {
+                                $val or next;
+                                if (
+                                    (!$records->from || $val >= $records->from)
+                                    && (!$records->to || $val <= $records->to)
+                                ) {
+                                    push @dates, {
+                                        from       => $val,
+                                        to         => $val,
+                                        color      => $color,
+                                        column     => $column->id,
+                                        count      => 1,
+                                        current_id => $d->record->current_id,
+                                    };
+                                    if ($find_min)
+                                    {
+                                        $self->_set_retrieved_from($val->clone)
+                                            if !defined $self->retrieved_from || $val < $self->retrieved_from;
+                                        $min_of_this = $val->clone
+                                            if (!$find_min || $val > $find_min)
+                                                && (!defined $min_of_this || $val < $min_of_this);
+                                    }
+                                    if ($find_max)
+                                    {
+                                        $self->_set_retrieved_to($val->clone)
+                                            if !defined $self->retrieved_to || $val > $self->retrieved_to;
+                                        $max_of_this = $val->clone
+                                            if (!$find_max || $val < $find_max)
+                                                && (!defined $max_of_this || $val > $max_of_this);
+                                    }
                                 }
                             }
                         }
