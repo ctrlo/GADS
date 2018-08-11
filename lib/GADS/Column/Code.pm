@@ -238,7 +238,8 @@ sub eval
     $run_code = $mapping.$run_code;
     my $return = lua_run($run_code, $vars);
     # Make sure we're not returning anything funky (e.g. code refs)
-    my $ret = defined $return->{return} && ''.$return->{return};
+    my $ret = $return->{return};
+    $ret = "$ret" if defined $ret && ref $ret ne 'ARRAY';
     my $err = $return->{error} && ''.$return->{error};
     no warnings "uninitialized";
     trace "Return value from Lua: $ret, error: $err";

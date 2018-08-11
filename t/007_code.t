@@ -158,11 +158,12 @@ $layout->clear;
 
 my @tests = (
     {
-        name   => 'return value of curval field not in normal view',
-        type   => 'Calc',
-        code   => "function evaluate (L1curval1,_id) \n return L1curval1.field_values.L2daterange1.from.year .. 'X' .. _id \nend",
-        before => '2012X__ID', # __ID replaced by current ID
-        after  => '2008X__ID',
+        name       => 'return array of multivalues',
+        type       => 'Calc',
+        code       => "function evaluate (_id) \n return {100, 200} \nend",
+        before     => '100, 200', # __ID replaced by current ID
+        after      => '100, 200',
+        multivalue => 1,
     },
     {
         name   => 'serial value of record',
@@ -327,6 +328,7 @@ foreach my $test (@tests)
         return_type    => $test->{return_type} || 'string',
         decimal_places => $test->{decimal_places},
         code           => $test->{code},
+        multivalue     => $test->{multivalue},
     );
     $code_col->write;
     $layout->clear;
@@ -446,5 +448,111 @@ foreach my $test (@tests)
 }
 
 restore_time();
+
+# Set of tests to check multi-value calc returns
+{
+    # This calc code will return an array with the number of elements being the
+    # value of integer1; or, if integer1 is 10 or 11, an array with 2 elements
+    # one way round or the other. If the order of array elements changes, then
+    # the string value may change but the "changed" status should be false.
+    # This is so that when returning a calc based on another multi-value, it
+    # doesn't matter if the order of the input changes.
+    my $sheet   = t::lib::DataSheet->new(
+        data      => [],
+        calc_code => "
+            function evaluate (L1integer1)
+                a = {}
+                if L1integer1 < 10 then
+                    for i=1, L1integer1 do
+                        a[i] = 10
+                    end
+                elseif L1integer1 == 10 then
+                    return {100, 200}
+                else
+                    return {200, 100}
+                end
+                return a
+            end
+        ",
+        calc_return_type => 'string',
+    );
+    $sheet->create_records;
+    my $schema  = $sheet->schema;
+    my $layout  = $sheet->layout;
+    my $columns = $sheet->columns;
+    my $calc    = $columns->{calc1};
+    my $int     = $columns->{integer1};
+    $calc->multivalue(1);
+    $calc->write;
+    $layout->clear;
+
+    my $record = GADS::Record->new(
+        user   => $sheet->user,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->initialise;
+
+    # First test number of elements being returned and written
+    # One element returned
+    $record->fields->{$int->id}->set_value(1);
+    $record->write(no_alerts => 1);
+    my $rset = $schema->resultset('Calcval');
+    is($rset->count, 1, "Correct number of calc values written to database");
+    my $datum = $record->fields->{$calc->id};
+    is($datum->as_string, "10", "Correct multivalue calc value, one element");
+    # Now return 2 elements
+    $record->fields->{$int->id}->set_value(2);
+    $datum->re_evaluate;
+    is($rset->count, 1, "Second calc value not yet written to database");
+    is($datum->as_string, "10, 10", "Correct multivalue calc value for 2 elements");
+    $datum->write_value;
+    is($rset->count, 2, "Second calc value written to database");
+
+    # Test changed status of datum. Should only update after change and
+    # re-evaluation.
+    # Reset record and reload
+    $record->clear;
+    $record->find_current_id(1);
+    $datum = $record->fields->{$calc->id};
+    # Third element
+    $record->fields->{$int->id}->set_value(3);
+    # Not changed to begin with
+    is($datum->changed, 0, "Calc value not changed");
+    # Now should change
+    $datum->re_evaluate;
+    is($datum->changed, 1, "Calc value changed after re-evaluation");
+    is($rset->count, 2, "Correct number of database values before write");
+    $datum->write_value;
+    is($rset->count, 3, "Correct number of database values after write");
+
+    # Set back to one element, check other database values are removed
+    $record->fields->{$int->id}->set_value(1);
+    $datum->re_evaluate;
+    $datum->write_value;
+    is($rset->count, 1, "Old calc values deleted from database");
+
+    # Set to value for next set of tests
+    $record->fields->{$int->id}->set_value(10);
+    $record->write(no_alerts => 1);
+    is($rset->search({ record_id => 2 })->count, 2, "Correct number of database calc values");
+
+    # Next test that switching array return values does not set changed status
+    $record->clear;
+    $record->find_current_id(1);
+    $datum = $record->fields->{$calc->id};
+    $record->fields->{$int->id}->set_value(10);
+    $datum->re_evaluate;
+    # Not changed from initial write
+    is($datum->changed, 0, "Calc value not changed after writing same value");
+    is($datum->as_string, "100, 200", "Correct multivalue calc value for int value 10");
+    # Switch the return elements
+    $record->fields->{$int->id}->set_value(11);
+    $datum->re_evaluate;
+    is($datum->changed, 0, "Calc datum not changed after switching return elements");
+    is($datum->as_string, "200, 100", "Correct multivalue calc value after switching return");
+    $datum->write_value;
+    is($rset->search({ record_id => 2 })->count, 2, "Correct database values after switch");
+}
 
 done_testing();

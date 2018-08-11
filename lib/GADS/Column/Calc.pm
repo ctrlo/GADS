@@ -67,6 +67,10 @@ has unique_key => (
     default => 'calcval_ux_record_layout',
 );
 
+has '+can_multivalue' => (
+    default => 1,
+);
+
 # Used to provide a blank template for row insertion
 # (to blank existing values)
 has '+blank_row' => (

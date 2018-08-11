@@ -106,22 +106,6 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
-=head1 UNIQUE CONSTRAINTS
-
-=head2 C<calcval_ux_record_layout>
-
-=over 4
-
-=item * L</record_id>
-
-=item * L</layout_id>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint("calcval_ux_record_layout", ["record_id", "layout_id"]);
-
 =head1 RELATIONS
 
 =head2 layout

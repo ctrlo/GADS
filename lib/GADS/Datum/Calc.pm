@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Datum::Calc;
 
+use Data::Dumper qw/Dumper/;
 use Log::Report 'linkspace';
 use Math::Round qw/round/;
 use Moo;
@@ -28,32 +29,29 @@ extends 'GADS::Datum::Code';
 
 sub as_string
 {   my $self = shift;
-    my $value = $self->value;
-    $value = $value->format_cldr($self->column->dateformat) if ref $value eq 'DateTime';
-    if ($self->column->return_type eq 'numeric')
+    my @values = @{$self->value};
+    my @return;
+    foreach my $value (@values)
     {
-        if (my $dc = $self->column->decimal_places)
+        $value = $value->format_cldr($self->column->dateformat) if ref $value eq 'DateTime';
+        if ($self->column->return_type eq 'numeric')
         {
-            $value = sprintf("%.${dc}f", $value)
+            if (my $dc = $self->column->decimal_places)
+            {
+                $value = sprintf("%.${dc}f", $value)
+            }
+            elsif (!defined $value)
+            {
+                $value = '';
+            }
+            else {
+                $value += 0; # Remove trailing zeros
+            }
         }
-        elsif (!defined $value)
-        {
-            $value = '';
-        }
-        else {
-            $value += 0; # Remove trailing zeros
-        }
+        $value //= "";
+        push @return, "$value";
     }
-    $value //= "";
-    "$value";
-}
-
-sub as_integer
-{   my $self = shift;
-    my $value = $self->value;
-    $value = $value->epoch if ref $value eq 'DateTime';
-    no warnings 'numeric';
-    int ($value || 0);
+    return join ', ', @return;
 }
 
 sub _parse_date
@@ -66,93 +64,129 @@ sub convert_value
 
     my $column = $self->column;
 
-    my $value = $in->{return};
-    trace __x"Value into convert_value is: {value}", value => $value;
+    my @values = $column->multivalue && ref $in->{return} eq 'ARRAY'
+        ? @{$in->{return}} : $in->{return};
+    my $old_indent = $Data::Dumper::Indent;
+    $Data::Dumper::Indent = 0;
+    trace __x"Values into convert_value is: {value}", value => Dumper(\@values);
+    $Data::Dumper::Indent = $old_indent;
 
     my $return;
 
     if ($in->{error}) # Will have already been reported
     {
-        $value = '<evaluation error>';
+        @values = ('<evaluation error>');
     }
 
-    if ($column->return_type eq "date")
+    my @return;
+
+    foreach my $val (@values)
     {
-        if (defined $value && looks_like_number($value))
+        if ($column->return_type eq "date")
         {
-            try { $return = DateTime->from_epoch(epoch => $value) };
-            if (my $exception = $@->wasFatal)
+            if (defined $val && looks_like_number($val))
             {
-                warning "$@";
+                my $ret;
+                try { $ret = DateTime->from_epoch(epoch => $val) };
+                if (my $exception = $@->wasFatal)
+                {
+                    warning "$@";
+                }
+                else {
+                    push @return, $ret;
+                }
             }
         }
-    }
-    elsif ($column->return_type eq 'numeric' || $column->return_type eq 'integer')
-    {
-        if (defined $value && looks_like_number($value))
+        elsif ($column->return_type eq 'numeric' || $column->return_type eq 'integer')
         {
-            $return = $value;
-            $return = round $return if defined $return && $column->return_type eq 'integer';
+            if (defined $val && looks_like_number($val))
+            {
+                my $ret = $val;
+                $ret = round $ret if defined $ret && $column->return_type eq 'integer';
+                push @return, $ret;
+            }
         }
-    }
-    else {
-        $return = $value;
+        else {
+            push @return, $val;
+        }
     }
 
     no warnings "uninitialized";
-    trace "Returning value from convert_value: $return";
+    trace __x"Returning value from convert_value: {value}", value => Dumper(\@return);
 
-    $return;
+    @return;
 }
+
+# Needed for overloading definitions, which should probably be removed at some
+# point as they offer little benefit
+sub as_integer { panic "Not implemented" }
 
 sub write_value
 {   my $self = shift;
     $self->write_cache('calcval');
 }
 
-# Compare 2 calc values. Could be from database or calculation
+# Compare 2 calc values. Could be from database or calculation. May be used
+# with scalar values or arrays
 sub equal
 {   my ($self, $a, $b) = @_;
-    (defined $a xor defined $b)
-        and return;
-    !defined $a && !defined $b and return 1;
-    my $rt = $self->column->return_type;
-    if ($rt eq 'numeric' || $rt eq 'integer')
+    my @a = ref $a eq 'ARRAY' ? sort @$a : ($a);
+    my @b = ref $b eq 'ARRAY' ? sort @$b : ($b);
+    return 0 if @a != @b;
+    # Iterate over each pair, return 0 if different
+    foreach my $a2 (@a)
     {
-        $a += 0; $b += 0; # Remove trailing zeros
-        $a == $b;
+        my $b2 = shift @b;
+
+        (defined $a2 xor defined $b2)
+            and return 0;
+        !defined $a2 && !defined $b2 and next; # Same
+        my $rt = $self->column->return_type;
+        if ($rt eq 'numeric' || $rt eq 'integer')
+        {
+            $a2 += 0; $b2 += 0; # Remove trailing zeros
+            return 0 if $a2 != $b2;
+        }
+        elsif ($rt eq 'date')
+        {
+            # Type might have changed and old value be string
+            ref $a2 eq 'DateTime' && ref $b2 eq 'DateTime' or return 0;
+            return 0 if $a2 != $b2;
+        }
+        else {
+            return 0 if $a2 ne $b2;
+        }
     }
-    elsif ($rt eq 'date')
-    {
-        # Type might have changed and old value be string
-        ref $a eq 'DateTime' && ref $b eq 'DateTime' or return;
-        !DateTime->compare($a, $b);
-    }
-    else {
-        $a eq $b;
-    }
+    # Assume same
+    return 1;
 }
 
 sub for_code
 {   my $self = shift;
     my $rt = $self->column->return_type;
-    if ($rt eq 'date')
+    my @return;
+    foreach my $val (@{$self->value})
     {
-        $self->_date_for_code($self->value);
+        if ($rt eq 'date')
+        {
+            push @return, $self->_date_for_code($val);
+        }
+        elsif ($rt eq 'numeric')
+        {
+            # Ensure true numeric value passed to Lua, otherwise "attempt to
+            # compare number with string" errors are encountered
+            push @return, $self->as_string + 0;
+        }
+        elsif ($rt eq 'integer')
+        {
+            push @return, defined $val ? int $val : undef;
+        }
+        else {
+            push @return, defined $val ? "$val" : undef;
+        }
     }
-    elsif ($rt eq 'numeric')
-    {
-        # Ensure true numeric value passed to Lua, otherwise "attempt to
-        # compare number with string" errors are encountered
-        $self->as_string + 0;
-    }
-    elsif ($rt eq 'integer')
-    {
-        $self->as_integer;
-    }
-    else {
-        $self->as_string;
-    }
+
+    $self->column->multivalue ? \@return : $return[0];
 }
 
 sub _build_blank { !shift->as_string }
