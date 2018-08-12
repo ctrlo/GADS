@@ -523,5 +523,5 @@ done_testing();
 
 sub _table_as_string
 {   my ($schema, $table) = @_;
-    join '', $schema->resultset($table)->search({},{ order_by => 'id' })->get_column('value')->all;
+    join '', map { defined $_ ? $_ : ''} $schema->resultset($table)->search({},{ order_by => 'id' })->get_column('value')->all;
 }

@@ -455,7 +455,8 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid/)
     foreach my $f (qw/enum1 string1 tree1/)
     {
         my $col_id = $columns->{$f}->id;
-        $record_new->fields->{$col_id}->set_value($record->fields->{$col_id}->value);
+        my $values = $f eq 'string1' ? $record->fields->{$col_id}->values : $record->fields->{$col_id}->ids;
+        $record_new->fields->{$col_id}->set_value($values);
     }
     ok( $record_new->fields->{$columns->{$field}->id}->written_to, "Field $field is written to, test $test" );
     $record_new->show_for_write_clear;

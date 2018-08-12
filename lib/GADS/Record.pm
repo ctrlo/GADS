@@ -1252,11 +1252,14 @@ sub write
         if ($column->isunique && !$datum->blank && ($self->new_entry || $datum->changed) && !($self->parent_id && !$datum->child_unique))
         {
             # Check for other columns with this value.
-            if (my $r = $self->find_unique($column, $datum->value))
+            foreach my $val (@{$datum->text_all})
             {
-                # as_string() used as will be encoded on message display
-                error __x(qq(Field "{field}" must be unique but value "{value}" already exists in record {id}),
-                    field => $column->name, value => $datum->as_string, id => $r->current_id);
+                if (my $r = $self->find_unique($column, $val))
+                {
+                    # as_string() used as will be encoded on message display
+                    error __x(qq(Field "{field}" must be unique but value "{value}" already exists in record {id}),
+                        field => $column->name, value => $datum->as_string, id => $r->current_id);
+                }
             }
         }
 
@@ -1828,10 +1831,21 @@ sub _field_write
             }
             elsif ($column->type eq 'string')
             {
-                $entry->{value} = $datum_write->value;
-                $entry->{value_index} = lc substr $datum_write->value, 0, 128
-                    if defined $datum_write->value;
-                push @entries, $entry;
+                if (!@{$datum_write->values})
+                {
+                    $entry->{value} = undef,
+                    $entry->{value_index} = undef,
+                    push @entries, $entry; # No values, but still need to write null value
+                }
+                foreach my $value (@{$datum_write->values})
+                {
+                    my %entry = %$entry; # Copy to stop referenced values being overwritten
+                    $entry{value} = $value;
+                    $entry{value_index} = lc substr $value, 0, 128
+                        if defined $value;
+                    push @entries, \%entry;
+                }
+
             }
             else {
                 $entry->{value} = $datum_write->value;
