@@ -1196,10 +1196,10 @@ sub write
                         # be a read-only field for this user
                         if (!$self->new_entry && !$datum->changed)
                         {
-                            mistake __x"'{col}' is no longer optional, but was previously blank for this record.", col => $column->{name};
+                            mistake __x"'{col}' is no longer optional, but was previously blank for this record.", col => $column->name;
                         }
                         else {
-                            error __x"'{col}' is not optional. Please enter a value.", col => $column->{name};
+                            error __x"'{col}' is not optional. Please enter a value.", col => $column->name;
                         }
                     }
                 }
