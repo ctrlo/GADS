@@ -1759,7 +1759,13 @@ sub _field_write
                             schema   => $self->schema,
                             base_url => $self->base_url,
                         );
-                        $record->initialise;
+                        if (my $current_id = $params->{current_id})
+                        {
+                            $record->find_current_id($current_id);
+                        }
+                        else {
+                            $record->initialise;
+                        }
                         foreach my $col ($column->layout_parent->all(user_can_write_new => 1))
                         {
                             my $newv = $params->{$col->field};

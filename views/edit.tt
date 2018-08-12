@@ -95,6 +95,7 @@
 <form class="edit-form" method="post" enctype="multipart/form-data"
     [% IF modal %]
         data-curval-id="[% modal %]"
+        data-current-id="[% record.current_id %]"
         data-modal-field-ids="[% modal_field_ids %]"
     [% END %]
 >
@@ -134,7 +135,7 @@
         </div>
     </div>
     [% IF modal %]
-        <button type="submit" class="btn btn-primary" id="curval-add">Add</button>
+        <button type="submit" class="btn btn-primary" id="curval-add">[% IF record.current_id %]Update[% ELSE %]Add[% END %]</button>
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
     [% ELSE %]
         <div class="navbar navbar-default navbar-fixed-bottom edit-controls">
@@ -216,9 +217,10 @@
             $(document).on("mousedown", ".curval-modal", function(e) {
                 var layout_id = $(e.target).data('layout-id');
                 var instance_id = $(e.target).data('instance-id');
+                var current_id = $(e.target).data('current-id') || '';
                 var m = $("#curval_modal");
                 m.find('.modal-body').text('Loading...');
-                m.find('.modal-body').load('/edit/?modal=' + layout_id + '&oi=' + instance_id, function() {
+                m.find('.modal-body').load('/edit/' + current_id + '?modal=' + layout_id + '&oi=' + instance_id, function() {
                     Linkspace.init(m);
                 });
                 m.on("focus", ".datepicker", function(e) {
@@ -233,6 +235,7 @@
                 var form_data = form.serialize();
                 var modal_field_ids = form.data("modal-field-ids");
                 var col_id = form.data( "curval-id" );
+                var current_id = form.data( "current-id" );
                 var hidden_input = $('<input>').attr({type: 'hidden', name: 'field' + col_id, value: form_data});
 
                 var text_values = modal_field_ids.map(function(element) {
@@ -241,12 +244,19 @@
                     return value;
                 });
 
-                var remove_link = $('<a href="#" class="curval_remove">').append('(remove)');
                 var curval_text = text_values.join(', ') + ' ';
                 curval_text = $('<div />').text(curval_text).html();
-
-                $('#curval_list_' + col_id).append($('<li class="curval_item">')
-                    .append(curval_text).append(remove_link).append(hidden_input));
+                if (current_id) {
+                    alert(curval_text);
+                    var hidden = $('#curval-current-id-' + current_id).val(form_data);
+                    hidden.prevAll('.curval-inner-text').text(curval_text);
+                }
+                else {
+                    var remove_link = $('<a href="#" class="curval_remove">').append('(remove)');
+                    var ct = $('<span class="curval-inner-text"').append(curval_text);
+                    $('#curval_list_' + col_id).append($('<li class="curval_item">')
+                        .append(ct).append(remove_link).append(hidden_input));
+                }
                 $('.modal.in').modal('hide');
             });
 
@@ -842,8 +852,12 @@
     <ul id="curval_list_[% dispcol.id %]" class="curval_group">
         [% FOREACH val IN editvalue.for_edit %]
             <li class="curval_item">
-                [% val.value | html %] (<a href="#" class="curval_remove">remove</a>)
-                <input type="hidden" name="[% field %]" value="[% val.id %]">
+                <span class="curval-inner-text">[% val.value | html %]</span> (<a class="curval-modal"
+                    data-current-id="[% val.id %]"
+                    data-instance-id="[% dispcol.refers_to_instance_id %]" data-layout-id="[% dispcol.id %]" style='cursor:pointer'
+                    >edit</a>
+                | <a class="curval_remove" style='cursor:pointer'>remove</a>)
+                <input type="hidden" id="curval-current-id-[% val.id %]" name="[% field %]" value="[% val.id %]">
             </li>
         [% END %]
     </ul>
