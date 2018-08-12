@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Record;
 
+use CtrlO::PDF;
 use DateTime;
 use DateTime::Format::Strptime qw( );
 use DBIx::Class::ResultClass::HashRefInflator;
@@ -1949,6 +1950,47 @@ sub as_json
         $return->{$short} = $self->fields->{$col->id}->as_string;
     }
     encode_json $return;
+}
+
+sub pdf
+{   my $self = shift;
+
+    my $dateformat = GADS::Config->instance->dateformat;
+    my $now = DateTime->now->format_cldr($dateformat)." at ".DateTime->now->hms;
+    my $updated = $self->created->format_cldr($dateformat)." at ".$self->created->hms;
+
+    my $pdf = CtrlO::PDF->new(
+        footer => "Downloaded by ".$self->user->value." on $now",
+    );
+
+    $pdf->add_page;
+    $pdf->heading('Record '.$self->current_id);
+    $pdf->heading('Last updated by '.$self->createdby->as_string." on $updated", size => 12);
+
+    my $data =[
+        ['Field', 'Value'],
+    ];
+    foreach my $col ($self->layout->all_user_read)
+    {
+        my $datum = $self->fields->{$col->id};
+        next if $datum->dependent_not_shown;
+        push @$data, [
+            $col->name,
+            $datum->as_string,
+        ],
+    }
+
+    my $hdr_props = {
+        repeat     => 1,
+        justify    => 'center',
+        font_size  => 8,
+    };
+
+    $pdf->table(
+        data => $data,
+    );
+
+    $pdf;
 }
 
 # Delete the record entirely from the database, plus its parent current (entire

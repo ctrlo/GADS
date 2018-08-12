@@ -7,6 +7,7 @@
             <li role="presentation"><a role="menuitem" href="/edit/[% record.current_id %]">Edit record</a></li>
         [% END %]
         <li role="presentation"><a role="menuitem" href="/edit/?from=[% record.current_id %]">Copy record</a></li>
+        <li role="presentation"><a role="menuitem" href="/record/[% record.current_id %]?pdf">Download as PDF</a></li>
         [% IF layout.user_can("create_child") AND NOT record.parent_id %]
             <li role="presentation"><a role="menuitem" href="/edit/?child=[% record.current_id %]">Create child record</a></li>
         [% END %]

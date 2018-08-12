@@ -2832,6 +2832,12 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
     : $record->find_current_id($id);
     $layout = $record->layout; # May have changed if record from other datasheet
 
+    if (defined param('pdf'))
+    {
+        my $pdf = $record->pdf->content;
+        return send_file(\$pdf, content_type => 'application/pdf', filename => "Record-".$record->current_id.".pdf" );
+    }
+
     my @versions    = $record->versions;
     my @columns     = $layout->all(user_can_read => 1);
     my %first_crumb = $action eq 'purge' ? ( '/purge' => 'deleted records' ) : ( '/data' => 'records' );
