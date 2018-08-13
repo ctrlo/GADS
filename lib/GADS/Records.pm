@@ -1705,6 +1705,7 @@ sub data_timeline
         {
             id      => $timeline->groups->{$_},
             content => encode_entities $_,
+            order => $_,
         }
     } keys %{$timeline->groups};
 
