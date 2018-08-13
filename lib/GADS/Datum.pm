@@ -240,6 +240,7 @@ sub dependent_not_shown
     my $display_field_id = $self->column->display_field
         or return 0;
     my $display_regex = $self->column->display_regex;
+    return 0 if !$self->record->fields->{$display_field_id};
     $self->record->fields->{$display_field_id}->value_regex_test !~ /^$display_regex/;
 }
 

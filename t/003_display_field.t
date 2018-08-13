@@ -160,4 +160,48 @@ $record->find_current_id(1);
     is($record->fields->{$integer1->id}->as_string, '600', 'Updated integer value with full tree path is correct');
 }
 
+# Tests for dependent_not_shown
+{
+    $integer1->display_field($string1->id);
+    $integer1->display_regex('Foobar');
+    $integer1->write;
+    $layout->clear;
+
+    my $record = GADS::Record->new(
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->initialise;
+    $record->fields->{$string1->id}->set_value('Foobar');
+    $record->fields->{$integer1->id}->set_value('100');
+    $record->write(no_alerts => 1);
+
+    my $current_id = $record->current_id;
+    $record->clear;
+    $record->find_current_id($current_id);
+    ok(!$record->fields->{$string1->id}->dependent_not_shown, "String shown in view");
+    ok(!$record->fields->{$integer1->id}->dependent_not_shown, "Integer shown in view");
+
+    $record->fields->{$string1->id}->set_value('Foo');
+    $record->fields->{$integer1->id}->set_value('200');
+    $record->write(no_alerts => 1);
+    ok(!$record->fields->{$string1->id}->dependent_not_shown, "String still shown in view");
+    ok($record->fields->{$integer1->id}->dependent_not_shown, "Integer not shown in view");
+
+    # Although dependent_not_shown is not used in table view, it is still
+    # generated as part of the presentation layer
+    my $records = GADS::Records->new(
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
+        columns => [$integer1->id],
+    );
+    while (my $rec = $records->single)
+    {
+        # Will always be shown as the column it depends on is not in the view
+        ok(!$rec->fields->{$integer1->id}->dependent_not_shown, "Integer not shown in view");
+    }
+}
+
 done_testing();
