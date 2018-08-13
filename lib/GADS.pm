@@ -3050,6 +3050,8 @@ any '/login' => sub {
 
     if (param 'register')
     {
+        error __"Self-service account requests are not enabled on this site"
+            if var('site')->hide_account_request;
         my $params = params;
         # Check whether this user already has an account
         if ($users->user_exists($params->{email}))
