@@ -204,7 +204,13 @@ has organisation => (
     is      => 'rw',
     lazy    => 1,
     builder => sub {
-        $_[0]->value_hash ? $_[0]->value_hash->{organisation} : $_[0]->_rset && $_[0]->_rset->organisation;
+        my $self = shift;
+        # Do we have a resultset? If so, just return that
+        return $self->_rset->organisation if $self->_rset;
+        # Otherwise assume value_hash and build from that
+        my $organisation_id = $self->value_hash && $self->value_hash->{organisation}
+            or return undef;
+        $self->schema->resultset('Organisation')->find($organisation_id);
     },
 );
 
@@ -212,7 +218,13 @@ has title => (
     is      => 'rw',
     lazy    => 1,
     builder => sub {
-        $_[0]->value_hash ? $_[0]->value_hash->{title} : $_[0]->_rset && $_[0]->_rset->title;
+        my $self = shift;
+        # Do we have a resultset? If so, just return that
+        return $self->_rset->title if $self->_rset;
+        # Otherwise assume value_hash and build from that
+        my $title_id = $self->value_hash && $self->value_hash->{title}
+            or return undef;
+        $self->schema->resultset('Title')->find($title_id);
     },
 );
 
