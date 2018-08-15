@@ -282,8 +282,8 @@ sub field_values
         : $self->column->field_values(ids => $self->ids_filtered);
     # Translate into something useful
     my @recs;
-    push @recs, $values->{$rec_id}
-        foreach my $rec_id (keys %$values)
+    push @recs, $values->{$_}
+        foreach keys %$values;
     \@recs;
 }
 
