@@ -25,7 +25,7 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
-our @person_properties = qw/id email username firstname surname freetext1 freetext2 organisation value/;
+our @person_properties = qw/id email username firstname surname freetext1 freetext2 organisation title value/;
 
 # Convert based on whether ID or full name provided
 sub value_field_as_index

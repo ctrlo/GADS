@@ -78,6 +78,8 @@ sub set_value
         {
             my $org = _org_to_hash($person->organisation);
             $self->organisation($org);
+            my $title = _org_to_hash($person->title);
+            $self->title($title);
         }
         $self->_set_text($person ? $person->value : undef);
         $self->changed(1);
@@ -129,6 +131,7 @@ has value_hash => (
             freetext1    => $value->{freetext1},
             freetext2    => $value->{freetext2},
             organisation => $value->{organisation},
+            title        => $value->{title},
             text         => $value->{value},
         };
     },
@@ -205,6 +208,14 @@ has organisation => (
     },
 );
 
+has title => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->value_hash ? $_[0]->value_hash->{title} : $_[0]->_rset && $_[0]->_rset->title;
+    },
+);
+
 has text => (
     is      => 'rw',
     lazy    => 1,
@@ -249,6 +260,7 @@ around 'clone' => sub {
         freetext1    => $self->freetext1,
         freetext2    => $self->freetext2,
         organisation => $self->organisation,
+        title        => $self->title,
         text         => $self->text,
         @_,
     );
@@ -281,6 +293,7 @@ sub for_code
         freetext1    => $self->freetext1,
         freetext2    => $self->freetext2,
         organisation => $self->organisation,
+        title        => $self->title,
         text         => $self->text,
     };
 }
