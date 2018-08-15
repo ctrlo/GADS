@@ -9,6 +9,7 @@ sub presentation {
         id            => $self->id,
         type          => $self->type,
         name          => $self->name,
+        topic         => $self->topic && $self->topic->name,
         is_multivalue => $self->multivalue,
         helptext      => $self->helptext,
         data          => $options{datum_presentation},
