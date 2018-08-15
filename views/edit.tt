@@ -253,7 +253,7 @@
                 }
                 else {
                     var remove_link = $('<a href="#" class="curval_remove">').append('(remove)');
-                    var ct = $('<span class="curval-inner-text"').append(curval_text);
+                    var ct = $('<span class="curval-inner-text">').append(curval_text);
                     $('#curval_list_' + col_id).append($('<li class="curval_item">')
                         .append(ct).append(remove_link).append(hidden_input));
                 }
@@ -470,28 +470,6 @@
     [%# Skip if field has a filter (which will alter its values) and the dependent values have not yet been completed %]
 
     [%# When bulk updating, just show all fields %]
-    [% UNLESS page == "bulk" %]
-        [%# If field's value has already been written to, do not display field by add as hidden value instead %]
-        [% IF record.fields.$colid.value_previous_page OR record.fields.$colid.value_next_page %]
-            [% IF record.fields.$colid.html_form.size %]
-                [% FOREACH val IN record.fields.$colid.html_form %]
-                    <input type="hidden" name="[% field %]" value="[% val %]">
-                [% END %]
-            [% ELSE %]
-                [%# Ensure a value gets sent back to show this field was shown if nothing selected %]
-                <input type="hidden" name="[% field %]">
-            [% END %]
-            [% IF record.fields.$colid.value_previous_page %]
-                <input type="hidden" name="previous_fields" value="[% colid %]">
-            [% ELSE %]
-                <input type="hidden" name="next_fields" value="[% colid %]">
-            [% END %]
-            [% columns_done.$colid = 1 %]
-            [% NEXT %]
-        [% END %]
-
-        [% NEXT UNLESS record.fields.$colid.show_for_write %]
-    [% END %]
 
     <input type="hidden" name="shown_fields" value="[% colid %]">
 
