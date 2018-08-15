@@ -166,7 +166,7 @@ sub _build_items
 
                 if ($column->is_curcommon)
                 {
-                    foreach my $row (values %{$record->fields->{$column->id}->field_values})
+                    foreach my $row (@{$record->fields->{$column->id}->field_values})
                     {
                         foreach my $cur_col_id (keys %$row)
                         {

@@ -277,9 +277,14 @@ sub html_withlinks
 
 sub field_values
 {   my $self = shift;
-    $self->_records
+    my $values = $self->_records
         ? $self->column->field_values(rows => $self->_records)
         : $self->column->field_values(ids => $self->ids_filtered);
+    # Translate into something useful
+    my @recs;
+    push @recs, $values->{$rec_id}
+        foreach my $rec_id (keys %$values)
+    \@recs;
 }
 
 sub field_values_for_code
