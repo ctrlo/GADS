@@ -359,7 +359,7 @@ get '/data_calendar/:time' => require_login sub {
     # Time variable is used to prevent caching by browser
 
     my $fromdt  = DateTime->from_epoch( epoch => ( param('from') / 1000 ) );
-    my $todt    = DateTime->from_epoch( epoch => ( param('to') / 1000 ) ); 
+    my $todt    = DateTime->from_epoch( epoch => ( param('to') / 1000 ) );
 
     # Attempt to find period requested. Sometimes the duration is
     # slightly less than expected, hence the multiple tests
@@ -383,7 +383,7 @@ get '/data_calendar/:time' => require_login sub {
     # browser. So in BST, 24th August is requested as 23rd August 23:00. Rather than
     # trying to convert timezones, we keep things simple and round down any "from"
     # times and round up any "to" times.
-    $fromdt->truncate( to => 'day'); 
+    $fromdt->truncate( to => 'day');
     if ($todt->hms('') ne '000000')
     {
         # If time is after midnight, round down to midnight and add day
@@ -2520,10 +2520,12 @@ any '/edit/:id?' => require_login sub {
     }
 
     my $modal = param('modal') && int param('modal');
+    my $oi = param('oi') && int param('oi');
 
     my $params = {
         record => $record,
         modal  => $modal,
+        oi     => $oi,
         page   => 'edit'
     };
 

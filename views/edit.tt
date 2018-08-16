@@ -97,6 +97,7 @@
         data-curval-id="[% modal %]"
         data-current-id="[% record.current_id %]"
         data-modal-field-ids="[% modal_field_ids %]"
+        data-instance-id="[% oi %]"
     [% END %]
 >
     <div class="row">
@@ -218,9 +219,10 @@
                 var layout_id = $(e.target).data('layout-id');
                 var instance_id = $(e.target).data('instance-id');
                 var current_id = $(e.target).data('current-id') || '';
+                var form_data = $(e.target).closest('.curval_item').find("input[name=field" + layout_id + "]").val();
                 var m = $("#curval_modal");
                 m.find('.modal-body').text('Loading...');
-                m.find('.modal-body').load('/edit/' + current_id + '?modal=' + layout_id + '&oi=' + instance_id, function() {
+                m.find('.modal-body').load('/edit/' + current_id + '?modal=' + layout_id + '&oi=' + instance_id + '&' + form_data, function() {
                     Linkspace.init(m);
                 });
                 m.on("focus", ".datepicker", function(e) {
@@ -235,6 +237,7 @@
                 var form_data = form.serialize();
                 var modal_field_ids = form.data("modal-field-ids");
                 var col_id = form.data( "curval-id" );
+                var instance_id = form.data( "instance-id" );
                 var current_id = form.data( "current-id" );
                 var hidden_input = $('<input>').attr({type: 'hidden', name: 'field' + col_id, value: form_data});
 
@@ -252,10 +255,10 @@
                     hidden.prevAll('.curval-inner-text').text(curval_text);
                 }
                 else {
-                    var remove_link = $('<a href="#" class="curval_remove">').append('(remove)');
+                    var links = $('<span>(<a href="#" class="curval-modal" data-layout-id="' + col_id + '" data-instance-id="' + instance_id + '">edit</a> | <a href="#" class="curval_remove">remove</a>)</span>');
                     var ct = $('<span class="curval-inner-text">').append(curval_text);
                     $('#curval_list_' + col_id).append($('<li class="curval_item">')
-                        .append(ct).append(remove_link).append(hidden_input));
+                        .append(ct).append(links).append(hidden_input));
                 }
                 $('.modal.in').modal('hide');
             });
