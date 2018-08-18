@@ -99,7 +99,7 @@ sub written_to
 sub write_cache
 {   my ($self, $table) = @_;
 
-    my @values = sort @{$self->value};
+    my @values = sort @{$self->value} if defined $self->value->[0];
 
     # We are generally already in a transaction at this point, but
     # start another one just in case

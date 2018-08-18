@@ -130,8 +130,10 @@ sub write_value
 # with scalar values or arrays
 sub equal
 {   my ($self, $a, $b) = @_;
-    my @a = ref $a eq 'ARRAY' ? sort @$a : ($a);
-    my @b = ref $b eq 'ARRAY' ? sort @$b : ($b);
+    my @a = ref $a eq 'ARRAY' ? @$a : ($a);
+    my @b = ref $b eq 'ARRAY' ? @$b : ($b);
+    @a = sort @a if defined $a[0];
+    @b = sort @b if defined $b[0];
     return 0 if @a != @b;
     # Iterate over each pair, return 0 if different
     foreach my $a2 (@a)
