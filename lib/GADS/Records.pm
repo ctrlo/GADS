@@ -928,15 +928,22 @@ sub fetch_multivalues
                 }
             }
             # Fetch the multivalues for either the main record IDs or the
-            # records within the curval values. Then pass all back to the
-            # calling function
+            # records within the curval values. We fetch all values for a
+            # particular type of field in one go (e.g. all the enum values).
+            # Sometimes a field will be done, but it will have no values, in
+            # which case it runs the danger of fetching all values again, thus
+            # duplicating some values. We therefore have to flag to make sure
+            # we don't do this.
+            my %colsd;
             foreach my $val ($col->fetch_multivalues(\@retrieve_ids))
             {
                 my $field = "field$val->{layout_id}";
+                next if $cols_done->{$val->{layout_id}};
                 $multi{$val->{record_id}}->{$field} ||= [];
                 push @{$multi{$val->{record_id}}->{$field}}, $val;
-                $cols_done->{$val->{layout_id}} = 1;
+                $colsd{$val->{layout_id}} = 1;
             }
+            $cols_done->{$_} = 1 foreach keys %colsd; # Flag that all these columns are done, even if no values
         }
     }
 
