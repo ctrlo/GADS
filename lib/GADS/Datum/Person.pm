@@ -78,6 +78,8 @@ sub set_value
         {
             my $org = _org_to_hash($person->organisation);
             $self->organisation($org);
+            my $title = _org_to_hash($person->title);
+            $self->title($title);
         }
         $self->_set_text($person ? $person->value : undef);
         $self->changed(1);
@@ -129,6 +131,7 @@ has value_hash => (
             freetext1    => $value->{freetext1},
             freetext2    => $value->{freetext2},
             organisation => $value->{organisation},
+            title        => $value->{title},
             text         => $value->{value},
         };
     },
@@ -201,7 +204,27 @@ has organisation => (
     is      => 'rw',
     lazy    => 1,
     builder => sub {
-        $_[0]->value_hash ? $_[0]->value_hash->{organisation} : $_[0]->_rset && $_[0]->_rset->organisation;
+        my $self = shift;
+        # Do we have a resultset? If so, just return that
+        return $self->_rset->organisation if $self->_rset;
+        # Otherwise assume value_hash and build from that
+        my $organisation_id = $self->value_hash && $self->value_hash->{organisation}
+            or return undef;
+        $self->schema->resultset('Organisation')->find($organisation_id);
+    },
+);
+
+has title => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        # Do we have a resultset? If so, just return that
+        return $self->_rset->title if $self->_rset;
+        # Otherwise assume value_hash and build from that
+        my $title_id = $self->value_hash && $self->value_hash->{title}
+            or return undef;
+        $self->schema->resultset('Title')->find($title_id);
     },
 );
 
@@ -249,6 +272,7 @@ around 'clone' => sub {
         freetext1    => $self->freetext1,
         freetext2    => $self->freetext2,
         organisation => $self->organisation,
+        title        => $self->title,
         text         => $self->text,
         @_,
     );
@@ -281,6 +305,7 @@ sub for_code
         freetext1    => $self->freetext1,
         freetext2    => $self->freetext2,
         organisation => $self->organisation,
+        title        => $self->title,
         text         => $self->text,
     };
 }
