@@ -37,8 +37,8 @@ has schema => (
 );
 
 # Set datum value with value from user
-sub set_value
-{   my ($self, $all, %options) = @_;
+after set_value => sub {
+    my ($self, $all, %options) = @_;
     $all ||= [];
     my @all = @$all; # Take a copy first
     my $clone = $self->clone;
@@ -63,7 +63,7 @@ sub set_value
     }
     $self->oldvalue($clone);
     $self->_set_written_to(0) if $self->value_next_page;
-}
+};
 
 has values => (
     is      => 'rwp',

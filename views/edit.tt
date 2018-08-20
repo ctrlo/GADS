@@ -477,7 +477,7 @@
     [% NEXT IF page == "approval" AND NOT (record.fields.$colid.has_value)  %]
 
     [%# Skip if it's a child record and the value doesn't exist %]
-    [% NEXT IF record.parent_id AND NOT (record.fields.$colid.has_value) AND NOT layout.user_can("create_child") %]
+    [% NEXT IF record.parent_id AND NOT dispcol.can_child AND NOT layout.user_can("create_child") %]
 
     [%# Skip if it's a linked record and the value is linked %]
     [% IF record.linked_id AND dispcol.link_parent %]
@@ -574,15 +574,7 @@
             [% END %]
             [% label = label _ label_add %]
         [% END %]
-        [% IF child AND layout.user_can("create_child") %]
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" name="child_inc" value="[% dispcol.id %]"
-                        [% IF record.current_id AND record.fields.$colid.child_unique %]checked[% END %]
-                    > <span [% label_style %]>[% label %]</span> (tick for own value, untick to inherit)
-                </label>
-            </div>
-        [% ELSIF page == "bulk" %]
+        [% IF page == "bulk" %]
             <div class="checkbox">
                 <label>
                     <input type="checkbox" name="bulk_inc_[% dispcol.id %]" value="1"

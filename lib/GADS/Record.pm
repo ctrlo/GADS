@@ -362,6 +362,7 @@ has deletedby => (
 sub _person
 {   my ($self, $value, $column) = @_;
     GADS::Datum::Person->new(
+        record           => $self,
         record_id        => $self->record_id,
         current_id       => $self->current_id,
         column           => $column,
@@ -862,6 +863,7 @@ sub _transform_values
         );
     }
     $fields->{-11} = GADS::Datum::ID->new(
+        record           => $self,
         record_id        => $self->record_id,
         current_id       => $self->current_id,
         column           => $self->layout->column(-11),
@@ -869,6 +871,7 @@ sub _transform_values
         layout           => $self->layout,
     );
     $fields->{-12} = GADS::Datum::Date->new(
+        record           => $self,
         record_id        => $self->record_id,
         current_id       => $self->current_id,
         column           => $self->layout->column(-12),
@@ -878,6 +881,7 @@ sub _transform_values
     );
     $fields->{-13} = $self->_person($original->{createdby}, $self->layout->column(-13));
     $fields->{-15} = GADS::Datum::Date->new(
+        record           => $self,
         record_id        => $self->record_id,
         current_id       => $self->current_id,
         column           => $self->layout->column(-15),
@@ -886,6 +890,7 @@ sub _transform_values
         init_value       => [ { value => $self->record_created } ],
     );
     $fields->{-16} = GADS::Datum::Serial->new(
+        record           => $self,
         value            => $self->serial,
         record_id        => $self->record_id,
         current_id       => $self->current_id,
@@ -1250,7 +1255,7 @@ sub write
         # Don't check for unique if this is a child record and it hasn't got a unique value.
         # If the value has been de-selected as unique, the datum will be changed, and it
         # may still have a value in it, although this won't be written.
-        if ($column->isunique && !$datum->blank && ($self->new_entry || $datum->changed) && !($self->parent_id && !$datum->child_unique))
+        if ($column->isunique && !$datum->blank && ($self->new_entry || $datum->changed) && !($self->parent_id && !$column->can_child))
         {
             # Check for other columns with this value.
             foreach my $val (@{$datum->text_all})
@@ -1301,7 +1306,7 @@ sub write
                 $datum->is_awaiting_approval(1);
             }
         }
-        $child_unique = 1 if $datum->child_unique;
+        $child_unique = 1 if $column->can_child;
     }
 
     # Check whether any values have been written to topics which cannot be
@@ -1317,7 +1322,7 @@ sub write
     }
 
     # Error if child record as no fields selected
-    error __"Please select at least one field to include in the child record"
+    error __"There are no child fields defined to be able to create a child record"
         if $self->parent_id && !$child_unique;
 
     # Anything to update?
@@ -1456,12 +1461,13 @@ sub write
     foreach my $column ($self->layout->all(order_dependencies => 1))
     {
         my $datum = $self->fields->{$column->id};
-        if ($self->parent_id && !$datum->child_unique && $column->userinput) # Calc values always unique
+        if ($self->parent_id && !$column->can_child && $column->userinput) # Calc values always unique
         {
-            $datum = $self->parent->fields->{$column->id}->clone;
-            $datum->current_id($self->current_id);
-            $datum->record_id($self->record_id);
-            $self->fields->{$column->id} = $datum;
+            my $datum_parent = $self->parent->fields->{$column->id};
+            #$datum->current_id($self->current_id);
+            #$datum->record_id($self->record_id);
+            #$self->fields->{$column->id} = $datum;
+            $datum->set_value($datum_parent->html_form, is_parent_value => 1);
         }
         next if $self->linked_id && $column->link_parent; # Don't write all values if this is a linked record
 
@@ -1604,8 +1610,8 @@ sub write
                 if ($col->userinput)
                 {
                     my $datum_parent = $self->fields->{$col->id};
-                    $datum_child->set_value($datum_parent->html_form)
-                        unless $datum_child->child_unique;
+                    $datum_child->set_value($datum_parent->html_form, is_parent_value => 1)
+                        unless $col->can_child;
                 }
                 # Calc/rag values will be evaluated during write()
             }
@@ -1716,7 +1722,7 @@ sub _field_write
         my $datum_write = $options{old} ? $datum->oldvalue : $datum;
         my $table = $column->table;
         my $entry = {
-            child_unique => $datum ? $datum->child_unique : 0, # No datum for new invisible fields
+            child_unique => $datum ? $column->can_child : 0, # No datum for new invisible fields
             layout_id    => $column->id,
         };
         $entry->{record_id} = $options{approval} ? $self->approval_id : $self->record_id;

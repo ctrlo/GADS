@@ -28,6 +28,12 @@ with 'GADS::Role::Presentation::Datum';
 
 use overload 'bool' => sub { 1 }, '""'  => 'as_string', '0+' => 'as_integer', fallback => 1;
 
+sub set_value
+{   my ($self, $value, %options) = @_;
+    error __"Cannot set this value as it is a parent value"
+        if !$options{is_parent_value} && !$self->column->can_child && $self->record->parent_id;
+}
+
 has record => (
     is       => 'ro',
     weak_ref => 1,

@@ -29,8 +29,8 @@ extends 'GADS::Datum';
 
 with 'GADS::Role::Presentation::Datum::Person';
 
-sub set_value
-{   my ($self, $value, %options) = @_;
+after set_value => sub {
+    my ($self, $value, %options) = @_;
     ($value) = @$value if ref $value eq 'ARRAY';
     my $new_id;
     my $clone = $self->clone;
@@ -88,7 +88,7 @@ sub set_value
     $self->oldvalue($clone);
     $self->id($new_id);
     $self->_set_written_to(0) if $self->value_next_page;
-}
+};
 
 has schema => (
     is       => 'rw',

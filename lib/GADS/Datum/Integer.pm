@@ -24,8 +24,8 @@ use namespace::clean;
 
 extends 'GADS::Datum';
 
-sub set_value
-{   my ($self, $value) = @_;
+after set_value => sub {
+    my ($self, $value) = @_;
     $self->oldvalue($self->clone);
     ($value) = @$value if ref $value eq 'ARRAY';
     $value = undef if defined $value && !$value && $value !~ /^0+$/; # Can be empty string, generating warnings
@@ -52,7 +52,7 @@ sub set_value
         || (defined $self->value && defined $value && $self->value != $value);
     $self->value($value) if defined $value || $self->init_no_value;
     $self->_set_written_to(0) if $self->value_next_page;
-}
+};
 
 has value => (
     is      => 'rw',

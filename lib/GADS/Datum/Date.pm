@@ -37,8 +37,8 @@ has schema => (
 );
 
 # Set datum value with value from user
-sub set_value
-{   my ($self, $value, %options) = @_;
+after set_value => sub {
+    my ($self, $value, %options) = @_;
     $self->oldvalue($self->clone);
     ($value) = @$value if ref $value eq 'ARRAY';
     my $newvalue = $self->_to_dt($value, source => 'user', %options);
@@ -47,7 +47,7 @@ sub set_value
     $self->changed(1) if $old != $new;
     $self->value($newvalue);
     $self->_set_written_to(0) if $self->value_next_page;
-}
+};
 
 has value => (
     is      => 'rw',

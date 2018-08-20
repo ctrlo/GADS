@@ -28,13 +28,10 @@ use namespace::clean;
 
 extends 'GADS::Datum';
 
-has set_value => (
-    is      => 'rw',
-    trigger => sub {
-        my $self = shift;
-        $self->_set_has_value(1);
-    },
-);
+after 'set_value' => sub {
+    my $self = shift;
+    $self->_set_has_value(1);
+};
 
 has value => (
     is      => 'lazy',

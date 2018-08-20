@@ -27,8 +27,8 @@ extends 'GADS::Datum';
 
 with 'GADS::Role::Presentation::Datum::String';
 
-sub set_value
-{   my ($self, $value) = @_;
+after set_value => sub {
+    my ($self, $value) = @_;
     $value = [$value] if ref $value ne 'ARRAY'; # Allow legacy single values as scalar
     $value ||= [];
     my @values = grep {defined $_} @$value; # Take a copy first
@@ -60,7 +60,7 @@ sub set_value
     }
     $self->oldvalue($clone);
     $self->_set_written_to(0) if $self->value_next_page;
-}
+};
 
 has values => (
     is        => 'rwp',

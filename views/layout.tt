@@ -101,6 +101,11 @@
             <input type="checkbox" name="remember" [% IF column.remember %]checked[% END %]>Remember last value for new entry
         </label>
     </div>
+   <div class="checkbox stored-value">
+        <label>
+            <input type="checkbox" name="can_child" [% IF column.can_child %]checked[% END %]>This field forms a value in child records
+        </label>
+    </div>
     <div class="checkbox stored-value">
         <label>
             <input type="checkbox" name="isunique" [% IF column.isunique %]checked[% END %]>The values for this field must be unique

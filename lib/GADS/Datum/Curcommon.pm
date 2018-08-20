@@ -27,8 +27,8 @@ extends 'GADS::Datum';
 
 with 'GADS::Role::Presentation::Datum::Curcommon';
 
-sub set_value
-{   my ($self, $value) = @_;
+after set_value => sub {
+    my ($self, $value) = @_;
     my $clone = $self->clone; # Copy before changing text
     my @values = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
     $self->column->validate($_, fatal => 1) foreach @values;
@@ -50,7 +50,7 @@ sub set_value
     }
     $self->oldvalue($clone);
     $self->_set_written_to(0) if $self->value_next_page;
-}
+};
 
 # Hash with various values built from init_value. Used to populate
 # specific value properties

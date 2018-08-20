@@ -1751,7 +1751,7 @@ any '/layout/?:id?' => require_login sub {
             $column->set_permissions(\%permissions);
 
             $column->$_(param $_)
-                foreach (qw/name name_short description helptext optional isunique multivalue remember link_parent_id topic_id/);
+                foreach (qw/name name_short description helptext optional isunique can_child multivalue remember link_parent_id topic_id/);
             $column->type(param 'type')
                 unless param('id'); # Can't change type as it would require DBIC resultsets to be removed and re-added
             $column->$_(param $_)
@@ -2505,8 +2505,6 @@ any '/edit/:id?' => require_login sub {
         }
     }
 
-    my $child = param 'child';
-
     # XXX Move into user class
     my ($lastrecord) = rset('UserLastrecord')->search({
         instance_id => $layout->instance_id,
@@ -2519,6 +2517,8 @@ any '/edit/:id?' => require_login sub {
         $layout = $record->layout; # May have changed if record from other datasheet
     }
 
+    my $child = param('child') || $record->parent_id;
+
     my $modal = param('modal') && int param('modal');
 
     my $params = {
@@ -2527,9 +2527,9 @@ any '/edit/:id?' => require_login sub {
         page   => 'edit'
     };
 
-    my @columns_to_show = $id || $child # show all cols for new child, to allow inc/exc of field
-        ? $layout->all(sort_by_topics => 1, user_can_readwrite_existing => 1)
-        : $layout->all(sort_by_topics => 1, user_can_write_new => 1);
+    my @columns_to_show = $id
+        ? $layout->all(sort_by_topics => 1, user_can_readwrite_existing => 1, can_child => $child)
+        : $layout->all(sort_by_topics => 1, user_can_write_new => 1, can_child => $child);
 
     $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids
         if $modal;
@@ -2561,8 +2561,6 @@ any '/edit/:id?' => require_login sub {
             if $child && !$id && !$layout->user_can('create_child');
         $record->parent_id($child);
 
-        my %child_inc = map { $_ => 1 } (ref(param 'child_inc') ? @{param 'child_inc'} : (param('child_inc') || ()));
-
         # We actually only need the write columns for this. The read-only
         # columns can be ignored, but if we do write them, an error will be
         # thrown to the user if they've been changed. This is better than
@@ -2578,16 +2576,6 @@ any '/edit/:id?' => require_login sub {
                 unless (upload "file".$col->id)
                 {
                     my $datum = $record->fields->{$col->id};
-                    if ($child)
-                    {
-                        if ($child_inc{$col->id} && !$datum->child_unique
-                            || !$child_inc{$col->id} && $datum->child_unique
-                        ) {
-                            error __"You do not have permission to change the fields of the child record"
-                                unless $layout->user_can('create_child');
-                        }
-                        $datum->child_unique($child_inc{$col->id});
-                    }
                     $failed = !process( sub { $record->fields->{$col->id}->set_value($newv) } ) || $failed;
                 }
             }
@@ -2611,7 +2599,7 @@ any '/edit/:id?' => require_login sub {
             return forwardHome(
                 { success => 'Draft has been saved successfully'}, 'data' );
         }
-        elsif ($record->has_not_done)
+        elsif ($record->has_not_done && 0) # Forward/back to be removed in forthcoming commit
         {
             if (!$failed && process( sub { $record->write(dry_run => 1) } ))
             {
@@ -2657,10 +2645,8 @@ any '/edit/:id?' => require_login sub {
         ? $record->parent_id
         : undef;
 
-    notice __"Please tick the fields that will have their own values for this child record "
-        ."(at least one must be ticked). Any fields that are not ticked will inherit their "
-        ."value from the parent. Values of the parent record are shown, which will be used "
-        ."unless the box is ticked and a different value entered."
+    notice __"Values entered on this page will have their own value in the child "
+            ."record. All other values will be inherited from the parent."
             if $child_rec;
 
     my $breadcrumbs = [Crumb($layout->name), Crumb( "/data" => 'records' )];

@@ -27,8 +27,8 @@ extends 'GADS::Datum';
 
 with 'GADS::Role::Presentation::Datum::File';
 
-sub set_value
-{   my ($self, $value) = @_;
+after set_value => sub {
+    my ($self, $value) = @_;
     my $clone = $self->clone; # Copy before changing text
     my $new_id;
     # If an array, $value will either be blank string (no file submitted, empty hidden value),
@@ -68,7 +68,7 @@ sub set_value
     $self->oldvalue($clone);
     $self->id($new_id) if defined $new_id || $self->init_no_value;
     $self->_set_written_to(0) if $self->value_next_page;
-}
+};
 
 has id => (
     is      => 'rw',

@@ -73,6 +73,18 @@ has is_deleted => (
     default => 0,
 );
 
+# Whether to exclude children from the results
+has include_children => (
+    is  => 'lazy',
+    isa => Bool,
+);
+
+sub _build_include_children
+{   my $self = shift;
+    return if grep { $_->can_child } @{$self->columns_retrieved_no};
+    return 0;
+}
+
 # Whether to show only draft records or only live records
 has is_draft => (
     is      => 'ro',
@@ -363,6 +375,10 @@ sub search_query
     }
     else {
         push @search, { "$current.deleted" => undef };
+    }
+    if (!$self->include_children)
+    {
+        push @search, { "$current.parent_id" => undef };
     }
     unless ($self->is_draft)
     {

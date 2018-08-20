@@ -24,8 +24,8 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Datum';
 
-sub set_value
-{   my ($self, $value) = @_;
+after set_value => sub {
+    my ($self, $value) = @_;
     my $clone = $self->clone; # Copy before changing text
     my @values = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
     my @old    = sort ref $self->id eq 'ARRAY' ? @{$self->id} : $self->id ? $self->id : ();
@@ -46,7 +46,7 @@ sub set_value
     $self->oldvalue($clone);
     $self->id($self->column->multivalue ? \@values : $values[0]);
     $self->_set_written_to(0) if $self->value_next_page;
-}
+};
 
 has id => (
     is      => 'rw',

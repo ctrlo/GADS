@@ -283,6 +283,38 @@ has isunique => (
     coerce  => sub { $_[0] ? 1 : 0 },
 );
 
+has set_can_child => (
+    is        => 'rw',
+    isa       => Bool,
+    predicate => 1,
+    trigger   => sub { shift->clear_can_child },
+);
+
+has can_child => (
+    is      => 'lazy',
+    isa     => Bool,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    clearer => 1,
+);
+
+sub _build_can_child
+{   my $self = shift;
+    if (!$self->userinput)
+    {
+        # Code values always have their own child values if the record is a
+        # child, so that we build based on the true values of the child record.
+        # Therefore return true if this is a code value which depends on a
+        # child column
+        return 1 if $self->schema->resultset('LayoutDepend')->search({
+            layout_id => $self->id,
+            'depend_on.can_child' => 1,
+        },{
+            join => 'depend_on',
+        })->next;
+    }
+    return $self->set_can_child;
+}
+
 has filter => (
     is      => 'rw',
     lazy    => 1,
@@ -642,6 +674,7 @@ sub build_values
     $self->optional($original->{optional});
     $self->remember($original->{remember});
     $self->isunique($original->{isunique});
+    $self->set_can_child($original->{can_child});
     $self->multivalue($original->{multivalue} ? 1 : 0) if $self->can_multivalue;
     $self->position($original->{position});
     $self->helptext($original->{helptext});
@@ -891,6 +924,7 @@ sub write
     $newitem->{optional}      = $self->optional;
     $newitem->{remember}      = $self->remember;
     $newitem->{isunique}      = $self->isunique;
+    $newitem->{can_child}     = $self->set_can_child if $self->has_set_can_child;
     $newitem->{filter}        = $self->filter->as_json;
     $newitem->{multivalue}    = $self->multivalue if $self->can_multivalue;
     $newitem->{description}   = $self->description;
@@ -1176,6 +1210,7 @@ sub import_hash
     $self->optional($values->{optional});
     $self->remember($values->{remember});
     $self->isunique($values->{isunique});
+    $self->can_child($values->{can_child});
     $self->position($values->{position});
     $self->description($values->{description});
     $self->helptext($values->{helptext});
@@ -1205,6 +1240,7 @@ sub export_hash
         optional      => $self->optional,
         remember      => $self->remember,
         isunique      => $self->isunique,
+        can_child     => $self->can_child,
         position      => $self->position,
         description   => $self->description,
         helptext      => $self->helptext,

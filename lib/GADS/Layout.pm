@@ -559,6 +559,7 @@ sub clear
     $self->_clear_rset;
     $self->clear_default_view_limit_extra;
     $self->clear_default_view_limit_extra_id;
+    $self->clear_has_children;
 }
 
 # The dump from the database of all the information needed to build the layout.
@@ -622,6 +623,7 @@ sub _build_columns
             return_type              => $internal->{return_type},
             internal                 => 1,
             userinput                => 0,
+            can_child                => 1,
             hidden                   => $internal->{hidden} || 0,
             user_permission_override => $self->user_permission_override,
             schema                   => $self->schema,
@@ -639,6 +641,17 @@ has has_globe => (
 sub _build_has_globe
 {   my $self = shift;
     !! grep { $_->return_type eq "globe" } $self->all;
+}
+
+has has_children => (
+    is      => 'lazy',
+    isa     => Bool,
+    clearer => 1,
+);
+
+sub _build_has_children
+{   my $self = shift;
+    !! grep { $_->can_child } $self->all;
 }
 
 has has_topics => (
@@ -692,6 +705,7 @@ sub all
     @columns = grep { !$_->internal } @columns unless $options{include_internal};
     @columns = grep { $_->internal } @columns if $options{only_internal};
     @columns = grep { $_->isunique } @columns if $options{only_unique};
+    @columns = grep { $_->can_child } @columns if $options{can_child};
     @columns = grep { $_->link_parent } @columns if $options{linked};
     @columns = grep { $_->type eq $type } @columns if $type;
     @columns = grep { $_->remember == $options{remember} } @columns if defined $options{remember};
