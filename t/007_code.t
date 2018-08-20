@@ -555,4 +555,48 @@ restore_time();
     is($rset->search({ record_id => 2 })->count, 2, "Correct database values after switch");
 }
 
+# More "changed" tests
+{
+    my $sheet   = t::lib::DataSheet->new;
+    $sheet->create_records;
+    my $schema  = $sheet->schema;
+    my $layout  = $sheet->layout;
+    my $columns = $sheet->columns;
+
+    my $daterange1_id = $columns->{daterange1}->id;
+    my $calc1_id      = $columns->{calc1}->id;
+    my $rag1_id       = $columns->{rag1}->id;
+
+    my $record = GADS::Record->new(
+        user   => $sheet->user,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->initialise;
+
+    $record->fields->{$daterange1_id}->set_value(['2011-10-10','2015-10-10']);
+    $record->write(no_alerts => 1);
+    my $record_id = $record->current_id;
+    is($record->fields->{$calc1_id}->as_string, '2011', "Calc initially correct");
+    is($record->fields->{$rag1_id}->as_string, 'b_red', "Rag initially correct");
+
+    $record->clear;
+    $record->find_current_id($record_id);
+    ok(!$record->fields->{$calc1_id}->changed, "Calc not changed on load");
+    ok(!$record->fields->{$rag1_id}->changed, "Rag not changed on load");
+    $record->fields->{$daterange1_id}->set_value(['2011-09-10','2015-10-10']);
+    $record->write(no_alerts => 1);
+    ok(!$record->fields->{$calc1_id}->changed, "Calc not changed on suitable write");
+    ok(!$record->fields->{$rag1_id}->changed, "Rag not changed on suitable write");
+
+    $record->clear;
+    $record->find_current_id($record_id);
+    $record->fields->{$daterange1_id}->set_value(['2013-09-10','2015-10-10']);
+    $record->write(no_alerts => 1);
+    ok($record->fields->{$calc1_id}->changed, "Calc changed on suitable write");
+    ok($record->fields->{$rag1_id}->changed, "Rag changed on suitable write");
+
+
+}
+
 done_testing();

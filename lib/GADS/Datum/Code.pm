@@ -125,7 +125,6 @@ sub write_cache
             {
                 my %blank = %{$self->column->blank_row};
                 $row->update({ %blank, $vfield => $value });
-                $self->changed(1);
             }
         }
         else {
@@ -134,13 +133,11 @@ sub write_cache
                 layout_id => $self->column->{id},
                 $vfield   => $value,
             });
-            $self->changed(1);
         }
     }
     while (my $row = $rs->next)
     {
         $row->delete;
-        $self->changed(1);
     }
     $guard->commit;
     return \@values;

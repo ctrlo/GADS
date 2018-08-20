@@ -120,7 +120,7 @@ sub equal
 {   my ($self, $a, $b) = @_;
     # values can be multiple in ::Code but will only be single for RAG
     ($a) = @$a if ref $a eq 'ARRAY';
-    ($b) = @$b if ref $a eq 'ARRAY';
+    ($b) = @$b if ref $b eq 'ARRAY';
     (defined $a xor defined $b)
         and return;
     !defined $a && !defined $b and return 1;
