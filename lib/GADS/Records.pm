@@ -81,7 +81,7 @@ has include_children => (
 
 sub _build_include_children
 {   my $self = shift;
-    return if grep { $_->can_child } @{$self->columns_retrieved_no};
+    return 1 if grep { $_->can_child } @{$self->columns_retrieved_no};
     return 0;
 }
 
