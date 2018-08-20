@@ -1168,7 +1168,8 @@ sub write
             or next; # Will not be set for child records
 
         # Check for blank value
-        if (!$self->parent_id
+        if (
+            (!$self->parent_id || $column->can_child)
             && !$self->linked_id
             && !$column->optional
             && $datum->blank
