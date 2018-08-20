@@ -433,37 +433,17 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid/)
         schema   => $schema,
     );
     $record_new->initialise;
-    is( scalar @{$layout->column($curval_filter->id)->filtered_values}, 0, "Correct number of values for curval field with filter" );
-    if ($test eq 'invalid')
-    {
-        # Will be ready already - no proper dependent values
-        ok( $record_new->fields->{$curval_filter->id}->ready_to_write, "Curval field $field with invalid record filter already ready to write" );
-        ok( $record_new->fields->{$curval_filter->id}->show_for_write, "Curval field $field with invalid record filter is shown for write" );
-    }
-    else {
-        ok( !$record_new->fields->{$curval_filter->id}->ready_to_write, "Curval field $field with record filter not yet ready to write, test $test" );
-        ok( !$record_new->fields->{$curval_filter->id}->show_for_write, "Curval field $field with record filter not yet shown for write, test $test" );
-    }
-    my $ready = $field eq 'calc1' ? 0 : 1;
-    my $shown = $field eq 'calc1' || $field eq 'string1' ? 0 : 1;
-    $shown = 1 if $record_new->fields->{$curval_filter->id}->show_for_write;
-    is( $record_new->fields->{$columns->{$field}->id}->ready_to_write, $ready, "Field $field is ready to write, test $test" );
-    is( $record_new->fields->{$columns->{$field}->id}->show_for_write, $shown, "Field $field is shown for write, test $test" );
-    ok( !$record_new->fields->{$columns->{$field}->id}->written_to, "Field $field is written to, test $test" );
-    # Write the required value and then check that it is now ready
-    # Use the values from previous retrieved record - we know these are valid
-    foreach my $f (qw/enum1 string1 tree1/)
-    {
-        my $col_id = $columns->{$f}->id;
-        my $values = $f eq 'string1' ? $record->fields->{$col_id}->values : $record->fields->{$col_id}->ids;
-        $record_new->fields->{$col_id}->set_value($values);
-    }
-    ok( $record_new->fields->{$columns->{$field}->id}->written_to, "Field $field is written to, test $test" );
-    $record_new->show_for_write_clear;
-    ok( $record_new->fields->{$curval_filter->id}->ready_to_write, "Curval field $field with record filter is now ready to write, test $test" );
-    ok( $record_new->fields->{$curval_filter->id}->show_for_write, "Curval field $field with record filter is now shown for write, test $test" );
-    ok( $record_new->fields->{$columns->{$field}->id}->ready_to_write, "Field $field is still ready to write, test $test" );
-    ok( !$record_new->fields->{$columns->{$field}->id}->show_for_write, "Field $field is not shown for write, test $test" );
+    $count = $test eq 'multi'
+        ? 1
+        : $test eq 'negative'
+        ? 2
+        : $match && $field eq 'enum1'
+        ? 1
+        : $match
+        ? 0
+        : 0;
+    is( scalar @{$layout->column($curval_filter->id)->filtered_values}, $count, "Correct number of values for curval field with filter" );
+
     $curval_filter->delete;
 }
 

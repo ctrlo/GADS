@@ -46,7 +46,6 @@ after set_value => sub {
     my $new = $newvalue ? $newvalue->epoch : 0;
     $self->changed(1) if $old != $new;
     $self->value($newvalue);
-    $self->_set_written_to(0) if $self->value_next_page;
 };
 
 has value => (

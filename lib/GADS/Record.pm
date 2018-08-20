@@ -590,7 +590,6 @@ sub clear
     $self->clear_created;
     $self->clear_is_historic;
     $self->clear_new_entry;
-    $self->clear_editor_shown_fields;
 }
 
 sub _find
@@ -741,9 +740,6 @@ sub clone_as_new_from
 {   my ($self, $from) = @_;
     $self->find_current_id($from);
     $self->remove_id;
-    my @next_field_ids = map { $_->id } grep { !$self->fields->{$_->id}->show_for_write }
-        $self->layout->all(user_can_write_new => 1);
-    $self->editor_next_fields([@next_field_ids]);
     $self;
 }
 
@@ -978,119 +974,6 @@ sub write_linked_id
     $guard->commit;
 }
 
-sub show_for_write_clear
-{   my $self = shift;
-    $self->fields->{$_}->clear_show_for_write
-        foreach keys %{$self->fields};
-}
-
-# Move to the previous set of values on the edit page. This saves the ones on
-# the current page as "next page" values
-sub move_back
-{   my $self = shift;
-    foreach my $col ($self->layout->all)
-    {
-        if ($self->fields->{$col->id}->value_current_page)
-        {
-            $self->fields->{$col->id}->_set_written_to(0);
-            $self->fields->{$col->id}->value_next_page(1);
-        }
-        elsif ($self->fields->{$col->id}->value_previous_page)
-        {
-            $self->fields->{$col->id}->value_previous_page(0);
-            $self->fields->{$col->id}->_set_written_to(0);
-        }
-        $self->fields->{$col->id}->value_current_page(0); # Reset, ready for next write
-    }
-}
-
-# Move onto the next edit page - submissions all complete for current page
-sub move_forward
-{   my $self = shift;
-    foreach my $col ($self->layout->all)
-    {
-        $self->fields->{$col->id}->value_previous_page(1)
-            if $self->fields->{$col->id}->written_to;
-        $self->fields->{$col->id}->value_next_page(0)
-            if $self->fields->{$col->id}->ready_to_write;
-        $self->fields->{$col->id}->value_current_page(0); # Reset, ready for next write
-    }
-}
-
-# Reset the current values to make them shown on the edit page again (e.g
-# if there has been an input error)
-sub move_nowhere
-{   my $self = shift;
-    foreach my $col ($self->layout->all)
-    {
-        $self->fields->{$col->id}->_set_written_to(0)
-            if $self->fields->{$col->id}->value_current_page;
-    }
-}
-
-has editor_previous_fields => (
-    is      => 'rw',
-    isa     => ArrayRef,
-    trigger => sub {
-        my ($self, $fields) = @_;
-        $self->fields->{$_}->value_previous_page(1)
-            foreach @$fields;
-    },
-);
-
-has editor_next_fields => (
-    is      => 'rw',
-    isa     => ArrayRef,
-    trigger => sub {
-        my ($self, $fields) = @_;
-        $self->fields->{$_}->value_next_page(1)
-            foreach @$fields;
-    },
-);
-
-has editor_shown_fields => (
-    is        => 'rw',
-    isa       => ArrayRef,
-    clearer   => 1,
-    predicate => 1,
-    trigger   => sub {
-        my ($self, $fields) = @_;
-        $self->fields->{$_->id}->value_current_page(0)
-            foreach $self->layout->all;
-        # Prevent exception if page submits fields that don't exist
-        $self->fields->{$_} && $self->fields->{$_}->value_current_page(1)
-            foreach @$fields;
-    },
-);
-
-# Whether the record has a previous set of values that have already been written. Used
-# to work out whether to display a "back" button on the record
-sub has_previous_values
-{   my $self = shift;
-    !!grep {
-        $self->fields->{$_->id}->value_previous_page
-    } $self->columns_to_show_write;
-}
-
-# Whether record has more values to be written after we have displayed these. Used
-# to work out wherther to display "save" or "next"
-sub has_next_values
-{   my $self = shift;
-    !!grep {
-        !$self->fields->{$_->id}->written_to && !$self->fields->{$_->id}->show_for_write
-    } $self->columns_to_show_write;
-}
-
-sub has_not_done
-{   my $self = shift;
-    !!grep {
-        # Still needs to be done if:
-           !$self->fields->{$_->id}->written_to # It's not been written to at all
-           # or, it's been written to, but only as a remembered "next" value
-        || !($self->fields->{$_->id}->written_to && !$self->fields->{$_->id}->value_next_page)
-    } $self->columns_to_show_write;
-}
-
 sub columns_to_show_write
 {   my $self = shift;
     $self->new_entry
@@ -1182,32 +1065,26 @@ sub write
             # display condition
             if (!$datum->dependent_not_shown)
             {
-                # Check whether we are in a multiple page write and if the value has been shown.
-                # We first test for editor_shown_fields having been set, as it will be on a normal
-                # page write, and then also check as it would be for a standard write.
-                if ($self->has_editor_shown_fields ? $datum->value_current_page : $datum->ready_to_write)
+                if (my $topic = $column->topic && $column->topic->prevent_edit_topic)
                 {
-                    if (my $topic = $column->topic && $column->topic->prevent_edit_topic)
+                    # This setting means that we can write this missing
+                    # value, but we will be unable to write another topic
+                    # later
+                    $no_write_topics{$topic->id} ||= {
+                        topic   => $topic,
+                        columns => [],
+                    };
+                    push @{$no_write_topics{$topic->id}->{columns}}, $column;
+                }
+                else {
+                    # Only warn if it was previously blank, otherwise it might
+                    # be a read-only field for this user
+                    if (!$self->new_entry && !$datum->changed)
                     {
-                        # This setting means that we can write this missing
-                        # value, but we will be unable to write another topic
-                        # later
-                        $no_write_topics{$topic->id} ||= {
-                            topic   => $topic,
-                            columns => [],
-                        };
-                        push @{$no_write_topics{$topic->id}->{columns}}, $column;
+                        mistake __x"'{col}' is no longer optional, but was previously blank for this record.", col => $column->{name};
                     }
                     else {
-                        # Only warn if it was previously blank, otherwise it might
-                        # be a read-only field for this user
-                        if (!$self->new_entry && !$datum->changed)
-                        {
-                            mistake __x"'{col}' is no longer optional, but was previously blank for this record.", col => $column->name;
-                        }
-                        else {
-                            error __x"'{col}' is not optional. Please enter a value.", col => $column->name;
-                        }
+                        error __x"'{col}' is not optional. Please enter a value.", col => $column->name;
                     }
                 }
             }
@@ -1704,11 +1581,9 @@ sub set_blank_dependents
     {
         if (my $display_field = $column->display_field)
         {
-            my $parent_datum = $self->fields->{$display_field};
-            my $written_to   = $parent_datum->written_to;
             my $datum = $self->fields->{$column->id};
             $datum->set_value('')
-                if $written_to && $datum->dependent_not_shown;
+                if $datum->dependent_not_shown;
         }
     }
 }

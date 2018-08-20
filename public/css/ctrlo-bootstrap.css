@@ -1905,6 +1905,9 @@ small.search_term {
   padding: .5em;
   position: relative; }
 
+.select-widget .available .spinner {
+  padding: 10px; }
+
 .select-widget.multi .available .answer li {
   padding-top: .2em;
   padding-bottom: .2em; }

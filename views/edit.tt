@@ -467,12 +467,6 @@
     [% field = 'field' _ dispcol.id %]
     [% colid = dispcol.id %]
 
-    [%# Skip if field has a filter (which will alter its values) and the dependent values have not yet been completed %]
-
-    [%# When bulk updating, just show all fields %]
-
-    <input type="hidden" name="shown_fields" value="[% colid %]">
-
     [%# Skip field if it's an approval request but a value not needing approval %]
     [% NEXT IF page == "approval" AND NOT (record.fields.$colid.has_value)  %]
 
@@ -751,7 +745,7 @@
 [% END %]
 
 [% BLOCK singlevalue_column %]
-    <div class="select-widget single">
+    <div class="select-widget single" data-field="[% field %]" data-filter-endpoint="[% field == "field9" ? "/api/courses" : "" %]" data-filter-fields='[% field == "field9" ? '["field2", "field4", "field3"]' : "" %]'>
         <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="select-widget-dropdown">
             <div class="form-group form-control" >
@@ -779,6 +773,9 @@
                         <span hidden class="form-control-search__clear">&times;</span>
                     </li>
                 [% END %]
+                <li class="spinner" hidden>
+                    <i class="fa fa-spinner fa-spin" style="font-size:24px"></i>
+                </li>
                 <li class="answer answer--blank">
                     <span class="control">
                         [% checked = !editvalue.id %]

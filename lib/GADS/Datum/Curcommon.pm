@@ -49,7 +49,6 @@ after set_value => sub {
         $self->clear_blank;
     }
     $self->oldvalue($clone);
-    $self->_set_written_to(0) if $self->value_next_page;
 };
 
 # Hash with various values built from init_value. Used to populate
@@ -98,20 +97,6 @@ sub _build_blank
 {   my $self = shift;
     @{$self->ids} ? 0 : 1;
 }
-
-around 'ready_to_write' => sub {
-    my $orig = shift;
-    my $self = shift;
-    # If the master sub returns 0, return that here
-    my $initial = $orig->($self, @_);
-    return 0 if !$initial;
-    # Otherwise continue tests
-    foreach my $col (@{$self->column->filter->columns_in_subs($self->column->layout)})
-    {
-        return 0 if !$self->record->fields->{$col->id}->written_to;
-    }
-    return 1;
-};
 
 has text => (
     is        => 'rwp',

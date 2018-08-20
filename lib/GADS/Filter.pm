@@ -233,8 +233,6 @@ sub _sub_filter_single
             return 1; # Not a failure, just no match
         }
         my $datum = $record->fields->{$col->id};
-        $datum->written_to
-            or return 0; # Failure: record not ready yet
         # First check for multivalue. If it is, we replace the singular rule
         # in this hash with a rule for each value and OR them all together
         if ($col->type eq 'curval')

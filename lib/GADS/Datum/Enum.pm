@@ -46,7 +46,6 @@ after set_value => sub {
     $self->changed($changed);
     $self->oldvalue($clone);
     $self->id($self->column->multivalue ? \@values : $values[0]);
-    $self->_set_written_to(0) if $self->value_next_page;
 };
 
 has text => (

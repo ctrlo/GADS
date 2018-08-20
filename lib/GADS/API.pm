@@ -34,8 +34,8 @@ fatal_handler sub {
     return unless $dsl->app->request && $dsl->app->request->uri =~ m!^/api/!;
     status $reason eq 'PANIC' ? 'Internal Server Error' : 'Bad Request';
     $dsl->send_as(JSON => {
-        error             => 1,
-        error_description => $msg->toString },
+        error   => 1,
+        message => $msg->toString },
     { content_type => 'application/json; charset=UTF-8' });
 };
 
@@ -67,7 +67,7 @@ my $store_access_token_sub = sub {
         my $prev_at = schema->resultset('Oauthtoken')->access_token($prev_rt->related_token);
         $prev_at->delete;
     }
- 
+
     # if the client has en existing refresh token we need to revoke it
     schema->resultset('Oauthtoken')->search({
         type           => 'refresh',
@@ -86,7 +86,7 @@ my $store_access_token_sub = sub {
         oauthclient_id => $args{client_id},
         user_id        => $args{user_id},
     });
- 
+
     schema->resultset('Oauthtoken')->create({
         type           => 'refresh',
         token          => $refresh_token,
@@ -100,11 +100,11 @@ my $verify_access_token_sub = sub {
     my %args = @_;
 
     my $access_token = $args{access_token};
- 
+
     my $rt = schema->resultset('Oauthtoken')->refresh_token($access_token);
     return $rt
         if $args{is_refresh_token} && $rt;
- 
+
     if (my $at = schema->resultset('Oauthtoken')->access_token($access_token))
     {
         if ( $at->expires <= time ) {
@@ -115,7 +115,7 @@ my $verify_access_token_sub = sub {
             return $at;
         }
     }
- 
+
     return (0, 'invalid_grant');
 };
 
@@ -123,7 +123,7 @@ my $Grant = Net::OAuth2::AuthorizationServer::PasswordGrant->new(
     verify_user_password_cb => $verify_user_password_sub,
     store_access_token_cb   => $store_access_token_sub,
     verify_access_token_cb  => $verify_access_token_sub,
-);  
+);
 
 hook before => sub {
     my ($client, $error) = $Grant->verify_token_and_scope(
@@ -364,6 +364,47 @@ post '/api/token' => sub {
     content_type 'application/json;charset=UTF-8';
 
     return encode_json $json_response;
+};
+
+get '/api/courses' => sub { # XXX End-point to change for any field
+
+    my $user   = logged_in_user;
+    my $layout = var 'layout';
+
+    my $curval = $layout->column(9); # XXX From params
+
+    my @cols = @{$curval->filter->columns_in_subs($layout)};
+
+    my $record = GADS::Record->new(
+        user   => $user,
+        layout => $layout,
+        schema => schema,
+    );
+    $record->initialise;
+
+    my @missing;
+    foreach my $col (@cols)
+    {
+        my @vals = query_parameters->get_all($col->field);
+        push @missing, $col if !"@vals" && !$col->optional;
+        my $datum = $record->fields->{$col->id};
+        process( sub { $datum->set_value(\@vals) } );
+    }
+
+    if (@missing)
+    {
+        my $msg = "The following fields need to be completed first: "
+            .join ', ', map { $_->name } @missing;
+
+        return encode_json { error => 1, message => $msg };
+    }
+
+    return encode_json {
+        "error"  => 0,
+        "records"=> [
+            map { +{ id => $_->{id}, label => $_->{value} } } @{$curval->filtered_values}
+        ]
+    };
 };
 
 1;

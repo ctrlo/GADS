@@ -149,7 +149,7 @@ hook before => sub {
     # This subroutine checks for missing ones and adds them.
     GADS::DB->update(schema);
 
-    my $user = request->uri =~ m!^/api/!
+    my $user = request->uri =~ m!^/api/! && request->uri !~ /courses/ # Temporary for development
         ? var('api_user')
         : logged_in_user;
 
@@ -2363,8 +2363,6 @@ any '/bulk/:type/?' => require_login sub {
 
     if (param 'submit')
     {
-        $record->editor_shown_fields([body_parameters->get_all('shown_fields')]);
-
         # See which ones to update
         my $failed_initial; my @updated;
         foreach my $col (@columns_to_show)
@@ -2539,9 +2537,6 @@ any '/edit/:id?' => require_login sub {
 
     if (param('submit') || param('draft'))
     {
-        $record->editor_previous_fields([body_parameters->get_all('previous_fields')]);
-        $record->editor_next_fields([body_parameters->get_all('next_fields')]);
-        $record->editor_shown_fields([body_parameters->get_all('shown_fields')]);
         my $params = params;
         my $uploads = request->uploads;
         foreach my $key (keys %$uploads)
@@ -2588,39 +2583,18 @@ any '/edit/:id?' => require_login sub {
         }
 
         # Call this now, to write and blank out any non-displayed values,
-        # before testing has_not_done
         $record->set_blank_dependents;
 
-        if (param('submit') eq 'back')
-        {
-            $record->move_back;
-        }
-        elsif (param('draft') && $record->write(draft => 1))
+        if (param('draft') && $record->write(draft => 1))
         {
             return forwardHome(
                 { success => 'Draft has been saved successfully'}, 'data' );
-        }
-        elsif ($record->has_not_done && 0) # Forward/back to be removed in forthcoming commit
-        {
-            if (!$failed && process( sub { $record->write(dry_run => 1) } ))
-            {
-                # Everything submitted is okay, continue to next stage
-                $record->move_forward;
-            }
-            else {
-                # Something wasn't correct, keep field display same as submitted
-                $record->move_nowhere;
-            }
         }
         elsif (!$failed && process( sub { $record->write }))
         {
             my $forward = !$id && $layout->forward_record_after_create ? 'record/'.$record->current_id : 'data';
             return forwardHome(
                 { success => 'Submission has been completed successfully for record ID '.$record->current_id }, $forward );
-        }
-        else {
-            # Something wasn't correct, keep field display same as submitted
-            $record->move_nowhere;
         }
     }
     elsif($id) {
