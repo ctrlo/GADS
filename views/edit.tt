@@ -250,7 +250,6 @@
                 var curval_text = text_values.join(', ') + ' ';
                 curval_text = $('<div />').text(curval_text).html();
                 if (current_id) {
-                    alert(curval_text);
                     var hidden = $('#curval-current-id-' + current_id).val(form_data);
                     hidden.prevAll('.curval-inner-text').text(curval_text);
                 }
