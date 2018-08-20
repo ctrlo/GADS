@@ -2537,7 +2537,7 @@ any '/edit/:id?' => require_login sub {
 
     $record->initialise unless $id;
 
-    if (param('submit') || param('draft'))
+    if (param('submit') || param('draft') || $modal)
     {
         my $params = params;
         my $uploads = request->uploads;
@@ -2566,8 +2566,16 @@ any '/edit/:id?' => require_login sub {
         my @display_on_fields;
         foreach my $col (@columns_to_show)
         {
-            next unless defined body_parameters->get($col->field);
-            my $newv = [body_parameters->get_all($col->field)];
+            my $newv;
+            if ($modal)
+            {
+                next unless defined query_parameters->get($col->field);
+                $newv = [query_parameters->get_all($col->field)];
+            }
+            else {
+                next unless defined body_parameters->get($col->field);
+                $newv = [body_parameters->get_all($col->field)];
+            }
             if ($col->userinput && defined $newv) # Not calculated fields
             {
                 # No need to do anything if the file's just been uploaded
@@ -2587,7 +2595,11 @@ any '/edit/:id?' => require_login sub {
         # Call this now, to write and blank out any non-displayed values,
         $record->set_blank_dependents;
 
-        if (param('draft') && $record->write(draft => 1))
+        if ($modal)
+        {
+            # Do nothing, just a live edit, no write required
+        }
+        elsif (param('draft') && $record->write(draft => 1))
         {
             return forwardHome(
                 { success => 'Draft has been saved successfully'}, 'data' );
