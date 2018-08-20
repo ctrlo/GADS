@@ -445,6 +445,7 @@ get '/data_timeline/:time' => require_login sub {
         search               => session('search'),
         rewind               => session('rewind'),
         interpolate_children => 0,
+        view_limit_extra_id  => current_view_limit_extra_id($user, $layout),
     );
 
     header "Cache-Control" => "max-age=0, must-revalidate, private";

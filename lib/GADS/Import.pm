@@ -185,7 +185,7 @@ sub _reset_csv
 }
 
 sub process
-{   my $self = shift;
+{   my ($self, %options) = @_;
     error __"skip_existing_unique and update_unique are mutually exclusive"
         if $self->update_unique && $self->skip_existing_unique;
     $self->layout->user_permission_override(1);
@@ -199,7 +199,7 @@ sub process
     # We need to fork for the actual import, as it could take very long.
     # The import process writes the status to the database so that the
     # user can see the progress.
-    if ($ENV{GADS_NO_FORK})
+    if ($ENV{GADS_NO_FORK} || $options{no_fork})
     {
         # Used in tests when we don't want to fork
         $self->_import_rows;

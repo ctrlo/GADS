@@ -138,6 +138,9 @@
                         horizontal: -1
                     }
                 },
+                moment: function (date) {
+                    return vis.moment(date).utc();
+                },
                 onMove:   on_move,
                 snap:     snap_to_day,
                 template: template,
