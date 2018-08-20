@@ -109,7 +109,7 @@ sub write_cache
     # write. If it is, delete and start again
     my $rs = $self->schema->resultset($tablec)->search({
         record_id => $self->record_id,
-        layout_id => $self->column->{id},
+        layout_id => $self->column->id,
     }, {
         order_by => "me.$vfield",
     });
