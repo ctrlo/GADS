@@ -366,14 +366,15 @@ post '/api/token' => sub {
     return encode_json $json_response;
 };
 
-get '/api/courses' => sub { # XXX End-point to change for any field
+get '/api/field/values/:id' => sub {
 
     my $user   = logged_in_user;
     my $layout = var 'layout';
+    my $col_id = route_parameters->get('id');
 
-    my $curval = $layout->column(9); # XXX From params
+    my $curval = $layout->column($col_id);
 
-    my @cols = @{$curval->filter->columns_in_subs($layout)};
+    my @cols = @{$curval->filter->columns_in_subs};
 
     my $record = GADS::Record->new(
         user   => $user,

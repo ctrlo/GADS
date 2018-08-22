@@ -187,8 +187,15 @@ sub _filter_tables
 }
 
 # The IDs of the columns that will be subbed into the filter
-sub columns_in_subs
-{   my ($self, $layout) = @_;
+has columns_in_subs => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_columns_in_subs
+{   my $self = shift;
+    my $layout = $self->layout
+        or panic "layout has not been set in filter";
     my @filters = grep { $_ } map { $_->{value} && $_->{value} =~ /^\$([_0-9a-z]+)$/i && $1 } @{$self->filters};
     [ grep { $_ } map { $layout->column_by_name_short($_) } @filters ];
 }
@@ -197,7 +204,10 @@ sub columns_in_subs
 sub sub_values
 {   my ($self, $layout) = @_;
     my $filter = $self->as_hash;
-    if (!$layout->record && @{$self->columns_in_subs($layout)})
+    # columns_in_subs needs to be built now, otherwise it won't return the
+    # correct result once the values have been subbed in below
+    my $columns_in_subs = $self->columns_in_subs;
+    if (!$layout->record && @$columns_in_subs)
     {
         # If we don't have a record (e.g. from typeahead search) and there
         # are known shortnames in the filter, then don't apply the filter

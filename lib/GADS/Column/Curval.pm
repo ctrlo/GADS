@@ -88,6 +88,38 @@ has '+filter' => (
     },
 );
 
+after clear => sub {
+    my $self = shift;
+    $self->clear_has_subvals;
+    $self->clear_subval_fields;
+};
+
+# Whether this field has subbed in values from other parts of the record in its
+# filter
+has has_subvals => (
+    is      => 'lazy',
+    isa     => Bool,
+    clearer => 1,
+);
+
+sub _build_has_subvals
+{   my $self = shift;
+    !! @{$self->filter->columns_in_subs};
+}
+
+# The string/array that will be used in the edit page to specify the array of
+# fields in a curval filter
+has data_filter_fields => (
+    is      => 'lazy',
+    isa     => Str,
+    clearer => 1,
+);
+
+sub _build_data_filter_fields
+{   my $self = shift;
+    '[' . (join ', ', map { '"'.$_->field.'"' } @{$self->filter->columns_in_subs}) . ']';
+}
+
 sub _build_refers_to_instance_id
 {   my $self = shift;
     my ($random) = $self->schema->resultset('CurvalField')->search({
