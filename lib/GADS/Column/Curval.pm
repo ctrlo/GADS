@@ -107,6 +107,28 @@ sub _build_has_subvals
     !! @{$self->filter->columns_in_subs};
 }
 
+# The fields that we need input by the user for this filtered set of values
+has subvals_input_required => (
+    is => 'lazy',
+);
+
+sub _build_subvals_input_required
+{   my $self = shift;
+    my @cols = @{$self->filter->columns_in_subs};
+    foreach my $col (@cols)
+    {
+        push @cols, $self->layout->column($_)
+            foreach @{$col->depends_on};
+    }
+    # Calc values do not need written to by user
+    @cols = grep { $_->userinput } @cols;
+    # Remove duplicates
+    my %needed;
+    $needed{$_->id} = $_ foreach @cols;
+    @cols = values %needed;
+    return \@cols;
+}
+
 # The string/array that will be used in the edit page to specify the array of
 # fields in a curval filter
 has data_filter_fields => (
@@ -117,7 +139,7 @@ has data_filter_fields => (
 
 sub _build_data_filter_fields
 {   my $self = shift;
-    '[' . (join ', ', map { '"'.$_->field.'"' } @{$self->filter->columns_in_subs}) . ']';
+    '[' . (join ', ', map { '"'.$_->field.'"' } @{$self->subvals_input_required}) . ']';
 }
 
 sub _build_refers_to_instance_id

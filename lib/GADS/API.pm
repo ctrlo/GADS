@@ -374,8 +374,6 @@ get '/api/field/values/:id' => sub {
 
     my $curval = $layout->column($col_id);
 
-    my @cols = @{$curval->filter->columns_in_subs};
-
     my $record = GADS::Record->new(
         user   => $user,
         layout => $layout,
@@ -384,7 +382,7 @@ get '/api/field/values/:id' => sub {
     $record->initialise;
 
     my @missing;
-    foreach my $col (@cols)
+    foreach my $col (@{$curval->subvals_input_required})
     {
         my @vals = query_parameters->get_all($col->field);
         push @missing, $col if !"@vals" && !$col->optional;
