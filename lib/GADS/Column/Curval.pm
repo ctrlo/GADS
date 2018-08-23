@@ -35,6 +35,7 @@ has value_selector => (
     is      => 'rw',
     isa     => sub { $_[0] =~ /^(typeahead|dropdown|noshow)$/ or panic "Invalid value_selector: $_[0]" },
     lazy    => 1,
+    coerce => sub { $_[0] || 'dropdown' },
     builder => sub {
         my $self = shift;
         my $default = $self->_rset && $self->_rset->typeahead ? 'typeahead' : 'dropdown';
