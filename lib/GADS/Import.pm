@@ -195,6 +195,10 @@ sub process
     # We now need to close the fh and reset CSV. If we don't do this, we
     # end up with duplicated lines being read once the process forks.
     $self->_reset_csv;
+    # Reopen the file, otherwise as it's a tmp file it will be deleted as soon
+    # as the parent process exits (before the child has had a chance to open
+    # it)
+    my $fh = $self->fh;
 
     # We need to fork for the actual import, as it could take very long.
     # The import process writes the status to the database so that the
