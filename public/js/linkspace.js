@@ -120,7 +120,7 @@ var SelectWidget = function (multi) {
 
         var detailsButton = '<span class="details">' +
             '<button type="button" class="more-info" data-record-id="' + value + '" aria-describedby="' + valueId + '_label">' +
-                'Detais' +
+                'Details' +
             '</button>' +
         '</span>';
 
