@@ -92,7 +92,8 @@ has '+filter' => (
 after clear => sub {
     my $self = shift;
     $self->clear_has_subvals;
-    $self->clear_subval_fields;
+    $self->clear_subvals_input_required;
+    $self->clear_data_filter_fields;
 };
 
 # Whether this field has subbed in values from other parts of the record in its
@@ -110,7 +111,8 @@ sub _build_has_subvals
 
 # The fields that we need input by the user for this filtered set of values
 has subvals_input_required => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_subvals_input_required
