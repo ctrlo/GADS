@@ -101,16 +101,50 @@ var SelectWidget = function (multi) {
         });
     };
 
+    var currentLi = function(multi, field, value, label, checked) {
+        if (multi && !value) {
+            return $('<li class="none-selected">blank</li>');
+        }
+
+        var valueId = value ? field + "_" + value : field + "__blank";
+        return $('<li ' + (checked ? '' : 'hidden') + ' data-list-item="' + valueId + '" class="current">' + label + '</li>');
+    }
+
+    var availableLi = function(multi, field, value, label, checked) {
+        if (multi && !value) {
+            return null;
+        }
+
+        var valueId = value ? field + "_" + value : field + "__blank";
+        var classNames = value ? "answer" : "answer answer--blank";
+
+        var detailsButton = '<span class="details">' +
+            '<button type="button" class="more-info" data-record-id="' + value + '" aria-describedby="' + valueId + '_label">' +
+                'Detais' +
+            '</button>' +
+        '</span>';
+
+        return $('<li class="' + classNames + '">' +
+            '<span class="control">' +
+                '<label id="' + valueId + '_label" for="' + valueId + '">' +
+                    '<input id="' + valueId + '" type="' + (multi ? "checkbox" : "radio") + '" name="' + field + '" ' + (checked ? 'checked' : '') + ' value="' + value + '" class="' + (multi ? "" : "visually-hidden") + '">' +
+                    '<span>' + label + '</span>' +
+                '</label>' +
+            '</span>' +
+            (value ? detailsButton : '') +
+        '</li>');
+    }
+
     var fetchOptions = function() {
         var field = $selectWidget.data("field");
+        var multi = $selectWidget.hasClass("multi");
         var filterEndpoint = $selectWidget.data("filter-endpoint");
         var filterFields = $selectWidget.data("filter-fields");
         if (!Array.isArray(filterFields)) {
             console.error("Invalid data-filter-fields found. It should be a proper JSON array of fields.");
         }
 
-        var currentValue = parseInt($available.find("input:checked").val());
-        console.warn("currentValue", currentValue);
+        var currentValues = $available.find("input:checked").map(function() { return parseInt($(this).val()); }).get();
 
         // Collect values of linked fields
         var values = [];
@@ -140,6 +174,7 @@ var SelectWidget = function (multi) {
         if (lastFetchParams === fetchParams) {
             return;
         }
+        lastFetchParams = null;
 
         $available.find(".answer").remove();
         $available.find(".spinner").removeAttr('hidden');
@@ -148,54 +183,20 @@ var SelectWidget = function (multi) {
             $current.empty();
 
             if (data.error === 0) {
+                var checked = currentValues.includes(NaN);
+                $current.append(currentLi(multi, field, null, "blank", checked));
+                $available.append(availableLi(multi, field, null, 'blank', checked));
+
                 $.each(data.records, function(recordIndex, record) {
-                    var checked = record.id === currentValue;
-                    console.warn("vs", record.id, currentValue);
-                    var valueId = field + "_" + record.id;
-
-                    // Setup 'current' list
-                    var currentEl = document.createElement("li");
-                    if (!checked) {
-                        currentEl.setAttribute("hidden", "hidden");
-                    }
-                    currentEl.setAttribute("data-list-item", valueId);
-                    currentEl.innerText = record.label;
-                    $current.append(currentEl);
-
-                    // Setup hidden radio button list
-                    var answerInputEl = document.createElement("input");
-                    answerInputEl.setAttribute("id", valueId);
-                    answerInputEl.setAttribute("type", "radio");
-                    answerInputEl.setAttribute("name", field);
-                    if (checked) {
-                        answerInputEl.setAttribute("checked", "checked");
-                    }
-                    answerInputEl.setAttribute("value", record.id);
-                    answerInputEl.setAttribute("class", "visually-hidden");
-                    var answerSpanEl = document.createElement("span");
-                    answerSpanEl.innerHTML = record.label;
-
-                    var answerLabelEl = document.createElement("label");
-                    answerLabelEl.setAttribute("id", valueId + "_label");
-                    answerLabelEl.setAttribute("for", valueId);
-                    answerLabelEl.appendChild(answerInputEl);
-                    answerLabelEl.appendChild(answerSpanEl);
-
-                    var answerSpanControEl = document.createElement("span");
-                    answerSpanControEl.setAttribute("class", "control");
-                    answerSpanControEl.appendChild(answerLabelEl);
-
-                    var answerLiEl = document.createElement("li");
-                    answerLiEl.setAttribute("class", "answer");
-                    answerLiEl.appendChild(answerSpanControEl);
-
-                    $available.append(answerLiEl);
-
+                    var checked = currentValues.includes(record.id);
+                    $current.append(currentLi(multi, field, record.id, record.label, checked));
+                    $available.append(availableLi(multi, field, record.id, record.label, checked));
                 });
 
                 $currentItems = $current.children();
                 $available = $selectWidget.find('.available');
                 $availableItems = $selectWidget.find('.available .answer input');
+                updateState();
                 connect();
 
                 lastFetchParams = fetchParams;
