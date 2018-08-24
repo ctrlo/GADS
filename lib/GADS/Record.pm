@@ -298,7 +298,9 @@ has changed => (
 
 has current_id => (
     is      => 'rw',
+    isa     => Maybe[Int],
     lazy    => 1,
+    coerce  => sub { defined $_[0] ? int $_[0] : undef }, # Ensure integer for JSON encoding
     clearer => 1,
     builder => sub {
         my $self = shift;
