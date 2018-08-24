@@ -832,7 +832,7 @@
                     data-instance-id="[% dispcol.refers_to_instance_id %]" data-layout-id="[% dispcol.id %]" style='cursor:pointer'
                     >edit</a>
                 | <a class="curval_remove" style='cursor:pointer'>remove</a>)
-                <input type="hidden" id="curval-current-id-[% val.id %]" name="[% field %]" value="[% val.id %]">
+                <input type="hidden" id="curval-current-id-[% val.id %]" name="[% field %]" value="[% val.as_query OR val.id %]">
             </li>
         [% END %]
     </ul>

@@ -231,7 +231,6 @@ sub validate
 {   my ($self, $value, %options) = @_;
     return 1 if !$value;
     my $fatal = $options{fatal};
-    return 1 if $self->show_add;
     if ($value !~ /^[0-9]+$/)
     {
         return 0 if !$fatal;
