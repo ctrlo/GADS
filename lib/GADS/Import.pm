@@ -221,7 +221,15 @@ sub process
                 # Despite the guard, we still operate in a try block, so as to catch
                 # the messages from any exceptions and report them accordingly
                 try { $self->_import_rows } hide => 'ALL'; # This takes a long time
-                $@->reportAll(is_fatal => 0);
+                # Because we are forked, any messages caught here do not
+                # actually go anywhere for the user to see (and do not appear
+                # to go to syslogger either because we are inside another try
+                # block). Therefore, record fatal errors to the status in the
+                # database.
+                $self->_import_status_rs->update->update({
+                    result => $@->wasFatal->message,
+                    completed => DateTime->now,
+                }) if $@;
             }
         }
     }
@@ -308,6 +316,19 @@ sub _build_fields
     \@fields;
 }
 
+has _import_status_rs => (
+    is => 'lazy',
+);
+
+sub _build__import_status_rs
+{   my $self = shift;
+    $self->schema->resultset('Import')->create({
+        user_id => $self->user_id,
+        type    => 'data',
+        started => DateTime->now,
+    });
+}
+
 sub _import_rows
 {   my $self = shift;
 
@@ -328,11 +349,7 @@ sub _import_rows
     # Used to retrieve all columns when searching unique field
     my @all_column_ids = map { $_->id } $self->layout->all;
 
-    my $import = $self->schema->resultset('Import')->create({
-        user_id => $self->user_id,
-        type    => 'data',
-        started => DateTime->now,
-    });
+    my $import = $self->_import_status_rs;
 
     $self->csv->getline($self->fh); # Slurp off the header row
 

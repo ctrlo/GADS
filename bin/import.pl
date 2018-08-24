@@ -230,6 +230,7 @@ foreach my $ins (readdir $root)
 foreach (@all_columns)
 {
     my $col = $_->{column};
+    report NOTICE => __x"Final update of column {name}", name => $col->name;
     $col->import_after_all($_->{values}, $column_mapping);
     # Now add to the DBIx schema
     $col->write(no_cache_update => 1, add_db => 1, update_dependents => 1);

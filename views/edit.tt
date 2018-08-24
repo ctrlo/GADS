@@ -617,7 +617,7 @@
         <div class="row">
             <div class="[% IF dispcol.multivalue AND dispcol.has_multivalue_plus %]col-md-10[% ELSE %]col-md-12[% END %]">
                 [% IF dispcol.type == "enum" %]
-                    [% PROCESS enum_column %]
+                    [% PROCESS enum_column column = dispcol %]
                 [% ELSIF dispcol.type == "curval" %]
                     [% PROCESS curval_column column = dispcol %]
                 [% ELSIF dispcol.type == "tree" %]
@@ -747,7 +747,13 @@
 [% END %]
 
 [% BLOCK singlevalue_column %]
-    <div class="select-widget single" data-field="[% field %]" data-filter-endpoint="[% field == "field9" ? "/api/courses" : "" %]" data-filter-fields='[% field == "field9" ? '["field2", "field4", "field3"]' : "" %]'>
+    <div class="select-widget single"
+        [% IF column.has_subvals %]
+            data-field="[% field %]"
+            data-filter-endpoint="[% "/api/field/values/" _ column.id %]"
+            data-filter-fields='[% column.data_filter_fields %]'
+        [% END %]
+        >
         <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="select-widget-dropdown">
             <div class="form-group form-control" >
@@ -863,7 +869,13 @@
 %]
 
 [% BLOCK multivalue_column %]
-    <div class="select-widget multi">
+    <div class="select-widget multi"
+        [% IF column.has_subvals %]
+            data-field="[% field %]"
+            data-filter-endpoint="[% "/api/field/values/" _ column.id %]"
+            data-filter-fields='[% column.data_filter_fields %]'
+        [% END %]
+        >
         <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="select-widget-dropdown">
             <div class="form-group form-control" >

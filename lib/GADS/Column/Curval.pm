@@ -35,6 +35,7 @@ has value_selector => (
     is      => 'rw',
     isa     => sub { $_[0] =~ /^(typeahead|dropdown|noshow)$/ or panic "Invalid value_selector: $_[0]" },
     lazy    => 1,
+    coerce => sub { $_[0] || 'dropdown' },
     builder => sub {
         my $self = shift;
         my $default = $self->_rset && $self->_rset->typeahead ? 'typeahead' : 'dropdown';
@@ -87,6 +88,60 @@ has '+filter' => (
         )
     },
 );
+
+after clear => sub {
+    my $self = shift;
+    $self->clear_has_subvals;
+    $self->clear_subval_fields;
+};
+
+# Whether this field has subbed in values from other parts of the record in its
+# filter
+has has_subvals => (
+    is      => 'lazy',
+    isa     => Bool,
+    clearer => 1,
+);
+
+sub _build_has_subvals
+{   my $self = shift;
+    !! @{$self->filter->columns_in_subs};
+}
+
+# The fields that we need input by the user for this filtered set of values
+has subvals_input_required => (
+    is => 'lazy',
+);
+
+sub _build_subvals_input_required
+{   my $self = shift;
+    my @cols = @{$self->filter->columns_in_subs};
+    foreach my $col (@cols)
+    {
+        push @cols, $self->layout->column($_)
+            foreach @{$col->depends_on};
+    }
+    # Calc values do not need written to by user
+    @cols = grep { $_->userinput } @cols;
+    # Remove duplicates
+    my %needed;
+    $needed{$_->id} = $_ foreach @cols;
+    @cols = values %needed;
+    return \@cols;
+}
+
+# The string/array that will be used in the edit page to specify the array of
+# fields in a curval filter
+has data_filter_fields => (
+    is      => 'lazy',
+    isa     => Str,
+    clearer => 1,
+);
+
+sub _build_data_filter_fields
+{   my $self = shift;
+    '[' . (join ', ', map { '"'.$_->field.'"' } @{$self->subvals_input_required}) . ']';
+}
 
 sub _build_refers_to_instance_id
 {   my $self = shift;

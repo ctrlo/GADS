@@ -149,7 +149,7 @@ hook before => sub {
     # This subroutine checks for missing ones and adds them.
     GADS::DB->update(schema);
 
-    my $user = request->uri =~ m!^/api/! && request->uri !~ /courses/ # Temporary for development
+    my $user = request->uri =~ m!^/api/! && var('api_user') # Some API calls will be AJAX from standard logged-in user
         ? var('api_user')
         : logged_in_user;
 
