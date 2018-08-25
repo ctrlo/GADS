@@ -1399,6 +1399,13 @@ small.search_term {
     margin-bottom: 4em;
 }
 
+.edit-form--validating {
+    .spinner {
+        display: block;
+        font-style: italic;
+    }
+}
+
 .input_holder .datepicker {
     padding-left: 1em;
 }
