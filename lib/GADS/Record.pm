@@ -908,8 +908,11 @@ sub values_by_shortname
 {   my ($self, @names) = @_;
     +{
         map {
-            my $col = $self->layout->column_by_name_short($_);
+            my $col = $self->layout->column_by_name_short($_)
+                or error __x"Short name {name} does not exist", name => $_;
             my $linked = $self->linked_id && $col->link_parent;
+            my $datum = $self->fields->{$col->id}
+                or panic __x"Value for column {name} missing. Possibly missing entry in layout_depend?", name => $col->name;
             my $d = $self->fields->{$col->id}->is_awaiting_approval # waiting approval, use old value
                 ? $self->fields->{$col->id}->oldvalue
                 : $linked && $self->fields->{$col->id}->oldvalue # linked, and linked value has been overwritten
