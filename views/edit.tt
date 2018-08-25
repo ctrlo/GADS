@@ -219,10 +219,25 @@
                 var layout_id = $(e.target).data('layout-id');
                 var instance_id = $(e.target).data('instance-id');
                 var current_id = $(e.target).data('current-id') || '';
-                var form_data = $(e.target).closest('.curval_item').find("input[name=field" + layout_id + "]").val();
+                var hidden = $(e.target).closest('.curval_item').find("input[name=field" + layout_id + "]");
+                var form_data = hidden.val();
+                var mode = hidden.length ? "edit" : "add";
+                var guid;
+
+                if (mode === "edit") {
+                    guid = hidden.data('guid');
+                    if (!guid) {
+                        guid = window.guid();
+                        hidden.attr('data-guid', guid);
+                    }
+                }
+
                 var m = $("#curval_modal");
                 m.find('.modal-body').text('Loading...');
                 m.find('.modal-body').load('/edit/' + current_id + '?modal=' + layout_id + '&oi=' + instance_id + '&' + form_data, function() {
+                    if (mode === "edit") {
+                        m.find("form").data('guid', guid);
+                    }
                     Linkspace.init(m);
                 });
                 m.on("focus", ".datepicker", function(e) {
@@ -239,6 +254,7 @@
                 var col_id = form.data( "curval-id" );
                 var instance_id = form.data( "instance-id" );
                 var current_id = form.data( "current-id" );
+                var guid = form.data("guid");
                 var hidden_input = $('<input>').attr({type: 'hidden', name: 'field' + col_id, value: form_data});
 
                 var text_values = modal_field_ids.map(function(element) {
@@ -249,8 +265,8 @@
 
                 var curval_text = text_values.join(', ') + ' ';
                 curval_text = $('<div />').text(curval_text).html();
-                if (current_id) {
-                    var hidden = $('#curval-current-id-' + current_id).val(form_data);
+                if (guid) {
+                    var hidden = $('input[data-guid="' + guid + '"]').val(form_data);
                     hidden.prevAll('.curval-inner-text').text(curval_text);
                 }
                 else {
