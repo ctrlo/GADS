@@ -267,13 +267,13 @@
                 curval_text = $('<div />').text(curval_text).html();
                 if (guid) {
                     var hidden = $('input[data-guid="' + guid + '"]').val(form_data);
-                    hidden.prevAll('.curval-inner-text').text(curval_text);
+                    hidden.closest('.curval_item').find('.curval-inner-text').text(curval_text);
                 }
                 else {
-                    var links = $('<span>(<a href="#" class="curval-modal" data-layout-id="' + col_id + '" data-instance-id="' + instance_id + '">edit</a> | <a href="#" class="curval_remove">remove</a>)</span>');
-                    var ct = $('<span class="curval-inner-text">').append(curval_text);
-                    $('#curval_list_' + col_id).append($('<li class="curval_item">')
-                        .append(ct).append(links).append(hidden_input));
+                    var links = $('<td><a href="#" class="curval-modal" data-layout-id="' + col_id + '" data-instance-id="' + instance_id + '">edit</a> | <a href="#" class="curval_remove">remove</a></td>');
+                    var ct = $('<td class="curval-inner-text">').append(curval_text);
+                    $('#curval_list_' + col_id).find("tbody").append($('<tr class="curval_item">')
+                        .append(ct).append(links.append(hidden_input)));
                 }
                 $('.modal.in').modal('hide');
             });
@@ -834,24 +834,34 @@
 [% END %]
 
 [% BLOCK curval_add_button %]
-    <p><a class="curval-modal"
-        data-instance-id="[% dispcol.refers_to_instance_id %]" data-layout-id="[% dispcol.id %]" style='cursor:pointer'>Add...
-    </a></p>
+    <p><buton class="btn btn-primary curval-modal" type="button"
+        data-instance-id="[% dispcol.refers_to_instance_id %]" data-layout-id="[% dispcol.id %]">Add...
+    </button></p>
 [% END %]
 
 [% BLOCK curval_noshow %]
-    <ul id="curval_list_[% dispcol.id %]" class="curval_group">
-        [% FOREACH val IN editvalue.for_edit %]
-            <li class="curval_item">
-                <span class="curval-inner-text">[% val.value | html %]</span> (<a class="curval-modal"
-                    data-current-id="[% val.id %]"
-                    data-instance-id="[% dispcol.refers_to_instance_id %]" data-layout-id="[% dispcol.id %]" style='cursor:pointer'
-                    >edit</a>
-                | <a class="curval_remove" style='cursor:pointer'>remove</a>)
-                <input type="hidden" id="curval-current-id-[% val.id %]" name="[% field %]" value="[% val.as_query OR val.id %]">
-            </li>
-        [% END %]
-    </ul>
+    <table class="data-table table table-striped curval_group" id="curval_list_[% dispcol.id %]">
+        <colgroup>
+            <col style="width: 80%;">
+            <col style="width: 20%;">
+        </colgroup>
+        <tbody>
+            [% FOREACH val IN editvalue.for_edit %]
+                <tr class="curval_item">
+                    <td class="curval-inner-text">[% val.value | html %]</td>
+                    <td>
+                        <input type="hidden" id="curval-current-id-[% val.id %]" name="[% field %]" value="[% val.as_query OR val.id %]">
+                        <a class="curval-modal"
+                            data-current-id="[% val.id %]"
+                            data-instance-id="[% dispcol.refers_to_instance_id %]" data-layout-id="[% dispcol.id %]" style='cursor:pointer'
+                            >edit</a>
+                        |
+                        <a class="curval_remove" style='cursor:pointer'>remove</a>
+                    </td>
+                </tr>
+            [% END %]
+        </tbody>
+    </table>
 [% END %]
 
 [%
@@ -863,10 +873,6 @@
             values = column.all_values;
         ELSE;
             values = column.filtered_values;
-        END;
-
-        IF column.show_add;
-            PROCESS curval_add_button;
         END;
 
         IF column.value_selector == "typeahead";
@@ -881,6 +887,11 @@
             %] <input type="hidden" name="[% field %]"> [%
             PROCESS singlevalue_column;
         END;
+
+        IF column.show_add;
+            PROCESS curval_add_button;
+        END;
+
     END;
 %]
 
