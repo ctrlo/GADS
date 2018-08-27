@@ -92,7 +92,7 @@
     </div>
 [% END %]
 
-<form class="edit-form" method="post" enctype="multipart/form-data" action="/..."
+<form class="edit-form" method="post" enctype="multipart/form-data" action="/edit/"
     [% IF modal %]
         data-curval-id="[% modal %]"
         data-current-id="[% record.current_id %]"
@@ -260,7 +260,7 @@
                 form.addClass('edit-form--validating');
                 form.find(".alert").attr('hidden', '');
 
-                $.post(form.attr("action"), form_data, function(data) {
+                $.post(form.attr("action") + "?validate&oi=" + form.data('instance-id'), form_data, function(data) {
                     if (data.error === 0) {
                         curvalModalValidationSucceeded(form);
                     } else {
