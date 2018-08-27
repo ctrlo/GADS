@@ -641,6 +641,12 @@ var setupClickToEdit = function(context) {
     });
 }
 
+var setupSubmitListener = function(context) {
+    $('.edit-form', context).on('submit', function(e) {
+        $(this).find('button[type=submit]').prop('disabled', true);
+    });
+}
+
 // Used to hide and then display blank fields when viewing a record
 var setupClickToViewBlank = function() {
     $('.click-to-view-blank').on('click', function() {
@@ -662,6 +668,7 @@ var Linkspace = {
         setupSelectWidgets(context);
         setupDisplayConditions(context);
         runPageSpecificCode(context);
+        setupSubmitListener(context);
     },
 
     debug: function (msg) {
