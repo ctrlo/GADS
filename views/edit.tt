@@ -199,6 +199,7 @@
                 var parent = $(this).parents('.input_holder');
                 var cloned = parent.clone();
                 cloned.removeAttr('id').insertAfter(parent);
+                cloned.find(":text").val('');
                 cloned.find(".datepicker").datepicker({format: "[% config.dateformat_datepicker %]", autoclose: true});
             });
             $('.removeme').click(function() {
