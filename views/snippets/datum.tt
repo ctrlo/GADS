@@ -28,7 +28,7 @@
             [% IF full_content  AND file.mimetype.match('^image/') %]
                 <img class="autosize" src="/file/[% file.id %]">
             [% ELSE %]
-                [% file.name %]
+                [% file.value | html %]
             [% END %]
         </a>
     [% END %]

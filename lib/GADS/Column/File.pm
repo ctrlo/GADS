@@ -49,7 +49,7 @@ after build_values => sub {
 
 sub _build_retrieve_fields
 {   my $self = shift;
-    [qw/name mimetype/];
+    [qw/name mimetype id/];
 }
 
 sub write_special
