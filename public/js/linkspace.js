@@ -159,9 +159,6 @@ var SelectWidget = function (multi) {
             $("input[name=" + field + "]").each(function(_, input) {
                 var $input = $(input);
                 switch($input.attr("type")) {
-                    case "hidden": // Tree values stored as hidden field
-                        values.push(field + "=" + $input.val());
-                        break;
                     case "text":
                         values.push(field + "=" + $input.val());
                         break;
@@ -174,6 +171,9 @@ var SelectWidget = function (multi) {
                         if (input.checked) {
                             values.push(field + "=" + $input.val());
                         }
+                        break;
+                    case "hidden": // Tree values stored as hidden field
+                        values.push(field + "=" + $input.val());
                         break;
                };
             });

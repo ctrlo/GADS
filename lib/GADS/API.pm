@@ -384,7 +384,7 @@ get '/api/field/values/:id' => sub {
     my @missing;
     foreach my $col (@{$curval->subvals_input_required})
     {
-        my @vals = query_parameters->get_all($col->field);
+        my @vals = grep { $_ } query_parameters->get_all($col->field);
         push @missing, $col if !"@vals" && !$col->optional;
         my $datum = $record->fields->{$col->id};
         process( sub { $datum->set_value(\@vals) } );
