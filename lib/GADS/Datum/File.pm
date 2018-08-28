@@ -93,7 +93,9 @@ has value_hash => (
     builder => sub {
         my $self = shift;
         $self->has_init_value or return;
-        my $value = $self->init_value->[0]->{value};
+        my $value = exists $self->init_value->[0]->{value}
+            ? $self->init_value->[0]->{value}
+            : $self->init_value->[0];
         my $id = $value->{id};
         $self->has_id(1) if defined $id || $self->init_no_value;
         +{
