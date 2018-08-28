@@ -92,7 +92,7 @@
     </div>
 [% END %]
 
-<form class="edit-form" method="post" enctype="multipart/form-data" action="/edit/"
+<form class="edit-form" method="post" enctype="multipart/form-data" action="/edit/[% record.current_id %]"
     [% IF modal %]
         data-curval-id="[% modal %]"
         data-current-id="[% record.current_id %]"
