@@ -301,7 +301,7 @@
                     hidden.closest('.curval_item').find('.curval-inner-text').text(curval_text);
                 }
                 else {
-                    var links = $('<td><a href="#" class="curval-modal" data-layout-id="' + col_id + '" data-instance-id="' + instance_id + '">edit</a> | <a href="#" class="curval_remove">remove</a></td>');
+                    var links = $('<td><a class="curval-modal" style='cursor:pointer' data-layout-id="' + col_id + '" data-instance-id="' + instance_id + '">edit</a> | <a class="curval_remove" style='cursor:pointer'>remove</a></td>');
                     var ct = $('<td class="curval-inner-text">').append(curval_text);
                     $('#curval_list_' + col_id).find("tbody").append($('<tr class="curval_item">')
                         .append(ct).append(links.append(hidden_input)));
