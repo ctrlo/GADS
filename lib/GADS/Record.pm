@@ -1523,7 +1523,7 @@ sub write
             $record->find_current_id($cid);
             $record->fields->{$_}->changed(1)
                 foreach @{$update_autocurs{$cid}};
-            $record->write(update_only => 1, re_evaluate => 1);
+            $record->write(%options, update_only => 1, re_evaluate => 1);
         }
     }
 
