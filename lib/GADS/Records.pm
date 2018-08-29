@@ -1703,9 +1703,10 @@ sub data_timeline
 
     my @groups = map {
         {
-            id      => $timeline->groups->{$_},
-            content => encode_entities($_),
-            order => $_,
+            id        => $timeline->groups->{$_},
+            content   => encode_entities($_),
+            order     => $_,
+            style     => 'font-weight: bold',
         }
     } keys %{$timeline->groups};
 
