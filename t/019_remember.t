@@ -45,7 +45,6 @@ foreach my $c (keys %$data)
 {
     my $col = $columns->{$c};
     my $datum = $record->fields->{$col->id};
-    ok($datum->show_for_write);
     my $expected = $expected->{$col->name} || $data->{$col->name};
     is($datum->as_string, $expected);
 }
