@@ -311,6 +311,7 @@
 
             var curvalModalValidationFailed = function(form, errorMessage) {
                 form.find(".alert").text(errorMessage).removeAttr('hidden');
+                form.parents(".modal-content").get(0).scrollIntoView();
             };
 
             $(".curval_group").on('click', '.curval_remove', function() {
