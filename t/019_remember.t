@@ -49,4 +49,16 @@ foreach my $c (keys %$data)
     is($datum->as_string, $expected);
 }
 
+# Check that trying to load a deleted record returns blank
+$record = GADS::Record->new(
+    user     => $sheet->user,
+    layout   => $sheet->layout,
+    schema   => $sheet->schema,
+);
+$record->find_current_id($sheet->user->user_lastrecords->next->record->current_id);
+$record->delete_current;
+$record->clear;
+$record->initialise;
+$record->load_remembered_values;
+
 done_testing();

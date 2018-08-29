@@ -765,8 +765,13 @@ sub load_remembered_values
         or return;
 
     my $lastrecord = $self->schema->resultset('UserLastrecord')->search({
-        instance_id => $self->layout->instance_id,
-        user_id     => $self->user->id,
+        'me.instance_id'  => $self->layout->instance_id,
+        user_id           => $self->user->id,
+        'current.deleted' => undef,
+    },{
+        join => {
+            record => 'current',
+        },
     })->next
         or return;
 
