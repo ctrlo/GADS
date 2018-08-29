@@ -42,7 +42,6 @@ use Log::Report 'linkspace';
 use JSON qw(encode_json);
 use POSIX ();
 use Scope::Guard qw(guard);
-use CGI::Deurl::XS 'parse_query_string';
 
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
@@ -298,7 +297,9 @@ has changed => (
 
 has current_id => (
     is      => 'rw',
+    isa     => Maybe[Int],
     lazy    => 1,
+    coerce  => sub { defined $_[0] ? int $_[0] : undef }, # Ensure integer for JSON encoding
     clearer => 1,
     builder => sub {
         my $self = shift;
@@ -346,6 +347,9 @@ has deletedby => (
     clearer => 1,
     builder => sub {
         my $self = shift;
+        # Don't try and build if we are a new entry. By the time this is called,
+        # the current ID may have been removed from the database due to a rollback
+        return if $self->new_entry;
         if (!$self->record)
         {
             $self->record_id or return;
@@ -402,9 +406,12 @@ has deleted => (
 
 sub _build_deleted
 {   my $self = shift;
+    # Don't try and build if we are a new entry. By the time this is called,
+    # the current ID may have been removed from the database due to a rollback
+    return if $self->new_entry;
     if (!$self->record)
     {
-        $self->record_id or return;
+        $self->current_id or return;
         return $self->schema->resultset('Record')->find($self->record_id)->deleted;
     }
     $self->set_deleted or return undef;
@@ -901,8 +908,11 @@ sub values_by_shortname
 {   my ($self, @names) = @_;
     +{
         map {
-            my $col = $self->layout->column_by_name_short($_);
+            my $col = $self->layout->column_by_name_short($_)
+                or error __x"Short name {name} does not exist", name => $_;
             my $linked = $self->linked_id && $col->link_parent;
+            my $datum = $self->fields->{$col->id}
+                or panic __x"Value for column {name} missing. Possibly missing entry in layout_depend?", name => $col->name;
             my $d = $self->fields->{$col->id}->is_awaiting_approval # waiting approval, use old value
                 ? $self->fields->{$col->id}->oldvalue
                 : $linked && $self->fields->{$col->id}->oldvalue # linked, and linked value has been overwritten
@@ -1626,39 +1636,19 @@ sub _field_write
             }
             elsif ($column->type =~ /(file|enum|tree|person|curval)/)
             {
-                if (!@{$datum_write->ids})
+                if ($column->type eq 'curval')
                 {
-                    $entry->{value} = undef;
-                    push @entries, $entry; # No values, but still need to write null value
+                    foreach my $record (@{$datum_write->values_as_query_records})
+                    {
+                        $record->write(%options);
+                        my $id = $record->current_id;
+                        my %entry = %$entry; # Copy to stop referenced id being overwritten
+                        $entry{value} = $id;
+                        push @entries, \%entry;
+                    }
                 }
                 foreach my $id (@{$datum_write->ids})
                 {
-                    if ($column->type eq 'curval' && $column->show_add && $id =~ /field/) # Create related record
-                    {
-                        my $params = parse_query_string($id);
-                        my $record = GADS::Record->new(
-                            user     => $self->user,
-                            layout   => $column->layout_parent,
-                            schema   => $self->schema,
-                            base_url => $self->base_url,
-                        );
-                        if (my $current_id = $params->{current_id})
-                        {
-                            $record->find_current_id($current_id);
-                        }
-                        else {
-                            $record->initialise;
-                        }
-                        foreach my $col ($column->layout_parent->all(user_can_write_new => 1))
-                        {
-                            my $newv = $params->{$col->field};
-                            $record->fields->{$col->id}->set_value($newv)
-                                if defined $params->{$col->field} && $col->userinput && defined $newv;
-                        }
-                        $record->set_blank_dependents; # XXX Move to write() once back/forward functionality rewritten?
-                        $record->write(%options);
-                        $id = $record->current_id;
-                    }
                     my %entry = %$entry; # Copy to stop referenced id being overwritten
                     $entry{value} = $id;
                     push @entries, \%entry;
@@ -1716,6 +1706,11 @@ sub _field_write
                             $record->delete_current(override => 1);
                         }
                     }
+                }
+                if (!@entries)
+                {
+                    $entry->{value} = undef;
+                    push @entries, $entry; # No values, but still need to write null value
                 }
             }
             elsif ($column->type eq 'string')

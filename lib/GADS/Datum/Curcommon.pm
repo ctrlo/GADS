@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Datum::Curcommon;
 
+use CGI::Deurl::XS 'parse_query_string';
 use HTML::Entities qw/encode_entities/;
 use Log::Report 'linkspace';
 use Moo;
@@ -31,14 +32,28 @@ after set_value => sub {
     my ($self, $value) = @_;
     my $clone = $self->clone; # Copy before changing text
     my @values = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
-    $self->column->validate($_, fatal => 1) foreach @values;
     my @old     = sort @{$self->ids};
     my $changed = "@values" ne "@old";
     $self->_set_written_valid(!!@values);
     if ($changed)
     {
         $self->changed(1);
-        $self->_set_ids(\@values);
+        # Values can be submitted as either a database current ID, or as a
+        # query string for new values
+        my (@queries, @ids);
+        foreach my $value (@values)
+        {
+            if ($value =~ /^[0-9]+$/)
+            {
+                $self->column->validate($value, fatal => 1);
+                push @ids, $value;
+            }
+            else {
+                push @queries, $value;
+            }
+        }
+        $self->_set_values_as_query(\@queries);
+        $self->_set_ids(\@ids);
         # Need to clear initial values, to ensure new value is built from this new ID
         $self->_clear_text_all;
         $self->_clear_text_hash;
@@ -95,7 +110,7 @@ sub _build__records
 
 sub _build_blank
 {   my $self = shift;
-    @{$self->ids} ? 0 : 1;
+    @{$self->ids} || @{$self->values_as_query} ? 0 : 1;
 }
 
 has text => (
@@ -126,7 +141,7 @@ has _text_all => (
             return [ map { $self->column->_format_row($_) } @{$self->_records} ];
         }
         else {
-            return $self->column->ids_to_values($self->ids_filtered, fatal => 1);
+            return $self->column->ids_to_values($self->ids, fatal => 1);
         }
     }
 );
@@ -175,6 +190,7 @@ sub _build_ids_deleted
     return [] if !$self->changed;
     my %old = map { $_ => 1 } @{$self->oldvalue->ids};
     delete $old{$_} foreach @{$self->ids};
+    delete $old{$_->current_id} foreach grep { !$_->new_entry } @{$self->values_as_query_records};
     return [ keys %old ];
 }
 
@@ -208,16 +224,57 @@ sub _build_ids_changed
     [ keys %changed ];
 }
 
-sub ids_filtered
-{   my $self = shift;
-    [grep { $_ =~ /^[0-9]+$/ } @{$self->ids}];
-}
-
 sub id
 {   my $self = shift;
     $self->column->multivalue
         and panic "Cannot return single id value for multivalue field";
     $self->ids->[0];
+}
+
+# Values as a URI query string. These are values submitted as queries via the
+# curval-edit functionality. They will either be existing records edited or new
+# records
+has values_as_query => (
+    is      => 'rwp',
+    isa     => ArrayRef,
+    default => sub { [] },
+);
+
+# The above values as queries, converted to records
+has values_as_query_records => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_values_as_query_records
+{   my $self = shift;
+    my @records;
+    foreach my $query (@{$self->values_as_query})
+    {
+        my $params = parse_query_string($query);
+        my $record = GADS::Record->new(
+            user     => $self->column->layout->user,
+            layout   => $self->column->layout_parent,
+            schema   => $self->column->schema,
+            base_url => $self->column->base_url,
+        );
+        if (my $current_id = $params->{current_id})
+        {
+            $record->find_current_id($current_id);
+        }
+        else {
+            $record->initialise;
+        }
+        foreach my $col ($self->column->layout_parent->all(user_can_write_new => 1))
+        {
+            my $newv = $params->{$col->field};
+            $record->fields->{$col->id}->set_value($newv)
+                if defined $params->{$col->field} && $col->userinput && defined $newv;
+        }
+        $record->set_blank_dependents; # XXX Move to write() once back/forward functionality rewritten?
+        push @records, $record;
+    }
+    \@records;
 }
 
 around 'clone' => sub {
@@ -264,7 +321,7 @@ sub field_values
 {   my $self = shift;
     my $values = $self->_records
         ? $self->column->field_values(rows => $self->_records)
-        : $self->column->field_values(ids => $self->ids_filtered);
+        : $self->column->field_values(ids => $self->ids);
     # Translate into something useful
     my @recs;
     push @recs, $values->{$_}
@@ -276,17 +333,31 @@ sub field_values_for_code
 {   my $self = shift;
     $self->_records
         ? $self->column->field_values_for_code(rows => $self->_records)
-        : $self->column->field_values_for_code(ids => $self->ids_filtered);
+        : $self->column->field_values_for_code(ids => $self->ids);
 }
 
 sub for_edit
 {   my $self = shift;
     my $values = $self->for_code;
-    return !defined $values
+    my $return = !defined $values
         ? []
         : ref $values eq 'ARRAY'
         ? $values
         : [$values];
+    my @records = @{$self->values_as_query_records};
+    foreach my $query (@{$self->values_as_query})
+    {
+        my $record = shift @records;
+        # New entries may have a current ID from a failed database write, but
+        # don't use
+        my $id = $record->new_entry ? undef : $record->current_id;
+        push @$return, +{
+            id       => $id,
+            as_query => $query,
+            value    => $self->column->_format_row($record)->{mainvalue},
+        };
+    }
+    return $return;
 }
 
 sub for_code
@@ -301,7 +372,7 @@ sub for_code
             value        => $self->_text_hash->{$_},
             field_values => $field_values->{$_},
         }
-    } (@{$self->ids_filtered});
+    } (@{$self->ids});
 
     $self->column->multivalue ? \@values : $values[0];
 }

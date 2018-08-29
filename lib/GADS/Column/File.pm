@@ -47,6 +47,11 @@ after build_values => sub {
     }
 };
 
+sub _build_retrieve_fields
+{   my $self = shift;
+    [qw/name mimetype id/];
+}
+
 sub write_special
 {   my ($self, %options) = @_;
 

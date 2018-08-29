@@ -1364,7 +1364,12 @@ small.search_term {
 }
 
 .select-widget .available .answer .details {
+    display: none;
     padding: .5em .3em;
+}
+
+.select-widget .available.with-details .answer .details {
+    display: inline-block;
 }
 
 .select-widget .available .answer .more-info {
@@ -1392,6 +1397,13 @@ small.search_term {
 
 .edit-form {
     margin-bottom: 4em;
+}
+
+.edit-form--validating {
+    .spinner {
+        display: block;
+        font-style: italic;
+    }
 }
 
 .input_holder .datepicker {

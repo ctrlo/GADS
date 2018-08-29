@@ -2537,7 +2537,7 @@ any '/edit/:id?' => require_login sub {
 
     $record->initialise unless $id;
 
-    if (param('submit') || param('draft') || $modal)
+    if (param('submit') || param('draft') || $modal || defined(param 'validate'))
     {
         my $params = params;
         my $uploads = request->uploads;
@@ -2564,6 +2564,7 @@ any '/edit/:id?' => require_login sub {
         # thrown to the user if they've been changed. This is better than
         # just silently ignoring them, IMHO.
         my @display_on_fields;
+        my @validation_errors;
         foreach my $col (@columns_to_show)
         {
             my $newv;
@@ -2582,7 +2583,17 @@ any '/edit/:id?' => require_login sub {
                 unless (upload "file".$col->id)
                 {
                     my $datum = $record->fields->{$col->id};
-                    $failed = !process( sub { $record->fields->{$col->id}->set_value($newv) } ) || $failed;
+                    if (defined(param 'validate'))
+                    {
+                        try { $datum->set_value($newv) };
+                        if (my $e = $@->wasFatal)
+                        {
+                            push @validation_errors, $e->message;
+                        }
+                    }
+                    else {
+                        $failed = !process( sub { $datum->set_value($newv) } ) || $failed;
+                    }
                 }
             }
             elsif ($col->type eq 'file' && !upload("file".$col->id))
@@ -2595,7 +2606,20 @@ any '/edit/:id?' => require_login sub {
         # Call this now, to write and blank out any non-displayed values,
         $record->set_blank_dependents;
 
-        if ($modal)
+        if (defined(param 'validate'))
+        {
+            try { $record->write(dry_run => 1) };
+            if (my $e = $@->died) # XXX This should be ->wasFatal() but it returns the wrong message
+            {
+                push @validation_errors, $e;
+            }
+            my $message = join '; ', @validation_errors;
+            return encode_json({
+                error   => $message ? 1 : 0,
+                message => $message,
+            });
+        }
+        elsif ($modal)
         {
             # Do nothing, just a live edit, no write required
         }

@@ -1943,7 +1943,11 @@ small.search_term {
   margin-right: .3em; }
 
 .select-widget .available .answer .details {
+  display: none;
   padding: .5em .3em; }
+
+.select-widget .available.with-details .answer .details {
+  display: inline-block; }
 
 .select-widget .available .answer .more-info {
   margin-bottom: 0; }
@@ -1966,6 +1970,10 @@ small.search_term {
 
 .edit-form {
   margin-bottom: 4em; }
+
+.edit-form--validating .spinner {
+  display: block;
+  font-style: italic; }
 
 .input_holder .datepicker {
   padding-left: 1em; }

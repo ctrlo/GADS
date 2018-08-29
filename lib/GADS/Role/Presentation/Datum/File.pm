@@ -6,9 +6,7 @@ sub presentation {
     my $self = shift;
 
     my $base = $self->presentation_base;
-    delete $base->{value};
 
-    $base->{name}     = $self->name;
     $base->{id}       = $self->id;
     $base->{mimetype} = $self->mimetype;
 
