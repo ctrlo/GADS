@@ -1357,6 +1357,9 @@ sub write
     my %update_autocurs;
     foreach my $column ($self->layout->all(order_dependencies => 1))
     {
+        # Prevent warnings when writing incomplete calc values on draft
+        next if $options{draft} && !$column->userinput;
+
         my $datum = $self->fields->{$column->id};
         if ($self->parent_id && !$column->can_child && $column->userinput) # Calc values always unique
         {
