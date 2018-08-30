@@ -202,7 +202,7 @@
                 cloned.find(":text").val('');
                 cloned.find(".datepicker").datepicker({format: "[% config.dateformat_datepicker %]", autoclose: true});
             });
-            $('.removeme').click(function() {
+            $(document).on("click", ".removeme", function() {
                 var parent = $(this).parents('.input_holder');
                 if (parent.siblings(".input_holder").length > 0) {
                     parent.remove();
