@@ -2623,10 +2623,13 @@ any '/edit/:id?' => require_login sub {
         {
             # Do nothing, just a live edit, no write required
         }
-        elsif (param('draft') && $record->write(draft => 1))
+        elsif (param 'draft')
         {
-            return forwardHome(
-                { success => 'Draft has been saved successfully'}, 'data' );
+            if (process sub { $record->write(draft => 1) })
+            {
+                return forwardHome(
+                    { success => 'Draft has been saved successfully'}, 'data' );
+            }
         }
         elsif (!$failed && process( sub { $record->write }))
         {
