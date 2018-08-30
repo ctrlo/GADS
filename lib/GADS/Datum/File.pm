@@ -117,6 +117,10 @@ has name => (
     },
 );
 
+sub search_values_unique
+{   [ shift->name ]
+}
+
 has mimetype => (
     is      => 'rw',
     lazy    => 1,

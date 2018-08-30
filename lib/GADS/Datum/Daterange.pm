@@ -212,6 +212,10 @@ sub _build_html_form
     } @{$self->values} ];
 }
 
+sub search_values_unique
+{   shift->text_all;
+}
+
 sub for_code
 {   my $self = shift;
     return undef if !$self->column->multivalue && $self->blank;

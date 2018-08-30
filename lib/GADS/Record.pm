@@ -1151,7 +1151,7 @@ sub write
         if ($column->isunique && !$datum->blank && ($self->new_entry || $datum->changed) && !($self->parent_id && !$column->can_child))
         {
             # Check for other columns with this value.
-            foreach my $val (@{$datum->text_all})
+            foreach my $val (@{$datum->search_values_unique})
             {
                 if (my $r = $self->find_unique($column, $val))
                 {

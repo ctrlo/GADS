@@ -162,6 +162,11 @@ sub html_form
     [ $self->value ];
 }
 
+# The value to search for unique values
+sub search_values_unique
+{   shift->html_form;
+}
+
 # Overridden where applicable
 sub html_withlinks { $_[0]->html }
 
