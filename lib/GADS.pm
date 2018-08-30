@@ -2623,10 +2623,13 @@ any '/edit/:id?' => require_login sub {
         {
             # Do nothing, just a live edit, no write required
         }
-        elsif (param('draft') && $record->write(draft => 1))
+        elsif (param 'draft')
         {
-            return forwardHome(
-                { success => 'Draft has been saved successfully'}, 'data' );
+            if (process sub { $record->write(draft => 1) })
+            {
+                return forwardHome(
+                    { success => 'Draft has been saved successfully'}, 'data' );
+            }
         }
         elsif (!$failed && process( sub { $record->write }))
         {
@@ -2797,6 +2800,7 @@ get '/record_body/:id' => require_login sub {
     );
 
     $record->find_current_id($id);
+    $layout = $record->layout; # In case record's layout different to orig
     my @columns = $layout->all(user_can_read => 1);
     template 'record_body' => {
         record         => $record->presentation(@columns),

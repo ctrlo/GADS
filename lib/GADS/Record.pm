@@ -996,6 +996,25 @@ sub columns_to_show_write
         : $self->layout->all(user_can_write_existing => 1, userinput => 1)
 }
 
+sub delete_user_drafts
+{   my $self = shift;
+    if ($self->user->has_draft($self->layout->instance_id))
+    {
+        while (1)
+        {
+            my $draft = GADS::Record->new(
+                user     => undef,
+                layout   => $self->layout,
+                schema   => $self->schema,
+            );
+            $draft->find_draftuser_id($self->user->id)
+                or last;
+            $draft->delete_current;
+            $draft->purge_current;
+        }
+    }
+}
+
 # options (mostly used by onboard):
 # - update_only: update the values of the existing record instead of creating a
 # new version. This allows updates that aren't recorded in the history, and
@@ -1231,6 +1250,7 @@ sub write
     # New record?
     if ($self->new_entry)
     {
+        $self->delete_user_drafts; # Delete any drafts first, for both draft save and full save
         my $instance_id = $self->layout->instance_id;
         my $current = $self->schema->resultset('Current')->create({
             parent_id    => $self->parent_id,
@@ -1329,22 +1349,6 @@ sub write
             $this_last->{record_id} = $id;
             $self->schema->resultset('UserLastrecord')->create($this_last);
         }
-
-        # Assume success now - delete any draft
-        if ($self->user->has_draft($self->layout->instance_id))
-        {
-            my $draft = GADS::Record->new(
-                user     => undef,
-                layout   => $self->layout,
-                schema   => $self->schema,
-            );
-            $draft->find_draftuser_id($self->user->id);
-            if ($draft)
-            {
-                $draft->delete_current;
-                $draft->purge_current;
-            }
-        }
     }
 
     # Write all the values
@@ -1353,6 +1357,9 @@ sub write
     my %update_autocurs;
     foreach my $column ($self->layout->all(order_dependencies => 1))
     {
+        # Prevent warnings when writing incomplete calc values on draft
+        next if $options{draft} && !$column->userinput;
+
         my $datum = $self->fields->{$column->id};
         if ($self->parent_id && !$column->can_child && $column->userinput) # Calc values always unique
         {
@@ -1598,7 +1605,7 @@ sub set_blank_dependents
         {
             my $datum = $self->fields->{$column->id};
             $datum->set_value('')
-                if $datum->dependent_not_shown;
+                if $datum->dependent_not_shown && ($datum->column->can_child || !$self->parent_id);
         }
     }
 }

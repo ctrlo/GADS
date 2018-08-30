@@ -8,7 +8,6 @@
     </tr>
     [% FOREACH col IN record.columns %]
         [% colid = col.id %]
-        [% NEXT IF record.parent_id AND NOT (record.fields.$colid.child_unique) %]
         [% NEXT IF col.data.dependent_not_shown %]
         [% IF col.topic != last_topic %]
             <tr><th colspan="2"><h2>[% col.topic OR "Other" | html %]</h2></tr>
