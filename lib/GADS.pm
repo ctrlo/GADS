@@ -2800,6 +2800,7 @@ get '/record_body/:id' => require_login sub {
     );
 
     $record->find_current_id($id);
+    $layout = $record->layout; # In case record's layout different to orig
     my @columns = $layout->all(user_can_read => 1);
     template 'record_body' => {
         record         => $record->presentation(@columns),
