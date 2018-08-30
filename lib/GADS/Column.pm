@@ -746,12 +746,17 @@ sub fetch_multivalues
 {   my ($self, $record_ids) = @_;
 
     my $select = {
-        join => 'layout',
+        join     => 'layout',
+        # Order by values so that multiple values appear in consistent order as
+        # field values
+        order_by => "me.".$self->value_field,
     };
     if (ref $self->join)
     {
         my ($left, $prefetch) = %{$self->join}; # Prefetch table is 2nd part of join
         $select->{prefetch} = $prefetch;
+        # Override previous setting
+        $select->{order_by} = "$prefetch.".$self->value_field;
     }
     my $m_rs = $self->schema->resultset($self->table)->search({
         'me.record_id'      => $record_ids,

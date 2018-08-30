@@ -61,7 +61,7 @@ foreach my $delete_not_used (0..1)
     $record->clear;
     $record->find_current_id(3);
     $curval_datum = $record->fields->{$curval->id};
-    is($curval_datum->as_string, 'foo1; foo2', "Curval value contains second new record");
+    like($curval_datum->as_string, qr/^(foo1; foo2|foo2; foo1)$/, "Curval value contains second new record");
 
     # Delete existing
     $curval_count = $schema->resultset('Current')->search({ instance_id => 2 })->count;

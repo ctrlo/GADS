@@ -212,6 +212,7 @@ my $curval_filter = GADS::Column::Curval->new(
                 operator => 'equal',
             }],
         },
+        layout => $layout,
     ),
     refers_to_instance_id => $curval_sheet->layout->instance_id,
     curval_field_ids      => [ $curval_sheet->columns->{integer1}->id ], # Purposefully different to previous tests
@@ -247,6 +248,7 @@ $curval_filter->filter(
                 operator => 'equal',
             }],
         },
+        layout => $layout,
     ),
 );
 $curval_filter->write;
@@ -394,6 +396,7 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid/)
 
     $curval_filter->filter(GADS::Filter->new(
             as_hash => $rules,
+            layout  => $layout,
         ),
     );
     $curval_filter->curval_field_ids([ $curval_sheet->columns->{string1}->id ]);

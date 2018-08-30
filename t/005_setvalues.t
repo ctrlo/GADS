@@ -214,7 +214,6 @@ foreach my $multivalue (0..1)
 
                     next if $arrayref && $type eq 'daterange1';
                     my $datum = $record->fields->{$columns->{$type}->id};
-                    ok( !$datum->written_to, "$type has not been written to$is_multi" );
                     if ($test eq 'blank')
                     {
                         ok( $datum->blank, "$type is blank$is_multi" );
@@ -249,7 +248,6 @@ foreach my $multivalue (0..1)
                     else {
                         $@->reportAll;
                     }
-                    ok( $datum->written_to, "$type has been written to$is_multi" );
                     if ($test eq 'blank' || $test eq 'changed')
                     {
                         ok( $datum->changed, "$type has changed$is_multi" );
@@ -351,72 +349,6 @@ foreach my $c (keys %$values)
     ok( !$datum->changed, "$c has not changed" );
 }
 
-# Test moving forward and back
-{
-    my $record = GADS::Record->new(
-        user   => undef,
-        layout => $layout,
-        schema => $schema,
-    );
-    $record->find_current_id(3);
-    # Write values to all datums
-    my @col_ids;
-    foreach my $c (keys %$values)
-    {
-        my $datum = $record->fields->{$columns->{$c}->id};
-        $datum->set_value($values->{$c}->{new});
-        push @col_ids, $columns->{$c}->id;
-    }
-    # Check all written to
-    foreach my $c (keys %$values)
-    {
-        my $datum = $record->fields->{$columns->{$c}->id};
-        ok( $datum->written_to, "$c is written to after first write" );
-    }
-    $record->editor_shown_fields([@col_ids]);
-    # Move nowhere - should reset written_to
-    $record->move_nowhere;
-    foreach my $c (keys %$values)
-    {
-        my $datum = $record->fields->{$columns->{$c}->id};
-        ok( !$datum->written_to, "$c is no longer written to written to after move nowhere" );
-    }
-    # Write values again
-    foreach my $c (keys %$values)
-    {
-        my $datum = $record->fields->{$columns->{$c}->id};
-        $datum->set_value($values->{$c}->{new});
-        ok( $datum->value_current_page, "$c is current page" );
-    }
-    # Move forward
-    $record->move_forward;
-    $record->editor_shown_fields([]);
-    $record->editor_previous_fields([@col_ids]);
-    foreach my $c (keys %$values)
-    {
-        my $datum = $record->fields->{$columns->{$c}->id};
-        ok( $datum->value_previous_page, "$c is previous page after move forward" );
-        ok( !$datum->value_next_page, "$c is previous page after move forward" );
-    }
-    # Move back to first page. Should no longer be previous page or written to
-    $record->move_back;
-    foreach my $c (keys %$values)
-    {
-        my $datum = $record->fields->{$columns->{$c}->id};
-        ok( !$datum->value_previous_page, "$c is no longer previous page after move back" );
-        ok( !$datum->written_to, "$c is no longer written to after move back" );
-    }
-    # Now simulate that all values are actually for the next page
-    $record->editor_next_fields([@col_ids]);
-    foreach my $c (keys %$values)
-    {
-        # Set the valu, this time it should not be flagged as written to
-        my $datum = $record->fields->{$columns->{$c}->id};
-        $datum->set_value($values->{$c}->{new});
-        ok( !$datum->written_to, "$c is not written to when a next page value" );
-    }
-}
-
 # Test madatory fields
 {
     my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
@@ -504,30 +436,21 @@ foreach my $c (keys %$values)
         schema => $sheet->schema,
     );
     $record->initialise;
-    try { $record->write(no_alerts => 1) };
-    is($@, '', "No error when missing curval filtered field value");
-    my $record_count_new = $sheet->schema->resultset('Record')->count;
-    is($record_count_new, $record_count, "No records written despite no error");
     my $string1 = $sheet->columns->{string1};
     $record->fields->{$string1->id}->set_value('foobar');
-    $record->editor_shown_fields([$string1->id]);
-    try { $record->write(no_alerts => 1) };
-    is($@, '', "Error for missing curval filtered field value after string write");
-    my $curval1 = $sheet->columns->{curval1};
-    $record->editor_shown_fields([$string1->id, $curval1->id]);
     try { $record->write(no_alerts => 1) };
     like($@, qr/curval1/, "Error for missing curval filtered field value after string write");
 
     # Test a mandatory field on the second page which the user does not have
     # write access to
+    my $curval1 = $sheet->columns->{curval1};
     my $group = $sheet->group;
     $curval1->set_permissions({$sheet->group->id => []});
     $curval1->write;
     $sheet->layout->clear;
-    $record->editor_shown_fields([$string1->id]);
     $record_count = $sheet->schema->resultset('Record')->count;
     $record->write(no_alerts => 1);
-    $record_count_new = $sheet->schema->resultset('Record')->count;
+    my $record_count_new = $sheet->schema->resultset('Record')->count;
     is($record_count_new, $record_count + 1, "One record written");
 }
 

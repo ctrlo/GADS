@@ -61,6 +61,7 @@ $column->filter(GADS::Filter->new(
             operator => 'equal',
         }],
     },
+    layout => $layout,
 ));
 $column->write;
 @values = $column->values_beginning_with('50');
@@ -77,6 +78,7 @@ $column->filter(GADS::Filter->new(
             operator => 'equal', # String1 field in main sheet
         }],
     },
+    layout => $layout,
 ));
 $column->write;
 @values = $column->values_beginning_with('50');

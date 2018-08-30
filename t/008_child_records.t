@@ -23,7 +23,7 @@ sub _records
     @results;
 }
 
-my $sheet   = t::lib::DataSheet->new(multivale => 1);
+my $sheet   = t::lib::DataSheet->new(multivalue => 1);
 my $schema  = $sheet->schema;
 my $columns = $sheet->columns;
 my $layout  = $sheet->layout;

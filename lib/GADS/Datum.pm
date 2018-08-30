@@ -31,7 +31,7 @@ use overload 'bool' => sub { 1 }, '""'  => 'as_string', '0+' => 'as_integer', fa
 sub set_value
 {   my ($self, $value, %options) = @_;
     error __"Cannot set this value as it is a parent value"
-        if !$options{is_parent_value} && !$self->column->can_child && $self->record->parent_id;
+        if !$options{is_parent_value} && !$self->column->can_child && $self->record && $self->record->parent_id;
 }
 
 has record => (

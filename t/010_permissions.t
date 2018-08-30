@@ -160,6 +160,7 @@ foreach my $user_type (qw/readwrite read limited/)
                 operator => 'equal',
             }],
         },
+        layout => $layout,
     ));
     $curval_column->write;
     is( @{$curval_column->filtered_values}, 1, "User has access to all curval values after filter" );
