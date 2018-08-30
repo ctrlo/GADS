@@ -1598,7 +1598,7 @@ sub set_blank_dependents
         {
             my $datum = $self->fields->{$column->id};
             $datum->set_value('')
-                if $datum->dependent_not_shown;
+                if $datum->dependent_not_shown && ($datum->column->can_child || !$self->parent_id);
         }
     }
 }
