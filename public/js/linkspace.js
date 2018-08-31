@@ -641,6 +641,16 @@ var setupClickToEdit = function(context) {
     });
 }
 
+var setupSubmitListener = function(context) {
+    $('.edit-form', context).on('submit', function(e) {
+        var $button = $(document.activeElement);
+        $button.prop('disabled', true);
+        if ($button.prop("name")) {
+            $button.after('<input type="hidden" name="' + $button.prop("name") + '" value="' + $button.val() + '" />');
+        }
+    });
+}
+
 // Used to hide and then display blank fields when viewing a record
 var setupClickToViewBlank = function() {
     $('.click-to-view-blank').on('click', function() {
@@ -662,6 +672,7 @@ var Linkspace = {
         setupSelectWidgets(context);
         setupDisplayConditions(context);
         runPageSpecificCode(context);
+        setupSubmitListener(context);
     },
 
     debug: function (msg) {
