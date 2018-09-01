@@ -998,7 +998,7 @@ sub columns_to_show_write
 
 sub delete_user_drafts
 {   my $self = shift;
-    if ($self->user->has_draft($self->layout->instance_id))
+    if ($self->user && $self->user->has_draft($self->layout->instance_id))
     {
         while (1)
         {
