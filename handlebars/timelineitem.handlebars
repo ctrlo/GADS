@@ -1,0 +1,15 @@
+<div class="item-popup" >
+    <div class="item-popup-inner" >
+        <b>Record {{current_id}}</b><br>
+        <ul class="list-unstyled">
+            {{#each values}}
+                <li>{{name}}: {{{value}}}</li>
+            {{/each}}
+        </ul>
+        <a class = "moreinfo" data-record-id="{{current_id}}">Read more</a> |
+        <a href="/edit/{{current_id}}">Edit item</a>
+    </div>
+</div>
+<div class="vis-item-shown-content">
+    {{content}}
+</div>
