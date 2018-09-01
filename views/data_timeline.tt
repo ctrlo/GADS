@@ -234,11 +234,11 @@
                 }
                 if (props.start < have_range.min) {
                     var from = props.start.getTime();
-                    var to = have_range.min.getTime() - 86400000;
+                    var to = have_range.min.getTime();
                     load_items(from, to, "to");
                 }
                 if (props.end > have_range.max) {
-                    var from = have_range.max.getTime() + 86400000;
+                    var from = have_range.max.getTime();
                     var to = props.end.getTime();
                     load_items(from, to, "from");
                 }
