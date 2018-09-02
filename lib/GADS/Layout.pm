@@ -804,7 +804,14 @@ sub column_this_instance
 
 sub _build__columns_namehash
 {   my $self = shift;
-    my %columns = map { $_->name => $_ } @{$self->columns};
+    my %columns;
+    foreach (@{$self->columns})
+    {
+        next unless $_->instance_id == $self->instance_id;
+        error __x"Column {name} exists twice - unable to find unique column",
+            name => $_ if $columns{$_};
+        $columns{$_->name} = $_;
+    }
     \%columns;
 }
 

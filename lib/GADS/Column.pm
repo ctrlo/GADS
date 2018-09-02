@@ -945,41 +945,46 @@ sub write
 
     my ($new_id, $rset);
 
-    if (!$self->id)
+    unless ($options{report_only})
     {
-        $newitem->{id} = $self->set_id if $self->set_id;
-        # Add at end of other items
-        $newitem->{position} = ($self->schema->resultset('Layout')->get_column('position')->max || 0) + 1
-            unless $self->position;
-        $rset = $self->schema->resultset('Layout')->create($newitem);
-        $new_id = $rset->id;
-        $self->_set__rset($rset);
-        # Don't set $self->id here, as we could yet bail out and the object
-        # would be left with an id, which would signify it is not a new field
-        # (affects display of type when creating field)
-    }
-    else {
-        if ($rset = $self->schema->resultset('Layout')->find($self->id))
+        if (!$self->id)
         {
-            # Check whether attempt to move between instances - this is a bug
-            $newitem->{instance_id} != $rset->instance_id
-                and panic "Attempt to move column between instances";
-            $rset->update($newitem);
+            $newitem->{id} = $self->set_id if $self->set_id;
+            # Add at end of other items
+            $newitem->{position} = ($self->schema->resultset('Layout')->get_column('position')->max || 0) + 1
+                unless $self->position;
+            $rset = $self->schema->resultset('Layout')->create($newitem);
+            $new_id = $rset->id;
+            $self->_set__rset($rset);
+            # Don't set $self->id here, as we could yet bail out and the object
+            # would be left with an id, which would signify it is not a new field
+            # (affects display of type when creating field)
         }
         else {
-            $newitem->{id} = $self->id;
-            $rset = $self->schema->resultset('Layout')->create($newitem);
-            $self->_set__rset($rset);
+            if ($rset = $self->schema->resultset('Layout')->find($self->id))
+            {
+                # Check whether attempt to move between instances - this is a bug
+                $newitem->{instance_id} != $rset->instance_id
+                    and panic "Attempt to move column between instances";
+                $rset->update($newitem);
+            }
+            else {
+                $newitem->{id} = $self->id;
+                $rset = $self->schema->resultset('Layout')->create($newitem);
+                $self->_set__rset($rset);
+            }
         }
+
+        # Write any column-specific params
+        my %write_options = $self->write_special(rset => $rset, id => $new_id || $self->id, %options);
+        %options = (%options, %write_options);
     }
 
-    # Write any column-specific params
-    my %write_options = $self->write_special(rset => $rset, id => $new_id || $self->id, %options);
-    %options = (%options, %write_options);
-
-    $self->_write_permissions(id => $new_id || $self->id);
+    $self->_write_permissions(id => $new_id || $self->id, %options);
 
     $guard->commit;
+
+    return if $options{report_only};
 
     if ($new_id || $options{add_db})
     {
@@ -1076,20 +1081,34 @@ sub _write_permissions
         my $read_removed = grep { $_ eq 'read' } @removed_permissions;
 
         # Delete any permissions no longer needed
-        $self->schema->resultset('LayoutGroup')->search({
-            layout_id  => $id,
-            group_id   => $group_id,
-            permission => \@removed_permissions
-        })->delete;
+        if ($options{report_only} && @removed_permissions)
+        {
+            notice __x"Removing the following permissions from {column} for group ID {group}: {perms}",
+                column => $self->name, group => $group_id, perms => join(', ', @removed_permissions);
+        }
+        else {
+            $self->schema->resultset('LayoutGroup')->search({
+                layout_id  => $id,
+                group_id   => $group_id,
+                permission => \@removed_permissions
+            })->delete;
+        }
 
         # Add any new permissions
-        $self->schema->resultset('LayoutGroup')->create({
-            layout_id  => $id,
-            group_id   => $group_id,
-            permission => $_,
-        }) foreach @added_permissions;
+        if ($options{report_only} && @added_permissions)
+        {
+            notice __x"Adding the following permissions to {column} for group ID {group}: {perms}",
+                column => $self->name, group => $group_id, perms => join(', ', @added_permissions);
+        }
+        else {
+            $self->schema->resultset('LayoutGroup')->create({
+                layout_id  => $id,
+                group_id   => $group_id,
+                permission => $_,
+            }) foreach @added_permissions;
+        }
 
-        if ($read_removed) {
+        if ($read_removed && !$options{report_only}) {
             # First the sorts
             my @sorts = $self->schema->resultset('Sort')->search({
                 layout_id      => $id,
@@ -1210,21 +1229,49 @@ sub code_regex
 }
 
 sub import_hash
-{   my ($self, $values) = @_;
+{   my ($self, $values, %options) = @_;
+    my $report = $options{report_only} && $self->id;
+    notice __x"Update: name from {old} to {new}", old => $self->name, new => $values->{name}
+        if $report && $self->name ne $values->{name};
     $self->name($values->{name});
+    notice __x"Update: name_short from {old} to {new}", old => $self->name_short, new => $values->{name_short}
+        if $report && ($self->name_short || '') ne ($values->{name_short} || '');
     $self->name_short($values->{name_short});
+    notice __x"Update: optional from {old} to {new}", old => $self->optional, new => $values->{optional}
+        if $report && $self->optional != $values->{optional};
     $self->optional($values->{optional});
+    notice __x"Update: remember from {old} to {new}", old => $self->remember, new => $values->{remember}
+        if $report && $self->remember != $values->{remember};
     $self->remember($values->{remember});
+    notice __x"Update: isunique from {old} to {new}", old => $self->isunique, new => $values->{isunique}
+        if $report && $self->isunique != $values->{isunique};
     $self->isunique($values->{isunique});
-    $self->can_child($values->{can_child});
+    notice __x"Update: can_child from {old} to {new}", old => $self->can_child, new => $values->{can_child}
+        if $report && $self->can_child != $values->{can_child};
+    $self->set_can_child($values->{can_child});
+    notice __x"Update: position from {old} to {new}", old => $self->position, new => $values->{position}
+        if $report && $self->position != $values->{position};
     $self->position($values->{position});
+    notice __x"Update: description from {old} to {new}", old => $self->description, new => $values->{description}
+        if $report && $self->description ne $values->{description};
     $self->description($values->{description});
+    notice __x"Update: helptext from {old} chars to {new} chars", old => length($self->helptext), new => length($values->{helptext})
+        if $report && $self->helptext ne $values->{helptext};
     $self->helptext($values->{helptext});
+    notice __x"Update: display_regex from {old} to {new}", old => $self->display_regex, new => $values->{display_regex}
+        if $report && ($self->display_regex || '') ne ($values->{display_regex} || '');
     $self->display_regex($values->{display_regex});
+    notice __x"Update: multivalue from {old} to {new}", old => $self->multivalue, new => $values->{multivalue}
+        if $report && $self->multivalue != $values->{multivalue};
     $self->multivalue($values->{multivalue});
+    notice __x"Update: filter from {old} to {new}", old => $self->filter->as_json, new => $values->{filter}
+        if $report && $self->filter->as_json ne $values->{filter};
     $self->filter(GADS::Filter->new(as_json => $values->{filter}));
     foreach my $option (@{$self->option_names})
     {
+        notice __x"Update: {option} from {old} to {new}",
+            option => $option, old => $self->$option, new => $values->{filter}
+            if $report && $self->$option ne $values->{$option};
         $self->$option($values->{$option});
     }
 }
@@ -1269,16 +1316,21 @@ sub import_after_write {};
 
 # Subroutine to run after all columns have been imported
 sub import_after_all
-{   my ($self, $values, $mapping) = @_;
-    my @field_ids = map { $mapping->{$_} } @{$values->{curval_field_ids}};
+{   my ($self, $values, %options) = @_;
+    my $mapping = $options{mapping};
+    my $report  = $options{report_only};
     if ($values->{display_field})
     {
         my $new_id = $mapping->{$values->{display_field}};
+        notice __x"Update: display_field from {old} to {new}", old => $self->display_field, new => $new_id
+            if $report && ($self->display_field || 0) != ($new_id || 0);
         $self->display_field($new_id);
     }
     if ($values->{link_parent})
     {
         my $new_id = $mapping->{$values->{link_parent}};
+        notice __x"Update: link_parent from {old} to {new}", old => $self->link_parent, new => $new_id
+            if $report && ($self->link_parent || 0) != ($new_id || 0);
         $self->link_parent($new_id);
     }
     $self->write(no_cache_update => 1);

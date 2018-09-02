@@ -250,8 +250,61 @@ sub resultset_for_values
 }
 
 before import_hash => sub {
-    my ($self, $values) = @_;
-    $self->enumvals($values->{enumvals});
+    my ($self, $values, %options) = @_;
+    my $report = $options{report_only} && $self->id;
+    my @new = @{$values->{enumvals}};
+    my @to_write;
+    # We have no unqiue identifier with which to match, so we have to compare
+    # the new and the old lists to try and work out what's changed. Simple
+    # changes are handled automatically, more complicated ones will require
+    # manual intervention
+    if (my @old = @{$self->enumvals})
+    {
+        @old = sort { $a->{id} <=> $b->{id} } @old;
+        @new = sort { $a->{id} <=> $b->{id} } @new;
+        while (@old)
+        {
+            my $old = shift @old;
+            my $new = shift @new;
+            # If it's the same, easy, onto the next one
+            if ($old->{value} eq $new->{value})
+            {
+                notice __x"No change for enum value {value}", value => $old->{value}
+                    if $report;
+                $new->{id} = $old->{id};
+                push @to_write, $new;
+                next;
+            }
+            # Different. Is the next one the same?
+            if ($old[0] && $new[0] && $old[0]->{value} eq $new[0]->{value})
+            {
+                # Yes, assume the previous is a value change
+                notice __x"Changing enum value {old} to {new}", old => $old->{value}, new => $new->{value}
+                    if $report;
+                $new->{id} = $old->{id};
+                push @to_write, $new;
+            }
+            else {
+                # Different, don't know what to do, require manual intervention
+                if ($report)
+                {
+                    notice __x"Error: don't know how to handle enumval updates, manual intervention required";
+                    return;
+                }
+                else {
+                    error __x"Error: don't know how to handle enumval updates, manual intervention required";
+                }
+            }
+        }
+        # Add any remaining new ones
+        delete $_->{id} foreach @new;
+        push @to_write, @new;
+    }
+    else {
+        delete $_->{id} foreach @new;
+        @to_write = @new;
+    }
+    $self->enumvals(\@to_write);
     $self->ordering($values->{ordering});
 };
 

@@ -118,18 +118,5 @@ sub cleanup
     $schema->resultset('Person')->search({ layout_id => $id })->delete;
 }
 
-before import_hash => sub {
-    my ($self, $values) = @_;
-    $self->default_to_login($values->{default_to_login});
-};
-
-around export_hash => sub {
-    my $orig = shift;
-    my ($self, $values) = @_;
-    my $hash = $orig->(@_);
-    $hash->{default_to_login} = $self->default_to_login;
-    return $hash;
-};
-
 1;
 

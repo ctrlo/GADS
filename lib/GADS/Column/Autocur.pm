@@ -206,6 +206,7 @@ sub multivalue_rs
 around export_hash => sub {
     my $orig = shift;
     my $self = shift;
+    my %options = @_;
     my $hash = $orig->($self, @_);
     $hash->{related_field_id} = $self->related_field_id;
     $hash;
@@ -213,8 +214,12 @@ around export_hash => sub {
 
 around import_after_all => sub {
     my $orig = shift;
-    my ($self, $values, $mapping) = @_;
+    my ($self, $values, %options) = @_;
+    my $mapping = $options{mapping};
+    my $report = $options{report_only};
     my $new_id = $mapping->{$values->{related_field_id}};
+    notice __x"Update: related_field_id from {old} to {new}", old => $self->related_field_id, new => $new_id
+        if $report && $self->related_field_id != $new_id;
     $self->related_field_id($new_id);
     $orig->(@_);
 };

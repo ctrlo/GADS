@@ -577,8 +577,9 @@ sub cleanup
 
 around export_hash => sub {
     my $orig = shift;
-    my ($self, $values) = @_;
+    my ($self, $values, %options) = @_;
     my $hash = $orig->(@_);
+    my $report = $options{report_only} && $self->id;
     $hash->{refers_to_instance_id} = $self->refers_to_instance_id;
     $hash->{curval_field_ids}      = $self->curval_field_ids;
     return $hash;
@@ -586,7 +587,8 @@ around export_hash => sub {
 
 around import_after_all => sub {
     my $orig = shift;
-    my ($self, $values, $mapping) = @_;
+    my ($self, $values, %options) = @_;
+    my $mapping = $options{mapping};
     my @field_ids = map { $mapping->{$_} } @{$values->{curval_field_ids}};
     $self->curval_field_ids(\@field_ids);
 

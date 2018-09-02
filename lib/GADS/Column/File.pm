@@ -87,7 +87,13 @@ sub cleanup
 };
 
 before import_hash => sub {
-    my ($self, $values) = @_;
+    my ($self, $values, %options) = @_;
+    my $report = $options{report_only} && $self->id;
+    notice __x"Update: filesize from {old} to {new}", old => $self->filesize, new => $values->{filesize}
+        if $report && (
+            (defined $self->filesize xor defined $values->{filesize})
+            || (defined $self->filesize && defined $values->{filesize} && $self->filesize != $values->{filesize})
+        );
     $self->filesize($values->{filesize});
 };
 
