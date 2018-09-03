@@ -172,7 +172,7 @@ var SelectWidget = function (multi) {
         var filterEndpoint = $selectWidget.data("filter-endpoint");
         var filterFields = $selectWidget.data("filter-fields");
         if (!Array.isArray(filterFields)) {
-            if (console && console.error) {
+            if (typeof(console) !== 'undefined' && console.error) {
                 console.error("Invalid data-filter-fields found. It should be a proper JSON array of fields.");
             }
         }
@@ -702,7 +702,7 @@ var Linkspace = {
     },
 
     debug: function (msg) {
-        if (console && console.debug) {
+        if (typeof(console) !== 'undefined' && console.debug) {
             console.debug('[LINKSPACE]', msg);
         }
     },
