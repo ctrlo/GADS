@@ -296,6 +296,7 @@ sub _records_from_db
 
 sub _build_filtered_values
 {   my $self = shift;
+    return [] if $self->value_selector ne 'dropdown';
     my $records = $self->_records_from_db
         or return [];
     my @values;
@@ -309,6 +310,7 @@ sub _build_filtered_values
 
 sub _build_all_values
 {   my $self = shift;
+    return [] if $self->value_selector ne 'dropdown';
     my $records = $self->_records_from_db(no_filter => 1)
         or return [];
     my @values;
