@@ -273,8 +273,10 @@ is( $record->fields->{$curval_filter->id}->as_string, $curval_value, "Curval val
 is( $record->fields->{$curval_filter->id}->for_code->[0]->{field_values}->{L2enum1}, 'foo1', "Curval value for code still correct after filter change (multiple)");
 
 # Add view limit to user
+my $autocur1 = $curval_sheet->add_autocur(refers_to_instance_id => 1, related_field_id => $columns->{curval1}->id);
 {
     $layout->user($user); # Default sheet layout user is superadmin. Change to normal user
+    $curval_sheet->layout->user($user); # Default sheet layout user is superadmin. Change to normal user
     $layout->clear;
     is( scalar @{$curval_filter->filtered_values}, 2, "Correct number of filted values for curval before view_limit" );
 
@@ -313,6 +315,38 @@ is( $record->fields->{$curval_filter->id}->for_code->[0]->{field_values}->{L2enu
     $layout->clear;
     $curval_filter = $layout->column($curval_filter->id);
     is( scalar @{$curval_filter->filtered_values}, 2, "Correct number of values for curval field with filter (filtered)" );
+
+    # Add view limit to main table and check autocur values.
+    # The curval refers to records that this user does not have access to, so
+    # it should return a blank value
+    $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $columns->{enum1}->id,
+                type     => 'string',
+                value    => 'foo3', # Nothing matches, should be no autocur values
+                operator => 'equal',
+            }],
+        },
+    );
+
+    $view_limit = GADS::View->new(
+        name        => 'Limit to view',
+        filter      => $rules,
+        instance_id => 1,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $user,
+    );
+    $view_limit->write;
+    $user->set_view_limits([$view_limit->id]);
+    my $record = GADS::Record->new(
+        user   => $user,
+        schema => $schema,
+        layout => $curval_sheet->layout,
+    );
+    $record->find_current_id($curval_id);
+    is($record->fields->{$autocur1->id}->as_string, '', "Autocur with limited record not shown");
 
     # Return to normal for remainder of tests
     $user->set_view_limits([]);
@@ -517,6 +551,8 @@ $layout->clear; # Rebuild layout for dependencies
 # Test deletion of columns in first datasheet. But first, remove curval field
 # that refers to this one
 $curval_sheet2->columns->{curval1}->delete;
+# And autocur
+$autocur1->delete;
 foreach my $col (reverse $layout->all(order_dependencies => 1))
 {
     my $col_id = $col->id;

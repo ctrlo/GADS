@@ -175,6 +175,8 @@ sub fetch_multivalues
             record_id => $_->{value}->{records}->[0]->{id},
             value     => $retrieved{$_->{record}->{current_id}},
         }
+    } grep {
+        exists $retrieved{$_->{record}->{current_id}}
     } @values;
 }
 
