@@ -1,5 +1,29 @@
 'use strict';
 
+if (!Function.prototype.bind) {
+    Function.prototype.bind = function (oThis) {
+        if (typeof this !== "function") {
+            // closest thing possible to the ECMAScript 5 internal IsCallable function
+            throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+        }
+
+        var aArgs = Array.prototype.slice.call(arguments, 1),
+            fToBind = this,
+            fNOP = function () {},
+            fBound = function () {
+                return fToBind.apply(this instanceof fNOP && oThis
+                                    ? this
+                                    : oThis,
+                                    aArgs.concat(Array.prototype.slice.call(arguments)));
+            };
+
+        fNOP.prototype = this.prototype;
+        fBound.prototype = new fNOP();
+
+        return fBound;
+    };
+}
+
 // This wrapper fixes wrong placement of datepicker. See
 // https://github.com/uxsolutions/bootstrap-datepicker/issues/1941
 var originaldatepicker = $.fn.datepicker;
@@ -148,7 +172,9 @@ var SelectWidget = function (multi) {
         var filterEndpoint = $selectWidget.data("filter-endpoint");
         var filterFields = $selectWidget.data("filter-fields");
         if (!Array.isArray(filterFields)) {
-            console.error("Invalid data-filter-fields found. It should be a proper JSON array of fields.");
+            if (console && console.error) {
+                console.error("Invalid data-filter-fields found. It should be a proper JSON array of fields.");
+            }
         }
 
         var currentValues = $available.find("input:checked").map(function() { return parseInt($(this).val()); }).get();
@@ -676,7 +702,9 @@ var Linkspace = {
     },
 
     debug: function (msg) {
-        console.debug('[LINKSPACE]', msg);
+        if (console && console.debug) {
+            console.debug('[LINKSPACE]', msg);
+        }
     },
 
     TabPanel: function () {
