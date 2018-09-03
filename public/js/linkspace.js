@@ -172,7 +172,9 @@ var SelectWidget = function (multi) {
         var filterEndpoint = $selectWidget.data("filter-endpoint");
         var filterFields = $selectWidget.data("filter-fields");
         if (!Array.isArray(filterFields)) {
-            console.error("Invalid data-filter-fields found. It should be a proper JSON array of fields.");
+            if (console && console.error) {
+                console.error("Invalid data-filter-fields found. It should be a proper JSON array of fields.");
+            }
         }
 
         var currentValues = $available.find("input:checked").map(function() { return parseInt($(this).val()); }).get();
@@ -700,7 +702,9 @@ var Linkspace = {
     },
 
     debug: function (msg) {
-        console.debug('[LINKSPACE]', msg);
+        if (console && console.debug) {
+            console.debug('[LINKSPACE]', msg);
+        }
     },
 
     TabPanel: function () {
