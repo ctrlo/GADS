@@ -103,7 +103,7 @@
                     </div>
                 [% END %]
 
-                [% IF layout.user_can("bulk_update") OR layout.user_can("delete") %]
+                [% IF layout.user_can("bulk_update") OR layout.user_can("delete") OR layout.user_can("download") %]
                     <div class="btn-group">
                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_action">
                                 Action <span class="caret"></span>
