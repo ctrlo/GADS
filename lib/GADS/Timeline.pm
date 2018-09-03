@@ -316,6 +316,9 @@ sub _build_items
                 # Value for this record may not exist or be blank
                 if $record->fields->{$label_id} && $record->fields->{$label_id}->as_string;
             }
+
+            # If a specific field is set to colour-code by, then use that and
+            # override any previous colours set for multiple date fields
             my $item_color; my $color_key = '';
             if (my $color = $self->color_col_id)
             {
@@ -381,8 +384,9 @@ sub _build_items
                         dt         => $d->{from},
                         values     => \@values,
                     };
+                    # Set to date field colour unless specific colour field chosen
                     $item_color = $d->{color}
-                        if $date_column_count > 1;
+                        if !$self->color_col_id && $date_column_count > 1;
                     $item->{style} = qq(background-color: $item_color)
                         if $item_color;
                     # Add one day, otherwise ends at 00:00:00, looking like day is not included
