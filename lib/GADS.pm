@@ -3227,7 +3227,7 @@ get '/match/user/' => require_role 'layout' => sub {
 sub current_view {
     my ($user, $layout) = @_;
 
-    $layout or return;
+    $layout or return undef;
 
     my $views      = GADS::Views->new(
         user        => $user,
@@ -3240,7 +3240,7 @@ sub current_view {
     # user in a continuous loop unable to open any other views
     try { $view = $views->view(session('persistent')->{view}->{$layout->instance_id}) };
     $@->reportAll(is_fatal => 0); # XXX results in double reporting
-    return $view || $views->default; # Can still be undef
+    return $view || $views->default || undef; # Can still be undef
 };
 
 sub current_view_limit_extra
