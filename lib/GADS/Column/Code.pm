@@ -185,6 +185,7 @@ sub update_cached
         schema              => $self->schema,
         columns             => [@{$self->depends_on},$self->id],
         view_limit_extra_id => undef,
+        include_children    => 1, # Update all child records regardless
     );
 
     my @changed;
