@@ -120,7 +120,7 @@ sub base64
         }
     }
     # Now the JSON version will be built with the inserted data values
-    encode_base64($self->as_json);
+    encode_base64($self->as_json, ''); # Base64 plugin does not like new lines
 }
 
 has changed => (

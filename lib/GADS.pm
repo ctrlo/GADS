@@ -784,8 +784,8 @@ any '/data' => require_login sub {
         }
 
         my $timeline = $records->data_timeline(%{$tl_options});
-        $params->{records}              = encode_base64(encode_json(delete $timeline->{items}));
-        $params->{groups}               = encode_base64(encode_json(delete $timeline->{groups}));
+        $params->{records}              = encode_base64(encode_json(delete $timeline->{items}), '');
+        $params->{groups}               = encode_base64(encode_json(delete $timeline->{groups}), '');
         $params->{colors}               = delete $timeline->{colors};
         $params->{timeline}             = $timeline;
         $params->{tl_options}           = $tl_options;
@@ -831,7 +831,7 @@ any '/data' => require_login sub {
             label_col_id    => $globe_options->{label},
             records_options => $records_options,
         );
-        $params->{globe_data} = encode_base64(encode_json($globe->data));
+        $params->{globe_data} = encode_base64(encode_json($globe->data), '');
         $params->{colors}               = $globe->colors;
         $params->{globe_options}        = $globe_options;
         $params->{columns_read}         = [$layout->all(user_can_read => 1)];

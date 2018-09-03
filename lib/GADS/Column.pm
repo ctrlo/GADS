@@ -402,7 +402,7 @@ has display_regex => (
 sub regex_b64
 {   my $self = shift;
     return unless $self->display_regex;
-    encode_base64 $self->display_regex;
+    encode_base64 $self->display_regex, ''; # base64 plugin does not like new lines in content
 }
 
 has helptext => (
