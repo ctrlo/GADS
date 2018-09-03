@@ -38,24 +38,49 @@ my $data1 = [
 
 my @update1 = (
     {
-        string1    => 'Foo',
-        integer1   => 20,
-        date1      => '2010-10-10',
-        daterange1 => ['', ''],
-        enum1      => 8,
-        tree1      => 12,
-        curval1    => 1,
-        curval2    => 1,
+        updates => [
+            {
+                string1    => 'Foo',
+                integer1   => 20,
+                date1      => '2010-10-10',
+                daterange1 => ['', ''],
+                enum1      => 8,
+                tree1      => 12,
+                curval1    => 1,
+                curval2    => 1,
+            },
+        ],
+        autocur_value => ', 45, , , , , , , a_grey, ; Foo, 20, foo2, tree3, 2010-10-10, , , , a_grey, ',
     },
     {
-        string1    => 'Bar',
-        integer1   => 30,
-        date1      => '2014-10-10',
-        daterange1 => ['2014-03-21', '2015-03-01'],
-        enum1      => 7,
-        tree1      => 11,
-        curval1    => 1,
-        curval2    => 1,
+        updates => [
+            {
+                curval1 => undef,
+                curval2 => undef,
+            },
+            {
+                curval1 => undef,
+            },
+        ],
+        autocur_value => '',
+    },
+    {
+        updates => [
+            {
+                string1    => 'Bar',
+                integer1   => 30,
+                date1      => '2014-10-10',
+                daterange1 => ['2014-03-21', '2015-03-01'],
+                enum1      => 7,
+                tree1      => 11,
+                curval1    => 1,
+                curval2    => 1,
+            },
+            {
+                curval1 => 1,
+            },
+        ],
+        autocur_value => 'Bar, 30, foo1, tree2, 2014-10-10, 2014-03-21 to 2015-03-01, , , d_green, 2014; , 45, , , , , , , a_grey, ',
     },
 );
 
@@ -137,25 +162,27 @@ $record_curval->find_current_id(1);
 is( $record_curval->fields->{$autocur1->id}->as_string, ', 45, , , , , , , a_grey, ', "Autocur value correct initially");
 
 # First updates to the main sheet
-my $record = $records->single;
-
-foreach my $update (@update1)
+foreach my $test (@update1)
 {
-    foreach my $column (keys %$update)
+    $records->clear;
+    foreach my $update (@{$test->{updates}})
     {
-        my $field = $columns->{$column}->id;
-        my $datum = $record->fields->{$field};
-        $datum->set_value($update->{$column});
+        my $record = $records->single;
+        foreach my $column (keys %$update)
+        {
+            my $field = $columns->{$column}->id;
+            my $datum = $record->fields->{$field};
+            $datum->set_value($update->{$column});
+        }
+        $record->write(no_alerts => 1);
+        is ($records->count, 2, 'Count of records still correct after value update');
+        is (@{$records->results}, 2, 'Number of actual records still correct after value update');
     }
-    $record->write(no_alerts => 1);
-    is ($records->count, 2, 'Count of records still correct after value update');
-    is (@{$records->results}, 2, 'Number of actual records still correct after value update');
+    # Check autocur value of curval sheet after updates
+    $record_curval->clear;
+    $record_curval->find_current_id(1);
+    is( $record_curval->fields->{$autocur1->id}->as_string, $test->{autocur_value}, "Autocur value correct after first updates");
 }
-
-# Check autocur value of curval sheet after updates
-$record_curval->clear;
-$record_curval->find_current_id(1);
-is( $record_curval->fields->{$autocur1->id}->as_string, ', 45, , , , , , , a_grey, ; Bar, 30, foo1, tree2, 2014-10-10, 2014-03-21 to 2015-03-01, , , d_green, 2014', "Autocur value correct after first updates");
 
 # Then updates to the curval sheet. We need to check the number
 # of records in both sheets though.
