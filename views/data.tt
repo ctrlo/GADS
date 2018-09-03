@@ -208,7 +208,7 @@
     [% END %]
 [% END %]
 
-[% IF user.permission.layout %]
+[% IF layout.user_can("layout") %]
     [% IF views_other_user %][% modal_extra_action = "views_other_user_clear" %][% END %]
     [% WRAPPER modal_dialog.tt
         modal_id="modal_views_other_user" modal_action_text="Submit" modal_heading="Manage views of other user"
