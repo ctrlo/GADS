@@ -7,7 +7,7 @@
         [% ELSIF bulk_type == "clone" %]
             Clone records
         [% END %]
-    [% ELSIF record.current_id %]
+    [% ELSIF NOT record.new_entry %]
         Edit record ID [% record.current_id %]
         [% IF record.parent_id %]
             <small>(child of record [% record.parent_id %])</small>
@@ -20,7 +20,7 @@
         New record
     [% END %]
 </h2>
-[% IF record.current_id %]
+[% IF NOT record.new_entry %]
     <p></p>
     [% PROCESS snippets/record_edit.tt with_view = 1 %]
 [% END %]
@@ -56,7 +56,7 @@
                     [% IF col.topic.description %]
                         <div role="alert" class="alert alert-info">[% col.topic.description | html %]</div>
                     [% END %]
-                [% IF col.topic.click_to_edit AND record.current_id %]
+                [% IF col.topic.click_to_edit AND NOT record.new_entry %]
                     [% click_to_edit = 1 %]
                     <button class="btn btn-default pull-right click-to-edit" type="button" aria-expanded="false">Edit</button>
                     <div id="topic_forms[% col.topic_id %]" class="expandable">
@@ -92,10 +92,13 @@
     </div>
 [% END %]
 
-<form class="edit-form" method="post" enctype="multipart/form-data" action="/edit/[% record.current_id %]"
+[% IF NOT record.new_entry %]
+    [% cur_id = record.current_id %]
+[% END %]
+<form class="edit-form" method="post" enctype="multipart/form-data" action="/edit/[% cur_id %]"
     [% IF modal %]
         data-curval-id="[% modal %]"
-        data-current-id="[% record.current_id %]"
+        data-current-id="[% cur_id %]"
         data-modal-field-ids="[% modal_field_ids %]"
         data-instance-id="[% oi %]"
     [% END %]
@@ -105,7 +108,7 @@
     [% END %]
     <div class="row">
         <div class="[% IF modal %]col-md-12[% ELSE %]col-md-6[% END %]">
-            [% IF record.current_id %]
+            [% IF cur_id %]
                 <input type="hidden" name="current_id" value="[% record.current_id %]">
             [% END %]
             [% IF child %]
@@ -142,7 +145,7 @@
         <p class="spinner" hidden>
             Validating... <i class="fa fa-spinner fa-spin" style="font-size:24px"></i>
         </p>
-        <button type="submit" class="btn btn-primary" id="curval-add">[% IF record.current_id %]Update[% ELSE %]Add[% END %]</button>
+        <button type="submit" class="btn btn-primary" id="curval-add">[% IF record.new_entry %]Add[% ELSE %]Update[% END %]</button>
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
     [% ELSE %]
         <div class="navbar navbar-default navbar-fixed-bottom edit-controls">
@@ -153,7 +156,7 @@
                 <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
                     [% IF record.has_next_values AND page != "bulk" %]Next[% ELSE %]Submit[% END %]
                 </button>
-                [% IF NOT record.current_id %]
+                [% IF record.new_entry %]
                     <button type="submit" name="draft" value="submit" class="btn btn-primary submit_button">
                         Save draft
                     </button>
