@@ -244,7 +244,7 @@
 
                 var m = $("#curval_modal");
                 m.find('.modal-body').text('Loading...');
-                m.find('.modal-body').load('/edit/' + current_id + '?modal=' + layout_id + '&oi=' + instance_id + '&' + form_data, function() {
+                m.find('.modal-body').load('/edit/' + current_id + '?include_draft&modal=' + layout_id + '&oi=' + instance_id + '&' + form_data, function() {
                     if (mode === "edit") {
                         m.find("form").data('guid', guid);
                     }
@@ -264,7 +264,7 @@
                 form.addClass('edit-form--validating');
                 form.find(".alert").attr('hidden', '');
 
-                $.post(form.attr("action") + "?validate&oi=" + form.data('instance-id'), form_data, function(data) {
+                $.post(form.attr("action") + "?validate&include_draft&oi=" + form.data('instance-id'), form_data, function(data) {
                     if (data.error === 0) {
                         curvalModalValidationSucceeded(form);
                     } else {

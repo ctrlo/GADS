@@ -289,6 +289,7 @@ sub _records_from_db
         # retrieved, as this could include a whole load of multivalues which
         # are then fetched from the DB
         sort        => [ map { { id => $_ } } @{$self->curval_field_ids} ],
+        is_draft    => 1, # XXX Only set this when parent record is draft?
     );
 
     return $records;

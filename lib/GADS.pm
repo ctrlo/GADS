@@ -2493,6 +2493,7 @@ any '/edit/:id?' => require_login sub {
         schema   => schema,
         base_url => request->base,
     );
+    my $include_draft = defined(param 'include_draft');
 
     if (my $delete_id = param 'delete')
     {
@@ -2512,7 +2513,7 @@ any '/edit/:id?' => require_login sub {
 
     if ($id)
     {
-        $record->find_current_id($id);
+        $record->find_current_id($id, include_draft => $include_draft);
         $layout = $record->layout; # May have changed if record from other datasheet
     }
 

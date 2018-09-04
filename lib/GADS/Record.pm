@@ -616,7 +616,7 @@ sub _find
         columns             => $self->columns,
         rewind              => $self->rewind,
         is_deleted          => $find{deleted},
-        is_draft            => $find{draftuser_id} ? 1 : 0,
+        is_draft            => $find{draftuser_id} || $find{include_draft} ? 1 : 0,
         include_approval    => $self->include_approval,
         view_limit_extra_id => undef, # Remove any default extra view
     );

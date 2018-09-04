@@ -260,7 +260,7 @@ sub _build_values_as_query_records
         );
         if (my $current_id = $params->{current_id})
         {
-            $record->find_current_id($current_id);
+            $record->find_current_id($current_id, include_draft => 1);
         }
         else {
             $record->initialise;
