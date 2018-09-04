@@ -251,6 +251,17 @@ sub _build_serial
     $self->schema->resultset('Current')->find($self->current_id)->serial;
 }
 
+has is_draft => (
+    is  => 'lazy',
+    isa => Maybe[Int],
+);
+
+sub _build_is_draft
+{   my $self = shift;
+    return unless $self->current_id;
+    !!$self->schema->resultset('Current')->find($self->current_id)->draftuser_id;
+}
+
 has approval_id => (
     is => 'rw',
 );
@@ -1046,7 +1057,9 @@ sub write
     undef $@;
     my $guard = $self->schema->txn_scope_guard;
 
-    error __"Cannot save draft of existing record" if $options{draft} && !$self->new_entry;
+    error __"Cannot save draft of existing record" if $options{draft} && !$self->new_entry && !$self->is_draft;
+
+    $self->remove_id if $self->is_draft && !$options{draft};
 
     # Create a new overall record if it's new, otherwise
     # load the old values
@@ -1672,6 +1685,10 @@ sub _field_write
                     my %entry = %$entry; # Copy to stop referenced id being overwritten
                     $entry{value} = $id;
                     push @entries, \%entry;
+                    if ($self->new_entry && $column->type eq 'curval')
+                    {
+                        $self->schema->resultset('Current')->find($id)->update({ draftuser_id => undef });
+                    }
                 }
                 if ($column->type eq 'curval' && $column->delete_not_used)
                 {
