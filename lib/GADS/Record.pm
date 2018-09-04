@@ -626,6 +626,10 @@ sub _find
         if $find{deleted} && !$self->layout->user_can("purge");
 
     my $records = GADS::Records->new(
+        # XXX We need to retrieve all curval fields in case this record goes on
+        # to become an edit. It would be nice, however, to have some way of
+        # only doing this when necessary
+        curval_all_fields   => 1,
         user                => $self->user,
         layout              => $self->layout,
         schema              => $self->schema,

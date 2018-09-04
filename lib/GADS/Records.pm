@@ -73,6 +73,14 @@ has is_deleted => (
     default => 0,
 );
 
+# Whether to build all fields for any curvals. This is needed when producing a
+# record for editing that contains draft curvals (in which case all the fields
+# are rendered as a query)
+has curval_all_fields => (
+    is      => 'ro',
+    default => 0,
+);
+
 # Whether to exclude children from the results
 has include_children => (
     is  => 'lazy',
@@ -1123,6 +1131,10 @@ sub _build_columns_retrieved_do
             remembered_only    => $self->remembered_only,
             order_dependencies => 1,
         );
+        if ($self->curval_all_fields)
+        {
+            $_->build_all_columns foreach grep { $_->type eq 'curval' } @columns;
+        }
     }
     \@columns;
 }

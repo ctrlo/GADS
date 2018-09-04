@@ -124,8 +124,10 @@ is($record_rs->count, 3, "Additional normal record written");
     })->count;
 
     # Set show_add option for curval field
+    my $curval_columns = $curval_sheet->columns;
     my $curval = $columns->{curval1};
     $curval->show_add(1);
+    $curval->curval_field_ids([$curval_columns->{string1}->id, $curval_columns->{integer1}->id, $curval_columns->{rag1}->id]);
     $curval->write;
     $layout->clear;
 
@@ -138,7 +140,6 @@ is($record_rs->count, 3, "Additional normal record written");
     $record->initialise;
     my $string1 = $layout->column_by_name('string1');
     $record->fields->{$string1->id}->set_value("Draft3");
-    my $curval_columns = $curval_sheet->columns;
     my $val  = $curval_columns->{string1}->field.'=foo&'.$curval_columns->{integer1}->field.'=25';
     my $val2 = $curval_columns->{string1}->field.'=bar&'.$curval_columns->{integer1}->field.'=50';
     $record->fields->{$curval->id}->set_value([$val, $val2]);
@@ -176,7 +177,7 @@ is($record_rs->count, 3, "Additional normal record written");
         schema => $schema,
     );
     $record->load_remembered_values;
-    is($record->fields->{$curval->id}->as_string, "bar, 50, , , , , , , , ; foo, 25, , , , , , , , ", "Remembered subrecord curval");
+    is($record->fields->{$curval->id}->as_string, "bar, 50, ; foo, 25, ", "Remembered subrecord curval");
     my ($id) = @{$record->fields->{$curval->id}->ids};
     $curval_count = $schema->resultset('Current')->search({
         instance_id  => 2,
@@ -204,7 +205,7 @@ is($record_rs->count, 3, "Additional normal record written");
         schema => $schema,
     );
     $record->find_current_id($current_id);
-    is($record->fields->{$curval->id}->as_string, "bar, 50, , , , , , , a_grey, ; foo, 25, , , , , , , a_grey, ", "Remembered subrecord curval");
+    is($record->fields->{$curval->id}->as_string, "bar, 50, a_grey; foo, 25, a_grey", "Remembered subrecord curval");
 
     # Check the single remaining draft is the correct one
     $record = GADS::Record->new(
