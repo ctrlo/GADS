@@ -74,6 +74,11 @@ around 'clone' => sub {
     );
 };
 
+sub html_form
+{   my $self = shift;
+    $self->value; # Already array ref
+}
+
 sub write_cache
 {   my ($self, $table) = @_;
 
