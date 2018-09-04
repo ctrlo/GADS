@@ -82,7 +82,7 @@ has html_form => (
 
 sub _build_html_form
 {   my $self = shift;
-    $self->values;
+    [ map { $_ || '' } @{$self->values} ];
 }
 
 has text_all => (
