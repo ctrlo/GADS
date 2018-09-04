@@ -6,10 +6,14 @@ use Log::Report;
 
 use t::lib::DataSheet;
 
-my $sheet   = t::lib::DataSheet->new;
-my $schema  = $sheet->schema;
+my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, data => []);
+$curval_sheet->create_records;
+my $schema  = $curval_sheet->schema;
+
+my $sheet   = t::lib::DataSheet->new(schema => $schema, curval => 2);
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
+
 my $user    = $sheet->user_normal1;
 $sheet->create_records;
 
@@ -20,6 +24,9 @@ $columns->{integer1}->write;
 $columns->{date1}->optional(0);
 $columns->{date1}->write;
 
+$curval_sheet->layout->user($user);
+$curval_sheet->layout->clear;
+$layout->user($user);
 $layout->clear;
 
 my $records = GADS::Records->new(
@@ -94,5 +101,102 @@ like($@, qr/Cannot save draft of existing/, "Unable to write draft for normal re
 # Check numbers after proper record save
 is($draft_rs->count, 0, "No drafts after proper save");
 is($record_rs->count, 3, "Additional normal record written");
+
+# Test saving of draft with sub-record
+{
+    # First create a standard draft in the subrecord table
+    my $record = GADS::Record->new(
+        user   => $user,
+        layout => $curval_sheet->layout,
+        schema => $schema,
+    );
+    $record->initialise;
+    my $string_curval = $curval_sheet->layout->column_by_name('string1');
+    $record->fields->{$string_curval->id}->set_value("Draft2");
+    $record->write(draft => 1); # Missing date1 should not matter
+
+    # Count records as of now
+    my $main_count = $schema->resultset('Current')->search({
+        instance_id => 1,
+    })->count;
+    my $curval_count = $schema->resultset('Current')->search({
+        instance_id => 2,
+    })->count;
+    my $curval = $columns->{curval1};
+    $curval->show_add(1);
+    $curval->write;
+    $layout->clear;
+
+    $record = GADS::Record->new(
+        user   => $user,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->initialise;
+    my $string1 = $layout->column_by_name('string1');
+    $record->fields->{$string1->id}->set_value("Draft3");
+    my $curval_columns = $curval_sheet->columns;
+    my $val  = $curval_columns->{string1}->field.'=foo&'.$curval_columns->{integer1}->field.'=25';
+    my $val2 = $curval_columns->{string1}->field.'=bar&'.$curval_columns->{integer1}->field.'=50';
+    $record->fields->{$curval->id}->set_value([$val, $val2]);
+    $record->write(draft => 1); # Missing date1 should not matter
+
+    my $main_count_new = $schema->resultset('Current')->search({
+        instance_id => 1,
+    })->count;
+    my $curval_count_new = $schema->resultset('Current')->search({
+        instance_id => 2,
+    })->count;
+    is($main_count_new, $main_count + 1, "One main draft record");
+    is($curval_count_new, $curval_count + 2, "Two subrecord draft records");
+
+    # Check that the previously created draft is retrieved
+    $record = GADS::Record->new(
+	user   => $user,
+	layout => $curval_sheet->layout,
+	schema => $schema,
+    );
+    $record->load_remembered_values;
+    is($record->fields->{$string_curval->id}->as_string, "Draft2", "Draft sub-record retrieved");
+
+    $record->fields->{$string_curval->id}->set_value("Draft4");
+    $record->write(draft => 1); # Missing date1 should not matter
+    $record->clear;
+    $record->load_remembered_values;
+    is($record->fields->{$string_curval->id}->as_string, "Draft4", "Draft sub-record retrieved");
+
+    $record = GADS::Record->new(
+        user   => $user,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->load_remembered_values;
+    is($record->fields->{$curval->id}->as_string, "bar, 50, , , , , , , , ; foo, 25, , , , , , , , ", "Remembered subrecord curval");
+    $curval_count = $schema->resultset('Current')->search({
+        instance_id  => 2,
+        draftuser_id => $user->id,
+    })->count;
+    is($curval_count, 3, "Correct number of sub-record drafts"); # One direct plus 2 from above record draft
+
+    # Now write the main record. The 2 sub-record drafts should be written and removed
+    $record->fields->{$curval->id}->set_value([$val]);
+    $record->fields->{$columns->{integer1}->id}->set_value(10);
+    $record->fields->{$columns->{date1}->id}->set_value('2015-01-01');
+    $record->write(no_alerts => 1);
+    $curval_count_new = $schema->resultset('Current')->search({
+        instance_id  => 2,
+        draftuser_id => $user->id,
+    })->count;
+    is($curval_count_new, 1, "No draft sub-records after write"); # One direct left only
+
+    # Check the single remaining draft is the correct one
+    $record = GADS::Record->new(
+	user   => $user,
+	layout => $curval_sheet->layout,
+	schema => $schema,
+    );
+    $record->load_remembered_values;
+    is($record->fields->{$string_curval->id}->as_string, "Draft2", "Draft sub-record retrieved");
+}
 
 done_testing();

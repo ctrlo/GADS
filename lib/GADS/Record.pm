@@ -660,6 +660,9 @@ sub _find
             push @$search, {
                 'me.draftuser_id' => $find{draftuser_id},
             };
+            push @$search, {
+                'curvals.id'      => undef,
+            };
         }
         else {
             panic "Unexpected find parameters";
@@ -702,6 +705,10 @@ sub _find
     push @columns_fetch, "createdby.$_" foreach @GADS::Column::Person::person_properties;
     push @columns_fetch, "deletedby.$_" foreach @GADS::Column::Person::person_properties;
 
+    # If fetch a draft, then make sure it's not a draft curval that's part of
+    # another draft record
+    push @prefetches, 'curvals' if $find{draftuser_id};
+
     my $result = $self->schema->resultset($root_table)->search(
         [
             -and => $search
@@ -738,6 +745,7 @@ sub _find
         record_ids => \@record_ids,
         retrieved  => [$record],
         records    => [$self],
+        is_draft   => $find{draftuser_id},
     );
 
     $self; # Allow chaining
@@ -1250,7 +1258,7 @@ sub write
     # New record?
     if ($self->new_entry)
     {
-        $self->delete_user_drafts; # Delete any drafts first, for both draft save and full save
+        $self->delete_user_drafts unless $options{no_draft_delete}; # Delete any drafts first, for both draft save and full save
         my $instance_id = $self->layout->instance_id;
         my $current = $self->schema->resultset('Current')->create({
             parent_id    => $self->parent_id,
@@ -1652,7 +1660,7 @@ sub _field_write
                 {
                     foreach my $record (@{$datum_write->values_as_query_records})
                     {
-                        $record->write(%options);
+                        $record->write(%options, no_draft_delete => 1);
                         my $id = $record->current_id;
                         my %entry = %$entry; # Copy to stop referenced id being overwritten
                         $entry{value} = $id;

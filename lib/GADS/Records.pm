@@ -951,7 +951,7 @@ sub fetch_multivalues
             # duplicating some values. We therefore have to flag to make sure
             # we don't do this.
             my %colsd;
-            foreach my $val ($col->fetch_multivalues(\@retrieve_ids))
+            foreach my $val ($col->fetch_multivalues(\@retrieve_ids, is_draft => $params{is_draft}))
             {
                 my $field = "field$val->{layout_id}";
                 next if $cols_done->{$val->{layout_id}};

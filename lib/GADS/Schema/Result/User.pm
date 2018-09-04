@@ -839,6 +839,9 @@ sub has_draft
     $self->result_source->schema->resultset('Current')->search({
         instance_id  => $instance_id,
         draftuser_id => $self->id,
+        'curvals.id' => undef,
+    }, {
+        join => 'curvals',
     })->next;
 }
 

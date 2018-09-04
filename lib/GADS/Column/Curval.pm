@@ -262,7 +262,7 @@ sub validate_search
 }
 
 sub fetch_multivalues
-{   my ($self, $record_ids) = @_;
+{   my ($self, $record_ids, %options) = @_;
 
     my $m_rs = $self->schema->resultset('Curval')->search({
         'me.record_id'      => $record_ids,
@@ -276,6 +276,7 @@ sub fetch_multivalues
         schema      => $self->schema,
         columns     => $self->curval_field_ids_retrieve,
         current_ids => [map { $_->{value} } @values],
+        is_draft    => $options{is_draft},
     );
     my %retrieved;
     while (my $record = $records->single)
