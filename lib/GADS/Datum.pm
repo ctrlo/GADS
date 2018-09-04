@@ -159,7 +159,7 @@ sub html
 
 sub html_form
 {   my $self = shift;
-    [ $self->value ];
+    [ $self->value || '' ];
 }
 
 # The value to search for unique values

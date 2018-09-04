@@ -46,6 +46,7 @@ sub _transform_value
             current_id           => $id,
             linked_id            => $value->{linked_id},
             parent_id            => $value->{parent_id},
+            is_draft             => $value->{draftuser_id},
             columns_retrieved_do => $self->column->curval_fields_retrieve,
         );
     }

@@ -122,11 +122,14 @@ is($record_rs->count, 3, "Additional normal record written");
     my $curval_count = $schema->resultset('Current')->search({
         instance_id => 2,
     })->count;
+
+    # Set show_add option for curval field
     my $curval = $columns->{curval1};
     $curval->show_add(1);
     $curval->write;
     $layout->clear;
 
+    # Create draft for the main record, containing 2 draft subrecords
     $record = GADS::Record->new(
         user   => $user,
         layout => $layout,
@@ -139,8 +142,9 @@ is($record_rs->count, 3, "Additional normal record written");
     my $val  = $curval_columns->{string1}->field.'=foo&'.$curval_columns->{integer1}->field.'=25';
     my $val2 = $curval_columns->{string1}->field.'=bar&'.$curval_columns->{integer1}->field.'=50';
     $record->fields->{$curval->id}->set_value([$val, $val2]);
-    $record->write(draft => 1); # Missing date1 should not matter
+    $record->write(draft => 1);
 
+    # Check record counts
     my $main_count_new = $schema->resultset('Current')->search({
         instance_id => 1,
     })->count;
@@ -150,7 +154,7 @@ is($record_rs->count, 3, "Additional normal record written");
     is($main_count_new, $main_count + 1, "One main draft record");
     is($curval_count_new, $curval_count + 2, "Two subrecord draft records");
 
-    # Check that the previously created draft is retrieved
+    # Check that the previously created subrecord draft is retrieved (not drafts from main record)
     $record = GADS::Record->new(
 	user   => $user,
 	layout => $curval_sheet->layout,
@@ -159,6 +163,7 @@ is($record_rs->count, 3, "Additional normal record written");
     $record->load_remembered_values;
     is($record->fields->{$string_curval->id}->as_string, "Draft2", "Draft sub-record retrieved");
 
+    # Update subrecord draft
     $record->fields->{$string_curval->id}->set_value("Draft4");
     $record->write(draft => 1); # Missing date1 should not matter
     $record->clear;
@@ -172,6 +177,7 @@ is($record_rs->count, 3, "Additional normal record written");
     );
     $record->load_remembered_values;
     is($record->fields->{$curval->id}->as_string, "bar, 50, , , , , , , , ; foo, 25, , , , , , , , ", "Remembered subrecord curval");
+    my ($id) = @{$record->fields->{$curval->id}->ids};
     $curval_count = $schema->resultset('Current')->search({
         instance_id  => 2,
         draftuser_id => $user->id,
@@ -179,7 +185,7 @@ is($record_rs->count, 3, "Additional normal record written");
     is($curval_count, 3, "Correct number of sub-record drafts"); # One direct plus 2 from above record draft
 
     # Now write the main record. The 2 sub-record drafts should be written and removed
-    $record->fields->{$curval->id}->set_value([$val]);
+    $record->fields->{$curval->id}->set_value([$val,$val2]);
     $record->fields->{$columns->{integer1}->id}->set_value(10);
     $record->fields->{$columns->{date1}->id}->set_value('2015-01-01');
     $record->write(no_alerts => 1);
@@ -189,6 +195,17 @@ is($record_rs->count, 3, "Additional normal record written");
     })->count;
     is($curval_count_new, 1, "No draft sub-records after write"); # One direct left only
 
+    # Check that written record is correct - should have used existing curval
+    # drafts
+    my $current_id = $record->current_id;
+    $record = GADS::Record->new(
+        user   => $user,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->find_current_id($current_id);
+    is($record->fields->{$curval->id}->as_string, "bar, 50, , , , , , , a_grey, ; foo, 25, , , , , , , a_grey, ", "Remembered subrecord curval");
+
     # Check the single remaining draft is the correct one
     $record = GADS::Record->new(
 	user   => $user,
@@ -196,7 +213,7 @@ is($record_rs->count, 3, "Additional normal record written");
 	schema => $schema,
     );
     $record->load_remembered_values;
-    is($record->fields->{$string_curval->id}->as_string, "Draft2", "Draft sub-record retrieved");
+    is($record->fields->{$string_curval->id}->as_string, "Draft4", "Draft sub-record retrieved");
 }
 
 done_testing();

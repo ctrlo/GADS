@@ -104,7 +104,7 @@ sub has_value { $_[0]->has_id }
 
 sub html_form
 {   my $self = shift;
-    $self->column->multivalue ? $self->id : [ $self->id ];
+    [ map { $_ || '' } $self->column->multivalue ? @{$self->id} : $self->id ];
 }
 
 has value_hash => (

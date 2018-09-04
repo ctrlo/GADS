@@ -873,6 +873,7 @@ sub _build_results
             child_records        => \@children,
             parent_id            => $rec->{parent_id},
             linked_id            => $rec->{linked_id},
+            is_draft             => $rec->{draftuser_id},
             user                 => $self->user,
             layout               => $self->layout,
             columns_retrieved_no => $self->columns_retrieved_no,

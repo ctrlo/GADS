@@ -85,7 +85,12 @@ sub _build__init_value_hash
         {
             my ($record, $id) = $self->_transform_value($v);
             push @records, $record if $record;
-            push @ids, $id if $id;
+            # Don't include IDs of draft records. These will be recreated
+            # afresh as required from the equivalent query string. Trying to
+            # keep the same record from draft to main is too messy - things
+            # like code values are not written, and removing the draft status
+            # is fraught with danger.
+            push @ids, $id if $id && (!$record || !$record->is_draft);
         }
         +{
             records => \@records,
@@ -231,13 +236,25 @@ sub id
     $self->ids->[0];
 }
 
+# Remove any draft subrecords that have been created just for this curval
+# field. These will be removed when the main draft is removed.
+sub purge_drafts
+{   my $self = shift;
+    $_->delete_current, $_->purge_current foreach grep { $_->is_draft } @{$self->_records};
+}
+
 # Values as a URI query string. These are values submitted as queries via the
 # curval-edit functionality. They will either be existing records edited or new
 # records
 has values_as_query => (
     is      => 'rwp',
     isa     => ArrayRef,
-    default => sub { [] },
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        return [] if !$self->_records;
+        [ map { $_->as_query } grep { $_->is_draft } @{$self->_records} ];
+    },
 );
 
 # The above values as queries, converted to records
@@ -299,11 +316,6 @@ sub as_integer
     $self->id // 0;
 }
 
-sub html_form
-{   my $self = shift;
-    $self->ids;
-}
-
 sub html_withlinks
 {   my $self = shift;
     $self->as_string or return "";
@@ -336,7 +348,7 @@ sub field_values_for_code
         : $self->column->field_values_for_code(ids => $self->ids);
 }
 
-sub for_edit
+sub html_form
 {   my $self = shift;
     my $values = $self->for_code;
     my $return = !defined $values

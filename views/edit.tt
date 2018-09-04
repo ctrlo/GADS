@@ -886,7 +886,7 @@
             <col style="width: 20%;">
         </colgroup>
         <tbody>
-            [% FOREACH val IN editvalue.for_edit %]
+            [% FOREACH val IN editvalue.html_form %]
                 <tr class="curval_item">
                     <td class="curval-inner-text">[% val.value | html %]</td>
                     <td>

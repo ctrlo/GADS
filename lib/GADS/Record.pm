@@ -42,6 +42,7 @@ use Log::Report 'linkspace';
 use JSON qw(encode_json);
 use POSIX ();
 use Scope::Guard qw(guard);
+use URI::Escape;
 
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
@@ -252,12 +253,16 @@ sub _build_serial
 }
 
 has is_draft => (
-    is  => 'lazy',
-    isa => Bool,
+    is      => 'lazy',
+    isa     => Bool,
+    coerce  => sub { $_[0] ? 1 : 0 }, # Allow direct passing of draftuser_id
+    clearer => 1,
 );
 
 sub _build_is_draft
 {   my $self = shift;
+    return !!$self->{record}->{draftuser_id}
+        if exists $self->{record}->{draftuser_id};
     return unless $self->current_id;
     !!$self->schema->resultset('Current')->find($self->current_id)->draftuser_id;
 }
@@ -709,6 +714,7 @@ sub _find
     my $base = $find{record_id} ? 'me' : 'record_single_2';
     push @columns_fetch, {id => "$base.id"};
     push @columns_fetch, $find{record_id} ? {deleted => "current.deleted"} : {deleted => "me.deleted"};
+    push @columns_fetch, $find{record_id} ? {draftuser_id => "current.draftuser_id"} : {draftuser_id => "me.draftuser_id"};
     push @columns_fetch, {linked_id => "linked.id"};
     push @columns_fetch, {'linked.record_id' => "record_single.id"};
     push @columns_fetch, {current_id => "$base.current_id"};
@@ -739,6 +745,7 @@ sub _find
     $self->linked_id($record->{linked_id});
     $self->set_deleted($record->{deleted});
     $self->set_deletedby($record->{deletedby});
+    $self->clear_is_draft;
 
     # Fetch and merge and multi-values
     my @record_ids = ($record->{id});
@@ -1028,8 +1035,11 @@ sub delete_user_drafts
             );
             $draft->find_draftuser_id($self->user->id)
                 or last;
+            # Find and delete any draft subrecords associated with this draft
+            my @purge_curval = map { $draft->fields->{$_->id} } grep { $_->type eq 'curval' } $draft->layout->all;
             $draft->delete_current;
             $draft->purge_current;
+            $_->purge_drafts foreach @purge_curval;
         }
     }
 }
@@ -1057,9 +1067,7 @@ sub write
     undef $@;
     my $guard = $self->schema->txn_scope_guard;
 
-    error __"Cannot save draft of existing record" if $options{draft} && !$self->new_entry && !$self->is_draft;
-
-    $self->remove_id if $self->is_draft && !$options{draft};
+    error __"Cannot save draft of existing record" if $options{draft} && !$self->new_entry;
 
     # Create a new overall record if it's new, otherwise
     # load the old values
@@ -1685,10 +1693,6 @@ sub _field_write
                     my %entry = %$entry; # Copy to stop referenced id being overwritten
                     $entry{value} = $id;
                     push @entries, \%entry;
-                    if ($self->new_entry && $column->type eq 'curval')
-                    {
-                        $self->schema->resultset('Current')->find($id)->update({ draftuser_id => undef });
-                    }
                 }
                 if ($column->type eq 'curval' && $column->delete_not_used)
                 {
@@ -1864,6 +1868,17 @@ sub as_json
         $return->{$short} = $self->fields->{$col->id}->as_string;
     }
     encode_json $return;
+}
+
+sub as_query
+{   my $self = shift;
+    my @queries;
+    foreach my $col ($self->layout->all(userinput => 1))
+    {
+        push @queries, $col->field."=".uri_escape($_)
+            foreach @{$self->fields->{$col->id}->html_form};
+    }
+    return join '&', @queries;
 }
 
 sub pdf
