@@ -253,7 +253,7 @@ sub _build_serial
 
 has is_draft => (
     is  => 'lazy',
-    isa => Maybe[Int],
+    isa => Bool,
 );
 
 sub _build_is_draft
