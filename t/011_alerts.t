@@ -122,7 +122,36 @@ $curval_calc->code("
 ");
 $curval_calc->write;
 
+my $created_calc = GADS::Column::Calc->new(
+    name        => "Created calc",
+    schema      => $schema,
+    user        => $sheet->user,
+    layout      => $layout,
+    return_type => 'date',
+    code => "
+        function evaluate (_created)
+            return _created.epoch
+        end
+    ",
+);
+$created_calc->write;
+$created_calc->set_permissions($sheet->group->id, $sheet->default_permissions);
+$layout->clear;
+
 my @filters = (
+    {
+        name       => 'Calc with record created date',
+        rules      => undef,
+        columns    => [$created_calc->id],
+        current_id => 3,
+        update     => [
+            {
+                column => 'string1',
+                value  => 'foobar',
+            },
+        ],
+        alerts => 1,
+    },
     {
         name       => 'Update of record in no filter view',
         rules      => undef,

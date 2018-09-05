@@ -96,6 +96,9 @@ sub convert_value
                     push @return, $ret;
                 }
             }
+            # Database only stores date part, so ensure local value reflects
+            # that
+            $return->truncate(to => 'day');
         }
         elsif ($column->return_type eq 'numeric' || $column->return_type eq 'integer')
         {
