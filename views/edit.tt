@@ -95,8 +95,9 @@
 [% IF NOT record.new_entry %]
     [% cur_id = record.current_id %]
 [% END %]
-<form class="edit-form" method="post" enctype="multipart/form-data" action="/edit/[% cur_id %]"
+<form class="edit-form" method="post" enctype="multipart/form-data"
     [% IF modal %]
+        action="/edit/[% cur_id %]" [%# This form also used for bulk actions %]
         data-curval-id="[% modal %]"
         data-current-id="[% cur_id %]"
         data-modal-field-ids="[% modal_field_ids %]"
