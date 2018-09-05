@@ -329,7 +329,7 @@ sub _build_results
         }
     };
 
-    my $q = $self->search_query(prefetch => 1, search => 1, linked => 1, retain_join_order => 1); # Called first to generate joins
+    my $q = $self->search_query(prefetch => 1, search => 1, linked => 1, retain_join_order => 1, include_multivalue => 1); # Called first to generate joins
 
     my $select = {
         select => [@select_fields],
