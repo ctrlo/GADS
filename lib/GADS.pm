@@ -1030,12 +1030,13 @@ any '/purge/?' => require_login sub {
         my @current_ids = body_parameters->get_all('record_selected')
             or forwardHome({ danger => "Please select some records before clicking an action" }, 'purge');
         my $records = GADS::Records->new(
-            current_ids => [@current_ids],
-            columns     => [],
-            user        => $user,
-            is_deleted  => 1,
-            layout      => $layout,
-            schema      => schema,
+            current_ids         => [@current_ids],
+            columns             => [],
+            user                => $user,
+            is_deleted          => 1,
+            layout              => $layout,
+            schema              => schema,
+            view_limit_extra_id => undef, # Override any value that may be set
         );
         if (param 'purge')
         {
@@ -1052,11 +1053,12 @@ any '/purge/?' => require_login sub {
     }
 
     my $records = GADS::Records->new(
-        columns    => [],
-        user       => $user,
-        is_deleted => 1,
-        layout     => $layout,
-        schema     => schema,
+        columns             => [],
+        user                => $user,
+        is_deleted          => 1,
+        layout              => $layout,
+        schema              => schema,
+        view_limit_extra_id => undef, # Override any value that may be set
     );
 
     my $params = {
