@@ -1133,7 +1133,7 @@ sub _build_columns_retrieved_do
         );
         if ($self->curval_all_fields)
         {
-            $_->build_all_columns foreach grep { $_->type eq 'curval' } @columns;
+            $_->build_all_columns foreach grep { $_->type eq 'curval' && $_->show_add } @columns;
         }
     }
     \@columns;
