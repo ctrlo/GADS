@@ -1681,7 +1681,7 @@ sub _field_write
             }
             elsif ($column->type =~ /(file|enum|tree|person|curval)/)
             {
-                if ($column->type eq 'curval')
+                if ($column->type eq 'curval' && $column->show_add)
                 {
                     foreach my $record (@{$datum_write->values_as_query_records})
                     {
