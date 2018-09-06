@@ -227,6 +227,10 @@ has title => (
     },
 );
 
+sub search_values_unique
+{   [shift->text];
+}
+
 has text => (
     is      => 'rw',
     lazy    => 1,
