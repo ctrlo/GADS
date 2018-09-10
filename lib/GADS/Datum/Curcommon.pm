@@ -350,6 +350,11 @@ sub field_values_for_code
         : $self->column->field_values_for_code(ids => $self->ids);
 }
 
+sub set_values
+{   my $self = shift;
+    [ map { $_->{id} } @{$self->html_form} ];
+}
+
 sub html_form
 {   my $self = shift;
     my $values = $self->for_code;

@@ -1413,7 +1413,7 @@ sub write
             #$datum->current_id($self->current_id);
             #$datum->record_id($self->record_id);
             #$self->fields->{$column->id} = $datum;
-            $datum->set_value($datum_parent->html_form, is_parent_value => 1);
+            $datum->set_value($datum_parent->set_values, is_parent_value => 1);
         }
         next if $self->linked_id && $column->link_parent; # Don't write all values if this is a linked record
 

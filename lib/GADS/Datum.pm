@@ -162,6 +162,10 @@ sub html_form
     [ $self->value || '' ];
 }
 
+# The values needed to pass to the set_values function of a datum. Normally the
+# same as the HTML fields, but overridden where necessary
+sub set_values { shift->html_form }
+
 # The value to search for unique values
 sub search_values_unique
 {   shift->html_form;
