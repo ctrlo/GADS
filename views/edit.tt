@@ -875,7 +875,7 @@
 [% END %]
 
 [% BLOCK curval_add_button %]
-    <p><buton class="btn btn-primary curval-modal" type="button"
+    <p><button class="btn btn-primary curval-modal" type="button"
         data-instance-id="[% dispcol.refers_to_instance_id %]" data-layout-id="[% dispcol.id %]">Add...
     </button></p>
 [% END %]
