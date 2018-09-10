@@ -230,3 +230,7 @@ img.autosize {
     margin-left: 5px;
     white-space: nowrap;
 }
+
+div.vis-foreground > div.vis-group:nth-of-type(even) {
+    background-color: rgba(245, 245, 245, 0.4);
+}
