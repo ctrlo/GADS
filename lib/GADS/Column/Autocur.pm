@@ -104,17 +104,6 @@ sub _build_refers_from_value_field
     "value";
 }
 
-has curval_joins => (
-    is => 'lazy',
-);
-
-sub _build_curval_joins
-{   my $self = shift;
-    my @join = map { $_->join } @{$self->curval_fields_retrieve};
-    push @join, $self->refers_from_field;
-    \@join;
-}
-
 sub make_join
 {   my ($self, @joins) = @_;
     +{

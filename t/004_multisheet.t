@@ -214,7 +214,7 @@ foreach my $filter (@filters)
 # Retrieve single record and check linked values
 my $single = GADS::Record->new(
     user   => undef,
-    layout => $layout1,
+    layout => $layout2,
     schema => $schema,
 );
 

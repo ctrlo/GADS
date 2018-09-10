@@ -75,8 +75,9 @@ has is_deleted => (
 
 # Whether to build all fields for any curvals. This is needed when producing a
 # record for editing that contains draft curvals (in which case all the fields
-# are rendered as a query)
-has curval_all_fields => (
+# are rendered as a query), and when needing to retrieve the curcommon values
+# for code evaluations
+has curcommon_all_fields => (
     is      => 'ro',
     default => 0,
 );
@@ -860,13 +861,6 @@ sub _build_results
     my $result = $self->schema->resultset('Current')->search($self->_cid_search_query, $select);
 
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
-    my $column_flags = {
-        map {
-            $_->id => $_->flags
-        } grep {
-            %{$_->flags}
-        } @{$self->columns_retrieved_no}
-    };
 
     my @all; my @record_ids;
     my @retrieved = $result->all;
@@ -886,10 +880,10 @@ sub _build_results
             layout               => $self->layout,
             columns_retrieved_no => $self->columns_retrieved_no,
             columns_retrieved_do => $self->columns_retrieved_do,
-            column_flags         => $column_flags,
             set_deleted          => $rec->{deleted},
             set_deletedby        => $rec->{deletedby},
             record_created       => $rec->{record_created},
+            curcommon_all_fields => $self->curcommon_all_fields,
         );
         push @record_ids, $rec->{record_single}->{id};
         push @record_ids, $rec->{linked}->{record_single}->{id}
@@ -960,7 +954,7 @@ sub fetch_multivalues
             # duplicating some values. We therefore have to flag to make sure
             # we don't do this.
             my %colsd;
-            foreach my $val ($col->fetch_multivalues(\@retrieve_ids, is_draft => $params{is_draft}))
+            foreach my $val ($col->fetch_multivalues(\@retrieve_ids, is_draft => $params{is_draft}, curcommon_all_fields => $self->curcommon_all_fields))
             {
                 my $field = "field$val->{layout_id}";
                 next if $cols_done->{$val->{layout_id}};
@@ -1131,10 +1125,12 @@ sub _build_columns_retrieved_do
             remembered_only    => $self->remembered_only,
             order_dependencies => 1,
         );
-        if ($self->curval_all_fields)
-        {
-            $_->build_all_columns foreach grep { $_->type eq 'curval' && $_->show_add } @columns;
-        }
+    }
+    foreach my $c (@columns)
+    {
+        # We're viewing this, so prefetch all the values
+        $self->add_prefetch($c, all_fields => $self->curcommon_all_fields);
+        $self->add_linked_prefetch($c->link_parent) if $c->link_parent;
     }
     \@columns;
 }
@@ -1197,9 +1193,6 @@ sub _query_params
                 rules     => \@f,
             } if @f;
         }
-        # We're viewing this, so prefetch all the values
-        $self->add_prefetch($c);
-        $self->add_linked_prefetch($c->link_parent) if $c->link_parent;
     }
 
     my @limit;  # The overall limit, for example reduction by date range or approval field

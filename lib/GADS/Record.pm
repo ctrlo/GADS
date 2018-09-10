@@ -116,6 +116,12 @@ sub _build_record_created
     })->get_column('created')->min;
 }
 
+has curcommon_all_fields => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
 # Should be set true if we are processing an approval
 has doing_approval => (
     is      => 'ro',
@@ -144,12 +150,6 @@ has columns_retrieved_no => (
 # In "dependent order", needed for calcvals
 has columns_retrieved_do => (
     is => 'rw',
-);
-
-# Record-specific flags for columns that should be stored with this record
-has column_flags => (
-    is      => 'ro',
-    default => sub { +{} },
 );
 
 # Whether this is a new record, not yet in the database
@@ -626,125 +626,133 @@ sub _find
         if $find{deleted} && !$self->layout->user_can("purge");
 
     my $records = GADS::Records->new(
-        # XXX We need to retrieve all curval fields in case this record goes on
-        # to become an edit. It would be nice, however, to have some way of
-        # only doing this when necessary
-        curval_all_fields   => 1,
-        user                => $self->user,
-        layout              => $self->layout,
-        schema              => $self->schema,
-        columns             => $self->columns,
-        rewind              => $self->rewind,
-        is_deleted          => $find{deleted},
-        is_draft            => $find{draftuser_id} || $find{include_draft} ? 1 : 0,
-        include_approval    => $self->include_approval,
-        view_limit_extra_id => undef, # Remove any default extra view
+        curcommon_all_fields => $self->curcommon_all_fields,
+        user                 => $self->user,
+        layout               => $self->layout,
+        schema               => $self->schema,
+        columns              => $self->columns,
+        rewind               => $self->rewind,
+        is_deleted           => $find{deleted},
+        is_draft             => $find{draftuser_id} || $find{include_draft} ? 1 : 0,
+        include_approval     => $self->include_approval,
+        view_limit_extra_id  => undef, # Remove any default extra view
     );
 
     $self->columns_retrieved_do($records->columns_retrieved_do);
     $self->columns_retrieved_no($records->columns_retrieved_no);
 
-    my $search     = $find{current_id} || $find{draftuser_id}
-        ? $records->search_query(prefetch => 1, linked => 1)
-        : $records->search_query(root_table => 'record', prefetch => 1, linked => 1, no_current => 1);
-    my @prefetches = $records->jpfetch(prefetch => 1, search => 1, linked => 0); # Still need search in case of view limit
+    my $record = {}; my $limit = 10; my $page = 1; my $first_run = 1;
+    while (1)
+    {
+        # No linked here so that we get the ones needed in accordance with this loop (could be either)
+        my @prefetches = $records->jpfetch(prefetch => 1, search => 1, limit => $limit, page => $page); # Still need search in case of view limit
+        last if !@prefetches && !$first_run;
+        my $search     = $find{current_id} || $find{draftuser_id}
+            ? $records->search_query(prefetch => 1, linked => 1, limit => $limit, page => $page)
+            : $records->search_query(root_table => 'record', prefetch => 1, linked => 1, limit => $limit, no_current => 1, page => $page);
+        @prefetches = $records->jpfetch(prefetch => 1, search => 1, linked => 0, limit => $limit, page => $page); # Still need search in case of view limit
 
-    my $root_table;
-    if (my $record_id = $find{record_id})
-    {
-        unshift @prefetches, (
-            {
-                'current' => [
-                    'deletedby',
-                    $records->linked_hash(prefetch => 1),
-                ],
-            },
-            {
-                'createdby' => 'organisation',
-            },
-            'approvedby'
-        ); # Add info about related current record
-        push @$search, { 'me.id' => $record_id };
-        $root_table = 'Record';
-    }
-    elsif ($find{current_id} || $find{draftuser_id})
-    {
-        if ($find{current_id})
+
+        my $root_table;
+        if (my $record_id = $find{record_id})
         {
-            push @$search, {
-                'me.id' => $find{current_id},
-            };
+            unshift @prefetches, (
+                {
+                    'current' => [
+                        'deletedby',
+                        $records->linked_hash(prefetch => 1, limit => $limit, page => $page),
+                    ],
+                },
+                {
+                    'createdby' => 'organisation',
+                },
+                'approvedby'
+            ); # Add info about related current record
+            push @$search, { 'me.id' => $record_id };
+            $root_table = 'Record';
         }
-        elsif ($find{draftuser_id})
+        elsif ($find{current_id} || $find{draftuser_id})
         {
-            push @$search, {
-                'me.draftuser_id' => $find{draftuser_id},
-            };
-            push @$search, {
-                'curvals.id'      => undef,
-            };
+            if ($find{current_id})
+            {
+                push @$search, {
+                    'me.id' => $find{current_id},
+                };
+            }
+            elsif ($find{draftuser_id})
+            {
+                push @$search, {
+                    'me.draftuser_id' => $find{draftuser_id},
+                };
+                push @$search, {
+                    'curvals.id'      => undef,
+                };
+            }
+            else {
+                panic "Unexpected find parameters";
+            }
+            unshift @prefetches, (
+                {
+                    'createdby' => 'organisation',
+                },
+                'approvedby'
+            ); # Add info about related current record
+            @prefetches = (
+                $records->linked_hash(prefetch => 1, limit => $limit, page => $page),
+                'deletedby',
+                'currents',
+                {
+                    'record_single' => [
+                        'record_later',
+                        @prefetches,
+                    ],
+                },
+            );
+            $root_table = 'Current';
         }
         else {
-            panic "Unexpected find parameters";
+            panic "record_id or current_id needs to be passed to _find";
         }
-        unshift @prefetches, (
+
+        local $GADS::Schema::Result::Record::REWIND = $records->rewind_formatted
+            if $records->rewind;
+
+        # Don't specify linked for fetching columns, we will get whataver is needed linked or not linked
+        my @columns_fetch = $records->columns_fetch(search => 1, limit => $limit, page => $page); # Still need search in case of view limit
+        my $base = $find{record_id} ? 'me' : 'record_single_2';
+        push @columns_fetch, {id => "$base.id"};
+        push @columns_fetch, $find{record_id} ? {deleted => "current.deleted"} : {deleted => "me.deleted"};
+        push @columns_fetch, $find{record_id} ? {draftuser_id => "current.draftuser_id"} : {draftuser_id => "me.draftuser_id"};
+        push @columns_fetch, {linked_id => "linked.id"};
+        push @columns_fetch, {'linked.record_id' => "record_single.id"};
+        push @columns_fetch, {current_id => "$base.current_id"};
+        push @columns_fetch, {created => "$base.created"};
+        push @columns_fetch, "createdby.$_" foreach @GADS::Column::Person::person_properties;
+        push @columns_fetch, "deletedby.$_" foreach @GADS::Column::Person::person_properties;
+
+        # If fetch a draft, then make sure it's not a draft curval that's part of
+        # another draft record
+        push @prefetches, 'curvals' if $find{draftuser_id};
+
+        my $result = $self->schema->resultset($root_table)->search(
+            [
+                -and => $search
+            ],
             {
-                'createdby' => 'organisation',
-            },
-            'approvedby'
-        ); # Add info about related current record
-        @prefetches = (
-            $records->linked_hash(prefetch => 1),
-            'deletedby',
-            'currents',
-            {
-                'record_single' => [
-                    'record_later',
-                    @prefetches,
-                ],
+                join    => [@prefetches],
+                columns => \@columns_fetch,
             },
         );
-        $root_table = 'Current';
+
+        $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
+
+        my ($rec) = $result->all;
+        return if !$rec && $find{no_errors};
+        $rec or error __"Requested record not found";
+        $record = {%$record, %$rec};
+        $page++;
+        $first_run = 0;
     }
-    else {
-        panic "record_id or current_id needs to be passed to _find";
-    }
-
-    local $GADS::Schema::Result::Record::REWIND = $records->rewind_formatted
-        if $records->rewind;
-
-    my @columns_fetch = $records->columns_fetch(search => 1); # Still need search in case of view limit
-    push @columns_fetch, $records->columns_fetch(search => 1, linked => 1); # Still need search in case of view limit
-    my $base = $find{record_id} ? 'me' : 'record_single_2';
-    push @columns_fetch, {id => "$base.id"};
-    push @columns_fetch, $find{record_id} ? {deleted => "current.deleted"} : {deleted => "me.deleted"};
-    push @columns_fetch, $find{record_id} ? {draftuser_id => "current.draftuser_id"} : {draftuser_id => "me.draftuser_id"};
-    push @columns_fetch, {linked_id => "linked.id"};
-    push @columns_fetch, {'linked.record_id' => "record_single.id"};
-    push @columns_fetch, {current_id => "$base.current_id"};
-    push @columns_fetch, {created => "$base.created"};
-    push @columns_fetch, "createdby.$_" foreach @GADS::Column::Person::person_properties;
-    push @columns_fetch, "deletedby.$_" foreach @GADS::Column::Person::person_properties;
-
-    # If fetch a draft, then make sure it's not a draft curval that's part of
-    # another draft record
-    push @prefetches, 'curvals' if $find{draftuser_id};
-
-    my $result = $self->schema->resultset($root_table)->search(
-        [
-            -and => $search
-        ],
-        {
-            join    => [@prefetches],
-            columns => \@columns_fetch,
-        },
-    );
-
-    $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
-
-    my ($record) = $result->all;
-    return if !$record && $find{no_errors};
-    $record or error __"Requested record not found";
 
     $self->linked_id($record->{linked_id});
     $self->set_deleted($record->{deleted});
@@ -768,6 +776,7 @@ sub _find
         retrieved  => [$record],
         records    => [$self],
         is_draft   => $find{draftuser_id},
+        curcommon_all_fields => $self->curcommon_all_fields,
     );
 
     $self; # Allow chaining
@@ -888,7 +897,7 @@ sub _transform_values
             : ref $value eq 'HASH' && exists $value->{child_unique}
             ? $value->{child_unique}
             : undef;
-        $fields->{$column->id} = $column->class->new(
+        my %params = (
             record           => $self,
             record_id        => $self->record_id,
             current_id       => $self->current_id,
@@ -899,6 +908,10 @@ sub _transform_values
             schema           => $self->schema,
             layout           => $self->layout,
         );
+        $params{curval_field_ids_retrieve} =
+            $column->curval_field_ids_retrieve(all_fields => $self->curcommon_all_fields)
+                if $column->is_curcommon;
+        $fields->{$column->id} = $column->class->new(%params);
     }
     $fields->{-11} = GADS::Datum::ID->new(
         record           => $self,

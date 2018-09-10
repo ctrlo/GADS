@@ -2490,10 +2490,13 @@ any '/edit/:id?' => require_login sub {
     my $user   = logged_in_user;
     my $layout = var 'layout';
     my $record = GADS::Record->new(
-        user     => $user,
-        layout   => $layout,
-        schema   => schema,
-        base_url => request->base,
+        user                 => $user,
+        layout               => $layout,
+        schema               => schema,
+        base_url             => request->base,
+        # Need to get all fields of curvals in case any are drafts for editing
+        # (otherwise all field values will not be passed to form)
+        curcommon_all_fields => 1,
     );
     my $include_draft = defined(param 'include_draft');
 

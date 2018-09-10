@@ -116,7 +116,7 @@ sub _build__enumvals_index
     \%enumvals;
 }
 
-sub _build_join
+sub tjoin
 {   my $self = shift;
     +{$self->field => 'value'};
 }

@@ -97,7 +97,7 @@ after build_values => sub {
     }
 };
 
-sub _build_join
+sub tjoin
 {   my $self = shift;
     +{$self->field => 'value'};
 }

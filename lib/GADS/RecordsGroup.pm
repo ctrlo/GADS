@@ -140,7 +140,7 @@ sub _build_results
             $self->add_prefetch($col, include_multivalue => 1);
         }
         push @select_fields, {
-            $op => $self->fqvalue($col, prefetch => 1, search => 1, parent => $parent, retain_join_order => 1, include_multivalue => 1),
+            $op => $self->fqvalue($col, prefetch => 1, search => 1, linked => 0, parent => $parent, retain_join_order => 1, include_multivalue => 1),
             -as => $col->field
         };
         # Also add linked column if required
@@ -154,7 +154,7 @@ sub _build_results
     {
         my $f = $self->operator eq 'count'
             ? \1 # Do not count column itself otherwise NULLs are not counted
-            : $self->fqvalue($self->column, search => 1, prefetch => 1);
+            : $self->fqvalue($self->column, linked => 0, search => 1, prefetch => 1);
         push @select_fields, {
             $self->operator => $f,
             -as             => $self->column->field."_".$self->{operator},
@@ -329,7 +329,7 @@ sub _build_results
         }
     };
 
-    my $q = $self->search_query(prefetch => 1, search => 1, linked => 1, retain_join_order => 1, include_multivalue => 1); # Called first to generate joins
+    my $q = $self->search_query(prefetch => 1, search => 1, retain_join_order => 1, include_multivalue => 1); # Called first to generate joins
 
     my $select = {
         select => [@select_fields],

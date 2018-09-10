@@ -135,6 +135,7 @@ my $curval_sheet2 = t::lib::DataSheet->new(
     group                    => $curval_sheet->group,
     instance_id              => 3,
     curval_offset            => 12,
+    curval_field_ids         => [$sheet->columns->{integer1}->id],
     user_permission_override => 0,
 );
 $curval_sheet2->create_records;

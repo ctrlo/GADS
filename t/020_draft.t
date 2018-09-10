@@ -172,9 +172,10 @@ is($record_rs->count, 3, "Additional normal record written");
     is($record->fields->{$string_curval->id}->as_string, "Draft4", "Draft sub-record retrieved");
 
     $record = GADS::Record->new(
-        user   => $user,
-        layout => $layout,
-        schema => $schema,
+        user                 => $user,
+        layout               => $layout,
+        schema               => $schema,
+        curcommon_all_fields => 1,
     );
     $record->load_remembered_values;
     is($record->fields->{$curval->id}->as_string, "bar, 50, ; foo, 25, ", "Remembered subrecord curval");

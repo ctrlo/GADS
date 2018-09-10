@@ -173,19 +173,14 @@ sub update_cached
     $self->clear; # Refresh calc for updated calculation
     my $layout = $self->layout;
 
-    # Flag curval fields to retrieve all values whenever they are built. This
-    # will ensure that as eaech row is retrieved, the curval will already have
-    # all fields it requires (which are all expected to be present for the
-    # calcval)
-    $_->type eq 'curval' && $_->build_all_columns foreach $layout->all;
-
     my $records = GADS::Records->new(
-        user                => $self->user,
-        layout              => $layout,
-        schema              => $self->schema,
-        columns             => [@{$self->depends_on},$self->id],
-        view_limit_extra_id => undef,
-        include_children    => 1, # Update all child records regardless
+        user                 => $self->user,
+        layout               => $layout,
+        schema               => $self->schema,
+        columns              => [@{$self->depends_on},$self->id],
+        view_limit_extra_id  => undef,
+        curcommon_all_fields => 1, # Code might contain curcommon fields not in normal display
+        include_children     => 1, # Update all child records regardless
     );
 
     my @changed;

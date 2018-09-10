@@ -166,23 +166,6 @@ sub _build_table
     camelize $self->type;
 }
 
-has join => (
-    is      => 'lazy',
-    isa     => AnyOf[Str, HashRef],
-    clearer => 1,
-);
-
-has subjoin => (
-    is => 'lazy',
-);
-
-sub _build_subjoin
-{   my $self = shift;
-    return unless ref $self->join;
-    my ($temp, $subjoin) = %{$self->join};
-    $subjoin;
-}
-
 has fixedvals => (
     is      => 'ro',
     isa     => Bool,
@@ -568,13 +551,6 @@ has dateformat => (
     },
 );
 
-# Used to store flags that we might want to store when the record is processed
-has flags => (
-    is      => 'rwp',
-    isa     => HashRef,
-    default => sub { +{} },
-);
-
 has _rset => (
     is      => 'rwp',
     lazy    => 1,
@@ -697,7 +673,7 @@ sub build_values
 }
 
 # Overriden for most columns
-sub _build_join
+sub tjoin
 {   my $self = shift;
     return $self->field;
 }
@@ -751,9 +727,9 @@ sub fetch_multivalues
         # field values
         order_by => "me.".$self->value_field,
     };
-    if (ref $self->join)
+    if (ref $self->tjoin)
     {
-        my ($left, $prefetch) = %{$self->join}; # Prefetch table is 2nd part of join
+        my ($left, $prefetch) = %{$self->tjoin}; # Prefetch table is 2nd part of join
         $select->{prefetch} = $prefetch;
         # Override previous setting
         $select->{order_by} = "$prefetch.".$self->value_field;

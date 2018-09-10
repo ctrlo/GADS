@@ -75,7 +75,7 @@ sub write_special
     return ();
 };
 
-sub _build_join
+sub tjoin
 {   my $self = shift;
     +{$self->field => 'value'};
 }
