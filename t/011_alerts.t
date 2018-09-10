@@ -135,7 +135,7 @@ my $created_calc = GADS::Column::Calc->new(
     ",
 );
 $created_calc->write;
-$created_calc->set_permissions($sheet->group->id, $sheet->default_permissions);
+$created_calc->set_permissions({$sheet->group->id, $sheet->default_permissions});
 $layout->clear;
 
 my @filters = (
