@@ -402,13 +402,12 @@ get '/data_calendar/:time' => require_login sub {
     my $view    = current_view($user, $layout);
 
     my $records = GADS::Records->new(
-        user                 => $user,
-        layout               => $layout,
-        schema               => schema,
-        view                 => $view,
-        search               => session('search'),
-        view_limit_extra_id  => current_view_limit_extra_id($user, $layout),
-        interpolate_children => 0,
+        user                => $user,
+        layout              => $layout,
+        schema              => schema,
+        view                => $view,
+        search              => session('search'),
+        view_limit_extra_id => current_view_limit_extra_id($user, $layout),
     );
 
     header "Cache-Control" => "max-age=0, must-revalidate, private";
@@ -435,17 +434,16 @@ get '/data_timeline/:time' => require_login sub {
     my $view    = current_view($user, $layout);
 
     my $records = GADS::Records->new(
-        from                 => $fromdt,
-        to                   => $todt,
-        exclusive            => param('exclusive'),
-        user                 => $user,
-        layout               => $layout,
-        schema               => schema,
-        view                 => $view,
-        search               => session('search'),
-        rewind               => session('rewind'),
-        interpolate_children => 0,
-        view_limit_extra_id  => current_view_limit_extra_id($user, $layout),
+        from                => $fromdt,
+        to                  => $todt,
+        exclusive           => param('exclusive'),
+        user                => $user,
+        layout              => $layout,
+        schema              => schema,
+        view                => $view,
+        search              => session('search'),
+        rewind              => session('rewind'),
+        view_limit_extra_id => current_view_limit_extra_id($user, $layout),
     );
 
     header "Cache-Control" => "max-age=0, must-revalidate, private";
@@ -750,16 +748,15 @@ any '/data' => require_login sub {
     elsif ($viewtype eq 'timeline')
     {
         my $records = GADS::Records->new(
-            user                 => $user,
-            view                 => $view,
-            search               => session('search'),
-            layout               => $layout,
+            user                => $user,
+            view                => $view,
+            search              => session('search'),
+            layout              => $layout,
             # No "to" - will take appropriate number from today
-            from                 => DateTime->now, # Default
-            schema               => schema,
-            rewind               => session('rewind'),
-            view_limit_extra_id  => current_view_limit_extra_id($user, $layout),
-            interpolate_children => 0,
+            from                => DateTime->now, # Default
+            schema              => schema,
+            rewind              => session('rewind'),
+            view_limit_extra_id => current_view_limit_extra_id($user, $layout),
         );
         my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} ||= {};
         $tl_options->{width} ||= 3508;
@@ -818,13 +815,12 @@ any '/data' => require_login sub {
         }
 
         my $records_options = {
-            user                 => $user,
-            view                 => $view,
-            search               => session('search'),
-            layout               => $layout,
-            schema               => schema,
-            rewind               => session('rewind'),
-            interpolate_children => 0,
+            user   => $user,
+            view   => $view,
+            search => session('search'),
+            layout => $layout,
+            schema => schema,
+            rewind => session('rewind'),
         };
         my $globe = GADS::Globe->new(
             group_col_id    => $globe_options->{group},

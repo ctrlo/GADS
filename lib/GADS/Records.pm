@@ -326,14 +326,6 @@ has include_approval => (
     default => 0,
 );
 
-# Whether to fill in missing values of children from parent.
-# XXX Is interpolate the correct word??!
-has interpolate_children => (
-    is      => 'rw',
-    isa     => Bool,
-    default => 1,
-);
-
 # Current ID results, or limit to specific current IDs
 has current_ids => (
     is        => 'lazy',

@@ -34,10 +34,9 @@ my $simple_data = [
     my $columns = $sheet->columns;
 
     my $records_options = {
-        user                 => $sheet->user,
-        layout               => $layout,
-        schema               => $schema,
-        interpolate_children => 0,
+        user   => $sheet->user,
+        layout => $layout,
+        schema => $schema,
     };
 
     my $globe = GADS::Globe->new(
@@ -78,10 +77,9 @@ my $simple_data = [
     my $columns = $sheet->columns;
 
     my $records_options = {
-        user                 => $sheet->user,
-        layout               => $layout,
-        schema               => $schema,
-        interpolate_children => 0,
+        user   => $sheet->user,
+        layout => $layout,
+        schema => $schema,
     };
 
     foreach my $test (qw/group label color group_numeric/)
@@ -161,10 +159,9 @@ my $simple_data = [
     my $columns = $sheet->columns;
 
     my $records_options = {
-        user                 => $sheet->user,
-        layout               => $layout,
-        schema               => $schema,
-        interpolate_children => 0,
+        user   => $sheet->user,
+        layout => $layout,
+        schema => $schema,
     };
 
     foreach my $test (qw/group_col_id label_col_id color_col_id/)
