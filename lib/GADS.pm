@@ -452,7 +452,7 @@ get '/data_timeline/:time' => require_login sub {
     content_type 'application/json';
 
     my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} || {};
-    my $timeline = $records->data_timeline(%{$tl_options});
+    my $timeline = $records->data_timeline(%{$tl_options}, overlay => undef); # Don't try to add overlay items again
     encode_json($timeline->{items});
 };
 
@@ -766,9 +766,10 @@ any '/data' => require_login sub {
         $tl_options->{height} ||= 2480;
         if (param 'modal_timeline')
         {
-            $tl_options->{label} = param('tl_label');
-            $tl_options->{group} = param('tl_group');
-            $tl_options->{color} = param('tl_color');
+            $tl_options->{label}   = param('tl_label');
+            $tl_options->{group}   = param('tl_group');
+            $tl_options->{color}   = param('tl_color');
+            $tl_options->{overlay} = param('tl_overlay');
         }
 
         # See whether to restore remembered range

@@ -287,6 +287,16 @@
                 [% END %]
             </select>
         </div>
+        <div class="form-group">
+            <label for="tl_color">Overlay items from other table:</label>
+            <select class="form-control" name="tl_overlay">
+                <option value="" [% IF NOT tl_options.overlay %]selected[% END %]></option>
+                [% FOREACH overlay_ins IN instances %]
+                    [% NEXT IF overlay_ins.instance_id == layout.instance_id %]
+                    <option value="[% overlay_ins.instance_id %]" [% IF tl_options.overlay == overlay_ins.instance_id %]selected[% END %]>[% overlay_ins.name | html %]</option>
+                [% END %]
+            </select>
+        </div>
     [% END %]
 [% END %]
 

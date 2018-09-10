@@ -1837,6 +1837,39 @@ sub data_timeline
     delete $_->{dt}
         foreach @items;
 
+    if ($options{overlay} && $options{overlay} != $self->layout->instance_id)
+    {
+        my $layout = GADS::Layout->new(
+            user        => $self->user,
+            schema      => $self->schema,
+            config      => GADS::Config->instance,
+            instance_id => $options{overlay},
+        );
+
+        my $records = GADS::Records->new(
+            from   => $min,
+            to     => $max,
+            user   => $self->user,
+            layout => $layout,
+            schema => $self->schema,
+        );
+
+        my $timeline_overlay = GADS::Timeline->new(
+            type    => 'timeline',
+            records => $records,
+        );
+
+        my @retrieved = @{$timeline_overlay->items};
+
+        foreach my $overlay (@retrieved)
+        {
+            delete $overlay->{dt};
+            $overlay->{type} = 'background';
+            $overlay->{end}  = $overlay->{start} if !$overlay->{end};
+            push @items, $overlay;
+        }
+    }
+
     my @groups = map {
         {
             id        => $timeline->groups->{$_},
