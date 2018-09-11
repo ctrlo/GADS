@@ -450,7 +450,7 @@ get '/data_timeline/:time' => require_login sub {
     content_type 'application/json';
 
     my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} || {};
-    my $timeline = $records->data_timeline(%{$tl_options}, overlay => undef); # Don't try to add overlay items again
+    my $timeline = $records->data_timeline(%{$tl_options});
     encode_json($timeline->{items});
 };
 
