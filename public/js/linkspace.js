@@ -66,6 +66,15 @@ if (!Array.prototype.includes) {
 var originaldatepicker = $.fn.datepicker;
 
 $.fn.datepicker = function () {
+    var pickers = $(this);
+
+    for (var index = 0; index < pickers.length; index++) {
+        var picker = pickers[index];
+        if (picker.readOnly) {
+            return false;
+        }
+    }
+
     var result = originaldatepicker.apply(this, arguments);
 
     this.on('show', function (e) {

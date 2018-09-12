@@ -965,11 +965,11 @@
                 [% END %]
                 </ul>
                 [% IF !readonly %]
-                <button type="button" aria-controls="[% field %]_available_values"
-                            aria-expanded="false" aria-describedby="[% field %]_label">
-                    <span class="expanded glyphicon glyphicon-chevron-up" aria-label="Confirm"></span>
-                    <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
-                </button>
+                    <button type="button" aria-controls="[% field %]_available_values"
+                                aria-expanded="false" aria-describedby="[% field %]_label">
+                        <span class="expanded glyphicon glyphicon-chevron-up" aria-label="Confirm"></span>
+                        <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
+                    </button>
                 [% END %]
             </div>
             <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values">
