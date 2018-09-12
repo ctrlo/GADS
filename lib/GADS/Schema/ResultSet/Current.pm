@@ -11,4 +11,11 @@ __PACKAGE__->load_components(qw/
     Helper::ResultSet::CorrelateRelationship/
 );
 
+sub active_rs
+{   shift->search({
+        'me.deleted'      => undef,
+        'me.draftuser_id' => undef,
+    });
+}
+
 1;

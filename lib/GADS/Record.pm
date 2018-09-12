@@ -234,7 +234,7 @@ has child_record_ids => (
     builder => sub {
         my $self = shift;
         return [] if $self->parent_id;
-        my @children = $self->schema->resultset('Current')->search({
+        my @children = $self->schema->resultset('Current')->active_rs->search({
             parent_id => $self->current_id,
         })->get_column('id')->all;
         \@children;

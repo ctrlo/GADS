@@ -288,4 +288,46 @@ foreach my $calc_depend (0..1)
     is($chid, $child_id, "Parent record has correct child ID");
 }
 
+# Check update of child record that has been deleted
+{
+    my $parent_id        = $parent->current_id;
+    my $child_id         = $child->current_id;
+
+    my $parent = GADS::Record->new(
+        user     => undef,
+        layout   => $layout,
+        schema   => $schema,
+    );
+    $parent->find_current_id($parent_id);
+
+    # Write field to parent, should be copied to child
+    $parent->fields->{$columns->{date1}->id}->set_value('1980-10-05');
+    $parent->write(no_alerts => 1);
+    my $child = GADS::Record->new(
+        user     => undef,
+        layout   => $layout,
+        schema   => $schema,
+    );
+    $child->find_current_id($child_id);
+    # Check child
+    is($child->fields->{$columns->{date1}->id}->as_string, '1980-10-05', "Child value correctly written by parent");
+
+    # Delete child
+    $child->delete_current;
+
+    # Set parent again
+    $parent->clear;
+    $parent->find_current_id($parent_id);
+    $parent->fields->{$columns->{date1}->id}->set_value('1985-10-05');
+    $parent->write(no_alerts => 1);
+
+    # Check child and parent
+    $child->clear;
+    $child->find_current_id($child_id, deleted => 1);
+    is($child->fields->{$columns->{date1}->id}->as_string, '1980-10-05', "Deleted child record has not been updated");
+    $parent->clear;
+    $parent->find_current_id($parent_id);
+    is($parent->fields->{$columns->{date1}->id}->as_string, '1985-10-05', "Parent updated correctly");
+}
+
 done_testing();
