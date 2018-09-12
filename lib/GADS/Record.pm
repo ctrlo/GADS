@@ -1282,7 +1282,7 @@ sub write
 
     # Error if child record as no fields selected
     error __"There are no child fields defined to be able to create a child record"
-        if $self->parent_id && !$child_unique;
+        if $self->parent_id && !$child_unique && $self->new_entry;
 
     # Anything to update?
     return if !($need_app || $need_rec) && !$options{update_only};

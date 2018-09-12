@@ -353,6 +353,20 @@ foreach my $calc_depend (0..1)
     );
     $child->find_current_id($child_id);
     is($child->fields->{$string1->id}->as_string, "foo3", "Child record successfully retrieved with child fields");
+
+    # Update child record (via parent) even if no child fields
+    my $parent_id = $parent->current_id;
+    my $parent = GADS::Record->new(
+        user     => undef,
+        layout   => $layout,
+        schema   => $schema,
+    );
+    $parent->find_current_id($parent_id);
+    $parent->fields->{$string1->id}->set_value('Foobar');
+    $parent->write(no_alerts => 1);
+    $child->clear;
+    $child->find_current_id($child_id);
+    is($child->fields->{$string1->id}->as_string, "Foobar", "Child record successfully retrieved with child fields");
 }
 
 done_testing();
