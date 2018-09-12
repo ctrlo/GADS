@@ -328,6 +328,31 @@ foreach my $calc_depend (0..1)
     $parent->clear;
     $parent->find_current_id($parent_id);
     is($parent->fields->{$columns->{date1}->id}->as_string, '1985-10-05', "Parent updated correctly");
+
+    # Undelete for future tests
+    $child->restore;
+}
+
+# Check that child record can be retrieved directly even if no child fields
+{
+    my $child_id = $child->current_id;
+
+    foreach my $col ($layout->all)
+    {
+        $col->set_can_child(0);
+        $col->write;
+    }
+
+    $layout->clear;
+    my $string1 = $layout->column_by_name('string1');
+
+    my $child = GADS::Record->new(
+        user     => undef,
+        layout   => $layout,
+        schema   => $schema,
+    );
+    $child->find_current_id($child_id);
+    is($child->fields->{$string1->id}->as_string, "foo3", "Child record successfully retrieved with child fields");
 }
 
 done_testing();

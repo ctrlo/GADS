@@ -635,6 +635,7 @@ sub _find
         is_deleted           => $find{deleted},
         is_draft             => $find{draftuser_id} || $find{include_draft} ? 1 : 0,
         include_approval     => $self->include_approval,
+        include_children     => 1,
         view_limit_extra_id  => undef, # Remove any default extra view
     );
 
