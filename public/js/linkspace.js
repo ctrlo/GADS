@@ -737,6 +737,10 @@ var setupClickToViewBlank = function() {
     });
 }
 
+var setFirstInputFocus = function(context) {
+    $('.edit-form *:input[type!=hidden]:first', context).focus();
+}
+
 var Linkspace = {
     constants: {
         ARROW_LEFT: 37,
@@ -750,6 +754,7 @@ var Linkspace = {
         setupDisplayConditions(context);
         runPageSpecificCode(context);
         setupSubmitListener(context);
+        setFirstInputFocus(context);
     },
 
     debug: function (msg) {
