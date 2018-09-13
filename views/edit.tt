@@ -292,7 +292,7 @@
                 var guid = form.data("guid");
                 var hidden_input = $('<input>').attr({type: 'hidden', name: 'field' + col_id, value: form_data});
 
-                var text_values = modal_field_ids.map(function(element) {
+                var text_values = jQuery.map(modal_field_ids, function(element) {
                     var control = form.find('[data-column-id="' + element + '"]');
                     var value = getFieldValues(control);
                     return value;
