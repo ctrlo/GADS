@@ -749,11 +749,22 @@
                 [% ELSIF dispcol.type == "daterange" %]
                     [% IF dispcol.show_datepicker %][% datepicker = "datepicker" %][% ELSE %][% datepicker = "" %][% END %]
                     <div class="input-group input-daterange">
-                            <input type="text" name="[% field %]" class="form-control [% datepicker %] from datepicker[% dispcol.id %]" value="[% editvalue.html_form.shift | html_entity %]"
-                                [% IF NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %] [% readonly %]>
-                            <span class="input-group-addon">to</span>
-                            <input type="text" name="[% field %]" class="form-control [% datepicker %] to datepicker[% dispcol.id %]" value="[% editvalue.html_form.shift | html_entity %]"
-                                [% IF NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %] [% readonly %]>
+                        [%# Some web browsers do not send read-only form values, some do %]
+                        [% val = editvalue.html_form.shift %]
+                        [% IF readonly %]
+                            <input type="hidden" name="[% field %]" value="[% val | html %]">
+                        [% END %]
+                        <input type="text" name="[% field %][% readonly %]" class="form-control [% datepicker %] from datepicker[% dispcol.id %]"
+                            value="[% val | html %]"
+                            [% IF NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %] [% readonly %]>
+                        <span class="input-group-addon">to</span>
+                        [% val = editvalue.html_form.shift %]
+                        [% IF readonly %]
+                            <input type="hidden" name="[% field %]" value="[% val | html %]">
+                        [% END %]
+                        <input type="text" name="[% field %][% readonly %]" class="form-control [% datepicker %] to datepicker[% dispcol.id %]"
+                            value="[% val | html %]"
+                            [% IF NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %] [% readonly %]>
                     </div>
                 [% ELSE %]
                     [% IF dispcol.type == "date" AND dispcol.show_datepicker %]
@@ -763,11 +774,17 @@
                     [% ELSE %]
                         [% class = "form-control" %]
                     [% END %]
+                    [% val = editvalue.html_form.shift %]
+                    [% IF readonly %]
+                        <input type="hidden" name="[% field %]" value="[% val | html %]">
+                    [% END %]
                     [% IF dispcol.textbox %]
-                        <textarea [%readonly %] class="form-control" id="[% dispcol.id %]" name="[% field %]" rows="10">[% editvalue.html_form.shift | html %]</textarea>
+                        <textarea [%readonly %] class="form-control" id="[% dispcol.id %]" name="[% field %][% readonly %]" rows="10">
+                            [% val | html %]
+                        </textarea>
                     [% ELSE %]
                         <input type="text" class="[% class %]" id="[% dispcol.id %]"
-                            name="[% field %]" value="[% editvalue.html_form.shift | html %]" [% readonly %]
+                            name="[% field %][% readonly %]" value="[% val | html %]" [% readonly %]
                             [% IF dispcol.type == "date" AND NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %]>
                     [% END %]
                 [% END %]
