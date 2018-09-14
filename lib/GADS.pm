@@ -307,7 +307,11 @@ sub _update_persistent
 
 get '/' => require_login sub {
 
-    my $layout = var 'layout';
+    # If the user has no permissions, they will not have access to any
+    # instances, and the application will be unusable. This error at least
+    # prevents internal application errors
+    my $layout = var 'layout'
+        or return "You do not have any permissions for this application";
     my $instance_name = $layout->name;
     template 'index' => {
         layout      => $layout,
