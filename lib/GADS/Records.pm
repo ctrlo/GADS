@@ -326,6 +326,22 @@ has include_approval => (
     default => 0,
 );
 
+# Internal parameter to set the exact current IDs that will be retrieved,
+# without running any search queries. Used when downloading chunked data, when
+# all the current IDs have already been retrieved
+has _set_current_ids => (
+    is  => 'rw',
+    isa => Maybe[ArrayRef],
+);
+
+# A parameter that can be used externally to restrict to a set of current IDs.
+# This will also have the search parameters applied, which could include
+# limited views for the user (unlike the above internal parameter)
+has limit_current_ids => (
+    is  => 'rw',
+    isa => Maybe[ArrayRef],
+);
+
 # Current ID results, or limit to specific current IDs
 has current_ids => (
     is        => 'lazy',
@@ -336,7 +352,9 @@ has current_ids => (
 
 sub _build_current_ids
 {   my $self = shift;
-    [$self->_current_ids_rs->all];
+    local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
+        if $self->rewind;
+    $self->_set_current_ids || [$self->_current_ids_rs->all];
 }
 
 # Produce the overall search condition array
@@ -368,7 +386,7 @@ sub search_query
     }
     # Current IDs from quick search if used
     push @search, { "$current.id"          => $self->_search_all_fields->{cids} } if $self->search;
-    push @search, { "$current.id"          => $self->current_ids } if $self->has_current_ids && $self->current_ids;
+    push @search, { "$current.id"          => $self->limit_current_ids } if $self->limit_current_ids; # $self->has_current_ids && $self->current_ids;
     push @search, { "$current.instance_id" => $self->layout->instance_id };
     if ($self->is_deleted)
     {
@@ -799,8 +817,7 @@ sub _cid_search_query
         $search->{'me.id'} = { -in => $self->_current_ids_rs->as_query };
     }
     else {
-        my @cids = $self->_current_ids_rs->all;
-        $search->{'me.id'} = \@cids;
+        $search->{'me.id'} = $self->current_ids;
     }
 
     my $record_single = $self->record_name(linked => 0);
@@ -1002,6 +1019,28 @@ sub fetch_multivalues
     };
 }
 
+# Store for all the current IDs when retrieving rows in chunks. Storing them
+# all now ensures consistency when retrieving all rows, as otherwise as rows
+# are edited different chunks will be retrieved
+has _all_cids_store => (
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
+);
+
+sub _build__all_cids_store
+{   my $self = shift;
+    $self->current_ids;
+}
+
+# Which internal page we are on for retrieving sets of rows. This is not the
+# same as page(), which directly affects the page of the database row retrieval
+has _single_page => (
+    is      => 'rw',
+    isa     => Int,
+    default => 0,
+);
+
 has _next_single_id => (
     is      => 'rwp',
     isa     => Maybe[Int],
@@ -1013,27 +1052,48 @@ has _next_single_id => (
 my $chunk = 100;
 sub single
 {   my $self = shift;
-    my $is_group = $self->is_group;
-    $self->rows($chunk) unless $is_group || $self->rows;
-    $self->page(1) if !$self->has_results && !$is_group;
+
     my $next_id = $self->_next_single_id;
+
+    # Check return if limiting to a set number of results
     return if $self->max_results && $self->records_retrieved_count >= $self->max_results;
-    if ($next_id >= $chunk && !$is_group)
+    # Check if we've returned all resulsts available
+    return if $self->records_retrieved_count >= @{$self->_all_cids_store};
+
+    if (!$self->is_group) # Don't retrieve in chunks for group records
     {
-        return if !$is_group && $self->page == $self->pages;
-        $next_id = $next_id - $chunk;
-        $self->clear_results;
-        $self->page($self->page + 1)
-            unless $is_group;
+        if (
+            ($next_id == 0 && $self->_single_page == 0) # First run
+            || $next_id >= $chunk # retrieved all of current chunk
+        )
+        {
+            $self->_single_page($self->_single_page + 1) # increase to next page
+                unless $next_id == 0; # unless first run, already on first page
+
+            # Work out chunk to retrieve from all current IDs
+            my $start     = $chunk * $self->_single_page;
+            my $end       = $start + $chunk - 1;
+            my $cid_fetch = [ @{$self->_all_cids_store}[$start..$end] ];
+
+            # Set those IDs for the next chunk retrieved from the DB
+            $self->_set_current_ids($cid_fetch);
+            $self->clear_current_ids;
+            $self->clear_results;
+
+            $next_id = 0;
+        }
     }
+
     my $row = $self->results->[$next_id];
     $self->_set__next_single_id($next_id + 1);
     $row;
 }
 
+# The total number of records retrieved from this entire result set, regardless
+# of chunks
 sub records_retrieved_count
 {   my $self = shift;
-    return ($self->page - 1) * $chunk + $self->_next_single_id;
+    return $self->_single_page * $chunk + $self->_next_single_id;
 }
 
 sub _build_count
@@ -1145,6 +1205,8 @@ sub clear
     $self->_clear_search_all_fields;
     $self->clear_results;
     $self->_set__next_single_id(0);
+    $self->_set_current_ids(undef);
+    $self->_clear_all_cids_store;
 }
 
 # Construct various parameters used for the query. These are all

@@ -275,7 +275,7 @@ sub fetch_multivalues
         layout               => $self->layout_parent,
         schema               => $self->schema,
         columns              => $self->curval_field_ids_retrieve(all_fields => $options{curcommon_all_fields}),
-        current_ids          => [map { $_->{value} } @values],
+        limit_current_ids    => [map { $_->{value} } @values],
         is_draft             => $options{is_draft},
         curcommon_all_fields => $options{curcomon_all_fields},
     );
