@@ -299,16 +299,16 @@ sub _records_from_db
     }
 
     my $records = GADS::Records->new(
-        user        => $self->override_permissions ? undef : $self->layout->user,
-        view        => $view,
-        layout      => $layout,
-        schema      => $self->schema,
-        columns     => $self->curval_field_ids_retrieve,
-        current_ids => $ids,
+        user              => $self->override_permissions ? undef : $self->layout->user,
+        view              => $view,
+        layout            => $layout,
+        schema            => $self->schema,
+        columns           => $self->curval_field_ids_retrieve,
+        limit_current_ids => $ids,
         # Sort on all columns displayed as the Curval. Don't do all columns
         # retrieved, as this could include a whole load of multivalues which
         # are then fetched from the DB
-        sort        => [ map { { id => $_ } } @{$self->curval_field_ids} ],
+        sort              => [ map { { id => $_ } } @{$self->curval_field_ids} ],
     );
 
     return $records;
