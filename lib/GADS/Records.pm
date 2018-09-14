@@ -1715,7 +1715,7 @@ sub _resolve
         $value    = @$value > 1 ? [ $combiner => @$value ] : $value->[0];
         $self->add_join($options{parent}, search => 1, linked => $is_linked)
             if $options{parent};
-        $self->add_join($column, search => 1, linked => $is_linked, parent => $options{parent})
+        $self->add_join($column, search => 1, linked => $is_linked, parent => $options{parent}, all_fields => $self->curcommon_all_fields)
             unless $column->internal;
         my $s_table = $self->table_name($column, %options, search => 1);
         my $sq = {$condition->{operator} => $value};
