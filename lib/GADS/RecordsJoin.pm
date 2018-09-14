@@ -100,16 +100,21 @@ sub _add_jp
     my $toadd = $column->tjoin(all_fields => $options{all_fields});
     ($key) = keys %$toadd if ref $toadd eq 'HASH';
 
+    trace __x"Checking or adding {field} to the store", field => $column->field;
+
     my $prefetch = (!$column->multivalue || $options{include_multivalue}) && $options{prefetch};
 
     # Check whether join is already in store, if so update
+    trace __x"Check to see if it's already in the store";
     foreach my $j ($self->_all_joins_recurse(@{$self->_jp_store}))
     {
+        trace __x"Checking join {field}", field => $j->{column}->field;
         if (
             ($key && ref $j->{join} eq 'HASH' && Compare($toadd, $j->{join}))
             || $toadd eq $j->{join}
         )
         {
+            trace __x"Possibly found, checking to see if parents match";
             if ( _compare_parents($options{parent}, $j->{parent}) )
             {
                 $j->{prefetch} ||= $prefetch;
@@ -118,10 +123,14 @@ sub _add_jp
                 $j->{sort}     ||= $options{sort};
                 $self->_add_children($j, $column, %options)
                     if ($column->is_curcommon && $prefetch);
+                trace __x"Found existing, returning";
                 return;
             }
+            trace __x"Parents didn't match";
         }
     }
+
+    trace __x"Not found, going on to add";
 
     my $join_add = {
         join       => $toadd,
