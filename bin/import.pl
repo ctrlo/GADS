@@ -299,6 +299,8 @@ foreach my $ins (readdir $root)
 
     }
 
+    $layout->clear;
+
     foreach my $g (dir("_export/$ins/graphs"))
     {
         # Convert to new column IDs
