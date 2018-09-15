@@ -189,6 +189,12 @@ $record->find_current_id(1);
     ok(!$record->fields->{$string1->id}->dependent_not_shown, "String still shown in view");
     ok($record->fields->{$integer1->id}->dependent_not_shown, "Integer not shown in view");
 
+    $record->fields->{$string1->id}->set_value('Foobarbar');
+    $record->fields->{$integer1->id}->set_value('200');
+    $record->write(no_alerts => 1);
+    ok(!$record->fields->{$string1->id}->dependent_not_shown, "String still shown in view");
+    ok($record->fields->{$integer1->id}->dependent_not_shown, "Integer not shown in view");
+
     # Although dependent_not_shown is not used in table view, it is still
     # generated as part of the presentation layer
     my $records = GADS::Records->new(
