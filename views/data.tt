@@ -9,13 +9,13 @@
 	    </form>
 	</h1>
     </div>
-    [% IF search_limit_reached %]
-	<h3>Only showing first [% search_limit_reached %] of [% count %] results</h3>
-    [% END %]
 [% ELSIF v %]
     <h1 >[% v.name | html_entity %]</h1>
 [% ELSE %]
     <h1>All data</h1>
+[% END %]
+[% IF search_limit_reached %]
+    <h3>Only showing first [% search_limit_reached %] of [% count %] results</h3>
 [% END %]
 
     <div class="row">

@@ -838,6 +838,7 @@ any '/data' => require_login sub {
         $params->{columns_read}         = [$layout->all(user_can_read => 1)];
         $params->{viewtype}             = 'globe';
         $params->{search_limit_reached} = $globe->records->search_limit_reached;
+        $params->{count}                = $globe->records->count;
     }
     else {
         session 'rows' => 50 unless session 'rows';

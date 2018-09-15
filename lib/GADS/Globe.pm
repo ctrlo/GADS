@@ -32,7 +32,7 @@ has records => (
 sub _build_records
 {   my $self = shift;
     my $type = $self->is_group ? 'GADS::RecordsGroup' : 'GADS::Records';
-    $type->new(%{$self->records_options});
+    $type->new(max_results => 1000, %{$self->records_options});
 }
 
 has records_options => (

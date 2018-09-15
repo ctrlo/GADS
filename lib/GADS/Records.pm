@@ -744,7 +744,8 @@ has search_limit_reached => (
 
 sub _build_search_limit_reached
 {   my $self = shift;
-    $self->_search_all_fields->{limit_reached};
+    $self->_search_all_fields->{limit_reached}
+    || ($self->max_results && $self->max_results < $self->count && $self->max_results);
 }
 
 has is_group => (
