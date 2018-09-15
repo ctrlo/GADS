@@ -1309,7 +1309,6 @@ sub import_after_all
             if $report && ($self->link_parent || 0) != ($new_id || 0);
         $self->link_parent($new_id);
     }
-    $self->write(no_cache_update => 1);
 }
 
 1;

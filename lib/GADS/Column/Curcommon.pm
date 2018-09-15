@@ -607,7 +607,6 @@ around import_after_all => sub {
     $filter->clear_as_json;
     $self->filter($filter);
 
-    $self->clear;
     $orig->(@_);
 };
 
