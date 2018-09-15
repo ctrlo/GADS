@@ -514,6 +514,8 @@ sub _get_sorts
         $s->{id}        = $sort->id;
         $s->{type}      = $sort->type;
         $s->{layout_id} = $sort->layout_id;
+        $s->{parent_id} = $sort->parent_id;
+        $s->{filter_id} = $sort->parent_id ? $sort->parent_id.'_'.$sort->layout_id : $sort->layout_id,
         push @sorts, $s;
     }
     \@sorts;
@@ -533,17 +535,29 @@ sub set_sorts
     my @fields = ref $sortfield ? @$sortfield : ($sortfield // ()); # Allow empty string for ID
     my @types  = ref $sorttype  ? @$sorttype  : ($sorttype  || ());
     my @allsorts; my $type_last;
-    foreach my $layout_id (@fields)
+    foreach my $filter_id (@fields)
     {
+        my ($parent_id, $layout_id);
+        if ($filter_id && $filter_id =~ /^([0-9]+)_([0-9]+)$/)
+        {
+            $parent_id = $1;
+            $layout_id = $2;
+        }
+        else {
+            $layout_id = $filter_id;
+        }
         my $type = (shift @types) || $type_last;
         error __x"Invalid type {type}", type => $type
             unless grep { $_->{name} eq $type } @{sort_types()};
         # Check column is valid and user has access
         error __x"Invalid field ID {id} in sort", id => $layout_id
             if $layout_id && !$self->layout->column($layout_id)->user_can('read');
+        error __x"Invalid field ID {id} in sort", id => $parent_id
+            if $parent_id && !$self->layout->column($parent_id)->user_can('read');
         my $sort = {
             view_id   => $self->id,
             layout_id => ($layout_id || undef), # ID will be empty string
+            parent_id => $parent_id,
             type      => $type,
         };
         # Assume that each new sort is applied with a new ID greater than the

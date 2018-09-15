@@ -1625,6 +1625,18 @@ my @sorts = (
         },
     },
     {
+        name           => 'Sort by field in curval',
+        show_columns   => [qw/enum1 curval1 curval2/],
+        sort_by        => [qw/string1/],
+        sort_by_parent => [qw/curval1/],
+        sort_type      => ['asc'],
+        first          => qr/^(6|7|8|9)$/,
+        last           => qr/^(3)$/,
+        max_id         => 9,
+        min_id         => 3,
+        count          => 7,
+    },
+    {
         name         => 'Sort by curval without curval in view',
         show_columns => [qw/string1/],
         sort_by      => [qw/curval1/],
@@ -1634,6 +1646,18 @@ my @sorts = (
         max_id       => 9,
         min_id       => 3,
         count        => 7,
+    },
+    {
+        name           => 'Sort by field in curval without curval in view',
+        show_columns   => [qw/integer1/],
+        sort_by        => [qw/string1/],
+        sort_by_parent => [qw/curval1/],
+        sort_type      => ['asc'],
+        first          => qr/^(6|7|8|9)$/,
+        last           => qr/^(3)$/,
+        max_id         => 9,
+        min_id         => 3,
+        count          => 7,
     },
 );
 
@@ -1678,7 +1702,21 @@ foreach my $multivalue (0..1)
                 ? ['asc']
                 : $sort->{sort_type};
 
-            my @sort_by = map { $_ && $columns->{$_}->id } @{$sort->{sort_by}};
+            my @sort_by;
+            if ($sort->{sort_by_parent})
+            {
+                my @children = @{$sort->{sort_by}};
+                foreach my $parent (@{$sort->{sort_by_parent}})
+                {
+                    my $cname = shift @children;
+                    my $id    = $curval_columns->{$cname}->id;
+                    my $parent_id = $columns->{$parent}->id;
+                    push @sort_by, "${parent_id}_$id";
+                }
+            }
+            else {
+                @sort_by = map { $_ && $columns->{$_}->id } @{$sort->{sort_by}};
+            }
             $view->set_sorts([@sort_by], $sort_type);
 
             $records = GADS::Records->new(

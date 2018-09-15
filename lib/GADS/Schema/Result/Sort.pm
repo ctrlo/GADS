@@ -53,6 +53,12 @@ __PACKAGE__->table("sort");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 parent_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =head2 type
 
   data_type: 'varchar'
@@ -67,6 +73,8 @@ __PACKAGE__->add_columns(
   "view_id",
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
   "layout_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "parent_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "type",
   { data_type => "varchar", is_nullable => 1, size => 45 },
@@ -98,6 +106,26 @@ __PACKAGE__->belongs_to(
   "layout",
   "GADS::Schema::Result::Layout",
   { id => "layout_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 parent
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Layout>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "layout",
+  "GADS::Schema::Result::Layout",
+  { id => "parent_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",

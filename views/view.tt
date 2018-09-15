@@ -195,8 +195,8 @@
                 <p>
                     <select class="form-control" name="sortfield">
                         <option value="" [% UNLESS sort.column.id %]selected[% END %]>ID</option>
-                        [% FOR column IN layout.all_user_read %]
-                            <option value="[% column.id %]" [% IF sort.layout_id == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                        [% FOR column IN layout.columns_for_filter %]
+                            <option value="[% column.filter_id %]" [% IF sort.filter_id == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]</option>
                         [% END %]
                     </select>
                 </p>

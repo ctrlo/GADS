@@ -1323,8 +1323,9 @@ sub _build__sorts
         foreach my $sort (@{$self->view->sorts})
         {
             push @sorts, {
-                id   => $sort->{layout_id} || -11, # View column is undef for ID
-                type => $sort->{type} || 'asc',
+                id        => $sort->{layout_id} || -11, # View column is undef for ID
+                parent_id => $sort->{parent_id},
+                type      => $sort->{type} || 'asc',
             };
         }
     }
@@ -1355,15 +1356,23 @@ sub order_by
     {
         my $type   = "-$s->{type}";
         my $column = $self->layout->column($s->{id});
+        my $column_parent = $self->layout->column($s->{parent_id});
         my @cols_main = $column->sort_columns;
         my @cols_link = $column->link_parent ? $column->link_parent->sort_columns : ();
         foreach my $col_sort (@cols_main)
         {
-            $self->add_join($column->sort_parent, sort => 1)
-                if $column->sort_parent;
-            $self->add_join($col_sort, sort => 1, parent => $column->sort_parent)
-                unless $column->internal;
-            my $s_table = $self->table_name($col_sort, sort => 1, %options, parent => $column->sort_parent);
+            if ($column_parent)
+            {
+                $self->add_join($column_parent, sort => 1);
+                $self->add_join($col_sort, sort => 1, parent => $column_parent);
+            }
+            else {
+                $self->add_join($column->sort_parent, sort => 1)
+                    if $column->sort_parent;
+                $self->add_join($col_sort, sort => 1, parent => $column->sort_parent)
+                    unless $column->internal;
+            }
+            my $s_table = $self->table_name($col_sort, sort => 1, %options, parent => $column_parent || $column->sort_parent);
             my $sort_name;
             if ($column->link_parent) # Original column, not the sub-column ($col_sort)
             {
