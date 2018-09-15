@@ -151,13 +151,10 @@
     [% ELSE %]
         <div class="navbar navbar-default navbar-fixed-bottom edit-controls">
             <div class="container">
-                [% IF record.has_previous_values %]
-                    <button type="submit" name="submit" value="back" class="btn btn-default submit_button">Previous</button>
-                [% END %]
                 <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
                     [% IF record.has_next_values AND page != "bulk" %]Next[% ELSE %]Submit[% END %]
                 </button>
-                [% IF record.new_entry AND NOT page == "bulk"%]
+                [% IF record.new_entry AND page != "bulk" %]
                     <button type="submit" name="draft" value="submit" class="btn btn-primary submit_button">
                         Save draft
                     </button>
