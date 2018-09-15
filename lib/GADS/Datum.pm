@@ -139,14 +139,6 @@ sub ready_to_write
     return 1;
 }
 
-# Whether a value has been written to the datum that is valid (and not blank).
-# Written values can include addable values.
-has written_valid => (
-    is      => 'rwp',
-    isa     => Bool,
-    default => 0,
-);
-
 sub text_all
 {   my $self = shift;
     [$self->as_string];

@@ -54,13 +54,11 @@ after set_value => sub {
         $self->content($value->{content});
         $self->name($value->{name});
         $self->mimetype($value->{mimetype});
-        $self->_set_written_valid(1);
     }
     else {
         # Just ID for file passed. Probably a resubmission
         # of a form with previous errors
         $new_id = $value || undef;
-        $self->_set_written_valid(!!$new_id);
     }
     $self->changed(1) if (!$self->id && $value)
         || (!$value && $self->id)

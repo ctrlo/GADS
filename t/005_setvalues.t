@@ -260,7 +260,6 @@ foreach my $multivalue (0..1)
                         ok( $datum->oldvalue, "$type oldvalue exists$is_multi" );
                         my $old = $test eq 'changed' ? $values->{$type}->{old_as_string} : $values->{$type}->{new_as_string};
                         is( $datum->oldvalue && $datum->oldvalue->as_string, $old, "$type oldvalue exists and matches for test $test$is_multi" );
-                        ok( $datum->written_valid, "$type is written valid for non-blank$is_multi" );
                     }
                     elsif ($test eq 'blank')
                     {
@@ -287,13 +286,10 @@ foreach my $multivalue (0..1)
                             $datum->set_value($data->{blank}->[0]->{$type});
                         }
                         ok( $datum->blank, "$type has been set to blank$is_multi" );
-                        # Blank values should not be counted as a valid written value
-                        ok( !$datum->written_valid, "$type is not written valid for blank$is_multi" );
                         # Test writing of addable value applied to an blank existing value.
                         if (my $addable = $values->{$type}->{addable})
                         {
                             $datum->set_value($addable, bulk => 1);
-                            ok( $datum->written_valid, "$type is written valid for addable value$is_multi" );
                             ok( $datum->blank, "$type is blank after writing addable value$is_multi" );
                         }
                     }
@@ -302,7 +298,6 @@ foreach my $multivalue (0..1)
                         if (my $addable = $values->{$type}->{addable})
                         {
                             $datum->set_value($addable, bulk => 1);
-                            ok( $datum->written_valid, "$type is written valid for addable value$is_multi" );
                             is( $datum->as_string, $values->{$type}->{addable_result}, "$type is correct after writing addable change$is_multi" );
                         }
                     }

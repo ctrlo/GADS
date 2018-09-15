@@ -84,7 +84,6 @@ after set_value => sub {
         $self->_set_text($person ? $person->value : undef);
         $self->changed(1);
     }
-    $self->_set_written_valid(!!$new_id);
     $self->oldvalue($clone);
     $self->id($new_id);
 };

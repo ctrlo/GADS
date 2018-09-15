@@ -34,7 +34,6 @@ after set_value => sub {
     my @values = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
     my @old     = sort @{$self->ids};
     my $changed = "@values" ne "@old";
-    $self->_set_written_valid(!!@values);
     if ($changed)
     {
         $self->changed(1);

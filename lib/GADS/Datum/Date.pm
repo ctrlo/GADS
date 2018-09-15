@@ -84,7 +84,6 @@ sub _to_dt
     $value = $value->{value} if ref $value eq 'HASH';
     if (!$value)
     {
-        $self->_set_written_valid(0);
         return;
     }
     if (ref $value eq 'DateTime')
@@ -106,16 +105,13 @@ sub _to_dt
             # See if it's a duration and return that instead if so
             if (my $duration = DateTime::Format::DateManip->parse_duration($value))
             {
-                $self->_set_written_valid(1);
                 return $self->value ? $self->value->clone->add_duration($duration) : undef;
             }
             else {
                 # Will bork below
-                $self->_set_written_valid(0);
             }
         }
         $self->column->validate($value, fatal => 1);
-        $self->_set_written_valid(1);
         $self->column->parse_date($value);
     }
 }

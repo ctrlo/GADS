@@ -33,7 +33,6 @@ after set_value => sub {
     {
         my $op = $1; my $amount = $2;
         # Still count as valid written if currently blank
-        $self->_set_written_valid(1);
         if (defined $self->value)
         {
             my $old = $self->value;
@@ -45,7 +44,6 @@ after set_value => sub {
     }
     else {
         $self->column->validate($value, fatal => 1);
-        $self->_set_written_valid(defined $value ? 1 : 0);
     }
     $self->changed(1) if (!defined($self->value) && defined $value)
         || (!defined($value) && defined $self->value)

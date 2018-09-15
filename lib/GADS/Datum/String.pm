@@ -34,7 +34,6 @@ after set_value => sub {
     my @values = grep {defined $_} @$value; # Take a copy first
     my $clone = $self->clone;
     s/\h+$// for @values;
-    $self->_set_written_valid(!!"@values");
     my @text_all = sort @values;
     my @old_texts = @{$self->text_all};
     my $changed = "@text_all" ne "@old_texts";

@@ -44,7 +44,6 @@ after set_value => sub {
     my $clone = $self->clone;
     shift @all if @all % 2 == 1 && !$all[0]; # First is hidden value from form
     my @values;
-    $self->_set_written_valid(0) if !@values; # Assume 0, 1 written in parse_dt
     while (@all)
     {
         my @dt = $self->_parse_dt([shift @all, shift @all], source => 'user', %options);
@@ -141,7 +140,6 @@ sub _parse_dt
         # If it's not a valid value, see if it's a duration instead (only for bulk)
         if ($self->column->validate($original, fatal => !$options{bulk}))
         {
-            $self->_set_written_valid(1);
             $from = $self->column->parse_date($original->{from});
             $to   = $self->column->parse_date($original->{to});
         }
@@ -150,7 +148,6 @@ sub _parse_dt
             my $to_duration = DateTime::Format::DateManip->parse_duration($original->{to});
             if ($from_duration || $to_duration)
             {
-                $self->_set_written_valid(1);
                 if (@{$self->values})
                 {
                     my @return;
