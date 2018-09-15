@@ -158,6 +158,11 @@
                     <button type="submit" name="draft" value="submit" class="btn btn-primary submit_button">
                         Save draft
                     </button>
+                    [% IF record.is_draft %]
+                        <button type="submit" name="delete_draft" value="submit" class="btn btn-primary submit_button">
+                            Delete draft
+                        </button>
+                    [% END %]
                 [% END %]
                 <a href="/data" class="btn btn-default">Cancel</a>
             </div>

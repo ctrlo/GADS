@@ -2511,6 +2511,15 @@ any '/edit/:id?' => require_login sub {
         }
     }
 
+    if (param 'delete_draft')
+    {
+        if (process( sub { $record->delete_user_drafts }))
+        {
+            return forwardHome(
+                { success => 'Draft has been deleted successfully' }, 'data' );
+        }
+    }
+
     # XXX Move into user class
     my ($lastrecord) = rset('UserLastrecord')->search({
         instance_id => $layout->instance_id,
