@@ -33,10 +33,17 @@ after set_value => sub {
     $value ||= [];
     my @values = grep {defined $_} @$value; # Take a copy first
     my $clone = $self->clone;
-    s/\h+$// for @values;
     my @text_all = sort @values;
     my @old_texts = @{$self->text_all};
+
+    # Trim entries, but only if changed. Don't use $changed, as the act of
+    # trimming could affect whether a value has changed or not
+    if ("@text_all" ne "@old_texts")
+    {
+        s/\h+$// for @values;
+    }
     my $changed = "@text_all" ne "@old_texts";
+
     if (my $regex = $self->column->force_regex)
     {
         foreach my $val (@values)
