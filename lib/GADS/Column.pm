@@ -838,6 +838,7 @@ sub delete
     $self->schema->resultset('AlertCache')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('AlertSend')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('Sort')->search({ layout_id => $self->id })->delete;
+    $self->schema->resultset('Sort')->search({ parent_id => $self->id })->delete;
     $self->schema->resultset('LayoutDepend')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('LayoutGroup')->search({ layout_id => $self->id })->delete;
 
