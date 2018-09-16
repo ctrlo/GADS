@@ -109,6 +109,16 @@ sub convert_value
                 push @return, $ret;
             }
         }
+        elsif ($column->return_type eq 'globe')
+        {
+            if ($self->column->check_country($val))
+            {
+                push @return, $val;
+            }
+            else {
+                mistake __x"Failed to produce globe location: unknown country {country}", country => $val;
+            }
+        }
         else {
             push @return, $val;
         }
