@@ -1449,7 +1449,7 @@ small.search_term {
   vertical-align: bottom;
   white-space: nowrap;
   overflow: hidden;
-  max-width: 15em;
+  max-width: 13em;
   text-overflow: ellipsis;
   -ms-text-overflow: ellipsis; }
   .data-table thead button:hover + .popover {
