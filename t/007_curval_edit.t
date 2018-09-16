@@ -63,6 +63,19 @@ foreach my $delete_not_used (0..1)
     $curval_datum = $record->fields->{$curval->id};
     like($curval_datum->as_string, qr/^(foo1; foo2|foo2; foo1)$/, "Curval value contains second new record");
 
+    # Edit existing
+    $curval_count = $schema->resultset('Current')->search({ instance_id => 2 })->count;
+    my ($d) = map { $_->{id} } grep { $_->{field_values}->{L2string1} eq 'foo2' }
+        @{$curval_datum->for_code};
+    $curval_datum->set_value([$curval_string->field."=foo5&current_id=$d", $curval_record_id]);
+    $record->write(no_alerts => 1);
+    $curval_count2 = $schema->resultset('Current')->search({ instance_id => 2 })->count;
+    is($curval_count2, $curval_count, "No new curvals created");
+    $record->clear;
+    $record->find_current_id(3);
+    $curval_datum = $record->fields->{$curval->id};
+    like($curval_datum->as_string, qr/^(foo1; foo5|foo5; foo1)$/, "Curval value contains updated record");
+
     # Delete existing
     $curval_count = $schema->resultset('Current')->search({ instance_id => 2 })->count;
     $curval_datum->set_value([$curval_record_id]);
