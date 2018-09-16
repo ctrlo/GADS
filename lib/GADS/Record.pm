@@ -263,7 +263,7 @@ sub _build_is_draft
 {   my $self = shift;
     return !!$self->{record}->{draftuser_id}
         if exists $self->{record}->{draftuser_id};
-    return unless $self->current_id;
+    return if $self->new_entry;
     !!$self->schema->resultset('Current')->find($self->current_id)->draftuser_id;
 }
 
