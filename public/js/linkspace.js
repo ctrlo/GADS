@@ -24,6 +24,43 @@ if (!Function.prototype.bind) {
     };
 }
 
+if (!Array.prototype.filter)
+{
+    Array.prototype.filter = function(fun /*, thisp */)
+    {
+        if (this === void 0 || this === null)
+            throw new TypeError();
+
+        var t = Object(this);
+        var len = t.length >>> 0;
+        if (typeof fun !== "function")
+            throw new TypeError();
+
+        var res = [];
+        var thisp = arguments[1];
+        for (var i = 0; i < len; i++)
+        {
+            if (i in t)
+            {
+                var val = t[i]; // in case fun mutates this
+                if (fun.call(thisp, val, i, t))
+                    res.push(val);
+            }
+        }
+
+        return res;
+    };
+}
+
+if (!Array.prototype.includes) {
+    Array.prototype.includes = function(obj) {
+        var newArr = this.filter(function(el) {
+            return el == obj;
+        });
+        return newArr.length > 0;
+    };
+}
+
 // This wrapper fixes wrong placement of datepicker. See
 // https://github.com/uxsolutions/bootstrap-datepicker/issues/1941
 var originaldatepicker = $.fn.datepicker;
@@ -171,7 +208,7 @@ var SelectWidget = function (multi) {
         var multi = $selectWidget.hasClass("multi");
         var filterEndpoint = $selectWidget.data("filter-endpoint");
         var filterFields = $selectWidget.data("filter-fields");
-        if (!Array.isArray(filterFields)) {
+        if (!$.isArray(filterFields)) {
             if (typeof(console) !== 'undefined' && console.error) {
                 console.error("Invalid data-filter-fields found. It should be a proper JSON array of fields.");
             }
