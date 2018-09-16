@@ -71,8 +71,6 @@ sub convert_value
     trace __x"Values into convert_value is: {value}", value => Dumper(\@values);
     $Data::Dumper::Indent = $old_indent;
 
-    my $return;
-
     if ($in->{error}) # Will have already been reported
     {
         @values = ('<evaluation error>');
@@ -93,12 +91,12 @@ sub convert_value
                     warning "$@";
                 }
                 else {
+                    # Database only stores date part, so ensure local value reflects
+                    # that
+                    $ret->truncate(to => 'day') if $ret;
                     push @return, $ret;
                 }
             }
-            # Database only stores date part, so ensure local value reflects
-            # that
-            $return->truncate(to => 'day') if $return;
         }
         elsif ($column->return_type eq 'numeric' || $column->return_type eq 'integer')
         {

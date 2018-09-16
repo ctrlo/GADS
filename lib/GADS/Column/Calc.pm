@@ -100,6 +100,7 @@ has '+return_type' => (
         my $self = shift;
         $self->_rset_code && $self->_rset_code->return_format || 'string';
     },
+    trigger => sub { shift->clear_value_field },
 );
 
 has decimal_places => (

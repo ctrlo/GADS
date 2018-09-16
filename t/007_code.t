@@ -617,6 +617,16 @@ restore_time();
     $record->find_current_id($record_id);
     $record->fields->{$calc1_id}->re_evaluate;
     ok(!$record->fields->{$calc1_id}->changed, "Calc not changed after re-evaluation, string return");
+
+    # Test record created calc
+    $calc1 = $layout->column_by_name('calc1');
+    $calc1->return_type('date');
+    $calc1->code("function evaluate (_created) return _created.epoch end");
+    $calc1->write;
+    $layout->clear;
+    $record->find_current_id($record_id);
+    $record->fields->{$calc1_id}->re_evaluate;
+    ok(!$record->fields->{$calc1_id}->changed, "Date created code not changed after re-evaluation");
 }
 
 done_testing();

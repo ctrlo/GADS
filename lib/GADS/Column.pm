@@ -428,6 +428,7 @@ has value_field => (
     isa     => Str,
     lazy    => 1,
     default => 'value',
+    clearer => 1,
 );
 
 has retrieve_fields => (
