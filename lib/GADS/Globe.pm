@@ -460,12 +460,13 @@ sub _build_data
     };
 
     my $r = {
-        z             => [ map { $_->{z} } @item_return ],
-        text          => [ map { $_->{hover} } @item_return ],
-        locations     => [ map { $_->{location} } @item_return ],
-        showscale     => $self->is_choropleth ? \1 : \0,
-        type          => $self->is_group ? 'choropleth' : 'scattergeo',
-        hoverinfo     => 'text',
+        z            => [ map { $_->{z} } @item_return ],
+        text         => [ map { $_->{hover} } @item_return ],
+        locations    => [ map { $_->{location} } @item_return ],
+        showscale    => $self->is_choropleth ? \1 : \0,
+        type         => $self->is_group ? 'choropleth' : 'scattergeo',
+        hoverinfo    => 'text',
+        locationmode => 'country names',
     };
     $r->{countrycolors} = $self->is_choropleth
         ? undef
