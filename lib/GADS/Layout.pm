@@ -708,6 +708,7 @@ sub all
     @columns = grep { $_->can_child } @columns if $options{can_child};
     @columns = grep { $_->link_parent } @columns if $options{linked};
     @columns = grep { $_->type eq $type } @columns if $type;
+    @columns = grep { $_->return_type eq 'globe' } @columns if $options{is_globe};
     @columns = grep { $_->remember == $options{remember} } @columns if defined $options{remember};
     @columns = grep { $_->userinput == $options{userinput} } @columns if defined $options{userinput};
     @columns = grep { $_->multivalue == $options{multivalue} } @columns if defined $options{multivalue};

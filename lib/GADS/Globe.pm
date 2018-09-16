@@ -230,16 +230,27 @@ sub _to_svg($)
 sub _build_data
 {   my $self = shift;
 
+    my $records = $self->records;
+
     # Add on any extra required columns for labelling etc
     my @extra;
-    push @extra, $self->group_col->id if $self->group_col;
-    push @extra, $self->color_col->id if $self->color_col;
-    push @extra, $self->label_col->id if $self->label_col;
-    $self->records->columns_extra([@extra]);
+    push @extra, $self->group_col if $self->group_col;
+    push @extra, $self->color_col if $self->color_col;
+    push @extra, $self->label_col if $self->label_col;
+    # Messier than it should be, but if there is no globe column in the view
+    # and only one in the layout, then add it on, otherwise nothing will be
+    # shown
+    if (my $view_id = $records->view && $records->view->id)
+    {
+        my @view_columns = $records->layout->view($view_id, user_can_read => 1);
+        my @gc = $records->layout->all(is_globe => 1, user_can_read => 1);
+        push @extra, @gc
+            if @gc == 1 && !grep { $_->return_type eq 'globe' } @extra, @view_columns;
+    }
+    $self->records->columns_extra([map { $_->id } @extra]);
 
     # All the data values
     my %countries;
-    my $records = $self->records;
 
     $records->group_by($self->_group_by)
         if $self->is_group;
