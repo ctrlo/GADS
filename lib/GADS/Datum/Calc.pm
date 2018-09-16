@@ -120,7 +120,7 @@ sub convert_value
             }
         }
         else {
-            push @return, $val;
+            push @return, $val if defined $val;
         }
     }
 

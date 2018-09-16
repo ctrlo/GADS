@@ -596,7 +596,27 @@ restore_time();
     ok($record->fields->{$calc1_id}->changed, "Calc changed on suitable write");
     ok($record->fields->{$rag1_id}->changed, "Rag changed on suitable write");
 
-
+    # Test blank calc values not changing
+    $record->clear;
+    $record->find_current_id($record_id);
+    # First a change to blank
+    $record->fields->{$daterange1_id}->set_value(undef);
+    $record->write(no_alerts => 1);
+    ok($record->fields->{$calc1_id}->changed, "Calc initial changed when set to blank");
+    $record->clear;
+    $record->find_current_id($record_id);
+    # Then a re-evaluation without change
+    $record->fields->{$calc1_id}->re_evaluate;
+    ok(!$record->fields->{$calc1_id}->changed, "Calc not changed on blank re-evaluation");
+    # Now the same with a string return type
+    my $calc1 = $columns->{calc1};
+    $calc1->return_type('string');
+    $calc1->write;
+    $layout->clear;
+    $record->clear;
+    $record->find_current_id($record_id);
+    $record->fields->{$calc1_id}->re_evaluate;
+    ok(!$record->fields->{$calc1_id}->changed, "Calc not changed after re-evaluation, string return");
 }
 
 done_testing();
