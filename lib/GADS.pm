@@ -2868,6 +2868,7 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
         all_columns    => \@columns,
         has_rag_column => !!(grep { $_->type eq 'rag' } @columns),
         page           => 'record',
+        is_history     => $action eq 'history',
         breadcrumbs    => [Crumb($layout->name) => Crumb(%first_crumb) => Crumb( "/record/".$record->current_id => 'record id ' . $record->current_id )]
     };
     $output;
