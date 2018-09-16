@@ -23,10 +23,10 @@
                 <button type="button" class="trigger" aria-expanded="false" aria-controls="col--11-options">[% st %]ID &rsaquo;</button>
                 <div class="expandable popover" id="col--11-options">
                     <div class="column-name">ID</div>
+                    <a href="?sort=-11">[% sort_label %]</a>
                     [% IF col.helptext %]
                     <p class="helptext">[% col.helptext | html_entity %]</p>
                     [% END %]
-                    <a href="?sort=-11">[% sort_label %]</a>
                 </div>
             </th>
             [% FOREACH col IN columns %]
@@ -41,10 +41,10 @@
                     <button type="button" class="trigger" aria-expanded="false" aria-controls="col-[% col.id %]-options">[% st %][% col.name | html_entity %] &rsaquo; </button>
                     <div class="expandable popover" id="col-[% col.id %]-options">
                         <div class="column-name">[% col.name | html_entity %]</div>
+                        <a href="?sort=[% col.id %]">[% sort_label %]</a>
                         [% IF col.helptext %]
                         <p class="helptext">[% col.helptext | html_entity %]</p>
                         [% END %]
-                        <a href="?sort=[% col.id %]">[% sort_label %]</a>
                         [% IF col.type == "person" AND layout.user_can("message") AND records.size %]
                             <button aria-haspopup="true" type="button" class="btn btn-sm btn-primary"
                                 data-toggle="modal" data-target="#modal_sendemail" data-peopcol_id="[% col.id %]">

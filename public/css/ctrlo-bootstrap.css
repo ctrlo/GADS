@@ -1483,7 +1483,7 @@ small.search_term {
     display: block; }
 
 .data-table thead .helptext {
-  border-bottom: 1px solid #ccc; }
+  padding-top: 1em; }
 
 .data-table thead .helptext + * {
   margin: 1em 0 0 0; }
