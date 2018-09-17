@@ -246,6 +246,7 @@ has interpolate_children => (
     is      => 'rw',
     isa     => Bool,
     default => 1,
+);
 
 # Internal parameter to set the exact current IDs that will be retrieved,
 # without running any search queries. Used when downloading chunked data, when
