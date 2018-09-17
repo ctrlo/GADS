@@ -10,11 +10,11 @@ use t::lib::DataSheet;
 
 my $simple_data = [
     {
-        string1    => 'FRA',
+        string1    => 'France',
         integer1   => 10,
         enum1      => 'foo2',
     },{
-        string1    => 'GBR',
+        string1    => 'Great Britain',
         integer1   => 15,
         enum1      => 'foo3',
     },
@@ -45,13 +45,14 @@ my $simple_data = [
 
     my $trace = $globe->data->[0];
     my $items = _sort_items($trace);
-    is_deeply($items->{locations}, ['FRA', 'GBR'], "Countries correct for simple view");
+    is_deeply($items->{locations}, ['France', 'Great Britain'], "Countries correct for simple view");
     like($items->{text}->[0], qr/foo2/, "Great Britain has correct enum value");
     like($items->{text}->[1], qr/foo3/, "France has correct enum value");
 }
 
 {
-    my @countries = qw(ABW AFG AGO AIA ALA ALB AND ANT ARE ARG);
+    my @countries = qw(Albania Algeria Andorra Angola Australia
+        Bahamas Bahrain Barbados Bermuda Bolivia);
     my @data;
 
     for my $i (1..500)
@@ -118,16 +119,16 @@ my $simple_data = [
         {
             is(@{$globe->data}, 2, "Correct number of traces for label globe");
             my $text = [
-                'ABW: 50',
-                'AFG: 50',
-                'AGO: 50',
-                'AIA: 50',
-                'ALA: 50',
-                'ALB: 50',
-                'AND: 50',
-                'ANT: 50',
-                'ARE: 50',
-                'ARG: 50',
+                'Albania: 50',
+                'Algeria: 50',
+                'Andorra: 50',
+                'Angola: 50',
+                'Australia: 50',
+                'Bahamas: 50',
+                'Bahrain: 50',
+                'Barbados: 50',
+                'Bermuda: 50',
+                'Bolivia: 50',
             ];
             my $trace1 = _sort_items($globe->data->[0]);
             is_deeply($trace1->{text}, $text, "Correct text for first trace in label");
