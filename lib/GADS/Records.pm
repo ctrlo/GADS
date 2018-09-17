@@ -342,22 +342,6 @@ has limit_current_ids => (
     isa => Maybe[ArrayRef],
 );
 
-# Internal parameter to set the exact current IDs that will be retrieved,
-# without running any search queries. Used when downloading chunked data, when
-# all the current IDs have already been retrieved
-has _set_current_ids => (
-    is  => 'rw',
-    isa => Maybe[ArrayRef],
-);
-
-# A parameter that can be used externally to restrict to a set of current IDs.
-# This will also have the search parameters applied, which could include
-# limited views for the user (unlike the above internal parameter)
-has limit_current_ids => (
-    is  => 'rw',
-    isa => Maybe[ArrayRef],
-);
-
 # Current ID results, or limit to specific current IDs
 has current_ids => (
     is        => 'lazy',
