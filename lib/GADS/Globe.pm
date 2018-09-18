@@ -277,13 +277,14 @@ sub _build_data
                 $value_label = $self->label_col->type eq 'curval'
                     ? $self->_format_curcommon($self->label_col, $record)
                     : $record->get_column($self->label_col->field);
+                $value_label ||= '<blank>';
             }
 
             if ($self->group_col)
             {
                 $value_group = $self->group_col->type eq 'curval'
                     ? $self->_format_curcommon($self->group_col, $record)
-                    : $record->get_column($self->group_col->field);
+                    : $record->get_column($self->group_col->field) || '<blank>';
             }
 
             foreach my $column (@{$self->_columns_globe})
