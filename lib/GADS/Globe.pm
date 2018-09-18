@@ -85,7 +85,21 @@ has color_col => (
 
 sub _build_color_col
 {   my $self = shift;
+    !$self->color_col_id || $self->color_col_id < 0
+        and return;
     $self->layout->column($self->color_col_id);
+}
+
+has has_color_col => (
+    is  => 'lazy',
+    isa => Bool,
+);
+
+sub _build_has_color_col
+{   my $self = shift;
+    return 1 if $self->color_col;
+    return 1 if $self->color_col_id && $self->color_col_id < 0;
+    return 0;
 }
 
 has label_col_id => (
@@ -146,12 +160,15 @@ sub _build__group_by
 }
 
 has is_choropleth => (
-    is => 'lazy',
+    is  => 'lazy',
+    isa => Bool,
 );
 
 sub _build_is_choropleth
 {   my $self = shift;
-    $self->color_col && $self->color_col->numeric;
+    return 0 if !$self->has_color_col;
+    return 1 if $self->color_col_id == -1; # Choropleth by record count
+    return $self->color_col && $self->color_col->numeric ? 1 : 0;
 }
 
 has is_group => (
@@ -160,7 +177,7 @@ has is_group => (
 
 sub _build_is_group
 {   my $self = shift;
-    return 1 if $self->color_col || $self->group_col || $self->has_label_col;
+    return 1 if $self->has_color_col || $self->group_col || $self->has_label_col;
     return 0;
 }
 
@@ -262,13 +279,19 @@ sub _build_data
         {
             my @this_countries;
             my ($value_color, $value_label, $value_group, $color);
-            if ($self->color_col)
+            if ($self->has_color_col)
             {
-                $value_color = $record->get_column($self->color_col->field);
-                if (!$self->color_col->numeric)
+                if ($self->color_col_id == -1)
                 {
-                    $color = $self->graph->get_color($value_color);
-                    $self->_used_color_keys->{$value_color} = 1;
+                    $value_color = $record->get_column('id_count');
+                }
+                else {
+                    $value_color = $record->get_column($self->color_col->field);
+                    if (!$self->color_col->numeric)
+                    {
+                        $color = $self->graph->get_color($value_color);
+                        $self->_used_color_keys->{$value_color} = 1;
+                    }
                 }
             }
 
@@ -367,7 +390,7 @@ sub _build_data
             }
 
             # color
-            if ($self->color_col)
+            if ($self->has_color_col)
             {
                 if ($self->is_choropleth)
                 {
@@ -376,7 +399,7 @@ sub _build_data
                     $values->{group_sums} ||= [];
                     # Add individual group totals, if not already added in previous label
                     push @{$values->{group_sums}}, { text => $item->{value_group}, sum => $item->{value_color} }
-                        if $self->group_col && !($self->label_col && $self->color_col->id == $self->label_col->id);
+                        if $self->group_col && !($self->label_col && $self->color_col_id == $self->label_col->id);
                 }
                 else {
                     $values->{color_text}->{$item->{value_color}} ||= 0;
