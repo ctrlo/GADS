@@ -129,7 +129,7 @@ sub _build_items
         if $self->group_col_id && $layout->column($self->group_col_id);
     push @extra, $self->color_col_id
         if $self->color_col_id && $layout->column($self->color_col_id);
-    $self->records->columns_extra([@extra]);
+    $self->records->columns_extra([map { +{ id => $_ } } @extra]);
 
     # All the data values
     my @items;

@@ -347,7 +347,7 @@
                 <option value="" [% IF NOT globe_options.label %]selected[% END %]>&lt;None&gt;</option>
                 <option value="-1" [% IF globe_options.label == -1 %]selected[% END %]>&lt;Record count&gt;</option>
                 [% FOREACH column IN columns_read %]
-                    <option value="[% column.id %]" [% IF globe_options.label == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                    <option value="[% column.filter_id %]" [% IF globe_options.label == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]</option>
                 [% END %]
             </select>
         </div>
@@ -356,7 +356,7 @@
             <select class="form-control" name="globe_group">
                 <option value="" [% IF NOT globe_options.group %]selected[% END %]>&lt;All fields&gt;</option>
                 [% FOREACH column IN columns_read %]
-                    <option value="[% column.id %]" [% IF globe_options.group == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                    <option value="[% column.filter_id %]" [% IF globe_options.group == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]</option>
                 [% END %]
             </select>
         </div>
@@ -366,7 +366,7 @@
                 <option value="" [% IF NOT globe_options.color %]selected[% END %]>&lt;All fields&gt;</option>
                 <option value="-1" [% IF globe_options.color == -1 %]selected[% END %]>&lt;Record count&gt;</option>
                 [% FOREACH column IN columns_read %]
-                    <option value="[% column.id %]" [% IF globe_options.color == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                    <option value="[% column.filter_id %]" [% IF globe_options.color == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]</option>
                 [% END %]
             </select>
         </div>

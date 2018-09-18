@@ -62,6 +62,30 @@ has data => (
     clearer => 1,
 );
 
+sub _parse_col
+{   my ($self, $in, $type) = @_;
+    my ($parent_id, $child_id);
+    if ($in =~ /^([0-9]+)_([0-9]+)$/)
+    {
+        $parent_id = $1;
+        $child_id = $2;
+    }
+    else {
+        $child_id = $in;
+    }
+    return $type eq 'parent' ? $parent_id : $child_id;
+}
+
+sub _parse_parent
+{   my $self = shift;
+    $self->_parse_col(shift, 'parent');
+}
+
+sub _parse_child
+{   my $self = shift;
+    $self->_parse_col(shift, 'child');
+}
+
 has group_col_id => (
     is => 'ro',
 );
@@ -72,7 +96,16 @@ has group_col => (
 
 sub _build_group_col
 {   my $self = shift;
-    $self->layout->column($self->group_col_id);
+    $self->layout->column($self->_parse_child($self->group_col_id));
+}
+
+has group_col_parent => (
+    is => 'lazy',
+);
+
+sub _build_group_col_parent
+{   my $self = shift;
+    $self->layout->column($self->_parse_parent($self->group_col_id));
 }
 
 has color_col_id => (
@@ -85,9 +118,26 @@ has color_col => (
 
 sub _build_color_col
 {   my $self = shift;
-    !$self->color_col_id || $self->color_col_id < 0
-        and return;
-    $self->layout->column($self->color_col_id);
+    $self->layout->column($self->_parse_child($self->color_col_id));
+}
+
+has color_col_parent => (
+    is => 'lazy',
+);
+
+sub _build_color_col_parent
+{   my $self = shift;
+    $self->layout->column($self->_parse_parent($self->color_col_id));
+}
+
+has color_col_is_count => (
+    is  => 'lazy',
+    isa => Bool,
+);
+
+sub _build_color_col_is_count
+{   my $self = shift;
+    $self->color_col_id && $self->color_col_id eq '-1' ? 1 : 0;
 }
 
 has has_color_col => (
@@ -98,7 +148,7 @@ has has_color_col => (
 sub _build_has_color_col
 {   my $self = shift;
     return 1 if $self->color_col;
-    return 1 if $self->color_col_id && $self->color_col_id < 0;
+    return 1 if $self->color_col_is_count;
     return 0;
 }
 
@@ -112,9 +162,16 @@ has label_col => (
 
 sub _build_label_col
 {   my $self = shift;
-    !$self->label_col_id || $self->label_col_id < 0
-        and return;
-    $self->layout->column($self->label_col_id);
+    $self->layout->column($self->_parse_child($self->label_col_id));
+}
+
+has label_col_parent => (
+    is => 'lazy',
+);
+
+sub _build_label_col_parent
+{   my $self = shift;
+    $self->layout->column($self->_parse_parent($self->label_col_id));
 }
 
 has has_label_col => (
@@ -144,14 +201,14 @@ sub _build__group_by
         $_->return_type eq "globe"
     } @{$self->_columns};
 
-    push @group_by, { id => $self->color_col->id }
+    push @group_by, { id => $self->color_col->id, parent => $self->color_col_parent }
         if $self->color_col && !$self->color_col->numeric;
 
-    push @group_by, { id => $self->label_col_id }
+    push @group_by, { id => $self->label_col_id, parent => $self->label_col_parent }
         if $self->label_col && !$self->label_col->numeric
             && (!$self->color_col || $self->label_col_id != $self->color_col->id);
 
-    push @group_by, { id => $self->group_col->id }
+    push @group_by, { id => $self->group_col->id, parent => $self->group_col_parent }
         if $self->group_col && !$self->group_col->numeric
             && (!$self->color_col || $self->group_col->id != $self->color_col->id)
             && (!$self->label_col || $self->group_col->id != $self->label_col->id);
@@ -167,7 +224,7 @@ has is_choropleth => (
 sub _build_is_choropleth
 {   my $self = shift;
     return 0 if !$self->has_color_col;
-    return 1 if $self->color_col_id == -1; # Choropleth by record count
+    return 1 if $self->color_col_is_count; # Choropleth by record count
     return $self->color_col && $self->color_col->numeric ? 1 : 0;
 }
 
@@ -251,9 +308,12 @@ sub _build_data
 
     # Add on any extra required columns for labelling etc
     my @extra;
-    push @extra, $self->group_col if $self->group_col;
-    push @extra, $self->color_col if $self->color_col;
-    push @extra, $self->label_col if $self->label_col;
+    push @extra, { col => $self->group_col, parent => $self->group_col_parent }
+        if $self->group_col;
+    push @extra, { col => $self->color_col, parent => $self->color_col_parent }
+        if $self->color_col;
+    push @extra, { col => $self->label_col, parent => $self->label_col_parent }
+        if $self->label_col;
     # Messier than it should be, but if there is no globe column in the view
     # and only one in the layout, then add it on, otherwise nothing will be
     # shown
@@ -261,10 +321,20 @@ sub _build_data
     {
         my @view_columns = $records->layout->view($view_id, user_can_read => 1);
         my @gc = $records->layout->all(is_globe => 1, user_can_read => 1);
-        push @extra, @gc
-            if @gc == 1 && !grep { $_->return_type eq 'globe' } @extra, @view_columns;
+        my $has_globe;
+        $has_globe = 1
+            if grep { $_->{col}->return_type eq 'globe' } @extra;
+        $has_globe = 1
+            if grep { $_->return_type eq 'globe' } @view_columns;
+        push @extra, { col => $gc[0] }
+            if @gc == 1 && !$has_globe;
     }
-    $self->records->columns_extra([map { $_->id } @extra]);
+    $self->records->columns_extra([map {
+        +{
+            id        => $_->{col}->id,
+            parent_id => $_->{parent} && $_->{parent}->id,
+        }
+    } @extra]);
 
     # All the data values
     my %countries;
@@ -281,7 +351,7 @@ sub _build_data
             my ($value_color, $value_label, $value_group, $color);
             if ($self->has_color_col)
             {
-                if ($self->color_col_id == -1)
+                if ($self->color_col_is_count)
                 {
                     $value_color = $record->get_column('id_count');
                 }
@@ -399,7 +469,7 @@ sub _build_data
                     $values->{group_sums} ||= [];
                     # Add individual group totals, if not already added in previous label
                     push @{$values->{group_sums}}, { text => $item->{value_group}, sum => $item->{value_color} }
-                        if $self->group_col && !($self->label_col && $self->color_col_id == $self->label_col->id);
+                        if $self->group_col && !($self->label_col && $self->color_col_id eq $self->label_col_id);
                 }
                 else {
                     $values->{color_text}->{$item->{value_color}} ||= 0;
