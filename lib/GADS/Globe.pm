@@ -264,7 +264,6 @@ sub _build_data
             my ($value_color, $value_label, $value_group, $color);
             if ($self->color_col)
             {
-                my $op = $self->color_col->numeric ? 'sum' : 'max';
                 $value_color = $record->get_column($self->color_col->field);
                 if (!$self->color_col->numeric)
                 {
@@ -275,7 +274,6 @@ sub _build_data
 
             if ($self->label_col)
             {
-                my $op = $self->label_col->numeric ? 'sum' : 'max';
                 $value_label = $self->label_col->type eq 'curval'
                     ? $self->_format_curcommon($self->label_col, $record)
                     : $record->get_column($self->label_col->field);
@@ -283,7 +281,6 @@ sub _build_data
 
             if ($self->group_col)
             {
-                my $op = $self->group_col->numeric ? 'sum' : 'max';
                 $value_group = $self->group_col->type eq 'curval'
                     ? $self->_format_curcommon($self->group_col, $record)
                     : $record->get_column($self->group_col->field);
