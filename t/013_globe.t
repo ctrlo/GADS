@@ -83,12 +83,14 @@ my $simple_data = [
         schema => $schema,
     };
 
-    foreach my $test (qw/group label color group_numeric/)
+    foreach my $test (qw/group label color color_count group_numeric/)
     {
         my %options = $test eq 'group'
             ? (group_col_id => $columns->{enum1}->id)
             : $test eq 'color'
             ? (color_col_id => $columns->{integer1}->id)
+            : $test eq 'color_count'
+            ? (color_col_id => -1)
             : $test eq 'group_numeric'
             ? (group_col_id => $columns->{integer1}->id)
             : (label_col_id => $columns->{string1}->id);
@@ -135,6 +137,11 @@ my $simple_data = [
             my $trace2 = _sort_items($globe->data->[1]);
             is_deeply($trace2->{hovertext}, $text, "Correct hovertext for second trace in label");
             is_deeply($trace2->{text}, $text, "Label of second trace is same as first trace");
+        }
+        elsif ($test eq 'color_count') {
+            my $got = $globe->data->[0]->{z};
+            my $expected = [ (50) x 10 ];
+            is_deeply($got, $expected, "Z values correct for choropleth");
         }
         else {
             my $got = $globe->data->[0]->{z};
