@@ -490,12 +490,13 @@ sub _build_data
         # Need to add a hover as well, otherwise there is a dead area where the
         # hover doesn't appear
         my $r = {
-            text      => [ map { $_->{label} } @item_return ],
-            locations => [ map { $_->{location} } @item_return ],
-            hoverinfo => 'text',
-            hovertext => [ map { $_->{hover} } @item_return ],
-            mode      => 'text',
-            type      => 'scattergeo',
+            text         => [ map { $_->{label} } @item_return ],
+            locations    => [ map { $_->{location} } @item_return ],
+            hoverinfo    => 'text',
+            hovertext    => [ map { $_->{hover} } @item_return ],
+            mode         => 'text',
+            type         => 'scattergeo',
+            locationmode => 'country names',
         };
         push @return, $r;
     }
