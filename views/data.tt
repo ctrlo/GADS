@@ -364,6 +364,7 @@
             <label for="globe_color">Colour by field:</label>
             <select class="form-control" name="globe_color">
                 <option value="" [% IF NOT globe_options.color %]selected[% END %]>&lt;All fields&gt;</option>
+                <option value="-1" [% IF globe_options.color == -1 %]selected[% END %]>&lt;Record count&gt;</option>
                 [% FOREACH column IN columns_read %]
                     <option value="[% column.id %]" [% IF globe_options.color == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
                 [% END %]
