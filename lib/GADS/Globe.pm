@@ -65,6 +65,7 @@ has data => (
 sub _parse_col
 {   my ($self, $in, $type) = @_;
     my ($parent_id, $child_id);
+    $in or return undef;
     if ($in =~ /^([0-9]+)_([0-9]+)$/)
     {
         $parent_id = $1;
