@@ -153,6 +153,101 @@ my $simple_data = [
     }
 }
 
+# Count of curval numeric field
+{
+    my $data = [
+        {
+            string1  => 'Foo',
+            integer1 => 25,
+            enum1    => [qw/foo1 foo2/],
+        },
+        {
+            string1  => 'FooBar',
+            integer1 => 25,
+            enum1    => [qw/foo2 foo3/],
+        },
+        {
+            string1  => 'Bar',
+            integer1 => 25,
+            enum1    => [qw/foo1/],
+        },
+        {
+            string1  => 'Foo',
+            integer1 => 25,
+            enum1    => [qw/foo2/],
+        },
+    ];
+    my $curval_sheet = t::lib::DataSheet->new(
+        data        => $data,
+        multivalue  => 1,
+        instance_id => 2,
+    );
+    $curval_sheet->create_records;
+    my $schema = $curval_sheet->schema;
+    my $curval_columns = $curval_sheet->columns;
+
+    $data = [
+        {
+            string1 => 'France',
+            curval1 => [1, 2],
+        },
+        {
+            string1 => 'Germany',
+            curval1 => 3,
+        },
+        {
+            string1 => 'Spain',
+            curval1 => 4,
+        },
+    ];
+    my $sheet = t::lib::DataSheet->new(
+        data             => $data,
+        curval           => $curval_sheet->instance_id,
+        schema           => $schema,
+        multivalue       => 1,
+        calc_code        => "function evaluate (L1string1) \n return L1string1 end",
+        calc_return_type => 'globe',
+    );
+    $sheet->create_records;
+    my $columns = $sheet->columns;
+    my $layout  = $sheet->layout;
+
+    my $globe = GADS::Globe->new(
+        color_col_id => $columns->{curval1}->id.'_'.$curval_columns->{integer1}->id,
+        records_options => {
+            user   => $sheet->user,
+            layout => $layout,
+            schema => $schema,
+        },
+    );
+
+    my $z = [
+        50,
+        25,
+        25
+    ];
+    my $locations = [qw/
+        France
+        Germany
+        Spain
+    /];
+    my $text = [ map { "Total: $_" } @$z ];
+
+    my $out = $globe->data->[0];
+    my @results = map {
+        +{
+            location => $_,
+            text     => shift @{$out->{text}},
+            z        => shift @{$out->{z}},
+        },
+    } @{$out->{locations}};
+    @results = sort { $a->{location} cmp $b->{location} } @results;
+    use Data::Dumper; say STDERR Dumper \@results;
+    is_deeply([map { $_->{z} } @results], $z, "Choropleth values correct for curval field");
+    is_deeply([map { $_->{location} } @results], $locations, "Location values correct for curval field");
+    is_deeply([map { $_->{text} } @results], $text, "Text values correct for curval field");
+}
+
 # Invalid columns
 {
     my $sheet = t::lib::DataSheet->new(
