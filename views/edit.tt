@@ -121,7 +121,7 @@
             [% click_to_edits = [] %]
 
             [% FOREACH col IN all_columns %]
-                [% IF layout.has_topics %]
+                [% IF layout_edit.has_topics %]
                     [% IF col.topic.id != previous_topic %]
                         [% IF in_panel %]
                             [% PROCESS panel_end %]
@@ -137,7 +137,7 @@
                 [% END %]
                 [% previous_topic = col.topic.id %]
             [% END %]
-            [% IF layout.has_topics %]
+            [% IF layout_edit.has_topics %]
                 [% PROCESS panel_end %]
             [% END %]
         </div>
@@ -532,7 +532,7 @@
     [% NEXT IF page == "approval" AND NOT (record.fields.$colid.has_value)  %]
 
     [%# Skip if it's a child record and the value doesn't exist %]
-    [% NEXT IF record.parent_id AND NOT dispcol.can_child AND NOT layout.user_can("create_child") %]
+    [% NEXT IF record.parent_id AND NOT dispcol.can_child AND NOT layout_edit.user_can("create_child") %]
 
     [%# Skip if it's a linked record and the value is linked %]
     [% IF record.linked_id AND dispcol.link_parent %]

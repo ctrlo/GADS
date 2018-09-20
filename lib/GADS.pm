@@ -2693,6 +2693,7 @@ any '/edit/:id?' => require_login sub {
 
     my $options = $modal ? { layout => undef } : {};
     $params->{child}               = $child_rec;
+    $params->{layout_edit}         = $layout;
     $params->{all_columns}         = \@columns_to_show;
     $params->{clone}               = param('from'),
     $params->{breadcrumbs}         = $breadcrumbs;
