@@ -171,6 +171,11 @@ sub fetch_multivalues
 
 sub multivalue_rs
 {   my ($self, $record_ids) = @_;
+
+    # If this is called with undef record_ids, then make sure we don't search
+    # for that, otherwise a large number of unreferenced curvals could be
+    # returned
+    $record_ids = [ grep { defined $_ } @$record_ids ];
     my $subquery = $self->schema->resultset('Current')->search({
             'record_later.id' => undef,
     },{

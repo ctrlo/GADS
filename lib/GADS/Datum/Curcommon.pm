@@ -96,6 +96,15 @@ sub _build__init_value_hash
             ids     => \@ids,
         };
     }
+    elsif ($self->column->type eq 'autocur') # Would be nice to abstract to autocur class
+    {
+        my @values = $self->column->fetch_multivalues([$self->record->record_id]);
+        @values = map { $_->{value} } @values;
+        +{
+            ids     => [ map { $_->current_id } @values ],
+            records => \@values,
+        };
+    }
     else {
         +{};
     }

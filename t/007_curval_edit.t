@@ -23,6 +23,25 @@ foreach my $delete_not_used (0..1)
     my $columns = $sheet->columns;
     $sheet->create_records;
 
+    # Add autocur and calc of autocur to curval sheet, to check that gets
+    # updated on main sheet write
+    $curval_sheet->add_autocur(
+        refers_to_instance_id => 1,
+        related_field_id      => $columns->{curval1}->id,
+        curval_field_ids      => [$columns->{string1}->id],
+    );
+    my $calc = $curval_sheet->columns->{calc1};
+    $calc->code("
+        function evaluate (L2autocur1)
+            return_value = ''
+            for _, v in pairs(L2autocur1) do
+                return_value = return_value .. v.field_values.L1integer1
+            end
+            return return_value
+        end
+    ");
+    $calc->write;
+
     # Set up curval to be allow adding and removal
     my $curval = $columns->{curval1};
     $curval->delete_not_used($delete_not_used);
@@ -51,6 +70,15 @@ foreach my $delete_not_used (0..1)
     $curval_datum = $record->fields->{$curval->id};
     is($curval_datum->as_string, 'foo1', "Curval value contains new record");
     my $curval_record_id = $curval_datum->ids->[0];
+
+    # Check full curval field that has been written
+    my $curval_record = GADS::Record->new(
+        user   => $curval_sheet->user_normal1,
+        layout => $curval_sheet->layout,
+        schema => $schema,
+    );
+    $curval_record->find_current_id($curval_record_id);
+    is($curval_record->fields->{$calc->id}->as_string, 50, "Calc from autocur of curval correct");
 
     # Add a new value, keep existing
     $curval_count = $schema->resultset('Current')->search({ instance_id => 2 })->count;

@@ -1062,6 +1062,21 @@ sub delete_user_drafts
     }
 }
 
+has _need_rec => (
+    is        => 'rw',
+    isa       => Bool,
+    clearer   => 1,
+    predicate => 1,
+);
+
+has _need_app => (
+    is        => 'rw',
+    isa       => Bool,
+    clearer   => 1,
+    predicate => 1,
+);
+
+
 # options (mostly used by onboard):
 # - update_only: update the values of the existing record instead of creating a
 # new version. This allows updates that aren't recorded in the history, and
@@ -1079,10 +1094,6 @@ sub write
     # update_only option to ensure it is only an update
     $options{update_only} = 1 if $self->layout->forget_history;
 
-    # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
-    # an object) and may evaluate to an empty string. If so, txn_scope_guard
-    # warns as such, so undefine to prevent the warning
-    undef $@;
     my $guard = $self->schema->txn_scope_guard;
 
     error __"Cannot save draft of existing record" if $options{draft} && !$self->new_entry;
@@ -1398,6 +1409,22 @@ sub write
         }
     }
 
+    $self->_need_rec($need_rec);
+    $self->_need_app($need_app);
+    $self->write_values(%options) unless $options{no_write_values};
+
+    $guard->commit;
+}
+
+sub write_values
+{   my ($self, %options) = @_;
+
+    # Should never happen if this is called straight after write()
+    $self->_has_need_app && $self->_has_need_rec
+        or panic "Called out of order - need_app and need_rec not set";
+
+    my $guard = $self->schema->txn_scope_guard;
+
     # Write all the values
     my %columns_changed = ($self->current_id => []);
     my @columns_cached;
@@ -1418,7 +1445,7 @@ sub write
         }
         next if $self->linked_id && $column->link_parent; # Don't write all values if this is a linked record
 
-        if ($need_rec || $options{update_only}) # For new records, $need_rec is only set if user has create permissions without approval
+        if ($self->_need_rec || $options{update_only}) # For new records, $need_rec is only set if user has create permissions without approval
         {
             my $v;
             # Need to write all values regardless. This will either be the
@@ -1503,7 +1530,7 @@ sub write
                 }
             }
         }
-        if ($need_app)
+        if ($self->_need_app)
         {
             # Only need to write values that need approval
             next unless $datum->is_awaiting_approval;
@@ -1581,6 +1608,10 @@ sub write
         }
     }
 
+    $_->write_values(%options)
+        foreach @{$self->_records_to_write_after};
+    $self->_clear_records_to_write_after;
+
     # Alerts can cause SQL errors, due to the unique constraints
     # on the alert cache columns. Therefore, commit what we've
     # done so far, and don't do alerts in a transaction
@@ -1641,6 +1672,8 @@ sub write
         }
     }
     $self->clear_new_entry; # written to database, no longer new
+    $self->_clear_need_rec;
+    $self->_clear_need_app;
 }
 
 sub set_blank_dependents
@@ -1656,6 +1689,16 @@ sub set_blank_dependents
         }
     }
 }
+
+# A list of any records to write at the end of writing this one. This is used
+# when writing subrecords - the full record may not be able to be written at
+# the time of write as it may refer to this one
+has _records_to_write_after => (
+    is      => 'ro',
+    lazy    => 1,
+    builder => sub { [] },
+    clearer => 1,
+);
 
 sub _field_write
 {   my ($self, $column, $datum, %options) = @_;
@@ -1699,7 +1742,8 @@ sub _field_write
                 {
                     foreach my $record (@{$datum_write->values_as_query_records})
                     {
-                        $record->write(%options, no_draft_delete => 1);
+                        $record->write(%options, no_draft_delete => 1, no_write_values => 1);
+                        push @{$self->_records_to_write_after}, $record;
                         my $id = $record->current_id;
                         my %entry = %$entry; # Copy to stop referenced id being overwritten
                         $entry{value} = $id;
