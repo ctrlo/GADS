@@ -126,11 +126,12 @@ sub _build_results
                ? 'max'
                : $self->aggregate_all
                ? $self->operator
-               # XXX Temporary removal to be able to use curval numeric field
-               # values. A test needs adding here to see if the curval numeric
-               # value is just being used as a curval label
-               # : !$curval_fields{$col->id} && $col->numeric
-               : $col->numeric
+               # XXX A bit hacky - needs improving along with columns_extra()
+               # options. If we want the full textual value of a curval field
+               # then we need the max of the numeric field (to get its fixed
+               # value); if we are actually doing sums on the field within the
+               # curval, then we want its sum
+               : (!$curval_fields{$col->id} || grep { $_->{id} == $col->id } @{$self->columns_extra || []}) && $col->numeric
                ? 'sum'
                : 'max';
         # Don't use SUM() for non-numeric columns
