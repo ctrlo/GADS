@@ -210,4 +210,12 @@ $record->find_current_id(1);
     }
 }
 
+# Tests for recursive display fields
+{
+    $string1->display_field($string1->id);
+    $string1->display_regex('Foobar');
+    try { $string1->write };
+    like($@, qr/not be the same/, "Unable to write display field same as field itself");
+}
+
 done_testing();

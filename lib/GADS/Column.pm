@@ -867,6 +867,8 @@ sub write
         and error __x"{name} is a reserved name for a field", name => $newitem->{name};
     $newitem->{type} = $self->type
         or error __"Please select a type for the item";
+    $self->display_field && $self->display_field == $self->id
+        and error __"Display condition field cannot be the same as the field itself";
 
     if ($newitem->{name_short} = $self->name_short)
     {
