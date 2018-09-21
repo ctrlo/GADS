@@ -1501,12 +1501,15 @@ sub write_values
             {
                 foreach my $autocur (@{$column->autocurs})
                 {
+                    # Do nothing with deleted records
+                    my %deleted = map { $_ => 1 } @{$datum->ids_deleted};
+
                     # Work out which ones have changed. We only want to
                     # re-evaluate records that have actually changed, for both
                     # performance reasons and to send the correct alerts
                     #
                     # First, establish which current IDs might be affected
-                    my %affected = map { $_ => 1 } @{$datum->ids_affected};
+                    my %affected = map { $_ => 1 } grep { !$deleted{$_} } @{$datum->ids_affected};
 
                     # Then see if any fields depend on this autocur (e.g. code fields)
                     if ($autocur->layouts_depend_depends_on->count)
@@ -1524,6 +1527,7 @@ sub write_values
                     # mark that as changed with this value
                     foreach my $cid (@{$datum->ids_changed})
                     {
+                        next if $deleted{$cid};
                         $update_autocurs{$cid} ||= [];
                         push @{$update_autocurs{$cid}}, $autocur->id;
                     }
@@ -1595,6 +1599,10 @@ sub write_values
         # Update any records with an autocur field that are referred to by this
         foreach my $cid (keys %update_autocurs)
         {
+            # Check whether this record is one that we're going to write
+            # anyway. If so, skip.
+            next if grep { $_->current_id == $cid } @{$self->_records_to_write_after};
+
             my $record = GADS::Record->new(
                 user     => $self->user,
                 layout   => $self->layout,

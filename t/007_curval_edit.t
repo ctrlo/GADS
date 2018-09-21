@@ -41,6 +41,7 @@ foreach my $delete_not_used (0..1)
         end
     ");
     $calc->write;
+    $layout->clear;
 
     # Set up curval to be allow adding and removal
     my $curval = $columns->{curval1};
