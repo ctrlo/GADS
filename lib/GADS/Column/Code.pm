@@ -18,15 +18,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Column::Code;
 
+use DateTime;
+use Date::Holidays::GB qw/ is_gb_holiday gb_holidays /;
 use GADS::AlertSend;
 use Log::Report 'linkspace';
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 
 use Inline 'Lua' => q{
-    function lua_run(string, vars)
+    function lua_run(string, vars, working_days_diff, working_days_add)
         local env = {}
         env["vars"] = vars
+
+        env["working_days_diff"] = working_days_diff
+        env["working_days_add"] = working_days_add
 
         env["ipairs"] = ipairs
         env["math"] = {
@@ -226,13 +231,102 @@ sub _parse_code
     };
 }
 
+# XXX These functions can raise exceptions - further investigation needed as to
+# whether this causes problems when called from Lua. Initial experience
+# suggests it might do.
+sub working_days_diff
+{   my ($start_epoch, $end_epoch, $country, $region) = @_;
+
+    @_ == 4
+        or error "Parameters for working_days_diff need to be: start, end, country, region";
+
+    $country eq 'GB' or error "Only country GB is currently supported";
+
+    $start_epoch or error "Start date missing for working_days_diff";
+    $end_epoch or error "End date missing for working_days_diff";
+
+    my $start = DateTime->from_epoch(epoch => $start_epoch);
+    my $end = DateTime->from_epoch(epoch => $end_epoch);
+
+    # Check that we have the holidays for the years requested
+    my $min = $start < $end ? $start->year : $end->year;
+    my $max = $end > $start ? $end->year : $start->year;
+    foreach my $year ($min..$max)
+    {
+        error __x"No bank holiday information available for year {year}", year => $year
+            if !%{gb_holidays(year => $year, regions => [$region])};
+    }
+
+    my $days = 0;
+
+    if ($end > $start)
+    {
+        my $marker = $start->clone->add(days => 1);
+
+        while ($marker <= $end)
+        {
+            if (!is_gb_holiday(
+                    year    => $marker->year, month => $marker->month, day => $marker->day,
+                    regions => [$region] )
+            ) {
+                $days++ unless $marker->day_of_week == 6 || $marker->day_of_week == 7;
+            }
+            $marker->add(days => 1);
+        }
+    }
+    else {
+        my $marker = $start->clone->subtract(days => 1);
+
+        while ($marker >= $end)
+        {
+            if (!is_gb_holiday(
+                    year => $marker->year, month => $marker->month, day => $marker->day,
+                    regions => [$region] )
+            ) {
+                $days-- unless $marker->day_of_week == 6 || $marker->day_of_week == 7;
+            }
+            $marker->subtract(days => 1);
+        }
+    }
+
+    return $days;
+}
+
+sub working_days_add
+{   my ($start_epoch, $days, $country, $region) = @_;
+
+    @_ == 4
+        or error "Parameters for working_days_add need to be: start, end, country, region";
+
+    $country eq 'GB' or error "Only country GB is currently supported";
+    $start_epoch or error "Date missing for working_days_add";
+
+    my $start = DateTime->from_epoch(epoch => $start_epoch);
+
+    error __x"No bank holiday information available for year {year}", year => $start->year
+        if !%{gb_holidays(year => $start->year, regions => [$region])};
+
+    while ($days)
+    {
+        $start->add(days => 1);
+	if (!is_gb_holiday(
+		year => $start->year, month => $start->month, day => $start->day,
+		regions => [$region] )
+	) {
+	    $days-- unless $start->day_of_week == 6 || $start->day_of_week == 7;
+	}
+    }
+
+    return $start->epoch;
+}
+
 sub eval
 {   my ($self, $code, $vars) = @_;
     my $run_code = $self->_parse_code($code)->{code};
     my $mapping = '';
     $mapping .= qq($_ = vars["$_"]\n) foreach keys %$vars;
     $run_code = $mapping.$run_code;
-    my $return = lua_run($run_code, $vars);
+    my $return = lua_run($run_code, $vars, \&working_days_diff, \&working_days_add);
     # Make sure we're not returning anything funky (e.g. code refs)
     my $ret = $return->{return};
     if ($self->multivalue && ref $ret eq 'ARRAY')
@@ -242,7 +336,6 @@ sub eval
     elsif (defined $ret) {
         $ret = "$ret" if defined $ret;
     }
-
     my $err = $return->{error} && ''.$return->{error};
     no warnings "uninitialized";
     trace "Return value from Lua: $ret, error: $err";

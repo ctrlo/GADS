@@ -574,6 +574,7 @@ sub __build_columns
     );
     $date1->type('date');
     $date1->name('date1');
+    $date1->name_short("L${instance_id}date1");
     $date1->set_permissions({$self->group->id => $permissions})
         unless $self->no_groups;
     try { $date1->write };

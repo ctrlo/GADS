@@ -22,6 +22,7 @@ my $data = [
         curval1    => 1,
         tree1      => 'tree1',
         integer1   => 10,
+        date1      => '2016-12-20',
     },
     {
         daterange1 => ['2012-11-11', '2013-11-11'],
@@ -53,85 +54,6 @@ my $autocur1 = $curval_sheet->add_autocur(
     related_field_id      => $columns->{curval1}->id,
 );
 $layout->clear; # Ensure main layout takes account of its new child autocurs
-
-# Attempt to create additional calc field separately.
-# This has been known to cause errors with $layout not
-# being updated properly
-
-# First try with invalid function
-my $calc2_col = GADS::Column::Calc->new(
-    schema => $schema,
-    user   => undef,
-    layout => $layout,
-    name   => 'calc2',
-    code   => "foobar evaluate (L1curval)",
-);
-try { $calc2_col->write };
-ok( $@, "Failed to write calc field with invalid function" );
-
-# Then with invalid short name
-$calc2_col = GADS::Column::Calc->new(
-    schema => $schema,
-    user   => undef,
-    layout => $layout,
-    name   => 'calc2',
-    code   => "function evaluate (L1curval) \n return L1curval1.value\nend",
-);
-try { $calc2_col->write };
-ok( $@, "Failed to write calc field with invalid short names" );
-
-# Then with short name from other table (invalid)
-$calc2_col = GADS::Column::Calc->new(
-    schema => $schema,
-    user   => undef,
-    layout => $layout,
-    name   => 'calc2',
-    code   => "function evaluate (L2string1) \n return L2string1\nend",
-);
-try { $calc2_col->write };
-like( $@, qr/It is only possible to use fields from the same table/, "Failed to write calc field with short name from other table" );
-
-# Create a calc field that has something invalid in the nested code
-my $calc_inv_string = GADS::Column::Calc->new(
-    schema => $schema,
-    user   => undef,
-    layout => $layout,
-    name   => 'calc3',
-    code   => "function evaluate (L1curval1) \n adsfadsf return L1curval1.field_values.L2daterange1.from.year \nend",
-);
-try { $calc_inv_string->write } hide => 'ALL';
-my ($warning) = $@->exceptions;
-like($warning, qr/syntax error/, "Warning received for syntax error in calc");
-
-# Invalid Lua code with return value not string
-my $calc_inv_int = GADS::Column::Calc->new(
-    schema      => $schema,
-    user        => undef,
-    layout      => $layout,
-    name        => 'calc3',
-    return_type => 'integer',
-    code        => "function evaluate (L1curval1) \n adsfadsf return L1curval1.field_values.L2daterange1.from.year \nend",
-);
-try { $calc_inv_int->write } hide => 'ALL';
-($warning) = $@->exceptions;
-like($warning, qr/syntax error/, "Warning received for syntax error in calc");
-
-# Same for RAG
-my $rag3 = GADS::Column::Rag->new(
-    schema => $schema,
-    user   => undef,
-    layout => $layout,
-    name   => 'rag2',
-    code   => "
-        function evaluate (L1daterange1)
-            foobar
-        end
-    ",
-);
-try { $rag3->write } hide => 'ALL';
-($warning) = $@->exceptions;
-like($warning, qr/syntax error/, "Warning received for syntax error in rag");
-$rag3->delete;
 
 # Check that numeric return type from calc can be used in another calc
 my $calc_integer = GADS::Column::Calc->new(
@@ -185,6 +107,30 @@ my @tests = (
         ",
         before => 'b_red',
         after  => 'd_green',
+    },
+    {
+        name => 'working days diff',
+        type => 'Calc',
+        code   => "
+            function evaluate (L1date1)
+                if L1date1 == nil then return nil end
+                return working_days_diff(L1date1.epoch, 1483488000, 'GB', 'EAW')
+            end
+        ", # 1483488000 is 4th Jan 2017
+        before => '8',
+        after  => '8',
+    },
+    {
+        name => 'working days add',
+        type => 'Calc',
+        code   => "
+            function evaluate (L1date1)
+                if L1date1 == nil then return nil end
+                return working_days_add(L1date1.epoch, 4, 'GB', 'EAW')
+            end
+        ",
+        before => '1482883200', # 28th Dec 2016
+        after  => '1482883200',
     },
     {
         name           => 'decimal calc',
@@ -347,6 +293,7 @@ foreach my $test (@tests)
         multivalue     => $test->{multivalue},
     );
     $code_col->write;
+
     $layout->clear;
 
     my @results;
@@ -377,6 +324,7 @@ foreach my $test (@tests)
     );
     $record_new->initialise;
     $record_new->fields->{$columns->{daterange1}->id}->set_value(['2000-10-10', '2001-10-10']);
+    $record_new->fields->{$columns->{date1}->id}->set_value('2016-12-20');
     $record_new->fields->{$columns->{curval1}->id}->set_value(1);
     $record_new->fields->{$columns->{tree1}->id}->set_value(10);
     $record_new->fields->{$columns->{integer1}->id}->set_value(10);
@@ -435,8 +383,6 @@ foreach my $test (@tests)
         is(ref $_, $ref, "Return value is not a reference or correct reference")
             foreach @{$record_check->fields->{$code_col->id}->value};
         like( $record_check->fields->{$code_col->id}->as_string, $after, "Correct code value for test $test->{name} (after)" );
-        is( $record->fields->{$calc_inv_string->id}->as_string, '<evaluation error>', "<evaluation error>or test $test->{name}" );
-        is( $record->fields->{$calc_inv_int->id}->as_string, '', "<evaluation error>2or test $test->{name}" );
 
         unless ($test->{record_check}) # Test will not work from wrong datasheet
         {
@@ -650,6 +596,111 @@ restore_time();
     $record->find_current_id($record_id);
     $record->fields->{$calc1_id}->re_evaluate;
     ok(!$record->fields->{$calc1_id}->changed, "Date created code not changed after re-evaluation");
+}
+
+{
+    # Attempt to create additional calc field separately.
+    # This has been known to cause errors with $layout not
+    # being updated properly
+
+    # First try with invalid function
+    my $calc2_col = GADS::Column::Calc->new(
+        schema => $schema,
+        user   => undef,
+        layout => $layout,
+        name   => 'calc2',
+        code   => "foobar evaluate (L1curval)",
+    );
+    try { $calc2_col->write };
+    ok( $@, "Failed to write calc field with invalid function" );
+
+    # Then with invalid short name
+    $calc2_col = GADS::Column::Calc->new(
+        schema => $schema,
+        user   => undef,
+        layout => $layout,
+        name   => 'calc2',
+        code   => "function evaluate (L1curval) \n return L1curval1.value\nend",
+    );
+    try { $calc2_col->write };
+    ok( $@, "Failed to write calc field with invalid short names" );
+
+    # Then with short name from other table (invalid)
+    $calc2_col = GADS::Column::Calc->new(
+        schema => $schema,
+        user   => undef,
+        layout => $layout,
+        name   => 'calc2',
+        code   => "function evaluate (L2string1) \n return L2string1\nend",
+    );
+    try { $calc2_col->write };
+    like( $@, qr/It is only possible to use fields from the same table/, "Failed to write calc field with short name from other table" );
+
+    # Create a calc field that has something invalid in the nested code
+    my $calc_inv_string = GADS::Column::Calc->new(
+        schema => $schema,
+        user   => undef,
+        layout => $layout,
+        name   => 'calc3',
+        code   => "function evaluate (L1curval1) \n adsfadsf return L1curval1.field_values.L2daterange1.from.year \nend",
+    );
+    try { $calc_inv_string->write } hide => 'ALL';
+    my ($warning) = $@->exceptions;
+    like($warning, qr/syntax error/, "Warning received for syntax error in calc");
+
+    # Invalid Lua code with return value not string
+    my $calc_inv_int = GADS::Column::Calc->new(
+        schema      => $schema,
+        user        => undef,
+        layout      => $layout,
+        name        => 'calc3',
+        return_type => 'integer',
+        code        => "function evaluate (L1curval1) \n adsfadsf return L1curval1.field_values.L2daterange1.from.year \nend",
+    );
+    try { $calc_inv_int->write } hide => 'ALL';
+    ($warning) = $@->exceptions;
+    like($warning, qr/syntax error/, "Warning received for syntax error in calc");
+
+    # Test missing bank holidays
+    my $calc_missing_bh = GADS::Column::Calc->new(
+        schema      => $schema,
+        user        => undef,
+        layout      => $layout,
+        name        => 'calc3',
+        code        => "function evaluate (_id) \n return working_days_diff(2051222400, 2051222400, 'GB', 'EAW') \nend", # Year 2035
+    );
+    try { $calc_missing_bh->write } hide => 'ALL';
+    ($warning) = $@->exceptions;
+    like($warning, qr/No bank holiday information available for year 2035/, "Missing bank holiday information warnings for working_days_diff");
+    $calc_missing_bh = GADS::Column::Calc->new(
+        schema      => $schema,
+        user        => undef,
+        layout      => $layout,
+        name        => 'calc3',
+        code        => "function evaluate (_id) \n return working_days_add(2082758400, 1, 'GB', 'EAW') \nend", # Year 2036
+    );
+    try { $calc_missing_bh->write } hide => 'ALL';
+    ($warning) = $@->exceptions;
+    like($warning, qr/No bank holiday information available for year 2036/, "Mising bank holiday information warnings for working_days_add");
+    $calc_missing_bh->delete;
+
+    # Same for RAG
+    my $rag3 = GADS::Column::Rag->new(
+        schema => $schema,
+        user   => undef,
+        layout => $layout,
+        name   => 'rag2',
+        code   => "
+            function evaluate (L1daterange1)
+                foobar
+            end
+        ",
+    );
+    try { $rag3->write } hide => 'ALL';
+    ($warning) = $@->exceptions;
+    like($warning, qr/syntax error/, "Warning received for syntax error in rag");
+    $rag3->delete;
+
 }
 
 done_testing();
