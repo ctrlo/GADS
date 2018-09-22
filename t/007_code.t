@@ -269,6 +269,22 @@ my @tests = (
         after  => 'tree3'
     },
     {
+        name   => 'flatten of hash',
+        type   => 'Calc',
+        code   => qq(function evaluate (L1tree1) \n return L1tree1 \nend),
+        before => qr/HASH/,
+        after  => qr/HASH/
+    },
+    {
+        name       => 'flatten of array',
+        type       => 'Calc',
+        code       => qq(function evaluate (L1tree1) \n a = {} \n a[1] = L1tree1 \n return a \nend),
+        before     => qr/HASH/,
+        after      => qr/HASH/,
+        is_array   => 1,
+        multivalue => 1,
+    },
+    {
         name   => 'autocur',
         type   => 'Calc',
         layout => $curval_sheet->layout,
@@ -374,11 +390,11 @@ foreach my $test (@tests)
     {
         my $before = $test->{before};
         my $cid = $record->current_id;
-        $before =~ s/__ID/$cid/;
+        $before =~ s/__ID/$cid/ unless ref $before eq 'Regexp';
         my $serial = $schema->resultset('Current')->find($cid)->serial;
         # Check that a serial was actually produced, so we're not comparing 2 null values
         ok($serial, "Serial is not blank");
-        $before =~ s/__SERIAL/$serial/;
+        $before =~ s/__SERIAL/$serial/ unless ref $before eq 'Regexp';
         my $record_check;
         if (my $rcid = $test->{record_check})
         {
@@ -392,7 +408,11 @@ foreach my $test (@tests)
         else {
             $record_check = $record;
         }
-        is( $record_check->fields->{$code_col->id}->as_string, $before, "Correct code value for test $test->{name} (before)" );
+        $before = qr/^$before$/ unless ref $before eq 'Regexp';
+        my $ref = $test->{return_type} && $test->{return_type} eq 'date' ? 'DateTime' : '';
+        is(ref $_, $ref, "Return value is not a reference or correct reference")
+            foreach @{$record_check->fields->{$code_col->id}->value};
+        like( $record_check->fields->{$code_col->id}->as_string, $before, "Correct code value for test $test->{name} (before)" );
 
         # Check we can update the record
         set_fixed_time('11/15/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
@@ -404,14 +424,17 @@ foreach my $test (@tests)
         try { $record->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
         $@->reportFatal; # In case any fatal errors
         my $after = $test->{after};
-        $after =~ s/__ID/$cid/;
-        $after =~ s/__SERIAL/$serial/;
+        $after =~ s/__ID/$cid/ unless ref $after eq 'Regexp';
+        $after =~ s/__SERIAL/$serial/ unless ref $after eq 'Regexp';
         if (my $rcid = $test->{record_check})
         {
             $record_check->clear;
             $record_check->find_current_id($rcid);
         }
-        is( $record_check->fields->{$code_col->id}->as_string, $after, "Correct code value for test $test->{name} (after)" );
+        $after = qr/^$after$/ unless ref $after eq 'Regexp';
+        is(ref $_, $ref, "Return value is not a reference or correct reference")
+            foreach @{$record_check->fields->{$code_col->id}->value};
+        like( $record_check->fields->{$code_col->id}->as_string, $after, "Correct code value for test $test->{name} (after)" );
         is( $record->fields->{$calc_inv_string->id}->as_string, '<evaluation error>', "<evaluation error>or test $test->{name}" );
         is( $record->fields->{$calc_inv_int->id}->as_string, '', "<evaluation error>2or test $test->{name}" );
 
@@ -427,7 +450,7 @@ foreach my $test (@tests)
             $@->reportFatal; # In case any fatal errors
             $record->clear;
             $record->find_current_id($current_id);
-            is( $record->fields->{$code_col->id}->as_string, $after, "Correct code value for test $test->{name} after enum deletion" );
+            like( $record->fields->{$code_col->id}->as_string, $after, "Correct code value for test $test->{name} after enum deletion" );
         }
 
         # Reset values for next test
