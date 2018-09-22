@@ -668,7 +668,7 @@ sub build_values
     if ($self->type eq 'curval')
     {
         $self->set_filter($original->{filter});
-        $self->multivalue(1) if $self->show_add;
+        $self->multivalue(1) if $self->show_add && $self->value_selector eq 'noshow';
     }
 
 }

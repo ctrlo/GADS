@@ -57,7 +57,7 @@ has show_add => (
     },
     trigger => sub {
         my ($self, $value) = @_;
-        $self->multivalue(1) if $value;
+        $self->multivalue(1) if $value && $self->value_selector eq 'noshow';
         $self->clear_options;
     },
 );
