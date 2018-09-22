@@ -192,13 +192,13 @@ has ids => (
     },
 );
 
-has ids_deleted => (
+has ids_removed => (
     is  => 'lazy',
     isa => ArrayRef,
 );
 
 # The IDs of any records removed from this field's value
-sub _build_ids_deleted
+sub _build_ids_removed
 {   my $self = shift;
     return [] if !$self->changed;
     my %old = map { $_ => 1 } @{$self->oldvalue->ids};
@@ -206,6 +206,14 @@ sub _build_ids_deleted
     delete $old{$_->current_id} foreach grep { !$_->new_entry } @{$self->values_as_query_records};
     return [ keys %old ];
 }
+
+# IDs of any records that have been removed and automatically deleted. This is
+# calculated and set when writing the record.
+has ids_deleted => (
+    is      => 'rw',
+    isa     => ArrayRef,
+    default => sub { [] },
+);
 
 # All relevant ids (old and new)
 has ids_affected => (

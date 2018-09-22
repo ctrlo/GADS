@@ -1766,7 +1766,8 @@ sub _field_write
                 }
                 if ($column->type eq 'curval' && $column->delete_not_used)
                 {
-                    foreach my $deleted_id (@{$datum->ids_deleted})
+                    my @ids_deleted;
+                    foreach my $id_deleted (@{$datum->ids_removed})
                     {
                         my $is_used;
                         foreach my $refers (@{$column->layout_parent->referred_by})
@@ -1783,7 +1784,7 @@ sub _field_write
                                     rules     => [{
                                         id       => $refers->id,
                                         type     => 'string',
-                                        value    => $deleted_id,
+                                        value    => $id_deleted,
                                         operator => 'equal',
                                     }],
                                 },
@@ -1813,10 +1814,12 @@ sub _field_write
                                 layout   => $column->layout_parent,
                                 schema   => $self->schema,
                             );
-                            $record->find_current_id($deleted_id);
+                            $record->find_current_id($id_deleted);
                             $record->delete_current(override => 1);
+                            push @ids_deleted, $id_deleted;
                         }
                     }
+                    $datum->ids_deleted(\@ids_deleted);
                 }
                 if (!@entries)
                 {
