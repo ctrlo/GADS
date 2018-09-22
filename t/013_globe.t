@@ -242,7 +242,6 @@ my $simple_data = [
         },
     } @{$out->{locations}};
     @results = sort { $a->{location} cmp $b->{location} } @results;
-    use Data::Dumper; say STDERR Dumper \@results;
     is_deeply([map { $_->{z} } @results], $z, "Choropleth values correct for curval field");
     is_deeply([map { $_->{location} } @results], $locations, "Location values correct for curval field");
     is_deeply([map { $_->{text} } @results], $text, "Text values correct for curval field");
