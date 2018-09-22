@@ -1077,6 +1077,7 @@ sub single
             # Work out chunk to retrieve from all current IDs
             my $start     = $chunk * $self->_single_page;
             my $end       = $start + $chunk - 1;
+            $end          = @{$self->_all_cids_store} - 1 if @{$self->_all_cids_store} - 1 < $end;
             my $cid_fetch = [ @{$self->_all_cids_store}[$start..$end] ];
 
             # Set those IDs for the next chunk retrieved from the DB
