@@ -88,7 +88,7 @@ has html_form => (
 
 sub _build_html_form
 {   my $self = shift;
-    [ map { $_ || '' } @{$self->values} ];
+    [ map { defined($_) ? $_ : '' } @{$self->values} ];
 }
 
 has text_all => (

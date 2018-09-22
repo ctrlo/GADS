@@ -151,7 +151,7 @@ sub html
 
 sub html_form
 {   my $self = shift;
-    [ $self->value || '' ];
+    [ defined $self->value ? $self->value : '' ];
 }
 
 # The values needed to pass to the set_values function of a datum. Normally the
