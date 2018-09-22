@@ -332,7 +332,7 @@ sub user_can_column
     if (!$user_cache)
     {
         my $user_permissions = $self->_user_permissions_columns;
-        $user_permissions->{$user_id} = $user_permissions->{$user_id} = $self->_get_user_permissions($user_id);
+        $user_cache = $user_permissions->{$user_id} = $self->_get_user_permissions($user_id);
     }
 
     return $user_cache->{$column_id}->{$permission};

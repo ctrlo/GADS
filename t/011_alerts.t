@@ -482,13 +482,13 @@ foreach my $filter (@filters)
         instance_id => $alert_layout->instance_id,
         layout      => $alert_layout,
         schema      => $schema,
-        user        => $sheet->user,
+        user        => $sheet->user_normal1,
         columns     => $filter->{columns},
     );
     $view->write;
 
     my $alert = GADS::Alert->new(
-        user      => $sheet->user,
+        user      => $sheet->user_normal1, # Different user to that doing the update
         layout    => $filter->{alert_layout} || $layout,
         schema    => $schema,
         frequency => 24,
