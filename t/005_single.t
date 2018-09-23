@@ -76,7 +76,7 @@ foreach my $initial_fetch (0..1)
     my $datum = $record->fields->{$columns->{curval1}->id};
     is(@{$datum->field_values}, 1, "Correct number of initial curval fields");
     my $for_code = $datum->field_values_for_code->{1};
-    is(keys %$for_code, 6, "Correct number of initial curval fields");
+    is(keys %$for_code, 7, "Correct number of initial curval fields");
     my ($value) = values %{$datum->field_values->[0]};
     is($value->as_string, "Foo", "Correct value of curval field");
 }
