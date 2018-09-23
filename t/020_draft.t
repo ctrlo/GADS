@@ -10,7 +10,7 @@ my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, data => []);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
 
-my $sheet   = t::lib::DataSheet->new(schema => $schema, curval => 2);
+my $sheet   = t::lib::DataSheet->new(schema => $schema, curval => 2, multivalue => 1);
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
 
