@@ -3060,6 +3060,8 @@ any '/login' => sub {
     # Request a password reset
     if (param('resetpwd'))
     {
+        param 'emailreset'
+            or error "Please enter an email address for the password reset to be sent to";
         my $username = param('emailreset');
         $audit->login_change("Password reset request for $username");
         defined password_reset_send(username => $username)
