@@ -151,7 +151,19 @@ var SelectWidget = function (multi) {
             var $item = $(item);
             var itemId = $item.data('list-item');
             var $associated = $('#' + itemId);
-            $associated.on('change', function (e) {
+
+            $associated.on('click', function(e){
+                e.stopPropagation();
+            });
+
+            $associated.parent().keypress(function(e) {
+                // KeyCode Spacebar
+                if(e.keyCode === 32) {
+                    $(this).trigger('click');
+                }
+            })
+
+            $associated.parent().on('click', function(e){
                 e.stopPropagation();
                 $currentItems.each(function () {
                     $(this).attr('hidden', '');
@@ -161,11 +173,8 @@ var SelectWidget = function (multi) {
                 $item.removeAttr('hidden');
 
                 $widget.trigger('change');
+                onTriggerClick($widget, $trigger, $target)();
             });
-        });
-
-        $availableItems.on('click', function () {
-            onTriggerClick($widget, $trigger, $target)();
         });
     };
 
@@ -339,7 +348,6 @@ var SelectWidget = function (multi) {
     connect();
 
     $widget.on('click', onTriggerClick($widget, $trigger, $target));
-
     $availableItems.on('blur', function(e) {
         if (!$available.find(e.relatedTarget).length && e.relatedTarget) {
             $widget.trigger('click');
