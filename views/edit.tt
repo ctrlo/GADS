@@ -819,7 +819,7 @@
         >
         <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="select-widget-dropdown">
-            <div class="form-group form-control" >
+            <div class="form-group form-control" [% readonly %] >
                 <ul class="current">
                     [% checked = !editvalue.id %]
                     [% value_id = field _ '__blank' %]
@@ -831,11 +831,13 @@
                     <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">[% value.value | html_entity %]</li>
                 [% END %]
                 </ul>
-                <button type="button" aria-controls="[% field %]_available_values"
+                [% IF !readonly %]
+                    <button type="button" aria-controls="[% field %]_available_values"
                             aria-expanded="false" aria-describedby="[% field %]_label">
-                    <span class="expanded glyphicon glyphicon-chevron-up" aria-label="Confirm"></span>
-                    <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
-                </button>
+                        <span class="expanded glyphicon glyphicon-chevron-up" aria-label="Confirm"></span>
+                        <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
+                    </button>
+                [% END %]
             </div>
             <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values">
                 [% IF values.size >= 10 %]
@@ -952,7 +954,7 @@
         >
         <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="select-widget-dropdown">
-            <div class="form-group form-control" >
+            <div class="form-group form-control" [% readonly %]>
                 <ul class="current">
                     <li class="none-selected">blank</li>
                 [% FOREACH value IN values %]
@@ -962,11 +964,13 @@
                     <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">[% value.value | html_entity %]</li>
                 [% END %]
                 </ul>
-                <button type="button" aria-controls="[% field %]_available_values"
-                            aria-expanded="false" aria-describedby="[% field %]_label">
-                    <span class="expanded glyphicon glyphicon-chevron-up" aria-label="Confirm"></span>
-                    <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
-                </button>
+                [% IF !readonly %]
+                    <button type="button" aria-controls="[% field %]_available_values"
+                                aria-expanded="false" aria-describedby="[% field %]_label">
+                        <span class="expanded glyphicon glyphicon-chevron-up" aria-label="Confirm"></span>
+                        <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
+                    </button>
+                [% END %]
             </div>
             <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values">
                 [% IF values.size >= 10 %]
