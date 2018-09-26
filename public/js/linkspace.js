@@ -340,6 +340,12 @@ var SelectWidget = function (multi) {
 
     $widget.on('click', onTriggerClick($widget, $trigger, $target));
 
+    $availableItems.on('blur', function(e) {
+        if (!$available.find(e.relatedTarget).length && e.relatedTarget) {
+            $widget.trigger('click');
+        }
+    });
+
     $(document).on('click', function(e) {
         var clickedOutside = !this.is(e.target) && this.has(e.target).length === 0;
         var clickedInDialog = $(e.target).closest(".modal").length !== 0;
