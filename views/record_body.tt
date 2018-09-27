@@ -25,3 +25,5 @@
         [% last_topic = col.topic %]
     [% END %]
 </table>
+
+[% PROCESS snippets/record_readmore.tt %]
