@@ -293,24 +293,77 @@
                 var current_id = form.data( "current-id" );
                 var guid = form.data("guid");
                 var hidden_input = $('<input>').attr({type: 'hidden', name: 'field' + col_id, value: form_data});
+                var $formGroup = $("div[data-column-id=" + col_id + "]");
+                var valueSelector = $formGroup.data("value-selector");
 
-                var row_cells = $('<tr class="curval_item">');
-                var text_values = jQuery.map(modal_field_ids, function(element) {
-                    var control = form.find('[data-column-id="' + element + '"]');
-                    var value = getFieldValues(control);
-                    value = values["field" + element];
-                    value = $('<div />').text(value).html();
-                    row_cells.append($('<td class="curval-inner-text">').append(value));
-                });
-                var links = $('<td><a class="curval-modal" style="cursor:pointer" data-layout-id="' + col_id + '" data-instance-id="' + instance_id + '">edit</a> | <a class="curval_remove" style="cursor:pointer">remove</a></td>');
-                row_cells.append(links.append(hidden_input));
-                if (guid) {
-                    var hidden = $('input[data-guid="' + guid + '"]').val(form_data);
-                    hidden.closest('.curval_item').replaceWith(row_cells);
+                if (valueSelector === "noshow") {
+                    var row_cells = $('<tr class="curval_item">');
+                    var text_values = jQuery.map(modal_field_ids, function(element) {
+                        var control = form.find('[data-column-id="' + element + '"]');
+                        var value = getFieldValues(control);
+                        value = values["field" + element];
+                        value = $('<div />').text(value).html();
+                        row_cells.append($('<td class="curval-inner-text">').append(value));
+                    });
+                    var links = $('<td><a class="curval-modal" style="cursor:pointer" data-layout-id="' + col_id + '" data-instance-id="' + instance_id + '">edit</a> | <a class="curval_remove" style="cursor:pointer">remove</a></td>');
+                    row_cells.append(links.append(hidden_input));
+                    if (guid) {
+                        var hidden = $('input[data-guid="' + guid + '"]').val(form_data);
+                        hidden.closest('.curval_item').replaceWith(row_cells);
+                    }
+                    else {
+                        $('#curval_list_' + col_id).find("tbody").append(row_cells);
+                    }
+                } else if (valueSelector === "dropdown") {
+                    var $widget = $formGroup.find(".select-widget").first();
+                    var multi = $widget.hasClass('multi');
+
+                    $currentList = $formGroup.find(".current");
+                    $answersList = $formGroup.find(".available");
+
+                    if (!multi) {
+                        /* Deselect current selected value */
+                        $currentList.find("li").attr('hidden', '');
+                        $answersList.find("li input").prop("checked", false);
+                    }
+
+                    var textValue = jQuery.map(modal_field_ids, function(element) {
+                        var control = form.find('[data-column-id="' + element + '"]');
+                        value = values["field" + element];
+                        return $('<div />').text(value).html();
+                    }).join(", ");
+
+                    guid = window.guid();
+                    $currentList.append('<li data-list-item="field' + col_id + '_' + guid + '">' + textValue + '</li>');
+                    var inputType = multi ? "checkbox" : "radio";
+                    $answersList.append('<li class="answer">' +
+                        '<span class="control">' +
+                            '<label id="field' + col_id + '_' + guid + '_label" for="field' + col_id + '_' + guid + '">' +
+                                '<input id="field' + col_id + '_' + guid + '" name="field' + col_id + '" type="' + inputType + '" value="' + form_data + '" class="' + (multi ? "" : "visually-hidden") + '" checked> ' +
+                                '<span>' + textValue + '</span>' +
+                            '</label>' +
+                        '</span>' +
+                        '<span class="details">' +
+                            '<a class="curval_remove" style="cursor:pointer">remove</a>' +
+                        '</span>' +
+                    '</li>');
+
+                    /* Reinitialize widget */
+                    setupSelectWidgets($formGroup);
+                } else if (valueSelector === "typeahead") {
+                    $hiddenInput = $formGroup.find("input[name=field" + col_id + "]");
+                    $typeaheadInput = $formGroup.find("input[name=field" + col_id + "_typeahead]");
+
+                    var textValue = jQuery.map(modal_field_ids, function(element) {
+                        var control = form.find('[data-column-id="' + element + '"]');
+                        value = values["field" + element];
+                        return $('<div />').text(value).html();
+                    }).join(", ");
+
+                    $hiddenInput.val(form_data);
+                    $typeaheadInput.val(textValue);
                 }
-                else {
-                    $('#curval_list_' + col_id).find("tbody").append(row_cells);
-                }
+
                 $('.modal.in').modal('hide');
             };
 
@@ -322,6 +375,12 @@
 
             $(".curval_group").on('click', '.curval_remove', function() {
                 $(this).closest('.curval_item').remove();
+            });
+
+            $(".select-widget").on('click', '.curval_remove', function() {
+                var fieldId = $(this).closest(".answer").find("input").prop("id");
+                $(this).closest(".select-widget").find(".current li[data-list-item=" + fieldId + "]").remove();
+                $(this).closest('.answer').remove();
             });
 
             $('.input-daterange input.from').each(function (){
@@ -587,7 +646,7 @@
         [% dependency = "" %]
         [% parent = "" %]
     [% END %]
-    <div class="form-group" data-column-id="[% dispcol.id %]" data-column-type="[% dispcol.type %]"
+    <div class="form-group" data-column-id="[% dispcol.id %]" data-column-type="[% dispcol.type %]" data-value-selector="[% dispcol.value_selector %]"
         [% dependency && 'data-has-dependency="' _ parent _ '"' %]
         [% (parent && dependency) && 'data-dependency="' _ dependency.regex_b64 _ '"' %]
         [% dispcol.multivalue && 'data-is-multivalue="true"' %]
