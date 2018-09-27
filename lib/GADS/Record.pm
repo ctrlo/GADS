@@ -1976,10 +1976,26 @@ sub pdf
     {
         my $datum = $self->fields->{$col->id};
         next if $datum->dependent_not_shown;
-        push @$data, [
-            $col->name,
-            $datum->as_string,
-        ],
+        if ($col->is_curcommon)
+        {
+            my $first = 1;
+	    foreach my $line (@{$datum->_text_all})
+            {
+                my @l = ($first ? $col->name : '');
+                foreach my $v (@{$line->{values}})
+                {
+                    push @l, $v->as_string;
+                }
+                push @$data, \@l;
+                $first = 0;
+            }
+        }
+        else {
+            push @$data, [
+                $col->name,
+                $datum->as_string,
+            ],
+        }
     }
 
     my $hdr_props = {
