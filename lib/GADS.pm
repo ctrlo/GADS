@@ -2546,8 +2546,8 @@ any '/edit/:id?' => require_login sub {
     };
 
     my @columns_to_show = $id
-        ? $layout->all(sort_by_topics => 1, user_can_readwrite_existing => 1, can_child => $child)
-        : $layout->all(sort_by_topics => 1, user_can_write_new => 1, can_child => $child);
+        ? $layout->all(sort_by_topics => 1, user_can_readwrite_existing => 1, can_child => $child, userinput => 1)
+        : $layout->all(sort_by_topics => 1, user_can_write_new => 1, can_child => $child, userinput => 1);
 
     $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids
         if $modal;

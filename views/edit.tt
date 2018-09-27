@@ -523,7 +523,6 @@
 [% END %]
 
 [% BLOCK showcol %]
-    [% NEXT IF dispcol.type == "rag" OR dispcol.type == "calc" %]
     [% field = 'field' _ dispcol.id %]
     [% colid = dispcol.id %]
 
