@@ -9,16 +9,38 @@
 [% MACRO render_curcommon_datum(is_multivalue, curval, header, full_content) BLOCK %]
     [% IF curval.text.length > MORE_LESS_TRESHOLD AND full_content != 'full' %]
         [% WRAPPER more_less_block %]
-            [% FOR link IN curval.links %]
-                <a href="/record/[% link.id %]?oi=[% link.refers_to_instance_id %]">[% link.href %]</a>
-                [% UNLESS loop.last %]; [% END %]
-            [% END %]
+            <table class="table-curcommon">
+                [% FOR link IN curval.links %]
+                    <tr>
+                        [% FOREACH value IN link.values %]
+                            <td>
+                                [% IF loop.first %]
+                                    <a href="/record/[% link.id %]?oi=[% link.refers_to_instance_id %]">[% value | html %]</a>
+                                [% ELSE %]
+                                    [% value | html %]
+                                [% END %]
+                            </td>
+                        [% END %]
+                    </tr>
+                [% END %]
+            </table>
         [% END %]
     [% ELSE %]
-        [% FOR link IN curval.links %]
-            <a href="/record/[% link.id %]?oi=[% link.refers_to_instance_id %]">[% link.href %]</a>
-            [% UNLESS loop.last %]; [% END %]
-        [% END %]
+        <table class="table-curcommon">
+            [% FOR link IN curval.links %]
+                    <tr>
+                        [% FOREACH value IN link.values %]
+                            <td>
+                                [% IF loop.first %]
+                                    <a href="/record/[% link.id %]?oi=[% link.refers_to_instance_id %]">[% value | html %]</a>
+                                [% ELSE %]
+                                    [% value | html %]
+                                [% END %]
+                            </td>
+                        [% END %]
+                    </tr>
+            [% END %]
+        </table>
     [% END %]
 [% END %]
 

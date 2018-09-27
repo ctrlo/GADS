@@ -2634,6 +2634,7 @@ any '/edit/:id?' => require_login sub {
             return encode_json({
                 error   => $message ? 1 : 0,
                 message => $message,
+                values  => +{ map { $_->field => $record->fields->{$_->id}->as_string } $layout->all },
             });
         }
         elsif ($modal)

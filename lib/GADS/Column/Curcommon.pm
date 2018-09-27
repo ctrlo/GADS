@@ -565,6 +565,7 @@ sub _format_row
         $value_key => $text,
         mainvalue  => $maintext,
         subvalue   => $subtext,
+        values     => \@values,
     };
 }
 

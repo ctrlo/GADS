@@ -13,6 +13,7 @@ sub _presentation_details {
         id   => $_->{id},
         href => $_->{value},
         refers_to_instance_id => $rti,
+        values => $_->{values},
     }, @{$self->_text_all};
 
     return \@links;

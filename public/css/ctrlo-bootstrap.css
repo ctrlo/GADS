@@ -1977,3 +1977,7 @@ small.search_term {
 
 .input_holder .datepicker {
   padding-left: 1em; }
+
+.table-curcommon td {
+  padding: 5px;
+  vertical-align: top; }
