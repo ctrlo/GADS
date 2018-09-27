@@ -1972,6 +1972,7 @@ sub pdf
     my $data =[
         ['Field', 'Value'],
     ];
+    my $max_fields;
     foreach my $col ($self->layout->all_user_read)
     {
         my $datum = $self->fields->{$col->id};
@@ -1981,13 +1982,16 @@ sub pdf
             my $first = 1;
 	    foreach my $line (@{$datum->_text_all})
             {
+                my $field_count;
                 my @l = ($first ? $col->name : '');
                 foreach my $v (@{$line->{values}})
                 {
                     push @l, $v->as_string;
+                    $field_count++;
                 }
                 push @$data, \@l;
                 $first = 0;
+                $max_fields = $field_count if !$max_fields || $max_fields < $field_count;
             }
         }
         else {
@@ -2003,6 +2007,12 @@ sub pdf
         justify    => 'center',
         font_size  => 8,
     };
+
+    foreach my $d (@$data)
+    {
+        my $gap = $max_fields - @$d;
+        push @$d, '' for (0..$gap);
+    }
 
     $pdf->table(
         data => $data,
