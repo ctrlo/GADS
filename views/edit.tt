@@ -747,7 +747,7 @@
                         [% END %]
                     [% END %]
                 [% ELSIF dispcol.type == "daterange" %]
-                    [% IF dispcol.show_datepicker %][% datepicker = "datepicker" %][% ELSE %][% datepicker = "" %][% END %]
+                    [% IF dispcol.show_datepicker and !readonly %][% datepicker = "datepicker" %][% ELSE %][% datepicker = "" %][% END %]
                     <div class="input-group input-daterange">
                             <input type="text" name="[% field %]" class="form-control [% datepicker %] from datepicker[% dispcol.id %]" value="[% editvalue.html_form.shift | html_entity %]"
                                 [% IF NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %] [% readonly %]>
@@ -756,7 +756,7 @@
                                 [% IF NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %] [% readonly %]>
                     </div>
                 [% ELSE %]
-                    [% IF dispcol.type == "date" AND dispcol.show_datepicker %]
+                    [% IF dispcol.type == "date" AND dispcol.show_datepicker AND !readonly %]
                         [% class = "form-control datepicker" %]
                     [% ELSIF dispcol.type == "intgr" AND editvalue.value.defined %]
                         [% class = "form-control intcalculator" %]
