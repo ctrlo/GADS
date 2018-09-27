@@ -85,6 +85,6 @@
         CASE 'rag';
             render_rag_datum(datum.data);
         CASE;
-            datum.data.value;
+            datum.data.value | html;
     END;
 END %]
