@@ -6,41 +6,33 @@
     </div>
 [% END %]
 
+[% BLOCK curcommon_table %]
+    <table class="table-curcommon">
+        [% FOR link IN curval.links %]
+                <tr>
+                    [% FOREACH value IN link.values %]
+                        <td>
+                            [% IF loop.first %]
+                                <a class = "record-popup" style="cursor:pointer" data-record-id="[% link.id %]"
+                                    data-instance-id="[% link.refers_to_instance_id %]">[% value | html %]
+                                </a>
+                            [% ELSE %]
+                                [% value | html %]
+                            [% END %]
+                        </td>
+                    [% END %]
+                </tr>
+        [% END %]
+    </table>
+[% END %]
+
 [% MACRO render_curcommon_datum(is_multivalue, curval, header, full_content) BLOCK %]
     [% IF curval.text.length > MORE_LESS_TRESHOLD AND full_content != 'full' %]
         [% WRAPPER more_less_block %]
-            <table class="table-curcommon">
-                [% FOR link IN curval.links %]
-                    <tr>
-                        [% FOREACH value IN link.values %]
-                            <td>
-                                [% IF loop.first %]
-                                    <a href="/record/[% link.id %]?oi=[% link.refers_to_instance_id %]">[% value | html %]</a>
-                                [% ELSE %]
-                                    [% value | html %]
-                                [% END %]
-                            </td>
-                        [% END %]
-                    </tr>
-                [% END %]
-            </table>
+            [% PROCESS curcommon_table %]
         [% END %]
     [% ELSE %]
-        <table class="table-curcommon">
-            [% FOR link IN curval.links %]
-                    <tr>
-                        [% FOREACH value IN link.values %]
-                            <td>
-                                [% IF loop.first %]
-                                    <a href="/record/[% link.id %]?oi=[% link.refers_to_instance_id %]">[% value | html %]</a>
-                                [% ELSE %]
-                                    [% value | html %]
-                                [% END %]
-                            </td>
-                        [% END %]
-                    </tr>
-            [% END %]
-        </table>
+        [% PROCESS curcommon_table %]
     [% END %]
 [% END %]
 

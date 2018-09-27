@@ -750,6 +750,17 @@ var setFirstInputFocus = function(context) {
     $('.edit-form *:input[type!=hidden]:first', context).focus();
 }
 
+var setupRecordPopup = function(context) {
+    $(".record-popup", context).on('click', function(e) {
+        var record_id = $(this).data('record-id');
+        var instance_id = $(this).data('instance-id');
+        var m = $("#readmore_modal");
+        m.find('.modal-body').text('Loading...');
+        m.find('.modal-body').load('/record_body/' + record_id + '?withedit=1');
+        m.modal();
+    });
+}
+
 var Linkspace = {
     constants: {
         ARROW_LEFT: 37,
@@ -764,6 +775,7 @@ var Linkspace = {
         runPageSpecificCode(context);
         setupSubmitListener(context);
         setFirstInputFocus(context);
+        setupRecordPopup(context);
     },
 
     debug: function (msg) {

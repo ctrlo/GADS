@@ -373,6 +373,9 @@
     [% END %]
 [% END %]
 
+[% WRAPPER modal_dialog.tt modal_id="readmore_modal" modal_large=1 %]
+[% END %]
+
 [% IF layout.user_can("layout") %]
     <script type="text/javascript">
         jscode = jscode + '[% FILTER remove('[\n\r]+') %]

@@ -2825,6 +2825,7 @@ get '/record_body/:id' => require_login sub {
         record         => $record->presentation(@columns),
         has_rag_column => !!(grep { $_->type eq 'rag' } @columns),
         all_columns    => \@columns,
+        with_edit      => param('withedit'),
     }, { layout => undef };
 };
 

@@ -1,6 +1,10 @@
 [% PROCESS snippets/datum.tt %]
 [% PROCESS snippets/rag_legend.tt IF has_rag_column %]
 
+[% IF with_edit %]
+    <p><a href="/edit/[% record.current_id %]?oi=[% record.instance_id %]">Edit record</a></p>
+[% END %]
+
 <table class="table table-striped">
     <tr>
         <th>Last updated by</th>
