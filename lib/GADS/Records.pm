@@ -1803,6 +1803,28 @@ sub csv_line
     return $csv->string."\n";
 }
 
+sub _filter_items
+{   my ($self, $original_from, $original_to, @items) = @_;
+
+    if ($self->exclusive_of_to)
+    {
+        @items = grep {
+            $_->{single} || $_->{end} < $original_to->epoch * 1000;
+        } @items;
+    }
+    elsif ($self->exclusive_of_from)
+    {
+        @items = grep {
+            $_->{single} || $_->{start} > $original_from->epoch * 1000;
+        } @items;
+    }
+    @items = grep {
+        !$_->{single} || ($_->{dt} >= $original_from && $_->{dt} <= $original_to)
+    } @items;
+
+    return @items;
+}
+
 sub data_timeline
 {   my ($self, %options) = @_;
 
@@ -1885,24 +1907,8 @@ sub data_timeline
     }
     else {
         my @retrieved = @{$timeline->items};
-        if ($self->exclusive_of_to)
-        {
-            @items = grep {
-                $_->{single} || $_->{end} < $original_to->epoch * 1000;
-            } @retrieved;
-        }
-        elsif ($self->exclusive_of_from)
-        {
-            @items = grep {
-                $_->{single} || $_->{start} > $original_from->epoch * 1000;
-            } @retrieved;
-        }
-        else {
-            @items = @retrieved;
-        }
-        @items = grep {
-            !$_->{single} || ($_->{dt} >= $original_from && $_->{dt} <= $original_to)
-        } @items;
+
+        @items = $self->_filter_items($original_from, $original_to, @retrieved);
 
         # Set the times for the display range
         $min = $self->from;
@@ -1936,6 +1942,7 @@ sub data_timeline
         );
 
         my @retrieved = @{$timeline_overlay->items};
+        @retrieved = $self->_filter_items($original_from, $original_to, @retrieved);
 
         foreach my $overlay (@retrieved)
         {
