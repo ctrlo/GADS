@@ -119,6 +119,31 @@ foreach my $delete_not_used (0..1)
     $record->find_current_id(3);
     $curval_datum = $record->fields->{$curval->id};
     is($curval_datum->as_string, 'foo1', "Curval value has lost value");
+
+    # Save draft
+    $record = GADS::Record->new(
+        user   => $sheet->user_normal1,
+        layout => $layout,
+        schema => $schema,
+        curcommon_all_fields => 1,
+    );
+    $record->initialise;
+    $curval_datum = $record->fields->{$curval->id};
+    $curval_datum->set_value([$curval_string->field."=foo10", $curval_string->field."=foo20"]);
+    $record->fields->{$columns->{integer1}->id}->set_value(10); # Prevent calc warnings
+    $record->write(draft => 1);
+    $record->clear;
+    $record->load_remembered_values;
+    $curval_datum = $record->fields->{$curval->id};
+    $curval_record_id = $curval_datum->ids->[0];
+    my @form_values = map { $_->{as_query} =~ s/foo20/foo30/; $_->{as_query} } @{$curval_datum->html_form};
+    $curval_datum->set_value([@form_values]);
+    $record->write(no_alerts => 1);
+    my $current_id = $record->current_id;
+    $record->clear;
+    $record->find_current_id($current_id);
+    $curval_datum = $record->fields->{$curval->id};
+    is($curval_datum->as_string, 'foo10; foo30', "Curval value contains new record");
 }
 
 done_testing();

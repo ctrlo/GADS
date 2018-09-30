@@ -10,11 +10,11 @@ sub _presentation_details {
     my $rti = $self->column->refers_to_instance_id;
 
     my @links = map +{
-        id   => $_->{id},
-        href => $_->{value},
+        id                    => $_->{id},
+        href                  => $_->{value},
         refers_to_instance_id => $rti,
-        values => $_->{values},
-    }, @{$self->_text_all};
+        values                => $_->{values},
+    }, @{$self->values};
 
     return \@links;
 }

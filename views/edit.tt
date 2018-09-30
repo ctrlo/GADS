@@ -889,7 +889,7 @@
 [% BLOCK curval_noshow %]
     <table class="data-table table table-striped curval_group" id="curval_list_[% dispcol.id %]">
         <tbody>
-            [% FOREACH val IN editvalue.presentation.links %]
+            [% FOREACH val IN editvalue.html_form %]
                 <tr class="curval_item">
                     [% FOREACH v IN val.values %]
                         <td class="curval-inner-text">[% v | html %]</td>

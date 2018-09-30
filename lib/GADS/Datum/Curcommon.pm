@@ -52,10 +52,10 @@ after set_value => sub {
             }
         }
         $self->_set_values_as_query(\@queries);
+        $self->clear_values_as_query_records;
         $self->_set_ids(\@ids);
         # Need to clear initial values, to ensure new value is built from this new ID
-        $self->_clear_text_all;
-        $self->_clear_text_hash;
+        $self->clear_values;
         $self->clear_text;
         $self->clear_init_value;
         $self->_clear_init_value_hash;
@@ -110,6 +110,37 @@ sub _build__init_value_hash
     }
 }
 
+has values => (
+    is        => 'lazy',
+    isa       => ArrayRef,
+    clearer   => 1,
+    predicate => 1,
+);
+
+sub _build_values
+{   my $self = shift;
+    my @return;
+    my @items;
+    if ($self->_records)
+    {
+        @items = map { $self->column->_format_row($_) } @{$self->_records};
+    }
+    else {
+        @items = $self->column->ids_to_values($self->ids, fatal => 1);
+    }
+    foreach my $item (@items)
+    {
+        next if $item->{record}->is_draft;
+        push @return, {
+            record    => $item->{record},
+            id        => $item->{id},
+            value     => $item->{value},
+            values    => $item->{values},
+        };
+    }
+    return \@return;
+}
+
 has _records => (
     is      => 'lazy',
     isa     => Maybe[ArrayRef],
@@ -137,39 +168,7 @@ has text => (
 
 sub _build_text
 {   my $self = shift;
-    join '; ', map { $_->{value} } @{$self->_text_all};
-}
-
-# Internal text, array ref of all individual text values
-has _text_all => (
-    is        => 'rw',
-    isa       => ArrayRef,
-    lazy      => 1,
-    clearer   => 1,
-    predicate => 1,
-    builder   => sub {
-        my $self = shift;
-        if ($self->_records)
-        {
-            return [ map { $self->column->_format_row($_) } @{$self->_records} ];
-        }
-        else {
-            return $self->column->ids_to_values($self->ids, fatal => 1);
-        }
-    }
-);
-
-has _text_hash => (
-    is      => 'lazy',
-    isa     => HashRef,
-    clearer => 1,
-);
-
-sub _build__text_hash
-{   my $self = shift;
-    +{
-        map { $_->{id} => $_->{value} } @{$self->_text_all}
-    };
+    join '; ', map { $_->{value} } @{$self->values};
 }
 
 has id_hash => (
@@ -275,8 +274,9 @@ has values_as_query => (
 
 # The above values as queries, converted to records
 has values_as_query_records => (
-    is  => 'lazy',
-    isa => ArrayRef,
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
 );
 
 sub _build_values_as_query_records
@@ -319,7 +319,7 @@ around 'clone' => sub {
     my %params = (
         ids => $self->ids,
     );
-    $params{_text_all}  = $self->_text_all if $self->_has_text_all;
+    $params{values}     = $self->values if $self->has_values;
     $params{init_value} = $self->init_value if $self->has_init_value;
     $orig->($self, %params, @_);
 };
@@ -338,7 +338,7 @@ sub html_withlinks
 {   my $self = shift;
     $self->as_string or return "";
     my @return;
-    foreach my $v (@{$self->_text_all})
+    foreach my $v (@{$self->values})
     {
         my $string = encode_entities $v->{value};
         my $link = "/record/$v->{id}?oi=".$self->column->refers_to_instance_id;
@@ -373,12 +373,10 @@ sub set_values
 
 sub html_form
 {   my $self = shift;
-    my $values = $self->for_code;
-    my $return = !defined $values
-        ? []
-        : ref $values eq 'ARRAY'
-        ? $values
-        : [$values];
+    # Once a value has been written, values() will only contain unchanged
+    # values as current IDs
+    my $return = $self->values;
+    # Any updated or new values will be in the "query" properties
     my @records = @{$self->values_as_query_records};
     foreach my $query (@{$self->values_as_query})
     {
@@ -389,7 +387,7 @@ sub html_form
         push @$return, +{
             id       => $id,
             as_query => $query,
-            value    => $self->column->_format_row($record)->{mainvalue},
+            values   => $self->column->_format_row($record)->{values},
         };
     }
     return $return;
@@ -403,11 +401,11 @@ sub for_code
 
     my @values = map {
         +{
-            id           => int $_, # Ensure passed to Lua as number not string
-            value        => $self->_text_hash->{$_},
-            field_values => $field_values->{$_},
+            id           => int $_->{id}, # Ensure passed to Lua as number not string
+            value        => $_->{value},
+            field_values => $field_values->{$_->{id}},
         }
-    } (@{$self->ids});
+    } (@{$self->values});
 
     $self->column->multivalue ? \@values : $values[0];
 }

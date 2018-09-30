@@ -337,29 +337,13 @@ sub _build_values_index
     \%values;
 }
 
-# Whether any of the drop-down items have subvalues (small text). If so,
-# drop-down will be displayed using the selectpicker, to render better.
-has has_subvalues => (
-    is  => 'lazy',
-    isa => Bool,
-);
-
-sub _build_has_subvalues
-{   my $self = shift;
-    # Always if multivalue to allow multiple select
-    return 1 if $self->multivalue;
-    # Always if more fields available then ones selected
-    return 1 if @{$self->curval_fields} < $self->layout_parent->all;
-    !! grep { $_->{subvalue} } @{$self->filtered_values};
-}
-
 sub filter_value_to_text
 {   my ($self, $id) = @_;
     # Check for valid ID (in case search filter is corrupted) - Pg will choke
     # on invalid IDs
     $id =~ /^[0-9]+$/ or return '';
-    my $rows = $self->ids_to_values([$id]);
-    $rows->[0]->{value};
+    my ($row) = $self->ids_to_values([$id]);
+    $row->{value};
 }
 
 # Used to return a formatted value for a single datum. Normally called from a
@@ -367,7 +351,7 @@ sub filter_value_to_text
 sub ids_to_values
 {   my ($self, $ids) = @_;
     my $rows = $self->_get_rows($ids);
-    [ map { $self->_format_row($_) } @$rows ];
+    map { $self->_format_row($_) } @$rows;
 }
 
 sub field_values_for_code
@@ -545,26 +529,16 @@ sub _format_row
 {   my ($self, $row, %options) = @_;
     my $value_key = $options{value_key} || 'value';
     my @col_ids   = @{$self->curval_field_ids};
-    my @values; my @mainvalues; my @subvalues;
+    my @values;
     foreach my $fid (@{$self->curval_field_ids})
     {
         push @values, $row->fields->{$fid};
-        if (length "@values" < 100)
-        {
-            push @mainvalues, $row->fields->{$fid};
-        }
-        else {
-            push @subvalues, $row->fields->{$fid};
-        }
     }
     my $text     = $self->format_value(@values);
-    my $maintext = $self->format_value(@mainvalues);
-    my $subtext  = $self->format_value(@subvalues);
     +{
         id         => $row->current_id,
+        record     => $row,
         $value_key => $text,
-        mainvalue  => $maintext,
-        subvalue   => $subtext,
         values     => \@values,
     };
 }

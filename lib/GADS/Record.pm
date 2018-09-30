@@ -1980,7 +1980,7 @@ sub pdf
         if ($col->is_curcommon)
         {
             my $first = 1;
-	    foreach my $line (@{$datum->_text_all})
+            foreach my $line (@{$datum->values})
             {
                 my $field_count;
                 my @l = ($first ? $col->name : '');
