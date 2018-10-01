@@ -159,7 +159,7 @@ my @filters = (
         name  => 'View filtering on record created date',
         rules => [
             {
-                id       => -14,
+                id       => -15,
                 type     => 'string',
                 value    => '2014-10-20',
                 operator => 'greater',
