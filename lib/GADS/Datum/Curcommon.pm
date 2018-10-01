@@ -130,7 +130,6 @@ sub _build_values
     }
     foreach my $item (@items)
     {
-        next if $item->{record}->is_draft;
         push @return, {
             record    => $item->{record},
             id        => $item->{id},
@@ -375,7 +374,7 @@ sub html_form
 {   my $self = shift;
     # Once a value has been written, values() will only contain unchanged
     # values as current IDs
-    my $return = $self->values;
+    my $return = [ grep { !$_->{record}->is_draft } @{$self->values} ];
     # Any updated or new values will be in the "query" properties
     my @records = @{$self->values_as_query_records};
     foreach my $query (@{$self->values_as_query})

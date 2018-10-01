@@ -123,7 +123,7 @@ my @tests = (
             curval3 => 'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012',
             tree1   => 'tree1, tree2',
             tree2   => 'tree1',
-            calc1   => 'foo1foo2FooBartree1tree2', # 2x enum values then 2x string values from curval then 2x tree
+            calc1   => 'foo1foo2BarFootree1tree2', # 2x enum values then 2x string values from curval then 2x tree
         },
         search    => [
             {
