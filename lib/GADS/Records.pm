@@ -436,7 +436,7 @@ sub search_views
                     $self->_search_construct($decoded, $self->layout, ignore_perms => 1, user => $user),
                 };
                 $search = { %$search, %$_ }
-                    foreach $self->common_search;
+                    foreach $self->common_search(linked => 1, search => 1);
                 my $i = 0; my @ids;
                 while ($i < @$current_ids)
                 {
