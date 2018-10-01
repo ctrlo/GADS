@@ -232,22 +232,18 @@ sub _build_data
 
     # Columns is either the x-axis, or if not defined, all the columns in the view
     my @columns = $self->x_axis
-        ? ($self->x_axis, $self->y_axis)
+        ? ($self->x_axis)
         : $self->view
         ? @{$self->view->columns}
         : $self->records->layout->all(user_can_read => 1);
 
-    # If the x-axis field is one from a curval (and therefore another table) we
-    # need to make sure that we are retrieving that value via the curval (which
-    # may not be a normally-displayed curval field)
-    my $link;
-    if ($self->x_axis_link)
-    {
-        $link = $self->records->layout->column($self->x_axis_link);
-        push @{$link->curval_field_ids}, $self->x_axis
-            if ! grep { $_ == $self->x_axis } @{$link->curval_field_ids};
-        $columns[0] = $link->id;
-    }
+    @columns = map {
+        +{
+            id        => $_,
+            operator  => 'max',
+            parent_id => ($self->x_axis && $_ == $self->x_axis && $self->x_axis_link)
+        }
+    } @columns;
 
     my $layout      = $self->records->layout;
     # $x_axis is undefined if all the fields are to appear on it
@@ -262,39 +258,45 @@ sub _build_data
         $self->x_axis_grouping;
 
     my $group_by_db = [];
-    push @$group_by_db, {
-        id     => $self->x_axis,
-        pluck  => $x_axis_grouping, # Whether to group x-axis dates
-        parent => $link, # What the parent curval is, if we're picking a child value
+    push @columns, {
+        id        => $self->x_axis,
+        group     => 1,
+        pluck     => $x_axis_grouping, # Whether to group x-axis dates
+        parent_id => $self->x_axis_link, # What the parent curval is, if we're picking a field from within a curval
     } if !$x_daterange && $self->x_axis;
-
-    my $records = $self->records;
-    $records->column_id($self->y_axis) unless !$self->x_axis; # Don't specify column when all x-axis graph
-    $records->operator($self->y_axis_stack);
-    # Apply aggregate operator to all columns if multi x-axis
-    $records->aggregate_all(1) if !$self->x_axis;
 
     my $group_by_col;
     if ($self->type ne 'pie' && $self->group_by)
     {
         $group_by_col = $layout->column($self->group_by);
-        push @columns, $self->group_by;
-        push @$group_by_db, {
-            id => $self->group_by,
+        push @columns, {
+            id    => $self->group_by,
+            group => 1,
         };
-        $records->col_max($self->group_by);
     }
+
+    my $records = $self->records;
+
+    # If the x-axis field is one from a curval, make sure we are also
+    # retrieving the parent curval field (called the link)
+    my $link = $self->x_axis_link && $self->records->layout->column($self->x_axis_link);
 
     if ($x_daterange)
     {
         $records->dr_interval($x_axis_grouping);
         $records->dr_column($x_axis->id);
+        $records->dr_column_parent($link);
+        $records->dr_y_axis_id($self->y_axis);
     }
 
     my $y_axis = $layout->column($self->y_axis);
     $records->view($self->view);
+    push @columns, +{
+        id       => $self->y_axis,
+        operator => $self->y_axis_stack,
+    };
+
     $records->columns(\@columns);
-    $records->group_by($group_by_db);
     my $records_results = $self->records->results; # Do now so as to populate dr_from and dr_to
 
     # The view of this graph
@@ -390,9 +392,11 @@ sub _build_data
             # The column name to retrieve from SQL record
             my $fname = $x_daterange
                       ? $x->epoch
-                      : $self->x_axis
-                      ? $y_axis->field."_".$self->y_axis_stack
-                      : $x->field;
+                      : !$self->x_axis
+                      ? $x->field
+                      : $self->y_axis_stack eq 'count'
+                      ? 'id_count' # Don't use field count as NULLs are not counted
+                      : $y_axis->field."_".$self->y_axis_stack;
             no warnings 'numeric', 'uninitialized';
             $results->{$x_value}->{$k} += $line->get_column($fname); # 2 loops for linked values
             # Add on the linked column from another datasheet, if applicable
@@ -550,7 +554,7 @@ sub _build_data
     # If we had a curval as a link, then we need to reset its retrieved fields,
     # otherwise anything else using the field after this procedure will be
     # using the reduced columns that we used for the graph
-    if ($link)
+    if ($self->x_axis_link)
     {
         $link->clear_curval_field_ids;
         $link->clear;

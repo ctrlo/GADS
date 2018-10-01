@@ -121,6 +121,7 @@ sub _add_jp
                 $j->{search}   ||= $options{search};
                 $j->{linked}   ||= $options{linked};
                 $j->{sort}     ||= $options{sort};
+                $j->{group}    ||= $options{group};
                 $self->_add_children($j, $column, %options)
                     if ($column->is_curcommon && $prefetch);
                 trace __x"Found existing, returning";
@@ -139,6 +140,7 @@ sub _add_jp
         search     => $options{search}, # Whether it's used in a WHERE clause
         linked     => $options{linked}, # Whether it's a linked table
         sort       => $options{sort},   # Whether it's used in an order_by clause
+        group      => $options{group},  # Whether it's used in a group_by clause
         column     => $column,
         parent     => $options{parent},
     };
@@ -161,6 +163,7 @@ sub _add_jp
                 {
                     $exists->{search} ||= $options{search};
                     $exists->{sort}   ||= $options{sort};
+                    $exists->{group}  ||= $options{group};
                 }
                 else {
                     push @{$c->{children}}, $join_add
@@ -176,6 +179,11 @@ sub _add_jp
 sub add_prefetch
 {   my $self = shift;
     $self->_add_jp(@_, prefetch => 1);
+}
+
+sub add_group
+{   my $self = shift;
+    $self->_add_jp(@_, group => 1);
 }
 
 sub add_join
@@ -268,7 +276,7 @@ sub _jpfetch
 
     foreach (@jpstore2)
     {
-        next if exists $options{prefetch} && !$options{prefetch} && $_->{prefetch};
+        next if exists $options{prefetch} && !$options{prefetch} && $_->{prefetch} && !$options{group};
         $self->_jpfetch_add(options => \%options, join => $_, return => $joins);
     }
     my @return;
@@ -308,7 +316,9 @@ sub _jpfetch_add
     if (
         ($options->{search} && $_->{search})
         || ($options->{sort} && $_->{sort})
+        || ($options->{group} && $_->{group})
         || ($options->{prefetch} && $_->{prefetch})
+        || ($options->{extra_column} && $_->{column}->id == $options->{extra_column}->id)
     )
     {
         if ($join->{column}->is_curcommon)
@@ -324,7 +334,7 @@ sub _jpfetch_add
             # These will be fetched later as individual columns.
             # Keep any for a sort - these still need to be used when fetching rows.
             my @children = @$children;
-            @children = grep { $_->{sort} || !$_->{column}->multivalue || $options->{include_multivalue} } @$children
+            @children = grep { $_->{sort} || !$_->{column}->multivalue || $options->{include_multivalue} || $_->{group} } @$children
                 if $options->{prefetch};
             push @$return, {
                 parent    => $parent,
@@ -332,6 +342,7 @@ sub _jpfetch_add
                 join      => $join->{column}->make_join(map {$_->{join}} @children),
                 search    => $join->{search},
                 sort      => $join->{sort},
+                group     => $join->{group},
                 prefetch  => $join->{prefetch},
                 linked    => $join->{linked},
                 all_joins => [$simple, @children],
@@ -445,7 +456,7 @@ sub _join_number
         trace "Looking in the store for all joins for find_value";
     }
     else {
-        trace "Looking in the store for join number for column {id}", id => $column->id;
+        trace __x"Looking in the store for join number for column {id}", id => $column->id;
     }
 
     foreach my $j (@store)
@@ -595,6 +606,7 @@ child is ".$child->{column}->id." (".$child->{column}->name.") => {
     curval   => $child->{curval},
     search   => $child->{search},
     sort     => $child->{sort},
+    group    => $child->{group},
     parent   => $parent_id,
     children => $children
 },";
@@ -627,6 +639,7 @@ sub _dump_jp_store
         search   => $jp->{search},
         linked   => $jp->{linked},
         sort     => $jp->{sort},
+        group    => $jp->{group},
         curval   => $jp->{curval},
         children => $children
     },

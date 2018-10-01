@@ -109,6 +109,15 @@ sub _build_group_col_parent
     $self->layout->column($self->_parse_parent($self->group_col_id));
 }
 
+has group_col_operator => (
+    is => 'lazy',
+);
+
+sub _build_group_col_operator
+{   my $self = shift;
+    $self->group_col && $self->group_col->numeric ? 'sum' : 'max';
+}
+
 has color_col_id => (
     is => 'ro',
 );
@@ -129,6 +138,15 @@ has color_col_parent => (
 sub _build_color_col_parent
 {   my $self = shift;
     $self->layout->column($self->_parse_parent($self->color_col_id));
+}
+
+has color_col_operator => (
+    is => 'lazy',
+);
+
+sub _build_color_col_operator
+{   my $self = shift;
+    $self->color_col && $self->color_col->numeric ? 'sum' : 'max';
 }
 
 has color_col_is_count => (
@@ -185,36 +203,6 @@ sub _build_has_label_col
     return 1 if $self->label_col;
     return 1 if $self->label_col_id && $self->label_col_id < 0;
     return 0;
-}
-
-has _group_by => (
-    is => 'lazy',
-);
-
-sub _build__group_by
-{   my $self = shift;
-
-    $self->is_group or return;
-
-    my @group_by = map {
-        +{ id => $_->id }
-    } grep {
-        $_->return_type eq "globe"
-    } @{$self->_columns};
-
-    push @group_by, { id => $self->color_col->id, parent => $self->color_col_parent }
-        if $self->color_col && !$self->color_col->numeric;
-
-    push @group_by, { id => $self->label_col_id, parent => $self->label_col_parent }
-        if $self->label_col && !$self->label_col->numeric
-            && (!$self->color_col || $self->label_col_id != $self->color_col->id);
-
-    push @group_by, { id => $self->group_col->id, parent => $self->group_col_parent }
-        if $self->group_col && !$self->group_col->numeric
-            && (!$self->color_col || $self->group_col->id != $self->color_col->id)
-            && (!$self->label_col || $self->group_col->id != $self->label_col->id);
-
-    \@group_by;
 }
 
 has is_choropleth => (
@@ -309,12 +297,22 @@ sub _build_data
 
     # Add on any extra required columns for labelling etc
     my @extra;
-    push @extra, { col => $self->group_col, parent => $self->group_col_parent }
-        if $self->group_col;
-    push @extra, { col => $self->color_col, parent => $self->color_col_parent }
-        if $self->color_col;
-    push @extra, { col => $self->label_col, parent => $self->label_col_parent }
+    if ($self->is_group)
+    {
+        push @extra, map {
+            +{ col => $_, id => $_->id, group => 1 }
+        } grep {
+            $_->return_type eq "globe"
+        } @{$self->_columns};
+    }
+
+    push @extra, { col => $self->group_col, parent => $self->group_col_parent, operator => $self->group_col_operator, group => !$self->group_col->numeric }
+        if ($self->group_col);
+    push @extra, { col => $self->color_col, parent => $self->color_col_parent, operator => $self->color_col_operator, group => !$self->color_col->numeric }
+        if ($self->color_col);
+    push @extra, { col => $self->label_col, parent => $self->label_col_parent, group => !$self->label_col->numeric }
         if $self->label_col;
+
     # Messier than it should be, but if there is no globe column in the view
     # and only one in the layout, then add it on, otherwise nothing will be
     # shown
@@ -327,21 +325,23 @@ sub _build_data
             if grep { $_->{col}->return_type eq 'globe' } @extra;
         $has_globe = 1
             if grep { $_->return_type eq 'globe' } @view_columns;
-        push @extra, { col => $gc[0] }
+        push @extra, { col => $gc[0], group => $self->is_group }
             if @gc == 1 && !$has_globe;
     }
-    $self->records->columns_extra([map {
+    else {
+        push @extra, map { +{ col => $_ } } $records->layout->all(user_can_read => 1);
+    }
+    $self->records->columns([map {
         +{
             id        => $_->{col}->id,
             parent_id => $_->{parent} && $_->{parent}->id,
+            operator  => $_->{operator} || 'max',
+            group     => $_->{group},
         }
     } @extra]);
 
     # All the data values
     my %countries;
-
-    $records->group_by($self->_group_by)
-        if $self->is_group;
 
     # Each row will be retrieved with each type of grouping if applicable
     while (my $record = $records->single)
@@ -357,7 +357,9 @@ sub _build_data
                     $value_color = $record->get_column('id_count');
                 }
                 else {
-                    $value_color = $record->get_column($self->color_col->field);
+                    my $field = $self->color_col->field;
+                    $field .= "_sum" if $self->color_col_operator eq 'sum';
+                    $value_color = $record->get_column($field);
                     if (!$self->color_col->numeric)
                     {
                         $color = $self->graph->get_color($value_color);
@@ -376,9 +378,11 @@ sub _build_data
 
             if ($self->group_col)
             {
+                my $field = $self->group_col->field;
+                $field .= "_sum" if $self->group_col_operator eq 'sum';
                 $value_group = $self->group_col->type eq 'curval'
                     ? $self->_format_curcommon($self->group_col, $record)
-                    : $record->get_column($self->group_col->field) || '<blank>';
+                    : $record->get_column($field) || '<blank>';
             }
 
             foreach my $column (@{$self->_columns_globe})

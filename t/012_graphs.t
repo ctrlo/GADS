@@ -25,6 +25,7 @@ foreach my $multivalue (0..1)
             daterange1 => ['2014-03-21', '2015-03-01'],
             tree1      => 'tree1',
             curval1    => 1,
+            integer2   => 8,
         },{
             string1    => 'Bar',
             date1      => '2014-10-10',
@@ -33,12 +34,14 @@ foreach my $multivalue (0..1)
             enum1      => 7,
             tree1      => 'tree1',
             curval1    => 2,
+            integer2   => 8,
         },{
             string1    => 'Bar',
             integer1   => 35,
             enum1      => 8,
             tree1      => 'tree1',
             curval1    => 1,
+            integer2   => 24,
         },{
             string1    => 'FooBar',
             date1      => '2016-10-10',
@@ -47,16 +50,29 @@ foreach my $multivalue (0..1)
             enum1      => $multivalue ? [8, 9] : 8,
             tree1      => 'tree1',
             curval1    => 2,
+            integer2   => 13,
         },
     ];
 
     my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, multivalue => $multivalue);
     $curval_sheet->create_records;
     my $schema  = $curval_sheet->schema;
-    my $sheet   = t::lib::DataSheet->new(data => $data, schema => $schema, curval => 2, multivalue => $multivalue);
+    my $sheet   = t::lib::DataSheet->new(data => $data, schema => $schema, curval => 2, multivalue => $multivalue, column_count => {integer => 2});
     my $layout  = $sheet->layout;
     my $columns = $sheet->columns;
     $sheet->create_records;
+
+    my $calc2 = GADS::Column::Calc->new(
+        schema         => $schema,
+        user           => $sheet->user,
+        layout         => $layout,
+        name           => 'calc2',
+        return_type    => 'integer',
+        code           => "function evaluate (L1integer2) \n return {L1integer2, L1integer2 * 2} \nend",
+        multivalue     => 1,
+    );
+    $calc2->write;
+    $layout->clear;
 
     # Add linked record sheet, which will contain the integer1 value for the first
     # record of the first sheet
@@ -99,6 +115,41 @@ foreach my $multivalue (0..1)
             y_axis       => $columns->{integer1}->id,
             y_axis_stack => 'sum',
             data         => [[ 50, 10, 20 ]],
+        },
+        {
+            name         => 'String x-axis, multi-integer sum y-axis',
+            type         => 'bar',
+            x_axis       => $columns->{string1}->id,
+            y_axis       => $calc2->id, #$columns->{calc2}->id,
+            y_axis_stack => 'sum',
+            data         => [[ 96, 24, 39 ]],
+            xlabels      => [qw/Bar Foo FooBar/],
+        },
+        {
+            name         => 'String x-axis, multi-integer sum y-axis ABC',
+            type         => 'bar',
+            x_axis       => $columns->{string1}->id,
+            y_axis       => $calc2->id, #$columns->{calc2}->id,
+            y_axis_stack => 'sum',
+            data         => [[ 72, 26 ]],
+            xlabels      => [qw/Bar FooBar/],
+            rules => [
+                {
+                    id       => $calc2->id,
+                    type     => 'string',
+                    value    => '20',
+                    operator => 'greater',
+                }
+            ],
+        },
+        {
+            name         => 'Integer x-axis, count y-axis',
+            type         => 'bar',
+            x_axis       => $columns->{integer2}->id,
+            y_axis       => $columns->{string1}->id,
+            y_axis_stack => 'count',
+            data         => [[ 1, 1, 2 ]],
+            xlabels      => [qw/13 24 8/],
         },
         {
             name         => 'String x-axis, integer sum y-axis as percent',

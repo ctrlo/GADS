@@ -1166,10 +1166,15 @@ sub _build_columns_retrieved_do
     my @columns;
     if ($self->columns)
     {
-        my @col_ids = grep {defined $_} @{$self->columns}; # Remove undef column IDs
-        my %col_ids;
-        @col_ids{@col_ids} = undef;
-        @columns = grep { $_->id; exists $col_ids{$_->id} } $layout->all(order_dependencies => 1);
+        # The columns property can contain straight column IDs or hash refs
+        # containing the column ID as well as more information, such as the
+        # parent curval of a curval field. At the moment we don't use this here
+        # (only when this class becomes a RecordsGroup) but we may want to use
+        # it in the future if retrieving individual curval fields
+        my @col_ids = map { ref $_ eq 'HASH' ? $_->{id} : $_ } @{$self->columns};
+        @col_ids = grep {defined $_} @col_ids; # Remove undef column IDs
+        my %col_ids = map { $_ => 1 } @col_ids;
+        @columns = grep { $col_ids{$_->id} } $layout->all(order_dependencies => 1);
     }
     elsif (!$self->retrieve_all_columns && $self->view)
     {

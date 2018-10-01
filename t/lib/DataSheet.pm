@@ -303,9 +303,10 @@ has column_count => (
     is      => 'ro',
     default => sub {
         +{
-            enum   => 1,
-            curval => 1,
-            tree   => 1,
+            enum    => 1,
+            curval  => 1,
+            tree    => 1,
+            integer => 1,
         }
     },
 );
@@ -461,26 +462,31 @@ sub __build_columns
         return;
     }
 
-    my $integer1 = GADS::Column::Intgr->new(
-        optional => $self->optional,
-        schema   => $schema,
-        user     => undef,
-        layout   => $layout,
-    );
-    $integer1->type('intgr');
-    $integer1->name('integer1');
-    $integer1->name_short("L${instance_id}integer1");
-    $integer1->set_permissions({$self->group->id => $permissions})
-        unless $self->no_groups;
-    try { $integer1->write };
-    if ($@)
+    my @integers;
+    foreach my $count (1..($self->column_count->{integer} || 1))
     {
-        $@->wasFatal->throw(is_fatal => 0);
-        return;
+        my $integer = GADS::Column::Intgr->new(
+            optional => $self->optional,
+            schema   => $schema,
+            user     => undef,
+            layout   => $layout,
+        );
+        $integer->type('intgr');
+        $integer->name("integer$count");
+        $integer->name_short("L${instance_id}integer$count");
+        $integer->set_permissions({$self->group->id => $permissions})
+            unless $self->no_groups;
+        try { $integer->write };
+        if ($@)
+        {
+            $@->wasFatal->throw(is_fatal => 0);
+            return;
+        }
+        push @integers, $integer;
     }
 
     my @enums;
-    foreach my $count (1..$self->column_count->{enum})
+    foreach my $count (1..($self->column_count->{enum} || 1))
     {
         my $enum = GADS::Column::Enum->new(
             optional => $self->optional,
@@ -639,7 +645,7 @@ sub __build_columns
     my @curvals;
     if ($self->curval)
     {
-        foreach my $count (1..$self->column_count->{curval})
+        foreach my $count (1..($self->column_count->{curval} || 1))
         {
             my $curval = GADS::Column::Curval->new(
                 optional   => $self->optional,
@@ -729,9 +735,8 @@ sub __build_columns
     # We return the reference to the layout one, in case we change any of
     # the objects properties, which are used by the datums.
     $columns->{string1}    = $layout->column($string1->id);
-    $columns->{integer1}   = $layout->column($integer1->id);
     $columns->{$_->name}   = $layout->column($_->id)
-        foreach (@enums, @curvals, @trees);
+        foreach (@enums, @curvals, @trees, @integers);
     $columns->{date1}      = $layout->column($date1->id);
     $columns->{daterange1} = $layout->column($daterange1->id);
     $columns->{calc1}      = $layout->column($calc1->id);
@@ -790,9 +795,11 @@ sub create_records
         $record->clear;
         $record->initialise;
         $record->fields->{$columns->{string1}->id}->set_value($datum->{string1});
-        $record->fields->{$columns->{integer1}->id}->set_value($datum->{integer1});
         $record->fields->{$columns->{date1}->id}->set_value($datum->{date1});
         $record->fields->{$columns->{daterange1}->id}->set_value($datum->{daterange1});
+
+        $record->fields->{$columns->{"integer$_"}->id}->set_value($datum->{"integer$_"})
+            foreach 1..($self->column_count->{integer} || 1);
 
         # Convert enums and trees from textual values if required
         foreach my $type (qw/enum tree/)
@@ -834,7 +841,7 @@ sub create_records
         if ($columns->{curval1})
         {
             $record->fields->{$columns->{"curval$_"}->id}->set_value($datum->{"curval$_"})
-                foreach 1..$self->column_count->{curval};
+                foreach 1..($self->column_count->{curval} || 1);
         }
         # Only set file data if exists in data. Add random data if nothing specified
 
