@@ -2,6 +2,7 @@ use Test::More; # tests => 1;
 use strict;
 use warnings;
 
+use Test::MockTime qw(set_fixed_time restore_time); # Load before DateTime
 use JSON qw(encode_json);
 use Log::Report;
 use GADS::Layout;
@@ -10,6 +11,8 @@ use GADS::Records;
 use GADS::Schema;
 
 use t::lib::DataSheet;
+
+set_fixed_time('10/10/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
 
 my $data = [
     {
@@ -151,6 +154,46 @@ my @filters = (
             },
         ],
         alerts => 1,
+    },
+    {
+        name  => 'View filtering on record created date',
+        rules => [
+            {
+                id       => -14,
+                type     => 'string',
+                value    => '2014-10-20',
+                operator => 'greater',
+            },
+        ],
+        columns => [$columns->{string1}->id],
+        current_id => 3,
+        update => [
+            {
+                column => 'string1',
+                value  => 'FooFoo',
+            },
+        ],
+        alerts => 1, # New record only
+    },
+    {
+        name  => 'View filtering on record updated date',
+        rules => [
+            {
+                id       => -12,
+                type     => 'string',
+                value    => '2014-10-20',
+                operator => 'greater',
+            },
+        ],
+        columns => [$columns->{date1}->id], # No change to data shown
+        current_id => 3,
+        update => [
+            {
+                column => 'string1',
+                value  => 'FooFoo',
+            },
+        ],
+        alerts => 2, # New record and updated record
     },
     {
         name       => 'Update of record in no filter view',
@@ -499,6 +542,8 @@ foreach my $filter (@filters)
 }
 
 $ENV{GADS_NO_FORK} = 1;
+
+set_fixed_time('11/10/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
 
 # Now update all the values, checking alerts as we go
 foreach my $filter (@filters)

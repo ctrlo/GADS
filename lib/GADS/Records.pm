@@ -529,7 +529,7 @@ sub search_views
                     $self->_search_construct($decoded, $self->layout, ignore_perms => 1, user => $user),
                 };
                 $search = { %$search, %$_ }
-                    foreach $self->common_search;
+                    foreach $self->common_search(linked => 1, search => 1);
                 my $i = 0; my @ids;
                 while ($i < @$current_ids)
                 {
@@ -541,12 +541,15 @@ sub search_views
                         $search->{'me.id'} = [@{$current_ids}[$i..$max]];
                     }
                     push @ids, $self->schema->resultset('Current')->search($search,{
-                        join => {
-                            'record_single' => [
-                                $self->jpfetch(search => 1),
-                                'record_later',
-                            ],
-                        },
+                        join => [
+                            [$self->linked_hash(search => 1)],
+                            {
+                                'record_single' => [
+                                    $self->jpfetch(search => 1),
+                                    'record_later',
+                                ],
+                            },
+                        ],
                     })->get_column('id')->all;
                     last unless $search->{'me.id'};
                     $i += 500;
