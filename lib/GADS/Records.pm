@@ -448,12 +448,15 @@ sub search_views
                         $search->{'me.id'} = [@{$current_ids}[$i..$max]];
                     }
                     push @ids, $self->schema->resultset('Current')->search($search,{
-                        join => {
-                            'record_single' => [
-                                $self->jpfetch(search => 1),
-                                'record_later',
-                            ],
-                        },
+                        join => [
+                            [$self->linked_hash(search => 1)],
+                            {
+                                'record_single' => [
+                                    $self->jpfetch(search => 1),
+                                    'record_later',
+                                ],
+                            },
+                        ],
                     })->get_column('id')->all;
                     last unless $search->{'me.id'};
                     $i += 500;
