@@ -270,7 +270,7 @@ has set_can_child => (
     is        => 'rw',
     isa       => Bool,
     predicate => 1,
-    coerce    => sub { shift ? 1 : 0 },
+    coerce    => sub { $_[0] ? 1 : 0 },
     trigger   => sub { shift->clear_can_child },
 );
 
