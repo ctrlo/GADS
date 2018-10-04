@@ -1,0 +1,104 @@
+[% MORE_LESS_TRESHOLD = 50 %]
+
+[% BLOCK more_less_block %]
+    <div class="more-less" data-column="[% header | html %]">
+        [% content %]
+    </div>
+[% END %]
+
+[% BLOCK curcommon_table %]
+    <table class="table-curcommon">
+        [% FOR link IN curval.links %]
+                <tr>
+                    [% FOREACH value IN link.values %]
+                        <td>
+                            [% IF loop.first %]
+                                <a class = "record-popup" style="cursor:pointer" data-record-id="[% link.id %]"
+                                    data-instance-id="[% link.refers_to_instance_id %]">[% value | html %]
+                                </a>
+                            [% ELSE %]
+                                [% value | html %]
+                            [% END %]
+                        </td>
+                    [% END %]
+                </tr>
+        [% END %]
+    </table>
+[% END %]
+
+[% MACRO render_curcommon_datum(is_multivalue, curval, header, full_content) BLOCK %]
+    [% IF curval.text.length > MORE_LESS_TRESHOLD AND full_content != 'full' %]
+        [% WRAPPER more_less_block %]
+            [% PROCESS curcommon_table %]
+        [% END %]
+    [% ELSE %]
+        [% PROCESS curcommon_table %]
+    [% END %]
+[% END %]
+
+[% MACRO render_file_datum(file, full_content) BLOCK %]
+    [% IF file.id %]
+        <a href="/file/[% file.id %]">
+            [% IF full_content  AND file.mimetype.match('^image/') %]
+                <img class="autosize" src="/file/[% file.id %]">
+            [% ELSE %]
+                [% file.value | html %]
+            [% END %]
+        </a>
+    [% END %]
+[% END %]
+
+[% MACRO render_person_datum(person) BLOCK %]
+    [% IF person %]
+        <button class="btn btn-xs btn-primary trigger" aria-expanded="false" type="button">
+            [% person.text | html %]
+            <span aria-hidden="true" class="glyphicon glyphicon-info-sign"></span>
+            <span class="visually-hidden">contact details</span>
+        </button>
+        <div class="person contact-details expandable popover">
+        [% FOR detail IN person.details %]
+            <div>
+                [% IF detail.type == 'email' %]
+                    E-mail: <a href="mailto:[% detail.value | html %]">[% detail.value | html %]</a>
+                [% ELSE %]
+                    [% detail.definition | html %]: [% detail.value | html %]
+                [% END %]
+            </div>
+        [% END %]
+        </div>
+    [% END %]
+[% END %]
+
+[% MACRO render_string_datum(string, header, full_content) BLOCK %]
+    [% IF full_content != 'full' && string.html.defined && string.html.length > MORE_LESS_TRESHOLD %]
+        [% WRAPPER more_less_block %]
+            [% string.html %]
+        [% END %]
+    [% ELSE %]
+        [% string.raw | html %]
+    [% END %]
+[% END %]
+
+[% PROCESS snippets/rag_symbols.tt %]
+
+[% MACRO render_rag_datum(rag) BLOCK %]
+    [% grade = rag.grade %]
+    <span aria-labelledby="rag_[% grade %]_meaning" class="[% grade %]">[% rag_symbols.$grade %]</span>
+[% END %]
+
+[% MACRO render_datum(datum, full_content) BLOCK;
+    SWITCH datum.type;
+        CASE ['curval', 'autocur'];
+            render_curcommon_datum(datum.is_multivalue, datum.data, datum.name, full_content);
+        CASE 'file';
+            render_file_datum(datum.data, full_content);
+        CASE 'person';
+            render_person_datum(datum.data);
+        CASE 'string';
+            render_string_datum(datum.data, datum.name, full_content);
+        CASE 'rag';
+            render_rag_datum(datum.data);
+        CASE;
+            datum.data.value | html;
+    END;
+END %]

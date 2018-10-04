@@ -35,11 +35,6 @@ has id => (
     predicate => 1,
 );
 
-has user => (
-    is       => 'rw',
-    required => 1,
-);
-
 # Whether the logged-in user has the layout permission
 has user_has_layout => (
     is => 'lazy',
@@ -47,7 +42,7 @@ has user_has_layout => (
 
 sub _build_user_has_layout
 {   my $self = shift;
-    $self->user->{permission}->{layout};
+    $self->layout->user_can("layout");
 }
 
 # Whether to write the view as another user
@@ -92,12 +87,15 @@ has _view => (
             return;
         }
         # Check whether user has read access to view
-        if ($self->has_id && $self->user && !$view->global && !$view->is_admin
-            && !$self->user->{permission}->{layout} && $view->user_id != $self->user->{id}
-        )
+        my $user_id = $self->layout->user && $self->layout->user->id;
+        my $no_access = $self->has_id && $self->layout->user && !$view->global && !$view->is_admin && !$view->is_limit_extra
+            && !$self->layout->user_can("layout") && $view->user_id != $user_id;
+        $no_access ||= $view->global && $view->group_id
+            && !$self->schema->resultset('User')->find($user_id)->has_group->{$view->group_id};
+        if ($no_access)
         {
             error __x"User {user} does not have access to view {view}",
-                user => $self->user->{id}, view => $self->id;
+                user => $self->layout->user->id, view => $self->id;
         }
         $view;
     },
@@ -123,6 +121,14 @@ has is_admin => (
     isa     => Bool,
     lazy    => 1,
     builder => sub { $_[0]->_view && $_[0]->_view->is_admin || 0 },
+);
+
+has group_id => (
+    is      => 'rw',
+    isa     => Maybe[Int],
+    lazy    => 1,
+    coerce  => sub { $_[0] || undef },
+    builder => sub { $_[0]->_view && $_[0]->_view->group_id },
 );
 
 has name => (
@@ -173,7 +179,7 @@ has alert => (
     builder => sub {
         my $self = shift;
         $self->_view or return;
-        my ($alert) = grep { $self->user->{id} == $_->user_id } $self->_view->alerts;
+        my ($alert) = grep { $self->layout->user->id == $_->user_id } $self->_view->alerts;
         $alert;
     }
 );
@@ -221,9 +227,9 @@ sub _build_has_curuser
 {   my $self = shift;
     grep {
         ($self->layout->column($_->{id})->type eq 'person'
-            && $_->{value} eq '[CURUSER]')
+            && $_->{value} && $_->{value} eq '[CURUSER]')
         || ($self->layout->column($_->{id})->return_type eq 'string'
-            && $_->{value} eq '[CURUSER]')
+            && $_->{value} && $_->{value} eq '[CURUSER]')
     } @{$self->filter->filters};
 }
 
@@ -233,37 +239,38 @@ has owner => (
     builder => sub { $_[0]->_view && $_[0]->_view->user_id },
 );
 
-has _writable => (
+has writable => (
     is      => 'lazy',
     isa     => Bool,
     clearer => 1,
 );
 
-sub _build__writable
+sub _build_writable
 {   my $self = shift;
-    if (!$self->user)
+    if (!$self->layout->user)
     {
         # Special case - no user means writable (for tests)
         return 1;
     }
-    elsif ($self->global || $self->is_admin)
+    elsif ($self->is_admin)
     {
-        return 1 if $self->user->{permission}->{layout};
+        return 1 if $self->layout->user_can("layout");
+    }
+    elsif ($self->global)
+    {
+        return 1 if !$self->group_id && $self->layout->user_can("layout");
+        return 1 if $self->group_id && $self->layout->user_can("view_group");
     }
     elsif (!$self->has_id)
     {
         # New view, not global
-        return 1;
+        return 1 if $self->layout->user_can("view_create");
     }
-    elsif (!$self->owner && $self->user->{permission}->{layout})
+    elsif ($self->owner && $self->owner == $self->layout->user->id)
     {
-        return 1;
+        return 1 if $self->layout->user_can("view_create");
     }
-    elsif ($self->owner && $self->owner == $self->user->{id})
-    {
-        return 1;
-    }
-    elsif ($self->user->{permission}->{layout})
+    elsif ($self->layout->user_can("layout"))
     {
         return 1;
     }
@@ -282,9 +289,9 @@ sub write
     length $self->name < 128
         or error __"View name must be less than 128 characters";
 
-    my $global   = !$self->user ? 1 : $self->global;
+    my $global   = !$self->layout->user ? 1 : $self->global;
 
-    $self->_clear_writable; # Force rebuild based on any updated values
+    $self->clear_writable; # Force rebuild based on any updated values
 
     my $vu = {
         name        => $self->name,
@@ -292,14 +299,15 @@ sub write
         instance_id => $self->instance_id,
         global      => $global,
         is_admin    => $self->is_admin,
+        group_id    => $self->group_id,
     };
 
     if ($global || $self->is_admin)
     {
         $vu->{user_id} = undef;
     }
-    else {
-        $vu->{user_id} = ($self->user_has_layout && $self->other_user_id) || $self->user->{id};
+    elsif (!$self->_view || !$self->_view->user_id) { # Preserve owner if editing other user's view
+        $vu->{user_id} = ($self->user_has_layout && $self->other_user_id) || $self->layout->user->id;
     }
 
     $self->clear_has_curuser;
@@ -336,17 +344,20 @@ sub write
             unless $col->user_can('read');
     }
 
+    $self->writable
+        or error $self->id
+            ? __x("User {user_id} does not have access to modify view {id}", user_id => $self->layout->user->id, id => $self->id)
+            : __x("User {user_id} does not have permission to create new views", user_id => $self->layout->user->id);
+
     if ($self->id)
     {
-        $self->_writable
-            or error __x"User {user_id} does not have access to modify view {id}", user_id => $self->user->{id}, id => $self->id;
         $self->_view->update($vu);
 
         # Update any alert caches for new filter
         if ($self->filter->changed && $self->has_alerts)
         {
             my $alert = GADS::Alert->new(
-                user      => $self->user,
+                user      => $self->layout->user,
                 layout    => $self->layout,
                 schema    => $self->schema,
                 view_id   => $self->id,
@@ -433,7 +444,7 @@ sub write
 sub delete
 {   my $self = shift;
 
-    $self->_writable
+    $self->writable
         or error __x"You do not have permission to delete {id}", id => $self->id;
     my $vl = $self->schema->resultset('ViewLimit')->search({
         view_id => $self->id,
@@ -503,6 +514,8 @@ sub _get_sorts
         $s->{id}        = $sort->id;
         $s->{type}      = $sort->type;
         $s->{layout_id} = $sort->layout_id;
+        $s->{parent_id} = $sort->parent_id;
+        $s->{filter_id} = $sort->parent_id ? $sort->parent_id.'_'.$sort->layout_id : $sort->layout_id,
         push @sorts, $s;
     }
     \@sorts;
@@ -522,17 +535,29 @@ sub set_sorts
     my @fields = ref $sortfield ? @$sortfield : ($sortfield // ()); # Allow empty string for ID
     my @types  = ref $sorttype  ? @$sorttype  : ($sorttype  || ());
     my @allsorts; my $type_last;
-    foreach my $layout_id (@fields)
+    foreach my $filter_id (@fields)
     {
+        my ($parent_id, $layout_id);
+        if ($filter_id && $filter_id =~ /^([0-9]+)_([0-9]+)$/)
+        {
+            $parent_id = $1;
+            $layout_id = $2;
+        }
+        else {
+            $layout_id = $filter_id;
+        }
         my $type = (shift @types) || $type_last;
         error __x"Invalid type {type}", type => $type
             unless grep { $_->{name} eq $type } @{sort_types()};
         # Check column is valid and user has access
         error __x"Invalid field ID {id} in sort", id => $layout_id
             if $layout_id && !$self->layout->column($layout_id)->user_can('read');
+        error __x"Invalid field ID {id} in sort", id => $parent_id
+            if $parent_id && !$self->layout->column($parent_id)->user_can('read');
         my $sort = {
             view_id   => $self->id,
             layout_id => ($layout_id || undef), # ID will be empty string
+            parent_id => $parent_id,
             type      => $type,
         };
         # Assume that each new sort is applied with a new ID greater than the

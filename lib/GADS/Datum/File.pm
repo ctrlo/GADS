@@ -25,8 +25,10 @@ use namespace::clean;
 
 extends 'GADS::Datum';
 
-sub set_value
-{   my ($self, $value) = @_;
+with 'GADS::Role::Presentation::Datum::File';
+
+after set_value => sub {
+    my ($self, $value) = @_;
     my $clone = $self->clone; # Copy before changing text
     my $new_id;
     # If an array, $value will either be blank string (no file submitted, empty hidden value),
@@ -52,21 +54,18 @@ sub set_value
         $self->content($value->{content});
         $self->name($value->{name});
         $self->mimetype($value->{mimetype});
-        $self->_set_written_valid(1);
     }
     else {
         # Just ID for file passed. Probably a resubmission
         # of a form with previous errors
         $new_id = $value || undef;
-        $self->_set_written_valid(!!$new_id);
     }
     $self->changed(1) if (!$self->id && $value)
         || (!$value && $self->id)
         || (defined $self->id && defined $new_id && $self->id != $new_id && $clone->content ne $self->content);
     $self->oldvalue($clone);
     $self->id($new_id) if defined $new_id || $self->init_no_value;
-    $self->_set_written_to(0) if $self->value_next_page;
-}
+};
 
 has id => (
     is      => 'rw',
@@ -92,7 +91,9 @@ has value_hash => (
     builder => sub {
         my $self = shift;
         $self->has_init_value or return;
-        my $value = $self->init_value->[0]->{value};
+        my $value = exists $self->init_value->[0]->{value}
+            ? $self->init_value->[0]->{value}
+            : $self->init_value->[0];
         my $id = $value->{id};
         $self->has_id(1) if defined $id || $self->init_no_value;
         +{
@@ -113,6 +114,10 @@ has name => (
         $_[0]->value_hash ? $_[0]->value_hash->{name} : $_[0]->_rset && $_[0]->_rset->name;
     },
 );
+
+sub search_values_unique
+{   [ shift->name ]
+}
 
 has mimetype => (
     is      => 'rw',

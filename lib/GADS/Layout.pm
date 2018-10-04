@@ -38,7 +38,6 @@ use GADS::Graphs;
 use GADS::MetricGroups;
 use GADS::Views;
 use Log::Report 'linkspace';
-use MIME::Base64;
 use String::CamelCase qw(camelize);
 
 use Moo;
@@ -60,13 +59,13 @@ has config => (
 );
 
 has instance_id => (
-    is       => 'ro',
-    isa      => Int,
-    required => 1,
+    is  => 'rwp',
+    isa => Int,
 );
 
 has _rset => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build__rset
@@ -75,10 +74,19 @@ sub _build__rset
 }
 
 has name => (
-    is      => 'lazy',
+    is      => 'rw',
     isa     => Str,
+    lazy    => 1,
     clearer => 1,
     builder => sub { $_[0]->_rset->name },
+);
+
+has name_short => (
+    is      => 'rw',
+    isa     => Maybe[Str],
+    lazy    => 1,
+    clearer => 1,
+    builder => sub { $_[0]->_rset->name_short },
 );
 
 has site => (
@@ -99,11 +107,66 @@ has homepage_text2 => (
     builder => sub { $_[0]->_rset->homepage_text2 },
 );
 
+has forget_history => (
+    is      => 'ro',
+    isa     => Bool,
+    lazy    => 1,
+    builder => sub { $_[0]->_rset->forget_history },
+    clearer => 1,
+);
+
+has forward_record_after_create => (
+    is      => 'ro',
+    isa     => Bool,
+    lazy    => 1,
+    builder => sub { $_[0]->_rset->forward_record_after_create },
+    clearer => 1,
+);
+
+has no_overnight_update => (
+    is      => 'ro',
+    isa     => Bool,
+    lazy    => 1,
+    builder => sub { $_[0]->_rset->no_overnight_update },
+    clearer => 1,
+);
+
 has sort_layout_id => (
     is      => 'rw',
     isa     => Maybe[Int],
     lazy    => 1,
     builder => sub { $_[0]->_rset->sort_layout_id },
+);
+
+has default_view_limit_extra => (
+    is      => 'ro',
+    lazy    => 1,
+    clearer => 1,
+    builder => sub { $_[0]->_rset->default_view_limit_extra },
+);
+
+has default_view_limit_extra_id => (
+    is      => 'ro',
+    isa     => Maybe[Int],
+    lazy    => 1,
+    clearer => 1,
+    builder => sub { $_[0]->_rset->default_view_limit_extra_id },
+);
+
+has api_index_layout => (
+    is      => 'ro',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->column($self->_rset->api_index_layout_id);
+    },
+);
+
+has api_index_layout_id => (
+    is      => 'ro',
+    isa     => Maybe[Int],
+    lazy    => 1,
+    builder => sub { $_[0]->_rset->api_index_layout_id },
 );
 
 has sort_type => (
@@ -138,31 +201,166 @@ has _columns_name_shorthash => (
     clearer => 1,
 );
 
-has instances => (
-    is  => 'lazy',
-    isa => ArrayRef,
-);
-
-sub _build_instances
-{   my $self = shift;
-    GADS::Instances->new(schema => $self->schema)->all;
-}
-
-# The permissions the logged-in user has, for the whole data set
-has user_permissions => (
-    is        => 'rw',
-    isa       => HashRef,
-    predicate => 1,
-);
-
-# The permissions for all users, as a cache, for multiple
-# requests to get_user_perms
-has user_permissions_cache => (
-    is      => 'rw',
+has _user_permissions_columns => (
+    is      => 'lazy',
     isa     => HashRef,
     clearer => 1,
-    default => sub { {} },
 );
+
+sub _build__user_permissions_columns
+{   my $self = shift;
+    $self->user or return {};
+
+    my $user_id  = $self->user->id;
+
+    +{
+        $user_id => $self->_get_user_permissions($user_id),
+    };
+}
+
+sub _get_user_permissions
+{   my ($self, $user_id) = @_;
+    my $perms_rs = $self->_user_perm_search('column', $user_id);
+    $perms_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    my ($user_perms) = $perms_rs->all; # The overall user. Only one due to query.
+    my $return;
+    if ($user_perms) # Might not be any at all
+    {
+        foreach my $group (@{$user_perms->{user_groups}}) # For each group the user has
+        {
+            foreach my $layout_group (@{$group->{group}->{layout_groups}}) # For each column in that group
+            {
+                # Push the actual permission onto an array
+                $return->{$layout_group->{layout_id}}->{$layout_group->{permission}} = 1;
+            }
+        }
+    }
+    return $return;
+}
+
+has _user_permissions_table => (
+    is      => 'lazy',
+    isa     => HashRef,
+    clearer => 1,
+);
+
+sub _build__user_permissions_table
+{   my $self = shift;
+    $self->user or return {};
+
+    my $user_id  = $self->user->id;
+    my $perms_rs = $self->_user_perm_search('table', $user_id);
+    my ($user_perms) = $perms_rs->all; # The overall user. Only one due to query.
+    my $return = {};
+
+    if ($user_perms) # Might not be any at all
+    {
+        foreach my $group ($user_perms->user_groups) # For each group the user has
+        {
+            foreach my $instance_group ($group->group->instance_groups) # For each column in that group
+            {
+                $return->{$instance_group->permission} = 1;
+            }
+        }
+    }
+
+    +{
+        $user_id => $return,
+    };
+}
+
+# Shortcut to producing the overall permissions the user has on the columns of
+# this table
+has layout_perms => (
+    is => 'ro',
+);
+
+has _user_permissions_overall => (
+    is      => 'lazy',
+    isa     => HashRef,
+    clearer => 1,
+);
+
+sub _build__user_permissions_overall
+{   my $self = shift;
+    $self->user or return {};
+    my $user_id = $self->user->id;
+    my $overall = {};
+
+    # First all the column permissions
+    if ($self->layout_perms)
+    {
+        $overall->{$_} = 1
+            foreach @{$self->layout_perms};
+    }
+    else {
+        my $perms = $self->_user_permissions_columns->{$user_id};
+        foreach my $col ($self->all)
+        {
+            $overall->{$_} = 1
+                foreach keys %{$perms->{$col->id}};
+        }
+    }
+
+    # Then the table permissions
+    my $perms = $self->_user_permissions_table->{$user_id};
+    $overall->{$_} = 1
+        foreach keys %$perms;
+
+    if ($self->user->permission->{superadmin})
+    {
+        $overall->{layout} = 1;
+        $overall->{view_create} = 1;
+    }
+
+    return $overall;
+}
+
+sub current_user_can_column
+{   my ($self, $column_id, $permission) = @_;
+    my $user = $self->user
+        or return;
+    my $user_id  = $user->id;
+    return $self->user_can_column($user_id, $column_id, $permission);
+}
+
+sub user_can_column
+{   my ($self, $user_id, $column_id, $permission) = @_;
+
+    my $user_cache = $self->_user_permissions_columns->{$user_id};
+
+    if (!$user_cache)
+    {
+        my $user_permissions = $self->_user_permissions_columns;
+        $user_cache = $user_permissions->{$user_id} = $self->_get_user_permissions($user_id);
+    }
+
+    return $user_cache->{$column_id}->{$permission};
+}
+
+has _group_permissions => (
+    is  => 'lazy',
+    isa => HashRef,
+);
+
+sub _build__group_permissions
+{   my $self = shift;
+    my @perms = $self->schema->resultset('InstanceGroup')->search({
+        instance_id => $self->instance_id,
+    })->all;
+    my $return = {};
+    foreach (@perms)
+    {
+        $return->{$_->group_id}->{$_->permission} = 1;
+    }
+    $return;
+}
+
+sub group_has
+{   my ($self, $group_id, $permission) = @_;
+    $self->_group_permissions->{$group_id} or return 0;
+    $self->_group_permissions->{$group_id}->{$permission} or return 0;
+}
 
 has user_permission_override => (
     is      => 'rw',
@@ -181,6 +379,93 @@ has columns_index => (
         \%columns;
     },
 );
+
+has set_groups => (
+    is        => 'rw',
+    isa       => ArrayRef,
+    predicate => 1,
+);
+
+sub write
+{   my $self = shift;
+
+    my $rset;
+    if (!$self->instance_id)
+    {
+        $rset = $self->schema->resultset('Instance')->create({});
+        $self->_set_instance_id($rset->id);
+    }
+    else {
+        $rset = $self->_rset;
+    }
+
+    $rset->update({
+        name       => $self->name,
+        name_short => $self->name_short,
+    });
+
+    # Now set any groups if needed
+    if ($self->has_set_groups)
+    {
+        my @create;
+        my $delete = {};
+
+        my %valid = (
+            delete           => 1,
+            purge            => 1,
+            download         => 1,
+            layout           => 1,
+            message          => 1,
+            view_create      => 1,
+            view_group       => 1,
+            create_child     => 1,
+            bulk_update      => 1,
+            link             => 1,
+            view_limit_extra => 1,
+        );
+
+        my $existing = $self->_group_permissions;
+
+        # Parse the form submimssion. Take the existing permissions: if exists, do
+        # nothing, otherwise create
+        foreach my $perm (@{$self->set_groups})
+        {
+            $perm =~ /^([0-9]+)\_(.*)/;
+            my ($group_id, $permission) = ($1, $2);
+            $group_id && $valid{$permission}
+                or panic "Invalid permission $perm";
+            # If it exists, delete from hash so we know what to delete
+            delete $existing->{$group_id}->{$permission}
+                or push @create, { instance_id => $self->instance_id, group_id => $group_id, permission => $permission };
+
+        }
+        # Create anything we need
+        $self->schema->resultset('InstanceGroup')->populate([@create]);
+
+        # Delete anything left - not in submission so therefore removed
+        my @delete;
+        foreach my $group_id (keys %$existing)
+        {
+            foreach my $permission (keys %{$existing->{$group_id}})
+            {
+                push @delete, {
+                    instance_id => $self->instance_id,
+                    group_id    => $group_id,
+                    permission  => $permission,
+                };
+            }
+        }
+        $self->schema->resultset('InstanceGroup')->search([@delete])->delete
+            if @delete;
+    }
+    $self->clear; # Rebuild all permissions etc
+    $self; # Return self for chaining
+}
+
+sub delete
+{   my $self = shift;
+    $self->_rset->delete;
+}
 
 has internal_columns => (
     is      => 'ro',
@@ -219,6 +504,16 @@ has internal_columns => (
             },
             {
                 id          => -14,
+                name        => 'Deleted by ID',
+                type        => 'person',
+                table       => 'current',
+                column      => 'deletedby',
+                isunique    => 0,
+                hidden      => 1,
+                return_type => 'integer',
+            },
+            {
+                id          => -15,
                 name        => 'Record created',
                 type        => 'date',
                 name_short  => '_created',
@@ -226,6 +521,18 @@ has internal_columns => (
                 column      => 'created',
                 isunique    => 0,
                 return_type => 'date',
+
+            },
+            {
+                id          => -16,
+                name        => 'Serial',
+                type        => 'serial',
+                name_short  => '_serial',
+                table       => 'current',
+                column      => 'serial',
+                isunique    => 1,
+                return_type => 'integer',
+
             },
         ];
     },
@@ -242,17 +549,30 @@ sub clear_indexes
 sub clear
 {   my $self = shift;
     $self->clear_columns;
+    $self->clear_cols_db;
     $self->clear_indexes;
-    $self->clear_user_permissions_cache;
+    $self->_clear_user_permissions_columns;
+    $self->_clear_user_permissions_table;
+    $self->_clear_user_permissions_overall;
+    $self->clear_forget_history;
+    $self->clear_no_overnight_update;
+    $self->_clear_rset;
+    $self->clear_default_view_limit_extra;
+    $self->clear_default_view_limit_extra_id;
+    $self->clear_has_children;
 }
 
-# Instantiate new class. This builds a list of all
-# columns, so that it's cached for any later function
-sub _build_columns
+# The dump from the database of all the information needed to build the layout.
+# Can be passed/shared for efficiency, as is common between layouts.
+has cols_db => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_cols_db
 {   my $self = shift;
-
-    my @instance_ids = map { $_->id } @{$self->instances};
-
+    # Must search by instance_ids to limit between sites
+    my @instance_ids = map { $_->id } $self->schema->resultset('Instance')->all;
     my $cols_rs = $self->schema->resultset('Layout')->search({
         'me.instance_id' => \@instance_ids,
     },{
@@ -260,13 +580,17 @@ sub _build_columns
         join     => 'enumvals',
         prefetch => ['calcs', 'rags', 'link_parent'],
     });
-
     $cols_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    [$cols_rs->all];
+}
 
-    my @allcols = $cols_rs->all;
+# Instantiate new class. This builds a list of all
+# columns, so that it's cached for any later function
+sub _build_columns
+{   my $self = shift;
 
     my @return;
-    foreach my $col (@allcols)
+    foreach my $col (@{$self->cols_db})
     {
         my $class = "GADS::Column::".camelize $col->{type};
         my $column = $class->new(
@@ -277,35 +601,6 @@ sub _build_columns
             layout                   => $self
         );
         push @return, $column;
-    }
-
-    my ($perms, $overall_permissions);
-    if ($self->user)
-    {
-        ($perms, $overall_permissions) = $self->get_user_perms($self->user->{id});
-        $self->user_permissions($overall_permissions);
-    }
-
-    # Now that we have everything built, we need to tag on dependent cols and permissions
-    foreach my $col (@return)
-    {
-        # And also any columns that are children (in the layout)
-        my @depends = grep {$_->display_field && $_->display_field == $col->id} @return;
-        my @display_depended_by = map {
-            {
-                id        => $_->id,
-                regex     => $_->display_regex,
-                regex_b64 => encode_base64($_->display_regex),
-            }
-        } @depends;
-        $col->display_depended_by(\@display_depended_by);
-        if ($perms)
-        {
-            if (my $perm = $perms->{$col->id})
-            {
-                $col->user_permissions($perm);
-            }
-        }
     }
 
     # Add on special internal columns
@@ -328,6 +623,8 @@ sub _build_columns
             return_type              => $internal->{return_type},
             internal                 => 1,
             userinput                => 0,
+            can_child                => 1,
+            hidden                   => $internal->{hidden} || 0,
             user_permission_override => $self->user_permission_override,
             schema                   => $self->schema,
             layout                   => $self,
@@ -346,32 +643,24 @@ sub _build_has_globe
     !! grep { $_->return_type eq "globe" } $self->all;
 }
 
-sub get_user_perms
-{   my ($self, $user_id) = @_;
-    my $cache = $self->user_permissions_cache;
-    unless ($cache->{$user_id})
-    {
-        # Construct a hash with all the permissions for the different columns
-        my $perms_rs = $self->_user_perm_search($user_id);
-        $perms_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
-        my ($user_perms) = $perms_rs->all; # The overall user. Only one due to query.
-        my %perms; # Hash of different columns and their permissions
-        my %overall_permissions; # Flat structure of all user permissions for whole layout
-        foreach my $group (@{$user_perms->{user_groups}}) # For each group the user has
-        {
-            foreach my $layout_group (@{$group->{group}->{layout_groups}}) # For each column in that group
-            {
-                # Push the actual permission onto an array
-                $perms{$layout_group->{layout_id}} ||= [];
-                push @{$perms{$layout_group->{layout_id}}}, $layout_group->{permission};
-                $overall_permissions{$layout_group->{permission}} = 1
-                    if $layout_group->{layout}->{instance_id} == $self->instance_id;
-            }
-        }
-        $cache->{$user_id}->{perms} = \%perms;
-        $cache->{$user_id}->{overall_permissions} = \%overall_permissions;
-    }
-    wantarray ? ($cache->{$user_id}->{perms}, $cache->{$user_id}->{overall_permissions}) : $cache->{$user_id}->{perms};
+has has_children => (
+    is      => 'lazy',
+    isa     => Bool,
+    clearer => 1,
+);
+
+sub _build_has_children
+{   my $self = shift;
+    !! grep { $_->can_child } $self->all;
+}
+
+has has_topics => (
+    is => 'lazy',
+);
+
+sub _build_has_topics
+{   my $self = shift;
+    !! $self->schema->resultset('Topic')->search({ instance_id => $self->instance_id })->next;
 }
 
 sub all_with_internal
@@ -409,13 +698,17 @@ sub all
 
     my $type = $options{type};
 
-    my @columns = grep { $_->instance_id == $self->instance_id } @{$self->columns};
+    my @columns = grep { $_->instance_id == $self->instance_id && !$_->hidden } @{$self->columns};
+    @columns = grep { $options{topic_id} ? $_->topic_id == $options{topic_id} : !$_->topic_id } @columns
+        if exists $options{topic_id};
     @columns = $self->_order_dependencies(@columns) if $options{order_dependencies};
     @columns = grep { !$_->internal } @columns unless $options{include_internal};
     @columns = grep { $_->internal } @columns if $options{only_internal};
     @columns = grep { $_->isunique } @columns if $options{only_unique};
+    @columns = grep { $_->can_child } @columns if $options{can_child};
     @columns = grep { $_->link_parent } @columns if $options{linked};
     @columns = grep { $_->type eq $type } @columns if $type;
+    @columns = grep { $_->return_type eq 'globe' } @columns if $options{is_globe};
     @columns = grep { $_->remember == $options{remember} } @columns if defined $options{remember};
     @columns = grep { $_->userinput == $options{userinput} } @columns if defined $options{userinput};
     @columns = grep { $_->multivalue == $options{multivalue} } @columns if defined $options{multivalue};
@@ -426,6 +719,42 @@ sub all
     @columns = grep { $_->user_can('write_existing') || $_->user_can('read') } @columns if $options{user_can_readwrite_existing};
     @columns = grep { $_->user_can('approve_new') } @columns if $options{user_can_approve_new};
     @columns = grep { $_->user_can('approve_existing') } @columns if $options{user_can_approve_existing};
+
+    if ($options{sort_by_topics})
+    {
+        # Sorting by topic involves keeping the order of fields that do not
+        # have a defined topic, but slotting in those together that have the
+        # same topic.
+        # First build up an index of topics and their fields
+        my %topics;
+        foreach my $col (@columns)
+        {
+            $col->topic_id or next;
+            $topics{$col->topic_id} ||= [];
+            push @{$topics{$col->topic_id}}, $col;
+        }
+        my @new; my $previous_topic_id = 0; my %done;
+        foreach my $col (@columns)
+        {
+            next if $done{$col->id};
+            $done{$col->id} = 1;
+            if ($col->topic_id && $col->topic_id != $previous_topic_id)
+            {
+                foreach (@{$topics{$col->topic_id}})
+                {
+                    push @new, $_;
+                    $done{$_->id} = 1;
+                }
+            }
+            else {
+                push @new, $col;
+                $done{$col->id} = 1;
+            }
+            $previous_topic_id = $col->topic_id || 0;
+        }
+        @columns = @new;
+    }
+
     @columns;
 }
 
@@ -476,7 +805,14 @@ sub column_this_instance
 
 sub _build__columns_namehash
 {   my $self = shift;
-    my %columns = map { $_->name => $_ } @{$self->columns};
+    my %columns;
+    foreach (@{$self->columns})
+    {
+        next unless $_->instance_id == $self->instance_id;
+        error __x"Column {name} exists twice - unable to find unique column",
+            name => $_ if $columns{$_};
+        $columns{$_->name} = $_;
+    }
     \%columns;
 }
 
@@ -501,33 +837,28 @@ sub view
 
     return unless $view_id;
     my $view    = GADS::View->new(
-        user        => $self->user,
         id          => $view_id,
         schema      => $self->schema,
         layout      => $self,
         instance_id => $self->instance_id,
     );
-    my @columns_extra = $options{columns_extra} ? @{$options{columns_extra}} : ();
-    my %view_layouts = map { $_ => 1 } (@{$view->columns}, @columns_extra);
+    my %view_layouts = map { $_ => 1 } @{$view->columns};
     grep { $view_layouts{$_->{id}} } $self->all(%options);
 }
 
-# XXX Should move this into a user class at some point.
 # Returns what a user can do to the whole data set. Individual
 # permissions for columns are contained in the column class.
 sub user_can
 {   my ($self, $permission) = @_;
     return 1 if $self->user_permission_override;
-    if (!$self->has_user_permissions)
-    {
-        # Full layout has not been built. Shortcut to just a simple
-        # SQL query instead
-        return $self->_user_perm_search($self->user->{id})->search({
-            'layout.instance_id'       => $self->instance_id,
-            'layout_groups.permission' => $permission,
-        })->count;
-    }
-    $self->user_permissions->{$permission};
+    $self->_user_permissions_overall->{$permission};
+}
+
+# Whether the user has got any sort of access
+sub user_can_anything
+{   my $self = shift;
+    return 1 if $self->user_permission_override;
+    !! keys %{$self->_user_permissions_overall};
 }
 
 has referred_by => (
@@ -550,14 +881,40 @@ sub _build_referred_by
 }
 
 sub _user_perm_search
-{   my ($self, $user_id) = @_;
-    # Do not limit by instance ID so that we can build and interrogate
-    # permissions for all columns across all instances
-    $self->schema->resultset('User')->search({
-        'me.id'              => $user_id,
-    }, {
-        prefetch => { user_groups => { group => { 'layout_groups' => 'layout' } } },
-    });
+{   my ($self, $type, $user_id) = @_;
+
+    if ($type eq 'table')
+    {
+        return $self->schema->resultset('User')->search({
+            'me.id'                       => $user_id,
+            'instance_groups.instance_id' => $self->instance_id,
+        },
+        {
+            prefetch => {
+                user_groups => {
+                    group => 'instance_groups',
+                }
+            },
+        });
+    }
+    elsif ($type eq 'column')
+    {
+        return $self->schema->resultset('User')->search({
+            'me.id'              => $user_id,
+        },
+        {
+            prefetch => {
+                user_groups => {
+                    group => {
+                        layout_groups => 'layout',
+                    },
+                }
+            },
+        });
+    }
+    else {
+        panic "Invalid type $type";
+    }
 }
 
 has global_view_summary => (
@@ -606,6 +963,9 @@ sub purge
         join => 'current',
     })->delete;
     $self->schema->resultset('Current')->search({
+        instance_id => $self->instance_id,
+    })->delete;
+    $self->schema->resultset('InstanceGroup')->search({
         instance_id => $self->instance_id,
     })->delete;
     $self->_rset->delete;

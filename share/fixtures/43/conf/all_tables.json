@@ -1,0 +1,213 @@
+{
+   "sets" : [
+      {
+         "quantity" : "all",
+         "class" : "Intgr"
+      },
+      {
+         "class" : "ImportRow",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Daterange",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Enum"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Curval"
+      },
+      {
+         "class" : "Group",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Layout",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Calc",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Site",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "UserGraph"
+      },
+      {
+         "class" : "MetricGroup",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Instance",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Oauthclient"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Enumval"
+      },
+      {
+         "class" : "Rag",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Organisation",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Sort",
+         "quantity" : "all"
+      },
+      {
+         "class" : "AlertCache",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Record"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Ragval"
+      },
+      {
+         "class" : "File",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Graph"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Fileval"
+      },
+      {
+         "class" : "Permission",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "UserLastrecord"
+      },
+      {
+         "quantity" : "all",
+         "class" : "UserGroup"
+      },
+      {
+         "class" : "Alert",
+         "quantity" : "all"
+      },
+      {
+         "class" : "InstanceGroup",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "View"
+      },
+      {
+         "quantity" : "all",
+         "class" : "CurvalField"
+      },
+      {
+         "class" : "User",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Person"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Date"
+      },
+      {
+         "class" : "Title",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Audit"
+      },
+      {
+         "class" : "LayoutDepend",
+         "quantity" : "all"
+      },
+      {
+         "class" : "AlertSend",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "GraphColor"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Calcval"
+      },
+      {
+         "class" : "Metric",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "ViewLimit"
+      },
+      {
+         "class" : "Import",
+         "quantity" : "all"
+      },
+      {
+         "class" : "ViewLayout",
+         "quantity" : "all"
+      },
+      {
+         "class" : "LayoutGroup",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Oauthtoken",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Filter",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Current"
+      },
+      {
+         "class" : "String",
+         "quantity" : "all"
+      },
+      {
+         "class" : "UserPermission",
+         "quantity" : "all"
+      },
+      {
+         "class" : "FileOption",
+         "quantity" : "all"
+      }
+   ],
+   "has_many" : {
+      "fetch" : 0
+   },
+   "might_have" : {
+      "fetch" : 0
+   },
+   "belongs_to" : {
+      "fetch" : 0
+   }
+}

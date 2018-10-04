@@ -21,68 +21,104 @@ package GADS::Datum::String;
 use HTML::FromText;
 use Log::Report 'linkspace';
 use Moo;
-use namespace::clean;
+use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Datum';
 
-sub set_value
-{   my ($self, $value) = @_;
-    ($value) = @$value if ref $value eq 'ARRAY';
-    $value =~ /\h+$/ if !ref $value && $value;
-    if (my $regex = !ref $value && $self->column->force_regex)
+with 'GADS::Role::Presentation::Datum::String';
+
+after set_value => sub {
+    my ($self, $value) = @_;
+    $value = [$value] if ref $value ne 'ARRAY'; # Allow legacy single values as scalar
+    $value ||= [];
+    my @values = grep {defined $_} @$value; # Take a copy first
+    my $clone = $self->clone;
+    my @text_all = sort @values;
+    my @old_texts = @{$self->text_all};
+
+    # Trim entries, but only if changed. Don't use $changed, as the act of
+    # trimming could affect whether a value has changed or not
+    if ("@text_all" ne "@old_texts")
     {
-        my $msg = __x"Invalid value \"{value}\" for {field}", value => $value, field => $self->column->name;
-        # Empty values are not checked - these should be done in optional value for field
-        if ($value && $value !~ /^$regex$/)
+        s/\h+$// for @values;
+    }
+    my $changed = "@text_all" ne "@old_texts";
+
+    if (my $regex = $self->column->force_regex)
+    {
+        foreach my $val (@values)
         {
-            # Changed code repeated below, but don't want to flag changed if
-            # resulting error
-            ($self->value || '') ne ($value || '') ? error($msg) : warning($msg);
+            my $msg = __x"Invalid value \"{value}\" for {field}", value => $val, field => $self->column->name;
+            # Empty values are not checked - these should be done in optional value for field
+            if ($val && $val !~ /^$regex$/)
+            {
+                $changed ? error($msg) : warning($msg);
+            }
         }
     }
-    $self->changed(1)
-        if ($self->value || '') ne ($value || '');
-    $self->_set_written_valid(!!$value);
-    $self->oldvalue($self->clone);
-    $self->value($value);
-    $self->_set_written_to(0) if $self->value_next_page;
-}
+    if ($changed)
+    {
+        $self->changed(1);
+        $self->_set_values([@values]);
+        $self->_set_text_all([@text_all]);
+        $self->clear_html_form;
+        $self->clear_blank;
+    }
+    $self->oldvalue($clone);
+};
 
-has value => (
-    is        => 'rw',
+has values => (
+    is        => 'rwp',
+    isa       => ArrayRef,
     lazy      => 1,
-    trigger   => sub {
-        $_[0]->blank(length $_[1] ? 0 : 1)
-    },
     builder   => sub {
         my $self = shift;
-        $self->has_init_value or return;
-        my $value = $self->init_value->[0]->{value};
-        $self->has_value(1) if defined $value || $self->init_no_value;
-        $value;
+        $self->has_init_value or return [];
+        my @values = map { $_->{value} } @{$self->init_value};
+        $self->has_value(!!@values);
+        $self->has_value(1) if @values || $self->init_no_value;
+        [@values];
+    },
+);
+
+has html_form => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_html_form
+{   my $self = shift;
+    [ map { defined($_) ? $_ : '' } @{$self->values} ];
+}
+
+has text_all => (
+    is      => 'rwp',
+    isa     => ArrayRef,
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->values;
+        [ map { defined $_ ? $_ : '' } @{$self->values} ];
     },
 );
 
 sub _build_blank {
-    length $_[0]->value ? 0 : 1;
+    my $self = shift;
+    ! grep { length $_ } @{$self->values};
 }
 
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
-    $orig->($self, value => $self->value, @_);
+    $orig->($self, values => $self->values, text_all => $self->text_all, @_);
 };
 
 sub as_string
 {   my $self = shift;
-    $self->value // "";
+    join ', ', @{$self->text_all};
 }
 
-sub as_integer
-{   my $self = shift;
-    no warnings 'numeric';
-    int ($self->value // 0);
-}
+sub as_integer { panic "Not implemented" }
 
 sub html_withlinks
 {   my $self = shift;

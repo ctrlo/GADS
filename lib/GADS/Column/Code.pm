@@ -18,15 +18,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Column::Code;
 
+use DateTime;
+use Date::Holidays::GB qw/ is_gb_holiday gb_holidays /;
 use GADS::AlertSend;
 use Log::Report 'linkspace';
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 
 use Inline 'Lua' => q{
-    function lua_run(string, vars)
+    function lua_run(string, vars, working_days_diff, working_days_add)
         local env = {}
         env["vars"] = vars
+
+        env["working_days_diff"] = working_days_diff
+        env["working_days_add"] = working_days_add
 
         env["ipairs"] = ipairs
         env["math"] = {
@@ -173,17 +178,14 @@ sub update_cached
     $self->clear; # Refresh calc for updated calculation
     my $layout = $self->layout;
 
-    # Flag curval fields to retrieve all values whenever they are built. This
-    # will ensure that as eaech row is retrieved, the curval will already have
-    # all fields it requires (which are all expected to be present for the
-    # calcval)
-    $_->type eq 'curval' && $_->build_all_columns foreach $layout->all;
-
     my $records = GADS::Records->new(
-        user         => $self->user,
-        layout       => $layout,
-        schema       => $self->schema,
-        columns      => [@{$self->depends_on},$self->id],
+        user                 => $self->user,
+        layout               => $layout,
+        schema               => $self->schema,
+        columns              => [@{$self->depends_on},$self->id],
+        view_limit_extra_id  => undef,
+        curcommon_all_fields => 1, # Code might contain curcommon fields not in normal display
+        include_children     => 1, # Update all child records regardless
     );
 
     my @changed;
@@ -229,15 +231,111 @@ sub _parse_code
     };
 }
 
+# XXX These functions can raise exceptions - further investigation needed as to
+# whether this causes problems when called from Lua. Initial experience
+# suggests it might do.
+sub working_days_diff
+{   my ($start_epoch, $end_epoch, $country, $region) = @_;
+
+    @_ == 4
+        or error "Parameters for working_days_diff need to be: start, end, country, region";
+
+    $country eq 'GB' or error "Only country GB is currently supported";
+
+    $start_epoch or error "Start date missing for working_days_diff";
+    $end_epoch or error "End date missing for working_days_diff";
+
+    my $start = DateTime->from_epoch(epoch => $start_epoch);
+    my $end = DateTime->from_epoch(epoch => $end_epoch);
+
+    # Check that we have the holidays for the years requested
+    my $min = $start < $end ? $start->year : $end->year;
+    my $max = $end > $start ? $end->year : $start->year;
+    foreach my $year ($min..$max)
+    {
+        error __x"No bank holiday information available for year {year}", year => $year
+            if !%{gb_holidays(year => $year, regions => [$region])};
+    }
+
+    my $days = 0;
+
+    if ($end > $start)
+    {
+        my $marker = $start->clone->add(days => 1);
+
+        while ($marker <= $end)
+        {
+            if (!is_gb_holiday(
+                    year    => $marker->year, month => $marker->month, day => $marker->day,
+                    regions => [$region] )
+            ) {
+                $days++ unless $marker->day_of_week == 6 || $marker->day_of_week == 7;
+            }
+            $marker->add(days => 1);
+        }
+    }
+    else {
+        my $marker = $start->clone->subtract(days => 1);
+
+        while ($marker >= $end)
+        {
+            if (!is_gb_holiday(
+                    year => $marker->year, month => $marker->month, day => $marker->day,
+                    regions => [$region] )
+            ) {
+                $days-- unless $marker->day_of_week == 6 || $marker->day_of_week == 7;
+            }
+            $marker->subtract(days => 1);
+        }
+    }
+
+    return $days;
+}
+
+sub working_days_add
+{   my ($start_epoch, $days, $country, $region) = @_;
+
+    @_ == 4
+        or error "Parameters for working_days_add need to be: start, end, country, region";
+
+    $country eq 'GB' or error "Only country GB is currently supported";
+    $start_epoch or error "Date missing for working_days_add";
+
+    my $start = DateTime->from_epoch(epoch => $start_epoch);
+
+    error __x"No bank holiday information available for year {year}", year => $start->year
+        if !%{gb_holidays(year => $start->year, regions => [$region])};
+
+    while ($days)
+    {
+        $start->add(days => 1);
+	if (!is_gb_holiday(
+		year => $start->year, month => $start->month, day => $start->day,
+		regions => [$region] )
+	) {
+	    $days-- unless $start->day_of_week == 6 || $start->day_of_week == 7;
+	}
+    }
+
+    return $start->epoch;
+}
+
 sub eval
 {   my ($self, $code, $vars) = @_;
     my $run_code = $self->_parse_code($code)->{code};
     my $mapping = '';
     $mapping .= qq($_ = vars["$_"]\n) foreach keys %$vars;
     $run_code = $mapping.$run_code;
-    my $return = lua_run($run_code, $vars);
+    my $return = lua_run($run_code, $vars, \&working_days_diff, \&working_days_add);
     # Make sure we're not returning anything funky (e.g. code refs)
-    my $ret = defined $return->{return} && ''.$return->{return};
+    my $ret = $return->{return};
+    if ($self->multivalue && ref $ret eq 'ARRAY')
+    {
+        $ret = [ map { "$_" } @$ret ];
+    }
+    elsif (defined $ret) {
+        $ret = "$ret" if defined $ret;
+    }
     my $err = $return->{error} && ''.$return->{error};
     no warnings "uninitialized";
     trace "Return value from Lua: $ret, error: $err";
@@ -247,13 +345,6 @@ sub eval
         code   => $run_code,
     }
 }
-
-# Internal flag to store whether we should send alerts after update
-has _no_alerts => (
-    is      => 'rw',
-    isa     => Bool,
-    clearer => 1,
-);
 
 sub write_special
 {   my ($self, %options) = @_;
@@ -271,11 +362,12 @@ sub write_special
         and error __x"Extended characters are not supported in calculated fields (found here: {here})",
             here => $1;
 
+    my %return_options;
     my $changed = $self->write_code($id); # Returns true if anything relevant changed
     my $update_deps = exists $options{update_dependents} ? $options{update_dependents} : $changed;
     if ($update_deps)
     {
-        $self->_no_alerts(1) if $new;
+        $return_options{no_alerts} = 1 if $new;
 
         # Stop duplicates
         my %depends_on = map { $_->id => 1 } grep { !$_->internal } $self->param_columns(is_fatal => $options{override} ? 0 : 1);
@@ -294,15 +386,18 @@ sub write_special
         $self->clear_depends_on;
 
     }
+    else {
+        $return_options{no_cache_update} = 1;
+    }
+    return %return_options;
 };
 
 # We don't really want to do this within a transaction as it can take a
 # significantly long time, so do once the transaction has completed
 sub after_write_special
 {   my ($self, %options) = @_;
-    $self->update_cached(no_alerts => $self->_no_alerts)
+    $self->update_cached(no_alerts => $options{no_alerts})
         unless $options{no_cache_update};
-    $self->_clear_no_alerts;
 }
 
 1;

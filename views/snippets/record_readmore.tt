@@ -1,0 +1,2 @@
+[% WRAPPER modal_dialog.tt modal_id="readmore_modal" modal_large=1 %]
+[% END %]

@@ -28,16 +28,14 @@ use namespace::clean;
 
 extends 'GADS::Datum';
 
-has set_value => (
-    is      => 'rw',
-    trigger => sub {
-        my $self = shift;
-        $self->_set_has_value(1);
-    },
-);
+after 'set_value' => sub {
+    my $self = shift;
+    $self->_set_has_value(1);
+};
 
 has value => (
     is      => 'lazy',
+    isa     => ArrayRef,
     clearer => 1,
 );
 
@@ -76,65 +74,59 @@ around 'clone' => sub {
     );
 };
 
-around 'ready_to_write' => sub {
-    my $orig = shift;
-    my $self = shift;
-    # If the master sub returns 0, return that here
-    my $initial = $orig->($self, @_);
-    return 0 if !$initial;
-    # Otherwise continue tests
-    foreach my $col ($self->column->param_columns)
-    {
-        return 0 if !$self->record->fields->{$col->id}->written_to;
-    }
-    return 1;
-};
-
-sub written_to
+sub html_form
 {   my $self = shift;
-    $self->ready_to_write;
+    $self->value; # Already array ref
 }
 
 sub write_cache
 {   my ($self, $table) = @_;
 
-    my $value = $self->value;
+    my @values = sort @{$self->value} if defined $self->value->[0];
 
-    # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
-    # an object) and may evaluate to an empty string. If so, txn_scope_guard
-    # warns as such, so undefine to prevent the warning
-    undef $@;
     # We are generally already in a transaction at this point, but
     # start another one just in case
     my $guard = $self->schema->txn_scope_guard;
 
     my $tablec = camelize $table;
     my $vfield = $self->column->value_field;
-    my $row = $self->schema->resultset($tablec)->find({
-        record_id => $self->record_id,
-        layout_id => $self->column->{id},
-    },{
-        key => $self->column->unique_key,
-    });
 
-    if ($row)
+    # First see if the number of existing values is different to the number to
+    # write. If it is, delete and start again
+    my $rs = $self->schema->resultset($tablec)->search({
+        record_id => $self->record_id,
+        layout_id => $self->column->id,
+    }, {
+        order_by => "me.$vfield",
+    });
+    $rs->delete if @values != $rs->count;
+
+    foreach my $value (@values)
     {
-        if (!$self->equal($row->$vfield, $value))
+        my $row = $rs->next;
+
+        if ($row)
         {
-            my %blank = %{$self->column->blank_row};
-            $row->update({ %blank, $vfield => $value });
-            $self->changed(1);
+            if (!$self->equal($row->$vfield, $value))
+            {
+                my %blank = %{$self->column->blank_row};
+                $row->update({ %blank, $vfield => $value });
+            }
+        }
+        else {
+            $self->schema->resultset($tablec)->create({
+                record_id => $self->record_id,
+                layout_id => $self->column->{id},
+                $vfield   => $value,
+            });
         }
     }
-    else {
-        $self->schema->resultset($tablec)->create({
-            record_id => $self->record_id,
-            layout_id => $self->column->{id},
-            $vfield   => $value,
-        });
+    while (my $row = $rs->next)
+    {
+        $row->delete;
     }
     $guard->commit;
-    $value;
+    return \@values;
 }
 
 sub re_evaluate
@@ -144,7 +136,7 @@ sub re_evaluate
     $self->clear_value;
     $self->clear_vars;
     my $new = $self->value; # Force new value to be calculated
-    $self->changed(1) if ($old xor $new) || !$self->equal($old, $new);
+    $self->changed(1) if !$self->equal($old, $new);
 }
 
 sub _build_value
@@ -154,14 +146,16 @@ sub _build_value
     my $layout = $self->layout;
     my $code   = $column->code;
 
-    my $value;
+    my @values;
 
     if ($self->init_value)
     {
-        my $v  = $self->init_value->[0]->{$column->value_field};
-        $value = $column->return_type eq 'date'
-               ? $self->_parse_date($v)
-               : $v;
+        my @vs = map { $_->{$column->value_field} } @{$self->init_value};
+        @values = map {
+            $column->return_type eq 'date'
+               ?  $self->_parse_date($_)
+               : $_;
+        } @vs;
     }
     elsif (!$code)
     {
@@ -172,19 +166,20 @@ sub _build_value
         panic "Entering calculation code"
             if $ENV{GADS_PANIC_ON_ENTERING_CODE};
 
-        try { $value = $column->eval($self->column->code, $self->vars) };
-        if ($@ || $value->{error})
+        my $return;
+        try { $return = $column->eval($self->column->code, $self->vars) };
+        if ($@ || $return->{error})
         {
-            my $error = $@ ? $@->wasFatal->message->toString : $value->{error};
+            my $error = $@ ? $@->wasFatal->message->toString : $return->{error};
             warning __x"Failed to eval calc: {error} (code: {code}, params: {params})",
-                error => $error, code => $value->{code} || $self->column->code, params => Dumper($self->vars);
-            $value->{error} = 1;
+                error => $error, code => $return->{code} || $self->column->code, params => Dumper($self->vars);
+            $return->{error} = 1;
         }
 
-        $value = $self->convert_value($value); # Convert value as required by calc/rag
+        @values = $self->convert_value($return); # Convert value as required by calc/rag
     }
 
-    $value;
+    \@values;
 }
 
 1;

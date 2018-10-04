@@ -1,0 +1,205 @@
+{
+   "might_have" : {
+      "fetch" : 0
+   },
+   "sets" : [
+      {
+         "class" : "FileOption",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Layout",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "CurvalField"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Date"
+      },
+      {
+         "class" : "UserLastrecord",
+         "quantity" : "all"
+      },
+      {
+         "class" : "View",
+         "quantity" : "all"
+      },
+      {
+         "class" : "UserGraph",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "User"
+      },
+      {
+         "class" : "Group",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Metric",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Import"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Record"
+      },
+      {
+         "class" : "Daterange",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Permission",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Title"
+      },
+      {
+         "class" : "LayoutDepend",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "GraphColor"
+      },
+      {
+         "class" : "ViewLayout",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Sort",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Organisation",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Fileval"
+      },
+      {
+         "class" : "String",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Ragval",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "LayoutGroup"
+      },
+      {
+         "class" : "Site",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Intgr",
+         "quantity" : "all"
+      },
+      {
+         "class" : "MetricGroup",
+         "quantity" : "all"
+      },
+      {
+         "class" : "AlertCache",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "File"
+      },
+      {
+         "class" : "Curval",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Instance"
+      },
+      {
+         "class" : "Current",
+         "quantity" : "all"
+      },
+      {
+         "class" : "InstanceGroup",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Filter"
+      },
+      {
+         "quantity" : "all",
+         "class" : "UserGroup"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Person"
+      },
+      {
+         "quantity" : "all",
+         "class" : "ViewLimit"
+      },
+      {
+         "class" : "ImportRow",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "AlertSend"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Audit"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Rag"
+      },
+      {
+         "class" : "Calc",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Enumval"
+      },
+      {
+         "class" : "Graph",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Alert",
+         "quantity" : "all"
+      },
+      {
+         "class" : "UserPermission",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Enum",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Calcval",
+         "quantity" : "all"
+      }
+   ],
+   "has_many" : {
+      "fetch" : 0
+   },
+   "belongs_to" : {
+      "fetch" : 0
+   }
+}

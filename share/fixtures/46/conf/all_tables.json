@@ -1,0 +1,217 @@
+{
+   "has_many" : {
+      "fetch" : 0
+   },
+   "might_have" : {
+      "fetch" : 0
+   },
+   "belongs_to" : {
+      "fetch" : 0
+   },
+   "sets" : [
+      {
+         "quantity" : "all",
+         "class" : "Title"
+      },
+      {
+         "class" : "View",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Rag",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Permission"
+      },
+      {
+         "quantity" : "all",
+         "class" : "ImportRow"
+      },
+      {
+         "class" : "CurvalField",
+         "quantity" : "all"
+      },
+      {
+         "class" : "ViewLimit",
+         "quantity" : "all"
+      },
+      {
+         "class" : "MetricGroup",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "UserPermission"
+      },
+      {
+         "class" : "UserGraph",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Group",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Calcval"
+      },
+      {
+         "class" : "UserLastrecord",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Alert",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "ViewLayout"
+      },
+      {
+         "class" : "LayoutGroup",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Person"
+      },
+      {
+         "class" : "Organisation",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Current",
+         "quantity" : "all"
+      },
+      {
+         "class" : "File",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Topic"
+      },
+      {
+         "class" : "Layout",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Oauthclient",
+         "quantity" : "all"
+      },
+      {
+         "class" : "AlertCache",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Ragval",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "String"
+      },
+      {
+         "class" : "Calc",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Record"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Intgr"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Instance"
+      },
+      {
+         "class" : "Daterange",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Curval"
+      },
+      {
+         "class" : "Fileval",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Sort"
+      },
+      {
+         "class" : "InstanceGroup",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Enum"
+      },
+      {
+         "class" : "AlertSend",
+         "quantity" : "all"
+      },
+      {
+         "class" : "User",
+         "quantity" : "all"
+      },
+      {
+         "class" : "GraphColor",
+         "quantity" : "all"
+      },
+      {
+         "class" : "LayoutDepend",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Graph"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Site"
+      },
+      {
+         "class" : "Audit",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "UserGroup"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Import"
+      },
+      {
+         "class" : "Date",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Filter",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "FileOption"
+      },
+      {
+         "class" : "Enumval",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Oauthtoken",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Metric"
+      }
+   ]
+}

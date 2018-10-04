@@ -2,6 +2,7 @@ use Test::More; # tests => 1;
 use strict;
 use warnings;
 
+use Test::MockTime qw(set_fixed_time restore_time); # Load before DateTime
 use Log::Report;
 use GADS::Layout;
 use GADS::Record;
@@ -9,6 +10,8 @@ use GADS::Records;
 use GADS::Schema;
 
 use t::lib::DataSheet;
+
+set_fixed_time('10/10/2014 01:00:00', '%m/%d/%Y %H:%M:%S'); # Write initial values as this date
 
 # A number of tests to try updates to records, primarily concerned with making
 # sure the relevant SQL joins pull out the correct number of records. If we get
@@ -35,24 +38,49 @@ my $data1 = [
 
 my @update1 = (
     {
-        string1    => 'Foo',
-        integer1   => 20,
-        date1      => '2010-10-10',
-        daterange1 => ['', ''],
-        enum1      => 8,
-        tree1      => 12,
-        curval1    => 1,
-        curval2    => 1,
+        updates => [
+            {
+                string1    => 'Foo',
+                integer1   => 20,
+                date1      => '2010-10-10',
+                daterange1 => ['', ''],
+                enum1      => 8,
+                tree1      => 12,
+                curval1    => 1,
+                curval2    => 1,
+            },
+        ],
+        autocur_value => ', 45, , , , , , , a_grey, ; Foo, 20, foo2, tree3, 2010-10-10, , , , a_grey, ',
     },
     {
-        string1    => 'Bar',
-        integer1   => 30,
-        date1      => '2014-10-10',
-        daterange1 => ['2014-03-21', '2015-03-01'],
-        enum1      => 7,
-        tree1      => 11,
-        curval1    => 1,
-        curval2    => 1,
+        updates => [
+            {
+                curval1 => undef,
+                curval2 => undef,
+            },
+            {
+                curval1 => undef,
+            },
+        ],
+        autocur_value => '',
+    },
+    {
+        updates => [
+            {
+                string1    => 'Bar',
+                integer1   => 30,
+                date1      => '2014-10-10',
+                daterange1 => ['2014-03-21', '2015-03-01'],
+                enum1      => 7,
+                tree1      => 11,
+                curval1    => 1,
+                curval2    => 1,
+            },
+            {
+                curval1 => 1,
+            },
+        ],
+        autocur_value => 'Bar, 30, foo1, tree2, 2014-10-10, 2014-03-21 to 2015-03-01, , , d_green, 2014; , 45, , , , , , , a_grey, ',
     },
 );
 
@@ -134,25 +162,27 @@ $record_curval->find_current_id(1);
 is( $record_curval->fields->{$autocur1->id}->as_string, ', 45, , , , , , , a_grey, ', "Autocur value correct initially");
 
 # First updates to the main sheet
-my $record = $records->single;
-
-foreach my $update (@update1)
+foreach my $test (@update1)
 {
-    foreach my $column (keys %$update)
+    $records->clear;
+    foreach my $update (@{$test->{updates}})
     {
-        my $field = $columns->{$column}->id;
-        my $datum = $record->fields->{$field};
-        $datum->set_value($update->{$column});
+        my $record = $records->single;
+        foreach my $column (keys %$update)
+        {
+            my $field = $columns->{$column}->id;
+            my $datum = $record->fields->{$field};
+            $datum->set_value($update->{$column});
+        }
+        $record->write(no_alerts => 1);
+        is ($records->count, 2, 'Count of records still correct after value update');
+        is (@{$records->results}, 2, 'Number of actual records still correct after value update');
     }
-    $record->write(no_alerts => 1);
-    is ($records->count, 2, 'Count of records still correct after value update');
-    is (@{$records->results}, 2, 'Number of actual records still correct after value update');
+    # Check autocur value of curval sheet after updates
+    $record_curval->clear;
+    $record_curval->find_current_id(1);
+    is( $record_curval->fields->{$autocur1->id}->as_string, $test->{autocur_value}, "Autocur value correct after first updates");
 }
-
-# Check autocur value of curval sheet after updates
-$record_curval->clear;
-$record_curval->find_current_id(1);
-is( $record_curval->fields->{$autocur1->id}->as_string, ', 45, , , , , , , a_grey, ; Bar, 30, foo1, tree2, 2014-10-10, 2014-03-21 to 2015-03-01, , , d_green, 2014', "Autocur value correct after first updates");
 
 # Then updates to the curval sheet. We need to check the number
 # of records in both sheets though.
@@ -183,6 +213,56 @@ foreach my $update (@update2)
     is( $record_single->find_current_id(3)->current_id, 3, "Retrieved record from main table after curval update" );
     is( $record_single->fields->{$curval1_id}->as_string, $update->{curval1_string}, "Correct curval1 value from main table after update");
     is( $record_single->fields->{$curval2_id}->as_string, $update->{curval2_string}, "Correct curval2 value from main table after update");
+}
+
+# Test forget_history functionality
+{
+    $schema->resultset('Instance')->find($layout->instance_id)->update({
+        forget_history => 1,
+    });
+    $layout->clear;
+    my $versions_before = $schema->resultset('Record')->count;
+    my $record = GADS::Record->new(
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->find_current_id(3);
+    like($record->created, qr/2014/, "Record version is old date");
+    $record->fields->{$columns->{string1}->id}->set_value("Foobar");
+    # Write with a new date that we can check
+    set_fixed_time('10/10/2015 01:00:00', '%m/%d/%Y %H:%M:%S');
+    $record->write(no_alerts => 1);
+    my $versions_after = $schema->resultset('Record')->count;
+    is($versions_after, $versions_before, "No new versions written");
+    $record->clear;
+    $record->find_current_id(3);
+    like($record->created, qr/2015/, "Record version is new date");
+
+    # Make sure version history still written for other sheet
+    my $record_curval = GADS::Record->new(
+        user   => undef,
+        layout => $curval_sheet->layout,
+        schema => $schema,
+    );
+    $record_curval->find_current_id(1);
+    $record_curval->fields->{$curval_sheet->columns->{string1}->id}->set_value("Foobar2");
+    $record_curval->write(no_alerts => 1);
+    $versions_after = $schema->resultset('Record')->count;
+    is($versions_after, $versions_before + 1, "One new version written");
+
+    # Revert to normal functionality
+    $schema->resultset('Instance')->find($layout->instance_id)->update({
+        forget_history => 0,
+    });
+    $layout->clear;
+    $versions_before = $schema->resultset('Record')->count;
+    $record->clear;
+    $record->find_current_id(3);
+    $record->fields->{$columns->{string1}->id}->set_value("Foobar3");
+    $record->write(no_alerts => 1);
+    $versions_after = $schema->resultset('Record')->count;
+    is($versions_after, $versions_before + 1, "One new version written");
 }
 
 done_testing();

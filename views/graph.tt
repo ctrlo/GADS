@@ -1,4 +1,4 @@
-<h2>Graphs</h2>
+<h2>[% IF graph.id %]Edit graph[% ELSE %]Add a graph[% END %]</h2>
 <form role="form" method="post">
     <div class="row">
         <div class="col-md-6">
@@ -22,10 +22,10 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="email">X-axis:</label>
-                <select class="form-control" name="x_axis">
-                    [% FOREACH column IN layout.all %]
-                        <option value="[% column.id %]" [% IF graph.x_axis == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                <label for="set_x_axis">X-axis:</label>
+                <select class="form-control" name="set_x_axis">
+                    [% FOREACH column IN layout.columns_for_filter %]
+                        <option value="[% column.filter_id %]" [% IF graph.x_axis_full == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]</option>
                     [% END %]
                     <option value="" [% IF NOT graph.x_axis %]selected[% END %]>&lt;All fields in view&gt;</option>
                 </select>
@@ -82,6 +82,13 @@
                 <div class="checkbox">
                     <label>
                         <input type="checkbox" name="stackseries" value="1" [% IF graph.stackseries %]checked[% END %]>Stack data within same series
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="as_percent" value="1" [% IF graph.as_percent %]checked[% END %]>Plot graph values as percentages
                     </label>
                 </div>
             </div>

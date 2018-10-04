@@ -47,6 +47,11 @@ after build_values => sub {
     }
 };
 
+sub _build_retrieve_fields
+{   my $self = shift;
+    [qw/name mimetype id/];
+}
+
 sub write_special
 {   my ($self, %options) = @_;
 
@@ -66,9 +71,11 @@ sub write_special
         $foption->{layout_id} = $id;
         $self->schema->resultset('FileOption')->create($foption);
     }
+
+    return ();
 };
 
-sub _build_join
+sub tjoin
 {   my $self = shift;
     +{$self->field => 'value'};
 }
@@ -80,7 +87,13 @@ sub cleanup
 };
 
 before import_hash => sub {
-    my ($self, $values) = @_;
+    my ($self, $values, %options) = @_;
+    my $report = $options{report_only} && $self->id;
+    notice __x"Update: filesize from {old} to {new}", old => $self->filesize, new => $values->{filesize}
+        if $report && (
+            (defined $self->filesize xor defined $values->{filesize})
+            || (defined $self->filesize && defined $values->{filesize} && $self->filesize != $values->{filesize})
+        );
     $self->filesize($values->{filesize});
 };
 

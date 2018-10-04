@@ -37,7 +37,7 @@ use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 
-with 'GADS::RecordsJoin';
+with 'GADS::RecordsJoin', 'GADS::Role::Presentation::Records';
 
 # Preferably this is passed in to prevent extra
 # DB reads, but loads it if it isn't
@@ -67,22 +67,57 @@ has search => (
     isa => Maybe[Str],
 );
 
+# Whether to show only deleted records or only records not deleted
+has is_deleted => (
+    is      => 'ro',
+    default => 0,
+);
+
+# Whether to build all fields for any curvals. This is needed when producing a
+# record for editing that contains draft curvals (in which case all the fields
+# are rendered as a query), and when needing to retrieve the curcommon values
+# for code evaluations
+has curcommon_all_fields => (
+    is      => 'ro',
+    default => 0,
+);
+
+# Whether to exclude children from the results
+has include_children => (
+    is  => 'lazy',
+    isa => Bool,
+);
+
+sub _build_include_children
+{   my $self = shift;
+    return 1 if grep { $_->can_child } @{$self->columns_retrieved_no};
+    return 0;
+}
+
+# Whether to show only draft records or only live records
+has is_draft => (
+    is      => 'ro',
+    default => 0,
+);
+
 has view => (
     is => 'rw',
 );
 
 # Whether to limit any results to only those
 # in a specific view
-has view_limits => (
+has _view_limits => (
     is      => 'lazy',
     clearer => 1,
 );
 
-sub _build_view_limits
+sub _build__view_limits
 {   my $self = shift;
     $self->user or return [];
+
+    # User view limits first
     my @view_limits = $self->schema->resultset('ViewLimit')->search({
-        'me.user_id' => $self->user->{id},
+        'me.user_id' => $self->user->id,
     },{
         prefetch => 'view',
     })->all;
@@ -90,7 +125,6 @@ sub _build_view_limits
     foreach my $view_limit (@view_limits)
     {
         push @views, GADS::View->new(
-            user        => undef, # In case user does not have access
             id          => $view_limit->view_id,
             schema      => $self->schema,
             layout      => $self->layout,
@@ -100,10 +134,48 @@ sub _build_view_limits
     \@views;
 }
 
-sub view_limits_search
+has _view_limit_extra => (
+    is => 'lazy',
+);
+
+sub _build__view_limit_extra
+{   my $self = shift;
+    my $extra   = $self->view_limit_extra_id;
+    my $default = $self->_build_view_limit_extra_id;
+    # Validate first - can the user set this? (may be from session and have
+    # had permission removed)
+    $extra = $default
+        if $default && !$self->layout->user_can("view_limit_extra");
+    if ($extra)
+    {
+        my $view_limit = $self->schema->resultset('View')->search({
+            'me.id' => $extra,
+        })->next;
+        return GADS::View->new(
+            id          => $view_limit->id,
+            schema      => $self->schema,
+            layout      => $self->layout,
+            instance_id => $self->layout->instance_id,
+        ) if $view_limit->instance_id == $self->layout->instance_id;
+    }
+    return;
+}
+
+# Any extra view limits in addition to those applied per-user
+has view_limit_extra_id => (
+    is  => 'lazy',
+    isa => Maybe[Int],
+);
+
+sub _build_view_limit_extra_id
+{   my $self = shift;
+    $self->layout->default_view_limit_extra_id;
+}
+
+sub _view_limits_search
 {   my ($self, %options) = @_;
     my @search;
-    foreach my $view (@{$self->view_limits})
+    foreach my $view (@{$self->_view_limits})
     {
         if (my $filter = $view->filter)
         {
@@ -115,7 +187,21 @@ sub view_limits_search
             }
         }
     }
-    [ '-or' => \@search ];
+    my $limit = [ '-or' => \@search ];
+
+    if (my $filter = $self->_view_limit_extra && $self->_view_limit_extra->filter)
+    {
+        my $decoded = $filter->as_hash;
+        if (keys %$decoded)
+        {
+            # Get the user search criteria
+            $limit = [
+                -and => [ $limit, $self->_search_construct($decoded, $self->layout, %options) ],
+            ];
+        }
+    }
+
+    return $limit;
 }
 
 has from => (
@@ -240,14 +326,6 @@ has include_approval => (
     default => 0,
 );
 
-# Whether to fill in missing values of children from parent.
-# XXX Is interpolate the correct word??!
-has interpolate_children => (
-    is      => 'rw',
-    isa     => Bool,
-    default => 1,
-);
-
 # Internal parameter to set the exact current IDs that will be retrieved,
 # without running any search queries. Used when downloading chunked data, when
 # all the current IDs have already been retrieved
@@ -295,13 +373,13 @@ sub search_query
         # the search will be a lot quicker without adding the approval search
         # condition (due to indexes not spanning across tables). So, do a quick
         # check first, and only add the condition if needed
-        my ($approval_exists) = $root_table eq 'current' && $self->schema->resultset('Current')->search({
+        my $approval_exists = $root_table eq 'current' && $self->schema->resultset('Current')->search({
             instance_id        => $self->layout->instance_id,
             "records.approval" => 1,
         },{
             join => 'records',
             rows => 1,
-        })->all;
+        })->next;
         push @search, (
             { "$record_single.approval" => 0 },
         ) if $approval_exists;
@@ -310,6 +388,21 @@ sub search_query
     push @search, { "$current.id"          => $self->_search_all_fields->{cids} } if $self->search;
     push @search, { "$current.id"          => $self->limit_current_ids } if $self->limit_current_ids; # $self->has_current_ids && $self->current_ids;
     push @search, { "$current.instance_id" => $self->layout->instance_id };
+    if ($self->is_deleted)
+    {
+        push @search, { "$current.deleted" => { '!=' => undef } };
+    }
+    else {
+        push @search, { "$current.deleted" => undef };
+    }
+    if (!$self->include_children)
+    {
+        push @search, { "$current.parent_id" => undef };
+    }
+    unless ($self->is_draft)
+    {
+        push @search, { "$current.draftuser_id" => undef }; # not draft records
+    }
     push @search, $self->common_search(%options, linked => $linked);
     push @search, {
         "$record_single.created" => { '<' => $self->rewind_formatted },
@@ -533,7 +626,7 @@ sub _build__search_all_fields
     # Applies to all types of fields being searched
     my @basic_search;
     # Only search limited view if configured for user
-    push @basic_search, $self->view_limits_search;
+    push @basic_search, $self->_view_limits_search;
 
     my $date_column = GADS::Column::Date->new(
         schema => $self->schema,
@@ -654,7 +747,11 @@ has search_limit_reached => (
 
 sub _build_search_limit_reached
 {   my $self = shift;
-    $self->_search_all_fields->{limit_reached};
+    return $self->_search_all_fields->{limit_reached}
+        if $self->_search_all_fields->{limit_reached};
+    return $self->max_results
+        if $self->max_results && $self->max_results < $self->count;
+    return undef;
 }
 
 has is_group => (
@@ -759,6 +856,7 @@ sub _build_results
 
     my $select = {
         prefetch => [
+            'deletedby',
             [@linked_prefetch],
             $rec1,
         ],
@@ -779,13 +877,6 @@ sub _build_results
     my $result = $self->schema->resultset('Current')->search($self->_cid_search_query, $select);
 
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
-    my $column_flags = {
-        map {
-            $_->id => $_->flags
-        } grep {
-            %{$_->flags}
-        } @{$self->columns_retrieved_no}
-    };
 
     my @all; my @record_ids;
     my @retrieved = $result->all;
@@ -795,16 +886,20 @@ sub _build_results
         push @all, GADS::Record->new(
             schema               => $self->schema,
             record               => $rec->{record_single},
+            serial               => $rec->{serial},
             linked_record_raw    => $rec->{linked}->{record_single},
             child_records        => \@children,
             parent_id            => $rec->{parent_id},
             linked_id            => $rec->{linked_id},
+            is_draft             => $rec->{draftuser_id},
             user                 => $self->user,
             layout               => $self->layout,
             columns_retrieved_no => $self->columns_retrieved_no,
             columns_retrieved_do => $self->columns_retrieved_do,
-            column_flags         => $column_flags,
+            set_deleted          => $rec->{deleted},
+            set_deletedby        => $rec->{deletedby},
             record_created       => $rec->{record_created},
+            curcommon_all_fields => $self->curcommon_all_fields,
         );
         push @record_ids, $rec->{record_single}->{id};
         push @record_ids, $rec->{linked}->{record_single}->{id}
@@ -844,31 +939,46 @@ sub fetch_multivalues
         }
         foreach my $col (@cols)
         {
+            my @retrieve_ids = @$record_ids;
             next unless $col->multivalue;
             next if $cols_done->{$col->id};
             my @rids; # Used for the record IDs of the curval field values (different to main record IDs)
-            if (my $field = $curval_fields{$col->field})
+            if (my $field = $curval_fields{$col->field}) # $field is parent curval field
             {
+                @retrieve_ids = ();
                 foreach my $rec (@$retrieved)
                 {
-#                    next if !$rec->{record_single};
-                    foreach (@{$rec->{record_single}->{$field}})
+                    if ($rec->{$field})
                     {
-                        push @rids, $_->{value}->{record_single}->{id}
-                            if $_->{value};
+                        push @retrieve_ids, $rec->{$field}->{value};
+                    }
+                    elsif ($rec->{record_single}) # XXX Legacy prefetch - can be removed once all prefetching removed
+                    {
+                        foreach (@{$rec->{record_single}->{$field}})
+                        {
+                            push @retrieve_ids, $_->{value}->{record_single}->{id}
+                               if $_->{value};
+                        }
                     }
                 }
             }
             # Fetch the multivalues for either the main record IDs or the
-            # records within the curval values. Then pass all back to the
-            # calling function
-            foreach my $val ($col->fetch_multivalues((@rids && \@rids) || $record_ids))
+            # records within the curval values. We fetch all values for a
+            # particular type of field in one go (e.g. all the enum values).
+            # Sometimes a field will be done, but it will have no values, in
+            # which case it runs the danger of fetching all values again, thus
+            # duplicating some values. We therefore have to flag to make sure
+            # we don't do this.
+            my %colsd;
+            foreach my $val ($col->fetch_multivalues(\@retrieve_ids, is_draft => $params{is_draft}, curcommon_all_fields => $self->curcommon_all_fields))
             {
                 my $field = "field$val->{layout_id}";
+                next if $cols_done->{$val->{layout_id}};
                 $multi{$val->{record_id}}->{$field} ||= [];
                 push @{$multi{$val->{record_id}}->{$field}}, $val;
-                $cols_done->{$val->{layout_id}} = 1;
+                $colsd{$val->{layout_id}} = 1;
             }
+            $cols_done->{$_} = 1 foreach keys %colsd; # Flag that all these columns are done, even if no values
         }
     }
 
@@ -889,11 +999,18 @@ sub fetch_multivalues
         foreach my $curval_subfield (keys %curval_fields)
         {
             my $curval_field = $curval_fields{$curval_subfield};
-            foreach my $subrecord (@{$record->{$curval_field}}) # Foreach whole curval value
+            my @subs = ref $record->{$curval_field} eq 'ARRAY' ? @{$record->{$curval_field}} : $record->{$curval_field};
+            foreach my $subrecord (@subs) # Foreach whole curval value
             {
-                my $sub_record2 = $subrecord->{value}->{record_single}
-                    or next; # blank curval value, no need to populate subfields
-                $sub_record2->{$curval_subfield} = $multi{$sub_record2->{id}}->{$curval_subfield};
+                $subrecord->{value} or next;
+
+                if (my $sub_record2 = ref $subrecord->{value} && $subrecord->{value}->{record_single}) # XXX Legacy prefetch
+                {
+                    $sub_record2->{$curval_subfield} = $multi{$sub_record2->{id}}->{$curval_subfield};
+                }
+                else {
+                    $subrecord->{$curval_subfield} = $multi{$subrecord->{value}}->{$curval_subfield};
+                }
             }
         }
         if ($row->linked_record_raw)
@@ -901,6 +1018,10 @@ sub fetch_multivalues
             my $record_linked = $row->linked_record_raw;
             my $record_id_linked = $record_linked->{id};
             $record_linked->{$_} = $multi{$record_id_linked}->{$_} foreach keys %{$multi{$record_id_linked}};
+        }
+        elsif ($row->linked_id)
+        {
+            $record->{$_} = $multi{$row->linked_id}->{$_} foreach keys %{$multi{$row->linked_id}};
         }
     };
 }
@@ -959,6 +1080,7 @@ sub single
             # Work out chunk to retrieve from all current IDs
             my $start     = $chunk * $self->_single_page;
             my $end       = $start + $chunk - 1;
+            $end          = @{$self->_all_cids_store} - 1 if @{$self->_all_cids_store} - 1 < $end;
             my $cid_fetch = [ @{$self->_all_cids_store}[$start..$end] ];
 
             # Set those IDs for the next chunk retrieved from the DB
@@ -1044,10 +1166,15 @@ sub _build_columns_retrieved_do
     my @columns;
     if ($self->columns)
     {
-        my @col_ids = grep {defined $_} @{$self->columns}; # Remove undef column IDs
-        my %col_ids;
-        @col_ids{@col_ids} = undef;
-        @columns = grep { $_->id; exists $col_ids{$_->id} } $layout->all(order_dependencies => 1);
+        # The columns property can contain straight column IDs or hash refs
+        # containing the column ID as well as more information, such as the
+        # parent curval of a curval field. At the moment we don't use this here
+        # (only when this class becomes a RecordsGroup) but we may want to use
+        # it in the future if retrieving individual curval fields
+        my @col_ids = map { ref $_ eq 'HASH' ? $_->{id} : $_ } @{$self->columns};
+        @col_ids = grep {defined $_} @col_ids; # Remove undef column IDs
+        my %col_ids = map { $_ => 1 } @col_ids;
+        @columns = grep { $col_ids{$_->id} } $layout->all(order_dependencies => 1);
     }
     elsif (!$self->retrieve_all_columns && $self->view)
     {
@@ -1055,14 +1182,28 @@ sub _build_columns_retrieved_do
             $self->view->id,
             order_dependencies => 1,
             user_can_read      => 1,
-            columns_extra      => $self->columns_extra,
         );
+        if ($self->columns_extra)
+        {
+            foreach (@{$self->columns_extra})
+            {
+                push @columns, $self->layout->column($_->{parent_id})
+                    if $_->{parent_id};
+                push @columns, $self->layout->column($_->{id});
+            }
+        }
     }
     else {
         @columns = $layout->all(
             remembered_only    => $self->remembered_only,
             order_dependencies => 1,
         );
+    }
+    foreach my $c (@columns)
+    {
+        # We're viewing this, so prefetch all the values
+        $self->add_prefetch($c, all_fields => $self->curcommon_all_fields);
+        $self->add_linked_prefetch($c->link_parent) if $c->link_parent;
     }
     \@columns;
 }
@@ -1077,7 +1218,7 @@ sub _build_columns_retrieved_no
 sub clear
 {   my $self = shift;
     $self->clear_pages;
-    $self->clear_view_limits;
+    $self->_clear_view_limits;
     $self->clear_columns_retrieved_no;
     $self->clear_columns_retrieved_do;
     $self->clear_count;
@@ -1127,9 +1268,6 @@ sub _query_params
                 rules     => \@f,
             } if @f;
         }
-        # We're viewing this, so prefetch all the values
-        $self->add_prefetch($c);
-        $self->add_linked_prefetch($c->link_parent) if $c->link_parent;
     }
 
     my @limit;  # The overall limit, for example reduction by date range or approval field
@@ -1164,7 +1302,7 @@ sub _query_params
                 }
             }
         }
-        push @search, $self->view_limits_search(%options);
+        push @search, $self->_view_limits_search(%options);
         # Finish by calling order_by. This may add joins of its own, so it
         # ensures that any are added correctly.
         $self->order_by;
@@ -1206,8 +1344,9 @@ sub _build__sorts
         foreach my $sort (@{$self->view->sorts})
         {
             push @sorts, {
-                id   => $sort->{layout_id} || -11, # View column is undef for ID
-                type => $sort->{type} || 'asc',
+                id        => $sort->{layout_id} || -11, # View column is undef for ID
+                parent_id => $sort->{parent_id},
+                type      => $sort->{type} || 'asc',
             };
         }
     }
@@ -1238,15 +1377,23 @@ sub order_by
     {
         my $type   = "-$s->{type}";
         my $column = $self->layout->column($s->{id});
+        my $column_parent = $self->layout->column($s->{parent_id});
         my @cols_main = $column->sort_columns;
         my @cols_link = $column->link_parent ? $column->link_parent->sort_columns : ();
         foreach my $col_sort (@cols_main)
         {
-            $self->add_join($column->sort_parent, sort => 1)
-                if $column->sort_parent;
-            $self->add_join($col_sort, sort => 1, parent => $column->sort_parent)
-                unless $column->internal;
-            my $s_table = $self->table_name($col_sort, sort => 1, %options, parent => $column->sort_parent);
+            if ($column_parent)
+            {
+                $self->add_join($column_parent, sort => 1);
+                $self->add_join($col_sort, sort => 1, parent => $column_parent);
+            }
+            else {
+                $self->add_join($column->sort_parent, sort => 1)
+                    if $column->sort_parent;
+                $self->add_join($col_sort, sort => 1, parent => $column->sort_parent)
+                    unless $column->internal;
+            }
+            my $s_table = $self->table_name($col_sort, sort => 1, %options, parent => $column_parent || $column->sort_parent);
             my $sort_name;
             if ($column->link_parent) # Original column, not the sub-column ($col_sort)
             {
@@ -1390,11 +1537,12 @@ sub _search_construct
 
     # If testing a comparison but we have no value, then assume search empty/not empty
     # (used during filters on curval against current record values)
-    $filter->{operator} = $filter->{operator} eq 'not_equal' ? 'is_not_empty' : 'is_empty'
-        if $filter->{operator} !~ /(is_empty|is_not_empty)/
+    my $filter_operator = $filter->{operator}; # Copy so as not to affect original hash ref
+    $filter_operator = $filter_operator eq 'not_equal' ? 'is_not_empty' : 'is_empty'
+        if $filter_operator !~ /(is_empty|is_not_empty)/
             && (!defined $filter->{value} || $filter->{value} eq ''); # Not zeros (valid search)
-    my $operator = $ops{$filter->{operator}}
-        or error __x"Invalid operator {filter}", filter => $filter->{operator};
+    my $operator = $ops{$filter_operator}
+        or error __x"Invalid operator {filter}", filter => $filter_operator;
 
     my @conditions;
     my $transform_date; # Whether to convert date value to database format
@@ -1406,7 +1554,7 @@ sub _search_construct
         if ($operator eq "!=" || $operator eq "=") # Only used for empty / not empty
         {
             push @conditions, {
-                type     => $filter->{operator},
+                type     => $filter_operator,
                 operator => $operator,
                 s_field  => "value",
             };
@@ -1415,7 +1563,7 @@ sub _search_construct
         {
             $transform_date = 1;
             push @conditions, {
-                type     => $filter->{operator},
+                type     => $filter_operator,
                 operator => $operator,
                 s_field  => "from",
             };
@@ -1424,7 +1572,7 @@ sub _search_construct
         {
             $transform_date = 1;
             push @conditions, {
-                type     => $filter->{operator},
+                type     => $filter_operator,
                 operator => $operator,
                 s_field  => "to",
             };
@@ -1434,12 +1582,12 @@ sub _search_construct
             $transform_date = 1;
             # Requires 2 searches ANDed together
             push @conditions, {
-                type     => $filter->{operator},
+                type     => $filter_operator,
                 operator => "<=",
                 s_field  => "from",
             };
             push @conditions, {
-                type     => $filter->{operator},
+                type     => $filter_operator,
                 operator => ">=",
                 s_field  => "to",
             };
@@ -1451,7 +1599,7 @@ sub _search_construct
     }
     else {
         push @conditions, {
-            type     => $filter->{operator},
+            type     => $filter_operator,
             operator => $operator,
             s_field  => $filter->{value_field} || $column->value_field,
         };
@@ -1462,7 +1610,7 @@ sub _search_construct
 
     my @values;
 
-    if ($filter->{operator} eq 'is_empty' || $filter->{operator} eq 'is_not_empty')
+    if ($filter_operator eq 'is_empty' || $filter_operator eq 'is_not_empty')
     {
         push @values, $column->string_storage ? (undef, "") : undef;
     }
@@ -1498,7 +1646,7 @@ sub _search_construct
             {
                 if ($column->type eq "person")
                 {
-                    my $curuser = ($options{user} && $options{user}->id) || ($self->user && $self->user->{id})
+                    my $curuser = ($options{user} && $options{user}->id) || ($self->user && $self->user->id)
                         or warning "FIXME: user not set for person filter";
                     $curuser ||= "";
                     $_ =~ s/\[CURUSER\]/$curuser/g;
@@ -1506,7 +1654,7 @@ sub _search_construct
                 }
                 elsif ($column->return_type eq "string")
                 {
-                    my $curuser = ($options{user} && $options{user}->value) || ($self->user && $self->user->{value})
+                    my $curuser = ($options{user} && $options{user}->value) || ($self->user && $self->user->value)
                         or warning "FIXME: user not set for string filter";
                     $curuser ||= "";
                     $_ =~ s/\[CURUSER\]/$curuser/g;
@@ -1525,7 +1673,7 @@ sub _search_construct
         # the search.
         # $value can be an array ref from above.
         push @conditions, {
-            type     => $filter->{operator},
+            type     => $filter_operator,
             operator => $operator,
             s_field  => "value_index",
             values   => [ map { $_ && lc(substr($_, 0, 128)) } @values ],
@@ -1573,10 +1721,10 @@ sub _resolve
         # match. Use a Records object so that all the normal requirements are
         # dealt with, and pass it the current filter reversed
         my $records = GADS::Records->new(
-            schema      => $self->schema,
-            user        => $self->user,
-            layout      => $self->layout,
-            view_limits => [], # Don't limit by view this as well, otherwise recursive loop happens
+            schema       => $self->schema,
+            user         => $self->user,
+            layout       => $self->layout,
+            _view_limits => [], # Don't limit by view this as well, otherwise recursive loop happens
             view  => GADS::View->new(
                 filter      => { %{$options{filter}}, operator => 'equal' }, # Switch
                 instance_id => $self->layout->instance_id,
@@ -1595,9 +1743,9 @@ sub _resolve
     else {
         my $combiner = $condition->{type} =~ /(is_not_empty|not_equal|not_begins_with)/ ? '-and' : '-or';
         $value    = @$value > 1 ? [ $combiner => @$value ] : $value->[0];
-        $self->add_join($options{parent}, search => 1, linked => $is_linked)
+        $self->add_join($options{parent}, search => 1, linked => $is_linked, all_fields => $self->curcommon_all_fields)
             if $options{parent};
-        $self->add_join($column, search => 1, linked => $is_linked, parent => $options{parent})
+        $self->add_join($column, search => 1, linked => $is_linked, parent => $options{parent}, all_fields => $self->curcommon_all_fields)
             unless $column->internal;
         my $s_table = $self->table_name($column, %options, search => 1);
         my $sq = {$condition->{operator} => $value};
@@ -1621,6 +1769,9 @@ sub _build__csv { Text::CSV::Encoded->new({ encoding  => undef }) }
 sub csv_header
 {   my $self = shift;
 
+    error __"You do not have permission to download data"
+        unless $self->layout->user_can("download");
+
     my @columns = @{$self->columns_retrieved_no};
     my @colnames = ("ID");
     push @colnames, "Parent" if $self->has_children;
@@ -1641,6 +1792,10 @@ sub csv_header
 
 sub csv_line
 {   my $self = shift;
+
+    error __"You do not have permission to download data"
+        unless $self->layout->user_can("download");
+
     # All the data values
     my $line = $self->single
         or return;
@@ -1654,6 +1809,28 @@ sub csv_line
         or error __x"An error occurred producing a line of CSV: {err} {items}",
             err => "".$csv->error_diag, items => "@items";
     return $csv->string."\n";
+}
+
+sub _filter_items
+{   my ($self, $original_from, $original_to, @items) = @_;
+
+    if ($self->exclusive_of_to)
+    {
+        @items = grep {
+            $_->{single} || $_->{end} < $original_to->epoch * 1000;
+        } @items;
+    }
+    elsif ($self->exclusive_of_from)
+    {
+        @items = grep {
+            $_->{single} || $_->{start} > $original_from->epoch * 1000;
+        } @items;
+    }
+    @items = grep {
+        !$_->{single} || ($_->{dt} >= $original_from && $_->{dt} <= $original_to)
+    } @items;
+
+    return @items;
 }
 
 sub data_timeline
@@ -1738,24 +1915,8 @@ sub data_timeline
     }
     else {
         my @retrieved = @{$timeline->items};
-        if ($self->exclusive_of_to)
-        {
-            @items = grep {
-                $_->{single} || $_->{end} < $original_to->epoch * 1000;
-            } @retrieved;
-        }
-        elsif ($self->exclusive_of_from)
-        {
-            @items = grep {
-                $_->{single} || $_->{start} > $original_from->epoch * 1000;
-            } @retrieved;
-        }
-        else {
-            @items = @retrieved;
-        }
-        @items = grep {
-            !$_->{single} || ($_->{dt} >= $original_from && $_->{dt} <= $original_to)
-        } @items;
+
+        @items = $self->_filter_items($original_from, $original_to, @retrieved);
 
         # Set the times for the display range
         $min = $self->from;
@@ -1765,6 +1926,40 @@ sub data_timeline
     # Remove dt (DateTime) value, otherwise JSON encoding borks
     delete $_->{dt}
         foreach @items;
+
+    if ($options{overlay} && $options{overlay} != $self->layout->instance_id)
+    {
+        my $layout = GADS::Layout->new(
+            user        => $self->user,
+            schema      => $self->schema,
+            config      => GADS::Config->instance,
+            instance_id => $options{overlay},
+        );
+
+        my $records = GADS::Records->new(
+            from   => $min,
+            to     => $max,
+            user   => $self->user,
+            layout => $layout,
+            schema => $self->schema,
+        );
+
+        my $timeline_overlay = GADS::Timeline->new(
+            type    => 'timeline',
+            records => $records,
+        );
+
+        my @retrieved = @{$timeline_overlay->items};
+        @retrieved = $self->_filter_items($original_from, $original_to, @retrieved);
+
+        foreach my $overlay (@retrieved)
+        {
+            delete $overlay->{dt};
+            $overlay->{type} = 'background';
+            $overlay->{end}  = $overlay->{start} if !$overlay->{end};
+            push @items, $overlay;
+        }
+    }
 
     my @groups = map {
         {

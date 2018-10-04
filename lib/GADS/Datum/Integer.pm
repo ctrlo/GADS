@@ -24,8 +24,8 @@ use namespace::clean;
 
 extends 'GADS::Datum';
 
-sub set_value
-{   my ($self, $value) = @_;
+after set_value => sub {
+    my ($self, $value) = @_;
     $self->oldvalue($self->clone);
     ($value) = @$value if ref $value eq 'ARRAY';
     $value = undef if defined $value && !$value && $value !~ /^0+$/; # Can be empty string, generating warnings
@@ -33,7 +33,6 @@ sub set_value
     {
         my $op = $1; my $amount = $2;
         # Still count as valid written if currently blank
-        $self->_set_written_valid(1);
         if (defined $self->value)
         {
             my $old = $self->value;
@@ -45,14 +44,12 @@ sub set_value
     }
     else {
         $self->column->validate($value, fatal => 1);
-        $self->_set_written_valid(defined $value ? 1 : 0);
     }
     $self->changed(1) if (!defined($self->value) && defined $value)
         || (!defined($value) && defined $self->value)
         || (defined $self->value && defined $value && $self->value != $value);
     $self->value($value) if defined $value || $self->init_no_value;
-    $self->_set_written_to(0) if $self->value_next_page;
-}
+};
 
 has value => (
     is      => 'rw',

@@ -45,6 +45,11 @@ has '+option_names' => (
     default => sub { [qw/show_datepicker/] },
 );
 
+sub _build_retrieve_fields
+{   my $self = shift;
+    [qw/from to/];
+}
+
 # Still counts as string storage for search (value field is string)
 has '+string_storage' => (
     default => sub {shift->return_type eq 'string'},
@@ -148,19 +153,6 @@ sub cleanup
 {   my ($class, $schema, $id) = @_;
     $schema->resultset('Daterange')->search({ layout_id => $id })->delete;
 }
-
-before import_hash => sub {
-    my ($self, $values) = @_;
-    $self->show_datepicker($values->{show_datepicker});
-};
-
-around export_hash => sub {
-    my $orig = shift;
-    my ($self, $values) = @_;
-    my $hash = $orig->(@_);
-    $hash->{show_datepicker} = $self->show_datepicker;
-    return $hash;
-};
 
 1;
 

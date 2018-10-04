@@ -37,8 +37,8 @@ has schema => (
 );
 
 # Set datum value with value from user
-sub set_value
-{   my ($self, $value, %options) = @_;
+after set_value => sub {
+    my ($self, $value, %options) = @_;
     $self->oldvalue($self->clone);
     ($value) = @$value if ref $value eq 'ARRAY';
     my $newvalue = $self->_to_dt($value, source => 'user', %options);
@@ -46,8 +46,7 @@ sub set_value
     my $new = $newvalue ? $newvalue->epoch : 0;
     $self->changed(1) if $old != $new;
     $self->value($newvalue);
-    $self->_set_written_to(0) if $self->value_next_page;
-}
+};
 
 has value => (
     is      => 'rw',
@@ -85,7 +84,6 @@ sub _to_dt
     $value = $value->{value} if ref $value eq 'HASH';
     if (!$value)
     {
-        $self->_set_written_valid(0);
         return;
     }
     if (ref $value eq 'DateTime')
@@ -107,16 +105,13 @@ sub _to_dt
             # See if it's a duration and return that instead if so
             if (my $duration = DateTime::Format::DateManip->parse_duration($value))
             {
-                $self->_set_written_valid(1);
                 return $self->value ? $self->value->clone->add_duration($duration) : undef;
             }
             else {
                 # Will bork below
-                $self->_set_written_valid(0);
             }
         }
         $self->column->validate($value, fatal => 1);
-        $self->_set_written_valid(1);
         $self->column->parse_date($value);
     }
 }

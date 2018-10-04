@@ -1,30 +1,30 @@
+[% PROCESS snippets/datum.tt %]
+[% PROCESS snippets/rag_legend.tt IF has_rag_column %]
+
+[% IF with_edit %]
+    <p><a href="/edit/[% record.current_id %]?oi=[% record.instance_id %]">Edit record</a></p>
+[% END %]
+
 <table class="table table-striped">
     <tr>
         <th>Last updated by</th>
         <td>[% record.createdby.html %]</td>
     </tr>
-    [% FOREACH col IN all_columns %]
+    [% FOREACH col IN record.columns %]
         [% colid = col.id %]
-        <tr>
-            [% NEXT IF record.parent_id AND NOT (record.fields.$colid.child_unique) %]
+        [% NEXT IF !is_history AND col.data.dependent_not_shown %]
+        [% NEXT IF is_modal AND col.type == "autocur" %]
+        [% IF col.topic != last_topic %]
+            <tr><th colspan="2"><h2>[% col.topic OR "Other" | html %]</h2></tr>
+        [% END %]
+        <tr [% IF col.data.blank %]class="click-to-view-blank-field expandable"[% END %]>
             <th>[% col.name | html_entity %]</th>
-            <td>
-                [% value = record.fields.$colid %]
-                [% IF col.type == "rag" %]
-                    <div class="circ-large
-                        [% value %]
-                        ">
-                    </div>
-                [% ELSIF col.type == "file" AND value.mimetype.match('^image/') %]
-                    <a href="/file/[% value.id %]">
-                        <img class="autosize" src="/file/[% value.id %]">
-                    </a>
-                [% ELSIF col.type == "string" || col.type == "curval" || col.type == "autocur" %]
-                    [% value.html_withlinks %]
-                [% ELSE %]
-                    [% value.html %]
-                [% END %]
+            <td class="[% col.type %]">
+                [% render_datum(col, 'full') %]
             </td>
         </tr>
+        [% last_topic = col.topic %]
     [% END %]
 </table>
+
+[% PROCESS snippets/record_readmore.tt %]

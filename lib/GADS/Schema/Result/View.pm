@@ -44,6 +44,12 @@ __PACKAGE__->table("view");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 group_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =head2 name
 
   data_type: 'varchar'
@@ -57,6 +63,12 @@ __PACKAGE__->table("view");
   is_nullable: 0
 
 =head2 is_admin
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 is_limit_extra
 
   data_type: 'smallint'
   default_value: 0
@@ -80,11 +92,15 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
   "user_id",
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
+  "group_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "name",
   { data_type => "varchar", is_nullable => 1, size => 128 },
   "global",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "is_admin",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "is_limit_extra",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "filter",
   { data_type => "text", is_nullable => 1 },
@@ -198,6 +214,26 @@ __PACKAGE__->belongs_to(
   "user",
   "GADS::Schema::Result::User",
   { id => "user_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 group
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Group>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "group",
+  "GADS::Schema::Result::Group",
+  { id => "group_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",

@@ -44,7 +44,7 @@ has _graph => (
         my ($graph) = $self->schema->resultset('Graph')->search({
             'me.id' => $self->id
         },{
-            prefetch => [qw/x_axis y_axis group_by/],
+            prefetch => [qw/x_axis x_axis_link y_axis group_by/],
         })->all;
         $graph
             or error __x"Requested graph ID {id} not found", id => $self->id;
@@ -57,11 +57,13 @@ has set_values => (
         my ($self, $original) = @_;
         $self->_set_id($original->{id});
         $self->x_axis($original->{x_axis});
+        $self->x_axis_link($original->{x_axis_link});
         $self->x_axis_grouping($original->{x_axis_grouping});
         $self->y_axis($original->{y_axis});
         $self->y_axis_stack($original->{y_axis_stack});
         $self->description($original->{description});
         $self->stackseries($original->{stackseries});
+        $self->as_percent($original->{as_percent});
         $self->type($original->{type});
         $self->group_by($original->{group_by});
         $self->title($original->{title});
@@ -85,12 +87,36 @@ has description => (
     builder => sub { $_[0]->_graph && $_[0]->_graph->description },
 );
 
+sub set_x_axis
+{   my ($self, $value) = @_;
+    if ($value =~ /^([0-9]+)_([0-9]+)$/)
+    {
+        $self->x_axis($2);
+        $self->x_axis_link($1);
+        return;
+    }
+    $self->x_axis($value);
+}
+
 has x_axis => (
     is      => 'rw',
     lazy    => 1,
     coerce  => sub { $_[0] || undef }, # Empty string from form
     builder => sub { $_[0]->_graph && $_[0]->_graph->x_axis && $_[0]->_graph->x_axis->id },
 );
+
+has x_axis_link => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->_graph && $_[0]->_graph->x_axis_link && $_[0]->_graph->x_axis_link->id },
+);
+
+sub x_axis_full
+{   my $self = shift;
+    return $self->x_axis_link."_".$self->x_axis
+        if $self->x_axis_link;
+    return $self->x_axis;
+}
 
 # X-axis is undef for graph showing all columns in view
 has x_axis_name => (
@@ -124,6 +150,13 @@ has stackseries => (
     lazy    => 1,
     coerce  => sub { $_[0] ? 1 : 0 },
     builder => sub { $_[0]->_graph && $_[0]->_graph->stackseries },
+);
+
+has as_percent => (
+    is      => 'rw',
+    lazy    => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    builder => sub { $_[0]->_graph && $_[0]->_graph->as_percent },
 );
 
 has y_axis => (
@@ -197,8 +230,9 @@ sub write
     $newgraph->{y_axis_label}    = $self->y_axis_label;
 
     $newgraph->{x_axis}          = $self->x_axis;
-    !defined $self->x_axis || $self->layout->column_this_instance($self->x_axis)
+    !defined $self->x_axis || $self->layout->column($self->x_axis)
         or error __x"Invalid X-axis value {x_axis}", x_axis => $self->x_axis;
+    $newgraph->{x_axis_link}     = $self->x_axis_link;
 
     $newgraph->{x_axis_grouping} = $self->x_axis_grouping;
     !defined $self->x_axis_grouping || grep { $self->x_axis_grouping eq $_ } keys %{GADS::Graphs->new->dategroup}
@@ -215,6 +249,7 @@ sub write
         or error __x"Invalid metric group ID {id}", id => $self->metric_group_id;
 
     $newgraph->{stackseries}     = $self->stackseries;
+    $newgraph->{as_percent}      = $self->as_percent;
 
     $newgraph->{type}            = $self->type;
     grep { $self->type eq $_ } GADS::Graphs->types
@@ -236,17 +271,45 @@ sub write
 }
 
 sub import_hash
-{   my ($self, $values) = @_;
+{   my ($self, $values, %options) = @_;
+    notice __x"Updating title from {old} to {new}", old => $self->title, new => $values->{title}
+        if $options{report_only} && $self->title ne $values->{title};
     $self->title($values->{title});
+    notice __x"Updating description from {old} to {new}", old => $self->description, new => $values->{description}
+        if $options{report_only} && $self->description ne $values->{description};
     $self->description($values->{description});
+    notice __x"Updating y_axis from {old} to {new}", old => $self->y_axis, new => $values->{y_axis}
+        if $options{report_only} && $self->y_axis != $values->{y_axis};
     $self->y_axis($values->{y_axis});
+    notice __x"Updating y_axis_stack from {old} to {new}", old => $self->y_axis_stack, new => $values->{y_axis_stack}
+        if $options{report_only} && $self->y_axis_stack != $values->{y_axis_stack};
     $self->y_axis_stack($values->{y_axis_stack});
+    notice __x"Updating y_axis_label from {old} to {new}", old => $self->y_axis_label, new => $values->{y_axis_label}
+        if $options{report_only} && $self->y_axis_label ne $values->{y_axis_label};
     $self->y_axis_label($values->{y_axis_label});
+    notice __x"Updating x_axis from {old} to {new}", old => $self->x_axis, new => $values->{x_axis}
+        if $options{report_only} && $self->x_axis != $values->{x_axis};
     $self->x_axis($values->{x_axis});
+    notice __x"Updating x_axis_link from {old} to {new}", old => $self->x_axis_link, new => $values->{x_axis_link}
+        if $options{report_only} && $self->x_axis_link != $values->{x_axis_link};
+    $self->x_axis_link($values->{x_axis_link});
+    notice __x"Updating x_axis_grouping from {old} to {new}", old => $self->x_axis_grouping, new => $values->{x_axis_grouping}
+        if $options{report_only} && $self->x_axis_grouping ne $values->{x_axis_grouping};
     $self->x_axis_grouping($values->{x_axis_grouping});
+    notice __x"Updating group_by from {old} to {new}", old => $self->group_by, new => $values->{group_by}
+        if $options{report_only} && $self->group_by != $values->{group_by};
     $self->group_by($values->{group_by});
+    notice __x"Updating stackseries from {old} to {new}", old => $self->stackseries, new => $values->{stackseries}
+        if $options{report_only} && $self->stackseries != $values->{stackseries};
     $self->stackseries($values->{stackseries});
+    notice __x"Updating as_percent from {old} to {new}", old => $self->as_percent, new => $values->{as_percent}
+        if $options{report_only} && $self->as_percent != $values->{as_percent};
+    $self->as_percent($values->{as_percent});
+    notice __x"Updating type from {old} to {new}", old => $self->type, new => $values->{type}
+        if $options{report_only} && $self->type ne $values->{type};
     $self->type($values->{type});
+    notice __x"Updating metric_group_id from {old} to {new}", old => $self->metric_group_id, new => $values->{metric_group_id}
+        if $options{report_only} && $self->metric_group_id != $values->{metric_group_id};
     $self->metric_group_id($values->{metric_group_id});
 }
 
@@ -259,9 +322,11 @@ sub export_hash
         y_axis_stack    => $self->y_axis_stack,
         y_axis_label    => $self->y_axis_label,
         x_axis          => $self->x_axis,
+        x_axis_link     => $self->x_axis_link,
         x_axis_grouping => $self->x_axis_grouping,
         group_by        => $self->group_by,
         stackseries     => $self->stackseries,
+        as_percent      => $self->as_percent,
         type            => $self->type,
         metric_group    => $self->metric_group_id,
     };

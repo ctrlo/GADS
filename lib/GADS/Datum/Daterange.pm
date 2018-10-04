@@ -37,14 +37,13 @@ has schema => (
 );
 
 # Set datum value with value from user
-sub set_value
-{   my ($self, $all, %options) = @_;
+after set_value => sub {
+    my ($self, $all, %options) = @_;
     $all ||= [];
     my @all = @$all; # Take a copy first
     my $clone = $self->clone;
     shift @all if @all % 2 == 1 && !$all[0]; # First is hidden value from form
     my @values;
-    $self->_set_written_valid(0) if !@values; # Assume 0, 1 written in parse_dt
     while (@all)
     {
         my @dt = $self->_parse_dt([shift @all, shift @all], source => 'user', %options);
@@ -62,8 +61,7 @@ sub set_value
         $self->clear_blank;
     }
     $self->oldvalue($clone);
-    $self->_set_written_to(0) if $self->value_next_page;
-}
+};
 
 has values => (
     is      => 'rwp',
@@ -142,7 +140,6 @@ sub _parse_dt
         # If it's not a valid value, see if it's a duration instead (only for bulk)
         if ($self->column->validate($original, fatal => !$options{bulk}))
         {
-            $self->_set_written_valid(1);
             $from = $self->column->parse_date($original->{from});
             $to   = $self->column->parse_date($original->{to});
         }
@@ -151,7 +148,6 @@ sub _parse_dt
             my $to_duration = DateTime::Format::DateManip->parse_duration($original->{to});
             if ($from_duration || $to_duration)
             {
-                $self->_set_written_valid(1);
                 if (@{$self->values})
                 {
                     my @return;
@@ -211,6 +207,10 @@ sub _build_html_form
         $_->start->format_cldr($self->column->dateformat),
         $_->end->format_cldr($self->column->dateformat),
     } @{$self->values} ];
+}
+
+sub search_values_unique
+{   shift->text_all;
 }
 
 sub for_code

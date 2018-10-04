@@ -1,0 +1,217 @@
+{
+   "has_many" : {
+      "fetch" : 0
+   },
+   "belongs_to" : {
+      "fetch" : 0
+   },
+   "sets" : [
+      {
+         "quantity" : "all",
+         "class" : "Date"
+      },
+      {
+         "class" : "Daterange",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Import",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Metric",
+         "quantity" : "all"
+      },
+      {
+         "class" : "CurvalField",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "View"
+      },
+      {
+         "class" : "Permission",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "AlertSend"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Person"
+      },
+      {
+         "class" : "Ragval",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Oauthtoken",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Current",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "ImportRow"
+      },
+      {
+         "quantity" : "all",
+         "class" : "LayoutGroup"
+      },
+      {
+         "quantity" : "all",
+         "class" : "GraphColor"
+      },
+      {
+         "quantity" : "all",
+         "class" : "MetricGroup"
+      },
+      {
+         "class" : "Enum",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "UserPermission"
+      },
+      {
+         "class" : "UserLastrecord",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Enumval",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "String"
+      },
+      {
+         "quantity" : "all",
+         "class" : "File"
+      },
+      {
+         "class" : "Audit",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Sort"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Calc"
+      },
+      {
+         "class" : "ViewLimit",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "User"
+      },
+      {
+         "quantity" : "all",
+         "class" : "UserGroup"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Graph"
+      },
+      {
+         "quantity" : "all",
+         "class" : "FileOption"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Record"
+      },
+      {
+         "quantity" : "all",
+         "class" : "LayoutDepend"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Topic"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Organisation"
+      },
+      {
+         "class" : "Title",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Alert",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Intgr",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Fileval",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Oauthclient"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Layout"
+      },
+      {
+         "class" : "Instance",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Site",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Curval"
+      },
+      {
+         "class" : "InstanceGroup",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "AlertCache"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Rag"
+      },
+      {
+         "quantity" : "all",
+         "class" : "ViewLayout"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Filter"
+      },
+      {
+         "class" : "Group",
+         "quantity" : "all"
+      },
+      {
+         "class" : "UserGraph",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Calcval",
+         "quantity" : "all"
+      }
+   ],
+   "might_have" : {
+      "fetch" : 0
+   }
+}

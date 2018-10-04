@@ -86,6 +86,30 @@
                 );
             }
 
+            function on_select (properties) {
+                var items = properties.items;
+                if (items.length == 0) {
+                    $('.bulk_href').on('click', function(e) {
+                        e.preventDefault();
+                        alert("Please select some records on the timeline first");
+                        return false;
+                    });
+                } else {
+                    var hrefs = [];
+                    $("#delete_ids").empty();
+                    properties.items.forEach(function(item) {
+                        var id = item.replace(/\\+.*/, '');
+                        hrefs.push("id=" + id);
+                        $("#delete_ids").append('<input type="hidden" name="delete_id" value="' + id + '">');
+                    });
+                    var href = hrefs.join('&');
+                    $('#update_href').attr("href", "/bulk/update/?" + href);
+                    $('#clone_href').attr("href", "/bulk/clone/?" + href);
+                    $('#count_delete').text(items.length);
+                    $('.bulk_href').off();
+                }
+            }
+
             [%-# Set up form button behaviour %]
             $( save_elem_sel ).bind( 'click', before_submit );
             $( cancel_elem_sel ).bind( 'click', function (e) {
@@ -101,6 +125,7 @@
                         updateGroup: false,
                         remove:      false
                     },
+                    multiselect: true,
                 [% END %]
                 [% IF page_as_mech AND tl_options.width %]
                     width: [% tl_options.width %],
@@ -112,6 +137,9 @@
                     item: {
                         horizontal: -1
                     }
+                },
+                moment: function (date) {
+                    return vis.moment(date).utc();
                 },
                 onMove:   on_move,
                 snap:     snap_to_day,
@@ -146,6 +174,8 @@
                     }
                 }
             });
+            timeline.on('select', on_select);
+            on_select({ items: [] });
             [%# functionality to add new items on range change %]
             var persistent_max;
             var persistent_min;
@@ -204,11 +234,11 @@
                 }
                 if (props.start < have_range.min) {
                     var from = props.start.getTime();
-                    var to = have_range.min.getTime() - 86400000;
+                    var to = have_range.min.getTime();
                     load_items(from, to, "to");
                 }
                 if (props.end > have_range.max) {
-                    var from = have_range.max.getTime() + 86400000;
+                    var from = have_range.max.getTime();
                     var to = props.end.getTime();
                     load_items(from, to, "from");
                 }
@@ -284,9 +314,6 @@
         </div>
     </div>
 </div>
-
-[% WRAPPER modal_dialog.tt modal_id="readmore_modal" modal_large=1 %]
-[% END %]
 
 [% WRAPPER modal_dialog.tt
     modal_id="modal_png" modal_action_text="View" modal_heading="View timeline as PNG"

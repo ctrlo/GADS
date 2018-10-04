@@ -1,78 +1,63 @@
 [% IF search %]
-    <h1>
-        Search results <small class="search_term">for term "[% search | html_entity %]"</small>
-        <form id="clear_search" action="/data" method="post">
-            <button type="submit" name="clear_search" value="clear_search" class="btn btn-default">
-            Clear <span class="visually-hidden">search results</span>
-            </button>
-        </form>
-    </h1>
-    [% IF search_limit_reached %]
-        <h3>Only showing first [% search_limit_reached %] of [% count %] results</h3>
-    [% END %]
+    <div class="row search-results">
+        <h1>
+            Search results <small class="search_term">for term "[% search | html_entity %]" ([% count %] results)</small>
+	    <form id="clear_search" action="/data" method="post">
+		<button type="submit" name="clear_search" value="clear_search" class="btn btn-default">
+		Clear <span class="visually-hidden">search results</span>
+		</button>
+	    </form>
+	</h1>
+    </div>
 [% ELSIF v %]
-    <h1>[% v.name | html_entity %]</h1>
+    <h1 >[% v.name | html_entity %]</h1>
 [% ELSE %]
     <h1>All data</h1>
 [% END %]
+[% IF search_limit_reached %]
+    <h3>Only showing first [% search_limit_reached %] of [% count %] results</h3>
+[% END %]
+
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-9">
             <div class="btn-toolbar" role="toolbar">
-                <div class="btn-group" role="group">
-                    <a href="?viewtype=table" class="btn btn-default">
-                        <i aria-hidden="true" class="fa fa-list fa-lg use-icon-font"></i>
-                        <img src="/images/icon-data-list.png" class="use-icon-png" style="display:none" alt="">
-                        <span class="visually-hidden">View as table</span>
-                    </a>
 
-                    <a href="?viewtype=graph" class="btn btn-default">
-                        <i aria-hidden="true" class="fa fa-area-chart fa-lg use-icon-font"></i>
-                        <img src="/images/icon-data-chart.png" class="use-icon-png" style="display:none" alt="">
-                        <span class="visually-hidden">View as graph</span>
-                    </a>
+                [% PROCESS viewtype_buttons %]
 
-                    <a href="?viewtype=timeline" class="btn btn-default">
-                        <i aria-hidden="true" class="fa fa-tasks fa-lg use-icon-font"></i>
-                        <img src="/images/icon-data-tasks.png" class="use-icon-png" style="display:none" alt="">
-                        <span class="visually-hidden">View on timeline</span>
-                    </a>
-
-                    <a href="?viewtype=calendar" class="btn btn-default">
-                        <i aria-hidden="true" class="fa fa-calendar fa-lg use-icon-font"></i>
-                        <img src="/images/icon-data-calendar.png" class="use-icon-png" style="display:none" alt="">
-                        <span class="visually-hidden">View on calendar</span>
-                    </a>
-
-                    [% IF layout.has_globe %]
-                        <a href="?viewtype=globe" class="btn btn-default">
-                            <i aria-hidden="true" class="fa fa-globe fa-lg use-icon-font"></i>
-                            <img src="/images/icon-data-globe.png" class="use-icon-png" style="display:none" alt="">
-                            <span class="visually-hidden">View on globe</span>
-                        </a>
-                    [% END %]
-                </div>
                 <div class="btn-group">
                     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
-                            View <span class="caret"></span>
+                            Current view: [% IF v %][% v.name | html %][% ELSE %]All data[% END %] <span class="caret"></span>
                     </button>
                     <ul id="menu_view" class="dropdown-menu scrollable-menu" role="menu">
-                        [% IF user.permission.view_create %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0">Create new view</a></li>
+			[% IF layout.user_can("view_create") %]
+			    <li [% IF page=="view/0" %]class="active"[% END %]><a href="[% url.page %]/view/0">Add a view</a></li>
+			[% END %]
+
+			[% IF v %]
+                            [% IF layout.user_can("view_create") %]
+				[% IF v.writable %]
+				    <li [% IF page=="view" %]class="active"[% END %]><a href="/view/[% v.id %]">Edit current view</a></li>
+				[% END %]
+				<li [% IF page=="view/clone" %]class="active"[% END %]><a href="/view/0?clone=[% v.id %]">Clone current view</a></li>
+			    [% END %]
+                            <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_alert">Alert me...</a></li>
+			[% END %]
+
+                        [% IF layout.user_can("layout") %]
+                            <li role="presentation">
+                                <a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_views_other_user">
+                                    Manage views of another user...
+                                </a>
+                            </li>
                         [% END %]
-                        [% IF v %]
-                            [% IF user.permission.view_create %]
-                                [% IF !v.global OR user.permission.layout %]
-                                    <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/[% v.id %]">Edit this view</a></li>
-                                [% END %]
-                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/view/0?clone=[% v.id %]">Clone this view</a></li>
-                            [% END %]
-                            <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_alert">Alert me</a></li>
-                        [% END %]
-                        [% IF user.permission.layout %]
-                            <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_views_other_user">Manage views of another user...</a></li>
-                        [% END %]
-                        <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_rewind">Historic view...</a></li>
+                        <li role="presentation">
+                            <a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_rewind">
+                                Historic view...
+                            </a>
+                        </li>
+
                         <li role="presentation" class="divider"></li>
+
                         [% first = 1 %]
                         [% FOREACH ve IN user_views %]
                             [% IF first AND NOT ve.global AND not ve.is_admin %]
@@ -81,7 +66,7 @@
                                 [% UNLESS first %]
                                     <li role="presentation" class="divider"></li>
                                 [% END %]
-                                <li role="presentation" class="dropdown-header">Global views</li>
+                                <li role="presentation" class="dropdown-header">Shared views</li>
                             [% ELSIF (first AND ve.is_admin) OR (lastv AND ve.is_admin != lastv.is_admin) %]
                                 [% UNLESS first %]
                                     <li role="presentation" class="divider"></li>
@@ -100,35 +85,51 @@
                         [% END %]
                     </ul>
                 </div>
-                <div class="btn-group">
-                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_action">
-                            Action <span class="caret"></span>
-                    </button>
-                    <ul id="menu_action" class="dropdown-menu" role="menu">
-                        [% IF user_can_create %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/edit/">New record</a></li>
-                        [% END %]
-                        [% IF user.permission.link AND show_link %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/link/">New linked record</a></li>
-                        [% END %]
-                        [% IF search %]
-                            [% sel_type = "in this search" %]
-                        [% ELSE %]
-                            [% sel_type = "in this view" %]
-                        [% END %]
-                        [% IF user.permission.bulk_update %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/update/">Update all records [% sel_type %]...</a></li>
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/bulk/clone/">Clone all records [% sel_type %]...</a></li>
-                        [% END %]
-                        [% IF user.permission.delete %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_delete" style="cursor: pointer">Delete all records [% sel_type %]...</a>
-                        [% END %]
-                        [% IF viewtype == "table" AND records.size AND user.permission.download %]
-                            <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?download">Download all records in view</a></li>
-                        [% END %]
-                    </ul>
-                </div>
-                [% PROCESS search_form.tt %]
+
+		[% IF views_limit_extra.size %]
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
+                            [% current_view_limit_extra.name | html %] <span class="caret"></span>
+                        </button>
+                        <ul id="menu_view" class="dropdown-menu scrollable-menu" role="menu">
+                            [% FOR view_limit IN views_limit_extra %]
+                                <li role="presentation">
+                                    <a role="menuitem" tabindex="-1" href="/data?extra=[% view_limit.id %]">
+                                        [% view_limit.name | html %]
+                                    </a>
+                                </li>
+                            [% END %]
+                        </ul>
+                    </div>
+                [% END %]
+
+                [% IF layout.user_can("bulk_update") OR layout.user_can("delete") OR layout.user_can("download") %]
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_action">
+                                Action <span class="caret"></span>
+                        </button>
+                        <ul id="menu_action" class="dropdown-menu" role="menu">
+                            [% IF search %]
+                                [% sel_type = "records in this search" %]
+                            [% ELSIF viewtype == "timeline" %]
+                                [% sel_type = "selected records" %]
+                            [% ELSE %]
+                                [% sel_type = "records in this view" %]
+                            [% END %]
+                            [% IF layout.user_can("bulk_update") %]
+                                <li role="presentation"><a role="menuitem" id="update_href" class="bulk_href" tabindex="-1" href="/bulk/update/">Update all [% sel_type %]...</a></li>
+                                <li role="presentation"><a role="menuitem" id="clone_href" class="bulk_href" tabindex="-1" href="/bulk/clone/">Clone all [% sel_type %]...</a></li>
+                            [% END %]
+                            [% IF layout.user_can("delete") %]
+                                <li role="presentation"><a role="menuitem" id="delete_href" class="bulk_href" tabindex="-1" data-toggle="modal" data-target="#modal_delete" style="cursor: pointer">Delete all [% sel_type %]...</a>
+                            [% END %]
+                            [% IF viewtype == "table" AND records.size AND layout.user_can("download") %]
+                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?download">Download records in current view</a></li>
+                            [% END %]
+                        </ul>
+                    </div>
+                [% END %]
+
                 [% IF viewtype == "timeline" %]
                     <div class="btn-group">
                         <a class="btn btn-default" data-toggle="modal" data-target="#modal_timeline" role="button">Timeline options...</a>
@@ -140,29 +141,43 @@
                     <div class="btn-group">
                         <a class="btn btn-default" data-toggle="modal" data-target="#modal_globe" role="button">Globe options...</a>
                     </div>
+                [% ELSIF viewtype == "graph" %]
+                    <div class="btn-group">
+                        <a href="[% url.page %]/account/graph/" class="btn btn-default" role="button">Select graphs...</a>
+                    </div>
                 [% END %]
             </div>
         </div>
+
         [% IF viewtype == "table" %]
-            <div class="col-md-4">
-                <form method="get" class="form-horizontal">
+            <div class="col-md-3 table-rows-pagination">
+               <form method="get" class="form-inline">
                     <div class="form-group">
-                        <div class="col-sm-4">
-                            <label for="rows_per_page" class="control-label">Rows per page</label>
-                        </div>
-                        <div class="col-sm-8">
-                            <select id="rows_per_page" class="form-control" name="rows" onchange="this.form.submit()" role="listbox">
-                                <option value="10" [% IF subset.rows == 10 %]selected[% END %]>10</option>
-                                <option value="25" [% IF subset.rows == 25 %]selected[% END %]>25</option>
-                                <option value="50" [% IF subset.rows == 50 %]selected[% END %]>50</option>
-                                <option value="100" [% IF subset.rows == 100 %]selected[% END %]>100</option>
-                                <option value="200" [% IF subset.rows == 200 %]selected[% END %]>200</option>
-                            </select>
-                        </div>
+                        <label for="rows_per_page" class="control-label">Rows per page</label>
+                        <select id="rows_per_page" class="form-control" name="rows" onchange="this.form.submit()" role="listbox">
+                            <option value="10" [% IF subset.rows == 10 %]selected[% END %]>10</option>
+                            <option value="25" [% IF subset.rows == 25 %]selected[% END %]>25</option>
+                            <option value="50" [% IF subset.rows == 50 %]selected[% END %]>50</option>
+                            <option value="100" [% IF subset.rows == 100 %]selected[% END %]>100</option>
+                            <option value="200" [% IF subset.rows == 200 %]selected[% END %]>200</option>
+                        </select>
                     </div>
                 </form>
+            [% IF subset.pages > 1 %]
+                <div class="table-pagination">
+                [% IF subset.page != 1 %]
+                    <a class="btn btn-default" href="?page=[% subset.page - 1 %]">
+                        <span class="visually-hidden">Previous page</span>&laquo;</a>
+                [% END %]
+                [% IF subset.page != subset.pages %]
+                    <a class="btn btn-default" href="?page=[% subset.page + 1 %]">
+                        <span class="visually-hidden">Next page</span>&raquo;</a>
+                [% END %]
+                </div>
+            [% END %]
             </div>
         [% END %]
+
     </div>
 [% IF viewtype == "graph" %]
     [% INCLUDE 'data_graph.tt' %]
@@ -193,7 +208,7 @@
     [% END %]
 [% END %]
 
-[% IF user.permission.layout %]
+[% IF layout.user_can("layout") %]
     [% IF views_other_user %][% modal_extra_action = "views_other_user_clear" %][% END %]
     [% WRAPPER modal_dialog.tt
         modal_id="modal_views_other_user" modal_action_text="Submit" modal_heading="Manage views of other user"
@@ -235,8 +250,9 @@
     modal_id="modal_delete" modal_action_text="Delete" modal_heading="Delete records"
     modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post"
 %]
+    <div id="delete_ids"></div>
     <p>Are you sure you want to delete all the records that are in the current view?</p>
-    <p><strong>Warning: this will permanently delete [% count %] records.</strong></p>
+    <p><strong>Warning: this will delete <span id="count_delete">[% count %]</span> records.</strong></p>
 [% END %]
 
 [% IF viewtype == "timeline" %]
@@ -271,7 +287,53 @@
                 [% END %]
             </select>
         </div>
+        <div class="form-group">
+            <label for="tl_color">Overlay items from other table:</label>
+            <select class="form-control" name="tl_overlay">
+                <option value="" [% IF NOT tl_options.overlay %]selected[% END %]></option>
+                [% FOREACH overlay_ins IN instances %]
+                    [% NEXT IF overlay_ins.instance_id == layout.instance_id %]
+                    <option value="[% overlay_ins.instance_id %]" [% IF tl_options.overlay == overlay_ins.instance_id %]selected[% END %]>[% overlay_ins.name | html %]</option>
+                [% END %]
+            </select>
+        </div>
     [% END %]
+[% END %]
+
+[% BLOCK viewtype_buttons %]
+    <div class="btn-group" role="group">
+        <a href="?viewtype=table" class="btn btn-default">
+            <span aria-hidden="true" class="fa fa-list fa-lg use-icon-font"></span>
+            <img src="/images/icon-data-list.png" class="use-icon-png" style="display:none" alt="">
+            <span class="visually-hidden">View as table</span>
+        </a>
+
+        <a href="?viewtype=graph" class="btn btn-default">
+            <span aria-hidden="true" class="fa fa-area-chart fa-lg use-icon-font"></span>
+            <img src="/images/icon-data-chart.png" class="use-icon-png" style="display:none" alt="">
+            <span class="visually-hidden">View as graph</span>
+        </a>
+
+        <a href="?viewtype=timeline" class="btn btn-default">
+            <span aria-hidden="true" class="fa fa-tasks fa-lg use-icon-font"></span>
+            <img src="/images/icon-data-tasks.png" class="use-icon-png" style="display:none" alt="">
+            <span class="visually-hidden">View on timeline</span>
+        </a>
+
+        <a href="?viewtype=calendar" class="btn btn-default">
+            <span aria-hidden="true" class="fa fa-calendar fa-lg use-icon-font"></span>
+            <img src="/images/icon-data-calendar.png" class="use-icon-png" style="display:none" alt="">
+            <span class="visually-hidden">View on calendar</span>
+        </a>
+
+	[% IF layout.has_globe %]
+	    <a href="?viewtype=globe" class="btn btn-default">
+		<i aria-hidden="true" class="fa fa-globe fa-lg use-icon-font"></i>
+		<img src="/images/icon-data-globe.png" class="use-icon-png" style="display:none" alt="">
+		<span class="visually-hidden">View on globe</span>
+	    </a>
+	[% END %]
+    </div>
 [% END %]
 
 [% IF viewtype == "globe" %]
@@ -285,7 +347,7 @@
                 <option value="" [% IF NOT globe_options.label %]selected[% END %]>&lt;None&gt;</option>
                 <option value="-1" [% IF globe_options.label == -1 %]selected[% END %]>&lt;Record count&gt;</option>
                 [% FOREACH column IN columns_read %]
-                    <option value="[% column.id %]" [% IF globe_options.label == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                    <option value="[% column.filter_id %]" [% IF globe_options.label == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]</option>
                 [% END %]
             </select>
         </div>
@@ -294,7 +356,7 @@
             <select class="form-control" name="globe_group">
                 <option value="" [% IF NOT globe_options.group %]selected[% END %]>&lt;All fields&gt;</option>
                 [% FOREACH column IN columns_read %]
-                    <option value="[% column.id %]" [% IF globe_options.group == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                    <option value="[% column.filter_id %]" [% IF globe_options.group == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]</option>
                 [% END %]
             </select>
         </div>
@@ -302,15 +364,18 @@
             <label for="globe_color">Colour by field:</label>
             <select class="form-control" name="globe_color">
                 <option value="" [% IF NOT globe_options.color %]selected[% END %]>&lt;All fields&gt;</option>
+                <option value="-1" [% IF globe_options.color == -1 %]selected[% END %]>&lt;Record count&gt;</option>
                 [% FOREACH column IN columns_read %]
-                    <option value="[% column.id %]" [% IF globe_options.color == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                    <option value="[% column.filter_id %]" [% IF globe_options.color == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]</option>
                 [% END %]
             </select>
         </div>
     [% END %]
 [% END %]
 
-[% IF user.permission.layout %]
+[% PROCESS snippets/record_readmore.tt %]
+
+[% IF layout.user_can("layout") %]
     <script type="text/javascript">
         jscode = jscode + '[% FILTER remove('[\n\r]+') %]
             [% FILTER replace('\'', '\\\'') %]

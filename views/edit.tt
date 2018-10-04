@@ -1,3 +1,5 @@
+[% PROCESS snippets/datum.tt %]
+
 <h2>
     [% IF page == "bulk" %]
         [% IF bulk_type == "update" %]
@@ -5,48 +7,167 @@
         [% ELSIF bulk_type == "clone" %]
             Clone records
         [% END %]
-    [% ELSIF record.current_id %]
-        Record ID [% record.current_id %]
+    [% ELSIF NOT record.new_entry %]
+        Edit record ID [% record.current_id %]
         [% IF record.parent_id %]
             <small>(child of record [% record.parent_id %])</small>
         [% END %]
     [% ELSIF child %]
         Create child record of [% child %]
+    [% ELSIF clone %]
+        New record copied from record ID [% clone | html %]
     [% ELSE %]
         New record
     [% END %]
 </h2>
+[% IF NOT record.new_entry %]
+    <p></p>
+    [% PROCESS snippets/record_edit.tt with_view = 1 %]
+[% END %]
 <p></p>
-<form role="form" method="post" enctype="multipart/form-data" id="editform">
+
+[% BLOCK panel_start %]
+    [% IF !col.topic OR col.topic.initial_state == 'open' %]
+        [% open = 1 %]
+    [% ELSE %]
+        [% open = 0 %]
+    [% END %]
+    <div class="panel-group" id="accordion[% col.id %]" role="tablist" aria-multiselectable="true">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="headingOne">
+                <h4 class="panel-title">
+                    <a role="button" data-toggle="collapse" data-parent="#accordion[% col.id %]"
+                        href="#topic[% col.id %]" aria-expanded="[% IF open %]true[% ELSE %]false[% END %]"
+                        aria-controls="topic[% col.id %]">
+                        [% col.topic.name OR 'Other' | html %]
+                    </a>
+                </h4>
+            </div>
+            <div id="topic[% col.id %]" class="panel-collapse collapse[% IF open %] in[% END %]" role="tabpanel" aria-labelledby="headingOne">
+                <div class="panel-body">
+                    [% IF col.topic.need_completed_topics_count %]
+                        <div role="alert" class="alert alert-warning">
+                            Fields in this section cannot be completed until mandatory fields
+                            in the [% col.topic.need_completed_topics_as_string | html %]
+                            section[% IF col.topic.need_completed_topics_count > 1 %]s[% END %]
+                            have been completed.
+                        </div>
+                    [% END %]
+                    [% IF col.topic.description %]
+                        <div role="alert" class="alert alert-info">[% col.topic.description | html %]</div>
+                    [% END %]
+                [% IF col.topic.click_to_edit AND NOT record.new_entry %]
+                    [% click_to_edit = 1 %]
+                    <button class="btn btn-default pull-right click-to-edit" type="button" aria-expanded="false">Edit</button>
+                    <div id="topic_forms[% col.topic_id %]" class="expandable">
+                [% ELSE %]
+                    [% click_to_edit = 0 %]
+                [% END %]
+[% END %]
+[% BLOCK panel_end %]
+                [% IF click_to_edit %]
+                    </div>
+                    <div class="topic-click-to-edit-fields">
+                        <ul>
+                            [% FOREACH col_click IN click_to_edits %]
+                                <li><b>[% col_click.name | html %]:</b>
+                                    <span class="[% col_click.type %]">
+                                    [% render_datum(
+                                         col_click.presentation(
+                                           'datum_presentation', record.fields.${col_click.id}.presentation
+                                         ),
+                                         'semi' # show images but not full render for other fields
+                                       )
+                                    %]
+                                    </span>
+                                </li>
+                            [% END %]
+                        </ul>
+                    </div>
+                    [% click_to_edits = [] %]
+                [% END %]
+                </div>
+            </div>
+        </div>
+    </div>
+[% END %]
+
+[% IF NOT record.new_entry %]
+    [% cur_id = record.current_id %]
+[% END %]
+<form class="edit-form" method="post" enctype="multipart/form-data"
+    [% IF modal %]
+        action="/edit/[% cur_id %]" [%# This form also used for bulk actions %]
+        data-curval-id="[% modal %]"
+        data-current-id="[% cur_id %]"
+        data-modal-field-ids="[% modal_field_ids %]"
+        data-instance-id="[% oi %]"
+    [% END %]
+>
+    [% IF modal %]
+        <p role="alert" class="alert alert-danger" hidden></p>
+    [% END %]
     <div class="row">
-        <div class="col-md-6">
-            [% IF record.current_id %]
+        <div class="[% IF modal %]col-md-12[% ELSE %]col-md-6[% END %]">
+            [% IF cur_id %]
                 <input type="hidden" name="current_id" value="[% record.current_id %]">
             [% END %]
             [% IF child %]
                 <input type="hidden" name="child" value="[% child %]">
             [% END %]
-            [% trees = [] %]
             [% jscode = [] %]
             [% typeaheads = [] %]
             [% columns_done = {} %]
+            [% click_to_edits = [] %]
+
             [% FOREACH col IN all_columns %]
+                [% IF layout_edit.has_topics %]
+                    [% IF col.topic.id != previous_topic %]
+                        [% IF in_panel %]
+                            [% PROCESS panel_end %]
+                            [% in_panel = 0 %]
+                        [% END %]
+                        [% PROCESS panel_start %]
+                        [% in_panel = 1 %]
+                    [% END %]
+                [% END %]
                 [% PROCESS do_col %]
+                [% IF click_to_edit %]
+                    [% click_to_edits.push(col) %]
+                [% END %]
+                [% previous_topic = col.topic.id %]
+            [% END %]
+            [% IF layout_edit.has_topics %]
+                [% PROCESS panel_end %]
             [% END %]
         </div>
     </div>
-    <div style="height:55px;"></div>
-    <nav class="navbar navbar-default navbar-fixed-bottom" style="min-height:55px">
-        <div class="container">
-            [% IF record.has_previous_values %]
-                <button type="submit" name="submit" value="back" class="btn btn-default submit_button">Previous</button>
-            [% END %]
-            <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
-                [% IF record.has_next_values AND page != "bulk" %]Next[% ELSE %]Save[% END %]
-            </button>
-            <a href="/data" class="btn btn-default">Cancel</a>
+    [% IF modal %]
+        <p class="spinner" hidden>
+            Validating... <i class="fa fa-spinner fa-spin" style="font-size:24px"></i>
+        </p>
+        <button type="submit" class="btn btn-primary" id="curval-add">[% IF record.new_entry %]Add[% ELSE %]Update[% END %]</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+    [% ELSE %]
+        <div class="navbar navbar-default navbar-fixed-bottom edit-controls">
+            <div class="container">
+                <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
+                    [% IF record.has_next_values AND page != "bulk" %]Next[% ELSE %]Submit[% END %]
+                </button>
+                [% IF record.new_entry AND page != "bulk" %]
+                    <button type="submit" name="draft" value="submit" class="btn btn-primary submit_button">
+                        Save draft
+                    </button>
+                    [% IF record.is_draft %]
+                        <button type="submit" name="delete_draft" value="submit" class="btn btn-primary submit_button">
+                            Delete draft
+                        </button>
+                    [% END %]
+                [% END %]
+                <a href="/data" class="btn btn-default">Cancel</a>
+            </div>
         </div>
-    </nav>
+    [% END %]
 </form>
 
 <div class="modal fade" id="helptext_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -64,6 +185,18 @@
 [% WRAPPER modal_dialog.tt modal_id="readmore_modal" modal_large=1 %]
 [% END %]
 
+<div class="modal fade" id="curval_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+[% UNLESS modal %]
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
@@ -72,9 +205,10 @@
                 var parent = $(this).parents('.input_holder');
                 var cloned = parent.clone();
                 cloned.removeAttr('id').insertAfter(parent);
+                cloned.find(":text").val('');
                 cloned.find(".datepicker").datepicker({format: "[% config.dateformat_datepicker %]", autoclose: true});
             });
-            $('.removeme').click(function() {
+            $(document).on("click", ".removeme", function() {
                 var parent = $(this).parents('.input_holder');
                 if (parent.siblings(".input_holder").length > 0) {
                     parent.remove();
@@ -86,12 +220,108 @@
                 $(this).find('.modal-body').load(loadurl);
             });
 
-            $(document).on("mousedown", ".moreinfo", function(e) {
+            $(document).on("click", ".more-info", function(e) {
                 var record_id = $(e.target).data('record-id');
                 var m = $("#readmore_modal");
                 m.find('.modal-body').text('Loading...');
-                m.find('.modal-body').load('/record_body/' + record_id + '?oi=2');
+                m.find('.modal-body').load('/record_body/' + record_id);
                 m.modal();
+            });
+
+            $(document).on("mousedown", ".curval-modal", function(e) {
+                var layout_id = $(e.target).data('layout-id');
+                var instance_id = $(e.target).data('instance-id');
+                var current_id = $(e.target).data('current-id') || '';
+                var hidden = $(e.target).closest('.curval_item').find("input[name=field" + layout_id + "]");
+                var form_data = hidden.val();
+                var mode = hidden.length ? "edit" : "add";
+                var guid;
+
+                if (mode === "edit") {
+                    guid = hidden.data('guid');
+                    if (!guid) {
+                        guid = window.guid();
+                        hidden.attr('data-guid', guid);
+                    }
+                }
+
+                var m = $("#curval_modal");
+                m.find('.modal-body').text('Loading...');
+                m.find('.modal-body').load('/edit/' + current_id + '?include_draft&modal=' + layout_id + '&oi=' + instance_id + '&' + form_data, function() {
+                    if (mode === "edit") {
+                        m.find("form").data('guid', guid);
+                    }
+                    Linkspace.init(m);
+                });
+                m.on("focus", ".datepicker", function(e) {
+                    $(this).datepicker({format: "[% config.dateformat_datepicker %]", autoclose: true});
+                });
+                m.modal();
+            });
+
+            $("#curval_modal").on('submit', '.edit-form', function(e){
+                e.preventDefault();
+                var form = $(this);
+                var form_data = form.serialize();
+
+                form.addClass('edit-form--validating');
+                form.find(".alert").attr('hidden', '');
+
+                $.post(form.attr("action") + "?validate&include_draft&oi=" + form.data('instance-id'), form_data, function(data) {
+                    if (data.error === 0) {
+                        curvalModalValidationSucceeded(form, data.values);
+                    } else {
+                        var errorMessage = data.error === 1 ? data.message : "Oops! Something went wrong.";
+                        curvalModalValidationFailed(form, errorMessage);
+                    }
+                }, "json")
+                .fail(function(jqXHR) {
+                    var data = jqXHR.responseJSON;
+                    var errorMessage = data && data.error === 1 ? data.message : "Oops! Something went wrong.";
+                    curvalModalValidationFailed(form, errorMessage);
+                })
+                .always(function() {
+                    form.removeClass('edit-form--validating');
+                });
+            });
+
+            var curvalModalValidationSucceeded = function(form, values) {
+                var form_data = form.serialize();
+                var modal_field_ids = form.data("modal-field-ids");
+                var col_id = form.data( "curval-id" );
+                var instance_id = form.data( "instance-id" );
+                var current_id = form.data( "current-id" );
+                var guid = form.data("guid");
+                var hidden_input = $('<input>').attr({type: 'hidden', name: 'field' + col_id, value: form_data});
+
+                var row_cells = $('<tr class="curval_item">');
+                var text_values = jQuery.map(modal_field_ids, function(element) {
+                    var control = form.find('[data-column-id="' + element + '"]');
+                    var value = getFieldValues(control);
+                    value = values["field" + element];
+                    value = $('<div />').text(value).html();
+                    row_cells.append($('<td class="curval-inner-text">').append(value));
+                });
+                var links = $('<td><a class="curval-modal" style="cursor:pointer" data-layout-id="' + col_id + '" data-instance-id="' + instance_id + '">edit</a> | <a class="curval_remove" style="cursor:pointer">remove</a></td>');
+                row_cells.append(links.append(hidden_input));
+                if (guid) {
+                    var hidden = $('input[data-guid="' + guid + '"]').val(form_data);
+                    hidden.closest('.curval_item').replaceWith(row_cells);
+                }
+                else {
+                    $('#curval_list_' + col_id).find("tbody").append(row_cells);
+                }
+                $('.modal.in').modal('hide');
+            };
+
+            var curvalModalValidationFailed = function(form, errorMessage) {
+                form.find(".alert").text(errorMessage).removeAttr('hidden');
+                form.parents(".modal-content").get(0).scrollIntoView();
+                form.find('button[type=submit]').prop('disabled', false);
+            };
+
+            $(".curval_group").on('click', '.curval_remove', function() {
+                $(this).closest('.curval_item').remove();
             });
 
             $('.input-daterange input.from').each(function (){
@@ -102,11 +332,11 @@
                     }
                 });
             });
-            var confirmOnPageExit = function (e) 
+            var confirmOnPageExit = function (e)
             {
                 e = e || window.event;
                 var message = 'Please note that any changes will be lost.';
-                if (e) 
+                if (e)
                 {
                     e.returnValue = message;
                 }
@@ -186,7 +416,7 @@
                 var calculator_button = [
                     {
                         action:     'add',
-                        label:      '+',
+                        subvaluelabel:      '+',
                         keypress:   [ '+' ],
                         operation:  function (a, b) { return a + b; }
                     },
@@ -285,50 +515,23 @@
 
             setup_calculator('.intcalculator');
 
-            [% INCLUDE tree.tt %]
             [% jscode.join('') %]
-        }); 
+        });
 [% END %]
 [% END %]';
 </script>
+[% END %]
 
 [% BLOCK showcol %]
-    [% NEXT IF dispcol.type == "rag" OR dispcol.type == "calc" %]
     [% field = 'field' _ dispcol.id %]
     [% colid = dispcol.id %]
 
-    [%# Skip if field has a filter (which will alter its values) and the dependent values have not yet been completed %]
-
-    [%# When bulk updating, just show all fields %]
-    [% UNLESS page == "bulk" %]
-        [%# If field's value has already been written to, do not display field by add as hidden value instead %]
-        [% IF record.fields.$colid.value_previous_page OR record.fields.$colid.value_next_page %]
-            [% IF record.fields.$colid.html_form.size %]
-                [% FOREACH val IN record.fields.$colid.html_form %]
-                    <input type="hidden" name="[% field %]" value="[% val %]">
-                [% END %]
-            [% ELSE %]
-                [%# Ensure a value gets sent back to show this field was shown if nothing selected %]
-                <input type="hidden" name="[% field %]">
-            [% END %]
-            [% IF record.fields.$colid.value_previous_page %]
-                <input type="hidden" name="previous_fields" value="[% colid %]">
-            [% ELSE %]
-                <input type="hidden" name="next_fields" value="[% colid %]">
-            [% END %]
-            [% columns_done.$colid = 1 %]
-            [% NEXT %]
-        [% END %]
-
-        [% NEXT UNLESS record.fields.$colid.show_for_write %]
-    [% END %]
-
-    <input type="hidden" name="shown_fields" value="[% colid %]">
-
     [%# Skip field if it's an approval request but a value not needing approval %]
     [% NEXT IF page == "approval" AND NOT (record.fields.$colid.has_value)  %]
+
     [%# Skip if it's a child record and the value doesn't exist %]
-    [% NEXT IF record.parent_id AND NOT (record.fields.$colid.has_value) AND NOT user.permission.create_child %]
+    [% NEXT IF record.parent_id AND NOT dispcol.can_child AND NOT layout_edit.user_can("create_child") %]
+
     [%# Skip if it's a linked record and the value is linked %]
     [% IF record.linked_id AND dispcol.link_parent %]
         <input type="hidden" name="[% field %]">
@@ -356,14 +559,40 @@
               (record.current_id AND !dispcol.user_can("write_existing"))
               OR (!record.current_id AND !dispcol.user_can("write_new"))
           )
-       AND page != "approval" 
+       AND page != "approval"
     %]
         [% readonly = "readonly" %]
     [% ELSE %]
         [% readonly = "" %]
     [% END %]
 
-    <div class="form-group">
+    [% IF dispcol.display_field %]
+        [% dependency = dispcol %]
+        [% parent = dispcol.display_field %]
+        [% IF parent == last_column.id OR (indents.grep('^' _ parent _ '$')) %]
+            [% IF parent == last_column.id %]
+                [% indents.push(parent) %]
+            [% ELSE %]
+                [% WHILE indents.size AND parent != indents.last %]
+                    [% nothing = indents.pop %]
+                [% END %]
+            [% END %]
+            [% FOREACH i IN [1..indents.size] %]
+                <div class="row">
+                    <div class="col-md-11 col-md-offset-1">
+            [% END %]
+        [% END %]
+    [% ELSE %]
+        [% indents = [] %]
+        [% dependency = "" %]
+        [% parent = "" %]
+    [% END %]
+    <div class="form-group" data-column-id="[% dispcol.id %]" data-column-type="[% dispcol.type %]"
+        [% dependency && 'data-has-dependency="' _ parent _ '"' %]
+        [% (parent && dependency) && 'data-dependency="' _ dependency.regex_b64 _ '"' %]
+        [% dispcol.multivalue && 'data-is-multivalue="true"' %]
+        [% dispcol.readonly && 'data-is-readonly="true"' %]
+    >
         [% label = dispcol.name | html_entity %]
         [% IF dispcol.optional OR page == "bulk" %]
             [% label_style = 'style="font-weight:normal !important"' %]
@@ -398,22 +627,14 @@
             [% END %]
             [% label = label _ label_add %]
         [% END %]
-        [% IF child AND user.permission.create_child %]
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" name="child_inc" value="[% dispcol.id %]"
-                        [% IF record.current_id AND record.fields.$colid.child_unique %]checked[% END %]
-                    > <span [% label_style %]>[% label %]</span> (tick for own value, untick to inherit)
-                </label>
-            </div>
-        [% ELSIF page == "bulk" %]
+        [% IF page == "bulk" %]
             <div class="checkbox">
                 <label>
                     <input type="checkbox" name="bulk_inc_[% dispcol.id %]" value="1"
                     > <span [% label_style %]>[% label %]</span>
                 </label>
             </div>
-        [% ELSE %]
+        [% ELSIF (dispcol.type != "curval" && dispcol.type != "enum") || dispcol.value_selector == "typeahead" || dispcol.value_selector == "noshow" %]
             <label for="[% dispcol.id %]" [% label_style %]>
                 [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
             </label>
@@ -437,103 +658,52 @@
         [% END %]
     </div>
 
+    [% FOREACH i IN [1..indents.size] %]
+        </div>
+    </div>
+    [% END %]
+
+    [% last_column = dispcol %]
+
     [%# Prevent recursive loops %]
     [% columns_done.$colid = 1 %]
 [% END %]
 
 [% BLOCK print_field %]
-    <div class="input_holder">
+    <div class="input_holder" >
         <div class="row">
             <div class="[% IF dispcol.multivalue AND dispcol.has_multivalue_plus %]col-md-10[% ELSE %]col-md-12[% END %]">
                 [% IF dispcol.type == "enum" %]
-                    <select class="form-control [% IF dispcol.multivalue %]selectpicker [% END %]" name="[% field %]" id="[% dispcol.id %]" [% IF readonly %]disabled[% END %] [% IF dispcol.multivalue %]multiple[% END %]>
-                        [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
-                            [% IF !dispcol.multivalue %]
-                                <option></option>
-                            [% END %]
-                        [% END %]
-                        [% IF dispcol.ordering == "desc" %]
-                            [% enumvals = dispcol.enumvals.sort('value').reverse %]
-                        [% ELSIF dispcol.ordering == "asc" %]
-                            [% enumvals = dispcol.enumvals.sort('value') %]
-                        [% ELSE %]
-                            [% enumvals = dispcol.enumvals %]
-                        [% END %]
-                        [% is_selected = 0 %]
-                        [% FOREACH enumval IN enumvals %]
-                            <option value="[% enumval.id %]" [% IF editvalue.id_hash.${enumval.id} %][% is_selected = 1 %]selected[% END %]>[% enumval.value | html_entity %]</option>
-                        [% END %]
-                        [% IF editvalue.id AND NOT is_selected AND !dispcol.multivalue %]
-                            <option value="[% editvalue.id %]" selected>[% editvalue.html %]</option>
-                        [% END %]
-                    </select>
+                    [% PROCESS enum_column column = dispcol %]
                 [% ELSIF dispcol.type == "curval" %]
-                    [% IF dispcol.typeahead %]
-                        <input type="hidden" name="[% field %]" id="[% dispcol.id %]_value" value="[% editvalue.id %]">
-                        <input type="text" class="form-control" id="[% dispcol.id %]" autocomplete="off"
-                            name="[% field %]_typeahead" value="[% IF record %][% editvalue.html %][% END %]" [% readonly %] >
-                        [% typeaheads.push({id = dispcol.id, field = field }) %]
-                    [% ELSE %]
-                        [% IF dispcol.multivalue %]
-                            [%# Ensure a value gets sent back to show this field was shown if nothing selected %]
-                            <input type="hidden" name="[% field %]">
-                        [% END %]
-                        <select class="form-control [% IF dispcol.has_subvalues %]selectpicker [% END %]"
-                            name="[% field %]" id="[% dispcol.id %]" [% IF readonly %]disabled[% END %]
-                            [% IF dispcol.has_subvalues %]
-                                data-multiple-separator="; " data-window-padding="70"
-                                [% IF dispcol.multivalue %]multiple[% END %]
-                            [% END %]>
-                            [% IF !dispcol.multivalue %]
-                                [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
-                                    <option></option>
-                                [% END %]
-                            [% END %]
-                            [% IF page == "bulk" %]
-                                [% enumvals = dispcol.all_values %]
-                            [% ELSE %]
-                                [% enumvals = dispcol.filtered_values %]
-                            [% END %]
-                            [% FOREACH enumval IN enumvals %]
-                                [% UNLESS enumval.deleted %]
-                                    <option value="[% enumval.id %]" [% IF editvalue.id_hash.${enumval.id} %]selected[% END %]
-                                        [% IF dispcol.has_subvalues %]
-                                            title="[% enumval.mainvalue | html_entity %]" [%# only show main title in selection %]
-                                            [%# custom content for each option in order to show tooltip text %]
-                                            data-content="<span title='[% enumval.value | html_entity %]'>
-                                                [% enumval.mainvalue | html_entity %]
-                                                <small class='text-muted'>[% enumval.subvalue | html_entity %]</small>
-                                                <span class='moreinfo' data-record-id='[% enumval.id %]'>Read more...</span>
-                                            </span>"
-                                        [% END %]
-                                    >
-                                    [% enumval.value | html_entity %]
-                                    </option>
-                                [% END %]
-                            [% END %]
-                        </select>
-                    [% END %]
+                    [% PROCESS curval_column column = dispcol %]
                 [% ELSIF dispcol.type == "tree" %]
-                    [% FOREACH val IN editvalue.ids %]
-                        <input type="hidden" name="[% field %]" class="[% field %]" value="[% val %]">
-                    [% END %]
                     [% IF readonly %]
                         <div class="form-group">
                             [% editvalue.html %]
                         </div>
+                        [%# Send values back, otherwise controller will think blank values submitted %]
+                        [% FOREACH val IN editvalue.ids %]
+                            <input type="hidden" name="[% field %]" value="[% val %]">
+                        [% END %]
                     [% ELSE %]
-                        [% trees.push({
-                            id = dispcol.id,
-                            end_node_only = dispcol.end_node_only,
-                            value = editvalue,
-                            field = field,
-                            multivalue = dispcol.multivalue
-                        }) %]
                         <div class="form-group">
+                            [% # TODO: These anchors need to become buttons %]
                             <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('open_all');">Expand all</a> |
                             <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('close_all');">Collapse all</a> |
                             <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('refresh');">Reload</a>
-                            <div id="jstree[% dispcol.id %]"></div>
+                            <div class="tree-widget-container"
+                                data-field="[% field %]"
+                                [% dispcol.end_node_only && 'data-end-node-only="true"' %]
+                                data-ids-as-params="[% editvalue.ids_as_params %]"
+                                id="jstree[% dispcol.id %]"
+                            ></div>
+                            [% IF NOT editvalue.ids.size %]
+                                <input type="hidden" name="[% field %]" class="selected-tree-value" value="">
+                            [% END %]
+                            [% FOREACH val IN editvalue.ids %]
+                                <input type="hidden" name="[% field %]" class="selected-tree-value" value="[% val %]">
+                            [% END %]
                         </div>
                     [% END %]
                 [% ELSIF dispcol.type == "person" %]
@@ -577,16 +747,16 @@
                         [% END %]
                     [% END %]
                 [% ELSIF dispcol.type == "daterange" %]
-                    [% IF dispcol.show_datepicker %][% datepicker = "datepicker" %][% ELSE %][% datepicker = "" %][% END %]
+                    [% IF dispcol.show_datepicker and !readonly %][% datepicker = "datepicker" %][% ELSE %][% datepicker = "" %][% END %]
                     <div class="input-group input-daterange">
-                            <input type="text" name="[% field %]" class="form-control [% datepicker %] from datepicker[% dispcol.id %]" value="[% editvalue.html_form.shift | html_entity %]" 
+                            <input type="text" name="[% field %]" class="form-control [% datepicker %] from datepicker[% dispcol.id %]" value="[% editvalue.html_form.shift | html_entity %]"
                                 [% IF NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %] [% readonly %]>
                             <span class="input-group-addon">to</span>
                             <input type="text" name="[% field %]" class="form-control [% datepicker %] to datepicker[% dispcol.id %]" value="[% editvalue.html_form.shift | html_entity %]"
                                 [% IF NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %] [% readonly %]>
                     </div>
                 [% ELSE %]
-                    [% IF dispcol.type == "date" AND dispcol.show_datepicker %]
+                    [% IF dispcol.type == "date" AND dispcol.show_datepicker AND !readonly %]
                         [% class = "form-control datepicker" %]
                     [% ELSIF dispcol.type == "intgr" AND editvalue.value.defined %]
                         [% class = "form-control intcalculator" %]
@@ -594,18 +764,18 @@
                         [% class = "form-control" %]
                     [% END %]
                     [% IF dispcol.textbox %]
-                        <textarea [%readonly %] class="form-control" id="[% dispcol.id %]" name="[% field %]" rows="10">[% IF record %][% editvalue.html %][% END %]</textarea>
+                        <textarea [%readonly %] class="form-control" id="[% dispcol.id %]" name="[% field %]" rows="10">[% editvalue.html_form.shift | html %]</textarea>
                     [% ELSE %]
                         <input type="text" class="[% class %]" id="[% dispcol.id %]"
-                            name="[% field %]" value="[% IF record %][% editvalue.html %][% END %]" [% readonly %]
+                            name="[% field %]" value="[% editvalue.html_form.shift | html %]" [% readonly %]
                             [% IF dispcol.type == "date" AND NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %]>
                     [% END %]
                 [% END %]
             </div>
             [% IF dispcol.multivalue AND dispcol.has_multivalue_plus %]
-                <div class="col-md-2">
-                    <a class="btn btn-primary btn-sm"><i class="fa fa-lg fa-plus cloneme" style="cursor: pointer"></i></a>
-                    <a class="btn btn-primary btn-sm"><i class="fa fa-lg fa-minus removeme" style="cursor: pointer"></i></a>
+                <div class="col-md-2" style="padding-left:0">
+                    <a class="btn btn-primary btn-sm cloneme"><i class="fa fa-lg fa-plus" style="cursor: pointer"></i></a>
+                    <a class="btn btn-primary btn-sm removeme"><i class="fa fa-lg fa-minus" style="cursor: pointer"></i></a>
                 </div>
             [% END %]
         </div>
@@ -623,78 +793,226 @@
 
     [%# First display the actual column, only if it doesn't depend on others,
         or it's meant to be displayed because we're within the parent %]
-    [% IF !columns_done.$cid AND col.display_field == parent.id  OR NOT col.display_field %]
+    [% IF !columns_done.$cid %]
         [% dispcol = col %]
         [% PROCESS showcol %]
     [% END %]
 
-    [%# Then add all the columns that depend on it. Put them in a JS code array,
-        which gets output at the end of this templte. Each of these is in its own div %]
-    [% IF col.display_depended_by.size %]
-        [% FOREACH depends IN dispcol.display_depended_by %]
-            [% divid = "depend" _ dispcol.id _ "_" _ depends.id %]
-            [% IF col.multiselect AND (col.type == "enum" OR col.type == "curval") %]
-                [% js_valget = '$(this).val()' %]
-            [% ELSIF col.type == "enum" || col.type == "person" || col.type == "curval" %]
-                [% js_valget = '$("option:selected", $(this)).text()' %]
-            [% ELSE %]
-                [% js_valget = '$(this).val()' %]
-            [% END %]
-            [% jscode.push('
-                var data = base64.decode("' _ depends.regex_b64 _ '");
-                var regex   = new RegExp("^" + data + "$");
-                var dataid  = "change" + ' _ col.id _ ';
-                var dataval = $("body").data(dataid);
-                if (!dataval) {
-                    $("body").data(dataid, []);
-                };
-                $("body").data(dataid).push( {
-                    re: regex,
-                    divid: "' _ divid _'"
-                });
-            ') %]
+[% END %]
 
+[% BLOCK curval_typeahead_column %]
+    <input type="hidden" name="[% field %]" id="[% dispcol.id %]_value" value="[% editvalue.id %]">
+    <input type="text" class="form-control" id="[% dispcol.id %]" autocomplete="off"
+        name="[% field %]_typeahead" value="[% IF record %][% editvalue.html %][% END %]" [% readonly %] >
+    [% typeaheads.push({id = dispcol.id, field = field }) %]
+[% END %]
+
+[% BLOCK singlevalue_column %]
+    <div class="select-widget single"
+        [% IF column.has_subvals %]
+            data-field="[% field %]"
+            data-filter-endpoint="[% "/api/field/values/" _ column.id %]"
+            data-filter-fields='[% column.data_filter_fields %]'
         [% END %]
-            [% UNLESS col.type == "tree" %]
-                [% jscode.push('
-                    $("#' _ col.id  _ '").change( function () {
-                        var val = ' _ js_valget _ ';
-                        if (!val) {
-                            val = "";
-                        }
-                        var dataval = $("body").data("change" + ' _ col.id _ ');
-                        for (var i = 0; i < dataval.length; i++) {
-                            var element = dataval[i];
-                            var re = element.re;
-                            var divid = element.divid;
-                            if (re.test(val)) {
-                                $("#" + divid).show()
-                            } else {
-                                $("#" + divid).hide()
-                            }
-                        };
-                    });
-                ') %]
-            [% END %]
-
-        <div class="row">
-            <div class="col-md-11 col-md-offset-1">
-                [% IF col.type == "tree" %]
-                    [% textval = record.fields.$cid.full_path  %]
-                [% ELSE %]
-                    [% textval = record.fields.$cid.as_string  %]
+        >
+        <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
+        <div class="select-widget-dropdown">
+            <div class="form-group form-control" [% readonly %] >
+                <ul class="current">
+                    [% checked = !editvalue.id %]
+                    [% value_id = field _ '__blank' %]
+                    <li [% !checked && 'hidden' %] data-list-item="[% value_id %]" class="current__blank">blank</li>
+                [% FOREACH value IN values %]
+                    [% NEXT IF value.deleted %]
+                    [% checked = editvalue.id_hash.${value.id} %]
+                    [% value_id = field _ '_' _ value.id %]
+                    <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">[% value.value | html_entity %]</li>
                 [% END %]
-                [% FOREACH c IN col.display_depended_by %]
-                    [% FOREACH cc IN all_columns %]
-                        [% IF cc.id == c.id %]
-                            <div id="depend[% col.id %]_[% cc.id %]" [% UNLESS textval.match(c.regex) %]style="display:none" [% END %]>
-                                [% INCLUDE do_col parent = col col = cc %]
-                            </div>
-                            [% jscode.push('$("#' _ col.id _ '").trigger("change");') %]
-                        [% END %]
-                    [% END %]
+                </ul>
+                [% IF !readonly %]
+                    <button type="button" aria-controls="[% field %]_available_values"
+                            aria-expanded="false" aria-describedby="[% field %]_label">
+                        <span class="expanded glyphicon glyphicon-chevron-up" aria-label="Confirm"></span>
+                        <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
+                    </button>
                 [% END %]
             </div>
+            <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values">
+                [% IF values.size >= 10 %]
+                    <li class="search">
+                        <input type="search" class="form-control-search">
+                        <span hidden class="form-control-search__clear">&times;</span>
+                    </li>
+                [% END %]
+                <li class="spinner" hidden>
+                    <i class="fa fa-spinner fa-spin" style="font-size:24px"></i>
+                </li>
+                <li class="answer answer--blank">
+                    <span class="control">
+                        [% checked = !editvalue.id %]
+                        [% value_id = field _ '__blank' %]
+                        <label id="blank_label" for="[% value_id %]">
+                            <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="" class="visually-hidden">
+                            <span>blank</span>
+                        </label>
+                    </span>
+                </li>
+            [% FOREACH value IN values %]
+                [% NEXT IF value.deleted %]
+                [% checked = editvalue.id_hash.${value.id} %]
+                [% value_id = field _ '_' _ value.id %]
+                <li class="answer">
+                    <span class="control">
+                        <label id="[% value_id %]_label" for="[% value_id %]">
+                            <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="[% value.id %]" class="visually-hidden">
+                            <span>[% value.value | html_entity %]</span>
+                        </label>
+                    </span>
+                    [% IF details %]
+                    <span class="details">
+                        <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">Details</button>
+                    </span>
+                    [% END %]
+                </li>
+            [% END %]
+            </ul>
         </div>
-    [% END %]
+    </div>
 [% END %]
+
+[% BLOCK curval_add_button %]
+    <p><button class="btn btn-primary curval-modal" type="button"
+        data-instance-id="[% dispcol.refers_to_instance_id %]" data-layout-id="[% dispcol.id %]">Add...
+    </button></p>
+[% END %]
+
+[% BLOCK curval_noshow %]
+    <table class="data-table table table-striped curval_group" id="curval_list_[% dispcol.id %]">
+        <tbody>
+            [% FOREACH val IN editvalue.html_form %]
+                <tr class="curval_item">
+                    [% FOREACH v IN val.values %]
+                        <td class="curval-inner-text">[% v | html %]</td>
+                    [% END %]
+                    <td>
+                        <input type="hidden" id="curval-current-id-[% val.id %]" name="[% field %]" value="[% val.as_query OR val.id %]">
+                        <a class="curval-modal"
+                            data-current-id="[% val.id %]"
+                            data-instance-id="[% dispcol.refers_to_instance_id %]" data-layout-id="[% dispcol.id %]" style='cursor:pointer'
+                            >edit</a>
+                        |
+                        <a class="curval_remove" style='cursor:pointer'>remove</a>
+                    </td>
+                </tr>
+            [% END %]
+        </tbody>
+    </table>
+[% END %]
+
+[%
+    BLOCK curval_column;
+        required = !(column.optional OR page == "bulk");
+        details = 1;
+
+        IF page == "bulk";
+            values = column.all_values;
+        ELSE;
+            values = column.filtered_values;
+        END;
+
+        IF column.value_selector == "typeahead";
+            PROCESS curval_typeahead_column;
+        ELSIF dispcol.value_selector == "noshow";
+            PROCESS curval_noshow;
+            %] <input type="hidden" name="[% field %]"> [%
+        ELSIF column.multivalue;
+            PROCESS multivalue_column;
+        ELSE;
+            # Ensure a blank value is sent if nothing is selected
+            %] <input type="hidden" name="[% field %]"> [%
+            PROCESS singlevalue_column;
+        END;
+
+        IF column.show_add;
+            PROCESS curval_add_button;
+        END;
+
+    END;
+%]
+
+[% BLOCK multivalue_column %]
+    <div class="select-widget multi"
+        [% IF column.has_subvals %]
+            data-field="[% field %]"
+            data-filter-endpoint="[% "/api/field/values/" _ column.id %]"
+            data-filter-fields='[% column.data_filter_fields %]'
+        [% END %]
+        >
+        <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
+        <div class="select-widget-dropdown">
+            <div class="form-group form-control" [% readonly %]>
+                <ul class="current">
+                    <li class="none-selected">blank</li>
+                [% FOREACH value IN values %]
+                    [% NEXT IF value.deleted %]
+                    [% checked = editvalue.id_hash.${value.id} %]
+                    [% value_id = field _ '_' _ value.id %]
+                    <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">[% value.value | html_entity %]</li>
+                [% END %]
+                </ul>
+                [% IF !readonly %]
+                    <button type="button" aria-controls="[% field %]_available_values"
+                                aria-expanded="false" aria-describedby="[% field %]_label">
+                        <span class="expanded glyphicon glyphicon-chevron-up" aria-label="Confirm"></span>
+                        <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
+                    </button>
+                [% END %]
+            </div>
+            <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values">
+                [% IF values.size >= 10 %]
+                    <li class="search">
+                        <input type="search" class="form-control-search">
+                        <span hidden class="form-control-search__clear">&times;</span>
+                    </li>
+                [% END %]
+                <li class="spinner" hidden>
+                    <i class="fa fa-spinner fa-spin" style="font-size:24px"></i>
+                </li>
+            [% FOREACH value IN values %]
+                [% NEXT IF value.deleted %]
+                [% checked = editvalue.id_hash.${value.id} %]
+                [% value_id = field _ '_' _ value.id %]
+                <li class="answer">
+                    <span class="control">
+                        <label id="[% value_id %]_label" for="[% value_id %]">
+                            <input id="[% value_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %] value="[% value.id %]">
+                            <span>[% value.value | html_entity %]</span>
+                        </label>
+                    </span>
+                    [% IF details %]
+                    <span class="details">
+                        <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">Details</button>
+                    </span>
+                    [% END %]
+                </li>
+            [% END %]
+            </ul>
+        </div>
+    </div>
+[% END %]
+
+[% BLOCK enum_column;
+
+    required = !(dispcol.optional OR page == "bulk");
+    details = 0;
+
+    values = dispcol.enumvals;
+
+    IF dispcol.multivalue;
+        PROCESS multivalue_column;
+    ELSE;
+        # Ensure a blank value is sent if nothing is selected
+        %] <input type="hidden" name="[% field %]"> [%
+        PROCESS singlevalue_column;
+    END;
+END %]

@@ -50,7 +50,7 @@ has id => (
         my $self = shift;
         my ($alert) = $self->schema->resultset('Alert')->search({
             view_id => $self->view_id,
-            user_id => $self->user->{id},
+            user_id => $self->user->id,
         });
         $alert->id;
     },
@@ -100,7 +100,7 @@ has all => (
         my $self = shift;
 
         my @alerts_rs = $self->schema->resultset('Alert')->search({
-            user_id => $self->user->{id},
+            user_id => $self->user->id,
         })->all;
 
         my $alerts;
@@ -157,8 +157,6 @@ sub update_cache
         }, {
             prefetch => 'user'
         })->all : ($self->user);
-    # @users contains hashref or DBIx class object, convert
-    @users = map { ref $_ && ref $_ ne 'HASH' ? +{ id => $_->user->id, value => $_->user->value } : $_ } @users;
 
     foreach my $user (@users)
     {
@@ -176,7 +174,7 @@ sub update_cache
             view   => $view,
         );
 
-        my $user_id = $view->has_curuser ? $u->{id} : undef;
+        my $user_id = $view->has_curuser ? $u->id : undef;
 
         my %exists;
         # For each item in this view, see if it exists in the cache. If it doesn't,
@@ -211,7 +209,7 @@ sub update_cache
     }
 
     # Now delete any alerts that should not be there that are applicable to our update
-    if ($view->has_curuser && !$options{all_users})
+    if ($view->has_curuser)
     {
         # Possibly just changed to curuser, cleanup any
         # undef user rows from previous alert
@@ -219,28 +217,21 @@ sub update_cache
             view_id => $view->id,
             user_id => undef,
         })->delete;
+        # Cleanup any user_id alerts for users that no longer have this alert
+        if ($options{all_users})
+        {
+            $self->schema->resultset('AlertCache')->search({
+                view_id => $view->id,
+                user_id => [ '-and', [map { +{ '!=' => $_->id } } @users] ],
+            })->delete;
+        }
     }
     else {
-        # Cleanup any user_id alerts for users that no longer have this alert
+        # Cleanup specific user_id alerts for (now) non-curuser alert
         $self->schema->resultset('AlertCache')->search({
             view_id => $view->id,
-            user_id => [ '-and', [map { +{ '!=' => $_->{id} } } @users] ],
+            user_id => { '!=' => undef },
         })->delete;
-        if ($view->has_curuser)
-        {
-            # Cleanup null user_id alerts for curuser alert
-            $self->schema->resultset('AlertCache')->search({
-                view_id => $view->id,
-                user_id => undef,
-            })->delete;
-        }
-        else {
-            # Cleanup specific user_id alerts for (now) non-curuser alert
-            $self->schema->resultset('AlertCache')->search({
-                view_id => $view->id,
-                user_id => { '!=' => undef },
-            })->delete;
-        }
     }
 
     $guard->commit;
@@ -252,7 +243,7 @@ sub write
 
     my ($alert) = $self->schema->resultset('Alert')->search({
         view_id => $self->view_id,
-        user_id => $self->user->{id},
+        user_id => $self->user->id,
     });
 
     if ($alert)
@@ -279,7 +270,7 @@ sub write
 
         my $alert = $self->schema->resultset('Alert')->create({
             view_id   => $self->view_id,
-            user_id   => $self->user->{id},
+            user_id   => $self->user->id,
             frequency => $self->frequency,
         });
         $self->_set_id($alert->id);

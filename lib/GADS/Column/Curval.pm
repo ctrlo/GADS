@@ -27,6 +27,124 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column::Curcommon';
 
+has '+option_names' => (
+    default => sub { [qw/override_permissions value_selector show_add delete_not_used/] },
+);
+
+has value_selector => (
+    is      => 'rw',
+    isa     => sub { $_[0] =~ /^(typeahead|dropdown|noshow)$/ or panic "Invalid value_selector: $_[0]" },
+    lazy    => 1,
+    coerce => sub { $_[0] || 'dropdown' },
+    builder => sub {
+        my $self = shift;
+        my $default = $self->_rset && $self->_rset->typeahead ? 'typeahead' : 'dropdown';
+        return $default unless $self->has_options;
+        exists $self->options->{value_selector} ? $self->options->{value_selector} : $default;
+    },
+    trigger => sub { $_[0]->clear_options },
+);
+
+has show_add => (
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    builder => sub {
+        my $self = shift;
+        return 0 unless $self->has_options;
+        $self->options->{show_add};
+    },
+    trigger => sub {
+        my ($self, $value) = @_;
+        $self->multivalue(1) if $value && $self->value_selector eq 'noshow';
+        $self->clear_options;
+    },
+);
+
+has delete_not_used => (
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    builder => sub {
+        my $self = shift;
+        return 0 unless $self->has_options;
+        $self->options->{delete_not_used};
+    },
+    trigger => sub { $_[0]->clear_options },
+);
+
+has set_filter => (
+    is => 'rw',
+);
+
+has '+filter' => (
+    builder => sub {
+        my $self = shift;
+        GADS::Filter->new(
+            as_json => $self->set_filter,
+            layout  => $self->layout_parent,
+        )
+    },
+);
+
+after clear => sub {
+    my $self = shift;
+    $self->clear_has_subvals;
+    $self->clear_subvals_input_required;
+    $self->clear_data_filter_fields;
+};
+
+# Whether this field has subbed in values from other parts of the record in its
+# filter
+has has_subvals => (
+    is      => 'lazy',
+    isa     => Bool,
+    clearer => 1,
+);
+
+sub _build_has_subvals
+{   my $self = shift;
+    !! @{$self->filter->columns_in_subs};
+}
+
+# The fields that we need input by the user for this filtered set of values
+has subvals_input_required => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_subvals_input_required
+{   my $self = shift;
+    my @cols = @{$self->filter->columns_in_subs};
+    foreach my $col (@cols)
+    {
+        push @cols, $self->layout->column($_)
+            foreach @{$col->depends_on};
+    }
+    # Calc values do not need written to by user
+    @cols = grep { $_->userinput } @cols;
+    # Remove duplicates
+    my %needed;
+    $needed{$_->id} = $_ foreach @cols;
+    @cols = values %needed;
+    return \@cols;
+}
+
+# The string/array that will be used in the edit page to specify the array of
+# fields in a curval filter
+has data_filter_fields => (
+    is      => 'lazy',
+    isa     => Str,
+    clearer => 1,
+);
+
+sub _build_data_filter_fields
+{   my $self = shift;
+    '[' . (join ', ', map { '"'.$_->field.'"' } @{$self->subvals_input_required}) . ']';
+}
+
 sub _build_refers_to_instance_id
 {   my $self = shift;
     my ($random) = $self->schema->resultset('CurvalField')->search({
@@ -100,11 +218,13 @@ sub write_special
 
     # Update typeahead option
     $rset->update({
-        typeahead   => $self->typeahead,
+        typeahead   => 0, # No longer used, replaced with value_selector
     });
 
     # Clear what may be cached values that should be updated after write
     $self->clear;
+
+    return ();
 };
 
 sub validate
@@ -142,7 +262,7 @@ sub validate_search
 }
 
 sub fetch_multivalues
-{   my ($self, $record_ids) = @_;
+{   my ($self, $record_ids, %options) = @_;
 
     my $m_rs = $self->schema->resultset('Curval')->search({
         'me.record_id'      => $record_ids,
@@ -151,11 +271,13 @@ sub fetch_multivalues
     $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my @values = $m_rs->all;
     my $records = GADS::Records->new(
-        user              => $self->override_permissions ? undef : $self->layout->user,
-        layout            => $self->layout_parent,
-        schema            => $self->schema,
-        columns           => $self->curval_field_ids_retrieve,
-        limit_current_ids => [map { $_->{value} } @values],
+        user                 => $self->override_permissions ? undef : $self->layout->user,
+        layout               => $self->layout_parent,
+        schema               => $self->schema,
+        columns              => $self->curval_field_ids_retrieve(all_fields => $options{curcommon_all_fields}),
+        limit_current_ids    => [map { $_->{value} } @values],
+        is_draft             => $options{is_draft},
+        curcommon_all_fields => $options{curcomon_all_fields},
     );
     my %retrieved;
     while (my $record = $records->single)

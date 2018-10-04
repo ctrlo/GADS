@@ -162,6 +162,12 @@ __PACKAGE__->table("layout");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 topic_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -195,6 +201,8 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "multivalue",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "can_child",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "description",
   { data_type => "text", is_nullable => 1 },
   "helptext",
@@ -213,6 +221,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "filter",
   { data_type => "text", is_nullable => 1 },
+  "topic_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -516,6 +526,26 @@ __PACKAGE__->belongs_to(
   "instance",
   "GADS::Schema::Result::Instance",
   { id => "instance_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 topic
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Topic>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "topic",
+  "GADS::Schema::Result::Topic",
+  { id => "topic_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",

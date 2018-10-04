@@ -1,0 +1,59 @@
+<h2>Manage deleted records</h2>
+<p>
+    This page contains all records that have been deleted in the table &quot;[%
+    instance_name | html %]&quot;. The records listed here are still contained
+    in the database, but are otherwise unaccessible.  Use this page to view the
+    deleted records, restore them, or permanently delete them.
+</p>
+[% IF records.size %]
+    <form role="form" method="post">
+        <table class="table table-striped">
+            <tr>
+                <th><input type="checkbox" id="selectall" title="Select/deselect all"></th>
+                <th>ID</th>
+                <th>Deleted</th>
+            </tr>
+            [% FOREACH record IN records %]
+                <tr>
+                    <td><input class="record_selected" type="checkbox" name="record_selected" value="[% record.current_id %]"></td>
+                    <td><a href="/purge/[% record.current_id %]">[% record.current_id %]</a></td>
+                    <td>[% record.deleted %] by [% record.deletedby | html %]</td>
+                </tr>
+            [% END %]
+        </table>
+        [% WRAPPER modal_dialog.tt
+            modal_id="purge"
+            modal_action_text="Confirm"
+            modal_heading="Confirm permanent deletion"
+            modal_with_cancel_button=1
+        %]
+            <p>Are you sure you want to permanently delete the selected records?</p>
+        [% END %]
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#purge">Purge</button>
+        [% WRAPPER modal_dialog.tt
+            modal_id="restore"
+            modal_action_text="Confirm"
+            modal_heading="Confirm record restore"
+            modal_with_cancel_button=1
+        %]
+            <p>Are you sure you want to undelete the selected records?</p>
+        [% END %]
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#restore">Undelete</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+    </form>
+[% ELSE %]
+    <div role="alert" class="alert alert-info">There are no deleted records in this table</div>
+[% END %]
+
+
+<script type="text/javascript">
+    var jscode='[% FILTER remove('[\n\r]+') %]
+        [% FILTER replace('\'', '\\\'') %]
+        $(document).ready(function () {
+            $('#selectall').click(function() {
+                $('.record_selected').prop('checked', this.checked);
+            });
+        }); 
+[% END %]
+[% END %]';
+</script>

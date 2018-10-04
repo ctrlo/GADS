@@ -17,7 +17,9 @@ templates['timelineitem'] = template({"1":function(container,depth0,helpers,part
     + ((stack1 = helpers.each.call(alias1,(depth0 != null ? depth0.values : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
     + "        </ul>\n        <a class = \"moreinfo\" data-record-id=\""
     + alias4(((helper = (helper = helpers.current_id || (depth0 != null ? depth0.current_id : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"current_id","hash":{},"data":data}) : helper)))
-    + "\">Read more...</a>\n    </div>\n</div>\n<div class=\"vis-item-shown-content\">\n    "
+    + "\">Read more</a> |\n        <a href=\"/edit/"
+    + alias4(((helper = (helper = helpers.current_id || (depth0 != null ? depth0.current_id : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"current_id","hash":{},"data":data}) : helper)))
+    + "\">Edit item</a>\n    </div>\n</div>\n<div class=\"vis-item-shown-content\">\n    "
     + alias4(((helper = (helper = helpers.content || (depth0 != null ? depth0.content : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"content","hash":{},"data":data}) : helper)))
     + "\n</div>\n";
 },"useData":true});

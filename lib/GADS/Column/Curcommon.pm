@@ -28,19 +28,6 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
-after 'build_values' => sub {
-    my ($self, $original) = @_;
-
-    if ($original->{typeahead})
-    {
-        $self->typeahead(1);
-    }
-};
-
-has '+option_names' => (
-    default => sub { [qw/override_permissions/] },
-);
-
 has '+is_curcommon' => (
     default => 1,
 );
@@ -66,8 +53,12 @@ sub clear
     $self->clear_all_values;
     $self->clear_view;
     $self->clear_layout_parent;
-    $self->clear_curval_field_ids_retrieve;
-    $self->clear_curval_fields_retrieve;
+    $self->clear_curval_field_ids_all;
+    $self->clear_curval_fields_all;
+    $self->clear_curval_field_ids;
+    $self->clear_curval_fields;
+    $self->clear_curval_field_ids_index;
+    $self->clear_curval_fields_multivalue;
 }
 
 has refers_to_instance_id => (
@@ -76,14 +67,6 @@ has refers_to_instance_id => (
     lazy    => 1,
     coerce  => sub { $_[0] || undef },
     builder => '_build_refers_to_instance_id',
-);
-
-has typeahead => (
-    is      => 'rw',
-    isa     => Bool,
-    lazy    => 1,
-    default => 0,
-    coerce  => sub { $_[0] ? 1 : 0 },
 );
 
 has layout_parent => (
@@ -107,20 +90,9 @@ has '+fixedvals' => (
     default => 1,
 );
 
-sub _build_join
-{   my $self = shift;
-    $self->make_join(map { $_->join } @{$self->curval_fields_retrieve});
-}
-
-# Tell the column that it needs to include all fields when selecting from
-# the sheet referred to. This can be called at any time, so we need to clear
-# existing properties such as joins which will then be reuilt
-sub build_all_columns
-{   my $self = shift;
-    $self->_set_flags({ all_columns => 1 });
-    $self->clear_curval_field_ids_retrieve;
-    $self->clear_curval_fields_retrieve;
-    $self->clear_join;
+sub tjoin
+{   my ($self, %options) = @_;
+    $self->make_join(map { $_->tjoin } @{$self->curval_fields_retrieve(%options)});
 }
 
 has curval_field_ids => (
@@ -149,6 +121,11 @@ has curval_fields => (
     clearer => 1,
 );
 
+sub _build_curval_fields
+{   my $self = shift;
+    [ map { $self->layout_parent->column($_) } @{$self->curval_field_ids} ];
+}
+
 has curval_field_ids_index => (
     is      => 'lazy',
     isa     => HashRef,
@@ -176,43 +153,46 @@ sub _build_curval_fields_multivalue
 
 # The fields to actually retrieve. This will either be the same as
 # the standard curval_fields, or will include additional fields that
-# will be stored for calculated fields
-has curval_field_ids_retrieve => (
+# will be stored for calculated fields or record edits
+sub curval_field_ids_retrieve
+{   my ($self, %options) = @_;
+    $options{all_fields}
+        ? $self->curval_field_ids_all
+        : $self->curval_field_ids;
+}
+
+has curval_field_ids_all => (
     is      => 'lazy',
     isa     => ArrayRef,
     clearer => 1,
 );
 
-sub _build_curval_field_ids_retrieve
+sub _build_curval_field_ids_all
 {   my $self = shift;
-    if ($self->flags->{all_columns})
-    {
-        my @curval_field_ids = $self->schema->resultset('Layout')->search({
-            instance_id => $self->layout_parent->instance_id,
-        }, {
-            order_by => 'me.position',
-        })->all;
-        return [map { $_->id } @curval_field_ids];
-    }
-    else {
-        return $self->curval_field_ids;
-    }
+    my @curval_field_ids = $self->schema->resultset('Layout')->search({
+        instance_id => $self->layout_parent->instance_id,
+    }, {
+        order_by => 'me.position',
+    })->all;
+    return [map { $_->id } @curval_field_ids];
 }
 
-has curval_fields_retrieve => (
+sub curval_fields_retrieve
+{   my ($self, %options) = @_;
+    $options{all_fields}
+        ? $self->curval_fields_all
+        : $self->curval_fields;
+};
+
+has curval_fields_all => (
     is      => 'lazy',
     isa     => ArrayRef,
     clearer => 1,
 );
 
-sub _build_curval_fields_retrieve
+sub _build_curval_fields_all
 {   my $self = shift;
-    [ map { $self->layout_parent->column($_) } @{$self->curval_field_ids_retrieve} ];
-}
-
-sub _build_curval_fields
-{   my $self = shift;
-    [ map { $self->layout_parent->column($_) } @{$self->curval_field_ids} ];
+    [ map { $self->layout_parent->column($_) } @{$self->curval_field_ids_all} ];
 }
 
 sub sort_columns
@@ -261,7 +241,7 @@ sub _build_all_ids
 {   my $self = shift;
     [
         $self->schema->resultset('Current')->search({
-            instance_id => $self->refers_to_instance,
+            instance_id => $self->refers_to_instance_id,
         })->get_column('id')->all
     ];
 }
@@ -303,12 +283,13 @@ sub _records_from_db
         view              => $view,
         layout            => $layout,
         schema            => $self->schema,
-        columns           => $self->curval_field_ids_retrieve,
+        columns           => $self->curval_field_ids_retrieve(all_fields => $options{all_fields}),
         limit_current_ids => $ids,
         # Sort on all columns displayed as the Curval. Don't do all columns
         # retrieved, as this could include a whole load of multivalues which
         # are then fetched from the DB
         sort              => [ map { { id => $_ } } @{$self->curval_field_ids} ],
+        is_draft          => 1, # XXX Only set this when parent record is draft?
     );
 
     return $records;
@@ -316,6 +297,7 @@ sub _records_from_db
 
 sub _build_filtered_values
 {   my $self = shift;
+    return [] if $self->value_selector ne 'dropdown';
     my $records = $self->_records_from_db
         or return [];
     my @values;
@@ -329,6 +311,7 @@ sub _build_filtered_values
 
 sub _build_all_values
 {   my $self = shift;
+    return [] if $self->value_selector ne 'dropdown';
     my $records = $self->_records_from_db(no_filter => 1)
         or return [];
     my @values;
@@ -354,29 +337,13 @@ sub _build_values_index
     \%values;
 }
 
-# Whether any of the drop-down items have subvalues (small text). If so,
-# drop-down will be displayed using the selectpicker, to render better.
-has has_subvalues => (
-    is  => 'lazy',
-    isa => Bool,
-);
-
-sub _build_has_subvalues
-{   my $self = shift;
-    # Always if multivalue to allow multiple select
-    return 1 if $self->multivalue;
-    # Always if more fields available then ones selected
-    return 1 if @{$self->curval_fields} < $self->layout_parent->all;
-    !! grep { $_->{subvalue} } @{$self->filtered_values};
-}
-
 sub filter_value_to_text
 {   my ($self, $id) = @_;
     # Check for valid ID (in case search filter is corrupted) - Pg will choke
     # on invalid IDs
     $id =~ /^[0-9]+$/ or return '';
-    my $rows = $self->ids_to_values([$id]);
-    $rows->[0]->{value};
+    my ($row) = $self->ids_to_values([$id]);
+    $row->{value};
 }
 
 # Used to return a formatted value for a single datum. Normally called from a
@@ -384,16 +351,16 @@ sub filter_value_to_text
 sub ids_to_values
 {   my ($self, $ids) = @_;
     my $rows = $self->_get_rows($ids);
-    [ map { $self->_format_row($_) } @$rows ];
+    map { $self->_format_row($_) } @$rows;
 }
 
 sub field_values_for_code
 {   my $self = shift;
-    my $values = $self->field_values(@_, all_columns => 1);
+    my $values = $self->field_values(@_, all_fields => 1);
 
     my @retrieve_cols = grep {
         $_->name_short
-    } @{$self->curval_fields_retrieve};
+    } @{$self->curval_fields_retrieve(all_fields => 1)};
 
     my $return = {};
 
@@ -416,13 +383,11 @@ sub field_values
     # retrieved when a single record is being written.
     my $rows;
     # See if any of the requested rows have not had all columns built
-    my $need_all = $params{all_columns} && $params{rows}
-        && grep { !$_->column_flags->{$self->id}->{all_columns} } @{$params{rows}};
+    my $need_all = $params{all_fields} && $params{rows};
     if ($params{ids} || $need_all)
     {
-        $self->build_all_columns;
         my $cids = $params{ids} || [ map { $_->current_id } @{$params{rows}} ];
-        $rows = $self->_get_rows($cids);
+        $rows = $self->_get_rows($cids, all_fields => $params{all_fields});
     }
     elsif ($params{rows}) {
         $rows = $params{rows}
@@ -435,17 +400,19 @@ sub field_values
             my $row = $_;
             $row->current_id => {
                 map {
+                    defined $row->fields->{$_->id}
+                        or panic __x"Missing field {name}. Was Records build with all fields?", name => $_->name;
                     $_->id => $row->fields->{$_->id}
                 } grep {
                     $_->type !~ /(autocur|curval)/ # Prevent recursive loops
-                } @{$self->curval_fields_retrieve}
+                } @{$self->curval_fields_retrieve(all_fields => $params{all_fields})}
             },
         } @$rows
     }
 }
 
 sub _get_rows
-{   my ($self, $ids) = @_;
+{   my ($self, $ids, %options) = @_;
     @$ids or return;
     my $return;
     if ($self->has_values_index) # Do not build unnecessarily (expensive)
@@ -453,7 +420,7 @@ sub _get_rows
         $return = [ map { $self->values_index->{$_} } @$ids ];
     }
     else {
-        $return = $self->_records_from_db(ids => $ids)->results;
+        $return = $self->_records_from_db(ids => $ids, %options)->results;
     }
     error __x"Invalid Curval ID list {ids}", ids => "@$ids"
         if @$return != @$ids;
@@ -500,7 +467,7 @@ sub _build_layout_parent
 {   my $self = shift;
     $self->refers_to_instance_id or return;
     GADS::Layout->new(
-        user                     => undef, # Allow all columns
+        user                     => $self->layout->user,
         user_permission_override => 1,
         schema                   => $self->schema,
         config                   => GADS::Config->instance,
@@ -562,26 +529,17 @@ sub _format_row
 {   my ($self, $row, %options) = @_;
     my $value_key = $options{value_key} || 'value';
     my @col_ids   = @{$self->curval_field_ids};
-    my @values; my @mainvalues; my @subvalues;
+    my @values;
     foreach my $fid (@{$self->curval_field_ids})
     {
         push @values, $row->fields->{$fid};
-        if (length "@values" < 100)
-        {
-            push @mainvalues, $row->fields->{$fid};
-        }
-        else {
-            push @subvalues, $row->fields->{$fid};
-        }
     }
     my $text     = $self->format_value(@values);
-    my $maintext = $self->format_value(@mainvalues);
-    my $subtext  = $self->format_value(@subvalues);
     +{
         id         => $row->current_id,
+        record     => $row,
         $value_key => $text,
-        mainvalue  => $maintext,
-        subvalue   => $subtext,
+        values     => \@values,
     };
 }
 
@@ -595,26 +553,20 @@ sub cleanup
     $schema->resultset('CurvalField')->search({ parent_id => $id })->delete;
 }
 
-before import_hash => sub {
-    my ($self, $values) = @_;
-    $self->typeahead($values->{typeahead});
-    $self->override_permissions($values->{override_permissions});
-};
-
 around export_hash => sub {
     my $orig = shift;
-    my ($self, $values) = @_;
+    my ($self, $values, %options) = @_;
     my $hash = $orig->(@_);
+    my $report = $options{report_only} && $self->id;
     $hash->{refers_to_instance_id} = $self->refers_to_instance_id;
-    $hash->{typeahead}             = $self->typeahead;
     $hash->{curval_field_ids}      = $self->curval_field_ids;
-    $hash->{override_permissions}  = $self->override_permissions;
     return $hash;
 };
 
 around import_after_all => sub {
     my $orig = shift;
-    my ($self, $values, $mapping) = @_;
+    my ($self, $values, %options) = @_;
+    my $mapping = $options{mapping};
     my @field_ids = map { $mapping->{$_} } @{$values->{curval_field_ids}};
     $self->curval_field_ids(\@field_ids);
 
@@ -630,7 +582,6 @@ around import_after_all => sub {
     $filter->clear_as_json;
     $self->filter($filter);
 
-    $self->clear;
     $orig->(@_);
 };
 

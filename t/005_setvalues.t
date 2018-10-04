@@ -63,7 +63,7 @@ my $values = {
 
         },
         new_as_string => 'User2, User2',
-        new_html      => qq(<a style="cursor: pointer" class="personpop" data-toggle="popover"\n        title="User2, User2"\n        data-content="Email: &lt;a href=&#39;mailto:user2\@example.com&#39;&gt;user2\@example.com&lt;/a&gt;">User2, User2</a>),
+        new_html      => 'User2, User2',
         },
     file1 => {
         old_as_string => 'file1.txt',
@@ -214,7 +214,6 @@ foreach my $multivalue (0..1)
 
                     next if $arrayref && $type eq 'daterange1';
                     my $datum = $record->fields->{$columns->{$type}->id};
-                    ok( !$datum->written_to, "$type has not been written to$is_multi" );
                     if ($test eq 'blank')
                     {
                         ok( $datum->blank, "$type is blank$is_multi" );
@@ -249,7 +248,6 @@ foreach my $multivalue (0..1)
                     else {
                         $@->reportAll;
                     }
-                    ok( $datum->written_to, "$type has been written to$is_multi" );
                     if ($test eq 'blank' || $test eq 'changed')
                     {
                         ok( $datum->changed, "$type has changed$is_multi" );
@@ -262,7 +260,6 @@ foreach my $multivalue (0..1)
                         ok( $datum->oldvalue, "$type oldvalue exists$is_multi" );
                         my $old = $test eq 'changed' ? $values->{$type}->{old_as_string} : $values->{$type}->{new_as_string};
                         is( $datum->oldvalue && $datum->oldvalue->as_string, $old, "$type oldvalue exists and matches for test $test$is_multi" );
-                        ok( $datum->written_valid, "$type is written valid for non-blank$is_multi" );
                     }
                     elsif ($test eq 'blank')
                     {
@@ -289,13 +286,10 @@ foreach my $multivalue (0..1)
                             $datum->set_value($data->{blank}->[0]->{$type});
                         }
                         ok( $datum->blank, "$type has been set to blank$is_multi" );
-                        # Blank values should not be counted as a valid written value
-                        ok( !$datum->written_valid, "$type is not written valid for blank$is_multi" );
                         # Test writing of addable value applied to an blank existing value.
                         if (my $addable = $values->{$type}->{addable})
                         {
                             $datum->set_value($addable, bulk => 1);
-                            ok( $datum->written_valid, "$type is written valid for addable value$is_multi" );
                             ok( $datum->blank, "$type is blank after writing addable value$is_multi" );
                         }
                     }
@@ -304,7 +298,6 @@ foreach my $multivalue (0..1)
                         if (my $addable = $values->{$type}->{addable})
                         {
                             $datum->set_value($addable, bulk => 1);
-                            ok( $datum->written_valid, "$type is written valid for addable value$is_multi" );
                             is( $datum->as_string, $values->{$type}->{addable_result}, "$type is correct after writing addable change$is_multi" );
                         }
                     }
@@ -351,72 +344,6 @@ foreach my $c (keys %$values)
     ok( !$datum->changed, "$c has not changed" );
 }
 
-# Test moving forward and back
-{
-    my $record = GADS::Record->new(
-        user   => undef,
-        layout => $layout,
-        schema => $schema,
-    );
-    $record->find_current_id(3);
-    # Write values to all datums
-    my @col_ids;
-    foreach my $c (keys %$values)
-    {
-        my $datum = $record->fields->{$columns->{$c}->id};
-        $datum->set_value($values->{$c}->{new});
-        push @col_ids, $columns->{$c}->id;
-    }
-    # Check all written to
-    foreach my $c (keys %$values)
-    {
-        my $datum = $record->fields->{$columns->{$c}->id};
-        ok( $datum->written_to, "$c is written to after first write" );
-    }
-    $record->editor_shown_fields([@col_ids]);
-    # Move nowhere - should reset written_to
-    $record->move_nowhere;
-    foreach my $c (keys %$values)
-    {
-        my $datum = $record->fields->{$columns->{$c}->id};
-        ok( !$datum->written_to, "$c is no longer written to written to after move nowhere" );
-    }
-    # Write values again
-    foreach my $c (keys %$values)
-    {
-        my $datum = $record->fields->{$columns->{$c}->id};
-        $datum->set_value($values->{$c}->{new});
-        ok( $datum->value_current_page, "$c is current page" );
-    }
-    # Move forward
-    $record->move_forward;
-    $record->editor_shown_fields([]);
-    $record->editor_previous_fields([@col_ids]);
-    foreach my $c (keys %$values)
-    {
-        my $datum = $record->fields->{$columns->{$c}->id};
-        ok( $datum->value_previous_page, "$c is previous page after move forward" );
-        ok( !$datum->value_next_page, "$c is previous page after move forward" );
-    }
-    # Move back to first page. Should no longer be previous page or written to
-    $record->move_back;
-    foreach my $c (keys %$values)
-    {
-        my $datum = $record->fields->{$columns->{$c}->id};
-        ok( !$datum->value_previous_page, "$c is no longer previous page after move back" );
-        ok( !$datum->written_to, "$c is no longer written to after move back" );
-    }
-    # Now simulate that all values are actually for the next page
-    $record->editor_next_fields([@col_ids]);
-    foreach my $c (keys %$values)
-    {
-        # Set the valu, this time it should not be flagged as written to
-        my $datum = $record->fields->{$columns->{$c}->id};
-        $datum->set_value($values->{$c}->{new});
-        ok( !$datum->written_to, "$c is not written to when a next page value" );
-    }
-}
-
 # Test madatory fields
 {
     my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
@@ -459,12 +386,12 @@ foreach my $c (keys %$values)
         $record->fields->{$string1->id}->set_value('');
         try { $record->write(no_alerts => 1) };
         like($@, qr/is not optional/, "Failed to write with permission to mandatory string value");
-        $string1->set_permissions($sheet->group->id, []);
+        $string1->set_permissions({$sheet->group->id => []});
         $string1->write;
         $sheet->layout->clear;
         try { $record->write(no_alerts => 1) };
         ok(!$@, "No error when writing record without permission to mandatory value");
-        $string1->set_permissions($sheet->group->id, $sheet->default_permissions);
+        $string1->set_permissions({$sheet->group->id => $sheet->default_permissions});
         $string1->write;
         foreach my $col ($sheet->layout->all(userinput => 1))
         {
@@ -504,30 +431,21 @@ foreach my $c (keys %$values)
         schema => $sheet->schema,
     );
     $record->initialise;
-    try { $record->write(no_alerts => 1) };
-    is($@, '', "No error when missing curval filtered field value");
-    my $record_count_new = $sheet->schema->resultset('Record')->count;
-    is($record_count_new, $record_count, "No records written despite no error");
     my $string1 = $sheet->columns->{string1};
     $record->fields->{$string1->id}->set_value('foobar');
-    $record->editor_shown_fields([$string1->id]);
-    try { $record->write(no_alerts => 1) };
-    is($@, '', "Error for missing curval filtered field value after string write");
-    my $curval1 = $sheet->columns->{curval1};
-    $record->editor_shown_fields([$string1->id, $curval1->id]);
     try { $record->write(no_alerts => 1) };
     like($@, qr/curval1/, "Error for missing curval filtered field value after string write");
 
     # Test a mandatory field on the second page which the user does not have
     # write access to
+    my $curval1 = $sheet->columns->{curval1};
     my $group = $sheet->group;
-    $curval1->set_permissions($sheet->group->id, []);
+    $curval1->set_permissions({$sheet->group->id => []});
     $curval1->write;
     $sheet->layout->clear;
-    $record->editor_shown_fields([$string1->id]);
     $record_count = $sheet->schema->resultset('Record')->count;
     $record->write(no_alerts => 1);
-    $record_count_new = $sheet->schema->resultset('Record')->count;
+    my $record_count_new = $sheet->schema->resultset('Record')->count;
     is($record_count_new, $record_count + 1, "One record written");
 }
 

@@ -1,0 +1,315 @@
+<nav class="row" role="navigation">
+    [% PROCESS skip_links %]
+
+    [% IF config.gads.legacy_menu %]
+        [% PROCESS legacy_menu %]
+    [% ELSE %]
+        [% PROCESS dataset_menu %]
+        [% PROCESS data_menu %]
+        [% PROCESS user_menu %]
+        [% PROCESS search %]
+    [% END %]
+</nav>
+
+<div class="row crumbs">
+    [% PROCESS crumbs %]
+</div>
+
+[% BLOCK skip_links %]
+    <ol id="skip-links">
+        <li>
+            <a href="#main" class="visually-hidden">Skip to content</a>
+        </li>
+    </ol>
+[% END %]
+
+[% BLOCK search %]
+    <div class="quicksearch-container col-md-3">
+        <form method="get" action="/data" class="quicksearch">
+                <label for="quick-search">Search [% instance_name | html %] table</label>
+                <input class="form-control" id="quick-search" name="search_text" placeholder="Use * for wildcard" value="[% search | html_entity %]">
+            <button class="btn btn-xs btn-primary" type="submit">Go</button>
+        </form>
+    </div>
+[% END %]
+
+[% BLOCK crumbs %]
+    [% crumb_icons = {
+        home => 'fa fa-home'
+    } %]
+
+    <div class="breadcrumbs-container col-md-12">
+
+        <nav aria-label="Breadcrumbs" class="breadcrumbs" role="navigation">
+            <ol class="items">
+            [% FOREACH crumb in breadcrumbs %]
+                <li class="item [% 'last' IF loop.last %]"><a [% 'aria-current="page"' IF loop.last %] href="[% crumb.href %]">[% IF loop.first %]<span aria-hidden="true" class="[% crumb_icons.home %]"></span>[% END %][% crumb.text | html %]</a>[% UNLESS loop.last %]<span class="separator"></span>[% END %]</li>
+            [% END %]
+            </ol>
+        </nav>
+
+    </div>
+[% END %]
+
+[% BLOCK dataset_menu %]
+    <div class="col-md-3 navbar navbar-default" id="dataset-navbar">
+        <div class="heading" id="app-navbar-heading">Data</div>
+        <ul class="nav navbar-nav">
+            [% PROCESS table_selector %]
+            [% PROCESS records_menu %]
+        </ul>
+    </div>
+[% END %]
+
+[% BLOCK user_menu %]
+    <div class="col-md-3 navbar navbar-default" id="user-navbar">
+        <ul class="nav navbar-nav">
+            <li class="dropdown">
+                <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="User menu"
+                    aria-expanded="false" aria-haspopup="true" aria-controls="user-menu">
+                    <h2 class="heading">Personal settings</h2>
+                    <span>[% user.value | html_entity %]</span>
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" id="user-menu">
+                    <li><a href="[% url.page %]/account/detail">My details</a></li>
+                    <li class="divider"></li>
+                    <li><a href="[% url.page %]/logout">Logout</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+[% END %]
+
+[% BLOCK table_menu %]
+    <li class="dropdown">
+        <button type="button" id="admin-menu" class="dropdown-toggle"
+            data-toggle="dropdown" aria-controls="admin-menu-options" aria-expanded="false" aria-haspopup="true">
+            <span>Table editor</span>
+            <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
+            <li [% IF page=="table/0" %]class="active"[% END %]><a href="[% url.page %]/table/0">Add a table</a></li>
+            <li [% IF page=="table" %]class="active"[% END %]><a href="[% url.page %]/table/">Manage tables</a></li>
+            <li class="divider"></li>
+            <li [% IF page=="layout/0" %]class="active"[% END %]><a href="[% url.page %]/layout/0">Add a field</a></li>
+            <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/layout/">Manage fields</a></li>
+            <li class="divider"></li>
+            <li [% IF page=="topic/0" %]class="active"[% END %]><a href="[% url.page %]/topic/0">Add a topic</a></li>
+            <li [% IF page=="topics" %]class="active"[% END %]><a href="[% url.page %]/topics/">Manage topics</a></li>
+            <li class="divider"></li>
+            <li [% IF page=="config" %]class="active"[% END %]>
+                <a href="[% url.page %]/config/">Manage homepage</a>
+            </li>
+            <li [% IF page=="file" %]class="active"[% END %]>
+                <a href="[% url.page %]/file/">Manage files</a>
+            </li>
+        </ul>
+    </li>
+[% END %]
+
+[% BLOCK user_admin_menu %]
+    <li class="dropdown">
+        <button type="button" id="admin-menu" class="dropdown-toggle"
+            data-toggle="dropdown" aria-controls="admin-menu-options" aria-expanded="false" aria-haspopup="true">
+            <span>Users</span>
+            <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
+            <li [% IF page=="user" %]class="active"[% END %]><a href="[% url.page %]/user/">Manage users</a></li>
+            <li [% IF page=="user/0" %]class="active"[% END %]><a href="[% url.page %]/user/0">Add a user</a></li>
+            <li><a href="/user?download">Download users</a></li>
+            <li><a href="/user/upload">Upload users</a>
+            <li class="divider"></li>
+            <li [% IF page=="group" %]class="active"[% END %]><a href="[% url.page %]/group/">Manage groups</a></li>
+            <li [% IF page=="group/0" %]class="active"[% END %]><a href="[% url.page %]/group/0">Add a group</a></li>
+            <li class="divider"></li>
+            <li [% IF page=="audit" %]class="active"[% END %]>
+                <a href="[% url.page %]/audit/">User audit logs</a>
+            </li>
+        </ul>
+    </li>
+[% END %]
+
+[% BLOCK table_selector %]
+    [% IF instances.size > 1 %]
+        <li class="dropdown">
+            <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
+                aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
+                <span>[% instance_name | html_entity %]</span>
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" id="table-menu">
+            [% FOREACH layout_menu IN instances %]
+                <li [% IF layout_menu.instance_id == instance_id %]class="active"[% END %]>
+                    <a href="?instance=[% layout_menu.instance_id %]"
+                    >[% layout_menu.name | html_entity %]</a>
+                </li>
+            [% END %]
+            </ul>
+        </li>
+    [% END %]
+[% END %]
+
+[% BLOCK records_menu %]
+    <li class="dropdown">
+        <button type="button" id="admin-menu" class="dropdown-toggle"
+            data-toggle="dropdown" aria-controls="admin-menu-options" aria-expanded="false" aria-haspopup="true">
+            <span>Records</span>
+            <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
+            <li [% IF page=="data" %]class="active"[% END %]><a href="[% url.page %]/data">See records</a></li>
+            [% IF user_can_create %]
+                [% IF user.has_draft(layout.instance_id) %]
+                    <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/edit/">Continue draft record</a></li>
+                [% ELSE %]
+                    <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/edit/">Add a record</a></li>
+                [% END %]
+            [% END %]
+            [% IF layout.user_can("link") AND show_link %]
+                <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/link/">Add a linked record</a></li>
+            [% END %]
+            [% IF user_can_approve %]
+                [% IF approve_waiting %][% appcount = " (" _ approve_waiting _ ")" %][% END %]
+                <li class="divider"></li>
+                <li [% IF page=="approval" %]class="active"[% END %]><a href="[% url.page %]/approval/">Approve records[% appcount %]</a></li>
+            [% END %]
+            [% IF layout.user_can("layout") %]
+                <li [% IF page=="import" %]class="active"[% END %]><a href="[% url.page %]/import/">Import records</a></li>
+            [% END %]
+	    [% IF layout.user_can("purge") %]
+		<li [% IF page=="purge" %]class="active"[% END %]><a href="[% url.page %]/purge/">Manage deleted records</a></li>
+	    [% END %]
+        </ul>
+    </li>
+[% END %]
+
+[% BLOCK graphs_menu %]
+    <li class="dropdown">
+        <button type="button" id="admin-menu" class="dropdown-toggle"
+            data-toggle="dropdown" aria-controls="admin-menu-options" aria-expanded="false" aria-haspopup="true">
+            <span>Graphs</span>
+            <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
+            <li [% IF page=="graph" %]class="active"[% END %]><a href="[% url.page %]/graph/">Manage graphs</a></li>
+            <li [% IF page=="graph/0" %]class="active"[% END %]><a href="[% url.page %]/graph/0">Add a graph</a></li>
+            <li [% IF page=="metric" %]class="active"[% END %]><a href="[% url.page %]/metrics/">Metrics</a></li>
+        </ul>
+    </li>
+[% END %]
+
+[% BLOCK data_menu %]
+    <div class="col-md-3 navbar navbar-default" id="app-navbar" aria-labelledby="app-navbar-heading">
+        [% IF layout.user_can("layout") OR user.permission.useradmin %]
+            <div class="heading" id="app-navbar-heading">System Administration</div>
+            <ul class="nav navbar-nav">
+                [% IF layout.user_can("layout") %]
+                    [% PROCESS table_menu %]
+                [% END %]
+                [% IF user.permission.useradmin %]
+                    [% PROCESS user_admin_menu %]
+                [% END %]
+                [% IF layout.user_can("layout") %]
+                    [% PROCESS graphs_menu %]
+                [% END %]
+            </ul>
+        [% END %]
+    </div>
+[% END %]
+
+[% BLOCK legacy_menu %]
+    <div class="navbar navbar-default" role="navigation">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-controls="main-navbar">
+                <span class="hamburger-menu-title">Menu</span>
+                <span class="hamburger">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </span>
+            </button>
+            <a class="navbar-brand" href="[% url.page %]/">Home</a>
+        </div>
+        <div class="collapse navbar-collapse" id="main-navbar">
+            <ul class="nav navbar-nav">
+                <li [% IF page=="data" %]class="active"[% END %]><a href="[% url.page %]/data">Data</a></li>
+                [% IF user_can_approve %]
+                    [% IF approve_waiting %][% appcount = " (" _ approve_waiting _ ")" %][% END %]
+                    <li [% IF page=="approval" %]class="active"[% END %]>
+                        <a href="[% url.page %]/approval/">Approval[% appcount %]</a>
+                    </li>
+                [% END %]
+                [% IF layout.user_can("layout") OR user.permission.superadmin OR user.permission.useradmin OR user.permission.audit %]
+                    <li class="dropdown">
+                    <button type="button" id="admin-menu" class="dropdown-toggle"
+                        data-toggle="dropdown" aria-controls="admin-menu-options" aria-expanded="false" aria-haspopup="true">
+                        <span>Admin menu</span>
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
+                        [% IF layout.user_can("layout") %]
+                            <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/layout/">Data Layout</a></li>
+                        [% END %]
+                        [% IF user.permission.superadmin %]
+                            <li [% IF page=="table" %]class="active"[% END %]><a href="[% url.page %]/table/">Tables</a></li>
+                            <li [% IF page=="graph" %]class="active"[% END %]><a href="[% url.page %]/graph/">Graphs</a></li>
+                            <li [% IF page=="metric" %]class="active"[% END %]><a href="[% url.page %]/metrics/">Metrics</a></li>
+                            <li [% IF page=="config" %]class="active"[% END %]><a href="[% url.page %]/config/">General Settings</a></li>
+                        [% END %]
+                        [% IF user.permission.useradmin OR user.permission.superadmin %]
+                            <li [% IF page=="user" %]class="active"[% END %]><a href="[% url.page %]/user/">Manage Users</a></li>
+                            <li [% IF page=="group" %]class="active"[% END %]><a href="[% url.page %]/group/">Manage Groups</a></li>
+                        [% END %]
+                        [% IF layout.user_can("layout") %]
+                            <li [% IF page=="import" %]class="active"[% END %]><a href="[% url.page %]/import/">Imports</a></li>
+                        [% END %]
+                        [% IF user.permission.audit %]
+                            <li [% IF page=="audit" %]class="active"[% END %]><a href="[% url.page %]/audit/">Audit logs</a></li>
+                        [% END %]
+                        [% IF layout.user_can("purge") %]
+                            <li [% IF page=="purge" %]class="active"[% END %]><a href="[% url.page %]/purge/">Manage deleted records</a></li>
+                        [% END %]
+                    </ul>
+                    </li>
+                [% END %]
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                [% IF instances.size > 1 %]
+                    <li class="dropdown">
+                    <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
+                        aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
+                        <span>[% instance_name | html_entity %]</span>
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" id="table-menu">
+                        [% FOREACH instance IN instances %]
+                            <li [% IF instance.id == instance_id %]class="active"[% END %]>
+                                <a href="?instance=[% instance.instance_id %]"
+                                >[% instance.name | html_entity %]</a>
+                            </li>
+                        [% END %]
+                    </ul>
+                    </li>
+                [% END %]
+                <li class="dropdown">
+                <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="User menu"
+                    aria-expanded="false" aria-haspopup="true" aria-controls="user-menu">
+                    <span>[% user.value | html_entity %]</span>
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" id="user-menu">
+                    <li><a href="[% url.page %]/account/detail">My details</a></li>
+                    <li><a href="[% url.page %]/account/graph">My graphs</a></li>
+                    <li class="divider"></li>
+                    <li><a href="[% url.page %]/logout">Logout</a></li>
+                </ul>
+                </li>
+            </ul>
+
+        </div><!--/.nav-collapse -->
+</div>
+
+[% END %]
+

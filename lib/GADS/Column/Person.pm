@@ -25,6 +25,8 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
+our @person_properties = qw/id email username firstname surname freetext1 freetext2 organisation title value/;
+
 # Convert based on whether ID or full name provided
 sub value_field_as_index
 {   my ($self, $value) = @_;
@@ -43,6 +45,11 @@ has '+fixedvals' => (
 has '+option_names' => (
     default => sub { [qw/default_to_login/] },
 );
+
+sub _build_retrieve_fields
+{   my $self = shift;
+    \@person_properties;
+}
 
 has default_to_login => (
     is      => 'rw',
@@ -90,7 +97,7 @@ after build_values => sub {
     }
 };
 
-sub _build_join
+sub tjoin
 {   my $self = shift;
     +{$self->field => 'value'};
 }
@@ -110,19 +117,6 @@ sub cleanup
 {   my ($class, $schema, $id) = @_;
     $schema->resultset('Person')->search({ layout_id => $id })->delete;
 }
-
-before import_hash => sub {
-    my ($self, $values) = @_;
-    $self->default_to_login($values->{default_to_login});
-};
-
-around export_hash => sub {
-    my $orig = shift;
-    my ($self, $values) = @_;
-    my $hash = $orig->(@_);
-    $hash->{default_to_login} = $self->default_to_login;
-    return $hash;
-};
 
 1;
 

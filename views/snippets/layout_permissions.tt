@@ -1,0 +1,152 @@
+
+[% BLOCK _permissions_for_group %]
+    [% MACRO permission_input(name, label, group, nested) BLOCK %]
+        <div class="form-group">
+            <input data-permission-class="[% name.replace('_','-') %]" type="checkbox" id="permission_[% name %]_[% group.id %]" 
+                name="permission_[% name %]_[% group.id %]" [% column.group_has(group.id, name) ? 'checked' : '' %]>
+            <label for="permission_[% name %]_[% group.id %]">[% label %]</label>
+            [% nested %]
+        </div>
+    [% END %]
+
+    [% write_new      = permission_input('write_new'     , permission_inputs.write_new, group)      %]
+    [% write_existing = permission_input('write_existing', permission_inputs.write_existing, group) %]
+
+    [% permission_input('read', permission_inputs.read, group) %]
+
+    [% permission_input('write_new_no_approval', permission_inputs.write_new_no_approval, group, write_new) %]
+    [% permission_input('write_existing_no_approval', permission_inputs.write_existing_no_approval, group, write_existing) %]
+
+    [% permission_input('approve_new', permission_inputs.approve_new, group) %]
+    [% permission_input('approve_existing', permission_inputs.approve_existing, group) %]
+[% END %]
+
+[% BLOCK _permission_rule_template %]
+    <script id="permission-rule-template" type="html/template">
+            <li data-group-id="" class="permission [% permission_classes %]">
+                <div class="summary">
+                    <h6 tabindex="-1" class="group-name"></h6>
+                    <div class="configuration">
+                        [% FOREACH permission IN permissions %]
+                        [% short = permission.short %]
+                        [% abbr = permission_mapping.$short %]
+                        [% short_class = short.replace('_','-') %]
+                        <span tabindex="0" class="abbreviation abbreviation-[% short_class %]" 
+                            role="tooltip" aria-describedby="-permission-[% short %]">
+                            [% abbr %]
+                        </span>
+                        <span id="[% group_id %]_permission_[% short %]" class="visually-hidden tooltip">[% permission.long | html %]</span>
+                        [% END %]
+                    </div>
+                </div>
+                <button type="button" class="delete pull-right btn btn-sm btn-primary trigger">Delete</button>
+                <button type="button" class="edit pull-right btn btn-sm btn-primary trigger" aria-expanded="false">Change &rarr;</button>
+                <div class="expandable">
+                    [% PROCESS _permissions_for_group group = undef %]
+                    <button type="button" class="ok btn btn-sm btn-primary">Ok</button>
+                </div>
+            </li>
+    </script>
+[% END %]
+
+[% BLOCK _permission_configuration %]
+    <h4 tabindex="-1">Add permissions</h4>
+
+    [% IF groups.all.size %]
+        <div class="permission-rule">
+            <div class="row">
+                <div class="form-group col-md-3">
+                    <label for="select-permission-group">
+                        Group:
+                    </label>
+                    <select id="select-permission-group" class="form-control">
+                    [% FOREACH group IN groups.all %]
+                        <option value="[% group.id %]">[% group.name %]</option>
+                    [% END %]
+                    </select>
+                </div>
+            </div>
+
+            <p>Members of this group will have the following access rights:</p>
+
+            [% PROCESS _permissions_for_group group = undef %]
+
+            <button id="add-permission-rule" type="button" class="btn btn-default add-permission">Add rule</button>
+            <button id="cancel-permission-rule" type="button" class="btn btn-default cancel-permission">Cancel</button>
+        </div>
+    </li>
+
+    [% ELSE %]
+        <p>No groups have been created yet. <a href="/group">Create a group.</a></p>
+    [% END %]
+
+[% END %]
+
+[% BLOCK layout_permissions %]
+    [% existing_perms = column.permissions.keys %]
+
+    [% PROCESS _permission_rule_template %]
+
+<section id="permissions" class="[% FOREACH p IN existing_perms; 'permission-group-' _ p _ ' '; END %]">
+    <h3>Permissions [% whats_this('modalhelp_groups') %]</h3>
+
+        [% IF NOT column.permissions.size %]
+            <p>Access must be granted to this field before anyone (including you) can view and edit data in it.</p>
+            [% IF groups.all.size %]
+                <p>To give access, a group must be assigned to it using the buttons below:</p>
+            [% ELSE %]
+                <p>Groups are used to assign access. You must first <a href="/group">create a group</a></p>
+            [% END %]
+        [% END %]
+
+        <div id="current-permissions" aria-live="polite">
+            <ul>
+                [% FOREACH group IN groups.all %]
+                    [% group_id = group.id %]
+                    [% col_permissions = column.permissions.$group_id %]
+                    [% NEXT UNLESS col_permissions %]
+                    
+                    [% permission_classes = '' %]
+                    
+                    [% FOREACH permission IN col_permissions %]
+                        [% short = permission.short %]
+                        [% permission_classes = permission_classes _ ' ' _ 'permission-' _ short.replace('_','-') %]
+                    [% END %]
+ 
+                <li data-group-id="[% group_id %]" class="permission [% permission_classes %]">
+                    <div class="summary">
+                        <h4 class="group-name">[% group.name %]</h4>
+                        <div class="configuration">
+                            [% FOREACH permission IN col_permissions %]
+                            [% short = permission.short %]
+                            [% abbr = permission_mapping.$short %]
+                            [% short_class = short.replace('_','-') %]
+                            <span tabindex="0" class="abbreviation abbreviation-[% short_class %]" 
+                                role="tooltip" aria-describedby="[% group_id %]_permission_[% short %]">
+                                [% abbr %]
+                            </span>
+                            <span id="[% group_id %]_permission_[% short %]" class="visually-hidden tooltip">[% permission.long | html %]</span>
+                            [% END %]
+                        </div>
+                    </div>
+                    <button type="button" class="delete pull-right btn btn-sm btn-primary trigger">Delete</button>
+                    <button type="button" class="edit pull-right btn btn-sm btn-primary trigger" aria-expanded="false">Change &rarr;</button>
+                    <div class="expandable">
+                        <h5 tabindex="-1">Change permissions</h5>
+                        [% PROCESS _permissions_for_group group = group %]
+                        <button type="button" class="ok btn btn-sm btn-primary">Ok</button>
+                    </div>
+                </li>
+                [% END %]
+            </ul>
+        </div>
+
+
+    [% IF groups.all.size %]
+        <button id="configure-permissions" type="button" class="btn btn-default">Add permissions</button>
+        <section id="permission-configuration" hidden>
+            [% PROCESS _permission_configuration %]
+        </section>
+    [% END %]
+</section>
+[% END %]

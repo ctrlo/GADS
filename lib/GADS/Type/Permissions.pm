@@ -34,5 +34,12 @@ sub permission
     GADS::Type::Permission->new(short => $_);
 }
 
-1;
+sub permission_mapping
+{   +{ map { $_->short => $_->medium } all() };
+}
 
+sub permission_inputs
+{   +{ map { $_->short => $_->long } all() };
+}
+
+1;

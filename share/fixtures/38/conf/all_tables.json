@@ -1,0 +1,213 @@
+{
+   "belongs_to" : {
+      "fetch" : 0
+   },
+   "has_many" : {
+      "fetch" : 0
+   },
+   "might_have" : {
+      "fetch" : 0
+   },
+   "sets" : [
+      {
+         "class" : "LayoutDepend",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Date",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Daterange"
+      },
+      {
+         "quantity" : "all",
+         "class" : "AlertSend"
+      },
+      {
+         "class" : "Permission",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "CurvalField"
+      },
+      {
+         "class" : "AlertCache",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "ViewLimit"
+      },
+      {
+         "class" : "ImportRow",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "View"
+      },
+      {
+         "class" : "Title",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Metric",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Alert"
+      },
+      {
+         "class" : "Calcval",
+         "quantity" : "all"
+      },
+      {
+         "class" : "File",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Graph",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Instance",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Sort"
+      },
+      {
+         "class" : "UserGraph",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Layout"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Audit"
+      },
+      {
+         "class" : "Record",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Enumval"
+      },
+      {
+         "class" : "ViewLayout",
+         "quantity" : "all"
+      },
+      {
+         "class" : "String",
+         "quantity" : "all"
+      },
+      {
+         "class" : "UserPermission",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Enum"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Site"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Ragval"
+      },
+      {
+         "quantity" : "all",
+         "class" : "FileOption"
+      },
+      {
+         "class" : "Intgr",
+         "quantity" : "all"
+      },
+      {
+         "class" : "InstanceGroup",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Fileval",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Filter"
+      },
+      {
+         "class" : "Rag",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Person",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Organisation"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Curval"
+      },
+      {
+         "class" : "LayoutGroup",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Calc",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Import"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Oauthclient"
+      },
+      {
+         "quantity" : "all",
+         "class" : "UserGroup"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Oauthtoken"
+      },
+      {
+         "quantity" : "all",
+         "class" : "GraphColor"
+      },
+      {
+         "quantity" : "all",
+         "class" : "User"
+      },
+      {
+         "class" : "UserLastrecord",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Current"
+      },
+      {
+         "quantity" : "all",
+         "class" : "MetricGroup"
+      },
+      {
+         "class" : "Group",
+         "quantity" : "all"
+      }
+   ]
+}

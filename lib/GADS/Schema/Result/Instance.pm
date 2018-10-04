@@ -47,6 +47,12 @@ __PACKAGE__->table("instance");
   data_type: 'text'
   is_nullable: 1
 
+=head2 name_short
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 64
+
 =head2 site_id
 
   data_type: 'integer'
@@ -75,6 +81,12 @@ __PACKAGE__->table("instance");
   is_nullable: 1
   size: 45
 
+=head2 default_view_limit_extra_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =head2 homepage_text
 
   data_type: 'text'
@@ -92,6 +104,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "name",
   { data_type => "text", is_nullable => 1 },
+  "name_short",
+  { data_type => "varchar", is_nullable => 1, size => 64 },
   "site_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "email_welcome_text",
@@ -102,10 +116,20 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "sort_type",
   { data_type => "varchar", is_nullable => 1, size => 45 },
+  "default_view_limit_extra_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "homepage_text",
   { data_type => "text", is_nullable => 1 },
   "homepage_text2",
   { data_type => "text", is_nullable => 1 },
+  "forget_history",
+  { data_type => "smallint", default_value => 0, is_nullable => 1 },
+  "no_overnight_update",
+  { data_type => "smallint", default_value => 0, is_nullable => 1 },
+  "api_index_layout_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "forward_record_after_create",
+  { data_type => "smallint", default_value => 0, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -182,6 +206,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 instance_groups
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::InstanceGroup>
+
+=cut
+
+__PACKAGE__->has_many(
+  "instance_groups",
+  "GADS::Schema::Result::InstanceGroup",
+  { "foreign.instance_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 site
 
 Type: belongs_to
@@ -214,6 +253,46 @@ __PACKAGE__->belongs_to(
   "sort_layout",
   "GADS::Schema::Result::Layout",
   { id => "sort_layout_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 default_view_limit_extra
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Layout>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "default_view_limit_extra",
+  "GADS::Schema::Result::View",
+  { id => "default_view_limit_extra_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 api_index_layout
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Layout>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "api_index_layout",
+  "GADS::Schema::Result::Layout",
+  { id => "api_index_layout_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",

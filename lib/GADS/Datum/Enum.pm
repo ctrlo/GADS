@@ -25,13 +25,12 @@ use namespace::clean;
 
 extends 'GADS::Datum';
 
-sub set_value
-{   my ($self, $value) = @_;
+after set_value => sub {
+    my ($self, $value) = @_;
     my $clone = $self->clone; # Copy before changing text
     my @values = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
     my @old    = sort ref $self->id eq 'ARRAY' ? @{$self->id} : $self->id ? $self->id : ();
     my $changed = "@values" ne "@old";
-    $self->_set_written_valid(!!@values);
     if ($changed)
     {
         my @text;
@@ -46,8 +45,7 @@ sub set_value
     $self->changed($changed);
     $self->oldvalue($clone);
     $self->id($self->column->multivalue ? \@values : $values[0]);
-    $self->_set_written_to(0) if $self->value_next_page;
-}
+};
 
 has text => (
     is      => 'rw',
@@ -115,7 +113,9 @@ has value_hash => (
     builder => sub {
         my $self = shift;
         $self->has_init_value or return {};
-        my @values = map { $_->{value} } @{$self->init_value};
+        # XXX - messy to account for different initial values. Can be tidied once
+        # we are no longer pre-fetching multiple records
+        my @values = map { exists $_->{record_id} ? $_->{value} : $_ } @{$self->init_value};
         my @ids    = map { $_->{id} } @values;
         my @texts  = map { $_->{value} || '' } @values;
         $self->has_id(1) if (grep { defined $_ } @ids) || $self->init_no_value;
@@ -150,7 +150,7 @@ sub has_value { $_[0]->has_id }
 
 sub html_form
 {   my $self = shift;
-    $self->column->multivalue ? $self->id : [ $self->id ];
+    [ map { $_ || '' } $self->column->multivalue ? @{$self->id} : $self->id ];
 }
 
 around 'clone' => sub {

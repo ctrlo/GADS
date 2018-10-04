@@ -1,0 +1,213 @@
+{
+   "has_many" : {
+      "fetch" : 0
+   },
+   "belongs_to" : {
+      "fetch" : 0
+   },
+   "might_have" : {
+      "fetch" : 0
+   },
+   "sets" : [
+      {
+         "class" : "Metric",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Organisation",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Group",
+         "quantity" : "all"
+      },
+      {
+         "class" : "UserPermission",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Calcval"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Intgr"
+      },
+      {
+         "class" : "ImportRow",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Sort",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Daterange",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Curval"
+      },
+      {
+         "quantity" : "all",
+         "class" : "AlertCache"
+      },
+      {
+         "quantity" : "all",
+         "class" : "File"
+      },
+      {
+         "class" : "Filter",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Rag",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Import",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Title"
+      },
+      {
+         "class" : "LayoutDepend",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Record",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "UserGroup"
+      },
+      {
+         "class" : "Audit",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Enumval",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "InstanceGroup"
+      },
+      {
+         "class" : "Current",
+         "quantity" : "all"
+      },
+      {
+         "class" : "AlertSend",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Layout",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Person",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Ragval",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "CurvalField"
+      },
+      {
+         "class" : "Permission",
+         "quantity" : "all"
+      },
+      {
+         "class" : "UserGraph",
+         "quantity" : "all"
+      },
+      {
+         "class" : "FileOption",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "ViewLayout"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Graph"
+      },
+      {
+         "quantity" : "all",
+         "class" : "View"
+      },
+      {
+         "class" : "Calc",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Instance",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "MetricGroup"
+      },
+      {
+         "class" : "Alert",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Oauthtoken",
+         "quantity" : "all"
+      },
+      {
+         "class" : "LayoutGroup",
+         "quantity" : "all"
+      },
+      {
+         "class" : "GraphColor",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Oauthclient"
+      },
+      {
+         "class" : "Fileval",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Site",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Date"
+      },
+      {
+         "class" : "Enum",
+         "quantity" : "all"
+      },
+      {
+         "class" : "String",
+         "quantity" : "all"
+      },
+      {
+         "class" : "ViewLimit",
+         "quantity" : "all"
+      },
+      {
+         "class" : "User",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "UserLastrecord"
+      }
+   ]
+}

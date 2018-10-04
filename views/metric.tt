@@ -1,4 +1,4 @@
-<h2>Metrics</h2>
+<h2>[% IF metricgroup.id %]Edit metric[% ELSE %]Add new metric[% END %]</h2>
 <form role="form" method="post">
     <div class="row">
         <div class="col-md-6">

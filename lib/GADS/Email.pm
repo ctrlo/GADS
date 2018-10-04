@@ -119,13 +119,13 @@ sub message
 
     (my $text = $args->{text}) =~ s/\s+$//;
     $text = $self->message_prefix.$text
-             ."\n\nMessage sent by: ".($user->{value}||"")." ($user->{email})\n";
+             ."\n\nMessage sent by: ".($user->value||"")." (".$user->email.")\n";
 
     my $email = {
         subject  => $args->{subject},
         emails   => \@emails,
         text     => $text,
-        reply_to => $user->{email},
+        reply_to => $user->email,
     };
     $self->send($email);
 }

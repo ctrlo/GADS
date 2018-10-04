@@ -185,7 +185,7 @@ sub _reset_csv
 }
 
 sub process
-{   my $self = shift;
+{   my ($self, %options) = @_;
     error __"skip_existing_unique and update_unique are mutually exclusive"
         if $self->update_unique && $self->skip_existing_unique;
     $self->layout->user_permission_override(1);
@@ -195,11 +195,15 @@ sub process
     # We now need to close the fh and reset CSV. If we don't do this, we
     # end up with duplicated lines being read once the process forks.
     $self->_reset_csv;
+    # Reopen the file, otherwise as it's a tmp file it will be deleted as soon
+    # as the parent process exits (before the child has had a chance to open
+    # it)
+    my $fh = $self->fh;
 
     # We need to fork for the actual import, as it could take very long.
     # The import process writes the status to the database so that the
     # user can see the progress.
-    if ($ENV{GADS_NO_FORK})
+    if ($ENV{GADS_NO_FORK} || $options{no_fork})
     {
         # Used in tests when we don't want to fork
         $self->_import_rows;
@@ -221,7 +225,15 @@ sub process
                 # Despite the guard, we still operate in a try block, so as to catch
                 # the messages from any exceptions and report them accordingly
                 try { $self->_import_rows } hide => 'ALL'; # This takes a long time
-                $@->reportAll(is_fatal => 0);
+                # Because we are forked, any messages caught here do not
+                # actually go anywhere for the user to see (and do not appear
+                # to go to syslogger either because we are inside another try
+                # block). Therefore, record fatal errors to the status in the
+                # database.
+                $self->_import_status_rs->update->update({
+                    result => $@->wasFatal->message,
+                    completed => DateTime->now,
+                }) if $@;
             }
         }
     }
@@ -308,6 +320,19 @@ sub _build_fields
     \@fields;
 }
 
+has _import_status_rs => (
+    is => 'lazy',
+);
+
+sub _build__import_status_rs
+{   my $self = shift;
+    $self->schema->resultset('Import')->create({
+        user_id => $self->user_id,
+        type    => 'data',
+        started => DateTime->now,
+    });
+}
+
 sub _import_rows
 {   my $self = shift;
 
@@ -328,11 +353,7 @@ sub _import_rows
     # Used to retrieve all columns when searching unique field
     my @all_column_ids = map { $_->id } $self->layout->all;
 
-    my $import = $self->schema->resultset('Import')->create({
-        user_id => $self->user_id,
-        type    => 'data',
-        started => DateTime->now,
-    });
+    my $import = $self->_import_status_rs;
 
     $self->csv->getline($self->fh); # Slurp off the header row
 
@@ -468,7 +489,7 @@ sub _import_rows
                 {
                     if ($self->update_unique == -11) # ID
                     {
-                        try { $record->find_current_id($unique_value, $self->layout->instance_id) };
+                        try { $record->find_current_id($unique_value, instance_id => $self->layout->instance_id) };
                         if ($@)
                         {
                             push @bad, qq(Failed to retrieve record ID $unique_value ($@). Data will not be uploaded.);

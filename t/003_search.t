@@ -100,22 +100,24 @@ my @position = (
 $layout->position(@position);
 
 my $calc_int = GADS::Column::Calc->new(
-    schema      => $schema,
-    user        => undef,
-    layout      => $layout,
-    name        => 'calc_int',
-    return_type => 'integer',
-    code        => "function evaluate (L1integer1) return L1integer1 end",
+    schema          => $schema,
+    user            => undef,
+    layout          => $layout,
+    name            => 'calc_int',
+    return_type     => 'integer',
+    code            => "function evaluate (L1integer1) return L1integer1 end",
+    set_permissions => {
+        $sheet->group->id => $sheet->default_permissions,
+    },
 );
 $calc_int->write;
-$calc_int->set_permissions($sheet->group->id => $sheet->default_permissions);
 $layout->clear;
 
 $sheet->create_records;
 $curval_sheet->add_autocur(refers_to_instance_id => 1, related_field_id => $columns->{curval1}->id);
 $curval_sheet->add_autocur(refers_to_instance_id => 1, related_field_id => $columns->{curval2}->id);
 my $curval_columns = $curval_sheet->columns;
-my $user = $sheet->user;
+my $user = $sheet->user_normal1;
 
 my $record = GADS::Record->new(
     user   => $user,
@@ -133,6 +135,7 @@ my $curval_sheet2 = t::lib::DataSheet->new(
     group                    => $curval_sheet->group,
     instance_id              => 3,
     curval_offset            => 12,
+    curval_field_ids         => [$sheet->columns->{integer1}->id],
     user_permission_override => 0,
 );
 $curval_sheet2->create_records;
@@ -144,9 +147,11 @@ my $curval3 = GADS::Column::Curval->new(
     schema                => $schema,
     refers_to_instance_id => $curval_sheet2->instance_id,
     curval_field_ids      => [$curval_sheet2->columns->{string1}->id],
+    set_permissions       => {
+        $sheet->group->id => $sheet->default_permissions,
+    },
 );
 $curval3->write;
-$curval3->set_permissions($sheet->group->id => $sheet->default_permissions);
 $curval_sheet->layout->clear;
 $layout->clear;
 my $records = GADS::Records->new(
@@ -605,7 +610,7 @@ my @filters = (
         columns => [$columns->{string1}->id],
         rules => [
             {
-                id       => -14, # Special id for created column
+                id       => -15, # Special id for created column
                 type     => 'date',
                 value    => '2014-10-15',
                 operator => 'less',
@@ -620,11 +625,11 @@ my @filters = (
             {
                 id       => -13, # Special id for version editor ID
                 type     => 'integer',
-                value    => '1',
+                value    => $user->id,
                 operator => 'equal',
             },
         ],
-        count => 7,
+        count => 1, # Other records written by superadmin user on start
     },
     {
         name  => 'Search for invalid date',
@@ -832,91 +837,106 @@ my @filters = (
     },
 );
 
-foreach my $filter (@filters)
+# Run 2 loops, one without the standard layout from the initial build, and a
+# second with the layouts all built from scratch using GADS::Instances
+foreach my $layout_from_instances (0..1)
 {
-    my $rules = GADS::Filter->new(
-        as_hash => {
-            rules     => $filter->{rules},
-            condition => $filter->{condition},
-        },
-    );
-
-    my $view_columns = $filter->{columns} || [$columns->{string1}->id, $columns->{tree1}->id];
-    my $view = GADS::View->new(
-        name        => 'Test view',
-        filter      => $rules,
-        columns     => $view_columns,
-        instance_id => 1,
-        layout      => $filter->{layout} || $layout,
-        schema      => $schema,
-        user        => $user,
-    );
-    # If the filter is expected to bork, then check that it actually does first
-    if ($filter->{no_errors})
+    my $instances;
+    if ($layout_from_instances)
     {
-        try { $view->write };
-        ok($@, "Failed to write view with invalid value, test: $filter->{name}");
-        is($@->wasFatal->reason, 'ERROR', "Generated user error when writing view with invalid value");
+        $instances = GADS::Instances->new(schema => $schema, user => $user);
+        $layout = $instances->layout($layout->instance_id);
     }
-    $view->write(no_errors => $filter->{no_errors});
 
-    my $records = GADS::Records->new(
-        user    => $user,
-        view    => $view,
-        layout  => $filter->{layout} || $layout,
-        schema  => $schema,
-    );
-
-    is( $records->count, $filter->{count}, "$filter->{name} for record count $filter->{count}");
-    is( @{$records->results}, $filter->{count}, "$filter->{name} actual records matches count $filter->{count}");
-    if (my $test_values = $filter->{values})
+    foreach my $filter (@filters)
     {
-        foreach my $field (keys %$test_values)
+        my $layout_filter = $filter->{layout};
+        $layout_filter &&= $instances->layout($layout_filter->instance_id)
+            if $layout_from_instances;
+        my $rules = GADS::Filter->new(
+            as_hash => {
+                rules     => $filter->{rules},
+                condition => $filter->{condition},
+            },
+        );
+
+        my $view_columns = $filter->{columns} || [$columns->{string1}->id, $columns->{tree1}->id];
+        my $view = GADS::View->new(
+            name        => 'Test view',
+            filter      => $rules,
+            columns     => $view_columns,
+            instance_id => 1,
+            layout      => $layout_filter || $layout,
+            schema      => $schema,
+            user        => $user,
+        );
+        # If the filter is expected to bork, then check that it actually does first
+        if ($filter->{no_errors})
         {
-            is($records->results->[0]->fields->{$field}->as_string, $test_values->{$field}, "Test value of $filter->{name} correct");
+            try { $view->write };
+            ok($@, "Failed to write view with invalid value, test: $filter->{name}");
+            is($@->wasFatal->reason, 'ERROR', "Generated user error when writing view with invalid value");
         }
+        $view->write(no_errors => $filter->{no_errors});
+
+        my $records = GADS::Records->new(
+            user    => $user,
+            view    => $view,
+            layout  => $layout_filter || $layout,
+            schema  => $schema,
+        );
+
+        is( $records->count, $filter->{count}, "$filter->{name} for record count $filter->{count}");
+        is( @{$records->results}, $filter->{count}, "$filter->{name} actual records matches count $filter->{count}");
+        if (my $test_values = $filter->{values})
+        {
+            foreach my $field (keys %$test_values)
+            {
+                is($records->results->[0]->fields->{$field}->as_string, $test_values->{$field}, "Test value of $filter->{name} correct");
+            }
+        }
+
+        $view->set_sorts($view_columns, 'asc');
+        $records = GADS::Records->new(
+            user    => $user,
+            view    => $view,
+            layout  => $layout_filter || $layout,
+            schema  => $schema,
+        );
+
+        is( $records->count, $filter->{count}, "$filter->{name} for record count $filter->{count}");
+        is( @{$records->results}, $filter->{count}, "$filter->{name} actual records matches count $filter->{count}");
+
+        # Basic graph test. Total of points on graph should match the number of results
+        my $graph = GADS::Graph->new(
+            layout => $layout_filter || $layout,
+            schema => $schema,
+        );
+        $graph->title('Test');
+        $graph->type('bar');
+        my $axis = $filter->{columns}->[0] || $columns->{string1}->id;
+        $graph->x_axis($axis);
+        $graph->y_axis($axis);
+        $graph->y_axis_stack('count');
+        $graph->write;
+
+        my $records_group = GADS::RecordsGroup->new(
+            user              => $user,
+            layout            => $layout_filter || $layout,
+            schema => $schema,
+        );
+        my $graph_data = GADS::Graph::Data->new(
+            id      => $graph->id,
+            view    => $view,
+            records => $records_group,
+            schema  => $schema,
+        );
+
+        my $graph_total = 0;
+        $graph_total += $_ foreach @{$graph_data->points->[0]}; # Count total number of records
+        my $count = $filter->{count_graph} || $filter->{count};
+        is($graph_total, $count, "Item total on graph matches table for $filter->{name}");
     }
-
-    $view->set_sorts($view_columns, 'asc');
-    $records = GADS::Records->new(
-        user    => $user,
-        view    => $view,
-        layout  => $filter->{layout} || $layout,
-        schema  => $schema,
-    );
-
-    is( $records->count, $filter->{count}, "$filter->{name} for record count $filter->{count}");
-    is( @{$records->results}, $filter->{count}, "$filter->{name} actual records matches count $filter->{count}");
-
-    # Basic graph test. Total of points on graph should match the number of results
-    my $graph = GADS::Graph->new(
-        layout => $filter->{layout} || $layout,
-        schema => $schema,
-    );
-    $graph->title('Test');
-    $graph->type('bar');
-    my $axis = $filter->{columns}->[0] || $columns->{string1}->id;
-    $graph->x_axis($axis);
-    $graph->y_axis($axis);
-    $graph->y_axis_stack('count');
-    $graph->write;
-
-    my $records_group = GADS::RecordsGroup->new(
-        user              => $user,
-        layout            => $filter->{layout} || $layout,
-        schema => $schema,
-    );
-    my $graph_data = GADS::Graph::Data->new(
-        id      => $graph->id,
-        view    => $view,
-        records => $records_group,
-        schema  => $schema,
-    );
-
-    my $graph_total = 0;
-    $graph_total += $_ foreach @{$graph_data->points->[0]}; # Count total number of records
-    my $count = $filter->{count_graph} || $filter->{count};
-    is($graph_total, $count, "Item total on graph matches table for $filter->{name}");
 }
 
 foreach my $multivalue (0..1)
@@ -952,10 +972,7 @@ foreach my $multivalue (0..1)
     );
     $view_limit->write;
 
-    # XXX Need to get rid of user as a hash. For the time being, we need
-    # two variables.
-    my $user_r = $schema->resultset('User')->find($user->{id});
-    $user_r->set_view_limits([$view_limit->id]);
+    $user->set_view_limits([$view_limit->id]);
 
     $rules = GADS::Filter->new(
         as_hash => {
@@ -1005,6 +1022,14 @@ foreach my $multivalue (0..1)
         ok( $@, "Failed to retrieve non-viewable current ID 4 in limited view" );
         try { $record->find_record_id(4) };
         ok( $@, "Failed to retrieve non-viewable record ID 4 in limited view" );
+        # Temporarily flag record as deleted and check it can't be shown
+        $schema->resultset('Current')->find(5)->update({ deleted => DateTime->now });
+        try { $record->find_current_id(5) };
+        like($@, qr/Requested record not found/, "Failed to find deleted current ID 5" );
+        try { $record->find_record_id(5) };
+        like($@, qr/Requested record not found/, "Failed to find deleted record ID 5" );
+        # Reset
+        $schema->resultset('Current')->find(5)->update({ deleted => undef });
     }
 
     # Add a second view limit
@@ -1029,10 +1054,9 @@ foreach my $multivalue (0..1)
     );
     $view_limit2->write;
 
-    $user_r->set_view_limits([$view_limit->id, $view_limit2->id]);
+    $user->set_view_limits([$view_limit->id, $view_limit2->id]);
 
     $records = GADS::Records->new(
-        view_limits => [ $view_limit, $view_limit2 ],
         user    => $user,
         view    => $view,
         layout  => $layout,
@@ -1066,7 +1090,7 @@ foreach my $multivalue (0..1)
         );
         $view_limit3->write;
 
-        $user_r->set_view_limits([$view_limit3->id]);
+        $user->set_view_limits([$view_limit3->id]);
 
         # Then add a normal view
         $rules = GADS::Filter->new(
@@ -1116,7 +1140,7 @@ foreach my $multivalue (0..1)
     is (@{$records->results}, 0, 'Correct number of quick search results for number when limiting to a view (no match)');
     # Reset and do again with non-negative view
     $records->clear;
-    $user_r->set_view_limits([$view_limit->id]);
+    $user->set_view_limits([$view_limit->id]);
     $records->search('Foobar');
     is (@{$records->results}, 0, 'Correct number of quick search results when limiting to a view');
     # Current ID in limited view
@@ -1141,7 +1165,6 @@ foreach my $multivalue (0..1)
     ));
     $view_limit->write;
     $records = GADS::Records->new(
-        view_limits => [ $view_limit ],
         user    => $user,
         layout  => $layout,
         schema  => $schema,
@@ -1149,7 +1172,7 @@ foreach my $multivalue (0..1)
     is ($records->count, 2, 'Correct number of results when limiting to a view with enumval');
     {
         my $limit = $schema->resultset('ViewLimit')->create({
-            user_id => $user->{id},
+            user_id => $user->id,
             view_id => $view_limit->id,
         });
         my $record = GADS::Record->new(
@@ -1163,6 +1186,14 @@ foreach my $multivalue (0..1)
     $records->clear;
     $records->search('2014-10-10');
     is (@{$records->results}, 1, 'Correct number of quick search results when limiting to a view with enumval');
+    # Check that record can be retrieved for edit
+    my $record = GADS::Record->new(
+        user                 => $user,
+        layout               => $layout,
+        schema               => $schema,
+        curcommon_all_fields => 1, # Used for edits
+    );
+    $record->find_current_id($records->single->current_id);
 
     # Same again but limited by curval
     $view_limit->filter(GADS::Filter->new(
@@ -1183,9 +1214,20 @@ foreach my $multivalue (0..1)
         schema  => $schema,
     );
     is ($records->count, 1, 'Correct number of results when limiting to a view with curval');
+    is (@{$records->results}, 1, 'Correct number of results when limiting to a view with curval');
+
+    # Check that record can be retrieved for edit
+    $record = GADS::Record->new(
+        user                 => $user,
+        layout               => $layout,
+        schema               => $schema,
+        curcommon_all_fields => 1, # Used for edits
+    );
+    $record->find_current_id($records->single->current_id);
+
     {
         my $limit = $schema->resultset('ViewLimit')->create({
-            user_id => $user->{id},
+            user_id => $user->id,
             view_id => $view_limit->id,
         });
         my $record = GADS::Record->new(
@@ -1201,7 +1243,7 @@ foreach my $multivalue (0..1)
     is (@{$records->results}, 1, 'Correct number of quick search results when limiting to a view with curval');
 
     # Now normal
-    $user_r->set_view_limits([]);
+    $user->set_view_limits([]);
     $records = GADS::Records->new(
         user    => $user,
         layout  => $layout,
@@ -1251,6 +1293,109 @@ foreach my $multivalue (0..1)
 
 
     $sheet->set_multivalue($multivalue);
+}
+
+{
+    # Test view_limit_extra functionality
+    my $sheet = t::lib::DataSheet->new(data =>
+    [
+        {
+            string1    => 'FooBar',
+            integer1   => 50,
+        },
+        {
+            string1    => 'Bar',
+            integer1   => 100,
+        },
+        {
+            string1    => 'Foo',
+            integer1   => 150,
+        },
+        {
+            string1    => 'FooBar',
+            integer1   => 200,
+        },
+    ]);
+    $sheet->create_records;
+    my $schema  = $sheet->schema;
+    my $layout  = $sheet->layout;
+    my $columns = $sheet->columns;
+
+    my $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $columns->{string1}->id,
+                type     => 'string',
+                value    => 'FooBar',
+                operator => 'equal',
+            }],
+        },
+    );
+
+    my $limit_extra1 = GADS::View->new(
+        name        => 'Limit to view extra',
+        filter      => $rules,
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+    );
+    $limit_extra1->write;
+
+    $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $columns->{integer1}->id,
+                type     => 'string',
+                value    => '75',
+                operator => 'greater',
+            }],
+        },
+    );
+
+    my $limit_extra2 = GADS::View->new(
+        name        => 'Limit to view extra',
+        filter      => $rules,
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+    );
+    $limit_extra2->write;
+
+    $schema->resultset('Instance')->find($layout->instance_id)->update({
+        default_view_limit_extra_id => $limit_extra1->id,
+    });
+    $layout->clear;
+
+    my $records = GADS::Records->new(
+        user    => $sheet->user,
+        layout  => $layout,
+        schema  => $schema,
+    );
+    my $string1 = $columns->{string1}->id;
+    is($records->count, 2, 'Correct number of results when limiting to a view limit extra');
+    is($records->single->fields->{$string1}->as_string, "FooBar", "Correct limited record");
+
+    $records = GADS::Records->new(
+        user                => $sheet->user,
+        layout              => $layout,
+        schema              => $schema,
+        view_limit_extra_id => $limit_extra2->id,
+    );
+    is ($records->count, 3, 'Correct number of results when changing view limit extra');
+    is($records->single->fields->{$string1}->as_string, "Bar", "Correct limited record when changed");
+
+    my $user = $sheet->user;
+    $user->set_view_limits([ $limit_extra1->id ]);
+    $records = GADS::Records->new(
+        user                => $user,
+        layout              => $layout,
+        schema              => $schema,
+        view_limit_extra_id => $limit_extra2->id,
+    );
+    is ($records->count, 1, 'Correct number of results with both view limits and extra limits');
+    is($records->single->fields->{$string1}->as_string, "FooBar", "Correct limited record for both types of limit");
 }
 
 # Check sorting functionality
@@ -1480,6 +1625,18 @@ my @sorts = (
         },
     },
     {
+        name           => 'Sort by field in curval',
+        show_columns   => [qw/enum1 curval1 curval2/],
+        sort_by        => [qw/string1/],
+        sort_by_parent => [qw/curval1/],
+        sort_type      => ['asc'],
+        first          => qr/^(6|7|8|9)$/,
+        last           => qr/^(3)$/,
+        max_id         => 9,
+        min_id         => 3,
+        count          => 7,
+    },
+    {
         name         => 'Sort by curval without curval in view',
         show_columns => [qw/string1/],
         sort_by      => [qw/curval1/],
@@ -1489,6 +1646,18 @@ my @sorts = (
         max_id       => 9,
         min_id       => 3,
         count        => 7,
+    },
+    {
+        name           => 'Sort by field in curval without curval in view',
+        show_columns   => [qw/integer1/],
+        sort_by        => [qw/string1/],
+        sort_by_parent => [qw/curval1/],
+        sort_type      => ['asc'],
+        first          => qr/^(6|7|8|9)$/,
+        last           => qr/^(3)$/,
+        max_id         => 9,
+        min_id         => 3,
+        count          => 7,
     },
 );
 
@@ -1533,7 +1702,21 @@ foreach my $multivalue (0..1)
                 ? ['asc']
                 : $sort->{sort_type};
 
-            my @sort_by = map { $_ && $columns->{$_}->id } @{$sort->{sort_by}};
+            my @sort_by;
+            if ($sort->{sort_by_parent})
+            {
+                my @children = @{$sort->{sort_by}};
+                foreach my $parent (@{$sort->{sort_by_parent}})
+                {
+                    my $cname = shift @children;
+                    my $id    = $curval_columns->{$cname}->id;
+                    my $parent_id = $columns->{$parent}->id;
+                    push @sort_by, "${parent_id}_$id";
+                }
+            }
+            else {
+                @sort_by = map { $_ && $columns->{$_}->id } @{$sort->{sort_by}};
+            }
             $view->set_sorts([@sort_by], $sort_type);
 
             $records = GADS::Records->new(

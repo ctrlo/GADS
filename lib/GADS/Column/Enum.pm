@@ -31,11 +31,16 @@ has enumvals => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
+        my $sort = $self->ordering && $self->ordering eq 'asc'
+            ? 'me.value'
+            : $self->ordering && $self->ordering eq 'desc'
+            ? { -desc => 'me.value' }
+            : ['me.position', 'me.id'];
         my $enumrs = $self->schema->resultset('Enumval')->search({
             layout_id => $self->id,
             deleted   => 0,
         }, {
-            order_by => 'me.id'
+            order_by => $sort
         });
         $enumrs->result_class('DBIx::Class::ResultClass::HashRefInflator');
         my @enumvals = $enumrs->all;
@@ -53,22 +58,21 @@ has enumvals => (
         my $values = shift;
         ref $values eq 'ARRAY' and return $values; # From DB, already correct
         my @enumvals;
-        foreach my $v (keys %$values)
+        my @enumvals_in = @{$values->{enumvals}};
+        my @enumval_ids = @{$values->{enumval_ids}};
+        foreach my $v (@enumvals_in)
         {
-            next unless $v =~ /^enumval(\d*)/;
-            if (ref $values->{$v} eq 'ARRAY') # New ones
+            my $id = shift @enumval_ids;
+            if (!$id) # New one
             {
-                foreach my $w (@{$values->{$v}})
-                {
-                    push @enumvals, {
-                        value => $w, # New, no ID
-                    };
-                }
+                push @enumvals, {
+                    value => $v, # New, no ID
+                };
             }
             else {
                 push @enumvals, {
-                    id    => $1,
-                    value => $values->{$v},
+                    id    => $id,
+                    value => $v,
                 };
             }
         }
@@ -121,28 +125,39 @@ after build_values => sub {
     $self->ordering($original->{ordering});
 };
 
+sub _build_retrieve_fields
+{   my $self = shift;
+    [qw/id value/];
+}
+
 sub write_special
 {   my ($self, %options) = @_;
 
     my $id   = $options{id};
     my $rset = $options{rset};
 
+    my $position;
     foreach my $en (@{$self->enumvals})
     {
         my $value = $en->{value};
         error __x"{value} is not a valid value for an item of a drop-down list",
             value => ($value ? qq('$value') : 'A blank value')
             unless $value =~ /^[ \S]+$/;
+        $position++;
         if ($en->{id})
         {
             my $enumval = $options{create_missing_id}
                 ? $self->schema->resultset('Enumval')->find_or_create({ id => $en->{id}, layout_id => $id })
                 : $self->schema->resultset('Enumval')->find($en->{id});
             $enumval or error __x"Bad ID {id} for multiple select update", id => $en->{id};
-            $enumval->update({ value => $en->{value} });
+            $enumval->update({ value => $en->{value}, position => $en->{position} || $position });
         }
         else {
-            my $new = $self->schema->resultset('Enumval')->create({ value => $en->{value}, layout_id => $id });
+            my $new = $self->schema->resultset('Enumval')->create({
+                value     => $en->{value},
+                layout_id => $id,
+                position  => $en->{position} || $position,
+            });
             $en->{id} = $new->id;
         }
     }
@@ -152,9 +167,11 @@ sub write_special
     $rset->update({
         ordering => $self->ordering,
     });
+
+    return ();
 };
 
-sub _build_join
+sub tjoin
 {   my $self = shift;
     +{$self->field => 'value'};
 }
@@ -234,8 +251,61 @@ sub resultset_for_values
 }
 
 before import_hash => sub {
-    my ($self, $values) = @_;
-    $self->enumvals($values->{enumvals});
+    my ($self, $values, %options) = @_;
+    my $report = $options{report_only} && $self->id;
+    my @new = @{$values->{enumvals}};
+    my @to_write;
+    # We have no unqiue identifier with which to match, so we have to compare
+    # the new and the old lists to try and work out what's changed. Simple
+    # changes are handled automatically, more complicated ones will require
+    # manual intervention
+    if (my @old = @{$self->enumvals})
+    {
+        @old = sort { $a->{id} <=> $b->{id} } @old;
+        @new = sort { $a->{id} <=> $b->{id} } @new;
+        while (@old)
+        {
+            my $old = shift @old;
+            my $new = shift @new;
+            # If it's the same, easy, onto the next one
+            if ($old->{value} eq $new->{value})
+            {
+                notice __x"No change for enum value {value}", value => $old->{value}
+                    if $report;
+                $new->{id} = $old->{id};
+                push @to_write, $new;
+                next;
+            }
+            # Different. Is the next one the same?
+            if ($old[0] && $new[0] && $old[0]->{value} eq $new[0]->{value})
+            {
+                # Yes, assume the previous is a value change
+                notice __x"Changing enum value {old} to {new}", old => $old->{value}, new => $new->{value}
+                    if $report;
+                $new->{id} = $old->{id};
+                push @to_write, $new;
+            }
+            else {
+                # Different, don't know what to do, require manual intervention
+                if ($report)
+                {
+                    notice __x"Error: don't know how to handle enumval updates, manual intervention required";
+                    return;
+                }
+                else {
+                    error __x"Error: don't know how to handle enumval updates, manual intervention required";
+                }
+            }
+        }
+        # Add any remaining new ones
+        delete $_->{id} foreach @new;
+        push @to_write, @new;
+    }
+    else {
+        delete $_->{id} foreach @new;
+        @to_write = @new;
+    }
+    $self->enumvals(\@to_write);
     $self->ordering($values->{ordering});
 };
 

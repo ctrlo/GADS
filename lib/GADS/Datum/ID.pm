@@ -40,7 +40,12 @@ sub as_string
 
 sub as_integer
 {   my $self = shift;
-    $self->value;
+    $self->value + 0;
+}
+
+sub for_code
+{   my $self = shift;
+    $self->as_integer;
 }
 
 1;

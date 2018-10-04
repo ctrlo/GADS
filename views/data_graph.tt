@@ -14,8 +14,8 @@
     [% END %]
 
     [% UNLESS count %]
-    <p>No graphs are selected for display. Please use your
-    <a href="[% url.page %]/account/graph/">account options</a> to add graphs to this page.</p>
+    <p>No graphs are selected for display. Please use the
+    <a href="[% url.page %]/account/graph/">Select graphs</a> button above to add graphs for display.</p>
     [% END %]
 [% END %]
 

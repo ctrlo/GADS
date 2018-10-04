@@ -27,8 +27,10 @@ use namespace::clean;
 
 extends 'GADS::Datum';
 
-sub set_value
-{   my ($self, $value, %options) = @_;
+with 'GADS::Role::Presentation::Datum::Person';
+
+after set_value => sub {
+    my ($self, $value, %options) = @_;
     ($value) = @$value if ref $value eq 'ARRAY';
     my $new_id;
     my $clone = $self->clone;
@@ -76,15 +78,15 @@ sub set_value
         {
             my $org = _org_to_hash($person->organisation);
             $self->organisation($org);
+            my $title = _org_to_hash($person->title);
+            $self->title($title);
         }
         $self->_set_text($person ? $person->value : undef);
         $self->changed(1);
     }
-    $self->_set_written_valid(!!$new_id);
     $self->oldvalue($clone);
     $self->id($new_id);
-    $self->_set_written_to(0) if $self->value_next_page;
-}
+};
 
 has schema => (
     is       => 'rw',
@@ -111,8 +113,11 @@ has value_hash => (
         # property such as created_by
         my $init_value = $self->init_value;
         my $value = ref $init_value eq 'ARRAY'
-            ? $init_value->[0]->{value}
-            : $init_value->{value};
+            ? $init_value->[0]
+            : $init_value;
+        # XXX - messy to account for different initial values. Can be tidied once
+        # we are no longer pre-fetching multiple records
+        $value = $value->{value} if exists $value->{record_id};
         my $id = $value->{id};
         $self->has_id(1) if defined $id || $self->init_no_value;
         +{
@@ -124,6 +129,7 @@ has value_hash => (
             freetext1    => $value->{freetext1},
             freetext2    => $value->{freetext2},
             organisation => $value->{organisation},
+            title        => $value->{title},
             text         => $value->{value},
         };
     },
@@ -196,9 +202,33 @@ has organisation => (
     is      => 'rw',
     lazy    => 1,
     builder => sub {
-        $_[0]->value_hash ? $_[0]->value_hash->{organisation} : $_[0]->_rset && $_[0]->_rset->organisation;
+        my $self = shift;
+        # Do we have a resultset? If so, just return that
+        return $self->_rset->organisation if $self->_rset;
+        # Otherwise assume value_hash and build from that
+        my $organisation_id = $self->value_hash && $self->value_hash->{organisation}
+            or return undef;
+        $self->schema->resultset('Organisation')->find($organisation_id);
     },
 );
+
+has title => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        # Do we have a resultset? If so, just return that
+        return $self->_rset->title if $self->_rset;
+        # Otherwise assume value_hash and build from that
+        my $title_id = $self->value_hash && $self->value_hash->{title}
+            or return undef;
+        $self->schema->resultset('Title')->find($title_id);
+    },
+);
+
+sub search_values_unique
+{   [shift->text];
+}
 
 has text => (
     is      => 'rw',
@@ -244,6 +274,7 @@ around 'clone' => sub {
         freetext1    => $self->freetext1,
         freetext2    => $self->freetext2,
         organisation => $self->organisation,
+        title        => $self->title,
         text         => $self->text,
         @_,
     );
@@ -255,33 +286,6 @@ sub _set_text
     # There used to be code here to update the cached value
     # if required. Now all removed to controller
     $self->text($value || "");
-}
-
-sub html
-{   my $self = shift;
-    my @details;
-    return unless $self->id;
-    if (my $e = $self->email)
-    {
-        $e = encode_entities $e;
-        push @details, qq(Email: <a href='mailto:$e'>$e</a>);
-    }
-    my $site = $self->column->layout->site;
-    if (my $t = $self->freetext1)
-    {
-        $t = encode_entities $t;
-        push @details, $site->register_freetext1_name.": $t";
-    }
-    if (my $t = $self->freetext2)
-    {
-        $t = encode_entities $t;
-        push @details, $site->register_freetext2_name.": $t";
-    }
-    my $details = join '<br>', map {encode_entities $_} @details;
-    my $text = encode_entities $self->text;
-    return qq(<a style="cursor: pointer" class="personpop" data-toggle="popover"
-        title="$text"
-        data-content="$details">$text</a>);
 }
 
 sub as_string
@@ -303,6 +307,7 @@ sub for_code
         freetext1    => $self->freetext1,
         freetext2    => $self->freetext2,
         organisation => $self->organisation,
+        title        => $self->title,
         text         => $self->text,
     };
 }

@@ -24,11 +24,22 @@ use namespace::clean;
 
 extends 'GADS::Datum::Code';
 
+with 'GADS::Role::Presentation::Datum::Rag';
+
+my %mapping = (
+    a_grey   => 'undefined',
+    b_red    => 'danger',
+    c_amber  => 'warning',
+    d_green  => 'success',
+    e_purple => 'unexpected'
+);
+
+
 sub convert_value
 {   my ($self, $in) = @_;
 
     my $value = $in->{return};
-    trace "Value into convert_value is: $value";
+    trace __x"Value into convert_value is: {value}", value => $value;
 
     my $return;
 
@@ -66,36 +77,57 @@ sub write_value
     $self->write_cache('ragval');
 }
 
+# Convert the array ref from the generic ::Code to a single scalar. Not lazy,
+# otherwise its value needs clearing each time the code is re-evaluated
+sub _value_single
+{   my $self = shift;
+    my @values = @{$self->value}
+        or return undef;
+    pop @values;
+}
+
+sub as_grade
+{
+    my $self = shift;
+    return $mapping{ $self->_value_single };
+}
+
 # XXX Why is this needed? Error when creating new record otherwise
 sub as_integer
 {   my $self = shift;
-    !$self->value
+    my $value = $self->_value_single;
+    !$value
         ? 0
-        : $self->value eq 'a_grey'
+        : $value eq 'a_grey'
         ? 1
-        : $self->value eq 'b_red'
+        : $value eq 'b_red'
         ? 2
-        : $self->value eq 'c_amber'
+        : $value eq 'c_amber'
         ? 3
-        : $self->value eq 'd_green'
+        : $value eq 'd_green'
         ? 4
-        : $self->value eq 'e_purple'
+        : $value eq 'e_purple'
         ? -1
         : -2;
 }
 
 sub as_string
 {   my $self = shift;
-    $self->value // "";
+    $self->_value_single // "";
 }
 
 sub equal
 {   my ($self, $a, $b) = @_;
-   (defined $a xor defined $b)
+    # values can be multiple in ::Code but will only be single for RAG
+    ($a) = @$a if ref $a eq 'ARRAY';
+    ($b) = @$b if ref $b eq 'ARRAY';
+    (defined $a xor defined $b)
         and return;
     !defined $a && !defined $b and return 1;
     $a eq $b;
 }
+
+sub _build_blank { 0 } # Will always have value, even if it's an invalid one
 
 1;
 

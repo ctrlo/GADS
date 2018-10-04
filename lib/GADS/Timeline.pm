@@ -129,7 +129,7 @@ sub _build_items
         if $self->group_col_id && $layout->column($self->group_col_id);
     push @extra, $self->color_col_id
         if $self->color_col_id && $layout->column($self->color_col_id);
-    $self->records->columns_extra([@extra]);
+    $self->records->columns_extra([map { +{ id => $_ } } @extra]);
 
     # All the data values
     my @items;
@@ -166,7 +166,7 @@ sub _build_items
 
                 if ($column->is_curcommon)
                 {
-                    foreach my $row (values %{$record->fields->{$column->id}->field_values})
+                    foreach my $row (@{$record->fields->{$column->id}->field_values})
                     {
                         foreach my $cur_col_id (keys %$row)
                         {
@@ -259,34 +259,38 @@ sub _build_items
                             }
                         }
                         else {
-                            $d->value or next;
-                            if (
-                                (!$records->from || $d->value >= $records->from)
-                                && (!$records->to || $d->value <= $records->to)
-                            ) {
-                                push @dates, {
-                                    from       => $d->value,
-                                    to         => $d->value,
-                                    color      => $color,
-                                    column     => $column->id,
-                                    count      => 1,
-                                    current_id => $d->record->current_id,
-                                };
-                                if ($find_min)
-                                {
-                                    $self->_set_retrieved_from($d->value->clone)
-                                        if !defined $self->retrieved_from || $d->value < $self->retrieved_from;
-                                    $min_of_this = $d->value->clone
-                                        if (!$find_min || $d->value > $find_min)
-                                            && (!defined $min_of_this || $d->value < $min_of_this);
-                                }
-                                if ($find_max)
-                                {
-                                    $self->_set_retrieved_to($d->value->clone)
-                                        if !defined $self->retrieved_to || $d->value > $self->retrieved_to;
-                                    $max_of_this = $d->value->clone
-                                        if (!$find_max || $d->value < $find_max)
-                                            && (!defined $max_of_this || $d->value > $max_of_this);
+                            my @vs = ref $d->value eq 'ARRAY' ? @{$d->value} : ($d->value); # Either depending on Date/Calc type
+                            foreach my $val (@vs)
+                            {
+                                $val or next;
+                                if (
+                                    (!$records->from || $val >= $records->from)
+                                    && (!$records->to || $val <= $records->to)
+                                ) {
+                                    push @dates, {
+                                        from       => $val,
+                                        to         => $val,
+                                        color      => $color,
+                                        column     => $column->id,
+                                        count      => 1,
+                                        current_id => $d->record->current_id,
+                                    };
+                                    if ($find_min)
+                                    {
+                                        $self->_set_retrieved_from($val->clone)
+                                            if !defined $self->retrieved_from || $val < $self->retrieved_from;
+                                        $min_of_this = $val->clone
+                                            if (!$find_min || $val > $find_min)
+                                                && (!defined $min_of_this || $val < $min_of_this);
+                                    }
+                                    if ($find_max)
+                                    {
+                                        $self->_set_retrieved_to($val->clone)
+                                            if !defined $self->retrieved_to || $val > $self->retrieved_to;
+                                        $max_of_this = $val->clone
+                                            if (!$find_max || $val < $find_max)
+                                                && (!defined $max_of_this || $val > $max_of_this);
+                                    }
                                 }
                             }
                         }
@@ -312,6 +316,9 @@ sub _build_items
                 # Value for this record may not exist or be blank
                 if $record->fields->{$label_id} && $record->fields->{$label_id}->as_string;
             }
+
+            # If a specific field is set to colour-code by, then use that and
+            # override any previous colours set for multiple date fields
             my $item_color; my $color_key = '';
             if (my $color = $self->color_col_id)
             {
@@ -377,8 +384,9 @@ sub _build_items
                         dt         => $d->{from},
                         values     => \@values,
                     };
+                    # Set to date field colour unless specific colour field chosen
                     $item_color = $d->{color}
-                        if $date_column_count > 1;
+                        if !$self->color_col_id && $date_column_count > 1;
                     $item->{style} = qq(background-color: $item_color)
                         if $item_color;
                     # Add one day, otherwise ends at 00:00:00, looking like day is not included

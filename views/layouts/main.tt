@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
+<!--[if IE 8]>        <html lang="en" class="ie8"><![endif]-->
+<!--[if gt IE 8]><!--><html lang="en"><!--<![endif]-->
     <head>
         <meta charset="utf-8">
         [% IF page == "data" AND viewtype == "graph" %]
@@ -22,14 +23,17 @@
             <link rel="stylesheet" href="[% scheme %]://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
         [% END %]
 
-        <title>Linkspace [% page %]</title>
+        <title>[% page %] | Linkspace</title>
 
         <!-- Custom styles for this template -->
         [% UNLESS page_as_mech %]
             <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap.css">
+            [% IF config.gads.legacy_menu %]
+                <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap-legacy.css">
+            [% END %]
         [% END %]
 
-        [% IF page == "layout" OR page == "edit" OR page == "approval" OR page == "audit" OR page == "bulk" OR page == "data"%]
+        [% IF page.match('(layout|edit|approval|audit|bulk|data)') %]
             <link rel="stylesheet" href="[% url.css %]/jstree.min.css" />
             <link rel="stylesheet" href="[% url.css %]/bootstrap-datepicker.min.css" />
             <link rel="stylesheet" href="[% url.css %]/bootstrap-select.min.css" />
@@ -47,10 +51,10 @@
             [% END %]
             <script type='text/javascript' src='[% url.js %]/handlebars-timeline-item-template.js'></script>
         [% END %]
-        [% IF page == "view" OR page == "layout" %]
+        [% IF page.match("(view|layout)") %]
             <link rel="stylesheet" href="[% url.css %]/query-builder.css">
         [% END %]
-        [% IF page == "user" OR page == "account" %]
+        [% IF page.match('(user|account)') %]
             [% IF hostlocal %]
                 <link rel="stylesheet" href="[% url.css %]/dataTables.bootstrap.css">
             [% ELSE %]
@@ -71,125 +75,112 @@
 
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
-        <script src="[% scheme %]://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="[% scheme %]://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <script type='text/javascript' src='[% url.js %]/html5shiv.js'></script>
+        <script type='text/javascript' src='[% url.js %]/respond.min.js'></script>
         <![endif]-->
-
     </head>
 
-    <body>
-        <div id="wrapper">
+    <body class="page [% page %]" data-page="[% page %]" style="font-size:15px">
+        <header role="banner" class="container">
         [% IF header AND NOT page_as_mech %]
             <p class="text-center">[% header %]</p>
         [% END %]
-        <div class="container-fluid">
-            [% UNLESS page == "login" OR page == "invalidsite" OR page_as_mech %]
-                <div class="navbar navbar-default" role="navigation">
-                        <div class="navbar-header">
-                            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse" aria-expanded="false" aria-controls="main-navbar">
-                                <span class="hamburger-menu-title">Menu</span>
-                                <span class="hamburger">
-                                    <span class="icon-bar"></span>
-                                    <span class="icon-bar"></span>
-                                    <span class="icon-bar"></span>
-                                </span>
-                            </button>
-                            <a class="navbar-brand" href="[% url.page %]/">Home</a>
-                        </div>
-                        <div class="collapse navbar-collapse" id="main-navbar">
-                            <ul class="nav navbar-nav">
-                                <li [% IF page=="data" %]class="active"[% END %]><a href="[% url.page %]/data">Data</a></li>
-                                [% IF user_can_approve %]
-                                    [% IF approve_waiting %][% appcount = " (" _ approve_waiting _ ")" %][% END %]
-                                    <li [% IF page=="approval" %]class="active"[% END %]>
-                                        <a href="[% url.page %]/approval/">Approval[% appcount %]</a>
-                                    </li>
-                                [% END %]
-                                [% IF user.permission.layout OR user.permission.useradmin OR user.permission.audit %]
-                                    <li class="dropdown">
-                                    <button type="button" id="admin-menu" class="dropdown-toggle" 
-                                        data-toggle="dropdown" aria-controls="admin-menu-options" aria-expanded="false" aria-haspopup="true">
-                                        <span>Admin menu</span>
-                                        <span class="caret"></span>
-                                    </button>
-                                    <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
-                                        [% IF user.permission.layout %]
-                                            <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/layout/">Data Layout</a></li>
-                                            <li [% IF page=="table" %]class="active"[% END %]><a href="[% url.page %]/table/">Tables</a></li>
-                                            <li [% IF page=="graph" %]class="active"[% END %]><a href="[% url.page %]/graph/">Graphs</a></li>
-                                            <li [% IF page=="metric" %]class="active"[% END %]><a href="[% url.page %]/metrics/">Metrics</a></li>
-                                            <li [% IF page=="config" %]class="active"[% END %]><a href="[% url.page %]/config/">General Settings</a></li>
-                                        [% END %]
-                                        [% IF user.permission.useradmin %]
-                                            <li [% IF page=="user" %]class="active"[% END %]><a href="[% url.page %]/user/">Manage Users</a></li>
-                                            <li [% IF page=="group" %]class="active"[% END %]><a href="[% url.page %]/group/">Manage Groups</a></li>
-                                        [% END %]
-                                        [% IF user.permission.layout %]
-                                            <li [% IF page=="import" %]class="active"[% END %]><a href="[% url.page %]/import/">Imports</a></li>
-                                        [% END %]
-                                        [% IF user.permission.audit %]
-                                            <li [% IF page=="audit" %]class="active"[% END %]><a href="[% url.page %]/audit/">Audit logs</a></li>
-                                        [% END %]
-                                    </ul>
-                                    </li>
-                                [% END %]
-                            </ul>
-                            <ul class="nav navbar-nav navbar-right">
-                                [% IF instances.size > 1 %]
-                                    <li class="dropdown">
-                                    <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
-                                        aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
-                                        <span>[% instance_name | html_entity %]</span>
-                                        <span class="caret"></span>
-                                    </button>
-                                    <ul class="dropdown-menu" id="table-menu">
-                                        [% FOREACH instance IN instances %]
-                                            <li [% IF instance.id == instance_id %]class="active"[% END %]>
-                                                <a href="?instance=[% instance.id %]"
-                                                >[% instance.name | html_entity %]</a>
-                                            </li>
-                                        [% END %]
-                                    </ul>
-                                    </li>
-                                [% END %]
-                                <li class="dropdown">
-                                <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="User menu"
-                                    aria-expanded="false" aria-haspopup="true" aria-controls="user-menu">
-                                    <span>[% user.value | html_entity %]</span>
-                                    <span class="caret"></span>
-                                </button>
-                                <ul class="dropdown-menu" id="user-menu">
-                                    <li><a href="[% url.page %]/account/detail">My details</a></li>
-                                    <li><a href="[% url.page %]/account/graph">My graphs</a></li>
-                                    <li class="divider"></li>
-                                    <li><a href="[% url.page %]/logout">Logout</a></li>
-                                </ul>
-                                </li>
-                            </ul>
 
-                        </div><!--/.nav-collapse -->
-                </div>
+        [%
+            UNLESS page == "login" OR page == "invalidsite" OR page_as_mech;
+                PROCESS snippets/navigation.tt;
+            END
+        %]
 
-            [% END %]
-
+        [% IF messages.size %]
+            <ul class="messages">
             [% FOR message IN messages %]
-                <div role="alert" class="alert alert-[% message.bootstrap_color %]">
+                <li role="alert" class="alert alert-[% message.bootstrap_color %]">
                     [% IF message.inClass("html") %]
                         [% message.reason %]: [% message.toString %]
                     [% ELSE %]
                         [% message.reason %]: [% message.toString | html_entity %]
                     [% END %]
-                </div>
+                </li>
             [% END %]
+            </ul>
+        [% END %]
 
             [% IF session.rewind %]
-                <div class="alert alert-info">You are viewing data as it was on [% session.rewind.format_cldr(config.dateformat) %] at [% session.rewind.hms %]</div>
+                <div role="alert" class="alert alert-info">You are viewing data as it was on [% session.rewind.format_cldr(config.dateformat) %] at [% session.rewind.hms %]</div>
             [% END %]
+        </header>
 
+        [%
+            full_width_pages = {
+                data => 1
+            }
+        %]
+
+        [% main_container_class = full_width_pages.exists(page) ? 'container-fluid' : 'container' %]
+
+        <main role="main" id="main" class="[% main_container_class %]">
             [% content %]
+        </main>
 
-        </div><!-- /.container -->
+        [% WRAPPER modal_dialog.tt
+            modal_id="modal-sendemail"
+            modal_action_text="Send e-mail"
+            modal_heading="Send an e-mail"
+            modal_with_cancel_button=1
+            modal_with_form=1
+            modal_form_method="post"
+        %]
+            <div class="form-group">
+                <label for="email_organisation">Users in:</label>
+                <select class="form-control" id="email_organisation" name="email_organisation">
+                    <option value="">&lt;All users&gt;</option>
+                    [% FOREACH org IN organisations %]
+                        <option value="[% org.id %]">[% org.name | html_entity %]</option>
+                    [% END %]
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="email_subject">Subject</label>
+                <input type="text" class="form-control" name="email_subject" id="email_subject" placeholder="Subject">
+            </div>
+            <div class="form-group">
+                <label for="email_text">Message</label>
+                <textarea class="form-control" id="email_text" name="email_text" rows="10"></textarea>
+            </div>
+        [% END %]
 
+        [% IF v %]
+            [% WRAPPER modal_dialog.tt
+                modal_id="modal_alert" modal_action_text="Create alert" modal_heading="Configure alert for " _  v.name
+                modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post"
+            %]
+                <input type="hidden" value="[% v.id %]" name="view_id">
+                <div class="form-group">
+                    <label for="frequency">Alert me:</label>
+                    <select class="form-control" id="frequency" name="frequency">
+                        <option value="" [% IF NOT v.alert %]selected[% END %]>Never</option>
+                        <option value="0" [% IF v.alert.frequency == 0 %]selected[% END %]>Instantly</option>
+                        <option value="24" [% IF v.alert.frequency == 24 %]selected[% END %]>Every 24 hours</option>
+                    </select>
+                </div>
+            [% END %]
+        [% END %]
+
+        [% WRAPPER modal_dialog.tt
+            modal_id="modal_rewind" modal_action_text="Submit" modal_heading="View data as it was at a previous time"
+            modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post" modal_extra_action = "modal_rewind_reset"
+            modal_extra_action_text = "Reset to current"
+        %]
+            <div class="form-group">
+                <label for="rewind_date">Date ([% config.dateformat %]):</label>
+                <input id="rewind_date" class="form-control datepicker" type="text" value="[% session.rewind.format_cldr(config.dateformat) %]" name="rewind_date">
+            </div>
+            <div class="form-group">
+                <label for="rewind_time">Time (HH:MM:SS):</label>
+                <input id="rewind_time" class="form-control" type="text" value="[% session.rewind.hms %]" name="rewind_time" placeholder="23:59:59">
+            </div>
+        [% END %]
 
         <!-- Bootstrap core JavaScript
         ================================================== -->
@@ -205,15 +196,15 @@
             <script src="[% scheme %]://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
             <script src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/js/tooltip.min.js"></script>
         [% END %]
-        [% IF page == "edit" OR page == "approval" OR page == "audit" OR page == "bulk" OR page == "data" %]
-            <script type="text/javascript" src="[% url.js %]/bootstrap-datepicker.js"></script>
+        [% IF page.match('(edit|approval|audit|bulk|data)') %]
+            <script type="text/javascript" src="[% url.js %]/bootstrap-datepicker.min.js"></script>
             <script type="text/javascript">
                 $(document).ready(function() {
                     $('.datepicker').datepicker({format: "[% config.dateformat_datepicker %]", autoclose: true});
                 });
             </script>
         [% END %]
-        [% IF page == "edit" OR page == "bulk" OR page == "approval" OR page == "view" OR page == "layout" OR page == "data" %]
+        [% IF page.match('(edit|bulk|approval|view|layout|data)') %]
             <script type="text/javascript" src="[% url.js %]/base64.min.js"></script>
         [% END %]
         [% IF page == "login" %]
@@ -226,6 +217,7 @@
             <script language="javascript" type="text/javascript" src="[% url.js %]/jquery.jqplot.min.js"></script>
             <script language="javascript" type="text/javascript" src="[% url.js %]/jqplot/jqplot.highlighter.min.js"></script>
             <link rel="stylesheet" type="text/css" href="[% url.css %]/jquery.jqplot.min.css" />
+            [% # TODO: concatenate and uglify jqplot.* %]
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.barRenderer.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.donutRenderer.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.pieRenderer.js"></script>
@@ -237,13 +229,13 @@
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasTextRenderer.min.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasAxisLabelRenderer.min.js"></script>
         [% END %]
-        [% IF page == "view" OR page == "data" OR page == "layout" %]
+        [% IF page.match('(view|data|layout)') %]
             <script type="text/javascript" src="[% url.js %]/underscore-min.js"></script>
         [% END %]
-        [% IF page == "view" OR page == "layout" %]
+        [% IF page.match('(view|layout)') %]
             <script type="text/javascript" src="[% url.js %]/query-builder.standalone.js"></script>
         [% END %]
-        [% IF page == "view" OR page == "edit" OR page == "layout" OR page == "bulk" OR page == "data" %]
+        [% IF page.match('(view|edit|layout|bulk|data)') %]
             <script type="text/javascript" src="[% url.js %]/bootstrap3-typeahead.min.js"></script>
         [% END %]
         [% IF page == "data" AND viewtype == "calendar" %]
@@ -289,7 +281,7 @@
                 <script src="[% url.js %]/summernote.min.js"></script>
             [% END %]
         [% END %]
-        [% IF page == "user" OR page == "account" %]
+        [% IF page.match('(user|account)') %]
             [% IF hostlocal %]
                 <script type="text/javascript" src="[% url.js %]/jquery.dataTables.min.js"></script>
                 <script type="text/javascript" src="[% url.js %]/dataTables.bootstrap.js"></script>
@@ -307,12 +299,16 @@
             }
             $('input, text').placeholder();
         </script>
-        [% IF page == "layout" OR page == "edit" OR page == "approval" OR page == "bulk" %]
+
+
+        [% IF page.match('(layout|edit|approval|bulk)') %]
             <script src="[% url.js %]/jstree.min.js"></script>
             <script src="[% url.js %]/jstree-misc.js"></script>
             <script src="[% url.js %]/bootstrap-select.min.js"></script>
         [% END %]
-    </div>
+
+        <script src="[% url.js %]/linkspace.js"></script>
+
     </body>
 </html>
 

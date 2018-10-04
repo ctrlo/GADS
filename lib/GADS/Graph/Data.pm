@@ -20,6 +20,8 @@ package GADS::Graph::Data;
 
 use HTML::Entities;
 use JSON qw(decode_json encode_json);
+use List::Util qw(sum);
+use Math::Round qw(round);
 use Text::CSV::Encoded;
 use Scalar::Util qw(looks_like_number);
 
@@ -230,10 +232,18 @@ sub _build_data
 
     # Columns is either the x-axis, or if not defined, all the columns in the view
     my @columns = $self->x_axis
-        ? ($self->x_axis, $self->y_axis)
+        ? ($self->x_axis)
         : $self->view
         ? @{$self->view->columns}
         : $self->records->layout->all(user_can_read => 1);
+
+    @columns = map {
+        +{
+            id        => $_,
+            operator  => 'max',
+            parent_id => ($self->x_axis && $_ == $self->x_axis && $self->x_axis_link)
+        }
+    } @columns;
 
     my $layout      = $self->records->layout;
     # $x_axis is undefined if all the fields are to appear on it
@@ -248,38 +258,45 @@ sub _build_data
         $self->x_axis_grouping;
 
     my $group_by_db = [];
-    push @$group_by_db, {
-        id    => $self->x_axis,
-        pluck => $x_axis_grouping, # Whether to group x-axis dates
+    push @columns, {
+        id        => $self->x_axis,
+        group     => 1,
+        pluck     => $x_axis_grouping, # Whether to group x-axis dates
+        parent_id => $self->x_axis_link, # What the parent curval is, if we're picking a field from within a curval
     } if !$x_daterange && $self->x_axis;
-
-    my $records = $self->records;
-    $records->column_id($self->y_axis) unless !$self->x_axis; # Don't specify column when all x-axis graph
-    $records->operator($self->y_axis_stack);
-    # Apply aggregate operator to all columns if multi x-axis
-    $records->aggregate_all(1) if !$self->x_axis;
 
     my $group_by_col;
     if ($self->type ne 'pie' && $self->group_by)
     {
         $group_by_col = $layout->column($self->group_by);
-        push @columns, $self->group_by;
-        push @$group_by_db, {
-            id => $self->group_by,
+        push @columns, {
+            id    => $self->group_by,
+            group => 1,
         };
-        $records->col_max($self->group_by);
     }
+
+    my $records = $self->records;
+
+    # If the x-axis field is one from a curval, make sure we are also
+    # retrieving the parent curval field (called the link)
+    my $link = $self->x_axis_link && $self->records->layout->column($self->x_axis_link);
 
     if ($x_daterange)
     {
         $records->dr_interval($x_axis_grouping);
         $records->dr_column($x_axis->id);
+        $records->dr_column_parent($link);
+        $records->dr_y_axis_id($self->y_axis);
     }
 
     my $y_axis = $layout->column($self->y_axis);
     $records->view($self->view);
+    push @columns, +{
+        id       => $self->y_axis,
+        operator => $self->y_axis_stack,
+    };
+
     $records->columns(\@columns);
-    $records->group_by($group_by_db);
     my $records_results = $self->records->results; # Do now so as to populate dr_from and dr_to
 
     # The view of this graph
@@ -375,9 +392,11 @@ sub _build_data
             # The column name to retrieve from SQL record
             my $fname = $x_daterange
                       ? $x->epoch
-                      : $self->x_axis
-                      ? $y_axis->field."_".$self->y_axis_stack
-                      : $x->field;
+                      : !$self->x_axis
+                      ? $x->field
+                      : $self->y_axis_stack eq 'count'
+                      ? 'id_count' # Don't use field count as NULLs are not counted
+                      : $y_axis->field."_".$self->y_axis_stack;
             no warnings 'numeric', 'uninitialized';
             $results->{$x_value}->{$k} += $line->get_column($fname); # 2 loops for linked values
             # Add on the linked column from another datasheet, if applicable
@@ -428,6 +447,25 @@ sub _build_data
         }
     }
 
+    if ($self->as_percent && $self->type ne "pie" && $self->type ne "donut")
+    {
+        if ($group_by_col)
+        {
+            my ($random) = keys %$series;
+            my $count = @{$series->{$random}->{data}}; # Number of data points for each series
+            for my $i (0..$count-1)
+            {
+                my $sum = _sum( map { $series->{$_}->{data}->[$i] } keys %$series );
+                $series->{$_}->{data}->[$i] = _to_percent($sum, $series->{$_}->{data}->[$i])
+                    foreach keys %$series;
+            }
+        }
+        else {
+            my $sum = _sum( @{$series->{1}->{data}} );
+            $series->{1}->{data} = [ map { _to_percent($sum, $_) } @{$series->{1}->{data}} ];
+        }
+    }
+
     # If this graph is measuring against a metric, recalculate against that
     my $metric_max;
     if (my $metric_group_id = $self->metric_group_id)
@@ -470,10 +508,15 @@ sub _build_data
         foreach my $k (keys %$series)
         {
             my @ps;
-            my $s = $series->{$k}->{data};
+            my @data = @{$series->{$k}->{data}};
             my $idx = 0;
+            if ($self->as_percent)
+            {
+                my $sum = _sum(@data);
+                @data = map { _to_percent($sum, $_) } @data;
+            }
             push @ps, [
-                $_, ($s->[$idx++]||0),
+                $_, ($data[$idx++]||0),
             ] foreach @xlabels;
             push @points, \@ps;
         }
@@ -508,6 +551,15 @@ sub _build_data
     $options->{y_max}     = 100 if defined $metric_max && $metric_max < 100;
     $options->{is_metric} = 1 if defined $metric_max;
 
+    # If we had a curval as a link, then we need to reset its retrieved fields,
+    # otherwise anything else using the field after this procedure will be
+    # using the reduced columns that we used for the graph
+    if ($self->x_axis_link)
+    {
+        $link->clear_curval_field_ids;
+        $link->clear;
+    }
+
     +{
         xlabels => \@xlabels, # Populated, but not used for donut
         points  => \@points,
@@ -535,6 +587,13 @@ sub _format_curcommon
     $line->get_column($column->field) or return;
     $column->format_value(map { $line->get_column($_->field) } @{$column->curval_fields});
 }
+
+sub _to_percent
+{   my ($sum, $value) = @_;
+    round(($value / $sum) * 100 ) + 0;
+}
+
+sub _sum { sum(map {$_ || 0} @_) }
 
 1;
 

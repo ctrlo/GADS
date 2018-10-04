@@ -27,6 +27,10 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column::Curcommon';
 
+has '+option_names' => (
+    default => sub { [qw/override_permissions/] },
+);
+
 has '+multivalue' => (
     coerce => sub { 1 },
 );
@@ -100,17 +104,6 @@ sub _build_refers_from_value_field
     "value";
 }
 
-has curval_joins => (
-    is => 'lazy',
-);
-
-sub _build_curval_joins
-{   my $self = shift;
-    my @join = map { $_->join } @{$self->curval_fields_retrieve};
-    push @join, $self->refers_from_field;
-    \@join;
-}
-
 sub make_join
 {   my ($self, @joins) = @_;
     +{
@@ -137,6 +130,8 @@ sub write_special
 
     # Clear what may be cached values that should be updated after write
     $self->clear;
+
+    return ();
 };
 
 # Autocurs are defined as not user input, so they get updated during
@@ -155,6 +150,7 @@ sub fetch_multivalues
         schema            => $self->schema,
         columns           => $self->curval_field_ids_retrieve,
         limit_current_ids => [map { $_->{record}->{current_id} } @values],
+        include_children  => 1, # Ensure all autocur records are shown even if they have the same text content
     );
     my %retrieved;
     while (my $record = $records->single)
@@ -168,11 +164,18 @@ sub fetch_multivalues
             record_id => $_->{value}->{records}->[0]->{id},
             value     => $retrieved{$_->{record}->{current_id}},
         }
+    } grep {
+        exists $retrieved{$_->{record}->{current_id}}
     } @values;
 }
 
 sub multivalue_rs
 {   my ($self, $record_ids) = @_;
+
+    # If this is called with undef record_ids, then make sure we don't search
+    # for that, otherwise a large number of unreferenced curvals could be
+    # returned
+    $record_ids = [ grep { defined $_ } @$record_ids ];
     my $subquery = $self->schema->resultset('Current')->search({
             'record_later.id' => undef,
     },{
@@ -199,6 +202,7 @@ sub multivalue_rs
 around export_hash => sub {
     my $orig = shift;
     my $self = shift;
+    my %options = @_;
     my $hash = $orig->($self, @_);
     $hash->{related_field_id} = $self->related_field_id;
     $hash;
@@ -206,8 +210,12 @@ around export_hash => sub {
 
 around import_after_all => sub {
     my $orig = shift;
-    my ($self, $values, $mapping) = @_;
+    my ($self, $values, %options) = @_;
+    my $mapping = $options{mapping};
+    my $report = $options{report_only};
     my $new_id = $mapping->{$values->{related_field_id}};
+    notice __x"Update: related_field_id from {old} to {new}", old => $self->related_field_id, new => $new_id
+        if $report && $self->related_field_id != $new_id;
     $self->related_field_id($new_id);
     $orig->(@_);
 };

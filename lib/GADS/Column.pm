@@ -24,13 +24,19 @@ use String::CamelCase qw(camelize);
 use GADS::DateTime;
 use GADS::DB;
 use GADS::Filter;
+use GADS::Groups;
 use GADS::Type::Permission;
 use GADS::View;
+use MIME::Base64 /encode_base64/;
 
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 
+use List::Compare ();
+
 use namespace::clean; # Otherwise Enum clashes with MooseLike
+
+with 'GADS::Role::Presentation::Column';
 
 sub types
 { qw(date daterange string intgr person tree enum file rag calc curval autocur) }
@@ -49,13 +55,6 @@ has user => (
 has permissions => (
     is  => 'lazy',
     isa => HashRef,
-);
-
-# The permissions the logged-in user has
-has user_permissions => (
-    is      => 'rw',
-    isa     => ArrayRef,
-    default => sub { [] },
 );
 
 has user_permission_override => (
@@ -114,6 +113,12 @@ has internal => (
     default => 0,
 );
 
+has hidden => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
 # Used when updating fields externally and a URL needs to be supplied for alert
 # links
 has base_url => (
@@ -139,7 +144,7 @@ has name_short => (
 has type => (
     is  => 'rw',
     isa => sub {
-        $_[0] eq 'id' || grep { $_[0] eq $_ } GADS::Column::types
+        $_[0] =~ /^(id|serial)$/ || grep { $_[0] eq $_ } GADS::Column::types
             or error __x"Invalid field type {type}", type => $_[0];
     },
 );
@@ -159,23 +164,6 @@ has table => (
 sub _build_table
 {   my $self = shift;
     camelize $self->type;
-}
-
-has join => (
-    is      => 'lazy',
-    isa     => AnyOf[Str, HashRef],
-    clearer => 1,
-);
-
-has subjoin => (
-    is => 'lazy',
-);
-
-sub _build_subjoin
-{   my $self = shift;
-    return unless ref $self->join;
-    my ($temp, $subjoin) = %{$self->join};
-    $subjoin;
 }
 
 has fixedvals => (
@@ -278,6 +266,39 @@ has isunique => (
     coerce  => sub { $_[0] ? 1 : 0 },
 );
 
+has set_can_child => (
+    is        => 'rw',
+    isa       => Bool,
+    predicate => 1,
+    coerce    => sub { $_[0] ? 1 : 0 },
+    trigger   => sub { shift->clear_can_child },
+);
+
+has can_child => (
+    is      => 'lazy',
+    isa     => Bool,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    clearer => 1,
+);
+
+sub _build_can_child
+{   my $self = shift;
+    if (!$self->userinput)
+    {
+        # Code values always have their own child values if the record is a
+        # child, so that we build based on the true values of the child record.
+        # Therefore return true if this is a code value which depends on a
+        # child column
+        return 1 if $self->schema->resultset('LayoutDepend')->search({
+            layout_id => $self->id,
+            'depend_on.can_child' => 1,
+        },{
+            join => 'depend_on',
+        })->next;
+    }
+    return $self->set_can_child;
+}
+
 has filter => (
     is      => 'rw',
     lazy    => 1,
@@ -335,6 +356,22 @@ has description => (
     isa => Maybe[Str],
 );
 
+has topic_id => (
+    is     => 'rw',
+    isa    => Maybe[Int],
+    coerce => sub { $_[0] || undef }, # Account for empty string from form
+);
+
+has topic => (
+    is => 'lazy',
+);
+
+sub _build_topic
+{   my $self = shift;
+    $self->topic_id or return;
+    $self->schema->resultset('Topic')->find($self->topic_id);
+}
+
 has display_field => (
     is  => 'rw',
     isa => Maybe[Int],
@@ -345,10 +382,11 @@ has display_regex => (
     isa => Maybe[Str],
 );
 
-has display_depended_by => (
-    is  => 'rw',
-    isa => ArrayRef,
-);
+sub regex_b64
+{   my $self = shift;
+    return unless $self->display_regex;
+    encode_base64 $self->display_regex, ''; # base64 plugin does not like new lines in content
+}
 
 has helptext => (
     is  => 'rw',
@@ -390,7 +428,18 @@ has value_field => (
     isa     => Str,
     lazy    => 1,
     default => 'value',
+    clearer => 1,
 );
+
+has retrieve_fields => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_retrieve_fields
+{   my $self = shift;
+    [$self->value_field];
+}
 
 has sort_field => (
     is => 'lazy',
@@ -427,6 +476,7 @@ has class => (
     builder => sub {
         my %classes = (
             id        => 'GADS::Datum::ID',
+            serial    => 'GADS::Datum::Serial',
             date      => 'GADS::Datum::Date',
             daterange => 'GADS::Datum::Daterange',
             string    => 'GADS::Datum::String',
@@ -502,13 +552,6 @@ has dateformat => (
     },
 );
 
-# Used to store flags that we might want to store when the record is processed
-has flags => (
-    is      => 'rwp',
-    isa     => HashRef,
-    default => sub { +{} },
-);
-
 has _rset => (
     is      => 'rwp',
     lazy    => 1,
@@ -517,6 +560,7 @@ has _rset => (
 
 sub _build__rset
 {   my $self = shift;
+    $self->id or return;
     $self->schema->resultset('Layout')->find($self->id);
 }
 
@@ -543,6 +587,37 @@ sub _build_permissions
         );
     }
     \%perms;
+}
+
+sub group_has
+{   my ($self, $group_id, $perm) = @_;
+    my $perms = $self->permissions->{$group_id}
+        or return 0;
+    (grep { $_->short eq $perm } @$perms) ? 1 : 0;
+}
+
+# Return a human-readable summary of groups that have a particular permission
+sub group_summary
+{   my ($self, $permission) = @_;
+
+    my $groups = GADS::Groups->new(
+        schema => $self->schema,
+    );
+
+    # First get all group IDs that have this permission
+    my @group_ids = map {
+        (grep { $_->short eq $permission } @{$self->permissions->{$_}}) ? $_ : ();
+    } keys %{$self->permissions};
+
+    # Then turn it into readable format, annotating whether it requires
+    # approval in the case of write permissions
+    sort map {
+        my $name = $groups->group($_)->name;
+        $name .= ' (with approval only)'
+            if $permission =~ /write/
+                && ! grep { $_->short eq "${permission}_no_approval" } @{$self->permissions->{$_}};
+        $name;
+    } @group_ids;
 }
 
 sub _build_instance_id
@@ -573,9 +648,11 @@ sub build_values
     $self->id($original->{id});
     $self->name($original->{name});
     $self->name_short($original->{name_short});
+    $self->topic_id($original->{topic_id});
     $self->optional($original->{optional});
     $self->remember($original->{remember});
     $self->isunique($original->{isunique});
+    $self->set_can_child($original->{can_child});
     $self->multivalue($original->{multivalue} ? 1 : 0) if $self->can_multivalue;
     $self->position($original->{position});
     $self->helptext($original->{helptext});
@@ -590,14 +667,14 @@ sub build_values
     # XXX Move to curval class
     if ($self->type eq 'curval')
     {
-        $self->filter->as_json($original->{filter});
-        $self->filter->layout($self->layout_parent);
+        $self->set_filter($original->{filter});
+        $self->multivalue(1) if $self->show_add && $self->value_selector eq 'noshow';
     }
 
 }
 
 # Overriden for most columns
-sub _build_join
+sub tjoin
 {   my $self = shift;
     return $self->field;
 }
@@ -646,12 +723,17 @@ sub fetch_multivalues
 {   my ($self, $record_ids) = @_;
 
     my $select = {
-        join => 'layout',
+        join     => 'layout',
+        # Order by values so that multiple values appear in consistent order as
+        # field values
+        order_by => "me.".$self->value_field,
     };
-    if (ref $self->join)
+    if (ref $self->tjoin)
     {
-        my ($left, $prefetch) = %{$self->join}; # Prefetch table is 2nd part of join
+        my ($left, $prefetch) = %{$self->tjoin}; # Prefetch table is 2nd part of join
         $select->{prefetch} = $prefetch;
+        # Override previous setting
+        $select->{order_by} = "$prefetch.".$self->value_field;
     }
     my $m_rs = $self->schema->resultset($self->table)->search({
         'me.record_id'      => $record_ids,
@@ -746,7 +828,7 @@ sub delete
     # Clean up any specialist data for all column types. The column's
     # type may have changed during its life, but the data may not
     # have been removed on change, so we have to check all classes.
-    foreach my $type ($self->types)
+    foreach my $type (grep { $_ ne 'serial' } $self->types)
     {
         my $class = "GADS::Column::".camelize $type;
         $class->cleanup($self->schema, $self->id);
@@ -757,6 +839,7 @@ sub delete
     $self->schema->resultset('AlertCache')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('AlertSend')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('Sort')->search({ layout_id => $self->id })->delete;
+    $self->schema->resultset('Sort')->search({ parent_id => $self->id })->delete;
     $self->schema->resultset('LayoutDepend')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('LayoutGroup')->search({ layout_id => $self->id })->delete;
 
@@ -766,11 +849,14 @@ sub delete
     $guard->commit;
 }
 
-sub write_special {} # Overridden in children
+sub write_special { () } # Overridden in children
 sub after_write_special {} # Overridden in children
 
 sub write
 {   my ($self, %options) = @_;
+
+    error __"You do not have permission to manage fields"
+        unless $self->layout->user_can("layout");
 
     my $guard = $self->schema->txn_scope_guard;
 
@@ -781,6 +867,8 @@ sub write
         and error __x"{name} is a reserved name for a field", name => $newitem->{name};
     $newitem->{type} = $self->type
         or error __"Please select a type for the item";
+    $self->display_field && $self->display_field == $self->id
+        and error __"Display condition field cannot be the same as the field itself";
 
     if ($newitem->{name_short} = $self->name_short)
     {
@@ -818,9 +906,11 @@ sub write
         }
     }
 
+    $newitem->{topic_id}      = $self->topic_id;
     $newitem->{optional}      = $self->optional;
     $newitem->{remember}      = $self->remember;
     $newitem->{isunique}      = $self->isunique;
+    $newitem->{can_child}     = $self->set_can_child if $self->has_set_can_child;
     $newitem->{filter}        = $self->filter->as_json;
     $newitem->{multivalue}    = $self->multivalue if $self->can_multivalue;
     $newitem->{description}   = $self->description;
@@ -835,37 +925,46 @@ sub write
 
     my ($new_id, $rset);
 
-    if (!$self->id)
+    unless ($options{report_only})
     {
-        $newitem->{id} = $self->set_id if $self->set_id;
-        # Add at end of other items
-        $newitem->{position} = ($self->schema->resultset('Layout')->get_column('position')->max || 0) + 1
-            unless $self->position;
-        $rset = $self->schema->resultset('Layout')->create($newitem);
-        $new_id = $rset->id;
-        $self->_set__rset($rset);
-        # Don't set $self->id here, as we could yet bail out and the object
-        # would be left with an id, which would signify it is not a new field
-        # (affects display of type when creating field)
-    }
-    else {
-        if ($rset = $self->schema->resultset('Layout')->find($self->id))
+        if (!$self->id)
         {
-            # Check whether attempt to move between instances - this is a bug
-            $newitem->{instance_id} != $rset->instance_id
-                and panic "Attempt to move column between instances";
-            $rset->update($newitem);
+            $newitem->{id} = $self->set_id if $self->set_id;
+            # Add at end of other items
+            $newitem->{position} = ($self->schema->resultset('Layout')->get_column('position')->max || 0) + 1
+                unless $self->position;
+            $rset = $self->schema->resultset('Layout')->create($newitem);
+            $new_id = $rset->id;
+            $self->_set__rset($rset);
+            # Don't set $self->id here, as we could yet bail out and the object
+            # would be left with an id, which would signify it is not a new field
+            # (affects display of type when creating field)
         }
         else {
-            $newitem->{id} = $self->id;
-            $rset = $self->schema->resultset('Layout')->create($newitem);
-            $self->_set__rset($rset);
+            if ($rset = $self->schema->resultset('Layout')->find($self->id))
+            {
+                # Check whether attempt to move between instances - this is a bug
+                $newitem->{instance_id} != $rset->instance_id
+                    and panic "Attempt to move column between instances";
+                $rset->update($newitem);
+            }
+            else {
+                $newitem->{id} = $self->id;
+                $rset = $self->schema->resultset('Layout')->create($newitem);
+                $self->_set__rset($rset);
+            }
         }
+
+        # Write any column-specific params
+        my %write_options = $self->write_special(rset => $rset, id => $new_id || $self->id, %options);
+        %options = (%options, %write_options);
     }
 
-    $self->write_special(rset => $rset, id => $new_id || $self->id, %options); # Write any column-specific params
+    $self->_write_permissions(id => $new_id || $self->id, %options);
 
     $guard->commit;
+
+    return if $options{report_only};
 
     if ($new_id || $options{add_db})
     {
@@ -887,11 +986,12 @@ sub user_can
     return 1 if $self->user_permission_override;
     return 1 if $self->internal && $permission eq 'read';
     return 0 if !$self->userinput && $permission ne 'read'; # Can't write to code fields
-    return 1 if grep { $_ eq $permission } @{$self->user_permissions};
+    return 1 if $self->layout->current_user_can_column($self->id, $permission);
     if ($permission eq 'write') # shortcut
     {
-        return 1 if grep { $_ eq 'write_new' || $_ eq 'write_existing' }
-            @{$self->user_permissions};
+        return 1
+            if $self->layout->current_user_can_column($self->id, 'write_new')
+            || $self->layout->current_user_can_column($self->id, 'write_existing');
     }
     0;
 }
@@ -899,91 +999,144 @@ sub user_can
 # Whether a particular user ID has a permission for this column
 sub user_id_can
 {   my ($self, $user_id, $permission) = @_;
-    my $perms = $self->layout->get_user_perms($user_id)->{$self->id}
-        or return;
-    grep { $_ eq $permission } @$perms;
+    return $self->layout->user_can_column($user_id, $self->id, $permission)
 }
 
-sub set_permissions
-{   my ($self, $group_id, $permissions) = @_;
+has set_permissions => (
+    is        => 'rw',
+    isa       => HashRef,
+    predicate => 1,
+);
 
-    $group_id
-        or error __"Please select a group to add the permissions to";
+sub _write_permissions
+{   my ($self, %options) = @_;
 
-    my $has_read;
-    foreach my $permission (@$permissions)
+    my $id = $options{id} || $self->id;
+
+    $self->has_set_permissions or return;
+
+    my %permissions = %{$self->set_permissions};
+
+    my @groups = keys %permissions;
+
+    # Search for any groups that were in the permissions but no longer exist.
+    # Add these to the set_permissions hash, so they get processed and removed
+    # as per other permissions (in particular ensuring the read_removed flag is
+    # set)
+    my $search = {
+        layout_id => $id,
+    };
+
+    $search->{group_id} = { '!=' => [ '-and', @groups ] }
+        if @groups;
+        
+    my @removed = $self->schema->resultset('LayoutGroup')->search($search,{
+        select   => {
+            max => 'group_id',
+            -as => 'group_id',
+        },
+        as       => 'group_id',
+        group_by => 'group_id',
+    })->get_column('group_id')->all;
+
+    $permissions{$_} = []
+        foreach @removed;
+    @groups = keys %permissions; # Refresh
+
+    foreach my $group_id (@groups)
     {
-        $has_read = 1 if $permission eq 'read';
-        # Unique constraint on table. Catch existing.
-        try {
-            $self->schema->resultset('LayoutGroup')->create({
-                layout_id  => $self->id,
-                group_id   => $group_id,
-                permission => $permission,
-            });
-        };
-        # Log any messages from try block, but only as trace
-        $@->reportAll(reason => 'TRACE');
-    }
+        my @new_permissions = @{$permissions{$group_id}};
 
-    # Before we do the catch-all delete, see if there is currently a
-    # read permission there which is about to be removed.
-    my $read_removed = !$has_read && $self->schema->resultset('LayoutGroup')->search({
-        group_id   => $group_id,
-        layout_id  => $self->id,
-        permission => 'read',
-    })->count;
+        my @existing_permissions = $self->schema->resultset('LayoutGroup')->search({
+            layout_id  => $id,
+            group_id   => $group_id,
+        })->get_column('permission')->all;
 
-    # Delete those no longer there
-    my $search = { group_id => $group_id, layout_id => $self->id };
-    $search->{permission} = { '!=' => [ '-and', @$permissions ] } if @$permissions;
-    $self->schema->resultset('LayoutGroup')->search($search)->delete;
+        my $lc = List::Compare->new(\@new_permissions, \@existing_permissions);
 
-    # See if any read permissions have been removed. If so, we need
-    # to remove them from the relevant filters and sorts. The views themselves
-    # don't matter, as they won't be shown anyway.
-    if ($read_removed)
-    {
-        # First the sorts
-        foreach my $sort ($self->schema->resultset('Sort')->search({
-            layout_id      => $self->id,
-            'view.user_id' => { '!=' => undef },
-        }, {
-            prefetch => 'view',
-        })->all)
+        my @removed_permissions = $lc->get_complement();
+        my @added_permissions   = $lc->get_unique();
+
+        # Has a read permission been removed from this group?
+        my $read_removed = grep { $_ eq 'read' } @removed_permissions;
+
+        # Delete any permissions no longer needed
+        if ($options{report_only} && @removed_permissions)
         {
-            # For each sort on this column, which no longer has read.
-            # See if user attached to this view still has access with
-            # another group
-            $sort->delete unless $self->user_id_can($sort->view->user_id, 'read');
+            notice __x"Removing the following permissions from {column} for group ID {group}: {perms}",
+                column => $self->name, group => $group_id, perms => join(', ', @removed_permissions);
         }
-        # Then the filters
-        foreach my $filter ($self->schema->resultset('Filter')->search({
-            layout_id      => $self->id,
-            'view.user_id' => { '!=' => undef },
-        }, {
-            prefetch => 'view',
-        })->all)
+        else {
+            $self->schema->resultset('LayoutGroup')->search({
+                layout_id  => $id,
+                group_id   => $group_id,
+                permission => \@removed_permissions
+            })->delete;
+        }
+
+        # Add any new permissions
+        if ($options{report_only} && @added_permissions)
         {
-            # For each sort on this column, which no longer has read.
-            # See if user attached to this view still has access with
-            # another group
-            unless ($self->user_id_can($filter->view->user_id, 'read'))
-            {
+            notice __x"Adding the following permissions to {column} for group ID {group}: {perms}",
+                column => $self->name, group => $group_id, perms => join(', ', @added_permissions);
+        }
+        else {
+            $self->schema->resultset('LayoutGroup')->create({
+                layout_id  => $id,
+                group_id   => $group_id,
+                permission => $_,
+            }) foreach @added_permissions;
+        }
+
+        if ($read_removed && !$options{report_only}) {
+            # First the sorts
+            my @sorts = $self->schema->resultset('Sort')->search({
+                layout_id      => $id,
+                'view.user_id' => { '!=' => undef },
+            }, {
+                prefetch => 'view',
+            })->all;
+
+            foreach my $sort (@sorts) {
+                # For each sort on this column, which no longer has read.
+                # See if user attached to this view still has access with
+                # another group
+                $sort->delete unless $self->user_id_can($sort->view->user_id, 'read');
+            }
+
+            # Then the filters
+            my @filters = $self->schema->resultset('Filter')->search({
+                layout_id      => $id,
+                'view.user_id' => { '!=' => undef },
+            }, {
+                prefetch => 'view',
+            })->all;
+
+            foreach my $filter (@filters) {
+                # For each sort on this column, which no longer has read.
+                # See if user attached to this view still has access with
+                # another group
+
+                next if $self->user_id_can($filter->view->user_id, 'read');
+
                 # Filter cache
                 $filter->delete;
+
                 # Alert cache
                 $self->schema->resultset('AlertCache')->search({
-                    layout_id => $self->id,
+                    layout_id => $id,
                     view_id   => $filter->view_id,
                 })->delete;
+
                 # Column in the view
                 $self->schema->resultset('ViewLayout')->search({
-                    layout_id => $self->id,
+                    layout_id => $id,
                     view_id   => $filter->view_id,
                 })->delete;
+
                 # And the JSON filter itself
                 my $filtered = _filter_remove_colid($self, $filter->view->filter);
+
                 $filter->view->update({ filter => $filtered });
             }
         }
@@ -1056,18 +1209,51 @@ sub code_regex
 }
 
 sub import_hash
-{   my ($self, $values) = @_;
+{   my ($self, $values, %options) = @_;
+    my $report = $options{report_only} && $self->id;
+    notice __x"Update: name from {old} to {new}", old => $self->name, new => $values->{name}
+        if $report && $self->name ne $values->{name};
     $self->name($values->{name});
+    notice __x"Update: name_short from {old} to {new}", old => $self->name_short, new => $values->{name_short}
+        if $report && ($self->name_short || '') ne ($values->{name_short} || '');
     $self->name_short($values->{name_short});
+    notice __x"Update: optional from {old} to {new}", old => $self->optional, new => $values->{optional}
+        if $report && $self->optional != $values->{optional};
     $self->optional($values->{optional});
+    notice __x"Update: remember from {old} to {new}", old => $self->remember, new => $values->{remember}
+        if $report && $self->remember != $values->{remember};
     $self->remember($values->{remember});
+    notice __x"Update: isunique from {old} to {new}", old => $self->isunique, new => $values->{isunique}
+        if $report && $self->isunique != $values->{isunique};
     $self->isunique($values->{isunique});
+    notice __x"Update: can_child from {old} to {new}", old => $self->can_child, new => $values->{can_child}
+        if $report && $self->can_child != $values->{can_child};
+    $self->set_can_child($values->{can_child});
+    notice __x"Update: position from {old} to {new}", old => $self->position, new => $values->{position}
+        if $report && $self->position != $values->{position};
     $self->position($values->{position});
+    notice __x"Update: description from {old} to {new}", old => $self->description, new => $values->{description}
+        if $report && $self->description ne $values->{description};
     $self->description($values->{description});
+    notice __x"Update: helptext from {old} chars to {new} chars", old => length($self->helptext), new => length($values->{helptext})
+        if $report && $self->helptext ne $values->{helptext};
     $self->helptext($values->{helptext});
+    notice __x"Update: display_regex from {old} to {new}", old => $self->display_regex, new => $values->{display_regex}
+        if $report && ($self->display_regex || '') ne ($values->{display_regex} || '');
     $self->display_regex($values->{display_regex});
+    notice __x"Update: multivalue from {old} to {new}", old => $self->multivalue, new => $values->{multivalue}
+        if $report && $self->multivalue != $values->{multivalue};
     $self->multivalue($values->{multivalue});
+    notice __x"Update: filter from {old} to {new}", old => $self->filter->as_json, new => $values->{filter}
+        if $report && $self->filter->as_json ne $values->{filter};
     $self->filter(GADS::Filter->new(as_json => $values->{filter}));
+    foreach my $option (@{$self->option_names})
+    {
+        notice __x"Update: {option} from {old} to {new}",
+            option => $option, old => $self->$option, new => $values->{filter}
+            if $report && $self->$option ne $values->{$option};
+        $self->$option($values->{$option});
+    }
 }
 
 sub export_hash
@@ -1078,14 +1264,16 @@ sub export_hash
         $permissions->{$perm->group_id} ||= [];
         push @{$permissions->{$perm->group_id}}, $perm->permission;
     }
-    +{
+    my $return = {
         id            => $self->id,
         type          => $self->type,
         name          => $self->name,
         name_short    => $self->name_short,
+        topic_id      => $self->topic_id,
         optional      => $self->optional,
         remember      => $self->remember,
         isunique      => $self->isunique,
+        can_child     => $self->can_child,
         position      => $self->position,
         description   => $self->description,
         helptext      => $self->helptext,
@@ -1096,6 +1284,11 @@ sub export_hash
         filter        => $self->filter->as_json,
         permissions   => $permissions,
     };
+    foreach my $option (@{$self->option_names})
+    {
+        $return->{$option} = $self->$option;
+    }
+    return $return;
 }
 
 # Subroutine to run after a column write has taken place for an import
@@ -1103,19 +1296,23 @@ sub import_after_write {};
 
 # Subroutine to run after all columns have been imported
 sub import_after_all
-{   my ($self, $values, $mapping) = @_;
-    my @field_ids = map { $mapping->{$_} } @{$values->{curval_field_ids}};
+{   my ($self, $values, %options) = @_;
+    my $mapping = $options{mapping};
+    my $report  = $options{report_only};
     if ($values->{display_field})
     {
         my $new_id = $mapping->{$values->{display_field}};
+        notice __x"Update: display_field from {old} to {new}", old => $self->display_field, new => $new_id
+            if $report && ($self->display_field || 0) != ($new_id || 0);
         $self->display_field($new_id);
     }
     if ($values->{link_parent})
     {
         my $new_id = $mapping->{$values->{link_parent}};
+        notice __x"Update: link_parent from {old} to {new}", old => $self->link_parent, new => $new_id
+            if $report && ($self->link_parent || 0) != ($new_id || 0);
         $self->link_parent($new_id);
     }
-    $self->write(no_cache_update => 1);
 }
 
 1;

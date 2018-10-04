@@ -52,6 +52,10 @@ has as_json => (
         # Need to compare as structures, as stringified JSON could be in different orders
         $self->_set_changed(1) if $self->has_value && !Compare($self->as_hash, decode_json_utf8($new));
         $self->clear_as_hash;
+        # Force the hash to build with the new value, which will effectively
+        # allow it to hold the old value, if we make any further changse (which
+        # is then used to see if a change as happened)
+        $self->as_hash;
         $self->_clear_lazy;
         $self->_set_has_value(1);
     },
@@ -72,6 +76,10 @@ has as_hash => (
         my ($self, $new) = @_;
         $self->_set_changed(1) if $self->has_value && !Compare(decode_json_utf8($self->as_json), $new);
         $self->clear_as_json;
+        # Force the JSON to build with the new value, which will effectively
+        # allow it to hold the old value, if we make any further changse (which
+        # is then used to see if a change as happened)
+        $self->as_json;
         $self->_clear_lazy;
         $self->_set_has_value(1);
     },
@@ -120,7 +128,7 @@ sub base64
         }
     }
     # Now the JSON version will be built with the inserted data values
-    encode_base64($self->as_json);
+    encode_base64($self->as_json, ''); # Base64 plugin does not like new lines
 }
 
 has changed => (
@@ -187,8 +195,15 @@ sub _filter_tables
 }
 
 # The IDs of the columns that will be subbed into the filter
-sub columns_in_subs
-{   my ($self, $layout) = @_;
+has columns_in_subs => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_columns_in_subs
+{   my $self = shift;
+    my $layout = $self->layout
+        or panic "layout has not been set in filter";
     my @filters = grep { $_ } map { $_->{value} && $_->{value} =~ /^\$([_0-9a-z]+)$/i && $1 } @{$self->filters};
     [ grep { $_ } map { $layout->column_by_name_short($_) } @filters ];
 }
@@ -197,7 +212,10 @@ sub columns_in_subs
 sub sub_values
 {   my ($self, $layout) = @_;
     my $filter = $self->as_hash;
-    if (!$layout->record && @{$self->columns_in_subs($layout)})
+    # columns_in_subs needs to be built now, otherwise it won't return the
+    # correct result once the values have been subbed in below
+    my $columns_in_subs = $self->columns_in_subs;
+    if (!$layout->record && @$columns_in_subs)
     {
         # If we don't have a record (e.g. from typeahead search) and there
         # are known shortnames in the filter, then don't apply the filter
@@ -233,8 +251,6 @@ sub _sub_filter_single
             return 1; # Not a failure, just no match
         }
         my $datum = $record->fields->{$col->id};
-        $datum->written_to
-            or return 0; # Failure: record not ready yet
         # First check for multivalue. If it is, we replace the singular rule
         # in this hash with a rule for each value and OR them all together
         if ($col->type eq 'curval')

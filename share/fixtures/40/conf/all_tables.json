@@ -1,0 +1,213 @@
+{
+   "might_have" : {
+      "fetch" : 0
+   },
+   "belongs_to" : {
+      "fetch" : 0
+   },
+   "sets" : [
+      {
+         "class" : "Current",
+         "quantity" : "all"
+      },
+      {
+         "class" : "MetricGroup",
+         "quantity" : "all"
+      },
+      {
+         "class" : "String",
+         "quantity" : "all"
+      },
+      {
+         "class" : "InstanceGroup",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Instance"
+      },
+      {
+         "class" : "Group",
+         "quantity" : "all"
+      },
+      {
+         "class" : "LayoutDepend",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "UserPermission"
+      },
+      {
+         "class" : "Calcval",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Site"
+      },
+      {
+         "class" : "ViewLayout",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "AlertSend"
+      },
+      {
+         "class" : "Audit",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Daterange"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Enumval"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Oauthtoken"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Date"
+      },
+      {
+         "class" : "Curval",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Record"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Import"
+      },
+      {
+         "quantity" : "all",
+         "class" : "GraphColor"
+      },
+      {
+         "class" : "Rag",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Permission",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Calc"
+      },
+      {
+         "quantity" : "all",
+         "class" : "AlertCache"
+      },
+      {
+         "quantity" : "all",
+         "class" : "FileOption"
+      },
+      {
+         "quantity" : "all",
+         "class" : "ImportRow"
+      },
+      {
+         "class" : "Person",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "CurvalField"
+      },
+      {
+         "class" : "File",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Organisation",
+         "quantity" : "all"
+      },
+      {
+         "class" : "User",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Metric",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Oauthclient"
+      },
+      {
+         "class" : "UserGraph",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Alert"
+      },
+      {
+         "quantity" : "all",
+         "class" : "View"
+      },
+      {
+         "quantity" : "all",
+         "class" : "LayoutGroup"
+      },
+      {
+         "class" : "Enum",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Intgr",
+         "quantity" : "all"
+      },
+      {
+         "class" : "ViewLimit",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Sort"
+      },
+      {
+         "class" : "Ragval",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Fileval"
+      },
+      {
+         "class" : "UserGroup",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "UserLastrecord"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Filter"
+      },
+      {
+         "class" : "Graph",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Title",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Layout",
+         "quantity" : "all"
+      }
+   ],
+   "has_many" : {
+      "fetch" : 0
+   }
+}

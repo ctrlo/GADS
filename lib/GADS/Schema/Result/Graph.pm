@@ -74,6 +74,12 @@ __PACKAGE__->table("graph");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 x_axis_link
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =head2 x_axis_grouping
 
   data_type: 'varchar'
@@ -87,6 +93,12 @@ __PACKAGE__->table("graph");
   is_nullable: 1
 
 =head2 stackseries
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 as_percent
 
   data_type: 'smallint'
   default_value: 0
@@ -127,11 +139,15 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "x_axis",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "x_axis_link",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "x_axis_grouping",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "group_by",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "stackseries",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "as_percent",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "type",
   { data_type => "varchar", is_nullable => 1, size => 45 },
@@ -242,6 +258,26 @@ __PACKAGE__->belongs_to(
   "x_axis",
   "GADS::Schema::Result::Layout",
   { id => "x_axis" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 x_axis_link
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Layout>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "x_axis_link",
+  "GADS::Schema::Result::Layout",
+  { id => "x_axis_link" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",

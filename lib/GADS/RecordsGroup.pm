@@ -25,48 +25,15 @@ use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 
 extends 'GADS::Records';
 
-has group_by => (
-    is     => 'rw',
-    isa    => ArrayRef,
-    coerce => sub {
-        ref $_[0] eq 'ARRAY' ? $_[0] : [$_[0]];
-    },
-);
-
-# Whether to force a particular column ID to MAX aggregate. Used when the
-# normal aggregate operator is a SUM, to get the y-axis grouping value, which
-# might be a text field.
-has col_max => (
-    is  => 'rw',
-    isa => Maybe[Int],
-);
-
-# Whether to apply the aggregate operator to all selected fields. Normally the
-# MAX operator will be used as a default, so as to select text fields
-# correctly.
-has aggregate_all => (
-    is  => 'rw',
-    isa => Bool,
-);
-
 # The aggregate operator to use
 has operator => (
     is  => 'rw',
     isa => Str,
 );
 
-# The main column to perform the aggregation on (y-axis). Will be undef for a
-# multiple-column x-axis, as each x-axis value's column will be used for the
-# y-axis.  In this case, the operator will be used on all selected columns. Set
-# via column_id.
-has column => (
-    is  => 'lazy',
-);
-
-# See above
-has column_id => (
+has columns => (
     is  => 'rw',
-    isa => Int,
+    isa => ArrayRef,
 );
 
 # The following dr_* properties specify whether to select values across a
@@ -74,6 +41,10 @@ has column_id => (
 has dr_column => (
     is  => 'rw',
     isa => Maybe[Int],
+);
+
+has dr_column_parent => (
+    is => 'rw',
 );
 
 has dr_interval => (
@@ -91,85 +62,196 @@ has dr_to => (
     isa => DateAndTime,
 );
 
-sub _build_column
-{   my $self = shift;
-    $self->layout->column($self->column_id);
+has dr_y_axis_id => (
+    is => 'rw',
+);
+
+sub _compare_col
+{   my ($self, $col1, $col2) = @_;
+    return 0 if $col1->{id} != $col2->{id};
+    return 0 if $col1->{operator} ne $col2->{operator};
+    return 0 if ($col1->{parent} xor $col2->{parent});
+    return 1 if !$col1->{parent} && !$col2->{parent};
+    return 0 if $col1->{parent}->id != $col2->{parent}->id;
+    return 1;
 }
 
 sub _build_results
 {   my ($self, %options) = @_;
-
-    my @group_by    = @{$self->group_by};
 
     # Build the full query first, to ensure that all join numbers etc are
     # calculated correctly
     my $search_query    = $self->search_query(search => 1, sort => 1);
 
     # Work out the field name to select, and the appropriate aggregate function
-    my @select_fields; my @cols; my %curval_fields;
-    foreach my $col (@{$self->columns_retrieved_do})
+    my @select_fields;
+    my @cols = @{$self->columns};
+    my @parents;
+    foreach my $col (@cols)
     {
-        push @cols, $col;
-        if ($col->type eq 'curval')
+        my $column = $self->layout->column($col->{id});
+        $col->{column} = $column;
+        $col->{operator} ||= 'max';
+        # If it's got a parent curval, then add that too
+        if ($col->{parent_id})
         {
-            foreach (@{$col->curval_fields})
+            my $parent = $self->layout->column($col->{parent_id});
+            push @parents, {
+                id       => $parent->id,
+                column   => $parent,
+                operator => $col->{operator},
+                group    => $col->{group},
+            };
+            $col->{parent} = $parent;
+        }
+        # If it's a curval, then add all its subfields
+        if ($column->type eq 'curval')
+        {
+            foreach (@{$column->curval_fields})
             {
-                push @cols, $_;
-                $curval_fields{$_->id} = $col;
+                push @cols, {
+                    id       => $_->id,
+                    column   => $_,
+                    operator => $col->{operator},
+                    parent   => $column,
+                    group    => $col->{group},
+                };
             }
         }
+    }
+
+    # Combine and flatten columns
+    unshift @cols, @parents;
+    my @newcols;
+    foreach my $col (@cols)
+    {
+        my ($existing) = grep { $self->_compare_col($col, $_) } @newcols;
+        if ($existing)
+        {
+            $existing->{group} ||= $col->{group};
+        }
+        else {
+            push @newcols, $col;
+        }
+    }
+    @cols = @newcols;
+
+    # Add all columns first so that join numbers are correct
+    foreach my $col (@cols)
+    {
+        my $column = $col->{column};
+        my $parent = $col->{parent};
+        $self->add_prefetch($column, group => $col->{group}, parent => $parent);
+        $self->add_prefetch($column->link_parent, linked => 1, group => $col->{group}, parent => $parent)
+            if $column->link_parent;
     }
 
     foreach my $col (@cols)
     {
-        my $op = $self->col_max && $self->col_max == $col->id
-               ? 'max'
-               : $self->aggregate_all
-               ? $self->operator
-               : $col->numeric
-               ? 'sum'
-               : 'max';
-        # Don't use SUM() for non-numeric columns
-        $op = 'max' if $op eq 'sum' && !$col->numeric;
-        my $parent;
-        if ($curval_fields{$col->id})
+        my $op = $col->{operator};
+        my $column = $col->{column};
+        my $parent = $col->{parent};
+
+        my $select;
+        my $as = $column->field;
+        $as = $as.'_sum' if $op eq 'sum';
+        $as = $as.'_count' if $op eq 'count';
+
+        # The select statement to get this column's value varies depending on
+        # what we want to retrieve. If we're selecting a field with multiple
+        # values, then we have to run this as a separate subquery, otherwise if
+        # there are more than one multiple-value retrieval then that aggregates
+        # will be counting multiple times for each set of multiple values (due
+        # to the multiple joins)
+
+        # Field is either multivalue or its parent is
+        if (($column->multivalue || ($parent && $parent->multivalue)) && !$col->{group})
         {
-            $parent = $curval_fields{$col->id};
+            # Assume curval if it's a parent - we need to search the curval
+            # table for all the curvals that are part of the records retrieved.
+            # XXX add search query?
+            if ($parent)
+            {
+                my $f_rs = $self->schema->resultset('Curval')->search({
+                    'mecurval.record_id' => {
+                        -ident => 'record_single_2.id' # Match against main query's records
+                    },
+                    'mecurval.layout_id' => $parent->id,
+                    'record_later.id'    => undef,
+                },
+                {
+                    alias => 'mecurval', # Can't use default "me" as already used in main query
+                    join => {
+                        'value' => {
+                            'record_single' => [
+                                'record_later',
+                                $column->tjoin,
+                            ],
+                        },
+                    },
+                });
+                if ($column->numeric && $op eq 'sum')
+                {
+                    $select = $f_rs->get_column((ref $column->tjoin eq 'HASH' ? 'value_2' :  $column->field).".".$column->value_field)->sum_rs->as_query;
+                }
+                else {
+                    $select = $f_rs->get_column((ref $column->tjoin eq 'HASH' ? 'value_2' :  $column->field).".".$column->value_field)->max_rs->as_query;
+                }
+            }
+            # Otherwise a standard subquery select for that type of field
+            else {
+                $select = $self->schema->resultset('Current')
+                    ->correlate('record_single') # Correlate against main query's records
+                    ->related_resultset($column->field)
+                    ->get_column($column->value_field);
+                # Also need to add the main search query, otherwise if we take
+                # all the field's values for each record, then we won't be
+                # filtering the non-matched ones in the case of multivalue
+                # fields
+                my $searchq = $self->search_query(search => 1, extra_column => $column);
+                push @$searchq, {
+                    'mefield.id' => {
+                        -ident => 'me.id'
+                    },
+                };
+                $select = $self->schema->resultset('Current')->search(
+                    [-and => $searchq ],
+                    {
+                        alias => 'mefield',
+                        join  => [
+                            [$self->linked_hash(search => 1, extra_column => $column)],
+                            {
+                                'record_single' => [ # The (assumed) single record for the required version of current
+                                    'record_later',  # The record after the single record (undef when single is latest)
+                                    $self->jpfetch(search => 1, linked => 0, extra_column => $column),
+                                ],
+                            },
+                        ],
+                    },
+                )->get_column($column->field.".".$column->value_field);
+                if ($column->numeric && $op eq 'sum')
+                {
+                    $select = $select->sum_rs->as_query;
+                }
+                else {
+                    $select = $select->max_rs->as_query;
+                }
+            }
         }
+        # Standard single-value field - select directly, no need for a subquery
         else {
-            $self->add_prefetch($col, include_multivalue => 1);
+            $select = $self->fqvalue($column, prefetch => 1, group => 1, search => 0, linked => 0, parent => $parent, retain_join_order => 1);
         }
+
         push @select_fields, {
-            $op => $self->fqvalue($col, prefetch => 1, search => 1, parent => $parent, retain_join_order => 1),
-            -as => $col->field
+            $op => $select,
+            -as => $as,
         };
         # Also add linked column if required
         push @select_fields, {
-            $op => $self->fqvalue($col->link_parent, prefetch => 1, search => 1, linked => 1, parent => $parent, retain_join_order => 1),
-            -as => $col->field."_link",
-        } if $col->link_parent;
-    }
-
-    if ($self->column)
-    {
-        my $f = $self->operator eq 'count'
-            ? \1 # Do not count column itself otherwise NULLs are not counted
-            : $self->fqvalue($self->column, search => 1, prefetch => 1);
-        push @select_fields, {
-            $self->operator => $f,
-            -as             => $self->column->field."_".$self->{operator},
-        };
-
-        if ($self->column->link_parent)
-        {
-            $f = $self->operator eq 'count'
-                ? \1 # Do not count column itself otherwise NULLs are not counted
-                : $self->fqvalue($self->column->link_parent, linked => 1, search => 1, prefetch => 1);
-            push @select_fields, {
-                $self->operator => $f,
-                -as             => $self->column->field."_".$self->{operator}."_link",
-            }
-        }
+            $op => $self->fqvalue($column->link_parent, prefetch => 1, search => 0, linked => 1, parent => $parent, retain_join_order => 1),
+            -as => $as."_link",
+        } if $column->link_parent;
     }
 
     push @select_fields, {
@@ -186,6 +268,15 @@ sub _build_results
         my $dr_col     = $self->layout->column($self->dr_column); # The daterange column for x-axis
         my $field      = $dr_col->field;
         my $field_link = $dr_col->link_parent && $dr_col->link_parent->field; # Related link field
+
+        if ($self->dr_column_parent)
+        {
+            $self->add_prefetch($self->dr_column_parent, include_multivalue => 1);
+            $self->add_prefetch($dr_col, include_multivalue => 1, parent => $self->dr_column_parent);
+        }
+        else {
+            $self->add_prefetch($dr_col, include_multivalue => 1);
+        }
 
         # First find out earliest and latest date in this result set
         my $select = [
@@ -230,10 +321,11 @@ sub _build_results
             ($field_link ? $result->get_column('end_date_link') : undef)
         );
 
+
         if ($daterange_from && $daterange_to)
         {
-            $daterange_from->truncate(to => 'month');
-            $daterange_to->truncate(to => 'month');
+            $daterange_from->truncate(to => $self->dr_interval);
+            $daterange_to->truncate(to => $self->dr_interval);
             # Pass dates back to caller
             $self->_set_dr_from($daterange_from);
             $self->_set_dr_to  ($daterange_to);
@@ -243,8 +335,8 @@ sub _build_results
             my $to_field        = $self->quote("$field.to");
             my $from_field_link = $field_link && $self->quote($field_link.".from");
             my $to_field_link   = $field_link && $self->quote($field_link.".to");
-            my $col_val         = $self->fqvalue($self->column, search => 1, prefetch => 1);
-            my $col_val_link    = $self->column->link_parent && $self->fqvalue($self->column->link_parent, linked => 1, search => 1, prefetch => 1);
+            my ($dr_y_axis)     = grep { $_->{id} == $self->dr_y_axis_id } @cols;
+            my $col_val         = $self->fqvalue($dr_y_axis->{column}, search => 1, prefetch => 1);
 
             my $case = $field_link
                 ? "CASE WHEN "
@@ -265,7 +357,7 @@ sub _build_results
                 my $to    = $self->schema->storage->dbh->quote(
                     $dt_parser->format_date($pointer)
                 );
-                my $sum   = $self->operator eq 'count' ? 1 : $col_val;
+                my $sum   = $dr_y_axis->{operator} eq 'count' ? 1 : $col_val;
                 my $casef = $field_link
                           ? sprintf($case, $from, $from, $to, $to, $sum)
                           : sprintf($case, $from, $to, $sum);
@@ -276,9 +368,10 @@ sub _build_results
                     -as => $pointer->epoch,
                 };
                 # Also add link parent field as well if required
-                if ($self->column->link_parent)
+                if ($dr_y_axis->{column}->link_parent)
                 {
-                    my $sum   = $self->operator eq 'count' ? 1 : $col_val_link;
+                    my $col_val_link = $self->fqvalue($dr_y_axis->{column}->link_parent, linked => 1, search => 1, prefetch => 1);
+                    my $sum   = $dr_y_axis->{operator} eq 'count' ? 1 : $col_val_link;
                     my $casef = $field_link
                               ? sprintf($case, $from, $from, $to, $to, $sum)
                               : sprintf($case, $from, $to, $sum);
@@ -294,7 +387,7 @@ sub _build_results
 
     my @g;
     # Add on the actual columns to group by in the SQL statement
-    foreach (@group_by)
+    foreach (grep { $_->{group} } @cols)
     {
         my $col = $self->layout->column($_->{id});
         # Whether we need to pluck a particular date value, used to group the
@@ -316,29 +409,39 @@ sub _build_results
         } else {
             if ($col->link_parent)
             {
-                my $main = $self->fqvalue($col, search => 1, prefetch => 1, retain_join_order => 1);
-                my $link = $self->fqvalue($col->link_parent, search => 1, prefetch => 1, linked => 1, retain_join_order => 1);
+                $self->add_group($col);
+                my $main = $self->fqvalue($col, group => 1, search => 0, prefetch => 1, retain_join_order => 1);
+                $self->add_group($col->link_parent, linked => 1);
+                my $link = $self->fqvalue($col->link_parent, group => 1, search => 0, prefetch => 1, linked => 1, retain_join_order => 1);
                 push @g, $self->schema->resultset('Current')->helper_concat(
                      { -ident => $main },
                      { -ident => $link },
                 );
             }
             else {
-                push @g, $self->fqvalue($col, search => 1, prefetch => 1, retain_join_order => 1);
+                if ($_->{parent})
+                {
+                    $self->add_group($_->{parent});
+                    $self->add_group($col, parent => $_->{parent});
+                }
+                else {
+                    $self->add_group($col);
+                }
+                push @g, $self->fqvalue($col, group => 1, search => 0, prefetch => 1, retain_join_order => 1, parent => $_->{parent});
             }
         }
     };
 
-    my $q = $self->search_query(prefetch => 1, search => 1, linked => 1, retain_join_order => 1); # Called first to generate joins
+    my $q = $self->search_query(prefetch => 1, search => 1, retain_join_order => 1); # Called first to generate joins
 
     my $select = {
         select => [@select_fields],
         join     => [
-            $self->linked_hash(prefetch => 1, search => 1, retain_join_order => 1),
+            $self->linked_hash(group => 1, prefetch => 1, search => 0, retain_join_order => 1),
             {
                 'record_single' => [
                     'record_later',
-                    $self->jpfetch(prefetch => 1, search => 0, linked => 0, retain_join_order => 1),
+                    $self->jpfetch(group => 1, prefetch => 1, search => 0, linked => 0, retain_join_order => 1),
                 ],
             },
         ],

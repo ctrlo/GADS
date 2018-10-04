@@ -1,935 +1,768 @@
 [% PROCESS help.tt %]
+[% PROCESS snippets/util.tt %]
+[% PROCESS snippets/layout_permissions.tt %]
+[% PROCESS snippets/layout_modals.tt %]
 
-<h2>Edit layout</h2>
+[% BLOCK field_properties %]
+    <h3>Field properties</h3>
 
-[% IF column.defined %]
-<form role="form" method="post">
-    <div class="row">
-        <div class="col-md-6">
-            [% IF column.id %]
-                <input type="hidden" name="id" value="[% column.id %]">
-            [% END %]
-            [% IF column.type == "rag" OR column.type == "calc" %][% noragcalc = 'style="display:none"' %][% END %]
-            <div class="form-group">
-                <label for="name">Name:</label>
-                <input type="text" class="form-control" id="name" name="name" value="[% column.name | html_entity %]">
-            </div>
-            [% UNLESS column.id %]
-                <div class="form-group">
-                    <label for="type">Type:</label>
-                    <select class="form-control" id="type" name="type">
-                        <option value="string" [% IF column.type == "string" %]selected[% END %]>Text</option>
-                        <option value="intgr" [% IF column.type == "intgr" %]selected[% END %]>Integer</option>
-                        <option value="date" [% IF column.type == "date" %]selected[% END %]>Date</option>
-                        <option value="daterange" [% IF column.type == "daterange" %]selected[% END %]>Date range</option>
-                        <option value="enum" [% IF column.type == "enum" %]selected[% END %]>Dropdown list</option>
-                        <option value="tree" [% IF column.type == "tree" %]selected[% END %]>Tree</option>
-                        <option value="file" [% IF column.type == "file" %]selected[% END %]>Document</option>
-                        <option value="person" [% IF column.type == "person" %]selected[% END %]>Person</option>
-                        <option value="rag" [% IF column.type == "rag" %]selected[% END %]>RedAmberGreen status (RAG)</option>
-                        <option value="calc" [% IF column.type == "calc" %]selected[% END %]>Calculated value</option>
-                        <option value="curval" [% IF column.type == "curval" %]selected[% END %]>Record from other data sheet</option>
-                        <option value="autocur" [% IF column.type == "autocur" %]selected[% END %]>Automatic value of other sheet's references to this one</option>
-                    </select>
-                </div>
-            [% END %]
-            <div class="form-group">
-                <label for="description">Description:</label>
-                <input type="text" class="form-control" id="description" name="description" value="[% column.description | html_entity %]">
-            </div>
-            <div class="form-group">
-                <label for="name_short">Short name: (<a href="" data-toggle="modal" data-target="#modalhelp_name_short">?</a>)</label>
-                <input type="text" class="form-control" id="name_short" name="name_short" value="[% column.name_short | html_entity %]">
-            </div>
-            <div class="form-group">
-                <label for="link_parent_id">Linked to field in other datasheet:</label>
-                [% IF instance_layouts.size %]
-                    <select class="form-control" id="link_parent_id" name="link_parent_id">
-                        <option value="">&lt;Not linked&gt;</option>
-                        [% FOREACH l IN instance_layouts %]
-                            [% FOREACH c IN l.layout.all %]
-                                <option value="[% c.id %]" [% IF column.link_parent.id == c.id %]selected[% END %]>[% l.instance.name %] - [% c.name %]</option>
-                            [% END %]
-                        [% END %]
-                    </select>
-                [% ELSE %]
-                    <select class="form-control" id="link_parent_id" name="link_parent_id" disabled readonly>
-                        <option value="">&lt;No other datasheets exist&gt;</option>
-                    </select>
+    <div class="form-group">
+        <label for="name">Name:</label>
+        <input type="text" class="form-control" id="name" name="name" value="[% column.name | html_entity %]">
+    </div>
+
+    [% IF topics.size %]
+        <div class="form-group">
+            <label for="topic_id">Topic:</label>
+            <select class="form-control" id="topic_id" name="topic_id">
+                <option></option>
+                [% FOREACH topic IN topics %]
+                    <option value="[% topic.id %]" [% IF column.topic_id == topic.id %]selected[% END %]>[% topic.name | html %]</option>
                 [% END %]
-            </div>
-            <div class="form-group">
-                <label for="helptext">User help text:</label>
-                <textarea class="form-control" rows="5" id="helptext" name="helptext">[% column.helptext | html_entity %]</textarea>
-            </div>
-            <div class="checkbox noragcalc" [% noragcalc %]>
-                <label>
-                    <input type="checkbox" name="optional" [% IF column.optional %]checked[% END %]>Field is optional
-                </label>
-            </div>
-            <div class="checkbox noragcalc" [% noragcalc %]>
-                <label>
-                    <input type="checkbox" name="remember" [% IF column.remember %]checked[% END %]>Remember last value for new entry
-                </label>
-            </div>
-            <div class="checkbox noragcalc" [% noragcalc %]>
-                <label>
-                    <input type="checkbox" name="isunique" [% IF column.isunique %]checked[% END %]>Ensure values are unique between records
-                </label>
-            </div>
-            [% IF column.can_multivalue %]
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="multivalue" [% IF column.multivalue %]checked[% END %]>Allow multiple values
-                    </label>
-                </div>
-            [% END %]
-            <div class="checkbox noragcalc" [% noragcalc %]>
-                <label>
-                    <input type="checkbox" id="display_condition" name="display_condition" [% IF column.display_field %]checked[% END %]>Only display under the following conditions:
-                </label>
-            </div>
-            <div class="form-group" id="display_condition_div" [% UNLESS column.display_field %]style="display:none"[% END %]>
-                <div class="row">
-                    <div class="col-md-5">
-                        <select class="form-control" id="display_field" name="display_field">
-                            [% FOREACH field in layout.all %]
-                                <option value="[% field.id %]" [% IF column.display_field == field.id %]selected[% END %]>[% field.name | html_entity %]</option>
-                            [% END %]
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <p>matches (<a href="" data-toggle="modal" data-target="#modalhelp_match">?</a>)</p>
-                    </div>
-                    <div class="col-md-5">
-                        <div class="form-group">
-                            <input type="text" class="form-control" id="display_regex" name="display_regex" value="[% column.display_regex | html_entity %]">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <hr>
-            <h4>Permissions <small>(<a href="" data-toggle="modal" data-target="#modalhelp_groups">?</a>)</small></h4>
-                [% IF column.id %]
-                    [% IF column.permissions.size %]
-                        <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_permissions" data-title="Add another group">Add another group</a>
-                        <table class="table table-condensed">
-                            <tr>
-                                <th>Group</th>
-                                <th>Permissions</th>
-                            </tr>
-                            [% FOREACH permission IN column.permissions.pairs %]
-                                [% group = groups.group(permission.key) %]
-                                <tr>
-                                    <td>
-                                    <a href="" data-toggle="modal"
-                                        data-target="#modal_permissions"
-                                        data-title="Permissions for [% group.name %]"
-                                        data-group_id="[% group.id %]"
-                                        [% FOR p IN permission.value %]
-                                            data-[% p.short %]="1"
-                                        [% END %]
-                                        >[% group.name %]</a>
-                                    </td>
-                                    <td>
-                                        [% permission.value.join(', ') %]
-                                    </td>
-                                </tr>
-                            [% END %]
-                        </table>
-                    [% ELSE %]
-                        <p>Access must be granted to this field before anyone (including you) can view and edit data in it.
-                        [% IF groups.all.size %]
-                            To give access, a group <a data-toggle="modal" data-target="#modal_permissions" data-title="Add group" style="cursor: pointer;">must be assigned to it</a>.
-                        [% ELSE %]
-                            Groups are used to assign access. You must first <a href="/group">create a group</a>.
-                        [% END %]
-                    [% END %]
-                [% ELSE %]
-                    <p>Please save the field before adding permissions</p>
-                [% END %]
+            </select>
         </div>
-        <div class="col-md-6">
-            <div id="divtree"
-                [% IF column.type != "tree" %]
-                    style="display:none"
+    [% END %]
+
+    <div class="checkbox stored-value">
+        <label>
+            <input type="checkbox" name="optional" [% IF column.optional %]checked[% END %]>This field is optional
+        </label>
+    </div>
+
+    [% UNLESS column.id %]
+        <div class="form-group">
+            <label for="type">Type:</label>
+            <select class="form-control" id="type" name="type">
+                <option value="string"      [% IF column.type == "string" %]selected    [% END %]>Text</option>
+                <option value="intgr"       [% IF column.type == "intgr" %]selected     [% END %]>Integer</option>
+                <option value="date"        [% IF column.type == "date" %]selected      [% END %]>Date</option>
+                <option value="daterange"   [% IF column.type == "daterange" %]selected [% END %]>Date range</option>
+                <option value="enum"        [% IF column.type == "enum" %]selected      [% END %]>Dropdown list</option>
+                <option value="tree"        [% IF column.type == "tree" %]selected      [% END %]>Tree</option>
+                <option value="file"        [% IF column.type == "file" %]selected      [% END %]>Document</option>
+                <option value="person"      [% IF column.type == "person" %]selected    [% END %]>Person</option>
+                <option value="rag"         [% IF column.type == "rag" %]selected       [% END %]>RedAmberGreen status (RAG)</option>
+                <option value="calc"        [% IF column.type == "calc" %]selected      [% END %]>Calculated value</option>
+                <option value="curval"      [% IF column.type == "curval" %]selected    [% END %]>Field(s) for records from another table</option>
+                <option value="autocur"     [% IF column.type == "autocur" %]selected   [% END %]>Automatic value of other sheet's references to this one</option>
+            </select>
+        </div>
+    [% END %]
+
+
+    <div class="form-group">
+        <label for="description">Description:</label>
+        <input type="text" class="form-control" id="description" name="description" value="[% column.description | html_entity %]">
+    </div>
+    <div class="form-group">
+        <label for="helptext">Help text for the user:</label>
+        <textarea class="form-control" rows="5" id="helptext" name="helptext">[% column.helptext | html_entity %]</textarea>
+    </div>
+[% END %]
+
+[% BLOCK field_type_settings %]
+    <h3>Field type settings</h3>
+
+    [% PROCESS field_type_properties %]
+
+[% END %]
+
+[% BLOCK advanced_field_settings %]
+    <h3>Advanced settings</h3>
+
+    [% PROCESS field_options %]
+
+    <div class="form-group">
+        <label for="name_short"><span style="font-weight:normal">Short name: [% whats_this('modalhelp_name_short') %]</span></label>
+        <input type="text" class="form-control" id="name_short" name="name_short" value="[% column.name_short | html_entity %]">
+    </div>
+    <div class="form-group">
+        <label for="link_parent_id">Link to a field in another table:</label>
+        [% IF instance_layouts.size %]
+            <select class="form-control" id="link_parent_id" name="link_parent_id">
+                <option value="">&lt;Not linked&gt;</option>
+                [% FOREACH instance_layout IN instance_layouts %]
+                    [% FOREACH c IN instance_layout.all %]
+                        <option value="[% c.id %]" [% IF column.link_parent.id == c.id %]selected[% END %]>[% instance_layout.name %] - [% c.name %]</option>
+                    [% END %]
                 [% END %]
-                >
-                <label for="end_node_only">Node selection:</label>
+            </select>
+        [% ELSE %]
+            <select class="form-control" id="link_parent_id" name="link_parent_id" disabled readonly>
+                <option value="">&lt;No other datasheets exist&gt;</option>
+            </select>
+        [% END %]
+    </div>
+[% END %]
+
+[% BLOCK field_options %]
+   <div class="checkbox stored-value">
+        <label>
+            <input type="checkbox" name="remember" [% IF column.remember %]checked[% END %]>Remember last value for new entry
+        </label>
+    </div>
+   <div class="checkbox stored-value">
+        <label>
+            <input type="checkbox" name="set_can_child" value="1" [% IF column.can_child %]checked[% END %]>This field forms a value in child records
+        </label>
+    </div>
+    <div class="checkbox stored-value">
+        <label>
+            <input type="checkbox" name="isunique" [% IF column.isunique %]checked[% END %]>The values for this field must be unique
+        </label>
+    </div>
+    [% IF column.can_multivalue %]
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" name="multivalue" [% IF column.multivalue %]checked[% END %]>Allow multiple values
+            </label>
+        </div>
+    [% END %]
+[% END %]
+
+
+[% BLOCK field_display_conditions %]
+    <section id="display_conditions">
+        <h3>Display</h3>
+    [% UNLESS column.display_regex %]
+        <p>This field is always displayed.</p>
+    [% END %]
+
+    <button type="button" aria-expanded="[% column.display_regex ? 'true' : 'false' %]" class="btn btn-default" id="toggle-display-regex">
+        [% IF column.display_regex %]Delete condition[% ELSE %]Configure display[% END %]
+    </button>
+    <input type="hidden" name="display_condition" id="display_condition" value="[% column.display_regex && 'true' %]">
+    <div class="expandable [% column.display_regex && 'expanded' %]">
+        <p>This field will only be displayed under the following condition:</p>
+        <div class="display-condition clearfix">
+            <div class="form-group col-md-12">
+                <label for="display_field">Column</label>
+                <select class="form-control" id="display_field" name="display_field">
+                    [% FOREACH field in all_columns %]
+                        <option value="[% field.id %]" [% IF column.display_field == field.id %]selected[% END %]>[% field.name | html_entity %]</option>
+                    [% END %]
+                </select>
+            </div>
+            <div class="form-group col-md-12">
+                matches
+                <label for="display_regex">pattern</label>
+                [% whats_this('modalhelp_match') %]
+                <input type="text" class="form-control" id="display_regex" name="display_regex" value="[% column.display_regex | html_entity %]">
+            </div>
+        </div>
+    </div>
+    </section>
+[% END %]
+
+[% BLOCK field_type_properties %]
+    <div class="field-options tree">
+        [% IF column.id %]
+            <h4>Tree field options</h4>
+            <p>Each value in the tree is referred to as a node.</p>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="end_node_only" [% IF column.end_node_only %]checked[% END %]>
+                    Only let users select an end-node
+                </label>
+            </div>
+            <h4>Tree nodes:</h4>
+            <div class="form-group">
+                    <button class="btn btn-success btn-sm" onclick="demo_create();" type="button">Add a node</button>
+                    <button class="btn btn-warning btn-sm" onclick="demo_rename();" type="button">Rename</button>
+                    <button class="btn btn-danger btn-sm" onclick="demo_delete();" type="button">Delete</button>
+                    <button class="btn btn-info btn-sm" onclick="$('#jstree_demo_div').jstree('open_all');" type="button">Expand tree</button>
+                    <button class="btn btn-info btn-sm" onclick="$('#jstree_demo_div').jstree('close_all');" type="button">Collapse tree</button>
+                    <div id="jstree_demo_div"></div>
+            </div>
+        [% ELSE %]
+            <p>Use a tree to structure the values that users can select into categories and sub-categories.</p>
+            <p>To create your tree, please save this field first, then edit it.</p>
+        [% END %]
+    </div>
+    <div class="field-options enum">
+        <h4>Dropdown field options</h4>
+            <div class="form-group">
+                <label for="enumval">Order dropdown values:</label>
+                <select class="form-control" name="ordering">
+                    <option value="" [% IF NOT column.ordering %]selected[% END %]>As shown (drag hand to reorder)</option>
+                    <option value="asc" [% IF column.ordering == "asc" %]selected[% END %]>Ascending</option>
+                    <option value="desc" [% IF column.ordering == "desc" %]selected[% END %]>Descending</option>
+                </select>
+            </div>
+        <div>
+            <label for="enumval">Add dropdown values:</label>
+        </div>
+        <div id="legs">
+            <div class="sortable">
+                [% FOREACH enumval IN column.enumvals %]
+                    [% UNLESS enumval.deleted %]
+                    <div class="request-row">
+                        <p>
+                            [%# XXX hacky formatting - to be fixed %]
+                            <input type="hidden" name="enumval_id" value="[% enumval.id %]">
+                            <input type="text" class="form-control" style="width:80%; display:inline" name="enumval" value="[% enumval.value | html_entity %]">
+                            <button type="button" class="close closeme" style="float:none">&times;</button>
+                            <span class="fa fa-hand-paper-o fa-lg use-icon-font close drag" style="float:none"></span>
+                        </p>
+                    </div>
+                    [% END %]
+                [% END %]
+            </div>
+            <div class="request-add">
+                    <div class="">
+                        <button type="button" class="btn btn-default add">
+                            Add value
+                        </button>
+                    </div>
+            </div>
+        </div>
+    </div>
+    <div class="field-options curval">
+        <h4>Field options</h4>
+        [% IF instance_layouts.size %]
+            [% rti = column.refers_to_instance_id %]
+            <div class="form-group">
+                <label for="value_selector">Type of value selector:</label>
+                <select class="form-control" id="value_selector" name="value_selector">
+                    <option value="dropdown" [% IF column.value_selector == "dropdown" %]selected[% END %]>Drop-down box</option>
+                    <option value="typeahead" [% IF column.value_selector == "typeahead" %]selected[% END %]>Auto-complete textbox</option>
+                    <option value="noshow" [% IF column.value_selector == "noshow" %]selected[% END %]>Do not show selector</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="show_add">New values:</label>
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" name="end_node_only" [% IF column.end_node_only %]checked[% END %]>
-                        Only allow end-nodes to be selected
+                        <input id="show_add" type="checkbox" name="show_add" [% IF column.show_add %]checked[% END %]>Allow new values to be added when editing
                     </label>
                 </div>
-                <label for="enumval">Tree values:</label>
-                <div class="form-group">
-                    [% IF column.id %]
-                        <button class="btn btn-success btn-sm" onclick="demo_create();" type="button">Create</button>
-                        <button class="btn btn-warning btn-sm" onclick="demo_rename();" type="button">Rename</button>
-                        <button class="btn btn-danger btn-sm" onclick="demo_delete();" type="button">Delete</button>
-                        <button class="btn btn-info btn-sm" onclick="$('#jstree_demo_div').jstree('open_all');" type="button">Expand</button>
-                        <button class="btn btn-info btn-sm" onclick="$('#jstree_demo_div').jstree('close_all');" type="button">Collapse</button>
-                        <div id="jstree_demo_div"></div>
-                    [% ELSE %]
-                        <p>To create your tree, please save this field first, and then edit it.</p>
+            </div>
+            <div class="form-group">
+                <label for="delete_not_used">Old values:</label>
+                <div class="checkbox">
+                    <label>
+                        <input id="delete_not_used" type="checkbox" name="delete_not_used" [% IF column.delete_not_used %]checked[% END %]>Delete records from other table if deselected from this field
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="override_permissions">Permissions override:</label>
+                <div class="checkbox">
+                    <label>
+                        <input id="override_permissions" type="checkbox" name="override_permissions" [% IF column.override_permissions %]checked[% END %]>Override any user permissions when selecting records for this field
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="refers_to_instance_id">Use this table:</label>
+                <select class="form-control" id="refers_to_instance_id" name="refers_to_instance_id">
+                    [% IF NOT rti %]
+                        <option></option>
                     [% END %]
-                </div>
-            </div>
-            <div id="divenum"
-                [% IF column.type != "enum" %]
-                    style="display:none"
-                [% END %]
-                >
-                <div class="col-md-11">
-                    <div class="form-group">
-                        <label for="enumval">Multiple select ordering:</label>
-                        <select class="form-control" name="ordering">
-                            <option value="" [% IF NOT column.ordering %]selected[% END %]>As entered</option>
-                            <option value="asc" [% IF column.ordering == "asc" %]selected[% END %]>Ascending</option>
-                            <option value="desc" [% IF column.ordering == "desc" %]selected[% END %]>Descending</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-11">
-                    <label for="enumval">Multiple select values:</label>
-                </div>
-                <div id="legs">
-                    [% FOREACH enumval IN column.enumvals %]
-                        [% UNLESS enumval.deleted %]
-                            <div class="request-row">
-                                    <div class="col-md-11">
-                                        <p>
-                                        <input type="text" class="form-control" name="enumval[% enumval.id %]" value="[% enumval.value | html_entity %]">
-                                        </p>
-                                    </div>
-                                    <button type="button" class="close closeme pull-left">&times;</button>
-                            </div>
-                        [% END %]
+                    [% FOREACH instance_layout IN instance_layouts %]
+                        <option value="[% instance_layout.instance_id %]" [% IF rti == instance_layout.instance_id %]selected[% END %]>[% instance_layout.name | html_entity %]</option>
                     [% END %]
-                    <div class="request-add">
-                            <div class="col-md-11">
-                                <button type="button" class="btn btn-default add">
-                                    Add
-                                </button>
-                            </div>
-                    </div>
-                </div>
+                </select>
             </div>
-            <div id="divcurval"
-                [% IF column.type != "curval" %]
-                    style="display:none"
-                [% END %]
-                >
-                [% IF instance_layouts.size %]
-                    [% rti = column.refers_to_instance_id %]
-                    <div class="form-group">
-                        <label for="typeahead">Auto-complete:</label>
-                        <div class="checkbox">
-                            <label>
-                                <input id="typeahead" type="checkbox" name="typeahead" [% IF column.typeahead %]checked[% END %]>Use auto-complete textbox instead of drop-down
-                            </label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="override_permissions">Permissions override:</label>
-                        <div class="checkbox">
-                            <label>
-                                <input id="override_permissions" type="checkbox" name="override_permissions" [% IF column.override_permissions %]checked[% END %]>Override any user permissions when selecting records for this field
-                            </label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="refers_to_instance_id">Instance to select from:</label>
-                        <select class="form-control" id="refers_to_instance_id" name="refers_to_instance_id">
-                            [% IF NOT rti %]
-                                <option></option>
-                            [% END %]
-                            [% FOREACH instance IN instance_layouts %]
-                                <option value="[% instance.instance.id %]" [% IF rti == instance.instance.id %]selected[% END %]>[% instance.instance.name | html_entity %]</option>
-                            [% END %]
-                        </select>
-                    </div>
-                    [% FOREACH instance IN instance_layouts %]
-                        <div id="instance_fields_[% instance.instance.id %]" class="instance_fields"
-                            [% IF (rti AND instance.instance.id != rti) OR NOT rti %]
-                                style="display:none"
-                            [% END %]
-                            >
-                            <div class="form-group">
-                                <label for="curval_instance">Columns to show:</label>
-                                [% FOREACH c IN instance.layout.all %]
-                                    [% NEXT IF c.type == "curval" %]
-                                    [% checked = "" %]
-                                    [% IF instance.instance.id == rti AND column.has_curval_field(c.id) %]
-                                        [% checked = "checked" %]
-                                    [% END %]
-                                    <div class="checkbox">
-                                        <label>
-                                            <input type="checkbox" name="curval_field_ids" value="[% c.id %]" [% checked %]>[% c.name %]
-                                        </label>
-                                    </div>
-                                [% END %]
-                            </div>
-                            <div class="form-group">
-                                    <label for="builder[% instance.layout.instance_id %]">Filter to apply:</label>
-                                    <div id="builder[% instance.layout.instance_id %]"></div>
-                            </div>
-                        </div>
-                    [% END %]
-                    <input id="filter" type="hidden" name="filter" value="[% column.filter.as_json | html_entity %]">
-                [% ELSE %]
-                    <div class="alert alert-info">
-                        No other instances are available to select data from
-                    </div>
-                [% END %]
-            </div>
-            <div id="divautocur"
-                [% IF column.type != "autocur" %]
-                    style="display:none"
-                [% END %]
-                >
-                [% IF layout.referred_by.size %]
-                    <div class="form-group">
-                        <label for="related_field_id">Fields referring to this field:</label>
-                        <select class="form-control" id="related_field_id" name="related_field_id">
-                            [% IF NOT column.related_field_id %]
-                                <option></option>
-                            [% END %]
-                            [% FOREACH referring IN layout.referred_by %]
-                                <option data-instance_id=[% referring.instance_id %] value="[% referring.id %]" [% IF column.related_field_id == referring.id %]selected[% END %]>[% referring.name | html_entity %]</option>
-                            [% END %]
-                        </select>
-                    </div>
-                    [% FOREACH instance IN instance_layouts %]
-                        <div id="autocur_instance_[% instance.instance.id %]" class="autocur_instance"
-                            [% IF !column.refers_to_instance_id OR column.refers_to_instance_id != instance.instance.id %]
-                                style="display:none"
-                            [% END %]
-                            >
-                            <div class="form-group">
-                                <label for="curval_instance">Columns to show:</label>
-                                [% FOREACH c IN instance.layout.all %]
-                                    [% NEXT IF c.type == "curval" %]
-                                    [% checked = "" %]
-                                    [% IF instance.instance.id == column.refers_to_instance_id AND column.has_curval_field(c.id) %]
-                                        [% checked = "checked" %]
-                                    [% END %]
-                                    <div class="checkbox">
-                                        <label>
-                                            <input type="checkbox" name="autocur_field_ids" value="[% c.id %]" [% checked %]>[% c.name %]
-                                        </label>
-                                    </div>
-                                [% END %]
-                            </div>
-                        </div>
-                    [% END %]
-                [% ELSE %]
-                    <div class="alert alert-info">
-                        No other sheets refer to this sheet
-                    </div>
-                [% END %]
-            </div>
-            <div id="divfile"
-                [% IF column.type != "file" %]
-                    style="display:none"
-                [% END %]
-                >
-                <div class="form-group">
-                    <label for="filesize">Maximum file size (KB):</label>
-                    <input type="text" class="form-control" name="filesize" id="filesize"
-                        value="[% column.filesize %]" placeholder="Leave blank for no limit">
-                </div>
-            </div>
-            <div id="divstring"
-                    [% IF column.type != "string" %]
-                        style="display:none"
-                    [% END %]
-                >
-                <div class="form-group">
-                    <label for="textbox">Textbox:</label>
-                    <div class="checkbox">
-                        <label>
-                            <input id="textbox" type="checkbox" name="textbox" [% IF column.textbox %]checked[% END %]>Multi-line text box
-                        </label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="force_regex">Force input format: (<a href="" data-toggle="modal" data-target="#modalhelp_force_regex">?</a>)</label>
-                    <input id="force_regex" class="form-control" type="text" name="force_regex" value="[% column.force_regex | html_entity %]">
-                </div>
-            </div>
-            <div id="divdate"
-                    [% IF column.type != "date" AND column.type != "daterange" %]
-                        style="display:none"
-                    [% END %]
-                >
-                <div class="form-group">
-                    <label for="show_datepicker">Show date picker:</label>
-                    <div class="checkbox">
-                        <label>
-                            <input id="show_datepicker" type="checkbox" name="show_datepicker" [% IF NOT column.show_datepicker.defined OR column.show_datepicker %]checked[% END %]>Show date picker pop-up to select dates
-                        </label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="default_today">Default value:</label>
-                    <div class="checkbox">
-                        <label>
-                            <input id="default_today" type="checkbox" name="default_today" [% IF column.default_today %]checked[% END %]>Default new values to today's date
-                        </label>
-                    </div>
-                </div>
-            </div>
-            <div id="divperson"
-                    [% IF column.type != "person" %]
-                        style="display:none"
-                    [% END %]
-                >
-                <div class="form-group">
-                    <label for="default_to_login">Default value:</label>
-                    <div class="checkbox">
-                        <label>
-                            <input id="default_to_login" type="checkbox" name="default_to_login" [% IF column.default_to_login %]checked[% END %]>Default to current logged-in user
-                        </label>
-                    </div>
-                </div>
-            </div>
-            <div id="divcode"
-                [% IF column.type != "calc" AND column.type != "rag" %]
-                    style="display:none"
-                [% END %]
-                >
-                <div id="divcalc"
-                    [% IF column.type != "calc" %]
+            [% FOREACH instance_layout IN instance_layouts %]
+                <div id="instance_fields_[% instance_layout.instance_id %]" class="instance_fields"
+                    [% IF (rti AND instance_layout.instance_id != rti) OR NOT rti %]
                         style="display:none"
                     [% END %]
                     >
                     <div class="form-group">
-                        <label for="return_type">Return value conversion:</label>
-                        <select class="form-control" name="return_type">
-                            <option value="string" [% IF column.return_type == "string" %]selected[% END %]>String</option>
-                            <option value="date" [% IF column.return_type == "date" %]selected[% END %]>Date</option>
-                            <option value="integer" [% IF column.return_type == "integer" %]selected[% END %]>Integer</option>
-                            <option value="numeric" [% IF column.return_type == "numeric" %]selected[% END %]>Decimal</option>
-                            <option value="globe" [% IF column.return_type == "globe" %]selected[% END %]>Globe location</option>
-                        </select>
+                        <label for="curval_instance">Show these fields:</label>
+                        [% FOREACH c IN instance_layout.all %]
+                            [% NEXT IF c.type == "curval" %]
+                            [% checked = "" %]
+                            [% IF instance_layout.instance_id == rti AND column.has_curval_field(c.id) %]
+                                [% checked = "checked" %]
+                            [% END %]
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="curval_field_ids" value="[% c.id %]" [% checked %]>[% c.name %]
+                                </label>
+                            </div>
+                        [% END %]
+                    </div>
+                    <div class="form-group">
+                            <label for="builder[% instance_layout.instance_id %]">Apply the following filters to records in the selected table:</label>
+                            <div id="builder[% instance_layout.instance_id %]"></div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="code">Calculation: (<a href="" data-toggle="modal" data-target="#helpcalc">?</a>)</label>
-                    <textarea class="form-control monospace" id="code" name="code" rows="10">[% column.code | html_entity %]</textarea>
-                </div>
-                <div class="form-group">
-                    <label for="no_alerts_calc">Alerts:</label>
-                    <div class="checkbox">
-                        <label>
-                            <input id="no_alerts_calc" type="checkbox" name="no_alerts_calc" checked>Do not send alerts when making this update
-                                (alerts will still be sent when records are subsequently edited individually)
-                        </label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="no_cache_update">Value updates:</label>
-                    <div class="checkbox">
-                        <label>
-                            <input id="no_cache_update" type="checkbox" name="no_cache_update">Do not immediately update all existing values
-                                (values will be updated overnight instead)
-                        </label>
-                    </div>
-                </div>
+            [% END %]
+            <input id="filter" type="hidden" name="filter" value="[% column.filter.as_json | html_entity %]">
+        [% ELSE %]
+            <div class="alert alert-info">
+                No other instances are available to select data from
+            </div>
+        [% END %]
+    </div>
+    <div class="field-options file">
+        <h4>Document field options</h4>
+        <div class="form-group">
+            <label for="filesize">Set maximum file size (KB): (Leave blank for no limit)</label>
+            <input type="text" class="form-control" name="filesize" id="filesize"
+                value="[% column.filesize %]" placeholder="Leave blank for no limit">
+        </div>
+    </div>
+    <div class="field-options string">
+        <h4>Text field options</h4>
+        <div class="form-group">
+            <div class="checkbox">
+                <label>
+                    <input id="textbox" type="checkbox" name="textbox" [% IF column.textbox %]checked[% END %]>Make this a multi-line text box
+                </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="force_regex">Require the field value to be in a particular format: [% whats_this('modalhelp_force_regex') %]</label>
+            <input id="force_regex" class="form-control" type="text" name="force_regex" value="[% column.force_regex | html_entity %]">
+        </div>
+    </div>
+    <div class="field-options date daterange">
+        <div class="form-group">
+            <label for="show_datepicker">Show date picker:</label>
+            <div class="checkbox">
+                <label>
+                    <input id="show_datepicker" type="checkbox" name="show_datepicker" [% IF NOT column.show_datepicker.defined OR column.show_datepicker %]checked[% END %]>Show date picker pop-up
+                </label>
             </div>
         </div>
     </div>
-    <button type="submit" id="submit_save" name="submit" value="submit" class="btn btn-primary">[% IF column.id %]Save[% ELSE %]Save[% END %]</button>
-    [% IF column.id %]
-        <a href="/layout/" class="btn btn-default">Cancel</a>
-        <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
-    [% END %]
-</form>
-<p></p>
-       <!-- Modal -->
-        <div class="modal fade" id="helprag" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="myModalLabel">RAG values</h4>
-                    </div>
-                    <div class="modal-body">
-                        <p>[% global.helptext.layout_rag %]</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
-                </div><!-- /.modal-content -->
-            </div><!-- /.modal-dialog -->
-        </div><!-- /.modal -->
-       <!-- Modal -->
-        <div class="modal fade" id="helpcalc" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="myModalLabel">Calculated and RAG values</h4>
-                    </div>
-                    <div class="modal-body">
-                        <p>[% global.helptext.layout_calc %]</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
-                </div><!-- /.modal-content -->
-            </div><!-- /.modal-dialog -->
-        </div><!-- /.modal -->
-       <!-- Modal -->
-        <div class="modal fade" id="modalhelp_match" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="myModalLabel">Matching field values</h4>
-                    </div>
-                    <div class="modal-body">
-                        <p>[% global.helptext.layout_match %]</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
-                </div><!-- /.modal-content -->
-            </div><!-- /.modal-dialog -->
-        </div><!-- /.modal -->
-       <!-- Modal -->
-        <div class="modal fade" id="modalhelp_name_short" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="myModalLabel">Field short names</h4>
-                    </div>
-                    <div class="modal-body">
-                        <p>[% global.helptext.name_short %]</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
-                </div><!-- /.modal-content -->
-            </div><!-- /.modal-dialog -->
-        </div><!-- /.modal -->
-       <!-- Modal -->
-        <div class="modal fade" id="modalhelp_groups" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="myModalLabel">Permissions</h4>
-                    </div>
-                    <div class="modal-body">
-                        <p>[% global.helptext.layout_groups %]</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
-                </div><!-- /.modal-content -->
-            </div><!-- /.modal-dialog -->
-        </div><!-- /.modal -->
-       <!-- Modal -->
-        <div class="modal fade" id="modalhelp_force_regex" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="myModalLabel">Force input format</h4>
-                    </div>
-                    <div class="modal-body">
-                        <p>[% global.helptext.force_regex %]</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
-                </div><!-- /.modal-content -->
-            </div><!-- /.modal-dialog -->
-        </div><!-- /.modal -->
-       <!-- Modal -->
-        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form role="form" method="post" enctype="multipart/form-data">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="myModalLabel">Are you sure?</h4>
-                    </div>
-                    <div class="modal-body">
-                        <p>Are you sure you want to delete this item? Deleting an item will also delete all its associated data.</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                        <button type="submit" name="delete" value="delete" class="btn btn-primary">Confirm deletion</button>
-                    </div>
-                    </form>
-                </div><!-- /.modal-content -->
-            </div><!-- /.modal-dialog -->
-        </div><!-- /.modal -->
-        <div class="modal fade" id="modal_permissions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form role="form" method="post" enctype="multipart/form-data">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="modal_permissions-title">Permissions for group</h4>
-                    </div>
-                    <div class="modal-body">
-                        [% IF groups.all.size %]
-                            <div class="form-group" id="modal_permissions-group_div">
-                                <input type="hidden" name="group_id" id="modal_permissions-group_id" value="">
-                                <div id="modal_permissions-group_select_div">
-                                    <label for="modal_permissions-group_select">Group:</label>
-                                    <select class="form-control" id="modal_permissions-group_select" name="group_id">
-                                        <option value=""></option>
-                                        [% FOR group IN groups.all %]
-                                            <option value="[% group.id %]">[% group.name %]</option>
-                                        [% END %]
-                                    </select>
-                                </div>
-                            </div>
-                            <p>Tick the permissions that this group should have (<a id="selectall" style="cursor: pointer;">select all</a>)</p>
-                            [% FOR perm IN permissions %]
-                                <div class="checkbox">
-                                    <label>
-                                        <input type="checkbox" class="check_perm" name="permissions" value="[% perm.short %]" id="modal_permissions-[% perm.short %]">[% perm %]
-                                    </label>
-                                </div>
+    <div class="field-options date">
+        <div class="form-group">
+            <label for="default_today">Default value:</label>
+            <div class="checkbox">
+                <label>
+                    <input id="default_today" type="checkbox" name="default_today" [% IF column.default_today %]checked[% END %]>Default new values to today's date
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="field-options person">
+        <div class="form-group">
+            <label for="default_to_login">Default value:</label>
+            <div class="checkbox">
+                <label>
+                    <input id="default_to_login" type="checkbox" name="default_to_login" [% IF column.default_to_login %]checked[% END %]>Default new values to current logged-in user
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="field-options calc">
+        <h4>Calculated value field options</h4>
+        <p>
+            A calculated value field automatically generates values based on the values
+            of other fields. You define your calculation using the Lua programming language.
+        </p>
+        <div class="form-group">
+            <label for="return_type">Return value conversion:</label>
+            <select class="form-control" name="return_type">
+                <option value="string" [% IF column.return_type == "string" %]selected[% END %]>String</option>
+                <option value="date" [% IF column.return_type == "date" %]selected[% END %]>Date</option>
+                <option value="integer" [% IF column.return_type == "integer" %]selected[% END %]>Integer</option>
+                <option value="numeric" [% IF column.return_type == "numeric" %]selected[% END %]>Decimal</option>
+                <option value="globe" [% IF column.return_type == "globe" %]selected[% END %]>Globe location</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="code_calc">Calculation: [% whats_this('helpcalc') %]</label>
+            <textarea class="form-control monospace" id="code_calc" name="code_calc" rows="10">[% column.code | html_entity %]</textarea>
+        </div>
+        <div class="form-group">
+            <label for="no_alerts_calc">Alerts:</label>
+            <div class="checkbox">
+                <label>
+                    <input id="no_alerts_calc" type="checkbox" name="no_alerts_calc" checked>Do not send alerts when making this update
+                        (alerts will still be sent when records are subsequently edited individually)
+                </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="no_cache_update">Status updates:</label>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="no_cache_update" value="0" checked>Update all existing values immediately
+                </label>
+            </div>
+
+            <div class="radio">
+                <label>
+                    <input type="radio" name="no_cache_update" value="1">Do not immediately update all existing values
+                        (values will be updated overnight instead)
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="field-options rag">
+        <h4>RAG field options</h4>
+        <p>
+            Use a RAG field to automatically generate red, amber or green indicators based on
+            the values of other fields. You set the conditions for the RAG status using the
+            Lua programming language.
+        </p>
+        <div class="form-group">
+            <label for="code_rag">Conditions for this RAG status field: [% whats_this('helpcalc') %]</label>
+            <textarea class="form-control monospace" id="code_rag" name="code_rag" rows="10">[% column.code | html_entity %]</textarea>
+        </div>
+        <div class="form-group">
+            <label for="no_alerts_calc">Alerts:</label>
+            <div class="checkbox">
+                <label>
+                    <input id="no_alerts_calc" type="checkbox" name="no_alerts_calc" checked>Do not send alerts when making this update
+                        (alerts will still be sent when records are subsequently edited individually)
+                </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="no_cache_update">Status updates:</label>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="no_cache_update" value="0" checked>Update all existing values immediately
+                </label>
+            </div>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="no_cache_update" value="1">Do not immediately update all existing values
+                        (values will be updated overnight instead)
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="field-options autocur">
+        <h4>Auto-value field options</h4>
+        [% IF layout.referred_by.size %]
+            <div class="form-group">
+                <label for="related_field_id">Fields referring to this field:</label>
+                <select class="form-control" id="related_field_id" name="related_field_id">
+                    [% IF NOT column.related_field_id %]
+                        <option></option>
+                    [% END %]
+                    [% FOREACH referring IN layout.referred_by %]
+                        <option data-instance_id=[% referring.instance_id %] value="[% referring.id %]" [% IF column.related_field_id == referring.id %]selected[% END %]>[% referring.name | html_entity %]</option>
+                    [% END %]
+                </select>
+            </div>
+            [% FOREACH instance IN layout.referred_by %]
+                [% instance = instances_object.layout(instance.instance_id) %]
+                <div id="autocur_instance_[% instance.instance_id %]" class="autocur_instance"
+                    [% IF !column.refers_to_instance_id OR column.refers_to_instance_id != instance.instance_id %]
+                        style="display:none"
+                    [% END %]
+                    >
+                    <div class="form-group">
+                        <label for="curval_instance">Columns to show:</label>
+                        [% FOREACH c IN instance.all %]
+                            [% NEXT IF c.type == "curval" %]
+                            [% checked = "" %]
+                            [% IF instance.instance_id == column.refers_to_instance_id AND column.has_curval_field(c.id) %]
+                                [% checked = "checked" %]
                             [% END %]
-                        [% ELSE %]
-                            <p>No groups have been created yet. <a href="/group">Click here</a> to create a group.</p>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="autocur_field_ids" value="[% c.id %]" [% checked %]>[% c.name %]
+                                </label>
+                            </div>
                         [% END %]
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                        <button type="submit" name="update_perms" value="submit" class="btn btn-primary">Save</button>
-                    </div>
-                    </form>
-                </div><!-- /.modal-content -->
-            </div><!-- /.modal-dialog -->
-        </div><!-- /.modal -->
-[% ELSE %]
-<p>The layout defines the fields that form the overall dataset. Use this page to add, delete
-and edit fields. Each field's permissions can be individually defined; full details of the
-available permissions are detailed in the <a href="[% url.page %]/user/">Users menu</a>.</p>
-<p>Note: drag and drop rows (and click Save order) to reorder the columns.</p>
-<p>
-    <a href="/layout/0" class="btn btn-default" role="button">Create item</a>
-</p>
-<form role="form" method="post">
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th></th>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-        </tr>
-    </thead>
-    <tbody id="sortable">
-        [% FOREACH col IN layout.all %]
-        <tr>
-            <input type="hidden" name="position" value="[% col.id %]">
-            <td><a href="/layout/[% col.id %]">Edit</a></td>
-            <td>[% col.name | html_entity %]
-            <td>
-                [% IF col.type == "string" %]Text[% END %]
-                [% IF col.type == "intgr" %]Integer[% END %]
-                [% IF col.type == "date" %]Date[% END %]
-                [% IF col.type == "daterange" %]Date range[% END %]
-                [% IF col.type == "enum" %]Select[% END %]
-                [% IF col.type == "tree" %]Tree[% END %]
-                [% IF col.type == "file" %]File[% END %]
-                [% IF col.type == "person" %]Person[% END %]
-                [% IF col.type == "rag" %]RedAmberGreen (RAG) status[% END %]
-                [% IF col.type == "calc" %]Calculated value[% END %]
-                [% IF col.type == "curval" %]Record from other data sheet[% END %]
-            </td>
-            <td>
-                [% col.description | html_entity %]
-            </td>
-        </tr>
+                </div>
+            [% END %]
+        [% ELSE %]
+            <div class="alert alert-info">
+                No other sheets refer to this sheet
+            </div>
         [% END %]
-    </tbody>
-</table>
-<button type="submit" id="submit_saceorder" name="saveposition" value="submit" class="btn btn-primary">Save order</button>
-<p></p>
-</form>
+    </div>
 [% END %]
 
-<script type="text/javascript">
-    var jscode='[% FILTER remove('\n+') %]
-        [% FILTER replace('\'', '\\\'') %]
-        function demo_delete() {
-            var ref = $('#jstree_demo_div').jstree(true),
-                sel = ref.get_selected();
-            if(!sel.length) { return false; }
-            ref.delete_node(sel);
-        };
-        function demo_create() {
-            var ref = $('#jstree_demo_div').jstree(true),
-                sel = ref.get_selected();
-            if(sel.length) {
-                sel = sel[0];
-            } else {
-                sel = '#';
-            }
-            sel = ref.create_node(sel, {"type":"file"});
-            if(sel) {
-                ref.edit(sel);
-            }
-        };
-        function demo_rename() {
-            var ref = $('#jstree_demo_div').jstree(true),
-                sel = ref.get_selected();
-            if(!sel.length) { return false; }
-            sel = sel[0];
-            ref.edit(sel);
-        };
-            $('#selectall').click(function() {
-                if ($('.check_perm:checked').length == 7) {
-                    $('.check_perm').prop('checked', false);
-                } else {
-                    $('.check_perm').prop('checked', true);
-                }
-            });
-        $(document).ready(function () {
-            $('#sortable').sortable({
-                cancel: "a"
-            });
-            $('#modal_permissions').on('show.bs.modal', function (event) {
-                var button = $(event.relatedTarget);
-                var title = button.data('title');
-                $('#modal_permissions-title').text(title);
-                var group_id = button.data('group_id');
-                if (group_id) {
-                    $('#modal_permissions-group_id').val(group_id);
-                    $('#modal_permissions-group_id').attr('name', 'group_id');
-                    $('#modal_permissions-group_select').attr('name', 'group_id_temp');
-                    $('#modal_permissions-group_select_div').hide();
-                } else {
-                    $('#modal_permissions-group_select').attr('name', 'group_id');
-                    $('#modal_permissions-group_id').attr('name', 'group_id_temp');
-                    $('#modal_permissions-group_select_div').show();
-                }
-                [% FOR perm IN permissions %]
-                    if (button.data('[% perm.short %]')) {
-                        $('#modal_permissions-[% perm.short %]').prop("checked", true );
-                    } else {
-                        $('#modal_permissions-[% perm.short %]').prop("checked", false );
-                    }
+[% BLOCK edit_field %]
+    <h2>[% IF column.id %]Edit field[% ELSE %]Add a field to [% instance_name | html %][% END %]</h2>
+
+    <div class="tab-interface">
+        <ul role="tablist">
+            <li role="presentation">
+                <a role="tab" aria-controls="#basic-panel" href="#basic-panel" id="basic-tab" aria-selected="true">Basic settings</a>
+            </li>
+            <li role="presentation">
+                <a role="tab" aria-controls="#fieldtype-panel" href="#fieldtype-panel" id="fieldtype-tab" aria-selected="false">Field type settings</a>
+            </li>
+            <li role="presentation">
+                <a role="tab" aria-controls="#advanced-panel" href="#advanced-panel" id="advanced-tab" aria-selected="false">Advanced settings</a>
+            </li>
+            <li role="presentation">
+                <a role="tab" aria-controls="#display-panel" href="#display-panel" id="display-tab" aria-selected="false">Display conditions</a>
+            </li>
+            <li role="presentation">
+                <a role="tab" aria-controls="#permissions-panel" href="#permissions-panel" id="permissions-tab" aria-selected="false">Permissions</a>
+            </li>
+        </ul>
+
+        <section role="tabpanel" id="basic-panel" aria-labelledby="basic-tab" class="active">
+            [% PROCESS field_properties %]
+        </section>
+
+        <section role="tabpanel" id="fieldtype-panel" aria-labelledby="fieldtype-tab">
+            [% PROCESS field_type_settings %]
+        </section>
+
+        <section role="tabpanel" id="advanced-panel" aria-labelledby="advanced-tab">
+            [% PROCESS advanced_field_settings %]
+        </section>
+
+        <section role="tabpanel" id="display-panel" aria-labelledby="display-tab">
+            [% PROCESS field_display_conditions %]
+        </section>
+
+        <section role="tabpanel" id="permissions-panel" aria-labelledby="permissions-tab">
+            [% PROCESS layout_permissions %]
+        </section>
+    </div>
+
+[% END %]
+
+[% BLOCK list_fields %]
+    <h2>Manage fields in [% instance_name | html %]</h2>
+
+    <p class="lead">
+        Each field is a column in your table. You can control which groups of users can see, edit and delete each field.
+    </p>
+    <p>
+        <strong>Ordering your fields:</strong> Drag and drop the fields below to reorder them at any time.
+        Click the <strong>Save order</strong> button once you are finished.
+    </p>
+
+    The layout defines the fields that form the overall dataset. Use this page to add, delete
+    and edit fields. Each field's permissions can be individually defined; full details of the
+    available permissions are detailed in the <a href="[% url.page %]/user/">Users menu</a>.</p>
+    <p>Note: drag and drop rows (and click Save order) to reorder the columns.</p>
+    <p>
+        <a href="/layout/0" class="btn btn-default">Add a field</a>
+    </p>
+    <form role="form" method="post">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Name</th>
+                <th>Type</th>
+                [% IF layout.has_topics %]
+                    <th>Topic</th>
                 [% END %]
-            });
-            $('#display_condition').click(function () {
-                $("#display_condition_div").toggle(400);
-            });
-            $('#jstree_demo_div').jstree({
-                "core" : {
-                    "check_callback" : true,
-                    "force_text" : true,
-                    "themes" : { "stripes" : true },
-                    'data' : {
-                        'url' : function (node) {
-                            return '/tree' + new Date().getTime() + '/[% column.id %]?' ;
-                        },
-                        'data' : function (node) {
-                            return { 'id' : node.id };
-                        }
-                    }
-                },
-            });
-            $('div#legs').on('click','.closeme', function(){
-                var count = $(".request-row").length;
-                if (count < 2) return;
-                $(this).parents('.request-row').remove();
-            });
-            $('div#legs').on('click','.add', function(){
-                $(this).parents('.request-add').before( '
-                    <div class="request-row">
-                    <div class="col-md-11">
-                    <p>
-                    <input type="text" class="form-control" name="enumval">
-                    </p>
-                    </div>
-                    <button type="button" class="close closeme pull-left">&times;</button>
-                    </div>
-                ' );
-            });
-            $('#refers_to_instance_id').change(function(){
-                var divid = '#instance_fields_' + $(this).val();
-                $('.instance_fields').hide();
-                $(divid).show();
-            });
-            $('#related_field_id').change(function(){
-                var divid = $(this).find(':selected').data('instance_id');
-                $('.autocur_instance').hide();
-                $('#autocur_instance_' + divid).show();
-            });
-            [% FOREACH instance IN instance_layouts %]
-                [% PROCESS builder.tt builder_id = instance.layout.instance_id layout = instance.layout filter_normal = column.filter filter_base64 = column.filter.base64 %]
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody class="sortable">
+            [% FOREACH col IN layout.all %]
+            <tr>
+                <input type="hidden" name="position" value="[% col.id %]">
+                <td><a href="/layout/[% col.id %]">Edit</a></td>
+                <td class="drag">[% col.name | html_entity %]
+                <td class="drag">
+                    [% IF col.type == "string" %]Text[% END %]
+                    [% IF col.type == "intgr" %]Integer[% END %]
+                    [% IF col.type == "date" %]Date[% END %]
+                    [% IF col.type == "daterange" %]Date range[% END %]
+                    [% IF col.type == "enum" %]Select[% END %]
+                    [% IF col.type == "tree" %]Tree[% END %]
+                    [% IF col.type == "file" %]File[% END %]
+                    [% IF col.type == "person" %]Person[% END %]
+                    [% IF col.type == "rag" %]RedAmberGreen (RAG) status[% END %]
+                    [% IF col.type == "calc" %]Calculated value[% END %]
+                    [% IF col.type == "curval" %]Record from other data sheet[% END %]
+                    [% IF col.type == "autocur" %]Automatic value of other sheet's references to this one[% END %]
+                </td>
+                [% IF layout.has_topics %]
+                    <td class="drag">[% col.topic.name | html %]</td>
+                [% END %]
+                <td class="drag">
+                    [% col.description | html_entity %]
+                </td>
+            </tr>
             [% END %]
-            [% IF column.filter.as_json AND NOT column.filter.as_json.match('^[{}\s]*$') %]
-                var data = base64.decode('[% column.filter.base64 %]');
-                $('#builder[% column.refers_to_instance_id %]').queryBuilder('setRules',
-                    JSON.parse(data)
-                );
-            [% END %]
-
-            $('#submit_save').click(function() {
-                var current_builder = "#builder" + $('#refers_to_instance_id').val();
-                if( $('#jstree_demo_div').length && $('#jstree_demo_div').is(":visible") ) {
-                    var v =$("#jstree_demo_div").jstree(true).get_json('#', { 'flat': false });
-                    var mytext = JSON.stringify(v);
-                    $.ajax({
-                        async: false,
-                        type: "POST",
-                        url: "/tree/[% column.id %]",
-                        data: {'data': mytext }
-                    }).done(function( data ) {
-                        alert( "Tree has been updated" );
-                    });
-                    return true;
-                } else if ($(current_builder).is(":visible")) {
-                    UpdateFilter($(current_builder));
-                }
-                return true;
-            });
-            $('#type').change(function(){
-                $('#divenum').hide();
-                $('#divtree').show();
-                var val = $(this).val();
-                if (val == "tree") {
-                    $('#divenum').hide();
-                    $('#divtree').show();
-                    $('#divcode').hide();
-                    $('#divfile').hide();
-                    $('#divcurval').hide();
-                    $('#divautocur').hide();
-                    $('#divstring').hide();
-                    $('#divdate').hide();
-                    $('#divperson').hide();
-                    $('.noragcalc').show();
-                } else if (val == "enum") {
-                    $('#divenum').show();
-                    $('#divtree').hide();
-                    $('#divcode').hide();
-                    $('#divfile').hide();
-                    $('#divcurval').hide();
-                    $('#divautocur').hide();
-                    $('#divstring').hide();
-                    $('#divdate').hide();
-                    $('#divperson').hide();
-                    $('.noragcalc').show();
-                } else if (val == "rag") {
-                    $('#divcode').show();
-                    $('#divtree').hide();
-                    $('#divenum').hide();
-                    $('#divcalc').hide();
-                    $('#divfile').hide();
-                    $('#divcurval').hide();
-                    $('#divautocur').hide();
-                    $('#divstring').hide();
-                    $('#divdate').hide();
-                    $('#divperson').hide();
-                    $('.noragcalc').hide();
-                } else if (val == "calc") {
-                    $('#divcode').show();
-                    $('#divtree').hide();
-                    $('#divenum').hide();
-                    $('#divcalc').show();
-                    $('#divfile').hide();
-                    $('#divcurval').hide();
-                    $('#divautocur').hide();
-                    $('#divstring').hide();
-                    $('#divdate').hide();
-                    $('#divperson').hide();
-                    $('.noragcalc').hide();
-                } else if (val == "file") {
-                    $('#divcode').hide();
-                    $('#divtree').hide();
-                    $('#divenum').hide();
-                    $('#divfile').show();
-                    $('#divcurval').hide();
-                    $('#divautocur').hide();
-                    $('#divstring').hide();
-                    $('#divdate').hide();
-                    $('#divperson').hide();
-                    $('.noragcalc').show();
-                } else if (val == "curval") {
-                    $('#divcode').hide();
-                    $('#divtree').hide();
-                    $('#divenum').hide();
-                    $('#divfile').hide();
-                    $('#divcurval').show();
-                    $('#divautocur').hide();
-                    $('#divstring').hide();
-                    $('#divdate').hide();
-                    $('#divperson').hide();
-                    $('.noragcalc').show();
-                } else if (val == "autocur") {
-                    $('#divcode').hide();
-                    $('#divtree').hide();
-                    $('#divenum').hide();
-                    $('#divfile').hide();
-                    $('#divcurval').hide();
-                    $('#divautocur').show();
-                    $('#divstring').hide();
-                    $('#divdate').hide();
-                    $('#divperson').hide();
-                    $('.noragcalc').show();
-                } else if (val == "string") {
-                    $('#divcode').hide();
-                    $('#divtree').hide();
-                    $('#divenum').hide();
-                    $('#divfile').hide();
-                    $('#divcurval').hide();
-                    $('#divautocur').hide();
-                    $('#divstring').show();
-                    $('#divdate').hide();
-                    $('#divperson').hide();
-                    $('.noragcalc').show();
-                } else if (val == "person") {
-                    $('#divcode').hide();
-                    $('#divtree').hide();
-                    $('#divenum').hide();
-                    $('#divfile').hide();
-                    $('#divcurval').hide();
-                    $('#divautocur').hide();
-                    $('#divstring').show();
-                    $('#divdate').hide();
-                    $('#divperson').hide();
-                    $('.noragcalc').show();
-                } else if (val == "date" || val == "daterange") {
-                    $('#divcode').hide();
-                    $('#divtree').hide();
-                    $('#divenum').hide();
-                    $('#divfile').hide();
-                    $('#divcurval').hide();
-                    $('#divautocur').hide();
-                    $('#divstring').hide();
-                    $('#divdate').show();
-                    $('#divperson').hide();
-                    $('.noragcalc').show();
-                } else {
-                    $('#divenum').hide();
-                    $('#divtree').hide();
-                    $('#divcode').hide();
-                    $('#divfile').hide();
-                    $('#divcurval').hide();
-                    $('#divautocur').hide();
-                    $('#divstring').hide();
-                    $('#divdate').hide();
-                    $('#divperson').hide();
-                    $('.noragcalc').show();
-                }
-            });
-        }); 
+        </tbody>
+    </table>
+    <button type="submit" id="submit_saceorder" name="saveposition" value="submit" class="btn btn-primary">Save order</button>
+    </form>
 [% END %]
-[% END %]';
-</script>
 
+[% BLOCK javascript %]
+    <script type="text/javascript">
+        var jscode='[% FILTER remove('\n+') %]
+            [% FILTER replace('\'', '\\\'') %]
 
+            $(document).on("click", ".cloneme", function() {
+                var parent = $(this).parents('.permission_row');
+                var cloned = parent.clone(true);
+                cloned.removeAttr('id').insertAfter(parent);
+                cloned.find(".datepicker").datepicker({format: "[% config.dateformat_datepicker %]", autoclose: true});
+            });
+            $('.removeme').click(function() {
+                var parent = $(this).parents('.permission_row');
+                if (parent.siblings(".permission_row").length > 0) {
+                    parent.remove();
+                }
+            });
+
+            function demo_delete() {
+                var ref = $('#jstree_demo_div').jstree(true),
+                    sel = ref.get_selected();
+                if(!sel.length) { return false; }
+                ref.delete_node(sel);
+            };
+            function demo_create() {
+                var ref = $('#jstree_demo_div').jstree(true),
+                    sel = ref.get_selected();
+                if(sel.length) {
+                    sel = sel[0];
+                } else {
+                    sel = '#';
+                }
+                sel = ref.create_node(sel, {"type":"file"});
+                if(sel) {
+                    ref.edit(sel);
+                }
+            };
+            function demo_rename() {
+                var ref = $('#jstree_demo_div').jstree(true),
+                    sel = ref.get_selected();
+                if(!sel.length) { return false; }
+                sel = sel[0];
+                ref.edit(sel);
+            };
+                $('#selectall').click(function() {
+                    if ($('.check_perm:checked').length == 7) {
+                        $('.check_perm').prop('checked', false);
+                    } else {
+                        $('.check_perm').prop('checked', true);
+                    }
+                });
+            $(document).ready(function () {
+                $('.sortable').sortable({
+                    handle: ".drag"
+                });
+                $('#display_condition').click(function () {
+                    $("#display_condition_div").toggle(400);
+                });
+                $('#jstree_demo_div').jstree({
+                    "core" : {
+                        "check_callback" : true,
+                        "force_text" : true,
+                        "themes" : { "stripes" : true },
+                        'data' : {
+                            'url' : function (node) {
+                                return '/tree' + new Date().getTime() + '/[% column.id %]?' ;
+                            },
+                            'data' : function (node) {
+                                return { 'id' : node.id };
+                            }
+                        }
+                    },
+                });
+                $('div#legs').on('click','.closeme', function(){
+                    var count = $(".request-row").length;
+                    if (count < 2) return;
+                    $(this).parents('.request-row').remove();
+                });
+                $('div#legs').on('click','.add', function(){
+                    $(this).closest('#legs').find('.sortable').append('
+                        <div class="request-row">
+                            <p>
+                                [%# XXX hacky formatting - to be fixed %]
+                                <input type="hidden" name="enumval_id">
+                                <input type="text" class="form-control" style="width:80%; display:inline" name="enumval">
+                                <button type="button" class="close closeme" style="float:none">&times;</button>
+                                <span class="fa fa-hand-paper-o fa-lg use-icon-font close drag" style="float:none"></span>
+                            </p>
+                        </div>
+                    ' );
+                    $('.sortable').sortable('refresh');
+                });
+                $('#refers_to_instance_id').change(function(){
+                    var divid = '#instance_fields_' + $(this).val();
+                    $('.instance_fields').hide();
+                    $(divid).show();
+                });
+                $('#related_field_id').change(function(){
+                    var divid = $(this).find(':selected').data('instance_id');
+                    $('.autocur_instance').hide();
+                    $('#autocur_instance_' + divid).show();
+                });
+
+                [% FOREACH instance_layout IN instance_layouts %]
+                    [% PROCESS builder.tt builder_id = instance_layout.instance_id builder_layout = instance_layout filter_normal = column.filter filter_base64 = column.filter.base64 %]
+                [% END %]
+                [% IF column.filter.as_json AND NOT column.filter.as_json.match('^[{}\s]*$') %]
+                    var data = base64.decode('[% column.filter.base64 %]');
+                    $('#builder[% column.refers_to_instance_id %]').queryBuilder('setRules',
+                        JSON.parse(data)
+                    );
+                [% END %]
+
+                $('#submit_save').click(function() {
+                    var current_builder = "#builder" + $('#refers_to_instance_id').val();
+                    if( $('#jstree_demo_div').length && $('#jstree_demo_div').is(":visible") ) {
+                        var v =$("#jstree_demo_div").jstree(true).get_json('#', { 'flat': false });
+                        var mytext = JSON.stringify(v);
+                        $.ajax({
+                            async: false,
+                            type: "POST",
+                            url: "/tree/[% column.id %]",
+                            data: {'data': mytext }
+                        }).done(function( data ) {
+                            alert( "Tree has been updated" );
+                        });
+                        return true;
+                    } else if ($(current_builder).is(":visible")) {
+                        UpdateFilter($(current_builder));
+                    }
+                    return true;
+                });
+
+                $('#type').on('change', function () {
+                    var $mf = $('#manage-fields');
+                    var current_type = $mf.data('column-type');
+                    var new_type = $(this).val();
+                    $mf.removeClass('column-type-' + current_type);
+                    $mf.addClass('column-type-' + new_type);
+                    $mf.data('column-type', new_type);
+                });
+            });
+    [% END %]
+    [% END %]';
+    </script>
+[% END %]
+
+<form method="post">
+[% IF column.id %]
+    <input type="hidden" name="id" value="[% column.id %]">
+[% END %]
+
+    <section id="manage-fields" data-column-type="[% column.id ? column.type : 'string' %]" class="row column-type-[% column.id ? column.type : 'string' %]">
+        [%
+            IF column.defined;
+                PROCESS edit_field;
+            ELSE;
+                PROCESS list_fields;
+            END;
+
+        %]
+    </section>
+
+[% IF column.defined %]
+    <div class="row controls">
+        <div class="col-md-12">
+            <button type="submit" id="submit_save" name="submit" value="submit" class="btn btn-primary">[% IF column.id %]Save[% ELSE %]Save[% END %]</button>
+        [% IF column.id %]
+            <a href="/layout/" class="btn btn-default">Cancel</a>
+            <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
+        [% END %]
+        </div>
+    </div>
+[% END %]
+</form>
+
+[%
+    PROCESS layout_modals;
+    PROCESS javascript;
+%]

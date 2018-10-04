@@ -1,0 +1,6 @@
+There is currently one handlebars template, which is the template for a
+timeline item.
+
+Update the template using:
+
+  handlebars handlebars/timelineitem.handlebars -f public/js/handlebars-timeline-item-template.js

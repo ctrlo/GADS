@@ -52,7 +52,8 @@ sub _build_all
 
 sub group
 {   my ($self, $id) = @_;
-    grep { $_->id == $id } @{$self->all};
+    my ($group) = grep { $_->id == $id } @{$self->all};
+    $group;
 }
 
 sub purge

@@ -40,6 +40,8 @@ foreach my $value ('', '0')
     );
     my $written = $records->single;
     is($written->fields->{$string1->id}->as_string, $value, "value '$value' correctly written for string");
+    is($_, $value, "value '$value' correctly written for string")
+        foreach @{$written->fields->{$string1->id}->html_form};
     if ($value eq '0') {
         ok(!$written->fields->{$string1->id}->blank, "value '0' is not blank for string after write");
         ok(!$written->fields->{$integer1->id}->blank, "value '0' is not blank for integer after write");
@@ -49,6 +51,8 @@ foreach my $value ('', '0')
         ok($written->fields->{$integer1->id}->blank, "value '' is blank for integer after write");
     }
     is($written->fields->{$integer1->id}->as_string, $value, "value '$value' correctly written for integer");
+    is($_, $value, "value '$value' correctly written for string")
+        foreach @{$written->fields->{$integer1->id}->html_form};
 
     # Check filters
     foreach my $col_id ($string1->id, $integer1->id)

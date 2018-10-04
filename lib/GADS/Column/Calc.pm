@@ -67,6 +67,10 @@ has unique_key => (
     default => 'calcval_ux_record_layout',
 );
 
+has '+can_multivalue' => (
+    default => 1,
+);
+
 # Used to provide a blank template for row insertion
 # (to blank existing values)
 has '+blank_row' => (
@@ -96,6 +100,7 @@ has '+return_type' => (
         my $self = shift;
         $self->_rset_code && $self->_rset_code->return_format || 'string';
     },
+    trigger => sub { shift->clear_value_field },
 );
 
 has decimal_places => (
@@ -172,9 +177,19 @@ sub validate
 }
 
 before import_hash => sub {
-    my ($self, $values) = @_;
+    my ($self, $values, %options) = @_;
+    my $report = $options{report_only} && $self->id;
+    notice __x"Update: code has been changed"
+        if $report && $self->code ne $values->{code};
     $self->code($values->{code});
+    notice __x"Update: return_type from {old} to {new}", old => $self->return_type, new => $values->{return_type}
+        if $report && $self->return_type ne $values->{return_type};
     $self->return_type($values->{return_type});
+    notice __x"Update: decimal_places from {old} to {new}", old => $self->decimal_places, new => $values->{decimal_places}
+        if $report && $self->return_type eq 'numeric' && (
+            (defined $self->decimal_places xor defined $values->{decimal_places})
+            || (defined $self->decimal_places && defined $values->{decimal_places} && $self->decimal_places != $values->{decimal_places})
+        );
     $self->decimal_places($values->{decimal_places});
 };
 
@@ -188,5 +203,272 @@ around export_hash => sub {
     return $hash;
 };
 
-1;
+# This list of regexes is copied directly from the plotly source code
+my @regexes = qw/
+    afghan
+    \\b\\wland
+    albania
+    algeria
+    ^(?=.*americ).*samoa
+    andorra
+    angola
+    anguill?a
+    antarctica
+    antigua
+    argentin
+    armenia
+    ^(?!.*bonaire).*\\baruba
+    australia
+    ^(?!.*hungary).*austria|\\baustri.*\\bemp
+    azerbaijan
+    bahamas
+    bahrain
+    bangladesh|^(?=.*east).*paki?stan
+    barbados
+    belarus|byelo
+    ^(?!.*luxem).*belgium
+    belize|^(?=.*british).*honduras
+    benin|dahome
+    bermuda
+    bhutan
+    bolivia
+    ^(?=.*bonaire).*eustatius|^(?=.*carib).*netherlands|\\bbes.?islands
+    herzegovina|bosnia
+    botswana|bechuana
+    bouvet
+    brazil
+    british.?indian.?ocean
+    brunei
+    bulgaria
+    burkina|\\bfaso|upper.?volta
+    burundi
+    verde
+    cambodia|kampuchea|khmer
+    cameroon
+    canada
+    cayman
+    \\bcentral.african.republic
+    \\bchad
+    \\bchile
+    ^(?!.*\\bmac)(?!.*\\bhong)(?!.*\\btai)(?!.*\\brep).*china|^(?=.*peo)(?=.*rep).*china
+    christmas
+    \\bcocos|keeling
+    colombia
+    comoro
+    ^(?!.*\\bdem)(?!.*\\bd[\\.]?r)(?!.*kinshasa)(?!.*zaire)(?!.*belg)(?!.*l.opoldville)(?!.*free).*\\bcongo
+    \\bcook
+    costa.?rica
+    ivoire|ivory
+    croatia
+    \\bcuba
+    ^(?!.*bonaire).*\\bcura(c|ç)ao
+    cyprus
+    czechoslovakia
+    ^(?=.*rep).*czech|czechia|bohemia
+    \\bdem.*congo|congo.*\\bdem|congo.*\\bd[\\.]?r|\\bd[\\.]?r.*congo|belgian.?congo|congo.?free.?state|kinshasa|zaire|l.opoldville|drc|droc|rdc
+    denmark
+    djibouti
+    dominica(?!n)
+    dominican.rep
+    ecuador
+    egypt
+    el.?salvador
+    guine.*eq|eq.*guine|^(?=.*span).*guinea
+    eritrea
+    estonia
+    ethiopia|abyssinia
+    falkland|malvinas
+    faroe|faeroe
+    fiji
+    finland
+    ^(?!.*\\bdep)(?!.*martinique).*france|french.?republic|\\bgaul
+    ^(?=.*french).*guiana
+    french.?polynesia|tahiti
+    french.?southern
+    gabon
+    gambia
+    ^(?!.*south).*georgia
+    german.?democratic.?republic|democratic.?republic.*germany|east.germany
+    ^(?!.*east).*germany|^(?=.*\\bfed.*\\brep).*german
+    ghana|gold.?coast
+    gibraltar
+    greece|hellenic|hellas
+    greenland
+    grenada
+    guadeloupe
+    \\bguam
+    guatemala
+    guernsey
+    ^(?!.*eq)(?!.*span)(?!.*bissau)(?!.*portu)(?!.*new).*guinea
+    bissau|^(?=.*portu).*guinea
+    guyana|british.?guiana
+    haiti
+    heard.*mcdonald
+    holy.?see|vatican|papal.?st
+    ^(?!.*brit).*honduras
+    hong.?kong
+    ^(?!.*austr).*hungary
+    iceland
+    india(?!.*ocea)
+    indonesia
+    \\biran|persia
+    \\biraq|mesopotamia
+    (^ireland)|(^republic.*ireland)
+    ^(?=.*isle).*\\bman
+    israel
+    italy
+    jamaica
+    japan
+    jersey
+    jordan
+    kazak
+    kenya|british.?east.?africa|east.?africa.?prot
+    kiribati
+    ^(?=.*democrat|people|north|d.*p.*.r).*\\bkorea|dprk|korea.*(d.*p.*r)
+    kuwait
+    kyrgyz|kirghiz
+    \\blaos?\\b
+    latvia
+    lebanon
+    lesotho|basuto
+    liberia
+    libya
+    liechtenstein
+    lithuania
+    ^(?!.*belg).*luxem
+    maca(o|u)
+    madagascar|malagasy
+    malawi|nyasa
+    malaysia
+    maldive
+    \\bmali\\b
+    \\bmalta
+    marshall
+    martinique
+    mauritania
+    mauritius
+    \\bmayotte
+    \\bmexic
+    fed.*micronesia|micronesia.*fed
+    monaco
+    mongolia
+    ^(?!.*serbia).*montenegro
+    montserrat
+    morocco|\\bmaroc
+    mozambique
+    myanmar|burma
+    namibia
+    nauru
+    nepal
+    ^(?!.*\\bant)(?!.*\\bcarib).*netherlands
+    ^(?=.*\\bant).*(nether|dutch)
+    new.?caledonia
+    new.?zealand
+    nicaragua
+    \\bniger(?!ia)
+    nigeria
+    niue
+    norfolk
+    mariana
+    norway
+    \\boman|trucial
+    ^(?!.*east).*paki?stan
+    palau
+    palestin|\\bgaza|west.?bank
+    panama
+    papua|new.?guinea
+    paraguay
+    peru
+    philippines
+    pitcairn
+    poland
+    portugal
+    puerto.?rico
+    qatar
+    ^(?!.*d.*p.*r)(?!.*democrat)(?!.*people)(?!.*north).*\\bkorea(?!.*d.*p.*r)
+    moldov|b(a|e)ssarabia
+    r(e|é)union
+    r(o|u|ou)mania
+    \\brussia|soviet.?union|u\\.?s\\.?s\\.?r|socialist.?republics
+    rwanda
+    barth(e|é)lemy
+    helena
+    kitts|\\bnevis
+    \\blucia
+    ^(?=.*collectivity).*martin|^(?=.*france).*martin(?!ique)|^(?=.*french).*martin(?!ique)
+    miquelon
+    vincent
+    ^(?!.*amer).*samoa
+    san.?marino
+    \\bs(a|ã)o.?tom(e|é)
+    \\bsa\\w*.?arabia
+    senegal
+    ^(?!.*monte).*serbia
+    seychell
+    sierra
+    singapore
+    ^(?!.*martin)(?!.*saba).*maarten
+    ^(?!.*cze).*slovak
+    slovenia
+    solomon
+    somali
+    south.africa|s\\\\..?africa
+    south.?georgia|sandwich
+    \\bs\\w*.?sudan
+    spain
+    sri.?lanka|ceylon
+    ^(?!.*\\bs(?!u)).*sudan
+    surinam|dutch.?guiana
+    svalbard
+    swaziland
+    sweden
+    switz|swiss
+    syria
+    taiwan|taipei|formosa|^(?!.*peo)(?=.*rep).*china
+    tajik
+    thailand|\\bsiam
+    macedonia|fyrom
+    ^(?=.*leste).*timor|^(?=.*east).*timor
+    togo
+    tokelau
+    tonga
+    trinidad|tobago
+    tunisia
+    turkey
+    turkmen
+    turks
+    tuvalu
+    uganda
+    ukrain
+    emirates|^u\\.?a\\.?e\\.?$|united.?arab.?em
+    united.?kingdom|britain|^u\\.?k\\.?$
+    tanzania
+    united.?states\\b(?!.*islands)|\\bu\\.?s\\.?a\\.?\\b|^\\s*u\\.?s\\.?\\b(?!.*islands)
+    minor.?outlying.?is
+    uruguay
+    uzbek
+    vanuatu|new.?hebrides
+    venezuela
+    ^(?!.*republic).*viet.?nam|^(?=.*socialist).*viet.?nam
+    ^(?=.*\\bu\\.?\\s?k).*virgin|^(?=.*brit).*virgin|^(?=.*kingdom).*virgin
+    ^(?=.*\\bu\\.?\\s?s).*virgin|^(?=.*states).*virgin
+    futuna|wallis
+    western.sahara
+    ^(?!.*arab)(?!.*north)(?!.*sana)(?!.*peo)(?!.*dem)(?!.*south)(?!.*aden)(?!.*\\bp\\.?d\\.?r).*yemen
+    ^(?=.*peo).*yemen|^(?!.*rep)(?=.*dem).*yemen|^(?=.*south).*yemen|^(?=.*aden).*yemen|^(?=.*\\bp\\.?d\\.?r).*yemen
+    yugoslavia
+    zambia|northern.?rhodesia
+    zanzibar
+    zimbabwe|^(?!.*northern).*rhodesia'
+/;
 
+sub check_country
+{   my ($self, $country) = @_;
+    foreach (@regexes)
+    {
+        return 1 if $country =~ qr/$_/i;
+    }
+    return 0;
+}
+
+1;

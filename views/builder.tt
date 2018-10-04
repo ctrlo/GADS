@@ -1,6 +1,6 @@
 $('#builder[% builder_id %]').queryBuilder({
     filters: [
-        [% FOR col IN layout.columns_for_filter %]
+        [% FOR col IN builder_layout.columns_for_filter %]
             {
                 id: '[% col.filter_id %]',
                 label: '[% col.filter_name | html_entity %]',

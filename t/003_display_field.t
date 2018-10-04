@@ -132,6 +132,90 @@ $record->find_current_id(1);
 
     is($record->fields->{$tree1->id}->as_string, 'tree3', 'Tree value is correct');
     is($record->fields->{$integer1->id}->as_string, '400', 'Updated integer value with full tree path is correct');
+
+    # Same but reversed - int should not be written
+    $record->fields->{$tree1->id}->set_value(5);
+    $record->fields->{$integer1->id}->set_value('500');
+    $record->write(no_alerts => 1);
+
+    $record->clear;
+    $record->find_current_id(1);
+
+    is($record->fields->{$tree1->id}->as_string, 'tree2', 'Tree value is correct');
+    is($record->fields->{$integer1->id}->as_string, '', 'Updated integer value with full tree path is correct');
+
+    # Same, but test higher level of full tree path
+    $integer1->display_regex('tree2#');
+    $integer1->write;
+    $layout->clear;
+    # Set matching value of tree - int should be written
+    $record->fields->{$tree1->id}->set_value(6);
+    $record->fields->{$integer1->id}->set_value('600');
+    $record->write(no_alerts => 1);
+
+    $record->clear;
+    $record->find_current_id(1);
+
+    is($record->fields->{$tree1->id}->as_string, 'tree3', 'Tree value is correct');
+    is($record->fields->{$integer1->id}->as_string, '600', 'Updated integer value with full tree path is correct');
+}
+
+# Tests for dependent_not_shown
+{
+    $integer1->display_field($string1->id);
+    $integer1->display_regex('Foobar');
+    $integer1->write;
+    $layout->clear;
+
+    my $record = GADS::Record->new(
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->initialise;
+    $record->fields->{$string1->id}->set_value('Foobar');
+    $record->fields->{$integer1->id}->set_value('100');
+    $record->write(no_alerts => 1);
+
+    my $current_id = $record->current_id;
+    $record->clear;
+    $record->find_current_id($current_id);
+    ok(!$record->fields->{$string1->id}->dependent_not_shown, "String shown in view");
+    ok(!$record->fields->{$integer1->id}->dependent_not_shown, "Integer shown in view");
+
+    $record->fields->{$string1->id}->set_value('Foo');
+    $record->fields->{$integer1->id}->set_value('200');
+    $record->write(no_alerts => 1);
+    ok(!$record->fields->{$string1->id}->dependent_not_shown, "String still shown in view");
+    ok($record->fields->{$integer1->id}->dependent_not_shown, "Integer not shown in view");
+
+    $record->fields->{$string1->id}->set_value('Foobarbar');
+    $record->fields->{$integer1->id}->set_value('200');
+    $record->write(no_alerts => 1);
+    ok(!$record->fields->{$string1->id}->dependent_not_shown, "String still shown in view");
+    ok($record->fields->{$integer1->id}->dependent_not_shown, "Integer not shown in view");
+
+    # Although dependent_not_shown is not used in table view, it is still
+    # generated as part of the presentation layer
+    my $records = GADS::Records->new(
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
+        columns => [$integer1->id],
+    );
+    while (my $rec = $records->single)
+    {
+        # Will always be shown as the column it depends on is not in the view
+        ok(!$rec->fields->{$integer1->id}->dependent_not_shown, "Integer not shown in view");
+    }
+}
+
+# Tests for recursive display fields
+{
+    $string1->display_field($string1->id);
+    $string1->display_regex('Foobar');
+    try { $string1->write };
+    like($@, qr/not be the same/, "Unable to write display field same as field itself");
 }
 
 done_testing();

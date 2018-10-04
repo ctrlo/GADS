@@ -51,6 +51,11 @@ has '+can_multivalue' => (
 
 sub _build_sprefix { 'value' };
 
+sub _build_retrieve_fields
+{   my $self = shift;
+    [qw/id value/];
+}
+
 has end_node_only => (
     is      => 'rw',
     isa     => Bool,
@@ -111,7 +116,7 @@ sub _build__enumvals_index
     \%enumvals;
 }
 
-sub _build_join
+sub tjoin
 {   my $self = shift;
     +{$self->field => 'value'};
 }
@@ -148,6 +153,7 @@ sub write_special
     $rset->update({
         end_node_only => $self->end_node_only,
     });
+    return ();
 };
 
 sub cleanup
@@ -416,7 +422,7 @@ sub _update
     $parent = undef if $parent eq '#'; # Hash is top of tree (no parent)
 
     my $dbt;
-    if ($t->{id} =~ /^[0-9]+$/)
+    if ($t->{id} && $t->{id} =~ /^[0-9]+$/)
     {
         # existing entry
         $dbt = $self->_enumvals_index->{$t->{id}};
@@ -472,13 +478,93 @@ sub resultset_for_values
     }
 }
 
+sub _import_branch
+{   my ($self, $old_in, $new_in, $report) = @_;
+    my @old = sort { $a->{text} cmp $b->{text} } @$old_in;
+    my @new = sort { $a->{text} cmp $b->{text} } @$new_in;
+    my @to_write;
+    while (@old)
+    {
+        my $old = shift @old;
+        my $new = shift @new;
+        # If it's the same, easy, onto the next one
+        if ($old->{text} eq $new->{text})
+        {
+            notice __x"No change for tree value {value}", value => $old->{text}
+                if $report;
+            $new->{id} = $old->{id};
+            push @to_write, $new;
+        }
+        # Different. Is the next one the same?
+        elsif ($old[0] && $new[0] && $old[0]->{text} eq $new[0]->{text})
+        {
+            # Yes, assume the previous is a value change
+            notice __x"Changing tree value {old} to {new}", old => $old->{text}, new => $new->{text}
+                if $report;
+            $new->{id} = $old->{id};
+            push @to_write, $new;
+        }
+        # Is the next new one the same as the current old one?
+        elsif ($new[0] && $old->{text} eq $new[0]->{text})
+        {
+            # Yes, assume new value
+            notice __x"Adding tree value {new}", new => $new->{text}
+                if $report;
+            delete $new->{id};
+            push @to_write, $new;
+            # Add old one back onto stack for processing next loop
+            unshift @old, $old;
+        }
+        else {
+            # Different, don't know what to do, require manual intervention
+            if ($report)
+            {
+                notice __x"Error: don't know how to handle tree updates, manual intervention required."
+                    ." (failed at old {old} new {new})", old => $old->{text}, new => $new->{text};
+                return;
+            }
+            else {
+                error __x"Error: don't know how to handle tree updates, manual intervention required";
+            }
+        }
+        if ($new->{children} && @{$new->{children}})
+        {
+            $new->{children} = [$self->_import_branch($old->{children}, $new->{children}, $report)];
+        }
+    }
+    # Add any remaining new ones
+    delete $_->{id} foreach @new;
+    push @to_write, @new;
+    return @to_write;
+}
+
 sub import_after_write
-{   my ($self, $values) = @_;
-    $self->update($values->{tree});
+{   my ($self, $values, %options) = @_;
+    my $report = $options{report_only};
+    my @new = @{$values->{tree}};
+
+    my @to_write;
+    # Same as enumval: We have no unqiue identifier with which to match, so we
+    # have to compare the new and the old lists to try and work out what's
+    # changed. Simple changes are handled automatically, more complicated ones
+    # will require manual intervention
+    if (my @old = @{$self->json})
+    {
+        @to_write = $self->_import_branch(\@old, \@new, $report);
+    }
+    else {
+        delete $_->{id} foreach @new;
+        @to_write = @new;
+    }
+
+    $self->update(\@to_write);
 }
 
 before import_hash => sub {
-    my ($self, $values) = @_;
+    my ($self, $values, %options) = @_;
+    my $report = $options{report_only} && $self->id;
+    notice __x"Update: end_node_only from {old} to {new}", old => $self->end_node_only, new => $values->{end_node_only}
+        if $report && $self->end_node_only != $values->{end_node_only};
     $self->end_node_only($values->{end_node_only});
 };
 

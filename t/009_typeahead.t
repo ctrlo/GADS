@@ -41,6 +41,15 @@ is ("@values", "foo1", "Typeahead returned correct values");
 is (scalar @values, 3, "Typeahead returns all results for blank string");
 
 $column = $columns->{curval1};
+$column->value_selector('typeahead');
+$column->write;
+
+# A curval typeahead often has many thousands of values. It should therefore
+# not return any values if calling the values function (e.g. in the edit page)
+# otherwise it may hang for a long time
+is (@{$column->all_values}, 0, "Curval typeahead returns no values without search");
+is (@{$column->filtered_values}, 0, "Curval typeahead returns no filtered values without search");
+
 @values = $column->values_beginning_with('bar');
 is (scalar @values, 1, "Typeahead returned correct number of results");
 my ($value) = @values;
@@ -61,6 +70,7 @@ $column->filter(GADS::Filter->new(
             operator => 'equal',
         }],
     },
+    layout => $layout,
 ));
 $column->write;
 @values = $column->values_beginning_with('50');
@@ -77,6 +87,7 @@ $column->filter(GADS::Filter->new(
             operator => 'equal', # String1 field in main sheet
         }],
     },
+    layout => $layout,
 ));
 $column->write;
 @values = $column->values_beginning_with('50');

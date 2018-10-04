@@ -1,43 +1,91 @@
-<h2>Tables</h2>
-[% IF instance %]
+<h2>[% IF layout_edit.instance_id %]Manage this table[% ELSE %]Add a table[% END %]</h2>
 <form role="form" method="post">
     <div class="row">
-        <div class="col-md-6">
-            [% IF instance.id %]
-                <input type="hidden" name="id" value="[% instance.id %]">
+        <div class="col-md-12">
+            [% IF layout_edit.id %]
+                <input type="hidden" name="id" value="[% layout_edit.instance_id %]">
             [% END %]
             <div class="form-group">
-                <label for="name">Name:</label>
-                <input type="text" name="name" class="form-control" value="[% instance.name | html_entity %]">
+                <label for="name">Name of table:</label>
+                <input type="text" name="name" class="form-control" value="[% layout_edit.name | html_entity %]">
+            </div>
+            <div class="form-group">
+                <label for="name_short">Short name of table (optional):</label>
+                <input type="text" name="name_short" class="form-control" value="[% layout_edit.name_short | html_entity %]">
+            </div>
+            <div class="form-group">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Group name</th>
+                            <th>Delete records</th>
+                            <th>Purge deleted records</th>
+                            <th>Download records</th>
+                            <th>Manage fields</th>
+                            <th>Send messages</th>
+                            <th>Create and edit views</th>
+                            <th>Create and edit group views</th>
+                            <th>Create and edit child records</th>
+                            <th>Bulk update records</th>
+                            <th>Create and manage linked records</th>
+                            <th>Select extra view limits</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        [% FOREACH group IN groups %]
+                            <tr>
+                                <td>
+                                    [% group.name %]
+                                </td>
+                                <td>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_delete" [% IF layout_edit.group_has(group.id, 'delete') %]checked[% END %]>
+                                </td>
+                                <td>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_purge" [% IF layout_edit.group_has(group.id, 'purge') %]checked[% END %]>
+                                </td>
+                                <td>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_download" [% IF layout_edit.group_has(group.id, 'download') %]checked[% END %]>
+                                </td>
+                                <td>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_layout" [% IF layout_edit.group_has(group.id, 'layout') %]checked[% END %]>
+                                </td>
+                                <td>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_message" [% IF layout_edit.group_has(group.id, 'message') %]checked[% END %]>
+                                </td>
+                                <td>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_view_create" [% IF layout_edit.group_has(group.id, 'view_create') %]checked[% END %]>
+                                </td>
+                                <td>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_view_group" [% IF layout_edit.group_has(group.id, 'view_group') %]checked[% END %]>
+                                </td>
+                                <td>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_create_child" [% IF layout_edit.group_has(group.id, 'create_child') %]checked[% END %]>
+                                </td>
+                                <td>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_bulk_update" [% IF layout_edit.group_has(group.id, 'bulk_update') %]checked[% END %]>
+                                </td>
+                                <td>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_link" [% IF layout_edit.group_has(group.id, 'link') %]checked[% END %]>
+                                </td>
+                                <td>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_view_limit_extra" [% IF layout_edit.group_has(group.id, 'view_limit_extra') %]checked[% END %]>
+                                </td>
+                            </tr>
+                        [% END %]
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
+    [% IF layout_edit.instance_id %]
+        <p>To delete a table you need to first delete all the fields in it. To delete the fields go to <a href="/layout/">Manage fields</a>.</p>
+    [% END %]
     <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">Save</button>
-    [% IF instance.id %]
+    [% IF layout_edit.instance_id %]
         <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
     [% END %]
 </form>
 <p></p>
-[% ELSE %]
-    <p>Use this page to create, delete and edit tables. Think of a table as a sheet
-    within a spreadsheet.
-    </p>
-    <p>
-        <a href="/table/0" class="btn btn-default" role="button">Create new table</a>
-    </p>
-    <table class="table table-striped">
-        <tr>
-            <th></th>
-            <th>Name</th>
-        </tr>
-        [% FOREACH instance IN instances %]
-            <tr>
-                <td><a href="/table/[% instance.id %]">Edit</a></td>
-                <td>[% instance.name | html_entity %]</td>
-            </tr>
-        [% END %]
-    </table>
-[% END %]
 
 <!-- Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

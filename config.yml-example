@@ -38,6 +38,7 @@ gads:
   login_instance: 1 # The config values used for login page
   default_instance: 1 # The default instance on login, if more than one
   url: https://example.com/ # Used for URLs in overnight email alerts
+  # legacy_menu: 0
   # aup_accept: I accept these terms # Use to change default accept button
   message_prefix: >
     This email has been generated and sent from Linkspace. Replies
@@ -83,6 +84,7 @@ plugins:
     realms:
       dbic:
         provider: DBIC
+        user_as_object: 1
         users_source: user
         roles_source: permission
         user_roles_source: user_permission

@@ -38,6 +38,14 @@ has force_regex => (
     lazy    => 1,
 );
 
+has '+can_multivalue' => (
+    default => 1,
+);
+
+has '+has_multivalue_plus' => (
+    default => 1,
+);
+
 after 'build_values' => sub {
     my ($self, $original) = @_;
     $self->string_storage(1);
@@ -61,6 +69,8 @@ sub write_special
         textbox     => $self->textbox,
         force_regex => $self->force_regex,
     });
+
+    return ();
 };
 
 sub cleanup
@@ -69,8 +79,13 @@ sub cleanup
 }
 
 before import_hash => sub {
-    my ($self, $values) = @_;
+    my ($self, $values, %options) = @_;
+    my $report = $options{report_only} && $self->id;
+    notice __x"Update: textbox from {old} to {new}", old => $self->textbox, new => $values->{textbox}
+        if $report && $self->textbox != $values->{textbox};
     $self->textbox($values->{textbox});
+    notice __x"Update: force_regex from {old} to {new}", old => $self->force_regex, new => $values->{force_regex}
+        if $report && ($self->force_regex || '') ne ($values->{force_regex} || '');
     $self->force_regex($values->{force_regex});
 };
 
