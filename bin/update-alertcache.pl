@@ -41,42 +41,42 @@ GADS::Email->instance(
     config => config,
 );
 
-my $instances = GADS::Instances->new(schema => schema);
-
-foreach my $instance (@{$instances->all})
+foreach my $site (schema->resultset('Site')->all)
 {
-    my $layout = GADS::Layout->new(
-        user        => undef,
-        instance_id => $instance->id,
-        schema      => schema,
-        config      => config,
+    schema->site_id($site->id);
+
+    my $instances = GADS::Instances->new(
+        schema                   => schema,
+        user                     => undef,
         user_permission_override => 1,
     );
 
-    my $views      = GADS::Views->new(
-        user        => undef,
-        schema      => schema,
-        layout      => $layout,
-        instance_id => $instance->id,
-    );
-
-    foreach my $view (@{$views->all})
+    foreach my $layout (@{$instances->all})
     {
-        if ($view->has_alerts)
-        {
-            my $alert = GADS::Alert->new(
-                user      => undef,
-                layout    => $layout,
-                schema    => schema,
-                view_id   => $view->id,
-            );
-            $alert->update_cache(all_users => 1);
-        }
-        else {
-            schema->resultset('AlertCache')->search({
-                view_id => $view->id,
-            })->delete;
-        }
+	my $views      = GADS::Views->new(
+	    user        => undef,
+	    schema      => schema,
+	    layout      => $layout,
+	    instance_id => $layout->instance_id,
+	);
+
+	foreach my $view (@{$views->all})
+	{
+	    if ($view->has_alerts)
+	    {
+		my $alert = GADS::Alert->new(
+		    user      => undef,
+		    layout    => $layout,
+		    schema    => schema,
+		    view_id   => $view->id,
+		);
+		$alert->update_cache(all_users => 1);
+	    }
+	    else {
+		schema->resultset('AlertCache')->search({
+		    view_id => $view->id,
+		})->delete;
+	    }
+	}
     }
 }
-
