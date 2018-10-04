@@ -297,14 +297,6 @@ sub _build_data
 
     # Add on any extra required columns for labelling etc
     my @extra;
-    if ($self->is_group)
-    {
-        push @extra, map {
-            +{ col => $_, id => $_->id, group => 1 }
-        } grep {
-            $_->return_type eq "globe"
-        } @{$self->_columns};
-    }
 
     push @extra, { col => $self->group_col, parent => $self->group_col_parent, operator => $self->group_col_operator, group => !$self->group_col->numeric }
         if ($self->group_col);
@@ -331,6 +323,12 @@ sub _build_data
     else {
         push @extra, map { +{ col => $_ } } $records->layout->all(user_can_read => 1);
     }
+
+    if ($self->is_group)
+    {
+        $_->{group} = 1 foreach grep { $_->{col}->return_type eq 'globe' } @extra;
+    }
+
     $self->records->columns([map {
         +{
             id        => $_->{col}->id,

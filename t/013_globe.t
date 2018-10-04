@@ -50,6 +50,9 @@ my $simple_data = [
     like($items->{text}->[1], qr/foo3/, "France has correct enum value");
 }
 
+# Run with and without a view that doesn't contain a globe field (should be
+# added automatically)
+foreach my $withview (0..1)
 {
     my @countries = qw(Albania Algeria Andorra Angola Australia
         Bahamas Bahrain Barbados Bermuda Bolivia);
@@ -82,6 +85,19 @@ my $simple_data = [
         layout => $layout,
         schema => $schema,
     };
+    if ($withview)
+    {
+        my $view = GADS::View->new(
+            name        => 'Test view',
+            columns     => [$columns->{string1}->id],
+            instance_id => $layout->instance_id,
+            layout      => $layout,
+            schema      => $schema,
+            user        => $sheet->user,
+        );
+        $view->write;
+        $records_options->{view} = $view;
+    }
 
     foreach my $test (qw/group label color color_count group_numeric/)
     {
