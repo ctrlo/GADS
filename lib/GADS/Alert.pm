@@ -209,7 +209,7 @@ sub update_cache
     }
 
     # Now delete any alerts that should not be there that are applicable to our update
-    if ($view->has_curuser && !$options{all_users})
+    if ($view->has_curuser)
     {
         # Possibly just changed to curuser, cleanup any
         # undef user rows from previous alert
@@ -217,28 +217,21 @@ sub update_cache
             view_id => $view->id,
             user_id => undef,
         })->delete;
+        # Cleanup any user_id alerts for users that no longer have this alert
+        if ($options{all_users})
+        {
+            $self->schema->resultset('AlertCache')->search({
+                view_id => $view->id,
+                user_id => [ '-and', [map { +{ '!=' => $_->id } } @users] ],
+            })->delete;
+        }
     }
     else {
-        # Cleanup any user_id alerts for users that no longer have this alert
+        # Cleanup specific user_id alerts for (now) non-curuser alert
         $self->schema->resultset('AlertCache')->search({
             view_id => $view->id,
-            user_id => [ '-and', [map { +{ '!=' => $_->id } } @users] ],
+            user_id => { '!=' => undef },
         })->delete;
-        if ($view->has_curuser)
-        {
-            # Cleanup null user_id alerts for curuser alert
-            $self->schema->resultset('AlertCache')->search({
-                view_id => $view->id,
-                user_id => undef,
-            })->delete;
-        }
-        else {
-            # Cleanup specific user_id alerts for (now) non-curuser alert
-            $self->schema->resultset('AlertCache')->search({
-                view_id => $view->id,
-                user_id => { '!=' => undef },
-            })->delete;
-        }
     }
 
     $guard->commit;
