@@ -103,10 +103,6 @@ var SelectWidget = function (multi) {
 
     var $selectWidget = this;
     var $widget = this.find('.form-control');
-    if ($widget.hasClass("hasSelectWidget")) {
-        return;
-    }
-
     var isSingle = this.hasClass('single');
     var $container = $('main');
     var $trigger = $widget.find('[aria-expanded]');
@@ -134,6 +130,7 @@ var SelectWidget = function (multi) {
             var $item = $(this);
             var itemId = $item.data('list-item');
             var $associated = $('#' + itemId);
+            $associated.unbind('change');
             $associated.on('change', function (e) {
                 e.stopPropagation();
                 if ($(this).prop('checked')) {
@@ -152,17 +149,20 @@ var SelectWidget = function (multi) {
             var itemId = $item.data('list-item');
             var $associated = $('#' + itemId);
 
+            $associated.unbind('click');
             $associated.on('click', function(e){
                 e.stopPropagation();
             });
 
-            $associated.parent().keypress(function(e) {
+            $associated.parent().unbind('keypress');
+            $associated.parent().on('keypress', function(e) {
                 // KeyCode Spacebar
                 if(e.keyCode === 32) {
                     $(this).trigger('click');
                 }
             })
 
+            $associated.parent().unbind('click');
             $associated.parent().on('click', function(e){
                 e.stopPropagation();
                 $currentItems.each(function () {
@@ -353,7 +353,10 @@ var SelectWidget = function (multi) {
 
     connect();
 
+    $widget.unbind('click');
     $widget.on('click', onTriggerClick($widget, $trigger, $target));
+
+    $availableItems.unbind('blur');
     $availableItems.on('blur', function(e) {
         if (!$available.find(e.relatedTarget).length && e.relatedTarget) {
             $widget.trigger('click');
@@ -380,6 +383,7 @@ var SelectWidget = function (multi) {
         }
     });
 
+    $search.unbind('keyup');
     $search.on('keyup', function() {
       var searchValue = $(this).val().toLowerCase();
 
@@ -400,13 +404,13 @@ var SelectWidget = function (multi) {
       }
     });
 
+    $clearSearch.unbind('click');
     $clearSearch.on('click', function() {
         $search.val('');
         $answers.removeAttr('hidden');
         $clearSearch.attr('hidden', '');
     });
 
-    $widget.addClass("hasSelectWidget");
     $widget.prop('tabIndex', -1);
 };
 
