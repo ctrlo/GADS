@@ -80,7 +80,7 @@
         <![endif]-->
     </head>
 
-    <body class="page [% page %]" data-page="[% page %]">
+    <body class="page [% page %]" data-page="[% page %]" style="font-size:15px">
         <header role="banner" class="container">
         [% IF header AND NOT page_as_mech %]
             <p class="text-center">[% header %]</p>
