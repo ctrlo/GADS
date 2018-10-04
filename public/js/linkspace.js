@@ -326,6 +326,7 @@ var SelectWidget = function (multi) {
                 // its label. When the input is hidden on the click event of the label
                 // the input isn't actually being selected.
                 setTimeout(function() {
+                    document.activeElement.blur();
                     $target.attr('hidden', '');
                     $search.val('');
                     $answers.removeAttr('hidden');
