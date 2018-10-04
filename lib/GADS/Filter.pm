@@ -52,6 +52,10 @@ has as_json => (
         # Need to compare as structures, as stringified JSON could be in different orders
         $self->_set_changed(1) if $self->has_value && !Compare($self->as_hash, decode_json_utf8($new));
         $self->clear_as_hash;
+        # Force the hash to build with the new value, which will effectively
+        # allow it to hold the old value, if we make any further changse (which
+        # is then used to see if a change as happened)
+        $self->as_hash;
         $self->_clear_lazy;
         $self->_set_has_value(1);
     },
@@ -72,6 +76,10 @@ has as_hash => (
         my ($self, $new) = @_;
         $self->_set_changed(1) if $self->has_value && !Compare(decode_json_utf8($self->as_json), $new);
         $self->clear_as_json;
+        # Force the JSON to build with the new value, which will effectively
+        # allow it to hold the old value, if we make any further changse (which
+        # is then used to see if a change as happened)
+        $self->as_json;
         $self->_clear_lazy;
         $self->_set_has_value(1);
     },

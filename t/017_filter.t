@@ -76,4 +76,9 @@ $filter->as_json; # Cause build of default
 $filter->as_hash($as_hash2);
 ok( $filter->changed, "Filter has changed after update after new" );
 
+# Check creation of filter and then immediate change
+$filter = GADS::Filter->new(as_json => $as_json);
+$filter->as_json($as_json2);
+ok($filter->changed, "New filter has changed");
+
 done_testing();

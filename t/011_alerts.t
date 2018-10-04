@@ -681,6 +681,44 @@ $view->filter->as_hash({
 $view->write;
 is( $schema->resultset('AlertCache')->count, 5, "Correct number of alerts after view updated" );
 
+# Instantiate view from scratch, check that change in filter changes alerts
+# First as hash
+$view = GADS::View->new(
+    id          => $view->id,
+    instance_id => 1,
+    layout      => $layout,
+    schema      => $schema,
+    user        => $sheet->user,
+);
+$view->filter->as_hash({
+    rules     => [{
+        id       => $columns->{string1}->id,
+        type     => 'string',
+        value    => 'Bar',
+        operator => 'equal',
+    }],
+});
+$view->write;
+is( $schema->resultset('AlertCache')->count, 2, "Correct number of alerts after view updated (from hash)" );
+# Then as JSON
+$view = GADS::View->new(
+    id          => $view->id,
+    instance_id => 1,
+    layout      => $layout,
+    schema      => $schema,
+    user        => $sheet->user,
+);
+$view->filter->as_json(encode_json({
+    rules     => [{
+        id       => $columns->{string1}->id,
+        type     => 'string',
+        value    => 'Foo',
+        operator => 'equal',
+    }],
+}));
+$view->write;
+is( $schema->resultset('AlertCache')->count, 5, "Correct number of alerts after view updated (from json)" );
+
 # Do some tests on CURUSER alerts. One for filter on person field, other on string
 foreach my $curuser_type (qw/person string/)
 {
