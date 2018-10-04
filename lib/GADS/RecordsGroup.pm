@@ -195,7 +195,7 @@ sub _build_results
                     $select = $f_rs->get_column((ref $column->tjoin eq 'HASH' ? 'value_2' :  $column->field).".".$column->value_field)->sum_rs->as_query;
                 }
                 else {
-                    $select = $f_rs->get_column((ref $column->tjoin eq 'HASH' ? 'value_2' :  $column->field).".".$column->value_field)->as_query;
+                    $select = $f_rs->get_column((ref $column->tjoin eq 'HASH' ? 'value_2' :  $column->field).".".$column->value_field)->max_rs->as_query;
                 }
             }
             # Otherwise a standard subquery select for that type of field
@@ -234,7 +234,7 @@ sub _build_results
                     $select = $select->sum_rs->as_query;
                 }
                 else {
-                    $select = $select->as_query;
+                    $select = $select->max_rs->as_query;
                 }
             }
         }
