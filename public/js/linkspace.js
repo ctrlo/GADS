@@ -321,10 +321,16 @@ var SelectWidget = function (multi) {
                 $target.toggleClass('available--top', expandAtTop);
                 $target.removeAttr('hidden');
             } else {
-                $target.attr('hidden', '');
-                $search.val('');
-                $answers.removeAttr('hidden');
-                $clearSearch.attr('hidden', '');
+                // Add a small delay when hiding the select widget, to allow IE to also
+                // fire the default actions when selecting a radio button by clicking on
+                // its label. When the input is hidden on the click event of the label
+                // the input isn't actually being selected.
+                setTimeout(function() {
+                    $target.attr('hidden', '');
+                    $search.val('');
+                    $answers.removeAttr('hidden');
+                    $clearSearch.attr('hidden', '');
+                }, 50);
             }
         }
     };
