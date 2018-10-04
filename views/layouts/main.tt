@@ -75,21 +75,21 @@
 
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
-        <script src="[% scheme %]://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="[% scheme %]://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <script type='text/javascript' src='[% url.js %]/html5shiv.js'></script>
+        <script type='text/javascript' src='[% url.js %]/respond.min.js'></script>
         <![endif]-->
     </head>
 
-    <body class="page [% page %]" data-page="[% page %]">
+    <body class="page [% page %]" data-page="[% page %]" style="font-size:15px">
         <header role="banner" class="container">
         [% IF header AND NOT page_as_mech %]
             <p class="text-center">[% header %]</p>
         [% END %]
 
-        [% 
+        [%
             UNLESS page == "login" OR page == "invalidsite" OR page_as_mech;
                 PROCESS snippets/navigation.tt;
-            END 
+            END
         %]
 
         [% IF messages.size %]
@@ -111,7 +111,7 @@
             [% END %]
         </header>
 
-        [% 
+        [%
             full_width_pages = {
                 data => 1
             }

@@ -151,7 +151,19 @@ var SelectWidget = function (multi) {
             var $item = $(item);
             var itemId = $item.data('list-item');
             var $associated = $('#' + itemId);
-            $associated.on('change', function (e) {
+
+            $associated.on('click', function(e){
+                e.stopPropagation();
+            });
+
+            $associated.parent().keypress(function(e) {
+                // KeyCode Spacebar
+                if(e.keyCode === 32) {
+                    $(this).trigger('click');
+                }
+            })
+
+            $associated.parent().on('click', function(e){
                 e.stopPropagation();
                 $currentItems.each(function () {
                     $(this).attr('hidden', '');
@@ -161,11 +173,8 @@ var SelectWidget = function (multi) {
                 $item.removeAttr('hidden');
 
                 $widget.trigger('change');
+                onTriggerClick($widget, $trigger, $target)();
             });
-        });
-
-        $availableItems.on('click', function () {
-            onTriggerClick($widget, $trigger, $target)();
         });
     };
 
@@ -312,10 +321,16 @@ var SelectWidget = function (multi) {
                 $target.toggleClass('available--top', expandAtTop);
                 $target.removeAttr('hidden');
             } else {
-                $target.attr('hidden', '');
-                $search.val('');
-                $answers.removeAttr('hidden');
-                $clearSearch.attr('hidden', '');
+                // Add a small delay when hiding the select widget, to allow IE to also
+                // fire the default actions when selecting a radio button by clicking on
+                // its label. When the input is hidden on the click event of the label
+                // the input isn't actually being selected.
+                setTimeout(function() {
+                    $target.attr('hidden', '');
+                    $search.val('');
+                    $answers.removeAttr('hidden');
+                    $clearSearch.attr('hidden', '');
+                }, 50);
             }
         }
     };
@@ -339,7 +354,6 @@ var SelectWidget = function (multi) {
     connect();
 
     $widget.on('click', onTriggerClick($widget, $trigger, $target));
-
     $availableItems.on('blur', function(e) {
         if (!$available.find(e.relatedTarget).length && e.relatedTarget) {
             $widget.trigger('click');
