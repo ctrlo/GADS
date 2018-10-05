@@ -794,6 +794,14 @@ var setupRecordPopup = function(context) {
     });
 }
 
+var setupAccessibility = function(context) {
+    $("a[role=button]", context).on('keypress', function(e) {
+        if (e.keyCode === 32) { // SPACE
+            this.click();
+        }
+    });
+}
+
 var Linkspace = {
     constants: {
         ARROW_LEFT: 37,
@@ -809,6 +817,7 @@ var Linkspace = {
         setupSubmitListener(context);
         setFirstInputFocus(context);
         setupRecordPopup(context);
+        setupAccessibility(context);
     },
 
     debug: function (msg) {
