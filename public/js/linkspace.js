@@ -800,6 +800,21 @@ var setupAccessibility = function(context) {
             this.click();
         }
     });
+
+    var $navbar = $(".navbar-fixed-bottom", context);
+    if ($navbar.length) {
+        $(".edit-form .form-group", context).on('focusin', function(e) {
+            var $el = $(e.target);
+            var elTop = $el.offset().top;
+            var elBottom = elTop + $el.outerHeight();
+            var navbarTop = $navbar.offset().top;
+            if (elBottom > navbarTop) {
+                $('html, body').animate({
+                    scrollTop: $(window).scrollTop() + elBottom - navbarTop + 20
+                }, 300);
+            }
+        });
+    }
 }
 
 var Linkspace = {
