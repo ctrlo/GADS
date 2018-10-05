@@ -141,6 +141,30 @@ var SelectWidget = function (multi) {
                 }
                 update();
             });
+
+            $associated.unbind('keydown');
+            $associated.on('keydown', function(e) {
+                var key = e.which || e.keyCode;
+                switch (key) {
+                    case 38: // UP
+                    case 40: // DOWN
+                        var nextItem;
+
+                        e.preventDefault();
+
+                        if (key === 38) {
+                            nextItem = $associated.closest(".answer")[0].previousElementSibling;
+                        } else {
+                            nextItem = $associated.closest(".answer")[0].nextElementSibling;
+                        }
+
+                        if (nextItem) {
+                            $(nextItem).find("input").focus();
+                        }
+
+                        break;
+                };
+            });
         };
     };
 
