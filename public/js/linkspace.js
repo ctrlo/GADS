@@ -109,6 +109,7 @@ var SelectWidget = function (multi) {
     var $current = this.find('.current');
     var $available = this.find('.available');
     var $availableItems = this.find('.available .answer input');
+    var $moreInfoButtons = this.find('.available .answer .more-info');
     var $target  = this.find('#' + $trigger.attr('aria-controls'));
     var $currentItems = $current.children();
     var $answers = this.find('.answer');
@@ -139,6 +140,30 @@ var SelectWidget = function (multi) {
                     $item.attr('hidden', '');
                 }
                 update();
+            });
+
+            $associated.unbind('keydown');
+            $associated.on('keydown', function(e) {
+                var key = e.which || e.keyCode;
+                switch (key) {
+                    case 38: // UP
+                    case 40: // DOWN
+                        var nextItem;
+
+                        e.preventDefault();
+
+                        if (key === 38) {
+                            nextItem = $associated.closest(".answer")[0].previousElementSibling;
+                        } else {
+                            nextItem = $associated.closest(".answer")[0].nextElementSibling;
+                        }
+
+                        if (nextItem) {
+                            $(nextItem).find("input").focus();
+                        }
+
+                        break;
+                };
             });
         };
     };
@@ -196,7 +221,7 @@ var SelectWidget = function (multi) {
         var classNames = value ? "answer" : "answer answer--blank";
 
         var detailsButton = '<span class="details">' +
-            '<button type="button" class="more-info" data-record-id="' + value + '" aria-describedby="' + valueId + '_label">' +
+            '<button type="button" class="more-info" data-record-id="' + value + '" aria-describedby="' + valueId + '_label" aria-haspopup="listbox">' +
                 'Details' +
             '</button>' +
         '</span>';
@@ -205,7 +230,7 @@ var SelectWidget = function (multi) {
             '<span class="control">' +
                 '<label id="' + valueId + '_label" for="' + valueId + '">' +
                     '<input id="' + valueId + '" type="' + (multi ? "checkbox" : "radio") + '" name="' + field + '" ' + (checked ? 'checked' : '') + ' value="' + value + '" class="' + (multi ? "" : "visually-hidden") + '">' +
-                    '<span>' + label + '</span>' +
+                    '<span role="option">' + label + '</span>' +
                 '</label>' +
             '</span>' +
             (value ? detailsButton : '') +
@@ -320,6 +345,7 @@ var SelectWidget = function (multi) {
                 var expandAtTop = fitsAbove && !fitsBelow;
                 $target.toggleClass('available--top', expandAtTop);
                 $target.removeAttr('hidden');
+                $target.find("input:checked").focus();
             } else {
                 // Add a small delay when hiding the select widget, to allow IE to also
                 // fire the default actions when selecting a radio button by clicking on
@@ -357,12 +383,17 @@ var SelectWidget = function (multi) {
     $widget.unbind('click');
     $widget.on('click', onTriggerClick($widget, $trigger, $target));
 
-    $availableItems.unbind('blur');
-    $availableItems.on('blur', function(e) {
+    function possibleCloseWidget(e) {
         if (!$available.find(e.relatedTarget).length && e.relatedTarget) {
             $widget.trigger('click');
         }
-    });
+    }
+
+    $availableItems.unbind('blur');
+    $availableItems.on('blur', possibleCloseWidget);
+
+    $moreInfoButtons.unbind('blur');
+    $moreInfoButtons.on('blur', possibleCloseWidget);
 
     $(document).on('click', function(e) {
         var clickedOutside = !this.is(e.target) && this.has(e.target).length === 0;
@@ -763,6 +794,29 @@ var setupRecordPopup = function(context) {
     });
 }
 
+var setupAccessibility = function(context) {
+    $("a[role=button]", context).on('keypress', function(e) {
+        if (e.keyCode === 32) { // SPACE
+            this.click();
+        }
+    });
+
+    var $navbar = $(".navbar-fixed-bottom", context);
+    if ($navbar.length) {
+        $(".edit-form .form-group", context).on('focusin', function(e) {
+            var $el = $(e.target);
+            var elTop = $el.offset().top;
+            var elBottom = elTop + $el.outerHeight();
+            var navbarTop = $navbar.offset().top;
+            if (elBottom > navbarTop) {
+                $('html, body').animate({
+                    scrollTop: $(window).scrollTop() + elBottom - navbarTop + 20
+                }, 300);
+            }
+        });
+    }
+}
+
 var Linkspace = {
     constants: {
         ARROW_LEFT: 37,
@@ -778,6 +832,7 @@ var Linkspace = {
         setupSubmitListener(context);
         setFirstInputFocus(context);
         setupRecordPopup(context);
+        setupAccessibility(context);
     },
 
     debug: function (msg) {

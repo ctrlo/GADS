@@ -164,7 +164,7 @@
                         </button>
                     [% END %]
                 [% END %]
-                <a href="/data" class="btn btn-default">Cancel</a>
+                <a href="/data" class="btn btn-default" role="button">Cancel</a>
             </div>
         </div>
     [% END %]
@@ -877,7 +877,7 @@
         <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="select-widget-dropdown">
             <div class="form-group form-control" [% readonly %] >
-                <ul class="current">
+                <ul id="[% field %]_value" class="current">
                     [% checked = !editvalue.id %]
                     [% value_id = field _ '__blank' %]
                     <li [% !checked && 'hidden' %] data-list-item="[% value_id %]" class="current__blank">blank</li>
@@ -889,14 +889,14 @@
                 [% END %]
                 </ul>
                 [% IF !readonly %]
-                    <button type="button" aria-controls="[% field %]_available_values"
-                            aria-expanded="false" aria-describedby="[% field %]_label">
+                    <button type="button" aria-controls="[% field %]_available_values" aria-haspopup="listbox"
+                            aria-expanded="false" aria-describedby="[% field %]_label [% field %]_value">
                         <span class="expanded glyphicon glyphicon-chevron-up" aria-label="Confirm"></span>
                         <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
                     </button>
                 [% END %]
             </div>
-            <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values">
+            <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values" role="listbox" aria-labelledby="[% field %]_label">
                 [% IF values.size >= 10 %]
                     <li class="search">
                         <input type="search" class="form-control-search">
@@ -912,7 +912,7 @@
                         [% value_id = field _ '__blank' %]
                         <label id="blank_label" for="[% value_id %]">
                             <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="" class="visually-hidden">
-                            <span>blank</span>
+                            <span role="option">blank</span>
                         </label>
                     </span>
                 </li>
@@ -924,7 +924,7 @@
                     <span class="control">
                         <label id="[% value_id %]_label" for="[% value_id %]">
                             <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="[% value.id %]" class="visually-hidden">
-                            <span>[% value.value | html_entity %]</span>
+                            <span role="option">[% value.value | html_entity %]</span>
                         </label>
                     </span>
                     [% IF details %]
@@ -1010,7 +1010,7 @@
         <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="select-widget-dropdown">
             <div class="form-group form-control" [% readonly %]>
-                <ul class="current">
+                <ul id="[% field %]_value" class="current">
                     <li class="none-selected">blank</li>
                 [% FOREACH value IN values %]
                     [% NEXT IF value.deleted %]
@@ -1027,7 +1027,7 @@
                     </button>
                 [% END %]
             </div>
-            <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values">
+            <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values" aria-labelledby="[% field %]_label">
                 [% IF values.size >= 10 %]
                     <li class="search">
                         <input type="search" class="form-control-search">
@@ -1045,7 +1045,7 @@
                     <span class="control">
                         <label id="[% value_id %]_label" for="[% value_id %]">
                             <input id="[% value_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %] value="[% value.id %]">
-                            <span>[% value.value | html_entity %]</span>
+                            <span role="option">[% value.value | html_entity %]</span>
                         </label>
                     </span>
                     [% IF details %]
