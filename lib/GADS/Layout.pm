@@ -464,6 +464,9 @@ sub write
 
 sub delete
 {   my $self = shift;
+    $self->schema->resultset('InstanceGroup')->search({
+        instance_id => $self->instance_id,
+    })->delete;
     $self->_rset->delete;
 }
 
