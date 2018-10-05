@@ -164,7 +164,7 @@
                         </button>
                     [% END %]
                 [% END %]
-                <a href="/data" class="btn btn-default">Cancel</a>
+                <a href="/data" class="btn btn-default" role="button">Cancel</a>
             </div>
         </div>
     [% END %]
