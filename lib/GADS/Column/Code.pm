@@ -192,7 +192,7 @@ sub update_cached
     while (my $record = $records->single)
     {
         my $datum = $record->fields->{$self->id};
-        $datum->re_evaluate;
+        $datum->re_evaluate(no_errors => 1);
         $datum->write_value;
         push @changed, $record->current_id if $datum->changed;
     }

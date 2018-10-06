@@ -142,6 +142,22 @@ my @tests = (
         after          => '201.4',
     },
     {
+        name        => 'error return failed',
+        type        => 'Calc',
+        code        => "function evaluate (L1daterange1) \n return 'Unable to submit' \nend",
+        return_type => 'error',
+        is_error    => 'Unable to submit',
+    },
+    {
+        name        => 'error return success',
+        type        => 'Calc',
+        code        => "function evaluate (L1daterange1) \n return '' \nend",
+        return_type => 'error',
+        is_error    => '', # No error
+        before      => '',
+        after       => '',
+    },
+    {
         name   => 'use date from another calc field',
         type   => 'Calc',
         code   => qq(function evaluate (L1calc1) \n return L1calc1.year \nend),
@@ -329,6 +345,18 @@ foreach my $test (@tests)
     $record_new->fields->{$columns->{tree1}->id}->set_value(10);
     $record_new->fields->{$columns->{integer1}->id}->set_value(10);
     try { $record_new->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
+    if (defined $test->{is_error})
+    {
+        if ($test->{is_error})
+        {
+            like($@, qr/Unable to submit/, "Failed to write record with error return type");
+            $code_col->delete;
+            next;
+        }
+        else {
+            ok(!$@, "Successfully wrote record without error $@");
+        }
+    }
     my $cid = $record_new->current_id;
     $record_new->clear;
     $record_new->find_current_id($cid);

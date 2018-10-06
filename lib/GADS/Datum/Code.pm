@@ -130,7 +130,8 @@ sub write_cache
 }
 
 sub re_evaluate
-{   my $self = shift;
+{   my ($self, %options) = @_;
+    return if $options{no_errors} && $self->column->return_type eq 'error';
     my $old = $self->value;
     $self->clear_init_value;
     $self->clear_value;

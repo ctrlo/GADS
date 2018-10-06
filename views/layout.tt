@@ -364,6 +364,7 @@
                 <option value="integer" [% IF column.return_type == "integer" %]selected[% END %]>Integer</option>
                 <option value="numeric" [% IF column.return_type == "numeric" %]selected[% END %]>Decimal</option>
                 <option value="globe" [% IF column.return_type == "globe" %]selected[% END %]>Globe location</option>
+                <option value="error" [% IF column.return_type == "error" %]selected[% END %]>Prevent record form submit if not empty</option>
             </select>
         </div>
         <div class="form-group">

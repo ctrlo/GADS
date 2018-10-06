@@ -92,7 +92,7 @@ has '+table' => (
 has '+return_type' => (
     isa => sub {
         return unless $_[0];
-        $_[0] =~ /(string|date|integer|numeric|globe)/
+        $_[0] =~ /(string|date|integer|numeric|globe|error)/
             or error __x"Bad return type {type}", type => $_[0];
     },
     lazy    => 1,
