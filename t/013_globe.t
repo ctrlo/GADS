@@ -51,8 +51,8 @@ my $simple_data = [
 }
 
 # Run with and without a view that doesn't contain a globe field (should be
-# added automatically)
-foreach my $withview (0..1)
+# added automatically), and also no view
+foreach my $withview (qw/none with without/)
 {
     my @countries = qw(Albania Algeria Andorra Angola Australia
         Bahamas Bahrain Barbados Bermuda Bolivia);
@@ -85,11 +85,12 @@ foreach my $withview (0..1)
         layout => $layout,
         schema => $schema,
     };
-    if ($withview)
+    if ($withview =~ /with/)
     {
+        my $cols = $withview eq 'with' ? [$columns->{calc1}->id] : [$columns->{string1}->id];
         my $view = GADS::View->new(
             name        => 'Test view',
-            columns     => [$columns->{string1}->id],
+            columns     => $cols,
             instance_id => $layout->instance_id,
             layout      => $layout,
             schema      => $schema,

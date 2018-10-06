@@ -310,13 +310,13 @@ sub _build_data
     # shown
     if (my $view_id = $records->view && $records->view->id)
     {
-        my @view_columns = $records->layout->view($view_id, user_can_read => 1);
+        my %existing = map { $_->{col}->id => 1 } @extra;
+        push @extra, map { +{ col => $_ } } grep { !$existing{$_->id} }
+            $records->layout->view($view_id, user_can_read => 1);
         my @gc = $records->layout->all(is_globe => 1, user_can_read => 1);
         my $has_globe;
         $has_globe = 1
             if grep { $_->{col}->return_type eq 'globe' } @extra;
-        $has_globe = 1
-            if grep { $_->return_type eq 'globe' } @view_columns;
         push @extra, { col => $gc[0], group => $self->is_group }
             if @gc == 1 && !$has_globe;
     }
