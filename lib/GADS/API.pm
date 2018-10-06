@@ -366,7 +366,7 @@ post '/api/token' => sub {
     return encode_json $json_response;
 };
 
-get '/api/field/values/:id' => sub {
+get '/api/field/values/:id' => require_login sub {
 
     my $user   = logged_in_user;
     my $layout = var 'layout';
