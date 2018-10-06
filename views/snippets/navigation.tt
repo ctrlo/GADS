@@ -52,8 +52,8 @@
 [% END %]
 
 [% BLOCK dataset_menu %]
-    <div class="col-md-3 navbar navbar-default" id="dataset-navbar">
-        <div class="heading" id="app-navbar-heading">Data</div>
+    <div class="col-md-3 navbar navbar-default" id="dataset-navbar" aria-labelledby="dataset-navbar-heading">
+        <div class="heading" id="dataset-navbar-heading">Data</div>
         <ul class="nav navbar-nav">
             [% PROCESS table_selector %]
             [% PROCESS records_menu %]
@@ -62,12 +62,12 @@
 [% END %]
 
 [% BLOCK user_menu %]
-    <div class="col-md-3 navbar navbar-default" id="user-navbar">
+    <div class="col-md-3 navbar navbar-default" id="user-navbar" aria-labelledby="user-navbar-heading">
         <ul class="nav navbar-nav">
             <li class="dropdown">
                 <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="User menu"
                     aria-expanded="false" aria-haspopup="true" aria-controls="user-menu">
-                    <h2 class="heading">Personal settings</h2>
+                    <div class="heading" id="user-navbar-heading">Personal settings</div>
                     <span>[% user.value | html_entity %]</span>
                     <span class="caret"></span>
                 </button>
