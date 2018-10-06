@@ -259,7 +259,7 @@ sub _build_items
                             }
                         }
                         else {
-                            my @vs = ref $d->value eq 'ARRAY' ? @{$d->value} : ($d->value); # Either depending on Date/Calc type
+                            my @vs = $d->column->type eq 'date' ? @{$d->values} : @{$d->value};
                             foreach my $val (@vs)
                             {
                                 $val or next;

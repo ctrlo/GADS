@@ -36,35 +36,52 @@ has schema => (
     },
 );
 
-# Set datum value with value from user
 after set_value => sub {
-    my ($self, $value, %options) = @_;
-    $self->oldvalue($self->clone);
-    ($value) = @$value if ref $value eq 'ARRAY';
-    my $newvalue = $self->_to_dt($value, source => 'user', %options);
-    my $old = $self->oldvalue && $self->oldvalue->value ? $self->oldvalue->value->epoch : 0;
-    my $new = $newvalue ? $newvalue->epoch : 0;
-    $self->changed(1) if $old != $new;
-    $self->value($newvalue);
+    my ($self, $all, %options) = @_;
+    $all ||= [];
+    $all = [$all] if ref $all ne 'ARRAY';
+    my @all = @$all; # Take a copy first
+    my $clone = $self->clone;
+    shift @all if @all % 2 == 1 && !$all[0]; # First is hidden value from form
+    my @values;
+    while (@all)
+    {
+        my @dt = $self->_to_dt(shift @all, source => 'user', %options);
+        push @values, @dt if @dt;
+    }
+    my @text_all = sort map { $self->_as_string($_) } @values;
+    my @old_texts = @{$self->text_all};
+    my $changed = "@text_all" ne "@old_texts";
+    if ($changed)
+    {
+        $self->changed(1);
+        $self->_set_values([@values]);
+        $self->_set_text_all([@text_all]);
+        $self->clear_html_form;
+        $self->clear_blank;
+    }
+    $self->oldvalue($clone);
 };
 
-has value => (
-    is      => 'rw',
+
+has values => (
+    is      => 'rwp',
+    isa     => ArrayRef,
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        my $value = $self->init_value && $self->init_value->[0];
-        my $v = $self->_to_dt($value, source => 'db');
-        $self->has_value(1) if defined $value || $self->init_no_value;
-        $v ||= DateTime->now if $self->column->default_today && !$self->record_id;
-        $v;
+        $self->init_value or return [];
+        my @values = map { $self->_to_dt($_, source => 'db') } @{$self->init_value};
+        $self->has_value(!!@values);
+        [@values];
     },
 );
 
-sub blank
+sub _build_blank
 {   my $self = shift;
-    $self->value ? 0 : 1;
-};
+    ! grep { $_ } @{$self->values};
+}
+
 
 # Can't use predicate, as value may not have been built on
 # second time it's set
@@ -75,7 +92,7 @@ has has_value => (
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
-    $orig->($self, value => $self->value, @_);
+    $orig->($self, values => $self->values, @_);
 };
 
 sub _to_dt
@@ -105,7 +122,18 @@ sub _to_dt
             # See if it's a duration and return that instead if so
             if (my $duration = DateTime::Format::DateManip->parse_duration($value))
             {
-                return $self->value ? $self->value->clone->add_duration($duration) : undef;
+                if (@{$self->values})
+                {
+                    my @return;
+                    foreach my $value (@{$self->values})
+                    {
+                        push @return, $value->clone->add_duration($duration);
+                    }
+                    return @return;
+                }
+                else {
+                    return; # Don't bork as we might be bulk updating, with some blank values
+                }
             }
             else {
                 # Will bork below
@@ -116,26 +144,49 @@ sub _to_dt
     }
 }
 
+has text_all => (
+    is      => 'rwp',
+    isa     => ArrayRef,
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        [ map { $self->_as_string($_) } @{$self->values} ];
+    },
+);
+
+sub as_integer { panic "Not implemented" }
+
+sub _as_string
+{   my ($self, $value) = @_;
+    return "" unless $value;
+    $value->format_cldr($self->column->dateformat);
+}
+
 sub as_string
 {   my $self = shift;
-    return "" unless $self->value;
-    $self->value->format_cldr($self->column->dateformat);
+    join ', ', @{$self->text_all};
 }
 
-sub as_integer
-{   my $self = shift;
-    return 0 unless $self->value;
-    $self->value->epoch;
-}
+has html_form => (
+    is      => 'lazy',
+    clearer => 1,
+);
 
-sub html_form
+sub _build_html_form
 {   my $self = shift;
-    [$self->as_string];
+    [ map { $self->_as_string($_) } @{$self->values} ];
 }
 
 sub for_code
 {   my $self = shift;
-    $self->_date_for_code($self->value);
+
+    return undef if !$self->column->multivalue && $self->blank;
+
+    my @return = map {
+        $self->_date_for_code($_)
+    } @{$self->values};
+
+    $self->column->multivalue ? \@return : $return[0];
 }
 
 1;
