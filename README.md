@@ -36,6 +36,9 @@ postgres=# CREATE DATABASE gads OWNER gads;
 # Switch to gads database
 gads=# CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
 
+# Install perl dependencies
+cpan .
+
 # Run database seeding script
 bin/seed-database.pl
 ```
