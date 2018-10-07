@@ -28,7 +28,7 @@ cp config.yml-example config.yml
 
 # Create database (MySQL)
 mysql> CREATE DATABASE gads CHARACTER SET utf8 COLLATE utf8_general_ci;
-mysql> GRANT ALL ON gads5.* TO 'gads'@'localhost' IDENTIFIED BY 'mysecret';
+mysql> GRANT ALL ON gads.* TO 'gads'@'localhost' IDENTIFIED BY 'mysecret';
 
 # Create database (PostgreSQL)
 postgres=# CREATE USER gads WITH PASSWORD 'xxx';
