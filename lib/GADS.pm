@@ -1935,8 +1935,9 @@ any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
             account_request_notes => param('account_request_notes'),
             view_limits           => [body_parameters->get_all('view_limits')],
             groups                => [body_parameters->get_all('groups')],
-            permissions           => [body_parameters->get_all('permission')],
         );
+        $values{permissions} = [body_parameters->get_all('permission')]
+            if logged_in_user->permission->{superadmin};
 
         if (!param('account_request') && $id) # Original username to update (hidden field)
         {
