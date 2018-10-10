@@ -742,10 +742,12 @@ sub update_user
 
     $self->groups($current_user, $params{groups})
         if $params{groups};
-    error __"You do not have permission to set global user permissions"
-        if !$current_user->permission->{superadmin};
-    $self->permissions(@{$params{permissions}})
-        if $params{permissions};
+    if ($params{permissions})
+    {
+        error __"You do not have permission to set global user permissions"
+            if !$current_user->permission->{superadmin};
+        $self->permissions(@{$params{permissions}});
+    }
     $self->set_view_limits($params{view_limits})
         if $params{view_limits};
 
