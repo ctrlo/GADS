@@ -3,7 +3,7 @@
 [% IF edituser.account_request %]
     <h1>New account request</h1>
 [% ELSIF page == "account/detail" %]
-    <h1>[% edituser.firstname %] [% edituser.surname %] - My details</h1>
+    <h1>[% edituser.value | html %] - My details</h1>
 [% ELSIF edituser.id %]
     <h1>Edit: [% edituser.value | html_entity %]</h1>
 [% ELSE %]
