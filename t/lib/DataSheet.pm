@@ -155,6 +155,12 @@ has user_layout => (
     builder => sub { $_[0]->user },
 );
 
+has user_useradmin => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->_users->{useradmin} },
+);
+
 has user_normal1 => (
     is      => 'lazy',
     clearer => 1,

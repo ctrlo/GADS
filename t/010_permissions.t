@@ -310,6 +310,38 @@ foreach my $test (qw/single all/)
     ok(!$alert_rs->count, "Alert cache no longer contains string1 column");
 }
 
+# Check setting of global permissions - can only be done by superadmin
+{
+    my $sheet = t::lib::DataSheet->new;
+    $sheet->create_records;
+    my $schema = $sheet->schema;
+    foreach my $usertype (qw/user user_useradmin user_normal1/) # "user" is superadmin
+    {
+        my $user;
+        try {
+            $user = $schema->resultset('User')->create_user(
+                current_user     => $sheet->$usertype,
+                username         => "$usertype\@example.com",
+                email            => "$usertype\@example.com",
+                firstname        => 'Joe',
+                surname          => 'Bloggs',
+                no_welcome_email => 1,
+                permissions      => [qw/superadmin/],
+            );
+        };
+        my $failed = $@;
+        if ($usertype eq 'user')
+        {
+            ok($user, "Superadmin user created successfully");
+            ok(!$failed, "Creating superadmin user did not bork");
+        }
+        else {
+            ok(!$user, "Superadmin user not created as $usertype");
+            like($failed, qr/do not have permission/, "Creating superadmin user borked as $usertype");
+        }
+    }
+}
+
 done_testing();
 
 sub _set_data

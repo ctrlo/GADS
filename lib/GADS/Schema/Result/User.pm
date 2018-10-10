@@ -703,7 +703,8 @@ sub update_user
 
     my $guard = $self->result_source->schema->txn_scope_guard;
 
-    my $current_user = delete $params{current_user};
+    my $current_user = delete $params{current_user}
+        or panic "Current user not defined on user update";
 
     length $params{firstname} <= 128
         or error __"Forename must be less than 128 characters";
@@ -741,6 +742,8 @@ sub update_user
 
     $self->groups($current_user, $params{groups})
         if $params{groups};
+    error __"You do not have permission to set global user permissions"
+        if !$current_user->permission->{superadmin};
     $self->permissions(@{$params{permissions}})
         if $params{permissions};
     $self->set_view_limits($params{view_limits})
