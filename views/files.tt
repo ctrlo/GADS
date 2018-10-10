@@ -16,7 +16,7 @@
                     [% FOR file IN files %]
                         <tr>
                             <td>[% file.id %]</td>
-                            <td><a href="/file/[% file.id %]">[% file.name %]</a></td>
+                            <td><a href="/file/[% file.id %]">[% file.name | html %]</a></td>
                         </tr>
                     [% END %]
                 </tbody>
