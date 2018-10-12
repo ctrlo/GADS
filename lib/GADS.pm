@@ -138,6 +138,13 @@ hook before => sub {
     }
     else {
         my $site = schema->resultset('Site')->next;
+        # Stop random host names being used to access the site. The reason for
+        # this is that the host name is inserted directly into emails (amongst
+        # other things), so a check here prevents emails being generated with
+        # hostnames that are attack websites. A nicer fix (to allow different
+        # host names) would be to use the host from the database.
+        error __x"Unknown host {host}", host => request->base->host
+            if request->base->host ne $site->host;
         trace __x"Single site, site ID is {id}", id => $site->id;
         schema->site_id($site->id);
         var 'site' => $site;
