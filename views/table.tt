@@ -35,7 +35,7 @@
                         [% FOREACH group IN groups %]
                             <tr>
                                 <td>
-                                    [% group.name %]
+                                    [% group.name | html %]
                                 </td>
                                 <td>
                                     <input type="checkbox" name="permissions" value="[% group.id %]_delete" [% IF layout_edit.group_has(group.id, 'delete') %]checked[% END %]>
