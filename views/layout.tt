@@ -83,7 +83,7 @@
                 <option value="">&lt;Not linked&gt;</option>
                 [% FOREACH instance_layout IN instance_layouts %]
                     [% FOREACH c IN instance_layout.all %]
-                        <option value="[% c.id %]" [% IF column.link_parent.id == c.id %]selected[% END %]>[% instance_layout.name %] - [% c.name %]</option>
+                        <option value="[% c.id %]" [% IF column.link_parent.id == c.id %]selected[% END %]>[% instance_layout.name | html %] - [% c.name | html %]</option>
                     [% END %]
                 [% END %]
             </select>
@@ -280,7 +280,7 @@
                             [% END %]
                             <div class="checkbox">
                                 <label>
-                                    <input type="checkbox" name="curval_field_ids" value="[% c.id %]" [% checked %]>[% c.name %]
+                                    <input type="checkbox" name="curval_field_ids" value="[% c.id %]" [% checked %]>[% c.name | html %]
                                 </label>
                             </div>
                         [% END %]
@@ -462,7 +462,7 @@
                             [% END %]
                             <div class="checkbox">
                                 <label>
-                                    <input type="checkbox" name="autocur_field_ids" value="[% c.id %]" [% checked %]>[% c.name %]
+                                    <input type="checkbox" name="autocur_field_ids" value="[% c.id %]" [% checked %]>[% c.name | html %]
                                 </label>
                             </div>
                         [% END %]
