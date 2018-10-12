@@ -4,7 +4,7 @@
         <div class="form-group">
             <input data-permission-class="[% name.replace('_','-') %]" type="checkbox" id="permission_[% name %]_[% group.id %]" 
                 name="permission_[% name %]_[% group.id %]" [% column.group_has(group.id, name) ? 'checked' : '' %]>
-            <label for="permission_[% name %]_[% group.id %]">[% label %]</label>
+            <label for="permission_[% name %]_[% group.id %]">[% label | html %]</label>
             [% nested %]
         </div>
     [% END %]
@@ -31,11 +31,11 @@
                         [% short = permission.short %]
                         [% abbr = permission_mapping.$short %]
                         [% short_class = short.replace('_','-') %]
-                        <span tabindex="0" class="abbreviation abbreviation-[% short_class %]" 
-                            role="tooltip" aria-describedby="-permission-[% short %]">
+                        <span tabindex="0" class="abbreviation abbreviation-[% short_class | html %]"
+                            role="tooltip" aria-describedby="-permission-[% short | html %]">
                             [% abbr %]
                         </span>
-                        <span id="[% group_id %]_permission_[% short %]" class="visually-hidden tooltip">[% permission.long | html %]</span>
+                        <span id="[% group_id %]_permission_[% short | html %]" class="visually-hidden tooltip">[% permission.long | html %]</span>
                         [% END %]
                     </div>
                 </div>
@@ -61,7 +61,7 @@
                     </label>
                     <select id="select-permission-group" class="form-control">
                     [% FOREACH group IN groups.all %]
-                        <option value="[% group.id %]">[% group.name %]</option>
+                        <option value="[% group.id %]">[% group.name | html %]</option>
                     [% END %]
                     </select>
                 </div>
