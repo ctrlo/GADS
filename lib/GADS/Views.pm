@@ -20,7 +20,7 @@ package GADS::Views;
 
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/ArrayRef HashRef Int Maybe/;
+use MooX::Types::MooseLike::Base qw/ArrayRef HashRef Int Maybe Bool/;
 
 # Whether the logged-in user has the layout permission
 has user_has_layout => (
@@ -36,6 +36,12 @@ sub _build_user_has_layout
 has other_user_id => (
     is  => 'ro',
     isa => Maybe[Int],
+);
+
+has user_permission_override => (
+    is      => 'rw',
+    isa     => Bool,
+    default => 0,
 );
 
 has schema => (
@@ -147,10 +153,11 @@ sub view
     my $layout = $self->layout or die "layout needs to be defined to retrieve view";
     # Try to create a view using the ID. Don't bork if it fails
     my $view = GADS::View->new(
-        id          => $view_id,
-        instance_id => $self->instance_id,
-        schema      => $self->schema,
-        layout      => $self->layout,
+        id                       => $view_id,
+        instance_id              => $self->instance_id,
+        schema                   => $self->schema,
+        layout                   => $self->layout,
+        user_permission_override => $self->user_permission_override,
     );
     $view->exists ? $view : undef;
 }

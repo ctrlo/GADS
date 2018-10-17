@@ -92,10 +92,10 @@ sub process
     my $views = GADS::Views->new(
         # Current user may not have access to all fields in view,
         # permissions are managed when sending the alerts
-        user        => undef,
-        schema      => $self->schema,
-        layout      => $self->layout,
-        instance_id => $self->layout->instance_id,
+        user_permission_override => 1,
+        schema                   => $self->schema,
+        layout                   => $self->layout,
+        instance_id              => $self->layout->instance_id,
     );
 
     my $records = GADS::Records->new(

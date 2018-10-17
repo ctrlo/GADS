@@ -51,6 +51,12 @@ has other_user_id => (
     isa => Maybe[Int],
 );
 
+has user_permission_override => (
+    is      => 'rw',
+    isa     => Bool,
+    default => 0,
+);
+
 has schema => (
     is       => 'rw',
     required => 1,
@@ -92,7 +98,7 @@ has _view => (
             && !$self->layout->user_can("layout") && $view->user_id != $user_id;
         $no_access ||= $view->global && $view->group_id
             && !$self->schema->resultset('User')->find($user_id)->has_group->{$view->group_id};
-        if ($no_access)
+        if ($no_access && !$self->user_permission_override)
         {
             error __x"User {user} does not have access to view {view}",
                 user => $self->layout->user->id, view => $self->id;

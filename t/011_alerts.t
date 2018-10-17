@@ -525,7 +525,6 @@ foreach my $filter (@filters)
         instance_id => $alert_layout->instance_id,
         layout      => $alert_layout,
         schema      => $schema,
-        user        => $sheet->user_normal1,
         columns     => $filter->{columns},
     );
     $view->write;
@@ -557,7 +556,7 @@ foreach my $filter (@filters)
 
     # First add record
     my $record = GADS::Record->new(
-        user     => $sheet->user,
+        user     => $sheet->user_normal2,
         layout   => $layout,
         schema   => $schema,
     );
