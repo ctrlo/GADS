@@ -20,6 +20,7 @@ WriteMakefile(
         'Algorithm::Dependency::Ordered'            => 0,
         'Crypt::URandom'                            => 0,
         'CtrlO::Crypt::XkcdPassword'                => 0,
+        'CtrlO::PDF'                                => 0,
         'Dancer2'                                   => 0.201,
         'Dancer2::Plugin::Auth::Extensible'         => 0.601,
         'Dancer2::Plugin::Auth::Extensible::Provider::DBIC' => 0.623,
