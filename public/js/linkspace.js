@@ -384,7 +384,7 @@ var SelectWidget = function (multi) {
     $widget.on('click', onTriggerClick($widget, $trigger, $target));
 
     function possibleCloseWidget(e) {
-        if (!$available.find(e.relatedTarget).length && e.relatedTarget) {
+        if (!$available.find(e.relatedTarget).length && e.relatedTarget && !$(e.relatedTarget).hasClass("modal")) {
             $widget.trigger('click');
         }
     }
