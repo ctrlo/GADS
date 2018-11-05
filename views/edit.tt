@@ -1067,6 +1067,12 @@
 
     values = dispcol.enumvals;
 
+    # Add any values that have since been deleted, in case the user is not editing
+    # this field (otherwise they will be blanked unexpectedly on submission
+    FOREACH v IN editvalue.deleted_values;
+        values.unshift(v);
+    END;
+
     IF dispcol.multivalue;
         PROCESS multivalue_column;
     ELSE;

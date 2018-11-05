@@ -115,13 +115,15 @@ has value_hash => (
         $self->has_init_value or return {};
         # XXX - messy to account for different initial values. Can be tidied once
         # we are no longer pre-fetching multiple records
-        my @values = map { exists $_->{record_id} ? $_->{value} : $_ } @{$self->init_value};
-        my @ids    = map { $_->{id} } @values;
-        my @texts  = map { $_->{value} || '' } @values;
+        my @values  = map { exists $_->{record_id} ? $_->{value} : $_ } @{$self->init_value};
+        my @ids     = map { $_->{id} } @values;
+        my @texts   = map { $_->{value} || '' } @values;
+        my @deleted = map { $_->{deleted} } @values;
         $self->has_id(1) if (grep { defined $_ } @ids) || $self->init_no_value;
         +{
-            ids  => \@ids,
-            text => \@texts,
+            ids     => \@ids,
+            text    => \@texts,
+            deleted => \@deleted, # Whether it is a value that has since been deleted
         };
     },
 );
@@ -141,6 +143,29 @@ sub _build_id_hash
     return $self->id ? { $self->id => 1 } : {} if !$self->column->multivalue;
     return {} if !$self->id;
     +{ map { $_ => 1 } @{$self->id} };
+}
+
+has deleted_values => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_deleted_values
+{   my $self = shift;
+    my @ids     = @{$self->value_hash->{ids}};
+    my @deleted = @{$self->value_hash->{deleted}};
+    my @text    = @{$self->value_hash->{text}};
+    my @return;
+    foreach my $id (@ids)
+    {
+        my $text = shift @text;
+        next unless shift @deleted;
+        push @return, {
+            id    => $id,
+            value => $text,
+        };
+    }
+    return \@return;
 }
 
 sub value { $_[0]->id }

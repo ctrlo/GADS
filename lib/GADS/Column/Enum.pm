@@ -127,7 +127,7 @@ after build_values => sub {
 
 sub _build_retrieve_fields
 {   my $self = shift;
-    [qw/id value/];
+    [qw/id value deleted/];
 }
 
 sub write_special
