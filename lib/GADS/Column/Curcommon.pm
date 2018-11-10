@@ -522,7 +522,7 @@ sub values_beginning_with
     {
         push @results, $self->_format_row($row, value_key => 'name');
     }
-    @results;
+    map { +{ id => $_->{id}, name => $_->{name} } } @results;
 }
 
 sub _format_row
