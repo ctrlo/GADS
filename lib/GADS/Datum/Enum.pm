@@ -112,13 +112,13 @@ has value_hash => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        $self->has_init_value or return {};
         # XXX - messy to account for different initial values. Can be tidied once
         # we are no longer pre-fetching multiple records
-        my @values  = map { exists $_->{record_id} ? $_->{value} : $_ } @{$self->init_value};
-        my @ids     = map { $_->{id} } @values;
-        my @texts   = map { $_->{value} || '' } @values;
-        my @deleted = map { $_->{deleted} } @values;
+        my @init_value = $self->has_init_value ? @{$self->init_value} : ();
+        my @values     = map { exists $_->{record_id} ? $_->{value} : $_ } @init_value;
+        my @ids        = map { $_->{id} } @values;
+        my @texts      = map { $_->{value} || '' } @values;
+        my @deleted    = map { $_->{deleted} } @values;
         $self->has_id(1) if (grep { defined $_ } @ids) || $self->init_no_value;
         +{
             ids     => \@ids,
