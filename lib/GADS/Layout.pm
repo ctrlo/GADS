@@ -135,6 +135,7 @@ has sort_layout_id => (
     is      => 'rw',
     isa     => Maybe[Int],
     lazy    => 1,
+    clearer => 1,
     builder => sub { $_[0]->_rset->sort_layout_id },
 );
 
@@ -172,6 +173,7 @@ has api_index_layout_id => (
 has sort_type => (
     is      => 'rw',
     lazy    => 1,
+    clearer => 1,
     builder => sub { $_[0]->_rset->sort_type },
 );
 
@@ -563,6 +565,8 @@ sub clear
     $self->clear_default_view_limit_extra;
     $self->clear_default_view_limit_extra_id;
     $self->clear_has_children;
+    $self->clear_sort_type;
+    $self->clear_sort_layout_id,
 }
 
 # The dump from the database of all the information needed to build the layout.

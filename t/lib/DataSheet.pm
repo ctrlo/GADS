@@ -347,7 +347,7 @@ has multivalue => (
     default => 0,
 );
 
-has _multivalue_columns => (
+has multivalue_columns => (
     is      => 'rw',
     builder => sub {
         +{
@@ -503,7 +503,7 @@ sub __build_columns
         $enum->type('enum');
         $enum->name("enum$count");
         $enum->name_short("L${instance_id}enum$count");
-        $enum->multivalue(1) if $self->multivalue && $self->_multivalue_columns->{enum};
+        $enum->multivalue(1) if $self->multivalue && $self->multivalue_columns->{enum};
         $enum->enumvals([
             {
                 value => 'foo1',
@@ -540,7 +540,7 @@ sub __build_columns
         $tree->name_short("L${instance_id}tree$count");
         $tree->set_permissions({$self->group->id => $permissions})
             unless $self->no_groups;
-        $tree->multivalue(1) if $self->multivalue && $self->_multivalue_columns->{tree};
+        $tree->multivalue(1) if $self->multivalue && $self->multivalue_columns->{tree};
         try { $tree->write };
         my $tree_id = $tree->id;
         if ($@)
@@ -670,7 +670,7 @@ sub __build_columns
             $curval->curval_field_ids($curval_field_ids);
             $curval->type('curval');
             $curval->name("curval$count");
-            $curval->multivalue(1) if $self->multivalue && $self->_multivalue_columns->{curval};
+            $curval->multivalue(1) if $self->multivalue && $self->multivalue_columns->{curval};
             $curval->set_permissions({$self->group->id => $permissions})
                 unless $self->no_groups;
             try { $curval->write };
@@ -874,7 +874,7 @@ sub set_multivalue
 {   my ($self, $value) = @_;
     foreach my $col ($self->layout->all)
     {
-        if ($self->_multivalue_columns->{$col->type})
+        if ($self->multivalue_columns->{$col->type})
         {
             $col->multivalue($value);
             $col->write;

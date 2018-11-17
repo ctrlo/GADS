@@ -458,8 +458,18 @@ has schema => (
 );
 
 has default_sort => (
-    is => 'rw',
+    is      => 'lazy',
+    clearer => 1,
 );
+
+sub _build_default_sort
+{   my $self = shift;
+    # Default sort if not set
+    +{
+        id   => $self->layout->sort_layout_id,
+        type => $self->layout->sort_type,
+    };
+}
 
 has results => (
     is        => 'lazy',
@@ -1228,6 +1238,7 @@ sub clear
     $self->_set__next_single_id(0);
     $self->_set_current_ids(undef);
     $self->_clear_all_cids_store;
+    $self->clear_default_sort;
 }
 
 # Construct various parameters used for the query. These are all

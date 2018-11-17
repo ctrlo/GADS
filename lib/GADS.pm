@@ -868,13 +868,6 @@ any '/data' => require_login sub {
         $records->page($page);
         $records->sort(session 'sort');
 
-        # Default sort if not set
-        my $sort = {
-            id   => $layout->sort_layout_id,
-            type => $layout->sort_type,
-        };
-        $records->default_sort($sort);
-
         if (defined param('sort'))
         {
             my $sort     = int param 'sort';
