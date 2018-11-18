@@ -111,10 +111,10 @@ var SelectWidget = function (multi) {
     var $availableItems = this.find('.available .answer input');
     var $moreInfoButtons = this.find('.available .answer .more-info');
     var $target  = this.find('#' + $trigger.attr('aria-controls'));
-    var $currentItems = $current.children();
+    var $currentItems = $current.find("[data-list-item]");
     var $answers = this.find('.answer');
+    var $fakeInput = null;
     var $search = this.find('.form-control-search');
-    var $clearSearch = this.find('.form-control-search__clear');
     var lastFetchParams = null;
 
 
@@ -198,7 +198,7 @@ var SelectWidget = function (multi) {
                 $item.removeAttr('hidden');
 
                 $widget.trigger('change');
-                onTriggerClick($widget, $trigger, $target)();
+                collapse($widget, $trigger, $target);
             });
         });
     };
@@ -287,20 +287,20 @@ var SelectWidget = function (multi) {
         $available.find(".spinner").removeAttr('hidden');
 
         $.getJSON(filterEndpoint + "?" + fetchParams, function(data) {
-            $current.empty();
+            $currentItems.remove();
 
             if (data.error === 0) {
                 var checked = currentValues.includes(NaN);
-                $current.append(currentLi(multi, field, null, "blank", checked));
+                $search.before(currentLi(multi, field, null, "blank", checked));
                 $available.append(availableLi(multi, field, null, 'blank', checked));
 
                 $.each(data.records, function(recordIndex, record) {
                     var checked = currentValues.includes(record.id);
-                    $current.append(currentLi(multi, field, record.id, record.label, checked));
+                    $search.before(currentLi(multi, field, record.id, record.label, checked));
                     $available.append(availableLi(multi, field, record.id, record.label, checked));
                 });
 
-                $currentItems = $current.children();
+                $currentItems = $current.find("[data-list-item]");
                 $available = $selectWidget.find('.available');
                 $availableItems = $selectWidget.find('.available .answer input');
                 updateState();
@@ -323,56 +323,53 @@ var SelectWidget = function (multi) {
         });
     }
 
-    var onTriggerClick = function ($widget, $trigger, $target) {
-        return function (event) {
-            var isCurrentlyExpanded = $trigger.attr('aria-expanded') === 'true';
-            var willExpandNext = !isCurrentlyExpanded;
+    var expand = function($widget, $trigger, $target) {
+        $selectWidget.addClass("select-widget--open");
+        $trigger.attr('aria-expanded', true);
 
-            $trigger.attr('aria-expanded', willExpandNext);
-
-            if (willExpandNext) {
-                if ($selectWidget.data("filter-endpoint") && $selectWidget.data("filter-endpoint").length) {
-                    fetchOptions();
-                }
-
-                var widgetTop = $widget.offset().top;
-                var widgetBottom = widgetTop + $widget.outerHeight();
-                var viewportTop = $(window).scrollTop();
-                var viewportBottom = viewportTop + $(window).height();
-                var minimumRequiredSpace = 200;
-                var fitsBelow = widgetBottom + minimumRequiredSpace < viewportBottom;
-                var fitsAbove = widgetTop - minimumRequiredSpace > viewportTop;
-                var expandAtTop = fitsAbove && !fitsBelow;
-                $target.toggleClass('available--top', expandAtTop);
-                $target.removeAttr('hidden');
-                $target.find("input:checked").focus();
-            } else {
-                // Add a small delay when hiding the select widget, to allow IE to also
-                // fire the default actions when selecting a radio button by clicking on
-                // its label. When the input is hidden on the click event of the label
-                // the input isn't actually being selected.
-                setTimeout(function() {
-                    document.activeElement.blur();
-                    $target.attr('hidden', '');
-                    $search.val('');
-                    $answers.removeAttr('hidden');
-                    $clearSearch.attr('hidden', '');
-                }, 50);
-            }
+        if ($selectWidget.data("filter-endpoint") && $selectWidget.data("filter-endpoint").length) {
+            fetchOptions();
         }
-    };
+
+        var widgetTop = $widget.offset().top;
+        var widgetBottom = widgetTop + $widget.outerHeight();
+        var viewportTop = $(window).scrollTop();
+        var viewportBottom = viewportTop + $(window).height();
+        var minimumRequiredSpace = 200;
+        var fitsBelow = widgetBottom + minimumRequiredSpace < viewportBottom;
+        var fitsAbove = widgetTop - minimumRequiredSpace > viewportTop;
+        var expandAtTop = fitsAbove && !fitsBelow;
+        $target.toggleClass('available--top', expandAtTop);
+        $target.removeAttr('hidden');
+
+        if ($search.get(0) !== document.activeElement) {
+            $search.focus();
+        }
+    }
+
+    var collapse = function($widget, $trigger, $target) {
+        $selectWidget.removeClass("select-widget--open");
+        $trigger.attr('aria-expanded', false);
+
+        // Add a small delay when hiding the select widget, to allow IE to also
+        // fire the default actions when selecting a radio button by clicking on
+        // its label. When the input is hidden on the click event of the label
+        // the input isn't actually being selected.
+        setTimeout(function() {
+            var focusInside = $selectWidget.is(document.activeElement) || $selectWidget.has(document.activeElement).length > 0;
+            if (focusInside) {
+                document.activeElement.blur();
+            }
+            $search.val('');
+            $target.attr('hidden', '');
+            $answers.removeAttr('hidden');
+        }, 50);
+    }
 
     var updateState = function () {
         var $visible = $current.children('[data-list-item]:not([hidden])');
 
         $current.toggleClass('empty', $visible.length === 0);
-
-        if (multi) {
-            $visible.each(function (index) {
-                $(this).toggleClass('comma-separated', index < $visible.length-1);
-            });
-        }
-
         $widget.trigger('change');
     };
 
@@ -381,11 +378,13 @@ var SelectWidget = function (multi) {
     connect();
 
     $widget.unbind('click');
-    $widget.on('click', onTriggerClick($widget, $trigger, $target));
+    $widget.on('click', function() {
+        expand($widget, $trigger, $target);
+    });
 
     function possibleCloseWidget(e) {
         if (!$available.find(e.relatedTarget).length && e.relatedTarget && !$(e.relatedTarget).hasClass("modal")) {
-            $widget.trigger('click');
+            collapse($widget, $trigger, $target);
         }
     }
 
@@ -399,51 +398,73 @@ var SelectWidget = function (multi) {
         var clickedOutside = !this.is(e.target) && this.has(e.target).length === 0;
         var clickedInDialog = $(e.target).closest(".modal").length !== 0;
         if (clickedOutside && !clickedInDialog) {
-            var isCurrentlyExpanded = $trigger.attr('aria-expanded') === 'true';
-            if (isCurrentlyExpanded) {
-                onTriggerClick($widget, $trigger, $target)();
-            }
+            collapse($widget, $trigger, $target);
         }
     }.bind(this));
 
     $(document).keyup(function(e) {
         if (e.keyCode == 27) {
-            var isCurrentlyExpanded = $trigger.attr('aria-expanded') === 'true';
-            if (isCurrentlyExpanded) {
-                onTriggerClick($widget, $trigger, $target)();
-            }
+            collapse($widget, $trigger, $target);
         }
+    });
+
+    $search.unbind('focus');
+    $search.on('focus', function(e) {
+        e.stopPropagation();
+        expand($widget, $trigger, $target);
+    });
+
+    $search.unbind('keydown');
+    $search.on('keydown', function(e) {
+        var key = e.which || e.keyCode;
+        switch (key) {
+            case 38: // UP
+            case 40: // DOWN
+                var nextItem;
+
+                e.preventDefault();
+
+                if (key === 38) {
+                    nextItem = $availableItems[$availableItems.length - 1];
+                } else {
+                    nextItem = $availableItems[0];
+                }
+
+                if (nextItem) {
+                    $(nextItem).focus();
+                }
+
+                break;
+        };
     });
 
     $search.unbind('keyup');
     $search.on('keyup', function() {
       var searchValue = $(this).val().toLowerCase();
 
+      $fakeInput = $fakeInput || $('<span>').addClass('form-control-search').css('white-space', 'nowrap');
+      $fakeInput.text(searchValue);
+      $search.css('width', $fakeInput.insertAfter($search).width() + 40);
+      $fakeInput.detach();
+
       // hide the answers that do not contain the searchvalue
+      var anyHits = false;
       $.each($answers, function() {
         var labelValue = $(this).find('label')[0].innerHTML.toLowerCase();
         if (labelValue.indexOf(searchValue) === -1) {
             $(this).attr('hidden', '');
         } else {
+            anyHits = true;
             $(this).removeAttr('hidden', '');
         }
       });
 
-      if (searchValue.length) {
-        $clearSearch.removeAttr('hidden');
+      if (anyHits) {
+        $available.find(".has-noresults").attr('hidden', '');
       } else {
-        $clearSearch.attr('hidden', '');
+        $available.find(".has-noresults").removeAttr('hidden', '');
       }
     });
-
-    $clearSearch.unbind('click');
-    $clearSearch.on('click', function() {
-        $search.val('');
-        $answers.removeAttr('hidden');
-        $clearSearch.attr('hidden', '');
-    });
-
-    $widget.prop('tabIndex', -1);
 };
 
 var setupSelectWidgets = function (context) {
