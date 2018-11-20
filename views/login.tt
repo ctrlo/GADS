@@ -82,6 +82,9 @@
                         [% PROCESS modal_close_button %]
                    </div>
                     <div class="modal-body">
+                        [% IF error %]
+                            <div class="alert alert-danger" role="alert">Error: [% error %]</div>
+                        [% END %]
                         <div class="form-group">
                             <p>Enter your email address to receive a password reset link.</p>
                             <label for="email">Email address:</label>
@@ -200,12 +203,16 @@
 
 </div>
 
-[% IF error %]
+[% IF error_modal %]
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
             $(window).load(function(){
-                $('#modalregister').modal('show');
+                [% IF error_modal == "register" %]
+                    $('#modalregister').modal('show');
+                [% ELSIF error_modal == "resetpw" %]
+                    $('#modal-reset-password').modal('show');
+                [% END %]
             });
         [% END %]
     [% END %]';

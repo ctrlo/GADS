@@ -58,6 +58,7 @@ use GADS::Records;
 use GADS::RecordsGroup;
 use GADS::Type::Permissions;
 use GADS::Users;
+use GADS::Util;
 use GADS::View;
 use GADS::Views;
 use HTML::Entities;
@@ -2734,17 +2735,34 @@ any '/login' => sub {
     # user thinking they are logged out when they are not
     return forwardHome() if $user;
 
+    my ($error, $error_modal);
+
     # Request a password reset
     if (param('resetpwd'))
     {
-        my $username = param('emailreset');
-        $audit->login_change("Password reset request for $username");
-        defined password_reset_send(username => $username)
-        ? success(__('An email has been sent to your email address with a link to reset your password'))
-        : report({is_fatal => 0}, ERROR => 'Failed to send a password reset link. Did you enter a valid email address?');
+        if (my $username = param('emailreset'))
+        {
+            if (GADS::Util->email_valid($username))
+            {
+                $audit->login_change("Password reset request for $username");
+                my $result = password_reset_send(username => $username);
+                defined $result
+                    ? success(__('An email has been sent to your email address with a link to reset your password'))
+                    : report({is_fatal => 0}, ERROR => 'Failed to send a password reset link. Did you enter a valid email address?');
+                report INFO =>  __x"Password reset requested for non-existant username {username}", username => $username
+                    if defined $result && !$result;
+            }
+            else {
+                $error = qq("$username" is not a valid email address);
+                $error_modal = 'resetpw';
+            }
+        }
+        else {
+            $error = 'Please enter an email address';
+            $error_modal = 'resetpw';
+        }
     }
 
-    my $error;
     my $users = GADS::Users->new(schema => schema, config => config);
 
     if (param 'register')
@@ -2778,6 +2796,7 @@ any '/login' => sub {
             if(my $exception = $@->wasFatal)
             {
                 $error = $exception->message->toString;
+                $error_modal = 'register';
             }
             else {
                 $audit->login_change("New user account request for $params->{email}");
@@ -2844,6 +2863,7 @@ any '/login' => sub {
 
     my $output  = template 'login' => {
         error         => "".($error||""),
+        error_modal   => $error_modal,
         username      => cookie('remember_me'),
         titles        => $users->titles,
         organisations => $users->organisations,
