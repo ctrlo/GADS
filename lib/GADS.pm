@@ -2747,7 +2747,7 @@ get '/file/:id' => require_login sub {
             # XXX At some point the generation of different layouts each
             # request needs to go, replaced with a persistent object with all
             # layouts
-            my $layout = GADS::Layout->new(
+            $layout = GADS::Layout->new(
                 user        => logged_in_user,
                 schema      => schema,
                 config      => GADS::Config->instance,
