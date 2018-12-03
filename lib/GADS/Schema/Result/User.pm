@@ -192,6 +192,12 @@ __PACKAGE__->table("user");
   datetime_undef_if_invalid: 1
   is_nullable: 1
 
+=head2 debug_login
+
+  data_type: 'smallint'
+  default_value: 0
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -273,6 +279,8 @@ __PACKAGE__->add_columns(
     datetime_undef_if_invalid => 1,
     is_nullable => 1,
   },
+  "debug_login",
+  { data_type => "smallint", default_value => 0, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY

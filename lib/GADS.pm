@@ -3168,6 +3168,10 @@ any '/login' => sub {
                     lastfail  => DateTime->now,
                 });
                 trace "Fail count for $username is now ".$user->failcount;
+                report {to => 'syslog'},
+                    INFO => __x"debug_login set - failed username \"{username}\", password: \"{password}\"",
+                    username => $user->username, password => params->{password}
+                        if $user->debug_login;
             }
             report {is_fatal=>0}, ERROR => "The username or password was not recognised";
         }
