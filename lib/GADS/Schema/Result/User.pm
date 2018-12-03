@@ -724,6 +724,8 @@ sub update_user
         or error __"Surname must be less than 128 characters";
     !defined $params{organisation} || $params{organisation} =~ /^[0-9]+$/
         or error __x"Invalid organisation {id}", id => $params{organisation};
+    GADS::Util->email_valid($params{email})
+        or error __x"The email address \"{email}\" is invalid", email => $params{email};
 
     my $values = {
         firstname             => $params{firstname},
