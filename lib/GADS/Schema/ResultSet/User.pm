@@ -3,6 +3,7 @@ package GADS::Schema::ResultSet::User;
 use strict;
 use warnings;
 
+use DateTime;
 use GADS::Audit;
 use GADS::Config;
 use GADS::Email;
@@ -44,6 +45,7 @@ sub create_user
     my $user = $self->create({
         username => $params{username},
         resetpw  => $code,
+        created  => DateTime->now,
     });
 
     my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $params{current_user});

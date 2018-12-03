@@ -193,6 +193,7 @@
             [% IF site.register_freetext1_name %]
                 <th>[% site.register_freetext1_name | html %]</th>
             [% END %]
+            <th>Created</th>
             <th>Last login</th>
         </tr>
     </thead>
@@ -212,6 +213,7 @@
                 [% IF site.register_freetext1_name %]
                     <td>[% edituser.freetext1 | html_entity %]</td>
                 [% END %]
+                <td>[% edituser.created OR "Unknown" %]</td>
                 <td>[% edituser.lastlogin OR "Never logged in" %]</td>
             </tr>
         [% END %]
