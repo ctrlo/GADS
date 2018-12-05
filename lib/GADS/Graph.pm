@@ -272,6 +272,7 @@ sub write
 
 sub import_hash
 {   my ($self, $values, %options) = @_;
+    no warnings "uninitialized";
     notice __x"Updating title from {old} to {new}", old => $self->title, new => $values->{title}
         if $options{report_only} && $self->title ne $values->{title};
     $self->title($values->{title});
@@ -282,7 +283,7 @@ sub import_hash
         if $options{report_only} && $self->y_axis != $values->{y_axis};
     $self->y_axis($values->{y_axis});
     notice __x"Updating y_axis_stack from {old} to {new}", old => $self->y_axis_stack, new => $values->{y_axis_stack}
-        if $options{report_only} && $self->y_axis_stack != $values->{y_axis_stack};
+        if $options{report_only} && $self->y_axis_stack ne $values->{y_axis_stack};
     $self->y_axis_stack($values->{y_axis_stack});
     notice __x"Updating y_axis_label from {old} to {new}", old => $self->y_axis_label, new => $values->{y_axis_label}
         if $options{report_only} && $self->y_axis_label ne $values->{y_axis_label};

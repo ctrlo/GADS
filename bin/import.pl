@@ -213,6 +213,9 @@ foreach my $ins (readdir $root)
                 if $report_only;
             report ERROR => __x"Column {name} already exists", name => $col->{name}
                 unless $merge;
+            report ERROR => __x"Existing column type does not match import for column name {name} in table {table}",
+                name => $col->{name}, table => $layout->name
+                    if $col->{type} ne $column->type;
             $highest_update = $col->{id} if !$highest_update || $col->{id} > $highest_update;
             $updated = 1;
         }

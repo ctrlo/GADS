@@ -268,7 +268,8 @@ sub json
 
     my $stash = {
         tree => {
-            text => "root"
+            text     => "root",
+            children => [],
         },
     };
     my $root = $self->_root;
@@ -524,7 +525,9 @@ sub _import_branch
                 return;
             }
             else {
-                error __x"Error: don't know how to handle tree updates, manual intervention required";
+                error __x"Error: don't know how to handle tree updates, manual intervention required"
+                    ." (failed at old {old} new {new}, column {column})", old => $old->{text}, new => $new->{text},
+                    column => $self->name;
             }
         }
         if ($new->{children} && @{$new->{children}})
