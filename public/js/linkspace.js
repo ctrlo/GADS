@@ -444,7 +444,7 @@ var SelectWidget = function (multi) {
 
       $fakeInput = $fakeInput || $('<span>').addClass('form-control-search').css('white-space', 'nowrap');
       $fakeInput.text(searchValue);
-      $search.css('width', $fakeInput.insertAfter($search).width() + 40);
+      $search.css('width', $fakeInput.insertAfter($search).width() + 70);
       $fakeInput.detach();
 
       // hide the answers that do not contain the searchvalue

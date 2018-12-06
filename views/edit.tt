@@ -890,7 +890,7 @@
                 [% END %]
                     [% IF !readonly %]
                         <li class="search">
-                            <input type="search" class="form-control-search" style="width:20px" aria-controls="[% field %]_available_values" aria-haspopup="listbox" aria-expanded="false" aria-describedby="[% field %]_label [% field %]_value">
+                            <input type="search" class="form-control-search" style="width:70px" placeholder="Search..." aria-controls="[% field %]_available_values" aria-haspopup="listbox" aria-expanded="false" aria-describedby="[% field %]_label [% field %]_value">
                         </li>
                     [% END %]
                 </ul>
@@ -1014,7 +1014,7 @@
                 [% END %]
                     [% IF !readonly %]
                         <li class="search">
-                            <input type="search" class="form-control-search" style="width:20px" aria-controls="[% field %]_available_values" aria-expanded="false" aria-describedby="[% field %]_label">
+                            <input type="search" class="form-control-search" style="width:70px"  placeholder="Search..." aria-controls="[% field %]_available_values" aria-expanded="false" aria-describedby="[% field %]_label">
                         </li>
                     [% END %]
                 </ul>

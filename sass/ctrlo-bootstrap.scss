@@ -1175,6 +1175,16 @@ small.search_term {
     }
 }
 
+.select-widget .form-control-search::-moz-placeholder {
+    font-style: italic;
+}
+.select-widget .form-control-search:-ms-input-placeholder {
+    font-style: italic;
+}
+.select-widget .form-control-search::-webkit-input-placeholder {
+    font-style: italic;
+}
+
 .select-widget .label {
   font-size: 1em;
   font-weight: bold;
