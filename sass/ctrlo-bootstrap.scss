@@ -1361,6 +1361,10 @@ small.search_term {
 
 .select-widget .available .answer [type="checkbox"] {
     margin-right: .3em;
+
+    &:focus + span {
+        border: 1px solid #336699;
+    }
 }
 
 .select-widget .available .answer .details {
