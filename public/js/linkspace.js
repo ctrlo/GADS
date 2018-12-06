@@ -165,6 +165,10 @@ var SelectWidget = function (multi) {
                         }
 
                         break;
+                    case 13:
+                        e.preventDefault();
+                        $(this).trigger('click');
+                        break;
                 };
             });
         };
@@ -183,8 +187,9 @@ var SelectWidget = function (multi) {
 
             $associated.parent().unbind('keypress');
             $associated.parent().on('keypress', function(e) {
-                // KeyCode Spacebar
-                if(e.keyCode === 32) {
+                // KeyCode Enter or Spacebar
+                if (e.keyCode === 13 || e.keyCode === 32) {
+                    e.preventDefault();
                     $(this).trigger('click');
                 }
             })
