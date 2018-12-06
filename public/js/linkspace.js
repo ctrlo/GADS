@@ -435,6 +435,16 @@ var SelectWidget = function (multi) {
                 }
 
                 break;
+            case 13: // ENTER
+                e.preventDefault();
+
+                // Select the first (visible) item
+                var firstItem = $available.find(".answer:not([hidden]) input").get(0);
+                if (firstItem) {
+                    $(firstItem).parent().trigger('click');
+                }
+
+                break;
         };
     });
 
