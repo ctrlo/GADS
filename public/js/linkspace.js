@@ -148,14 +148,16 @@ var SelectWidget = function (multi) {
                 switch (key) {
                     case 38: // UP
                     case 40: // DOWN
+                        var answers = $available.find(".answer:not([hidden])");
+                        var currentIndex = answers.index($associated.closest(".answer"));
                         var nextItem;
 
                         e.preventDefault();
 
                         if (key === 38) {
-                            nextItem = $associated.closest(".answer")[0].previousElementSibling;
+                            nextItem = answers[currentIndex - 1];
                         } else {
-                            nextItem = $associated.closest(".answer")[0].nextElementSibling;
+                            nextItem = answers[currentIndex + 1];
                         }
 
                         if (nextItem) {
@@ -420,14 +422,15 @@ var SelectWidget = function (multi) {
         switch (key) {
             case 38: // UP
             case 40: // DOWN
+                var items = $available.find(".answer:not([hidden]) input");
                 var nextItem;
 
                 e.preventDefault();
 
                 if (key === 38) {
-                    nextItem = $availableItems[$availableItems.length - 1];
+                    nextItem = items[items.length - 1];
                 } else {
-                    nextItem = $availableItems[0];
+                    nextItem = items[0];
                 }
 
                 if (nextItem) {
