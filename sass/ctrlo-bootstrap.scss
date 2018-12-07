@@ -1120,7 +1120,7 @@ small.search_term {
 /* less / more */
 
 .more-less.clipped {
-    height: 60px;
+    max-height: 60px;
     overflow: hidden;
 }
 
