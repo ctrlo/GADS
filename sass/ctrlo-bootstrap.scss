@@ -1411,6 +1411,13 @@ small.search_term {
 }
 
 .table-curcommon td {
-    padding: 5px;
+    padding: 0px 5px 0px 5px;
     vertical-align: top;
+}
+
+.table-curcommon tr {
+    border: 1px solid transparent;
+}
+.table-curcommon tr:hover {
+    outline: 2px solid $button-border-blue;
 }

@@ -1979,5 +1979,11 @@ small.search_term {
   padding-left: 1em; }
 
 .table-curcommon td {
-  padding: 5px;
+  padding: 0px 5px 0px 5px;
   vertical-align: top; }
+
+.table-curcommon tr {
+  border: 1px solid transparent; }
+
+.table-curcommon tr:hover {
+  outline: 2px solid #85bffd; }

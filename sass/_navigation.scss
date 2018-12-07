@@ -128,13 +128,13 @@ $header-needs-single-file: "screen and (max-width: 66em)";
 
 .navbar-default .navbar-nav > li > a:hover,
 .navbar-default .navbar-nav > li > a:focus {
-    outline: 2px solid #85bffd;
+    outline: 2px solid $button-border-blue;
 }
 
 .navbar-default .navbar-nav > .active > a,
 .navbar-default .navbar-nav > .active > a:hover,
 .navbar-default .navbar-nav > .active > a:focus {
-    outline: 2px solid #85bffd;
+    outline: 2px solid $button-border-blue;
 }
 
 .navbar-default .navbar-nav > .disabled > a,
@@ -166,7 +166,7 @@ nav .dropdown-toggle {
 
 nav .dropdown-toggle:focus,
 nav .dropdown-toggle:hover {
-    outline: 2px solid #85bffd;
+    outline: 2px solid $button-border-blue;
 }
 
 
