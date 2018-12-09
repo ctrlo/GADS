@@ -79,27 +79,20 @@ sub assert_error_present {
 sub _assert_error {
     my ( $self, $name, $expect_present ) = @_;
 
+    my $error_el = $self->_assert_element(
+        '.messages .alert-danger',
+        $expect_present,
+        qr/\bERROR: /,
+        $name,
+    );
+
     my $test = __PACKAGE__->builder;
+    my $error_text = $error_el->text;
+    $test->note("The error message is '${error_text}'") if $error_text;
 
-    my $selector = '.messages .alert-danger';
-    my $error_el = $self->gads->webdriver->find( $selector, dies => 0 );
+    return $self;
+}
 
-    if ( 0 == $error_el->size ) {
-        $test->ok( !$expect_present, $name );
-        if ($expect_present) {
-            $test->diag( "No element matching '${selector}' found" );
-        }
-    }
-    else {
-        my $error_text = $error_el->text;
-        if ($expect_present) {
-            $test->like( $error_text, qr/\bERROR: /, $name );
-        }
-        else {
-            $test->unlike( $error_text, qr/\bERROR: /, $name );
-        }
-        $test->note("The error message is '${error_text}'") if $error_text;
-    }
 
     return $self;
 }
@@ -114,22 +107,39 @@ sub assert_on_login_page {
     my ( $self, $name ) = @_;
     $name //= 'The login page is visible';
 
-    my $test = __PACKAGE__->builder;
-
-    my $selector = 'h1';
-    my $heading_el = $self->gads->webdriver->find( $selector, dies => 0 );
-
-    if ( 0 == $heading_el->size ) {
-        $test->ok( 0, $name );
-        $test->diag( "No element matching '${selector}' found" );
-    }
-    else {
-        my $heading_text = $heading_el->text;
-        $heading_text =~ s/\A\s+|\s+\z//g;
-        $test->is_eq( $heading_text, 'Please Sign In', $name );
-    }
+    $self->_assert_element(
+        'h1',
+        1,
+        qr/\APlease Sign In\b/,
+        $name,
+    );
 
     return $self;
+}
+
+sub _assert_element {
+    my( $self, $selector, $expect_present, $expected_text, $name ) = @_;
+    my $test = __PACKAGE__->builder;
+
+    my $matching_el = $self->gads->webdriver->find( $selector, dies => 0 );
+
+    if ( 0 == $matching_el->size ) {
+        $test->ok( !$expect_present, $name );
+        if ($expect_present) {
+            $test->diag( "No element matching '${selector}' found" );
+        }
+    }
+    else {
+        my $matching_text = $matching_el->text;
+        if ($expect_present) {
+            $test->like( $matching_text, $expected_text, $name );
+        }
+        else {
+            $test->unlike( $matching_text, $expected_text, $name );
+        }
+    }
+
+    return $matching_el;
 }
 
 =head2 Action Methods
