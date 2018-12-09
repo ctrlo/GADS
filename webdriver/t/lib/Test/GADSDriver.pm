@@ -93,6 +93,22 @@ sub _assert_error {
     return $self;
 }
 
+=head3 assert_navigation_present
+
+Assert that the navigation displayed on logged in pages is visible.
+
+=cut
+
+sub assert_navigation_present {
+    my ( $self, $name ) = @_;
+    $name //= 'The site navigation is visible';
+
+    $self->_assert_element(
+        'nav #dataset-navbar',
+        1,
+        qr/\bData\b/,
+        $name,
+    );
 
     return $self;
 }
