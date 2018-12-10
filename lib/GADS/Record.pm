@@ -503,6 +503,7 @@ sub find_record_id
     my $instance_id = $record->current->instance_id;
     error __x"Record ID {id} invalid for table {table}", id => $record_id, table => $search_instance_id
         if $search_instance_id && $search_instance_id != $instance_id;
+    $self->_set_instance_id($instance_id);
     $self->_find(record_id => $record_id, %options);
 }
 
