@@ -2111,6 +2111,34 @@ prefix '/:layout_name' => sub {
         };
     };
 
+    any '/mygraphs/?' => require_login sub {
+
+        my $layout = var('layout') or pass;
+        my $user   = logged_in_user;
+        my $audit  = GADS::Audit->new(schema => schema, user => $user);
+
+        if (param 'graphsubmit')
+        {
+            if (process( sub { $user->graphs($layout->instance_id, [body_parameters->get_all('graphs')]) }))
+            {
+                return forwardHome(
+                    { success => "The selected graphs have been updated" }, $layout->identifier.'/data' );
+            }
+        }
+
+        my $graphs = GADS::Graphs->new(
+            user   => $user,
+            schema => schema,
+            layout => $layout,
+        );
+        my $all_graphs = $graphs->all;
+        template 'mygraphs' => {
+            graphs      => $all_graphs,
+            page        => 'mygraphs',
+            breadcrumbs => [Crumb($layout) => Crumb( '/mygraphs' => 'my graphs' )],
+        };
+    };
+
 };
 
 any '/edit/:id?' => require_login sub {
@@ -2119,9 +2147,8 @@ any '/edit/:id?' => require_login sub {
     _process_edit($id);
 };
 
-any '/account/?:action?/?' => require_login sub {
+any '/myaccount/?' => require_login sub {
 
-    my $action = param 'action';
     my $user   = logged_in_user;
     my $audit  = GADS::Audit->new(schema => schema, user => $user);
 
@@ -2135,15 +2162,6 @@ any '/account/?:action?/?' => require_login sub {
         }
         else {
             forwardHome({ danger => "The existing password entered is incorrect"}, 'account/detail' );
-        }
-    }
-
-    if (param 'graphsubmit')
-    {
-        if (process( sub { $user->graphs(var('layout')->instance_id, [body_parameters->get_all('graphs')]) }))
-        {
-            return forwardHome(
-                { success => "The selected graphs have been updated" }, '/data' );
         }
     }
 
@@ -2165,42 +2183,19 @@ any '/account/?:action?/?' => require_login sub {
         if (process( sub { $user->update_user(current_user => logged_in_user, %update) }))
         {
             return forwardHome(
-                { success => "The account details have been updated" }, 'account/detail' );
+                { success => "The account details have been updated" }, 'myaccount' );
         }
     }
 
-    my $data;
-
-    if ($action eq 'graph')
-    {
-        my $graphs = GADS::Graphs->new(
-            user   => $user,
-            schema => schema,
-            layout => var('layout')
-        );
-        my $all_graphs = $graphs->all;
-        template 'account' => {
-            graphs      => $all_graphs,
-            action      => $action,
-            page        => 'account/graph',
-            breadcrumbs => [Crumb(var('layout')->name) => Crumb( '/account/graph' => 'my graphs' )],
-        };
-    }
-    elsif ($action eq 'detail')
-    {
-        my $users = GADS::Users->new(schema => schema);
-        template 'user' => {
-            edit          => $user->id,
-            users         => [$user],
-            titles        => $users->titles,
-            organisations => $users->organisations,
-            page          => 'account/detail',
-            breadcrumbs   => [Crumb( '/account/detail' => 'my details' )],
-        };
-    }
-    else {
-        return forwardHome({ danger => "Unrecognised action $action" });
-    }
+    my $users = GADS::Users->new(schema => schema);
+    template 'user' => {
+        edit          => $user->id,
+        users         => [$user],
+        titles        => $users->titles,
+        organisations => $users->organisations,
+        page          => 'myaccount',
+        breadcrumbs   => [Crumb( '/myaccount/' => 'my details' )],
+    };
 };
 
 any '/system/?' => require_login sub {

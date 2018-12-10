@@ -89,7 +89,7 @@
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" id="user-menu">
-                    <li><a href="[% url.page %]/account/detail">My details</a></li>
+                    <li><a href="[% url.page %]/myaccount/">My details</a></li>
                     <li class="divider"></li>
                     <li><a href="[% url.page %]/logout">Logout</a></li>
                 </ul>
