@@ -2018,223 +2018,10 @@ prefix '/:layout_name' => sub {
         };
     };
 
-    any '/edit/:id?' => require_login sub {
+    any '/edit/?' => require_login sub {
 
         my $layout = var('layout') or pass;
-
-        my $id = param 'id';
-
-        my $user   = logged_in_user;
-        my $record = GADS::Record->new(
-            user                 => $user,
-            layout               => $layout,
-            schema               => schema,
-            base_url             => request->base,
-            # Need to get all fields of curvals in case any are drafts for editing
-            # (otherwise all field values will not be passed to form)
-            curcommon_all_fields => 1,
-        );
-        my $include_draft = defined(param 'include_draft');
-
-        if (my $delete_id = param 'delete')
-        {
-            $record->find_current_id($delete_id);
-            if (process( sub { $record->delete_current }))
-            {
-                return forwardHome(
-                    { success => 'Record has been deleted successfully' }, 'data' );
-            }
-        }
-
-        if (param 'delete_draft')
-        {
-            if (process( sub { $record->delete_user_drafts }))
-            {
-                return forwardHome(
-                    { success => 'Draft has been deleted successfully' }, 'data' );
-            }
-        }
-
-        # XXX Move into user class
-        my ($lastrecord) = rset('UserLastrecord')->search({
-            instance_id => $layout->instance_id,
-            user_id     => $user->id,
-        })->all;
-
-        if ($id)
-        {
-            $record->find_current_id($id, include_draft => $include_draft);
-            $layout = $record->layout; # May have changed if record from other datasheet
-        }
-
-        my $child = param('child') || $record->parent_id;
-
-        my $modal = param('modal') && int param('modal');
-        my $oi = param('oi') && int param('oi');
-
-        my $params = {
-            record => $record,
-            modal  => $modal,
-            oi     => $oi,
-            page   => 'edit'
-        };
-
-        my @columns_to_show = $id
-            ? $layout->all(sort_by_topics => 1, user_can_readwrite_existing => 1, can_child => $child, userinput => 1)
-            : $layout->all(sort_by_topics => 1, user_can_write_new => 1, can_child => $child, userinput => 1);
-
-        $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids
-            if $modal;
-
-        $record->initialise unless $id;
-
-        if (param('submit') || param('draft') || $modal || defined(param 'validate'))
-        {
-            my $params = params;
-            my $uploads = request->uploads;
-            foreach my $key (keys %$uploads)
-            {
-                next unless $key =~ /^file([0-9]+)/;
-                my $upload = $uploads->{$key};
-                my $col_id = $1;
-                my $filecol = $layout->column($col_id);
-                $record->fields->{$col_id}->set_value({
-                    name     => $upload->filename,
-                    mimetype => $upload->type,
-                    content  => $upload->content,
-                });
-            }
-            my $failed;
-
-            error __"You do not have permission to create a child record"
-                if $child && !$id && !$layout->user_can('create_child');
-            $record->parent_id($child);
-
-            # We actually only need the write columns for this. The read-only
-            # columns can be ignored, but if we do write them, an error will be
-            # thrown to the user if they've been changed. This is better than
-            # just silently ignoring them, IMHO.
-            my @display_on_fields;
-            my @validation_errors;
-            foreach my $col (@columns_to_show)
-            {
-                my $newv;
-                if ($modal)
-                {
-                    next unless defined query_parameters->get($col->field);
-                    $newv = [query_parameters->get_all($col->field)];
-                }
-                else {
-                    next unless defined body_parameters->get($col->field);
-                    $newv = [body_parameters->get_all($col->field)];
-                }
-                if ($col->userinput && defined $newv) # Not calculated fields
-                {
-                    # No need to do anything if the file's just been uploaded
-                    unless (upload "file".$col->id)
-                    {
-                        my $datum = $record->fields->{$col->id};
-                        if (defined(param 'validate'))
-                        {
-                            try { $datum->set_value($newv) };
-                            if (my $e = $@->wasFatal)
-                            {
-                                push @validation_errors, $e->message;
-                            }
-                        }
-                        else {
-                            $failed = !process( sub { $datum->set_value($newv) } ) || $failed;
-                        }
-                    }
-                }
-                elsif ($col->type eq 'file' && !upload("file".$col->id))
-                {
-                    # Not defined file field and not just uploaded. Must have been removed.
-                    $failed = !process( sub { $record->fields->{$col->id}->set_value(undef) } ) || $failed;
-                }
-            }
-
-            # Call this now, to write and blank out any non-displayed values,
-            $record->set_blank_dependents;
-
-            if (defined(param 'validate'))
-            {
-                try { $record->write(dry_run => 1) };
-                if (my $e = $@->died) # XXX This should be ->wasFatal() but it returns the wrong message
-                {
-                    push @validation_errors, $e;
-                }
-                my $message = join '; ', @validation_errors;
-                return encode_json({
-                    error   => $message ? 1 : 0,
-                    message => $message,
-                    values  => +{ map { $_->field => $record->fields->{$_->id}->as_string } $layout->all },
-                });
-            }
-            elsif ($modal)
-            {
-                # Do nothing, just a live edit, no write required
-            }
-            elsif (param 'draft')
-            {
-                if (process sub { $record->write(draft => 1) })
-                {
-                    return forwardHome(
-                        { success => 'Draft has been saved successfully'}, 'data' );
-                }
-            }
-            elsif (!$failed && process( sub { $record->write }))
-            {
-                my $forward = !$id && $layout->forward_record_after_create ? 'record/'.$record->current_id : 'data';
-                return forwardHome(
-                    { success => 'Submission has been completed successfully for record ID '.$record->current_id }, $forward );
-            }
-        }
-        elsif($id) {
-            # Do nothing, record already loaded
-        }
-        elsif (my $from = param('from'))
-        {
-            $record->clone_as_new_from($from);
-        }
-        else {
-            $record->load_remembered_values;
-        }
-
-        foreach my $col ($layout->all(user_can_write => 1))
-        {
-            $record->fields->{$col->id}->set_value("")
-                if !$col->user_can('read');
-        }
-
-        my $child_rec = $child && $layout->user_can('create_child')
-            ? int(param 'child')
-            : $record->parent_id
-            ? $record->parent_id
-            : undef;
-
-        notice __"Values entered on this page will have their own value in the child "
-                ."record. All other values will be inherited from the parent."
-                if $child_rec;
-
-        my $breadcrumbs = [Crumb($layout), Crumb( $layout, "/data" => 'records' )];
-        if ($id)
-        {
-            push @$breadcrumbs, Crumb( "/edit/$id" => "edit record $id" );
-        }
-        else {
-            push @$breadcrumbs, Crumb( $layout, "/edit/" => "new record" );
-        }
-
-        my $options = $modal ? { layout => undef } : {};
-        $params->{child}               = $child_rec;
-        $params->{layout_edit}         = $layout;
-        $params->{all_columns}         = \@columns_to_show;
-        $params->{clone}               = param('from'),
-        $params->{breadcrumbs}         = $breadcrumbs;
-        $params->{record_presentation} = $record->presentation(@columns_to_show);
-
-        template 'edit' => $params, $options;
+        _process_edit();
     };
 
     any '/import/?' => require_any_role [qw/layout useradmin/] => sub {
@@ -2324,6 +2111,12 @@ prefix '/:layout_name' => sub {
         };
     };
 
+};
+
+any '/edit/:id?' => require_login sub {
+
+    my $id = param 'id';
+    _process_edit($id);
 };
 
 any '/account/?:action?/?' => require_login sub {
@@ -3392,6 +3185,221 @@ sub _data_graph
         schema  => schema,
         view    => $view,
     );
+}
+
+sub _process_edit
+{   my $id = shift;
+
+    my $user   = logged_in_user;
+    my %params = (
+        user                 => $user,
+        schema               => schema,
+        base_url             => request->base,
+        # Need to get all fields of curvals in case any are drafts for editing
+        # (otherwise all field values will not be passed to form)
+        curcommon_all_fields => 1,
+    );
+    $params{layout} = var('layout') if var('layout'); # Used when creating a new record
+
+    my $record = GADS::Record->new(%params);
+
+    my $include_draft = defined(param 'include_draft');
+
+    if (my $delete_id = param 'delete')
+    {
+        $record->find_current_id($delete_id);
+        if (process( sub { $record->delete_current }))
+        {
+            return forwardHome(
+                { success => 'Record has been deleted successfully' }, 'data' );
+        }
+    }
+
+    if (param 'delete_draft')
+    {
+        if (process( sub { $record->delete_user_drafts }))
+        {
+            return forwardHome(
+                { success => 'Draft has been deleted successfully' }, 'data' );
+        }
+    }
+
+    my $layout = var 'layout'; # undef for existing record
+    if ($id)
+    {
+        $record->find_current_id($id, include_draft => $include_draft);
+        $layout = $record->layout;
+        var 'layout' => $layout;
+    }
+
+    my $child = param('child') || $record->parent_id;
+
+    my $modal = param('modal') && int param('modal');
+    my $oi = param('oi') && int param('oi');
+
+    my $params = {
+        record => $record,
+        modal  => $modal,
+        oi     => $oi,
+        page   => 'edit'
+    };
+
+    my @columns_to_show = $id
+        ? $layout->all(sort_by_topics => 1, user_can_readwrite_existing => 1, can_child => $child, userinput => 1)
+        : $layout->all(sort_by_topics => 1, user_can_write_new => 1, can_child => $child, userinput => 1);
+
+    $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids
+        if $modal;
+
+    $record->initialise unless $id;
+
+    if (param('submit') || param('draft') || $modal || defined(param 'validate'))
+    {
+        my $params = params;
+        my $uploads = request->uploads;
+        foreach my $key (keys %$uploads)
+        {
+            next unless $key =~ /^file([0-9]+)/;
+            my $upload = $uploads->{$key};
+            my $col_id = $1;
+            my $filecol = $layout->column($col_id);
+            $record->fields->{$col_id}->set_value({
+                name     => $upload->filename,
+                mimetype => $upload->type,
+                content  => $upload->content,
+            });
+        }
+        my $failed;
+
+        error __"You do not have permission to create a child record"
+            if $child && !$id && !$layout->user_can('create_child');
+        $record->parent_id($child);
+
+        # We actually only need the write columns for this. The read-only
+        # columns can be ignored, but if we do write them, an error will be
+        # thrown to the user if they've been changed. This is better than
+        # just silently ignoring them, IMHO.
+        my @display_on_fields;
+        my @validation_errors;
+        foreach my $col (@columns_to_show)
+        {
+            my $newv;
+            if ($modal)
+            {
+                next unless defined query_parameters->get($col->field);
+                $newv = [query_parameters->get_all($col->field)];
+            }
+            else {
+                next unless defined body_parameters->get($col->field);
+                $newv = [body_parameters->get_all($col->field)];
+            }
+            if ($col->userinput && defined $newv) # Not calculated fields
+            {
+                # No need to do anything if the file's just been uploaded
+                unless (upload "file".$col->id)
+                {
+                    my $datum = $record->fields->{$col->id};
+                    if (defined(param 'validate'))
+                    {
+                        try { $datum->set_value($newv) };
+                        if (my $e = $@->wasFatal)
+                        {
+                            push @validation_errors, $e->message;
+                        }
+                    }
+                    else {
+                        $failed = !process( sub { $datum->set_value($newv) } ) || $failed;
+                    }
+                }
+            }
+            elsif ($col->type eq 'file' && !upload("file".$col->id))
+            {
+                # Not defined file field and not just uploaded. Must have been removed.
+                $failed = !process( sub { $record->fields->{$col->id}->set_value(undef) } ) || $failed;
+            }
+        }
+
+        # Call this now, to write and blank out any non-displayed values,
+        $record->set_blank_dependents;
+
+        if (defined(param 'validate'))
+        {
+            try { $record->write(dry_run => 1) };
+            if (my $e = $@->died) # XXX This should be ->wasFatal() but it returns the wrong message
+            {
+                push @validation_errors, $e;
+            }
+            my $message = join '; ', @validation_errors;
+            return encode_json({
+                error   => $message ? 1 : 0,
+                message => $message,
+                values  => +{ map { $_->field => $record->fields->{$_->id}->as_string } $layout->all },
+            });
+        }
+        elsif ($modal)
+        {
+            # Do nothing, just a live edit, no write required
+        }
+        elsif (param 'draft')
+        {
+            if (process sub { $record->write(draft => 1) })
+            {
+                return forwardHome(
+                    { success => 'Draft has been saved successfully'}, 'data' );
+            }
+        }
+        elsif (!$failed && process( sub { $record->write }))
+        {
+            my $forward = !$id && $layout->forward_record_after_create ? 'record/'.$record->current_id : 'data';
+            return forwardHome(
+                { success => 'Submission has been completed successfully for record ID '.$record->current_id }, $forward );
+        }
+    }
+    elsif($id) {
+        # Do nothing, record already loaded
+    }
+    elsif (my $from = param('from'))
+    {
+        $record->clone_as_new_from($from);
+    }
+    else {
+        $record->load_remembered_values;
+    }
+
+    foreach my $col ($layout->all(user_can_write => 1))
+    {
+        $record->fields->{$col->id}->set_value("")
+            if !$col->user_can('read');
+    }
+
+    my $child_rec = $child && $layout->user_can('create_child')
+        ? int(param 'child')
+        : $record->parent_id
+        ? $record->parent_id
+        : undef;
+
+    notice __"Values entered on this page will have their own value in the child "
+            ."record. All other values will be inherited from the parent."
+            if $child_rec;
+
+    my $breadcrumbs = [Crumb($layout), Crumb( $layout, "/data" => 'records' )];
+    if ($id)
+    {
+        push @$breadcrumbs, Crumb( "/edit/$id" => "edit record $id" );
+    }
+    else {
+        push @$breadcrumbs, Crumb( $layout, "/edit/" => "new record" );
+    }
+
+    my $options = $modal ? { layout => undef } : {};
+    $params->{child}               = $child_rec;
+    $params->{layout_edit}         = $layout;
+    $params->{all_columns}         = \@columns_to_show;
+    $params->{clone}               = param('from'),
+    $params->{breadcrumbs}         = $breadcrumbs;
+    $params->{record_presentation} = $record->presentation(@columns_to_show);
+
+    template 'edit' => $params, $options;
 }
 
 true;
