@@ -395,7 +395,7 @@
                     source: function (query, process) {
                         return $.ajax({
                             type: 'GET',
-                            url: '/match/user/',
+                            url: '/[% layout.identifier %]/match/user/',
                             data: { q: query },
                             success: function(result) { process(result) },
                             dataType: 'json'

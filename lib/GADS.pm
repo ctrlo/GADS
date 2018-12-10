@@ -2141,6 +2141,16 @@ prefix '/:layout_name' => sub {
         };
     };
 
+    get '/match/user/' => require_login sub {
+
+        my $layout = var('layout') or pass;
+        $layout->user_can("layout") or error "No access to search for users";
+
+        my $query = param('q');
+        content_type 'application/json';
+        to_json [ rset('User')->match($query) ];
+    };
+
 };
 
 any '/edit/:id?' => require_login sub {
@@ -3052,15 +3062,6 @@ get '/match/layout/:layout_id' => require_login sub {
 
     content_type 'application/json';
     to_json [ $column->values_beginning_with($query) ];
-};
-
-get '/match/user/' => require_login sub {
-
-    var('layout')->user_can("layout") or error "No access to search for users";
-
-    my $query = param('q');
-    content_type 'application/json';
-    to_json [ rset('User')->match($query) ];
 };
 
 sub current_view {
