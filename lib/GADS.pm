@@ -2195,7 +2195,7 @@ any '/account/?:action?/?' => require_login sub {
             titles        => $users->titles,
             organisations => $users->organisations,
             page          => 'account/detail',
-            breadcrumbs   => [Crumb(var('layout')->name) => Crumb( '/account/detail' => 'my details' )],
+            breadcrumbs   => [Crumb( '/account/detail' => 'my details' )],
         };
     }
     else {
