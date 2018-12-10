@@ -2617,10 +2617,9 @@ get '/helptext/:id?' => require_login sub {
 get '/file/?' => require_login sub {
 
     my $user        = logged_in_user;
-    my $layout      = var 'layout';
 
     forwardHome({ danger => "You do not have permission to manage files"}, '')
-        unless $layout->user_can("layout");
+        unless logged_in_user->permission->{superadmin};
 
     my @files = rset('Fileval')->search({
         'files.id' => undef,
@@ -2631,13 +2630,12 @@ get '/file/?' => require_login sub {
 
     template 'files' => {
         files       => [@files],
-        breadcrumbs => [Crumb($layout->name), Crumb( "/file" => 'files' )],
+        breadcrumbs => [Crumb( "/file" => 'files' )],
     };
 };
 
 get '/file/:id' => require_login sub {
     my $id = param 'id';
-    my $layout = var 'layout';
 
     # Need to get file details first, to be able to populate
     # column details of applicable.
@@ -2649,22 +2647,8 @@ get '/file/:id' => require_login sub {
     # This will control access to the file
     if ($file_rs && $file_rs->layout_id)
     {
-        if ($layout->instance_id == $file_rs->layout->instance_id)
-        {
-            $file->column($layout->column($file_rs->layout_id));
-        }
-        else {
-            # XXX At some point the generation of different layouts each
-            # request needs to go, replaced with a persistent object with all
-            # layouts
-            $layout = GADS::Layout->new(
-                user        => logged_in_user,
-                schema      => schema,
-                config      => GADS::Config->instance,
-                instance_id => $file_rs->layout->instance_id,
-            );
-            $file->column($layout->column($file_rs->layout_id));
-        }
+        my $layout = var('instances')->layout($file_rs->layout->instance_id);
+        $file->column($layout->column($file_rs->layout_id));
     }
     else {
         $file->schema(schema);
