@@ -266,7 +266,9 @@ hook before_template => sub {
     }
     if (logged_in_user)
     {
-        $tokens->{instances}     = var('instances')->all if var('instances');
+        # var 'instances' not set for 404
+        my $instances = var('instances') || GADS::Instances->new(schema => schema, user => $user);
+        $tokens->{instances}     = $instances->all;
         $tokens->{instance_name} = var('layout')->name if var('layout');
         $tokens->{user}          = $user;
         $tokens->{search}        = session 'search';
