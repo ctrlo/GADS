@@ -89,6 +89,15 @@ has name_short => (
     builder => sub { $_[0]->_rset->name_short },
 );
 
+has identifier => (
+    is => 'lazy',
+);
+
+sub _build_identifier
+{   my $self = shift;
+    $self->name_short || "table".$self->instance_id;
+}
+
 has site => (
     is      => 'ro',
     lazy    => 1,

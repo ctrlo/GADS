@@ -817,6 +817,76 @@ var setupAccessibility = function(context) {
     }
 }
 
+var setupHtmlEditor = function (context) {
+
+    // Legacy editor - may be needed for IE8 support in the future
+    /*
+    tinymce.init({
+	selector: "textarea",
+	width : "800",
+	height : "400",
+	plugins : "table",
+	theme_advanced_buttons1 : "bold, italic, underline, strikethrough, justifyleft, justifycenter, justifyright, bullist, numlist, outdent, i
+	theme_advanced_buttons2 : "tablecontrols",
+	theme_advanced_buttons3 : ""
+    });
+    */
+
+    $('.summernote').summernote({
+	height: 400,
+	callbacks: {
+	    onImageUpload: function(files) {
+		for(var i = 0; i < files.length; i++) {
+		    upload_file(files[i], this);
+		}
+	    }
+	}
+    });
+    $('#homepage_text_sn').summernote('code', $('#homepage_text').val());
+    $('#homepage_text2_sn').summernote('code', $('#homepage_text2').val());
+    $('#update').click(function(){
+	if ($('#homepage_text_sn').summernote('isEmpty')) {
+	    var content = '';
+	} else {
+	    var content = $('#homepage_text_sn').summernote('code');
+	}
+	$('#homepage_text').val(content);
+	if ($('#homepage_text2_sn').summernote('isEmpty')) {
+	    content = '';
+	} else {
+	    content = $('#homepage_text2_sn').summernote('code');
+	}
+	$('#homepage_text2').val(content);
+    });
+    function upload_file(file, el) {
+	if(file.type.includes('image')) {
+	    var data = new FormData();
+	    data.append('file', file);
+	    $.ajax({
+		url: '/file?ajax',
+		type: 'POST',
+		contentType: false,
+		cache: false,
+		processData: false,
+		dataType: 'JSON',
+		data: data,
+		success: function (response) {
+		    if(response.is_ok) {
+			$(el).summernote('editor.insertImage', response.url);
+		    } else {
+			console.log(response.error);
+		    }
+		}
+	    })
+	    .fail(function(e) {
+		console.log(e);
+	    });
+	} else {
+	    console.log("The type of file uploaded was not an image");
+	}
+    }
+};
+
 var Linkspace = {
     constants: {
         ARROW_LEFT: 37,
@@ -910,6 +980,14 @@ Linkspace.edit = function (context) {
 
 Linkspace.record = function () {
     setupClickToViewBlank();
+}
+
+Linkspace.config = function () {
+    setupHtmlEditor();
+}
+
+Linkspace.system = function () {
+    setupHtmlEditor();
 }
 
 Linkspace.layout = function () {

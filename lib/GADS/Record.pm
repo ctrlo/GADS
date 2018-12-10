@@ -38,6 +38,7 @@ use GADS::Datum::Rag;
 use GADS::Datum::Serial;
 use GADS::Datum::String;
 use GADS::Datum::Tree;
+use GADS::Layout;
 use Log::Report 'linkspace';
 use JSON qw(encode_json);
 use POSIX ();
@@ -54,13 +55,26 @@ with 'GADS::Role::Presentation::Record';
 # Preferably this is passed in to prevent extra
 # DB reads, but loads it if it isn't
 has layout => (
-    is       => 'rw',
-    required => 1,
-    trigger  => sub {
-        # Pass in record to layout, used for filtered curvals
-        my ($self, $layout) = @_;
-        $layout->record($self);
-    },
+    is => 'lazy',
+);
+
+sub _build_layout
+{   my $self = shift;
+
+    my $instance_id = $self->_set_instance_id
+        or panic "instance_id not set to create layout object";
+
+    return GADS::Layout->new(
+        user        => $self->user,
+        schema      => $self->schema,
+        instance_id => $instance_id,
+        record      => $self,
+        config      => GADS::Config->instance,
+    );
+}
+
+has _set_instance_id => (
+    is => 'rw',
 );
 
 has schema => (
@@ -481,23 +495,6 @@ sub remove_id
     $self->clear_new_entry;
 }
 
-sub _check_instance
-{   my ($self, $instance_id_new) = @_;
-    if ($self->layout->instance_id != $instance_id_new)
-    {
-        # Check it's valid for this site first
-        $self->schema->resultset('Instance')->find($instance_id_new)
-            or return;
-        my $layout = GADS::Layout->new(
-            user        => $self->user,
-            schema      => $self->schema,
-            config      => GADS::Config->instance,
-            instance_id => $instance_id_new,
-        );
-        $self->layout($layout);
-    }
-}
-
 sub find_record_id
 {   my ($self, $record_id, %options) = @_;
     my $search_instance_id = $options{instance_id};
@@ -506,7 +503,6 @@ sub find_record_id
     my $instance_id = $record->current->instance_id;
     error __x"Record ID {id} invalid for table {table}", id => $record_id, table => $search_instance_id
         if $search_instance_id && $search_instance_id != $instance_id;
-    $self->_check_instance($instance_id);
     $self->_find(record_id => $record_id, %options);
 }
 
@@ -521,7 +517,7 @@ sub find_current_id
     my $instance_id = $current->instance_id;
     error __x"Record ID {id} invalid for table {table}", id => $current_id, table => $search_instance_id
         if $search_instance_id && $search_instance_id != $current->instance_id;
-    $self->_check_instance($instance_id);
+    $self->_set_instance_id($current->instance_id);
     $self->_find(current_id => $current_id, %options);
 }
 

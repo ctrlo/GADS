@@ -6,25 +6,27 @@ our @EXPORT_OK = qw(
     Crumb
 );
 
-sub _breadcrumb_home
-{   my $instance_name = shift;
-    +{
-        text => "$instance_name home",
-        href => '/',
-    }
-};
-
 sub Crumb
 {   if (@_ == 1)
     {
-        my $instance_name = shift;
-        return _breadcrumb_home($instance_name) unless @_;
+        my $layout = shift;
+        return +{
+            text => $layout->name,
+            href => "/".$layout->identifier,
+        }
+    }
+
+    my $prefix = '';
+    if (@_ % 1)
+    {
+        my $layout = shift;
+        $prefix = '/'.$layout->identifier;
     }
 
     my ($href, $text) = @_;
     return +{
         text => $text,
-        href => $href
+        href => "$prefix$href",
     };
 }
 
