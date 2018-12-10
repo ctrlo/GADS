@@ -17,7 +17,7 @@ sub Crumb
     }
 
     my $prefix = '';
-    if (@_ % 1)
+    if (@_ % 2)
     {
         my $layout = shift;
         $prefix = '/'.$layout->identifier;
