@@ -30,15 +30,16 @@
                     </button>
                     <ul id="menu_view" class="dropdown-menu scrollable-menu" role="menu">
 			[% IF layout.user_can("view_create") %]
-			    <li [% IF page=="view/0" %]class="active"[% END %]><a href="[% url.page %]/view/0">Add a view</a></li>
+			    <li [% IF page=="view/0" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/view/0">Add a view</a></li>
 			[% END %]
 
 			[% IF v %]
                             [% IF layout.user_can("view_create") %]
 				[% IF v.writable %]
-				    <li [% IF page=="view" %]class="active"[% END %]><a href="/view/[% v.id %]">Edit current view</a></li>
+				    <li [% IF page=="view" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/view/[% v.id %]">
+                                        Edit current view</a></li>
 				[% END %]
-				<li [% IF page=="view/clone" %]class="active"[% END %]><a href="/view/0?clone=[% v.id %]">Clone current view</a></li>
+				<li [% IF page=="view/clone" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/view/0?clone=[% v.id %]">Clone current view</a></li>
 			    [% END %]
                             <li role="presentation"><a href="" role="menuitem" tabindex="-1" data-toggle="modal" data-target="#modal_alert">Alert me...</a></li>
 			[% END %]
