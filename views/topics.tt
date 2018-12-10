@@ -5,7 +5,7 @@
     when editing a record.
 </p>
 <p>
-    <a href="/topic/0" class="btn btn-default" role="button">Add a topic</a>
+    <a href="/[% layout.identifier %]/topic/0" class="btn btn-default" role="button">Add a topic</a>
 </p>
 <table class="table table-striped">
     <tr>

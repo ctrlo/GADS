@@ -5,7 +5,7 @@ the standard absolute values on the graphs will be replaced by percentage values
 calculated by comparing the absolute value with the relevant metric.
 </p>
 <p>
-    <a href="/metric/0" class="btn btn-default" role="button">Create new metrics set</a>
+    <a href="/[% layout.identifier %]/metric/0" class="btn btn-default" role="button">Create new metrics set</a>
 </p>
 <table class="table table-striped">
     <tr>

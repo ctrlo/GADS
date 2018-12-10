@@ -538,7 +538,7 @@
     available permissions are detailed in the <a href="[% url.page %]/user/">Users menu</a>.</p>
     <p>Note: drag and drop rows (and click Save order) to reorder the columns.</p>
     <p>
-        <a href="/layout/0" class="btn btn-default">Add a field</a>
+        <a href="/[% layout.identifier %]/layout/0" class="btn btn-default">Add a field</a>
     </p>
     <form role="form" method="post">
     <table class="table table-striped">
