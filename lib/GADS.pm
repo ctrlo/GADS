@@ -2151,6 +2151,18 @@ prefix '/:layout_name' => sub {
         to_json [ rset('User')->match($query) ];
     };
 
+    get '/match/layout/:layout_id' => require_login sub {
+
+        my $layout = var('layout') or pass;
+        my $query = param('q');
+        my $layout_id = param('layout_id');
+
+        my $column = $layout->column($layout_id, permission => 'read');
+
+        content_type 'application/json';
+        to_json [ $column->values_beginning_with($query) ];
+    };
+
 };
 
 any '/edit/:id?' => require_login sub {
@@ -3052,16 +3064,6 @@ get '/invalidsite' => sub {
     template 'invalidsite' => {
         page => 'invalidsite'
     };
-};
-
-get '/match/layout/:layout_id' => require_login sub {
-    my $query = param('q');
-    my $layout_id = param('layout_id');
-
-    my $column = var('layout')->column($layout_id, permission => 'read');
-
-    content_type 'application/json';
-    to_json [ $column->values_beginning_with($query) ];
 };
 
 sub current_view {

@@ -429,7 +429,7 @@
                     source: function (query, process) {
                         return $.ajax({
                             type: 'GET',
-                            url: '/match/layout/[% typeahead.id | uri %]',
+                            url: '/[% layout.identifier %]/match/layout/[% typeahead.id | uri %]',
                             data: { q: query },
                             success: function(result) { process(result) },
                             dataType: 'json'
