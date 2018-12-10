@@ -525,7 +525,7 @@ prefix '/:layout_name' => sub {
                     if (process sub { $record->delete_current });
             }
             return forwardHome(
-                { success => "$count records successfully deleted" }, 'data' );
+                { success => "$count records successfully deleted" }, $layout->identifier.'/data' );
         }
 
         # Check for rewind configuration
@@ -606,7 +606,7 @@ prefix '/:layout_name' => sub {
             if (process(sub { $alert->write }))
             {
                 return forwardHome(
-                    { success => "The alert has been saved successfully" }, 'data' );
+                    { success => "The alert has been saved successfully" }, $layout->identifier.'/data' );
             }
         }
 
@@ -852,7 +852,7 @@ prefix '/:layout_name' => sub {
             {
                 my $sort     = int param 'sort';
                 # Check user has access
-                forwardHome({ danger => "Invalid column ID for sort" }, '/data')
+                forwardHome({ danger => "Invalid column ID for sort" }, $layout->identifier.'/data')
                     unless !$sort || ($layout->column($sort) && $layout->column($sort)->user_can('read'));
                 my $existing = $records->sort_first;
                 my $type;
@@ -870,11 +870,11 @@ prefix '/:layout_name' => sub {
 
             if (param 'modal_sendemail')
             {
-                forwardHome({ danger => "There are no records in this view and therefore nobody to email"}, 'data')
+                forwardHome({ danger => "There are no records in this view and therefore nobody to email"}, $layout->identifier.'/data')
                     unless $records->results;
 
                 return forwardHome(
-                    { danger => 'You do not have permission to send messages' }, 'data' )
+                    { danger => 'You do not have permission to send messages' }, $layout->identifier.'/data' )
                     unless $layout->user_can("message");
 
                 my $email  = GADS::Email->instance;
@@ -888,13 +888,13 @@ prefix '/:layout_name' => sub {
                 if (process( sub { $email->message($args, $user) }))
                 {
                     return forwardHome(
-                        { success => "The message has been sent successfully" }, 'data' );
+                        { success => "The message has been sent successfully" }, $layout->identifier.'/data' );
                 }
             }
 
             if (defined param('download'))
             {
-                forwardHome({ danger => "There are no records to download in this view"}, 'data')
+                forwardHome({ danger => "There are no records to download in this view"}, $layout->identifier.'/data')
                     unless $records->count;
 
                 # Return CSV as a streaming response, otherwise a long delay whilst
@@ -1011,7 +1011,7 @@ prefix '/:layout_name' => sub {
         if (param('purge') || param('restore'))
         {
             my @current_ids = body_parameters->get_all('record_selected')
-                or forwardHome({ danger => "Please select some records before clicking an action" }, 'purge');
+                or forwardHome({ danger => "Please select some records before clicking an action" }, $layout->identifier.'/purge');
             my $records = GADS::Records->new(
                 limit_current_ids   => [@current_ids],
                 columns             => [],
@@ -1025,13 +1025,13 @@ prefix '/:layout_name' => sub {
             {
                 my $record;
                 $record->purge_current while $record = $records->single;
-                forwardHome({ success => "Records have now been purged" }, 'purge');
+                forwardHome({ success => "Records have now been purged" }, $layout->identifier.'/purge');
             }
             if (param 'restore')
             {
                 my $record;
                 $record->restore while $record = $records->single;
-                forwardHome({ success => "Records have now been restored" }, 'purge');
+                forwardHome({ success => "Records have now been restored" }, $layout->identifier.'/purge');
             }
         }
 
@@ -1135,7 +1135,7 @@ prefix '/:layout_name' => sub {
             if (process( sub { $graph->delete }))
             {
                 return forwardHome(
-                    { success => "The graph has been deleted successfully" }, 'graph' );
+                    { success => "The graph has been deleted successfully" }, $layout->identifier.'/graph' );
             }
         }
 
@@ -1149,7 +1149,7 @@ prefix '/:layout_name' => sub {
             {
                 my $action = param('id') ? 'updated' : 'created';
                 return forwardHome(
-                    { success => "Graph has been $action successfully" }, 'graph' );
+                    { success => "Graph has been $action successfully" }, $layout->identifier.'/graph' );
             }
         }
 
@@ -1225,7 +1225,7 @@ prefix '/:layout_name' => sub {
             if (process( sub { $metricgroup->delete }))
             {
                 return forwardHome(
-                    { success => "The metric has been deleted successfully" }, 'metrics' );
+                    { success => "The metric has been deleted successfully" }, $layout->identifier.'/metrics' );
             }
         }
 
@@ -1235,7 +1235,7 @@ prefix '/:layout_name' => sub {
             if (process( sub { $metricgroup->delete_metric(param 'metric_id') }))
             {
                 return forwardHome(
-                    { success => "The metric has been deleted successfully" }, "metric/$id" );
+                    { success => "The metric has been deleted successfully" }, $layout->identifier."/metric/$id" );
             }
         }
 
@@ -1246,7 +1246,7 @@ prefix '/:layout_name' => sub {
             {
                 my $action = param('id') ? 'updated' : 'created';
                 return forwardHome(
-                    { success => "Metric has been $action successfully" }, 'metrics' );
+                    { success => "Metric has been $action successfully" }, $layout->identifier.'/metrics' );
             }
         }
 
@@ -1265,7 +1265,7 @@ prefix '/:layout_name' => sub {
             {
                 my $action = param('id') ? 'updated' : 'created';
                 return forwardHome(
-                    { success => "Metric has been $action successfully" }, "metric/$id" );
+                    { success => "Metric has been $action successfully" }, $layout->identifier."/metric/$id" );
             }
         }
 
@@ -1313,7 +1313,7 @@ prefix '/:layout_name' => sub {
             {
                 my $action = param('id') ? 'updated' : 'created';
                 return forwardHome(
-                    { success => "Topic has been $action successfully" }, 'topics' );
+                    { success => "Topic has been $action successfully" }, $layout->identifier.'/topics' );
             }
         }
 
@@ -1322,7 +1322,7 @@ prefix '/:layout_name' => sub {
             if (process(sub {$topic->delete}))
             {
                 return forwardHome(
-                    { success => "The topic has been deleted successfully" }, 'topics' );
+                    { success => "The topic has been deleted successfully" }, $layout->identifier.'/topics' );
             }
         }
 
@@ -1362,7 +1362,7 @@ prefix '/:layout_name' => sub {
         my $user   = logged_in_user;
 
         return forwardHome(
-            { danger => 'You do not have permission to edit views' }, 'data' )
+            { danger => 'You do not have permission to edit views' }, $layout->identifier.'/data' )
             unless $layout->user_can("view_create");
 
         my $view_id = param('id');
@@ -1404,7 +1404,7 @@ prefix '/:layout_name' => sub {
                 # And remove any custom sorting, so that sort of view takes effect
                 session 'sort' => undef;
                 return forwardHome(
-                    { success => "The view has been updated successfully" }, 'data' );
+                    { success => "The view has been updated successfully" }, $layout->identifier.'/data' );
             }
         }
 
@@ -1414,7 +1414,7 @@ prefix '/:layout_name' => sub {
             if (process( sub { $view->delete }))
             {
                 return forwardHome(
-                    { success => "The view has been deleted successfully" }, 'data' );
+                    { success => "The view has been deleted successfully" }, $layout->identifier.'/data' );
             }
         }
 
@@ -1496,7 +1496,7 @@ prefix '/:layout_name' => sub {
                 if (process( sub { $column->delete }))
                 {
                     return forwardHome(
-                        { success => "The item has been deleted successfully" }, 'layout' );
+                        { success => "The item has been deleted successfully" }, $layout->identifier.'/layout' );
                 }
             }
 
@@ -1585,7 +1585,7 @@ prefix '/:layout_name' => sub {
                         ? qq(Your field has been updated successfully)
                         : qq(Your field has been created successfully);
 
-                    return forwardHome( { success => $msg }, 'layout' );
+                    return forwardHome( { success => $msg }, $layout->identifier.'/layout' );
                 }
             }
             $params->{column} = $column;
@@ -1608,7 +1608,7 @@ prefix '/:layout_name' => sub {
             if (process( sub { $layout->position(@position) }))
             {
                 return forwardHome(
-                    { success => "The ordering has been saved successfully" }, 'layout' );
+                    { success => "The ordering has been saved successfully" }, $layout->identifier.'/layout' );
             }
         }
 
@@ -1691,7 +1691,7 @@ prefix '/:layout_name' => sub {
             if (!$failed && process( sub { $record->write }))
             {
                 return forwardHome(
-                    { success => 'Record has been successfully approved' }, 'approval' );
+                    { success => 'Record has been successfully approved' }, $layout->identifier.'/approval' );
             }
         }
 
@@ -1777,7 +1777,7 @@ prefix '/:layout_name' => sub {
             if ($result)
             {
                 return forwardHome(
-                    { success => 'Record has been linked successfully' }, 'data' );
+                    { success => 'Record has been linked successfully' }, $layout->identifier.'/data' );
             }
         }
 
@@ -1853,7 +1853,7 @@ prefix '/:layout_name' => sub {
         }
         else {
             return forwardHome(
-                { success => 'Submission has been completed successfully' }, 'data' );
+                { success => 'Submission has been completed successfully' }, $layout->identifier.'/data' );
         }
     };
 
@@ -1865,7 +1865,7 @@ prefix '/:layout_name' => sub {
         my $view   = current_view($user, $layout);
         my $type   = param 'type';
 
-        forwardHome({ danger => "You do not have permission to perform bulk operations"}, 'data')
+        forwardHome({ danger => "You do not have permission to perform bulk operations"}, $layout->identifier.'/data')
             unless $layout->user_can("bulk_update");
 
         $type eq 'update' || $type eq 'clone'
@@ -1946,7 +1946,7 @@ prefix '/:layout_name' => sub {
                     my $msg = __xn"{_count} record was {type}d successfully", "{_count} records were {type}d successfully",
                         $success, type => $type;
                     return forwardHome(
-                        { success => $msg->toString }, 'data' );
+                        { success => $msg->toString }, $layout->identifier.'/data' );
                 }
                 else # Failures, back round the buoy
                 {
@@ -2095,7 +2095,7 @@ prefix '/:layout_name' => sub {
                 if (process sub { $import->process })
                 {
                     return forwardHome(
-                        { success => "The file import process has been started and can be monitored using the Import Status below" }, 'import' );
+                        { success => "The file import process has been started and can be monitored using the Import Status below" }, $layout->identifier.'/import' );
                 }
             }
             else {
@@ -2143,7 +2143,7 @@ any '/account/?:action?/?' => require_login sub {
         if (process( sub { $user->graphs(var('layout')->instance_id, [body_parameters->get_all('graphs')]) }))
         {
             return forwardHome(
-                { success => "The selected graphs have been updated" }, 'data' );
+                { success => "The selected graphs have been updated" }, '/data' );
         }
     }
 
@@ -2909,7 +2909,7 @@ any '/login' => sub {
             {
                 # Show same message as normal request
                 return forwardHome(
-                    { success => "Your account request has been received successfully" }, 'data' );
+                    { success => "Your account request has been received successfully" } );
             }
             $audit->login_change("Account request for $params->{email}. Account already existed, resending welcome email.");
             return forwardHome({ success => "Your account request has been received successfully" });
@@ -3189,13 +3189,16 @@ sub _process_edit
 
     my $include_draft = defined(param 'include_draft');
 
+    my $layout = var 'layout'; # undef for existing record
+
     if (my $delete_id = param 'delete')
     {
         $record->find_current_id($delete_id);
+        $layout = $record->layout;
         if (process( sub { $record->delete_current }))
         {
             return forwardHome(
-                { success => 'Record has been deleted successfully' }, 'data' );
+                { success => 'Record has been deleted successfully' }, $layout->identifier.'/data' );
         }
     }
 
@@ -3204,11 +3207,10 @@ sub _process_edit
         if (process( sub { $record->delete_user_drafts }))
         {
             return forwardHome(
-                { success => 'Draft has been deleted successfully' }, 'data' );
+                { success => 'Draft has been deleted successfully' }, $layout->identifier.'/data' );
         }
     }
 
-    my $layout = var 'layout'; # undef for existing record
     if ($id)
     {
         $record->find_current_id($id, include_draft => $include_draft);
@@ -3329,12 +3331,12 @@ sub _process_edit
             if (process sub { $record->write(draft => 1) })
             {
                 return forwardHome(
-                    { success => 'Draft has been saved successfully'}, 'data' );
+                    { success => 'Draft has been saved successfully'}, $layout->identifier.'/data' );
             }
         }
         elsif (!$failed && process( sub { $record->write }))
         {
-            my $forward = !$id && $layout->forward_record_after_create ? 'record/'.$record->current_id : 'data';
+            my $forward = !$id && $layout->forward_record_after_create ? 'record/'.$record->current_id : $layout->identifier.'/data';
             return forwardHome(
                 { success => 'Submission has been completed successfully for record ID '.$record->current_id }, $forward );
         }
