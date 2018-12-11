@@ -216,7 +216,7 @@ var SelectWidget = function (multi) {
         }
 
         var valueId = value ? field + "_" + value : field + "__blank";
-        return $('<li ' + (checked ? '' : 'hidden') + ' data-list-item="' + valueId + '" class="current">' + label + '</li>');
+        return $('<li ' + (checked ? '' : 'hidden') + ' data-list-item="' + valueId + '">' + label + '</li>');
     }
 
     var availableLi = function(multi, field, value, label, checked) {
@@ -298,18 +298,20 @@ var SelectWidget = function (multi) {
 
             if (data.error === 0) {
                 var checked = currentValues.includes(NaN);
-                $search.before(currentLi(multi, field, null, "blank", checked));
+                $search.parent().before(currentLi(multi, field, null, "blank", checked));
                 $available.append(availableLi(multi, field, null, 'blank', checked));
 
                 $.each(data.records, function(recordIndex, record) {
                     var checked = currentValues.includes(record.id);
-                    $search.before(currentLi(multi, field, record.id, record.label, checked));
+                    $search.parent().before(currentLi(multi, field, record.id, record.label, checked));
                     $available.append(availableLi(multi, field, record.id, record.label, checked));
                 });
 
                 $currentItems = $current.find("[data-list-item]");
                 $available = $selectWidget.find('.available');
                 $availableItems = $selectWidget.find('.available .answer input');
+                $answers = $selectWidget.find('.answer');
+
                 updateState();
                 connect();
 
@@ -331,6 +333,10 @@ var SelectWidget = function (multi) {
     }
 
     var expand = function($widget, $trigger, $target) {
+        if ($trigger.attr('aria-expanded') === "true") {
+            return;
+        }
+
         $selectWidget.addClass("select-widget--open");
         $trigger.attr('aria-expanded', true);
 
