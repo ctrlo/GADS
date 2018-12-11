@@ -310,10 +310,14 @@ var SelectWidget = function (multi) {
                 $currentItems = $current.find("[data-list-item]");
                 $available = $selectWidget.find('.available');
                 $availableItems = $selectWidget.find('.available .answer input');
+                $moreInfoButtons = $selectWidget.find('.available .answer .more-info');
                 $answers = $selectWidget.find('.answer');
 
                 updateState();
                 connect();
+
+                $availableItems.on('blur', possibleCloseWidget);
+                $moreInfoButtons.on('blur', possibleCloseWidget);
 
                 lastFetchParams = fetchParams;
             } else {
