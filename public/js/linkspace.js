@@ -392,7 +392,11 @@ var SelectWidget = function (multi) {
 
     $widget.unbind('click');
     $widget.on('click', function() {
-        expand($widget, $trigger, $target);
+        if ($trigger.attr('aria-expanded') === "true") {
+            collapse($widget, $trigger, $target);
+        } else {
+            expand($widget, $trigger, $target);
+        }
     });
 
     function possibleCloseWidget(e) {
@@ -488,6 +492,12 @@ var SelectWidget = function (multi) {
       } else {
         $available.find(".has-noresults").removeAttr('hidden', '');
       }
+    });
+
+    $search.unbind('click');
+    $search.on('click', function(e) {
+        // Prevent bubbling the click event to the $widget (which expands/collapses the widget on click).
+        e.stopPropagation();
     });
 };
 
