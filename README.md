@@ -28,13 +28,16 @@ cp config.yml-example config.yml
 
 # Create database (MySQL)
 mysql> CREATE DATABASE gads CHARACTER SET utf8 COLLATE utf8_general_ci;
-mysql> GRANT ALL ON gads5.* TO 'gads'@'localhost' IDENTIFIED BY 'mysecret';
+mysql> GRANT ALL ON gads.* TO 'gads'@'localhost' IDENTIFIED BY 'mysecret';
 
 # Create database (PostgreSQL)
 postgres=# CREATE USER gads WITH PASSWORD 'xxx';
 postgres=# CREATE DATABASE gads OWNER gads;
 # Switch to gads database
 gads=# CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
+
+# Install perl dependencies
+cpan .
 
 # Run database seeding script
 bin/seed-database.pl
