@@ -3075,7 +3075,7 @@ sub current_view {
         user        => $user,
         schema      => schema,
         layout      => $layout,
-        instance_id => session('persistent')->{instance_id},
+        instance_id => $layout->instance_id,
     );
     my $view;
     # If an invalid view is stuck in the session, then this can result in the
