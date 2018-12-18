@@ -1,5 +1,6 @@
 <iframe width="80%" height="400px" src="/aup_text"></iframe>
 <form method="post">
+    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
     <button type="submit" name="accepted" value="accepted" class="btn btn-primary">[% config.gads.aup_accept OR "I accept" %]</button>
 </form>
 

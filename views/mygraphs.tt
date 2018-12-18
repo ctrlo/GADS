@@ -5,6 +5,7 @@
             <p>Use this page to configure what graphs are displayed on your home page. New
             graphs can only be added by an administrator.</p>
             <form role="form" method="post">
+                <input type="hidden" name="csrf_token" value="[% csrf_token %]">
                 <table class="table table-striped dtable">
                     <thead>
                         <tr>

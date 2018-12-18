@@ -3,6 +3,7 @@ You last successful login was: [% lastlogin %]
 [% message %]
 <p></p>
 <form method="post">
+    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
     <button type="submit" class="btn btn-primary" name="accepted" value="accepted">Continue</button>
 </form>
 

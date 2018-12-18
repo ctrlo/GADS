@@ -1,5 +1,6 @@
 <h2>[% IF topic.id %]Edit topic[% ELSE %]Add a topic[% END %]</h2>
 <form role="form" method="post">
+    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
     <div class="row">
         <div class="col-md-6">
             [% IF topic.id %]

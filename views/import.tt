@@ -37,6 +37,7 @@
                 <p>Are you sure you want to delete reports of all completed imports?</p>
             </div>
             <form  role="form" method="post">
+                <input type="hidden" name="csrf_token" value="[% csrf_token %]">
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                     <button type="submit" name="clear" value="clear" class="btn btn-primary">Confirm</button>

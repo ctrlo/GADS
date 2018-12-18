@@ -541,6 +541,7 @@
         <a href="/[% layout.identifier %]/layout/0" class="btn btn-default">Add a field</a>
     </p>
     <form role="form" method="post">
+    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
     <table class="table table-striped">
         <thead>
             <tr>
@@ -735,6 +736,7 @@
 [% END %]
 
 <form method="post">
+<input type="hidden" name="csrf_token" value="[% csrf_token %]">
 [% IF column.id %]
     <input type="hidden" name="id" value="[% column.id %]">
 [% END %]

@@ -104,6 +104,7 @@
         data-instance-id="[% oi %]"
     [% END %]
 >
+    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
     [% IF modal %]
         <p role="alert" class="alert alert-danger" hidden></p>
     [% END %]

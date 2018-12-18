@@ -2,6 +2,7 @@
 <div class="row">
     <div class="col-md-12">
         <form role="form" method="post">
+            <input type="hidden" name="csrf_token" value="[% csrf_token %]">
             <p class="lead">
                 Customise the main homepage your users see when they login. Each
                 table also has its own homepage that can be configured

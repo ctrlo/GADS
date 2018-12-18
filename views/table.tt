@@ -1,5 +1,6 @@
 <h2>[% IF layout_edit.instance_id %]Manage this table[% ELSE %]Add a table[% END %]</h2>
 <form role="form" method="post">
+    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
     <div class="row">
         <div class="col-md-12">
             [% IF layout_edit.id %]
@@ -92,6 +93,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form role="form" method="post">
+            <input type="hidden" name="csrf_token" value="[% csrf_token %]">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 <h4 class="modal-title" id="myModalLabel">Are you sure?</h4>

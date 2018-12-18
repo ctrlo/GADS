@@ -120,6 +120,10 @@ config->{plugins}->{'Auth::Extensible'}->{realms}->{dbic}->{user_as_object}
 
 my $password_generator = CtrlO::Crypt::XkcdPassword->new;
 
+sub _update_csrf_token
+{   session csrf_token => Session::Token->new(length => 32)->get;
+}
+
 hook before => sub {
 
     schema->site_id(undef);
@@ -159,6 +163,24 @@ hook before => sub {
     my $user = request->uri =~ m!^/api/! && var('api_user') # Some API calls will be AJAX from standard logged-in user
         ? var('api_user')
         : logged_in_user;
+
+    if (!session 'csrf_token')
+    {
+        _update_csrf_token();
+    }
+
+    if (request->is_post)
+    {
+        # Protect against CSRF attacks
+        panic __x"csrf-token missing for path {path}", path => request->path
+            if !param 'csrf_token';
+        error __x"Suspected attack: CSRF token does not match that in the session"
+            if param('csrf_token') ne session('csrf_token');
+
+        # If it's a potential login, change the token
+        _update_csrf_token()
+            if request->path eq '/login';
+    }
 
     # Log to audit
     my $method      = request->method;
@@ -284,6 +306,7 @@ hook before_template => sub {
     $tokens->{messages}      = session('messages');
     $tokens->{site}          = var 'site';
     $tokens->{config}        = GADS::Config->instance;
+    $tokens->{csrf_token}    = session 'csrf_token';
 
     if ($tokens->{page} =~ /(data|view)/ && session('views_other_user_id'))
     {
@@ -319,7 +342,7 @@ get '/ping' => sub {
     'alive';
 };
 
-any '/aup' => require_login sub {
+any ['get', 'post'] => '/aup' => require_login sub {
 
     if (param 'accepted')
     {
@@ -337,7 +360,7 @@ get '/aup_text' => require_login sub {
 };
 
 # Shows last login time etc
-any '/user_status' => require_login sub {
+any ['get', 'post'] => '/user_status' => require_login sub {
 
     if (param 'accepted')
     {
@@ -498,7 +521,7 @@ prefix '/:layout_name' => sub {
         });
     };
 
-    any '/data' => require_login sub {
+    any ['get', 'post'] => '/data' => require_login sub {
 
         my $layout = var('layout') or pass;
 
@@ -1001,7 +1024,7 @@ prefix '/:layout_name' => sub {
         template 'data' => $params;
     };
 
-    any '/purge/?' => require_login sub {
+    any ['get', 'post'] => '/purge/?' => require_login sub {
 
         my $layout = var('layout') or pass;
 
@@ -1055,7 +1078,7 @@ prefix '/:layout_name' => sub {
         template 'purge' => $params;
     };
 
-    any '/config/?' => require_login sub {
+    any ['get', 'post'] => '/config/?' => require_login sub {
 
         my $layout = var('layout') or pass;
 
@@ -1089,7 +1112,7 @@ prefix '/:layout_name' => sub {
         };
     };
 
-    any '/graph/?' => require_login sub {
+    get '/graph/?' => require_login sub {
 
         my $layout = var('layout') or pass;
 
@@ -1110,7 +1133,7 @@ prefix '/:layout_name' => sub {
         template 'graphs' => $params;
     };
 
-    any '/graph/:id' => require_login sub {
+    any ['get', 'post'] => '/graph/:id' => require_login sub {
 
         my $layout = var('layout') or pass;
 
@@ -1200,7 +1223,7 @@ prefix '/:layout_name' => sub {
         template 'metrics' => $params;
     };
 
-    any '/metric/:id' => require_login sub {
+    any ['get', 'post'] => '/metric/:id' => require_login sub {
 
         my $layout = var('layout') or pass;
 
@@ -1283,7 +1306,7 @@ prefix '/:layout_name' => sub {
         template 'metric' => $params;
     };
 
-    any '/topic/:id' => require_login sub {
+    any ['get', 'post'] => '/topic/:id' => require_login sub {
 
         my $layout = var('layout') or pass;
 
@@ -1338,7 +1361,7 @@ prefix '/:layout_name' => sub {
         }
     };
 
-    any '/topics/?' => require_login sub {
+    get '/topics/?' => require_login sub {
 
         my $layout = var('layout') or pass;
 
@@ -1357,7 +1380,7 @@ prefix '/:layout_name' => sub {
         };
     };
 
-    any '/view/:id' => require_login sub {
+    any ['get', 'post'] => '/view/:id' => require_login sub {
 
         my $layout = var('layout') or pass;
 
@@ -1441,7 +1464,7 @@ prefix '/:layout_name' => sub {
         $output;
     };
 
-    any '/layout/?:id?' => require_login sub {
+    any ['get', 'post'] => '/layout/?:id?' => require_login sub {
 
         my $layout = var('layout') or pass;
 
@@ -1618,7 +1641,7 @@ prefix '/:layout_name' => sub {
         template 'layout' => $params;
     };
 
-    any '/approval/?:id?' => require_login sub {
+    any ['get', 'post'] => '/approval/?:id?' => require_login sub {
 
         my $layout = var('layout') or pass;
         my $id   = param 'id';
@@ -1746,7 +1769,7 @@ prefix '/:layout_name' => sub {
         template $page => $params;
     };
 
-    any '/link/:id?' => require_login sub {
+    any ['get', 'post'] => '/link/:id?' => require_login sub {
 
         my $layout = var('layout') or pass;
 
@@ -1859,7 +1882,7 @@ prefix '/:layout_name' => sub {
         }
     };
 
-    any '/bulk/:type/?' => require_login sub {
+    any ['get', 'post'] => '/bulk/:type/?' => require_login sub {
 
         my $layout = var('layout') or pass;
 
@@ -2020,13 +2043,13 @@ prefix '/:layout_name' => sub {
         };
     };
 
-    any '/edit/?' => require_login sub {
+    any ['get', 'post'] => '/edit/?' => require_login sub {
 
         my $layout = var('layout') or pass;
         _process_edit();
     };
 
-    any '/import/?' => require_any_role [qw/layout useradmin/] => sub {
+    any ['get', 'post'] => '/import/?' => require_any_role [qw/layout useradmin/] => sub {
 
         my $layout = var('layout') or pass; # XXX Need to search on this
 
@@ -2044,7 +2067,7 @@ prefix '/:layout_name' => sub {
         };
     };
 
-    any '/import/rows/:import_id' => require_any_role [qw/layout useradmin/] => sub {
+    get '/import/rows/:import_id' => require_any_role [qw/layout useradmin/] => sub {
 
         my $layout = var('layout') or pass; # XXX Need to search on this
 
@@ -2069,7 +2092,7 @@ prefix '/:layout_name' => sub {
         };
     };
 
-    any '/import/data/?' => require_login sub {
+    any ['get', 'post'] => '/import/data/?' => require_login sub {
 
         my $layout = var('layout') or pass;
 
@@ -2113,7 +2136,7 @@ prefix '/:layout_name' => sub {
         };
     };
 
-    any '/mygraphs/?' => require_login sub {
+    any ['get', 'post'] => '/mygraphs/?' => require_login sub {
 
         my $layout = var('layout') or pass;
         my $user   = logged_in_user;
@@ -2165,13 +2188,13 @@ prefix '/:layout_name' => sub {
 
 };
 
-any '/edit/:id?' => require_login sub {
+any ['get', 'post'] => '/edit/:id?' => require_login sub {
 
     my $id = param 'id';
     _process_edit($id);
 };
 
-any '/myaccount/?' => require_login sub {
+any ['get', 'post'] => '/myaccount/?' => require_login sub {
 
     my $user   = logged_in_user;
     my $audit  = GADS::Audit->new(schema => schema, user => $user);
@@ -2222,7 +2245,7 @@ any '/myaccount/?' => require_login sub {
     };
 };
 
-any '/system/?' => require_login sub {
+any ['get', 'post'] => '/system/?' => require_login sub {
 
     my $user        = logged_in_user;
 
@@ -2251,7 +2274,7 @@ any '/system/?' => require_login sub {
 };
 
 
-any '/group/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
+any ['get', 'post'] => '/group/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
 
     my $id = param 'id';
     my $group  = GADS::Group->new(schema => schema);
@@ -2316,7 +2339,7 @@ get '/table/?' => require_role superadmin => sub {
     };
 };
 
-any '/table/:id' => require_role superadmin => sub {
+any ['get', 'post'] => '/table/:id' => require_role superadmin => sub {
 
     my $id          = param 'id';
     my $user        = logged_in_user;
@@ -2371,7 +2394,7 @@ any '/table/:id' => require_role superadmin => sub {
     }
 };
 
-any qr{/tree[0-9]*/([0-9]*)/?} => require_login sub {
+any ['get', 'post'] => qr{/tree[0-9]*/([0-9]*)/?} => require_login sub {
     # Random number can be used after "tree" to prevent caching
 
     my ($layout_id) = splat;
@@ -2400,7 +2423,7 @@ any qr{/tree[0-9]*/([0-9]*)/?} => require_login sub {
 
 };
 
-any '/user/upload' => require_any_role [qw/useradmin superadmin/] => sub {
+any ['get', 'post'] => '/user/upload' => require_any_role [qw/useradmin superadmin/] => sub {
 
     my $userso = GADS::Users->new(schema => schema);
 
@@ -2432,7 +2455,7 @@ any '/user/upload' => require_any_role [qw/useradmin superadmin/] => sub {
     };
 };
 
-any '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
+any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
 
     my $id = body_parameters->get('id');
 
@@ -2744,7 +2767,7 @@ get '/record_body/:id' => require_login sub {
     }, { layout => undef };
 };
 
-any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
+get qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
 
     my ($action, $id) = splat;
 
@@ -2790,7 +2813,7 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
     $output;
 };
 
-any '/audit/?' => require_role audit => sub {
+any ['get', 'post'] => '/audit/?' => require_role audit => sub {
 
     my $audit = GADS::Audit->new(schema => schema);
     my $users = GADS::Users->new(schema => schema, config => config);
@@ -2881,7 +2904,7 @@ get '/login/denied' => sub {
     forwardHome({ danger => "You do not have permission to access this page" });
 };
 
-any '/login' => sub {
+any ['get', 'post'] => '/login' => sub {
 
     my $audit = GADS::Audit->new(schema => schema);
     my $user  = logged_in_user;
@@ -3017,12 +3040,12 @@ any '/login' => sub {
     $output;
 };
 
-any '/logout' => sub {
+get '/logout' => sub {
     app->destroy_session;
     forwardHome();
 };
 
-any '/resetpw/:code' => sub {
+any ['get', 'post'] => '/resetpw/:code' => sub {
 
     # Strange things happen if running this code when already logged in.
     # Log the existing user out first

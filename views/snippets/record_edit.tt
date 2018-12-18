@@ -26,6 +26,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <form role="form" method="post" enctype="multipart/form-data" action="/edit/">
+                <input type="hidden" name="csrf_token" value="[% csrf_token %]">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     <h4 class="modal-title" id="myModalLabel">Delete record</h4>

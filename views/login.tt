@@ -22,6 +22,7 @@
            [% ELSE %]
                 <h1>New password</h1>
                 <form method="post">
+                    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
                     <input type="submit" name="execute_reset" class="btn btn-lg btn-block" value="Continue to password retrieval">
                 </form>
             [% END %]
@@ -30,6 +31,7 @@
         <div class="row" style="margin-top:20px">
             <div class="col-xs-12 col-sm-8 col-md-6 col-sm-offset-2 col-md-offset-3">
                 <form method="post" autocomplete="off">
+                    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
                     <h1>Please Sign In</h1>
                     <hr>
                     <div class="form-group">
@@ -79,6 +81,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form method="post" autocomplete="off" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
                     <div class="modal-header">
                         <h1 class="modal-title" id="reset-password-heading">Reset password</h1>
                         [% PROCESS modal_close_button %]
@@ -104,6 +107,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form method="post" autocomplete="off">
+                    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
                     <div class="modal-header">
                         <h1 class="modal-title" id="request-account-heading">Request account</h1>
                         [% PROCESS modal_close_button %]

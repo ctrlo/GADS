@@ -10,6 +10,7 @@
     <h1>Add a user</h1>
 [% END %]
 <form method="post" style="display: inline"> <!-- Prevent reset password button line break -->
+    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
     <div class="row">
         <div class="col-md-6">
             [% IF edituser.account_request %]

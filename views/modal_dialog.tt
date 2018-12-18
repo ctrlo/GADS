@@ -17,6 +17,7 @@
         <div class="modal-content">
         [% IF modal_with_form %]
             <form class="form" [% modal_form_action && 'action="$modal_form_action"' %] method="[% modal_form_method || 'get' %]">
+            <input type="hidden" name="csrf_token" value="[% csrf_token %]">
         [% END %]
             <div class="modal-header">
                 [% IF modal_heading %]
