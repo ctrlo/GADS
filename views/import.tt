@@ -1,4 +1,4 @@
-<a href="/import/data/" class="btn btn-default">Import data...</a>
+<a href="/[% layout.identifier %]/import/data/" class="btn btn-default">Import data...</a>
 <a href="" data-toggle="modal" data-target="#modal_clear" class="btn btn-default">Clear completed reports...</a>
 <h3>Import Status</h3>
 [% IF imports.size %]

@@ -59,7 +59,7 @@ $('#builder[% builder_id %]').queryBuilder({
                             source: function (query, process) {
                                 return $.ajax({
                                     type: 'GET',
-                                    url: '/match/layout/[% col.id | uri %]',
+                                    url: '/[% layout.identifier %]/match/layout/[% col.id | uri %]',
                                     data: { q: query, oi: [% col.layout.instance_id %] },
                                     success: function(result) { process(result) },
                                     dataType: 'json'

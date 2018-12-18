@@ -61,7 +61,7 @@
                 <link rel="stylesheet" href="[% scheme %]://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.css">
             [% END %]
         [% END %]
-        [% IF page == "config" %]
+        [% IF page == "config" || page == "system" %]
             <link href="[% url.css %]/summernote.css" rel="stylesheet">
         [% END %]
 
@@ -274,7 +274,7 @@
         [% IF page == "data" %]
             <script type='text/javascript' src='[% url.js %]/fontdetect.min.js'></script>
         [% END %]
-        [% IF page == "config" %]
+        [% IF page == "config" || page == "system" %]
             [% IF 0 %]
                 <script type="text/javascript" src="[% url.js %]/tiny_mce/tiny_mce.js"></script>
             [% ELSE %]

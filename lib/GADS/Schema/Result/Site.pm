@@ -116,4 +116,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+sub has_main_homepage
+{   my $self = shift;
+    return 1 if $self->homepage_text && $self->homepage_text !~ /^\s*$/;
+    return 1 if $self->homepage_text2 && $self->homepage_text2 !~ /^\s*$/;
+    return 0;
+}
+
+sub has_table_homepage
+{   my $self = shift;
+    foreach my $table ($self->instances)
+    {
+        return 1 if $self->homepage_text && $self->homepage_text !~ /^\s*$/;
+        return 1 if $self->homepage_text2 && $self->homepage_text2 !~ /^\s*$/;
+    }
+    return 0;
+}
+
 1;
