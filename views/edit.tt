@@ -318,12 +318,13 @@
                     var $widget = $formGroup.find(".select-widget").first();
                     var multi = $widget.hasClass('multi');
 
-                    $currentList = $formGroup.find(".current");
+                    $currentItems = $formGroup.find(".current [data-list-item]");
+                    $search = $formGroup.find(".current .search");
                     $answersList = $formGroup.find(".available");
 
                     if (!multi) {
                         /* Deselect current selected value */
-                        $currentList.find("li").attr('hidden', '');
+                        $currentItems.attr('hidden', '');
                         $answersList.find("li input").prop("checked", false);
                     }
 
@@ -334,7 +335,7 @@
                     }).join(", ");
 
                     guid = window.guid();
-                    $currentList.append('<li data-list-item="field' + col_id + '_' + guid + '">' + textValue + '</li>');
+                    $search.before('<li data-list-item="field' + col_id + '_' + guid + '">' + textValue + '</li>');
                     var inputType = multi ? "checkbox" : "radio";
                     $answersList.append('<li class="answer">' +
                         '<span class="control">' +
@@ -867,7 +868,7 @@
 [% END %]
 
 [% BLOCK singlevalue_column %]
-    <div class="select-widget single"
+    <div class="select-widget [% IF readonly %]select-widget--read-only[% END %] single"
         [% IF column.has_subvals %]
             data-field="[% field %]"
             data-filter-endpoint="[% "/api/field/values/" _ column.id %]"
@@ -887,35 +888,30 @@
                     [% value_id = field _ '_' _ value.id %]
                     <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">[% value.value | html_entity %]</li>
                 [% END %]
+                    [% IF !readonly %]
+                        <li class="search">
+                            <input type="search" class="form-control-search" style="width:70px" placeholder="Search..." aria-controls="[% field %]_available_values" aria-haspopup="listbox" aria-expanded="false" aria-describedby="[% field %]_label [% field %]_value">
+                        </li>
+                    [% END %]
                 </ul>
-                [% IF !readonly %]
-                    <button type="button" aria-controls="[% field %]_available_values" aria-haspopup="listbox"
-                            aria-expanded="false" aria-describedby="[% field %]_label [% field %]_value">
-                        <span class="expanded glyphicon glyphicon-chevron-up" aria-label="Confirm"></span>
-                        <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
-                    </button>
-                [% END %]
             </div>
             <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values" role="listbox" aria-labelledby="[% field %]_label">
-                [% IF values.size >= 10 %]
-                    <li class="search">
-                        <input type="search" class="form-control-search">
-                        <span hidden class="form-control-search__clear">&times;</span>
-                    </li>
-                [% END %]
                 <li class="spinner" hidden>
                     <i class="fa fa-spinner fa-spin" style="font-size:24px"></i>
                 </li>
-                <li class="answer answer--blank">
-                    <span class="control">
-                        [% checked = !editvalue.id %]
-                        [% value_id = field _ '__blank' %]
-                        <label id="blank_label" for="[% value_id %]">
-                            <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="" class="visually-hidden">
-                            <span role="option">blank</span>
-                        </label>
-                    </span>
-                </li>
+                <li class="has-noresults" hidden>No results</li>
+                [% IF NOT required %]
+                    <li class="answer answer--blank">
+                        <span class="control">
+                            [% checked = !editvalue.id %]
+                            [% value_id = field _ '__blank' %]
+                            <label id="blank_label" for="[% value_id %]">
+                                <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="" class="visually-hidden">
+                                <span role="option">blank</span>
+                            </label>
+                        </span>
+                    </li>
+                [% END %]
             [% FOREACH value IN values %]
                 [% NEXT IF value.deleted %]
                 [% checked = editvalue.id_hash.${value.id} %]
@@ -1000,7 +996,7 @@
 %]
 
 [% BLOCK multivalue_column %]
-    <div class="select-widget multi"
+    <div class="select-widget [% IF readonly %]select-widget--read-only[% END %] multi"
         [% IF column.has_subvals %]
             data-field="[% field %]"
             data-filter-endpoint="[% "/api/field/values/" _ column.id %]"
@@ -1018,25 +1014,18 @@
                     [% value_id = field _ '_' _ value.id %]
                     <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">[% value.value | html_entity %]</li>
                 [% END %]
+                    [% IF !readonly %]
+                        <li class="search">
+                            <input type="search" class="form-control-search" style="width:70px"  placeholder="Search..." aria-controls="[% field %]_available_values" aria-expanded="false" aria-describedby="[% field %]_label">
+                        </li>
+                    [% END %]
                 </ul>
-                [% IF !readonly %]
-                    <button type="button" aria-controls="[% field %]_available_values"
-                                aria-expanded="false" aria-describedby="[% field %]_label">
-                        <span class="expanded glyphicon glyphicon-chevron-up" aria-label="Confirm"></span>
-                        <span class="collapsed glyphicon glyphicon-chevron-down" aria-label="Change"></span>
-                    </button>
-                [% END %]
             </div>
             <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values" aria-labelledby="[% field %]_label">
-                [% IF values.size >= 10 %]
-                    <li class="search">
-                        <input type="search" class="form-control-search">
-                        <span hidden class="form-control-search__clear">&times;</span>
-                    </li>
-                [% END %]
                 <li class="spinner" hidden>
                     <i class="fa fa-spinner fa-spin" style="font-size:24px"></i>
                 </li>
+                <li class="has-noresults" hidden>No results</li>
             [% FOREACH value IN values %]
                 [% NEXT IF value.deleted %]
                 [% checked = editvalue.id_hash.${value.id} %]
