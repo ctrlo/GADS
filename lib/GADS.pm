@@ -391,7 +391,7 @@ any ['get', 'post'] => '/user_status' => require_login sub {
 
 prefix '/:layout_name' => sub {
 
-    get '/' => sub {
+    get '/?' => sub {
         my $layout = var('layout') or pass;
 
         my $homepage_text  = $layout->homepage_text;
@@ -1112,7 +1112,7 @@ prefix '/:layout_name' => sub {
 
         my $user        = logged_in_user;
 
-        forwardHome({ danger => "You do not have permission to manage general settings"}, '')
+        forwardHome({ danger => "You do not have permission to manage general settings"}, $layout->identifier)
             unless $layout->user_can("layout");
 
         my $instance = rset('Instance')->find(var('layout')->instance_id);
@@ -1127,7 +1127,7 @@ prefix '/:layout_name' => sub {
             if (process( sub { $instance->update }))
             {
                 return forwardHome(
-                    { success => "Configuration settings have been updated successfully" } );
+                    { success => "Configuration settings have been updated successfully" }, $layout->identifier);
             }
         }
 
