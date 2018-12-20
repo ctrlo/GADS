@@ -332,8 +332,22 @@ sub _update_persistent
 
 get '/' => require_login sub {
 
-    template 'index_site' => {
-        page => 'index',
+    my $site = var 'site';
+
+    my $homepage_text  = $site->homepage_text;
+    my $homepage_text2 = $site->homepage_text2;
+
+    if (!$site->has_main_homepage)
+    {
+        my ($layout) = var('instances')->all;
+        $homepage_text = $layout->homepage_text;
+        $homepage_text2 = $layout->homepage_text2;
+    }
+
+    template 'index' => {
+        homepage_text  => $homepage_text,
+        homepage_text2 => $homepage_text2,
+        page           => 'index',
     };
 };
 
@@ -380,9 +394,23 @@ prefix '/:layout_name' => sub {
     get '/' => sub {
         my $layout = var('layout') or pass;
 
+        my $homepage_text  = $layout->homepage_text;
+        my $homepage_text2 = $layout->homepage_text2;
+
+        my $site = var 'site';
+        # If no table homepage exists show site homepage, but only if no tables
+        # at all have a homepage defined
+        if (!$site->has_table_homepage)
+        {
+            $homepage_text = $site->homepage_text;
+            $homepage_text2 = $site->homepage_text2;
+        }
+
         template 'index' => {
-            page        => 'index',
-            breadcrumbs => [Crumb($layout)]
+            homepage_text  => $homepage_text,
+            homepage_text2 => $homepage_text2,
+            page           => 'index',
+            breadcrumbs    => [Crumb($layout)]
         };
     };
 

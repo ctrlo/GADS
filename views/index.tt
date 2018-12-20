@@ -1,14 +1,14 @@
 <div class="row">
-    [% IF layout.homepage_text2 %]
+    [% IF homepage_text2 %]
         <div class="col-md-6">
     [% ELSE %]
         <div class="col-md-12">
     [% END %]
-            [% layout.homepage_text %]
+            [% homepage_text %]
         </div>
-    [% IF layout.homepage_text2 %]
+    [% IF homepage_text2 %]
         <div class="col-md-6">
-            [% layout.homepage_text2 %]
+            [% homepage_text2 %]
         </div>
     [% END %]
 </div>

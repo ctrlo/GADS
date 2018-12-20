@@ -127,8 +127,8 @@ sub has_table_homepage
 {   my $self = shift;
     foreach my $table ($self->instances)
     {
-        return 1 if $self->homepage_text && $self->homepage_text !~ /^\s*$/;
-        return 1 if $self->homepage_text2 && $self->homepage_text2 !~ /^\s*$/;
+        return 1 if $table->homepage_text && $table->homepage_text !~ /^\s*$/;
+        return 1 if $table->homepage_text2 && $table->homepage_text2 !~ /^\s*$/;
     }
     return 0;
 }
