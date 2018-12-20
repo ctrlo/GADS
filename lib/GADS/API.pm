@@ -366,43 +366,46 @@ post '/api/token' => sub {
     return encode_json $json_response;
 };
 
-get '/api/field/values/:id' => require_login sub {
+prefix '/:layout_name' => sub {
 
-    my $user   = logged_in_user;
-    my $layout = var 'layout';
-    my $col_id = route_parameters->get('id');
+    get '/api/field/values/:id' => require_login sub {
 
-    my $curval = $layout->column($col_id);
+        my $user   = logged_in_user;
+        my $layout = var('layout') or pass;
+        my $col_id = route_parameters->get('id');
 
-    my $record = GADS::Record->new(
-        user   => $user,
-        layout => $layout,
-        schema => schema,
-    );
-    $record->initialise;
+        my $curval = $layout->column($col_id);
 
-    my @missing;
-    foreach my $col (@{$curval->subvals_input_required})
-    {
-        my @vals = grep { $_ } query_parameters->get_all($col->field);
-        push @missing, $col if !"@vals" && !$col->optional;
-        my $datum = $record->fields->{$col->id};
-        process( sub { $datum->set_value(\@vals) } );
-    }
+        my $record = GADS::Record->new(
+            user   => $user,
+            layout => $layout,
+            schema => schema,
+        );
+        $record->initialise;
 
-    if (@missing)
-    {
-        my $msg = "The following fields need to be completed first: "
-            .join ', ', map { $_->name } @missing;
+        my @missing;
+        foreach my $col (@{$curval->subvals_input_required})
+        {
+            my @vals = grep { $_ } query_parameters->get_all($col->field);
+            push @missing, $col if !"@vals" && !$col->optional;
+            my $datum = $record->fields->{$col->id};
+            process( sub { $datum->set_value(\@vals) } );
+        }
 
-        return encode_json { error => 1, message => $msg };
-    }
+        if (@missing)
+        {
+            my $msg = "The following fields need to be completed first: "
+                .join ', ', map { $_->name } @missing;
 
-    return encode_json {
-        "error"  => 0,
-        "records"=> [
-            map { +{ id => $_->{id}, label => $_->{value} } } @{$curval->filtered_values}
-        ]
+            return encode_json { error => 1, message => $msg };
+        }
+
+        return encode_json {
+            "error"  => 0,
+            "records"=> [
+                map { +{ id => $_->{id}, label => $_->{value} } } @{$curval->filtered_values}
+            ]
+        };
     };
 };
 
