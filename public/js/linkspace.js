@@ -917,6 +917,7 @@ var setupHtmlEditor = function (context) {
 	if(file.type.includes('image')) {
 	    var data = new FormData();
 	    data.append('file', file);
+            data.append('csrf_token', $('body').data('csrf-token'));
 	    $.ajax({
 		url: '/file?ajax',
 		type: 'POST',
