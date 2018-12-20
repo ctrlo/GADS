@@ -331,17 +331,22 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+# The following code is now removed: it is too difficult to scrub whilst still
+# retaining the required functionality and formatting (and being completely
+# safe). Given that only an administrator has access to update HTML code, this
+# is an acceptable risk.
+#
 # Sanitise HTML input. This will be from an administrator so should be
 # safe, but scrube anyway just in case.
-__PACKAGE__->filter_column( homepage_text => {
-    filter_to_storage => '_scrub',
-    filter_from_storage => '_scrub',
-});
-
-__PACKAGE__->filter_column( homepage_text2 => {
-    filter_to_storage => '_scrub',
-    filter_from_storage => '_scrub',
-});
+#__PACKAGE__->filter_column( homepage_text => {
+#    filter_to_storage => '_scrub',
+#    filter_from_storage => '_scrub',
+#});
+#
+#__PACKAGE__->filter_column( homepage_text2 => {
+#    filter_to_storage => '_scrub',
+#    filter_from_storage => '_scrub',
+#});
 
 sub delete
 {   my $self = shift;
