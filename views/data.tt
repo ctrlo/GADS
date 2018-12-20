@@ -2,7 +2,7 @@
     <div class="row search-results">
         <h1>
             Search results <small class="search_term">for term "[% search | html_entity %]" ([% count %] results)</small>
-	    <form id="clear_search" action="/data" method="post">
+	    <form id="clear_search" action="/[% layout.identifier %]/data" method="post">
                 <input type="hidden" name="csrf_token" value="[% csrf_token %]">
 		<button type="submit" name="clear_search" value="clear_search" class="btn btn-default">
 		Clear <span class="visually-hidden">search results</span>
@@ -78,7 +78,7 @@
                             <li role="presentation"
                                     [% IF ve.id == v.id %]class="active"[% END %]
                                 >
-                                <a role="menuitem" tabindex="-1" href="/data?view=[% ve.id %]">[% ve.name | html_entity %]
+                                <a role="menuitem" tabindex="-1" href="/[% layout.identifier %]/data?view=[% ve.id %]">[% ve.name | html_entity %]
                                     [% veid = ve.id %]
                                     [% IF alerts.$veid %]<img src="/images/bell.png">[% END %]
                                 </a>
@@ -96,7 +96,7 @@
                         <ul id="menu_view" class="dropdown-menu scrollable-menu" role="menu">
                             [% FOR view_limit IN views_limit_extra %]
                                 <li role="presentation">
-                                    <a role="menuitem" tabindex="-1" href="/data?extra=[% view_limit.id %]">
+                                    <a role="menuitem" tabindex="-1" href="/[% layout.identifier %]/data?extra=[% view_limit.id %]">
                                         [% view_limit.name | html %]
                                     </a>
                                 </li>
@@ -126,7 +126,7 @@
                                 <li role="presentation"><a role="menuitem" id="delete_href" class="bulk_href" tabindex="-1" data-toggle="modal" data-target="#modal_delete" style="cursor: pointer">Delete all [% sel_type %]...</a>
                             [% END %]
                             [% IF viewtype == "table" AND records.size AND layout.user_can("download") %]
-                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/data?download">Download records in current view</a></li>
+                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/[% layout.identifier %]/data?download">Download records in current view</a></li>
                             [% END %]
                         </ul>
                     </div>
