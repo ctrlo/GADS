@@ -339,7 +339,7 @@ get '/' => require_login sub {
 
     if (!$site->has_main_homepage)
     {
-        my ($layout) = var('instances')->all;
+        my $layout = var('instances')->first_homepage;
         $homepage_text = $layout->homepage_text;
         $homepage_text2 = $layout->homepage_text2;
     }

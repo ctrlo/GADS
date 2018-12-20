@@ -218,5 +218,14 @@ sub is_valid
     $id; # Return ID to make testing easier
 }
 
+sub first_homepage
+{   my $self = shift;
+    foreach my $layout (@{$self->all})
+    {
+        return $layout if $layout->homepage_text;
+    }
+    return $self->all->[0];
+}
+
 1;
 
