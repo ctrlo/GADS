@@ -256,7 +256,7 @@
             });
             function update_range_session(props) {
                 $.post({
-                    url: "/data_timeline",
+                    url: "/[% layout.identifier %]/data_timeline",
                     data: "from=" + props.start.getTime() + "&to=" + props.end.getTime(),
                 });
             }
@@ -267,7 +267,7 @@
                         that go over that date, otherwise we will retrieve
                         items that we already have
                     %]
-                    url: "/data_timeline/" + "10" + "?from=" + from + "&to=" + to + "&exclusive=" + exclusive,
+                    url: "/[% layout.identifier %]/data_timeline/" + "10" + "?from=" + from + "&to=" + to + "&exclusive=" + exclusive,
                     dataType:'json',
                     success: function(data) {
                         items.add(data);
@@ -289,7 +289,7 @@
             <nav class="navbar navbar-default navbar-fixed-bottom" style="min-height:55px">
                 <div class="container">
                     <button type="submit" id="submit_button" name="submit" value="submit" class="btn btn-primary">Save</button>
-                    <a href="/data" id="cancel_button" class="btn btn-default">Cancel</a>
+                    <a href="/[% layout.identifier %]/data" id="cancel_button" class="btn btn-default">Cancel</a>
                     <span style="padding-left: 35px">You have <a data-toggle="modal" data-target="#modal_changed_items" href="">unsaved changes</a>.</span>
                 </div>
             </nav>
