@@ -27,7 +27,7 @@
 
         <!-- Custom styles for this template -->
         [% UNLESS page_as_mech %]
-            <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap.css">
+            <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap.css?v=2">
             [% IF config.gads.legacy_menu %]
                 <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap-legacy.css">
             [% END %]
@@ -66,7 +66,7 @@
         [% END %]
 
         <!-- Custom styles for this template -->
-        <link rel="stylesheet" href="[% url.css %]/local.css">
+        <link rel="stylesheet" href="[% url.css %]/local.css?v=2">
 
         [% IF user.stylesheet %]
             <!-- Custom styles for this user -->
