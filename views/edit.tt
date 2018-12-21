@@ -165,7 +165,7 @@
                         </button>
                     [% END %]
                 [% END %]
-                <a href="/data" class="btn btn-default" role="button">Cancel</a>
+                <a href="/[% layout.identifier %]/data" class="btn btn-default" role="button">Cancel</a>
             </div>
         </div>
     [% END %]

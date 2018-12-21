@@ -38,9 +38,9 @@
                 </nav>
 
             </form>
-        [% ELSIF user.permission.layout %]
+        [% ELSIF layout.user_can("layout") %]
             <p>
-                No graphs have been created. Please visit <a href="/graph">Graphs</a> to create some.
+                No graphs have been created. Please visit <a href="/[% layout.identifier %]/graph">Manage Graphs</a> to create some.
             </p>
         [% ELSE %]
             <p>

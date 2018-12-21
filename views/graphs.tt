@@ -16,7 +16,7 @@ de-select graphs that they do not wish to be displayed.</p>
     </tr>
     [% FOREACH graph IN graphs %]
         <tr>
-            <td><a href="/graph/[% graph.id %]">Edit</a></td>
+            <td><a href="/[% layout.identifier %]/graph/[% graph.id %]">Edit</a></td>
             <td>[% graph.title | html_entity %]
             <td>[% graph.type.ucfirst %]</td>
             <td>[% layout.column(graph.x_axis).name | html_entity %]</td>

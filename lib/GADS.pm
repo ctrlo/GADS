@@ -1052,6 +1052,37 @@ prefix '/:layout_name' => sub {
         template 'data' => $params;
     };
 
+    # any ['get', 'post'] => qr{/tree[0-9]*/([0-9]*)/?} => require_login sub {
+    any ['get', 'post'] => '/tree:any?/:layout_id/?' => require_login sub {
+        # Random number can be used after "tree" to prevent caching
+
+        my $layout      = var('layout') or pass;
+        my ($layout_id) = splat;
+        $layout_id = route_parameters->get('layout_id');
+
+        my $tree = $layout->column($layout_id)
+            or error __x"Invalid tree ID {id}", id => $layout_id;
+
+        if (param 'data')
+        {
+            return forwardHome(
+                { danger => 'You do not have permission to edit trees' } )
+                unless $layout->user_can("layout");
+
+            my $newtree = JSON->new->utf8(0)->decode(param 'data');
+            $tree->update($newtree);
+            return;
+        }
+        my @ids  = query_parameters->get_all('ids');
+        my $json = $tree->type eq 'tree' ? $tree->json(@ids) : [];
+
+        # If record is specified, select the record's value in the returned JSON
+        header "Cache-Control" => "max-age=0, must-revalidate, private";
+        content_type 'application/json';
+        encode_json($json);
+
+    };
+
     any ['get', 'post'] => '/purge/?' => require_login sub {
 
         my $layout = var('layout') or pass;
@@ -2420,35 +2451,6 @@ any ['get', 'post'] => '/table/:id' => require_role superadmin => sub {
         groups      => GADS::Groups->new(schema => schema)->all,
         breadcrumbs => [Crumb( '/table' => 'tables' ) => Crumb( "/table/$table_id" => $table_name )],
     }
-};
-
-any ['get', 'post'] => qr{/tree[0-9]*/([0-9]*)/?} => require_login sub {
-    # Random number can be used after "tree" to prevent caching
-
-    my ($layout_id) = splat;
-    my $layout      = var 'layout';
-
-    my $tree = var('layout')->column($layout_id)
-        or error __x"Invalid tree ID {id}", id => $layout_id;
-
-    if (param 'data')
-    {
-        return forwardHome(
-            { danger => 'You do not have permission to edit trees' } )
-            unless $layout->user_can("layout");
-
-        my $newtree = JSON->new->utf8(0)->decode(param 'data');
-        $tree->update($newtree);
-        return;
-    }
-    my @ids  = query_parameters->get_all('ids');
-    my $json = $tree->type eq 'tree' ? $tree->json(@ids) : [];
-
-    # If record is specified, select the record's value in the returned JSON
-    header "Cache-Control" => "max-age=0, must-revalidate, private";
-    content_type 'application/json';
-    encode_json($json);
-
 };
 
 any ['get', 'post'] => '/user/upload' => require_any_role [qw/useradmin superadmin/] => sub {

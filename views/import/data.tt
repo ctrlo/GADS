@@ -69,7 +69,7 @@
                 </select>
             </div>
             <input type="submit" name="submit" value="Submit" class="btn btn-primary">
-            <a href="/import/" class="btn btn-default">Cancel</a>
+            <a href="/[% layout.identifier %]/import/" class="btn btn-default">Cancel</a>
         </form>
     </div>
 </div>

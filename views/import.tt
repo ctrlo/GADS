@@ -16,7 +16,7 @@
                 <td>[% IF import.completed %]Completed [% import.completed %][% ELSE %]In progress[% END %]</td>
                 <td>[% import.row_count %]</td>
                 <td>[% import.result %]</td>
-                <td><a href="/import/rows/[% import.id %]">View all rows</a></td>
+                <td><a href="/[% layout.identifier %]/import/rows/[% import.id %]">View all rows</a></td>
             </tr>
         [% END %]
     </table>

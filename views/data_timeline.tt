@@ -103,8 +103,8 @@
                         $("#delete_ids").append('<input type="hidden" name="delete_id" value="' + id + '">');
                     });
                     var href = hrefs.join('&');
-                    $('#update_href').attr("href", "/bulk/update/?" + href);
-                    $('#clone_href').attr("href", "/bulk/clone/?" + href);
+                    $('#update_href').attr("href", "/[% layout.identifier %]/bulk/update/?" + href);
+                    $('#clone_href').attr("href", "/[% layout.identifier %]/bulk/clone/?" + href);
                     $('#count_delete').text(items.length);
                     $('.bulk_href').off();
                 }
@@ -279,7 +279,7 @@
     [% END %]';
 </script>
 
-<form role="form" method="post" enctype="multipart/form-data" style="display: none" action="/edits">
+<form role="form" method="post" enctype="multipart/form-data" style="display: none" action="/[% layout.identifier %]/edits">
     <input type="hidden" name="csrf_token" value="[% csrf_token %]">
     <input type="hidden" name="q" id="changed_data">
 

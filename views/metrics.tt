@@ -14,7 +14,7 @@ calculated by comparing the absolute value with the relevant metric.
     </tr>
     [% FOREACH metric IN metrics %]
         <tr>
-            <td><a href="/metric/[% metric.id %]">Edit</a></td>
+            <td><a href="/[% layout.identifier %]/metric/[% metric.id %]">Edit</a></td>
             <td>[% metric.name | html_entity %]
         </tr>
     [% END %]

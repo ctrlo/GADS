@@ -18,7 +18,7 @@
                 <input type="text" class="form-control" id="linked_id" name="linked_id" value="[% record.linked_id %]">
             </div>
             <button type="submit" id="submit_button" name="submit" value="submit" class="btn btn-primary">Save</button>
-            <a href="/data" class="btn btn-default">Cancel</a>
+            <a href="/[% layout.identifier %]/data" class="btn btn-default">Cancel</a>
         </div>
     </div>
 </form>

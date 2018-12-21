@@ -558,7 +558,7 @@
             [% FOREACH col IN layout.all %]
             <tr>
                 <input type="hidden" name="position" value="[% col.id %]">
-                <td><a href="/layout/[% col.id %]">Edit</a></td>
+                <td><a href="/[% layout.identifier %]/layout/[% col.id %]">Edit</a></td>
                 <td class="drag">[% col.name | html_entity %]
                 <td class="drag">
                     [% IF col.type == "string" %]Text[% END %]
@@ -653,7 +653,7 @@
                         "themes" : { "stripes" : true },
                         'data' : {
                             'url' : function (node) {
-                                return '/tree' + new Date().getTime() + '/[% column.id %]?' ;
+                                return '/[% layout.identifier %]/tree' + new Date().getTime() + '/[% column.id %]?' ;
                             },
                             'data' : function (node) {
                                 return { 'id' : node.id };
@@ -709,8 +709,8 @@
                         $.ajax({
                             async: false,
                             type: "POST",
-                            url: "/tree/[% column.id %]",
-                            data: {'data': mytext }
+                            url: "/[% layout.identifier %]/tree/[% column.id %]",
+                            data: {'data': mytext, csrf_token: '[% csrf_token %]' }
                         }).done(function( data ) {
                             alert( "Tree has been updated" );
                         });
@@ -757,7 +757,7 @@
         <div class="col-md-12">
             <button type="submit" id="submit_save" name="submit" value="submit" class="btn btn-primary">[% IF column.id %]Save[% ELSE %]Save[% END %]</button>
         [% IF column.id %]
-            <a href="/layout/" class="btn btn-default">Cancel</a>
+            <a href="/[% layout.identifier %]/layout/" class="btn btn-default">Cancel</a>
             <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
         [% END %]
         </div>

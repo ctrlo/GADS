@@ -139,7 +139,7 @@
                     [% FOREACH graph IN graphs %]
                         [% NEXT UNLESS graph.selected %]
                         var time = (new Date).getTime();
-                        var jsonurl = "/data_graph/[% graph.id %]/" + time;
+                        var jsonurl = "/[% layout.identifier %]/data_graph/[% graph.id %]/" + time;
                         var plotData = ajaxDataRenderer(jsonurl);
                         var options_in = {
                             type: "[% graph.type %]",

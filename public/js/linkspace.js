@@ -652,6 +652,7 @@ var setupTreeField = function () {
     var readOnly = $this.data('is-readonly');
     var $treeContainer = $this.find('.tree-widget-container');
     var field = $treeContainer.data('field');
+    var layout_identifier = $('body').data('layout-identifier');
     var endNodeOnly = $treeContainer.data('end-node-only');
     var idsAsParams = $treeContainer.data('ids-as-params');
     var $treeFields = $this.find('[name="' + field + '"]');
@@ -663,7 +664,7 @@ var setupTreeField = function () {
             themes : { stripes : true },
             data : {
                 url : function (node) {
-                    return '/tree' + new Date().getTime() + '/' + id + '?' + idsAsParams;
+                    return '/' + layout_identifier + '/tree' + new Date().getTime() + '/' + id + '?' + idsAsParams;
                 },
                 data : function (node) {
                     return { 'id' : node.id };

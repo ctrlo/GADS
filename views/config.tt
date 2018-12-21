@@ -50,7 +50,7 @@
                 [% END %]
             </div>
             <button type="submit" id="update" name="update" value="update" class="btn btn-primary">Save</button>
-            <a href="/" class="btn btn-default">Cancel</a>
+            <a href="/[% layout.identifier %]/" class="btn btn-default">Cancel</a>
         </form>
     </div>
 </div>

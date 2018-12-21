@@ -79,7 +79,7 @@
         </div>
     </div>
     [% IF layout_edit.instance_id %]
-        <p>To delete a table you need to first delete all the fields in it. To delete the fields go to <a href="/layout/">Manage fields</a>.</p>
+        <p>To delete a table you need to first delete all the fields in it. To delete the fields go to <a href="/[% layout_edit.identifier %]/layout/">Manage fields</a>.</p>
     [% END %]
     <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">Save</button>
     [% IF layout_edit.instance_id %]

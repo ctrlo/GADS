@@ -8,7 +8,7 @@
     </tr>
     [% FOREACH record IN records %]
         <tr>
-            <td><a href="/approval/[% record.record_id %]">[% record.current_id %]</a></td>
+            <td><a href="/[% layout.identifier %]/approval/[% record.record_id %]">[% record.current_id %]</a></td>
             <td>[% record.createdby.html %]</td>
         </tr>
     [% END %]

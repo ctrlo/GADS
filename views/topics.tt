@@ -14,7 +14,7 @@
     </tr>
     [% FOREACH topic IN topics %]
         <tr>
-            <td><a href="/topic/[% topic.id %]">Edit</a></td>
+            <td><a href="/[% layout.identifier %]/topic/[% topic.id %]">Edit</a></td>
             <td>[% topic.name | html_entity %]</td>
         </tr>
     [% END %]
