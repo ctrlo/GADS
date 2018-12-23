@@ -130,6 +130,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "forward_record_after_create",
   { data_type => "smallint", default_value => 0, is_nullable => 1 },
+  "no_hide_blank",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY

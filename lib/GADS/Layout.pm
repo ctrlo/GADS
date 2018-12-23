@@ -132,6 +132,14 @@ has forward_record_after_create => (
     clearer => 1,
 );
 
+has no_hide_blank => (
+    is      => 'ro',
+    isa     => Bool,
+    lazy    => 1,
+    builder => sub { $_[0]->_rset->no_hide_blank },
+    clearer => 1,
+);
+
 has no_overnight_update => (
     is      => 'ro',
     isa     => Bool,
