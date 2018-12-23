@@ -1002,7 +1002,7 @@
     <div class="select-widget [% IF readonly %]select-widget--read-only[% END %] multi"
         [% IF column.has_subvals %]
             data-field="[% field %]"
-            data-filter-endpoint="/[% layout.identifier %] _ "/api/field/values/" _ column.id %]"
+            data-filter-endpoint="/[% layout.identifier _ "/api/field/values/" _ column.id %]"
             data-filter-fields='[% column.data_filter_fields %]'
         [% END %]
         >
