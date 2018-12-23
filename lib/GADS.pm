@@ -2777,16 +2777,14 @@ get '/record_body/:id' => require_login sub {
     my $id = param('id');
 
     my $user   = logged_in_user;
-    my $layout = var 'layout';
     my $record = GADS::Record->new(
         user   => $user,
-        layout => $layout,
         schema => schema,
         rewind => session('rewind'),
     );
 
     $record->find_current_id($id);
-    $layout = $record->layout; # In case record's layout different to orig
+    my $layout = $record->layout;
     my @columns = $layout->all(user_can_read => 1);
     template 'record_body' => {
         is_modal       => 1, # Assume modal if loaded via this route
