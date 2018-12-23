@@ -24,7 +24,7 @@
 
             var records_base64 = '[% records %]';
             var json = base64.decode(records_base64);
-            var items = new vis.DataSet(JSON.parse(json));
+            var items = new timeline.DataSet(JSON.parse(json));
             var groups = '[% groups %]';
             var json_group = base64.decode(groups);
             var groups = JSON.parse(json_group);
@@ -139,9 +139,10 @@
                     }
                 },
                 moment: function (date) {
-                    return vis.moment(date).utc();
+                    return timeline.moment(date).utc();
                 },
                 onMove:   on_move,
+                zoomFriction: 10,
                 snap:     snap_to_day,
                 template: template,
                 [% IF timeline.min %]
@@ -153,11 +154,11 @@
                 orientation: {axis: "both"}
             };
 
-            var timeline = new vis.Timeline(container, items, options);
+            var tl = new timeline.Timeline(container, items, options);
             if (groups.length > 0) {
-                timeline.setGroups(groups);
+                tl.setGroups(groups);
             }
-            timeline.on('click', function(e) {
+            tl.on('click', function(e) {
                 if (!e.item) {
                     $('.item-popup').hide();
                 }
@@ -170,16 +171,16 @@
                         m.find('.modal-body').load('/record_body/' + record_id);
                         m.modal();
                     } else {
-                        target.closest('.vis-item').find('.item-popup').toggle();
+                        target.closest('.timeline-item').find('.item-popup').toggle();
                     }
                 }
             });
-            timeline.on('select', on_select);
+            tl.on('select', on_select);
             on_select({ items: [] });
             [%# functionality to add new items on range change %]
             var persistent_max;
             var persistent_min;
-            timeline.on('rangechanged', function (props) {
+            tl.on('rangechanged', function (props) {
                 if (!props.byUser) {
                     if (!persistent_min) { persistent_min = props.start.getTime(); }
                     if (!persistent_max) { persistent_max = props.end.getTime(); }

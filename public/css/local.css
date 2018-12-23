@@ -192,22 +192,22 @@ img.autosize {
     100% { transform: rotate(360deg); }
 }
 
-.vis-range .vis-item-overflow {
+.timeline-range .timeline-item-overflow {
     overflow: visible;
 }
 
-.vis-item-shown-content {
+.timeline-item-shown-content {
     text-overflow: ellipsis;
     overflow: hidden;
 }
 
-.vis-range .vis-item-shown-content {
+.timeline-range .timeline-item-shown-content {
     max-width: calc(100% + 150px);
     margin-right: -240px;
     padding: 0;
 }
 
-.vis-box .vis-item-shown-content {
+.timeline-box .timeline-item-shown-content {
     max-width: 150px;
     padding: 0;
 }
@@ -231,6 +231,6 @@ img.autosize {
     white-space: nowrap;
 }
 
-div.vis-foreground > div.vis-group:nth-of-type(even) {
+div.timeline-foreground > div.timeline-group:nth-of-type(even) {
     background-color: rgba(245, 245, 245, 0.4);
 }

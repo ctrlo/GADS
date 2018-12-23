@@ -42,11 +42,10 @@
             <link rel="stylesheet" href="[% url.css %]/calendar.min.css">
         [% END %]
         [% IF page == "data" AND viewtype == "timeline" %]
+            <link rel="stylesheet" href="[% url.css %]/timeline.min.css">
             [% IF hostlocal %]
-                <link rel="stylesheet" href="[% url.css %]/vis.min.css">
                 <script type='text/javascript' src='[% url.js %]/handlebars.runtime.min.js'></script>
             [% ELSE %]
-                <link rel="stylesheet" href="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/vis/4.7.0/vis.min.css">
                 <script type='text/javascript' src='[% scheme %]://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.runtime.min.js'></script>
             [% END %]
             <script type='text/javascript' src='[% url.js %]/handlebars-timeline-item-template.js'></script>
@@ -246,18 +245,13 @@
         [% IF page == "data" AND viewtype == "timeline" %]
             [% IF page_as_mech %]
                 <script type="text/javascript" src="[% url.js %]/requestAnimationFrame.min.js"></script>
-            [% END %]
-            [% IF hostlocal %]
-                [% IF page_as_mech %]
-                    <script type="text/javascript" src="[% url.js %]/es5-shim.min.js"></script>
+                [% IF hostlocal %]
+                        <script type="text/javascript" src="[% url.js %]/es5-shim.min.js"></script>
+                [% ELSE %]
+                        <script type="text/javascript" src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.1.10/es5-shim.min.js"></script>
                 [% END %]
-                <script type="text/javascript" src="[% url.js %]/vis.min.js"></script>
-            [% ELSE %]
-                [% IF page_as_mech %]
-                    <script type="text/javascript" src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.1.10/es5-shim.min.js"></script>
-                [% END %]
-                <script type="text/javascript" src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/vis/4.20.0/vis.min.js"></script>
             [% END %]
+            <script type="text/javascript" src="[% url.js %]/timeline.min.js"></script>
         [% END %]
         [% IF page == "data" AND viewtype == "globe" %]
             [% IF hostlocal %]
