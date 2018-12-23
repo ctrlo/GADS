@@ -972,6 +972,8 @@
 
         IF page == "bulk";
             values = column.all_values;
+        ELSIF column.has_subvals;
+            values = column.selected_values(editvalue);
         ELSE;
             values = column.filtered_values;
         END;

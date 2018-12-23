@@ -295,6 +295,17 @@ sub _records_from_db
     return $records;
 }
 
+# Function to return the values for the drop-down selector, but only the
+# selected ones. This makes rendering the edit page quicker, as in the case of
+# a filtered drop-down, the values will be fetched each time it gets the
+# focus anyway
+sub selected_values
+{   my ($self, $datum) = @_;
+    return [
+        map { $self->_format_row($_->{record}) } @{$datum->values}
+    ];
+}
+
 sub _build_filtered_values
 {   my $self = shift;
     return [] if $self->value_selector ne 'dropdown';
