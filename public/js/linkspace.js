@@ -322,8 +322,9 @@ var SelectWidget = function (multi) {
                 $available.append(errorLi);
             }
         })
-        .fail(function() {
-            var errorMessage = data.error === 1 ? data.message : "Oops! Something went wrong.";
+        .fail(function(jqXHR, textStatus, textError) {
+            var errorMessage = "Oops! Something went wrong.";
+            console.log("Failed to make request to " + filterEndpoint + ": " + textStatus + ": " + textError);
             var errorLi = $('<li class="answer answer--blank alert alert-danger"><span class="control"><label>' + errorMessage + '</label></span></li>');
             $available.append(errorLi);
         })
