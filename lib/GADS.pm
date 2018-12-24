@@ -2681,7 +2681,7 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
 get '/helptext/:id?' => require_login sub {
     my $id     = param 'id';
     my $user   = logged_in_user;
-    my $layout = var 'layout';
+    my $layout = var('instances')->all->[0];
     my $column = $layout->column($id);
     template 'helptext.tt', { column => $column }, { layout => undef };
 };
