@@ -2,7 +2,7 @@
 [% edituser = users.shift %]
 [% IF edituser.account_request %]
     <h1>New account request</h1>
-[% ELSIF page == "account/detail" %]
+[% ELSIF page == "myaccount" %]
     <h1>[% edituser.value | html %] - My details</h1>
 [% ELSIF edituser.id %]
     <h1>Edit: [% edituser.value | html_entity %]</h1>
@@ -92,7 +92,7 @@
                     <button type="submit" name="delete" value="[% edituser.id %]" class="btn btn-default">Delete</button>
                 [% END %]
             [% END %]
-            [% IF page == "account/detail" %]
+            [% IF page == "myaccount" %]
                 <button type="button" data-toggle="modal" data-target="#newpassword" class="btn btn-default">Change password</button>
             [% END %]
         </div>
