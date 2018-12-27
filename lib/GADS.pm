@@ -223,8 +223,8 @@ hook before => sub {
         {
             # Redirect to user details page if password expired
             forwardHome({ danger => "Your password has expired. Please use the Change password button
-                below to set a new password." }, 'account/detail')
-                    unless request->uri eq '/account/detail' || request->uri eq '/logout';
+                below to set a new password." }, 'myaccount')
+                    unless request->uri eq '/myaccount' || request->uri eq '/logout';
         }
 
         header "X-Frame-Options" => "DENY" # Prevent clickjacking
@@ -2264,10 +2264,10 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
         if (user_password password => param('oldpassword'), new_password => $new_password)
         {
             $audit->login_change("New password set for user");
-            forwardHome({ success => qq(Your password has been changed to: $new_password)}, 'account/detail', user_only => 1 ); # Don't log elsewhere
+            forwardHome({ success => qq(Your password has been changed to: $new_password)}, 'myaccount', user_only => 1 ); # Don't log elsewhere
         }
         else {
-            forwardHome({ danger => "The existing password entered is incorrect"}, 'account/detail' );
+            forwardHome({ danger => "The existing password entered is incorrect"}, 'myaccount' );
         }
     }
 
