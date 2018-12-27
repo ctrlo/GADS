@@ -2247,7 +2247,7 @@ prefix '/:layout_name' => sub {
 
 };
 
-any ['get', 'post'] => '/edit/:id?' => require_login sub {
+any ['get', 'post'] => '/edit/:id' => require_login sub {
 
     my $id = param 'id';
     _process_edit($id);
