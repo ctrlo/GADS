@@ -90,7 +90,8 @@ has name_short => (
 );
 
 has identifier => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_identifier
@@ -108,12 +109,14 @@ has homepage_text => (
     is      => 'rw',
     lazy    => 1,
     builder => sub { $_[0]->_rset->homepage_text },
+    clearer => 1,
 );
 
 has homepage_text2 => (
     is      => 'rw',
     lazy    => 1,
     builder => sub { $_[0]->_rset->homepage_text2 },
+    clearer => 1,
 );
 
 has forget_history => (
@@ -178,6 +181,7 @@ has api_index_layout => (
         my $self = shift;
         $self->column($self->_rset->api_index_layout_id);
     },
+    clearer => 1,
 );
 
 has api_index_layout_id => (
@@ -185,6 +189,7 @@ has api_index_layout_id => (
     isa     => Maybe[Int],
     lazy    => 1,
     builder => sub { $_[0]->_rset->api_index_layout_id },
+    clearer => 1,
 );
 
 has sort_type => (
@@ -358,8 +363,9 @@ sub user_can_column
 }
 
 has _group_permissions => (
-    is  => 'lazy',
-    isa => HashRef,
+    is      => 'lazy',
+    isa     => HashRef,
+    clearer => 1,
 );
 
 sub _build__group_permissions
@@ -563,6 +569,7 @@ has internal_columns => (
 sub clear_indexes
 {   my $self = shift;
     $self->clear_name;
+    $self->clear_name_short;
     $self->clear_columns_index;
     $self->_clear_columns_namehash;
     $self->_clear_columns_name_shorthash
@@ -570,20 +577,32 @@ sub clear_indexes
 
 sub clear
 {   my $self = shift;
+    $self->clear_api_index_layout;
+    $self->clear_api_index_layout_id;
     $self->clear_columns;
     $self->clear_cols_db;
-    $self->clear_indexes;
-    $self->_clear_user_permissions_columns;
-    $self->_clear_user_permissions_table;
-    $self->_clear_user_permissions_overall;
-    $self->clear_forget_history;
-    $self->clear_no_overnight_update;
-    $self->_clear_rset;
     $self->clear_default_view_limit_extra;
     $self->clear_default_view_limit_extra_id;
+    $self->clear_forget_history;
+    $self->clear_forward_record_after_create;
+    $self->clear_global_view_summary;
+    $self->_clear_group_permissions;
     $self->clear_has_children;
+    $self->clear_has_globe;
+    $self->clear_has_topics;
+    $self->clear_homepage_text;
+    $self->clear_homepage_text2;
+    $self->clear_identifier;
+    $self->clear_indexes;
+    $self->clear_no_hide_blank;
+    $self->clear_no_overnight_update;
+    $self->clear_referred_by;
+    $self->_clear_rset;
     $self->clear_sort_type;
-    $self->clear_sort_layout_id,
+    $self->clear_sort_layout_id;
+    $self->_clear_user_permissions_columns;
+    $self->_clear_user_permissions_overall;
+    $self->_clear_user_permissions_table;
 }
 
 # The dump from the database of all the information needed to build the layout.
@@ -659,7 +678,8 @@ sub _build_columns
 }
 
 has has_globe => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_has_globe
@@ -679,7 +699,8 @@ sub _build_has_children
 }
 
 has has_topics => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_has_topics
@@ -886,8 +907,9 @@ sub user_can_anything
 }
 
 has referred_by => (
-    is  => 'lazy',
-    isa => ArrayRef,
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
 );
 
 sub _build_referred_by
@@ -942,8 +964,9 @@ sub _user_perm_search
 }
 
 has global_view_summary => (
-    is  => 'lazy',
-    isa => ArrayRef,
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
 );
 
 sub _build_global_view_summary
