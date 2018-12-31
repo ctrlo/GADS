@@ -308,7 +308,7 @@ hook before_template => sub {
     $tokens->{config}        = GADS::Config->instance;
     $tokens->{csrf_token}    = session 'csrf_token';
 
-    if ($tokens->{page} =~ /(data|view)/ && session('views_other_user_id'))
+    if (session('views_other_user_id') && $tokens->{page} =~ /(data|view)/)
     {
         notice __x"You are currently viewing, editing and creating views as {name}",
             name => rset('User')->find(session 'views_other_user_id')->value;
