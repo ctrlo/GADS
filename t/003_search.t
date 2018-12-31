@@ -1009,10 +1009,10 @@ foreach my $multivalue (0..1)
     # columns selected.
     for (0..1)
     {
-        my $columns = $_ ? [] : undef;
+        my $cols_select = $_ ? [] : undef;
         $record = GADS::Record->new(
             user    => $user,
-            columns => $columns,
+            columns => $cols_select,
             layout  => $layout,
             schema  => $schema,
         );
@@ -1029,6 +1029,20 @@ foreach my $multivalue (0..1)
         like($@, qr/Requested record not found/, "Failed to find deleted current ID 5" );
         try { $record->find_record_id(5) };
         like($@, qr/Requested record not found/, "Failed to find deleted record ID 5" );
+
+        # Draft record whilst view limit in force
+        my $draft = GADS::Record->new(
+            user   => $user,
+            layout => $layout,
+            schema => $schema,
+        );
+        $draft->initialise;
+        $draft->fields->{$columns->{string1}->id}->set_value("Draft");
+        $draft->write(draft => 1);
+        $draft->clear;
+        $draft->load_remembered_values(instance_id => $layout->instance_id);
+        is($draft->fields->{$columns->{string1}->id}->as_string, "Draft", "Draft sub-record retrieved");
+
         # Reset
         $schema->resultset('Current')->find(5)->update({ deleted => undef });
     }

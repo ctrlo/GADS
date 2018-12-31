@@ -647,6 +647,7 @@ sub _find
         rewind               => $self->rewind,
         is_deleted           => $find{deleted},
         is_draft             => $find{draftuser_id} || $find{include_draft} ? 1 : 0,
+        no_view_limits       => !!$find{draftuser_id},
         include_approval     => $self->include_approval,
         include_children     => 1,
         view_limit_extra_id  => undef, # Remove any default extra view
@@ -813,9 +814,12 @@ sub load_remembered_values
     {
         $self->_set_instance_id($self->layout->instance_id)
             if !$options{instance_id};
-        $self->find_draftuser_id($self->user->id);
-        $self->remove_id;
-        return;
+        if ($self->find_draftuser_id($self->user->id))
+        {
+            $self->remove_id;
+            return;
+        }
+        $self->initialise;
     }
 
     my @remember = map {$_->id} $self->layout->all(remember => 1)

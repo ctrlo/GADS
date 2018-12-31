@@ -172,9 +172,15 @@ sub _build_view_limit_extra_id
     $self->layout->default_view_limit_extra_id;
 }
 
+has no_view_limits => (
+    is => 'ro',
+    isa => Bool,
+);
+
 sub _view_limits_search
 {   my ($self, %options) = @_;
     my @search;
+    return [] if $self->no_view_limits;
     foreach my $view (@{$self->_view_limits})
     {
         if (my $filter = $view->filter)
