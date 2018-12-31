@@ -137,9 +137,10 @@ foreach my $multivalue (0..1)
         schema     => $curval_sheet->schema,
         multivalue => $multivalue,
     );
+    my $user = $curval_sheet->user;
     $sheet->columns; # Force columns to build
     my $record_new = GADS::Record->new(
-        user     => undef,
+        user     => $user,
         layout   => $sheet->layout,
         schema   => $sheet->schema,
     );
@@ -188,6 +189,7 @@ foreach my $multivalue (0..1)
                 my $layout  = $sheet->layout;
                 my $columns = $sheet->columns;
                 $sheet->create_records;
+                my $user = $sheet->user;
 
                 if ($deleted)
                 {
@@ -196,7 +198,7 @@ foreach my $multivalue (0..1)
                 }
 
                 my $records = GADS::Records->new(
-                    user    => undef,
+                    user    => $user,
                     layout  => $layout,
                     schema  => $schema,
                 );
@@ -454,7 +456,7 @@ foreach my $c (keys %$values)
     my $sheet = t::lib::DataSheet->new(user_count => 2);
     $sheet->create_records;
     my $record = GADS::Records->new(
-        user    => undef,
+        user    => $sheet->user,
         layout  => $sheet->layout,
         schema  => $sheet->schema,
     )->single;
@@ -489,7 +491,7 @@ $sheet = t::lib::DataSheet->new(
 );
 $sheet->create_records;
 my $record = GADS::Records->new(
-    user    => undef,
+    user    => $sheet->user,
     layout  => $sheet->layout,
     schema  => $sheet->schema,
 )->single;

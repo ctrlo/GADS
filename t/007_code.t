@@ -5,9 +5,9 @@ use warnings;
 use Test::MockTime qw(set_fixed_time restore_time); # Load before DateTime
 use JSON qw(encode_json);
 use Log::Report;
-use GADS::Column::Calc;
 use GADS::Filter;
 use GADS::Layout;
+use GADS::Column::Calc; # Needed after GADS::Layout otherwise module loading problems
 use GADS::Record;
 use GADS::Records;
 use GADS::Schema;
@@ -439,8 +439,17 @@ foreach my $test (@tests)
         try { $record->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
         $@->reportFatal; # In case any fatal errors
     }
-    $record_new->delete_current;
-    $record_new->purge_current;
+
+    # The user of the Record object at this point does not have permission to
+    # delete it. Create new object to delete it
+    my $record_delete = GADS::Record->new(
+        user   => $sheet->user,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record_delete->find_current_id($record_new->current_id);
+    $record_delete->delete_current;
+    $record_delete->purge_current;
     $code_col->delete;
 }
 
@@ -673,7 +682,7 @@ restore_time();
         code   => "function evaluate (L1curval1) \n adsfadsf return L1curval1.field_values.L2daterange1.from.year \nend",
     );
     try { $calc_inv_string->write } hide => 'ALL';
-    my ($warning) = $@->exceptions;
+    my ($warning) = grep { $_->reason eq 'WARNING' } $@->exceptions;
     like($warning, qr/syntax error/, "Warning received for syntax error in calc");
 
     # Invalid Lua code with return value not string
@@ -686,7 +695,7 @@ restore_time();
         code        => "function evaluate (L1curval1) \n adsfadsf return L1curval1.field_values.L2daterange1.from.year \nend",
     );
     try { $calc_inv_int->write } hide => 'ALL';
-    ($warning) = $@->exceptions;
+    ($warning) = grep { $_->reason eq 'WARNING' } $@->exceptions;
     like($warning, qr/syntax error/, "Warning received for syntax error in calc");
 
     # Test missing bank holidays
@@ -698,7 +707,7 @@ restore_time();
         code        => "function evaluate (_id) \n return working_days_diff(2051222400, 2051222400, 'GB', 'EAW') \nend", # Year 2035
     );
     try { $calc_missing_bh->write } hide => 'ALL';
-    ($warning) = $@->exceptions;
+    ($warning) = grep { $_->reason eq 'WARNING' } $@->exceptions;
     like($warning, qr/No bank holiday information available for year 2035/, "Missing bank holiday information warnings for working_days_diff");
     $calc_missing_bh = GADS::Column::Calc->new(
         schema      => $schema,
@@ -708,7 +717,7 @@ restore_time();
         code        => "function evaluate (_id) \n return working_days_add(2082758400, 1, 'GB', 'EAW') \nend", # Year 2036
     );
     try { $calc_missing_bh->write } hide => 'ALL';
-    ($warning) = $@->exceptions;
+    ($warning) = grep { $_->reason eq 'WARNING' } $@->exceptions;
     like($warning, qr/No bank holiday information available for year 2036/, "Mising bank holiday information warnings for working_days_add");
     $calc_missing_bh->delete;
 
@@ -725,7 +734,7 @@ restore_time();
         ",
     );
     try { $rag3->write } hide => 'ALL';
-    ($warning) = $@->exceptions;
+    ($warning) = grep { $_->reason eq 'WARNING' } $@->exceptions;
     like($warning, qr/syntax error/, "Warning received for syntax error in rag");
     $rag3->delete;
 

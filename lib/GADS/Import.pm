@@ -37,9 +37,9 @@ has layout => (
     required => 1,
 );
 
-has user_id => (
-    is  => 'ro',
-    isa => Int,
+has user => (
+    is       => 'ro',
+    required => 1,
 );
 
 has take_first_enum => (
@@ -327,7 +327,7 @@ has _import_status_rs => (
 sub _build__import_status_rs
 {   my $self = shift;
     $self->schema->resultset('Import')->create({
-        user_id => $self->user_id,
+        user_id => $self->user->id,
         type    => 'data',
         started => DateTime->now,
     });
@@ -475,7 +475,7 @@ sub _import_rows
         {
             # Insert record into DB. May still be problems
             my $record = GADS::Record->new(
-                user   => undef, # Write user has blank for imports, not logged-in user
+                user   => $self->user,
                 layout => $self->layout,
                 schema => $self->schema,
             );

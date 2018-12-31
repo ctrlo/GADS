@@ -12,9 +12,9 @@ use GADS::Schema;
 use t::lib::DataSheet;
 
 sub _records
-{   my ($schema, $layout, $count) = @_;
+{   my ($schema, $layout, $user, $count) = @_;
     my $records = GADS::Records->new(
-        user    => undef,
+        user    => $user,
         layout  => $layout,
         schema  => $schema,
     );
@@ -30,11 +30,11 @@ my $layout  = $sheet->layout;
 ok(!$layout->has_children, "Layout does not have children initially");
 $sheet->create_records;
 
-my ($parent) = _records($schema, $layout, 2);
+my ($parent) = _records($schema, $layout, $sheet->user, 2);
 
 # Create child
 my $child = GADS::Record->new(
-    user     => undef,
+    user     => $sheet->user,
     layout   => $layout,
     schema   => $schema,
 );
@@ -55,7 +55,7 @@ $child->write(no_alerts => 1);
 
 # Force refetch of everything from database
 my $other;
-($parent, $other, $child) = _records($schema, $layout, 3);
+($parent, $other, $child) = _records($schema, $layout, $sheet->user, 3);
 isnt( $parent->fields->{$daterange1_id}->as_string, $child->fields->{$daterange1_id}->as_string, "Parent and child date ranges are different");
 my $calc1_id = $columns->{calc1}->id;
 isnt( $parent->fields->{$calc1_id}->as_string, $child->fields->{$calc1_id}->as_string, "Parent and child calc values are different");
@@ -82,7 +82,7 @@ $parent->fields->{$date1_id}->set_value('2017-04-05');
 $parent->write(no_alerts => 1);
 
 # And fetch records again for testing
-($parent, $other, $child) = _records($schema, $layout, 3);
+($parent, $other, $child) = _records($schema, $layout, $sheet->user, 3);
 isnt( $parent->fields->{$daterange1_id}->as_string, $child->fields->{$daterange1_id}->as_string, "Parent and child date ranges are different");
 isnt( $parent->fields->{$calc1_id}->as_string, $child->fields->{$calc1_id}->as_string, "Parent and child calc values are different");
 is( $parent->fields->{$calc1_id}->as_string, 2000, "Parent calc value is correct after second write");
@@ -97,12 +97,12 @@ is( $child->fields->{$rag1_id}->as_string, 'b_red', "Child rag is red"); # Same 
 # First, a second value
 $parent->fields->{$enum1_id}->set_value([qw/2 3/]);
 $parent->write(no_alerts => 1);
-($parent, $other, $child) = _records($schema, $layout, 3);
+($parent, $other, $child) = _records($schema, $layout, $sheet->user, 3);
 is( $parent->fields->{$enum1_id}->as_string, $child->fields->{$enum1_id}->as_string, "Parent and child enums are the same");
 # And second, back to a single value
 $parent->fields->{$enum1_id}->set_value('3');
 $parent->write(no_alerts => 1);
-($parent, $other, $child) = _records($schema, $layout, 3);
+($parent, $other, $child) = _records($schema, $layout, $sheet->user, 3);
 is( $parent->fields->{$enum1_id}->as_string, $child->fields->{$enum1_id}->as_string, "Parent and child enums are the same");
 
 # Now change unique field and check values
@@ -116,7 +116,7 @@ $layout->clear;
 $child->fields->{$string1_id}->set_value('foo3');
 $child->write(no_alerts => 1);
 
-($parent, $other, $child) = _records($schema, $layout, 3);
+($parent, $other, $child) = _records($schema, $layout, $sheet->user, 3);
 is( $parent->fields->{$daterange1_id}->as_string, $child->fields->{$daterange1_id}->as_string, "Parent and child date ranges are the same");
 is( $parent->fields->{$calc1_id}->as_string, 2000, "Parent calc value is correct after writing new daterange to parent after child unique change");
 is( $child->fields->{$calc1_id}->as_string, 2000, "Child calc value is correct after removing daterange as unique");
@@ -173,7 +173,7 @@ foreach my $calc_depend (0..1)
     is($parent->fields->{$calc1_id}->as_string, $v, 'Initial double calc correct');
 
     my $child = GADS::Record->new(
-        user     => undef,
+        user     => $sheet->user,
         layout   => $layout,
         schema   => $schema,
     );
@@ -254,14 +254,14 @@ foreach my $calc_depend (0..1)
 
     # First as single fetch
     my $child = GADS::Record->new(
-        user     => undef,
+        user     => $sheet->user,
         layout   => $layout,
         schema   => $schema,
     );
     $child->find_current_id($child_id);
 
     my $parent = GADS::Record->new(
-        user     => undef,
+        user     => $sheet->user,
         layout   => $layout,
         schema   => $schema,
     );
@@ -282,7 +282,7 @@ foreach my $calc_depend (0..1)
     is($chid, $child_id, "Parent record has correct child ID");
 
     # Now as bulk retrieval
-    ($parent, $other, $child) = _records($schema, $layout, 3);
+    ($parent, $other, $child) = _records($schema, $layout, $sheet->user, 3);
     is($child->parent_id, $parent_id, "Child record has correct parent ID");
     $chid = pop @{$parent->child_record_ids};
     is($chid, $child_id, "Parent record has correct child ID");
@@ -294,7 +294,7 @@ foreach my $calc_depend (0..1)
     my $child_id         = $child->current_id;
 
     my $parent = GADS::Record->new(
-        user     => undef,
+        user     => $sheet->user,
         layout   => $layout,
         schema   => $schema,
     );
@@ -304,7 +304,7 @@ foreach my $calc_depend (0..1)
     $parent->fields->{$columns->{date1}->id}->set_value('1980-10-05');
     $parent->write(no_alerts => 1);
     my $child = GADS::Record->new(
-        user     => undef,
+        user     => $sheet->user,
         layout   => $layout,
         schema   => $schema,
     );
@@ -347,7 +347,7 @@ foreach my $calc_depend (0..1)
     my $string1 = $layout->column_by_name('string1');
 
     my $child = GADS::Record->new(
-        user     => undef,
+        user     => $sheet->user,
         layout   => $layout,
         schema   => $schema,
     );
@@ -357,7 +357,7 @@ foreach my $calc_depend (0..1)
     # Update child record (via parent) even if no child fields
     my $parent_id = $parent->current_id;
     my $parent = GADS::Record->new(
-        user     => undef,
+        user     => $sheet->user,
         layout   => $layout,
         schema   => $schema,
     );

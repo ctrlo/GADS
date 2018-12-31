@@ -204,7 +204,11 @@ sub _build__users
         $count++;
         # Give view create permission as default, so that normal user can
         # create views for tests
-        my $perms = $permission =~ 'normal' ? ['view_create'] : [$permission];
+        my $perms = $permission =~ 'normal'
+            ? ['view_create']
+            : $permission eq 'superadmin'
+            ? [qw/superadmin link delete purge/]
+            : [$permission];
         $return->{$permission} = $self->create_user(permissions => $perms, user_id => $count);
     }
     $return;
@@ -242,7 +246,7 @@ sub create_user
             });
             $user->clear_permission;
         }
-        else {
+        elsif (!$self->no_groups) {
             # Create a group for each user/permission
             my $name  = "${permission}_$user_id";
             my $group = $self->schema->resultset('Group')->search({
@@ -789,17 +793,16 @@ sub create_records
 
     my $columns = $self->columns;
 
-    my $record = GADS::Record->new(
-        user     => $self->user,
-        layout   => $self->layout,
-        schema   => $self->schema,
-        base_url => undef,
-    );
-
     foreach my $datum (@{$self->data})
     {
-        $record->clear;
-        $record->initialise;
+        my $record = GADS::Record->new(
+            user     => $self->user,
+            layout   => $self->layout,
+            schema   => $self->schema,
+            base_url => undef,
+        );
+
+        $record->initialise(instance_id => $self->layout->instance_id);
         $record->fields->{$columns->{string1}->id}->set_value($datum->{string1});
         $record->fields->{$columns->{date1}->id}->set_value($datum->{date1});
         $record->fields->{$columns->{daterange1}->id}->set_value($datum->{daterange1});

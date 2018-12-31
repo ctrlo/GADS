@@ -125,12 +125,13 @@ my $sheet   = t::lib::DataSheet->new(
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
 $sheet->create_records;
+my $user = $sheet->user;
 # Add autocur field
 my $autocur1 = $curval_sheet->add_autocur(refers_to_instance_id => 1, related_field_id => $columns->{curval1}->id);
 
 # Check initial content of single record
 my $record_single = GADS::Record->new(
-    user   => undef,
+    user   => $user,
     layout => $layout,
     schema => $schema,
 );
@@ -142,7 +143,7 @@ is( $record_single->fields->{$curval2_id}->as_string, 'FooBar1, , , , , , , , a_
 # $record->clear;
 
 my $records = GADS::Records->new(
-    user    => undef,
+    user    => $user,
     layout  => $layout,
     schema  => $schema,
 );
@@ -152,7 +153,7 @@ is (@{$records->results}, 2, 'Correct number of results initially');
 
 # Set up curval record
 my $record_curval = GADS::Record->new(
-    user    => undef,
+    user    => $user,
     layout  => $curval_sheet->layout,
     schema  => $schema,
 );
@@ -202,7 +203,7 @@ foreach my $update (@update2)
     is (@{$records->results}, 2, 'Number of actual sheet 1 records still correct after value update');
 
     my $records_curval = GADS::Records->new(
-        user    => undef,
+        user    => $user,
         layout  => $curval_sheet->layout,
         schema  => $schema,
     );
@@ -223,7 +224,7 @@ foreach my $update (@update2)
     $layout->clear;
     my $versions_before = $schema->resultset('Record')->count;
     my $record = GADS::Record->new(
-        user   => undef,
+        user   => $user,
         layout => $layout,
         schema => $schema,
     );
@@ -241,7 +242,7 @@ foreach my $update (@update2)
 
     # Make sure version history still written for other sheet
     my $record_curval = GADS::Record->new(
-        user   => undef,
+        user   => $user,
         layout => $curval_sheet->layout,
         schema => $schema,
     );

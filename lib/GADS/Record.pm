@@ -539,6 +539,8 @@ sub find_draftuser_id
 {   my ($self, $draftuser_id, %options) = @_;
     $draftuser_id =~ /^[0-9]+$/
         or error __x"Invalid draft user ID {id}", id => $draftuser_id;
+    $self->_set_instance_id($options{instance_id})
+        if $options{instance_id};
     # Don't normally want to throw fatal errors if a draft does not exist
     $self->_find(draftuser_id => $draftuser_id, no_errors => 1, %options);
 }
@@ -623,6 +625,7 @@ sub clear
     $self->clear_created;
     $self->clear_is_historic;
     $self->clear_new_entry;
+    $self->clear_layout;
 }
 
 sub _find
@@ -801,11 +804,15 @@ sub clone_as_new_from
 }
 
 sub load_remembered_values
-{   my $self = shift;
+{   my ($self, %options) = @_;
 
+    $self->_set_instance_id($options{instance_id})
+        if $options{instance_id};
     # First see if there's a draft. If so, use that instead
     if ($self->user->has_draft($self->layout->instance_id))
     {
+        $self->_set_instance_id($self->layout->instance_id)
+            if !$options{instance_id};
         $self->find_draftuser_id($self->user->id);
         $self->remove_id;
         return;
@@ -835,7 +842,10 @@ sub load_remembered_values
     $previous->include_approval(1);
     $previous->find_record_id($lastrecord->record_id);
 
-    $self->fields->{$_->id} = $previous->fields->{$_->id}->clone(record => $self)
+    # Use the column object from the current record not the "previous" record,
+    # as otherwise the column's layout object goes out of scope and is not
+    # available due to its weakref
+    $self->fields->{$_->id} = $previous->fields->{$_->id}->clone(record => $self, column => $self->layout->column($_->id))
         foreach @{$previous->columns_retrieved_do};
 
     if ($previous->approval_flag)
@@ -982,9 +992,14 @@ sub values_by_shortname
     };
 }
 
-# Initialise empty record for new write
+# Initialise empty record for new write. Optionally specify the instance ID
+# that the record should be initiliased to (either this must be set or the
+# layout property must contain a valid layout object)
 sub initialise
-{   my $self = shift;
+{   my ($self, %options) = @_;
+    my $instance_id = $options{instance_id};
+    $self->_set_instance_id($instance_id)
+        if $instance_id;
     my $fields;
     foreach my $column ($self->layout->all(include_internal => 1))
     {
@@ -1061,7 +1076,7 @@ sub delete_user_drafts
                 layout   => $self->layout,
                 schema   => $self->schema,
             );
-            $draft->find_draftuser_id($self->user->id)
+            $draft->find_draftuser_id($self->user->id, instance_id => $self->layout->instance_id)
                 or last;
             # Find and delete any draft subrecords associated with this draft
             my @purge_curval = map { $draft->fields->{$_->id} } grep { $_->type eq 'curval' } $draft->layout->all;
@@ -1587,9 +1602,10 @@ sub write_values
         foreach my $child_id (@{$self->child_record_ids})
         {
             my $child = GADS::Record->new(
-                user   => undef,
-                layout => $self->layout,
-                schema => $self->schema,
+                user                     => undef,
+                user_permission_override => 1,
+                layout                   => $self->layout,
+                schema                   => $self->schema,
             );
             $child->find_current_id($child_id);
             foreach my $col ($self->layout->all(order_dependencies => 1))

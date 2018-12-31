@@ -127,13 +127,13 @@ foreach my $delete_not_used (0..1)
         schema => $schema,
         curcommon_all_fields => 1,
     );
-    $record->initialise;
+    $record->initialise(instance_id => $layout->instance_id);
     $curval_datum = $record->fields->{$curval->id};
     $curval_datum->set_value([$curval_string->field."=foo10", $curval_string->field."=foo20"]);
     $record->fields->{$columns->{integer1}->id}->set_value(10); # Prevent calc warnings
     $record->write(draft => 1);
     $record->clear;
-    $record->load_remembered_values;
+    $record->load_remembered_values(instance_id => $layout->instance_id);
     $curval_datum = $record->fields->{$curval->id};
     $curval_record_id = $curval_datum->ids->[0];
     my @form_values = map { $_->{as_query} =~ s/foo20/foo30/; $_->{as_query} } @{$curval_datum->html_form};

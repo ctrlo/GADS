@@ -2172,7 +2172,7 @@ prefix '/:layout_name' => sub {
                     file     => $upload->tempname,
                     schema   => schema,
                     layout   => var('layout'),
-                    user_id  => $user->id,
+                    user     => $user,
                     %options,
                 );
 

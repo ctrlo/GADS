@@ -99,9 +99,10 @@ $tree1->write;
 $tree2->multivalue(1);
 $tree2->write;
 $sheet->create_records;
+my $user = $sheet->user;
 
 my $record = GADS::Record->new(
-    user   => undef,
+    user   => $user,
     layout => $layout,
     schema => $schema,
 );
@@ -326,7 +327,7 @@ foreach my $test (@tests)
     $view->write;
 
     my $records = GADS::Records->new(
-        user    => undef,
+        user    => $user,
         view    => $view,
         layout  => $layout,
         schema  => $schema,

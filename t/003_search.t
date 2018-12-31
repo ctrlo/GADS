@@ -969,6 +969,7 @@ foreach my $multivalue (0..1)
         layout      => $layout,
         schema      => $schema,
         user        => $user,
+        is_admin    => 1,
     );
     $view_limit->write;
 

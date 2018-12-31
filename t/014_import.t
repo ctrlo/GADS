@@ -33,7 +33,7 @@ $ENV{GADS_NO_FORK} = 1; # Prevent forking during import process
     my $import = GADS::Import->new(
         schema   => $schema,
         layout   => $layout,
-        user_id  => $user1->id,
+        user     => $user1,
         file     => \$in,
     );
 
@@ -135,13 +135,13 @@ foreach my $test (@tests)
         my $import = GADS::Import->new(
             schema   => $schema,
             layout   => $layout,
-            user_id  => $user->id,
+            user     => $user,
             file     => \($test->{data}),
             %options,
         );
 
         my $records = GADS::Records->new(
-            user   => undef,
+            user   => $user,
             layout => $layout,
             schema => $schema,
         );
@@ -441,11 +441,6 @@ foreach my $test (@update_tests)
     # should be used
     set_fixed_time('05/05/2015 01:00:00', '%m/%d/%Y %H:%M:%S');
 
-    my $user = $schema->resultset('User')->create({
-        username => 'test',
-        password => 'test',
-    });
-
     my $unique_id;
     if ($test->{unique})
     {
@@ -484,7 +479,7 @@ foreach my $test (@update_tests)
     my $import = GADS::Import->new(
         schema        => $schema,
         layout        => $layout,
-        user_id       => $user->id,
+        user          => $sheet->user,
         file          => \$test->{data},
         %options,
     );
@@ -492,7 +487,7 @@ foreach my $test (@update_tests)
     $import->process;
 
     my $records = GADS::Records->new(
-        user   => undef,
+        user   => $sheet->user,
         layout => $layout,
         schema => $schema,
     );

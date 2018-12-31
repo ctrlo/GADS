@@ -23,7 +23,7 @@ $integer1->write;
 $layout->clear;
 
 my $record = GADS::Record->new(
-    user   => undef,
+    user   => $sheet->user,
     layout => $layout,
     schema => $schema,
 );
@@ -168,7 +168,7 @@ $record->find_current_id(1);
     $layout->clear;
 
     my $record = GADS::Record->new(
-        user   => undef,
+        user   => $sheet->user,
         layout => $layout,
         schema => $schema,
     );

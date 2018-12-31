@@ -38,6 +38,8 @@ my $layout1 = $sheet1->layout;
 my $layout2 = $sheet2->layout;
 my $columns1 = $sheet1->columns;
 my $columns2 = $sheet2->columns;
+my $user1 = $sheet1->user;
+my $user2 = $sheet2->user;
 
 # Set link field of second sheet daterange to daterange of first sheet
 $columns2->{daterange1}->link_parent_id($columns1->{daterange1}->id);
@@ -49,7 +51,7 @@ $columns2->{curval1}->write;
 $layout2->clear; # Need to rebuild columns to get link_parent built
 
 my $record1 = GADS::Record->new(
-    user     => undef,
+    user     => $user1,
     layout   => $layout1,
     schema   => $schema,
     base_url => undef,
@@ -62,7 +64,7 @@ $record1->fields->{$columns1->{curval1}->id}->set_value([1]);
 $record1->write(no_alerts => 1);
 
 my $record2 = GADS::Record->new(
-    user     => undef,
+    user     => $user2,
     layout   => $layout2,
     schema   => $schema,
     base_url => undef,
@@ -79,7 +81,7 @@ $record2->write(no_alerts => 1);
 $record2->clear;
 
 $record2->linked_id($record1->current_id);
-$record2->initialise;
+$record2->initialise(instance_id => $layout2->instance_id);
 $record2->fields->{$columns2->{string1}->id}->set_value('Foo');
 $record2->write(no_alerts => 1);
 $record2->write_linked_id($record1->current_id);
@@ -187,13 +189,13 @@ foreach my $filter (@filters)
         instance_id => 2,
         layout      => $layout2,
         schema      => $schema,
-        user        => undef,
+        user        => $user2,
     );
     $view->write;
     $view->set_sorts([ $columns2->{daterange1}->id ], $filter->{sort});
 
     my $records = GADS::Records->new(
-        user    => undef,
+        user    => $user2,
         view    => $view,
         layout  => $layout2,
         schema  => $schema,
@@ -213,7 +215,7 @@ foreach my $filter (@filters)
 
 # Retrieve single record and check linked values
 my $single = GADS::Record->new(
-    user   => undef,
+    user   => $user2,
     layout => $layout2,
     schema => $schema,
 );
