@@ -284,7 +284,7 @@ sub _build_values_as_query_records
     foreach my $query (@{$self->values_as_query})
     {
         my $params = parse_query_string($query);
-        grep { $_ !~ /^(current_id|field[0-9]+)$/ } keys %$params
+        grep { $_ !~ /^(csrf_token|current_id|field[0-9]+)$/ } keys %$params
             and error __x"Invalid query string: {query}", query => $query;
         my $record = GADS::Record->new(
             user     => $self->column->layout->user,
