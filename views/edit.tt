@@ -97,11 +97,16 @@
 [% END %]
 <form class="edit-form" method="post" enctype="multipart/form-data"
     [% IF modal %]
-        action="/edit/[% cur_id %]" [%# This form also used for bulk actions %]
+        [% IF cur_id %]
+            [% action = "/edit/" _ cur_id %]
+        [% ELSE %]
+            [% action = "/" _ layout.identifier _ "/edit/" %]
+        [% END %]
+        action="[% action %]" [%# This form also used for bulk actions %]
         data-curval-id="[% modal %]"
         data-current-id="[% cur_id %]"
         data-modal-field-ids="[% modal_field_ids %]"
-        data-instance-id="[% oi %]"
+        data-instance-name="[% layout.identifier %]"
     [% END %]
 >
     <input type="hidden" name="csrf_token" value="[% csrf_token %]">
@@ -231,8 +236,8 @@
 
             $(document).on("mousedown", ".curval-modal", function(e) {
                 var layout_id = $(e.target).data('layout-id');
-                var instance_id = $(e.target).data('instance-id');
-                var current_id = $(e.target).data('current-id') || '';
+                var instance_name = $(e.target).data('instance-name');
+                var current_id = $(e.target).data('current-id');
                 var hidden = $(e.target).closest('.curval_item').find("input[name=field" + layout_id + "]");
                 var form_data = hidden.val();
                 var mode = hidden.length ? "edit" : "add";
@@ -248,7 +253,10 @@
 
                 var m = $("#curval_modal");
                 m.find('.modal-body').text('Loading...');
-                m.find('.modal-body').load('/edit/' + current_id + '?include_draft&modal=' + layout_id + '&oi=' + instance_id + '&' + form_data, function() {
+                var url = current_id
+                    ? '/edit/' + current_id
+                    : '/' + instance_name + '/edit/';
+                m.find('.modal-body').load(url + '?include_draft&modal=' + layout_id + '&' + form_data, function() {
                     if (mode === "edit") {
                         m.find("form").data('guid', guid);
                     }
@@ -268,7 +276,7 @@
                 form.addClass('edit-form--validating');
                 form.find(".alert").attr('hidden', '');
 
-                $.post(form.attr("action") + "?validate&include_draft&oi=" + form.data('instance-id'), form_data, function(data) {
+                $.post(form.attr("action") + "?validate&include_draft", form_data, function(data) {
                     if (data.error === 0) {
                         curvalModalValidationSucceeded(form, data.values);
                     } else {
@@ -276,9 +284,8 @@
                         curvalModalValidationFailed(form, errorMessage);
                     }
                 }, "json")
-                .fail(function(jqXHR) {
-                    var data = jqXHR.responseJSON;
-                    var errorMessage = data && data.error === 1 ? data.message : "Oops! Something went wrong.";
+                .fail(function(jqXHR, textstatus, errorthrown) {
+                    var errorMessage = "Oops! Something went wrong: " + textstatus + ": " + errorthrown;
                     curvalModalValidationFailed(form, errorMessage);
                 })
                 .always(function() {
@@ -290,7 +297,7 @@
                 var form_data = form.serialize();
                 var modal_field_ids = form.data("modal-field-ids");
                 var col_id = form.data( "curval-id" );
-                var instance_id = form.data( "instance-id" );
+                var instance_name = form.data( "instance-name" );
                 var current_id = form.data( "current-id" );
                 var guid = form.data("guid");
                 var hidden_input = $('<input>').attr({type: 'hidden', name: 'field' + col_id, value: form_data});
@@ -306,7 +313,7 @@
                         value = $('<div />').text(value).html();
                         row_cells.append($('<td class="curval-inner-text">').append(value));
                     });
-                    var links = $('<td><a class="curval-modal" style="cursor:pointer" data-layout-id="' + col_id + '" data-instance-id="' + instance_id + '">edit</a> | <a class="curval_remove" style="cursor:pointer">remove</a></td>');
+                    var links = $('<td><a class="curval-modal" style="cursor:pointer" data-layout-id="' + col_id + '" data-instance-name="' + instance_name + '">edit</a> | <a class="curval_remove" style="cursor:pointer">remove</a></td>');
                     row_cells.append(links.append(hidden_input));
                     if (guid) {
                         var hidden = $('input[data-guid="' + guid + '"]').val(form_data);
@@ -938,7 +945,7 @@
 
 [% BLOCK curval_add_button %]
     <p><button class="btn btn-primary curval-modal" type="button"
-        data-instance-id="[% dispcol.refers_to_instance_id %]" data-layout-id="[% dispcol.id %]">Add...
+        data-instance-name="[% dispcol.layout_parent.identifier %]" data-layout-id="[% dispcol.id %]">Add...
     </button></p>
 [% END %]
 
@@ -954,7 +961,7 @@
                         <input type="hidden" id="curval-current-id-[% val.id %]" name="[% field %]" value="[% val.as_query OR val.id %]">
                         <a class="curval-modal"
                             data-current-id="[% val.id %]"
-                            data-instance-id="[% dispcol.refers_to_instance_id %]" data-layout-id="[% dispcol.id %]" style='cursor:pointer'
+                            data-instance-name="[% dispcol.layout_parent.identifier %]" data-layout-id="[% dispcol.id %]" style='cursor:pointer'
                             >edit</a>
                         |
                         <a class="curval_remove" style='cursor:pointer'>remove</a>
