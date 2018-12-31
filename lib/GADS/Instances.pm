@@ -197,7 +197,7 @@ sub layout_by_shortname
     my $layout = $self->schema->resultset('Instance')->search({
         name_short => $shortname,
     })->next;
-    if (!$layout && $shortname =~ /^table([0-9])+$/)
+    if (!$layout && $shortname =~ /^table([0-9]+)$/)
     {
         $layout = $self->schema->resultset('Instance')->search({
             id => $1,
