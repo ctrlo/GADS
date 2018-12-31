@@ -382,7 +382,6 @@ prefix '/:layout_name' => sub {
             schema => schema,
         );
         $record->initialise;
-        $layout->record($record);
 
         my @missing;
         foreach my $col (@{$curval->subvals_input_required})

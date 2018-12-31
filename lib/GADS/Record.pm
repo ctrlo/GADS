@@ -55,7 +55,13 @@ with 'GADS::Role::Presentation::Record';
 # Preferably this is passed in to prevent extra
 # DB reads, but loads it if it isn't
 has layout => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
+    trigger  => sub {
+        # Pass in record to layout, used for filtered curvals
+        my ($self, $layout) = @_;
+        $layout->record($self);
+    },
 );
 
 sub _build_layout
@@ -65,13 +71,20 @@ sub _build_layout
         or panic "instance_id not set to create layout object";
 
     return GADS::Layout->new(
-        user        => $self->user,
-        schema      => $self->schema,
-        instance_id => $instance_id,
-        record      => $self,
-        config      => GADS::Config->instance,
+        user                     => $self->user,
+        user_permission_override => $self->user_permission_override,
+        schema                   => $self->schema,
+        instance_id              => $instance_id,
+        record                   => $self,
+        config                   => GADS::Config->instance,
     );
 }
+
+has user_permission_override => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
 
 has _set_instance_id => (
     is => 'rw',
