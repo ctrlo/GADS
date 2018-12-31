@@ -389,6 +389,837 @@ any ['get', 'post'] => '/user_status' => require_login sub {
     };
 };
 
+get '/login/denied' => sub {
+    forwardHome({ danger => "You do not have permission to access this page" });
+};
+
+any ['get', 'post'] => '/login' => sub {
+
+    my $audit = GADS::Audit->new(schema => schema);
+    my $user  = logged_in_user;
+
+    # Don't allow login page to be displayed when logged-in, to prevent
+    # user thinking they are logged out when they are not
+    return forwardHome() if $user;
+
+    # Request a password reset
+    if (param('resetpwd'))
+    {
+        param 'emailreset'
+            or error "Please enter an email address for the password reset to be sent to";
+        my $username = param('emailreset');
+        $audit->login_change("Password reset request for $username");
+        defined password_reset_send(username => $username)
+        ? success(__('An email has been sent to your email address with a link to reset your password'))
+        : report({is_fatal => 0}, ERROR => 'Failed to send a password reset link. Did you enter a valid email address?');
+    }
+
+    my $error;
+    my $users = GADS::Users->new(schema => schema, config => config);
+
+    if (param 'register')
+    {
+        error __"Self-service account requests are not enabled on this site"
+            if var('site')->hide_account_request;
+        my $params = params;
+        # Check whether this user already has an account
+        if ($users->user_exists($params->{email}))
+        {
+            my $reset_code = Session::Token->new( length => 32 )->get;
+            my $user       = schema->resultset('User')->active->search({ username => $params->{email} })->next;
+            $user->update({ resetpw => $reset_code });
+            my %welcome_text = welcome_text(undef, code => $reset_code);
+            my $email        = GADS::Email->instance;
+            my $args = {
+                subject => $welcome_text{subject},
+                text    => $welcome_text{plain},
+                emails  => [$params->{email}],
+            };
+
+            if (process( sub { $email->send($args) }))
+            {
+                # Show same message as normal request
+                return forwardHome(
+                    { success => "Your account request has been received successfully" } );
+            }
+            $audit->login_change("Account request for $params->{email}. Account already existed, resending welcome email.");
+            return forwardHome({ success => "Your account request has been received successfully" });
+        }
+        else {
+            try { $users->register($params) };
+            if(my $exception = $@->wasFatal)
+            {
+                $error = $exception->message->toString;
+            }
+            else {
+                $audit->login_change("New user account request for $params->{email}");
+                return forwardHome({ success => "Your account request has been received successfully" });
+            }
+        }
+    }
+
+    if (param('signin'))
+    {
+        my $username  = param('username');
+        my $lastfail  = DateTime->now->subtract(minutes => 15);
+        my $lastfailf = schema->storage->datetime_parser->format_datetime($lastfail);
+        my $fail      = $users->user_rs->search({
+            username  => $username,
+            failcount => { '>=' => 5 },
+            lastfail  => { '>' => $lastfailf },
+        })->count;
+        $fail and assert "Reached fail limit for user $username";
+        my ($success, $realm) = !$fail && authenticate_user(
+            $username, params->{password}
+        );
+        if ($success) {
+            # change session ID if we have a new enough D2 version with support
+            app->change_session_id
+                if app->can('change_session_id');
+            session logged_in_user => $username;
+            session logged_in_user_realm => $realm;
+            if (param 'remember_me')
+            {
+                my $secure = request->scheme eq 'https' ? 1 : 0;
+                cookie 'remember_me' => param('username'), expires => '60d',
+                    secure => $secure, http_only => 1 if param('remember_me');
+            }
+            else {
+                cookie remember_me => '', expires => '-1d' if cookie 'remember_me';
+            }
+            $user = logged_in_user;
+            $audit->user($user);
+            $audit->login_success;
+            $user->update({
+                failcount => 0,
+                lastfail  => undef,
+            });
+            forwardHome();
+        }
+        else {
+            $audit->login_failure($username);
+            my ($user) = $users->user_rs->search({
+                username        => $username,
+                account_request => 0,
+            })->all;
+            if ($user)
+            {
+                $user->update({
+                    failcount => $user->failcount + 1,
+                    lastfail  => DateTime->now,
+                });
+                trace "Fail count for $username is now ".$user->failcount;
+                report {to => 'syslog'},
+                    INFO => __x"debug_login set - failed username \"{username}\", password: \"{password}\"",
+                    username => $user->username, password => params->{password}
+                        if $user->debug_login;
+            }
+            report {is_fatal=>0}, ERROR => "The username or password was not recognised";
+        }
+    }
+
+    my $output  = template 'login' => {
+        error         => "".($error||""),
+        username      => cookie('remember_me'),
+        titles        => $users->titles,
+        organisations => $users->organisations,
+        register_text => var('site')->register_text,
+        page          => 'login',
+    };
+    $output;
+};
+
+any ['get', 'post'] => '/edit/:id' => require_login sub {
+
+    my $id = param 'id';
+    _process_edit($id);
+};
+
+any ['get', 'post'] => '/myaccount/?' => require_login sub {
+
+    my $user   = logged_in_user;
+    my $audit  = GADS::Audit->new(schema => schema, user => $user);
+
+    if (param 'newpassword')
+    {
+        my $new_password = _random_pw();
+        if (user_password password => param('oldpassword'), new_password => $new_password)
+        {
+            $audit->login_change("New password set for user");
+            forwardHome({ success => qq(Your password has been changed to: $new_password)}, 'myaccount', user_only => 1 ); # Don't log elsewhere
+        }
+        else {
+            forwardHome({ danger => "The existing password entered is incorrect"}, 'myaccount' );
+        }
+    }
+
+    if (param 'submit')
+    {
+        my $params = params;
+        # Update of user details
+        my %update = (
+            firstname    => param('firstname')    || undef,
+            surname      => param('surname')      || undef,
+            email        => param('email'),
+            username     => param('email'),
+            freetext1    => param('freetext1')    || undef,
+            freetext2    => param('freetext2')    || undef,
+            title        => param('title')        || undef,
+            organisation => param('organisation') || undef,
+        );
+
+        if (process( sub { $user->update_user(current_user => logged_in_user, %update) }))
+        {
+            return forwardHome(
+                { success => "The account details have been updated" }, 'myaccount' );
+        }
+    }
+
+    my $users = GADS::Users->new(schema => schema);
+    template 'user' => {
+        edit          => $user->id,
+        users         => [$user],
+        titles        => $users->titles,
+        organisations => $users->organisations,
+        page          => 'myaccount',
+        breadcrumbs   => [Crumb( '/myaccount/' => 'my details' )],
+    };
+};
+
+any ['get', 'post'] => '/system/?' => require_login sub {
+
+    my $user        = logged_in_user;
+
+    forwardHome({ danger => "You do not have permission to manage system settings"}, '')
+        unless logged_in_user->permission->{superadmin};
+
+    my $site = var 'site';
+
+    if (param 'update')
+    {
+        $site->homepage_text(param 'homepage_text');
+        $site->homepage_text2(param 'homepage_text2');
+
+        if (process( sub { $site->update }))
+        {
+            return forwardHome(
+                { success => "Configuration settings have been updated successfully" } );
+        }
+    }
+
+    template 'system' => {
+        instance    => $site,
+        page        => 'system',
+        breadcrumbs => [Crumb( '/system' => 'system-wide settings' )],
+    };
+};
+
+
+any ['get', 'post'] => '/group/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
+
+    my $id = param 'id';
+    my $group  = GADS::Group->new(schema => schema);
+    my $layout = var 'layout';
+    $group->from_id($id);
+
+    my @permissions = GADS::Type::Permissions->all;
+
+    if (param 'submit')
+    {
+        $group->name(param 'name');
+        foreach my $perm (@permissions)
+        {
+            my $name = "default_".$perm->short;
+            $group->$name(param($name) ? 1 : 0);
+        }
+        if (process(sub {$group->write}))
+        {
+            my $action = param('id') ? 'updated' : 'created';
+            return forwardHome(
+                { success => "Group has been $action successfully" }, 'group' );
+        }
+    }
+
+    if (param 'delete')
+    {
+        if (process(sub {$group->delete}))
+        {
+            return forwardHome(
+                { success => "The group has been deleted successfully" }, 'group' );
+        }
+    }
+
+    my $params = {
+        page => defined $id && !$id ? 'group/0' : 'group'
+    };
+
+    if (defined $id)
+    {
+        # id will be 0 for new group
+        $params->{group}       = $group;
+        $params->{permissions} = [@permissions];
+        my $group_name = $id ? $group->name : 'new group';
+        my $group_id   = $id ? $group->id : 0;
+        $params->{breadcrumbs} = [Crumb( '/group' => 'groups' ) => Crumb( "/group/$group_id" => $group_name )];
+    }
+    else {
+        my $groups = GADS::Groups->new(schema => schema);
+        $params->{groups}      = $groups->all;
+        $params->{layout}      = $layout;
+        $params->{breadcrumbs} = [Crumb( '/group' => 'groups' )];
+    }
+    template 'group' => $params;
+};
+
+get '/table/?' => require_role superadmin => sub {
+
+    template 'tables' => {
+        page        => 'table',
+        instances   => [rset('Instance')->all],
+        breadcrumbs => [Crumb( '/table' => 'tables' )],
+    };
+};
+
+any ['get', 'post'] => '/table/:id' => require_role superadmin => sub {
+
+    my $id          = param 'id';
+    my $user        = logged_in_user;
+    my $layout_edit = $id && var('instances')->layout($id);
+
+    $id && !$layout_edit
+        and error __x"Instance ID {id} not found", id => $id;
+
+    if (param('submit') || param('delete'))
+    {
+        if (param 'submit')
+        {
+            if (!$layout_edit)
+            {
+                $layout_edit = GADS::Layout->new(
+                    user   => $user,
+                    schema => schema,
+                    config => config,
+                );
+            }
+            $layout_edit->name(param 'name');
+            $layout_edit->name_short(param 'name_short');
+            $layout_edit->set_groups([body_parameters->get_all('permissions')]);
+
+            if (process(sub {$layout_edit->write}))
+            {
+                # Switch user to new table
+                my $msg = param('id') ? 'The table has been updated successfully' : 'Your new table has been created successfully';
+                return forwardHome(
+                    { success => $msg }, 'table' );
+            }
+        }
+
+        if (param 'delete')
+        {
+            if (process(sub {$layout_edit->delete}))
+            {
+                return forwardHome(
+                    { success => "The table has been deleted successfully" }, 'table' );
+            }
+        }
+    }
+
+    my $table_name = $id ? $layout_edit->name : 'new table';
+    my $table_id   = $id ? $layout_edit->instance_id : 0;
+
+    template 'table' => {
+        page        => $id ? 'table' : 'table/0',
+        layout_edit => $layout_edit,
+        groups      => GADS::Groups->new(schema => schema)->all,
+        breadcrumbs => [Crumb( '/table' => 'tables' ) => Crumb( "/table/$table_id" => $table_name )],
+    }
+};
+
+any ['get', 'post'] => '/user/upload' => require_any_role [qw/useradmin superadmin/] => sub {
+
+    my $userso = GADS::Users->new(schema => schema);
+
+    if (param 'submit')
+    {
+        my $count;
+        if (process sub {
+            $count = rset('User')->upload(upload('file') || undef, # if no file then upload() returns empty array
+                request_base => request->base,
+                view_limits  => [body_parameters->get_all('view_limits')],
+                groups       => [body_parameters->get_all('groups')],
+                permissions  => [body_parameters->get_all('permission')],
+                current_user => logged_in_user,
+            )}
+        )
+        {
+            return forwardHome(
+                { success => "$count users were successfully uploaded" }, 'user' );
+        }
+    }
+
+    template 'user/upload' => {
+        groups      => GADS::Groups->new(schema => schema)->all,
+        permissions => $userso->permissions,
+        user_fields => $userso->user_fields,
+        breadcrumbs => [Crumb( '/user' => 'users' ), Crumb( '/user/upload' => "user upload" ) ],
+        # XXX Horrible hack - see single user edit route
+        edituser    => +{ view_limits_with_blank => [ undef ] },
+    };
+};
+
+any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
+
+    my $id = body_parameters->get('id');
+
+    my $user            = logged_in_user;
+    my $userso          = GADS::Users->new(schema => schema);
+    my %all_permissions = map { $_->id => $_->name } @{$userso->permissions};
+    my $audit           = GADS::Audit->new(schema => schema, user => $user);
+    my $users;
+
+    if (param 'sendemail')
+    {
+        my @emails = param('email_organisation')
+                   ? (map { $_->email } @{$userso->all_in_org(param 'email_organisation')})
+                   : (map { $_->email } @{$userso->all});
+        my $email  = GADS::Email->instance;
+        my $args   = {
+            subject => param('email_subject'),
+            text    => param('email_text'),
+            emails  => \@emails,
+        };
+
+        if (process( sub { $email->message($args, logged_in_user) }))
+        {
+            return forwardHome(
+                { success => "The message has been sent successfully" }, 'user' );
+        }
+    }
+
+    # The submit button will still be triggered on a new org/title creation,
+    # if the user has pressed enter, in which case ignore it
+    if (param('submit') && !param('neworganisation') && !param('newtitle'))
+    {
+        my %values = (
+            firstname             => param('firstname'),
+            surname               => param('surname'),
+            email                 => param('email'),
+            username              => param('email'),
+            freetext1             => param('freetext1'),
+            freetext2             => param('freetext2'),
+            title                 => param('title') || undef,
+            organisation          => param('organisation') || undef,
+            account_request       => param('account_request'),
+            account_request_notes => param('account_request_notes'),
+            view_limits           => [body_parameters->get_all('view_limits')],
+            groups                => [body_parameters->get_all('groups')],
+        );
+        $values{permissions} = [body_parameters->get_all('permission')]
+            if logged_in_user->permission->{superadmin};
+
+        if (!param('account_request') && $id) # Original username to update (hidden field)
+        {
+            if (process sub {
+                my $user = rset('User')->active->search({ id => $id })->next;
+                # Don't use DBIC update directly, so that permissions etc are updated properly
+                $user->update_user(current_user => logged_in_user, %values);
+            })
+            {
+                return forwardHome(
+                    { success => "User has been updated successfully" }, 'user' );
+            }
+        }
+        else {
+            # This sends a welcome email etc
+            if (process(sub { rset('User')->create_user(current_user => $user, request_base => request->base, %values) }))
+            {
+                return forwardHome(
+                    { success => "User has been created successfully" }, 'user' );
+            }
+        }
+
+        # In case of failure, pass back to form
+        my $view_limits_with_blank = [ map {
+            +{
+                view_id => $_
+            }
+        } body_parameters->get_all('view_limits') ];
+        $values{view_limits_with_blank} = $view_limits_with_blank;
+        $users = [\%values];
+    }
+
+    my $register_requests;
+    if (param('neworganisation') || param('newtitle'))
+    {
+        if (my $org = param 'neworganisation')
+        {
+            if (process( sub { $userso->organisation_new({ name => $org })}))
+            {
+                $audit->login_change("Organisation $org created");
+                success __"The organisation has been created successfully";
+            }
+        }
+
+        if (my $title = param 'newtitle')
+        {
+            if (process( sub { $userso->title_new({ name => $title }) }))
+            {
+                $audit->login_change("Title $title created");
+                success __"The title has been created successfully";
+            }
+        }
+
+        # Remember values of user creation in progress.
+        # XXX This is a mess (repeated code from above). Need to get
+        # DPAE to use a user object
+        my @groups      = ref param('groups') ? @{param('groups')} : (param('groups') || ());
+        my %groups      = map { $_ => 1 } @groups;
+        my $view_limits_with_blank = [ map {
+            +{
+                view_id => $_
+            }
+        } body_parameters->get_all('view_limits') ];
+
+        $users = [{
+            firstname              => param('firstname'),
+            surname                => param('surname'),
+            email                  => param('email'),
+            freetext1              => param('freetext1'),
+            freetext2              => param('freetext2'),
+            title                  => { id => param('title') },
+            organisation           => { id => param('organisation') },
+            view_limits_with_blank => $view_limits_with_blank,
+            groups                 => \%groups,
+        }];
+    }
+    elsif (my $delete_id = param('delete'))
+    {
+        return forwardHome(
+            { danger => "Cannot delete current logged-in User" } )
+            if logged_in_user->id eq $delete_id;
+        my $usero = rset('User')->find($delete_id);
+        if (process( sub { $usero->retire(send_reject_email => 1) }))
+        {
+            $audit->login_change("User ID $delete_id deleted");
+            return forwardHome(
+                { success => "User has been deleted successfully" }, 'user' );
+        }
+    }
+
+    if (defined param 'download')
+    {
+        my $csv = $userso->csv;
+        my $now = DateTime->now();
+        my $header;
+        if ($header = config->{gads}->{header})
+        {
+            $csv       = "$header\n$csv" if $header;
+            $header    = "-$header" if $header;
+        }
+        # XXX Is this correct? We can't send native utf-8 without getting the error
+        # "Strings with code points over 0xFF may not be mapped into in-memory file handles".
+        # So, encode the string (e.g. "\x{100}"  becomes "\xc4\x80) and then send it,
+        # telling the browser it's utf-8
+        utf8::encode($csv);
+        return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
+    }
+
+    my $route_id = route_parameters->get('id');
+
+    if ($route_id)
+    {
+        $users = [ rset('User')->find($route_id) ] if !$users;
+    }
+    elsif (!defined $route_id) {
+        $users             = $userso->all;
+        $register_requests = $userso->register_requests;
+    }
+    else {
+        # Horrible hack to get a limit view drop-down to display
+        $users = [
+            +{
+                view_limits_with_blank => [ undef ],
+            }
+        ] if !$users; # Only if not already submitted
+    }
+
+    my $breadcrumbs = [Crumb( '/user' => 'users' )];
+    push @$breadcrumbs, Crumb( "/user/$route_id" => "edit user $route_id" ) if $route_id;
+    push @$breadcrumbs, Crumb( "/user/$route_id" => "new user" ) if defined $route_id && !$route_id;
+    my $output = template 'user' => {
+        edit              => $route_id,
+        users             => $users,
+        groups            => GADS::Groups->new(schema => schema)->all,
+        register_requests => $register_requests,
+        titles            => $userso->titles,
+        organisations     => $userso->organisations,
+        permissions       => $userso->permissions,
+        page              => defined $route_id && !$route_id ? 'user/0' : 'user',
+        breadcrumbs       => $breadcrumbs,
+    };
+    $output;
+};
+
+get '/helptext/:id?' => require_login sub {
+    my $id     = param 'id';
+    my $user   = logged_in_user;
+    my $layout = var('instances')->all->[0];
+    my $column = $layout->column($id);
+    template 'helptext.tt', { column => $column }, { layout => undef };
+};
+
+get '/file/?' => require_login sub {
+
+    my $user        = logged_in_user;
+
+    forwardHome({ danger => "You do not have permission to manage files"}, '')
+        unless logged_in_user->permission->{superadmin};
+
+    my @files = rset('Fileval')->search({
+        'files.id' => undef,
+    },{
+        join     => 'files',
+        order_by => 'me.id',
+    })->all;
+
+    template 'files' => {
+        files       => [@files],
+        breadcrumbs => [Crumb( "/file" => 'files' )],
+    };
+};
+
+get '/file/:id' => require_login sub {
+    my $id = param 'id';
+
+    # Need to get file details first, to be able to populate
+    # column details of applicable.
+    my $fileval = $id =~ /^[0-9]+$/ && schema->resultset('Fileval')->find($id)
+        or error __x"File ID {id} cannot be found", id => $id;
+    my ($file_rs) = $fileval->files; # In theory can be more than one, but not in practice (yet)
+    my $file = GADS::Datum::File->new(id => $id);
+    # Get appropriate column, if applicable (could be unattached document)
+    # This will control access to the file
+    if ($file_rs && $file_rs->layout_id)
+    {
+        my $layout = var('instances')->layout($file_rs->layout->instance_id);
+        $file->column($layout->column($file_rs->layout_id));
+    }
+    else {
+        $file->schema(schema);
+    }
+    send_file( \($file->content), content_type => $file->mimetype, filename => $file->name );
+};
+
+post '/file/?' => require_login sub {
+
+    my $ajax = defined param('ajax');
+
+    if (my $upload = upload('file'))
+    {
+        my $file;
+        if (process( sub { $file = rset('Fileval')->create({
+            name     => $upload->filename,
+            mimetype => $upload->type,
+            content  => $upload->content,
+        }) } ))
+        {
+            if ($ajax)
+            {
+                return encode_json({
+                    url   => "/file/".$file->id,
+                    is_ok => 1,
+                });
+            }
+            else {
+                my $msg = __x"File has been uploaded as ID {id}", id => $file->id;
+                return forwardHome( { success => "$msg" }, 'file' );
+            }
+        }
+        elsif ($ajax) {
+            return encode_json({
+                is_ok => 0,
+                error => $@,
+            });
+        }
+    }
+    elsif ($ajax) {
+        return encode_json({
+            is_ok => 0,
+            error => "No file was submitted",
+        });
+    }
+    else {
+        error __"No file submitted";
+    }
+
+};
+
+get '/record_body/:id' => require_login sub {
+
+    my $id = param('id');
+
+    my $user   = logged_in_user;
+    my $record = GADS::Record->new(
+        user   => $user,
+        schema => schema,
+        rewind => session('rewind'),
+    );
+
+    $record->find_current_id($id);
+    my $layout = $record->layout;
+    my @columns = $layout->all(user_can_read => 1);
+    template 'record_body' => {
+        is_modal       => 1, # Assume modal if loaded via this route
+        record         => $record->presentation(@columns),
+        has_rag_column => !!(grep { $_->type eq 'rag' } @columns),
+        all_columns    => \@columns,
+        with_edit      => param('withedit'),
+    }, { layout => undef };
+};
+
+get qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
+
+    my ($action, $id) = splat;
+
+    my $user   = logged_in_user;
+
+    my $record = GADS::Record->new(
+        user   => $user,
+        schema => schema,
+        rewind => session('rewind'),
+    );
+
+      $action eq 'history'
+    ? $record->find_record_id($id)
+    : $action eq 'purge'
+    ? $record->find_deleted_currentid($id)
+    : $action eq 'purgehistory'
+    ? $record->find_deleted_recordid($id)
+    : $record->find_current_id($id);
+
+    if (defined param('pdf'))
+    {
+        my $pdf = $record->pdf->content;
+        return send_file(\$pdf, content_type => 'application/pdf', filename => "Record-".$record->current_id.".pdf" );
+    }
+
+    my $layout = $record->layout;
+    var 'layout' => $layout;
+
+    my @versions    = $record->versions;
+    my @columns     = $record->layout->all(user_can_read => 1);
+    my $prefix      = $layout->identifier;
+    my @first_crumb = $action eq 'purge' ? ( $layout, "/$prefix/purge" => 'deleted records' ) : ( $layout, "/$prefix/data" => 'records' );
+
+    my $output = template 'record' => {
+        record         => $record->presentation(@columns),
+        versions       => \@versions,
+        all_columns    => \@columns,
+        has_rag_column => !!(grep { $_->type eq 'rag' } @columns),
+        page           => 'record',
+        is_history     => $action eq 'history',
+        breadcrumbs    => [Crumb($layout) => Crumb(@first_crumb) => Crumb( "/record/".$record->current_id => 'record id ' . $record->current_id )]
+    };
+    $output;
+};
+
+any ['get', 'post'] => '/audit/?' => require_role audit => sub {
+
+    my $audit = GADS::Audit->new(schema => schema);
+    my $users = GADS::Users->new(schema => schema, config => config);
+
+    if (param 'audit_filtering')
+    {
+        session 'audit_filtering' => {
+            method => param('method'),
+            type   => param('type'),
+            user   => param('user'),
+            from   => param('from'),
+            to     => param('to'),
+        }
+    }
+
+    $audit->filtering(session 'audit_filtering')
+        if session 'audit_filtering';
+
+    if (defined param 'download')
+    {
+        my $csv = $audit->csv;
+        my $now = DateTime->now();
+        my $header;
+        if ($header = config->{gads}->{header})
+        {
+            $csv       = "$header\n$csv" if $header;
+            $header    = "-$header" if $header;
+        }
+        # XXX Is this correct? We can't send native utf-8 without getting the error
+        # "Strings with code points over 0xFF may not be mapped into in-memory file handles".
+        # So, encode the string (e.g. "\x{100}"  becomes "\xc4\x80) and then send it,
+        # telling the browser it's utf-8
+        utf8::encode($csv);
+        return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
+    }
+
+    template 'audit' => {
+        logs        => $audit->logs(session 'audit_filtering'),
+        users       => $users,
+        filtering   => $audit->filtering,
+        audit_types => GADS::Audit::audit_types,
+        page        => 'audit',
+        breadcrumbs => [Crumb( "/audit" => 'audit logs' )],
+    };
+};
+
+
+get '/logout' => sub {
+    app->destroy_session;
+    forwardHome();
+};
+
+any ['get', 'post'] => '/resetpw/:code' => sub {
+
+    # Strange things happen if running this code when already logged in.
+    # Log the existing user out first
+    app->destroy_session if logged_in_user;
+
+    # Perform check first in order to get user ID for audit
+    if (my $username = user_password code => param('code'))
+    {
+        my $new_password;
+
+        if (param 'execute_reset')
+        {
+            context->destroy_session;
+            my $user   = rset('User')->active(username => $username)->next;
+            # Now we know this user is genuine, reset any failure that would
+            # otherwise prevent them logging in
+            $user->update({ failcount => 0 });
+            my $audit  = GADS::Audit->new(schema => schema, user => $user);
+            $audit->login_change("Password reset performed for user ID ".$user->id);
+            $new_password = _random_pw();
+            user_password code => param('code'), new_password => $new_password;
+        }
+        my $output  = template 'login' => {
+            reset_code => 1,
+            password   => $new_password,
+            page       => 'login',
+        };
+        return $output;
+    }
+    else {
+        return forwardHome(
+            { danger => qq(The password reset code is not valid. Please request a new one
+                using the "Reset Password" link) }, 'login'
+        );
+    }
+};
+
+get '/invalidsite' => sub {
+    template 'invalidsite' => {
+        page => 'invalidsite'
+    };
+};
+
 prefix '/:layout_name' => sub {
 
     get '/?' => sub {
@@ -2247,647 +3078,6 @@ prefix '/:layout_name' => sub {
 
 };
 
-any ['get', 'post'] => '/edit/:id' => require_login sub {
-
-    my $id = param 'id';
-    _process_edit($id);
-};
-
-any ['get', 'post'] => '/myaccount/?' => require_login sub {
-
-    my $user   = logged_in_user;
-    my $audit  = GADS::Audit->new(schema => schema, user => $user);
-
-    if (param 'newpassword')
-    {
-        my $new_password = _random_pw();
-        if (user_password password => param('oldpassword'), new_password => $new_password)
-        {
-            $audit->login_change("New password set for user");
-            forwardHome({ success => qq(Your password has been changed to: $new_password)}, 'myaccount', user_only => 1 ); # Don't log elsewhere
-        }
-        else {
-            forwardHome({ danger => "The existing password entered is incorrect"}, 'myaccount' );
-        }
-    }
-
-    if (param 'submit')
-    {
-        my $params = params;
-        # Update of user details
-        my %update = (
-            firstname    => param('firstname')    || undef,
-            surname      => param('surname')      || undef,
-            email        => param('email'),
-            username     => param('email'),
-            freetext1    => param('freetext1')    || undef,
-            freetext2    => param('freetext2')    || undef,
-            title        => param('title')        || undef,
-            organisation => param('organisation') || undef,
-        );
-
-        if (process( sub { $user->update_user(current_user => logged_in_user, %update) }))
-        {
-            return forwardHome(
-                { success => "The account details have been updated" }, 'myaccount' );
-        }
-    }
-
-    my $users = GADS::Users->new(schema => schema);
-    template 'user' => {
-        edit          => $user->id,
-        users         => [$user],
-        titles        => $users->titles,
-        organisations => $users->organisations,
-        page          => 'myaccount',
-        breadcrumbs   => [Crumb( '/myaccount/' => 'my details' )],
-    };
-};
-
-any ['get', 'post'] => '/system/?' => require_login sub {
-
-    my $user        = logged_in_user;
-
-    forwardHome({ danger => "You do not have permission to manage system settings"}, '')
-        unless logged_in_user->permission->{superadmin};
-
-    my $site = var 'site';
-
-    if (param 'update')
-    {
-        $site->homepage_text(param 'homepage_text');
-        $site->homepage_text2(param 'homepage_text2');
-
-        if (process( sub { $site->update }))
-        {
-            return forwardHome(
-                { success => "Configuration settings have been updated successfully" } );
-        }
-    }
-
-    template 'system' => {
-        instance    => $site,
-        page        => 'system',
-        breadcrumbs => [Crumb( '/system' => 'system-wide settings' )],
-    };
-};
-
-
-any ['get', 'post'] => '/group/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
-
-    my $id = param 'id';
-    my $group  = GADS::Group->new(schema => schema);
-    my $layout = var 'layout';
-    $group->from_id($id);
-
-    my @permissions = GADS::Type::Permissions->all;
-
-    if (param 'submit')
-    {
-        $group->name(param 'name');
-        foreach my $perm (@permissions)
-        {
-            my $name = "default_".$perm->short;
-            $group->$name(param($name) ? 1 : 0);
-        }
-        if (process(sub {$group->write}))
-        {
-            my $action = param('id') ? 'updated' : 'created';
-            return forwardHome(
-                { success => "Group has been $action successfully" }, 'group' );
-        }
-    }
-
-    if (param 'delete')
-    {
-        if (process(sub {$group->delete}))
-        {
-            return forwardHome(
-                { success => "The group has been deleted successfully" }, 'group' );
-        }
-    }
-
-    my $params = {
-        page => defined $id && !$id ? 'group/0' : 'group'
-    };
-
-    if (defined $id)
-    {
-        # id will be 0 for new group
-        $params->{group}       = $group;
-        $params->{permissions} = [@permissions];
-        my $group_name = $id ? $group->name : 'new group';
-        my $group_id   = $id ? $group->id : 0;
-        $params->{breadcrumbs} = [Crumb( '/group' => 'groups' ) => Crumb( "/group/$group_id" => $group_name )];
-    }
-    else {
-        my $groups = GADS::Groups->new(schema => schema);
-        $params->{groups}      = $groups->all;
-        $params->{layout}      = $layout;
-        $params->{breadcrumbs} = [Crumb( '/group' => 'groups' )];
-    }
-    template 'group' => $params;
-};
-
-get '/table/?' => require_role superadmin => sub {
-
-    template 'tables' => {
-        page        => 'table',
-        instances   => [rset('Instance')->all],
-        breadcrumbs => [Crumb( '/table' => 'tables' )],
-    };
-};
-
-any ['get', 'post'] => '/table/:id' => require_role superadmin => sub {
-
-    my $id          = param 'id';
-    my $user        = logged_in_user;
-    my $layout_edit = $id && var('instances')->layout($id);
-
-    $id && !$layout_edit
-        and error __x"Instance ID {id} not found", id => $id;
-
-    if (param('submit') || param('delete'))
-    {
-        if (param 'submit')
-        {
-            if (!$layout_edit)
-            {
-                $layout_edit = GADS::Layout->new(
-                    user   => $user,
-                    schema => schema,
-                    config => config,
-                );
-            }
-            $layout_edit->name(param 'name');
-            $layout_edit->name_short(param 'name_short');
-            $layout_edit->set_groups([body_parameters->get_all('permissions')]);
-
-            if (process(sub {$layout_edit->write}))
-            {
-                # Switch user to new table
-                my $msg = param('id') ? 'The table has been updated successfully' : 'Your new table has been created successfully';
-                return forwardHome(
-                    { success => $msg }, 'table' );
-            }
-        }
-
-        if (param 'delete')
-        {
-            if (process(sub {$layout_edit->delete}))
-            {
-                return forwardHome(
-                    { success => "The table has been deleted successfully" }, 'table' );
-            }
-        }
-    }
-
-    my $table_name = $id ? $layout_edit->name : 'new table';
-    my $table_id   = $id ? $layout_edit->instance_id : 0;
-
-    template 'table' => {
-        page        => $id ? 'table' : 'table/0',
-        layout_edit => $layout_edit,
-        groups      => GADS::Groups->new(schema => schema)->all,
-        breadcrumbs => [Crumb( '/table' => 'tables' ) => Crumb( "/table/$table_id" => $table_name )],
-    }
-};
-
-any ['get', 'post'] => '/user/upload' => require_any_role [qw/useradmin superadmin/] => sub {
-
-    my $userso = GADS::Users->new(schema => schema);
-
-    if (param 'submit')
-    {
-        my $count;
-        if (process sub {
-            $count = rset('User')->upload(upload('file') || undef, # if no file then upload() returns empty array
-                request_base => request->base,
-                view_limits  => [body_parameters->get_all('view_limits')],
-                groups       => [body_parameters->get_all('groups')],
-                permissions  => [body_parameters->get_all('permission')],
-                current_user => logged_in_user,
-            )}
-        )
-        {
-            return forwardHome(
-                { success => "$count users were successfully uploaded" }, 'user' );
-        }
-    }
-
-    template 'user/upload' => {
-        groups      => GADS::Groups->new(schema => schema)->all,
-        permissions => $userso->permissions,
-        user_fields => $userso->user_fields,
-        breadcrumbs => [Crumb( '/user' => 'users' ), Crumb( '/user/upload' => "user upload" ) ],
-        # XXX Horrible hack - see single user edit route
-        edituser    => +{ view_limits_with_blank => [ undef ] },
-    };
-};
-
-any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
-
-    my $id = body_parameters->get('id');
-
-    my $user            = logged_in_user;
-    my $userso          = GADS::Users->new(schema => schema);
-    my %all_permissions = map { $_->id => $_->name } @{$userso->permissions};
-    my $audit           = GADS::Audit->new(schema => schema, user => $user);
-    my $users;
-
-    if (param 'sendemail')
-    {
-        my @emails = param('email_organisation')
-                   ? (map { $_->email } @{$userso->all_in_org(param 'email_organisation')})
-                   : (map { $_->email } @{$userso->all});
-        my $email  = GADS::Email->instance;
-        my $args   = {
-            subject => param('email_subject'),
-            text    => param('email_text'),
-            emails  => \@emails,
-        };
-
-        if (process( sub { $email->message($args, logged_in_user) }))
-        {
-            return forwardHome(
-                { success => "The message has been sent successfully" }, 'user' );
-        }
-    }
-
-    # The submit button will still be triggered on a new org/title creation,
-    # if the user has pressed enter, in which case ignore it
-    if (param('submit') && !param('neworganisation') && !param('newtitle'))
-    {
-        my %values = (
-            firstname             => param('firstname'),
-            surname               => param('surname'),
-            email                 => param('email'),
-            username              => param('email'),
-            freetext1             => param('freetext1'),
-            freetext2             => param('freetext2'),
-            title                 => param('title') || undef,
-            organisation          => param('organisation') || undef,
-            account_request       => param('account_request'),
-            account_request_notes => param('account_request_notes'),
-            view_limits           => [body_parameters->get_all('view_limits')],
-            groups                => [body_parameters->get_all('groups')],
-        );
-        $values{permissions} = [body_parameters->get_all('permission')]
-            if logged_in_user->permission->{superadmin};
-
-        if (!param('account_request') && $id) # Original username to update (hidden field)
-        {
-            if (process sub {
-                my $user = rset('User')->active->search({ id => $id })->next;
-                # Don't use DBIC update directly, so that permissions etc are updated properly
-                $user->update_user(current_user => logged_in_user, %values);
-            })
-            {
-                return forwardHome(
-                    { success => "User has been updated successfully" }, 'user' );
-            }
-        }
-        else {
-            # This sends a welcome email etc
-            if (process(sub { rset('User')->create_user(current_user => $user, request_base => request->base, %values) }))
-            {
-                return forwardHome(
-                    { success => "User has been created successfully" }, 'user' );
-            }
-        }
-
-        # In case of failure, pass back to form
-        my $view_limits_with_blank = [ map {
-            +{
-                view_id => $_
-            }
-        } body_parameters->get_all('view_limits') ];
-        $values{view_limits_with_blank} = $view_limits_with_blank;
-        $users = [\%values];
-    }
-
-    my $register_requests;
-    if (param('neworganisation') || param('newtitle'))
-    {
-        if (my $org = param 'neworganisation')
-        {
-            if (process( sub { $userso->organisation_new({ name => $org })}))
-            {
-                $audit->login_change("Organisation $org created");
-                success __"The organisation has been created successfully";
-            }
-        }
-
-        if (my $title = param 'newtitle')
-        {
-            if (process( sub { $userso->title_new({ name => $title }) }))
-            {
-                $audit->login_change("Title $title created");
-                success __"The title has been created successfully";
-            }
-        }
-
-        # Remember values of user creation in progress.
-        # XXX This is a mess (repeated code from above). Need to get
-        # DPAE to use a user object
-        my @groups      = ref param('groups') ? @{param('groups')} : (param('groups') || ());
-        my %groups      = map { $_ => 1 } @groups;
-        my $view_limits_with_blank = [ map {
-            +{
-                view_id => $_
-            }
-        } body_parameters->get_all('view_limits') ];
-
-        $users = [{
-            firstname              => param('firstname'),
-            surname                => param('surname'),
-            email                  => param('email'),
-            freetext1              => param('freetext1'),
-            freetext2              => param('freetext2'),
-            title                  => { id => param('title') },
-            organisation           => { id => param('organisation') },
-            view_limits_with_blank => $view_limits_with_blank,
-            groups                 => \%groups,
-        }];
-    }
-    elsif (my $delete_id = param('delete'))
-    {
-        return forwardHome(
-            { danger => "Cannot delete current logged-in User" } )
-            if logged_in_user->id eq $delete_id;
-        my $usero = rset('User')->find($delete_id);
-        if (process( sub { $usero->retire(send_reject_email => 1) }))
-        {
-            $audit->login_change("User ID $delete_id deleted");
-            return forwardHome(
-                { success => "User has been deleted successfully" }, 'user' );
-        }
-    }
-
-    if (defined param 'download')
-    {
-        my $csv = $userso->csv;
-        my $now = DateTime->now();
-        my $header;
-        if ($header = config->{gads}->{header})
-        {
-            $csv       = "$header\n$csv" if $header;
-            $header    = "-$header" if $header;
-        }
-        # XXX Is this correct? We can't send native utf-8 without getting the error
-        # "Strings with code points over 0xFF may not be mapped into in-memory file handles".
-        # So, encode the string (e.g. "\x{100}"  becomes "\xc4\x80) and then send it,
-        # telling the browser it's utf-8
-        utf8::encode($csv);
-        return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
-    }
-
-    my $route_id = route_parameters->get('id');
-
-    if ($route_id)
-    {
-        $users = [ rset('User')->find($route_id) ] if !$users;
-    }
-    elsif (!defined $route_id) {
-        $users             = $userso->all;
-        $register_requests = $userso->register_requests;
-    }
-    else {
-        # Horrible hack to get a limit view drop-down to display
-        $users = [
-            +{
-                view_limits_with_blank => [ undef ],
-            }
-        ] if !$users; # Only if not already submitted
-    }
-
-    my $breadcrumbs = [Crumb( '/user' => 'users' )];
-    push @$breadcrumbs, Crumb( "/user/$route_id" => "edit user $route_id" ) if $route_id;
-    push @$breadcrumbs, Crumb( "/user/$route_id" => "new user" ) if defined $route_id && !$route_id;
-    my $output = template 'user' => {
-        edit              => $route_id,
-        users             => $users,
-        groups            => GADS::Groups->new(schema => schema)->all,
-        register_requests => $register_requests,
-        titles            => $userso->titles,
-        organisations     => $userso->organisations,
-        permissions       => $userso->permissions,
-        page              => defined $route_id && !$route_id ? 'user/0' : 'user',
-        breadcrumbs       => $breadcrumbs,
-    };
-    $output;
-};
-
-get '/helptext/:id?' => require_login sub {
-    my $id     = param 'id';
-    my $user   = logged_in_user;
-    my $layout = var('instances')->all->[0];
-    my $column = $layout->column($id);
-    template 'helptext.tt', { column => $column }, { layout => undef };
-};
-
-get '/file/?' => require_login sub {
-
-    my $user        = logged_in_user;
-
-    forwardHome({ danger => "You do not have permission to manage files"}, '')
-        unless logged_in_user->permission->{superadmin};
-
-    my @files = rset('Fileval')->search({
-        'files.id' => undef,
-    },{
-        join     => 'files',
-        order_by => 'me.id',
-    })->all;
-
-    template 'files' => {
-        files       => [@files],
-        breadcrumbs => [Crumb( "/file" => 'files' )],
-    };
-};
-
-get '/file/:id' => require_login sub {
-    my $id = param 'id';
-
-    # Need to get file details first, to be able to populate
-    # column details of applicable.
-    my $fileval = $id =~ /^[0-9]+$/ && schema->resultset('Fileval')->find($id)
-        or error __x"File ID {id} cannot be found", id => $id;
-    my ($file_rs) = $fileval->files; # In theory can be more than one, but not in practice (yet)
-    my $file = GADS::Datum::File->new(id => $id);
-    # Get appropriate column, if applicable (could be unattached document)
-    # This will control access to the file
-    if ($file_rs && $file_rs->layout_id)
-    {
-        my $layout = var('instances')->layout($file_rs->layout->instance_id);
-        $file->column($layout->column($file_rs->layout_id));
-    }
-    else {
-        $file->schema(schema);
-    }
-    send_file( \($file->content), content_type => $file->mimetype, filename => $file->name );
-};
-
-post '/file/?' => require_login sub {
-
-    my $ajax = defined param('ajax');
-
-    if (my $upload = upload('file'))
-    {
-        my $file;
-        if (process( sub { $file = rset('Fileval')->create({
-            name     => $upload->filename,
-            mimetype => $upload->type,
-            content  => $upload->content,
-        }) } ))
-        {
-            if ($ajax)
-            {
-                return encode_json({
-                    url   => "/file/".$file->id,
-                    is_ok => 1,
-                });
-            }
-            else {
-                my $msg = __x"File has been uploaded as ID {id}", id => $file->id;
-                return forwardHome( { success => "$msg" }, 'file' );
-            }
-        }
-        elsif ($ajax) {
-            return encode_json({
-                is_ok => 0,
-                error => $@,
-            });
-        }
-    }
-    elsif ($ajax) {
-        return encode_json({
-            is_ok => 0,
-            error => "No file was submitted",
-        });
-    }
-    else {
-        error __"No file submitted";
-    }
-
-};
-
-get '/record_body/:id' => require_login sub {
-
-    my $id = param('id');
-
-    my $user   = logged_in_user;
-    my $record = GADS::Record->new(
-        user   => $user,
-        schema => schema,
-        rewind => session('rewind'),
-    );
-
-    $record->find_current_id($id);
-    my $layout = $record->layout;
-    my @columns = $layout->all(user_can_read => 1);
-    template 'record_body' => {
-        is_modal       => 1, # Assume modal if loaded via this route
-        record         => $record->presentation(@columns),
-        has_rag_column => !!(grep { $_->type eq 'rag' } @columns),
-        all_columns    => \@columns,
-        with_edit      => param('withedit'),
-    }, { layout => undef };
-};
-
-get qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
-
-    my ($action, $id) = splat;
-
-    my $user   = logged_in_user;
-
-    my $record = GADS::Record->new(
-        user   => $user,
-        schema => schema,
-        rewind => session('rewind'),
-    );
-
-      $action eq 'history'
-    ? $record->find_record_id($id)
-    : $action eq 'purge'
-    ? $record->find_deleted_currentid($id)
-    : $action eq 'purgehistory'
-    ? $record->find_deleted_recordid($id)
-    : $record->find_current_id($id);
-
-    if (defined param('pdf'))
-    {
-        my $pdf = $record->pdf->content;
-        return send_file(\$pdf, content_type => 'application/pdf', filename => "Record-".$record->current_id.".pdf" );
-    }
-
-    my $layout = $record->layout;
-    var 'layout' => $layout;
-
-    my @versions    = $record->versions;
-    my @columns     = $record->layout->all(user_can_read => 1);
-    my $prefix      = $layout->identifier;
-    my @first_crumb = $action eq 'purge' ? ( $layout, "/$prefix/purge" => 'deleted records' ) : ( $layout, "/$prefix/data" => 'records' );
-
-    my $output = template 'record' => {
-        record         => $record->presentation(@columns),
-        versions       => \@versions,
-        all_columns    => \@columns,
-        has_rag_column => !!(grep { $_->type eq 'rag' } @columns),
-        page           => 'record',
-        is_history     => $action eq 'history',
-        breadcrumbs    => [Crumb($layout) => Crumb(@first_crumb) => Crumb( "/record/".$record->current_id => 'record id ' . $record->current_id )]
-    };
-    $output;
-};
-
-any ['get', 'post'] => '/audit/?' => require_role audit => sub {
-
-    my $audit = GADS::Audit->new(schema => schema);
-    my $users = GADS::Users->new(schema => schema, config => config);
-
-    if (param 'audit_filtering')
-    {
-        session 'audit_filtering' => {
-            method => param('method'),
-            type   => param('type'),
-            user   => param('user'),
-            from   => param('from'),
-            to     => param('to'),
-        }
-    }
-
-    $audit->filtering(session 'audit_filtering')
-        if session 'audit_filtering';
-
-    if (defined param 'download')
-    {
-        my $csv = $audit->csv;
-        my $now = DateTime->now();
-        my $header;
-        if ($header = config->{gads}->{header})
-        {
-            $csv       = "$header\n$csv" if $header;
-            $header    = "-$header" if $header;
-        }
-        # XXX Is this correct? We can't send native utf-8 without getting the error
-        # "Strings with code points over 0xFF may not be mapped into in-memory file handles".
-        # So, encode the string (e.g. "\x{100}"  becomes "\xc4\x80) and then send it,
-        # telling the browser it's utf-8
-        utf8::encode($csv);
-        return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
-    }
-
-    template 'audit' => {
-        logs        => $audit->logs(session 'audit_filtering'),
-        users       => $users,
-        filtering   => $audit->filtering,
-        audit_types => GADS::Audit::audit_types,
-        page        => 'audit',
-        breadcrumbs => [Crumb( "/audit" => 'audit logs' )],
-    };
-};
-
 sub reset_text {
     my ($dsl, %options) = @_;
     my $name = config->{gads}->{name};
@@ -2927,195 +3117,6 @@ __BODY
         plain   => $body,
     );
 }
-
-get '/login/denied' => sub {
-    forwardHome({ danger => "You do not have permission to access this page" });
-};
-
-any ['get', 'post'] => '/login' => sub {
-
-    my $audit = GADS::Audit->new(schema => schema);
-    my $user  = logged_in_user;
-
-    # Don't allow login page to be displayed when logged-in, to prevent
-    # user thinking they are logged out when they are not
-    return forwardHome() if $user;
-
-    # Request a password reset
-    if (param('resetpwd'))
-    {
-        param 'emailreset'
-            or error "Please enter an email address for the password reset to be sent to";
-        my $username = param('emailreset');
-        $audit->login_change("Password reset request for $username");
-        defined password_reset_send(username => $username)
-        ? success(__('An email has been sent to your email address with a link to reset your password'))
-        : report({is_fatal => 0}, ERROR => 'Failed to send a password reset link. Did you enter a valid email address?');
-    }
-
-    my $error;
-    my $users = GADS::Users->new(schema => schema, config => config);
-
-    if (param 'register')
-    {
-        error __"Self-service account requests are not enabled on this site"
-            if var('site')->hide_account_request;
-        my $params = params;
-        # Check whether this user already has an account
-        if ($users->user_exists($params->{email}))
-        {
-            my $reset_code = Session::Token->new( length => 32 )->get;
-            my $user       = schema->resultset('User')->active->search({ username => $params->{email} })->next;
-            $user->update({ resetpw => $reset_code });
-            my %welcome_text = welcome_text(undef, code => $reset_code);
-            my $email        = GADS::Email->instance;
-            my $args = {
-                subject => $welcome_text{subject},
-                text    => $welcome_text{plain},
-                emails  => [$params->{email}],
-            };
-
-            if (process( sub { $email->send($args) }))
-            {
-                # Show same message as normal request
-                return forwardHome(
-                    { success => "Your account request has been received successfully" } );
-            }
-            $audit->login_change("Account request for $params->{email}. Account already existed, resending welcome email.");
-            return forwardHome({ success => "Your account request has been received successfully" });
-        }
-        else {
-            try { $users->register($params) };
-            if(my $exception = $@->wasFatal)
-            {
-                $error = $exception->message->toString;
-            }
-            else {
-                $audit->login_change("New user account request for $params->{email}");
-                return forwardHome({ success => "Your account request has been received successfully" });
-            }
-        }
-    }
-
-    if (param('signin'))
-    {
-        my $username  = param('username');
-        my $lastfail  = DateTime->now->subtract(minutes => 15);
-        my $lastfailf = schema->storage->datetime_parser->format_datetime($lastfail);
-        my $fail      = $users->user_rs->search({
-            username  => $username,
-            failcount => { '>=' => 5 },
-            lastfail  => { '>' => $lastfailf },
-        })->count;
-        $fail and assert "Reached fail limit for user $username";
-        my ($success, $realm) = !$fail && authenticate_user(
-            $username, params->{password}
-        );
-        if ($success) {
-            # change session ID if we have a new enough D2 version with support
-            app->change_session_id
-                if app->can('change_session_id');
-            session logged_in_user => $username;
-            session logged_in_user_realm => $realm;
-            if (param 'remember_me')
-            {
-                my $secure = request->scheme eq 'https' ? 1 : 0;
-                cookie 'remember_me' => param('username'), expires => '60d',
-                    secure => $secure, http_only => 1 if param('remember_me');
-            }
-            else {
-                cookie remember_me => '', expires => '-1d' if cookie 'remember_me';
-            }
-            $user = logged_in_user;
-            $audit->user($user);
-            $audit->login_success;
-            $user->update({
-                failcount => 0,
-                lastfail  => undef,
-            });
-            forwardHome();
-        }
-        else {
-            $audit->login_failure($username);
-            my ($user) = $users->user_rs->search({
-                username        => $username,
-                account_request => 0,
-            })->all;
-            if ($user)
-            {
-                $user->update({
-                    failcount => $user->failcount + 1,
-                    lastfail  => DateTime->now,
-                });
-                trace "Fail count for $username is now ".$user->failcount;
-                report {to => 'syslog'},
-                    INFO => __x"debug_login set - failed username \"{username}\", password: \"{password}\"",
-                    username => $user->username, password => params->{password}
-                        if $user->debug_login;
-            }
-            report {is_fatal=>0}, ERROR => "The username or password was not recognised";
-        }
-    }
-
-    my $output  = template 'login' => {
-        error         => "".($error||""),
-        username      => cookie('remember_me'),
-        titles        => $users->titles,
-        organisations => $users->organisations,
-        register_text => var('site')->register_text,
-        page          => 'login',
-    };
-    $output;
-};
-
-get '/logout' => sub {
-    app->destroy_session;
-    forwardHome();
-};
-
-any ['get', 'post'] => '/resetpw/:code' => sub {
-
-    # Strange things happen if running this code when already logged in.
-    # Log the existing user out first
-    app->destroy_session if logged_in_user;
-
-    # Perform check first in order to get user ID for audit
-    if (my $username = user_password code => param('code'))
-    {
-        my $new_password;
-
-        if (param 'execute_reset')
-        {
-            context->destroy_session;
-            my $user   = rset('User')->active(username => $username)->next;
-            # Now we know this user is genuine, reset any failure that would
-            # otherwise prevent them logging in
-            $user->update({ failcount => 0 });
-            my $audit  = GADS::Audit->new(schema => schema, user => $user);
-            $audit->login_change("Password reset performed for user ID ".$user->id);
-            $new_password = _random_pw();
-            user_password code => param('code'), new_password => $new_password;
-        }
-        my $output  = template 'login' => {
-            reset_code => 1,
-            password   => $new_password,
-            page       => 'login',
-        };
-        return $output;
-    }
-    else {
-        return forwardHome(
-            { danger => qq(The password reset code is not valid. Please request a new one
-                using the "Reset Password" link) }, 'login'
-        );
-    }
-};
-
-get '/invalidsite' => sub {
-    template 'invalidsite' => {
-        page => 'invalidsite'
-    };
-};
 
 sub current_view {
     my ($user, $layout) = @_;
