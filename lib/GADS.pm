@@ -1222,7 +1222,7 @@ get '/invalidsite' => sub {
 
 prefix '/:layout_name' => sub {
 
-    get '/?' => sub {
+    get '/?' => require_login sub {
         my $layout = var('layout') or pass;
 
         my $homepage_text  = $layout->homepage_text;
