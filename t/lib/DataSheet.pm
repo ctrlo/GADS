@@ -138,6 +138,17 @@ has no_groups => (
     default => 0,
 );
 
+has organisation => (
+    is => 'lazy',
+);
+
+sub _build_organisation
+{   my $self = shift;
+    $self->schema->resultset('Organisation')->create({
+        name => 'My Organisation',
+    });
+}
+
 has user => (
     is      => 'lazy',
     clearer => 1,
@@ -225,11 +236,12 @@ sub create_user
         : $self->schema->resultset('User')->create({});
     $user_id ||= $user->id;
     $user->update({
-        username  => "user$user_id\@example.com",
-        email     => "user$user_id\@example.com",
-        firstname => "User$user_id",
-        surname   => "User$user_id",
-        value     => "User$user_id, User$user_id",
+        username     => "user$user_id\@example.com",
+        email        => "user$user_id\@example.com",
+        firstname    => "User$user_id",
+        surname      => "User$user_id",
+        value        => "User$user_id, User$user_id",
+        organisation => $self->organisation->id,
     });
     $self->schema->resultset('UserGroup')->find_or_create({ # May already be created for schema
         user_id  => $user_id,

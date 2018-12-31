@@ -210,6 +210,13 @@ my @tests = (
         after  => 'User2',
     },
     {
+        name   => 'field with version editor organisation',
+        type   => 'Calc',
+        code   => qq(function evaluate (_version_user) \n return _version_user.organisation.name \nend),
+        before => 'My Organisation',
+        after  => 'My Organisation',
+    },
+    {
         name   => 'field with version date',
         type   => 'Calc',
         code   => qq(function evaluate (_version_datetime) \n return _version_datetime.day \nend),

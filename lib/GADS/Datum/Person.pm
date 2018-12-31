@@ -300,13 +300,23 @@ sub as_integer
 
 sub for_code
 {   my $self = shift;
+    # Horrible hack to account for organisation being hash ref (retrieval via
+    # hashref inflator) or DBIx result object
+    my $org = $self->organisation && ref $self->organisation eq 'HASH'
+        ? $self->organisation
+        : $self->organisation
+        ? {
+            id   => $self->organisation->id,
+            name => $self->organisation->name,
+          }
+        : undef;
     +{
         surname      => $self->surname,
         firstname    => $self->firstname,
         email        => $self->email,
         freetext1    => $self->freetext1,
         freetext2    => $self->freetext2,
-        organisation => $self->organisation,
+        organisation => $org,
         title        => $self->title,
         text         => $self->text,
     };
