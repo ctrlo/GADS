@@ -57,34 +57,76 @@ my $ids_new = join '', @{$cloned->fields->{$curval->id}->ids};
 isnt($ids, $ids_new, "ID of newly written field different");
 
 # Clone the record and update with no changes (as for HTML form submission)
-$cloned = $record->clone;
-my $curval_datum = $cloned->fields->{$curval->id};
-my @vals = map { $_->{as_query} } @{$curval_datum->html_form};
-ok("@vals", "HTML form has record as query");
-is(@vals, 1, "One record in form value");
-$curval_datum->set_value([@vals]);
-$cloned->write(no_alerts => 1);
-$cloned_id = $cloned->current_id;
-$cloned->clear;
-$cloned->find_current_id($cloned_id);
-is($cloned->fields->{$string->id}->as_string, "Foobar", "String correct after cloning");
-is($cloned->fields->{$curval->id}->as_string, "Foo", "Curval correct after cloning");
-$ids_new = join '', @{$cloned->fields->{$curval->id}->ids};
-isnt($ids, $ids_new, "ID of newly written field different");
+for my $reload (0..1)
+{
+    my $record = GADS::Record->new(
+        user                 => $sheet->user_normal1,
+        layout               => $layout,
+        schema               => $schema,
+        curcommon_all_fields => 1,
+    );
+    $record->find_current_id(3);
+    $cloned = $record->clone;
+    my $curval_datum = $cloned->fields->{$curval->id};
+    my @vals = map { $_->{as_query} } @{$curval_datum->html_form};
+    ok("@vals", "HTML form has record as query");
+    is(@vals, 1, "One record in form value");
+    if ($reload) # Start writing to virgin record, as per new record submission
+    {
+        $cloned = GADS::Record->new(
+            user   => $sheet->user_normal1,
+            layout => $layout,
+            schema => $schema,
+        );
+        $cloned->initialise(instance_id => 1);
+        $curval_datum = $cloned->fields->{$curval->id};
+        $cloned->fields->{$string->id}->set_value('Foobar');
+    }
+    $curval_datum->set_value([@vals]);
+    $cloned->write(no_alerts => 1);
+    $cloned_id = $cloned->current_id;
+    $cloned->clear;
+    $cloned->find_current_id($cloned_id);
+    is($cloned->fields->{$string->id}->as_string, "Foobar", "String correct after cloning");
+    is($cloned->fields->{$curval->id}->as_string, "Foo", "Curval correct after cloning");
+    $ids_new = join '', @{$cloned->fields->{$curval->id}->ids};
+    isnt($ids, $ids_new, "ID of newly written field different");
+}
 
 # Clone the record and update with changes (as for HTML form submission edit)
-$cloned = $record->clone;
-$curval_datum = $cloned->fields->{$curval->id};
-@vals = map { $_->{as_query} } @{$curval_datum->html_form};
-s/Foo/Foo2/ foreach @vals;
-$curval_datum->set_value([@vals]);
-$cloned->write(no_alerts => 1);
-$cloned_id = $cloned->current_id;
-$cloned->clear;
-$cloned->find_current_id($cloned_id);
-is($cloned->fields->{$string->id}->as_string, "Foobar", "String correct after cloning");
-is($cloned->fields->{$curval->id}->as_string, "Foo2", "Curval correct after cloning");
-$ids_new = join '', @{$cloned->fields->{$curval->id}->ids};
-isnt($ids, $ids_new, "ID of newly written field different");
+foreach my $reload (0..1)
+{
+    my $record = GADS::Record->new(
+        user                 => $sheet->user_normal1,
+        layout               => $layout,
+        schema               => $schema,
+        curcommon_all_fields => 1,
+    );
+    $record->find_current_id(3);
+    $cloned = $record->clone;
+    my $curval_datum = $cloned->fields->{$curval->id};
+    my @vals = map { $_->{as_query} } @{$curval_datum->html_form};
+    s/Foo/Foo2/ foreach @vals;
+    if ($reload)
+    {
+        $cloned = GADS::Record->new(
+            user   => $sheet->user_normal1,
+            layout => $layout,
+            schema => $schema,
+        );
+        $cloned->initialise(instance_id => 1);
+        $curval_datum = $cloned->fields->{$curval->id};
+        $cloned->fields->{$string->id}->set_value('Foobar');
+    }
+    $curval_datum->set_value([@vals]);
+    $cloned->write(no_alerts => 1);
+    $cloned_id = $cloned->current_id;
+    $cloned->clear;
+    $cloned->find_current_id($cloned_id);
+    is($cloned->fields->{$string->id}->as_string, "Foobar", "String correct after cloning");
+    is($cloned->fields->{$curval->id}->as_string, "Foo2", "Curval correct after cloning");
+    $ids_new = join '', @{$cloned->fields->{$curval->id}->ids};
+    isnt($ids, $ids_new, "ID of newly written field different");
+}
 
 done_testing();
