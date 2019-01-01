@@ -328,7 +328,7 @@ around 'clone' => sub {
     # If this is a full record clone of a "noshow" curval field, then any
     # cloned values would be expected to be written as new independent records.
     # Therefore, for these, clone the records within the value
-    if ($fresh && $self->column->value_selector('noshow'))
+    if ($fresh && $self->column->value_selector eq 'noshow')
     {
         my @copied = map {
             $_->{record}->clone;
