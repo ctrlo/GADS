@@ -65,7 +65,7 @@ foreach my $order (qw/asc desc/)
     $record->find_current_id(5);
 
     my $curval_id = $columns->{curval1}->id;
-    my $cells = [ map { $_->{values}->[0]->as_string } @{$record->fields->{$curval_id}->html_form} ];
+    my $cells = [ map { $_->{values}->[0]->as_string } @{$record->fields->{$curval_id}->values} ];
 
     if ($order eq 'asc')
     {

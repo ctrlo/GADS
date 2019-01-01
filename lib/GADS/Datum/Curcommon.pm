@@ -389,7 +389,9 @@ sub field_values_for_code
 
 sub set_values
 {   my $self = shift;
-    [ map { $_->{id} } @{$self->html_form} ];
+    $self->column->value_selector eq 'noshow'
+        ? [ map { $_->{id} } @{$self->html_form} ]
+        : $self->html_form;
 }
 
 sub html_form
