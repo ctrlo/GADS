@@ -27,6 +27,12 @@ my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
 $sheet->create_records;
 
+$curval_sheet->add_autocur(
+    refers_to_instance_id => 1,
+    related_field_id      => $columns->{curval1}->id,
+    curval_field_ids      => [$columns->{string1}->id],
+);
+
 # Set up curval to be allow adding and removal
 my $curval = $columns->{curval1};
 my $string = $columns->{string1};
