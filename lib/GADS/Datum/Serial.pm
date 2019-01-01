@@ -34,6 +34,11 @@ sub _build_value
     $self->record->serial;
 }
 
+sub _build_blank {
+    my $self = shift;
+    !! $self->value;
+}
+
 sub as_string
 {   my $self = shift;
     $self->value;

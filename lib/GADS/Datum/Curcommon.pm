@@ -30,29 +30,31 @@ with 'GADS::Role::Presentation::Datum::Curcommon';
 
 after set_value => sub {
     my ($self, $value) = @_;
-    my $clone = $self->clone; # Copy before changing text
-    my @values = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
-    my @old     = sort @{$self->ids};
-    my $changed = "@values" ne "@old";
+    my $clone   = $self->clone; # Copy before changing text
+    my @values  = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
+    my @ids     = grep { $_ =~ /^[0-9]+$/ } @values; # Submitted curval IDs of existing records
+    my @queries = grep { $_ !~ /^[0-9]+$/ } @values; # New curval records or changes to existing ones
+    my @old_ids = sort @{$self->ids};
+    my $changed;
+
+    if (@queries)
+    {
+        $self->_set_values_as_query(\@queries);
+        $self->clear_values_as_query_records; # Rebuild for new queries
+        $changed = 1 if grep { $_->is_changed } @{$self->values_as_query_records};
+        # Remove any updated records from the list of old IDs in order to see
+        # what has changed
+        my %updated = map { $_->current_id => 1 } grep { !$_->new_entry } @{$self->values_as_query_records};
+        @old_ids = grep { !$updated{$_} } @old_ids;
+    }
+
+    $changed ||= "@ids" ne "@old_ids"; #  Also see if IDs have changed
+
     if ($changed)
     {
         $self->changed(1);
-        # Values can be submitted as either a database current ID, or as a
-        # query string for new values
-        my (@queries, @ids);
-        foreach my $value (@values)
-        {
-            if ($value =~ /^[0-9]+$/)
-            {
-                $self->column->validate($value, fatal => 1);
-                push @ids, $value;
-            }
-            else {
-                push @queries, $value;
-            }
-        }
-        $self->_set_values_as_query(\@queries);
-        $self->clear_values_as_query_records;
+        $self->column->validate($_, fatal => 1)
+            foreach @ids;
         $self->_set_ids(\@ids);
         # Need to clear initial values, to ensure new value is built from this new ID
         $self->clear_values;
@@ -311,16 +313,36 @@ sub _build_values_as_query_records
     \@records;
 }
 
+# The fields that were retrieved for the record(s) in this value
+has curval_field_ids_retrieve => (
+    is  => 'ro',
+    isa => Maybe[ArrayRef],
+);
+
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
-    # Only pass text in if it's already been built
-    my %params = (
-        ids => $self->ids,
-    );
-    $params{values}     = $self->values if $self->has_values;
-    $params{init_value} = $self->init_value if $self->has_init_value;
-    $orig->($self, %params, @_);
+    my %extra = @_;
+    my $fresh = delete $extra{fresh}; # Whether to clone full fresh records
+    my %params;
+    # If this is a full record clone of a "noshow" curval field, then any
+    # cloned values would be expected to be written as new independent records.
+    # Therefore, for these, clone the records within the value
+    if ($fresh && $self->column->value_selector('noshow') && $self->has_values)
+    {
+        my @copied = map {
+            $_->{record}->clone;
+        } @{$self->values};
+        $params{values_as_query} = [map { $_->as_query } @copied];
+    }
+    else {
+        # ids is built when noshow is true
+        $params{ids}                       = $self->ids;
+        $params{init_value}                = $self->init_value if $self->has_init_value;
+        $params{values}                    = $self->values if $self->has_values;
+        $params{curval_field_ids_retrieve} = $self->curval_field_ids_retrieve;
+    }
+    $orig->($self, %params, %extra);
 };
 
 sub as_string

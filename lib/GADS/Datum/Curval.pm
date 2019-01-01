@@ -47,7 +47,7 @@ sub _transform_value
             linked_id            => $value->{linked_id},
             parent_id            => $value->{parent_id},
             is_draft             => $value->{draftuser_id},
-            columns_retrieved_do => $self->column->curval_fields_retrieve,
+            columns_retrieved_do => [ map { $self->column->layout_parent->column($_) } @{$self->curval_field_ids_retrieve} ],
         );
     }
     else {

@@ -33,6 +33,11 @@ sub _build_value
     $self->current_id;
 }
 
+sub _build_blank {
+    my $self = shift;
+    !! $self->value;
+}
+
 sub as_string
 {   my $self = shift;
     $self->value;

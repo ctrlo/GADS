@@ -3398,7 +3398,13 @@ sub _process_edit
     }
     elsif (my $from = param('from'))
     {
-        $record->clone_as_new_from($from);
+        my $toclone = GADS::Record->new(
+            user                 => $user,
+            layout               => $layout,
+            schema               => schema,
+            curcommon_all_fields => 1,
+        );
+        $record = $toclone->clone;
     }
     else {
         $record->load_remembered_values;

@@ -266,4 +266,45 @@ foreach my $update (@update2)
     is($versions_after, $versions_before + 1, "One new version written");
 }
 
+# Test changes of curval edits
+{
+    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+    $curval_sheet->create_records;
+    my $curval_columns = $curval_sheet->columns;
+    my $schema  = $curval_sheet->schema;
+    my $sheet   = t::lib::DataSheet->new(
+        data => [{
+            curval1 => [1, 2],
+        }],
+        schema           => $schema,
+        curval           => 2,
+        curval_field_ids => [ $curval_sheet->columns->{string1}->id ]
+    );
+    my $layout  = $sheet->layout;
+    my $columns = $sheet->columns;
+    $sheet->create_records;
+    my $curval = $columns->{curval1};
+    my $string = $columns->{string1};
+    $curval->show_add(1);
+    $curval->value_selector('noshow');
+    $curval->write(no_alerts => 1);
+
+    my $record = GADS::Record->new(
+        user   => $sheet->user,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->find_current_id(3);
+    my $curval_datum = $record->fields->{$curval->id};
+    is($curval_datum->as_string, "Foo", "Initial value of curval correct");
+
+    $curval_datum->set_value(1);
+    ok(!$curval_datum->changed, "Curval not changed with same ID");
+    my $stringf = $curval_columns->{string1}->field;
+    $curval_datum->set_value([$stringf.'=Foo&current_id=1', $stringf.'=Bar&current_id=2']);
+    ok(!$curval_datum->changed, "Curval not changed with same content");
+    $curval_datum->set_value([$stringf.'=Foobar&current_id=1', $stringf.'=Bar&current_id=2']);
+    ok($curval_datum->changed, "Curval changed with HTML update");
+}
+
 done_testing();
