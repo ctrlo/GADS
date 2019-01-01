@@ -12,8 +12,13 @@ my $schema  = $curval_sheet->schema;
 
 my $data = [
     {
-        string1 => 'Foobar',
-        curval1 => 1,
+        integer1   => 150,
+        string1    => 'Foobar',
+        curval1    => 1,
+        date1      => '2010-01-01',
+        daterange1 => ['2011-02-02', '2012-02-02'],
+        enum1      => 'foo1',
+        tree1      => 'tree1',
     },
 ];
 
@@ -33,6 +38,7 @@ $curval_sheet->add_autocur(
     curval_field_ids      => [$columns->{string1}->id],
 );
 
+my @colnames = keys %{$data->[0]};
 my $curval = $columns->{curval1};
 my $string = $columns->{string1};
 
@@ -48,16 +54,53 @@ is($record->fields->{$curval->id}->as_string, 'Foo', "Curval correct to begin wi
 my $ids = join '', @{$record->fields->{$curval->id}->ids};
 
 # Standard clone first
+for my $reload (0..1)
 {
+    my $record = GADS::Record->new(
+        user                 => $sheet->user_normal1,
+        layout               => $layout,
+        schema               => $schema,
+        curcommon_all_fields => 1,
+    );
+    $record->find_current_id(3);
     my $cloned = $record->clone;
+
+    my %vals = map {
+        $columns->{$_}->id => $cloned->fields->{$columns->{$_}->id}->html_form
+    } @colnames;
+
+    if ($reload)
+    {
+        $cloned = GADS::Record->new(
+            user   => $sheet->user_normal1,
+            layout => $layout,
+            schema => $schema,
+        );
+        $cloned->initialise(instance_id => 1);
+        $cloned->fields->{$_}->set_value($vals{$_})
+            foreach keys %vals;
+    }
+
     $cloned->write(no_alerts => 1);
     my $cloned_id = $cloned->current_id;
     $cloned->clear;
     $cloned->find_current_id($cloned_id);
-    is($cloned->fields->{$string->id}->as_string, "Foobar", "String correct after cloning");
-    is($cloned->fields->{$curval->id}->as_string, "Foo", "Curval correct after cloning");
-    my $ids_new = join '', @{$cloned->fields->{$curval->id}->ids};
-    is($ids_new, $ids, "ID of newly written field same");
+    foreach my $colname (@colnames)
+    {
+        if ($colname eq 'curval1')
+        {
+            is($cloned->fields->{$curval->id}->as_string, "Foo", "Curval correct after cloning");
+            my $ids_new = join '', @{$cloned->fields->{$curval->id}->ids};
+            is($ids_new, $ids, "ID of newly written field same");
+        }
+        elsif ($colname eq 'daterange1')
+        {
+            is($cloned->fields->{$columns->{daterange1}->id}->as_string, "2011-02-02 to 2012-02-02", "Daterange correct after cloning");
+        }
+        else {
+            is($cloned->fields->{$columns->{$colname}->id}->as_string, $data->[0]->{$colname}, "$colname correct after cloning");
+        }
+    }
 }
 
 # Set up curval to be allow adding and removal

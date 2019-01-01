@@ -394,6 +394,8 @@ sub set_values
 
 sub html_form
 {   my $self = shift;
+    return $self->ids
+        unless $self->column->value_selector eq 'noshow';
     # Once a value has been written, values() will only contain unchanged
     # values as current IDs
     my $return = [ grep { !$_->{record}->is_draft } @{$self->values} ];
