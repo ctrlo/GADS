@@ -789,11 +789,17 @@ sub _find
     $self; # Allow chaining
 }
 
-sub clone_as_new_from
-{   my ($self, $from) = @_;
-    $self->find_current_id($from);
-    $self->remove_id;
-    $self;
+sub clone
+{   my $self = shift;
+    my $cloned = GADS::Record->new(
+        user   => $self->user,
+        layout => $self->layout,
+        schema => $self->schema,
+    );
+    $cloned->fields({});
+    $cloned->fields->{$_} = $self->fields->{$_}->clone(fresh => 1, record => $cloned, current_id => undef, record_id => undef)
+        foreach keys %{$self->fields};
+    return $cloned;
 }
 
 sub load_remembered_values

@@ -313,16 +313,36 @@ sub _build_values_as_query_records
     \@records;
 }
 
+# The fields that were retrieved for the record(s) in this value
+has curval_field_ids_retrieve => (
+    is  => 'ro',
+    isa => Maybe[ArrayRef],
+);
+
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
-    # Only pass text in if it's already been built
-    my %params = (
-        ids => $self->ids,
-    );
-    $params{values}     = $self->values if $self->has_values;
-    $params{init_value} = $self->init_value if $self->has_init_value;
-    $orig->($self, %params, @_);
+    my %extra = @_;
+    my $fresh = delete $extra{fresh}; # Whether to clone full fresh records
+    my %params;
+    # If this is a full record clone of a "noshow" curval field, then any
+    # cloned values would be expected to be written as new independent records.
+    # Therefore, for these, clone the records within the value
+    if ($fresh && $self->column->value_selector('noshow') && $self->has_values)
+    {
+        my @copied = map {
+            $_->{record}->clone;
+        } @{$self->values};
+        $params{values_as_query} = [map { $_->as_query } @copied];
+    }
+    else {
+        # ids is built when noshow is true
+        $params{ids}                       = $self->ids;
+        $params{init_value}                = $self->init_value if $self->has_init_value;
+        $params{values}                    = $self->values if $self->has_values;
+        $params{curval_field_ids_retrieve} = $self->curval_field_ids_retrieve;
+    }
+    $orig->($self, %params, %extra);
 };
 
 sub as_string
