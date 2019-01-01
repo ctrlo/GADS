@@ -296,9 +296,9 @@ foreach my $update (@update2)
     );
     $record->find_current_id(3);
     my $curval_datum = $record->fields->{$curval->id};
-    is($curval_datum->as_string, "Foo", "Initial value of curval correct");
+    is($curval_datum->as_string, "Foo; Bar", "Initial value of curval correct");
 
-    $curval_datum->set_value(1);
+    $curval_datum->set_value([1, 2]);
     ok(!$curval_datum->changed, "Curval not changed with same ID");
     my $stringf = $curval_columns->{string1}->field;
     $curval_datum->set_value([$stringf.'=Foo&current_id=1', $stringf.'=Bar&current_id=2']);
