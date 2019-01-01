@@ -2537,27 +2537,15 @@ any '/edit/:id?' => require_login sub {
     my $child = param('child') || $record->parent_id;
 
     my $modal = param('modal') && int param('modal');
-    my $oi = param('oi') && int param('oi');
-
-    my $params = {
-        record => $record,
-        modal  => $modal,
-        oi     => $oi,
-        page   => 'edit'
-    };
 
     my @columns_to_show = $id
         ? $layout->all(sort_by_topics => 1, user_can_readwrite_existing => 1, can_child => $child, userinput => 1)
         : $layout->all(sort_by_topics => 1, user_can_write_new => 1, can_child => $child, userinput => 1);
 
-    $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids
-        if $modal;
-
     $record->initialise unless $id;
 
     if (param('submit') || param('draft') || $modal || defined(param 'validate'))
     {
-        my $params = params;
         my $uploads = request->uploads;
         foreach my $key (keys %$uploads)
         {
@@ -2668,6 +2656,7 @@ any '/edit/:id?' => require_login sub {
             schema               => schema,
             curcommon_all_fields => 1,
         );
+        $toclone->find_current_id($from);
         $record = $toclone->clone;
     }
     else {
@@ -2699,13 +2688,22 @@ any '/edit/:id?' => require_login sub {
         push @$breadcrumbs, Crumb( "/edit/" => "new record" );
     }
 
+    my $params = {
+        record              => $record,
+        modal               => $modal,
+        page                => 'edit',
+        child               => $child_rec,
+        layout_edit         => $layout,
+        all_columns         => \@columns_to_show,
+        clone               => param('from'),
+        breadcrumbs         => $breadcrumbs,
+        record_presentation => $record->presentation(@columns_to_show),
+    };
+
+    $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids
+        if $modal;
+
     my $options = $modal ? { layout => undef } : {};
-    $params->{child}               = $child_rec;
-    $params->{layout_edit}         = $layout;
-    $params->{all_columns}         = \@columns_to_show;
-    $params->{clone}               = param('from'),
-    $params->{breadcrumbs}         = $breadcrumbs;
-    $params->{record_presentation} = $record->presentation(@columns_to_show);
 
     template 'edit' => $params, $options;
 };
