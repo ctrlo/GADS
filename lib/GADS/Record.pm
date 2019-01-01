@@ -1630,7 +1630,7 @@ sub write_values
                 if ($col->userinput)
                 {
                     my $datum_parent = $self->fields->{$col->id};
-                    $datum_child->set_value($datum_parent->html_form, is_parent_value => 1)
+                    $datum_child->set_value($datum_parent->set_values, is_parent_value => 1)
                         unless $col->can_child;
                 }
                 # Calc/rag values will be evaluated during write()
