@@ -328,7 +328,7 @@ around 'clone' => sub {
     # If this is a full record clone of a "noshow" curval field, then any
     # cloned values would be expected to be written as new independent records.
     # Therefore, for these, clone the records within the value
-    if ($fresh && $self->column->value_selector('noshow') && $self->has_values)
+    if ($fresh && $self->column->value_selector eq 'noshow')
     {
         my @copied = map {
             $_->{record}->clone;
@@ -394,6 +394,8 @@ sub set_values
 
 sub html_form
 {   my $self = shift;
+    return $self->ids
+        unless $self->column->value_selector eq 'noshow';
     # Once a value has been written, values() will only contain unchanged
     # values as current IDs
     my $return = [ grep { !$_->{record}->is_draft } @{$self->values} ];
