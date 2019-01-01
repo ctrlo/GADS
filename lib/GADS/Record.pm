@@ -311,6 +311,12 @@ has changed => (
     default => 0,
 );
 
+# Whether the record has changed (i.e. if any fields have changed)
+sub is_changed
+{   my $self = shift;
+    return !! grep { $self->fields->{$_}->changed } keys %{$self->fields};
+}
+
 has current_id => (
     is      => 'rw',
     isa     => Maybe[Int],

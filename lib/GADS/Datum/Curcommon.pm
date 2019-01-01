@@ -30,29 +30,31 @@ with 'GADS::Role::Presentation::Datum::Curcommon';
 
 after set_value => sub {
     my ($self, $value) = @_;
-    my $clone = $self->clone; # Copy before changing text
-    my @values = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
-    my @old     = sort @{$self->ids};
-    my $changed = "@values" ne "@old";
+    my $clone   = $self->clone; # Copy before changing text
+    my @values  = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
+    my @ids     = grep { $_ =~ /^[0-9]+$/ } @values; # Submitted curval IDs of existing records
+    my @queries = grep { $_ !~ /^[0-9]+$/ } @values; # New curval records or changes to existing ones
+    my @old_ids = sort @{$self->ids};
+    my $changed;
+
+    if (@queries)
+    {
+        $self->_set_values_as_query(\@queries);
+        $self->clear_values_as_query_records; # Rebuild for new queries
+        $changed = 1 if grep { $_->is_changed } @{$self->values_as_query_records};
+        # Remove any updated records from the list of old IDs in order to see
+        # what has changed
+        my %updated = map { $_->current_id => 1 } grep { !$_->new_entry } @{$self->values_as_query_records};
+        @old_ids = grep { !$updated{$_} } @old_ids;
+    }
+
+    $changed ||= "@ids" ne "@old_ids"; #  Also see if IDs have changed
+
     if ($changed)
     {
         $self->changed(1);
-        # Values can be submitted as either a database current ID, or as a
-        # query string for new values
-        my (@queries, @ids);
-        foreach my $value (@values)
-        {
-            if ($value =~ /^[0-9]+$/)
-            {
-                $self->column->validate($value, fatal => 1);
-                push @ids, $value;
-            }
-            else {
-                push @queries, $value;
-            }
-        }
-        $self->_set_values_as_query(\@queries);
-        $self->clear_values_as_query_records;
+        $self->column->validate($_, fatal => 1)
+            foreach @ids;
         $self->_set_ids(\@ids);
         # Need to clear initial values, to ensure new value is built from this new ID
         $self->clear_values;
