@@ -108,6 +108,9 @@ $curval->show_add(1);
 $curval->value_selector('noshow');
 $curval->write(no_alerts => 1);
 
+$record->clear;
+$record->find_current_id(3);
+
 # Clone the record and write with no updates
 my $cloned = $record->clone;
 $cloned->write(no_alerts => 1);
