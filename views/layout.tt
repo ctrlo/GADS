@@ -540,8 +540,6 @@
     <p>
         <a href="/[% layout.identifier %]/layout/0" class="btn btn-default">Add a field</a>
     </p>
-    <form role="form" method="post">
-    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
     <table class="table table-striped">
         <thead>
             <tr>
@@ -585,7 +583,6 @@
         </tbody>
     </table>
     <button type="submit" id="submit_saceorder" name="saveposition" value="submit" class="btn btn-primary">Save order</button>
-    </form>
 [% END %]
 
 [% BLOCK javascript %]
