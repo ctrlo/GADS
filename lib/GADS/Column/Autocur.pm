@@ -54,6 +54,7 @@ sub _build_sprefix { 'current' };
 
 sub _build_refers_to_instance_id
 {   my $self = shift;
+    $self->related_field or return undef;
     $self->related_field->instance_id;
 }
 
@@ -124,6 +125,9 @@ sub write_special
 {   my ($self, %options) = @_;
 
     my $rset = $options{rset};
+
+    $self->related_field_id
+        or error __x"Please select a field that refers to this table";
 
     $rset->update({
         related_field => $self->related_field_id,
