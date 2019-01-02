@@ -2696,6 +2696,7 @@ any '/edit/:id?' => require_login sub {
         layout_edit         => $layout,
         all_columns         => \@columns_to_show,
         clone               => param('from'),
+        oi                  => param('oi') && int param('oi'),
         breadcrumbs         => $breadcrumbs,
         record_presentation => $record->presentation(@columns_to_show),
     };
