@@ -186,7 +186,7 @@ sub submit_login_form_ok {
     $test->note("About to log in as ${username} with password ${password}");
     my $success = $self->_fill_in_field( '#username', $username );
     $success &&= $self->_fill_in_field( '#password', $password );
-    $gads->webdriver->find('[type=submit][name=signin')->click;
+    $gads->webdriver->find('[type=submit][name=signin]')->click;
 
     $test->ok( $success, $name );
 }
