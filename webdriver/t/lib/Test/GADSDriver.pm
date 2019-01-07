@@ -184,15 +184,15 @@ sub submit_login_form_ok {
     my $password = $arg{password} // $gads->password;
 
     $test->note("About to log in as ${username} with password ${password}");
-    my $success = $self->_fill_in_field( '#username', $username, $name );
-    $success &&= $self->_fill_in_field( '#password', $password, $name );
+    my $success = $self->_fill_in_field( '#username', $username );
+    $success &&= $self->_fill_in_field( '#password', $password );
     $gads->webdriver->find('[type=submit][name=signin')->click;
 
     $test->ok( $success, $name );
 }
 
 sub _fill_in_field {
-    my ( $self, $selector, $value, $name ) = @_;
+    my ( $self, $selector, $value ) = @_;
 
     my $result = $self->gads->type_into_field( $selector, $value );
     if ( !defined $result ) {
