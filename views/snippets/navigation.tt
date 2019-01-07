@@ -85,12 +85,12 @@
     <li class="dropdown">
         <button type="button" id="admin-menu" class="dropdown-toggle"
             data-toggle="dropdown" aria-controls="admin-menu-options" aria-expanded="false" aria-haspopup="true">
-            <span>Table editor</span>
+            <span class="table-editor">Table editor</span>
             <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
-            <li [% IF page=="table/0" %]class="active"[% END %]><a href="[% url.page %]/table/0">Add a table</a></li>
-            <li [% IF page=="table" %]class="active"[% END %]><a href="[% url.page %]/table/">Manage tables</a></li>
+            <li class="table-add[% IF page=="table/0" %] active[% END %]"><a href="[% url.page %]/table/0">Add a table</a></li>
+            <li class="tables-manage[% IF page=="table" %] active[% END %]"><a href="[% url.page %]/table/">Manage tables</a></li>
             <li class="divider"></li>
             <li [% IF page=="layout/0" %]class="active"[% END %]><a href="[% url.page %]/layout/0">Add a field</a></li>
             <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/layout/">Manage fields</a></li>
