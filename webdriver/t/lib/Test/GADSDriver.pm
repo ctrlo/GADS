@@ -32,6 +32,8 @@ A L<< GADSDriver >> object.
 has gads => (
     is => 'ro',
     default => \&_default_gads,
+    # TODO: Callers shouldn't need to access any delegated methods, but
+    # this is convenient in the absence of suitable test methods.
     handles => [ 'go_to_url' ],
 );
 
