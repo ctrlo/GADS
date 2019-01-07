@@ -78,6 +78,32 @@ sub assert_error_present {
     return $self->_assert_error( $name, 1 );
 }
 
+=head3 assert_success_absent
+
+No success message is visible.
+
+=cut
+
+sub assert_success_absent {
+    my ( $self, $name ) = @_;
+    $name //= 'No success message is visible';
+
+    return $self->_assert_success( $name, 0 );
+}
+
+=head3 assert_success_present
+
+An success message is visible.
+
+=cut
+
+sub assert_success_present {
+    my ( $self, $name ) = @_;
+    $name //= 'A success message is visible';
+
+    return $self->_assert_success( $name, 1 );
+}
+
 sub _assert_error {
     my ( $self, $name, $expect_present ) = @_;
 
@@ -91,6 +117,23 @@ sub _assert_error {
     my $test = __PACKAGE__->builder;
     my $error_text = $error_el->text;
     $test->note("The error message is '${error_text}'") if $error_text;
+
+    return $self;
+}
+
+sub _assert_success {
+    my ( $self, $name, $expect_present ) = @_;
+
+    my $success_el = $self->_assert_element(
+        '.messages .alert-success',
+        $expect_present,
+        qr/\bNOTICE: /,
+        $name,
+    );
+
+    my $test = __PACKAGE__->builder;
+    my $success_text = $success_el->text;
+    $test->note("The success message is '${success_text}'") if $success_text;
 
     return $self;
 }

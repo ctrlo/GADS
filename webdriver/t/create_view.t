@@ -39,6 +39,7 @@ $gads->assert_on_add_a_table_page;
 
 $gads->submit_add_a_table_form_ok( 'Add a table to create the view on',
     { name => $table_name, group_name => $group_name } );
+$gads->assert_success_present('A success message is visible after adding a table');
 $gads->assert_error_absent('No error message is visible after adding a table');
 
 # TODO: write main tests here
