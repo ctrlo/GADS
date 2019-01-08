@@ -1180,7 +1180,11 @@ any ['get', 'post'] => '/resetpw/:code' => sub {
 
     # Strange things happen if running this code when already logged in.
     # Log the existing user out first
-    app->destroy_session if logged_in_user;
+    if (logged_in_user)
+    {
+        app->destroy_session;
+        _update_csrf_token();
+    }
 
     # Perform check first in order to get user ID for audit
     if (my $username = user_password code => param('code'))
