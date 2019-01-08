@@ -12,6 +12,7 @@ sub presentation {
 
     my $html = text2html(
         $raw,
+        lines     => 1,
         urls      => 1,
         email     => 1,
         metachars => 1,

@@ -69,7 +69,7 @@
             [% string.html %]
         [% END %]
     [% ELSE %]
-        [% string.raw | html %]
+        [% string.html %]
     [% END %]
 [% END %]
 
