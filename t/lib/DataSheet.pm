@@ -218,7 +218,7 @@ sub _build__users
         my $perms = $permission =~ 'normal'
             ? ['view_create']
             : $permission eq 'superadmin'
-            ? [qw/superadmin link delete purge/]
+            ? [qw/superadmin link delete purge view_group/]
             : [$permission];
         $return->{$permission} = $self->create_user(permissions => $perms, user_id => $count);
     }
