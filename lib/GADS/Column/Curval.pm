@@ -315,7 +315,7 @@ sub fetch_multivalues
     };
     # Use previously stored order to sort records - records can be part of
     # multiple values
-    @single = sort { $a->{order} <=> $b->{order} } @single;
+    @single = sort { $a->{order} && $b->{order} ? $a->{order} <=> $b->{order} : 0 } @single;
     push @return, @single;
 
     return @return;
