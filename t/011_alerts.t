@@ -227,6 +227,44 @@ my @filters = (
         alerts => 2, # new record and updated record
     },
     {
+        name  => 'Global view',
+        rules => [{
+            id       => $columns->{string1}->id,
+            type     => 'string',
+            value    => 'Nothing to see here2',
+            operator => 'equal',
+        }],
+        columns => [$columns->{string1}->id],
+        current_id => 3,
+        update => [
+            {
+                column => 'string1',
+                value  => 'Nothing to see here2',
+            },
+        ],
+        alerts => 2, # new record and updated record
+        global_view => 1,
+    },
+    {
+        name  => 'Group view',
+        rules => [{
+            id       => $columns->{string1}->id,
+            type     => 'string',
+            value    => 'Nothing to see here3',
+            operator => 'equal',
+        }],
+        columns => [$columns->{string1}->id],
+        current_id => 3,
+        update => [
+            {
+                column => 'string1',
+                value  => 'Nothing to see here3',
+            },
+        ],
+        alerts => 2, # new record and updated record
+        group_view => 1,
+    },
+    {
         name  => 'Update to row in view',
         rules => [
             {
@@ -527,6 +565,8 @@ foreach my $filter (@filters)
         schema      => $schema,
         columns     => $filter->{columns},
     );
+    $view->global(1) if $filter->{global_view} || $filter->{group_view};
+    $view->group_id($sheet->group->id) if $filter->{group_view};
     $view->write;
 
     my $alert = GADS::Alert->new(
@@ -985,57 +1025,68 @@ is( $schema->resultset('AlertSend')->count, 1, "Correct number of alerts to send
 # Mock tests for testing alerts for changes as a result of current date.
 # Mocking the time in Perl will not affect Lua, so instead we insert the
 # year hard-coded in the Lua code. Years of 2010 and 2014 are used for the tests.
-$sheet = t::lib::DataSheet->new(
-    calc_code => "function evaluate (L1daterange1) \nif L1daterange1.from.year < 2010 then return 1 else return 0 end\nend",
-);
-$schema = $sheet->schema;
-$layout = $sheet->layout;
-$columns = $sheet->columns;
-$sheet->create_records;
+foreach my $viewtype (qw/normal group global/)
+{
+    $sheet = t::lib::DataSheet->new(
+        calc_code => "function evaluate (L1daterange1) \nif L1daterange1.from.year < 2010 then return 1 else return 0 end\nend",
+    );
+    $sheet->create_records;
+    $schema = $sheet->schema;
+    my $layout = $sheet->layout;
+    $columns = $sheet->columns;
 
-# First create a view with no filter
-$view = GADS::View->new(
-    name        => 'view1',
-    instance_id => 1,
-    layout      => $layout,
-    schema      => $schema,
-    user        => $sheet->user,
-    global      => 1,
-    columns     => [$columns->{calc1}->id],
-    filter      => GADS::Filter->new->as_hash({
-        rules     => [
-            {
-                id       => $columns->{calc1}->id,
-                type     => 'string',
-                value    => '1',
-                operator => 'equal',
-            },
-        ],
-    }),
-);
-$view->write;
+    # First create a view with no filter
+    $view = GADS::View->new(
+        name        => 'view1',
+        instance_id => 1,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+        global      => $viewtype eq 'group' || $viewtype eq 'global' ? 1 : 0,
+        group_id    => $viewtype eq 'group' && $sheet->group->id,
+        columns     => [$columns->{calc1}->id],
+        filter      => GADS::Filter->new->as_hash({
+            rules     => [
+                {
+                    id       => $columns->{calc1}->id,
+                    type     => 'string',
+                    value    => '1',
+                    operator => 'equal',
+                },
+            ],
+        }),
+    );
+    $view->write;
 
-$alert = GADS::Alert->new(
-    user      => $sheet->user,
-    layout    => $layout,
-    schema    => $schema,
-    frequency => 24,
-    view_id   => $view->id,
-);
-$alert->write;
+    $alert = GADS::Alert->new(
+        user      => $sheet->user,
+        layout    => $layout,
+        schema    => $schema,
+        frequency => 24,
+        view_id   => $view->id,
+    );
+    $alert->write;
 
-# Should be nothing in view initially - current year equal to 2014
-is( $schema->resultset('AlertCache')->count, 1, "Correct number of alerts inserted for initial calc test write" );
-is( $schema->resultset('AlertSend')->count, 0, "Start calc column change test with no alerts to send" );
+    # Should be nothing in view initially - current year equal to 2014
+    is( $schema->resultset('AlertCache')->count, 1, "Correct number of alerts inserted for initial calc test write" );
+    is( $schema->resultset('AlertSend')->count, 0, "Start calc column change test with no alerts to send" );
 
-# Wind date forward 4 years, should now appear in view
-$schema->resultset('Calc')->update({
-    code => "function evaluate (L1daterange1) \nif L1daterange1.from.year < 2014 then return 1 else return 0 end\nend",
-});
-$layout->clear;
-$columns->{calc1}->update_cached;
-is( $schema->resultset('AlertCache')->count, 2, "Correct number of alerts inserted for initial calc test write" );
-is( $schema->resultset('AlertSend')->count, 1, "Correct number of alerts after calc update with no change" );
+    # Wind date forward 4 years, should now appear in view
+    $schema->resultset('Calc')->update({
+        code => "function evaluate (L1daterange1) \nif L1daterange1.from.year < 2014 then return 1 else return 0 end\nend",
+    });
+    # Create new layout without user ID, as it would be in overnight updates
+    $layout = GADS::Layout->new(
+        user                     => undef,
+        schema                   => $schema,
+        config                   => $sheet->config,
+        instance_id              => $sheet->layout->instance_id,
+        user_permission_override => 1, # $self->user_permission_override,
+    );
+    $layout->column_by_name('calc1')->update_cached;
+    is( $schema->resultset('AlertCache')->count, 2, "Correct number of alerts inserted for initial calc test write" );
+    is( $schema->resultset('AlertSend')->count, 1, "Correct number of alerts after calc update with no change" );
+}
 
 # Test some bulk alerts, which normally happen on code field updates
 diag "About to test alerts for bulk updates. This could take some time...";

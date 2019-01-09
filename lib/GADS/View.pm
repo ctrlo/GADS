@@ -93,12 +93,13 @@ has _view => (
             return;
         }
         # Check whether user has read access to view
+        return $view if $self->user_permission_override;
         my $user_id = $self->layout->user && $self->layout->user->id;
         my $no_access = $self->has_id && $self->layout->user && !$view->global && !$view->is_admin && !$view->is_limit_extra
             && !$self->layout->user_can("layout") && $view->user_id != $user_id;
         $no_access ||= $view->global && $view->group_id
             && !$self->schema->resultset('User')->find($user_id)->has_group->{$view->group_id};
-        if ($no_access && !$self->user_permission_override)
+        if ($no_access)
         {
             error __x"User {user} does not have access to view {view}",
                 user => $self->layout->user->id, view => $self->id;

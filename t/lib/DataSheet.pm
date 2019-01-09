@@ -204,7 +204,11 @@ sub _build__users
         $count++;
         # Give view create permission as default, so that normal user can
         # create views for tests
-        my $perms = $permission =~ 'normal' ? ['view_create'] : [$permission];
+        my $perms = $permission =~ 'normal'
+            ? ['view_create']
+            : $permission eq 'superadmin'
+            ? [qw/superadmin link delete purge view_group/]
+            : [$permission];
         $return->{$permission} = $self->create_user(permissions => $perms, user_id => $count);
     }
     $return;
