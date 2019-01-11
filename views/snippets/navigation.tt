@@ -157,7 +157,7 @@
 [% END %]
 
 [% BLOCK table_selector %]
-    [% IF instances.size AND instances.size > 1 %]
+    [% IF instances.size %]
         <li class="dropdown">
             <button type="button" class="dropdown-toggle" data-toggle="dropdown" aria-label="Table menu"
                 aria-expanded="false" aria-haspopup="true" aria-controls="table-menu">
