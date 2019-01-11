@@ -43,6 +43,7 @@ use Log::Report 'linkspace';
 use JSON qw(encode_json);
 use POSIX ();
 use Scope::Guard qw(guard);
+use Session::Token;
 use URI::Escape;
 
 use Moo;
@@ -1103,6 +1104,23 @@ sub delete_user_drafts
     }
 }
 
+sub create_submission_token
+{   my $self = shift;
+    return undef if !$self->new_entry;
+    for (1..10) # Prevent infinite loops - highly unlikely to be more than 10 clashes
+    {
+        my $token = Session::Token->new(length => 32)->get;
+        try { # will bork on duplicate
+            $self->schema->resultset('Submission')->create({
+                created => DateTime->now,
+                token   => $token,
+            });
+        };
+        return $token unless $@;
+    }
+    return undef;
+}
+
 has _need_rec => (
     is        => 'rw',
     isa       => Bool,
@@ -1130,6 +1148,23 @@ has _need_app => (
 # - version_userid: user ID for this version if override required
 sub write
 {   my ($self, %options) = @_;
+
+    # First check the submission token to see if this has already been
+    # submitted. Do this as quickly as possible to prevent chance of 2 very
+    # quick submissions, and do it before the guard so that the submitted token
+    # is visible as quickly as possible
+    if ($options{submission_token} && $self->new_entry)
+    {
+        my $sub = $self->schema->resultset('Submission')->search({
+            token => $options{submission_token},
+        })->next;
+        if ($sub) # Should always be found, but who knows
+        {
+            error __"This form has already been submitted and is currently being processed"
+                if $sub->submitted;
+            $sub->update({ submitted => 1 });
+        }
+    }
 
     # See whether this instance is set to not record history. If so, override
     # update_only option to ensure it is only an update
