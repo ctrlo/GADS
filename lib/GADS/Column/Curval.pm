@@ -301,7 +301,7 @@ sub fetch_multivalues
     {
         if ($last_record_id && $last_record_id != $v->{record_id})
         {
-            @single = sort { $a->{order} <=> $b->{order} } @single;
+            @single = sort { $a->{order} && $b->{order} ? $a->{order} <=> $b->{order} : 0 } @single;
             push @return, @single;
             @single = ();
         }
