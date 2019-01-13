@@ -304,7 +304,12 @@ sub _build_values_as_query_records
         foreach my $col ($self->column->layout_parent->all(user_can_write_new => 1))
         {
             my $newv = $params->{$col->field};
-            $record->fields->{$col->id}->set_value($newv)
+            # I can't find anything in official Jquery documentation, but
+            # apparently form.serialize (the source of the query string)
+            # encodes in utf-8. Therefore decode before passing into datums.
+            my @newv = ref $newv eq 'ARRAY' ? @$newv : ($newv);
+            utf8::decode($_) foreach @newv;
+            $record->fields->{$col->id}->set_value(\@newv)
                 if defined $params->{$col->field} && $col->userinput && defined $newv;
         }
         $record->set_blank_dependents; # XXX Move to write() once back/forward functionality rewritten?

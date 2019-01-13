@@ -3361,7 +3361,8 @@ sub _process_edit
                 push @validation_errors, $e;
             }
             my $message = join '; ', @validation_errors;
-            return encode_json({
+            content_type 'application/json; charset="utf-8"';
+            return encode_json ({
                 error   => $message ? 1 : 0,
                 message => $message,
                 values  => +{ map { $_->field => $record->fields->{$_->id}->as_string } $layout->all },
