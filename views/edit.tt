@@ -110,7 +110,9 @@
     [% END %]
 >
     <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-    <input type="hidden" name="submission_token" value="[% submission_token %]">
+    [% IF submission_token %]
+        <input type="hidden" name="submission_token" value="[% submission_token %]">
+    [% END %]
     [% IF modal %]
         <p role="alert" class="alert alert-danger" hidden></p>
     [% END %]

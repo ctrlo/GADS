@@ -3438,7 +3438,7 @@ sub _process_edit
         layout_edit         => $layout,
         all_columns         => \@columns_to_show,
         clone               => param('from'),
-        submission_token    => $record->create_submission_token,
+        submission_token    => !$modal && $record->create_submission_token,
         breadcrumbs         => $breadcrumbs,
         record_presentation => $record->presentation(@columns_to_show),
     };

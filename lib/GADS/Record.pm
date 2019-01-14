@@ -1163,6 +1163,10 @@ sub write
             error __"This form has already been submitted and is currently being processed"
                 if $sub->submitted;
             $sub->update({ submitted => 1 });
+            # Normally all write options are passed to further writes within
+            # this call. Don't pass the submission token though, otherwise it
+            # will bork as having already been used
+            delete $options{submission_token};
         }
     }
 
