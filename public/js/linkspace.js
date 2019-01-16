@@ -425,11 +425,13 @@ var SelectWidget = function (multi) {
         }
     });
 
-    $search.unbind('focus');
-    $search.on('focus', function(e) {
-        e.stopPropagation();
-        expand($widget, $trigger, $target);
-    });
+    function expandWidgetHandler(e) {
+      e.stopPropagation();
+      expand($widget, $trigger, $target);
+    }
+
+    $search.unbind('focus', expandWidgetHandler);
+    $search.on('focus', expandWidgetHandler);
 
     $search.unbind('keydown');
     $search.on('keydown', function(e) {
