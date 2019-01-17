@@ -425,12 +425,20 @@ has _plus_select => (
 sub clear_sorts
 {   my $self = shift;
     $self->_clear_sorts;
+    $self->_clear_sorts_limit;
     $self->clear_sort_first;
 }
 
 # Internal list of all sorts for this resultset. Generated from any of the means
 # of setting a sort, or returns default if required
 has _sorts => (
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
+);
+
+# The sorts for a limit_qty query
+has _sorts_limit => (
     is      => 'lazy',
     isa     => ArrayRef,
     clearer => 1,
@@ -812,6 +820,8 @@ sub _current_ids_rs
 
     $select->{rows} = $self->rows if $self->rows;
     $select->{page} = $page if $page;
+    $select->{rows} ||= $self->max_results
+        if $self->max_results;
 
     # Get the current IDs
     # Only take the latest record_single (no later ones)
@@ -887,7 +897,7 @@ sub _build_results
               ->get_column('created')
               ->min_rs->as_query,
         },
-        order_by  => $self->order_by(prefetch => 1, with_min => 'each'),
+        order_by  => $self->order_by(prefetch => 1),
     };
 
     my $result = $self->schema->resultset('Current')->search($self->_cid_search_query, $select);
@@ -1330,19 +1340,31 @@ sub _query_params
 
 sub _build__sorts
 {   my $self = shift;
+    $self->_sort_builder;
+}
+
+sub _build__sorts_limit
+{   my $self = shift;
+    return $self->_sorts unless $self->limit_qty;
+    $self->_sort_builder(limit_qty => 1);
+}
+
+sub _sort_builder
+{   my ($self, %options) = @_;
+
     my @sorts;
 
     # First, special test where we are retrieving from a date for a number of
     # records until an unknown date. In this case, order by all the date
     # fields.
-    if (my $type = $self->limit_qty)
+    if ($options{limit_qty} && $self->limit_qty)
     {
         foreach my $col (@{$self->columns_retrieved_no})
         {
             next unless $col->return_type =~ /date/;
             push @sorts, {
                 id   => $col->id,
-                type => $type eq 'from' ? 'asc' : 'desc',
+                type => $self->limit_qty eq 'from' ? 'asc' : 'desc',
             };
         }
         return [] if !@sorts;
@@ -1387,7 +1409,9 @@ sub order_by
 {   my ($self, %options) = @_;
 
     $self->_plus_select([]);
-    my @sorts = @{$self->_sorts};
+    my @sorts = $options{with_min}
+        ? @{$self->_sorts_limit}
+        : @{$self->_sorts};
 
     my @order_by;
     foreach my $s (@sorts)
@@ -1982,7 +2006,7 @@ sub data_timeline
         {
             id        => $timeline->groups->{$_},
             content   => encode_entities($_),
-            order     => $_,
+            order     => int $timeline->groups->{$_},
             style     => 'font-weight: bold',
         }
     } keys %{$timeline->groups};
