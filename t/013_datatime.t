@@ -137,7 +137,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     for my $count (1..300)
     {
         push @data, {
-            string1 => 'Foo',
+            string1 => 'Foo'.int rand(1000),
             date1   => $start->ymd,
         };
         $start->add(days => 1);
@@ -147,10 +147,23 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     $sheet->create_records;
     my $schema = $sheet->schema;
     my $layout = $sheet->layout;
+    my $columns = $sheet->columns;
+
+    my $view = GADS::View->new(
+        name        => 'Foobar',
+        columns     => [$columns->{string1}->id, $columns->{date1}->id],
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+    );
+    $view->write;
+    $view->set_sorts($sheet->columns->{string1}->id, 'asc');
 
     my $records = GADS::Records->new(
         from   => DateTime->now->add(days => 100),
         user   => undef,
+        view   => $view,
         layout => $layout,
         schema => $schema,
     );
@@ -159,6 +172,14 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     # is not counted, so that the range can be loaded from that date (as there
     # may be more records of the same date)
     is( @{$records->data_timeline->{items}}, 148, "Retrieved correct subset of records for large timeline" );
+    foreach my $item (@{$records->data_timeline->{items}})
+    {
+        my $time = DateTime->from_epoch(epoch => $item->{single} / 1000);
+        # Centre is at now + 100 days. Should have items 50 days to the left
+        # and 100 days to the right
+        cmp_ok($time, '>', DateTime->now->add(days => 50), "Item after minimum date expected");
+        cmp_ok($time, '<', DateTime->now->add(days => 200), "Item before maximum date expected");
+    }
 
     $records = GADS::Records->new(
         from   => DateTime->now, # Rounded down to midnight 1st Jan 2018
