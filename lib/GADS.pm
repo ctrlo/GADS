@@ -1124,8 +1124,7 @@ get qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
 
     my @versions    = $record->versions;
     my @columns     = $record->layout->all(user_can_read => 1);
-    my $prefix      = $layout->identifier;
-    my @first_crumb = $action eq 'purge' ? ( $layout, "/$prefix/purge" => 'deleted records' ) : ( $layout, "/$prefix/data" => 'records' );
+    my @first_crumb = $action eq 'purge' ? ( $layout, "/purge" => 'deleted records' ) : ( $layout, "/data" => 'records' );
 
     my $output = template 'record' => {
         record         => $record->presentation(@columns),
