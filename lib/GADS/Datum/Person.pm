@@ -78,6 +78,8 @@ after set_value => sub {
         {
             my $org = _org_to_hash($person->organisation);
             $self->organisation($org);
+            my $dep = _org_to_hash($person->department);
+            $self->department($dep);
             my $title = _org_to_hash($person->title);
             $self->title($title);
         }
@@ -121,16 +123,18 @@ has value_hash => (
         my $id = $value->{id};
         $self->has_id(1) if defined $id || $self->init_no_value;
         +{
-            id           => $id,
-            email        => $value->{email},
-            username     => $value->{username},
-            firstname    => $value->{firstname},
-            surname      => $value->{surname},
-            freetext1    => $value->{freetext1},
-            freetext2    => $value->{freetext2},
-            organisation => $value->{organisation},
-            title        => $value->{title},
-            text         => $value->{value},
+            id            => $id,
+            email         => $value->{email},
+            username      => $value->{username},
+            firstname     => $value->{firstname},
+            surname       => $value->{surname},
+            freetext1     => $value->{freetext1},
+            freetext2     => $value->{freetext2},
+            organisation  => $value->{organisation},
+            department    => $value->{department},
+            department_id => $value->{department_id},
+            title         => $value->{title},
+            text          => $value->{value},
         };
     },
 );
@@ -141,7 +145,8 @@ has allow_deleted => (
 );
 
 has _rset => (
-    is => 'lazy',
+    is        => 'lazy',
+    predicate => 1,
 );
 
 sub _build__rset
@@ -203,12 +208,32 @@ has organisation => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        # Do we have a resultset? If so, just return that
-        return $self->_rset->organisation if $self->_rset;
-        # Otherwise assume value_hash and build from that
-        my $organisation_id = $self->value_hash && $self->value_hash->{organisation}
-            or return undef;
-        $self->schema->resultset('Organisation')->find($organisation_id);
+        # Organisation could be resultset object, or an ID, or a HASH with all details.
+        # Whatever it is, convert to hash ref
+        return $self->_has_rset && $self->_rset
+            ? _org_to_hash($self->_rset->organisation)
+            : $self->value_hash && ref $self->value_hash->{organisation} eq 'HASH'
+            ? $self->value_hash->{organisation}
+            : $self->value_hash && $self->value_hash->{organisation}
+            ? _org_to_hash($self->schema->resultset('Organisation')->find($self->value_hash->{organisation}))
+            : undef;
+    },
+);
+
+has department => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        # Department could be resultset object, or an ID, or a HASH with all details.
+        # Whatever it is, convert to hash ref
+        return $self->_has_rset && $self->_rset
+            ? _org_to_hash($self->_rset->department)
+            : $self->value_hash && ref $self->value_hash->{department} eq 'HASH'
+            ? $self->value_hash->{department}
+            : $self->value_hash && $self->value_hash->{department_id}
+            ? _org_to_hash($self->schema->resultset('Department')->find($self->value_hash->{department_id}))
+            : undef;
     },
 );
 
@@ -274,6 +299,7 @@ around 'clone' => sub {
         freetext1    => $self->freetext1,
         freetext2    => $self->freetext2,
         organisation => $self->organisation,
+        department   => $self->department,
         title        => $self->title,
         text         => $self->text,
         @_,
@@ -300,23 +326,14 @@ sub as_integer
 
 sub for_code
 {   my $self = shift;
-    # Horrible hack to account for organisation being hash ref (retrieval via
-    # hashref inflator) or DBIx result object
-    my $org = $self->organisation && ref $self->organisation eq 'HASH'
-        ? $self->organisation
-        : $self->organisation
-        ? {
-            id   => $self->organisation->id,
-            name => $self->organisation->name,
-          }
-        : undef;
     +{
         surname      => $self->surname,
         firstname    => $self->firstname,
         email        => $self->email,
         freetext1    => $self->freetext1,
         freetext2    => $self->freetext2,
-        organisation => $org,
+        organisation => $self->organisation,
+        department   => $self->department,
         title        => $self->title,
         text         => $self->text,
     };

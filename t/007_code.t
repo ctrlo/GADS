@@ -217,6 +217,13 @@ my @tests = (
         after  => 'My Organisation',
     },
     {
+        name   => 'field with version editor department',
+        type   => 'Calc',
+        code   => qq(function evaluate (_version_user) \n return _version_user.department.name \nend),
+        before => 'My Department',
+        after  => 'My Department',
+    },
+    {
         name   => 'field with version date',
         type   => 'Calc',
         code   => qq(function evaluate (_version_datetime) \n return _version_datetime.day \nend),

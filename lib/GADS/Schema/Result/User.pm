@@ -85,6 +85,12 @@ __PACKAGE__->table("user");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 department_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =head2 freetext1
 
   data_type: 'text'
@@ -216,6 +222,8 @@ __PACKAGE__->add_columns(
   "title",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "organisation",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "department_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "freetext1",
   { data_type => "text", is_nullable => 1 },
@@ -414,6 +422,26 @@ __PACKAGE__->belongs_to(
   "organisation",
   "GADS::Schema::Result::Organisation",
   { id => "organisation" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 department
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Department>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "department",
+  "GADS::Schema::Result::Department",
+  { id => "department_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -732,6 +760,8 @@ sub update_user
         or error __"Surname must be less than 128 characters";
     !defined $params{organisation} || $params{organisation} =~ /^[0-9]+$/
         or error __x"Invalid organisation {id}", id => $params{organisation};
+    !defined $params{department_id} || $params{department_id} =~ /^[0-9]+$/
+        or error __x"Invalid department {id}", id => $params{department_id};
     GADS::Util->email_valid($params{email})
         or error __x"The email address \"{email}\" is invalid", email => $params{email};
 
@@ -745,6 +775,7 @@ sub update_user
         freetext2             => $params{freetext2},
         title                 => $params{title} || undef,
         organisation          => $params{organisation} || undef,
+        department_id         => $params{department_id} || undef,
         account_request_notes => $params{account_request_notes},
     };
 

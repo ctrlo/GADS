@@ -77,6 +77,24 @@
                     </select>
                 </div>
             [% END %]
+            [% IF site.register_show_department %]
+                <div class="form-group">
+                    <label for="department">
+                        [% site.register_department_name %]:
+                        [% IF page.match("user") %]
+                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#submitnewdepartment">Add [% site.register_department_name %]</button>
+                        [% END %]
+                    </label>
+                    <select class="form-control" id="department_id" name="department_id">
+                        <option></option>
+                        [% FOREACH department IN departments %]
+                            <option value="[% department.id %]"
+                                [% IF edituser.department.id == department.id %]selected[% END %]>[% department.name | html_entity %]
+                            </option>
+                        [% END %]
+                    </select>
+                </div>
+            [% END %]
             [% IF page.match("user") %]
                 <div class="form-group">
                     <label for="account_request_notes">Notes:</label>
@@ -143,10 +161,17 @@
                 </dl>
             </div>
 
-            [% WRAPPER modal_dialog.tt modal_id="submitneworganisation" modal_action_text="Create new organisation" modal_heading="Add organisation" %]
+            [% WRAPPER modal_dialog.tt modal_id="submitneworganisation" modal_action_text="Create new " _ site.register_organisation_name modal_heading="Add " _ site.register_organisation_name %]
                 <p>Please enter the name of a new [% site.register_organisation_name %]:</p>
                 <div class="form-group">
-                    <input type="text" class="form-control" id="neworganisation" name="neworganisation" placeholder="New organisation">
+                    <input type="text" class="form-control" id="neworganisation" name="neworganisation" placeholder="New [% site.register_organisation_name %]">
+                </div>
+            [% END %]
+
+            [% WRAPPER modal_dialog.tt modal_id="submitnewdepartment" modal_action_text="Create new " _ site.register_department_name modal_heading="Add " _ site.register_department_name %]
+                <p>Please enter the name of a new [% site.register_department_name %]:</p>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="newdepartment" name="newdepartment" placeholder="New [% site.register_department_name %]">
                 </div>
             [% END %]
 
@@ -191,6 +216,9 @@
             [% IF site.register_show_organisation %]
                 <th>[% site.register_organisation_name | html %]</th>
             [% END %]
+            [% IF site.register_show_department %]
+                <th>[% site.register_department_name | html %]</th>
+            [% END %]
             [% IF site.register_freetext1_name %]
                 <th>[% site.register_freetext1_name | html %]</th>
             [% END %]
@@ -210,6 +238,9 @@
                 <td>[% edituser.email | html_entity %]</td>
                 [% IF site.register_show_organisation %]
                     <td>[% edituser.organisation.name | html_entity %]</td>
+                [% END %]
+                [% IF site.register_show_department %]
+                    <td>[% edituser.department.name | html_entity %]</td>
                 [% END %]
                 [% IF site.register_freetext1_name %]
                     <td>[% edituser.freetext1 | html_entity %]</td>
@@ -232,6 +263,9 @@
                 [% IF site.register_show_organisation %]
                     <th>[% site.register_organisation_name %]</th>
                 [% END %]
+                [% IF site.register_show_department %]
+                    <th>[% site.register_department_name %]</th>
+                [% END %]
             </tr>
         </thead>
         <tbody>
@@ -241,7 +275,12 @@
                     <td>[% register_request.surname | html_entity %]</td>
                     <td>[% register_request.firstname | html_entity %]</td>
                     <td>[% register_request.email | html_entity %]</td>
-                    <td>[% register_request.organisation.name | html_entity %]</td>
+                    [% IF site.register_show_organisation %]
+                        <td>[% register_request.organisation.name | html_entity %]</td>
+                    [% END %]
+                    [% IF site.register_show_department %]
+                        <td>[% register_request.department.name | html_entity %]</td>
+                    [% END %]
                 </tr>
             [% END %]
         </tbody>

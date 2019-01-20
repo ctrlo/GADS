@@ -185,6 +185,21 @@
                                 </select>
                             </div>
                         [% END %]
+                        [% IF site.register_show_department %]
+                            <div class="form-group">
+                                <label for="department">[% site.register_department_name %]:
+                                    [% IF site.register_department_help %]
+                                        <span style="font-weight:normal !important">[% site.register_department_help %]</span>
+                                    [% END %]
+                                </label>
+                                <select class="form-control" id="department" name="department">
+                                    <option></option>
+                                    [% FOREACH department IN departments %]
+                                        <option value="[% department.id %]">[% department.name | html_entity %]</option>
+                                    [% END %]
+                                </select>
+                            </div>
+                        [% END %]
                         <div class="form-group">
                             <label for="account_request_notes">Notes:
                                 [% IF site.register_notes_help %]

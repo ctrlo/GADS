@@ -867,11 +867,7 @@ sub _build_results
     my $search_query = $self->search_query(search => 1, sort => 1, linked => 1); # Need to call first to build joins
 
     my @prefetches = $self->jpfetch(prefetch => 1, linked => 0);
-    unshift @prefetches, (
-        {
-            'createdby' => 'organisation',
-        },
-    );
+    unshift @prefetches, 'createdby';
 
     my $rec1 = @prefetches ? { record_single => [@prefetches] } : 'record_single';
     # Add joins for sorts, but only if they're not already a prefetch (otherwise ordering can be messed up).

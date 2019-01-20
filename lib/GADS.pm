@@ -523,6 +523,7 @@ any ['get', 'post'] => '/login' => sub {
         username      => cookie('remember_me'),
         titles        => $users->titles,
         organisations => $users->organisations,
+        departments   => $users->departments,
         register_text => var('site')->register_text,
         page          => 'login',
     };
@@ -558,14 +559,15 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
         my $params = params;
         # Update of user details
         my %update = (
-            firstname    => param('firstname')    || undef,
-            surname      => param('surname')      || undef,
-            email        => param('email'),
-            username     => param('email'),
-            freetext1    => param('freetext1')    || undef,
-            freetext2    => param('freetext2')    || undef,
-            title        => param('title')        || undef,
-            organisation => param('organisation') || undef,
+            firstname     => param('firstname')    || undef,
+            surname       => param('surname')      || undef,
+            email         => param('email'),
+            username      => param('email'),
+            freetext1     => param('freetext1')    || undef,
+            freetext2     => param('freetext2')    || undef,
+            title         => param('title')        || undef,
+            organisation  => param('organisation') || undef,
+            department_id => param('department_id') || undef,
         );
 
         if (process( sub { $user->update_user(current_user => logged_in_user, %update) }))
@@ -581,6 +583,7 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
         users         => [$user],
         titles        => $users->titles,
         organisations => $users->organisations,
+        departments   => $users->departments,
         page          => 'myaccount',
         breadcrumbs   => [Crumb( '/myaccount/' => 'my details' )],
     };
@@ -798,7 +801,7 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
 
     # The submit button will still be triggered on a new org/title creation,
     # if the user has pressed enter, in which case ignore it
-    if (param('submit') && !param('neworganisation') && !param('newtitle'))
+    if (param('submit') && !param('neworganisation') && !param('newdepartment') && !param('newtitle'))
     {
         my %values = (
             firstname             => param('firstname'),
@@ -809,6 +812,7 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
             freetext2             => param('freetext2'),
             title                 => param('title') || undef,
             organisation          => param('organisation') || undef,
+            department_id         => param('department_id') || undef,
             account_request       => param('account_request'),
             account_request_notes => param('account_request_notes'),
             view_limits           => [body_parameters->get_all('view_limits')],
@@ -849,7 +853,7 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
     }
 
     my $register_requests;
-    if (param('neworganisation') || param('newtitle'))
+    if (param('neworganisation') || param('newtitle') || param('newdepartment'))
     {
         if (my $org = param 'neworganisation')
         {
@@ -857,6 +861,16 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
             {
                 $audit->login_change("Organisation $org created");
                 success __"The organisation has been created successfully";
+            }
+        }
+
+        if (my $dep = param 'newdepartment')
+        {
+            if (process( sub { $userso->department_new({ name => $dep })}))
+            {
+                $audit->login_change("Department $dep created");
+                my $depname = lc var('site')->register_department_name;
+                success __x"The {dep} has been created successfully", dep => $depname;
             }
         }
 
@@ -888,6 +902,7 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
             freetext2              => param('freetext2'),
             title                  => { id => param('title') },
             organisation           => { id => param('organisation') },
+            department_id          => { id => param('department_id') },
             view_limits_with_blank => $view_limits_with_blank,
             groups                 => \%groups,
         }];
@@ -953,6 +968,7 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
         register_requests => $register_requests,
         titles            => $userso->titles,
         organisations     => $userso->organisations,
+        departments       => $userso->departments,
         permissions       => $userso->permissions,
         page              => defined $route_id && !$route_id ? 'user/0' : 'user',
         breadcrumbs       => $breadcrumbs,

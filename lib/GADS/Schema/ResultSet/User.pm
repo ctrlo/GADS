@@ -145,10 +145,12 @@ sub upload
     my $freetext1 = lc $site->register_freetext1_name;
     my $freetext2 = lc $site->register_freetext2_name;
     my $org_name  = lc $site->register_organisation_name;
+    my $dep_name  = lc $site->register_department_name;
 
     # Map out titles and organisations for conversion to ID
     my %titles        = map { lc $_->name => $_->id } @{$userso->titles};
     my %organisations = map { lc $_->name => $_->id } @{$userso->organisations};
+    my %departments   = map { lc $_->name => $_->id } @{$userso->departments};
 
     $count = 0; my @errors;
     my @welcome_emails;
@@ -163,6 +165,16 @@ sub upload
                 row   => join (',', @$row),
                 error => qq($org_name "$name" not found),
             } if !$org_id;
+        }
+        my $dep_id;
+        if (defined $user_mapping{$dep_name})
+        {
+            my $name = $row->[$user_mapping{$dep_name}];
+            $dep_id  = $departments{lc $name};
+            push @errors, {
+                row   => join (',', @$row),
+                error => qq($dep_name "$name" not found),
+            } if !$dep_id;
         }
         my $title_id;
         if (defined $user_mapping{title})
@@ -183,6 +195,7 @@ sub upload
             freetext2             => defined $user_mapping{$freetext2} ? $row->[$user_mapping{$freetext2}] : '',
             title                 => defined $user_mapping{title} ? $row->[$user_mapping{title}] : '',
             organisation          => $org_id,
+            department_id         => $dep_id,
             view_limits           => $options{view_limits},
             groups                => $options{groups},
             permissions           => $options{permissions},

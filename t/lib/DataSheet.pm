@@ -149,6 +149,17 @@ sub _build_organisation
     });
 }
 
+has department => (
+    is => 'lazy',
+);
+
+sub _build_department
+{   my $self = shift;
+    $self->schema->resultset('Department')->create({
+        name => 'My Department',
+    });
+}
+
 has user => (
     is      => 'lazy',
     clearer => 1,
@@ -236,12 +247,13 @@ sub create_user
         : $self->schema->resultset('User')->create({});
     $user_id ||= $user->id;
     $user->update({
-        username     => "user$user_id\@example.com",
-        email        => "user$user_id\@example.com",
-        firstname    => "User$user_id",
-        surname      => "User$user_id",
-        value        => "User$user_id, User$user_id",
-        organisation => $self->organisation->id,
+        username      => "user$user_id\@example.com",
+        email         => "user$user_id\@example.com",
+        firstname     => "User$user_id",
+        surname       => "User$user_id",
+        value         => "User$user_id, User$user_id",
+        organisation  => $self->organisation->id,
+        department_id => $self->department->id,
     });
     $self->schema->resultset('UserGroup')->find_or_create({ # May already be created for schema
         user_id  => $user_id,

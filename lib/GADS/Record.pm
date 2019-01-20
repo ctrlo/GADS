@@ -685,9 +685,7 @@ sub _find
                         $records->linked_hash(prefetch => 1, limit => $limit, page => $page),
                     ],
                 },
-                {
-                    'createdby' => 'organisation',
-                },
+                'createdby',
                 'approvedby'
             ); # Add info about related current record
             push @$search, { 'me.id' => $record_id };
@@ -714,9 +712,7 @@ sub _find
                 panic "Unexpected find parameters";
             }
             unshift @prefetches, (
-                {
-                    'createdby' => 'organisation',
-                },
+                'createdby',
                 'approvedby'
             ); # Add info about related current record
             @prefetches = (
