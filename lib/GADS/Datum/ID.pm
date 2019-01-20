@@ -48,7 +48,7 @@ sub as_integer
     $self->value + 0;
 }
 
-sub for_code
+sub _build_for_code
 {   my $self = shift;
     $self->as_integer;
 }

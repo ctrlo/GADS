@@ -133,9 +133,14 @@ sub re_evaluate
 {   my ($self, %options) = @_;
     return if $options{no_errors} && $self->column->return_type eq 'error';
     my $old = $self->value;
-    $self->clear_init_value;
-    $self->clear_value;
-    $self->clear_vars;
+    # If this is a new value, don't re-evaluate, otherwise we'll just get
+    # exactly the same value and evaluation can be expensive
+    if (!$self->record->new_entry)
+    {
+        $self->clear_init_value;
+        $self->clear_value;
+        $self->clear_vars;
+    }
     my $new = $self->value; # Force new value to be calculated
     $self->changed(1) if !$self->equal($old, $new);
 }

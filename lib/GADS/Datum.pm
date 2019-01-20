@@ -32,6 +32,7 @@ sub set_value
 {   my ($self, $value, %options) = @_;
     error __"Cannot set this value as it is a parent value"
         if !$options{is_parent_value} && !$self->column->can_child && $self->record && $self->record->parent_id;
+    $self->clear_for_code;
 }
 
 has record => (
@@ -191,7 +192,12 @@ sub clone
     );
 }
 
-sub for_code
+has for_code => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_for_code
 {   my $self = shift;
     $self->as_string; # Default
 }

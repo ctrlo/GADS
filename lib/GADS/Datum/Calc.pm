@@ -178,7 +178,7 @@ sub equal
     return 1;
 }
 
-sub for_code
+sub _build_for_code
 {   my $self = shift;
     my $rt = $self->column->return_type;
     my @return;

@@ -202,7 +202,7 @@ sub as_integer
     $self->id // 0;
 }
 
-sub for_code
+sub _build_for_code
 {   my $self = shift;
     my @values = map {
         my @parents = $self->column->node($_)

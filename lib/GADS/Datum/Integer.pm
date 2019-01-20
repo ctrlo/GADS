@@ -84,7 +84,7 @@ sub as_integer
     my $int  = int ($self->value // 0);
 }
 
-sub for_code
+sub _build_for_code
 {   my $self = shift;
     defined $self->value or return undef;
     int $self->value;

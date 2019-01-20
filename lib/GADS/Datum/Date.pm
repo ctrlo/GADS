@@ -177,7 +177,7 @@ sub _build_html_form
     [ map { $self->_as_string($_) } @{$self->values} ];
 }
 
-sub for_code
+sub _build_for_code
 {   my $self = shift;
 
     return undef if !$self->column->multivalue && $self->blank;
