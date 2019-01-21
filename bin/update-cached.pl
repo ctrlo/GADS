@@ -55,12 +55,43 @@ foreach my $site (schema->resultset('Site')->all)
     foreach my $layout (@{$instances->all})
     {
         next if $layout->no_overnight_update;
-        foreach my $column ($layout->all(order_dependencies => 1))
+
+        my $records = GADS::Records->new(
+            user                 => undef,
+            layout               => $layout,
+            schema               => schema,
+            curcommon_all_fields => 1, # Code might contain curcommon fields not in normal display
+            include_children     => 1, # Update all child records regardless
+        );
+
+        my %changed;
+        while (my $record = $records->single)
         {
-            next if $column->userinput;
-            $column->base_url(config->{gads}->{url});
-            $column->update_cached;
+            foreach my $column ($layout->all(order_dependencies => 1))
+            {
+                next if $column->userinput;
+                $column->base_url(config->{gads}->{url});
+                my $datum = $record->fields->{$column->id};
+                $datum->re_evaluate(no_errors => 1);
+                $datum->write_value;
+                $changed{$column->id} ||= [];
+                push @{$changed{$column->id}}, $record->current_id
+                    if $datum->changed;
+            }
+        }
+
+        # Send any alerts
+        foreach my $col_id (keys %changed)
+        {
+            my $alert_send = GADS::AlertSend->new(
+                layout      => $layout,
+                schema      => schema,
+                user        => undef,
+                base_url    => config->{gads}->{url},
+                current_ids => $changed{$col_id},
+                columns     => $col_id,
+            );
+            $alert_send->process;
         }
     }
 }
-
