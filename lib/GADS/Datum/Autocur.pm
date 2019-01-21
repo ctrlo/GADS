@@ -57,4 +57,8 @@ sub _transform_value
     ($record, $id);
 }
 
+# As an Autocur is not user input, it will attempt to be re-evaluated as a code
+# field
+sub re_evaluate {}
+
 1;
