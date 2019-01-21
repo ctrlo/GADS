@@ -146,6 +146,10 @@ has '+userinput' => (
     default => 0,
 );
 
+has '+has_cache' => (
+    default => 1,
+);
+
 sub params
 {   my $self = shift;
     $self->_params_from_code($self->code);

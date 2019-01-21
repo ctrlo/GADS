@@ -178,6 +178,13 @@ has can_multivalue => (
     default => 0,
 );
 
+# Whether the field has a cache (i.e. evaluated code values)
+has has_cache => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
 # Whether the joins for this column type can be different depending on the
 # columns configuration.
 has variable_join => (

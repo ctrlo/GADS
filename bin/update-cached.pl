@@ -69,7 +69,7 @@ foreach my $site (schema->resultset('Site')->all)
         {
             foreach my $column ($layout->all(order_dependencies => 1))
             {
-                next if $column->userinput;
+                next unless $column->has_cache;
                 $column->base_url(config->{gads}->{url});
                 my $datum = $record->fields->{$column->id};
                 $datum->re_evaluate(no_errors => 1);
