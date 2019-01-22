@@ -264,7 +264,7 @@ sub csv
     my @columns = qw/ID Surname Forename Email Lastlogin/;
     push @columns, 'Title' if $site->register_show_title;
     push @columns, 'Organisation' if $site->register_show_organisation;
-    push @columns, 'Department' if $site->register_show_department;
+    push @columns, $site->department_name if $site->register_show_department;
     push @columns, $site->register_freetext1_name if $site->register_freetext1_name;
     push @columns, $site->register_freetext2_name if $site->register_freetext2_name;
     push @columns, 'Permissions', 'Groups';

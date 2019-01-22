@@ -146,4 +146,9 @@ sub has_table_homepage
     return 0;
 }
 
+sub department_name
+{   my $self = shift;
+    $self->register_department_name || 'Department';
+}
+
 1;
