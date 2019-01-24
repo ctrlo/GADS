@@ -576,7 +576,10 @@ var getFieldValues = function ($depends) {
     if (type === 'enum' || type === 'curval') {
         var $visible = $depends.find('.select-widget .current [data-list-item]:not([hidden])');
         var items = [];
-        $visible.each(function () { items.push($(this).text()) });
+        $visible.each(function () {
+            var item = $(this).hasClass("current__blank") ? "" : $(this).text();
+            items.push(item)
+        });
         return items;
     } else if (type === 'person') {
         return [$depends.find('option:selected').text()];
