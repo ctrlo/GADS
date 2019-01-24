@@ -373,10 +373,6 @@ var SelectWidget = function (multi) {
         // its label. When the input is hidden on the click event of the label
         // the input isn't actually being selected.
         setTimeout(function() {
-            var focusInside = $selectWidget.is(document.activeElement) || $selectWidget.has(document.activeElement).length > 0;
-            if (focusInside) {
-                document.activeElement.blur();
-            }
             $search.val('');
             $target.attr('hidden', '');
             $answers.removeAttr('hidden');
@@ -404,7 +400,8 @@ var SelectWidget = function (multi) {
     });
 
     function possibleCloseWidget(e) {
-        if (!$available.find(e.relatedTarget).length && e.relatedTarget && !$(e.relatedTarget).hasClass("modal")) {
+        var newlyFocussedElement = e.relatedTarget || document.activeElement;
+        if (!$available.find(newlyFocussedElement).length && newlyFocussedElement && !$(newlyFocussedElement).hasClass("modal")) {
             collapse($widget, $trigger, $target);
         }
     }
