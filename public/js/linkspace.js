@@ -310,10 +310,14 @@ var SelectWidget = function (multi) {
                 $currentItems = $current.find("[data-list-item]");
                 $available = $selectWidget.find('.available');
                 $availableItems = $selectWidget.find('.available .answer input');
+                $moreInfoButtons = $selectWidget.find('.available .answer .more-info');
                 $answers = $selectWidget.find('.answer');
 
                 updateState();
                 connect();
+
+                $availableItems.on('blur', possibleCloseWidget);
+                $moreInfoButtons.on('blur', possibleCloseWidget);
 
                 lastFetchParams = fetchParams;
             } else {
@@ -370,10 +374,6 @@ var SelectWidget = function (multi) {
         // its label. When the input is hidden on the click event of the label
         // the input isn't actually being selected.
         setTimeout(function() {
-            var focusInside = $selectWidget.is(document.activeElement) || $selectWidget.has(document.activeElement).length > 0;
-            if (focusInside) {
-                document.activeElement.blur();
-            }
             $search.val('');
             $target.attr('hidden', '');
             $answers.removeAttr('hidden');
@@ -401,7 +401,8 @@ var SelectWidget = function (multi) {
     });
 
     function possibleCloseWidget(e) {
-        if (!$available.find(e.relatedTarget).length && e.relatedTarget && !$(e.relatedTarget).hasClass("modal")) {
+        var newlyFocussedElement = e.relatedTarget || document.activeElement;
+        if (!$available.find(newlyFocussedElement).length && newlyFocussedElement && !$(newlyFocussedElement).hasClass("modal")) {
             collapse($widget, $trigger, $target);
         }
     }
@@ -426,11 +427,13 @@ var SelectWidget = function (multi) {
         }
     });
 
-    $search.unbind('focus');
-    $search.on('focus', function(e) {
-        e.stopPropagation();
-        expand($widget, $trigger, $target);
-    });
+    function expandWidgetHandler(e) {
+      e.stopPropagation();
+      expand($widget, $trigger, $target);
+    }
+
+    $search.unbind('focus', expandWidgetHandler);
+    $search.on('focus', expandWidgetHandler);
 
     $search.unbind('keydown');
     $search.on('keydown', function(e) {
@@ -574,7 +577,10 @@ var getFieldValues = function ($depends) {
     if (type === 'enum' || type === 'curval') {
         var $visible = $depends.find('.select-widget .current [data-list-item]:not([hidden])');
         var items = [];
-        $visible.each(function () { items.push($(this).text()) });
+        $visible.each(function () {
+            var item = $(this).hasClass("current__blank") ? "" : $(this).text();
+            items.push(item)
+        });
         return items;
     } else if (type === 'person') {
         return [$depends.find('option:selected').text()];
