@@ -1019,6 +1019,8 @@ var setupTimeline = function (context) {
         );
     }
 
+    var layout_identifier = $('body').data('layout-identifier');
+
     function on_select (properties) {
         var items = properties.items;
         if (items.length == 0) {
@@ -1031,13 +1033,13 @@ var setupTimeline = function (context) {
             var hrefs = [];
             $("#delete_ids").empty();
             properties.items.forEach(function(item) {
-                var id = item.replace(/\\+.*/, '');
+                var id = item.replace(/\+.*/, '');
                 hrefs.push("id=" + id);
                 $("#delete_ids").append('<input type="hidden" name="delete_id" value="' + id + '">');
             });
             var href = hrefs.join('&');
-            $('#update_href').attr("href", "/[% layout.identifier %]/bulk/update/?" + href);
-            $('#clone_href').attr("href", "/[% layout.identifier %]/bulk/clone/?" + href);
+            $('#update_href').attr("href", "/" + layout_identifier + "/bulk/update/?" + href);
+            $('#clone_href').attr("href", "/" + layout_identifier + "/bulk/clone/?" + href);
             $('#count_delete').text(items.length);
             $('.bulk_href').off();
         }
@@ -1067,10 +1069,10 @@ var setupTimeline = function (context) {
     };
 
     if (container.data('min')) {
-        options.min = container.data('min');
+        options.start = container.data('min');
     }
     if (container.data('max')) {
-        options.max = container.data('max');
+        options.end = container.data('max');
     }
 
     if ($('body').data('page-as-mech')) {
@@ -1177,14 +1179,14 @@ var setupTimeline = function (context) {
         // leave to end in case of problems rendering this range
         update_range_session(props);
     });
+    var csrf_token = $('body').data('csrf-token');
     function update_range_session(props) {
         $.post({
-            url: "/[% layout.identifier %]/data_timeline",
-            data: "from=" + props.start.getTime() + "&to=" + props.end.getTime(),
+            url: "/" + layout_identifier + "/data_timeline",
+            data: "from=" + props.start.getTime() + "&to=" + props.end.getTime() + "&csrf_token=" + csrf_token
         });
     }
 
-    var layout_identifier = $('body').data('layout-identifier');
     function load_items(from, to, exclusive) {
         $.ajax({
             async: false,
