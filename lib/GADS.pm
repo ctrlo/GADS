@@ -232,12 +232,6 @@ hook before => sub {
 
         # Make sure we have suitable persistent hash to update. All these options are
         # used as hashrefs themselves, so prevent trying to access non-existent hash.
-        if (!session 'persistent')
-        {
-            my $session_settings;
-            try { $session_settings = decode_json $user->session_settings };
-            session 'persistent' => ($session_settings || {});
-        }
         my $persistent = session 'persistent';
 
         if (my $instance_id = param('instance'))
@@ -494,7 +488,18 @@ any ['get', 'post'] => '/login' => sub {
                 failcount => 0,
                 lastfail  => undef,
             });
-            forwardHome();
+
+            # Load previous settings and forward to previous table if applicable
+            my $session_settings;
+            try { $session_settings = decode_json $user->session_settings };
+            session 'persistent' => ($session_settings || {});
+            my $forward;
+            if (my $l = session('persistent')->{instance_id})
+            {
+                my $instances = GADS::Instances->new(schema => schema, user => $user);
+                $forward = $instances->layout($l)->identifier;
+            }
+            forwardHome(undef, $forward);
         }
         else {
             $audit->login_failure($username);
