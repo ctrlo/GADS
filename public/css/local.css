@@ -234,3 +234,8 @@ img.autosize {
 div.timeline-foreground > div.timeline-group:nth-of-type(even) {
     background-color: rgba(245, 245, 245, 0.4);
 }
+
+.tippy-tooltip {
+    text-align: left;
+    font-size: 1em;
+}

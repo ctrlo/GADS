@@ -43,6 +43,8 @@
         [% END %]
         [% IF page == "data" AND viewtype == "timeline" %]
             <link rel="stylesheet" href="[% url.css %]/timeline.min.css">
+            <link rel="stylesheet" href="[% url.css %]/tippy.css">
+            <link rel="stylesheet" href="[% url.css %]/light.css">
             [% IF hostlocal %]
                 <script type='text/javascript' src='[% url.js %]/handlebars.runtime.min.js'></script>
             [% ELSE %]
@@ -252,6 +254,7 @@
                 [% END %]
             [% END %]
             <script type="text/javascript" src="[% url.js %]/timeline.min.js"></script>
+            <script type="text/javascript" src="[% url.js %]/tippy.min.js"></script>
         [% END %]
         [% IF page == "data" AND viewtype == "globe" %]
             [% IF hostlocal %]

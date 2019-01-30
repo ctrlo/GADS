@@ -7,15 +7,17 @@
     "sass": "sass --update --sourcemap=none sass:public/css/",
     "jshint": "jshint public/js/*.js"
   },
-  "dependencies": {},
+  "dependencies": {
+    "handlebars": "^4.0.12"
+  },
   "devDependencies": {
     "jshint": "^2.9.5",
     "npm-watch": "^0.2.0"
   },
   "watch": {
     "sass": {
-        "patterns": "sass",
-        "extensions": "*.scss"
+      "patterns": "sass",
+      "extensions": "*.scss"
     }
   }
 }

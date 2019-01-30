@@ -158,23 +158,6 @@
             if (groups.length > 0) {
                 tl.setGroups(groups);
             }
-            tl.on('click', function(e) {
-                if (!e.item) {
-                    $('.item-popup').hide();
-                }
-                else {
-                    var target = $( e.event.target );
-                    if (target.hasClass('moreinfo')) {
-                        var record_id = target.data('record-id');
-                        var m = $("#readmore_modal");
-                        m.find('.modal-body').text('Loading...');
-                        m.find('.modal-body').load('/record_body/' + record_id);
-                        m.modal();
-                    } else {
-                        target.closest('.timeline-item').find('.item-popup').toggle();
-                    }
-                }
-            });
             tl.on('select', on_select);
             on_select({ items: [] });
             [%# functionality to add new items on range change %]
@@ -276,6 +259,22 @@
                 });
             }
         } )();
+        $(document).ready(function () {
+            tippy('.timeline-foreground', {
+                target: '.timeline-tippy',
+                theme: 'light',
+                onShown: function (e) {
+                    $('.moreinfo').off("click").on("click", function(e){
+                        var target = $( e.target );
+                        var record_id = target.data('record-id');
+                        var m = $("#readmore_modal");
+                        m.find('.modal-body').text('Loading...');
+                        m.find('.modal-body').load('/record_body/' + record_id);
+                        m.modal();
+                     });
+                },
+            });
+        });
         [% END %]
     [% END %]';
 </script>
