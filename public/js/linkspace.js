@@ -951,6 +951,291 @@ var setupHtmlEditor = function (context) {
     }
 };
 
+var setupTimeline = function (context) {
+
+    var container = $('#visualization');
+
+    var records_base64 = container.data('records');
+    var json = base64.decode(records_base64);
+    var items = new timeline.DataSet(JSON.parse(json));
+    var groups = container.data('groups');
+    var json_group = base64.decode(groups);
+    var groups = JSON.parse(json_group);
+    var changed = {};
+
+    var template = Handlebars.templates.timelineitem;
+
+    var save_elem_sel    = '#submit_button',
+        cancel_elem_sel  = '#cancel_button',
+        changed_elem_sel = '#visualization_changes',
+        hidden_input_sel = '#changed_data';
+
+    function before_submit (e) {
+        var submit_data = _.mapObject( changed,
+            function( val, key ) {
+                return {
+                    column: val.column,
+                    current_id: val.current_id,
+                    from: val.start.toISOString().substring(0, 10),
+                    to:   (val.end || val.start).toISOString().substring(0, 10)
+                };
+            }
+        );
+        $(window).off('beforeunload');
+
+        // Store the data as JSON on the form
+        var submit_json = JSON.stringify(submit_data);
+        var data_field = $(hidden_input_sel);
+        data_field.attr('value', submit_json );
+    }
+
+    function on_move (item, callback) {
+        changed[item.id] = item;
+
+        var save_button = $( save_elem_sel );
+        if ( save_button.is(':hidden') ) {
+            $(window).bind('beforeunload', function(e) {
+                var error_msg = 'If you leave this page your changes will be lost.';
+                if (e) {
+                    e.returnValue = error_msg;
+                }
+                return error_msg;
+            });
+
+            save_button.closest('form').css('display', 'block');
+        }
+
+        var changed_item = $('<li>' + item.title + '</li>');
+        $( changed_elem_sel ).append(changed_item);
+
+        return callback(item);
+    }
+
+    function snap_to_day (datetime, scale, step) {
+        return new Date (
+            datetime.getFullYear(),
+            datetime.getMonth(),
+            datetime.getDate()
+        );
+    }
+
+    function on_select (properties) {
+        var items = properties.items;
+        if (items.length == 0) {
+            $('.bulk_href').on('click', function(e) {
+                e.preventDefault();
+                alert("Please select some records on the timeline first");
+                return false;
+            });
+        } else {
+            var hrefs = [];
+            $("#delete_ids").empty();
+            properties.items.forEach(function(item) {
+                var id = item.replace(/\\+.*/, '');
+                hrefs.push("id=" + id);
+                $("#delete_ids").append('<input type="hidden" name="delete_id" value="' + id + '">');
+            });
+            var href = hrefs.join('&');
+            $('#update_href').attr("href", "/[% layout.identifier %]/bulk/update/?" + href);
+            $('#clone_href').attr("href", "/[% layout.identifier %]/bulk/clone/?" + href);
+            $('#count_delete').text(items.length);
+            $('.bulk_href').off();
+        }
+    }
+
+    // Set up form button behaviour
+    $( save_elem_sel ).bind( 'click', before_submit );
+    $( cancel_elem_sel ).bind( 'click', function (e) {
+        $(window).off('beforeunload');
+    });
+
+    // See http://visjs.org/docs/timeline/#Editing_Items
+    var options = {
+        margin: {
+            item: {
+                horizontal: -1
+            }
+        },
+        moment: function (date) {
+            return timeline.moment(date).utc();
+        },
+        onMove:   on_move,
+        zoomFriction: 10,
+        snap:     snap_to_day,
+        template: template,
+        orientation: {axis: "both"}
+    };
+
+    if (container.data('min')) {
+        options.min = container.data('min');
+    }
+    if (container.data('max')) {
+        options.max = container.data('max');
+    }
+
+    if (container.data('width')) {
+        options.width = container.data('width');
+    }
+    if (container.data('height')) {
+        options.width = container.data('height');
+    }
+
+    if (!container.data('rewind')) {
+        options.editable = {
+            add:         false,
+            updateTime:  true,
+            updateGroup: false,
+            remove:      false
+        };
+        options.multiselect = true;
+    }
+
+    var tl = new timeline.Timeline(container.get(0), items, options);
+    if (groups.length > 0) {
+        tl.setGroups(groups);
+    }
+    tl.on('select', on_select);
+    on_select({ items: [] });
+
+    // functionality to add new items on range change
+    var persistent_max;
+    var persistent_min;
+    tl.on('rangechanged', function (props) {
+        if (!props.byUser) {
+            if (!persistent_min) { persistent_min = props.start.getTime(); }
+            if (!persistent_max) { persistent_max = props.end.getTime(); }
+            return;
+        }
+
+        // Shortcut - see if we actually need to continue with calculations
+        if (props.start.getTime() > persistent_min && props.end.getTime() < persistent_max) {
+            update_range_session(props);
+            return;
+        }
+        $('#loading-div').show();
+
+        /* Calculate the range of the current items. This will min/max
+            values for normal dates, but for dateranges we need to work
+            out the dates of what was retrieved. E.g. the earliest
+            end of a daterange will be the start of the range of
+            the current items (otherwise it wouldn't have been
+            retrieved)
+        */
+        var val = items.min('start');
+        var min_start = val ? new Date(val.start) : undefined;
+        val = items.max('start');
+        var max_start = val ? new Date(val.start) : undefined;
+        val = items.min('end');
+        var min_end = val ? new Date(val.end) : undefined;
+        val = items.max('end');
+        var max_end = val ? new Date(val.end) : undefined;
+        val = items.min('single');
+        var min_single = val ? new Date(val.single) : undefined;
+        val = items.max('single');
+        var max_single = val ? new Date(val.single) : undefined;
+        var have_range = {};
+        if (min_end && min_single) {
+            have_range.min = min_end < min_single ? min_end : min_single;
+        } else {
+            have_range.min = min_end || min_single;
+        }
+        if (max_start && max_single) {
+            have_range.max = max_start > max_single ? max_start : max_single;
+        } else {
+            have_range.max = max_start || max_single;
+        }
+        /* haverange now contains the min and max of the current
+            range. Now work out whether we need to fill to the left or
+            right (or both)
+        */
+        if (!have_range.min) {
+            var from = props.start.getTime();
+            var to = props.end.getTime();
+            load_items(from, to);
+        }
+        if (props.start < have_range.min) {
+            var from = props.start.getTime();
+            var to = have_range.min.getTime();
+            load_items(from, to, "to");
+        }
+        if (props.end > have_range.max) {
+            var from = have_range.max.getTime();
+            var to = props.end.getTime();
+            load_items(from, to, "from");
+        }
+        if (!persistent_max || persistent_max < props.end.getTime()) {
+            persistent_max = props.end.getTime();
+        }
+        if (!persistent_min || persistent_min > props.start.getTime()) {
+            persistent_min = props.start.getTime();
+        }
+
+        $('#loading-div').hide();
+
+        // leave to end in case of problems rendering this range
+        update_range_session(props);
+    });
+    function update_range_session(props) {
+        $.post({
+            url: "/[% layout.identifier %]/data_timeline",
+            data: "from=" + props.start.getTime() + "&to=" + props.end.getTime(),
+        });
+    }
+
+    var layout_identifier = $('body').data('layout-identifier');
+    function load_items(from, to, exclusive) {
+        $.ajax({
+            async: false,
+            /* we use the exclusive parameter to not include ranges
+                that go over that date, otherwise we will retrieve
+                items that we already have */
+            url: "/" + layout_identifier + "/data_timeline/" + "10" + "?from=" + from + "&to=" + to + "&exclusive=" + exclusive,
+            dataType:'json',
+            success: function(data) {
+                items.add(data);
+            }
+        });
+    }
+
+    tippy('.timeline-foreground', {
+        target: '.timeline-tippy',
+        theme: 'light',
+        onShown: function (e) {
+            $('.moreinfo').off("click").on("click", function(e){
+                var target = $( e.target );
+                var record_id = target.data('record-id');
+                var m = $("#readmore_modal");
+                m.find('.modal-body').text('Loading...');
+                m.find('.modal-body').load('/record_body/' + record_id);
+                m.modal();
+             });
+        },
+    });
+
+}
+
+var setupOtherUserViews = function (context) {
+
+    var layout_identifier = $('body').data('layout-identifier');
+    $("#views_other_user_typeahead").typeahead({
+        delay: 500,
+        matcher: function () { return true; },
+        sorter: function (items) { return items; },
+        afterSelect: function (selected) {
+            $("#views_other_user_id").val(selected.id);
+        },
+        source: function (query, process) {
+            return $.ajax({
+                type: 'GET',
+                url: '/' + layout_identifier + '/match/user/',
+                data: { q: query },
+                success: function(result) { process(result) },
+                dataType: 'json'
+            });
+        }
+    });
+}
+
 var Linkspace = {
     constants: {
         ARROW_LEFT: 37,
@@ -1052,6 +1337,27 @@ Linkspace.config = function () {
 
 Linkspace.system = function () {
     setupHtmlEditor();
+}
+
+Linkspace.data_timeline = function () {
+    setupTimeline();
+    setupOtherUserViews();
+}
+
+Linkspace.data_graph = function () {
+    setupOtherUserViews();
+}
+
+Linkspace.data_table = function () {
+    setupOtherUserViews();
+}
+
+Linkspace.data_globe = function () {
+    setupOtherUserViews();
+}
+
+Linkspace.data_calendar = function () {
+    setupOtherUserViews();
 }
 
 Linkspace.layout = function () {

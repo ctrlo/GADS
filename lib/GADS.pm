@@ -1553,12 +1553,12 @@ prefix '/:layout_name' => sub {
         my $view       = current_view($user, $layout);
 
         my $params = {
-            page   => 'data',
             layout => var('layout'),
         }; # Variable for the template
 
         if ($viewtype eq 'graph')
         {
+            $params->{page}     = 'data_graph';
             $params->{viewtype} = 'graph';
             if (my $png = param('png'))
             {
@@ -1637,6 +1637,7 @@ prefix '/:layout_name' => sub {
 
             $params->{calendar} = session('calendar'); # Remember previous day viewed
             $params->{colors}   = \@colors;
+            $params->{page}     = 'data_calendar';
             $params->{viewtype} = 'calendar';
         }
         elsif ($viewtype eq 'timeline')
@@ -1653,8 +1654,6 @@ prefix '/:layout_name' => sub {
                 view_limit_extra_id => current_view_limit_extra_id($user, $layout),
             );
             my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} ||= {};
-            $tl_options->{width} ||= 3508;
-            $tl_options->{height} ||= 2480;
             if (param 'modal_timeline')
             {
                 $tl_options->{label}   = param('tl_label');
@@ -1682,11 +1681,14 @@ prefix '/:layout_name' => sub {
             $params->{timeline}             = $timeline;
             $params->{tl_options}           = $tl_options;
             $params->{columns_read}         = [$layout->all(user_can_read => 1)];
+            $params->{page}                 = 'data_timeline';
             $params->{viewtype}             = 'timeline';
             $params->{search_limit_reached} = $records->search_limit_reached;
 
             if (my $png = param('png'))
             {
+                $tl_options->{width} ||= 3508;
+                $tl_options->{height} ||= 2480;
                 $params->{tl_options}->{width} = int(param 'png_width')
                     if int(param 'png_width');
                 $params->{tl_options}->{height} = int(param 'png_height')
@@ -1696,6 +1698,10 @@ prefix '/:layout_name' => sub {
                     \$png,
                     content_type => 'image/png',
                 );
+            }
+            else {
+                delete $tl_options->{width};
+                delete $tl_options->{height};
             }
         }
         elsif ($viewtype eq 'globe')
@@ -1727,6 +1733,7 @@ prefix '/:layout_name' => sub {
             $params->{globe_options}        = $globe_options;
             $params->{columns_read}         = [$layout->columns_for_filter];
             $params->{viewtype}             = 'globe';
+            $params->{page}                 = 'data_globe';
             $params->{search_limit_reached} = $globe->records->search_limit_reached;
             $params->{count}                = $globe->records->count;
         }
@@ -1874,6 +1881,7 @@ prefix '/:layout_name' => sub {
             $params->{columns}              = [ map $_->presentation, @columns ];
             $params->{has_rag_column}       = grep { $_->type eq 'rag' } @columns;
             $params->{viewtype}             = 'table';
+            $params->{page}                 = 'data_table';
             $params->{search_limit_reached} = $records->search_limit_reached;
         }
 
