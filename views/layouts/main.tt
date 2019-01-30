@@ -78,6 +78,7 @@
     </head>
 
     <body class="page [% page %]" data-page="[% page %]" data-csrf-token="[% csrf_token %]"
+        data-page-as-mech="[% page_as_mech %]"
         data-layout-identifier="[% layout.identifier %]" style="font-size:15px"
     >
         <header role="banner" class="container">

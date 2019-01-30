@@ -1073,11 +1073,13 @@ var setupTimeline = function (context) {
         options.max = container.data('max');
     }
 
-    if (container.data('width')) {
-        options.width = container.data('width');
-    }
-    if (container.data('height')) {
-        options.width = container.data('height');
+    if ($('body').data('page-as-mech')) {
+        if (container.data('width')) {
+            options.width = container.data('width');
+        }
+        if (container.data('height')) {
+            options.width = container.data('height');
+        }
     }
 
     if (!container.data('rewind')) {

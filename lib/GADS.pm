@@ -1654,6 +1654,8 @@ prefix '/:layout_name' => sub {
                 view_limit_extra_id => current_view_limit_extra_id($user, $layout),
             );
             my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} ||= {};
+            $tl_options->{width} ||= 3508;
+            $tl_options->{height} ||= 2480;
             if (param 'modal_timeline')
             {
                 $tl_options->{label}   = param('tl_label');
@@ -1687,8 +1689,6 @@ prefix '/:layout_name' => sub {
 
             if (my $png = param('png'))
             {
-                $tl_options->{width} ||= 3508;
-                $tl_options->{height} ||= 2480;
                 $params->{tl_options}->{width} = int(param 'png_width')
                     if int(param 'png_width');
                 $params->{tl_options}->{height} = int(param 'png_height')
@@ -1698,10 +1698,6 @@ prefix '/:layout_name' => sub {
                     \$png,
                     content_type => 'image/png',
                 );
-            }
-            else {
-                delete $tl_options->{width};
-                delete $tl_options->{height};
             }
         }
         elsif ($viewtype eq 'globe')
