@@ -41,9 +41,9 @@
                 "use strict";
 
                 var options = {
-                        events_source: '/data_calendar/' + (new Date).getTime(),
+                        events_source: '/[% layout.identifier %]/data_calendar/' + (new Date).getTime(),
                         view: '[% calendar.view OR "month" %]',
-                        tmpl_path: 'tmpls/',
+                        tmpl_path: '/tmpls/',
                         tmpl_cache: false,
                         [% IF calendar.day %]day: '[% calendar.day.ymd %]',[% END %]
                         onAfterEventsLoad: function(events) {
