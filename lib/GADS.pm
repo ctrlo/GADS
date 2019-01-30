@@ -248,6 +248,7 @@ hook before => sub {
             if (my $layout = var('instances')->layout_by_shortname($layout_name, no_errors => 1))
             {
                 var 'layout' => $layout;
+                session('persistent')->{instance_id} = $layout->instance_id;
             }
         }
     }
