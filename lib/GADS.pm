@@ -325,6 +325,17 @@ sub _update_persistent
     }
 }
 
+sub _forward_last_table
+{
+    my $forward;
+    if (my $l = session('persistent')->{instance_id})
+    {
+        my $instances = GADS::Instances->new(schema => schema, user => logged_in_user);
+        $forward = $instances->layout($l)->identifier;
+    }
+    forwardHome(undef, $forward);
+}
+
 get '/' => require_login sub {
 
     my $site = var 'site';
@@ -374,7 +385,7 @@ any ['get', 'post'] => '/user_status' => require_login sub {
     if (param 'accepted')
     {
         session 'status_accepted' => 1;
-        redirect '/';
+        _forward_last_table();
     }
 
     template user_status => {
@@ -494,13 +505,7 @@ any ['get', 'post'] => '/login' => sub {
             my $session_settings;
             try { $session_settings = decode_json $user->session_settings };
             session 'persistent' => ($session_settings || {});
-            my $forward;
-            if (my $l = session('persistent')->{instance_id})
-            {
-                my $instances = GADS::Instances->new(schema => schema, user => $user);
-                $forward = $instances->layout($l)->identifier;
-            }
-            forwardHome(undef, $forward);
+            _forward_last_table();
         }
         else {
             $audit->login_failure($username);
