@@ -292,7 +292,8 @@ has columns_retrieved_do => (
 );
 
 has max_results => (
-    is => 'rw',
+    is      => 'rw',
+    clearer => 1,
 );
 
 has rows => (
@@ -1949,6 +1950,10 @@ sub data_timeline
             $min && $min->subtract(days => 1),
             $max && $max->add(days => 2), # one day already added to show period to end of day
         }
+        # Clear max_results otherwise message will be rendered stating the max
+        # results retrieved (as per search - see search_limit_reached)
+        $self->clear_max_results;
+
     }
     else {
         my @retrieved = @{$timeline->items};
