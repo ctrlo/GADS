@@ -1709,7 +1709,7 @@ prefix '/:layout_name' => sub {
                 # Copy parameters and add width, otherwise width will be added
                 # to session params hash and used in other viewtypes.
                 # Use a width suitable for A3 (pixels at 300dpi)
-                $params->{tl_options} = {%{$params->{tl_options}}, width => 4961};
+                $params->{tl_options} = {%{$params->{tl_options}}, canvas_width => 1900};
                 my $pdf = _page_as_mech('data_timeline', $params, pdf => 1)->content_as_pdf;
                 return send_file(
                     \$pdf,
@@ -3241,7 +3241,6 @@ sub _page_as_mech
     if ($options{pdf})
     {
         $mech->eval_in_phantomjs("
-            this.dpi = 300,
             this.paperSize = {
                 format: 'A3',
                 orientation: 'landscape',

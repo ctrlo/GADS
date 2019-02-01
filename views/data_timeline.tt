@@ -11,7 +11,7 @@
          <div class="loader"></div>
     </div>
     <div id="visualization" data-records="[% records %]" data-groups="[% groups %]" data-rewind="[% session.rewind %]"
-        data-width="[% tl_options.width %]" data-height="[% tl_options.height %]" data-min="[% timeline.min %]"
+        data-width="[% tl_options.canvas_width %]" data-height="[% tl_options.canvas_height %]" data-min="[% timeline.min %]"
         data-max="[% timeline.max %]">
     </div>
 </div>
