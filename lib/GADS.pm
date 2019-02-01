@@ -1665,8 +1665,6 @@ prefix '/:layout_name' => sub {
                 view_limit_extra_id => current_view_limit_extra_id($user, $layout),
             );
             my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} ||= {};
-            $tl_options->{width} ||= 3508;
-            $tl_options->{height} ||= 2480;
             if (param 'modal_timeline')
             {
                 $tl_options->{label}   = param('tl_label');
@@ -1700,14 +1698,22 @@ prefix '/:layout_name' => sub {
 
             if (my $png = param('png'))
             {
-                $params->{tl_options}->{width} = int(param 'png_width')
-                    if int(param 'png_width');
-                $params->{tl_options}->{height} = int(param 'png_height')
-                    if int(param 'png_height');
                 my $png = _page_as_mech('data_timeline', $params)->content_as_png;
                 return send_file(
                     \$png,
                     content_type => 'image/png',
+                );
+            }
+            if (param('pdf'))
+            {
+                # Copy parameters and add width, otherwise width will be added
+                # to session params hash and used in other viewtypes.
+                # Use a width suitable for A3 (pixels at 300dpi)
+                $params->{tl_options} = {%{$params->{tl_options}}, width => 4961};
+                my $pdf = _page_as_mech('data_timeline', $params, pdf => 1)->content_as_pdf;
+                return send_file(
+                    \$pdf,
+                    content_type => 'application/pdf',
                 );
             }
         }
@@ -3222,7 +3228,7 @@ sub _random_pw
 }
 
 sub _page_as_mech
-{   my ($template, $params) = @_;
+{   my ($template, $params, %options) = @_;
     $params->{scheme}       = 'http';
     my $public              = path(setting('appdir'), 'public');
     $params->{base}         = "file://$public/";
@@ -3232,6 +3238,17 @@ sub _page_as_mech
     print $fh $timeline_html;
     close $fh;
     my $mech = WWW::Mechanize::PhantomJS->new;
+    if ($options{pdf})
+    {
+        $mech->eval_in_phantomjs("
+            this.dpi = 300,
+            this.paperSize = {
+                format: 'A3',
+                orientation: 'landscape',
+                margin: '0.5cm'
+            };
+        ");
+    }
     $mech->get_local($filename);
     unlink $filename;
     return $mech;

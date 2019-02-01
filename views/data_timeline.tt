@@ -54,18 +54,3 @@
         </div>
     </div>
 </div>
-
-[% WRAPPER modal_dialog.tt
-    modal_id="modal_png" modal_action_text="View" modal_heading="View timeline as PNG"
-    modal_with_form = 1 modal_form_method = "get"
-%]
-    <input type="hidden" name="png" value="1">
-    <div class="form-group">
-        <label for="png_height">Height of PNG (pixels):</label>
-        <input type="text" class="form-control" name="png_height" value="[% tl_options.height %]">
-    </div>
-    <div class="form-group">
-        <label for="png_width">Width of PNG (pixels):</label>
-        <input type="text" class="form-control" name="png_width" value="[% tl_options.width %]">
-    </div>
-[% END %]

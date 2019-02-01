@@ -137,7 +137,15 @@
                         <a class="btn btn-default" data-toggle="modal" data-target="#modal_timeline" role="button">Timeline options...</a>
                     </div>
                     <div class="btn-group">
-                        <a class="btn btn-default" data-toggle="modal" data-target="#modal_png" role="button">Download...</a>
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_action">
+                                Download <span class="caret"></span>
+                        </button>
+                        <ul id="menu_action" class="dropdown-menu" role="menu">
+                            <li role="presentation">
+                                <a role="menuitem" href="/[% layout.identifier %]/data?png=1">Download as PNG image</a>
+                                <a role="menuitem" href="/[% layout.identifier %]/data?pdf=1">Download as PDF document</a>
+                            </li>
+                        </ul>
                     </div>
                 [% ELSIF viewtype == "globe" %]
                     <div class="btn-group">
