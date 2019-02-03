@@ -12,7 +12,7 @@
     </div>
     <div id="visualization" data-records="[% records %]" data-groups="[% groups %]" data-rewind="[% session.rewind %]"
         data-width="[% tl_options.canvas_width %]" data-height="[% tl_options.canvas_height %]" data-min="[% timeline.min %]"
-        data-max="[% timeline.max %]">
+        data-max="[% timeline.max %]" style="width:100%">
     </div>
 </div>
 
