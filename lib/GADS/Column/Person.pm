@@ -118,5 +118,30 @@ sub cleanup
     $schema->resultset('Person')->search({ layout_id => $id })->delete;
 }
 
+sub filter_value_to_text
+{   my ($self, $id) = @_;
+    # Check for valid ID (in case search filter is corrupted) - Pg will choke
+    # on invalid IDs
+    $id =~ /^[0-9]+$/ or return '';
+    return $self->resultset_for_values->search({ id => $id })->next->value;
+}
+
+sub values_beginning_with
+{   my ($self, $match_string) = @_;
+
+    my $resultset = $self->resultset_for_values;
+    my $search = $match_string
+        ? {
+            'me.value' => {
+                -like => "${match_string}%",
+            },
+        } : {};
+    $match_string =~ s/([_%])/\\$1/g;
+    my $match_result = $resultset->search($search, {
+        rows   => 10,
+    });
+    return map { +{ id => $_->id, name => $_->value } } $match_result->all;
+}
+
 1;
 

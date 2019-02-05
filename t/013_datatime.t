@@ -42,11 +42,14 @@ my $layout = $sheet->layout;
 my $columns = $sheet->columns;
 $sheet->create_records;
 
+my $showcols = [ map { $_->id } $layout->all(exclude_internal => 1) ];
+
 my $records = GADS::Records->new(
-    from   => DateTime->now,
-    user   => undef,
-    layout => $layout,
-    schema => $schema,
+    from    => DateTime->now,
+    user    => undef,
+    columns => $showcols,
+    layout  => $layout,
+    schema  => $schema,
 );
 
 # 4 for all main sheet1 values, plus 4 for referenced curval fields
@@ -57,10 +60,11 @@ is( @{$records->data_timeline->{items}}, 8, "Retrieving all data returns correct
 # Test from a later date. The records from that date should be retrieved, and
 # then the ones before as the total number is less than the threshold
 $records = GADS::Records->new(
-    from   => DateTime->new(year => 2011, month => 10, day => 01),
-    user   => undef,
-    layout => $layout,
-    schema => $schema,
+    from    => DateTime->new(year => 2011, month => 10, day => 01),
+    user    => undef,
+    columns => $showcols,
+    layout  => $layout,
+    schema  => $schema,
 );
 is( @{$records->data_timeline->{items}}, 8, "Retrieving all data returns correct number of points to plot for timeline" );
 
@@ -148,9 +152,10 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
 
     my $sheet = t::lib::DataSheet->new(data => \@data);
     $sheet->create_records;
-    my $schema = $sheet->schema;
-    my $layout = $sheet->layout;
-    my $columns = $sheet->columns;
+    my $schema   = $sheet->schema;
+    my $layout   = $sheet->layout;
+    my $columns  = $sheet->columns;
+    my $showcols = [ map { $_->id } $layout->all(exclude_internal => 1) ];
 
     # Run 2 tests - sorted by string1 and enum1. string1 will randomise the
     # results to make sure the correct ones are pulled out by date; enum1 will
@@ -217,11 +222,12 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     }
 
     $records = GADS::Records->new(
-        from   => DateTime->now, # Rounded down to midnight 1st Jan 2018
-        to     => DateTime->now->add(days => 10), # Rounded up to midnight 12th Jan 2018
-        user   => undef,
-        layout => $layout,
-        schema => $schema,
+        from    => DateTime->now, # Rounded down to midnight 1st Jan 2018
+        to      => DateTime->now->add(days => 10), # Rounded up to midnight 12th Jan 2018
+        user    => undef,
+        columns => $showcols,
+        layout  => $layout,
+        schema  => $schema,
     );
 
     # 10 days, plus one either side including rounding up/down
@@ -229,11 +235,12 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
 
     # Test from exactly midnight - should be no rounding
     $records = GADS::Records->new(
-        from   => DateTime->new(year => 2008, month => 1, day => 1),
-        to     => DateTime->new(year => 2008, month => 1, day => 10),
-        user   => undef,
-        layout => $layout,
-        schema => $schema,
+        from    => DateTime->new(year => 2008, month => 1, day => 1),
+        to      => DateTime->new(year => 2008, month => 1, day => 10),
+        user    => undef,
+        columns => $showcols,
+        layout  => $layout,
+        schema  => $schema,
     );
 
     is( @{$records->data_timeline->{items}}, 10, "Retrieved correct subset of records for large timeline" );
@@ -258,16 +265,18 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
 
     my $sheet = t::lib::DataSheet->new(data => $data);
     $sheet->create_records;
-    my $schema = $sheet->schema;
-    my $layout = $sheet->layout;
-    my $dr1    = $sheet->columns->{daterange1}->id;
+    my $schema   = $sheet->schema;
+    my $layout   = $sheet->layout;
+    my $dr1      = $sheet->columns->{daterange1}->id;
+    my $showcols = [ map { $_->id } $layout->all(exclude_internal => 1) ];
 
     my $records = GADS::Records->new(
-        from   => DateTime->new(year => 2009, month => 03, day => 01),
-        to     => DateTime->new(year => 2011, month => 03, day => 01),
-        user   => undef,
-        layout => $layout,
-        schema => $schema,
+        from    => DateTime->new(year => 2009, month => 03, day => 01),
+        to      => DateTime->new(year => 2011, month => 03, day => 01),
+        user    => undef,
+        columns => $showcols,
+        layout  => $layout,
+        schema  => $schema,
     );
 
     # Normal - should include dateranges that go over the from/to values
@@ -307,16 +316,18 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     );
 
     $sheet->create_records;
-    my $schema = $sheet->schema;
-    my $layout = $sheet->layout;
-    my $dr1    = $sheet->columns->{daterange1}->id;
+    my $schema   = $sheet->schema;
+    my $layout   = $sheet->layout;
+    my $dr1      = $sheet->columns->{daterange1}->id;
+    my $showcols = [ map { $_->id } $layout->all(exclude_internal => 1) ];
 
     my $records = GADS::Records->new(
-        from   => DateTime->new(year => 2007, month => 01, day => 01),
-        to     => DateTime->new(year => 2008, month => 12, day => 31),
-        user   => undef,
-        layout => $layout,
-        schema => $schema,
+        from    => DateTime->new(year => 2007, month => 01, day => 01),
+        to      => DateTime->new(year => 2008, month => 12, day => 31),
+        user    => undef,
+        columns => $showcols,
+        layout  => $layout,
+        schema  => $schema,
     );
 
     # Normal - should include dateranges that go over the from/to values
@@ -327,14 +338,16 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
 {
     my $sheet = t::lib::DataSheet->new(data => []);
     $sheet->create_records;
-    my $schema = $sheet->schema;
-    my $layout = $sheet->layout;
+    my $schema   = $sheet->schema;
+    my $layout   = $sheet->layout;
+    my $showcols = [ map { $_->id } $layout->all(exclude_internal => 1) ];
 
     my $records = GADS::Records->new(
-        from   => DateTime->now,
-        user   => undef,
-        layout => $layout,
-        schema => $schema,
+        from    => DateTime->now,
+        user    => undef,
+        columns => $showcols,
+        layout  => $layout,
+        schema  => $schema,
     );
 
     is( @{$records->data_timeline->{items}}, 0, "No timeline entries for no records" );
@@ -355,13 +368,15 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     my $sheet = t::lib::DataSheet->new(data => $data);
 
     $sheet->create_records;
-    my $schema = $sheet->schema;
-    my $layout = $sheet->layout;
+    my $schema   = $sheet->schema;
+    my $layout   = $sheet->layout;
+    my $showcols = [ map { $_->id } $layout->all(exclude_internal => 1) ];
 
     my $records = GADS::Records->new(
-        user   => undef,
-        layout => $layout,
-        schema => $schema,
+        user    => undef,
+        columns => $showcols,
+        layout  => $layout,
+        schema  => $schema,
     );
 
     my $return = $records->data_timeline(group => $sheet->columns->{calc1}->id);
@@ -377,8 +392,9 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
 {
     my $sheet = t::lib::DataSheet->new;
     $sheet->create_records;
-    my $schema = $sheet->schema;
-    my $layout = $sheet->layout;
+    my $schema   = $sheet->schema;
+    my $layout   = $sheet->layout;
+    my $showcols = [ map { $_->id } $layout->all(exclude_internal => 1) ];
 
     my $view = GADS::View->new(
         name        => 'Test view',

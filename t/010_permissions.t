@@ -79,7 +79,7 @@ is( $schema->resultset('UserGroup')->count, 3, "Correct number of permissions ad
 
 # Write groups such that the limited group only has read/write access to one
 # field in the main sheet, but not the curval sheet
-foreach my $column ($layout->all, $curval_sheet->layout->all)
+foreach my $column ($layout->all(exclude_internal => 1), $curval_sheet->layout->all(exclude_internal => 1))
 {
     # Read only
     my $read = [qw/read/];

@@ -440,13 +440,15 @@ sub _build_layout
         site_id => $self->schema->site_id,
     });
 
-    GADS::Layout->new(
+    my $layout = GADS::Layout->new(
         user                     => $self->user_layout,
         schema                   => $self->schema,
         config                   => $self->config,
         instance_id              => $self->instance_id,
         user_permission_override => $self->user_permission_override,
     );
+    $layout->create_internal_columns;
+    return $layout;
 }
 
 sub _build_group
@@ -692,6 +694,7 @@ sub __build_columns
             $curval->refers_to_instance_id($refers_to_instance_id);
             my $curval_field_ids_rs = $self->schema->resultset('Layout')->search({
                 type        => { '!=' => 'autocur' },
+                internal    => 0,
                 instance_id => $refers_to_instance_id,
             });
             my $curval_field_ids = $self->curval_field_ids || [ map { $_->id } $curval_field_ids_rs->all ];
@@ -792,6 +795,7 @@ sub add_autocur
     $autocur->refers_to_instance_id($refers_to_instance_id);
     my $autocur_field_ids_rs = $self->schema->resultset('Layout')->search({
         instance_id => $refers_to_instance_id,
+        internal    => 0,
     });
     my $autocur_field_ids = $options{curval_field_ids} || [ map { $_->id } $autocur_field_ids_rs->all ];
     $autocur->curval_field_ids($autocur_field_ids);

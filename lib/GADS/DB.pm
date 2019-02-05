@@ -27,7 +27,7 @@ sub setup
 {   my ($class, $schema) = @_;
 
     my $layout_rs = $schema->resultset('Layout');
-    my @cols = $layout_rs->all;
+    my @cols = $layout_rs->search({ internal => 0 })->all;
 
     foreach my $col (@cols)
     {   $class->add_column($schema, $col);
@@ -119,7 +119,7 @@ sub update
 {   my ($class, $schema) = @_;
 
     # Find out what latest field ID is
-    my $max = $schema->resultset('Layout')->search->get_column('id')->max
+    my $max = $schema->resultset('Layout')->search({ internal => 0 })->get_column('id')->max
         or return; # No fields
 
     # Does this exist as an accessor?

@@ -556,7 +556,11 @@
             [% FOREACH col IN layout.all %]
             <tr>
                 <input type="hidden" name="position" value="[% col.id %]">
-                <td><a href="/[% layout.identifier %]/layout/[% col.id %]">Edit</a></td>
+                <td>
+                    [% UNLESS col.internal %]
+                        <a href="/[% layout.identifier %]/layout/[% col.id %]">Edit</a>
+                    [% END %]
+                </td>
                 <td class="drag">[% col.name | html_entity %]
                 <td class="drag">
                     [% IF col.type == "string" %]Text[% END %]

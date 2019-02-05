@@ -58,7 +58,7 @@ is($schema->resultset('Instance')->count, 2, "Second instance created");
 }
 
 # Delete table and replace with test table with all data etc
-$layout2->delete;
+$layout2->purge;
 is($schema->resultset('Instance')->count, 1, "Second instance deleted");
 
 # Make sure same users is used from first sheet

@@ -375,14 +375,15 @@ has createdby => (
     builder => sub {
         my $self = shift;
         return undef if $self->new_entry;
+        my $createdby_col = $self->layout->column_by_name_short('_version_user');
         if (!$self->record)
         {
             my $user_id = $self->schema->resultset('Record')->find(
                 $self->record_id
             )->createdby->id;
-            return $self->_person({ id => $user_id }, $self->layout->column(-13));
+            return $self->_person({ id => $user_id }, $createdby_col);
         }
-        $self->fields->{-13};
+        $self->fields->{$createdby_col->id};
     },
 );
 
@@ -400,16 +401,17 @@ has deletedby => (
         # Don't try and build if we are a new entry. By the time this is called,
         # the current ID may have been removed from the database due to a rollback
         return if $self->new_entry;
+        my $deletedby_col = $self->layout->column_by_name_short('_deleted_by');
         if (!$self->record)
         {
             $self->record_id or return;
             my $user = $self->schema->resultset('Record')->find(
                 $self->record_id
             )->deletedby or return undef;
-            return $self->_person({ id => $user->id }, $self->layout->column(-14));
+            return $self->_person({ id => $user->id }, $deletedby_col);
         }
         my $value = $self->set_deletedby or return undef;
-        return $self->_person($value, $self->layout->column(-14));
+        return $self->_person($value, $self->layout->column($deletedby_col->id));
     },
 );
 
@@ -580,10 +582,11 @@ sub find_unique
 {   my ($self, $column, $value, @retrieve_columns) = @_;
 
     return $self->find_current_id($value)
-        if $column->id == -11;
+        if $column->id == $self->layout->column_id;
 
+    my $serial_col = $self->layout->column_by_name_short('_serial');
     return $self->find_serial_id($value)
-        if $column->id == -16;
+        if $column->id == $serial_col->id;
 
     # First create a view to search for this value in the column.
     my $filter = encode_json({
@@ -922,6 +925,7 @@ sub _transform_values
     # column values may not exist for the calc values.
     foreach my $column (@{$self->columns_retrieved_do})
     {
+        next if $column->internal;
         my $value = $self->linked_id && $column->link_parent ? $original->{$column->link_parent->field} : $original->{$column->field};
         $value = $self->linked_record_raw && $self->linked_record_raw->{$column->link_parent->field}
             if $self->linked_record_raw && $column->link_parent && !$self->is_historic;
@@ -947,39 +951,44 @@ sub _transform_values
                 if $column->is_curcommon;
         $fields->{$column->id} = $column->class->new(%params);
     }
-    $fields->{-11} = GADS::Datum::ID->new(
+    my $column_id = $self->layout->column_id;
+    $fields->{$column_id->id} = GADS::Datum::ID->new(
         record           => $self,
         record_id        => $self->record_id,
         current_id       => $self->current_id,
-        column           => $self->layout->column(-11),
+        column           => $column_id,
         schema           => $self->schema,
         layout           => $self->layout,
     );
-    $fields->{-12} = GADS::Datum::Date->new(
+    my $created = $self->layout->column_by_name_short('_version_datetime');
+    $fields->{$created->id} = GADS::Datum::Date->new(
         record           => $self,
         record_id        => $self->record_id,
         current_id       => $self->current_id,
-        column           => $self->layout->column(-12),
+        column           => $created,
         schema           => $self->schema,
         layout           => $self->layout,
         init_value       => [ { value => $original->{created} } ],
     );
-    $fields->{-13} = $self->_person($original->{createdby}, $self->layout->column(-13));
-    $fields->{-15} = GADS::Datum::Date->new(
+    my $createdby_col = $self->layout->column_by_name_short('_version_user');
+    $fields->{$createdby_col->id} = $self->_person($original->{createdby}, $createdby_col);
+    my $record_created_col = $self->layout->column_by_name_short('_created');
+    $fields->{$record_created_col->id} = GADS::Datum::Date->new(
         record           => $self,
         record_id        => $self->record_id,
         current_id       => $self->current_id,
-        column           => $self->layout->column(-15),
+        column           => $record_created_col,
         schema           => $self->schema,
         layout           => $self->layout,
         init_value       => [ { value => $self->record_created } ],
     );
-    $fields->{-16} = GADS::Datum::Serial->new(
+    my $serial_col = $self->layout->column_by_name_short('_serial');
+    $fields->{$serial_col->id} = GADS::Datum::Serial->new(
         record           => $self,
         value            => $self->serial,
         record_id        => $self->record_id,
         current_id       => $self->current_id,
-        column           => $self->layout->column(-16),
+        column           => $serial_col,
         schema           => $self->schema,
         layout           => $self->layout,
     );
@@ -1212,7 +1221,7 @@ sub write
     # Whether any topics cannot be written because of missing fields in
     # other topics
     my %no_write_topics;
-    foreach my $column ($self->layout->all)
+    foreach my $column ($self->layout->all(exclude_internal => 1))
     {
         next unless $column->userinput;
         my $datum = $self->fields->{$column->id}
@@ -1419,7 +1428,8 @@ sub write
         }
 
         $self->current_id($current->id);
-        $self->fields->{-15}->set_value($created_date);
+        my $record_created_col = $self->layout->column_by_name_short('_created');
+        $self->fields->{$record_created_col->id}->set_value($created_date, is_parent_value => 1);
     }
 
     my $createdby = $options{version_userid} || $user_id;
@@ -1441,15 +1451,18 @@ sub write
         });
     }
 
-    $self->fields->{-11}->current_id($self->current_id);
-    $self->fields->{-11}->clear_value; # Will rebuild as current_id
+    my $column_id = $self->layout->column_id;
+    $self->fields->{$column_id->id}->current_id($self->current_id);
+    $self->fields->{$column_id->id}->clear_value; # Will rebuild as current_id
     if (!$options{update_only} || $self->layout->forget_history)
     {
         # Keep original record values when only updating the record, except
         # when the update_only is happening for forgetting version history, in
         # which case we want to record these details
-        $self->fields->{-12}->set_value($created_date);
-        $self->fields->{-13}->set_value($createdby, no_validation => 1);
+        my $created = $self->layout->column_by_name_short('_version_datetime');
+        $self->fields->{$created->id}->set_value($created_date, is_parent_value => 1);
+        my $createdby_col = $self->layout->column_by_name_short('_version_user');
+        $self->fields->{$createdby_col->id}->set_value($createdby, no_validation => 1, is_parent_value => 1);
     }
 
     if ($need_app)
@@ -1505,7 +1518,7 @@ sub write_values
     my %columns_changed = ($self->current_id => []);
     my @columns_cached;
     my %update_autocurs;
-    foreach my $column ($self->layout->all(order_dependencies => 1))
+    foreach my $column ($self->layout->all(order_dependencies => 1, exclude_internal => 1))
     {
         # Prevent warnings when writing incomplete calc values on draft
         next if $options{draft} && !$column->userinput;
@@ -1621,6 +1634,14 @@ sub write_values
 
     }
 
+    # Test all internal columns for changes - these will not have been tested
+    # during the write above
+    foreach my $column ($self->layout->all(only_internal => 1))
+    {
+        push @{$columns_changed{$self->current_id}}, $column->id
+            if $self->fields->{$column->id}->changed;
+    }
+
     # If this is an approval, see if there is anything left to approve
     # in this record. If not, delete the stub record.
     if ($self->doing_approval)
@@ -1659,7 +1680,7 @@ sub write_values
                 schema                   => $self->schema,
             );
             $child->find_current_id($child_id);
-            foreach my $col ($self->layout->all(order_dependencies => 1))
+            foreach my $col ($self->layout->all(order_dependencies => 1, exclude_internal => 1))
             {
                 my $datum_child = $child->fields->{$col->id};
                 if ($col->userinput)
@@ -1764,7 +1785,7 @@ sub write_values
 sub set_blank_dependents
 {   my $self = shift;
 
-    foreach my $column ($self->layout->all)
+    foreach my $column ($self->layout->all(exclude_internal => 1))
     {
         if (my $display_field = $column->display_field)
         {

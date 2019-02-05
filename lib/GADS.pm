@@ -119,6 +119,11 @@ GADS::Email->instance(
 config->{plugins}->{'Auth::Extensible'}->{realms}->{dbic}->{user_as_object}
     or panic "Auth::Extensible DBIC provider needs to be configured with user_as_object";
 
+# Make sure that internal columns have been populated in tables (new feature at
+# time of writing)
+my $instances = GADS::Instances->new(schema => schema, user => undef, user_permission_override => 1);
+$_->create_internal_columns foreach @{$instances->all};
+
 my $password_generator = CtrlO::Crypt::XkcdPassword->new;
 
 sub _update_csrf_token

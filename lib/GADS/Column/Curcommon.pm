@@ -170,6 +170,7 @@ has curval_field_ids_all => (
 sub _build_curval_field_ids_all
 {   my $self = shift;
     my @curval_field_ids = $self->schema->resultset('Layout')->search({
+        internal    => 0,
         instance_id => $self->layout_parent->instance_id,
     }, {
         order_by => 'me.position',

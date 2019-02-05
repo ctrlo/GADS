@@ -1224,6 +1224,7 @@ sub _build_columns_retrieved_do
     }
     foreach my $c (@columns)
     {
+        next if $c->internal;
         # We're viewing this, so prefetch all the values
         $self->add_prefetch($c, all_fields => $self->curcommon_all_fields);
         $self->add_linked_prefetch($c->link_parent) if $c->link_parent;
@@ -1351,6 +1352,8 @@ sub _sort_builder
 
     my @sorts;
 
+    my $column_id = $self->layout->column_id;
+
     # First, special test where we are retrieving from a date for a number of
     # records until an unknown date. In this case, order by all the date
     # fields.
@@ -1371,7 +1374,7 @@ sub _sort_builder
         foreach my $s (@{$self->sort})
         {
             push @sorts, {
-                id   => $s->{id} || -11, # Default ID
+                id   => $s->{id} || $column_id->id, # Default ID
                 type => $s->{type} || 'asc',
             } if $self->layout->column($s->{id});
         }
@@ -1380,7 +1383,7 @@ sub _sort_builder
         foreach my $sort (@{$self->view->sorts})
         {
             push @sorts, {
-                id        => $sort->{layout_id} || -11, # View column is undef for ID
+                id        => $sort->{layout_id} || $column_id->id, # View column is undef for ID
                 parent_id => $sort->{parent_id},
                 type      => $sort->{type} || 'asc',
             };
@@ -1389,13 +1392,13 @@ sub _sort_builder
     if (!@sorts && $self->default_sort)
     {
         push @sorts, {
-            id   => $self->default_sort->{id} || -11,
+            id   => $self->default_sort->{id} || $column_id->id,
             type => $self->default_sort->{type} || 'asc',
         } if $self->layout->column($self->default_sort->{id});
     }
     unless (@sorts) {
         push @sorts, {
-            id   => -11,
+            id   => $column_id->id,
             type => 'asc',
         }
     };

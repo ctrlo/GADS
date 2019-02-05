@@ -426,7 +426,7 @@ sub table_name
 {   my ($self, $column, %options) = @_;
     if ($column->internal)
     {
-        return 'me' if $column->name eq 'ID';
+        return 'me' if $column->table eq 'Current';
         if ($column->sprefix eq 'record')
         {
             return $self->record_name(%options);

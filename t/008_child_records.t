@@ -337,7 +337,7 @@ foreach my $calc_depend (0..1)
 {
     my $child_id = $child->current_id;
 
-    foreach my $col ($layout->all)
+    foreach my $col ($layout->all(exclude_internal => 1))
     {
         $col->set_can_child(0);
         $col->write;

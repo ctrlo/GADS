@@ -96,7 +96,7 @@
             render_curcommon_datum(datum.is_multivalue, datum.data, datum.name, full_content);
         CASE 'file';
             render_file_datum(datum.data, full_content);
-        CASE 'person';
+        CASE ['person', 'createdby'];
             render_person_datum(datum.data);
         CASE 'string';
             render_string_datum(datum.data, datum.name, full_content);

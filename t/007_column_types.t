@@ -548,6 +548,13 @@ $layout->clear; # Rebuild layout for dependencies
     is($count_values, 1, "Number of tree values decreased after removal");
 }
 
+# Test update of internal columns
+foreach my $internal ($layout->all(only_internal => 1))
+{
+    try { $internal->write };
+    like($@, qr/Internal fields cannot be edited/, "Failed to update internal field");
+}
+
 # Test deletion of columns in first datasheet. But first, remove curval field
 # that refers to this one
 $curval_sheet2->columns->{curval1}->delete;

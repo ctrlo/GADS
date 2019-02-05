@@ -14,7 +14,35 @@ use t::lib::DataSheet;
 
 set_fixed_time('10/10/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
 
+# A bunch of records that will be used for the alert tests - mainly different
+# records for different tests. XXX There needs to be a better way of managing
+# these - each are referred to by their IDs in the tests, which makes adding
+# tests difficult
 my $data = [
+    {
+        string1    => '',
+        date1      => '2014-10-10',
+        daterange1 => ['2014-03-21', '2015-03-01'],
+        enum1      => 'foo1',
+        tree1      => 'tree1',
+        curval1    => 1,
+    },
+    {
+        string1    => '',
+        date1      => '2014-10-10',
+        daterange1 => ['2014-03-21', '2015-03-01'],
+        enum1      => 'foo1',
+        tree1      => 'tree1',
+        curval1    => 1,
+    },
+    {
+        string1    => '',
+        date1      => '2014-10-10',
+        daterange1 => ['2014-03-21', '2015-03-01'],
+        enum1      => 'foo1',
+        tree1      => 'tree1',
+        curval1    => 1,
+    },
     {
         string1    => '',
         date1      => '2014-10-10',
@@ -159,14 +187,14 @@ my @filters = (
         name  => 'View filtering on record created date',
         rules => [
             {
-                id       => -15,
+                id       => $layout->column_by_name_short('_created')->id,
                 type     => 'string',
                 value    => '2014-10-20',
                 operator => 'greater',
             },
         ],
         columns => [$columns->{string1}->id],
-        current_id => 3,
+        current_id => 4,
         update => [
             {
                 column => 'string1',
@@ -179,21 +207,64 @@ my @filters = (
         name  => 'View filtering on record updated date',
         rules => [
             {
-                id       => -12,
+                id       => $layout->column_by_name_short('_version_datetime')->id,
                 type     => 'string',
                 value    => '2014-10-20',
                 operator => 'greater',
             },
         ],
         columns => [$columns->{date1}->id], # No change to data shown
-        current_id => 3,
+        current_id => 5,
         update => [
             {
                 column => 'string1',
-                value  => 'FooFoo',
+                value  => 'FooFoo2',
             },
         ],
         alerts => 2, # New record and updated record
+    },
+    {
+        name  => 'View filtering on record updated person',
+        rules => [
+            {
+                id       => $layout->column_by_name_short('_version_user')->id,
+                type     => 'string',
+                value    => 5,
+                operator => 'equal',
+            },
+        ],
+        columns => [$columns->{date1}->id], # No change to data shown
+        current_id => 6,
+        update => [
+            {
+                column => 'string1',
+                value  => 'FooFoo3',
+            },
+        ],
+        alerts => 2, # New record and updated record
+    },
+    {
+        name  => 'View filtering on record updated person - unchanged',
+        rules => [
+            {
+                id       => $layout->column_by_name_short('_version_user')->id,
+                type     => 'string',
+                value    => 5,
+                operator => 'equal',
+            },
+        ],
+        columns => [$columns->{date1}->id], # No change to data shown
+        # Use same record as previous test - user making the update will not
+        # have changed and therefore this should not alert except for the new
+        # record
+        current_id => 6,
+        update => [
+            {
+                column => 'string1',
+                value  => 'FooFoo4',
+            },
+        ],
+        alerts => 1, # New record only
     },
     {
         name       => 'Update of record in no filter view',
@@ -281,7 +352,7 @@ my @filters = (
             },
         ],
         columns => [$columns->{date1}->id],
-        current_id => 4,
+        current_id => 7,
         update => [
             {
                 column => 'date1',
@@ -305,7 +376,7 @@ my @filters = (
             },
         ],
         columns => [$columns->{string1}->id],
-        current_id => 5,
+        current_id => 8,
         update => [
             {
                 column => 'date1',
@@ -325,7 +396,7 @@ my @filters = (
             },
         ],
         columns => [$columns->{string1}->id],
-        current_id => 6,
+        current_id => 9,
         update => [
             {
                 column => 'string1',
@@ -349,7 +420,7 @@ my @filters = (
             },
         ],
         columns => [$columns->{string1}->id, $columns->{date1}->id],
-        current_id => 7,
+        current_id => 10,
         update => [
             {
                 column => 'string1',
@@ -371,7 +442,7 @@ my @filters = (
             operator => 'equal',
         }],
         columns => [$columns->{string1}->id],
-        current_id => 8,
+        current_id => 11,
         update => [
             {
                 column => 'string1',
@@ -389,7 +460,7 @@ my @filters = (
             operator => 'equal',
         }],
         columns => [$columns->{date1}->id],
-        current_id => 9,
+        current_id => 12,
         update => [
             {
                 column => 'string1',
@@ -402,7 +473,7 @@ my @filters = (
         name  => 'Change of calc field in view',
         rules => undef,
         columns => [$columns->{calc1}->id],
-        current_id => 10,
+        current_id => 13,
         update => [
             {
                 column => 'daterange1',
@@ -420,7 +491,7 @@ my @filters = (
             operator => 'equal',
         }],
         columns => [$columns->{calc1}->id],
-        current_id => 11,
+        current_id => 14,
         update => [
             {
                 column => 'daterange1',
@@ -438,7 +509,7 @@ my @filters = (
             operator => 'equal',
         }],
         columns => [$columns->{calc1}->id],
-        current_id => 12,
+        current_id => 15,
         update => [
             {
                 column => 'daterange1',
@@ -451,7 +522,7 @@ my @filters = (
         name  => 'Change of rag field in view',
         rules => undef,
         columns => [$columns->{rag1}->id],
-        current_id => 13,
+        current_id => 16,
         update => [
             {
                 column => 'daterange1',
@@ -469,7 +540,7 @@ my @filters = (
             operator => 'equal',
         }],
         columns => [$columns->{rag1}->id],
-        current_id => 14,
+        current_id => 17,
         update => [
             {
                 column => 'daterange1',
@@ -487,7 +558,7 @@ my @filters = (
             operator => 'equal',
         }],
         columns => [$columns->{rag1}->id],
-        current_id => 15,
+        current_id => 18,
         update => [
             {
                 column => 'daterange1',
@@ -506,7 +577,7 @@ my @filters = (
         }],
         alert_layout     => $curval_sheet->layout,
         columns          => [$curval_columns->{calc1}->id],
-        current_id       => 16,
+        current_id       => 19,
         alert_current_id => 2,
         update => [
             {
@@ -527,7 +598,7 @@ my @filters = (
         name  => 'Change of autocur in other table as a result of curval change',
         alert_layout     => $curval_sheet->layout,
         columns          => [$autocur1->id],
-        current_id       => 17,
+        current_id       => 20,
         alert_current_id => 2,
         update => [
             {

@@ -46,6 +46,11 @@ has '+option_names' => (
     default => sub { [qw/show_datepicker default_today/] },
 );
 
+has include_time => (
+    is      => 'ro',
+    default => 0,
+);
+
 has show_datepicker => (
     is      => 'rw',
     isa     => Bool,

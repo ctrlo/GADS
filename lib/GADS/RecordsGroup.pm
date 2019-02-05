@@ -140,6 +140,7 @@ sub _build_results
     foreach my $col (@cols)
     {
         my $column = $col->{column};
+        next if $column->internal;
         my $parent = $col->{parent};
         $self->add_prefetch($column, group => $col->{group}, parent => $parent);
         $self->add_prefetch($column->link_parent, linked => 1, group => $col->{group}, parent => $parent)

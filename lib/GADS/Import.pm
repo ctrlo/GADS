@@ -246,20 +246,21 @@ sub _build_fields
     my $fields_in = $self->csv->getline($self->fh);
 
     my @fields;
+    my $column_id = $self->layout->column_id;
 
     foreach my $field (@$fields_in)
     {
         if (
             (
-                ($self->update_unique && $self->update_unique == -11) ||
-                ($self->skip_existing_unique && $self->skip_existing_unique == -11)
+                ($self->update_unique && $self->update_unique == $column_id->id) ||
+                ($self->skip_existing_unique && $self->skip_existing_unique == $column_id->id)
             ) &&
             $field eq 'ID'
         )
         {
-            push @fields, $self->layout->column(-11); # Special case
+            push @fields, $self->layout->column($column_id->id); # Special case
         }
-        elsif ($field =~ /^(Version Datetime|Version User ID)$/)
+        elsif ($field =~ /^(Version Datetime|Version User)$/)
         {
             my $id = $self->layout->column_by_name($field)->id;
             push @fields, $self->layout->column($id);
@@ -384,9 +385,9 @@ sub _import_rows
             {
                 push @bad, qq(Extraneous value found on row: "$value");
             }
-            elsif ($col->id == -11) # ID column
+            elsif ($col->id == $self->layout->column_id->id) # ID column
             {
-                $input->{-11} = $value;
+                $input->{$col->id} = $value;
                 $col_count++;
                 next;
             }
@@ -395,7 +396,7 @@ sub _import_rows
                 $options{version_datetime} = $parser_yymd->parse_datetime($value)
                     or push @bad, qq(Invalid version_datetime "$value");
             }
-            elsif ($col->name eq 'Version User ID')
+            elsif ($col->name eq 'Version User')
             {
                 $options{version_userid} = $value;
             }
@@ -487,7 +488,7 @@ sub _import_rows
             {
                 if (my $unique_value = $input->{$self->update_unique})
                 {
-                    if ($self->update_unique == -11) # ID
+                    if ($self->update_unique == $self->layout->column_id->id) # ID
                     {
                         try { $record->find_current_id($unique_value, instance_id => $self->layout->instance_id) };
                         if ($@)

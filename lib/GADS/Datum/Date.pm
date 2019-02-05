@@ -159,7 +159,9 @@ sub as_integer { panic "Not implemented" }
 sub _as_string
 {   my ($self, $value) = @_;
     return "" unless $value;
-    $value->format_cldr($self->column->dateformat);
+    my $format = $self->column->dateformat;
+    $format .= " HH:mm" if $self->column->include_time;
+    $value->format_cldr($format);
 }
 
 sub as_string

@@ -23,14 +23,19 @@ use Algorithm::Dependency::Source::HoA;
 use GADS::Column;
 use GADS::Column::Autocur;
 use GADS::Column::Calc;
+use GADS::Column::Createdby;
+use GADS::Column::Createddate;
 use GADS::Column::Curval;
 use GADS::Column::Date;
 use GADS::Column::Daterange;
+use GADS::Column::Deletedby;
 use GADS::Column::Enum;
 use GADS::Column::File;
+use GADS::Column::Id;
 use GADS::Column::Intgr;
 use GADS::Column::Person;
 use GADS::Column::Rag;
+use GADS::Column::Serial;
 use GADS::Column::String;
 use GADS::Column::Tree;
 use GADS::Instances;
@@ -419,6 +424,7 @@ sub write
     {
         $rset = $self->schema->resultset('Instance')->create({});
         $self->_set_instance_id($rset->id);
+        $self->create_internal_columns;
     }
     else {
         $rset = $self->_rset;
@@ -495,76 +501,66 @@ sub delete
     $self->_rset->delete;
 }
 
-has internal_columns => (
-    is      => 'ro',
-    isa     => ArrayRef,
-    builder => sub {
-        [
-            {
-                id          => -11,
-                name        => 'ID',
-                type        => 'id',
-                name_short  => '_id',
-                table       => 'current',
-                column      => 'id',
-                isunique    => 1,
-                return_type => 'integer',
-            },
-            {
-                id          => -12,
-                name        => 'Version Datetime',
-                type        => 'date',
-                name_short  => '_version_datetime',
-                table       => 'record',
-                column      => 'created',
-                isunique    => 0,
-                return_type => 'date',
-            },
-            {
-                id          => -13,
-                name        => 'Version User ID',
-                type        => 'person',
-                name_short  => '_version_user',
-                table       => 'record',
-                column      => 'createdby',
-                isunique    => 0,
-                return_type => 'integer',
-            },
-            {
-                id          => -14,
-                name        => 'Deleted by ID',
-                type        => 'person',
-                table       => 'current',
-                column      => 'deletedby',
-                isunique    => 0,
-                hidden      => 1,
-                return_type => 'integer',
-            },
-            {
-                id          => -15,
-                name        => 'Record created',
-                type        => 'date',
-                name_short  => '_created',
-                table       => 'record',
-                column      => 'created',
-                isunique    => 0,
-                return_type => 'date',
+sub create_internal_columns
+{   my $self = shift;
+    my @internal = (
+        {
+            name        => 'ID',
+            type        => 'id',
+            name_short  => '_id',
+            isunique    => 1,
+        },
+        {
+            name        => 'Version Datetime',
+            type        => 'createddate',
+            name_short  => '_version_datetime',
+            isunique    => 0,
+        },
+        {
+            name        => 'Version User',
+            type        => 'createdby',
+            name_short  => '_version_user',
+            isunique    => 0,
+        },
+        {
+            name        => 'Deleted by',
+            type        => 'deletedby',
+            name_short  => '_deleted_by',
+            isunique    => 0,
+        },
+        {
+            name        => 'Record created',
+            type        => 'createddate',
+            name_short  => '_created',
+            isunique    => 0,
+        },
+        {
+            name        => 'Serial',
+            type        => 'serial',
+            name_short  => '_serial',
+            isunique    => 1,
+        },
+    );
 
-            },
-            {
-                id          => -16,
-                name        => 'Serial',
-                type        => 'serial',
-                name_short  => '_serial',
-                table       => 'current',
-                column      => 'serial',
-                isunique    => 1,
-                return_type => 'integer',
+    foreach my $col (@internal)
+    {
+        # Already exists?
+        $self->schema->resultset('Layout')->search({
+            instance_id => $self->instance_id,
+            name_short  => $col->{name_short},
+        })->next and next;
 
-            },
-        ];
-    },
-);
+        $self->schema->resultset('Layout')->create({
+            name        => $col->{name},
+            type        => $col->{type},
+            name_short  => $col->{name_short},
+            isunique    => $col->{isunique},
+            can_child   => 0,
+            internal    => 1,
+            instance_id => $self->instance_id,
+        });
+    }
+}
 
 sub clear_indexes
 {   my $self = shift;
@@ -638,40 +634,13 @@ sub _build_columns
         my $class = "GADS::Column::".camelize $col->{type};
         my $column = $class->new(
             set_values               => $col,
+            internal                 => $col->{internal},
             user_permission_override => $self->user_permission_override,
             instance_id              => $col->{instance_id},
             schema                   => $self->schema,
             layout                   => $self
         );
         push @return, $column;
-    }
-
-    # Add on special internal columns
-    foreach my $internal (@{$self->internal_columns})
-    {
-        my $class = $internal->{return_type} eq 'date'
-            ? 'GADS::Column::Date'
-            : 'integer'
-            ? 'GADS::Column::Intgr'
-            : 'GADS::Column';
-        push @return, $class->new(
-            id                       => $internal->{id},
-            name                     => $internal->{name},
-            name_short               => $internal->{name_short},
-            isunique                 => $internal->{isunique},
-            table                    => camelize($internal->{table}),
-            sprefix                  => $internal->{table},
-            value_field              => $internal->{column},
-            type                     => $internal->{type},
-            return_type              => $internal->{return_type},
-            internal                 => 1,
-            userinput                => 0,
-            can_child                => 1,
-            hidden                   => $internal->{hidden} || 0,
-            user_permission_override => $self->user_permission_override,
-            schema                   => $self->schema,
-            layout                   => $self,
-        );
     }
 
     \@return;
@@ -743,11 +712,12 @@ sub all
 
     my $type = $options{type};
 
-    my @columns = grep { $_->instance_id == $self->instance_id && !$_->hidden } @{$self->columns};
+    my @columns = grep { $_->instance_id == $self->instance_id } @{$self->columns};
+    @columns = grep { !$_->hidden } @columns unless $options{include_hidden};
     @columns = grep { $options{topic_id} ? $_->topic_id == $options{topic_id} : !$_->topic_id } @columns
         if exists $options{topic_id};
     @columns = $self->_order_dependencies(@columns) if $options{order_dependencies};
-    @columns = grep { !$_->internal } @columns unless $options{include_internal};
+    @columns = grep { !$_->internal } @columns if $options{exclude_internal};
     @columns = grep { $_->internal } @columns if $options{only_internal};
     @columns = grep { $_->isunique } @columns if $options{only_unique};
     @columns = grep { $_->can_child } @columns if $options{can_child};
@@ -868,13 +838,24 @@ sub column_by_name
 
 sub _build__columns_name_shorthash
 {   my $self = shift;
-    my %columns = map { $_->name_short => $_ } grep { $_->name_short } @{$self->columns};
+    # Include all columns across all instances, except for internal columns of
+    # other instances, which will have the same short names as the one from
+    # this instance
+    my %columns = map { $_->name_short => $_ } grep {
+        $_->name_short && (!$_->internal || $_->instance_id == $self->instance_id)
+    } @{$self->columns};
     \%columns;
 }
 
 sub column_by_name_short
 {   my ($self, $name) = @_;
     $self->_columns_name_shorthash->{$name};
+}
+
+sub column_id
+{   my $self = shift;
+    $self->column_by_name_short('_id')
+        or panic "Internal _id column missing";
 }
 
 sub view
@@ -1001,7 +982,7 @@ sub purge
     GADS::MetricGroups->new(schema => $self->schema, instance_id => $self->instance_id)->purge;
     GADS::Views->new(schema => $self->schema, instance_id => $self->instance_id, user => undef, layout => $self)->purge;
 
-    $_->delete foreach reverse $self->all(order_dependencies => 1);
+    $_->delete foreach reverse $self->all(order_dependencies => 1, include_hidden => 1);
 
     $self->schema->resultset('UserLastrecord')->delete;
     $self->schema->resultset('Record')->search({

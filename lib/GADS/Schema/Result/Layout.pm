@@ -203,6 +203,8 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "can_child",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "internal",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "description",
   { data_type => "text", is_nullable => 1 },
   "helptext",

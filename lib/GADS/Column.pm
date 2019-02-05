@@ -39,7 +39,9 @@ use namespace::clean; # Otherwise Enum clashes with MooseLike
 with 'GADS::Role::Presentation::Column';
 
 sub types
-{ qw(date daterange string intgr person tree enum file rag calc curval autocur) }
+{ qw(date daterange string intgr person tree enum file rag
+    calc curval autocur id createddate createdby serial deletedby)
+}
 
 has schema => (
     is       => 'rw',
@@ -144,7 +146,7 @@ has name_short => (
 has type => (
     is  => 'rw',
     isa => sub {
-        $_[0] =~ /^(id|serial)$/ || grep { $_[0] eq $_ } GADS::Column::types
+        grep { $_[0] eq $_ } GADS::Column::types
             or error __x"Invalid field type {type}", type => $_[0];
     },
 );
@@ -482,20 +484,23 @@ has class => (
     lazy    => 1,
     builder => sub {
         my %classes = (
-            id        => 'GADS::Datum::ID',
-            serial    => 'GADS::Datum::Serial',
-            date      => 'GADS::Datum::Date',
-            daterange => 'GADS::Datum::Daterange',
-            string    => 'GADS::Datum::String',
-            intgr     => 'GADS::Datum::Integer',
-            person    => 'GADS::Datum::Person',
-            tree      => 'GADS::Datum::Tree',
-            enum      => 'GADS::Datum::Enum',
-            file      => 'GADS::Datum::File',
-            rag       => 'GADS::Datum::Rag',
-            calc      => 'GADS::Datum::Calc',
-            curval    => 'GADS::Datum::Curval',
-            autocur   => 'GADS::Datum::Autocur',
+            id          => 'GADS::Datum::ID',
+            serial      => 'GADS::Datum::Serial',
+            createddate => 'GADS::Datum::Date',
+            createdby   => 'GADS::Datum::Person',
+            deletedby   => 'GADS::Datum::Person',
+            date        => 'GADS::Datum::Date',
+            daterange   => 'GADS::Datum::Daterange',
+            string      => 'GADS::Datum::String',
+            intgr       => 'GADS::Datum::Integer',
+            person      => 'GADS::Datum::Person',
+            tree        => 'GADS::Datum::Tree',
+            enum        => 'GADS::Datum::Enum',
+            file        => 'GADS::Datum::File',
+            rag         => 'GADS::Datum::Rag',
+            calc        => 'GADS::Datum::Calc',
+            curval      => 'GADS::Datum::Curval',
+            autocur     => 'GADS::Datum::Autocur',
         );
         $classes{$_[0]->type};
     },
@@ -865,13 +870,14 @@ sub write
     error __"You do not have permission to manage fields"
         unless $self->layout->user_can("layout");
 
+    error __"Internal fields cannot be edited"
+        if $self->internal;
+
     my $guard = $self->schema->txn_scope_guard;
 
     my $newitem;
     $newitem->{name} = $self->name
         or error __"Please enter a name for item";
-    grep { $_->{name} eq $newitem->{name} } @{$self->layout->internal_columns}
-        and error __x"{name} is a reserved name for a field", name => $newitem->{name};
     $newitem->{type} = $self->type
         or error __"Please select a type for the item";
     $self->display_field && $self->display_field == $self->id

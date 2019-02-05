@@ -259,7 +259,7 @@ sub _build_items
                             }
                         }
                         else {
-                            my @vs = $d->column->type eq 'date' ? @{$d->values} : @{$d->value};
+                            my @vs = $d->column->type =~ /^(date|createddate)$/ ? @{$d->values} : @{$d->value};
                             foreach my $val (@vs)
                             {
                                 $val or next;

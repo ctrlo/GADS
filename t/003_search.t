@@ -538,7 +538,7 @@ my @filters = (
         columns => [$columns->{string1}->id],
         rules => [
             {
-                id       => -11, # Special id for ID column
+                id       => $layout->column_id->id,
                 type     => 'integer',
                 value    => '4',
                 operator => 'equal',
@@ -551,7 +551,7 @@ my @filters = (
         columns => [$columns->{string1}->id],
         rules => [
             {
-                id       => -11, # Special id for ID column
+                id       => $layout->column_id->id,
                 type     => 'integer',
                 value    => ['4', '5'],
                 operator => 'equal',
@@ -564,7 +564,7 @@ my @filters = (
         columns => [$columns->{string1}->id],
         rules => [
             {
-                id       => -11, # Special id for ID column
+                id       => $layout->column_id->id,
                 type     => 'integer',
                 value    => [],
                 operator => 'equal',
@@ -577,13 +577,13 @@ my @filters = (
         columns => [$columns->{string1}->id],
         rules => [
             {
-                id       => -12, # Special id for version datetime column
+                id       => $layout->column_by_name_short('_version_datetime')->id,
                 type     => 'date',
                 value    => '2014-10-10',
                 operator => 'greater',
             },
             {
-                id       => -12, # Special id for version datetime column
+                id       => $layout->column_by_name_short('_version_datetime')->id,
                 type     => 'date',
                 value    => '2014-10-11',
                 operator => 'less',
@@ -597,7 +597,7 @@ my @filters = (
         columns => [$columns->{string1}->id],
         rules => [
             {
-                id       => -12, # Special id for version datetime column
+                id       => $layout->column_by_name_short('_version_datetime')->id,
                 type     => 'date',
                 value    => '2014-10-15',
                 operator => 'greater',
@@ -610,7 +610,7 @@ my @filters = (
         columns => [$columns->{string1}->id],
         rules => [
             {
-                id       => -15, # Special id for created column
+                id       => $layout->column_by_name_short('_created')->id,
                 type     => 'date',
                 value    => '2014-10-15',
                 operator => 'less',
@@ -623,7 +623,7 @@ my @filters = (
         columns => [$columns->{string1}->id],
         rules => [
             {
-                id       => -13, # Special id for version editor ID
+                id       => $layout->column_by_name_short('_version_user')->id,
                 type     => 'integer',
                 value    => $user->id,
                 operator => 'equal',
@@ -1418,7 +1418,7 @@ foreach my $multivalue (0..1)
 $records = GADS::Records->new(
     default_sort => {
         type => 'asc',
-        id   => -11,
+        id   => $layout->column_id->id,
     },
     user    => $user,
     layout  => $layout,
@@ -1429,7 +1429,7 @@ is( $records->results->[-1]->current_id, 9, "Correct last record for default_sor
 $records = GADS::Records->new(
     default_sort => {
         type => 'desc',
-        id   => -11,
+        id   => $layout->column_id->id,
     },
     user    => $user,
     layout  => $layout,
@@ -1741,7 +1741,7 @@ foreach my $multivalue (0..1)
                 layout  => $layout,
                 schema  => $schema,
             );
-            $records->sort({ type => 'desc', id => -11 })
+            $records->sort({ type => 'desc', id => $layout->column_id->id })
                 if $pass == 1;
 
             # Test override of sort first
