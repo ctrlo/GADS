@@ -511,13 +511,13 @@ sub create_internal_columns
             isunique    => 1,
         },
         {
-            name        => 'Version Datetime',
+            name        => 'Last edited time',
             type        => 'createddate',
             name_short  => '_version_datetime',
             isunique    => 0,
         },
         {
-            name        => 'Version User',
+            name        => 'Last edited by',
             type        => 'createdby',
             name_short  => '_version_user',
             isunique    => 0,
@@ -529,7 +529,7 @@ sub create_internal_columns
             isunique    => 0,
         },
         {
-            name        => 'Record created',
+            name        => 'Created time',
             type        => 'createddate',
             name_short  => '_created',
             isunique    => 0,
