@@ -229,6 +229,7 @@ sub register
     $new{department_id} or delete $new{department_id};
 
     my $user = $self->schema->resultset('User')->create(\%new);
+    $user->discard_changes; # Ensure that relations such as department() are resolved
 
     # Email admins with account request
     my $admins = $self->all_admins;
