@@ -180,7 +180,7 @@ hook before => sub {
         # Protect against CSRF attacks
         panic __x"csrf-token missing for path {path}", path => request->path
             if !param 'csrf_token';
-        error __x"Suspected attack: CSRF token does not match that in the session"
+        error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
             if param('csrf_token') ne session('csrf_token');
 
         # If it's a potential login, change the token
