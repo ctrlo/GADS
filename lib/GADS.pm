@@ -476,8 +476,14 @@ any ['get', 'post'] => '/login' => sub {
             try { $users->register($params) };
             if(my $exception = $@->wasFatal)
             {
-                $error = $exception->message->toString;
-                $error_modal = 'register';
+                if ($exception->reason eq 'ERROR')
+                {
+                    $error = $exception->message->toString;
+                    $error_modal = 'register';
+                }
+                else {
+                    $exception->throw;
+                }
             }
             else {
                 $audit->login_change("New user account request for $params->{email}");
