@@ -517,6 +517,20 @@ sub _get_sorts
     my @sorts;
     foreach my $sort ($self->_view->sorts->all)
     {
+        # XXX Convert from legacy internal IDs. This can be removed at some
+        # point.
+        if ($sort->layout_id < 0)
+        {
+            my %map = (
+                -11 => $self->layout->column_by_name_short('_id'),
+                -12 => $self->layout->column_by_name_short('_version_datetime'),
+                -13 => $self->layout->column_by_name_short('_version_user'),
+                -14 => $self->layout->column_by_name_short('_deleted_by'),
+                -15 => $self->layout->column_by_name_short('_created'),
+                -16 => $self->layout->column_by_name_short('_serial'),
+            );
+            $sort->update({ layout_id => $map{$sort->layout_id}->id });
+        }
         my $s;
         $s->{id}        = $sort->id;
         $s->{type}      = $sort->type;
