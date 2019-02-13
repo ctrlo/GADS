@@ -807,15 +807,19 @@
                             <p class="help-block">No current file (read-only field, cannot be updated).</p>
                         [% END %]
                     [% ELSE %]
-                        <input type="file" id="[% dispcol.id %]" name="[% "file" _ dispcol.id %]">
-                        [%# Ensure something gets sent back to show it's been displayed %]
-                        <input type="hidden" name="[% field %]">
-                        [% IF editvalue.id %]
-                            <p class="help-block">
-                                <input type="checkbox" name="[% field %]" value="[% editvalue.id %]" checked>Include file.
-                                Current file name: [% editvalue.html %]. Select a new file to replace.
-                            </p>
-                        [% END %]
+                        <div class="fileupload" data-field="[% field %]" data-fileupload-url="/files">
+                            [%# Ensure something gets sent back to show it's been displayed %]
+                            <input type="hidden" name="[% field %]">
+                            <ul class="fileupload__files">
+                                [% IF editvalue.id %]
+                                    <li class="help-block">
+                                        <input type="checkbox" name="[% field %]" value="[% editvalue.id %]" checked>Include file.
+                                        Current file name: [% editvalue.html %]. Select a new file to replace.
+                                    </li>
+                                [% END %]
+                            </ul>
+                            <input type="file" name="file" multiple>
+                        </div>
                     [% END %]
                 [% ELSIF dispcol.type == "daterange" %]
                     [% IF dispcol.show_datepicker and !readonly %][% datepicker = "datepicker" %][% ELSE %][% datepicker = "" %][% END %]

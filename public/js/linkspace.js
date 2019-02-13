@@ -601,6 +601,30 @@ var getFieldValues = function ($depends) {
     }
 };
 
+var setupFileUpload = function (context) {
+    var $nodes = $('.fileupload', context);
+    $nodes.each(function () {
+        var $el = $(this);
+        var $ul = $el.find("ul");
+        var url = $el.data("fileupload-url");
+        var field = $el.data("field");
+
+        $el.fileupload({
+            dataType: 'json',
+            url: url,
+            paramName: "file",
+            done: function (e, data) {
+                // TODO: Grab the id and the name from the returned `data`
+                var fileId = 55;
+                var fileName = "demo.pdf";
+
+                var $li = $('<li class="help-block"><input type="checkbox" name="' + field + '" value="' + fileId + '" checked>Include file. Current file name: ' + fileName + '.</li>');
+                $ul.append($li);
+            },
+        });
+    });
+};
+
 /***
  *
  * Handle the dependency connections between fields
@@ -1248,6 +1272,7 @@ var Linkspace = {
         setupLessMoreWidgets(context);
         setupDisclosureWidgets(context);
         setupSelectWidgets(context);
+        setupFileUpload(context);
         setupDisplayConditions(context);
         runPageSpecificCode(context);
         setupSubmitListener(context);

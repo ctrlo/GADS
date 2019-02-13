@@ -192,6 +192,9 @@
             <script src="[% url.js %]/jquery-ui.min.js"></script>
             <script src="[% url.js %]/bootstrap.min.js"></script>
             <script src="[% url.js %]/tooltip.min.js"></script>
+            <script src='[% url.js %]/vendor/jquery.ui.widget.js'></script>
+            <script src='[% url.js %]/vendor/jquery.iframe-transport.js'></script>
+            <script src='[% url.js %]/vendor/jquery.fileupload.js'></script>
         [% ELSE %]
             <script src="[% scheme %]://code.jquery.com/jquery-1.12.4.min.js"></script>
             <script src="[% scheme %]://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
