@@ -386,37 +386,45 @@ sub field_values_for_code
 
 sub field_values
 {   my ($self, %params) = @_;
-    # If the column hasn't been built with all_columns, then we'll need to
-    # retrieve all the columns (otherwise only the ones defined for display in
-    # the record will be available).  The rows would normally only need to be
-    # retrieved when a single record is being written.
-    my $rows;
+
+    # $param{all_fields}: retrieve all fields of the rows. If the column of the
+    # row hasn't been built with all_columns, then we'll need to retrieve all
+    # the columns (otherwise only the ones defined for display in the record
+    # will be available).  The rows would normally only need to be retrieved
+    # when a single record is being written.
+
+    # Array for the rows to be returned
+    my @return;
+
+    my @need_ids; # IDs of those records that need to be fully retrieved
+
     # See if any of the requested rows have not had all columns built and
     # therefore a rebuild is required
-    my $need_all;
     if ($params{all_fields} && $params{rows})
     {
         # We have full database rows, so now let's see if any of them were not
-        # build with the all columns flag
-        $need_all = grep { !$_->retrieve_all_columns } @{$params{rows}};
+        # build with the all columns flag.
+        # Those that need to be retrieved
+        @need_ids = map { $_->current_id } grep { !$_->retrieve_all_columns } @{$params{rows}};
+        # Those that don't can be added straight to the return array
+        @return = grep { $_->retrieve_all_columns } @{$params{rows}};
     }
     elsif ($params{all_fields})
     {
-        # We require all fields but only have IDs not database rows. Definitely
-        # need to retrieve everything
-        $need_all = 1;
+        # This section is if we have only been passed IDs, in which case we
+        # will need to retrieve the rows
+        @need_ids = @{$params{ids}};
     }
-    if ($params{ids} || $need_all)
+    if (@need_ids)
     {
-        my $cids = $params{ids} || [ map { $_->current_id } @{$params{rows}} ];
         # If all columns needed, flag that in the column properties. This
         # allows it to be checked later
-        $self->retrieve_all_columns(1) if $need_all;
-        $rows = $self->_get_rows($cids);
+        $self->retrieve_all_columns(1) if $params{all_fields};
+        push @return, @{$self->_get_rows(\@need_ids)};
     }
     elsif ($params{rows}) {
         # Just use existing rows
-        $rows = $params{rows}
+        @return = @{$params{rows}};
     }
     else {
         panic "Neither rows not ids passed to all_field_values";
@@ -433,7 +441,7 @@ sub field_values
                     $_->type !~ /(autocur|curval)/ # Prevent recursive loops
                 } @{$self->curval_fields_retrieve(all_fields => $params{all_fields})}
             },
-        } @$rows
+        } @return
     }
 }
 

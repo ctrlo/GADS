@@ -148,7 +148,7 @@ sub _build_record_created
 # be writing to the records, to ensure that calc fields are retrieved to
 # subsequently write to
 has retrieve_all_columns => (
-    is      => 'ro',
+    is      => 'rw',
     isa     => Bool,
     default => 0,
 );
@@ -674,6 +674,9 @@ sub _find
 
     $self->columns_retrieved_do($records->columns_retrieved_do);
     $self->columns_retrieved_no($records->columns_retrieved_no);
+    # If we ended up fetching all columns in the Records object, then reflect
+    # that in this object
+    $self->retrieve_all_columns(1) if $records->retrieve_all_columns;
 
     my $record = {}; my $limit = 10; my $page = 1; my $first_run = 1;
     while (1)
@@ -1037,6 +1040,7 @@ sub initialise
     {
         $fields->{$column->id} = $self->initialise_field($column->id);
     }
+    $self->retrieve_all_columns(1);
     $self->fields($fields);
 }
 

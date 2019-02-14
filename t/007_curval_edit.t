@@ -18,6 +18,17 @@ foreach my $delete_not_used (0..1)
         curval           => 1,
         curval_offset    => 6,
         curval_field_ids => [ $curval_sheet->columns->{string1}->id ],
+        calc_return_type => 'string',
+        calc_code        => qq{function evaluate (L1curval1)
+            if L1curval1 == nil then
+                return ""
+            end
+            ret = ""
+            for _, curval in ipairs(L1curval1) do
+                ret = ret .. curval.field_values.L2string1
+            end
+            return ret
+        end},
     );
     my $layout  = $sheet->layout;
     my $columns = $sheet->columns;
@@ -43,6 +54,9 @@ foreach my $delete_not_used (0..1)
     $calc->write;
     $layout->clear;
 
+    # Calc from main sheet
+    my $calcmain = $columns->{calc1};
+
     # Set up curval to be allow adding and removal
     my $curval = $columns->{curval1};
     $curval->delete_not_used($delete_not_used);
@@ -64,10 +78,12 @@ foreach my $delete_not_used (0..1)
     my $curval_string = $curval_sheet->columns->{string1};
     $curval_datum->set_value([$curval_string->field."=foo1"]);
     $record->write(no_alerts => 1);
+    is($record->fields->{$calcmain->id}->as_string, "foo1", "Main calc correct");
     my $curval_count2 = $schema->resultset('Current')->search({ instance_id => 2 })->count;
     is($curval_count2, $curval_count + 1, "New curval record created");
     $record->clear;
     $record->find_current_id(3);
+    is($record->fields->{$calcmain->id}->as_string, "foo1", "Main calc correct after load");
     $curval_datum = $record->fields->{$curval->id};
     is($curval_datum->as_string, 'foo1', "Curval value contains new record");
     my $curval_record_id = $curval_datum->ids->[0];
@@ -85,10 +101,12 @@ foreach my $delete_not_used (0..1)
     $curval_count = $schema->resultset('Current')->search({ instance_id => 2 })->count;
     $curval_datum->set_value([$curval_string->field."=foo2", $curval_record_id]);
     $record->write(no_alerts => 1);
+    is($record->fields->{$calcmain->id}->as_string, "foo1foo2", "Main calc correct");
     $curval_count2 = $schema->resultset('Current')->search({ instance_id => 2 })->count;
     is($curval_count2, $curval_count + 1, "Second curval record created");
     $record->clear;
     $record->find_current_id(3);
+    is($record->fields->{$calcmain->id}->as_string, "foo1foo2", "Main calc correct");
     $curval_datum = $record->fields->{$curval->id};
     like($curval_datum->as_string, qr/^(foo1; foo2|foo2; foo1)$/, "Curval value contains second new record");
 
@@ -102,6 +120,7 @@ foreach my $delete_not_used (0..1)
     is($curval_count2, $curval_count, "No new curvals created");
     $record->clear;
     $record->find_current_id(3);
+    is($record->fields->{$calcmain->id}->as_string, "foo1foo5", "Main calc correct");
     $curval_datum = $record->fields->{$curval->id};
     like($curval_datum->as_string, qr/^(foo1; foo5|foo5; foo1)$/, "Curval value contains updated record");
 
@@ -117,6 +136,7 @@ foreach my $delete_not_used (0..1)
     is($curval_count2, $delete_not_used, "Correct number of deleted records in curval sheet");
     $record->clear;
     $record->find_current_id(3);
+    is($record->fields->{$calcmain->id}->as_string, "foo1", "Main calc correct");
     $curval_datum = $record->fields->{$curval->id};
     is($curval_datum->as_string, 'foo1', "Curval value has lost value");
 

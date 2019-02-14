@@ -122,22 +122,24 @@ has values => (
 sub _build_values
 {   my $self = shift;
     my @return;
-    my @items;
-    if ($self->_records)
+    if ($self->_init_value_hash->{records})
     {
-        @items = map { $self->column->_format_row($_) } @{$self->_records};
+        @return = map { $self->column->_format_row($_) } @{$self->_init_value_hash->{records}};
     }
-    else {
-        @items = $self->column->ids_to_values($self->ids, fatal => 1);
-    }
-    foreach my $item (@items)
-    {
-        push @return, {
-            record    => $item->{record},
-            id        => $item->{id},
-            value     => $item->{value},
-            values    => $item->{values},
-        };
+    elsif (@{$self->ids} || @{$self->values_as_query}) {
+        @return = $self->column->ids_to_values($self->ids, fatal => 1);
+
+        my @records = @{$self->values_as_query_records};
+        foreach my $query (@{$self->values_as_query})
+        {
+            my $record = shift @records;
+            push @return, +{
+                id       => $record->current_id,
+                as_query => $query,
+                values   => $self->column->_format_row($record)->{values},
+                record   => $record,
+            };
+        }
     }
     return \@return;
 }
@@ -150,7 +152,7 @@ has _records => (
 
 sub _build__records
 {   my $self = shift;
-    $self->_init_value_hash->{records};
+    return [ map { $_->{record} } @{$self->values} ];
 }
 
 sub _build_blank
@@ -265,12 +267,7 @@ sub purge_drafts
 has values_as_query => (
     is      => 'rwp',
     isa     => ArrayRef,
-    lazy    => 1,
-    builder => sub {
-        my $self = shift;
-        return [] if !$self->_records;
-        [ map { $_->as_query } grep { $_->is_draft } @{$self->_records} ];
-    },
+    default => sub { [] },
 );
 
 # The above values as queries, converted to records
@@ -396,24 +393,19 @@ sub html_form
 {   my $self = shift;
     return $self->ids
         unless $self->column->value_selector eq 'noshow';
-    # Once a value has been written, values() will only contain unchanged
-    # values as current IDs
-    my $return = [ grep { !$_->{record}->is_draft } @{$self->values} ];
-    # Any updated or new values will be in the "query" properties
-    my @records = @{$self->values_as_query_records};
-    foreach my $query (@{$self->values_as_query})
+    my @return;
+    foreach my $val (@{$self->values})
     {
-        my $record = shift @records;
+        if ($val->{record}->is_draft)
+        {
+            $val->{as_query} = $val->{record}->as_query;
+        }
         # New entries may have a current ID from a failed database write, but
         # don't use
-        my $id = $record->new_entry ? undef : $record->current_id;
-        push @$return, +{
-            id       => $id,
-            as_query => $query,
-            values   => $self->column->_format_row($record)->{values},
-        };
+        delete $val->{id} if $val->{record}->new_entry;
+        push @return, $val;
     }
-    return $return;
+    return \@return;
 }
 
 sub _build_for_code

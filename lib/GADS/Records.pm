@@ -270,7 +270,7 @@ has columns_extra => (
 # be writing to the records, to ensure that calc fields are retrieved to
 # subsequently write to
 has retrieve_all_columns => (
-    is      => 'ro',
+    is      => 'rw',
     isa     => Bool,
     default => 0,
 );
@@ -1226,6 +1226,7 @@ sub _build_columns_retrieved_do
             remembered_only    => $self->remembered_only,
             order_dependencies => 1,
         );
+        $self->retrieve_all_columns(1);
     }
     foreach my $c (@columns)
     {
