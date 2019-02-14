@@ -29,7 +29,7 @@ $ENV{GADS_NO_FORK} = 1; # Prevent forking during import process
         password => 'test2',
     });
 
-    my $in = "string1,Version Datetime,Version User\nFoobar,2014-10-10 12:00,".$user2->id;
+    my $in = "string1,Last edited time,Last edited by\nFoobar,2014-10-10 12:00,".$user2->id;
     my $import = GADS::Import->new(
         schema   => $schema,
         layout   => $layout,

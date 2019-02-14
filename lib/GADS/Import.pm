@@ -260,7 +260,7 @@ sub _build_fields
         {
             push @fields, $self->layout->column($column_id->id); # Special case
         }
-        elsif ($field =~ /^(Version Datetime|Version User)$/)
+        elsif ($field =~ /^(Last edited time|Last edited by)$/)
         {
             my $id = $self->layout->column_by_name($field)->id;
             push @fields, $self->layout->column($id);
@@ -391,12 +391,12 @@ sub _import_rows
                 $col_count++;
                 next;
             }
-            elsif ($col->name eq 'Version Datetime')
+            elsif ($col->name eq 'Last edited time')
             {
                 $options{version_datetime} = $parser_yymd->parse_datetime($value)
                     or push @bad, qq(Invalid version_datetime "$value");
             }
-            elsif ($col->name eq 'Version User')
+            elsif ($col->name eq 'Last edited by')
             {
                 $options{version_userid} = $value;
             }
