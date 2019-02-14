@@ -519,7 +519,7 @@ sub _get_sorts
     {
         # XXX Convert from legacy internal IDs. This can be removed at some
         # point.
-        if ($sort->layout_id < 0)
+        if ($sort->layout_id && $sort->layout_id < 0)
         {
             my %map = (
                 -11 => $self->layout->column_by_name_short('_id'),
