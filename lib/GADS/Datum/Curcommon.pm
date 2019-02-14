@@ -318,12 +318,6 @@ sub _build_values_as_query_records
     \@records;
 }
 
-# The fields that were retrieved for the record(s) in this value
-has curval_field_ids_retrieve => (
-    is  => 'ro',
-    isa => Maybe[ArrayRef],
-);
-
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
@@ -342,10 +336,9 @@ around 'clone' => sub {
     }
     else {
         # ids is built when noshow is true
-        $params{ids}                       = $self->ids;
-        $params{init_value}                = $self->init_value if $self->has_init_value;
-        $params{values}                    = $self->values if $self->has_values;
-        $params{curval_field_ids_retrieve} = $self->curval_field_ids_retrieve;
+        $params{ids}        = $self->ids;
+        $params{init_value} = $self->init_value if $self->has_init_value;
+        $params{values}     = $self->values if $self->has_values;
     }
     $orig->($self, %params, %extra);
 };

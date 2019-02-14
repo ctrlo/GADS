@@ -144,6 +144,15 @@ sub _build_record_created
     })->get_column('created')->min;
 }
 
+# Whether to retrieve all columns for this set of records. Needed when going to
+# be writing to the records, to ensure that calc fields are retrieved to
+# subsequently write to
+has retrieve_all_columns => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
 has curcommon_all_fields => (
     is      => 'ro',
     isa     => Bool,
@@ -793,10 +802,10 @@ sub _find
 
     # Fetch and add multi-values
     $records->fetch_multivalues(
-        record_ids => \@record_ids,
-        retrieved  => [$record],
-        records    => [$self],
-        is_draft   => $find{draftuser_id},
+        record_ids           => \@record_ids,
+        retrieved            => [$record],
+        records              => [$self],
+        is_draft             => $find{draftuser_id},
         curcommon_all_fields => $self->curcommon_all_fields,
     );
 
@@ -946,9 +955,10 @@ sub _transform_values
             schema           => $self->schema,
             layout           => $self->layout,
         );
-        $params{curval_field_ids_retrieve} =
-            $column->curval_field_ids_retrieve(all_fields => $self->curcommon_all_fields)
-                if $column->is_curcommon;
+        # Force all columns to be retrieved if it's a curcommon field and this
+        # record has the flag saying they need to be
+        $column->retrieve_all_columns(1)
+            if $self->curcommon_all_fields && $column->is_curcommon;
         $fields->{$column->id} = $column->class->new(%params);
     }
     my $column_id = $self->layout->column_id;

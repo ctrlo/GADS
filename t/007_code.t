@@ -359,6 +359,7 @@ foreach my $test (@tests)
     $record_new->fields->{$columns->{tree1}->id}->set_value(10);
     $record_new->fields->{$columns->{integer1}->id}->set_value(10);
     try { $record_new->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
+    $@->reportFatal unless $test->{is_error}; # In case any fatal errors
     if (defined $test->{is_error})
     {
         if ($test->{is_error})

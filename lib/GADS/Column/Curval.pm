@@ -278,10 +278,10 @@ sub fetch_multivalues
         user                 => $self->override_permissions ? undef : $self->layout->user,
         layout               => $self->layout_parent,
         schema               => $self->schema,
-        columns              => $self->curval_field_ids_retrieve(all_fields => $options{curcommon_all_fields}),
+        columns              => $self->curval_field_ids,
         limit_current_ids    => [map { $_->{value} } @values],
         is_draft             => $options{is_draft},
-        curcommon_all_fields => $options{curcomon_all_fields},
+        retrieve_all_columns => $self->retrieve_all_columns,
     );
 
     # We need to retain the order of retrieved records, so that they are shown

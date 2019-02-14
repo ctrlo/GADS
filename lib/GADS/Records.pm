@@ -923,6 +923,7 @@ sub _build_results
             set_deletedby        => $rec->{deletedby},
             record_created       => $rec->{record_created},
             curcommon_all_fields => $self->curcommon_all_fields,
+            retrieve_all_columns => $self->retrieve_all_columns,
         );
         push @record_ids, $rec->{record_single}->{id};
         push @record_ids, $rec->{linked}->{record_single}->{id}
@@ -993,6 +994,10 @@ sub fetch_multivalues
             # duplicating some values. We therefore have to flag to make sure
             # we don't do this.
             my %colsd;
+            # Force all columns to be retrieved if it's a curcommon field and this
+            # record has the flag saying they need to be
+            $col->retrieve_all_columns(1)
+                if $col->is_curcommon && $self->curcommon_all_fields;
             foreach my $val ($col->fetch_multivalues(\@retrieve_ids, is_draft => $params{is_draft}, curcommon_all_fields => $self->curcommon_all_fields))
             {
                 my $field = "field$val->{layout_id}";
@@ -1187,7 +1192,7 @@ sub _build_columns_retrieved_do
     # this stage, we keep track of what we've added, so that we
     # can act accordingly during the filters
     my @columns;
-    if ($self->columns)
+    if (!$self->retrieve_all_columns && $self->columns)
     {
         # The columns property can contain straight column IDs or hash refs
         # containing the column ID as well as more information, such as the

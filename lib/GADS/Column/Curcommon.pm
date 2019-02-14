@@ -95,6 +95,12 @@ sub tjoin
     $self->make_join(map { $_->tjoin } @{$self->curval_fields_retrieve(%options)});
 }
 
+has retrieve_all_columns => (
+    is      => 'rw',
+    isa     => Bool,
+    default => 0,
+);
+
 has curval_field_ids => (
     is      => 'rw',
     isa     => ArrayRef,
@@ -149,16 +155,6 @@ has curval_fields_multivalue => (
 sub _build_curval_fields_multivalue
 {   my $self = shift;
     [grep { $_->multivalue } @{$self->curval_fields}];
-}
-
-# The fields to actually retrieve. This will either be the same as
-# the standard curval_fields, or will include additional fields that
-# will be stored for calculated fields or record edits
-sub curval_field_ids_retrieve
-{   my ($self, %options) = @_;
-    $options{all_fields}
-        ? $self->curval_field_ids_all
-        : $self->curval_field_ids;
 }
 
 has curval_field_ids_all => (
@@ -280,17 +276,18 @@ sub _records_from_db
     }
 
     my $records = GADS::Records->new(
-        user              => $self->override_permissions ? undef : $self->layout->user,
-        view              => $view,
-        layout            => $layout,
-        schema            => $self->schema,
-        columns           => $self->curval_field_ids_retrieve(all_fields => $options{all_fields}),
-        limit_current_ids => $ids,
+        user                 => $self->override_permissions ? undef : $self->layout->user,
+        view                 => $view,
+        layout               => $layout,
+        schema               => $self->schema,
+        columns              => $self->curval_field_ids,
+        retrieve_all_columns => $self->retrieve_all_columns,
+        limit_current_ids    => $ids,
         # Sort on all columns displayed as the Curval. Don't do all columns
         # retrieved, as this could include a whole load of multivalues which
         # are then fetched from the DB
-        sort              => [ map { { id => $_ } } @{$self->curval_field_ids} ],
-        is_draft          => 1, # XXX Only set this when parent record is draft?
+        sort                 => [ map { { id => $_ } } @{$self->curval_field_ids} ],
+        is_draft             => 1, # XXX Only set this when parent record is draft?
     );
 
     return $records;
@@ -394,14 +391,31 @@ sub field_values
     # the record will be available).  The rows would normally only need to be
     # retrieved when a single record is being written.
     my $rows;
-    # See if any of the requested rows have not had all columns built
-    my $need_all = $params{all_fields} && $params{rows};
+    # See if any of the requested rows have not had all columns built and
+    # therefore a rebuild is required
+    my $need_all;
+    if ($params{all_fields} && $params{rows})
+    {
+        # We have full database rows, so now let's see if any of them were not
+        # build with the all columns flag
+        $need_all = grep { !$_->retrieve_all_columns } @{$params{rows}};
+    }
+    elsif ($params{all_fields})
+    {
+        # We require all fields but only have IDs not database rows. Definitely
+        # need to retrieve everything
+        $need_all = 1;
+    }
     if ($params{ids} || $need_all)
     {
         my $cids = $params{ids} || [ map { $_->current_id } @{$params{rows}} ];
-        $rows = $self->_get_rows($cids, all_fields => $params{all_fields});
+        # If all columns needed, flag that in the column properties. This
+        # allows it to be checked later
+        $self->retrieve_all_columns(1) if $need_all;
+        $rows = $self->_get_rows($cids);
     }
     elsif ($params{rows}) {
+        # Just use existing rows
         $rows = $params{rows}
     }
     else {
