@@ -63,8 +63,9 @@ sub _build_pages
 }
 
 has search => (
-    is  => 'rw',
-    isa => Maybe[Str],
+    is      => 'rw',
+    isa     => Maybe[Str],
+    clearer => 1,
 );
 
 # Whether to show only deleted records or only records not deleted
@@ -364,10 +365,33 @@ sub _build_current_ids
     $self->_set_current_ids || [$self->_current_ids_rs->all];
 }
 
+# Common search parameters used across different queries
+sub common_search
+{   my $self = shift;
+    my $current = shift || 'me';
+    my @search;
+    if ($self->is_deleted)
+    {
+        push @search, { "$current.deleted" => { '!=' => undef } };
+    }
+    else {
+        push @search, { "$current.deleted" => undef };
+    }
+    if (!$self->include_children)
+    {
+        push @search, { "$current.parent_id" => undef };
+    }
+    unless ($self->is_draft)
+    {
+        push @search, { "$current.draftuser_id" => undef }; # not draft records
+    }
+    return @search;
+}
+
 # Produce the overall search condition array
 sub search_query
 {   my ($self, %options) = @_;
-    # Only used by common_search(). Will pull wrong query_params
+    # Only used by record_later_search(). Will pull wrong query_params
     # if left in %options
     my $linked        = delete $options{linked};
     my @search        = $self->_query_params(%options);
@@ -395,22 +419,8 @@ sub search_query
     push @search, { "$current.id"          => $self->_search_all_fields->{cids} } if $self->search;
     push @search, { "$current.id"          => $self->limit_current_ids } if $self->limit_current_ids; # $self->has_current_ids && $self->current_ids;
     push @search, { "$current.instance_id" => $self->layout->instance_id };
-    if ($self->is_deleted)
-    {
-        push @search, { "$current.deleted" => { '!=' => undef } };
-    }
-    else {
-        push @search, { "$current.deleted" => undef };
-    }
-    if (!$self->include_children)
-    {
-        push @search, { "$current.parent_id" => undef };
-    }
-    unless ($self->is_draft)
-    {
-        push @search, { "$current.draftuser_id" => undef }; # not draft records
-    }
-    push @search, $self->common_search(%options, linked => $linked);
+    push @search, $self->common_search($current);
+    push @search, $self->record_later_search(%options, linked => $linked);
     push @search, {
         "$record_single.created" => { '<' => $self->rewind_formatted },
     } if $self->rewind;
@@ -554,7 +564,7 @@ sub search_views
                     $self->_search_construct($decoded, $self->layout, ignore_perms => 1, user => $user),
                 };
                 $search = { %$search, %$_ }
-                    foreach $self->common_search(linked => 1, search => 1);
+                    foreach $self->record_later_search(linked => 1, search => 1);
                 my $i = 0; my @ids;
                 while ($i < @$current_ids)
                 {
@@ -649,7 +659,7 @@ sub _build__search_all_fields
     }
 
     # Applies to all types of fields being searched
-    my @basic_search;
+    my @basic_search = $self->common_search;
     # Only search limited view if configured for user
     push @basic_search, $self->_view_limits_search;
 
@@ -717,7 +727,7 @@ sub _build__search_all_fields
         }
         else {
             push @search, { 'layout.id' => \@columns_can_view };
-            push @search, $self->common_search(search => 1);
+            push @search, $self->record_later_search(search => 1);
         }
         my @currents = $self->schema->resultset('Current')->search({ -and => \@search},{
             join => $joins,
@@ -837,7 +847,7 @@ sub _current_ids_rs
 # already been set by the calling function.
 sub _cid_search_query
 {   my $self = shift;
-    my $search = { map { %$_ } $self->common_search(prefetch => 1, sort => 1, linked => 1) };
+    my $search = { map { %$_ } $self->record_later_search(prefetch => 1, sort => 1, linked => 1) };
 
     # If this is a group query then we will not be limiting by number of
     # records (but will be reducing number of results by group), and therefore
@@ -1255,6 +1265,7 @@ sub clear
     $self->clear_current_ids;
     $self->_clear_search_all_fields;
     $self->clear_results;
+    $self->clear_search;
     $self->_set__next_single_id(0);
     $self->_set_current_ids(undef);
     $self->_clear_all_cids_store;

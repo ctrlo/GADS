@@ -22,6 +22,12 @@ my $records = GADS::Records->new(
     schema => $schema,
 );
 
+# Check quick search matches
+$records->search('foo1');
+is ($records->count, 1, 'Quick search for first record count');
+is (@{$records->results}, 1, 'Quick search for first record');
+$records->clear;
+
 is($records->count, 2, "Initial records created");
 
 my $record = $records->single;
@@ -30,6 +36,13 @@ my $deleted_record_id  = $record->record_id;
 $record->delete_current;
 $records->clear;
 is($records->count, 1, "Record deleted");
+$records->clear;
+
+# Check that record cannot be found via quick search
+$records->search('foo1');
+is ($records->count, 0, 'Quick search for deleted record count');
+is (@{$records->results}, 0, 'Quick search for deleted record');
+$records->clear;
 
 # Find deleted record via current ID
 $record = GADS::Record->new(

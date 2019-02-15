@@ -201,11 +201,8 @@ sub add_linked_join
     $self->_add_jp(@_, linked => 1);
 }
 
-# General additional search parameters that need to be added for correct
-# results
-sub common_search
+sub record_later_search
 {   my ($self, %options) = @_;
-    my @search;
     my $count = $options{no_current} ? 0 : 1; # Always at least one if joining onto current
 
     # Do 2 loops round, first for non-linked, second for linked, adding one to
@@ -243,6 +240,7 @@ sub common_search
         }
     }
 
+    my @search;
     for (1..$count)
     {
         my $id = $_ == 1 ? '' : "_$_";
