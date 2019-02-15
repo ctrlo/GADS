@@ -102,7 +102,8 @@ has user => (
 );
 
 has record => (
-    is => 'rw',
+    is      => 'rw',
+    clearer => 1,
 );
 
 # Subroutine to create a slightly more advanced predication for "record" above
@@ -133,16 +134,10 @@ sub _build_linked_record
     $linked;
 }
 
-has record_created => (
-    is => 'lazy',
+has set_record_created => (
+    is      => 'rw',
+    clearer => 1,
 );
-
-sub _build_record_created
-{   my $self = shift;
-    $self->schema->resultset('Record')->search({
-        current_id => $self->current_id,
-    })->get_column('created')->min;
-}
 
 # Whether to retrieve all columns for this set of records. Needed when going to
 # be writing to the records, to ensure that calc fields are retrieved to
@@ -632,6 +627,7 @@ sub find_unique
 
 sub clear
 {   my $self = shift;
+    $self->clear_record;
     $self->clear_current_id;
     $self->clear_record_id;
     $self->clear_linked_id;
@@ -642,6 +638,7 @@ sub clear
     $self->clear_fields;
     $self->clear_createdby;
     $self->clear_created;
+    $self->clear_set_record_created,
     $self->clear_is_historic;
     $self->clear_new_entry;
     $self->clear_layout;
@@ -985,7 +982,15 @@ sub _transform_values
     );
     my $createdby_col = $self->layout->column_by_name_short('_version_user');
     $fields->{$createdby_col->id} = $self->_person($original->{createdby}, $createdby_col);
+
     my $record_created_col = $self->layout->column_by_name_short('_created');
+    my $record_created = $self->set_record_created;
+    if (!$record_created)
+    {
+        $record_created = $self->schema->resultset('Record')->search({
+            current_id => $self->current_id,
+        })->get_column('created')->min;
+    }
     $fields->{$record_created_col->id} = GADS::Datum::Date->new(
         record           => $self,
         record_id        => $self->record_id,
@@ -993,8 +998,9 @@ sub _transform_values
         column           => $record_created_col,
         schema           => $self->schema,
         layout           => $self->layout,
-        init_value       => [ { value => $self->record_created } ],
+        init_value       => [ { value => $record_created } ],
     );
+
     my $serial_col = $self->layout->column_by_name_short('_serial');
     $fields->{$serial_col->id} = GADS::Datum::Serial->new(
         record           => $self,
@@ -2086,6 +2092,7 @@ sub pdf
 
     my $dateformat = GADS::Config->instance->dateformat;
     my $now = DateTime->now->format_cldr($dateformat)." at ".DateTime->now->hms;
+    $now->set_time_zone('Europe/London');
     my $updated = $self->created->format_cldr($dateformat)." at ".$self->created->hms;
 
     my $pdf = CtrlO::PDF->new(

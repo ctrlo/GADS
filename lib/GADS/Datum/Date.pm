@@ -68,6 +68,16 @@ has values => (
     is      => 'rwp',
     isa     => ArrayRef,
     lazy    => 1,
+    coerce  => sub {
+        my $values = shift;
+        # If the timezone is floating, then assume it is UTC (e.g. from MySQL
+        # database which do not have timezones stored). Set it as UTC, as
+        # otherwise any changes to another timezone will not make any effect
+        $_->time_zone->is_floating && $_->set_time_zone('UTC') foreach @$values;
+        # May want to support other timezones in the future
+        $_->set_time_zone('Europe/London') foreach @$values;
+        return $values;
+    },
     builder => sub {
         my $self = shift;
         $self->init_value or return [];

@@ -206,10 +206,13 @@ sub _date_for_code
 {   my ($self, $value) = @_;
     $value or return undef;
     +{
-        year  => $value->year,
-        month => $value->month,
-        day   => $value->day,
-        epoch => $value->epoch,
+        year   => $value->year,
+        month  => $value->month,
+        day    => $value->day,
+        hour   => $value->hour,
+        minute => $value->minute,
+        second => $value->second,
+        epoch  => $value->epoch,
     };
 }
 

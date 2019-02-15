@@ -931,7 +931,7 @@ sub _build_results
             columns_retrieved_do => $self->columns_retrieved_do,
             set_deleted          => $rec->{deleted},
             set_deletedby        => $rec->{deletedby},
-            record_created       => $rec->{record_created},
+            set_record_created   => $rec->{record_created},
             curcommon_all_fields => $self->curcommon_all_fields,
             retrieve_all_columns => $self->retrieve_all_columns,
         );
