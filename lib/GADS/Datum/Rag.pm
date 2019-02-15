@@ -51,15 +51,15 @@ sub convert_value
     {
         $return = 'a_grey';
     }
-    elsif ($value eq 'red')
+    elsif (lc $value eq 'red')
     {
         $return = 'b_red';
     }
-    elsif ($value eq 'amber')
+    elsif (lc $value eq 'amber')
     {
         $return = 'c_amber';
     }
-    elsif ($value eq 'green')
+    elsif (lc $value eq 'green')
     {
         $return = 'd_green';
     }
