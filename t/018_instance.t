@@ -143,7 +143,9 @@ $sheet2->create_records;
 
                 elsif ($test eq 'purge')
                 {
-                    my $record = $records->single;
+                    my $record     = $records->single;
+                    my $current_id = $record->current_id;
+                    my $record_id  = $record->record_id;
 
                     # First check whether the user has access to view the deleted record.
                     # Temporary deletion
@@ -153,7 +155,7 @@ $sheet2->create_records;
                         layout => $layout,
                         schema => $schema,
                     );
-                    try { $record->find_deleted_currentid($record->current_id, $layout->instance_id) };
+                    try { $record->find_deleted_currentid($current_id, $layout->instance_id) };
                     if ($pass == 3)
                     {
                         ok(!$@, "Accessed deleted record successfully");
@@ -161,7 +163,7 @@ $sheet2->create_records;
                     else {
                         like($@, qr/You do not have access to this deleted record/, "Failed to access deleted record");
                     }
-                    try { $record->find_deleted_recordid($record->record_id, $layout->instance_id) };
+                    try { $record->find_deleted_recordid($record_id, $layout->instance_id) };
                     if ($pass == 3)
                     {
                         ok(!$@, "Accessed deleted historical record successfully");
@@ -170,7 +172,7 @@ $sheet2->create_records;
                         like($@, qr/You do not have access to this deleted record/, "Failed to access history of deleted record");
                     }
                     # Return to undeleted
-                    $schema->resultset('Current')->find($record->current_id)->update({ deleted => undef });
+                    $schema->resultset('Current')->find($current_id)->update({ deleted => undef });
 
                     try { $record->purge_current };
 
@@ -179,7 +181,7 @@ $sheet2->create_records;
                         # Should have failed instead with record not being deleted
                         like($@, qr/Cannot purge record that is not already deleted/, "Cannot purge record not already deleted");
                         # Now delete and try again
-                        $schema->resultset('Current')->find($record->current_id)->update({ deleted => DateTime->now });
+                        $schema->resultset('Current')->find($current_id)->update({ deleted => DateTime->now });
                         try { $record->purge_current };
                         ok(!$@, "Able to purge record with correct permission for pass $pass");
                         # Add record back in
