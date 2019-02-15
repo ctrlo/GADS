@@ -492,22 +492,6 @@ any ['get', 'post'] => '/login' => sub {
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     if (param('signin'))
     {
         my $username  = param('username');
