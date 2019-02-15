@@ -12,18 +12,18 @@
             [% sort_order = sort.type %]
             [% sort_label = '&udarr; sort ' _ (sort_order == "asc" ? "descending" : "ascending") %]
 
-            [% IF sort.id == -11 AND sort.type == "asc" %]
+            [% IF sort.id == layout.column_id.id AND sort.type == "asc" %]
                 [% st = "&darr;" %]
-            [% ELSIF sort.id == -11 %]
+            [% ELSIF sort.id == layout.column_id.id %]
                 [% st = "&uarr;" %]
             [% ELSE %]
                 [% st = "" %]
             [% END %]
-            <th scope="col" [% sort.id == -11 && "aria-sort=\"${sort_order}ending\"" %]>
+            <th scope="col" [% sort.id == layout.column_id.id && "aria-sort=\"${sort_order}ending\"" %]>
                 <button type="button" class="trigger" aria-expanded="false" aria-controls="col--11-options">[% st %]ID &rsaquo;</button>
                 <div class="expandable popover" id="col--11-options">
                     <div class="column-name">ID</div>
-                    <a href="?sort=-11">[% sort_label %]</a>
+                    <a href="?sort=[% layout.column_id.id %]">[% sort_label %]</a>
                     [% IF col.helptext %]
                     <p class="helptext">[% col.helptext | html_entity %]</p>
                     [% END %]
