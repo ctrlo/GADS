@@ -957,8 +957,8 @@
         <tbody>
             [% FOREACH val IN editvalue.html_form %]
                 <tr class="curval_item">
-                    [% FOREACH v IN val.values %]
-                        <td class="curval-inner-text">[% v | html %]</td>
+                    [% FOREACH col IN val.presentation.columns %]
+                        <td class="curval-inner-text [% col.type %]">[% render_datum(col) %]</td>
                     [% END %]
                     <td>
                         <input type="hidden" id="curval-current-id-[% val.id %]" name="[% field %]" value="[% val.as_query OR val.id %]">
