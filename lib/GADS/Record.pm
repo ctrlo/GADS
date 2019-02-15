@@ -2075,7 +2075,7 @@ sub as_query
     my @queries;
     foreach my $col ($self->layout->all(userinput => 1))
     {
-        push @queries, $col->field."=".uri_escape($_)
+        push @queries, $col->field."=".uri_escape_utf8($_)
             foreach @{$self->fields->{$col->id}->html_form};
     }
     return join '&', @queries;
