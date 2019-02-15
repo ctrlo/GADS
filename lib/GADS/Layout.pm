@@ -808,6 +808,21 @@ sub all
     @columns;
 }
 
+has max_width => (
+    is  => 'lazy',
+    isa => Int,
+);
+
+sub _build_max_width
+{   my $self = shift;
+    my $max;
+    foreach my $col ($self->all)
+    {
+        $max = $col->width if !$max || $max < $col->width;
+    }
+    return $max;
+}
+
 # Order the columns in the order that the calculated values depend
 # on other columns
 sub _order_dependencies

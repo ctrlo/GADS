@@ -365,6 +365,27 @@ has description => (
     isa => Maybe[Str],
 );
 
+has width => (
+    is  => 'rw',
+    isa => Int,
+);
+
+has widthcols => (
+    is => 'lazy',
+);
+
+sub _build_widthcols
+{   my $self = shift;
+    my $multiplus = $self->multivalue && $self->has_multivalue_plus;
+    if ($self->layout->max_width == 100 && $self->width == 50)
+    {
+        return $multiplus ? 4 : 6;
+    }
+    else {
+        return $multiplus ? 10 : 12;
+    }
+}
+
 has topic_id => (
     is     => 'rw',
     isa    => Maybe[Int],
@@ -671,6 +692,7 @@ sub build_values
     my $options = $original->{options} ? decode_json($original->{options}) : {};
     $self->_set_options($options);
     $self->description($original->{description});
+    $self->width($original->{width});
     $self->field("field$original->{id}");
     $self->type($original->{type});
     $self->display_field($original->{display_field});
@@ -927,6 +949,7 @@ sub write
     $newitem->{filter}        = $self->filter->as_json;
     $newitem->{multivalue}    = $self->multivalue if $self->can_multivalue;
     $newitem->{description}   = $self->description;
+    $newitem->{width}         = $self->width || 50;
     $newitem->{helptext}      = $self->helptext;
     $newitem->{options}       = encode_json($self->options);
     $newitem->{link_parent}   = $self->link_parent_id;
@@ -1248,6 +1271,9 @@ sub import_hash
     notice __x"Update: description from {old} to {new}", old => $self->description, new => $values->{description}
         if $report && $self->description ne $values->{description};
     $self->description($values->{description});
+    notice __x"Update: width from {old} to {new}", old => $self->width, new => $values->{width}
+        if $report && $self->width != $values->{width};
+    $self->width($values->{width});
     notice __x"Update: helptext from {old} chars to {new} chars", old => length($self->helptext), new => length($values->{helptext})
         if $report && $self->helptext ne $values->{helptext};
     $self->helptext($values->{helptext});
@@ -1289,6 +1315,7 @@ sub export_hash
         can_child     => $self->can_child,
         position      => $self->position,
         description   => $self->description,
+        width         => $self->width,
         helptext      => $self->helptext,
         display_field => $self->display_field,
         display_regex => $self->display_regex,

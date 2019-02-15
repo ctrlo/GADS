@@ -2495,7 +2495,7 @@ prefix '/:layout_name' => sub {
                 $column->set_permissions(\%permissions);
 
                 $column->$_(param $_)
-                    foreach (qw/name name_short description helptext optional isunique set_can_child multivalue remember link_parent_id topic_id/);
+                    foreach (qw/name name_short description helptext optional isunique set_can_child multivalue remember link_parent_id topic_id width/);
                 $column->type(param 'type')
                     unless param('id'); # Can't change type as it would require DBIC resultsets to be removed and re-added
                 $column->$_(param $_)

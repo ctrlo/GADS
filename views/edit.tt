@@ -117,7 +117,7 @@
         <p role="alert" class="alert alert-danger" hidden></p>
     [% END %]
     <div class="row">
-        <div class="[% IF modal %]col-md-12[% ELSE %]col-md-6[% END %]">
+        <div class="[% IF modal OR layout.max_width == 100 %]col-md-12[% ELSE %]col-md-6[% END %]">
             [% IF cur_id %]
                 <input type="hidden" name="current_id" value="[% record.current_id %]">
             [% END %]
@@ -743,7 +743,7 @@
 [% BLOCK print_field %]
     <div class="input_holder" >
         <div class="row">
-            <div class="[% IF dispcol.multivalue AND dispcol.has_multivalue_plus %]col-md-10[% ELSE %]col-md-12[% END %]">
+            <div class="col-md-[% dispcol.widthcols %]">
                 [% IF dispcol.type == "enum" %]
                     [% PROCESS enum_column column = dispcol %]
                 [% ELSIF dispcol.type == "curval" %]
