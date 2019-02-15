@@ -3274,6 +3274,11 @@ sub _page_as_mech
         ");
     }
     $mech->get_local($filename);
+    # Sometimes the timeline does not render properly (it is completely blank).
+    # This only seems to happen in certain views, but adding a brief sleep
+    # seems to fix ti - maybe things are going out of scope before PhantomJS has
+    # finished its work?
+    sleep 1;
     unlink $filename;
     return $mech;
 }
