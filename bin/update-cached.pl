@@ -56,10 +56,14 @@ foreach my $site (schema->resultset('Site')->all)
     {
         next if $layout->no_overnight_update;
 
+        my $cols = $layout->col_ids_for_cache_update;
+        next if !@$cols;
+
         my $records = GADS::Records->new(
             user                 => undef,
             layout               => $layout,
             schema               => schema,
+            columns              => $cols,
             curcommon_all_fields => 1, # Code might contain curcommon fields not in normal display
             include_children     => 1, # Update all child records regardless
         );
@@ -67,9 +71,8 @@ foreach my $site (schema->resultset('Site')->all)
         my %changed;
         while (my $record = $records->single)
         {
-            foreach my $column ($layout->all(order_dependencies => 1))
+            foreach my $column ($layout->all(order_dependencies => 1, has_cache => 1))
             {
-                next unless $column->has_cache;
                 $column->base_url(config->{gads}->{url});
                 my $datum = $record->fields->{$column->id};
                 $datum->re_evaluate(no_errors => 1);

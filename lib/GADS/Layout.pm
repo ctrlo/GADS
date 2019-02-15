@@ -677,6 +677,40 @@ sub _build_has_topics
     !! $self->schema->resultset('Topic')->search({ instance_id => $self->instance_id })->next;
 }
 
+has col_ids_for_cache_update => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+# All the column IDs needed to update all cached fields. This is all the
+# calculated/rag fields, plus any fields that they depend on
+sub _build_col_ids_for_cache_update
+{   my $self = shift;
+
+    # First all the "parent" fields (the calc/rag fields)
+    my %cols = map { $_ => 1 } $self->schema->resultset('LayoutDepend')->search({
+        instance_id => $self->instance_id,
+    },{
+        join     => 'layout',
+        group_by => 'me.layout_id',
+    })->get_column('layout_id')->all;
+
+    # Then all the fields they depend on
+    $cols{$_} = 1 foreach $self->schema->resultset('LayoutDepend')->search({
+        instance_id => $self->instance_id,
+    },{
+        join     => 'depend_on',
+        group_by => 'me.depends_on',
+    })->get_column('depends_on')->all;
+
+    # Finally ensure all the calc/rag fields are included. If they only use an
+    # internal column, then they won't have been part of the layout_depend
+    # table
+    $cols{$_->id} = 1 foreach $self->all(has_cache => 1);
+
+    return [ keys %cols ];
+}
+
 sub all_with_internal
 {   my $self = shift;
     $self->all(@_, include_internal => 1);
@@ -726,6 +760,7 @@ sub all
     @columns = grep { $_->return_type eq 'globe' } @columns if $options{is_globe};
     @columns = grep { $_->remember == $options{remember} } @columns if defined $options{remember};
     @columns = grep { $_->userinput == $options{userinput} } @columns if defined $options{userinput};
+    @columns = grep { $_->has_cache } @columns if $options{has_cache};
     @columns = grep { $_->multivalue == $options{multivalue} } @columns if defined $options{multivalue};
     @columns = grep { $_->user_can('read') } @columns if $options{user_can_read};
     @columns = grep { $_->user_can('write') } @columns if $options{user_can_write};
