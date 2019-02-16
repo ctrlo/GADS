@@ -36,31 +36,69 @@ $record->find_current_id(1);
     is($record->fields->{$integer1->id}->as_string, '50', 'Initial integer value is correct');
 }
 
-# Test write of value that should be shown
-{
-    $record->fields->{$string1->id}->set_value('foobar');
-    $record->fields->{$integer1->id}->set_value('150');
-    $record->write(no_alerts => 1);
+my %types = (
+    exact => {
+        normal => "foobar",
+        blank  => "xxfoobarxx",
+    },
+    contains => {
+        normal => "xxfoobarxx",
+        blank  => "foo",
+    },
+    exact_negative => {
+        normal => "foo",
+        blank  => "foobar",
+    },
+    contains_negative => {
+        normal => "foo",
+        blank  => "xxfoobarxx",
+    },
+);
 
+foreach my $type (keys %types)
+{
+    my $test = $types{$type};
+
+    $integer1->display_matchtype($type);
+    $integer1->write;
+    $layout->clear;
+
+    # Need to reload record for internal datums to reference column with
+    # updated settings
     $record->clear;
     $record->find_current_id(1);
 
-    is($record->fields->{$string1->id}->as_string, 'foobar', 'Updated string value is correct');
-    is($record->fields->{$integer1->id}->as_string, '150', 'Updated integer value is correct');
+    # Test write of value that should be shown
+    {
+        $record->fields->{$string1->id}->set_value($test->{normal});
+        $record->fields->{$integer1->id}->set_value('150');
+        $record->write(no_alerts => 1);
+
+        $record->clear;
+        $record->find_current_id(1);
+
+        is($record->fields->{$string1->id}->as_string, $test->{normal}, "Updated string value is correct (normal $type)");
+        is($record->fields->{$integer1->id}->as_string, '150', "Updated integer value is correct (normal $type)");
+    }
+
+    # Test write of value that shouldn't be shown (string)
+    {
+        $record->fields->{$string1->id}->set_value($test->{blank});
+        $record->fields->{$integer1->id}->set_value('200');
+        $record->write(no_alerts => 1);
+
+        $record->clear;
+        $record->find_current_id(1);
+
+        is($record->fields->{$string1->id}->as_string, $test->{blank}, "Updated string value is correct (blank $type)");
+        is($record->fields->{$integer1->id}->as_string, '', "Updated integer value is correct (blank $type)");
+    }
 }
 
-# Test write of value that shouldn't be shown (string)
-{
-    $record->fields->{$string1->id}->set_value('foo');
-    $record->fields->{$integer1->id}->set_value('200');
-    $record->write(no_alerts => 1);
-
-    $record->clear;
-    $record->find_current_id(1);
-
-    is($record->fields->{$string1->id}->as_string, 'foo', 'Updated string value is correct');
-    is($record->fields->{$integer1->id}->as_string, '', 'Updated integer value is correct');
-}
+# Reset
+$integer1->display_matchtype('exact');
+$integer1->write;
+$layout->clear;
 
 # Test that mandatory field is not required if not shown by regex
 {

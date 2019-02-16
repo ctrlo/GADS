@@ -2504,6 +2504,7 @@ prefix '/:layout_name' => sub {
                 {
                     $column->display_field(param 'display_field');
                     $column->display_regex(param 'display_regex');
+                    $column->display_matchtype(param 'display_matchtype');
                 }
                 else {
                     $column->display_field(undef);

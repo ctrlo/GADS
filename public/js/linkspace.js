@@ -612,9 +612,10 @@ var getFieldValues = function ($depends) {
  *
  */
 var setupDependentField = function () {
-    var $field   = this.field;
-    var $depends = this.dependsOn;
-    var regexp   = this.regexp;
+    var $field      = this.field;
+    var $depends    = this.dependsOn;
+    var regexp      = this.regexp;
+    var is_negative = this.is_negative;
 
     var some = function (set, test) {
         for (var i = 0, j = set.length; i < j; i++) {
@@ -628,7 +629,7 @@ var setupDependentField = function () {
     $depends.on('change', function (e) {
         var values = getFieldValues($depends);
         some(values, function (value) {
-            return regexp.test(value)
+            return is_negative ? !regexp.test(value) : regexp.test(value)
         }) ? $field.show() : $field.hide();
     });
 
@@ -638,14 +639,19 @@ var setupDependentField = function () {
 
 var setupDependentFields = function (context) {
     var fields = $('[data-has-dependency]').map(function () {
-        var dependence = $(this).data('has-dependency');
-        var pattern    = $(this).data('dependency');
-        var regexp     = (new RegExp("^" + base64.decode(pattern) + "$"))
+        var dependence  = $(this).data('has-dependency');
+        var pattern     = $(this).data('dependency');
+        var match_type  = $(this).data('dependency-type');
+        var is_negative = match_type.search('negative') > 0 ? true : false;
+        var regexp = match_type.search('exact') == 0
+            ? (new RegExp("^" + base64.decode(pattern) + "$"))
+            : (new RegExp(base64.decode(pattern)));
 
         return {
-            field     : $(this),
-            dependsOn : $('[data-column-id="' + dependence + '"]'),
-            regexp    : regexp
+            field       : $(this),
+            dependsOn   : $('[data-column-id="' + dependence + '"]'),
+            regexp      : regexp,
+            is_negative : is_negative
         };
     });
 

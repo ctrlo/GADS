@@ -661,6 +661,7 @@
     <div class="form-group" data-column-id="[% dispcol.id %]" data-column-type="[% dispcol.type %]" data-value-selector="[% dispcol.value_selector %]"
         [% dependency && 'data-has-dependency="' _ parent _ '"' %]
         [% (parent && dependency) && 'data-dependency="' _ dependency.regex_b64 _ '"' %]
+        [% (parent && dependency) && 'data-dependency-type="' _ dependency.display_matchtype _ '"' %]
         [% dispcol.multivalue && 'data-is-multivalue="true"' %]
         [% dispcol.readonly && 'data-is-readonly="true"' %]
     >
