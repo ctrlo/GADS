@@ -1344,6 +1344,15 @@ sub write
             }
         }
 
+        # Set any values that should take their values from the parent record.
+        # These are are set now so that any subsquent code values have their
+        # dependent values already set.
+        if ($self->parent_id && !$column->can_child && $column->userinput) # Calc values always unique
+        {
+            my $datum_parent = $self->parent->fields->{$column->id};
+            $datum->set_value($datum_parent->set_values, is_parent_value => 1);
+        }
+
         if ($self->doing_approval)
         {
             # See if the user has something that could be approved
@@ -1382,6 +1391,33 @@ sub write
             }
         }
         $child_unique = 1 if $column->can_child;
+    }
+
+    # Test duplicate unique calc values
+    foreach my $column ($self->layout->all)
+    {
+        next if !$column->has_cache || !$column->isunique;
+        my $datum = $self->fields->{$column->id};
+        if (
+            !$datum->blank # Not blank
+            && ($self->new_entry || $datum->changed) # and changed or a new entry
+            && (!$self->parent_id # either not a child
+                || grep {$_->can_child} $column->param_columns # or is a calc value that may be different to parent
+            )
+        )
+        {
+            $datum->re_evaluate;
+            # Check for other columns with this value.
+            foreach my $val (@{$datum->search_values_unique})
+            {
+                if (my $r = $self->find_unique($column, $val))
+                {
+                    # as_string() used as will be encoded on message display
+                    error __x(qq(Field "{field}" must be unique but value "{value}" already exists in record {id}),
+                        field => $column->name, value => $datum->as_string, id => $r->current_id);
+                }
+            }
+        }
     }
 
     # Check whether any values have been written to topics which cannot be
@@ -1544,14 +1580,6 @@ sub write_values
         next if $options{draft} && !$column->userinput;
 
         my $datum = $self->fields->{$column->id};
-        if ($self->parent_id && !$column->can_child && $column->userinput) # Calc values always unique
-        {
-            my $datum_parent = $self->parent->fields->{$column->id};
-            #$datum->current_id($self->current_id);
-            #$datum->record_id($self->record_id);
-            #$self->fields->{$column->id} = $datum;
-            $datum->set_value($datum_parent->set_values, is_parent_value => 1);
-        }
         next if $self->linked_id && $column->link_parent; # Don't write all values if this is a linked record
 
         if ($self->_need_rec || $options{update_only}) # For new records, $need_rec is only set if user has create permissions without approval
