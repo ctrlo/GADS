@@ -2114,10 +2114,11 @@ sub as_json
 }
 
 sub as_query
-{   my $self = shift;
+{   my ($self, %options) = @_;
     my @queries;
     foreach my $col ($self->layout->all(userinput => 1))
     {
+        next if $options{exclude} && $options{exclude} == $col->id;
         push @queries, $col->field."=".uri_escape_utf8($_)
             foreach @{$self->fields->{$col->id}->html_form};
     }

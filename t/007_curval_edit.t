@@ -164,6 +164,15 @@ foreach my $delete_not_used (0..1)
     $record->find_current_id($current_id);
     $curval_datum = $record->fields->{$curval->id};
     is($curval_datum->as_string, 'foo10; foo30', "Curval value contains new record");
+
+    # Check that autocur calc field is correct before main record write
+    $record->clear;
+    $record->find_current_id(3);
+    $curval_datum = $record->fields->{$curval->id};
+    $curval_datum->set_value([$curval_string->field."=foo10"]);
+    $curval_record = $curval_datum->values->[0]->{record};
+    is($curval_record->fields->{$curval_string->id}->as_string, 'foo10', "Curval value contains correct string value");
+    is($curval_record->fields->{$calc->id}->as_string, '50', "Curval value contains correct autocur before write");
 }
 
 done_testing();

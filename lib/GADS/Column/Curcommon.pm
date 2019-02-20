@@ -457,7 +457,15 @@ sub field_values
                         or panic __x"Missing field {name}. Was Records build with all fields?", name => $_->name;
                     $_->id => $row->fields->{$_->id}
                 } grep {
-                    $_->type !~ /(autocur|curval)/ # Prevent recursive loops
+                    # Prevent recursive loops. XXX Is there a better way? We
+                    # don't include curval and autocurs, as they may refer back
+                    # to this field, and we don't include calc and rag fields,
+                    # as they can also have input fields that refer back to
+                    # this (e.g. curval has a code field, the code field has an
+                    # autocur field, the autocur refers back to the curval). It
+                    # would be better of finding some way of spotting that
+                    # recursion is happening and stopping it then.
+                    $_->type !~ /(autocur|curval|calc|rag)/ # Prevent recursive loops
                 } @{$self->curval_fields_retrieve(all_fields => $params{all_fields})}
             },
         } @return

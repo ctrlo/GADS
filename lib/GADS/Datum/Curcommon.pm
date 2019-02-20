@@ -29,13 +29,35 @@ extends 'GADS::Datum';
 with 'GADS::Role::Presentation::Datum::Curcommon';
 
 after set_value => sub {
-    my ($self, $value) = @_;
+    my ($self, $value, %options) = @_;
+
+    # Ensure we don't accidentally set an autocur
+    panic "Records passed to autocur set_value"
+        if $self->column->type eq 'autocur' && !$options{allow_set_autocur};
+
     my $clone   = $self->clone; # Copy before changing text
     my @values  = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
+    my @records = grep { ref $_ eq 'GADS::Record' } @values;
+    @values     = grep { ref $_ ne 'GADS::Record' } @values;
     my @ids     = grep { $_ =~ /^[0-9]+$/ } @values; # Submitted curval IDs of existing records
     my @queries = grep { $_ !~ /^[0-9]+$/ } @values; # New curval records or changes to existing ones
     my @old_ids = sort @{$self->ids};
+
+    panic "Records cannot be mixed with other set values"
+        if @records && (@ids || @queries);
+
     my $changed;
+    $self->clear_values_as_records;
+
+    if (@records)
+    {
+        $self->_set_values_as_records(\@records);
+        @ids = map { $_->current_id => 1 } grep { !$_->new_entry } @records;
+        # Exclude the parent curval to prevent recursive loops
+        my @queries = map { $_->as_query(exclude => $options{exclude}) } grep { $_->new_entry } @records;
+        $self->_set_values_as_query(\@queries);
+        $self->clear_values_as_query_records; # Rebuild for new queries
+    }
 
     if (@queries)
     {
@@ -98,7 +120,7 @@ sub _build__init_value_hash
             ids     => \@ids,
         };
     }
-    elsif ($self->column->type eq 'autocur') # Would be nice to abstract to autocur class
+    elsif ($self->column->type eq 'autocur' && !$self->values_as_records) # Would be nice to abstract to autocur class
     {
         my @values = $self->column->fetch_multivalues([$self->record->record_id]);
         @values = map { $_->{value} } @values;
@@ -125,6 +147,18 @@ sub _build_values
     if ($self->_init_value_hash->{records})
     {
         @return = map { $self->column->_format_row($_) } @{$self->_init_value_hash->{records}};
+    }
+    elsif ($self->values_as_records)
+    {
+        foreach my $rec (@{$self->values_as_records})
+        {
+            push @return, +{
+                id       => !$rec->new_entry && $rec->current_id,
+                as_query => $rec->new_entry && $rec->as_query,
+                values   => $self->column->_format_row($rec)->{values},
+                record   => $rec,
+            };
+        }
     }
     elsif (@{$self->ids} || @{$self->values_as_query}) {
         @return = $self->column->ids_to_values($self->ids, fatal => 1);
@@ -298,7 +332,7 @@ sub _build_values_as_query_records
         else {
             $record->initialise;
         }
-        foreach my $col ($self->column->layout_parent->all(user_can_write_new => 1))
+        foreach my $col ($self->column->layout_parent->all(user_can_write_new => 1, userinput => 1))
         {
             my $newv = $params->{$col->field};
             # I can't find anything in official Jquery documentation, but
@@ -309,11 +343,26 @@ sub _build_values_as_query_records
             $record->fields->{$col->id}->set_value(\@newv)
                 if defined $params->{$col->field} && $col->userinput && defined $newv;
         }
+        # Update any autocur fields with this record, so that the value can be
+        # used immediately, without having to first write this record
+        foreach my $col ($self->column->layout_parent->all(user_can_write_new => 1))
+        {
+            next unless $col->type eq 'autocur';
+            my $datum = $record->fields->{$col->id};
+            my @records = map { $_->{record} } @{$datum->values};
+            push @records, $self->record;
+            $datum->set_value(\@records, allow_set_autocur => 1, exclude => $self->column->id);
+        }
         $record->set_blank_dependents; # XXX Move to write() once back/forward functionality rewritten?
         push @records, $record;
     }
     \@records;
 }
+
+has values_as_records => (
+    is      => 'rwp',
+    clearer => 1,
+);
 
 around 'clone' => sub {
     my $orig = shift;
