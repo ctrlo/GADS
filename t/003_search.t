@@ -809,6 +809,21 @@ my @filters = (
         layout      => $curval_sheet->layout,
     },
     {
+        name  => 'Search for invalid autocur',
+        columns => [$curval_columns->{autocur1}->id],
+        rules => [
+            {
+                id       => $curval_columns->{autocur1}->id,
+                type     => 'string',
+                value    => 'Foobar',
+                operator => 'equal',
+            },
+        ],
+        count     => 0,
+        no_errors => 1,
+        layout    => $curval_sheet->layout,
+    },
+    {
         name  => 'Search by record ID',
         columns => [$columns->{string1}->id],
         rules => [

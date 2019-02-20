@@ -273,23 +273,6 @@ sub validate
     1;
 }
 
-sub validate_search
-{   my $self = shift;
-    my ($value, %options) = @_;
-    if (!$value)
-    {
-        return 0 unless $options{fatal};
-        error __x"Search value cannot be blank for {col}.",
-            col => $self->name;
-    }
-    elsif ($value !~ /^[0-9]+$/) {
-        return 0 unless $options{fatal};
-        error __x"Search value must be an ID number for {col}.",
-            col => $self->name;
-    }
-    1;
-}
-
 sub fetch_multivalues
 {   my ($self, $record_ids, %options) = @_;
 
