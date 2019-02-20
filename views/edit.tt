@@ -117,7 +117,7 @@
         <p role="alert" class="alert alert-danger" hidden></p>
     [% END %]
     <div class="row">
-        <div class="[% IF modal %]col-md-12[% ELSE %]col-md-6[% END %]">
+        <div class="[% IF modal OR layout.max_width == 100 %]col-md-12[% ELSE %]col-md-6[% END %]">
             [% IF cur_id %]
                 <input type="hidden" name="current_id" value="[% record.current_id %]">
             [% END %]
@@ -661,6 +661,7 @@
     <div class="form-group" data-column-id="[% dispcol.id %]" data-column-type="[% dispcol.type %]" data-value-selector="[% dispcol.value_selector %]"
         [% dependency && 'data-has-dependency="' _ parent _ '"' %]
         [% (parent && dependency) && 'data-dependency="' _ dependency.regex_b64 _ '"' %]
+        [% (parent && dependency) && 'data-dependency-type="' _ dependency.display_matchtype _ '"' %]
         [% dispcol.multivalue && 'data-is-multivalue="true"' %]
         [% dispcol.readonly && 'data-is-readonly="true"' %]
     >
@@ -743,7 +744,7 @@
 [% BLOCK print_field %]
     <div class="input_holder" >
         <div class="row">
-            <div class="[% IF dispcol.multivalue AND dispcol.has_multivalue_plus %]col-md-10[% ELSE %]col-md-12[% END %]">
+            <div class="col-md-[% dispcol.widthcols %]">
                 [% IF dispcol.type == "enum" %]
                     [% PROCESS enum_column column = dispcol %]
                 [% ELSIF dispcol.type == "curval" %]
@@ -961,8 +962,8 @@
         <tbody>
             [% FOREACH val IN editvalue.html_form %]
                 <tr class="curval_item">
-                    [% FOREACH v IN val.values %]
-                        <td class="curval-inner-text">[% v | html %]</td>
+                    [% FOREACH col IN val.presentation.columns %]
+                        <td class="curval-inner-text [% col.type %]">[% render_datum(col) %]</td>
                     [% END %]
                     <td>
                         <input type="hidden" id="curval-current-id-[% val.id %]" name="[% field %]" value="[% val.as_query OR val.id %]">

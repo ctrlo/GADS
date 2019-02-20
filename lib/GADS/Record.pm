@@ -102,7 +102,8 @@ has user => (
 );
 
 has record => (
-    is => 'rw',
+    is      => 'rw',
+    clearer => 1,
 );
 
 # Subroutine to create a slightly more advanced predication for "record" above
@@ -133,16 +134,10 @@ sub _build_linked_record
     $linked;
 }
 
-has record_created => (
-    is => 'lazy',
+has set_record_created => (
+    is      => 'rw',
+    clearer => 1,
 );
-
-sub _build_record_created
-{   my $self = shift;
-    $self->schema->resultset('Record')->search({
-        current_id => $self->current_id,
-    })->get_column('created')->min;
-}
 
 # Whether to retrieve all columns for this set of records. Needed when going to
 # be writing to the records, to ensure that calc fields are retrieved to
@@ -632,6 +627,7 @@ sub find_unique
 
 sub clear
 {   my $self = shift;
+    $self->clear_record;
     $self->clear_current_id;
     $self->clear_record_id;
     $self->clear_linked_id;
@@ -642,6 +638,7 @@ sub clear
     $self->clear_fields;
     $self->clear_createdby;
     $self->clear_created;
+    $self->clear_set_record_created,
     $self->clear_is_historic;
     $self->clear_new_entry;
     $self->clear_layout;
@@ -985,7 +982,15 @@ sub _transform_values
     );
     my $createdby_col = $self->layout->column_by_name_short('_version_user');
     $fields->{$createdby_col->id} = $self->_person($original->{createdby}, $createdby_col);
+
     my $record_created_col = $self->layout->column_by_name_short('_created');
+    my $record_created = $self->set_record_created;
+    if (!$record_created)
+    {
+        $record_created = $self->schema->resultset('Record')->search({
+            current_id => $self->current_id,
+        })->get_column('created')->min;
+    }
     $fields->{$record_created_col->id} = GADS::Datum::Date->new(
         record           => $self,
         record_id        => $self->record_id,
@@ -993,8 +998,9 @@ sub _transform_values
         column           => $record_created_col,
         schema           => $self->schema,
         layout           => $self->layout,
-        init_value       => [ { value => $self->record_created } ],
+        init_value       => [ { value => $record_created } ],
     );
+
     my $serial_col = $self->layout->column_by_name_short('_serial');
     $fields->{$serial_col->id} = GADS::Datum::Serial->new(
         record           => $self,
@@ -1338,6 +1344,15 @@ sub write
             }
         }
 
+        # Set any values that should take their values from the parent record.
+        # These are are set now so that any subsquent code values have their
+        # dependent values already set.
+        if ($self->parent_id && !$column->can_child && $column->userinput) # Calc values always unique
+        {
+            my $datum_parent = $self->parent->fields->{$column->id};
+            $datum->set_value($datum_parent->set_values, is_parent_value => 1);
+        }
+
         if ($self->doing_approval)
         {
             # See if the user has something that could be approved
@@ -1376,6 +1391,33 @@ sub write
             }
         }
         $child_unique = 1 if $column->can_child;
+    }
+
+    # Test duplicate unique calc values
+    foreach my $column ($self->layout->all)
+    {
+        next if !$column->has_cache || !$column->isunique;
+        my $datum = $self->fields->{$column->id};
+        if (
+            !$datum->blank # Not blank
+            && ($self->new_entry || $datum->changed) # and changed or a new entry
+            && (!$self->parent_id # either not a child
+                || grep {$_->can_child} $column->param_columns # or is a calc value that may be different to parent
+            )
+        )
+        {
+            $datum->re_evaluate;
+            # Check for other columns with this value.
+            foreach my $val (@{$datum->search_values_unique})
+            {
+                if (my $r = $self->find_unique($column, $val))
+                {
+                    # as_string() used as will be encoded on message display
+                    error __x(qq(Field "{field}" must be unique but value "{value}" already exists in record {id}),
+                        field => $column->name, value => $datum->as_string, id => $r->current_id);
+                }
+            }
+        }
     }
 
     # Check whether any values have been written to topics which cannot be
@@ -1538,14 +1580,6 @@ sub write_values
         next if $options{draft} && !$column->userinput;
 
         my $datum = $self->fields->{$column->id};
-        if ($self->parent_id && !$column->can_child && $column->userinput) # Calc values always unique
-        {
-            my $datum_parent = $self->parent->fields->{$column->id};
-            #$datum->current_id($self->current_id);
-            #$datum->record_id($self->record_id);
-            #$self->fields->{$column->id} = $datum;
-            $datum->set_value($datum_parent->set_values, is_parent_value => 1);
-        }
         next if $self->linked_id && $column->link_parent; # Don't write all values if this is a linked record
 
         if ($self->_need_rec || $options{update_only}) # For new records, $need_rec is only set if user has create permissions without approval
@@ -2075,7 +2109,7 @@ sub as_query
     my @queries;
     foreach my $col ($self->layout->all(userinput => 1))
     {
-        push @queries, $col->field."=".uri_escape($_)
+        push @queries, $col->field."=".uri_escape_utf8($_)
             foreach @{$self->fields->{$col->id}->html_form};
     }
     return join '&', @queries;
@@ -2086,6 +2120,7 @@ sub pdf
 
     my $dateformat = GADS::Config->instance->dateformat;
     my $now = DateTime->now->format_cldr($dateformat)." at ".DateTime->now->hms;
+    $now->set_time_zone('Europe/London');
     my $updated = $self->created->format_cldr($dateformat)." at ".$self->created->hms;
 
     my $pdf = CtrlO::PDF->new(

@@ -77,6 +77,13 @@
         <input type="text" class="form-control" id="name_short" name="name_short" value="[% column.name_short | html_entity %]">
     </div>
     <div class="form-group">
+        <label for="width">Width of form field:</label>
+        <select class="form-control" id="width" name="width">
+            <option value="50" [% IF NOT column.width OR column.width == "50" %]selected[% END %]>Half-width</option>
+            <option value="100" [% IF column.width == "100" %]selected[% END %]>Full-width</option>
+        </select>
+    </div>
+    <div class="form-group">
         <label for="link_parent_id">Link to a field in another table:</label>
         [% IF instance_layouts.size %]
             <select class="form-control" id="link_parent_id" name="link_parent_id">
@@ -144,7 +151,14 @@
                 </select>
             </div>
             <div class="form-group col-md-12">
-                matches
+                <select class="form-control" id="display_matchtype" name="display_matchtype">
+                    <option value="exact" [% IF column.display_matchtype == "exact" %]selected[% END %]>matches exactly</option>
+                    <option value="contains" [% IF column.display_matchtype == "contains" %]selected[% END %]>contains</option>
+                    <option value="exact_negative" [% IF column.display_matchtype == "exact_negative" %]selected[% END %]>exactly does not match</option>
+                    <option value="contains_negative" [% IF column.display_matchtype == "contains_negative" %]selected[% END %]>does not contain</option>
+                </select>
+            </div>
+            <div class="form-group col-md-12">
                 <label for="display_regex">pattern</label>
                 [% whats_this('modalhelp_match') %]
                 <input type="text" class="form-control" id="display_regex" name="display_regex" value="[% column.display_regex | html_entity %]">

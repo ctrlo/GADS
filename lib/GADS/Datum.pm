@@ -174,7 +174,15 @@ sub dependent_not_shown
         or return 0;
     my $display_regex = $self->column->display_regex;
     return 0 if !$self->record->fields->{$display_field_id};
-    $self->record->fields->{$display_field_id}->value_regex_test !~ /^$display_regex$/;
+    my $matchtype = $self->column->display_matchtype;
+    $display_regex = '^'.$display_regex.'$'
+        if $matchtype =~ /exact/;
+    my $value = $self->record->fields->{$display_field_id}->value_regex_test;
+    if ($matchtype =~ /negative/) {
+        return $value =~ /$display_regex/;
+    } else {
+        return $value !~ /$display_regex/;
+    }
 }
 
 sub clone
@@ -206,10 +214,13 @@ sub _date_for_code
 {   my ($self, $value) = @_;
     $value or return undef;
     +{
-        year  => $value->year,
-        month => $value->month,
-        day   => $value->day,
-        epoch => $value->epoch,
+        year   => $value->year,
+        month  => $value->month,
+        day    => $value->day,
+        hour   => $value->hour,
+        minute => $value->minute,
+        second => $value->second,
+        epoch  => $value->epoch,
     };
 }
 

@@ -403,6 +403,7 @@ sub html_form
         # New entries may have a current ID from a failed database write, but
         # don't use
         delete $val->{id} if $val->{record}->new_entry;
+        $val->{presentation} = $val->{record}->presentation(@{$self->column->curval_fields});
         push @return, $val;
     }
     return \@return;

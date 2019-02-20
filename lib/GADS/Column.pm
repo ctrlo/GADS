@@ -365,6 +365,27 @@ has description => (
     isa => Maybe[Str],
 );
 
+has width => (
+    is  => 'rw',
+    isa => Int,
+);
+
+has widthcols => (
+    is => 'lazy',
+);
+
+sub _build_widthcols
+{   my $self = shift;
+    my $multiplus = $self->multivalue && $self->has_multivalue_plus;
+    if ($self->layout->max_width == 100 && $self->width == 50)
+    {
+        return $multiplus ? 4 : 6;
+    }
+    else {
+        return $multiplus ? 10 : 12;
+    }
+}
+
 has topic_id => (
     is     => 'rw',
     isa    => Maybe[Int],
@@ -384,6 +405,12 @@ sub _build_topic
 has display_field => (
     is  => 'rw',
     isa => Maybe[Int],
+);
+
+has display_matchtype => (
+    is     => 'rw',
+    isa    => Str,
+    coerce => sub { $_[0] || "exact" }, # default
 );
 
 has display_regex => (
@@ -671,9 +698,11 @@ sub build_values
     my $options = $original->{options} ? decode_json($original->{options}) : {};
     $self->_set_options($options);
     $self->description($original->{description});
+    $self->width($original->{width});
     $self->field("field$original->{id}");
     $self->type($original->{type});
     $self->display_field($original->{display_field});
+    $self->display_matchtype($original->{display_matchtype});
     $self->display_regex($original->{display_regex});
 
     # XXX Move to curval class
@@ -919,21 +948,23 @@ sub write
         }
     }
 
-    $newitem->{topic_id}      = $self->topic_id;
-    $newitem->{optional}      = $self->optional;
-    $newitem->{remember}      = $self->remember;
-    $newitem->{isunique}      = $self->isunique;
-    $newitem->{can_child}     = $self->set_can_child if $self->has_set_can_child;
-    $newitem->{filter}        = $self->filter->as_json;
-    $newitem->{multivalue}    = $self->multivalue if $self->can_multivalue;
-    $newitem->{description}   = $self->description;
-    $newitem->{helptext}      = $self->helptext;
-    $newitem->{options}       = encode_json($self->options);
-    $newitem->{link_parent}   = $self->link_parent_id;
-    $newitem->{display_field} = $self->display_field;
-    $newitem->{display_regex} = $self->display_regex;
-    $newitem->{instance_id}   = $self->layout->instance_id;
-    $newitem->{position}      = $self->position
+    $newitem->{topic_id}          = $self->topic_id;
+    $newitem->{optional}          = $self->optional;
+    $newitem->{remember}          = $self->remember;
+    $newitem->{isunique}          = $self->isunique;
+    $newitem->{can_child}         = $self->set_can_child if $self->has_set_can_child;
+    $newitem->{filter}            = $self->filter->as_json;
+    $newitem->{multivalue}        = $self->multivalue if $self->can_multivalue;
+    $newitem->{description}       = $self->description;
+    $newitem->{width}             = $self->width || 50;
+    $newitem->{helptext}          = $self->helptext;
+    $newitem->{options}           = encode_json($self->options);
+    $newitem->{link_parent}       = $self->link_parent_id;
+    $newitem->{display_field}     = $self->display_field;
+    $newitem->{display_matchtype} = $self->display_matchtype;
+    $newitem->{display_regex}     = $self->display_regex;
+    $newitem->{instance_id}       = $self->layout->instance_id;
+    $newitem->{position}          = $self->position
         if $self->position; # Used on layout import
 
     my ($new_id, $rset);
@@ -1248,12 +1279,18 @@ sub import_hash
     notice __x"Update: description from {old} to {new}", old => $self->description, new => $values->{description}
         if $report && $self->description ne $values->{description};
     $self->description($values->{description});
+    notice __x"Update: width from {old} to {new}", old => $self->width, new => $values->{width}
+        if $report && $self->width != $values->{width};
+    $self->width($values->{width});
     notice __x"Update: helptext from {old} chars to {new} chars", old => length($self->helptext), new => length($values->{helptext})
         if $report && $self->helptext ne $values->{helptext};
     $self->helptext($values->{helptext});
     notice __x"Update: display_regex from {old} to {new}", old => $self->display_regex, new => $values->{display_regex}
         if $report && ($self->display_regex || '') ne ($values->{display_regex} || '');
     $self->display_regex($values->{display_regex});
+    notice __x"Update: display_matchtype from {old} to {new}", old => $self->display_matchtype, new => $values->{display_matchtype}
+        if $report && ($self->display_matchtype || '') ne ($values->{display_matchtype} || '');
+    $self->display_matchtype($values->{display_matchtype});
     notice __x"Update: multivalue from {old} to {new}", old => $self->multivalue, new => $values->{multivalue}
         if $report && $self->multivalue != $values->{multivalue};
     $self->multivalue($values->{multivalue});
@@ -1278,23 +1315,25 @@ sub export_hash
         push @{$permissions->{$perm->group_id}}, $perm->permission;
     }
     my $return = {
-        id            => $self->id,
-        type          => $self->type,
-        name          => $self->name,
-        name_short    => $self->name_short,
-        topic_id      => $self->topic_id,
-        optional      => $self->optional,
-        remember      => $self->remember,
-        isunique      => $self->isunique,
-        can_child     => $self->can_child,
-        position      => $self->position,
-        description   => $self->description,
-        helptext      => $self->helptext,
-        display_field => $self->display_field,
-        display_regex => $self->display_regex,
-        link_parent   => $self->link_parent && $self->link_parent->id,
-        multivalue    => $self->multivalue,
-        filter        => $self->filter->as_json,
+        id                => $self->id,
+        type              => $self->type,
+        name              => $self->name,
+        name_short        => $self->name_short,
+        topic_id          => $self->topic_id,
+        optional          => $self->optional,
+        remember          => $self->remember,
+        isunique          => $self->isunique,
+        can_child         => $self->can_child,
+        position          => $self->position,
+        description       => $self->description,
+        width             => $self->width,
+        helptext          => $self->helptext,
+        display_field     => $self->display_field,
+        display_matchtype => $self->display_matchtype,
+        display_regex     => $self->display_regex,
+        link_parent       => $self->link_parent && $self->link_parent->id,
+        multivalue        => $self->multivalue,
+        filter            => $self->filter->as_json,
         permissions   => $permissions,
     };
     foreach my $option (@{$self->option_names})

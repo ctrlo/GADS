@@ -2495,7 +2495,7 @@ prefix '/:layout_name' => sub {
                 $column->set_permissions(\%permissions);
 
                 $column->$_(param $_)
-                    foreach (qw/name name_short description helptext optional isunique set_can_child multivalue remember link_parent_id topic_id/);
+                    foreach (qw/name name_short description helptext optional isunique set_can_child multivalue remember link_parent_id topic_id width/);
                 $column->type(param 'type')
                     unless param('id'); # Can't change type as it would require DBIC resultsets to be removed and re-added
                 $column->$_(param $_)
@@ -2504,6 +2504,7 @@ prefix '/:layout_name' => sub {
                 {
                     $column->display_field(param 'display_field');
                     $column->display_regex(param 'display_regex');
+                    $column->display_matchtype(param 'display_matchtype');
                 }
                 else {
                     $column->display_field(undef);
@@ -3274,6 +3275,11 @@ sub _page_as_mech
         ");
     }
     $mech->get_local($filename);
+    # Sometimes the timeline does not render properly (it is completely blank).
+    # This only seems to happen in certain views, but adding a brief sleep
+    # seems to fix ti - maybe things are going out of scope before PhantomJS has
+    # finished its work?
+    sleep 1;
     unlink $filename;
     return $mech;
 }
