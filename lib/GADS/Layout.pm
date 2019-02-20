@@ -727,6 +727,10 @@ sub columns_for_filter
         {
             foreach my $c ($col->layout_parent->all(%restriction))
             {
+                # No point including autocurs for a filter - it just refers
+                # back to the same record, so the filter should be done
+                # directly on it instead
+                next if $c->type eq 'autocur';
                 $c->filter_id($col->id.'_'.$c->id);
                 $c->filter_name($col->name.' ('.$c->name.')');
                 push @columns, $c;
