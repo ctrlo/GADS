@@ -819,7 +819,7 @@
                                     </li>
                                 [% END %]
                             </ul>
-                            <input type="file">
+                            <input type="file" name="file" multiple>
                         </div>
                     [% END %]
                 [% ELSIF dispcol.type == "daterange" %]

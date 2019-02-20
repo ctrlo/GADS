@@ -612,6 +612,7 @@ var setupFileUpload = function (context) {
         $el.fileupload({
             dataType: 'json',
             url: url,
+            paramName: "file",
             done: function (e, data) {
                 // TODO: Grab the id and the name from the returned `data`
                 var fileId = 55;
