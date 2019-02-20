@@ -139,15 +139,6 @@ has set_record_created => (
     clearer => 1,
 );
 
-# Whether to retrieve all columns for this set of records. Needed when going to
-# be writing to the records, to ensure that calc fields are retrieved to
-# subsequently write to
-has retrieve_all_columns => (
-    is      => 'rw',
-    isa     => Bool,
-    default => 0,
-);
-
 has curcommon_all_fields => (
     is      => 'ro',
     isa     => Bool,
@@ -169,6 +160,26 @@ has base_url => (
 has columns => (
     is      => 'rw',
 );
+
+sub has_fields
+{   my ($self, $field_ids) = @_;
+    foreach my $id (@$field_ids)
+    {
+        return 0 if !$self->_columns_retrieved_index->{$id};
+    }
+    return 1;
+}
+
+has _columns_retrieved_index => (
+    is  => 'lazy',
+    isa => HashRef,
+);
+
+sub _build__columns_retrieved_index
+{   my $self = shift;
+    panic "test" if !$self->columns_retrieved_do;
+    +{ map { $_->id => 1 } @{$self->columns_retrieved_do} };
+}
 
 # XXX Can we not reference the parent Records entry somehow
 # or vice-versa?
@@ -671,9 +682,6 @@ sub _find
 
     $self->columns_retrieved_do($records->columns_retrieved_do);
     $self->columns_retrieved_no($records->columns_retrieved_no);
-    # If we ended up fetching all columns in the Records object, then reflect
-    # that in this object
-    $self->retrieve_all_columns(1) if $records->retrieve_all_columns;
 
     my $record = {}; my $limit = 10; my $page = 1; my $first_run = 1;
     while (1)
@@ -955,8 +963,9 @@ sub _transform_values
             schema           => $self->schema,
             layout           => $self->layout,
         );
-        # Force all columns to be retrieved if it's a curcommon field and this
-        # record has the flag saying they need to be
+        # For curcommon fields, flag that this field has had all its columns if
+        # that is what has happened. Then we know during any later process of
+        # this column that there is no need to retrieve any other columns
         $column->retrieve_all_columns(1)
             if $self->curcommon_all_fields && $column->is_curcommon;
         $fields->{$column->id} = $column->class->new(%params);
@@ -1046,7 +1055,7 @@ sub initialise
     {
         $fields->{$column->id} = $self->initialise_field($column->id);
     }
-    $self->retrieve_all_columns(1);
+    $self->columns_retrieved_do([ $self->layout->all(include_internal => 1) ]);
     $self->fields($fields);
 }
 

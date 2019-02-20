@@ -267,15 +267,6 @@ has columns_extra => (
     is => 'rw',
 );
 
-# Whether to retrieve all columns for this set of records. Needed when going to
-# be writing to the records, to ensure that calc fields are retrieved to
-# subsequently write to
-has retrieve_all_columns => (
-    is      => 'rw',
-    isa     => Bool,
-    default => 0,
-);
-
 # Value containing the actual columns retrieved.
 # In "normal order" as per layout.
 has columns_retrieved_no => (
@@ -933,7 +924,6 @@ sub _build_results
             set_deletedby        => $rec->{deletedby},
             set_record_created   => $rec->{record_created},
             curcommon_all_fields => $self->curcommon_all_fields,
-            retrieve_all_columns => $self->retrieve_all_columns,
         );
         push @record_ids, $rec->{record_single}->{id};
         push @record_ids, $rec->{linked}->{record_single}->{id}
@@ -1202,7 +1192,7 @@ sub _build_columns_retrieved_do
     # this stage, we keep track of what we've added, so that we
     # can act accordingly during the filters
     my @columns;
-    if (!$self->retrieve_all_columns && $self->columns)
+    if ($self->columns)
     {
         # The columns property can contain straight column IDs or hash refs
         # containing the column ID as well as more information, such as the
@@ -1214,7 +1204,7 @@ sub _build_columns_retrieved_do
         my %col_ids = map { $_ => 1 } @col_ids;
         @columns = grep { $col_ids{$_->id} } $layout->all(order_dependencies => 1);
     }
-    elsif (!$self->retrieve_all_columns && $self->view)
+    elsif ($self->view)
     {
         @columns = $layout->view(
             $self->view->id,
@@ -1236,7 +1226,6 @@ sub _build_columns_retrieved_do
             remembered_only    => $self->remembered_only,
             order_dependencies => 1,
         );
-        $self->retrieve_all_columns(1);
     }
     foreach my $c (@columns)
     {

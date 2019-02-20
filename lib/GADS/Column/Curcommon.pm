@@ -174,11 +174,25 @@ sub _build_curval_field_ids_all
     return [map { $_->id } @curval_field_ids];
 }
 
+sub curval_field_ids_retrieve
+{   my ($self, %options) = @_;
+    [ map { $_->id } @{$self->curval_fields_retrieve(%options)} ];
+}
+
+# Work out the columns we need to retrieve for the records that are a part of
+# this value. We try and retrieve the minimum possible. This may be just the
+# selected columns of the field, or it may need more: in the case of a curval
+# we need may need all columns for an edit, or if the value is being used
+# within a calc field then we will also need more. XXX This could be further
+# improved, so as only retrieving the code fields that are needed.
 sub curval_fields_retrieve
 {   my ($self, %options) = @_;
-    $options{all_fields}
-        ? $self->curval_fields_all
-        : $self->curval_fields;
+    return $self->curval_fields if !$options{all_fields};
+    return $self->curval_fields_all
+        if $self->type eq 'curval' || $self->schema->resultset('LayoutDepend')->search({
+            depends_on => $self->id,
+        })->count;
+    return $self->curval_fields;
 };
 
 has curval_fields_all => (
@@ -280,8 +294,7 @@ sub _records_from_db
         view                 => $view,
         layout               => $layout,
         schema               => $self->schema,
-        columns              => $self->curval_field_ids,
-        retrieve_all_columns => $self->retrieve_all_columns,
+        columns              => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns),
         limit_current_ids    => $ids,
         # Sort on all columns displayed as the Curval. Don't do all columns
         # retrieved, as this could include a whole load of multivalues which
@@ -405,9 +418,15 @@ sub field_values
         # We have full database rows, so now let's see if any of them were not
         # build with the all columns flag.
         # Those that need to be retrieved
-        @need_ids = map { $_->current_id } grep { !$_->retrieve_all_columns } @{$params{rows}};
+        @need_ids = map {
+            $_->current_id
+        } grep {
+            !$_->has_fields($self->curval_field_ids_retrieve(all_fields => $params{all_fields}))
+        } @{$params{rows}};
         # Those that don't can be added straight to the return array
-        @return = grep { $_->retrieve_all_columns } @{$params{rows}};
+        @return = grep {
+            $_->has_fields($self->curval_field_ids_retrieve(all_fields => $params{all_fields}))
+        } @{$params{rows}};
     }
     elsif ($params{all_fields})
     {

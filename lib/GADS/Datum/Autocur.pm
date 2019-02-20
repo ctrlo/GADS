@@ -47,13 +47,7 @@ sub _transform_value
             record               => $r->{current}->{record_single},
             linked_id            => $r->{current}->{linked_id},
             parent_id            => $r->{current}->{parent_id},
-            # Although we specify retrieve_all_columns below, because we are
-            # supplying the record data (and not expecting this object to
-            # retrieve it) we also need to say which columns were retrieved. We
-            # take into account the all_columns flag for this
             columns_retrieved_do => $self->column->curval_fields_retrieve(all_fields => $self->column->retrieve_all_columns),
-            # Also flag the record as to whether all columns were retrieved
-            retrieve_all_columns => $self->column->retrieve_all_columns,
         );
         $id = $r->{current_id};
     }
