@@ -808,7 +808,7 @@
                             <p class="help-block">No current file (read-only field, cannot be updated).</p>
                         [% END %]
                     [% ELSE %]
-                        <div class="fileupload" data-field="[% field %]" data-fileupload-url="/files">
+                        <div class="fileupload" data-field="[% field %]" data-fileupload-url="/file?ajax=1">
                             [%# Ensure something gets sent back to show it's been displayed %]
                             <input type="hidden" name="[% field %]">
                             <ul class="fileupload__files">

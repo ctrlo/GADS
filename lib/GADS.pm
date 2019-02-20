@@ -1082,8 +1082,10 @@ post '/file/?' => require_login sub {
             if ($ajax)
             {
                 return encode_json({
-                    url   => "/file/".$file->id,
-                    is_ok => 1,
+                    id       => $file->id,
+                    filename => $upload->filename,
+                    url      => "/file/".$file->id,
+                    is_ok    => 1,
                 });
             }
             else {
