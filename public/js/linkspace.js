@@ -614,9 +614,8 @@ var setupFileUpload = function (context) {
             url: url,
             paramName: "file",
             done: function (e, data) {
-                // TODO: Grab the id and the name from the returned `data`
-                var fileId = 55;
-                var fileName = "demo.pdf";
+                var fileId = data.result.url.split("/").pop();
+                var fileName = data.files[0].name;
 
                 var $li = $('<li class="help-block"><input type="checkbox" name="' + field + '" value="' + fileId + '" checked>Include file. Current file name: ' + fileName + '.</li>');
                 $ul.append($li);
