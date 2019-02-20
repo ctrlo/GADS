@@ -723,7 +723,7 @@ sub columns_for_filter
     foreach my $col ($self->all(%restriction))
     {
         push @columns, $col;
-        if ($col->type eq 'curval')
+        if ($col->is_curcommon)
         {
             foreach my $c ($col->layout_parent->all(%restriction))
             {
