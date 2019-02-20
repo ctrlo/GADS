@@ -96,6 +96,35 @@ after clear => sub {
     $self->clear_data_filter_fields;
 };
 
+# Used to see whether we can filter yet using any filters defined for the
+# curval field. If the filter contains values of the parent record, then that
+# parent record needs to be set first
+sub filter_view_is_ready
+{   my $self = shift;
+    return !!$self->view;
+}
+
+has view => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_view
+{   my $self = shift;
+    my $view = GADS::View->new(
+        instance_id => $self->refers_to_instance_id,
+        filter      => $self->filter,
+        layout      => $self->layout_parent,
+        schema      => $self->schema,
+        user        => undef,
+    );
+    # Replace any "special" $short_name values with their actual value from the
+    # record. If sub_values fails (due to record not being ready yet), then the
+    # view is not built
+    return unless $view->filter->sub_values($self->layout);
+    return $view;
+}
+
 # Whether this field has subbed in values from other parts of the record in its
 # filter
 has has_subvals => (

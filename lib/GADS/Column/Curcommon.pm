@@ -222,27 +222,6 @@ sub has_curval_field
     exists $self->curval_field_ids_index->{$field};
 }
 
-has view => (
-    is      => 'lazy',
-    clearer => 1,
-);
-
-sub _build_view
-{   my $self = shift;
-    my $view = GADS::View->new(
-        instance_id => $self->refers_to_instance_id,
-        filter      => $self->filter,
-        layout      => $self->layout_parent,
-        schema      => $self->schema,
-        user        => undef,
-    );
-    # Replace any "special" $short_name values with their actual value from the
-    # record. If sub_values fails (due to record not being ready yet), then the
-    # view is not built
-    return unless $view->filter->sub_values($self->layout);
-    return $view;
-}
-
 has all_ids => (
     is  => 'lazy',
     isa => ArrayRef,
@@ -538,9 +517,9 @@ sub _build_layout_parent
 
 sub values_beginning_with
 {   my ($self, $match) = @_;
-    $self->view or return; # Record not ready yet in sub_values
+    return if !$self->filter_view_is_ready; # Record not ready yet in sub_values
     # First create a view to search for this value in the column.
-    my @rules = map {
+    my @conditions = map {
         +{
             field    => $_->id,
             id       => $_->id,
@@ -549,16 +528,18 @@ sub values_beginning_with
             operator => $_->return_type eq 'string' ? 'begins_with' : 'equal',
         },
     } @{$self->curval_fields};
+    my @rules = (
+        {
+            condition => 'OR',
+            rules     => [@conditions],
+        },
+    );
+    push @rules, $self->view->filter->as_hash
+        if $self->view;
     my $filter = GADS::Filter->new(
         as_hash => {
             condition => 'AND',
-            rules     => [
-                {
-                    condition => 'OR',
-                    rules     => [@rules],
-                },
-                $self->view->filter->as_hash,
-            ],
+            rules     => \@rules,
         },
         layout => $self->layout_parent,
     );

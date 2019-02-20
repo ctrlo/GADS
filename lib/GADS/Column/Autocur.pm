@@ -145,6 +145,20 @@ sub write_special
 # update-cached. This makes sure that it does nothing silently
 sub update_cached {}
 
+# Not applicable for autocurs - there is no filtering for an autocur column as
+# there is with curvals
+sub filter_view_is_ready
+{   my $self = shift;
+    return 1;
+}
+
+has view => (
+    is      => 'ro',
+    lazy    => 1,
+    clearer => 1,
+    builder => sub {},
+);
+
 sub fetch_multivalues
 {   my ($self, $record_ids) = @_;
 
