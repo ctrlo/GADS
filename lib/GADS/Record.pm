@@ -2129,12 +2129,13 @@ sub pdf
 {   my $self = shift;
 
     my $dateformat = GADS::Config->instance->dateformat;
-    my $now = DateTime->now->format_cldr($dateformat)." at ".DateTime->now->hms;
+    my $now = DateTime->now;
     $now->set_time_zone('Europe/London');
+    my $now_formatted = $now->format_cldr($dateformat)." at ".$now->hms;
     my $updated = $self->created->format_cldr($dateformat)." at ".$self->created->hms;
 
     my $pdf = CtrlO::PDF->new(
-        footer => "Downloaded by ".$self->user->value." on $now",
+        footer => "Downloaded by ".$self->user->value." on $now_formatted",
     );
 
     $pdf->add_page;
