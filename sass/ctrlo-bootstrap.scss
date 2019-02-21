@@ -1418,3 +1418,13 @@ small.search_term {
 .table-curcommon tr:hover {
     outline: 2px solid $button-border-blue;
 }
+
+.fileupload {
+    .fileupload__files {
+        padding-left: 0;
+
+        input[type="checkbox"] {
+            margin-right: 10px;
+        }
+    }
+}

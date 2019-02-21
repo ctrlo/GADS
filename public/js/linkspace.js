@@ -617,7 +617,7 @@ var setupFileUpload = function (context) {
                 var fileId = data.result.url.split("/").pop();
                 var fileName = data.files[0].name;
 
-                var $li = $('<li class="help-block"><input type="checkbox" name="' + field + '" value="' + fileId + '" checked>Include file. Current file name: ' + fileName + '.</li>');
+                var $li = $('<li class="help-block"><input type="checkbox" name="' + field + '" value="' + fileId + '" checked>Include file. Current file name: <a href="/file/' + fileId + '">' + fileName + '</a>.</li>');
                 $ul.append($li);
             },
         });

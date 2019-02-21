@@ -815,7 +815,7 @@
                                 [% IF editvalue.id %]
                                     <li class="help-block">
                                         <input type="checkbox" name="[% field %]" value="[% editvalue.id %]" checked>Include file.
-                                        Current file name: [% editvalue.html %]. Select a new file to replace.
+                                        Current file name: [% editvalue.html %].
                                     </li>
                                 [% END %]
                             </ul>
