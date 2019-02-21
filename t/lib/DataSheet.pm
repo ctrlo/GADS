@@ -382,6 +382,7 @@ has multivalue_columns => (
             curval => 1,
             enum   => 1,
             tree   => 1,
+            file   => 1,
         };
     },
 );
@@ -654,6 +655,7 @@ sub __build_columns
     $file1->name('file1');
     $file1->set_permissions({$self->group->id => $permissions})
         unless $self->no_groups;
+    $file1->multivalue(1) if $self->multivalue && $self->multivalue_columns->{file};
     try { $file1->write };
     if ($@)
     {

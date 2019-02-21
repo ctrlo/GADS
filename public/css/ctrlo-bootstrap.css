@@ -1982,3 +1982,8 @@ small.search_term {
 
 .table-curcommon tr:hover {
   outline: 2px solid #85bffd; }
+
+.fileupload .fileupload__files {
+  padding-left: 0; }
+  .fileupload .fileupload__files input[type="checkbox"] {
+    margin-right: 10px; }

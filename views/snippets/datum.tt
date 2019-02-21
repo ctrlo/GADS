@@ -31,12 +31,12 @@
 [% END %]
 
 [% MACRO render_file_datum(file, full_content) BLOCK %]
-    [% IF file.id %]
+    [% FOREACH file IN file.files %]
         <a href="/file/[% file.id %]">
             [% IF full_content  AND file.mimetype.match('^image/') %]
                 <img class="autosize" src="/file/[% file.id %]">
             [% ELSE %]
-                [% file.value | html %]
+                [% file.name | html %]<br>
             [% END %]
         </a>
     [% END %]

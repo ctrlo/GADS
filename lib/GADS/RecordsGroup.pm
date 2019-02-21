@@ -229,7 +229,7 @@ sub _build_results
                             },
                         ],
                     },
-                )->get_column($column->field.".".$column->value_field);
+                )->get_column($self->fqvalue($column, search => 1, linked => 0, extra_column => $column));
                 if ($column->numeric && $op eq 'sum')
                 {
                     $select = $select->sum_rs->as_query;
