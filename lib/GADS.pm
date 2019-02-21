@@ -1052,7 +1052,7 @@ get '/file/:id' => require_login sub {
     my $fileval = $id =~ /^[0-9]+$/ && schema->resultset('Fileval')->find($id)
         or error __x"File ID {id} cannot be found", id => $id;
     my ($file_rs) = $fileval->files; # In theory can be more than one, but not in practice (yet)
-    my $file = GADS::Datum::File->new(id => $id);
+    my $file = GADS::Datum::File->new(ids => $id);
     # Get appropriate column, if applicable (could be unattached document)
     # This will control access to the file
     if ($file_rs && $file_rs->layout_id)
@@ -1063,7 +1063,10 @@ get '/file/:id' => require_login sub {
     else {
         $file->schema(schema);
     }
-    send_file( \($file->content), content_type => $file->mimetype, filename => $file->name );
+    # Call content from the Datum::File object, which will ensure the user has
+    # access to this file. The other parameters are taken straight from the
+    # database resultset
+    send_file( \($file->content), content_type => $fileval->mimetype, filename => $fileval->name );
 };
 
 post '/file/?' => require_login sub {
@@ -2641,34 +2644,13 @@ prefix '/:layout_name' => sub {
                 $record->current_id(param 'current_id');
                 $record->initialise;
             }
-            my $uploads = request->uploads;
-            foreach my $key (keys %$uploads)
-            {
-                next unless $key =~ /^file([0-9]+)/;
-                my $upload = $uploads->{$key};
-                my $col_id = $1;
-                $record->fields->{$col_id}->set_value({
-                    name     => $upload->filename,
-                    mimetype => $upload->type,
-                    content  => $upload->content,
-                });
-            }
             my $failed;
             foreach my $col (@columns_to_show)
             {
                 my $newv = param($col->field);
                 if ($col->userinput && defined $newv) # Not calculated fields
                 {
-                    # No need to do anything if the file's just been uploaded
-                    unless (upload "file".$col->id)
-                    {
-                        $failed = !process( sub { $record->fields->{$col->id}->set_value($newv) } ) || $failed;
-                    }
-                }
-                elsif ($col->type eq 'file')
-                {
-                    # Not defined file field. Must have been removed.
-                    $failed = !process( sub { $record->fields->{$col->id}->set_value(undef) } ) || $failed;
+                    $failed = !process( sub { $record->fields->{$col->id}->set_value($newv) } ) || $failed;
                 }
             }
             if (!$failed && process( sub { $record->write }))
@@ -3366,19 +3348,6 @@ sub _process_edit
 
     if (param('submit') || param('draft') || $modal || defined(param 'validate'))
     {
-        my $uploads = request->uploads;
-        foreach my $key (keys %$uploads)
-        {
-            next unless $key =~ /^file([0-9]+)/;
-            my $upload = $uploads->{$key};
-            my $col_id = $1;
-            my $filecol = $layout->column($col_id);
-            $record->fields->{$col_id}->set_value({
-                name     => $upload->filename,
-                mimetype => $upload->type,
-                content  => $upload->content,
-            });
-        }
         my $failed;
 
         error __"You do not have permission to create a child record"
@@ -3406,26 +3375,18 @@ sub _process_edit
             if ($col->userinput && defined $newv) # Not calculated fields
             {
                 # No need to do anything if the file's just been uploaded
-                unless (upload "file".$col->id)
+                my $datum = $record->fields->{$col->id};
+                if (defined(param 'validate'))
                 {
-                    my $datum = $record->fields->{$col->id};
-                    if (defined(param 'validate'))
+                    try { $datum->set_value($newv) };
+                    if (my $e = $@->wasFatal)
                     {
-                        try { $datum->set_value($newv) };
-                        if (my $e = $@->wasFatal)
-                        {
-                            push @validation_errors, $e->message;
-                        }
-                    }
-                    else {
-                        $failed = !process( sub { $datum->set_value($newv) } ) || $failed;
+                        push @validation_errors, $e->message;
                     }
                 }
-            }
-            elsif ($col->type eq 'file' && !upload("file".$col->id))
-            {
-                # Not defined file field and not just uploaded. Must have been removed.
-                $failed = !process( sub { $record->fields->{$col->id}->set_value(undef) } ) || $failed;
+                else {
+                    $failed = !process( sub { $datum->set_value($newv) } ) || $failed;
+                }
             }
         }
 

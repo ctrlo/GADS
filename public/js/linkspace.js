@@ -614,6 +614,9 @@ var setupFileUpload = function (context) {
             url: url,
             paramName: "file",
             done: function (e, data) {
+                if (!$el.data("multivalue")) {
+                    $ul.empty();
+                }
                 var fileId = data.result.url.split("/").pop();
                 var fileName = data.files[0].name;
 

@@ -73,7 +73,7 @@ my $values = {
             content  => 'Text file2',
         },
         new_as_string => 'file2.txt',
-        new_html      => qr(<a href="/file/[0-9]+">file2\.txt</a>),
+        new_html      => 'file2.txt',
     },
 };
 

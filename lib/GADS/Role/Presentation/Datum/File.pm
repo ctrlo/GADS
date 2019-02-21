@@ -7,8 +7,7 @@ sub presentation {
 
     my $base = $self->presentation_base;
 
-    $base->{id}       = $self->id;
-    $base->{mimetype} = $self->mimetype;
+    $base->{files} = $self->files;
 
     return $base;
 }

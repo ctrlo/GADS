@@ -30,6 +30,10 @@ has filesize => (
     isa     => Maybe[Int],
 );
 
+has '+can_multivalue' => (
+    default => 1,
+);
+
 has '+fixedvals' => (
     default => 1,
 );
@@ -51,6 +55,22 @@ sub _build_retrieve_fields
 {   my $self = shift;
     [qw/name mimetype id/];
 }
+
+sub validate
+{   my ($self, $value, %options) = @_;
+    return 1 if !$value;
+
+    if ($value !~ /^[0-9]+$/ || !$self->schema->resultset('Fileval')->find($value))
+    {
+        return 0 unless $options{fatal};
+        error __x"'{int}' is not a valid file ID for '{col}'",
+            int => $value, col => $self->name;
+    }
+    1;
+}
+
+# Any value is valid for a search, as it can include begins_with etc
+sub validate_search {1};
 
 sub write_special
 {   my ($self, %options) = @_;

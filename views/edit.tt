@@ -808,14 +808,14 @@
                             <p class="help-block">No current file (read-only field, cannot be updated).</p>
                         [% END %]
                     [% ELSE %]
-                        <div class="fileupload" data-field="[% field %]" data-fileupload-url="/file?ajax=1">
+                        <div class="fileupload" data-field="[% field %]" data-fileupload-url="/file?ajax=1" data-multivalue="[% dispcol.multivalue %]">
                             [%# Ensure something gets sent back to show it's been displayed %]
                             <input type="hidden" name="[% field %]">
                             <ul class="fileupload__files">
-                                [% IF editvalue.id %]
+                                [% FOREACH file IN editvalue.files %]
                                     <li class="help-block">
-                                        <input type="checkbox" name="[% field %]" value="[% editvalue.id %]" checked>Include file.
-                                        Current file name: [% editvalue.html %].
+                                        <input type="checkbox" name="[% field %]" value="[% file.id %]" checked>Include file.
+                                        Current file name: <a href="[% file.id %]">[% file.name | html %]</a>.
                                     </li>
                                 [% END %]
                             </ul>

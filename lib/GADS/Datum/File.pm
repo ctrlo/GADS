@@ -30,102 +30,146 @@ with 'GADS::Role::Presentation::Datum::File';
 after set_value => sub {
     my ($self, $value) = @_;
     my $clone = $self->clone; # Copy before changing text
-    my $new_id;
-    # If an array, $value will either be blank string (no file submitted, empty hidden value),
-    # or 2 values, one the value and one blank
-    if (ref $value eq 'ARRAY')
+
+    my @in = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
+
+    my @values;
+    foreach my $val (@in)
     {
-        if (@$value > 1)
+        # Files should normally only be submitted by IDs. Allow submission by
+        # hashref for tests etc
+        if (ref $val eq 'HASH')
         {
-            ($value) = grep { $_ } @$value;
+            my $file = $self->schema->resultset('Fileval')->create({
+                name     => $val->{name},
+                mimetype => $val->{mimetype},
+                content  => $val->{content},
+            });
+            push @values, $file->id;
         }
         else {
-            ($value) = @$value;
+            push @values, $val;
         }
     }
-    if (ref $value && $value->{content})
+
+    my @old    = sort @{$self->ids};
+    my $changed = "@values" ne "@old";
+
+    if ($changed)
     {
-        # New file uploaded
-        $new_id = $self->schema->resultset('Fileval')->create({
-            name     => $value->{name},
-            mimetype => $value->{mimetype},
-            content  => $value->{content},
-        })->id;
-        $self->content($value->{content});
-        $self->name($value->{name});
-        $self->mimetype($value->{mimetype});
+        foreach (@values)
+        {
+            $self->column->validate($_, fatal => 1);
+        }
+        # Simple test to see if the same file has been uploaded. Only works for
+        # single files.
+        if (@values == 1 && @old == 1)
+        {
+            my $old_content = $self->schema->resultset('Fileval')->find($old[0])->content;
+            $changed = 0 if $self->schema->resultset('Fileval')->search({
+                id      => $values[0],
+                content => $old_content,
+            })->count;
+        }
     }
-    else {
-        # Just ID for file passed. Probably a resubmission
-        # of a form with previous errors
-        $new_id = $value || undef;
+    if ($changed)
+    {
+        $self->clear_files;
+        $self->clear_init_value;
     }
-    $self->changed(1) if (!$self->id && $value)
-        || (!$value && $self->id)
-        || (defined $self->id && defined $new_id && $self->id != $new_id && $clone->content ne $self->content);
+    $self->changed($changed);
     $self->oldvalue($clone);
-    $self->id($new_id) if defined $new_id || $self->init_no_value;
+    $self->has_ids(1);
+    $self->ids(\@values);
 };
 
-has id => (
+has ids => (
     is      => 'rw',
     lazy    => 1,
-    trigger => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
-    builder => sub { $_[0]->value_hash && $_[0]->value_hash->{id} },
+    coerce  => sub { ref $_[0] eq 'ARRAY' ? $_[0] : [$_[0]] },
+    trigger => sub {
+        my $self = shift;
+        $self->clear_blank;
+    },
+    builder => sub {
+        my $self = shift;
+        [ map { $_->{id} } @{$self->files} ];
+    },
 );
 
-sub ids { [ $_[0]->id ] }
+sub _build_blank { @{$_[0]->ids} ? 0 : 1 }
 
-sub _build_blank { $_[0]->id ? 0 : 1 }
-
-has has_id => (
+has has_ids => (
     is  => 'rw',
     isa => Bool,
 );
 
-sub value { $_[0]->id }
+sub value {
+    my $self = shift;
+    if ($self->column->multivalue) {
+        return [ map { $_->{name} } @{$self->files} ];
+    }
+    else {
+        $self->as_string || undef;
+    }
+}
 
 has value_hash => (
     is      => 'rw',
     lazy    => 1,
-    builder => sub {
-        my $self = shift;
-        $self->has_init_value or return;
-        my $value = exists $self->init_value->[0]->{value}
-            ? $self->init_value->[0]->{value}
-            : $self->init_value->[0];
-        my $id = $value->{id};
-        $self->has_id(1) if defined $id || $self->init_no_value;
-        +{
-            id       => $id,
-            name     => $value->{name},
-            mimetype => $value->{mimetype},
-        };
-    },
 );
 
 # Make up for missing predicated value property
-sub has_value { $_[0]->has_id }
+sub has_value { $_[0]->has_ids }
 
-has name => (
-    is      => 'rw',
-    lazy    => 1,
-    builder => sub {
-        $_[0]->value_hash ? $_[0]->value_hash->{name} : $_[0]->_rset && $_[0]->_rset->name;
-    },
+has files => (
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
 );
 
-sub search_values_unique
-{   [ shift->name ]
+sub _build_files
+{   my $self = shift;
+
+    my @return;
+
+    if ($self->has_init_value)
+    {
+        # XXX - messy to account for different initial values. Can be tidied once
+        # we are no longer pre-fetching multiple records
+        my @init_value = $self->has_init_value ? @{$self->init_value} : ();
+        my @values     = map { exists $_->{record_id} ? $_->{value} : $_ } @init_value;
+
+        @return = map {
+            +{
+                id       => $_->{id},
+                name     => $_->{name},
+                mimetype => $_->{mimetype},
+            };
+        } grep { $_ && $_->{id} } @values;
+        $self->has_ids(1) if @values || $self->init_no_value;
+    }
+    elsif ($self->has_ids) {
+        @return = map {
+            +{
+                id       => $_->id,
+                name     => $_->name,
+                mimetype => $_->mimetype,
+            };
+        } $self->schema->resultset('Fileval')->search({
+            id => $self->ids,
+        },{
+            columns => [qw/id name mimetype/],
+        })->all;
+    }
+
+    return \@return;
 }
 
-has mimetype => (
-    is      => 'rw',
-    lazy    => 1,
-    builder => sub {
-        $_[0]->value_hash ? $_[0]->value_hash->{mimetype} : $_[0]->_rset && $_[0]->_rset->mimetype;
-    },
-);
+sub search_values_unique
+{   my $self = shift;
+    [ map { $_->{name} } @{$self->files} ]
+}
 
 # Needed in case this is unattached file, in which case schema
 # is not in column property
@@ -143,10 +187,14 @@ has _rset => (
 
 sub _build__rset
 {   my $self = shift;
-    $self->id or return;
-    $self->column->user_can('read') or error __x"You do not have access to file ID {id}", id => $self->id
+    my $ids = $self->ids or return;
+    @$ids or return;
+    @$ids > 1
+        and error "Only one file can be returned, and this value contains more than one file";
+    my $id = shift @$ids;
+    $self->column->user_can('read') or error __x"You do not have access to file ID {id}", id => $id
         if $self->column;
-    $self->schema->resultset('Fileval')->find($self->id);
+    $self->schema->resultset('Fileval')->find($id);
 }
 
 has content => (
@@ -161,10 +209,8 @@ around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
     $orig->($self,
-        id       => $self->id,
-        name     => $self->name,
-        mimetype => $self->mimetype,
-        content  => $self->content,
+        ids   => $self->ids,
+        files => $self->files,
         @_,
     );
 };
@@ -172,20 +218,19 @@ around 'clone' => sub {
 
 sub as_string
 {   my $self = shift;
-    $self->name // "";
+    my @files = @{$self->files}
+        or return '';
+    return join ', ', map { $_->{name} } @files;
 }
 
 sub as_integer
 {   my $self = shift;
-    $self->id // 0;
+    panic "Not implemented";
 }
 
-sub html
+sub html_form
 {   my $self = shift;
-    return "" unless $self->id;
-    my $id = $self->id;
-    my $name = $self->name || "";
-    return qq(<a href="/file/$id">$name</a>);
+    return $self->ids;
 }
 
 1;
