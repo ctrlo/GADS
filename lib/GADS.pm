@@ -234,7 +234,8 @@ hook before => sub {
         }
 
         header "X-Frame-Options" => "DENY" # Prevent clickjacking
-            unless request->uri eq '/aup_text'; # Except AUP, which will be in an iframe
+            unless request->uri eq '/aup_text' # Except AUP, which will be in an iframe
+                || request->path eq '/file'; # Or iframe posts for file uploads (hidden iframe used for IE8)
 
         # Make sure we have suitable persistent hash to update. All these options are
         # used as hashrefs themselves, so prevent trying to access non-existent hash.
