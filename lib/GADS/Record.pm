@@ -1817,10 +1817,8 @@ sub write_values
                     # hidden messages. These messages will never be written, as
                     # we exit the process.  Therefore, stop the hiding of
                     # messages for this part of the code.
-                    if (my $parent_try = dispatcher 'active-try')
-                    {
-                        $parent_try->hide('NONE');
-                    }
+                    my $parent_try = dispatcher 'active-try'; # Boolean false
+                    $parent_try->hide('NONE');
 
                     # We must catch exceptions here, otherwise we will never
                     # reap the process. Set up a guard to be doubly-sure this
