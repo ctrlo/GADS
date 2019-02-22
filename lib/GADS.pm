@@ -2524,7 +2524,6 @@ prefix '/:layout_name' => sub {
                 elsif ($column->type eq "rag")
                 {
                     $column->code(param 'code_rag');
-                    $column->base_url(request->base); # For alerts
                     $no_alerts = param('no_alerts_rag');
                 }
                 elsif ($column->type eq "enum")
@@ -2540,7 +2539,6 @@ prefix '/:layout_name' => sub {
                 {
                     $column->code(param 'code_calc');
                     $column->return_type(param 'return_type');
-                    $column->base_url(request->base); # For alerts
                     $no_alerts = param('no_alerts_calc');
                 }
                 elsif ($column->type eq "tree")
@@ -2629,12 +2627,11 @@ prefix '/:layout_name' => sub {
         {
             # Get latest record for this approval
             my $record = GADS::Record->new(
-                user             => $user,
-                layout           => $layout,
-                schema           => schema,
-                approval_id      => $id,
-                doing_approval   => 1,
-                base_url         => request->base,
+                user           => $user,
+                layout         => $layout,
+                schema         => schema,
+                approval_id    => $id,
+                doing_approval => 1,
             );
             # See if the record exists as a "normal" entry. In the case
             # of an approval for a new record, this will not be the case,
@@ -2717,10 +2714,9 @@ prefix '/:layout_name' => sub {
         my $id = param 'id';
 
         my $record = GADS::Record->new(
-            user     => logged_in_user,
-            layout   => $layout,
-            schema   => schema,
-            base_url => request->base,
+            user   => logged_in_user,
+            layout => $layout,
+            schema => schema,
         );
 
         if ($id)
@@ -2777,10 +2773,9 @@ prefix '/:layout_name' => sub {
         my $failed;
         while ( my($id, $values) = each %$records ) {
             my $record = GADS::Record->new(
-                user     => $user,
-                layout   => $layout,
-                schema   => schema,
-                base_url => request->base,
+                user   => $user,
+                layout => $layout,
+                schema => schema,
             );
 
             $record->find_current_id($values->{current_id});
@@ -2839,10 +2834,9 @@ prefix '/:layout_name' => sub {
 
         # The dummy record to test for updates
         my $record = GADS::Record->new(
-            user     => $user,
-            layout   => $layout,
-            schema   => schema,
-            base_url => request->base,
+            user   => $user,
+            layout => $layout,
+            schema => schema,
         );
         $record->initialise;
 
@@ -3296,7 +3290,6 @@ sub _process_edit
     my %params = (
         user                 => $user,
         schema               => schema,
-        base_url             => request->base,
         # Need to get all fields of curvals in case any are drafts for editing
         # (otherwise all field values will not be passed to form)
         curcommon_all_fields => 1,

@@ -169,10 +169,9 @@ post '/api/record/:sheet' => require_api_user sub {
         if exists $request->{id};
 
     my $record = GADS::Record->new(
-        user     => $user,
-        layout   => $layout,
-        schema   => schema,
-        base_url => request->base,
+        user   => $user,
+        layout => $layout,
+        schema => schema,
     );
 
     $record->initialise;
@@ -196,10 +195,9 @@ put '/api/record/:sheet/:id' => require_api_user sub {
     my $request = decode_json request->body;
 
     my $record_find = GADS::Record->new(
-        user     => $user,
-        layout   => $layout,
-        schema   => schema,
-        base_url => request->base,
+        user   => $user,
+        layout => $layout,
+        schema => schema,
     );
     my $record_to_update;
 
@@ -209,10 +207,9 @@ put '/api/record/:sheet/:id' => require_api_user sub {
         if (!$record_to_update)
         {
             $record_to_update = GADS::Record->new(
-                user     => $user,
-                layout   => $layout,
-                schema   => schema,
-                base_url => request->base,
+                user   => $user,
+                layout => $layout,
+                schema => schema,
             );
             $record_to_update->initialise;
             $request->{$api_index->name_short} = $id;
@@ -241,10 +238,9 @@ get '/api/record/:sheet/:id' => require_api_user sub {
     my $id        = param 'id';
 
     my $record = GADS::Record->new(
-        user     => $user,
-        layout   => $layout,
-        schema   => schema,
-        base_url => request->base,
+        user   => $user,
+        layout => $layout,
+        schema => schema,
     );
     if (my $api_index = $layout->api_index_layout)
     {

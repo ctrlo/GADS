@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::AlertSend;
 
+use GADS::Config;
 use GADS::Email;
 use GADS::Records;
 use GADS::Views;
@@ -58,9 +59,15 @@ has current_new => (
 );
 
 has base_url => (
-    is       => 'rw',
-    required => 1,
+    is => 'lazy',
 );
+
+sub _build_base_url
+{   my $self = shift;
+    my $config = GADS::Config->instance;
+    $config->gads->{url}
+        or panic "URL not configured in application config";
+}
 
 has columns => (
     is       => 'rw',

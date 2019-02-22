@@ -320,10 +320,9 @@ sub _build_values_as_query_records
         grep { $_ !~ /^(csrf_token|current_id|field[0-9]+)$/ } keys %$params
             and error __x"Invalid query string: {query}", query => $query;
         my $record = GADS::Record->new(
-            user     => $self->column->layout->user,
-            layout   => $self->column->layout_parent,
-            schema   => $self->column->schema,
-            base_url => $self->column->base_url,
+            user   => $self->column->layout->user,
+            layout => $self->column->layout_parent,
+            schema => $self->column->schema,
         );
         if (my $current_id = $params->{current_id})
         {

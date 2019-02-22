@@ -208,7 +208,6 @@ sub update_cached
         layout      => $self->layout,
         schema      => $self->schema,
         user        => $self->user,
-        base_url    => $self->base_url,
         current_ids => \@changed,
         columns     => [$self->id],
     );

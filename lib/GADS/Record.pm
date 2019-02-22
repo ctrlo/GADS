@@ -152,10 +152,6 @@ has doing_approval => (
     default => 0,
 );
 
-has base_url => (
-    is  => 'rw',
-);
-
 # Array ref with column IDs
 has columns => (
     is      => 'rw',
@@ -895,7 +891,6 @@ sub load_remembered_values
                 layout           => $self->layout,
                 schema           => $self->schema,
                 include_approval => 1,
-                base_url         => request->base,
             );
             $child->find_record_id($self->approval_record_id);
             foreach my $col ($self->layout->all(user_can_write_new => 1, userinput => 1))
@@ -1759,10 +1754,9 @@ sub write_values
             next if grep { $_->current_id == $cid } @{$self->_records_to_write_after};
 
             my $record = GADS::Record->new(
-                user     => $self->user,
-                layout   => $self->layout,
-                schema   => $self->schema,
-                base_url => $self->base_url,
+                user   => $self->user,
+                layout => $self->layout,
+                schema => $self->schema,
             );
             $record->find_current_id($cid);
             $record->fields->{$_}->changed(1)
@@ -1791,7 +1785,6 @@ sub write_values
                 layout      => $self->layout,
                 schema      => $self->schema,
                 user        => $self->user,
-                base_url    => $self->base_url,
                 current_ids => [$cid],
                 columns     => $columns_changed{$cid},
                 current_new => $self->new_entry,

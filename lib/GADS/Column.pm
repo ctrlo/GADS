@@ -121,12 +121,6 @@ has hidden => (
     default => 0,
 );
 
-# Used when updating fields externally and a URL needs to be supplied for alert
-# links
-has base_url => (
-    is => 'rw',
-);
-
 # Used to force a database ID on creation (used in layout import)
 has set_id => (
     is  => 'rw',
