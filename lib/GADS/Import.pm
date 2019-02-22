@@ -62,6 +62,11 @@ has force_mandatory => (
     isa => Bool,
 );
 
+has split_multiple => (
+    is  => 'ro',
+    isa => Bool,
+);
+
 # Column IDs of values that should be appended on being updated, not overwritten
 has append => (
     is      => 'ro',
@@ -374,97 +379,114 @@ sub _import_rows
         my $col_count = 0;
         my $input; my @bad; my @bad_enum;
         my %options;
-        foreach my $value (@row)
+        foreach my $cell (@row)
         {
-            # Trim value
-            $value = _trim($value);
-
             my $col = $self->fields->[$col_count];
 
             if (!$col)
             {
-                push @bad, qq(Extraneous value found on row: "$value");
+                push @bad, qq(Extraneous value found on row: "$cell");
+                next;
             }
             elsif ($col->id == $self->layout->column_id->id) # ID column
             {
-                $input->{$col->id} = $value;
+                push @{$input->{$col->id}}, $cell;
                 $col_count++;
                 next;
             }
-            elsif ($col->name eq 'Last edited time')
+
+            $input->{$col->id} = [];
+
+            my @values;
+            if ($self->split_multiple && $col->multivalue)
             {
-                $options{version_datetime} = $parser_yymd->parse_datetime($value)
-                    or push @bad, qq(Invalid version_datetime "$value");
-            }
-            elsif ($col->name eq 'Last edited by')
-            {
-                $options{version_userid} = $value;
-            }
-            elsif ($col->type eq "enum" || $col->type eq "tree")
-            {
-                # Get enum ID value
-                if ($value eq "")
-                {
-                    # Blank value. Insertion will handle non-optional fields
-                    $input->{$col->id} = $value;
-                }
-                else {
-                    if (ref $self->selects->{$col->id}->{lc $value} eq "ARRAY")
-                    {
-                        push @bad, __x"Multiple instances of enum value '{value}' for '{colname}'",
-                            value => $value, colname => $col->name;
-                    }
-                    elsif (exists $self->selects->{$col->id}->{lc $value})
-                    {
-                        # okay
-                        $input->{$col->id} = $self->selects->{$col->id}->{lc $value};
-                    }
-                    else {
-                        push @bad_enum, __x"Invalid enum value '{value}' for '{colname}'",
-                            value => $value, colname => $col->name;
-                        $input->{$col->id} = ''
-                            if $self->blank_invalid_enum;
-                    }
-                }
-            }
-            elsif ($col->type eq "daterange")
-            {
-                if (!$value)
-                {
-                    $input->{$col->id} = ['',''];
-                }
-                elsif ($value =~ /^(\H+)\h*(-|to)\h*(\H+)$/)
-                {
-                    $input->{$col->id} = [$1,$3];
-                }
-                elsif ($value) {
-                    push @bad, __x"Invalid daterange value '{value}' for '{colname}'",
-                        value => $value, colname => $col->name;
-                }
-            }
-            elsif ($col->type eq "string")
-            {
-                # Option to ignore zeros in text fields
-                $input->{$col->id} = $self->ignore_string_zeros && $value eq '0' ? '' : $value;
-            }
-            elsif ($col->type eq "intgr")
-            {
-                if ($input->{$col->id} = $value)
-                {
-                    my $qr = $self->round_integers ? qr/^[\.0-9]+$/ : qr/^[0-9]+$/;
-                    if ($value =~ $qr)
-                    {
-                        # Round decimals if needed
-                        $input->{$col->id} = $value && $self->round_integers ? sprintf("%.0f", $value) : $value;
-                    }
-                    elsif ($value) {
-                        push @bad, __x"Invalid value '{value}' for integer field '{colname}'",
-                            value => $value, colname => $col->name;
-                    }
-                }
+                @values = split /,/, $cell;
             }
             else {
-                $input->{$col->id} = $value;
+                @values = ($cell);
+            }
+
+            foreach my $value (@values)
+            {
+                # Trim value
+                $value = _trim($value);
+
+                if ($col->name eq 'Last edited time')
+                {
+                    $options{version_datetime} = $parser_yymd->parse_datetime($value)
+                        or push @bad, qq(Invalid version_datetime "$value");
+                }
+                elsif ($col->name eq 'Last edited by')
+                {
+                    $options{version_userid} = $value;
+                }
+                elsif ($col->type eq "enum" || $col->type eq "tree")
+                {
+                    # Get enum ID value
+                    if ($value eq "")
+                    {
+                        # Blank value. Insertion will handle non-optional fields
+                        push @{$input->{$col->id}}, $value;
+                    }
+                    else {
+                        if (ref $self->selects->{$col->id}->{lc $value} eq "ARRAY")
+                        {
+                            push @bad, __x"Multiple instances of enum value '{value}' for '{colname}'",
+                                value => $value, colname => $col->name;
+                        }
+                        elsif (exists $self->selects->{$col->id}->{lc $value})
+                        {
+                            # okay
+                            push @{$input->{$col->id}}, $self->selects->{$col->id}->{lc $value};
+                        }
+                        else {
+                            push @bad_enum, __x"Invalid enum value '{value}' for '{colname}'",
+                                value => $value, colname => $col->name;
+                            push @{$input->{$col->id}}, ''
+                                if $self->blank_invalid_enum;
+                        }
+                    }
+                }
+                elsif ($col->type eq "daterange")
+                {
+                    if (!$value)
+                    {
+                        push @{$input->{$col->id}}, ['',''];
+                    }
+                    elsif ($value =~ /^(\H+)\h*(-|to)\h*(\H+)$/)
+                    {
+                        push @{$input->{$col->id}}, [$1,$3];
+                    }
+                    elsif ($value) {
+                        push @bad, __x"Invalid daterange value '{value}' for '{colname}'",
+                            value => $value, colname => $col->name;
+                    }
+                }
+                elsif ($col->type eq "string")
+                {
+                    # Option to ignore zeros in text fields
+                    push @{$input->{$col->id}}, $self->ignore_string_zeros && $value eq '0' ? '' : $value;
+                }
+                elsif ($col->type eq "intgr")
+                {
+                    if ($value)
+                    {
+                        my $qr = $self->round_integers ? qr/^[\.0-9]+$/ : qr/^[0-9]+$/;
+                        if ($value =~ $qr)
+                        {
+                            # Round decimals if needed
+                            $value = $value && $self->round_integers ? sprintf("%.0f", $value) : $value;
+                            push @{$input->{$col->id}}, $value;
+                        }
+                        elsif ($value) {
+                            push @bad, __x"Invalid value '{value}' for integer field '{colname}'",
+                                value => $value, colname => $col->name;
+                        }
+                    }
+                }
+                else {
+                    push @{$input->{$col->id}}, $value;
+                }
             }
 
             $col_count++;
@@ -486,8 +508,15 @@ sub _import_rows
             my @changes;
             if ($self->update_unique)
             {
-                if (my $unique_value = $input->{$self->update_unique})
+                my @values = @{$input->{$self->update_unique}};
+                if (@values > 1)
                 {
+                    push @bad, qq(Multiple values specified for unique field to update);
+                    $skip = 1;
+                }
+                elsif (@values == 1)
+                {
+                    my $unique_value = pop @values;
                     if ($self->update_unique == $self->layout->column_id->id) # ID
                     {
                         try { $record->find_current_id($unique_value, instance_id => $self->layout->instance_id) };
@@ -517,13 +546,19 @@ sub _import_rows
             }
             elsif (my $unique_id = $self->skip_existing_unique)
             {
-                if (defined $input->{$unique_id})
+                my @values = @{$input->{$unique_id}};
+                if (@values > 1)
+                {
+                    push @bad, qq(Multiple values specified for unique field);
+                    $skip = 1;
+                }
+                elsif (defined $values[0])
                 {
                     my $unique_field = $self->layout->column($unique_id);
-                    if (my $existing = $record->find_unique($unique_field, $input->{$unique_id}))
+                    if (my $existing = $record->find_unique($unique_field, $values[0]))
                     {
                         push @bad, __x"Skipping: unique identifier '{value}' already exists for '{unique_field}'",
-                            value => $input->{$unique_id}, unique_field => $unique_field->name;
+                            value => $values[0], unique_field => $unique_field->name;
                         $skip = 1;
                     }
                     else {
@@ -534,7 +569,7 @@ sub _import_rows
                     $record->initialise;
                     my $full = "@row";
                     $full =~ s/\n//g;
-                    push @bad, qq(Missing unique identifier for "$input->{$unique_id}". Data will be uploaded as new record.);
+                    push @bad, qq(Missing unique identifier. Data will be uploaded as new record.);
                 }
             }
             else {
@@ -625,22 +660,31 @@ sub update_fields
 
             if ($self->_append_index->{$col->id})
             {
-                $newv =~ s/^\s+// if !$old_value; # Trim preceding line returns if no value to append to
-                # Make sure CR at end of old value if applicable
-                $old_value =~ s/\s+$//;
-                $old_value = "$old_value\n" if $old_value;
-                $newv = $old_value.$newv if $self->_append_index->{$col->id};
+                if ($col->multivalue)
+                {
+                    push @$newv, @{$datum->set_values};
+                }
+                else {
+                    $newv = pop @$newv;
+                    $newv =~ s/^\s+// if !$old_value; # Trim preceding line returns if no value to append to
+                    # Make sure CR at end of old value if applicable
+                    $old_value =~ s/\s+$//;
+                    $old_value = "$old_value\n" if $old_value;
+                    $newv = $old_value.$newv if $self->_append_index->{$col->id};
+                }
             }
 
             # Don't update existing value if no_change_unless_blank is "skip_new"
             if ($self->no_change_unless_blank eq 'skip_new' && $record->current_id && !$was_blank && !$self->_append_index->{$col->id})
             {
                 my $colname = $col->name;
-                my $newvalue = $col->fixedvals
-                    ? $self->selects_reverse->{$col->id}->{$newv}
-                    : $col->type eq 'daterange'
-                    ? "$newv->[0] to $newv->[1]"
-                    : $newv;
+                my $newvalue = join ', ', map {
+                    $col->fixedvals
+                        ? $self->selects_reverse->{$col->id}->{$_}
+                        : $col->type eq 'daterange'
+                        ? "$_->[0] to $_->[1]"
+                        : $_;
+                    } @$newv;
                 if (lc $old_value ne lc $newvalue)
                 {
                     push @$changes, qq(Not going to change value of "$colname" from "$old_value" to "$newvalue")

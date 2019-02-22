@@ -26,6 +26,11 @@
                 </div>
                 <div class="checkbox">
                     <label>
+                        <input type="checkbox" name="import_options" value="split_multiple">Allow multiple values separated by comma
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
                         <input type="checkbox" name="import_options" value="blank_invalid_enum">Blank any invalid multiple select and tree values
                     </label>
                 </div>

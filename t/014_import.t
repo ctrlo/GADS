@@ -87,6 +87,18 @@ my @tests = (
         count_off => 1,
     },
     {
+        data      => qq(enum1\nfoo1\n"foo1,foo2"),
+        option    => 'split_multiple',
+        count_on  => 2,
+        count_off => 1,
+        written   => {
+            Enum => {
+                on  => '112', # Enum ID 1 then IDs 1 and 2
+                off => '1',
+            },
+        },
+    },
+    {
         data      => "string1\nfoo\n0",
         option    => 'ignore_string_zeros',
         count_on  => 2,
@@ -116,7 +128,7 @@ foreach my $test (@tests)
 {
     foreach my $status (qw/on off/)
     {
-        my $sheet = t::lib::DataSheet->new(data => []);
+        my $sheet = t::lib::DataSheet->new(data => [], multivalue => 1);
 
         my $schema  = $sheet->schema;
         my $layout  = $sheet->layout;

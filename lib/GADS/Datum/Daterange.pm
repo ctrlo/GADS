@@ -46,7 +46,11 @@ after set_value => sub {
     my @values;
     while (@all)
     {
-        my @dt = $self->_parse_dt([shift @all, shift @all], source => 'user', %options);
+        # Allow multiple sets of dateranges to be submitted in array ref blocks
+        # or as one long array, 2 elements per range
+        my $first = shift @all;
+        my ($start, $end) = ref $first eq 'ARRAY' ? @$first : ($first, shift @all);
+        my @dt = $self->_parse_dt([$start, $end], source => 'user', %options);
         push @values, @dt if @dt;
     }
     my @text_all = sort map { $self->_as_string($_) } @values;
