@@ -54,7 +54,7 @@ after set_value => sub {
         $self->_set_values_as_records(\@records);
         @ids = map { $_->current_id => 1 } grep { !$_->new_entry } @records;
         # Exclude the parent curval to prevent recursive loops
-        my @queries = map { $_->as_query(exclude => $options{exclude}) } grep { $_->new_entry } @records;
+        my @queries = map { $_->as_query(exclude_curcommon => 1) } grep { $_->new_entry } @records;
         $self->_set_values_as_query(\@queries);
         $self->clear_values_as_query_records; # Rebuild for new queries
     }
@@ -350,7 +350,7 @@ sub _build_values_as_query_records
             my $datum = $record->fields->{$col->id};
             my @records = map { $_->{record} } @{$datum->values};
             push @records, $self->record;
-            $datum->set_value(\@records, allow_set_autocur => 1, exclude => $self->column->id);
+            $datum->set_value(\@records, allow_set_autocur => 1);
         }
         $record->set_blank_dependents; # XXX Move to write() once back/forward functionality rewritten?
         push @records, $record;
