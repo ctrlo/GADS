@@ -78,7 +78,7 @@ my $guard = schema->txn_scope_guard;
 
 if ($purge && !$report_only)
 {
-    foreach my $instance (@{GADS::Instances->new(schema => schema)->all})
+    foreach my $instance (@{GADS::Instances->new(schema => schema, user => undef, user_permission_override => 1)->all})
     {
         $instance->purge;
     }
@@ -193,6 +193,8 @@ foreach my $ins (readdir $root)
        config                   => GADS::Config->instance,
        instance_id              => $instance->id,
     );
+
+    $layout->create_internal_columns;
 
     my %existing_columns = map { $_->id => $_ } $layout->all;
 
