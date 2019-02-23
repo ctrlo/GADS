@@ -73,7 +73,6 @@ foreach my $site (schema->resultset('Site')->all)
         {
             foreach my $column ($layout->all(order_dependencies => 1, has_cache => 1))
             {
-                $column->base_url(config->{gads}->{url});
                 my $datum = $record->fields->{$column->id};
                 $datum->re_evaluate(no_errors => 1);
                 $datum->write_value;
@@ -90,7 +89,6 @@ foreach my $site (schema->resultset('Site')->all)
                 layout      => $layout,
                 schema      => schema,
                 user        => undef,
-                base_url    => config->{gads}->{url},
                 current_ids => $changed{$col_id},
                 columns     => $col_id,
             );
