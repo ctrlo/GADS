@@ -27,6 +27,6 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
-__PACKAGE__->add_unique_constraint("ux_submission_token", ["token"]);
+__PACKAGE__->add_unique_constraint("ux_submission_token", ["token", "submitted"]);
 
 1;

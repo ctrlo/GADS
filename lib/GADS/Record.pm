@@ -1189,9 +1189,20 @@ sub write
         })->next;
         if ($sub) # Should always be found, but who knows
         {
+            # The submission table has a unique constraint on the token and
+            # submitted fields. If we have already been submitted, then we
+            # won't be able to write a new submitted version of this token, and
+            # the record insert will therefore fail.
+            try {
+                $self->schema->resultset('Submission')->create({
+                    token     => $sub->token,
+                    created   => DateTime->now,
+                    submitted => 1,
+                });
+            };
+            # If the above borks, assume that the token has already been submitted
             error __"This form has already been submitted and is currently being processed"
-                if $sub->submitted;
-            $sub->update({ submitted => 1 });
+                if $@;
             # Normally all write options are passed to further writes within
             # this call. Don't pass the submission token though, otherwise it
             # will bork as having already been used
