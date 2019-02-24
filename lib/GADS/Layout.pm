@@ -495,10 +495,13 @@ sub write
 
 sub delete
 {   my $self = shift;
+    my $guard = $self->schema->txn_scope_guard;
+    $self->delete_internal_columns;
     $self->schema->resultset('InstanceGroup')->search({
         instance_id => $self->instance_id,
     })->delete;
     $self->_rset->delete;
+    $guard->commit;
 }
 
 sub create_internal_columns
@@ -560,6 +563,11 @@ sub create_internal_columns
             instance_id => $self->instance_id,
         });
     }
+}
+
+sub delete_internal_columns
+{   my $self = shift;
+    $_->delete foreach $self->all(only_internal => 1, include_hidden => 1);
 }
 
 sub clear_indexes
