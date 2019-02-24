@@ -1,9 +1,6 @@
 use utf8;
 package GADS::Schema::Result::Fileval;
 
-# Created by DBIx::Class::Schema::Loader
-# DO NOT MODIFY THE FIRST PART OF THIS FILE
-
 =head1 NAME
 
 GADS::Schema::Result::Fileval
@@ -69,6 +66,8 @@ __PACKAGE__->add_columns(
   { data_type => "longblob", is_nullable => 1 },
   "is_independent",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "edit_user_id",
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -100,14 +99,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rlMu7281zlfOq81F66pZsA
+__PACKAGE__->belongs_to(
+  "user",
+  "GADS::Schema::Result::User",
+  { id => "edit_user_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
     $sqlt_table->add_index(name => 'fileval_idx_name', fields => [ { name => 'name', size => 64 } ]);
 }
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

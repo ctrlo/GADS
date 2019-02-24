@@ -1065,7 +1065,9 @@ get '/file/:id' => require_login sub {
         # If the file has been uploaded via a record edit and it hasn't been
         # attached to a record yet (or the record edit was cancelled) then do
         # not allow access
-        error __"Access to this file is not allowed";
+        error __"Access to this file is not allowed"
+            unless $fileval->edit_user_id && $fileval->edit_user_id == logged_in_user->id;
+        $file->schema(schema);
     }
     else {
         $file->schema(schema);
@@ -1089,6 +1091,7 @@ post '/file/?' => require_login sub {
             mimetype       => $upload->type,
             content        => $upload->content,
             is_independent => $is_independent,
+            edit_user_id   => $is_independent ? undef : logged_in_user->id,
         }) } ))
         {
             if ($ajax)
