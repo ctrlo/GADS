@@ -959,7 +959,7 @@ var setupHtmlEditor = function (context) {
             data.append('file', file);
             data.append('csrf_token', $('body').data('csrf-token'));
             $.ajax({
-                url: '/file?ajax',
+                url: '/file?ajax&is_independent',
                 type: 'POST',
                 contentType: false,
                 cache: false,

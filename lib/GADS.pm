@@ -1033,9 +1033,8 @@ get '/file/?' => require_login sub {
         unless logged_in_user->permission->{superadmin};
 
     my @files = rset('Fileval')->search({
-        'files.id' => undef,
+        is_independent => 1,
     },{
-        join     => 'files',
         order_by => 'me.id',
     })->all;
 
@@ -1061,6 +1060,13 @@ get '/file/:id' => require_login sub {
         my $layout = var('instances')->layout($file_rs->layout->instance_id);
         $file->column($layout->column($file_rs->layout_id));
     }
+    elsif (!$fileval->is_independent)
+    {
+        # If the file has been uploaded via a record edit and it hasn't been
+        # attached to a record yet (or the record edit was cancelled) then do
+        # not allow access
+        error __"Access to this file is not allowed";
+    }
     else {
         $file->schema(schema);
     }
@@ -1072,15 +1078,17 @@ get '/file/:id' => require_login sub {
 
 post '/file/?' => require_login sub {
 
-    my $ajax = defined param('ajax');
+    my $ajax           = defined param('ajax');
+    my $is_independent = defined param('is_independent') ? 1 : 0;
 
     if (my $upload = upload('file'))
     {
         my $file;
         if (process( sub { $file = rset('Fileval')->create({
-            name     => $upload->filename,
-            mimetype => $upload->type,
-            content  => $upload->content,
+            name           => $upload->filename,
+            mimetype       => $upload->type,
+            content        => $upload->content,
+            is_independent => $is_independent,
         }) } ))
         {
             if ($ajax)

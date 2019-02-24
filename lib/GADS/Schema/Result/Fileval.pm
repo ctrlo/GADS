@@ -67,6 +67,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "content",
   { data_type => "longblob", is_nullable => 1 },
+  "is_independent",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
