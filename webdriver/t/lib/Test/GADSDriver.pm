@@ -239,7 +239,15 @@ sub _assert_element {
     my( $self, $selector, $expect_present, $expected_text, $name ) = @_;
     my $test = __PACKAGE__->builder;
 
-    my $matching_el = $self->gads->webdriver->find( $selector, dies => 0 );
+    # Try for longer to find expected elements than unexpected elements.
+    # TODO: Move these to configuration
+    my $tries = $expect_present ? 30 : 10;
+
+    my $matching_el = $self->gads->webdriver->find(
+        $selector,
+        dies => 0,
+        tries => $tries,
+    );
 
     if ( 0 == $matching_el->size ) {
         $test->ok( !$expect_present, $name );
@@ -265,7 +273,8 @@ sub _assert_on_page {
     my $test = __PACKAGE__->builder;
     my $webdriver = $self->gads->webdriver;
 
-    my $page_el = $webdriver->find( $page_selector, dies => 0 );
+    # TODO: Move 'tries' to configuration
+    my $page_el = $webdriver->find( $page_selector, dies => 0, tries => 25 );
 
     if ( 0 == $page_el->size ) {
         $test->ok( 0, $name );
@@ -355,9 +364,10 @@ sub navigate_ok {
 
     my @failure;
     foreach my $selector (@$selectors_ref) {
-        my $found_el = $webdriver->find( $selector, dies => 0 );
-        if ( 0 == $found_el->size ) {
-            push @failure, "No elements matching '${selector}' found";
+        # TODO: Move 'tries' to configuration
+        my $found_el = $webdriver->find( $selector, dies => 0, tries => 25 );
+        if ( 0 == $found_el->size || !$found_el->visible ) {
+            push @failure, "No visible elements matching '${selector}' found";
         }
         else {
             $found_el->click;
