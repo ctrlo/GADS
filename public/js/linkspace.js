@@ -646,7 +646,7 @@ var setupFileUpload = function (context) {
 
                 var $li = $('<li class="help-block"><input type="checkbox" name="' + field + '" value="' + fileId + '" aria-label="' + fileName + '" checked>Include file. Current file name: <a href="/file/' + fileId + '">' + fileName + '</a>.</li>');
                 $ul.append($li);
-            },
+            }
         });
     });
 };
@@ -732,7 +732,7 @@ var setupTreeField = function () {
                 data : function (node) {
                     return { 'id' : node.id };
                 }
-            },
+            }
         },
         plugins : []
     };
@@ -1267,7 +1267,7 @@ var setupTimeline = function (context) {
                 m.find('.modal-body').load('/record_body/' + record_id);
                 m.modal();
              });
-        },
+        }
     });
 
 }
