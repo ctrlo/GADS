@@ -811,6 +811,11 @@
                         <div class="fileupload" data-field="[% field %]" data-fileupload-url="/file?ajax=1" data-multivalue="[% dispcol.multivalue %]">
                             [%# Ensure something gets sent back to show it's been displayed %]
                             <input type="hidden" name="[% field %]">
+                            <div class="progress-bar__container">
+                                <div class="progress-bar__progress">
+                                    <p class="progress-bar__percentage">0%</p>
+                                </div>
+                            </div>
                             <ul class="fileupload__files">
                                 [% FOREACH file IN editvalue.files %]
                                     <li class="help-block">
