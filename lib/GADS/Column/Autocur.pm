@@ -124,6 +124,8 @@ sub make_join
 sub write_special
 {   my ($self, %options) = @_;
 
+    return if $options{override};
+
     my $rset = $options{rset};
 
     $self->related_field_id
@@ -133,7 +135,7 @@ sub write_special
         related_field => $self->related_field_id,
     });
 
-    $self->_update_curvals(%options) unless $options{override};
+    $self->_update_curvals(%options);
 
     # Clear what may be cached values that should be updated after write
     $self->clear;
