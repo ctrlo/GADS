@@ -147,6 +147,7 @@ foreach my $ins (readdir $root)
         $instance = rset('Instance')->create({
             name   => $instance_info->{name},
         });
+
     }
 
     my $topic_mapping; # topic ID mapping
@@ -193,6 +194,7 @@ foreach my $ins (readdir $root)
        config                   => GADS::Config->instance,
        instance_id              => $instance->id,
     );
+    $layout->create_internal_columns;
 
     $layout->create_internal_columns;
 
