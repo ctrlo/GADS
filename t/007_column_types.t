@@ -112,20 +112,6 @@ my $curval_sheet2 = t::lib::DataSheet->new(schema => $schema, curval => 1, insta
 $curval_sheet2->create_records;
 is( scalar @{$curval_sheet2->columns->{curval1}->filtered_values}, 2, "Correct number of values for curval field" );
 
-# Create another curval fields that would cause a recursive loop. Check that it
-# fails
-my $curval_fail = GADS::Column::Curval->new(
-    schema => $schema,
-    user   => $user,
-    layout => $curval_sheet->layout,
-);
-$curval_fail->refers_to_instance_id($layout->instance_id);
-$curval_fail->curval_field_ids([$columns->{string1}->id]);
-$curval_fail->type('curval');
-$curval_fail->name('curval fail');
-try { $curval_fail->write };
-ok( $@, "Attempt to create curval recursive reference fails" );
-
 # Add a curval field without any columns. Check that it doesn't cause fatal
 # errors when building values.
 # This won't normally be allowed, but we want to test anyway just in case - set

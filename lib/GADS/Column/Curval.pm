@@ -228,20 +228,6 @@ sub write_special
     {
         my $layout_parent = $self->layout_parent
             or error __"Please select a table to link to";
-
-        # Check whether we are linking to a table that already links back to this one
-        if ($self->schema->resultset('Layout')->search({
-            'me.instance_id'    => $layout_parent->instance_id,
-            'me.type'           => 'curval',
-            'child.instance_id' => $self->layout->instance_id,
-        },{
-            join => {'curval_fields_parents' => 'child'},
-        })->count)
-        {
-            error __x qq(Cannot use columns from table "{table}" as it contains a column that links back to this table),
-                table => $layout_parent->name;
-
-        }
         $self->_update_curvals(%options);
     }
 

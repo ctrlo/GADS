@@ -2455,7 +2455,7 @@ prefix '/:layout_name' => sub {
         if (defined param('id'))
         {
             # Get all layouts of all instances for field linking
-            $params->{instance_layouts} = [grep { $_->instance_id != $layout->instance_id } @{var('instances')->all}];
+            $params->{instance_layouts} = var('instances')->all;
             $params->{instances_object} = var('instances'); # For autocur. Don't conflict with other instances var
         }
 
