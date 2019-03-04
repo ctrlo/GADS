@@ -285,6 +285,24 @@ my @update_tests = (
         ],
     },
     {
+        name    => 'Update unique field with serial',
+        option  => 'update_unique',
+        data    => qq(string1,Serial\nBar2,1),
+        unique  => 'Serial',
+        count   => 1,
+        results => {
+            string1 => 'Bar2',
+        },
+        written => 1,
+        errors  => 0,
+        skipped => 0,
+        existing_data => [
+            {
+                string1    => 'Foo',
+            },
+        ],
+    },
+    {
         name    => 'Skip when existing unique value exists',
         option  => 'skip_existing_unique',
         data    => "string1,integer1\nFoo,100\nFoo2,150",
@@ -462,8 +480,11 @@ foreach my $test (@update_tests)
         }
         else {
             my $unique = $layout->column_by_name($test->{unique});
-            $unique->isunique(1);
-            $unique->write;
+            if (!$unique->internal)
+            {
+                $unique->isunique(1);
+                $unique->write;
+            }
             $unique_id = $unique->id;
         }
     }

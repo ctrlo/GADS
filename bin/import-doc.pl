@@ -37,9 +37,10 @@ my $mime_type = mimetype($file);
 my $bin_data  = read_file($file, binmode => ':raw');
 
 my $f = rset('Fileval')->create({
-    name     => $filename,
-    mimetype => $mime_type,
-    content  => $bin_data,
+    name           => $filename,
+    mimetype       => $mime_type,
+    content        => $bin_data,
+    is_independent => 1,
 });
 
 my $fid = $f->id;
