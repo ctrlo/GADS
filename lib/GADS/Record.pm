@@ -53,6 +53,13 @@ use namespace::clean;
 
 with 'GADS::Role::Presentation::Record';
 
+# When clear() is called the layout is also cleared. This property can be used
+# to seed the layout to an existing value when it is rebuilt
+has _seed_layout => (
+    is      => 'rw',
+    clearer => 1,
+);
+
 # Preferably this is passed in to prevent extra
 # DB reads, but loads it if it isn't
 has layout => (
@@ -67,6 +74,12 @@ has layout => (
 
 sub _build_layout
 {   my $self = shift;
+
+    if (my $layout = $self->_seed_layout)
+    {
+        $self->_clear_seed_layout;
+        return $layout;
+    }
 
     my $instance_id = $self->_set_instance_id
         or panic "instance_id not set to create layout object";
@@ -575,6 +588,7 @@ sub find_serial_id
         instance_id => $self->layout->instance_id,
     })->next
         or error __x"Serial ID {id} not found", id => $serial_id;
+    $self->_seed_layout($self->layout);
     $self->_find(current_id => $current->id);
 }
 
