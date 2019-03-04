@@ -110,7 +110,7 @@ sub random
 
 sub resultset_for_values
 {   my $self = shift;
-    return $self->schema->resultset('User');
+    return $self->schema->resultset('User')->active;
 }
 
 sub cleanup
