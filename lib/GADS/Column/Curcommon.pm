@@ -92,7 +92,7 @@ has '+fixedvals' => (
 
 sub tjoin
 {   my ($self, %options) = @_;
-    $self->make_join(map { $_->tjoin } @{$self->curval_fields_retrieve(%options)});
+    $self->make_join(map { $_->tjoin } grep { !$_->internal } @{$self->curval_fields_retrieve(%options)});
 }
 
 has retrieve_all_columns => (

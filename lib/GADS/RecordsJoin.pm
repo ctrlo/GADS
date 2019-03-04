@@ -73,6 +73,7 @@ sub _add_children
     foreach my $c (@{$column->curval_fields_retrieve(all_fields => $options{all_fields})})
     {
         next if $c->is_curcommon;
+        next if $c->internal;
         # prefetch and linked match the parent.
         # search and sort are left blank, but may be updated with an
         # additional direct call with just the child and that option.
