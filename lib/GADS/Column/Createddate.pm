@@ -51,5 +51,7 @@ has include_time => (
     default => 1,
 );
 
+sub tjoin {};
+
 1;
 

@@ -869,7 +869,6 @@ sub _build_results
     my $search_query = $self->search_query(search => 1, sort => 1, linked => 1); # Need to call first to build joins
 
     my @prefetches = $self->jpfetch(prefetch => 1, linked => 0);
-    unshift @prefetches, 'createdby';
 
     my $rec1 = @prefetches ? { record_single => [@prefetches] } : 'record_single';
     # Add joins for sorts, but only if they're not already a prefetch (otherwise ordering can be messed up).
@@ -1229,11 +1228,16 @@ sub _build_columns_retrieved_do
     }
     foreach my $c (@columns)
     {
-        next if $c->internal;
         # We're viewing this, so prefetch all the values
         $self->add_prefetch($c, all_fields => $self->curcommon_all_fields);
         $self->add_linked_prefetch($c->link_parent) if $c->link_parent;
     }
+
+    # Make sure that the _version_user internal field is added. XXX Ideally we
+    # wouldn't need this and it would only be added when necessary, but due to
+    # legacy code it is assumed to be present
+    $self->add_prefetch($self->layout->column_by_name_short('_version_user'));
+
     \@columns;
 }
 
@@ -1437,8 +1441,7 @@ sub order_by
             else {
                 $self->add_join($column->sort_parent, sort => 1)
                     if $column->sort_parent;
-                $self->add_join($col_sort, sort => 1, parent => $column->sort_parent)
-                    unless $column->internal;
+                $self->add_join($col_sort, sort => 1, parent => $column->sort_parent);
             }
             my $s_table = $self->table_name($col_sort, sort => 1, %options, parent => $column_parent || $column->sort_parent);
             my $sort_name;
@@ -1792,8 +1795,7 @@ sub _resolve
         $value    = @$value > 1 ? [ $combiner => @$value ] : $value->[0];
         $self->add_join($options{parent}, search => 1, linked => $is_linked, all_fields => $self->curcommon_all_fields)
             if $options{parent};
-        $self->add_join($column, search => 1, linked => $is_linked, parent => $options{parent}, all_fields => $self->curcommon_all_fields)
-            unless $column->internal;
+        $self->add_join($column, search => 1, linked => $is_linked, parent => $options{parent}, all_fields => $self->curcommon_all_fields);
         my $s_table = $self->table_name($column, %options, search => 1);
         my $sq = {$condition->{operator} => $value};
         $sq = [ $sq, undef ] if $condition->{type} eq 'not_equal' || $condition->{type} eq 'not_begins_with';

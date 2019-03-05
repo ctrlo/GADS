@@ -229,7 +229,7 @@ my @filters = (
             {
                 id       => $layout->column_by_name_short('_version_user')->id,
                 type     => 'string',
-                value    => 5,
+                value    => 'User5, User5',
                 operator => 'equal',
             },
         ],
@@ -249,7 +249,7 @@ my @filters = (
             {
                 id       => $layout->column_by_name_short('_version_user')->id,
                 type     => 'string',
-                value    => 5,
+                value    => 'User5, User5',
                 operator => 'equal',
             },
         ],

@@ -624,8 +624,8 @@ my @filters = (
         rules => [
             {
                 id       => $layout->column_by_name_short('_version_user')->id,
-                type     => 'integer',
-                value    => $user->id,
+                type     => 'string',
+                value    => $user->value,
                 operator => 'equal',
             },
         ],

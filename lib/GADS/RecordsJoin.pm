@@ -94,8 +94,7 @@ sub _add_children
 sub _add_jp
 {   my ($self, $column, %options) = @_;
 
-    panic "Attempt to generate join for internal column"
-        if $column->internal;
+    return if !$column->tjoin;
 
     my $key;
     my $toadd = $column->tjoin(all_fields => $options{all_fields});

@@ -48,5 +48,7 @@ has '+value_field' => (
 
 sub cleanup {}
 
+sub tjoin {}
+
 1;
 

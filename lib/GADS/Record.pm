@@ -715,8 +715,6 @@ sub _find
                         $records->linked_hash(prefetch => 1, limit => $limit, page => $page),
                     ],
                 },
-                'createdby',
-                'approvedby'
             ); # Add info about related current record
             push @$search, { 'me.id' => $record_id };
             $root_table = 'Record';
@@ -741,10 +739,6 @@ sub _find
             else {
                 panic "Unexpected find parameters";
             }
-            unshift @prefetches, (
-                'createdby',
-                'approvedby'
-            ); # Add info about related current record
             @prefetches = (
                 $records->linked_hash(prefetch => 1, limit => $limit, page => $page),
                 'deletedby',
@@ -775,7 +769,6 @@ sub _find
         push @columns_fetch, {'linked.record_id' => "record_single.id"};
         push @columns_fetch, {current_id => "$base.current_id"};
         push @columns_fetch, {created => "$base.created"};
-        push @columns_fetch, "createdby.$_" foreach @GADS::Column::Person::person_properties;
         push @columns_fetch, "deletedby.$_" foreach @GADS::Column::Person::person_properties;
 
         # If fetch a draft, then make sure it's not a draft curval that's part of
@@ -999,7 +992,8 @@ sub _transform_values
         init_value       => [ { value => $original->{created} } ],
     );
     my $createdby_col = $self->layout->column_by_name_short('_version_user');
-    $fields->{$createdby_col->id} = $self->_person($original->{createdby}, $createdby_col);
+    my $created_val = $original->{createdby} || $original->{$createdby_col->field};
+    $fields->{$createdby_col->id} = $self->_person($created_val, $createdby_col);
 
     my $record_created_col = $self->layout->column_by_name_short('_created');
     my $record_created = $self->set_record_created;

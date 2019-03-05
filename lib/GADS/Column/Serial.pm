@@ -58,5 +58,7 @@ has '+value_field' => (
     default => 'serial',
 );
 
+sub tjoin {}
+
 1;
 

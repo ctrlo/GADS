@@ -25,17 +25,17 @@ use MooX::Types::MooseLike::Base qw/:all/;
 extends 'GADS::Column::Person';
 
 has '+value_field' => (
-    default => 'createdby',
+    default => 'value',
 );
 
 sub _build_table
 {   my $self = shift;
-    'Record';
+    'Createdby';
 }
 
 sub _build_sprefix
 {   my $self = shift;
-    'record';
+    'createdby';
 }
 
 has '+internal' => (
@@ -45,5 +45,10 @@ has '+internal' => (
 has '+userinput' => (
     default => 0,
 );
+
+sub tjoin
+{   my $self = shift;
+    'createdby';
+}
 
 1;
