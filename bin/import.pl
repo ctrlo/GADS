@@ -189,13 +189,17 @@ foreach my $ins (readdir $root)
                 report NOTICE => __x"Existing: Topic {name} already exists, will update", name => $topic->{name}
                     if $top->count && $report_only;
                 report NOTICE => __x"Creation: Topic {name} to be created", name => $topic->{name}
-                    if $top->count && $report_only;
+                    if !$top->count && $report_only;
                 if ($top = $top->next)
                 {
-                    $top->update($topic_hash);
+                    $top->import_hash($topic_hash, report_only => $report_only);
+                    $top->update unless $report_only;
                 }
             }
-            $top = schema->resultset('Topic')->create($topic_hash) if !$top;
+            if (!$top)
+            {
+                $top = schema->resultset('Topic')->create($topic_hash);
+            }
 
             $topic_mapping->{$topic->{id}} = $top->id;
         }
