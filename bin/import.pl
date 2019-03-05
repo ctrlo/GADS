@@ -172,10 +172,10 @@ foreach my $ins (readdir $root)
             my $top;
             my $topic_hash = {
                 name                  => $topic->{name},
+                description           => $topic->{description},
                 initial_state         => $topic->{initial_state},
                 click_to_edit         => $topic->{click_to_edit},
                 prevent_edit_topic_id => $topic->{prevent_edit_topic_id},
-                description           => $topic->{description},
                 instance_id           => $instance->id,
             };
             if ($report_only || $merge)

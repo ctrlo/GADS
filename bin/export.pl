@@ -107,6 +107,7 @@ foreach my $layout (@instances)
         my $json = $encoder->encode({
             id            => $topic->id,
             name          => $topic->name,
+            description   => $topic->description,
             initial_state => $topic->initial_state,
             click_to_edit => $topic->click_to_edit,
             instance_id   => $topic->instance_id,
