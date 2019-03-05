@@ -55,9 +55,9 @@ my ($site_id, $purge, $add, $report_only, $merge, $update_cached);
 GetOptions (
     'site-id=s'     => \$site_id,
     'purge'         => \$purge,
-    'add'           => \$add,
+    'add'           => \$add,           # Add as new table to existing system
     'report-only'   => \$report_only,
-    'merge'         => \$merge,
+    'merge'         => \$merge,         # Merge into existing table
     'update-cached' => \$update_cached,
 ) or exit;
 
@@ -86,7 +86,7 @@ if ($purge && !$report_only)
     GADS::Groups->new(schema => schema)->purge;
 }
 
-schema->resultset('Group')->count && !$add && !$report_only
+schema->resultset('Group')->count && !$add && !$report_only && !$merge
     and report ERROR => "Groups already exists. Use --purge to remove everything from this site before import or --add to add config";
 
 -d '_export/groups'
