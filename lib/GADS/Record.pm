@@ -919,7 +919,8 @@ sub versions
     $search->{'created'} = { '<' => $self->schema->storage->datetime_parser->format_datetime($self->rewind) }
         if $self->rewind;
     my @records = $self->schema->resultset('Record')->search($search,{
-        order_by => { -desc => 'created' }
+        prefetch => 'createdby',
+        order_by => { -desc => 'me.created' }
     })->all;
     @records;
 }

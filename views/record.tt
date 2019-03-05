@@ -24,7 +24,7 @@
         [% END %]
         [% FOREACH version IN versions %]
             <li [% IF version.id == record.record_id %]class="active"[% END %] role="presentation">
-                <a role="menuitem" tabindex="-1" href="/[% history_link %]/[% version.id %]">[% version.created %]</a>
+                <a role="menuitem" tabindex="-1" href="/[% history_link %]/[% version.id %]">[% version.created %] ([% version.createdby.value | html %])</a>
             </li>
         [% END %]
     </ul>
