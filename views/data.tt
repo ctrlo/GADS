@@ -261,9 +261,10 @@
     modal_id="modal_delete" modal_action_text="Delete" modal_heading="Delete records"
     modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post"
 %]
+    <h2 class="alert alert-danger" role="alert">Are you sure you want to delete records?</h2>
     <div id="delete_ids"></div>
     <p>Are you sure you want to delete all the records that are in the current view?</p>
-    <p><strong>Warning: this will delete <span id="count_delete">[% count %]</span> records.</strong></p>
+    <p class="text-danger"><strong>Warning: this will delete <span id="count_delete">[% count %]</span> records.</strong></p>
 [% END %]
 
 [% IF viewtype == "timeline" %]
