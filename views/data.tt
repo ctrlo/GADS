@@ -118,12 +118,12 @@
                             [% ELSE %]
                                 [% sel_type = "records in this view" %]
                             [% END %]
+                            [% IF layout.user_can("delete") %]
+                                <li role="presentation"><a role="menuitem" id="delete_href" class="bulk_href" tabindex="-1" data-toggle="modal" data-target="#modal_delete" style="cursor: pointer">Delete all [% sel_type %]...</a>
+                            [% END %]
                             [% IF layout.user_can("bulk_update") %]
                                 <li role="presentation"><a role="menuitem" id="update_href" class="bulk_href" tabindex="-1" href="/[% layout.identifier %]/bulk/update/">Update all [% sel_type %]...</a></li>
                                 <li role="presentation"><a role="menuitem" id="clone_href" class="bulk_href" tabindex="-1" href="/[% layout.identifier %]/bulk/clone/">Clone all [% sel_type %]...</a></li>
-                            [% END %]
-                            [% IF layout.user_can("delete") %]
-                                <li role="presentation"><a role="menuitem" id="delete_href" class="bulk_href" tabindex="-1" data-toggle="modal" data-target="#modal_delete" style="cursor: pointer">Delete all [% sel_type %]...</a>
                             [% END %]
                             [% IF viewtype == "table" AND records.size AND layout.user_can("download") %]
                                 <li role="presentation"><a role="menuitem" tabindex="-1" href="/[% layout.identifier %]/data?download">Download records in current view</a></li>
