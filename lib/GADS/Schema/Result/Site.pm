@@ -69,6 +69,8 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 1, is_nullable => 0 },
   "hide_account_request",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "remember_user_location",
+  { data_type => "smallint", default_value => 1, is_nullable => 0 },
 );
 
 __PACKAGE__->set_primary_key("id");

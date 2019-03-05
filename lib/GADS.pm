@@ -334,6 +334,7 @@ sub _update_persistent
 
 sub _forward_last_table
 {
+    forwardHome() if !var('site')->remember_user_location;
     my $forward;
     if (my $l = session('persistent')->{instance_id})
     {
