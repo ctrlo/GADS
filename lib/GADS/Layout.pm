@@ -431,8 +431,12 @@ sub write
     }
 
     $rset->update({
-        name       => $self->name,
-        name_short => $self->name_short,
+        name           => $self->name,
+        name_short     => $self->name_short,
+        homepage_text  => $self->homepage_text,
+        homepage_text2 => $self->homepage_text2,
+        sort_type      => $self->sort_type,
+        sort_layout_id => $self->sort_layout_id,
     });
 
     # Now set any groups if needed
@@ -1030,11 +1034,41 @@ sub export
 {   my $self = shift;
     +{
         name                       => $self->name,
+        name_short                 => $self->name_short,
         homepage_text              => $self->homepage_text,
         homepage_text2             => $self->homepage_text2,
         sort_layout_id             => $self->sort_layout_id,
         sort_type                  => $self->sort_type,
     };
+}
+
+sub import_hash
+{   my ($self, $values, %options) = @_;
+    my $report = $options{report_only} && $self->instance_id;
+
+    notice __x"Update: name from {old} to {new}", old => $self->name, new => $values->{name}
+        if $report && $self->name ne $values->{name};
+    $self->name($values->{name});
+
+    notice __x"Update: name_short from {old} to {new}", old => $self->name_short, new => $values->{name_short}
+        if $report && ($self->name_short || '') ne ($values->{name_short} || '');
+    $self->name_short($values->{name_short});
+
+    notice __x"Update homepage_text"
+        if $report && ($self->homepage_text || '') ne ($values->{homepage_text} || '');
+    $self->homepage_text($values->{homepage_text});
+
+    notice __x"Update homepage_text2"
+        if $report && ($self->homepage_text2 || '') ne ($values->{homepage_text2} || '');
+    $self->homepage_text2($values->{homepage_text2});
+
+    notice __x"Update: sort_layout_id from {old} to {new}", old => $self->sort_layout_id, new => $values->{sort_layout_id}
+        if $report && ($self->sort_layout_id || 0) != ($values->{sort_layout_id} || 0);
+    $self->sort_layout_id($values->{sort_layout_id});
+
+    notice __x"Update: sort_type from {old} to {new}", old => $self->type, new => $values->{sort_type}
+        if $report && ($self->sort_type || '') ne ($values->{sort_type} || '');
+    $self->sort_type($values->{sort_type});
 }
 
 sub purge

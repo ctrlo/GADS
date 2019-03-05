@@ -138,7 +138,7 @@ foreach my $ins (readdir $root)
             name => $instance_info->{name} if $count > 1;
         $instance = $existing->next;
         report NOTICE => __x"Existing: Instance {name} already exists", name => $instance_info->{name}
-            if $report_only;
+            if $report_only && !$merge;
         report ERROR => __x"Instance {name} already exists", name => $instance_info->{name}
             unless $merge;
     }
@@ -149,6 +149,18 @@ foreach my $ins (readdir $root)
         });
 
     }
+
+    my $layout = GADS::Layout->new(
+       user                     => undef,
+       user_permission_override => 1,
+       schema                   => schema,
+       config                   => GADS::Config->instance,
+       instance_id              => $instance->id,
+    );
+    $layout->create_internal_columns;
+
+    $layout->import_hash($instance_info, report_only => $report_only);
+    $layout->write unless $report_only;
 
     my $topic_mapping; # topic ID mapping
     if (-d "_export/$ins/topics")
@@ -186,17 +198,6 @@ foreach my $ins (readdir $root)
             $topic_mapping->{$topic->{id}} = $top->id;
         }
     }
-
-    my $layout = GADS::Layout->new(
-       user                     => undef,
-       user_permission_override => 1,
-       schema                   => schema,
-       config                   => GADS::Config->instance,
-       instance_id              => $instance->id,
-    );
-    $layout->create_internal_columns;
-
-    $layout->create_internal_columns;
 
     my %existing_columns = map { $_->id => $_ } $layout->all(exclude_internal => 1);
 
