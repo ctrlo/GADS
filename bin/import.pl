@@ -143,6 +143,8 @@ foreach my $ins (readdir $root)
             unless $merge;
     }
     else {
+        report ERROR => __x"Instance name {name} does not exist. Specify --add to create it.",
+            name => $instance_info->{name} if $merge && !$add;
         report NOTICE => __x"Creation: Instance name {name} created", name => $instance_info->{name};
         $instance = rset('Instance')->create({
             name   => $instance_info->{name},
