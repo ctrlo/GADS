@@ -198,7 +198,7 @@ foreach my $ins (readdir $root)
 
     $layout->create_internal_columns;
 
-    my %existing_columns = map { $_->id => $_ } $layout->all;
+    my %existing_columns = map { $_->id => $_ } $layout->all(exclude_internal => 1);
 
     # The layout in a column is a weakref, so it will have been destroyed by
     # the time we try and use it later in the script. Therefore, keep a
