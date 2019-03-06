@@ -383,6 +383,59 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
 
     # Normal - should include dateranges that go over the from/to values
     is( @{$return->{items}}, 2, "Correct number of items for group by calc" );
+    foreach my $item (@{$return->{items}})
+    {
+        unlike($item->{content}, qr/(2009|2010)/, "Item does not contain group value");
+    }
+    is( @{$return->{groups}}, 2, "Correct number of groups for group by calc" );
+}
+
+# Curval as group field does not show curval items on timeline labels
+{
+    my $data = [
+        {
+            string1    => 'foobar1',
+        },
+        {
+            string1    => 'foobar2',
+        },
+    ];
+    my $curval_sheet = t::lib::DataSheet->new(data => $data, instance_id => 2);
+    $curval_sheet->create_records;
+    my $schema   = $curval_sheet->schema;
+
+    $data = [
+        {
+            string1    => 'Foo',
+            date1      => '2013-10-10',
+            curval1    => 1,
+        },{
+            string1    => 'Bar',
+            date1      => '2014-10-10',
+            curval1    => 2,
+        },
+    ];
+
+    my $sheet    = t::lib::DataSheet->new(data => $data, curval => 2, schema => $schema);
+    $sheet->create_records;
+    my $layout   = $sheet->layout;
+    my $showcols = [ map { $_->id } $layout->all(exclude_internal => 1) ];
+
+    my $records = GADS::Records->new(
+        user    => undef,
+        columns => $showcols,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    my $return = $records->data_timeline(group => $sheet->columns->{curval1}->id);
+
+    # Normal - should include dateranges that go over the from/to values
+    is( @{$return->{items}}, 2, "Correct number of items for group by calc" );
+    foreach my $item (@{$return->{items}})
+    {
+        unlike($item->{content}, qr/foobar/, "Item does not contain curval group value");
+    }
     is( @{$return->{groups}}, 2, "Correct number of groups for group by calc" );
 }
 

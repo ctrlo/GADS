@@ -137,13 +137,21 @@ sub _build_items
     my $records  = $self->records;
     my $find_min = $self->records->from && !$self->records->to ? $self->records->from->clone->truncate(to => 'day') : undef;
     my $find_max = !$self->records->from && $self->records->to ? $self->records->to->clone->truncate(to => 'day')->add(days => 1) : undef;
+
     my @columns = @{$records->columns_retrieved_no};
+
+    my $date_column_count;
     foreach my $column (@columns)
     {
-        push @columns, @{$column->curval_fields}
+        my @cols = ($column);
+        push @cols, @{$column->curval_fields}
             if $column->is_curcommon;
+        foreach my $col (@cols)
+        {
+            $date_column_count++
+                if $col->return_type eq "daterange" || $col->return_type eq "date";
+        }
     }
-    my $date_column_count = grep { $_->return_type eq "daterange" || $_->return_type eq "date" } @columns;
 
     while (my $record  = $records->single)
     {
@@ -159,38 +167,36 @@ sub _build_items
         {
             my @dates; my @titles;
             my $had_date_col; # Used to detect multiple date columns in this view
-            my %curcommon_values;
             foreach my $column (@columns)
             {
                 next if $self->color_col_id && $self->color_col_id == $column->id;
 
+                my @d;
                 if ($column->is_curcommon)
                 {
                     foreach my $row (@{$record->fields->{$column->id}->field_values})
                     {
                         foreach my $cur_col_id (keys %$row)
                         {
-                            $curcommon_values{$cur_col_id} ||= [];
-                            push @{$curcommon_values{$cur_col_id}}, $row->{$cur_col_id};
+                            push @d, $row->{$cur_col_id};
                         }
                     }
-                    next;
                 }
-
-                # Get item value
-                my @d = $curcommon_values{$column->id}
-                    ? @{$curcommon_values{$column->id}}
-                    : ($record->fields->{$column->id});
+                else {
+                    @d = ($record->fields->{$column->id});
+                }
 
                 foreach my $d (@d)
                 {
                     $d or next;
 
+                    my $column_datum = $d->column;
+
                     # Only show unique items of children, otherwise will be a lot of
                     # repeated entries
                     next if $record->parent_id && !$d->child_unique;
 
-                    if ($column->return_type eq "daterange" || $column->return_type eq "date")
+                    if ($column_datum->return_type eq "daterange" || $column_datum->return_type eq "date")
                     {
                         $multiple_dates = 1 if $had_date_col;
                         $had_date_col = 1;
@@ -205,7 +211,7 @@ sub _build_items
                         }
 
                         # Push value onto stack
-                        if ($column->type eq "daterange")
+                        if ($column_datum->type eq "daterange")
                         {
                             foreach my $range (@{$d->values})
                             {
@@ -220,7 +226,7 @@ sub _build_items
                                         from       => $range->start,
                                         to         => $range->end,
                                         color      => $color,
-                                        column     => $column->id,
+                                        column     => $column_datum->id,
                                         count      => ++$count,
                                         daterange  => 1,
                                         current_id => $d->record->current_id,
@@ -271,7 +277,7 @@ sub _build_items
                                         from       => $val,
                                         to         => $val,
                                         color      => $color,
-                                        column     => $column->id,
+                                        column     => $column_datum->id,
                                         count      => 1,
                                         current_id => $d->record->current_id,
                                     };
@@ -296,14 +302,14 @@ sub _build_items
                         }
                     }
                     else {
-                        next if $column->type eq "rag";
+                        next if $column_datum->type eq "rag";
                         # Check if the user has selected only one label
                         next if $self->label_col_id && $self->label_col_id != $column->id;
                         # Don't add grouping text to title
                         next if $self->group_col_id && $self->group_col_id == $column->id;
                         # Not a date value, push onto title
                         # Don't want full HTML, which includes hyperlinks etc
-                        push @titles, {col => $column, value => $d} if $d->as_string;
+                        push @titles, {col => $column_datum, value => $d} if $d->as_string;
                     }
                 }
             }
@@ -408,7 +414,7 @@ sub _build_items
         # XXX Results in multiple warnings when this routine is called more
         # than once per page
         mistake __"There are no date fields in this view to display"
-            if !grep { $_->return_type =~ /date/ } @columns;
+            if !$date_column_count;
     }
 
     \@items;
