@@ -143,7 +143,7 @@
                         <ul id="menu_action" class="dropdown-menu" role="menu">
                             <li role="presentation">
                                 <a role="menuitem" href="/[% layout.identifier %]/data?png=1">Download as PNG image</a>
-                                <a role="menuitem" href="/[% layout.identifier %]/data?pdf=1">Download as PDF document</a>
+                                <a role="menuitem" href="" data-toggle="modal" data-target="#modal_pdf">Download as PDF document...</a>
                             </li>
                         </ul>
                     </div>
