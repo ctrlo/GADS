@@ -152,6 +152,11 @@ has set_record_created => (
     clearer => 1,
 );
 
+has set_record_created_user => (
+    is      => 'rw',
+    clearer => 1,
+);
+
 has curcommon_all_fields => (
     is      => 'ro',
     isa     => Bool,
@@ -660,11 +665,14 @@ sub clear
     $self->clear_createdby;
     $self->clear_created;
     $self->clear_set_record_created,
+    $self->clear_set_record_created_user,
     $self->clear_is_historic;
     $self->clear_new_entry;
     $self->clear_layout;
 }
 
+# XXX This whole section is getting messy and duplicating a lot of code from
+# GADS::Records. Ideally this needs to share the same code.
 sub _find
 {   my ($self, %find) = @_;
 
@@ -799,6 +807,15 @@ sub _find
     $self->set_deleted($record->{deleted});
     $self->set_deletedby($record->{deletedby});
     $self->clear_is_draft;
+
+    # Find the user that created this record. XXX Ideally this would be done as
+    # part of the original query, as it is for GADS::Records. See comment above
+    # about this function
+    my $first = $self->schema->resultset('Record')->search({
+        current_id => $record->{current_id},
+    })->get_column('id')->min;
+    my $user = $self->schema->resultset('Record')->find($first)->createdby;
+    $self->set_record_created_user({$user->get_columns});
 
     # Fetch and merge and multi-values
     my @record_ids = ($record->{id});
@@ -992,13 +1009,24 @@ sub _transform_values
         layout           => $self->layout,
         init_value       => [ { value => $original->{created} } ],
     );
-    my $createdby_col = $self->layout->column_by_name_short('_version_user');
-    my $created_val = $original->{createdby} || $original->{$createdby_col->field};
+
+    my $version_user_col = $self->layout->column_by_name_short('_version_user');
+    my $version_user_val = $original->{createdby} || $original->{$version_user_col->field};
+    $fields->{$version_user_col->id} = $self->_person($version_user_val, $version_user_col);
+
+    my $createdby_col = $self->layout->column_by_name_short('_created_user');
+    my $created_val = $self->set_record_created_user;
+    if (!$created_val) # Single record retrieval does not set this
+    {
+        my $created_val_id = $self->schema->resultset('Record')->search({
+            current_id => $self->current_id,
+        })->get_column('created')->min;
+    }
     $fields->{$createdby_col->id} = $self->_person($created_val, $createdby_col);
 
     my $record_created_col = $self->layout->column_by_name_short('_created');
     my $record_created = $self->set_record_created;
-    if (!$record_created)
+    if (!$record_created) # Single record retrieval does not set this
     {
         $record_created = $self->schema->resultset('Record')->search({
             current_id => $self->current_id,

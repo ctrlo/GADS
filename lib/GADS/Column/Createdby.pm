@@ -51,4 +51,18 @@ sub tjoin
     'createdby';
 }
 
+# Different to normal function, this will fetch users when passed a list of IDs
+sub fetch_multivalues
+{   my ($self, $user_ids) = @_;
+
+    my %user_ids = map { $_ => 1 } grep { $_ } @$user_ids; # De-duplicate
+
+    my $m_rs = $self->schema->resultset('User')->search({
+        'me.id' => [keys %user_ids],
+    });
+    $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    my %users = map { $_->{id} => $_ } $m_rs->all;
+    return \%users;
+}
+
 1;

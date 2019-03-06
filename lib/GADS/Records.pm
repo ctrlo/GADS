@@ -888,12 +888,28 @@ sub _build_results
             $rec2,
         ],
         '+select' => $self->_plus_select, # Used for additional sort columns
-        '+columns' => {
-            record_created => $self->schema->resultset('Current')
-              ->correlate('records')
-              ->get_column('created')
-              ->min_rs->as_query,
-        },
+        '+columns' => [
+            {
+                record_created => $self->schema->resultset('Current')
+                  ->correlate('records')
+                  ->get_column('created')
+                  ->min_rs->as_query,
+            },
+            # This makes the assumption that the lowest record ID will be the
+            # first created
+            {
+                record_created_user => $self->schema->resultset('Record')->search({
+                    'me_created.id' => {
+                        -in => $self->schema->resultset('Current')
+                            ->correlate('records')
+                            ->get_column('id')
+                            ->min_rs->as_query,
+                    },
+                },{
+                    alias => 'me_created',
+                })->get_column('createdby')->as_query,
+            },
+        ],
         order_by  => $self->order_by(prefetch => 1),
     };
 
@@ -901,40 +917,53 @@ sub _build_results
 
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
-    my @all; my @record_ids;
+    my @all; my @record_ids; my @created_ids;
     my @retrieved = $result->all;
     foreach my $rec (@retrieved)
     {
         my @children = map { $_->{id} } @{$rec->{currents}};
         push @all, GADS::Record->new(
-            schema               => $self->schema,
-            record               => $rec->{record_single},
-            serial               => $rec->{serial},
-            linked_record_raw    => $rec->{linked}->{record_single},
-            child_records        => \@children,
-            parent_id            => $rec->{parent_id},
-            linked_id            => $rec->{linked_id},
-            is_draft             => $rec->{draftuser_id},
-            user                 => $self->user,
-            layout               => $self->layout,
-            columns_retrieved_no => $self->columns_retrieved_no,
-            columns_retrieved_do => $self->columns_retrieved_do,
-            set_deleted          => $rec->{deleted},
-            set_deletedby        => $rec->{deletedby},
-            set_record_created   => $rec->{record_created},
-            curcommon_all_fields => $self->curcommon_all_fields,
+            schema                  => $self->schema,
+            record                  => $rec->{record_single},
+            serial                  => $rec->{serial},
+            linked_record_raw       => $rec->{linked}->{record_single},
+            child_records           => \@children,
+            parent_id               => $rec->{parent_id},
+            linked_id               => $rec->{linked_id},
+            is_draft                => $rec->{draftuser_id},
+            user                    => $self->user,
+            layout                  => $self->layout,
+            columns_retrieved_no    => $self->columns_retrieved_no,
+            columns_retrieved_do    => $self->columns_retrieved_do,
+            set_deleted             => $rec->{deleted},
+            set_deletedby           => $rec->{deletedby},
+            set_record_created      => $rec->{record_created},
+            set_record_created_user => $rec->{record_created_user},
+            curcommon_all_fields    => $self->curcommon_all_fields,
         );
+        push @created_ids, $rec->{record_created_user};
         push @record_ids, $rec->{record_single}->{id};
         push @record_ids, $rec->{linked}->{record_single}->{id}
             if $rec->{linked}->{record_single};
     }
 
-    # Fetch and add multi-values
+    # Fetch and add multi-values (standard columns)
     $self->fetch_multivalues(
         record_ids => \@record_ids,
         retrieved  => \@retrieved,
         records    => \@all,
     );
+
+    # Fetch and add created users (unable to retrieve during initial query)
+    my $created_column = $self->layout->column_by_name_short('_created_user');
+    my $created_users  = $created_column->fetch_multivalues(\@created_ids);
+    foreach my $rec (@all)
+    {
+        my $original = $rec->set_record_created_user
+            or next;
+        my $user     = $created_users->{$original};
+        $rec->set_record_created_user($user);
+    }
 
     \@all;
 }

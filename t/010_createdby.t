@@ -7,23 +7,37 @@ use Log::Report;
 
 use t::lib::DataSheet;
 
-my $sheet   = t::lib::DataSheet->new;
+my $sheet   = t::lib::DataSheet->new(data => [{ string1 => 'foobar1' }]);
 my $layout  = $sheet->layout;
-my $columns = $sheet->columns;
 my $schema  = $sheet->schema;
 $sheet->create_records;
+my $columns = $sheet->columns;
+my $string  = $columns->{string1};
+my $created_col = $layout->column_by_name_short('_created_user');
 
 my $records = GADS::Records->new(
+    layout => $layout,
+    user   => $sheet->user_normal1,
+    schema => $schema,
+);
+
+is($records->count, 1, "Initial record created");
+
+# Update record as different user
+my $record = $records->single;
+$record->fields->{$string->id}->set_value('foobar2');
+$record->write(no_alerts => 1);
+
+$records = GADS::Records->new(
     layout => $layout,
     user   => $sheet->user,
     schema => $schema,
 );
 
-is($records->count, 2, "Initial records created");
-
-my $record = $records->single;
+$record = $records->single;
 my $current_id = $record->current_id;
-is($record->createdby->as_string, "User1, User1", "Record retrieved as group has correct createdby");
+is($record->createdby->as_string, "User4, User4", "Record retrieved as group has correct version editor");
+is($record->fields->{$created_col->id}->as_string, "User1, User1", "Record retrieved as group has correct createdby");
 
 $record = GADS::Record->new(
     layout => $layout,
@@ -31,6 +45,7 @@ $record = GADS::Record->new(
     schema => $schema,
 );
 $record->find_current_id($current_id);
-is($record->createdby->as_string, "User1, User1", "Record retrieved as single has correct createdby");
+is($record->createdby->as_string, "User4, User4", "Record retrieved as single has correct version editor");
+is($record->fields->{$created_col->id}->as_string, "User1, User1", "Record retrieved as group has correct createdby");
 
 done_testing();

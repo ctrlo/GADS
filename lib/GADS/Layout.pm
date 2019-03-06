@@ -530,6 +530,12 @@ sub create_internal_columns
             isunique    => 0,
         },
         {
+            name        => 'Created by',
+            type        => 'createdby',
+            name_short  => '_created_user',
+            isunique    => 0,
+        },
+        {
             name        => 'Deleted by',
             type        => 'deletedby',
             name_short  => '_deleted_by',
