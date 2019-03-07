@@ -39,37 +39,37 @@
                                     [% group.name | html %]
                                 </td>
                                 <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_delete" [% IF layout_edit.group_has(group.id, 'delete') %]checked[% END %]>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_delete" aria-label="Delete records" [% IF layout_edit.group_has(group.id, 'delete') %]checked[% END %]>
                                 </td>
                                 <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_purge" [% IF layout_edit.group_has(group.id, 'purge') %]checked[% END %]>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_purge" aria-label="Purge deleted records" [% IF layout_edit.group_has(group.id, 'purge') %]checked[% END %]>
                                 </td>
                                 <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_download" [% IF layout_edit.group_has(group.id, 'download') %]checked[% END %]>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_download" aria-label="Download records" [% IF layout_edit.group_has(group.id, 'download') %]checked[% END %]>
                                 </td>
                                 <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_layout" [% IF layout_edit.group_has(group.id, 'layout') %]checked[% END %]>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_layout" aria-label="Manage fields" [% IF layout_edit.group_has(group.id, 'layout') %]checked[% END %]>
                                 </td>
                                 <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_message" [% IF layout_edit.group_has(group.id, 'message') %]checked[% END %]>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_message" aria-label="Send messages" [% IF layout_edit.group_has(group.id, 'message') %]checked[% END %]>
                                 </td>
                                 <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_view_create" [% IF layout_edit.group_has(group.id, 'view_create') %]checked[% END %]>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_view_create" aria-label="Create and edit views" [% IF layout_edit.group_has(group.id, 'view_create') %]checked[% END %]>
                                 </td>
                                 <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_view_group" [% IF layout_edit.group_has(group.id, 'view_group') %]checked[% END %]>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_view_group" aria-label="Create and edit group views" [% IF layout_edit.group_has(group.id, 'view_group') %]checked[% END %]>
                                 </td>
                                 <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_create_child" [% IF layout_edit.group_has(group.id, 'create_child') %]checked[% END %]>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_create_child" aria-label="Create and edit child records" [% IF layout_edit.group_has(group.id, 'create_child') %]checked[% END %]>
                                 </td>
                                 <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_bulk_update" [% IF layout_edit.group_has(group.id, 'bulk_update') %]checked[% END %]>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_bulk_update" aria-label="Bulk update records" [% IF layout_edit.group_has(group.id, 'bulk_update') %]checked[% END %]>
                                 </td>
                                 <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_link" [% IF layout_edit.group_has(group.id, 'link') %]checked[% END %]>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_link" aria-label="Create and manage linked records" [% IF layout_edit.group_has(group.id, 'link') %]checked[% END %]>
                                 </td>
                                 <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_view_limit_extra" [% IF layout_edit.group_has(group.id, 'view_limit_extra') %]checked[% END %]>
+                                    <input type="checkbox" name="permissions" value="[% group.id %]_view_limit_extra" aria-label="Select extra view limits" [% IF layout_edit.group_has(group.id, 'view_limit_extra') %]checked[% END %]>
                                 </td>
                             </tr>
                         [% END %]
