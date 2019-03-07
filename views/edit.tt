@@ -824,7 +824,11 @@
                                     </li>
                                 [% END %]
                             </ul>
-                            <input type="file" name="file" multiple>
+                            [% IF dispcol.multivalue == multivalue %]
+                                <input type="file" name="file" multiple>
+                            [% ELSE %]
+                                <input type="file" name="file">
+                            [% END %]
                         </div>
                     [% END %]
                 [% ELSIF dispcol.type == "daterange" %]
