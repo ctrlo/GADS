@@ -815,7 +815,8 @@ sub _find
         current_id => $record->{current_id},
     })->get_column('id')->min;
     my $user = $self->schema->resultset('Record')->find($first)->createdby;
-    $self->set_record_created_user({$user->get_columns});
+    $self->set_record_created_user({$user->get_columns})
+        if $user;
 
     # Fetch and merge and multi-values
     my @record_ids = ($record->{id});
