@@ -374,6 +374,42 @@ sub delete_table_ok {
     return $self;
 }
 
+=head3 follow_link_ok
+
+Takes a string and follows a link containing that string's text.
+
+=cut
+
+sub follow_link_ok {
+    my ( $self, $name, $link_text ) = @_;
+    $name //= "Follow the link containing '${link_text}'";
+    my $test = context();
+    my $webdriver = $self->gads->webdriver;
+
+    my $link_el = $webdriver->find(
+        # TODO: "contains" isn't the same as "equals"
+        "//main//a[ contains( ., '${link_text}') ]",
+        method => 'xpath',
+        dies => 0,
+    );
+
+    my $success = 0;
+    if ( 0 == $link_el->size ) {
+        $test->diag("No link containing '${link_text}' found");
+    }
+    elsif ( 1 != $link_el->size ) {
+        $test->diag("More than one link containing '${link_text}' found");
+    }
+    else {
+        $success = 1;
+        $link_el->click;
+    }
+
+    my $result = $test->ok( $success, $name );
+    $test->release;
+    return $result;
+}
+
 =head3 navigate_ok
 
 Takes an array reference of selectors to click on in the site navigation.
