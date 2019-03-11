@@ -1427,4 +1427,20 @@ small.search_term {
             margin-right: 10px;
         }
     }
+
+    .progress-bar__container {
+        display: none;
+        background-color: $rag-undefined;
+    }
+
+    .progress-bar__progress {
+        width: 0%;
+        background-color: rgb(100, 170, 50);
+    }
+
+    .progress-bar__percentage {
+        text-align: center;
+        line-height: 30px;
+        margin: 0;
+    }
 }
