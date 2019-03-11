@@ -346,15 +346,9 @@ sub delete_table_ok {
         'form a[data-target="#myModal"]',
         dies => 0,
     );
-    if ( 0 == $delete_button_el->size ) {
-        $test->ok( 0, $name );
-        $test->diag("No delete button found");
-    }
-    elsif ( 1 != $delete_button_el->size ) {
-        $test->ok( 0, $name );
-        $test->diag("More than one delete button found");
-    }
-    else {
+
+    my $success = $self->_check_only_one( $delete_button_el, 'delete button' );
+    if ($success) {
         $delete_button_el->click;
         
         my $selector = '.modal-content button[name=delete]';
@@ -362,13 +356,13 @@ sub delete_table_ok {
 
         if ( 1 == $confirm_button_el->size ) {
             $confirm_button_el->click;
-            $test->ok( 1, $name );
         }
         else {
-            $test->ok( 0, $name );
+            $success = 0;
             $test->diag("No confirm button found");
         }
     }
+    $test->ok( $success, $name );
     
     $test->release;
     return $self;
@@ -393,17 +387,9 @@ sub follow_link_ok {
         dies => 0,
     );
 
-    my $success = 0;
-    if ( 0 == $link_el->size ) {
-        $test->diag("No link containing '${link_text}' found");
-    }
-    elsif ( 1 != $link_el->size ) {
-        $test->diag("More than one link containing '${link_text}' found");
-    }
-    else {
-        $success = 1;
-        $link_el->click;
-    }
+    my $success = $self->_check_only_one(
+        $link_el, "link containing '${link_text}'"); ;
+    $link_el->click if $success;
 
     my $result = $test->ok( $success, $name );
     $test->release;
@@ -454,18 +440,11 @@ sub select_table_to_edit_ok {
     
     my $xpath = "//tr[ contains( ., '$table_name' ) ]//a";
     my $table_edit_el = $webdriver->find( $xpath, method => 'xpath', dies => 0 );
-    if ( 0 == $table_edit_el->size ) {
-        $test->ok( 0, $name );
-        $test->diag("No tables named '${table_name}' found");
-    }
-    elsif ( 1 != $table_edit_el->size ) {
-        $test->ok( 0, $name );
-        $test->diag("More than one table named '${table_name}' found");
-    }
-    else {
-        $table_edit_el->click;
-        $test->ok( 1, $name );
-    }
+
+    my $success = $self->_check_only_one(
+        $table_edit_el, "table named '${table_name}'" );
+    $table_edit_el->click if $success;
+    $test->ok( $success, $name );
 
     $test->release;
     return $self;
@@ -497,15 +476,9 @@ sub submit_add_a_table_form_ok {
         method => 'xpath',
         dies => 0,
     );
-    if ( 0 == $group_row_el->size ) {
-        $success = 0;
-        $test->diag("No group named '$arg{group_name}' found");
-    }
-    elsif ( 1 != $group_row_el->size ) {
-        $success = 0;
-        $test->diag("More than one group named '$arg{group_name}' found");
-    }
-    else {
+    $success &&= $self->_check_only_one(
+        $group_row_el, "group named '$arg{group_name}'" );
+    if ($success) {
         $_->click foreach $group_row_el->find('input[name=permissions]');
     }
 
@@ -544,6 +517,26 @@ sub submit_login_form_ok {
     my $result = $test->ok( $success, $name );
     $test->release;
     return $result;
+}
+
+sub _check_only_one {
+    my ( $self, $element, $element_type_name ) = @_;
+    my $test = context();
+
+    my $success = 1;
+
+    my $element_count = $element->size;
+    if ( 0 == $element_count ) {
+        $success = 0;
+        $test->diag("No $element_type_name found");
+    }
+    elsif ( 1 != $element_count ) {
+        $success = 0;
+        $test->diag("More than one $element_type_name found");
+    }
+
+    $test->release;
+    return $success;
 }
 
 sub _fill_in_field {
