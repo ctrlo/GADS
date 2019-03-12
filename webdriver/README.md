@@ -31,6 +31,11 @@ These tests rely on several environment variables:
 * `GADS_HOME` defines the URL of a running application to test against
   (defaults to `http://localhost:3000`)
 
+## geckodriver Environment Variables
+
+To run these tests with geckodriver in headless mode, without a browser
+window appearing, set `MOZ_HEADLESS=1`.
+
 # Run Tests
 
 ```
