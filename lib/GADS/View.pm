@@ -80,13 +80,14 @@ has _view => (
     clearer => 1,
     builder => sub {
         my $self = shift;
-        my ($view) = $self->schema->resultset('View')->search({
+        my $view = $self->schema->resultset('View')->find({
             'me.id'          => $self->id,
+            # instance_id isn't strictly needed as id is the primary key
             'me.instance_id' => $self->instance_id,
         },{
             prefetch => ['sorts', 'alerts'],
             order_by => 'sorts.id', # Ensure sorts are retrieve in correct order to apply
-        })->all;
+        });
         if (!$view)
         {
             $self->clear_id;

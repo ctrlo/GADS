@@ -41,11 +41,11 @@ has _graph => (
         $self->id or return;
         $self->id =~ /^[0-9]+$/
             or error __x"Invalid graph ID {id}", id => $self->id;
-        my ($graph) = $self->schema->resultset('Graph')->search({
+        my $graph = $self->schema->resultset('Graph')->find({
             'me.id' => $self->id
         },{
             prefetch => [qw/x_axis x_axis_link y_axis group_by/],
-        })->all;
+        });
         $graph
             or error __x"Requested graph ID {id} not found", id => $self->id;
     },
