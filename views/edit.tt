@@ -677,8 +677,8 @@
             [% label = label _ ' <span style="font-weight:normal !important">(' _ desc _ ")</span>" %]
         [% END %]
         [% IF dispcol.helptext %]
-            [% label = label _ " (<a data-toggle='modal' data-load-url='/helptext/"
-                             _ dispcol.id  _ "' data-target='#helptext_modal' style='cursor:pointer'>?</a>)" %]
+            [% label = label _ " <a class='helptext__questionmark' data-toggle='modal' data-load-url='/helptext/"
+                             _ dispcol.id  _ "' data-target='#helptext_modal'>?</a>" %]
         [% END %]
         [% IF page == "bulk" AND dispcol.addable AND (dispcol.return_type == "date" OR dispcol.return_type == "daterange") %]
             [% label_add = BLOCK %]
