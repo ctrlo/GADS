@@ -25,6 +25,7 @@
   width: 1px; }
 
 .visually-hidden-opacity {
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
   opacity: 0; }
 
 /* general util */
@@ -1304,10 +1305,10 @@ a.list-group-item-danger.active, a.list-group-item-danger.active:hover, a.list-g
   color: #197E97;
   outline: 2px solid #197E97; }
 
-#remember + label span::before {
+#remember + label span:before {
   content: "\e157"; }
 
-#remember:checked + label span::before {
+#remember.remember--checked + label span:before {
   content: "\e067"; }
 
 /* Login page - reset password dialog */
