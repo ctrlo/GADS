@@ -481,8 +481,12 @@ sub _update_curvals
     my @curval_field_ids;
     foreach my $field (@{$self->curval_field_ids})
     {
-        # Skip fields not part of referred instance
-        my $field_full = $layout_parent->column($field)
+        # Skip fields not part of referred instance. This can happen when a
+        # user changes the instance that is referred to, in which case fields
+        # may still be selected and submitted from the no-longer-displayed
+        # table's list of fields
+        my $field_full = $layout_parent->column($field);
+        $field_full->instance_id == $layout_parent->instance_id
             or next;
         # Check whether field is a curval - can't refer recursively
         next if $field_full->type eq 'curval';
@@ -499,6 +503,7 @@ sub _update_curvals
     my $search = { parent_id => $id };
     $search->{child_id} = { '!=' =>  [ -and => @curval_field_ids ] }
         if @curval_field_ids;
+
     $self->schema->resultset('CurvalField')->search($search)->delete;
 
 }
