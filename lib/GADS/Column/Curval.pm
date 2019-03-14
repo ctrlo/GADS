@@ -171,7 +171,10 @@ has data_filter_fields => (
 
 sub _build_data_filter_fields
 {   my $self = shift;
-    '[' . (join ', ', map { '"'.$_->field.'"' } @{$self->subvals_input_required}) . ']';
+    my @fields = @{$self->subvals_input_required};
+    grep { $_->instance_id != $self->instance_id } @fields
+        and warning "The filter refers to values of fields that are not in this table";
+    '[' . (join ', ', map { '"'.$_->field.'"' } @fields) . ']';
 }
 
 sub _build_refers_to_instance_id
@@ -238,6 +241,9 @@ sub write_special
 
     # Clear what may be cached values that should be updated after write
     $self->clear;
+
+    # Force any warnings to be shown about the chosen filter fields
+    $self->data_filter_fields;
 
     return ();
 };
