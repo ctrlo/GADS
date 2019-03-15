@@ -519,9 +519,7 @@ sub _build_approval_of_new
     # a record. If it's an approval record, get its record
     my $record_id = $self->approval_id || $self->record_id;
 
-    my ($record) = $self->schema->resultset('Record')->search({
-        id       => $record_id,
-    })->all;
+    my $record = $self->schema->resultset('Record')->find($record_id);
     $record = $record->record if $record->record; # Approval
     $self->schema->resultset('Record')->search({
         'me.id' => $record->id,
@@ -815,7 +813,8 @@ sub _find
         current_id => $record->{current_id},
     })->get_column('id')->min;
     my $user = $self->schema->resultset('Record')->find($first)->createdby;
-    $self->set_record_created_user({$user->get_columns});
+    $self->set_record_created_user({$user->get_columns})
+        if $user;
 
     # Fetch and merge and multi-values
     my @record_ids = ($record->{id});

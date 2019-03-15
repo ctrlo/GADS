@@ -146,6 +146,7 @@
                 <label for="display_field">Column</label>
                 <select class="form-control" id="display_field" name="display_field">
                     [% FOREACH field in all_columns %]
+                        [% NEXT UNLESS field.userinput %]
                         <option value="[% field.id %]" [% IF column.display_field == field.id %]selected[% END %]>[% field.name | html_entity %]</option>
                     [% END %]
                 </select>

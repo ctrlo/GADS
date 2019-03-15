@@ -1987,3 +1987,13 @@ small.search_term {
   padding-left: 0; }
   .fileupload .fileupload__files input[type="checkbox"] {
     margin-right: 10px; }
+.fileupload .progress-bar__container {
+  display: none;
+  background-color: #a09fa0; }
+.fileupload .progress-bar__progress {
+  width: 0%;
+  background-color: #64aa32; }
+.fileupload .progress-bar__percentage {
+  text-align: center;
+  line-height: 30px;
+  margin: 0; }

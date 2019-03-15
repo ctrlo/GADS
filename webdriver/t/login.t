@@ -30,9 +30,9 @@ $gads->assert_on_login_page('The login page is visible after a bad login');
 $gads->assert_error_present;
 
 $gads->submit_login_form_ok;
-$gads->assert_error_absent('No error message is visible after logging in');
-$gads->assert_success_absent('No success message is visible after logging in');
 $gads->assert_navigation_present(
     'The site navigation is visible after logging in' );
+$gads->assert_error_absent('No error message is visible after logging in');
+$gads->assert_success_absent('No success message is visible after logging in');
 
 done_testing();

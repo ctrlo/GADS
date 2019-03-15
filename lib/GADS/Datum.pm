@@ -86,6 +86,7 @@ has blank => (
     lazy    => 1,
     builder => 1,
     clearer => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
 );
 
 # Used to seed the value from the database
@@ -179,9 +180,9 @@ sub dependent_not_shown
         if $matchtype =~ /exact/;
     my $value = $self->record->fields->{$display_field_id}->value_regex_test;
     if ($matchtype =~ /negative/) {
-        return $value =~ /$display_regex/;
+        return scalar $value =~ /$display_regex/;
     } else {
-        return $value !~ /$display_regex/;
+        return scalar $value !~ /$display_regex/;
     }
 }
 

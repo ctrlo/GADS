@@ -203,11 +203,18 @@ sub _build_for_code
         return undef if $self->blank;
         return $self->as_string;
     }
-    my %values;
-    @values{@{$self->id}} = @{$self->text_all};
+    my @values; my @text = @{$self->text_all};
+    foreach my $id (@{$self->id})
+    {
+        push @values, {
+            id    => $id,
+            value => pop @text,
+        };
+    }
+
     +{
         text   => $self->as_string,
-        values => \%values,
+        values => \@values,
     };
 
 }

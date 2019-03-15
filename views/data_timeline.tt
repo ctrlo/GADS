@@ -54,3 +54,14 @@
         </div>
     </div>
 </div>
+
+[% WRAPPER modal_dialog.tt
+    modal_id="modal_pdf" modal_action_text="View" modal_heading="View timeline as PDF"
+    modal_with_form = 1 modal_form_method = "get"
+%]
+    <input type="hidden" name="pdf" value="1">
+    <div class="form-group">
+        <label for="pdf_zoom">Zoom level of PDF document (%):</label>
+        <input type="text" class="form-control" name="pdf_zoom" value="[% tl_options.pdf_zoom OR '100' %]">
+    </div>
+[% END %]

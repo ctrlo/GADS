@@ -79,7 +79,7 @@
 
     <body class="page [% page %]" data-page="[% page %]" data-csrf-token="[% csrf_token %]"
         data-page-as-mech="[% page_as_mech %]"
-        data-layout-identifier="[% layout.identifier %]" style="font-size:15px[% IF page_as_mech %];zoom:0.75[% END %]"
+        data-layout-identifier="[% layout.identifier %]" style="font-size:15px[% IF page_as_mech %];zoom:[% zoom %][% END %]"
     >
         <header role="banner" class="container">
         [% IF header AND NOT page_as_mech %]

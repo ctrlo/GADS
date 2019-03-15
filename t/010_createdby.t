@@ -48,4 +48,28 @@ $record->find_current_id($current_id);
 is($record->createdby->as_string, "User4, User4", "Record retrieved as single has correct version editor");
 is($record->fields->{$created_col->id}->as_string, "User1, User1", "Record retrieved as group has correct createdby");
 
+# Some legacy records may not have createdby defined (e.g. if they were uploaded)
+{
+    $schema->resultset('Record')->update({ createdby => undef });
+    my $records = GADS::Records->new(
+        layout => $layout,
+        user   => $sheet->user,
+        schema => $schema,
+    );
+
+    $record = $records->single;
+    my $current_id = $record->current_id;
+    is($record->createdby->as_string, "", "Record retrieved as group has blank version editor");
+    is($record->fields->{$created_col->id}->as_string, "", "Record retrieved as group has blank createdby");
+
+    $record = GADS::Record->new(
+        layout => $layout,
+        user   => $sheet->user,
+        schema => $schema,
+    );
+    $record->find_current_id($current_id);
+    is($record->createdby->as_string, "", "Record retrieved as single has blank version editor");
+    is($record->fields->{$created_col->id}->as_string, "", "Record retrieved as group has blank createdby");
+}
+
 done_testing();

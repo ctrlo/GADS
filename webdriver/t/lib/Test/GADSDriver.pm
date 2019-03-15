@@ -3,10 +3,9 @@ package Test::GADSDriver;
 use v5.24.0;
 use Moo;
 
-extends 'Test::Builder::Module';
-
 use GADSDriver ();
-use Test::Builder ();
+use Test2::API 'context';
+use Test2::Tools::Compare qw( like unlike );
 
 =head1 NAME
 
@@ -61,8 +60,11 @@ No error message is visible.
 sub assert_error_absent {
     my ( $self, $name ) = @_;
     $name //= 'No error message is visible';
+    my $test = context();
 
-    return $self->_assert_error( $name, 0 );
+    my $result = $self->_assert_error( $name, 0 );
+    $test->release;
+    return $result;
 }
 
 =head3 assert_error_present
@@ -74,8 +76,11 @@ An error message is visible.
 sub assert_error_present {
     my ( $self, $name ) = @_;
     $name //= 'An error message is visible';
+    my $test = context();
 
-    return $self->_assert_error( $name, 1 );
+    my $result = $self->_assert_error( $name, 1 );
+    $test->release;
+    return $result;
 }
 
 =head3 assert_success_absent
@@ -87,8 +92,11 @@ No success message is visible.
 sub assert_success_absent {
     my ( $self, $name ) = @_;
     $name //= 'No success message is visible';
+    my $test = context();
 
-    return $self->_assert_success( $name, 0 );
+    my $result = $self->_assert_success( $name, 0 );
+    $test->release;
+    return $result;
 }
 
 =head3 assert_success_present
@@ -100,12 +108,16 @@ An success message is visible.
 sub assert_success_present {
     my ( $self, $name ) = @_;
     $name //= 'A success message is visible';
+    my $test = context();
 
-    return $self->_assert_success( $name, 1 );
+    my $result = $self->_assert_success( $name, 1 );
+    $test->release;
+    return $result;
 }
 
 sub _assert_error {
     my ( $self, $name, $expect_present ) = @_;
+    my $test = context();
 
     my $error_el = $self->_assert_element(
         '.messages .alert-danger',
@@ -114,15 +126,16 @@ sub _assert_error {
         $name,
     );
 
-    my $test = __PACKAGE__->builder;
     my $error_text = $error_el->text;
     $test->note("The error message is '${error_text}'") if $error_text;
 
+    $test->release;
     return $self;
 }
 
 sub _assert_success {
     my ( $self, $name, $expect_present ) = @_;
+    my $test = context();
 
     my $success_el = $self->_assert_element(
         '.messages .alert-success',
@@ -131,10 +144,10 @@ sub _assert_success {
         $name,
     );
 
-    my $test = __PACKAGE__->builder;
     my $success_text = $success_el->text;
     $test->note("The success message is '${success_text}'") if $success_text;
 
+    $test->release;
     return $self;
 }
 
@@ -147,6 +160,7 @@ Assert that the navigation displayed on logged in pages is visible.
 sub assert_navigation_present {
     my ( $self, $name ) = @_;
     $name //= 'The site navigation is visible';
+    my $test = context();
 
     $self->_assert_element(
         'nav #dataset-navbar',
@@ -155,6 +169,7 @@ sub assert_navigation_present {
         $name,
     );
 
+    $test->release;
     return $self;
 }
 
@@ -167,6 +182,7 @@ The I<< Add a table >> page is visible.
 sub assert_on_add_a_table_page {
     my ( $self, $name ) = @_;
     $name //= 'The add a table page is visible';
+    my $test = context();
 
     my $matching_el = $self->_assert_on_page(
         'body.table\\/0',
@@ -174,6 +190,7 @@ sub assert_on_add_a_table_page {
         $name,
     );
 
+    $test->release;
     return $self;
 }
 
@@ -206,6 +223,7 @@ The I<< Manage tables >> page is visible.
 sub assert_on_manage_tables_page {
     my ( $self, $name ) = @_;
     $name //= 'The manage tables page is visible';
+    my $test = context();
 
     my $matching_el = $self->_assert_on_page(
         'body.table',
@@ -213,6 +231,7 @@ sub assert_on_manage_tables_page {
         $name,
     );
 
+    $test->release;
     return $self;
 }
 
@@ -225,6 +244,7 @@ The I<< Manage this table >> page is visible.
 sub assert_on_manage_this_table_page {
     my ( $self, $name ) = @_;
     $name //= 'The manage this table page is visible';
+    my $test = context();
 
     my $matching_el = $self->_assert_on_page(
         'body.table',
@@ -232,14 +252,23 @@ sub assert_on_manage_this_table_page {
         $name,
     );
 
+    $test->release;
     return $self;
 }
 
 sub _assert_element {
-    my( $self, $selector, $expect_present, $expected_text, $name ) = @_;
-    my $test = __PACKAGE__->builder;
+    my( $self, $selector, $expect_present, $expected_re, $name ) = @_;
+    my $test = context();
 
-    my $matching_el = $self->gads->webdriver->find( $selector, dies => 0 );
+    # Try for longer to find expected elements than unexpected elements.
+    # TODO: Move these to configuration
+    my $tries = $expect_present ? 30 : 10;
+
+    my $matching_el = $self->gads->webdriver->find(
+        $selector,
+        dies => 0,
+        tries => $tries,
+    );
 
     if ( 0 == $matching_el->size ) {
         $test->ok( !$expect_present, $name );
@@ -250,22 +279,24 @@ sub _assert_element {
     else {
         my $matching_text = $matching_el->text;
         if ($expect_present) {
-            $test->like( $matching_text, $expected_text, $name );
+            like( $matching_text, $expected_re, $name );
         }
         else {
-            $test->unlike( $matching_text, $expected_text, $name );
+            unlike( $matching_text, $expected_re, $name );
         }
     }
 
+    $test->release;
     return $matching_el;
 }
 
 sub _assert_on_page {
     my ( $self, $page_selector, $expectations, $name ) = @_;
-    my $test = __PACKAGE__->builder;
+    my $test = context();
     my $webdriver = $self->gads->webdriver;
 
-    my $page_el = $webdriver->find( $page_selector, dies => 0 );
+    # TODO: Move 'tries' to configuration
+    my $page_el = $webdriver->find( $page_selector, dies => 0, tries => 25 );
 
     if ( 0 == $page_el->size ) {
         $test->ok( 0, $name );
@@ -290,6 +321,7 @@ sub _assert_on_page {
         $test->diag($_) foreach @failure;
     }
 
+    $test->release;
     return $page_el;
 }
 
@@ -306,7 +338,7 @@ Delete the current table from the I<< Manage this table >> page.
 sub delete_table_ok {
     my ( $self, $name ) = @_;
     $name //= "Delete the selected table";
-    my $test = __PACKAGE__->builder;
+    my $test = context();
     my $webdriver = $self->gads->webdriver;
 
     my $delete_button_el = $webdriver->find(
@@ -314,15 +346,9 @@ sub delete_table_ok {
         'form a[data-target="#myModal"]',
         dies => 0,
     );
-    if ( 0 == $delete_button_el->size ) {
-        $test->ok( 0, $name );
-        $test->diag("No delete button found");
-    }
-    elsif ( 1 != $delete_button_el->size ) {
-        $test->ok( 0, $name );
-        $test->diag("More than one delete button found");
-    }
-    else {
+
+    my $success = $self->_check_only_one( $delete_button_el, 'delete button' );
+    if ($success) {
         $delete_button_el->click;
         
         my $selector = '.modal-content button[name=delete]';
@@ -330,15 +356,44 @@ sub delete_table_ok {
 
         if ( 1 == $confirm_button_el->size ) {
             $confirm_button_el->click;
-            $test->ok( 1, $name );
         }
         else {
-            $test->ok( 0, $name );
+            $success = 0;
             $test->diag("No confirm button found");
         }
     }
+    $test->ok( $success, $name );
     
+    $test->release;
     return $self;
+}
+
+=head3 follow_link_ok
+
+Takes a string and follows a link containing that string's text.
+
+=cut
+
+sub follow_link_ok {
+    my ( $self, $name, $link_text ) = @_;
+    $name //= "Follow the link containing '${link_text}'";
+    my $test = context();
+    my $webdriver = $self->gads->webdriver;
+
+    my $link_el = $webdriver->find(
+        # TODO: "contains" isn't the same as "equals"
+        "//main//a[ contains( ., '${link_text}') ]",
+        method => 'xpath',
+        dies => 0,
+    );
+
+    my $success = $self->_check_only_one(
+        $link_el, "link containing '${link_text}'"); ;
+    $link_el->click if $success;
+
+    my $result = $test->ok( $success, $name );
+    $test->release;
+    return $result;
 }
 
 =head3 navigate_ok
@@ -350,14 +405,15 @@ Takes an array reference of selectors to click on in the site navigation.
 sub navigate_ok {
     my ( $self, $name, $selectors_ref ) = @_;
     $name //= "Navigate to " . join " ", @$selectors_ref;
-    my $test = __PACKAGE__->builder;
+    my $test = context();
     my $webdriver = $self->gads->webdriver;
 
     my @failure;
     foreach my $selector (@$selectors_ref) {
-        my $found_el = $webdriver->find( $selector, dies => 0 );
-        if ( 0 == $found_el->size ) {
-            push @failure, "No elements matching '${selector}' found";
+        # TODO: Move 'tries' to configuration
+        my $found_el = $webdriver->find( $selector, dies => 0, tries => 25 );
+        if ( 0 == $found_el->size || !$found_el->visible ) {
+            push @failure, "No visible elements matching '${selector}' found";
         }
         else {
             $found_el->click;
@@ -366,6 +422,7 @@ sub navigate_ok {
     $test->ok( !@failure, $name );
     $test->diag($_) foreach @failure;
 
+    $test->release;
     return $self;
 }
 
@@ -378,24 +435,18 @@ From the I<< Manage tables >> page, select a named table to edit.
 sub select_table_to_edit_ok {
     my ( $self, $name, $table_name ) = @_;
     $name //= "Select the '$table_name' table to edit";
-    my $test = __PACKAGE__->builder;
+    my $test = context();
     my $webdriver = $self->gads->webdriver;
     
     my $xpath = "//tr[ contains( ., '$table_name' ) ]//a";
     my $table_edit_el = $webdriver->find( $xpath, method => 'xpath', dies => 0 );
-    if ( 0 == $table_edit_el->size ) {
-        $test->ok( 0, $name );
-        $test->diag("No tables named '${table_name}' found");
-    }
-    elsif ( 1 != $table_edit_el->size ) {
-        $test->ok( 0, $name );
-        $test->diag("More than one table named '${table_name}' found");
-    }
-    else {
-        $table_edit_el->click;
-        $test->ok( 1, $name );
-    }
 
+    my $success = $self->_check_only_one(
+        $table_edit_el, "table named '${table_name}'" );
+    $table_edit_el->click if $success;
+    $test->ok( $success, $name );
+
+    $test->release;
     return $self;
 }
 
@@ -413,7 +464,7 @@ sub submit_add_a_table_form_ok {
     $name //= 'Submit the add a table form';
     my %arg = %$args_ref;
 
-    my $test = __PACKAGE__->builder;
+    my $test = context();
 
     my $success = $self->_fill_in_field( 'input[name=name]', $arg{name} );
 
@@ -425,22 +476,18 @@ sub submit_add_a_table_form_ok {
         method => 'xpath',
         dies => 0,
     );
-    if ( 0 == $group_row_el->size ) {
-        $success = 0;
-        $test->diag("No group named '$arg{group_name}' found");
-    }
-    elsif ( 1 != $group_row_el->size ) {
-        $success = 0;
-        $test->diag("More than one group named '$arg{group_name}' found");
-    }
-    else {
+    $success &&= $self->_check_only_one(
+        $group_row_el, "group named '$arg{group_name}'" );
+    if ($success) {
         $_->click foreach $group_row_el->find('input[name=permissions]');
     }
 
     $test->note("About to add a table named $arg{name}");
     $webdriver->find('[type=submit][name=submit]')->click;
 
-    $test->ok( $success, $name );
+    my $result = $test->ok( $success, $name );
+    $test->release;
+    return $result;
 }
 
 =head3 submit_login_form_ok
@@ -456,7 +503,7 @@ sub submit_login_form_ok {
     $name //= 'Submit the login form';
     my %arg = %$args_ref if ref $args_ref;
 
-    my $test = __PACKAGE__->builder;
+    my $test = context();
 
     my $gads = $self->gads;
     my $username = $arg{username} // $gads->username;
@@ -467,7 +514,29 @@ sub submit_login_form_ok {
     $success &&= $self->_fill_in_field( '#password', $password );
     $gads->webdriver->find('[type=submit][name=signin]')->click;
 
-    $test->ok( $success, $name );
+    my $result = $test->ok( $success, $name );
+    $test->release;
+    return $result;
+}
+
+sub _check_only_one {
+    my ( $self, $element, $element_type_name ) = @_;
+    my $test = context();
+
+    my $success = 1;
+
+    my $element_count = $element->size;
+    if ( 0 == $element_count ) {
+        $success = 0;
+        $test->diag("No $element_type_name found");
+    }
+    elsif ( 1 != $element_count ) {
+        $success = 0;
+        $test->diag("More than one $element_type_name found");
+    }
+
+    $test->release;
+    return $success;
 }
 
 sub _fill_in_field {
@@ -475,7 +544,9 @@ sub _fill_in_field {
 
     my $result = $self->gads->type_into_field( $selector, $value );
     if ( !defined $result ) {
-        __PACKAGE__->builder->diag("No '${selector}' element found");
+        my $test = context();
+        $test->diag("No '${selector}' element found");
+        $test->release;
     }
     return ( defined $result ) ? 1 : 0;
 }

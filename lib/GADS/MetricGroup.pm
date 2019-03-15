@@ -47,14 +47,16 @@ has _rset => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        $self->id or return;
-        $self->id =~ /^[0-9]+$/
-            or error __x"Invalid ID format {id}", id => $self->id;
-        my ($mg) = $self->schema->resultset('MetricGroup')->search({
-            id          => $self->id,
+        my $id = $self->id;
+        $id or return;
+        $id =~ /^[0-9]+$/
+            or error __x"Invalid ID format {id}", id => $id;
+        my $mg = $self->schema->resultset('MetricGroup')->find({
+            id          => $id,
+            # instance_id isn't strictly needed as id is the primary key
             instance_id => $self->instance_id,
-        })->all;
-        $mg or error __x"Metric Group ID {id} not found", id => $self->id;
+        });
+        $mg or error __x"Metric Group ID {id} not found", id => $id;
         $mg;
     },
 );

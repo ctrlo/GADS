@@ -1751,9 +1751,10 @@ prefix '/:layout_name' => sub {
                     content_type => 'image/png',
                 );
             }
-            if (param('pdf'))
+            if (param('modal_pdf'))
             {
-                my $pdf = _page_as_mech('data_timeline', $params, pdf => 1)->content_as_pdf;
+                $tl_options->{pdf_zoom} = param('pdf_zoom');
+                my $pdf = _page_as_mech('data_timeline', $params, pdf => 1, zoom => $tl_options->{pdf_zoom})->content_as_pdf;
                 return send_file(
                     \$pdf,
                     content_type => 'application/pdf',
@@ -3250,6 +3251,7 @@ sub _page_as_mech
     my $public              = path(setting('appdir'), 'public');
     $params->{base}         = "file://$public/";
     $params->{page_as_mech} = 1;
+    $params->{zoom}         = (int $options{zoom} || 100) / 100;
     my $timeline_html       = template $template, $params;
     my ($fh, $filename)     = tempfile(SUFFIX => '.html');
     print $fh $timeline_html;
