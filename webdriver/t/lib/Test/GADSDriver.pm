@@ -298,12 +298,11 @@ sub _assert_on_page {
     # TODO: Move 'tries' to configuration
     my $page_el = $webdriver->find( $page_selector, dies => 0, tries => 25 );
 
+    my @failure;
     if ( 0 == $page_el->size ) {
-        $test->ok( 0, $name );
-        $test->diag("No elements matching '${page_selector}' found");
+        push @failure, "No elements matching '${page_selector}' found";
     }
     else {
-        my @failure;
         foreach my $expect_ref ( @$expectations ) {
             my %expect = %$expect_ref;
             my $matching_el = $webdriver->find( $expect{selector}, dies => 0 );
@@ -313,13 +312,13 @@ sub _assert_on_page {
             else {
                 my $matching_text = $matching_el->text;
                 if ( $matching_text ne $expect{text} ) {
-                    push @failure,"Found '${matching_text}' in $expect{selector}, expected '$expect{text}'";
+                    push @failure, "Found '${matching_text}' in $expect{selector}, expected '$expect{text}'";
                 }
             }
         }
-        $test->ok( !@failure, $name );
-        $test->diag($_) foreach @failure;
     }
+    $test->ok( !@failure, $name );
+    $test->diag($_) foreach @failure;
 
     $test->release;
     return $page_el;
