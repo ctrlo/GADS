@@ -23,6 +23,7 @@ use Test::More 'no_plan';
 my $group_name = $ENV{GADS_GROUPNAME} //
     die 'Set the GADS_GROUPNAME environment variable';
 my $table_name = "TESTWD $$";
+my $field_name = "MytestName";
 
 my $gads = Test::GADSDriver->new;
 
@@ -51,6 +52,12 @@ $gads->follow_link_ok( undef, 'Manage fields' );
 $gads->follow_link_ok( undef, 'Add a field' );
 $gads->assert_on_add_a_field_page;
 
+$gads->submit_add_a_field_form_ok( 'Add a field on the new table',
+    { name => $field_name } );
+$gads->assert_success_present('A success message is visible after adding a field');
+$gads->assert_error_absent('No error message is visible after adding a field');
+# On the 'Manage fields in ...' page
+
 # TODO: write main tests here
 
 # Tidy up: remove the table created earlier
@@ -64,7 +71,23 @@ $gads->select_table_to_edit_ok( 'Select the table created for testing',
     $table_name );
 $gads->assert_on_manage_this_table_page;
 
-$gads->delete_table_ok;
+$gads->follow_link_ok( undef, 'Manage fields' );
+$gads->select_field_to_edit_ok( 'Select the field created for testing',
+    $field_name );
+$gads->confirm_deletion_ok('Delete the field created for testing');
+# Back on the 'Manage fields in ...' page
+
+$gads->navigate_ok(
+    'Navigate to the manage tables page',
+    [ qw( .table-editor .tables-manage ) ],
+);
+$gads->assert_on_manage_tables_page;
+
+$gads->select_table_to_edit_ok( 'Select the table created for testing',
+    $table_name );
+$gads->assert_on_manage_this_table_page;
+
+$gads->confirm_deletion_ok('Delete the table created for testing');
 $gads->assert_success_present;
 $gads->assert_error_absent;
 

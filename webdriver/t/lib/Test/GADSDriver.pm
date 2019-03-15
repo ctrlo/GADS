@@ -377,17 +377,21 @@ sub _check_element_against_expectation {
 
 These test methods perform actions against the user interface.
 
-=head3 delete_table_ok
+=head3 confirm_deletion_ok
 
 Delete the current table from the I<< Manage this table >> page.
 
+Commonly used to delete a field or table.
+
 =cut
 
-sub delete_table_ok {
+sub confirm_deletion_ok {
     my ( $self, $name ) = @_;
-    $name //= "Delete the selected table";
+    $name //= 'Approve the "Confirm deletion" modal';
     my $test = context();
     my $webdriver = $self->gads->webdriver;
+
+    my $entity_name = $webdriver->find('input[name="name"]')->attr('value');
 
     my $delete_button_el = $webdriver->find(
         # TODO: Use a better selector
@@ -403,6 +407,7 @@ sub delete_table_ok {
         my $confirm_button_el = $webdriver->find( $selector, dies => 0 );
 
         if ( 1 == $confirm_button_el->size ) {
+            $test->note( qq{About to delete "$entity_name"} );
             $confirm_button_el->click;
         }
         else {
@@ -474,12 +479,38 @@ sub navigate_ok {
     return $self;
 }
 
+=head3 select_field_to_edit_ok
+
+From the I<< Manage fields >> page, select a named field to edit.
+
+=cut
+
+# TODO: Combine with select_table_to_edit_ok()
+sub select_field_to_edit_ok {
+    my ( $self, $name, $field_name ) = @_;
+    $name //= "Select the '$field_name' field to edit";
+    my $test = context();
+    my $webdriver = $self->gads->webdriver;
+    
+    my $xpath = "//tr[ contains( ., '$field_name' ) ]//a";
+    my $field_edit_el = $webdriver->find( $xpath, method => 'xpath', dies => 0 );
+
+    my $success = $self->_check_only_one(
+        $field_edit_el, "field named '${field_name}'" );
+    $field_edit_el->click if $success;
+    $test->ok( $success, $name );
+
+    $test->release;
+    return $self;
+}
+
 =head3 select_table_to_edit_ok
 
 From the I<< Manage tables >> page, select a named table to edit.
 
 =cut
 
+# TODO: Combine with select_field_to_edit_ok()
 sub select_table_to_edit_ok {
     my ( $self, $name, $table_name ) = @_;
     $name //= "Select the '$table_name' table to edit";
@@ -498,12 +529,39 @@ sub select_table_to_edit_ok {
     return $self;
 }
 
-=head3 submit_add_a_table_form_ok
+=head3 submit_add_a_field_form_ok
 
-Submit the I<< Add a table >> form.  Takes a hash reference of arguments
-where C<< name >> contains the name of the new table to add and C<<
+Submit the I<< Add a field >> form.  Takes a hash reference of arguments
+where C<< name >> contains the name of the new field to add and C<<
 group_name >> contains the name of an existing group to assign all
 permissions to.
+
+=cut
+
+sub submit_add_a_field_form_ok {
+    my ( $self, $name, $args_ref ) = @_;
+    $name //= 'Submit the add a field form';
+    my %arg = %$args_ref;
+
+    my $test = context();
+
+    my $success = $self->_fill_in_field( 'input#name', $arg{name} );
+
+    # TODO: Set permissions
+    my $webdriver = $self->gads->webdriver;
+
+    $test->note("About to add a field named $arg{name}");
+    $webdriver->find('#submit_save')->click;
+
+    my $result = $test->ok( $success, $name );
+    $test->release;
+    return $result;
+}
+
+=head3 submit_add_a_table_form_ok
+
+Submit the I<< Add a table >> form.  Takes similar arguments to L<<
+/submit_add_a_field_form_ok >> except for a table instead of a field.
 
 =cut
 
