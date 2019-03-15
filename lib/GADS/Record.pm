@@ -1211,6 +1211,11 @@ has _need_app => (
 # - no_alerts: do not send any alerts for changed values
 # - version_datetime: write version date as this instead of now
 # - version_userid: user ID for this version if override required
+# - missing_not_fatal: whether missing mandatory values are not fatal (but still reported)
+# - submitted_fields: an array ref of the fields to check on initial
+#   submission. Fields not contained in here will not be checked for missing
+#   values. Used in conjunction with missing_not_fatal to only report on some
+#   fields
 sub write
 {   my ($self, %options) = @_;
 
@@ -1292,7 +1297,10 @@ sub write
     # Whether any topics cannot be written because of missing fields in
     # other topics
     my %no_write_topics;
-    foreach my $column ($self->layout->all(exclude_internal => 1))
+    my @cols = $options{submitted_fields}
+        ? @{$options{submitted_fields}}
+        : $self->layout->all(exclude_internal => 1);
+    foreach my $column (@cols)
     {
         next unless $column->userinput;
         my $datum = $self->fields->{$column->id}
@@ -1332,7 +1340,10 @@ sub write
                         mistake __x"'{col}' is no longer optional, but was previously blank for this record.", col => $column->{name};
                     }
                     else {
-                        error __x"'{col}' is not optional. Please enter a value.", col => $column->name;
+                        my $msg = __x"'{col}' is not optional. Please enter a value.", col => $column->name;
+                        error $msg
+                            unless $options{missing_not_fatal};
+                        report { is_fatal => 0 }, ERROR => $msg;
                     }
                 }
             }
