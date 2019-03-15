@@ -419,6 +419,7 @@ foreach my $c (keys %$values)
                         operator => 'equal',
                     }],
                 },
+                layout => $sheet->layout,
             ));
         }
         else {

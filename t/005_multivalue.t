@@ -59,7 +59,7 @@ my $sheet   = t::lib::DataSheet->new(
     calc_code        => "
         function evaluate (L1enum1, L1curval1, L1tree1)
             values = {}
-            for k, v in pairs(L1enum1.values) do table.insert(values, v) end
+            for k, v in pairs(L1enum1.values) do table.insert(values, v.value) end
             table.sort(values)
             local text = ''
             for i,v in ipairs(values) do
