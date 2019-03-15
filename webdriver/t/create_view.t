@@ -46,8 +46,10 @@ $gads->assert_error_absent('No error message is visible after adding a table');
 $gads->select_table_to_edit_ok( 'Prepare to set permissions on the new table',
     $table_name );
 $gads->assert_on_manage_this_table_page;
+
 $gads->follow_link_ok( undef, 'Manage fields' );
 $gads->follow_link_ok( undef, 'Add a field' );
+$gads->assert_on_add_a_field_page;
 
 # TODO: write main tests here
 

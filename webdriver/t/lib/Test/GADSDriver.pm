@@ -173,6 +173,31 @@ sub assert_navigation_present {
     return $self;
 }
 
+=head3 assert_on_add_a_field_page
+
+The I<< Add a field >> page is visible.
+
+=cut
+
+sub assert_on_add_a_field_page {
+    my ( $self, $name ) = @_;
+    $name //= 'The add a field page is visible';
+    my $test = context();
+
+    my $matching_el = $self->_assert_on_page(
+        'body.layout\\/0',
+        [
+            # TODO: Check the table name appears in the h2 text
+            { selector => 'h2', match => '\\AAdd a field to ' },
+            { selector => '#basic-panel h3', text => 'Field properties' },
+        ],
+        $name,
+    );
+
+    $test->release;
+    return $self;
+}
+
 =head3 assert_on_add_a_table_page
 
 The I<< Add a table >> page is visible.
@@ -304,16 +329,14 @@ sub _assert_on_page {
     }
     else {
         foreach my $expect_ref ( @$expectations ) {
-            my %expect = %$expect_ref;
-            my $matching_el = $webdriver->find( $expect{selector}, dies => 0 );
+            my $selector = $expect_ref->{selector};
+            my $matching_el = $webdriver->find( $selector, dies => 0 );
             if ( 0 == $matching_el->size ) {
-                push @failure, "No elements matching '${page_selector}' found";
+                push @failure, "No elements matching '${selector}' found";
             }
             else {
-                my $matching_text = $matching_el->text;
-                if ( $matching_text ne $expect{text} ) {
-                    push @failure, "Found '${matching_text}' in $expect{selector}, expected '$expect{text}'";
-                }
+                push @failure, $self->_check_element_against_expectation(
+                    $matching_el, $expect_ref );
             }
         }
     }
@@ -322,6 +345,32 @@ sub _assert_on_page {
 
     $test->release;
     return $page_el;
+}
+
+sub _check_element_against_expectation {
+    my ( $self, $matching_el, $expect_ref ) = @_;
+    my $matching_text = $matching_el->text;
+    my %expect = %$expect_ref;
+
+    my @failure;
+    if ( exists $expect{text} && exists $expect{match} ) {
+        push @failure, "Both 'match' and 'text' expectations stated";
+    }
+    elsif ( exists $expect{text} ) {
+        if ( $matching_text ne $expect{text} ) {
+            push @failure, "Found '${matching_text}' in $expect{selector}, expected '$expect{text}'";
+        }
+    }
+    elsif ( exists $expect{match} ) {
+        if ( $matching_text !~ /$expect{match}/ ) {
+            push @failure, "Found '${matching_text}' in $expect{selector}, expected '$expect{match}'";
+        }
+    }
+    else {
+        push @failure, "No 'match' or 'text' expectation stated";
+    }
+
+    return @failure;
 }
 
 =head2 Action Methods
