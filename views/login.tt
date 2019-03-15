@@ -44,7 +44,7 @@
                     </div>
                     <div>
                         <span class="remember-me">
-                            <input type="checkbox" name="remember_me" id="remember" [% IF username %]checked="checked"[% END %] class="visually-hidden-opacity">
+                            <input type="checkbox" name="remember_me" id="remember" [% IF username %]checked="checked"[% END %] class="[% IF username %]remember--checked[% END %] visually-hidden-opacity">
                             <label for="remember">
                                 <span class="glyphicon glyphicon-check" aria-hidden="true"></span>
                                 Remember Username

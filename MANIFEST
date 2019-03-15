@@ -265,6 +265,7 @@ public/js/jquery.floatThead-slim.min.js
 public/js/jquery.jqplot.min.js
 public/js/jstree-misc.js
 public/js/jstree.min.js
+public/js/login.js
 public/js/PIE.htc
 public/js/PIE.js
 public/js/query-builder.js

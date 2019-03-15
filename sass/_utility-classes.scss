@@ -12,6 +12,7 @@
 }
 
 .visually-hidden-opacity {
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
     opacity: 0;
 }
 
