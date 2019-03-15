@@ -1444,3 +1444,18 @@ small.search_term {
         margin: 0;
     }
 }
+
+.helptext__questionmark {
+    cursor: pointer;
+    padding: 0 5px;
+    color: #ffffff;
+    background-color: #1460aa;
+    border-radius: 4px;
+    text-decoration: none;
+
+    &:hover {
+        color: #ffffff;
+        background-color: lighten(#1460aa, 10%);
+        text-decoration: none;
+    }
+}
