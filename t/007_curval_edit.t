@@ -15,7 +15,7 @@ foreach my $delete_not_used (0..1)
 
     my $sheet   = t::lib::DataSheet->new(
         schema           => $schema,
-        curval           => 1,
+        curval           => 2,
         curval_offset    => 6,
         curval_field_ids => [ $curval_sheet->columns->{string1}->id ],
         calc_return_type => 'string',

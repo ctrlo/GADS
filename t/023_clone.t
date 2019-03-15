@@ -25,7 +25,7 @@ my $data = [
 my $sheet   = t::lib::DataSheet->new(
     data             => $data,
     schema           => $schema,
-    curval           => 1,
+    curval           => 2,
     curval_field_ids => [ $curval_sheet->columns->{string1}->id ],
 );
 my $layout  = $sheet->layout;
