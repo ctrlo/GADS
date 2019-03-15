@@ -351,7 +351,7 @@
                     $answersList.append('<li class="answer">' +
                         '<span class="control">' +
                             '<label id="field' + col_id + '_' + guid + '_label" for="field' + col_id + '_' + guid + '">' +
-                                '<input id="field' + col_id + '_' + guid + '" name="field' + col_id + '" type="' + inputType + '" value="' + form_data + '" class="' + (multi ? "" : "visually-hidden") + '" checked> ' +
+                                '<input id="field' + col_id + '_' + guid + '" name="field' + col_id + '" type="' + inputType + '" value="' + form_data + '" class="' + (multi ? "" : "visually-hidden") + '" checked  aria-labelledby="field' + col_id + '_' + guid + '_label"> ' +
                                 '<span>' + textValue + '</span>' +
                             '</label>' +
                         '</span>' +
@@ -944,7 +944,7 @@
                 <li class="answer">
                     <span class="control">
                         <label id="[% value_id %]_label" for="[% value_id %]">
-                            <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="[% value.id %]" class="visually-hidden">
+                            <input id="[% value_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="[% value.id %]" class="visually-hidden" aria-labelledby="[% value_id %]_label">
                             <span role="option">[% value.value | html_entity %]</span>
                         </label>
                     </span>
@@ -1060,7 +1060,7 @@
                 <li class="answer">
                     <span class="control">
                         <label id="[% value_id %]_label" for="[% value_id %]">
-                            <input id="[% value_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %] value="[% value.id %]">
+                            <input id="[% value_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %] value="[% value.id %]" aria-labelledby="[% value_id %]_label">
                             <span role="option">[% value.value | html_entity %]</span>
                         </label>
                     </span>
