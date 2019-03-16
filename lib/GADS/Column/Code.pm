@@ -366,7 +366,7 @@ sub write_special
             here => $1;
 
     my %return_options;
-    my $changed = $self->write_code($id); # Returns true if anything relevant changed
+    my $changed = $self->write_code($id, %options); # Returns true if anything relevant changed
     my $update_deps = exists $options{update_dependents} ? $options{update_dependents} : $changed;
     if ($update_deps)
     {

@@ -965,6 +965,7 @@ sub write
 
     unless ($options{report_only})
     {
+        my $old_rset;
         if (!$self->id)
         {
             $newitem->{id} = $self->set_id if $self->set_id;
@@ -984,6 +985,7 @@ sub write
                 # Check whether attempt to move between instances - this is a bug
                 $newitem->{instance_id} != $rset->instance_id
                     and panic "Attempt to move column between instances";
+                $old_rset = {$rset->get_columns};
                 $rset->update($newitem);
             }
             else {
@@ -994,7 +996,7 @@ sub write
         }
 
         # Write any column-specific params
-        my %write_options = $self->write_special(rset => $rset, id => $new_id || $self->id, %options);
+        my %write_options = $self->write_special(rset => $rset, id => $new_id || $self->id, old_rset => $old_rset, %options);
         %options = (%options, %write_options);
     }
 
