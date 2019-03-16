@@ -1589,6 +1589,7 @@ sub _search_construct
         less             => '<',
         less_or_equal    => '<=',
         contains         => '-like',
+        not_contains     => '-not_like',
         begins_with      => '-like',
         not_begins_with  => '-not_like',
         not_equal        => '!=',
@@ -1623,7 +1624,7 @@ sub _search_construct
     my $operator = $ops{$filter_operator}
         or error __x"Invalid operator {filter}", filter => $filter_operator;
 
-    my @conditions;
+    my @conditions; my $gate = 'and';
     my $transform_date; # Whether to convert date value to database format
     if ($column->type eq "daterange")
     {
@@ -1656,21 +1657,22 @@ sub _search_construct
                 s_field  => "to",
             };
         }
-        elsif ($operator eq "-like")
+        elsif ($operator eq "-like" || $operator eq "-not_like")
         {
             $transform_date = 1;
             # Requires 2 searches ANDed together
             push @conditions, {
                 type     => $filter_operator,
-                operator => "<=",
+                operator => $operator eq '-like' ? '<=' : '>=',
                 s_field  => "from",
             };
             push @conditions, {
                 type     => $filter_operator,
-                operator => ">=",
+                operator => $operator eq '-like' ? '>=' : '<=',
                 s_field  => "to",
             };
-            $operator = 'equal';
+            $operator = $operator eq '-like' ? 'equal' : 'not_equal';
+            $gate = 'or' if $operator eq 'not_equal';
         }
         else {
             error __x"Invalid operator {operator} for date range", operator => $operator;
@@ -1684,8 +1686,13 @@ sub _search_construct
         };
     }
 
-    my $vprefix = $operator eq '-like' || $operator eq '-not_like' ? '' : '';
-    my $vsuffix = $operator eq '-like' || $operator eq '-not_like' ? '%' : '';
+    my $vprefix = ''; my $vsuffix = '';
+    if ($operator eq '-like' || $operator eq '-not_like') # Do not apply to "contains" for daterange
+    {
+        $vprefix = '%'
+            if $filter_operator eq 'contains' || $filter_operator eq 'not_contains';
+        $vsuffix = '%';
+    }
 
     my @values;
 
@@ -1695,6 +1702,7 @@ sub _search_construct
     }
     else {
         my @original_values = ref $filter->{value} ? @{$filter->{value}} : ($filter->{value});
+
         foreach (@original_values)
         {
             $_ = $vprefix.$_.$vsuffix;
@@ -1762,7 +1770,7 @@ sub _search_construct
     my @final = map {
         $self->_resolve($column, $_, \@values, 0, parent => $parent_column, filter => $filter, %options);
     } @conditions;
-    @final = ('-and' => [@final]);
+    @final = ("-$gate" => [@final]);
     my $parent_column_link = $parent_column && $parent_column->link_parent;;
     if ($parent_column_link || $column->link_parent)
     {
@@ -1777,7 +1785,7 @@ sub _search_construct
         my @final2 = map {
             $self->_resolve($link_parent, $_, \@values, 1, parent => $parent_column_link, filter => $filter, %options);
         } @conditions;
-        @final2 = ('-and' => [@final2]);
+        @final2 = ("-$gate" => [@final2]);
         @final = (['-or' => [@final], [@final2]]);
     }
     return @final;
@@ -1827,7 +1835,8 @@ sub _resolve
         $self->add_join($column, search => 1, linked => $is_linked, parent => $options{parent}, all_fields => $self->curcommon_all_fields);
         my $s_table = $self->table_name($column, %options, search => 1);
         my $sq = {$condition->{operator} => $value};
-        $sq = [ $sq, undef ] if $condition->{type} eq 'not_equal' || $condition->{type} eq 'not_begins_with';
+        $sq = [ $sq, undef ] if $condition->{type} eq 'not_equal'
+            || $condition->{type} eq 'not_begins_with' || $condition->{type} eq 'not_contains';
         +( "$s_table.$_->{s_field}" => $sq );
     }
 }

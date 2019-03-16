@@ -302,6 +302,26 @@ my @filters = (
         count => 2,
     },
     {
+        name  => 'string contains ooba',
+        rules => [{
+            id       => $columns->{string1}->id,
+            type     => 'string',
+            value    => 'ooba',
+            operator => 'contains',
+        }],
+        count => 1,
+    },
+    {
+        name  => 'string does not contain ooba',
+        rules => [{
+            id       => $columns->{string1}->id,
+            type     => 'string',
+            value    => 'ooba',
+            operator => 'not_contains',
+        }],
+        count => 6,
+    },
+    {
         name  => 'string does not begin with Foo',
         rules => [{
             id       => $columns->{string1}->id,
@@ -456,6 +476,16 @@ my @filters = (
             operator => 'contains',
         }],
         count => 2,
+    },
+    {
+        name  => 'daterange does not contain',
+        rules => [{
+            id       => $columns->{daterange1}->id,
+            type     => 'daterange',
+            value    => '2014-10-10',
+            operator => 'not_contains',
+        }],
+        count => 5,
     },
     {
         name  => 'nested search',
