@@ -142,8 +142,13 @@ sub _build_results
         my $column = $col->{column};
         next if $column->internal;
         my $parent = $col->{parent};
-        $self->add_prefetch($column, group => $col->{group}, parent => $parent);
-        $self->add_prefetch($column->link_parent, linked => 1, group => $col->{group}, parent => $parent)
+        # If the column is a curcommon, then we need to make sure that it is
+        # included even if it is a multivalue (when it would normally be
+        # excluded). The reason is that it will otherwise not cause the related
+        # record_later searches to be generated when the curval sub-field is
+        # retrieved in the same query
+        $self->add_prefetch($column, group => $col->{group}, parent => $parent, include_multivalue => $column->is_curcommon);
+        $self->add_prefetch($column->link_parent, linked => 1, group => $col->{group}, parent => $parent, include_multivalue => $column->is_curcommon)
             if $column->link_parent;
     }
 

@@ -57,6 +57,18 @@ foreach my $multivalue (0..1)
     my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, multivalue => $multivalue);
     $curval_sheet->create_records;
     my $schema  = $curval_sheet->schema;
+
+    # Make an edit to a curval record, to make sure that only the latest
+    # version is used in the graphs
+    my $cr = GADS::Record->new(
+        user   => $curval_sheet->user,
+        layout => $curval_sheet->layout,
+        schema => $schema,
+    );
+    $cr->find_current_id(2);
+    $cr->fields->{$curval_sheet->columns->{integer1}->id}->set_value(132);
+    $cr->write(no_alerts => 1);
+
     my $sheet   = t::lib::DataSheet->new(data => $data, schema => $schema, curval => 2, multivalue => $multivalue, column_count => {integer => 2});
     my $layout  = $sheet->layout;
     my $columns = $sheet->columns;
@@ -216,7 +228,7 @@ foreach my $multivalue (0..1)
             data            => [[ 0, 0, 0, 0, 45, 45 ], [ 35, 0, 0, 0, 0, 0 ]],
             labels       => [
                 'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012',
-                'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+                'Bar, 132, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
             ],
         },
         {
@@ -368,7 +380,7 @@ foreach my $multivalue (0..1)
             data         => [[ 35, 10, 0 ], [ 15, 0, 20 ]],
             labels       => [
                 'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012',
-                'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+                'Bar, 132, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
             ],
         },
         {
