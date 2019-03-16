@@ -95,6 +95,7 @@ sub set_x_axis
         $self->x_axis_link($1);
         return;
     }
+    $self->x_axis_link(undef);
     $self->x_axis($value);
 }
 
