@@ -379,19 +379,24 @@ prefix '/:layout_name' => sub {
         );
         $record->initialise;
 
-        my @missing;
-        foreach my $col (@{$curval->subvals_input_required})
-        {
-            my @vals = grep { $_ } query_parameters->get_all($col->field);
-            push @missing, $col if !"@vals" && !$col->optional;
-            my $datum = $record->fields->{$col->id};
-            process( sub { $datum->set_value(\@vals) } );
-        }
+        try {
+            foreach my $col (@{$curval->subvals_input_required})
+            {
+                my @vals = grep { $_ } query_parameters->get_all($col->field);
+                my $datum = $record->fields->{$col->id};
+                $datum->set_value(\@vals);
+            }
+            $record->write(
+                dry_run           => 1,
+                missing_not_fatal => 1,
+                submitted_fields  => $curval->subvals_input_required,
+            );
+        } accept => 'ERROR';
 
-        if (@missing)
+        if ($@->exceptions)
         {
             my $msg = "The following fields need to be completed first: "
-                .join ', ', map { $_->name } @missing;
+                .join ', ', map { $_->message->toString } grep { $_->reason} $@->exceptions;
 
             return encode_json { error => 1, message => $msg };
         }
