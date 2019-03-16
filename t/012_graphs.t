@@ -34,7 +34,7 @@ foreach my $multivalue (0..1)
             enum1      => 7,
             tree1      => 'tree1',
             curval1    => 2,
-            integer2   => 8,
+            integer2   => 80,
         },{
             string1    => 'Bar',
             integer1   => 35,
@@ -74,17 +74,6 @@ foreach my $multivalue (0..1)
     my $columns = $sheet->columns;
     $sheet->create_records;
 
-    # Make an edit to a curval record, to make sure that only the latest
-    # version is used in the graphs
-    my $r = GADS::Record->new(
-        user   => $sheet->user,
-        layout => $sheet->layout,
-        schema => $schema,
-    );
-    $r->find_current_id(4);
-    $r->fields->{$sheet->columns->{integer1}->id}->set_value(15);
-    $r->write(no_alerts => 1);
-
     my $calc2 = GADS::Column::Calc->new(
         schema         => $schema,
         user           => $sheet->user,
@@ -96,6 +85,18 @@ foreach my $multivalue (0..1)
     );
     $calc2->write;
     $layout->clear;
+
+    # Make an edit to a curval record, to make sure that only the latest
+    # version is used in the graphs
+    my $r = GADS::Record->new(
+        user   => $sheet->user,
+        layout => $sheet->layout,
+        schema => $schema,
+    );
+    $r->find_current_id(4);
+    $r->fields->{$sheet->columns->{integer1}->id}->set_value(15);
+    $r->fields->{$sheet->columns->{integer2}->id}->set_value(8);
+    $r->write(no_alerts => 1);
 
     # Add linked record sheet, which will contain the integer1 value for the first
     # record of the first sheet

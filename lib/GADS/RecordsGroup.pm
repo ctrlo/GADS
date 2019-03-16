@@ -214,7 +214,7 @@ sub _build_results
                 # all the field's values for each record, then we won't be
                 # filtering the non-matched ones in the case of multivalue
                 # fields
-                my $searchq = $self->search_query(search => 1, extra_column => $column);
+                my $searchq = $self->search_query(search => 1, extra_column => $column, linked => 1);
                 push @$searchq, {
                     'mefield.id' => {
                         -ident => 'me.id'
