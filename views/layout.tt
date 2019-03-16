@@ -659,9 +659,6 @@
                 $('.sortable').sortable({
                     handle: ".drag"
                 });
-                $('#display_condition').click(function () {
-                    $("#display_condition_div").toggle(400);
-                });
                 $('#jstree_demo_div').jstree({
                     "core" : {
                         "check_callback" : true,
