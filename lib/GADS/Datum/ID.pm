@@ -45,7 +45,7 @@ sub as_string
 
 sub as_integer
 {   my $self = shift;
-    $self->value + 0;
+    $self->value || undef;
 }
 
 sub _build_for_code
