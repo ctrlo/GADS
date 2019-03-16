@@ -858,7 +858,7 @@ var setupDisplayConditions = function(context) {
         // Toggle field values
         var currentlyExpanded = $displayToggleButton.attr('aria-expanded') === 'true';
         $displayToggleButton.text(currentlyExpanded ? 'Delete condition' : 'Configure display');
-        $displayConditionField.val(currentlyExpanded);
+        $displayConditionField.val(currentlyExpanded ? 'true' : '');
 
         if (!currentlyExpanded) {
             $displayField.val('');

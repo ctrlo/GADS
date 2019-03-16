@@ -2527,6 +2527,7 @@ prefix '/:layout_name' => sub {
                 }
                 else {
                     $column->display_field(undef);
+                    $column->display_regex(undef);
                 }
 
                 my $no_alerts;

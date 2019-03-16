@@ -131,20 +131,21 @@
 [% BLOCK field_display_conditions %]
     <section id="display_conditions">
         <h3>Display</h3>
-    [% UNLESS column.display_regex %]
+    [% UNLESS column.display_field %]
         <p>This field is always displayed.</p>
     [% END %]
 
-    <button type="button" aria-expanded="[% column.display_regex ? 'true' : 'false' %]" class="btn btn-default" id="toggle-display-regex">
-        [% IF column.display_regex %]Delete condition[% ELSE %]Configure display[% END %]
+    <button type="button" aria-expanded="[% column.display_field ? 'true' : 'false' %]" class="btn btn-default" id="toggle-display-regex">
+        [% IF column.display_field %]Delete condition[% ELSE %]Configure display[% END %]
     </button>
-    <input type="hidden" name="display_condition" id="display_condition" value="[% column.display_regex && 'true' %]">
-    <div class="expandable [% column.display_regex && 'expanded' %]">
+    <input type="hidden" name="display_condition" id="display_condition" value="[% column.display_field && 'true' %]">
+    <div class="expandable [% column.display_field && 'expanded' %]">
         <p>This field will only be displayed under the following condition:</p>
         <div class="display-condition clearfix">
             <div class="form-group col-md-12">
                 <label for="display_field">Column</label>
                 <select class="form-control" id="display_field" name="display_field">
+                    <option value=""></option>
                     [% FOREACH field in all_columns %]
                         [% NEXT UNLESS field.userinput %]
                         <option value="[% field.id %]" [% IF column.display_field == field.id %]selected[% END %]>[% field.name | html_entity %]</option>
