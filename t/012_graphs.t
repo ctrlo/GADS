@@ -30,7 +30,7 @@ foreach my $multivalue (0..1)
             string1    => 'Bar',
             date1      => '2014-10-10',
             daterange1 => ['2010-01-04', '2011-06-03'],
-            integer1   => 15,
+            integer1   => 150,
             enum1      => 7,
             tree1      => 'tree1',
             curval1    => 2,
@@ -73,6 +73,17 @@ foreach my $multivalue (0..1)
     my $layout  = $sheet->layout;
     my $columns = $sheet->columns;
     $sheet->create_records;
+
+    # Make an edit to a curval record, to make sure that only the latest
+    # version is used in the graphs
+    my $r = GADS::Record->new(
+        user   => $sheet->user,
+        layout => $sheet->layout,
+        schema => $schema,
+    );
+    $r->find_current_id(4);
+    $r->fields->{$sheet->columns->{integer1}->id}->set_value(15);
+    $r->write(no_alerts => 1);
 
     my $calc2 = GADS::Column::Calc->new(
         schema         => $schema,
