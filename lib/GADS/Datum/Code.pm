@@ -79,6 +79,11 @@ sub html_form
     $self->value; # Already array ref
 }
 
+sub text_all
+{   my $self = shift;
+    $self->value; # Already array ref
+}
+
 sub write_cache
 {   my ($self, $table) = @_;
 

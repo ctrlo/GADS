@@ -59,6 +59,13 @@ my $data2 = [
         daterange1 => ['2008-05-04', '2008-07-14'],
         enum1      => '',
     },
+    {
+        string1    => 'FooBar',
+        integer1   => 150,
+        date1      => '2000-01-02',
+        daterange1 => ['2001-05-12', '2002-03-22'],
+        enum1      => 3,
+    },
 ];
 
 my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, data => $data2);
@@ -103,8 +110,8 @@ $record->restore;
 my $user = $sheet->user_normal1;
 my $curval = $columns->{curval1};
 
-is( scalar @{$curval->filtered_values}, 3, "Correct number of values for curval field (filtered)" );
-is( scalar @{$curval->all_values}, 3, "Correct number of values for curval field (all)" );
+is( scalar @{$curval->filtered_values}, 4, "Correct number of values for curval field (filtered)" );
+is( scalar @{$curval->all_values}, 4, "Correct number of values for curval field (all)" );
 
 # Create a second curval sheet, and check that we can link to first sheet
 # (which links to second)
@@ -208,7 +215,7 @@ $curval_filter->write;
 # dependencies properly in the next test
 $layout->clear;
 is( scalar @{$curval_filter->filtered_values}, 1, "Correct number of values for curval field with filter (filtered)" );
-is( scalar @{$curval_filter->all_values}, 3, "Correct number of values for curval field with filter (all)" );
+is( scalar @{$curval_filter->all_values}, 4, "Correct number of values for curval field with filter (all)" );
 
 # Create a record with a curval value, change the filter, and check that the
 # value is still set for the legacy record even though it no longer includes that value.
@@ -352,18 +359,34 @@ my @position = (
     $columns->{string1}->id,
 );
 $layout->position(@position);
+# Add multi-value calc for filtering tests
+my $calc2 = GADS::Column::Calc->new(
+    schema         => $schema,
+    user           => $sheet->user,
+    layout         => $layout,
+    name           => 'calc2',
+    name_short     => 'L1calc2',
+    return_type    => 'string',
+    code           => qq(function evaluate (_id) \n return {"Foo", "Bar"} \nend),
+    multivalue     => 1,
+);
+$calc2->write;
 $layout->clear;
 $curval_filter = $layout->column($curval_filter->id);
-foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid/)
+foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid calcmulti/)
 {
     my $field = $test =~ /(string1|enum1|calc1)/
         ? $test
+        : $test eq 'calcmulti'
+        ? 'string1'
         : $test =~ /(multi|negative)/
         ? 'enum1'
         : 'string1';
     my $match = $test =~ /(string1|enum1|calc1|multi|negative)/ ? 1 : 0;
     my $value = $test eq 'calc1'
         ? '$L1calc1'
+        : $test eq 'calcmulti'
+        ? '$L1calc2'
         : $match
         ? "\$L1$field"
         : $test eq 'nomatch'
@@ -405,6 +428,15 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid/)
                 operator => 'equal',
             }],
         }
+        : $test eq 'calcmulti'
+        ? {
+            rules => [{
+                id       => $curval_sheet->columns->{'string1'}->id,
+                type     => 'string',
+                value    => $value,
+                operator => 'equal',
+            }],
+        }
         : {
             rules => [{
                 id       => $curval_sheet->columns->{$field}->id,
@@ -431,16 +463,16 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid/)
         layout => $layout,
         schema => $schema,
     );
-    $record->find_current_id(4);
+    $record->find_current_id(5);
 
     # Hack to make it look like the dependent datums for the curval filter have been written to
     my $written_field = $field eq 'calc1' ? 'string1' : $field;
     my $datum = $record->fields->{$columns->{$written_field}->id};
     $datum->oldvalue($datum->clone);
-    my $count = $test eq 'multi'
+    my $count = $test =~ 'multi'
         ? 3
         : $test eq 'negative'
-        ? 1
+        ? 2
         : $match && $field eq 'enum1'
         ? 2
         : $match
@@ -459,7 +491,9 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid/)
     $count = $test eq 'multi'
         ? 1
         : $test eq 'negative'
-        ? 2
+        ? 3
+        : $test eq 'calcmulti'
+        ? 3
         : $match && $field eq 'enum1'
         ? 1
         : $match
