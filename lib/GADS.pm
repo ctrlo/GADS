@@ -1815,22 +1815,16 @@ prefix '/:layout_name' => sub {
             $records->page($page);
             $records->sort(session 'sort');
 
-            if (defined param('sort'))
+            if (param('sort') && param('sort') =~ /^([0-9]+)(asc|desc)$/)
             {
-                my $sort     = int param 'sort';
+                my $sortcol  = $1;
+                my $sorttype = $2;
                 # Check user has access
                 forwardHome({ danger => "Invalid column ID for sort" }, $layout->identifier.'/data')
-                    unless !$sort || ($layout->column($sort) && $layout->column($sort)->user_can('read'));
+                    unless $layout->column($sortcol) && $layout->column($sortcol)->user_can('read');
                 my $existing = $records->sort_first;
                 my $type;
-                if ($existing->{id} == $sort)
-                {
-                    $type = $existing->{type} eq 'desc' ? 'asc' : 'desc';
-                }
-                else {
-                    $type = 'asc';
-                }
-                session 'sort' => { type => $type, id => $sort };
+                session 'sort' => { type => $sorttype, id => $sortcol };
                 $records->clear_sorts;
                 $records->sort(session 'sort');
             }
@@ -1930,12 +1924,13 @@ prefix '/:layout_name' => sub {
             my @columns = $view
                 ? $layout->view($view->id, user_can_read => 1)
                 : $layout->all(user_can_read => 1);
+            unshift @columns, $layout->column_id;
             $params->{user_can_edit}        = $layout->user_can('write_existing');
             $params->{sort}                 = $records->sort_first;
             $params->{subset}               = $subset;
             $params->{records}              = $records->presentation(@columns);
             $params->{count}                = $records->count;
-            $params->{columns}              = [ map $_->presentation, @columns ];
+            $params->{columns}              = [ map $_->presentation(sort => $records->sort_first), @columns ];
             $params->{has_rag_column}       = grep { $_->type eq 'rag' } @columns;
             $params->{viewtype}             = 'table';
             $params->{page}                 = 'data_table';

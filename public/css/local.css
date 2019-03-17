@@ -239,3 +239,10 @@ div.timeline-foreground > div.timeline-group:nth-of-type(even) {
     text-align: left;
     font-size: 1em;
 }
+
+a.sort-link {
+    text-decoration: none;
+}
+a.sort-link:hover {
+    text-decoration: underline;
+}

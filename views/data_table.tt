@@ -8,40 +8,14 @@
 <table class="data-table table table-striped col-md-12" id="data-table">
     <thead>
         <tr>
-            [% sort = sort.shift %]
-            [% sort_order = sort.type %]
-            [% sort_label = '&udarr; sort ' _ (sort_order == "asc" ? "descending" : "ascending") %]
-
-            [% IF sort.id == layout.column_id.id AND sort.type == "asc" %]
-                [% st = "&darr;" %]
-            [% ELSIF sort.id == layout.column_id.id %]
-                [% st = "&uarr;" %]
-            [% ELSE %]
-                [% st = "" %]
-            [% END %]
-            <th scope="col" [% sort.id == layout.column_id.id && "aria-sort=\"${sort_order}ending\"" %]>
-                <button type="button" class="trigger" aria-expanded="false" aria-controls="col--11-options">[% st %]ID &rsaquo;</button>
-                <div class="expandable popover" id="col--11-options">
-                    <div class="column-name">ID</div>
-                    <a href="?sort=[% layout.column_id.id %]">[% sort_label %]</a>
-                    [% IF col.helptext %]
-                    <p class="helptext">[% col.helptext | html_entity %]</p>
-                    [% END %]
-                </div>
-            </th>
             [% FOREACH col IN columns %]
-                [% IF sort.id == col.id AND sort.type == "asc" %]
-                    [% st = "&darr;" %]
-                [% ELSIF sort.id == col.id %]
-                    [% st = "&uarr;" %]
-                [% ELSE %]
-                    [% st = "" %]
-                [% END %]
-                <th scope="col" [% sort.id == col.id && "aria-sort=\"${sort_order}ending\"" %]>
-                    <button type="button" class="trigger" aria-expanded="false" aria-controls="col-[% col.id %]-options">[% st %][% col.name | html_entity %] &rsaquo; </button>
+                <th scope="col" aria-sort="[% col.sort.aria %]">
+                    <button type="button" class="trigger" aria-expanded="false" aria-controls="col-[% col.id %]-options">[% col.sort.current %][% col.name | html_entity %] &rsaquo; </button>
                     <div class="expandable popover" id="col-[% col.id %]-options">
                         <div class="column-name">[% col.name | html_entity %]</div>
-                        <a href="?sort=[% col.id %]">[% sort_label %]</a>
+                        <a href="?sort=[% col.sort.link %]" class="sort-link">
+                            [% col.sort.symbol %] sort [% col.sort.text %]
+                        </a>
                         [% IF col.helptext %]
                         <p class="helptext">[% col.helptext | html_entity %]</p>
                         [% END %]
