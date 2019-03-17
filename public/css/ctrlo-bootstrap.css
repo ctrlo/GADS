@@ -2005,7 +2005,8 @@ small.search_term {
   color: #ffffff;
   background-color: #1460aa;
   border-radius: 4px;
-  text-decoration: none; }
+  text-decoration: none;
+  font-weight: bold; }
   .helptext__questionmark:hover {
     color: #ffffff;
     background-color: #197ad8;
