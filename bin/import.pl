@@ -360,6 +360,7 @@ foreach my $ins (readdir $root)
 foreach my $l (@all_layouts)
 {
     $l->{layout}->import_after_all($l->{values}, mapping => $column_mapping, report_only => $report_only);
+    $l->{layout}->write;
     $l->{layout}->clear;
 }
 
