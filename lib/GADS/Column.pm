@@ -1371,22 +1371,18 @@ sub import_after_all
 {   my ($self, $values, %options) = @_;
     my $mapping = $options{mapping};
     my $report  = $options{report_only};
-    if ($values->{display_field})
-    {
-        my $new_id = $mapping->{$values->{display_field}};
-        notice __x"Update: display_field from {old} to {new} for {name}",
-            old => $self->display_field, new => $new_id, name => $self->name
-                if $report && ($self->display_field || 0) != ($new_id || 0);
-        $self->display_field($new_id);
-    }
-    if ($values->{link_parent})
-    {
-        my $new_id = $mapping->{$values->{link_parent}};
-        notice __x"Update: link_parent from {old} to {new} for {name}",
-            old => $self->link_parent, new => $new_id, name => $self->name
-                if $report && ($self->link_parent || 0) != ($new_id || 0);
-        $self->link_parent($new_id);
-    }
+
+    my $new_id = $values->{display_field} ? $mapping->{$values->{display_field}} : undef;
+    notice __x"Update: display_field from {old} to {new} for {name}",
+        old => $self->display_field, new => $new_id, name => $self->name
+            if $report && ($self->display_field || 0) != ($new_id || 0);
+    $self->display_field($new_id);
+
+    $new_id = $values->{link_parent} ? $mapping->{$values->{link_parent}} : undef;
+    notice __x"Update: link_parent from {old} to {new} for {name}",
+        old => $self->link_parent, new => $new_id, name => $self->name
+            if $report && ($self->link_parent || 0) != ($new_id || 0);
+    $self->link_parent($new_id);
 }
 
 1;
