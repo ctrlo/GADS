@@ -294,27 +294,33 @@ foreach my $ins (readdir $root)
         }
     }
 
+    my $metrics_mapping;
     foreach my $mg (dir("_export/$ins/metrics"))
     {
         report ERROR => "Not yet any report-only support for metric groups"
             if $report_only;
-        my $metric_group = GADS::MetricGroup->new(
-            name        => $mg->{name},
-            instance_id => $layout->instance_id,
-            schema      => schema,
-        );
-        $metric_group->write;
-        foreach my $metric (@{$mg->{metrics}})
+        my $existing = schema->resultset('MetricGroup')->search({
+            name => $mg->{name},
+        });
+        my $metric_group;
+        if ($existing)
         {
-            GADS::Metric->new(
-                target                => $metric->{target},
-                metric_group_id       => $metric_group->id,
-                x_axis_value          => $metric->{x_axis_value},
-                y_axis_grouping_value => $metric->{y_axis_grouping_value},
-                schema                => schema,
-            )->write;
+            $metric_group = GADS::MetricGroup->new(
+                id          => $existing->id,
+                instance_id => $layout->instance_id,
+                schema      => schema,
+            );
         }
-
+        else {
+            $metric_group = GADS::MetricGroup->new(
+                name        => $mg->{name},
+                instance_id => $layout->instance_id,
+                schema      => schema,
+            );
+            $metric_group->write;
+        }
+        $metric_group->import_hash($mg);
+        $metrics_mapping->{$mg->{id}} = $metric_group->id;
     }
 
     $layout->clear;
@@ -327,6 +333,8 @@ foreach my $ins (readdir $root)
         $g->{y_axis} = $column_mapping->{$g->{y_axis}};
         $g->{group_by} = $column_mapping->{$g->{group_by}}
             if $g->{group_by};
+        $g->{metric_group_id} = $metrics_mapping->{$g->{metric_group_id}}
+            if $g->{metric_group_id};
 
         my $graph;
         if ($merge || $report_only)

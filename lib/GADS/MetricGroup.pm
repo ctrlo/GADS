@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::MetricGroup;
 
+use Data::Compare qw/Compare/;
 use GADS::Metric;
 use Log::Report 'linkspace';
 use Moo;
@@ -152,6 +153,7 @@ sub delete_metric
 sub export_hash
 {   my $self = shift;
     my $json = {
+        id      => $self->id,
         name    => $self->name,
         metrics => [],
     };
@@ -165,6 +167,45 @@ sub export_hash
         };
     }
     $json;
+}
+
+sub import_hash
+{   my ($self, $values) = @_;
+
+    my @existing = map {
+        +{
+            x_axis_value          => $_->x_axis_value,
+            target                => $_->target,
+            y_axis_grouping_value => $_->y_axis_grouping_value,
+        }
+    } @{$self->metrics};
+
+    delete $_->{id} foreach @{$values->{metrics}};
+
+    my $same = Compare \@existing, $values->{metrics};
+
+    if ($same)
+    {
+        trace __x"Metrics identical for {name}", name => $self->name;
+        return;
+    }
+
+    notice __x"Metrics are different for {name}. Will delete and recreate.",
+        name => $self->name;
+
+    $self->delete_metric($_->id) foreach @{$self->metrics};
+
+    foreach my $metric (@{$values->{metrics}})
+    {
+        GADS::Metric->new(
+            target                => $metric->{target},
+            metric_group_id       => $self->id,
+            x_axis_value          => $metric->{x_axis_value},
+            y_axis_grouping_value => $metric->{y_axis_grouping_value},
+            schema                => $self->schema,
+        )->write;
+    }
+
 }
 
 1;
