@@ -1374,15 +1374,17 @@ sub import_after_all
     if ($values->{display_field})
     {
         my $new_id = $mapping->{$values->{display_field}};
-        notice __x"Update: display_field from {old} to {new}", old => $self->display_field, new => $new_id
-            if $report && ($self->display_field || 0) != ($new_id || 0);
+        notice __x"Update: display_field from {old} to {new} for {name}",
+            old => $self->display_field, new => $new_id, name => $self->name
+                if $report && ($self->display_field || 0) != ($new_id || 0);
         $self->display_field($new_id);
     }
     if ($values->{link_parent})
     {
         my $new_id = $mapping->{$values->{link_parent}};
-        notice __x"Update: link_parent from {old} to {new}", old => $self->link_parent, new => $new_id
-            if $report && ($self->link_parent || 0) != ($new_id || 0);
+        notice __x"Update: link_parent from {old} to {new} for {name}",
+            old => $self->link_parent, new => $new_id, name => $self->name
+                if $report && ($self->link_parent || 0) != ($new_id || 0);
         $self->link_parent($new_id);
     }
 }
