@@ -297,11 +297,9 @@ foreach my $ins (readdir $root)
     my $metrics_mapping;
     foreach my $mg (dir("_export/$ins/metrics"))
     {
-        report ERROR => "Not yet any report-only support for metric groups"
-            if $report_only;
         my $existing = schema->resultset('MetricGroup')->search({
             name => $mg->{name},
-        });
+        })->next;
         my $metric_group;
         if ($existing)
         {

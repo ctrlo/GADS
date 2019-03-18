@@ -343,7 +343,7 @@ sub export_hash
         stackseries     => $self->stackseries,
         as_percent      => $self->as_percent,
         type            => $self->type,
-        metric_group    => $self->metric_group_id,
+        metric_group_id => $self->metric_group_id,
     };
 }
 
