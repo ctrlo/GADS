@@ -1260,53 +1260,67 @@ sub code_regex
 sub import_hash
 {   my ($self, $values, %options) = @_;
     my $report = $options{report_only} && $self->id;
-    notice __x"Update: name from {old} to {new}", old => $self->name, new => $values->{name}
-        if $report && $self->name ne $values->{name};
+    notice __x"Update: name from {old} to {new} for {name}",
+        old => $self->name, new => $values->{name}, name => $self->name
+            if $report && $self->name ne $values->{name};
     $self->name($values->{name});
-    notice __x"Update: name_short from {old} to {new}", old => $self->name_short, new => $values->{name_short}
-        if $report && ($self->name_short || '') ne ($values->{name_short} || '');
+    notice __x"Update: name_short from {old} to {new} for {name}",
+        old => $self->name_short, new => $values->{name_short}, name => $self->name
+            if $report && ($self->name_short || '') ne ($values->{name_short} || '');
     $self->name_short($values->{name_short});
-    notice __x"Update: optional from {old} to {new}", old => $self->optional, new => $values->{optional}
-        if $report && $self->optional != $values->{optional};
+    notice __x"Update: optional from {old} to {new} for {name}",
+        old => $self->optional, new => $values->{optional}, name => $self->name
+            if $report && $self->optional != $values->{optional};
     $self->optional($values->{optional});
-    notice __x"Update: remember from {old} to {new}", old => $self->remember, new => $values->{remember}
-        if $report && $self->remember != $values->{remember};
+    notice __x"Update: remember from {old} to {new} for {name}",
+        old => $self->remember, new => $values->{remember}, name => $self->name
+            if $report && $self->remember != $values->{remember};
     $self->remember($values->{remember});
-    notice __x"Update: isunique from {old} to {new}", old => $self->isunique, new => $values->{isunique}
-        if $report && $self->isunique != $values->{isunique};
+    notice __x"Update: isunique from {old} to {new} for {name}",
+        old => $self->isunique, new => $values->{isunique}, name => $self->name
+            if $report && $self->isunique != $values->{isunique};
     $self->isunique($values->{isunique});
-    notice __x"Update: can_child from {old} to {new}", old => $self->can_child, new => $values->{can_child}
-        if $report && $self->can_child != $values->{can_child};
+    notice __x"Update: can_child from {old} to {new} for {name}",
+        old => $self->can_child, new => $values->{can_child}, name => $self->name
+            if $report && $self->can_child != $values->{can_child};
     $self->set_can_child($values->{can_child});
-    notice __x"Update: position from {old} to {new}", old => $self->position, new => $values->{position}
-        if $report && $self->position != $values->{position};
+    notice __x"Update: position from {old} to {new} for {name}",
+        old => $self->position, new => $values->{position}, name => $self->name
+            if $report && $self->position != $values->{position};
     $self->position($values->{position});
-    notice __x"Update: description from {old} to {new}", old => $self->description, new => $values->{description}
-        if $report && $self->description ne $values->{description};
+    notice __x"Update: description from {old} to {new} for {name}",
+        old => $self->description, new => $values->{description}, name => $self->name
+            if $report && $self->description ne $values->{description};
     $self->description($values->{description});
-    notice __x"Update: width from {old} to {new}", old => $self->width, new => $values->{width}
-        if $report && $self->width != $values->{width};
+    notice __x"Update: width from {old} to {new} for {name}",
+        old => $self->width, new => $values->{width}, name => $self->name
+            if $report && $self->width != $values->{width};
     $self->width($values->{width});
-    notice __x"Update: helptext from {old} chars to {new} chars", old => length($self->helptext), new => length($values->{helptext})
-        if $report && $self->helptext ne $values->{helptext};
+    notice __x"Update: helptext from {old} chars to {new} chars for {name}",
+        old => length($self->helptext), new => length($values->{helptext}), name => $self->name
+            if $report && $self->helptext ne $values->{helptext};
     $self->helptext($values->{helptext});
-    notice __x"Update: display_regex from {old} to {new}", old => $self->display_regex, new => $values->{display_regex}
-        if $report && ($self->display_regex || '') ne ($values->{display_regex} || '');
+    notice __x"Update: display_regex from {old} to {new} for {name}",
+        old => $self->display_regex, new => $values->{display_regex}, name => $self->name
+            if $report && ($self->display_regex || '') ne ($values->{display_regex} || '');
     $self->display_regex($values->{display_regex});
-    notice __x"Update: display_matchtype from {old} to {new}", old => $self->display_matchtype, new => $values->{display_matchtype}
-        if $report && ($self->display_matchtype || '') ne ($values->{display_matchtype} || '');
+    notice __x"Update: display_matchtype from {old} to {new} for {name}",
+        old => $self->display_matchtype, new => $values->{display_matchtype}, name => $self->name
+            if $report && ($self->display_matchtype || '') ne ($values->{display_matchtype} || '');
     $self->display_matchtype($values->{display_matchtype});
-    notice __x"Update: multivalue from {old} to {new}", old => $self->multivalue, new => $values->{multivalue}
-        if $report && $self->multivalue != $values->{multivalue};
+    notice __x"Update: multivalue from {old} to {new} for {name}",
+        old => $self->multivalue, new => $values->{multivalue}, name => $self->name
+            if $report && $self->multivalue != $values->{multivalue};
     $self->multivalue($values->{multivalue});
-    notice __x"Update: filter from {old} to {new}", old => $self->filter->as_json, new => $values->{filter}
-        if $report && $self->filter->as_json ne $values->{filter};
+    notice __x"Update: filter from {old} to {new} for {name}",
+        old => $self->filter->as_json, new => $values->{filter}, name => $self->name
+            if $report && $self->filter->as_json ne $values->{filter};
     $self->filter(GADS::Filter->new(as_json => $values->{filter}));
     foreach my $option (@{$self->option_names})
     {
-        notice __x"Update: {option} from {old} to {new}",
-            option => $option, old => $self->$option, new => $values->{filter}
-            if $report && $self->$option ne $values->{$option};
+        notice __x"Update: {option} from {old} to {new} for {name}",
+            option => $option, old => $self->$option, new => $values->{$option}, name => $self->name
+                if $report && $self->$option ne $values->{$option};
         $self->$option($values->{$option});
     }
 }

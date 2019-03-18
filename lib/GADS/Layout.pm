@@ -1077,8 +1077,9 @@ sub import_after_all
 {   my ($self, $values, %options) = @_;
     my $report = $options{report_only} && $self->instance_id;
 
-    notice __x"Update: sort_layout_id from {old} to {new}", old => $self->sort_layout_id, new => $values->{sort_layout_id}
-        if $report && ($self->sort_layout_id || 0) != ($values->{sort_layout_id} || 0);
+    notice __x"Update: sort_layout_id from {old} to {new} for {name}",
+        old => $self->sort_layout_id, new => $values->{sort_layout_id}, name => $self->name
+            if $report && ($self->sort_layout_id || 0) != ($values->{sort_layout_id} || 0);
     $self->sort_layout_id($values->{sort_layout_id});
 }
 

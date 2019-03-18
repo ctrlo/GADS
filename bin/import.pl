@@ -101,7 +101,7 @@ foreach my $g(dir('_export/groups'))
 
     if ($group)
     {
-        report NOTICE => __x"Existing: Group {name} already exists", name => $g->{name}
+        report TRACE => __x"Existing: Group {name} already exists", name => $g->{name}
             if $report_only;
     }
     else {
@@ -194,7 +194,7 @@ foreach my $ins (readdir $root)
                 });
                 report ERROR => __x"More than one topic named {name} already exists", name => $topic->{name}
                     if $top->count > 1;
-                report NOTICE => __x"Existing: Topic {name} already exists, will update", name => $topic->{name}
+                report TRACE => __x"Existing: Topic {name} already exists, will update", name => $topic->{name}
                     if $top->count && $report_only;
                 report NOTICE => __x"Creation: Topic {name} to be created", name => $topic->{name}
                     if !$top->count && $report_only;
@@ -224,7 +224,7 @@ foreach my $ins (readdir $root)
         my $column = $layout->column_by_name($col->{name});
         if ($column)
         {
-            report NOTICE => __x"Update: Column {name} already exists, will update", name => $col->{name}
+            report TRACE => __x"Update: Column {name} already exists, will update", name => $col->{name}
                 if $report_only;
             report ERROR => __x"Column {name} already exists", name => $col->{name}
                 unless $merge;
@@ -366,7 +366,7 @@ foreach my $l (@all_layouts)
 foreach (@all_columns)
 {
     my $col = $_->{column};
-    report NOTICE => __x"Final update of column {name}", name => $col->name;
+    report TRACE => __x"Final update of column {name}", name => $col->name;
     $col->import_after_all($_->{values}, mapping => $column_mapping, report_only => $report_only && $_->{updated}, force => $force);
     # Now add to the DBIx schema
     $col->write(no_cache_update => 1, add_db => 1, update_dependents => 1, report_only => $report_only);

@@ -270,7 +270,7 @@ before import_hash => sub {
             # If it's the same, easy, onto the next one
             if ($old->{value} eq $new->{value})
             {
-                notice __x"No change for enum value {value}", value => $old->{value}
+                trace __x"No change for enum value {value}", value => $old->{value}
                     if $report;
                 $new->{id} = $old->{id};
                 push @to_write, $new;
