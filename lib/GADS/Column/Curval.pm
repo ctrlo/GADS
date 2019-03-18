@@ -243,7 +243,7 @@ sub write_special
     $self->clear;
 
     # Force any warnings to be shown about the chosen filter fields
-    $self->data_filter_fields;
+    $self->data_filter_fields unless $options{override};
 
     return ();
 };

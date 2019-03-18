@@ -635,15 +635,19 @@ around import_after_all => sub {
     $self->curval_field_ids(\@field_ids);
 
     # Update any field IDs contained within a filter - need to recurse deeply
-    # into the JSON structure
+    # into the JSON structure. Do not set layout now, as it will cause column
+    # IDs to be validated and removed, which have not been mapped yet
     my $filter = GADS::Filter->new(as_json => $values->{filter});
     foreach my $f (@{$filter->filters})
     {
-        $f->{id} = $mapping->{$f->{id}};
-        $f->{field} = $mapping->{$f->{field}};
+        $f->{id} = $mapping->{$f->{id}}
+            or panic "Missing ID";
+        $f->{field} = $mapping->{$f->{field}}
+            or panic "Missing field";
         delete $f->{column_id}; # XXX See comments in GADS::Filter
     }
     $filter->clear_as_json;
+    $filter->layout($self->layout);
     $self->filter($filter);
 
     $orig->(@_);

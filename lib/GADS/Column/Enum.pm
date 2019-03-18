@@ -285,6 +285,12 @@ before import_hash => sub {
                 $new->{id} = $old->{id};
                 push @to_write, $new;
             }
+            elsif ($options{force})
+            {
+                notice __x"Unknown enumval update {value}, forcing as requested", value => $new->{value};
+                delete $new->{id};
+                push @to_write, $new;
+            }
             else {
                 # Different, don't know what to do, require manual intervention
                 if ($report)

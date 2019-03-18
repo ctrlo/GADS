@@ -50,7 +50,7 @@ use Log::Report syntax => 'LONG';
 use String::CamelCase qw(camelize);
 use Path::Tiny;
 
-my ($site_id, $purge, $add, $report_only, $merge, $update_cached);
+my ($site_id, $purge, $add, $report_only, $merge, $update_cached, $force);
 
 GetOptions (
     'site-id=s'     => \$site_id,
@@ -59,6 +59,7 @@ GetOptions (
     'report-only'   => \$report_only,
     'merge'         => \$merge,         # Merge into existing table
     'update-cached' => \$update_cached,
+    'force'         => \$force,         # Force updates
 ) or exit;
 
 $site_id or report ERROR =>  "Please provide site ID with --site-id";
@@ -118,8 +119,8 @@ foreach my $g(dir('_export/groups'))
 opendir my $root, '_export' or report FAULT => "Cannot open directory _export";
 
 my $column_mapping;
-my $layouts;
 my @all_columns;
+my @all_layouts;
 
 foreach my $ins (readdir $root)
 {
@@ -163,6 +164,13 @@ foreach my $ins (readdir $root)
 
     $layout->import_hash($instance_info, report_only => $report_only);
     $layout->write unless $report_only;
+    # The layout in a column is a weakref, so it will have been destroyed by
+    # the time we try and use it later in the script. Therefore, keep a
+    # reference to it.
+    push @all_layouts, {
+        values => $instance_info,
+        layout => $layout,
+    };
 
     my $topic_mapping; # topic ID mapping
     if (-d "_export/$ins/topics")
@@ -207,10 +215,6 @@ foreach my $ins (readdir $root)
 
     my %existing_columns = map { $_->id => $_ } $layout->all(exclude_internal => 1);
 
-    # The layout in a column is a weakref, so it will have been destroyed by
-    # the time we try and use it later in the script. Therefore, keep a
-    # reference to it.
-    $layouts->{$layout->instance_id} = $layout; 
 
     my $highest_update; # The column with the highest ID that's been updated
     my @created;
@@ -244,12 +248,12 @@ foreach my $ins (readdir $root)
             user   => undef,
             layout => $layout,
         );
-        $column->import_hash($col, report_only => $report_only);
+        $column->import_hash($col, report_only => $report_only, force => $force);
         $column->topic_id($topic_mapping->{$col->{topic_id}}) if $col->{topic_id};
         # Don't add to the DBIx schema yet, as we may not have all the
         # information needed (e.g. related field IDs)
         $column->write(override => 1, no_db_add => 1, no_cache_update => 1, update_dependents => 0);
-        $column->import_after_write($col, report_only => $updated && $report_only);
+        $column->import_after_write($col, report_only => $updated && $report_only, force => $force);
 
         my $perms_to_set = {};
         foreach my $old_id (keys %{$col->{permissions}})
@@ -318,7 +322,8 @@ foreach my $ins (readdir $root)
     foreach my $g (dir("_export/$ins/graphs"))
     {
         # Convert to new column IDs
-        $g->{x_axis} = $column_mapping->{$g->{x_axis}};
+        $g->{x_axis} = $column_mapping->{$g->{x_axis}}
+            if $g->{x_axis};
         $g->{y_axis} = $column_mapping->{$g->{y_axis}};
         $g->{group_by} = $column_mapping->{$g->{group_by}}
             if $g->{group_by};
@@ -340,7 +345,7 @@ foreach my $ins (readdir $root)
                 );
             }
             else {
-                report NOTICE => "Graph to be created: {graph}", graph => $g->{title};
+                report NOTICE => __x"Graph to be created: {graph}", graph => $g->{title};
             }
         }
         $graph ||= GADS::Graph->new(
@@ -352,12 +357,17 @@ foreach my $ins (readdir $root)
     }
 }
 
-$_->clear foreach values %$layouts;
+foreach my $l (@all_layouts)
+{
+    $l->{layout}->import_after_all($l->{values}, mapping => $column_mapping, report_only => $report_only);
+    $l->{layout}->clear;
+}
+
 foreach (@all_columns)
 {
     my $col = $_->{column};
     report NOTICE => __x"Final update of column {name}", name => $col->name;
-    $col->import_after_all($_->{values}, mapping => $column_mapping, report_only => $report_only && $_->{updated});
+    $col->import_after_all($_->{values}, mapping => $column_mapping, report_only => $report_only && $_->{updated}, force => $force);
     # Now add to the DBIx schema
     $col->write(no_cache_update => 1, add_db => 1, update_dependents => 1, report_only => $report_only);
 }

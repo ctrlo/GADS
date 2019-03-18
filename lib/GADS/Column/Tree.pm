@@ -480,7 +480,8 @@ sub resultset_for_values
 }
 
 sub _import_branch
-{   my ($self, $old_in, $new_in, $report) = @_;
+{   my ($self, $old_in, $new_in, %options) = @_;
+    my $report = $options{report};
     my @old = sort { $a->{text} cmp $b->{text} } @$old_in;
     my @new = sort { $a->{text} cmp $b->{text} } @$new_in;
     my @to_write;
@@ -489,7 +490,7 @@ sub _import_branch
         my $old = shift @old;
         my $new = shift @new;
         # If it's the same, easy, onto the next one
-        if ($old->{text} eq $new->{text})
+        if ($old->{text} && $new->{text} && $old->{text} eq $new->{text})
         {
             notice __x"No change for tree value {value}", value => $old->{text}
                 if $report;
@@ -516,6 +517,18 @@ sub _import_branch
             # Add old one back onto stack for processing next loop
             unshift @old, $old;
         }
+        elsif ($options{force})
+        {
+            if ($new->{text})
+            {
+                notice __x"Unknown treeval update {value}, forcing as requested", value => $new->{text};
+                delete $new->{id};
+                push @to_write, $new;
+            }
+            else {
+                notice __x"Treeval {value} appears to no longer exist, force removing as requested", value => $old->{text};
+            }
+        }
         else {
             # Different, don't know what to do, require manual intervention
             if ($report)
@@ -532,7 +545,7 @@ sub _import_branch
         }
         if ($new->{children} && @{$new->{children}})
         {
-            $new->{children} = [$self->_import_branch($old->{children}, $new->{children}, $report)];
+            $new->{children} = [$self->_import_branch($old->{children}, $new->{children}, %options)];
         }
     }
     # Add any remaining new ones
@@ -543,7 +556,6 @@ sub _import_branch
 
 sub import_after_write
 {   my ($self, $values, %options) = @_;
-    my $report = $options{report_only};
     my @new = @{$values->{tree}};
 
     my @to_write;
@@ -553,7 +565,7 @@ sub import_after_write
     # will require manual intervention
     if (my @old = @{$self->json})
     {
-        @to_write = $self->_import_branch(\@old, \@new, $report);
+        @to_write = $self->_import_branch(\@old, \@new, %options);
     }
     else {
         delete $_->{id} foreach @new;

@@ -1068,13 +1068,18 @@ sub import_hash
         if $report && ($self->homepage_text2 || '') ne ($values->{homepage_text2} || '');
     $self->homepage_text2($values->{homepage_text2});
 
+    notice __x"Update: sort_type from {old} to {new}", old => $self->sort_type, new => $values->{sort_type}
+        if $report && ($self->sort_type || '') ne ($values->{sort_type} || '');
+    $self->sort_type($values->{sort_type});
+}
+
+sub import_after_all
+{   my ($self, $values, %options) = @_;
+    my $report = $options{report_only} && $self->instance_id;
+
     notice __x"Update: sort_layout_id from {old} to {new}", old => $self->sort_layout_id, new => $values->{sort_layout_id}
         if $report && ($self->sort_layout_id || 0) != ($values->{sort_layout_id} || 0);
     $self->sort_layout_id($values->{sort_layout_id});
-
-    notice __x"Update: sort_type from {old} to {new}", old => $self->type, new => $values->{sort_type}
-        if $report && ($self->sort_type || '') ne ($values->{sort_type} || '');
-    $self->sort_type($values->{sort_type});
 }
 
 sub purge
