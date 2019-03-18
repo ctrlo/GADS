@@ -61,7 +61,7 @@ has default_to_login => (
         return 0 unless $self->has_options;
         $self->options->{default_to_login};
     },
-    trigger => sub { $_[0]->clear_options },
+    trigger => sub { $_[0]->reset_options },
 );
 
 sub _build_sprefix { 'value' };

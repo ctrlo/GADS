@@ -217,6 +217,15 @@ has options => (
     predicate => 1,
 );
 
+sub reset_options
+{   my $self = shift;
+    # Force each option to build now to capture its value, otherwise if it
+    # hasn't already been built then the options hash will be lost and it will
+    # use its default value
+    $self->$_ foreach @{$self->option_names};
+    $self->clear_options;
+}
+
 sub _build_options
 {   my $self = shift;
     my $options = {};

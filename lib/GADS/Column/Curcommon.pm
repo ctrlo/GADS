@@ -42,7 +42,7 @@ has override_permissions => (
         return 0 unless $self->has_options;
         $self->options->{override_permissions};
     },
-    trigger => sub { $_[0]->clear_options },
+    trigger => sub { $_[0]->reset_options },
     predicated => 1,
 );
 

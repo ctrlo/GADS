@@ -61,7 +61,7 @@ has show_datepicker => (
         return 1 unless $self->has_options;
         $self->options->{show_datepicker};
     },
-    trigger => sub { $_[0]->clear_options },
+    trigger => sub { $_[0]->reset_options },
 );
 
 has default_today => (
@@ -74,7 +74,7 @@ has default_today => (
         return 0 unless $self->has_options;
         $self->options->{default_today};
     },
-    trigger => sub { $_[0]->clear_options },
+    trigger => sub { $_[0]->reset_options },
 );
 
 sub validate
