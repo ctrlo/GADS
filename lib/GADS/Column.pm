@@ -1312,10 +1312,11 @@ sub import_hash
         old => $self->multivalue, new => $values->{multivalue}, name => $self->name
             if $report && $self->multivalue != $values->{multivalue};
     $self->multivalue($values->{multivalue});
+
+    $self->filter(GADS::Filter->new(as_json => $values->{filter}));
     notice __x"Update: filter from {old} to {new} for {name}",
         old => $self->filter->as_json, new => $values->{filter}, name => $self->name
-            if $report && $self->filter->as_json ne $values->{filter};
-    $self->filter(GADS::Filter->new(as_json => $values->{filter}));
+            if $report && $self->filter->changed;
     foreach my $option (@{$self->option_names})
     {
         notice __x"Update: {option} from {old} to {new} for {name}",
