@@ -444,7 +444,11 @@ sub field_values
                     # autocur field, the autocur refers back to the curval). It
                     # would be better of finding some way of spotting that
                     # recursion is happening and stopping it then.
-                    $_->type !~ /(autocur|curval|calc|rag)/ # Prevent recursive loops
+                    $_->type !~ /(autocur|curval)/
+                        # Allow code fields for curvals. For autocurs, the code
+                        # fields can refer back to the parent record during a
+                        # curval-edit
+                        && !($self->type eq 'autocur' && $_->type =~ /(calc|rag)/)
                 } @{$self->curval_fields_retrieve(all_fields => $params{all_fields})}
             },
         } @return

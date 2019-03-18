@@ -40,7 +40,7 @@ my $sheet        = t::lib::DataSheet->new(
     schema           => $schema,
     user_count       => 2,
     curval           => 2,
-    curval_field_ids => [ $curval_sheet->columns->{string1}->id ],
+    curval_field_ids => [ $curval_sheet->columns->{string1}->id, $curval_sheet->columns->{date1}->id ],
     calc_code        => "function evaluate (L1daterange1) \n return L1daterange1.from.epoch \n end",
     calc_return_type => 'date',
 );
@@ -79,6 +79,30 @@ $calc_numeric->write;
 $layout->clear;
 
 my @tests = (
+    {
+        name       => 'calc field using curval (full value)',
+        type       => 'Calc',
+        code       => "function evaluate (L1curval1) \n return L1curval1.value \nend",
+        before     => 'Foo, 2014-10-10',
+        after      => 'Bar, 2009-01-02',
+        multivalue => 1,
+    },
+    {
+        name       => 'calc field using curval (single curval field, standard)',
+        type       => 'Calc',
+        code       => "function evaluate (L1curval1) \n return L1curval1.field_values.L2string1 \nend",
+        before     => 'Foo',
+        after      => 'Bar',
+        multivalue => 1,
+    },
+    {
+        name       => 'calc field using curval (single curval field, calc)',
+        type       => 'Calc',
+        code       => "function evaluate (L1curval1) \n return L1curval1.field_values.L2calc1 \nend",
+        before     => '2012',
+        after      => '2008',
+        multivalue => 1,
+    },
     {
         name       => 'return array of multivalues',
         type       => 'Calc',
