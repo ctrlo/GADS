@@ -838,7 +838,7 @@ sub _current_ids_rs
 # already been set by the calling function.
 sub _cid_search_query
 {   my $self = shift;
-    my $search = { map { %$_ } $self->record_later_search(prefetch => 1, sort => 1, linked => 1) };
+    my $search = { map { %$_ } $self->record_later_search(prefetch => 1, sort => 1, linked => 1, group => 1) };
 
     # If this is a group query then we will not be limiting by number of
     # records (but will be reducing number of results by group), and therefore

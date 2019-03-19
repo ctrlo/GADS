@@ -226,6 +226,7 @@ sub record_later_search
                 if (
                     ($options{search} && $_->{search} && $_->{parent} && !$is_curcommon) # Search in child of curval
                     || ($options{sort} && $_->{sort}) # sort is all children
+                    || ($options{group} && $_->{group})
                     # prefetch is all children, but not when the curval has no fields
                     || ($options{prefetch} && $_->{prefetch} && !$_->{parent} && @{$_->{children}})
                 )

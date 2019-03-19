@@ -147,8 +147,8 @@ sub _build_results
         # excluded). The reason is that it will otherwise not cause the related
         # record_later searches to be generated when the curval sub-field is
         # retrieved in the same query
-        $self->add_prefetch($column, group => $col->{group}, parent => $parent, include_multivalue => $column->is_curcommon);
-        $self->add_prefetch($column->link_parent, linked => 1, group => $col->{group}, parent => $parent, include_multivalue => $column->is_curcommon)
+        $self->add_prefetch($column, group => $col->{group}, parent => $parent);
+        $self->add_prefetch($column->link_parent, linked => 1, group => $col->{group}, parent => $parent)
             if $column->link_parent;
     }
 
@@ -438,7 +438,7 @@ sub _build_results
         }
     };
 
-    my $q = $self->search_query(prefetch => 1, search => 1, retain_join_order => 1); # Called first to generate joins
+    my $q = $self->search_query(prefetch => 1, search => 1, retain_join_order => 1, group => 1); # Called first to generate joins
 
     my $select = {
         select => [@select_fields],
