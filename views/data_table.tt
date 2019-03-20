@@ -26,6 +26,21 @@
                                 Email each person in this column
                             </button>
                         [% END %]
+                        <div class="column-filter" data-col-id="[% col.id %]" data-autocomplete-endpoint="/[% layout.identifier %]/match/layout/[% col.id %]?q=" data-values='[]'>
+                            <a class="column-filter__clear" href="?urlWithoutThisFilter">Clear filter</a>
+                            <div class="column-filter__search">
+                                <input class="column-filter__search-input" type="text" name="q" placeholder="Search..." autocomplete="off" aria-controls="column-filter__values_[% col.id %]" />
+                                <a href="#" class="column-filter__clear-search-input fa fa-times" title="Clear search input" hidden></a>
+                            </div>
+                            <p class="column-filter__spinner" hidden>
+                                Searching... <i class="fa fa-spinner fa-spin" style="font-size:24px"></i>
+                            </p>
+                            <p class="column-filter__error alert alert-danger" hidden></p>
+                            <ul class="column-filter__values" id="column-filter__values_[% col.id %]" aria-label="Filters"></ul>
+                            <div class="column-filter__buttons">
+                                <button class="column-filter__button column-filter__submit btn btn-xs btn-default" type="submit">Go</a>
+                            </div>
+                        </div>
                     </div>
                 </th>
             [% END %]
