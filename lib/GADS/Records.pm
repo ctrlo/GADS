@@ -149,9 +149,7 @@ sub _build__view_limit_extra
         if $default && !$self->layout->user_can("view_limit_extra");
     if ($extra)
     {
-        my $view_limit = $self->schema->resultset('View')->search({
-            'me.id' => $extra,
-        })->next;
+        my $view_limit = $self->schema->resultset('View')->find($extra);
         return GADS::View->new(
             id          => $view_limit->id,
             schema      => $self->schema,
