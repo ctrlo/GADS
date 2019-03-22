@@ -655,6 +655,9 @@ sub _build_cols_db
 sub _build_columns
 {   my $self = shift;
 
+    my $schema = $self->schema;
+    my $user_permission_override = $self->user_permission_override;
+
     my @return;
     foreach my $col (@{$self->cols_db})
     {
@@ -662,9 +665,9 @@ sub _build_columns
         my $column = $class->new(
             set_values               => $col,
             internal                 => $col->{internal},
-            user_permission_override => $self->user_permission_override,
+            user_permission_override => $user_permission_override,
             instance_id              => $col->{instance_id},
-            schema                   => $self->schema,
+            schema                   => $schema,
             layout                   => $self
         );
         push @return, $column;
