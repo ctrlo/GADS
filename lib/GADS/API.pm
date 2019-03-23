@@ -391,7 +391,12 @@ prefix '/:layout_name' => sub {
                 missing_not_fatal => 1,
                 submitted_fields  => $curval->subvals_input_required,
             );
-        } accept => 'ERROR';
+        } # Missing values are reporting as non-fatal errors, and would therefore
+          # not be caught by the try block and would be reported as normal (including
+          # to the message session). We need to hide these and report them now.
+          hide => 'ERROR';
+
+        $@->reportFatal; # Report any unexpected fatal messages from the try block
 
         if ($@->exceptions)
         {
