@@ -236,7 +236,7 @@ var SelectWidget = function (multi) {
         return $('<li class="' + classNames + '">' +
             '<span class="control">' +
                 '<label id="' + valueId + '_label" for="' + valueId + '">' +
-                    '<input id="' + valueId + '" type="' + (multi ? "checkbox" : "radio") + '" name="' + field + '" ' + (checked ? 'checked' : '') + ' value="' + value + '" class="' + (multi ? "" : "visually-hidden") + '" aria-labelledby="' + valueId  + '_label">' +
+                    '<input id="' + valueId + '" type="' + (multi ? "checkbox" : "radio") + '" name="' + field + '" ' + (checked ? 'checked' : '') + ' value="' + (value || '') + '" class="' + (multi ? "" : "visually-hidden") + '" aria-labelledby="' + valueId  + '_label">' +
                     '<span role="option">' + label + '</span>' +
                 '</label>' +
             '</span>' +
