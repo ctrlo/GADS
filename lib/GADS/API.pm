@@ -31,7 +31,7 @@ use Dancer2::Plugin::LogReport 'linkspace';
 # Special error handler for JSON requests (as used in API)
 fatal_handler sub {
     my ($dsl, $msg, $reason) = @_;
-    return unless $dsl && $dsl->app->request && $dsl->app->request->uri =~ m!^/api/!;
+    return unless $dsl && $dsl->app->request && $dsl->app->request->uri =~ m!^/([0-9a-z]+/)?api/!i;
     status $reason eq 'PANIC' ? 'Internal Server Error' : 'Bad Request';
     $dsl->send_as(JSON => {
         error   => 1,
