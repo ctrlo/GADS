@@ -2360,6 +2360,10 @@ prefix '/:layout_name' => sub {
             unless $layout->user_can("view_create");
 
         my $view_id = param('id');
+
+        error __x"Invalid view ID: {id}", id => $view_id
+            unless $view_id =~ /^[0-9]+$/;
+
         $view_id = param('clone') if param('clone') && !request->is_post;
         my @ucolumns; my $view_values;
 
