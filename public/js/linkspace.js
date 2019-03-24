@@ -911,6 +911,11 @@ var setupRecordPopup = function(context) {
         m.find('.modal-body').load('/record_body/' + record_id + '?withedit=1');
         m.modal();
     });
+    // Stop the clicking of more-less buttons within the record details popping
+    // up the more-less box and the record modal
+    $(".record-popup .more-less").click(function(event){
+        event.stopPropagation();
+    });
 }
 
 var setupAccessibility = function(context) {
