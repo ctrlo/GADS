@@ -2520,7 +2520,7 @@ prefix '/:layout_name' => sub {
                     foreach @{$column->option_names};
                 if (param 'display_condition')
                 {
-                    $column->display_field(param 'display_field');
+                    $column->display_field(param('display_field') || undef);
                     $column->display_regex(param 'display_regex');
                     $column->display_matchtype(param 'display_matchtype');
                 }
