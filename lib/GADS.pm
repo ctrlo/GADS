@@ -1878,7 +1878,7 @@ prefix '/:layout_name' => sub {
                             content $row;
                         }
                         done;
-                    };
+                    } accept => 'WARNING-'; # Don't collect the thousands of trace messages
                     # Not ideal, but throw exceptions somewhere...
                     say STDERR "$@" if $@;
                 } on_error => sub {

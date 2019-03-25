@@ -179,23 +179,30 @@ sub update_cache
         my %exists;
         # For each item in this view, see if it exists in the cache. If it doesn't,
         # create it.
-        while (my $record = $records->single)
-        {
-            my $current_id = $record->current_id;
-            foreach my $column (@{$view->columns})
+        # Wrap in a LR try block so that we can disard the thousands of trace
+        # messages that are generated during record retrieval, otherwise this
+        # function will use a lot of memory. Only collect messages at warning
+        # or higher and then report on completion.
+        try {
+            while (my $record = $records->single)
             {
-                my $a = {
-                    layout_id  => $column,
-                    view_id    => $view->id,
-                    current_id => $current_id,
-                    user_id    => $user_id,
-                };
-                my ($a_rs) = $self->schema->resultset('AlertCache')->search($a);
-                $a_rs ||= $self->schema->resultset('AlertCache')->create($a);
-                # Keep track of all those that should be in the cache
-                $exists{$a_rs->id} = undef;
+                my $current_id = $record->current_id;
+                foreach my $column (@{$view->columns})
+                {
+                    my $a = {
+                        layout_id  => $column,
+                        view_id    => $view->id,
+                        current_id => $current_id,
+                        user_id    => $user_id,
+                    };
+                    my ($a_rs) = $self->schema->resultset('AlertCache')->search($a);
+                    $a_rs ||= $self->schema->resultset('AlertCache')->create($a);
+                    # Keep track of all those that should be in the cache
+                    $exists{$a_rs->id} = undef;
+                }
             }
-        }
+        } accept => 'WARNING-';
+        $@->reportFatal;
 
         # Now iterate through all of them and delete any that shouldn't exist
         my $rs = $self->schema->resultset('AlertCache')->search({

@@ -1876,8 +1876,11 @@ sub write_values
                     # happens.
                     my $guard = guard { POSIX::_exit(0) };
                     # Despite the guard, we still operate in a try block, so as to catch
-                    # the messages from any exceptions and report them accordingly
-                    try { $alert_send->process } hide => 'ALL'; # This takes a long time
+                    # the messages from any exceptions and report them accordingly.
+                    # Only collect messages at warning or higher, otherwise
+                    # thousands of trace messages are stored which use lots of
+                    # memory.
+                    try { $alert_send->process } hide => 'ALL', accept => 'WARNING-'; # This takes a long time
                     $@->reportAll(is_fatal => 0);
                 }
             }
