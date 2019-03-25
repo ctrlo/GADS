@@ -16,6 +16,17 @@ show_errors: 0
 route_cache: 1
 
 engines:
+  # Workaround horrible Return::MultiLevel issues. Nasty bug causing a
+  # longjump out of Template::Document::process(), when a template causes a
+  # Log::Report fatal error. The fatal error causes a redirect within
+  # Plugin::LogReport, which means that the code jumps out of the eval() in
+  # Template::Document. As a result, _HOT is not set to zero and the next
+  # time the template is called TT thinks there is a recursive loop. The only
+  # other solutions are something more intrusive such as improving the TT
+  # Dancer2 plugin or creating a new one.
+  template:
+    template_toolkit:
+      RECURSION: 1
   logger:
     LogReport:
       app_name: GADS
