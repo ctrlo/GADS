@@ -398,10 +398,10 @@ prefix '/:layout_name' => sub {
 
         $@->reportFatal; # Report any unexpected fatal messages from the try block
 
-        if ($@->exceptions)
+        if (my @excps = grep { $_->reason eq 'ERROR' } $@->exceptions)
         {
             my $msg = "The following fields need to be completed first: "
-                .join ', ', map { $_->message->toString } grep { $_->reason eq 'ERROR' } $@->exceptions;
+                .join ', ', map { $_->message->toString } @excps;
 
             return encode_json { error => 1, message => $msg };
         }
