@@ -401,7 +401,7 @@ prefix '/:layout_name' => sub {
         if ($@->exceptions)
         {
             my $msg = "The following fields need to be completed first: "
-                .join ', ', map { $_->message->toString } grep { $_->reason} $@->exceptions;
+                .join ', ', map { $_->message->toString } grep { $_->reason eq 'ERROR' } $@->exceptions;
 
             return encode_json { error => 1, message => $msg };
         }
