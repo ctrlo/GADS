@@ -397,7 +397,10 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
             string1    => 'foobar1',
         },
         {
-            string1    => 'foobar2',
+            string1    => 'foobar4', # Test ordering
+        },
+        {
+            string1    => 'foobar3',
         },
     ];
     my $curval_sheet = t::lib::DataSheet->new(data => $data, instance_id => 2);
@@ -413,30 +416,53 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
             string1    => 'Bar',
             date1      => '2014-10-10',
             curval1    => 2,
+        },{
+            string1    => 'FooBar',
+            date1      => '2015-10-10',
+            curval1    => [2,3],
         },
     ];
 
-    my $sheet    = t::lib::DataSheet->new(data => $data, curval => 2, schema => $schema);
+    my $sheet    = t::lib::DataSheet->new(
+        data             => $data,
+        curval           => 2,
+        schema           => $schema,
+        curval_field_ids => [$curval_sheet->columns->{string1}->id],
+    );
     $sheet->create_records;
     my $layout   = $sheet->layout;
-    my $showcols = [ map { $_->id } $layout->all(exclude_internal => 1) ];
+
+
+    my $view = GADS::View->new(
+        name        => 'Test',
+        columns     => [ map { $_->id } $layout->all(exclude_internal => 1) ],
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        user        => undef,
+    );
+    $view->write;
+    my $sort_field = $sheet->columns->{curval1}->id .'_'. $curval_sheet->columns->{string1}->id;
+    $view->set_sorts($sort_field, 'asc');
 
     my $records = GADS::Records->new(
-        user    => undef,
-        columns => $showcols,
-        layout  => $layout,
-        schema  => $schema,
+        user   => undef,
+        view   => $view,
+        layout => $layout,
+        schema => $schema,
     );
 
     my $return = $records->data_timeline(group => $sheet->columns->{curval1}->id);
 
     # Normal - should include dateranges that go over the from/to values
-    is( @{$return->{items}}, 2, "Correct number of items for group by calc" );
+    is( @{$return->{items}}, 4, "Correct number of items for group by curval" );
     foreach my $item (@{$return->{items}})
     {
         unlike($item->{content}, qr/foobar/, "Item does not contain curval group value");
     }
-    is( @{$return->{groups}}, 2, "Correct number of groups for group by calc" );
+    is( @{$return->{groups}}, 3, "Correct number of groups for group by curval" );
+    my $g = join ',', map { $_->{content} } sort { $a->{order} <=> $b->{order} } @{$return->{groups}};
+    is($g, 'foobar1,foobar3,foobar4', "Curval group values correct");
 }
 
 # View with no date column. XXX This test doesn't actually check the bug that

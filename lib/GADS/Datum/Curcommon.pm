@@ -178,6 +178,11 @@ sub _build_values
     return \@return;
 }
 
+sub text_all
+{   my $self = shift;
+    [ map { $_->{value} } @{$self->values} ];
+}
+
 has _records => (
     is      => 'lazy',
     isa     => Maybe[ArrayRef],

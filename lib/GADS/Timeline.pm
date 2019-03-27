@@ -278,7 +278,7 @@ sub _build_items
                                         to         => $val,
                                         color      => $color,
                                         column     => $column_datum->id,
-                                        count      => 1,
+                                        count      => ++$count,
                                         current_id => $d->record->current_id,
                                     };
                                     if ($find_min)
