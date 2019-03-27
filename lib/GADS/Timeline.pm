@@ -165,25 +165,28 @@ sub _build_items
         my ($min_of_this, $max_of_this);
         foreach my $group_to_add (@group_to_add)
         {
-            my @dates; my @titles;
+            my @dates; my @values;
             my $had_date_col; # Used to detect multiple date columns in this view
             foreach my $column (@columns)
             {
-                next if $self->color_col_id && $self->color_col_id == $column->id;
 
-                my @d;
+                my @d = ($record->fields->{$column->id});
+                # If it's a curcommon, we need the main value (for the pop-up)
+                # and also any dates within it to add to the timeline
+                # separately
                 if ($column->is_curcommon)
                 {
                     foreach my $row (@{$record->fields->{$column->id}->field_values})
                     {
                         foreach my $cur_col_id (keys %$row)
                         {
-                            push @d, $row->{$cur_col_id};
+                            push @d, $row->{$cur_col_id}
+                                if $row->{$cur_col_id}->column->return_type eq 'date'
+                                    || $row->{$cur_col_id}->column->return_type eq 'daterange';
                         }
                     }
                 }
                 else {
-                    @d = ($record->fields->{$column->id});
                 }
 
                 foreach my $d (@d)
@@ -302,17 +305,13 @@ sub _build_items
                         }
                     }
                     else {
-                        next if $column_datum->type eq "rag";
-                        # Check if the user has selected only one label
-                        next if $self->label_col_id && $self->label_col_id != $column->id;
-                        # Don't add grouping text to title
-                        next if $self->group_col_id && $self->group_col_id == $column->id;
-                        # Not a date value, push onto title
+                        # Not a date value, push onto labels.
                         # Don't want full HTML, which includes hyperlinks etc
-                        push @titles, {col => $column_datum, value => $d} if $d->as_string;
+                        push @values, {col => $column_datum, value => $d} if $d->as_string;
                     }
                 }
             }
+            my @titles;
             if (my $label_id = $self->label_col_id)
             {
                 @titles = ({
@@ -321,6 +320,15 @@ sub _build_items
                 })
                 # Value for this record may not exist or be blank
                 if $record->fields->{$label_id} && $record->fields->{$label_id}->as_string;
+            }
+            else {
+                @titles = grep {
+                    # RAG colours are not much use on a label
+                    $_->{col}->type ne "rag"
+                    # Don't add grouping text to title
+                    && !($self->group_col_id && $self->group_col_id == $_->{col}->id)
+                    && !($self->color_col_id && $self->color_col_id == $_->{col}->id)
+                } @values;
             }
 
             # If a specific field is set to colour-code by, then use that and
@@ -374,12 +382,12 @@ sub _build_items
                 else {
                     my $uid  = "$cid+$d->{column}+$d->{count}";
                     next if $self->_all_items_index->{$uid};
-                    my @values = map {
+                    my @popup_values = map {
                         +{
                             name  => $_->{col}->name,
                             value => $_->{value}->html,
                         };
-                    } @titles;
+                    } @values;
                     my $item = {
                         "content"  => $title_i,
                         "id"       => $uid,
@@ -388,7 +396,7 @@ sub _build_items
                         "group"    => $item_group,
                         column     => $d->{column},
                         dt         => $d->{from},
-                        values     => \@values,
+                        values     => \@popup_values,
                     };
                     # Set to date field colour unless specific colour field chosen
                     $item_color = $d->{color}

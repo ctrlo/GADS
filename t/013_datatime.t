@@ -456,6 +456,15 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
 
     # Normal - should include dateranges that go over the from/to values
     is( @{$return->{items}}, 4, "Correct number of items for group by curval" );
+
+    # Check that the pop-up values include all fields
+    foreach my $item_values (map { $_->{values} } @{$return->{items}})
+    {
+        my $cols = join ',', map { $_->{name} } @$item_values;
+        # Should be all non-blank, non-date fields in view
+        is($cols, 'string1,curval1,rag1', "Correct columns in pop-up");
+    }
+
     foreach my $item (@{$return->{items}})
     {
         unlike($item->{content}, qr/foobar/, "Item does not contain curval group value");
