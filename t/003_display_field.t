@@ -9,7 +9,10 @@ use t::lib::DataSheet;
 # Tests to check that fields that depend on another field for their display are
 # blanked if they should not have been shown
 
-my $sheet   = t::lib::DataSheet->new;
+my $sheet   = t::lib::DataSheet->new(
+    multivalue         => 1,
+    multivalue_columns => { string => 1, tree => 1 },
+);
 my $schema  = $sheet->schema;
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
@@ -36,30 +39,59 @@ $record->find_current_id(1);
     is($record->fields->{$integer1->id}->as_string, '50', 'Initial integer value is correct');
 }
 
-my %types = (
-    exact => {
+my @types = (
+    {
+        type   => 'exact',
         normal => "foobar",
         blank  => "xxfoobarxx",
     },
-    contains => {
+    {
+        type   => 'contains',
         normal => "xxfoobarxx",
         blank  => "foo",
     },
-    exact_negative => {
+    {
+        type   => 'exact_negative',
         normal => "foo",
         blank  => "foobar",
     },
-    contains_negative => {
+    {
+        type   => 'contains_negative',
         normal => "foo",
         blank  => "xxfoobarxx",
     },
+    {
+        type          => 'exact',
+        normal        => ['foo', 'bar', 'foobar'],
+        string_normal => 'bar, foo, foobar',
+        blank         => ["xxfoobarxx", 'abc'],
+        string_blank  => 'abc, xxfoobarxx',
+    },
+    {
+        type          => 'contains',
+        normal        => ['foo', 'bar', 'xxfoobarxx'],
+        string_normal => 'bar, foo, xxfoobarxx',
+        blank         => "fo",
+    },
+    {
+        type          => 'exact_negative',
+        normal        => ['foo', 'foobarx'],
+        string_normal => 'foo, foobarx',
+        blank         => ['foobar', 'foobar2'],
+        string_blank  => 'foobar, foobar2',
+    },
+    {
+        type          => 'contains_negative',
+        normal        => ['fo'],
+        string_normal => 'fo',
+        blank         => ['foo', 'bar', 'xxfoobarxx'],
+        string_blank  => 'bar, foo, xxfoobarxx',
+    },
 );
 
-foreach my $type (keys %types)
+foreach my $test (@types)
 {
-    my $test = $types{$type};
-
-    $integer1->display_matchtype($type);
+    $integer1->display_matchtype($test->{type});
     $integer1->write;
     $layout->clear;
 
@@ -77,8 +109,8 @@ foreach my $type (keys %types)
         $record->clear;
         $record->find_current_id(1);
 
-        is($record->fields->{$string1->id}->as_string, $test->{normal}, "Updated string value is correct (normal $type)");
-        is($record->fields->{$integer1->id}->as_string, '150', "Updated integer value is correct (normal $type)");
+        is($record->fields->{$string1->id}->as_string, $test->{string_normal} || $test->{normal}, "Updated string value is correct (normal $test->{type})");
+        is($record->fields->{$integer1->id}->as_string, '150', "Updated integer value is correct (normal $test->{type})");
     }
 
     # Test write of value that shouldn't be shown (string)
@@ -90,8 +122,8 @@ foreach my $type (keys %types)
         $record->clear;
         $record->find_current_id(1);
 
-        is($record->fields->{$string1->id}->as_string, $test->{blank}, "Updated string value is correct (blank $type)");
-        is($record->fields->{$integer1->id}->as_string, '', "Updated integer value is correct (blank $type)");
+        is($record->fields->{$string1->id}->as_string, $test->{string_blank} || $test->{blank}, "Updated string value is correct (blank $test->{type})");
+        is($record->fields->{$integer1->id}->as_string, '', "Updated integer value is correct (blank $test->{type})");
     }
 }
 
@@ -122,6 +154,41 @@ $layout->clear;
     $record->fields->{$integer1->id}->set_value('');
     try { $record->write(no_alerts => 1) };
     ok(!$@, "Record successfully written with hidden mandatory blank");
+}
+
+# Test blank value match
+{
+    $integer1->display_field($string1->id);
+    $integer1->display_regex('');
+    $integer1->write;
+    $layout->clear;
+    my $record = GADS::Record->new(
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->initialise;
+    $record->fields->{$string1->id}->set_value('');
+    $record->fields->{$integer1->id}->set_value(789);
+    $record->write(no_alerts => 1);
+    my $cid = $record->current_id;
+    $record->clear;
+    $record->find_current_id($cid);
+    is($record->fields->{$integer1->id}->as_string, '789', "Value written for blank regex match");
+
+    $record = GADS::Record->new(
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->initialise;
+    $record->fields->{$string1->id}->set_value('foo');
+    $record->fields->{$integer1->id}->set_value(234);
+    $record->write(no_alerts => 1);
+    $cid = $record->current_id;
+    $record->clear;
+    $record->find_current_id($cid);
+    is($record->fields->{$integer1->id}->as_string, '', "Value not written for blank regex match");
 }
 
 # Test value that depends on tree. Full levels of tree values can be tested
@@ -155,6 +222,17 @@ $layout->clear;
 
     is($record->fields->{$tree1->id}->as_string, 'tree3', 'Updated tree value is correct');
     is($record->fields->{$integer1->id}->as_string, '350', 'Updated integer value is correct');
+
+    # Same but multivalue - int should be written
+    $record->fields->{$tree1->id}->set_value([4,6]);
+    $record->fields->{$integer1->id}->set_value('360');
+    $record->write(no_alerts => 1);
+
+    $record->clear;
+    $record->find_current_id(1);
+
+    is($record->fields->{$tree1->id}->as_string, 'tree1, tree3', 'Updated tree value is correct');
+    is($record->fields->{$integer1->id}->as_string, '360', 'Updated integer value is correct');
 
     # Now test 2 tree levels
     $integer1->display_regex('tree2#tree3');

@@ -490,6 +490,7 @@ sub __build_columns
     $string1->type('string');
     $string1->name('string1');
     $string1->name_short("L${instance_id}string1");
+    $string1->multivalue(1) if $self->multivalue && $self->multivalue_columns->{string};
     $string1->set_permissions({$self->group->id => $permissions})
         unless $self->no_groups;
     try { $string1->write };

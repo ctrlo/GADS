@@ -48,7 +48,7 @@ after set_value => sub {
     $self->changed(1) if (!defined($self->value) && defined $value)
         || (!defined($value) && defined $self->value)
         || (defined $self->value && defined $value && $self->value != $value);
-    $self->value($value) if defined $value || $self->init_no_value;
+    $self->value($value);
 };
 
 has value => (

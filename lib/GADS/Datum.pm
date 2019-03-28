@@ -121,7 +121,7 @@ sub values
 # That value that will be used in an edit form to test the display of a
 # display_field dependent field
 sub value_regex_test
-{   shift->as_string;
+{   shift->text_all;
 }
 
 # Whether this value is going to require approval. Used to know when to use the
@@ -178,12 +178,19 @@ sub dependent_not_shown
     my $matchtype = $self->column->display_matchtype;
     $display_regex = '^'.$display_regex.'$'
         if $matchtype =~ /exact/;
-    my $value = $self->record->fields->{$display_field_id}->value_regex_test;
-    if ($matchtype =~ /negative/) {
-        return scalar $value =~ /$display_regex/;
-    } else {
-        return scalar $value !~ /$display_regex/;
+    my $values = $self->record->fields->{$display_field_id}->value_regex_test;
+    my $return = $matchtype =~ /negative/ ? 0 : 1;
+    $values = [''] if !@$values;
+    foreach my $value (@$values)
+    {
+        if ($matchtype =~ /negative/) {
+            $return = 1 if $value =~ /$display_regex/;
+        } else {
+            $return = 0 if $value =~ /$display_regex/;
+        }
     }
+
+    return $return;
 }
 
 sub clone

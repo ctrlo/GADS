@@ -28,7 +28,7 @@ after set_value => sub {
     my ($self, $value) = @_;
     my $clone = $self->clone; # Copy before changing text
     my @values = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
-    my @old    = sort ref $self->id eq 'ARRAY' ? @{$self->id} : $self->id ? $self->id : ();
+    my @old    = sort @{$self->ids};
     my $changed = "@values" ne "@old";
     if ($changed)
     {
@@ -39,71 +39,43 @@ after set_value => sub {
             push @text, $self->column->node($_)->{value};
         }
         $self->clear_text;
+        $self->clear_blank;
+        $self->clear_ancestors;
+        $self->clear_full_path;
         $self->text_all(\@text);
     }
     $self->changed($changed);
     $self->oldvalue($clone);
-    $self->id($self->column->multivalue ? \@values : $values[0]);
+    $self->ids(\@values);
 };
 
-has id => (
+sub id { panic "id() removed for Tree datum" }
+
+has ids => (
     is      => 'rw',
-    isa     => sub {
-        my $value = shift;
-        !defined $value and return;
-        ref $value ne 'ARRAY' && $value =~ /^[0-9]+/ and return;
-        my @values = @$value;
-        my @remain = grep {
-            !defined $_ || $_ !~ /^[0-9]+$/;
-        } @values and panic "Invalid value for ID";
-    },
     lazy    => 1,
-    trigger => sub {
-        my $self = shift;
-        $self->clear_blank;
-    },
     builder => sub {
         my $self = shift;
-        $self->column->multivalue
-            ? [ grep { defined $_ } @{$self->value_hash->{ids}} ]
-            : $self->value_hash->{ids}->[0];
+        $self->value_hash->{ids} || [];
     },
 );
-
-has has_id => (
-    is  => 'rw',
-    isa => Bool,
-);
-
-sub ids {
-    my $self = shift;
-    $self->column->multivalue ? $self->id : [ $self->id ];
-}
 
 sub ids_as_params
 {   my $self = shift;
     join '&', map { "ids=$_" } @{$self->ids};
 }
 
-sub value { $_[0]->id }
-
 sub _build_blank
 {   my $self = shift;
-    if ($self->column->multivalue)
-    {
-        @{$self->id} == 0 ? 1 : 0;
-    }
-    else {
-        defined $self->id ? 0 : 1;
-    }
+    !! grep { $_ } @{$self->ids};
 }
 
 # Make up for missing predicated value property
-sub has_value { $_[0]->has_id }
+sub has_value { !$_[0]->blank || $_[0]->init_no_value }
 
 sub html_form
 {   my $self = shift;
-    [ map { $_ || '' } $self->column->multivalue ? @{$self->id} : $self->id ];
+    [ map { $_ || '' } @{$self->id} ];
 }
 
 has value_hash => (
@@ -115,9 +87,13 @@ has value_hash => (
         # XXX - messy to account for different initial values. Can be tidied once
         # we are no longer pre-fetching multiple records
         my @values = map { exists $_->{record_id} ? $_->{value} : $_ } @{$self->init_value};
-        my @ids    = map { $_->{id} } @values;
-        my @texts  = map { $_->{value} || '' } @values;
-        $self->has_id(1) if (grep { defined $_ } @ids) || $self->init_no_value;
+        my (@ids, @texts);
+        foreach my $v (@values)
+        {
+            next if !$v->{id};
+            push @ids, $v->{id};
+            push @texts, $v->{value} || '';
+        }
         +{
             ids  => \@ids,
             text => \@texts,
@@ -129,31 +105,45 @@ has value_hash => (
 has ancestors => (
     is      => 'rw',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
-        my $node = $self->column->node($self->id);
-        my @ancestors = $node->{node} ? $node->{node}->{node}->ancestors : ();
         my @return;
-        foreach my $anc (@ancestors)
+        foreach my $id (@{$self->ids})
         {
-            my $node     = $self->column->node($anc->name);
-            my $dag_node = $node->{node}->{node};
-            push @return, $node if $dag_node && defined $dag_node->mother; # Do not add root node
+            my $node = $self->column->node($id);
+            my @ancestors = $node->{node} ? $node->{node}->{node}->ancestors : ();
+            my @ancs;
+            foreach my $anc (@ancestors)
+            {
+                my $node     = $self->column->node($anc->name);
+                my $dag_node = $node->{node}->{node};
+                push @ancs, $node if $dag_node && defined $dag_node->mother; # Do not add root node
+            }
+            push @return, \@ancs;
         }
         \@return;
     },
 );
 
 has full_path => (
-    is => 'rw',
-    lazy => 1,
+    is      => 'lazy',
+    clearer => 1,
     builder => sub {
         my $self = shift;
-        my @path;
-        push @path, $_->{value}
-            foreach @{$self->ancestors};
-        my $path = join '#', @path;
-        return $path ? "$path#".$self->text : $self->text;
+        my @all;
+        my @all_texts = @{$self->text_all};
+        foreach my $anc (@{$self->ancestors})
+        {
+            my $text = shift @all_texts;
+            my @path;
+            push @path, $_->{value}
+                foreach @$anc;
+            my $path = join '#', @path;
+            $path = $path ? "$path#".$text : $text;
+            push @all, $path;
+        }
+        return \@all;
     },
 );
 
@@ -184,7 +174,7 @@ around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
     $orig->($self,
-        id      => $self->id,
+        ids     => $self->ids,
         text    => $self->text,
         @_,
     );
@@ -197,9 +187,7 @@ sub as_string
 
 sub as_integer
 {   my $self = shift;
-    panic "No integer value for multivalue"
-        if $self->column->multivalue;
-    $self->id // 0;
+    panic "No integer value";
 }
 
 sub _build_for_code
