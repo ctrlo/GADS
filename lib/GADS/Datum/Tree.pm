@@ -67,7 +67,7 @@ sub ids_as_params
 
 sub _build_blank
 {   my $self = shift;
-    !! grep { $_ } @{$self->ids};
+    ! grep { $_ } @{$self->ids};
 }
 
 # Make up for missing predicated value property
@@ -75,7 +75,7 @@ sub has_value { !$_[0]->blank || $_[0]->init_no_value }
 
 sub html_form
 {   my $self = shift;
-    [ map { $_ || '' } @{$self->id} ];
+    [ map { $_ || '' } @{$self->ids} ];
 }
 
 has value_hash => (

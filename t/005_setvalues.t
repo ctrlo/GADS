@@ -160,7 +160,7 @@ foreach my $multivalue (0..1)
             is( $record_new->fields->{$col->id}->value, undef, 'Value of new record $type is undef' )
                 if $record_new->fields->{$col->id}->can('value');
             is( $record_new->fields->{$col->id}->id, undef, 'ID of new record $type is undef' )
-                if $record_new->fields->{$col->id}->can('id');
+                if $record_new->fields->{$col->id}->can('id') && $col->type ne 'tree';
         }
         # Check that id_hash can be generated correctly
         is( ref $record_new->fields->{$col->id}->id_hash, 'HASH', '$type has id_hash' )
