@@ -1253,14 +1253,21 @@ small.search_term {
     white-space: nowrap;
 }
 
-.select-widget .current .none-selected {
-    display: none;
+.select-widget .current li[data-list-item].current__blank {
+    font-style: italic;
+    background-color: initial;
+    border-radius: 0;
+    padding: 0;
 }
 
-.select-widget .current .current__blank,
-.select-widget .current.empty .none-selected {
-    display: inline;
+.select-widget .current .none-selected {
+    display: none;
     font-style: italic;
+    padding: 0 .5em;
+}
+
+.select-widget .current.empty .none-selected {
+    display: inline-block;
 }
 
 .select-widget .current {

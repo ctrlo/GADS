@@ -216,7 +216,8 @@ var SelectWidget = function (multi) {
         }
 
         var valueId = value ? field + "_" + value : field + "__blank";
-        return $('<li ' + (checked ? '' : 'hidden') + ' data-list-item="' + valueId + '">' + label + '</li>');
+        var className = value ? "": "current__blank"
+        return $('<li ' + (checked ? '' : 'hidden') + ' data-list-item="' + valueId + '" class="' + className + '">' + label + '</li>');
     }
 
     var availableLi = function(multi, field, value, label, checked) {
