@@ -546,9 +546,33 @@ sub submit_add_a_field_form_ok {
     my $test = context();
 
     my $success = $self->_fill_in_field( 'input#name', $arg{name} );
+    # TODO: Set the "Type" drop-down
 
-    # TODO: Set permissions
+    # Fill in checkboxes to give the specified group all permissions
     my $webdriver = $self->gads->webdriver;
+    my $permissions_tab_el = $webdriver->find('#permissions-tab')->click;
+    # Check the Permissions tab heading is shown
+    $webdriver->find(
+        '//h3[ contains( ., "Permissions" ) ]',
+        method => 'xpath',
+    );
+    # Click "Add permissions" button
+    $webdriver->find('#configure-permissions')->click;
+    # Select the desired group from the drop-down
+    my $group_option_el = $webdriver->find(
+        # TODO: "contains" isn't the same as "equals"
+        "//select[ \@id = 'select-permission-group' ]/option[ contains( ., '$arg{group_name}' ) ]",
+        method => 'xpath',
+        dies => 0,
+    );
+    $success &&= $self->_check_only_one(
+        $group_option_el, "group named '$arg{group_name}'" );
+    if ($success) {
+        $group_option_el->click;
+        # Tick all "access rights" checkboxes, then submit the form
+        $_->click foreach $webdriver->find('.permission-rule input[name^=permission_]');
+        $webdriver->find('#add-permission-rule')->click;
+    }
 
     $test->note("About to add a field named $arg{name}");
     $webdriver->find('#submit_save')->click;
