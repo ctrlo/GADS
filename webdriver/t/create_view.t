@@ -52,8 +52,10 @@ $gads->follow_link_ok( undef, 'Manage fields' );
 $gads->follow_link_ok( undef, 'Add a field' );
 $gads->assert_on_add_a_field_page;
 
-$gads->submit_add_a_field_form_ok( 'Add a field on the new table',
-    { name => $field_name, group_name => $group_name } );
+$gads->submit_add_a_field_form_ok(
+    'Add a field on the new table',
+    { name => $field_name, type => 'Text', group_name => $group_name },
+);
 $gads->assert_success_present('A success message is visible after adding a field');
 $gads->assert_error_absent('No error message is visible after adding a field');
 # On the 'Manage fields in ...' page

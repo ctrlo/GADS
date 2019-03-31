@@ -532,9 +532,9 @@ sub select_table_to_edit_ok {
 =head3 submit_add_a_field_form_ok
 
 Submit the I<< Add a field >> form.  Takes a hash reference of arguments
-where C<< name >> contains the name of the new field to add and C<<
-group_name >> contains the name of an existing group to assign all
-permissions to.
+where C<< name >> contains the name of the new field to add, C<< type >>
+the name of its type, and C<< group_name >> contains the name of an
+existing group to assign all permissions to.
 
 =cut
 
@@ -544,12 +544,18 @@ sub submit_add_a_field_form_ok {
     my %arg = %$args_ref;
 
     my $test = context();
+    my $webdriver = $self->gads->webdriver;
 
     my $success = $self->_fill_in_field( 'input#name', $arg{name} );
-    # TODO: Set the "Type" drop-down
+    my $type_el = $webdriver->find(
+        # TODO: "contains" isn't the same as "equals"
+        "//*[ \@id = 'type' ]/option[ contains( ., '$arg{type}' ) ]",
+        method => 'xpath',
+    );
+    $success &&= $self->_check_only_one(
+        $type_el, "type named '$arg{type}'" );
 
     # Fill in checkboxes to give the specified group all permissions
-    my $webdriver = $self->gads->webdriver;
     my $permissions_tab_el = $webdriver->find('#permissions-tab')->click;
     # Check the Permissions tab heading is shown
     $webdriver->find(
