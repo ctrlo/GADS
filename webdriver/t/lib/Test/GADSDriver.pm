@@ -5,7 +5,7 @@ use Moo;
 
 use GADSDriver ();
 use Test2::API 'context';
-use Test2::Tools::Compare qw( like unlike );
+use Test2::Tools::Compare qw( is like unlike );
 
 =head1 NAME
 
@@ -151,6 +151,40 @@ sub _assert_success {
     return $self;
 }
 
+=head3 assert_field_exists
+
+When viewing the Manage Fields page, takes two named arguments, C<< name
+>> and C<< type >> and asserts that a field with the given name of the
+given type is listed as existing on the current table.
+
+=cut
+
+sub assert_field_exists {
+    my ( $self, $name, $args_ref ) = @_;
+    my %arg = %$args_ref;
+    $name //= "A field named '$arg{name}' of type '$arg{type}' exists";
+    my $test = context();
+    my $webdriver = $self->gads->webdriver;
+
+    my $type_el = $webdriver->find(
+        # TODO: "contains" isn't the same as "equals"
+       "//main//tr/td[2][ contains( ., '$arg{name}' ) ]/../td[3]",
+       method => 'xpath',
+       dies => 0,
+    );
+    my $success = $self->_check_only_one( $type_el, "field named $arg{name}" );
+
+    if ( $success && $type_el ) {
+        is( $type_el->text, $arg{type}, $name );
+    }
+    else {
+        $test->ok( 0, $name );
+    }
+
+    $test->release;
+    return $self;
+}
+
 =head3 assert_navigation_present
 
 Assert that the navigation displayed on logged in pages is visible.
@@ -236,6 +270,28 @@ sub assert_on_login_page {
         $name,
     );
 
+    return $self;
+}
+
+=head3 assert_on_manage_fields_page
+
+The I<< Manage fields >> page is visible.
+
+=cut
+
+sub assert_on_manage_fields_page {
+    my ( $self, $name ) = @_;
+    $name //= 'The manage fields page is visible';
+    my $test = context();
+
+    my $matching_el = $self->_assert_on_page(
+        'body.layout',
+        # TODO: Check the table name appears in the h2 text
+        [ { selector => 'h2', match => '\\AManage fields in ' } ],
+        $name,
+    );
+
+    $test->release;
     return $self;
 }
 
@@ -554,6 +610,7 @@ sub submit_add_a_field_form_ok {
     );
     $success &&= $self->_check_only_one(
         $type_el, "type named '$arg{type}'" );
+    $type_el->click if $success;
 
     # Fill in checkboxes to give the specified group all permissions
     my $permissions_tab_el = $webdriver->find('#permissions-tab')->click;
