@@ -390,6 +390,35 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     is( @{$return->{groups}}, 2, "Correct number of groups for group by calc" );
 }
 
+# DST. Check that dates which fall on DST changes are okay.
+{
+    my $data = [
+        {
+            string1 => 'foo1',
+            date1   => '2018-03-26',
+        },
+    ];
+    my $sheet = t::lib::DataSheet->new(data => $data);
+
+    $sheet->create_records;
+    my $schema   = $sheet->schema;
+    my $layout   = $sheet->layout;
+    my $showcols = [ map { $_->id } $layout->all(exclude_internal => 1) ];
+
+    my $records = GADS::Records->new(
+        from    => DateTime->now,
+        user    => $sheet->user,
+        columns => $showcols,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    my $return = $records->data_timeline;
+
+    # Normal - should include dateranges that go over the from/to values
+    is( @{$return->{items}}, 1, "Correct number of items for timeline with DST value" );
+}
+
 # Curval as group field does not show curval items on timeline labels
 {
     my $data = [

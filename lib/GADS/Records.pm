@@ -1995,7 +1995,13 @@ sub data_timeline
                 $self->max_results(50);
             }
 
-            # Set the times for the display range
+            # Set the times for the display range. The time at midnight may
+            # have been adjusted for local time - reset it back to midnight.
+            # This also means that invalid times are avoided (e.g. if a day is
+            # subtracted from 26th March 2018 01:00 London then it will be an
+            # invalid time and DateTime will bork.
+            $min && $min->set_time_zone('UTC');
+            $max && $max->set_time_zone('UTC');
             $min && $min->subtract(days => 1),
             $max && $max->add(days => 2), # one day already added to show period to end of day
         }
