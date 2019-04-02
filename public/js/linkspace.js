@@ -403,7 +403,7 @@ var SelectWidget = function (multi) {
 
     function possibleCloseWidget(e) {
         var newlyFocussedElement = e.relatedTarget || document.activeElement;
-        if (!$selectWidget.find(newlyFocussedElement).length && newlyFocussedElement && !$(newlyFocussedElement).hasClass("modal")) {
+        if (!$selectWidget.find(newlyFocussedElement).length && newlyFocussedElement && !$(newlyFocussedElement).is(".modal, .page, .col-md-12")) {
             collapse($widget, $trigger, $target);
         }
     }
