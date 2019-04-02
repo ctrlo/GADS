@@ -628,10 +628,13 @@ has cols_db => (
 
 sub _build_cols_db
 {   my $self = shift;
+    my $schema = $self->schema;
     # Must search by instance_ids to limit between sites
-    my @instance_ids = map { $_->id } $self->schema->resultset('Instance')->all;
-    my $cols_rs = $self->schema->resultset('Layout')->search({
-        'me.instance_id' => \@instance_ids,
+    my $instance_id_sql = $schema->resultset('Instance')
+        ->get_column('id')
+        ->as_query;
+    my $cols_rs = $schema->resultset('Layout')->search({
+        'me.instance_id' => { -in => $instance_id_sql },
     },{
         order_by => ['me.position', 'enumvals.id'],
         join     => 'enumvals',

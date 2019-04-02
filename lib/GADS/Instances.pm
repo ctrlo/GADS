@@ -199,9 +199,7 @@ sub layout_by_shortname
     })->next;
     if (!$layout && $shortname =~ /^table([0-9]+)$/)
     {
-        $layout = $self->schema->resultset('Instance')->search({
-            id => $1,
-        })->next;
+        $layout = $self->schema->resultset('Instance')->find($1);
     }
     if (!$layout)
     {
