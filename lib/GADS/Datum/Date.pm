@@ -115,7 +115,7 @@ sub _to_dt
     }
     if (ref $value eq 'DateTime')
     {
-        return $value;
+        return $value->clone;
     }
     elsif ($source eq 'db')
     {

@@ -70,6 +70,12 @@ $record->write(no_alerts => 1);
 $record->clear;
 $record->find_current_id(2);
 
+# Check that the time has been stored in the database as UTC. This is ideally
+# to check for a bug that resulted in it being inserted in DST, but
+# unfortunately that bug is only exhibited in Pg not SQLite. Tests need to use
+# Pg...
+is($schema->resultset('Record')->find($record->record_id)->created, '2014-06-01T16:00:00', "Date insert into database as UTC");
+
 is($record->fields->{$version->id}->values->[0]->hour, 17, "Correct hour for daylight saving time");
 is($record->fields->{$created->id}->values->[0]->hour, 17, "Correct created hour for saving time");
 is($record->fields->{$calc1->id}->as_string, 17, "Correct hour for daylight saving time - calc");
