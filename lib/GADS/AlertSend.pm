@@ -346,7 +346,7 @@ sub _gone_arrived
 
 sub _current_id_links
 {   my ($base, @current_ids) = @_;
-    my @links = map { qq(<a href="${base}record/$_">$_</a>) } uniq @current_ids;
+    my @links = map { qq(<a href="${base}record/$_">$_</a>) } @current_ids;
     wantarray ? @links : $links[0];
 }
 
@@ -354,7 +354,7 @@ sub _send_alert
 {   my ($self, $action, $current_ids, $view, $emails, $columns) = @_;
 
     my $view_name = $view->name;
-    my @current_ids = @{$current_ids};
+    my @current_ids = uniq @{$current_ids};
     my $base = $self->base_url;
 
     my $text; my $html;
@@ -364,7 +364,7 @@ sub _send_alert
         my $cnames = join ', ', uniq @{$columns};
         if (@current_ids > 1)
         {
-            my $ids = join ', ', uniq @current_ids;
+            my $ids = join ', ', @current_ids;
             $text   = "The following items were changed for record IDs $ids: $cnames\n\n";
             $text  .= "Links to the records are as follows:\n";
             my $ids_html = join ', ', _current_id_links($base, @current_ids);
