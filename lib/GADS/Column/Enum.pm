@@ -295,11 +295,13 @@ before import_hash => sub {
                 # Different, don't know what to do, require manual intervention
                 if ($report)
                 {
-                    notice __x"Error: don't know how to handle enumval updates, manual intervention required";
+                    notice __x"Error: don't know how to handle enumval updates for {name}, manual intervention required",
+                        name => $self->name;
                     return;
                 }
                 else {
-                    error __x"Error: don't know how to handle enumval updates, manual intervention required";
+                    error __x"Error: don't know how to handle enumval updates for {name}, manual intervention required",
+                        name => $self->name;
                 }
             }
         }

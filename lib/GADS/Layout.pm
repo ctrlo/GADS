@@ -1055,23 +1055,26 @@ sub import_hash
 {   my ($self, $values, %options) = @_;
     my $report = $options{report_only} && $self->instance_id;
 
-    notice __x"Update: name from {old} to {new}", old => $self->name, new => $values->{name}
+    notice __x"Update: name from {old} to {new} for layout {name}",
+        old => $self->name, new => $values->{name}, name => $self->name
         if $report && $self->name ne $values->{name};
     $self->name($values->{name});
 
-    notice __x"Update: name_short from {old} to {new}", old => $self->name_short, new => $values->{name_short}
+    notice __x"Update: name_short from {old} to {new} for layout {name}",
+        old => $self->name_short, new => $values->{name_short}, name => $self->name
         if $report && ($self->name_short || '') ne ($values->{name_short} || '');
     $self->name_short($values->{name_short});
 
-    notice __x"Update homepage_text"
+    notice __x"Update homepage_text for layout {name}", name => $self->name
         if $report && ($self->homepage_text || '') ne ($values->{homepage_text} || '');
     $self->homepage_text($values->{homepage_text});
 
-    notice __x"Update homepage_text2"
+    notice __x"Update homepage_text2 for layout {name}", name => $self->name
         if $report && ($self->homepage_text2 || '') ne ($values->{homepage_text2} || '');
     $self->homepage_text2($values->{homepage_text2});
 
-    notice __x"Update: sort_type from {old} to {new}", old => $self->sort_type, new => $values->{sort_type}
+    notice __x"Update: sort_type from {old} to {new} for layout {name}",
+        old => $self->sort_type, new => $values->{sort_type}, name => $self->name
         if $report && ($self->sort_type || '') ne ($values->{sort_type} || '');
     $self->sort_type($values->{sort_type});
 }

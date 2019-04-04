@@ -180,13 +180,15 @@ sub validate
 before import_hash => sub {
     my ($self, $values, %options) = @_;
     my $report = $options{report_only} && $self->id;
-    notice __x"Update: code has been changed"
+    notice __x"Update: code has been changed for field {name}", name => $self->name
         if $report && $self->code ne $values->{code};
     $self->code($values->{code});
-    notice __x"Update: return_type from {old} to {new}", old => $self->return_type, new => $values->{return_type}
+    notice __x"Update: return_type from {old} to {new} for field {name}",
+        old => $self->return_type, new => $values->{return_type}, name => $self->name
         if $report && $self->return_type ne $values->{return_type};
     $self->return_type($values->{return_type});
-    notice __x"Update: decimal_places from {old} to {new}", old => $self->decimal_places, new => $values->{decimal_places}
+    notice __x"Update: decimal_places from {old} to {new} for field {name}",
+        old => $self->decimal_places, new => $values->{decimal_places}, name => $self->name
         if $report && $self->return_type eq 'numeric' && (
             (defined $self->decimal_places xor defined $values->{decimal_places})
             || (defined $self->decimal_places && defined $values->{decimal_places} && $self->decimal_places != $values->{decimal_places})
