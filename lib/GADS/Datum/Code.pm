@@ -182,7 +182,8 @@ sub _build_value
         if ($@ || $return->{error})
         {
             my $error = $@ ? $@->wasFatal->message->toString : $return->{error};
-            warning __x"Failed to eval calc: {error} (code: {code}, params: {params})",
+            warning __x"Failed to eval code for field \"{field}\": {error} (code: {code}, params: {params})",
+                field => $column->name,
                 error => $error, code => $return->{code} || $self->column->code, params => Dumper($self->vars);
             $return->{error} = 1;
         }
