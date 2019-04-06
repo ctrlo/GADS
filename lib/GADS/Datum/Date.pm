@@ -80,6 +80,10 @@ has values => (
     },
     builder => sub {
         my $self = shift;
+        if ($self->record && $self->record->new_entry && $self->column->default_today)
+        {
+            return [DateTime->now];
+        }
         $self->init_value or return [];
         my @values = map { $self->_to_dt($_, source => 'db') } @{$self->init_value};
         $self->has_value(!!@values);
