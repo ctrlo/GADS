@@ -86,6 +86,7 @@ has csv => (
 # Define specific colours to match rag fields
 my $red    = 'D9534F';
 my $amber  = 'F0AD4E';
+my $yellow = 'FCFC4B';
 my $green  = '5CB85C';
 my $grey   = '8C8C8C';
 my $purple = '4B0F44';
@@ -205,6 +206,8 @@ sub get_color
                ? $red
                : $value eq 'c_amber'
                ? $amber
+               : $value eq 'c_yellow'
+               ? $yellow
                : $value eq 'd_green'
                ? $green
                : $value eq 'e_purple'

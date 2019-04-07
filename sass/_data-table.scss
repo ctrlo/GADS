@@ -146,6 +146,11 @@
     background-color: $rag-warning-bg;
 }
 
+.rag .advisory {
+    border-bottom-color: $rag-advisory;
+    background-color: $rag-advisory-bg;
+}
+
 .rag .success {
     border-bottom-color: $rag-success;
     background-color: $rag-success-bg;

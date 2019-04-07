@@ -3,10 +3,11 @@
         undefined  => '&#x3f;',
         danger     => '&#x2717;',
         warning    => '&#x26a0;',
+        advisory   => '&#x26a0;',
         success    => '&#x2713;',
         unexpected => '&#x21;'
     };
 
-    rag_grades = ['danger', 'warning', 'success', 'undefined', 'unexpected'];
+    rag_grades = ['danger', 'warning', 'advisory', 'success', 'undefined', 'unexpected'];
  %]
 

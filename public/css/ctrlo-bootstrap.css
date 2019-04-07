@@ -1548,6 +1548,10 @@ small.search_term {
   border-bottom-color: #c09863;
   background-color: rgba(192, 152, 99, 0.3); }
 
+.rag .advisory {
+  border-bottom-color: #fcfc4b;
+  background-color: rgba(252, 252, 75, 0.3); }
+
 .rag .success {
   border-bottom-color: #468847;
   background-color: rgba(70, 136, 71, 0.3); }

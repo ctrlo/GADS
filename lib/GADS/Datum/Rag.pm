@@ -30,6 +30,7 @@ my %mapping = (
     a_grey   => 'undefined',
     b_red    => 'danger',
     c_amber  => 'warning',
+    c_yellow => 'advisory',
     d_green  => 'success',
     e_purple => 'unexpected'
 );
@@ -58,6 +59,10 @@ sub convert_value
     elsif (lc $value eq 'amber')
     {
         $return = 'c_amber';
+    }
+    elsif (lc $value eq 'yellow')
+    {
+        $return = 'c_yellow';
     }
     elsif (lc $value eq 'green')
     {
@@ -104,8 +109,10 @@ sub as_integer
         ? 2
         : $value eq 'c_amber'
         ? 3
-        : $value eq 'd_green'
+        : $value eq 'c_yellow'
         ? 4
+        : $value eq 'd_green'
+        ? 5
         : $value eq 'e_purple'
         ? -1
         : -2;
