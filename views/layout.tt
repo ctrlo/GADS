@@ -135,38 +135,8 @@
         <p>This field is always displayed.</p>
     [% END %]
 
-    <button type="button" aria-expanded="[% column.display_field ? 'true' : 'false' %]" class="btn btn-default" id="toggle-display-regex">
-        [% IF column.display_field %]Delete condition[% ELSE %]Configure display[% END %]
-    </button>
-    <input type="hidden" name="display_condition" id="display_condition" value="[% column.display_field && 'true' %]">
-    <div class="expandable [% column.display_field && 'expanded' %]">
-        <p>This field will only be displayed under the following condition:</p>
-        <div class="display-condition clearfix">
-            <div class="form-group col-md-12">
-                <label for="display_field">Column</label>
-                <select class="form-control" id="display_field" name="display_field">
-                    <option value=""></option>
-                    [% FOREACH field in all_columns %]
-                        [% NEXT UNLESS field.userinput %]
-                        <option value="[% field.id %]" [% IF column.display_field == field.id %]selected[% END %]>[% field.name | html_entity %]</option>
-                    [% END %]
-                </select>
-            </div>
-            <div class="form-group col-md-12">
-                <select class="form-control" id="display_matchtype" name="display_matchtype">
-                    <option value="exact" [% IF column.display_matchtype == "exact" %]selected[% END %]>matches exactly</option>
-                    <option value="contains" [% IF column.display_matchtype == "contains" %]selected[% END %]>contains</option>
-                    <option value="exact_negative" [% IF column.display_matchtype == "exact_negative" %]selected[% END %]>exactly does not match</option>
-                    <option value="contains_negative" [% IF column.display_matchtype == "contains_negative" %]selected[% END %]>does not contain</option>
-                </select>
-            </div>
-            <div class="form-group col-md-12">
-                <label for="display_regex">pattern</label>
-                [% whats_this('modalhelp_match') %]
-                <input type="text" class="form-control" id="display_regex" name="display_regex" value="[% column.display_regex | html_entity %]">
-            </div>
-        </div>
-    </div>
+    <div id="displayConditionsBuilder"></div>
+    <p>Tip: You can use patterns [% whats_this('modalhelp_match') %] in your display conditions.</p>
     </section>
 [% END %]
 
@@ -711,6 +681,30 @@
                 [% IF column.filter.as_json AND NOT column.filter.as_json.match('^[{}\s]*$') %]
                     var data = base64.decode('[% column.filter.base64 %]');
                     $('#builder[% column.refers_to_instance_id %]').queryBuilder('setRules',
+                        JSON.parse(data)
+                    );
+                [% END %]
+
+                $('#displayConditionsBuilder').queryBuilder({
+                    filters: [
+                        [% FOR field IN all_columns %]
+                            {
+                                id: '[% field.id %]',
+                                label: '[% field.name | html_entity %]',
+                                type: 'string',
+                            },
+                        [% END %]
+                    ],
+                    operators: [
+                        {type: 'equal',            accept_values: true,  apply_to: ['string']},
+                        {type: 'contains',         accept_values: true,  apply_to: ['string']},
+                        {type: 'not_equal',        accept_values: true,  apply_to: ['string']},
+                        {type: 'not_contains',     accept_values: true,  apply_to: ['string']}
+                    ]
+                });
+                [% IF column.display_field.as_json AND NOT column.display_field.as_json.match('^[{}\s]*$') %]
+                    var data = base64.decode('[% column.display_field.base64 %]');
+                    $('#displayConditionsBuilder').queryBuilder('setRules',
                         JSON.parse(data)
                     );
                 [% END %]
