@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use DateTime;
+use File::BOM qw( open_bom );
 use GADS::Audit;
 use GADS::Config;
 use GADS::Email;
@@ -104,13 +105,17 @@ sub upload
 
     $file or error __"Please select a file to upload";
 
+    my $fh;
+    # Use Open::BOM to deal with BOM files being imported
+    try { open_bom($fh, $file) }; # Can raise various exceptions which would cause panic
+    error __"Unable to open CSV file for reading: ".$@->wasFatal->message if $@; # Make any error user friendly
+
     my $guard = $self->result_source->schema->txn_scope_guard;
 
     my $csv = Text::CSV->new({ binary => 1 }) # should set binary attribute?
         or error "Cannot use CSV: ".Text::CSV->error_diag ();
 
     my $userso = GADS::Users->new(schema => $self->result_source->schema);
-    my $fh     = $file->file_handle;
 
     # Get first row for column headings
     my $row = $csv->getline($fh);
