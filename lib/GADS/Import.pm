@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Import;
 
 use DateTime;
+use File::BOM qw( open_bom );
 use GADS::Record;
 use List::MoreUtils 'first_index';
 use Log::Report 'linkspace';
@@ -177,8 +178,10 @@ has fh => (
 
 sub _build_fh
 {   my $self = shift;
-    # Ideally we would use fault() for failure, but that would report OS errors to the end user
-    open my $fh, "<:encoding(utf8)", $self->file or error __"Unable to open CSV file for reading";
+    my $fh;
+    # Use Open::BOM to deal with BOM files being imported
+    try { open_bom($fh, $self->file) }; # Can raise various exceptions which would cause panic
+    error __"Unable to open CSV file for reading: ".$@->wasFatal->message if $@; # Make any error user friendly
     $fh;
 }
 

@@ -38,6 +38,7 @@ WriteMakefile(
         'DBIx::Class::Helper::ResultSet::DateMethods1' => 0,
         'DBIx::Class::Migration'                    => 0,
         'DBIx::Class::ResultClass::HashRefInflator' => 0,
+        'File::BOM'                                 => 0,
         'HTML::FromText'                            => 0,
         'List::Compare'                             => 0,
         'HTML::Scrubber'                            => 0,
