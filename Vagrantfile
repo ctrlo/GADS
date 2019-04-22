@@ -116,9 +116,7 @@ Vagrant.configure("2") do |config|
     apt-get install -y  libinline-perl liblua5.1-0-dev liblua50-dev liblualib50-dev libdbd-pg-perl
 
     curl -L http://cpanmin.us | perl - --sudo App::cpanminus
-    cpanm Text::CSV::Encoded Algorithm::Dependency::Ordered Crypt::URandom DBIx::Class::Migration DBIx::Class::ResultClass::HashRefInflator Dancer2 Dancer2::Plugin::Auth::Extensible Dancer2::Plugin::Auth::Extensible::Provider::DBIC Dancer2::Plugin::DBIC Dancer2::Plugin::LogReport Data::Compare DateTime DateTime::Event::Random DateTime::Format::DateManip DateTime::Format::SQLite DateTime::Format::Strptime DateTime::Span HTML::FromText HTML::Scrubber List::Compare Log::Report Mail::Message Math::Random::ISAAC::XS Math::Round MooX::Singleton MooX::Types::MooseLike::DateTime Session::Token String::CamelCase Test::MockTime Text::Autoformat Tie::Cache Tree::DAG_Node namespace::clean CtrlO::Crypt::XkcdPassword Mail::Transport::Sendmail Inline::Lua WWW::Form::UrlEncoded::XS Net::OAuth2::AuthorizationServer::PasswordGrant Date::Holidays::GB CtrlO::PDF CGI::Deurl::XS
-    cpanm --force Object::Import DateTime::Format::CLDR
-    cpanm WWW::Mechanize::PhantomJS
+    cpanm $(perl -wE 'our %prereq_pm; require "/vagrant/Makefile.PL"; print join " ", sort keys %prereq_pm')
 
     apt -y install postgresql postgresql-contrib phppgadmin
     sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'test123';"
