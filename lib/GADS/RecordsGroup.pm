@@ -438,16 +438,16 @@ sub _build_results
         }
     };
 
-    my $q = $self->search_query(prefetch => 1, search => 1, retain_join_order => 1, group => 1); # Called first to generate joins
+    my $q = $self->search_query(prefetch => 1, search => 1, retain_join_order => 1, group => 1, sort => 0); # Called first to generate joins
 
     my $select = {
         select => [@select_fields],
         join     => [
-            $self->linked_hash(group => 1, prefetch => 1, search => 0, retain_join_order => 1),
+            $self->linked_hash(group => 1, prefetch => 1, search => 0, retain_join_order => 1, sort => 0),
             {
                 'record_single' => [
                     'record_later',
-                    $self->jpfetch(group => 1, prefetch => 1, search => 0, linked => 0, retain_join_order => 1),
+                    $self->jpfetch(group => 1, prefetch => 1, search => 0, linked => 0, retain_join_order => 1, sort => 0),
                 ],
             },
         ],
@@ -458,7 +458,7 @@ sub _build_results
         if $self->rewind;
 
     my $result = $self->schema->resultset('Current')->search(
-        $self->_cid_search_query, $select
+        $self->_cid_search_query(sort => 0), $select
     );
 
     [$result->all];
