@@ -36,11 +36,5 @@
 [% UNLESS layout.no_hide_blank %]
     <button class="btn btn-default pull-right click-to-view-blank" type="button" aria-expanded="false">Show blank values</button>
 [% END %]
-<div class="btn-group">
-    [% IF user_can_edit AND NOT record.deleted %]
-        [% PROCESS snippets/record_edit.tt %]
-    [% END %]
-</div>
-<p></p>
 
 [% INCLUDE record_body.tt %]

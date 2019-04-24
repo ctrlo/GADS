@@ -1142,13 +1142,13 @@ get '/record_body/:id' => require_login sub {
 
     $record->find_current_id($id);
     my $layout = $record->layout;
+    var 'layout' => $layout;
     my @columns = $layout->all(user_can_read => 1);
     template 'record_body' => {
         is_modal       => 1, # Assume modal if loaded via this route
         record         => $record->presentation(@columns),
         has_rag_column => !!(grep { $_->type eq 'rag' } @columns),
         all_columns    => \@columns,
-        with_edit      => param('withedit'),
     }, { layout => undef };
 };
 
