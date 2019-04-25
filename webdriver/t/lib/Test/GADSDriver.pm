@@ -481,7 +481,7 @@ sub confirm_deletion_ok {
     my $success = $self->_check_only_one( $delete_button_el, 'delete button' );
     if ($success) {
         $delete_button_el->click;
-        
+
         my $selector = '.modal-content button[name=delete]';
         my $confirm_button_el = $webdriver->find( $selector, dies => 0 );
 
@@ -495,7 +495,7 @@ sub confirm_deletion_ok {
         }
     }
     $test->ok( $success, $name );
-    
+
     $test->release;
     return $self;
 }
@@ -570,7 +570,7 @@ sub select_field_to_edit_ok {
     $name //= "Select the '$field_name' field to edit";
     my $test = context();
     my $webdriver = $self->gads->webdriver;
-    
+
     my $xpath = "//tr[ contains( ., '$field_name' ) ]//a";
     my $field_edit_el = $webdriver->find( $xpath, method => 'xpath', dies => 0 );
 
