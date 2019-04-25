@@ -932,7 +932,7 @@ sub versions
         'current_id' => $self->current_id,
         approval     => 0,
     };
-    $search->{'created'} = { '<' => $self->schema->storage->datetime_parser->format_datetime($self->rewind) }
+    $search->{'me.created'} = { '<' => $self->schema->storage->datetime_parser->format_datetime($self->rewind) }
         if $self->rewind;
     my @records = $self->schema->resultset('Record')->search($search,{
         prefetch => 'createdby',
