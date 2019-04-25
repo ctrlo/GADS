@@ -76,26 +76,14 @@ sub create_user
 sub _send_welcome_email
 {   my ($self, %params) = @_;
 
-    my $config      = GADS::Config->instance->config;
-    my $name        = $config->{gads}->{name};
-    my $url         = $params{request_base} . "resetpw/$params{code}";
-    my $new_account = $config->{gads}->{new_account};
-    my $subject     = $new_account && $new_account->{subject}
-        || "Your new account details";
-    my $body = $new_account && $new_account->{body} || <<__BODY;
-
-An account for $name has been created for you. Please
-click on the following link to retrieve your password:
-
-[URL]
-__BODY
-
-    $body =~ s/\Q[URL]/$url/;
+    my %welcome_email = GADS::welcome_text(undef, %params);
 
     my $email = GADS::Email->instance;
+
     $email->send({
-        subject => $subject,
-        text    => $body,
+        subject => $welcome_email{subject},
+        text    => $welcome_email{plain},
+        html    => $welcome_email{html},
         emails  => [$params{email}],
     });
 }

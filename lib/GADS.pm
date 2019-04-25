@@ -63,12 +63,15 @@ use GADS::View;
 use GADS::Views;
 use GADS::Helper::BreadCrumbs qw(Crumb);
 use HTML::Entities;
+use HTML::FromText qw(text2html);
 use JSON qw(decode_json encode_json);
 use Math::Random::ISAAC::XS; # Make Dancer session generation cryptographically secure
 use MIME::Base64;
 use Session::Token;
 use String::CamelCase qw(camelize);
 use Text::CSV;
+use Text::Wrap qw(wrap $huge);
+$huge = 'overflow';
 use Tie::Cache;
 use WWW::Mechanize::PhantomJS;
 
@@ -462,6 +465,7 @@ any ['get', 'post'] => '/login' => sub {
             my $args = {
                 subject => $welcome_text{subject},
                 text    => $welcome_text{plain},
+                html    => $welcome_text{html},
                 emails  => [$params->{email}],
             };
 
@@ -631,17 +635,27 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
     };
 };
 
+my $default_email_welcome_subject = "Your new account details";
+my $default_email_welcome_text = <<__BODY;
+An account for [NAME] has been created for you. Please
+click on the following link to retrieve your password:
+
+[URL]
+__BODY
+
 any ['get', 'post'] => '/system/?' => require_login sub {
 
-    my $user        = logged_in_user;
+    my $user = logged_in_user;
+    my $site = var 'site';
 
     forwardHome({ danger => "You do not have permission to manage system settings"}, '')
         unless logged_in_user->permission->{superadmin};
 
-    my $site = var 'site';
-
     if (param 'update')
     {
+        $site->email_welcome_subject(param 'email_welcome_subject');
+        $site->email_welcome_text(param 'email_welcome_text');
+        $site->name(param 'name');
         $site->homepage_text(param 'homepage_text');
         $site->homepage_text2(param 'homepage_text2');
 
@@ -651,6 +665,13 @@ any ['get', 'post'] => '/system/?' => require_login sub {
                 { success => "Configuration settings have been updated successfully" } );
         }
     }
+
+    $site->email_welcome_subject($default_email_welcome_subject)
+        if !$site->email_welcome_subject;
+    $site->email_welcome_text($default_email_welcome_text)
+        if !$site->email_welcome_text;
+    $site->name(config->{gads}->{name} || 'Linkspace')
+        if !$site->name;
 
     template 'system' => {
         instance    => $site,
@@ -3139,7 +3160,8 @@ prefix '/:layout_name' => sub {
 
 sub reset_text {
     my ($dsl, %options) = @_;
-    my $name = config->{gads}->{name};
+    my $site = var 'site';
+    my $name = $site->name || config->{gads}->{name} || 'Linkspace';
     my $url  = request->base . "resetpw/$options{code}";
     my $body = <<__BODY;
 A request to reset your $name password has been received. Please
@@ -3147,33 +3169,52 @@ click on the following link to set and retrieve a new password:
 
 $url
 __BODY
-    (
+
+    my $html = <<__HTML;
+<p>A request to reset your $name password has been received. Please
+click on the following link to set and retrieve a new password:</p>
+
+<p><a href="$url">$url<a></p>
+__HTML
+
+    return (
         from    => config->{gads}->{email_from},
         subject => 'Password reset request',
-        plain   => $body,
+        plain   => wrap('', '', $body),
+        html    => $html,
     )
 }
 
 sub welcome_text
 {   my ($dsl, %options) = @_;
-    my $name = config->{gads}->{name};
+    my $site = var 'site';
+    my $name = $site->name || config->{gads}->{name} || 'Linkspace';
     my $url  = request->base . "resetpw/$options{code}";
     my $new_account = config->{gads}->{new_account};
-    my $subject = $new_account && $new_account->{subject}
-        || "Your new account details";
-    my $body = $new_account && $new_account->{body} || <<__BODY;
+    my $subject = $site->email_welcome_subject
+        || ($new_account && $new_account->{subject})
+        || $default_email_welcome_subject;
 
-An account for $name has been created for you. Please
-click on the following link to retrieve your password:
-
-[URL]
-__BODY
+    my $body = $site->email_welcome_text
+        || ($new_account && $new_account->{body})
+        || $default_email_welcome_text;
 
     $body =~ s/\Q[URL]/$url/;
+    $body =~ s/\Q[NAME]/$name/;
+
+    my $html = text2html(
+        $body,
+        lines     => 1,
+        urls      => 1,
+        email     => 1,
+        metachars => 1,
+    );
+
     (
         from    => config->{gads}->{email_from},
         subject => $subject,
         plain   => $body,
+        html    => $html,
     );
 }
 

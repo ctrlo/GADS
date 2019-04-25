@@ -59,16 +59,6 @@ __PACKAGE__->table("instance");
   is_foreign_key: 1
   is_nullable: 1
 
-=head2 email_welcome_text
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 email_welcome_subject
-
-  data_type: 'text'
-  is_nullable: 1
-
 =head2 sort_layout_id
 
   data_type: 'integer'
@@ -108,10 +98,6 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 64 },
   "site_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "email_welcome_text",
-  { data_type => "text", is_nullable => 1 },
-  "email_welcome_subject",
-  { data_type => "text", is_nullable => 1 },
   "sort_layout_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "sort_type",

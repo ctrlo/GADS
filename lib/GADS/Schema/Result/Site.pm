@@ -15,6 +15,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "host",
   { data_type => "varchar", is_nullable => 1, size => 128 },
+  "name",
+  { data_type => "text", is_nullable => 1 },
   "created",
   {
     data_type => "datetime",
