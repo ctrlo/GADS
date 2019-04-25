@@ -197,7 +197,7 @@ sub assert_table_not_listed {
     $name //= "The table named '$table_name' is not listed";
     my $test = context();
 
-    my $table_el = $self->_find_named_table_el($table_name);
+    my $table_el = $self->_find_named_table_or_field_el($table_name);
 
     my $name_selector = '../../td[ not( descendant::a ) ]';
     my @table_name = map {$_->find( $name_selector, method => 'xpath' )->text }
@@ -564,23 +564,9 @@ From the I<< Manage fields >> page, select a named field to edit.
 
 =cut
 
-# TODO: Combine with select_table_to_edit_ok()
 sub select_field_to_edit_ok {
-    my ( $self, $name, $field_name ) = @_;
-    $name //= "Select the '$field_name' field to edit";
-    my $test = context();
-    my $webdriver = $self->gads->webdriver;
-
-    my $xpath = "//tr[ contains( ., '$field_name' ) ]//a";
-    my $field_edit_el = $webdriver->find( $xpath, method => 'xpath', dies => 0 );
-
-    my $success = $self->_check_only_one(
-        $field_edit_el, "field named '${field_name}'" );
-    $field_edit_el->click if $success;
-    $test->ok( $success, $name );
-
-    $test->release;
-    return $self;
+    my $self = shift;
+    return $self->_select_table_or_field_to_edit_ok( @_, 'field' );
 }
 
 =head3 select_table_to_edit_ok
@@ -589,16 +575,20 @@ From the I<< Manage tables >> page, select a named table to edit.
 
 =cut
 
-# TODO: Combine with select_field_to_edit_ok()
 sub select_table_to_edit_ok {
-    my ( $self, $name, $table_name ) = @_;
-    $name //= "Select the '$table_name' table to edit";
+    my $self = shift;
+    return $self->_select_table_or_field_to_edit_ok( @_, 'table' );
+}
+
+sub _select_table_or_field_to_edit_ok {
+    my ( $self, $name, $table_or_field_name, $type_name ) = @_;
+    $name //= "Select the '${table_or_field_name}' ${type_name} to edit";
     my $test = context();
 
-    my $table_edit_el = $self->_find_named_table_el($table_name);
+    my $edit_el = $self->_find_named_table_or_field_el($table_or_field_name);
     my $success = $self->_check_only_one(
-        $table_edit_el, "table named '${table_name}'" );
-    $table_edit_el->click if $success;
+        $edit_el, "${type_name} named '${table_or_field_name}'" );
+    $edit_el->click if $success;
     $test->ok( $success, $name );
 
     $test->release;
@@ -765,15 +755,14 @@ sub _fill_in_field {
 }
 
 
-sub _find_named_table_el {
-    my ( $self, $table_name ) = @_;
+sub _find_named_table_or_field_el {
+    my ( $self, $name ) = @_;
 
     my $webdriver = $self->gads->webdriver;
+    my $xpath = "//tr[ contains( ., '$name' ) ]//a";
+    my $found_el = $webdriver->find( $xpath, method => 'xpath', dies => 0 );
 
-    my $xpath = "//tr[ contains( ., '$table_name' ) ]//a";
-    my $table_edit_el = $webdriver->find( $xpath, method => 'xpath', dies => 0 );
-
-    return $table_edit_el;
+    return $found_el;
 }
 
 1;
