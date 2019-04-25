@@ -4,7 +4,7 @@
             [% IF password %]
                 <h1>Welcome!</h1>
                 <div class="app_welcome">
-                    Thank you for visiting [% config.gads.name %]. You can now <input type="checkbox" id="reveal_password"><label for="reveal_password">reveal your password.</label>
+                    Thank you for visiting [% site_name | html %]. You can now <input type="checkbox" id="reveal_password"><label for="reveal_password">reveal your password.</label>
                     <div class="reveal_area">
                         <p class="new_password">
                             Your new password is: "[% password %]".

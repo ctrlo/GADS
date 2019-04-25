@@ -1299,6 +1299,7 @@ any ['get', 'post'] => '/resetpw/:code' => sub {
             user_password code => param('code'), new_password => $new_password;
         }
         my $output  = template 'login' => {
+            site_name  => var('site')->name || 'Linkspace',
             reset_code => 1,
             password   => $new_password,
             page       => 'login',
