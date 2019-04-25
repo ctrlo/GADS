@@ -111,4 +111,9 @@ $gads->confirm_deletion_ok('Delete the table created for testing');
 $gads->assert_success_present;
 $gads->assert_error_absent;
 
+$gads->assert_on_manage_tables_page(
+    'On the manage tables page after deleting a table' );
+$gads->assert_table_not_listed( 'The deleted table is not list',
+    $table_name );
+
 done_testing();

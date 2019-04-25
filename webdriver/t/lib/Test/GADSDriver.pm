@@ -185,6 +185,29 @@ sub assert_field_exists {
     return $self;
 }
 
+=head3 assert_table_not_listed
+
+On the I<< Manage tables >> page, takes one argument containing the name
+of a table and asserts that no table with the given name is listed.
+
+=cut
+
+sub assert_table_not_listed {
+    my ( $self, $name, $table_name ) = @_;
+    $name //= "The table named '$table_name' is not listed";
+    my $test = context();
+
+    my $table_el = $self->_find_named_table_el($table_name);
+
+    my $name_selector = '../../td[ not( descendant::a ) ]';
+    my @table_name = map {$_->find( $name_selector, method => 'xpath' )->text }
+        $table_el->split;
+    is( \@table_name, [], $name );
+
+    $test->release;
+    return $self;
+}
+
 =head3 assert_navigation_present
 
 Assert that the navigation displayed on logged in pages is visible.
@@ -571,11 +594,8 @@ sub select_table_to_edit_ok {
     my ( $self, $name, $table_name ) = @_;
     $name //= "Select the '$table_name' table to edit";
     my $test = context();
-    my $webdriver = $self->gads->webdriver;
-    
-    my $xpath = "//tr[ contains( ., '$table_name' ) ]//a";
-    my $table_edit_el = $webdriver->find( $xpath, method => 'xpath', dies => 0 );
 
+    my $table_edit_el = $self->_find_named_table_el($table_name);
     my $success = $self->_check_only_one(
         $table_edit_el, "table named '${table_name}'" );
     $table_edit_el->click if $success;
@@ -742,6 +762,18 @@ sub _fill_in_field {
         $test->release;
     }
     return ( defined $result ) ? 1 : 0;
+}
+
+
+sub _find_named_table_el {
+    my ( $self, $table_name ) = @_;
+
+    my $webdriver = $self->gads->webdriver;
+
+    my $xpath = "//tr[ contains( ., '$table_name' ) ]//a";
+    my $table_edit_el = $webdriver->find( $xpath, method => 'xpath', dies => 0 );
+
+    return $table_edit_el;
 }
 
 1;
