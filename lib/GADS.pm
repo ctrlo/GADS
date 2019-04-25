@@ -638,8 +638,11 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
     };
 };
 
-my $default_email_welcome_subject = "Your new account details";
-my $default_email_welcome_text = <<__BODY;
+my $new_account = config->{gads}->{new_account};
+
+my $default_email_welcome_subject = ($new_account && $new_account->{subject})
+    || "Your new account details";
+my $default_email_welcome_text = ($new_account && $new_account->{body}) || <<__BODY;
 An account for [NAME] has been created for you. Please
 click on the following link to retrieve your password:
 
@@ -3209,11 +3212,9 @@ sub welcome_text
     my $url  = request->base . "resetpw/$options{code}";
     my $new_account = config->{gads}->{new_account};
     my $subject = $site->email_welcome_subject
-        || ($new_account && $new_account->{subject})
         || $default_email_welcome_subject;
 
     my $body = $site->email_welcome_text
-        || ($new_account && $new_account->{body})
         || $default_email_welcome_text;
 
     $body =~ s/\Q[URL]/$url/;
