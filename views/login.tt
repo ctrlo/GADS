@@ -88,7 +88,7 @@
                    </div>
                     <div class="modal-body">
                         [% IF error %]
-                            <div class="alert alert-danger" role="alert">Error: [% error %]</div>
+                            <div class="alert alert-danger" role="alert">Error: [% error | html %]</div>
                         [% END %]
                         <div class="form-group">
                             <p>Enter your email address to receive a password reset link.</p>
@@ -117,10 +117,10 @@
                     </div>
                     <div class="modal-body">
                         [% IF error %]
-                            <div class="alert alert-danger" role="alert">Error: [% error %]</div>
+                            <div class="alert alert-danger" role="alert">Error: [% error | html %]</div>
                         [% END %]
                         [% IF register_text %]
-                            <p>[% register_text %]</p>
+                            <p>[% register_text | html %]</p>
                         [% END %]
                         <div class="form-group">
                             <label for="firstname">First name:</label>
@@ -133,8 +133,8 @@
                         [% IF site.register_show_title %]
                             <div class="form-group">
                                 <label for="title">Title:
-                                    [% IF site.register_title_help %]
-                                        <span style="font-weight:normal !important">[% site.register_title_help %]</span>
+                                    [% IF site.register_title_help | html %]
+                                        <span style="font-weight:normal !important">[% site.register_title_help | html %]</span>
                                     [% END %]
                                 </label>
                                 <select class="form-control" id="title" name="title">
@@ -148,16 +148,16 @@
                         <div class="form-group">
                             <label for="email">Email:
                                 [% IF site.register_email_help %]
-                                    <span style="font-weight:normal">[% site.register_email_help %]</span>
+                                    <span style="font-weight:normal">[% site.register_email_help | html %]</span>
                                 [% END %]
                             </label>
                             <input type="text" class="form-control" id="email" name="email">
                         </div>
                         [% IF site.register_freetext1_name %]
                             <div class="form-group">
-                                <label for="freetext1">[% site.register_freetext1_name %]:
+                                <label for="freetext1">[% site.register_freetext1_name | html %]:
                                     [% IF site.register_freetext1_help %]
-                                        <span style="font-weight:normal !important">[% site.register_freetext1_help %]</span>
+                                        <span style="font-weight:normal !important">[% site.register_freetext1_help | html %]</span>
                                     [% END %]
                                 </label>
                                 <input type="text" class="form-control" id="freetext1" name="freetext1">
@@ -165,9 +165,9 @@
                         [% END %]
                         [% IF site.register_freetext2_name %]
                             <div class="form-group">
-                                <label for="freetext2">[% site.register_freetext2_name %]:
+                                <label for="freetext2">[% site.register_freetext2_name | html %]:
                                     [% IF site.register_freetext2_help %]
-                                        <span style="font-weight:normal !important">[% site.register_freetext2_help %]</span>
+                                        <span style="font-weight:normal !important">[% site.register_freetext2_help | html %]</span>
                                     [% END %]
                                 </label>
                                 <input type="text" class="form-control" id="freetext2" name="freetext2">
@@ -177,7 +177,7 @@
                             <div class="form-group">
                                 <label for="organisation">[% site.register_organisation_name %]:
                                     [% IF site.register_organisation_help %]
-                                        <span style="font-weight:normal !important">[% site.register_organisation_help %]</span>
+                                        <span style="font-weight:normal !important">[% site.register_organisation_help | html %]</span>
                                     [% END %]
                                 </label>
                                 <select class="form-control" id="organisation" name="organisation">
@@ -190,9 +190,9 @@
                         [% END %]
                         [% IF site.register_show_department %]
                             <div class="form-group">
-                                <label for="department">[% site.register_department_name %]:
+                                <label for="department">[% site.register_department_name | html %]:
                                     [% IF site.register_department_help %]
-                                        <span style="font-weight:normal !important">[% site.register_department_help %]</span>
+                                        <span style="font-weight:normal !important">[% site.register_department_help | html %]</span>
                                     [% END %]
                                 </label>
                                 <select class="form-control" id="department" name="department">
@@ -206,7 +206,7 @@
                         <div class="form-group">
                             <label for="account_request_notes">Notes:
                                 [% IF site.register_notes_help %]
-                                    <span style="font-weight:normal !important">[% site.register_notes_help %]</span>
+                                    <span style="font-weight:normal !important">[% site.register_notes_help | html %]</span>
                                 [% END %]
                             </label>
                             <textarea class="form-control" name="account_request_notes" id="account_request_notes" rows="5"></textarea>
