@@ -133,7 +133,7 @@
                         [% IF site.register_show_title %]
                             <div class="form-group">
                                 <label for="title">Title:
-                                    [% IF site.register_title_help | html %]
+                                    [% IF site.register_title_help %]
                                         <span style="font-weight:normal !important">[% site.register_title_help | html %]</span>
                                     [% END %]
                                 </label>
