@@ -101,7 +101,7 @@ sub assert_success_absent {
 
 =head3 assert_success_present
 
-An success message is visible.
+A success message is visible.
 
 =cut
 
@@ -153,8 +153,8 @@ sub _assert_success {
 
 =head3 assert_field_exists
 
-When viewing the Manage Fields page, takes two named arguments, C<< name
->> and C<< type >> and asserts that a field with the given name of the
+On the I<< Manage fields >> page, takes two named arguments, C<< name >>
+and C<< type >> and asserts that a field with the given name of the
 given type is listed as existing on the current table.
 
 =cut
