@@ -139,11 +139,13 @@ sub upload
     my $freetext2 = lc $site->register_freetext2_name;
     my $org_name  = lc $site->register_organisation_name;
     my $dep_name  = lc $site->register_department_name;
+    my $team_name = lc $site->register_team_name;
 
     # Map out titles and organisations for conversion to ID
     my %titles        = map { lc $_->name => $_->id } @{$userso->titles};
     my %organisations = map { lc $_->name => $_->id } @{$userso->organisations};
     my %departments   = map { lc $_->name => $_->id } @{$userso->departments};
+    my %teams         = map { lc $_->name => $_->id } @{$userso->teams};
 
     $count = 0; my @errors;
     my @welcome_emails;
@@ -169,6 +171,16 @@ sub upload
                 error => qq($dep_name "$name" not found),
             } if !$dep_id;
         }
+        my $team_id;
+        if (defined $user_mapping{$team_name})
+        {
+            my $name = $row->[$user_mapping{$team_name}];
+            $team_id = $teams{lc $name};
+            push @errors, {
+                row   => join (',', @$row),
+                error => qq($team_name "$name" not found),
+            } if !$team_id;
+        }
         my $title_id;
         if (defined $user_mapping{title})
         {
@@ -189,6 +201,7 @@ sub upload
             title                 => defined $user_mapping{title} ? $row->[$user_mapping{title}] : '',
             organisation          => $org_id,
             department_id         => $dep_id,
+            team_id               => $team_id,
             view_limits           => $options{view_limits},
             groups                => $options{groups},
             permissions           => $options{permissions},

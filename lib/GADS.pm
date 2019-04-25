@@ -570,6 +570,7 @@ any ['get', 'post'] => '/login' => sub {
         titles        => $users->titles,
         organisations => $users->organisations,
         departments   => $users->departments,
+        teams         => $users->teams,
         register_text => var('site')->register_text,
         page          => 'login',
     };
@@ -614,6 +615,7 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
             title         => param('title')        || undef,
             organisation  => param('organisation') || undef,
             department_id => param('department_id') || undef,
+            team_id       => param('team_id') || undef,
         );
 
         if (process( sub { $user->update_user(current_user => logged_in_user, %update) }))
@@ -630,6 +632,7 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
         titles        => $users->titles,
         organisations => $users->organisations,
         departments   => $users->departments,
+        teams         => $users->teams,
         page          => 'myaccount',
         breadcrumbs   => [Crumb( '/myaccount/' => 'my details' )],
     };
@@ -865,7 +868,7 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
 
     # The submit button will still be triggered on a new org/title creation,
     # if the user has pressed enter, in which case ignore it
-    if (param('submit') && !param('neworganisation') && !param('newdepartment') && !param('newtitle'))
+    if (param('submit') && !param('neworganisation') && !param('newdepartment') && !param('newtitle') && !param('newteam'))
     {
         my %values = (
             firstname             => param('firstname'),
@@ -877,6 +880,7 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
             title                 => param('title') || undef,
             organisation          => param('organisation') || undef,
             department_id         => param('department_id') || undef,
+            team_id               => param('team_id') || undef,
             account_request       => param('account_request'),
             account_request_notes => param('account_request_notes'),
             view_limits           => [body_parameters->get_all('view_limits')],
@@ -917,7 +921,7 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
     }
 
     my $register_requests;
-    if (param('neworganisation') || param('newtitle') || param('newdepartment'))
+    if (param('neworganisation') || param('newtitle') || param('newdepartment') || param('newteam'))
     {
         if (my $org = param 'neworganisation')
         {
@@ -933,8 +937,18 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
             if (process( sub { $userso->department_new({ name => $dep })}))
             {
                 $audit->login_change("Department $dep created");
-                my $depname = lc var('site')->register_department_name;
+                my $depname = lc var('site')->register_department_name || 'department';
                 success __x"The {dep} has been created successfully", dep => $depname;
+            }
+        }
+
+        if (my $team = param 'newteam')
+        {
+            if (process( sub { $userso->team_new({ name => $team })}))
+            {
+                $audit->login_change("Team $team created");
+                my $teamname = lc var('site')->register_team_name || 'team';
+                success __x"The {team} has been created successfully", team => $teamname;
             }
         }
 
@@ -967,6 +981,7 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
             title                  => { id => param('title') },
             organisation           => { id => param('organisation') },
             department_id          => { id => param('department_id') },
+            team_id                => { id => param('team_id') },
             view_limits_with_blank => $view_limits_with_blank,
             groups                 => \%groups,
         }];
@@ -1033,6 +1048,7 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
         titles            => $userso->titles,
         organisations     => $userso->organisations,
         departments       => $userso->departments,
+        teams             => $userso->teams,
         permissions       => $userso->permissions,
         page              => defined $route_id && !$route_id ? 'user/0' : 'user',
         breadcrumbs       => $breadcrumbs,

@@ -91,6 +91,12 @@ __PACKAGE__->table("user");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 team_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =head2 freetext1
 
   data_type: 'text'
@@ -224,6 +230,8 @@ __PACKAGE__->add_columns(
   "organisation",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "department_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "team_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "freetext1",
   { data_type => "text", is_nullable => 1 },
@@ -442,6 +450,26 @@ __PACKAGE__->belongs_to(
   "department",
   "GADS::Schema::Result::Department",
   { id => "department_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+=head2 team
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Team>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "team",
+  "GADS::Schema::Result::Team",
+  { id => "team_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -762,6 +790,8 @@ sub update_user
         or error __x"Invalid organisation {id}", id => $params{organisation};
     !defined $params{department_id} || $params{department_id} =~ /^[0-9]+$/
         or error __x"Invalid department {id}", id => $params{department_id};
+    !defined $params{team_id} || $params{team_id} =~ /^[0-9]+$/
+        or error __x"Invalid team {id}", id => $params{team_id};
     GADS::Util->email_valid($params{email})
         or error __x"The email address \"{email}\" is invalid", email => $params{email};
 
@@ -776,6 +806,7 @@ sub update_user
         title                 => $params{title} || undef,
         organisation          => $params{organisation} || undef,
         department_id         => $params{department_id} || undef,
+        team_id               => $params{team_id} || undef,
         account_request_notes => $params{account_request_notes},
     };
 
