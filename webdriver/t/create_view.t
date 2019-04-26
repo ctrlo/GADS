@@ -113,7 +113,7 @@ $gads->assert_error_absent;
 
 $gads->assert_on_manage_tables_page(
     'On the manage tables page after deleting a table' );
-$gads->assert_table_not_listed( 'The deleted table is not list',
+$gads->assert_table_not_listed( 'The deleted table is not listed',
     $table_name );
 
 done_testing();
