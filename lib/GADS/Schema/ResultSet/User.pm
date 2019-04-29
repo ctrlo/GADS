@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use DateTime;
+use File::BOM qw( open_bom );
 use GADS::Audit;
 use GADS::Config;
 use GADS::Email;
@@ -75,26 +76,14 @@ sub create_user
 sub _send_welcome_email
 {   my ($self, %params) = @_;
 
-    my $config      = GADS::Config->instance->config;
-    my $name        = $config->{gads}->{name};
-    my $url         = $params{request_base} . "resetpw/$params{code}";
-    my $new_account = $config->{gads}->{new_account};
-    my $subject     = $new_account && $new_account->{subject}
-        || "Your new account details";
-    my $body = $new_account && $new_account->{body} || <<__BODY;
-
-An account for $name has been created for you. Please
-click on the following link to retrieve your password:
-
-[URL]
-__BODY
-
-    $body =~ s/\Q[URL]/$url/;
+    my %welcome_email = GADS::welcome_text(undef, %params);
 
     my $email = GADS::Email->instance;
+
     $email->send({
-        subject => $subject,
-        text    => $body,
+        subject => $welcome_email{subject},
+        text    => $welcome_email{plain},
+        html    => $welcome_email{html},
         emails  => [$params{email}],
     });
 }
@@ -104,13 +93,17 @@ sub upload
 
     $file or error __"Please select a file to upload";
 
+    my $fh;
+    # Use Open::BOM to deal with BOM files being imported
+    try { open_bom($fh, $file) }; # Can raise various exceptions which would cause panic
+    error __"Unable to open CSV file for reading: ".$@->wasFatal->message if $@; # Make any error user friendly
+
     my $guard = $self->result_source->schema->txn_scope_guard;
 
     my $csv = Text::CSV->new({ binary => 1 }) # should set binary attribute?
         or error "Cannot use CSV: ".Text::CSV->error_diag ();
 
     my $userso = GADS::Users->new(schema => $self->result_source->schema);
-    my $fh     = $file->file_handle;
 
     # Get first row for column headings
     my $row = $csv->getline($fh);
@@ -146,11 +139,13 @@ sub upload
     my $freetext2 = lc $site->register_freetext2_name;
     my $org_name  = lc $site->register_organisation_name;
     my $dep_name  = lc $site->register_department_name;
+    my $team_name = lc $site->register_team_name;
 
     # Map out titles and organisations for conversion to ID
     my %titles        = map { lc $_->name => $_->id } @{$userso->titles};
     my %organisations = map { lc $_->name => $_->id } @{$userso->organisations};
     my %departments   = map { lc $_->name => $_->id } @{$userso->departments};
+    my %teams         = map { lc $_->name => $_->id } @{$userso->teams};
 
     $count = 0; my @errors;
     my @welcome_emails;
@@ -176,6 +171,16 @@ sub upload
                 error => qq($dep_name "$name" not found),
             } if !$dep_id;
         }
+        my $team_id;
+        if (defined $user_mapping{$team_name})
+        {
+            my $name = $row->[$user_mapping{$team_name}];
+            $team_id = $teams{lc $name};
+            push @errors, {
+                row   => join (',', @$row),
+                error => qq($team_name "$name" not found),
+            } if !$team_id;
+        }
         my $title_id;
         if (defined $user_mapping{title})
         {
@@ -196,6 +201,7 @@ sub upload
             title                 => defined $user_mapping{title} ? $row->[$user_mapping{title}] : '',
             organisation          => $org_id,
             department_id         => $dep_id,
+            team_id               => $team_id,
             view_limits           => $options{view_limits},
             groups                => $options{groups},
             permissions           => $options{permissions},

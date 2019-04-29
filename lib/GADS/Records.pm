@@ -835,8 +835,8 @@ sub _current_ids_rs
 # the required version of a record is retrieved. Assumes that REWIND has
 # already been set by the calling function.
 sub _cid_search_query
-{   my $self = shift;
-    my $search = { map { %$_ } $self->record_later_search(prefetch => 1, sort => 1, linked => 1, group => 1) };
+{   my ($self, %options) = @_;
+    my $search = { map { %$_ } $self->record_later_search(prefetch => 1, sort => 1, linked => 1, group => 1, %options) };
 
     # If this is a group query then we will not be limiting by number of
     # records (but will be reducing number of results by group), and therefore

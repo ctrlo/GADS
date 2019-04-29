@@ -88,7 +88,7 @@ has webdriver => (
 =head2 type_into_field
 
 Find an element specified by a CSS selector contained in the first
-argument, an enter a value specified by the second argument into that
+argument, and enter a value specified by the second argument into that
 field.
 
 =cut

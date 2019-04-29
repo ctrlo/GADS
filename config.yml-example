@@ -29,7 +29,6 @@ engines:
       is_secure: 1 # Comment out or remove if using HTTP
 
 gads:
-  name: "App name" # The local name for the application
   header: "HEADER"
   hostlocal: 1     # Whether to fetch files such as jquery.js locally
   dateformat: "yyyy-MM-dd" # In CLDR format. Not all options available for datetime picker
@@ -40,20 +39,13 @@ gads:
   url: https://example.com/ # Used for URLs in overnight email alerts
   # legacy_menu: 0
   # aup_accept: I accept these terms # Use to change default accept button
-  message_prefix: >
+  message_prefix: |
     This email has been generated and sent from Linkspace. Replies
     will be directed to the sender of the message.
   user_status: 0 # Whether to show user status on login
-  user_status_message: >
+  user_status_message: |
     You must accept that you will treat this system with
     respect. And be gentle please.
-  new_account:
-    subject: Your new account details
-    body: >
-      An account for Linkspace has been created for you. Please
-      click on the following link to retrieve your password:
-    
-      [URL]
 
 plugins:
   LogReport:

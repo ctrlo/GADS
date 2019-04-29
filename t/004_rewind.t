@@ -115,6 +115,8 @@ foreach my $multivalue (0..1)
     );
     $record->find_current_id(1);
     is($record->fields->{$string1->id}->as_string, 'Foo3', "Correct value for first record current date, single retrieve");
+    my $vs = join ' ', map { $_->created->ymd } $record->versions;
+    is($vs, "2016-10-10 2015-10-10 2014-10-10", "All versions in live version");
     $record = GADS::Record->new(
         user   => undef,
         layout => $layout,
@@ -124,6 +126,8 @@ foreach my $multivalue (0..1)
     # First check record versions within current window
     $record->find_record_id(1);
     is($record->fields->{$string1->id}->as_string, 'Foo1', "Correct old value for first version");
+    $vs = join ' ', map { $_->created->ymd } $record->versions;
+    is($vs, "2015-10-10 2014-10-10", "Only first 2 versions in old version");
     $record->clear;
     $record->find_record_id(2);
     is($record->fields->{$string1->id}->as_string, 'Foo2', "Correct old value for second version");

@@ -5,7 +5,7 @@ use Moo;
 
 use GADSDriver ();
 use Test2::API 'context';
-use Test2::Tools::Compare qw( like unlike );
+use Test2::Tools::Compare qw( is like unlike );
 
 =head1 NAME
 
@@ -101,7 +101,7 @@ sub assert_success_absent {
 
 =head3 assert_success_present
 
-An success message is visible.
+A success message is visible.
 
 =cut
 
@@ -151,6 +151,63 @@ sub _assert_success {
     return $self;
 }
 
+=head3 assert_field_exists
+
+On the I<< Manage fields >> page, takes two named arguments, C<< name >>
+and C<< type >> and asserts that a field with the given name of the
+given type is listed as existing on the current table.
+
+=cut
+
+sub assert_field_exists {
+    my ( $self, $name, $args_ref ) = @_;
+    my %arg = %$args_ref;
+    $name //= "A field named '$arg{name}' of type '$arg{type}' exists";
+    my $test = context();
+    my $webdriver = $self->gads->webdriver;
+
+    my $type_el = $webdriver->find(
+        # TODO: "contains" isn't the same as "equals"
+       "//main//tr/td[2][ contains( ., '$arg{name}' ) ]/../td[3]",
+       method => 'xpath',
+       dies => 0,
+    );
+    my $success = $self->_check_only_one( $type_el, "field named $arg{name}" );
+
+    if ( $success && $type_el ) {
+        is( $type_el->text, $arg{type}, $name );
+    }
+    else {
+        $test->ok( 0, $name );
+    }
+
+    $test->release;
+    return $self;
+}
+
+=head3 assert_table_not_listed
+
+On the I<< Manage tables >> page, takes one argument containing the name
+of a table and asserts that no table with the given name is listed.
+
+=cut
+
+sub assert_table_not_listed {
+    my ( $self, $name, $table_name ) = @_;
+    $name //= "The table named '$table_name' is not listed";
+    my $test = context();
+
+    my $table_el = $self->_find_named_table_or_field_el($table_name);
+
+    my $name_selector = '../../td[ not( descendant::a ) ]';
+    my @table_name = map {$_->find( $name_selector, method => 'xpath' )->text }
+        $table_el->split;
+    is( \@table_name, [], $name );
+
+    $test->release;
+    return $self;
+}
+
 =head3 assert_navigation_present
 
 Assert that the navigation displayed on logged in pages is visible.
@@ -166,6 +223,31 @@ sub assert_navigation_present {
         'nav #dataset-navbar',
         1,
         qr/\bData\b/,
+        $name,
+    );
+
+    $test->release;
+    return $self;
+}
+
+=head3 assert_on_add_a_field_page
+
+The I<< Add a field >> page is visible.
+
+=cut
+
+sub assert_on_add_a_field_page {
+    my ( $self, $name ) = @_;
+    $name //= 'The add a field page is visible';
+    my $test = context();
+
+    my $matching_el = $self->_assert_on_page(
+        'body.layout\\/0',
+        [
+            # TODO: Check the table name appears in the h2 text
+            { selector => 'h2', match => '\\AAdd a field to ' },
+            { selector => '#basic-panel h3', text => 'Field properties' },
+        ],
         $name,
     );
 
@@ -211,6 +293,28 @@ sub assert_on_login_page {
         $name,
     );
 
+    return $self;
+}
+
+=head3 assert_on_manage_fields_page
+
+The I<< Manage fields >> page is visible.
+
+=cut
+
+sub assert_on_manage_fields_page {
+    my ( $self, $name ) = @_;
+    $name //= 'The manage fields page is visible';
+    my $test = context();
+
+    my $matching_el = $self->_assert_on_page(
+        'body.layout',
+        # TODO: Check the table name appears in the h2 text
+        [ { selector => 'h2', match => '\\AManage fields in ' } ],
+        $name,
+    );
+
+    $test->release;
     return $self;
 }
 
@@ -298,48 +402,75 @@ sub _assert_on_page {
     # TODO: Move 'tries' to configuration
     my $page_el = $webdriver->find( $page_selector, dies => 0, tries => 25 );
 
+    my @failure;
     if ( 0 == $page_el->size ) {
-        $test->ok( 0, $name );
-        $test->diag("No elements matching '${page_selector}' found");
+        push @failure, "No elements matching '${page_selector}' found";
     }
     else {
-        my @failure;
         foreach my $expect_ref ( @$expectations ) {
-            my %expect = %$expect_ref;
-            my $matching_el = $webdriver->find( $expect{selector}, dies => 0 );
+            my $selector = $expect_ref->{selector};
+            my $matching_el = $webdriver->find( $selector, dies => 0 );
             if ( 0 == $matching_el->size ) {
-                push @failure, "No elements matching '${page_selector}' found";
+                push @failure, "No elements matching '${selector}' found";
             }
             else {
-                my $matching_text = $matching_el->text;
-                if ( $matching_text ne $expect{text} ) {
-                    push @failure,"Found '${matching_text}' in $expect{selector}, expected '$expect{text}'";
-                }
+                push @failure, $self->_check_element_against_expectation(
+                    $matching_el, $expect_ref );
             }
         }
-        $test->ok( !@failure, $name );
-        $test->diag($_) foreach @failure;
     }
+    $test->ok( !@failure, $name );
+    $test->diag($_) foreach @failure;
 
     $test->release;
     return $page_el;
+}
+
+sub _check_element_against_expectation {
+    my ( $self, $matching_el, $expect_ref ) = @_;
+    my $matching_text = $matching_el->text;
+    my %expect = %$expect_ref;
+
+    my @failure;
+    if ( exists $expect{text} && exists $expect{match} ) {
+        push @failure, "Both 'match' and 'text' expectations stated";
+    }
+    elsif ( exists $expect{text} ) {
+        if ( $matching_text ne $expect{text} ) {
+            push @failure, "Found '${matching_text}' in $expect{selector}, expected '$expect{text}'";
+        }
+    }
+    elsif ( exists $expect{match} ) {
+        if ( $matching_text !~ /$expect{match}/ ) {
+            push @failure, "Found '${matching_text}' in $expect{selector}, expected '$expect{match}'";
+        }
+    }
+    else {
+        push @failure, "No 'match' or 'text' expectation stated";
+    }
+
+    return @failure;
 }
 
 =head2 Action Methods
 
 These test methods perform actions against the user interface.
 
-=head3 delete_table_ok
+=head3 confirm_deletion_ok
 
 Delete the current table from the I<< Manage this table >> page.
 
+Commonly used to delete a field or table.
+
 =cut
 
-sub delete_table_ok {
+sub confirm_deletion_ok {
     my ( $self, $name ) = @_;
-    $name //= "Delete the selected table";
+    $name //= 'Approve the "Confirm deletion" modal';
     my $test = context();
     my $webdriver = $self->gads->webdriver;
+
+    my $entity_name = $webdriver->find('input[name="name"]')->attr('value');
 
     my $delete_button_el = $webdriver->find(
         # TODO: Use a better selector
@@ -350,11 +481,12 @@ sub delete_table_ok {
     my $success = $self->_check_only_one( $delete_button_el, 'delete button' );
     if ($success) {
         $delete_button_el->click;
-        
+
         my $selector = '.modal-content button[name=delete]';
         my $confirm_button_el = $webdriver->find( $selector, dies => 0 );
 
         if ( 1 == $confirm_button_el->size ) {
+            $test->note( qq{About to delete "$entity_name"} );
             $confirm_button_el->click;
         }
         else {
@@ -363,7 +495,7 @@ sub delete_table_ok {
         }
     }
     $test->ok( $success, $name );
-    
+
     $test->release;
     return $self;
 }
@@ -426,6 +558,17 @@ sub navigate_ok {
     return $self;
 }
 
+=head3 select_field_to_edit_ok
+
+From the I<< Manage fields >> page, select a named field to edit.
+
+=cut
+
+sub select_field_to_edit_ok {
+    my $self = shift;
+    return $self->_select_table_or_field_to_edit_ok( @_, 'field' );
+}
+
 =head3 select_table_to_edit_ok
 
 From the I<< Manage tables >> page, select a named table to edit.
@@ -433,29 +576,89 @@ From the I<< Manage tables >> page, select a named table to edit.
 =cut
 
 sub select_table_to_edit_ok {
-    my ( $self, $name, $table_name ) = @_;
-    $name //= "Select the '$table_name' table to edit";
-    my $test = context();
-    my $webdriver = $self->gads->webdriver;
-    
-    my $xpath = "//tr[ contains( ., '$table_name' ) ]//a";
-    my $table_edit_el = $webdriver->find( $xpath, method => 'xpath', dies => 0 );
+    my $self = shift;
+    return $self->_select_table_or_field_to_edit_ok( @_, 'table' );
+}
 
+sub _select_table_or_field_to_edit_ok {
+    my ( $self, $name, $table_or_field_name, $type_name ) = @_;
+    $name //= "Select the '${table_or_field_name}' ${type_name} to edit";
+    my $test = context();
+
+    my $edit_el = $self->_find_named_table_or_field_el($table_or_field_name);
     my $success = $self->_check_only_one(
-        $table_edit_el, "table named '${table_name}'" );
-    $table_edit_el->click if $success;
+        $edit_el, "${type_name} named '${table_or_field_name}'" );
+    $edit_el->click if $success;
     $test->ok( $success, $name );
 
     $test->release;
     return $self;
 }
 
+=head3 submit_add_a_field_form_ok
+
+Submit the I<< Add a field >> form.  Takes a hash reference of arguments
+where C<< name >> contains the name of the new field to add, C<< type >>
+the name of its type, and C<< group_name >> contains the name of an
+existing group to assign all permissions to.
+
+=cut
+
+sub submit_add_a_field_form_ok {
+    my ( $self, $name, $args_ref ) = @_;
+    $name //= 'Submit the add a field form';
+    my %arg = %$args_ref;
+
+    my $test = context();
+    my $webdriver = $self->gads->webdriver;
+
+    my $success = $self->_fill_in_field( 'input#name', $arg{name} );
+    my $type_el = $webdriver->find(
+        # TODO: "contains" isn't the same as "equals"
+        "//*[ \@id = 'type' ]/option[ contains( ., '$arg{type}' ) ]",
+        method => 'xpath',
+    );
+    $success &&= $self->_check_only_one(
+        $type_el, "type named '$arg{type}'" );
+    $type_el->click if $success;
+
+    # Fill in checkboxes to give the specified group all permissions
+    my $permissions_tab_el = $webdriver->find('#permissions-tab')->click;
+    # Check the Permissions tab heading is shown
+    $webdriver->find(
+        '//h3[ contains( ., "Permissions" ) ]',
+        method => 'xpath',
+    );
+    # Click "Add permissions" button
+    $webdriver->find('#configure-permissions')->click;
+    # Select the desired group from the drop-down
+    my $group_option_el = $webdriver->find(
+        # TODO: "contains" isn't the same as "equals"
+        "//select[ \@id = 'select-permission-group' ]/option[ contains( ., '$arg{group_name}' ) ]",
+        method => 'xpath',
+        dies => 0,
+    );
+    $success &&= $self->_check_only_one(
+        $group_option_el, "group named '$arg{group_name}'" );
+    if ($success) {
+        $group_option_el->click;
+        # Tick all "access rights" checkboxes, then submit the form
+        $_->click foreach $webdriver->find('.permission-rule input[name^=permission_]');
+        $webdriver->find('#add-permission-rule')->click;
+    }
+
+    $test->note("About to add a field named $arg{name}");
+    $webdriver->find('#submit_save')->click;
+
+    my $result = $test->ok( $success, $name );
+    $test->release;
+    return $result;
+}
+
 =head3 submit_add_a_table_form_ok
 
-Submit the I<< Add a table >> form.  Takes a hash reference of arguments
-where C<< name >> contains the name of the new table to add and C<<
-group_name >> contains the name of an existing group to assign all
-permissions to.
+Submit the I<< Add a table >> form.  Takes similar arguments to L<<
+/submit_add_a_field_form_ok >> except for a table instead of a field.
 
 =cut
 
@@ -549,6 +752,17 @@ sub _fill_in_field {
         $test->release;
     }
     return ( defined $result ) ? 1 : 0;
+}
+
+
+sub _find_named_table_or_field_el {
+    my ( $self, $name ) = @_;
+
+    my $webdriver = $self->gads->webdriver;
+    my $xpath = "//tr[ contains( ., '$name' ) ]//a";
+    my $found_el = $webdriver->find( $xpath, method => 'xpath', dies => 0 );
+
+    return $found_el;
 }
 
 1;

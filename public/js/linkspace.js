@@ -909,7 +909,7 @@ var setupRecordPopup = function(context) {
         var instance_id = $(this).data('instance-id');
         var m = $("#readmore_modal");
         m.find('.modal-body').text('Loading...');
-        m.find('.modal-body').load('/record_body/' + record_id + '?withedit=1');
+        m.find('.modal-body').load('/record_body/' + record_id);
         m.modal();
     });
     // Stop the clicking of more-less buttons within the record details popping

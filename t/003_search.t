@@ -1865,6 +1865,41 @@ foreach my $multivalue (0..1)
             else {
                 is( $records->count, $sort->{count}, "Correct record count for sort $sort->{name}" )
             }
+
+            if ($pass == 1)
+            {
+                # Basic graph test. Total of points on graph should match the number of results.
+                # Even though graphs do not use sorting, so a test with a sort
+                # as the user may still be using a view with a sort defined.
+                my $graph = GADS::Graph->new(
+                    layout => $layout,
+                    schema => $schema,
+                );
+                $graph->title('Test');
+                $graph->type('bar');
+                my $axis = $columns->{string1}->id;
+                $graph->x_axis($axis);
+                $graph->y_axis($axis);
+                $graph->y_axis_stack('count');
+                $graph->write;
+
+                my $records_group = GADS::RecordsGroup->new(
+                    user   => $user,
+                    layout => $layout,
+                    schema => $schema,
+                );
+                my $graph_data = GADS::Graph::Data->new(
+                    id      => $graph->id,
+                    view    => $view,
+                    records => $records_group,
+                    schema  => $schema,
+                );
+
+                my $graph_total = 0;
+                $graph_total += $_ foreach @{$graph_data->points->[0]}; # Count total number of records
+                my $count = $sort->{filter} ? $sort->{count} : 7;
+                is($graph_total, $count, "Item total on graph matches table for $sort->{name}");
+            }
         }
     }
 }

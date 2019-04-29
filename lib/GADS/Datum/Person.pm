@@ -80,6 +80,8 @@ after set_value => sub {
             $self->organisation($org);
             my $dep = _org_to_hash($person->department);
             $self->department($dep);
+            my $team = _org_to_hash($person->team);
+            $self->team($team);
             my $title = _org_to_hash($person->title);
             $self->title($title);
         }
@@ -133,6 +135,8 @@ has value_hash => (
             organisation  => $value->{organisation},
             department    => $value->{department},
             department_id => $value->{department_id},
+            team          => $value->{team},
+            team_id       => $value->{team_id},
             title         => $value->{title},
             text          => $value->{value},
         };
@@ -237,6 +241,23 @@ has department => (
     },
 );
 
+has team => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        # Team could be resultset object, or an ID, or a HASH with all details.
+        # Whatever it is, convert to hash ref
+        return $self->_has_rset && $self->_rset
+            ? _org_to_hash($self->_rset->team)
+            : $self->value_hash && ref $self->value_hash->{team} eq 'HASH'
+            ? $self->value_hash->{team}
+            : $self->value_hash && $self->value_hash->{team_id}
+            ? _org_to_hash($self->schema->resultset('Team')->find($self->value_hash->{team_id}))
+            : undef;
+    },
+);
+
 has title => (
     is      => 'rw',
     lazy    => 1,
@@ -300,6 +321,7 @@ around 'clone' => sub {
         freetext2    => $self->freetext2,
         organisation => $self->organisation,
         department   => $self->department,
+        team         => $self->team,
         title        => $self->title,
         text         => $self->text,
         @_,
@@ -334,6 +356,7 @@ sub _build_for_code
         freetext2    => $self->freetext2,
         organisation => $self->organisation,
         department   => $self->department,
+        team         => $self->team,
         title        => $self->title,
         text         => $self->text,
     };

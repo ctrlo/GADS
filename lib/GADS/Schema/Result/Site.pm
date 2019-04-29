@@ -15,6 +15,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "host",
   { data_type => "varchar", is_nullable => 1, size => 128 },
+  "name",
+  { data_type => "text", is_nullable => 1 },
   "created",
   {
     data_type => "datetime",
@@ -55,6 +57,10 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "register_department_name",
   { data_type => "text", is_nullable => 1 },
+  "register_team_help",
+  { data_type => "text", is_nullable => 1 },
+  "register_team_name",
+  { data_type => "text", is_nullable => 1 },
   "register_notes_help",
   { data_type => "text", is_nullable => 1 },
   "register_freetext1_name",
@@ -64,6 +70,8 @@ __PACKAGE__->add_columns(
   "register_show_organisation",
   { data_type => "smallint", default_value => 1, is_nullable => 0 },
   "register_show_department",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "register_show_team",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "register_show_title",
   { data_type => "smallint", default_value => 1, is_nullable => 0 },
@@ -118,6 +126,13 @@ __PACKAGE__->has_many(
 );
 
 __PACKAGE__->has_many(
+  "teams",
+  "GADS::Schema::Result::Team",
+  { "foreign.site_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+__PACKAGE__->has_many(
   "titles",
   "GADS::Schema::Result::Title",
   { "foreign.site_id" => "self.id" },
@@ -151,6 +166,11 @@ sub has_table_homepage
 sub department_name
 {   my $self = shift;
     $self->register_department_name || 'Department';
+}
+
+sub team_name
+{   my $self = shift;
+    $self->register_team_name || 'Team';
 }
 
 1;

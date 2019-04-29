@@ -24,6 +24,7 @@ sub presentation {
         deletedby       => $self->deletedby,
         createdby       => $self->createdby,
         user_can_delete => $self->user_can_delete,
+        user_can_edit   => $self->layout->user_can('write_existing'),
     }
 }
 

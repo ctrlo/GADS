@@ -63,12 +63,15 @@ use GADS::View;
 use GADS::Views;
 use GADS::Helper::BreadCrumbs qw(Crumb);
 use HTML::Entities;
+use HTML::FromText qw(text2html);
 use JSON qw(decode_json encode_json);
 use Math::Random::ISAAC::XS; # Make Dancer session generation cryptographically secure
 use MIME::Base64;
 use Session::Token;
 use String::CamelCase qw(camelize);
 use Text::CSV;
+use Text::Wrap qw(wrap $huge);
+$huge = 'overflow';
 use Tie::Cache;
 use WWW::Mechanize::PhantomJS;
 
@@ -462,6 +465,7 @@ any ['get', 'post'] => '/login' => sub {
             my $args = {
                 subject => $welcome_text{subject},
                 text    => $welcome_text{plain},
+                html    => $welcome_text{html},
                 emails  => [$params->{email}],
             };
 
@@ -566,6 +570,7 @@ any ['get', 'post'] => '/login' => sub {
         titles        => $users->titles,
         organisations => $users->organisations,
         departments   => $users->departments,
+        teams         => $users->teams,
         register_text => var('site')->register_text,
         page          => 'login',
     };
@@ -610,6 +615,7 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
             title         => param('title')        || undef,
             organisation  => param('organisation') || undef,
             department_id => param('department_id') || undef,
+            team_id       => param('team_id') || undef,
         );
 
         if (process( sub { $user->update_user(current_user => logged_in_user, %update) }))
@@ -626,22 +632,36 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
         titles        => $users->titles,
         organisations => $users->organisations,
         departments   => $users->departments,
+        teams         => $users->teams,
         page          => 'myaccount',
         breadcrumbs   => [Crumb( '/myaccount/' => 'my details' )],
     };
 };
 
+my $new_account = config->{gads}->{new_account};
+
+my $default_email_welcome_subject = ($new_account && $new_account->{subject})
+    || "Your new account details";
+my $default_email_welcome_text = ($new_account && $new_account->{body}) || <<__BODY;
+An account for [NAME] has been created for you. Please
+click on the following link to retrieve your password:
+
+[URL]
+__BODY
+
 any ['get', 'post'] => '/system/?' => require_login sub {
 
-    my $user        = logged_in_user;
+    my $user = logged_in_user;
+    my $site = var 'site';
 
     forwardHome({ danger => "You do not have permission to manage system settings"}, '')
         unless logged_in_user->permission->{superadmin};
 
-    my $site = var 'site';
-
     if (param 'update')
     {
+        $site->email_welcome_subject(param 'email_welcome_subject');
+        $site->email_welcome_text(param 'email_welcome_text');
+        $site->name(param 'name');
         $site->homepage_text(param 'homepage_text');
         $site->homepage_text2(param 'homepage_text2');
 
@@ -651,6 +671,13 @@ any ['get', 'post'] => '/system/?' => require_login sub {
                 { success => "Configuration settings have been updated successfully" } );
         }
     }
+
+    $site->email_welcome_subject($default_email_welcome_subject)
+        if !$site->email_welcome_subject;
+    $site->email_welcome_text($default_email_welcome_text)
+        if !$site->email_welcome_text;
+    $site->name(config->{gads}->{name} || 'Linkspace')
+        if !$site->name;
 
     template 'system' => {
         instance    => $site,
@@ -787,8 +814,9 @@ any ['get', 'post'] => '/user/upload' => require_any_role [qw/useradmin superadm
     if (param 'submit')
     {
         my $count;
+        my $file = upload('file') && upload('file')->tempname;
         if (process sub {
-            $count = rset('User')->upload(upload('file') || undef, # if no file then upload() returns empty array
+            $count = rset('User')->upload($file,
                 request_base => request->base,
                 view_limits  => [body_parameters->get_all('view_limits')],
                 groups       => [body_parameters->get_all('groups')],
@@ -843,7 +871,7 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
 
     # The submit button will still be triggered on a new org/title creation,
     # if the user has pressed enter, in which case ignore it
-    if (param('submit') && !param('neworganisation') && !param('newdepartment') && !param('newtitle'))
+    if (param('submit') && !param('neworganisation') && !param('newdepartment') && !param('newtitle') && !param('newteam'))
     {
         my %values = (
             firstname             => param('firstname'),
@@ -855,6 +883,7 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
             title                 => param('title') || undef,
             organisation          => param('organisation') || undef,
             department_id         => param('department_id') || undef,
+            team_id               => param('team_id') || undef,
             account_request       => param('account_request'),
             account_request_notes => param('account_request_notes'),
             view_limits           => [body_parameters->get_all('view_limits')],
@@ -895,7 +924,7 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
     }
 
     my $register_requests;
-    if (param('neworganisation') || param('newtitle') || param('newdepartment'))
+    if (param('neworganisation') || param('newtitle') || param('newdepartment') || param('newteam'))
     {
         if (my $org = param 'neworganisation')
         {
@@ -911,8 +940,18 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
             if (process( sub { $userso->department_new({ name => $dep })}))
             {
                 $audit->login_change("Department $dep created");
-                my $depname = lc var('site')->register_department_name;
+                my $depname = lc var('site')->register_department_name || 'department';
                 success __x"The {dep} has been created successfully", dep => $depname;
+            }
+        }
+
+        if (my $team = param 'newteam')
+        {
+            if (process( sub { $userso->team_new({ name => $team })}))
+            {
+                $audit->login_change("Team $team created");
+                my $teamname = lc var('site')->register_team_name || 'team';
+                success __x"The {team} has been created successfully", team => $teamname;
             }
         }
 
@@ -945,6 +984,7 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
             title                  => { id => param('title') },
             organisation           => { id => param('organisation') },
             department_id          => { id => param('department_id') },
+            team_id                => { id => param('team_id') },
             view_limits_with_blank => $view_limits_with_blank,
             groups                 => \%groups,
         }];
@@ -1011,6 +1051,7 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
         titles            => $userso->titles,
         organisations     => $userso->organisations,
         departments       => $userso->departments,
+        teams             => $userso->teams,
         permissions       => $userso->permissions,
         page              => defined $route_id && !$route_id ? 'user/0' : 'user',
         breadcrumbs       => $breadcrumbs,
@@ -1141,13 +1182,13 @@ get '/record_body/:id' => require_login sub {
 
     $record->find_current_id($id);
     my $layout = $record->layout;
+    var 'layout' => $layout;
     my @columns = $layout->all(user_can_read => 1);
     template 'record_body' => {
         is_modal       => 1, # Assume modal if loaded via this route
         record         => $record->presentation(@columns),
         has_rag_column => !!(grep { $_->type eq 'rag' } @columns),
         all_columns    => \@columns,
-        with_edit      => param('withedit'),
     }, { layout => undef };
 };
 
@@ -1277,6 +1318,7 @@ any ['get', 'post'] => '/resetpw/:code' => sub {
             user_password code => param('code'), new_password => $new_password;
         }
         my $output  = template 'login' => {
+            site_name  => var('site')->name || 'Linkspace',
             reset_code => 1,
             password   => $new_password,
             page       => 'login',
@@ -3138,7 +3180,8 @@ prefix '/:layout_name' => sub {
 
 sub reset_text {
     my ($dsl, %options) = @_;
-    my $name = config->{gads}->{name};
+    my $site = var 'site';
+    my $name = $site->name || config->{gads}->{name} || 'Linkspace';
     my $url  = request->base . "resetpw/$options{code}";
     my $body = <<__BODY;
 A request to reset your $name password has been received. Please
@@ -3146,33 +3189,50 @@ click on the following link to set and retrieve a new password:
 
 $url
 __BODY
-    (
+
+    my $html = <<__HTML;
+<p>A request to reset your $name password has been received. Please
+click on the following link to set and retrieve a new password:</p>
+
+<p><a href="$url">$url<a></p>
+__HTML
+
+    return (
         from    => config->{gads}->{email_from},
         subject => 'Password reset request',
-        plain   => $body,
+        plain   => wrap('', '', $body),
+        html    => $html,
     )
 }
 
 sub welcome_text
 {   my ($dsl, %options) = @_;
-    my $name = config->{gads}->{name};
+    my $site = var 'site';
+    my $name = $site->name || config->{gads}->{name} || 'Linkspace';
     my $url  = request->base . "resetpw/$options{code}";
     my $new_account = config->{gads}->{new_account};
-    my $subject = $new_account && $new_account->{subject}
-        || "Your new account details";
-    my $body = $new_account && $new_account->{body} || <<__BODY;
+    my $subject = $site->email_welcome_subject
+        || $default_email_welcome_subject;
 
-An account for $name has been created for you. Please
-click on the following link to retrieve your password:
-
-[URL]
-__BODY
+    my $body = $site->email_welcome_text
+        || $default_email_welcome_text;
 
     $body =~ s/\Q[URL]/$url/;
+    $body =~ s/\Q[NAME]/$name/;
+
+    my $html = text2html(
+        $body,
+        lines     => 1,
+        urls      => 1,
+        email     => 1,
+        metachars => 1,
+    );
+
     (
         from    => config->{gads}->{email_from},
         subject => $subject,
         plain   => $body,
+        html    => $html,
     );
 }
 

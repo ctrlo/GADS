@@ -60,6 +60,11 @@ has departments => (
     isa => ArrayRef,
 );
 
+has teams => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
 has permissions => (
     is  => 'lazy',
     isa => ArrayRef,
@@ -159,6 +164,17 @@ sub _build_departments
     \@departments;
 }
 
+sub _build_teams
+{   my $self = shift;
+    my @teams = $self->schema->resultset('Team')->search(
+        {},
+        {
+            order_by => 'name',
+        }
+    )->all;
+    \@teams;
+}
+
 sub _build_permissions
 {   my $self = shift;
     my @permissions = $self->schema->resultset('Permission')->search({},{
@@ -179,6 +195,7 @@ sub _build_user_fields
     my @fields = qw/Surname Forename Email/;
     push @fields, $site->register_organisation_name if $site->register_show_organisation;
     push @fields, $site->register_department_name if $site->register_show_department;
+    push @fields, $site->register_team_name if $site->register_show_team;
     push @fields, 'Title' if $site->register_show_title;
     push @fields, $site->register_freetext1_name if $site->register_freetext1_name;
     push @fields, $site->register_freetext2_name if $site->register_freetext2_name;
@@ -200,6 +217,11 @@ sub department_new
     $self->schema->resultset('Department')->create({ name => $params->{name} });
 }
 
+sub team_new
+{   my ($self, $params) = @_;
+    $self->schema->resultset('Team')->create({ name => $params->{name} });
+}
+
 sub register
 {   my ($self, $params) = @_;
 
@@ -214,6 +236,7 @@ sub register
     my @fields = qw(firstname surname email account_request_notes);
     push @fields, 'organisation' if $site->register_show_organisation;
     push @fields, 'department' if $site->register_show_department;
+    push @fields, 'team' if $site->register_show_team;
     push @fields, 'title' if $site->register_show_title;
     push @fields, 'freetext1' if $site->register_freetext1_name;
     push @fields, 'freetext2' if $site->register_freetext2_name;
@@ -227,6 +250,7 @@ sub register
     $new{title} or delete $new{title};
     $new{organisation} or delete $new{organisation};
     $new{department_id} or delete $new{department_id};
+    $new{team_id} or delete $new{team_id};
 
     my $user = $self->schema->resultset('User')->create(\%new);
     $user->discard_changes; # Ensure that relations such as department() are resolved
@@ -244,6 +268,7 @@ sub register
     $text .= $site->register_freetext2_name.": $new{freetext2}, " if $new{freetext2};
     $text .= $site->register_organisation_name.": ".$user->organisation->name.", " if $user && $user->organisation;
     $text .= $site->register_department_name.": ".$user->department->name.", " if $user && $user->department;
+    $text .= $site->register_team_name.": ".$user->team->name.", " if $user && $user->team;
     $text .= "\n\n";
     $text .= "User notes: $new{account_request_notes}\n";
     my $config = $self->config
@@ -266,6 +291,7 @@ sub csv
     push @columns, 'Title' if $site->register_show_title;
     push @columns, 'Organisation' if $site->register_show_organisation;
     push @columns, $site->department_name if $site->register_show_department;
+    push @columns, $site->team_name if $site->register_show_team;
     push @columns, $site->register_freetext1_name if $site->register_freetext1_name;
     push @columns, $site->register_freetext2_name if $site->register_freetext2_name;
     push @columns, 'Permissions', 'Groups';
@@ -310,6 +336,10 @@ sub csv
                 -as => 'department_max',
             },
             {
+                max => 'team.name',
+                -as => 'team_max',
+            },
+            {
                 max => 'freetext1',
                 -as => 'freetext1_max',
             },
@@ -323,7 +353,7 @@ sub csv
             }
         ],
         join     => [
-            'audits_last_month', 'organisation', 'department', 'title',
+            'audits_last_month', 'organisation', 'department', 'team', 'title',
         ],
         order_by => 'surname_max',
         group_by => 'me.id',
@@ -348,6 +378,7 @@ sub csv
         push @csv, $user->get_column('title_max') if $site->register_show_title;
         push @csv, $user->get_column('organisation_max') if $site->register_show_organisation;
         push @csv, $user->get_column('department_max') if $site->register_show_department;
+        push @csv, $user->get_column('team_max') if $site->register_show_team;
         push @csv, $user->get_column('freetext1_max') if $site->register_freetext1_name;
         push @csv, $user->get_column('freetext2_max') if $site->register_freetext2_name;
         push @csv, join '; ', map { $_->permission->description } @{$user_permissions{$id}};

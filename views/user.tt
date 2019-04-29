@@ -95,6 +95,24 @@
                     </select>
                 </div>
             [% END %]
+            [% IF site.register_show_team %]
+                <div class="form-group">
+                    <label for="team">
+                        [% site.team_name | html %]:
+                        [% IF page.match("user") %]
+                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#submitnewteam">Add [% site.team_name | html %]</button>
+                        [% END %]
+                    </label>
+                    <select class="form-control" id="team_id" name="team_id">
+                        <option></option>
+                        [% FOREACH team IN teams %]
+                            <option value="[% team.id %]"
+                                [% IF edituser.team.id == team.id %]selected[% END %]>[% team.name | html_entity %]
+                            </option>
+                        [% END %]
+                    </select>
+                </div>
+            [% END %]
             [% IF page.match("user") %]
                 <div class="form-group">
                     <label for="account_request_notes">Notes:</label>
@@ -175,6 +193,13 @@
                 </div>
             [% END %]
 
+            [% WRAPPER modal_dialog.tt modal_id="submitnewteam" modal_action_text="Create new " _ site.team_name modal_heading="Add " _ site.team_name %]
+                <p>Please enter the name of a new [% site.team_name | html %]:</p>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="newteam" name="newteam" placeholder="New [% site.team_name | html %]">
+                </div>
+            [% END %]
+
             [% WRAPPER modal_dialog.tt modal_id="submitnewtitle" modal_action_text="Create new title" modal_heading="Add title" %] 
                 <p>Please enter the name of a new title:</p>
                 <div class="form-group">
@@ -217,7 +242,10 @@
                 <th>[% site.register_organisation_name | html %]</th>
             [% END %]
             [% IF site.register_show_department %]
-                <th>[% site.register_department_name | html %]</th>
+                <th>[% site.department_name | html %]</th>
+            [% END %]
+            [% IF site.register_show_team %]
+                <th>[% site.team_name | html %]</th>
             [% END %]
             [% IF site.register_freetext1_name %]
                 <th>[% site.register_freetext1_name | html %]</th>
@@ -242,6 +270,9 @@
                 [% IF site.register_show_department %]
                     <td>[% edituser.department.name | html_entity %]</td>
                 [% END %]
+                [% IF site.register_show_team %]
+                    <td>[% edituser.team.name | html_entity %]</td>
+                [% END %]
                 [% IF site.register_freetext1_name %]
                     <td>[% edituser.freetext1 | html_entity %]</td>
                 [% END %]
@@ -264,7 +295,10 @@
                     <th>[% site.register_organisation_name %]</th>
                 [% END %]
                 [% IF site.register_show_department %]
-                    <th>[% site.register_department_name %]</th>
+                    <th>[% site.department_name %]</th>
+                [% END %]
+                [% IF site.register_show_team %]
+                    <th>[% site.team_name %]</th>
                 [% END %]
             </tr>
         </thead>
@@ -280,6 +314,9 @@
                     [% END %]
                     [% IF site.register_show_department %]
                         <td>[% register_request.department.name | html_entity %]</td>
+                    [% END %]
+                    [% IF site.register_show_team %]
+                        <td>[% register_request.team.name | html_entity %]</td>
                     [% END %]
                 </tr>
             [% END %]
