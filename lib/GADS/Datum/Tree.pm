@@ -214,7 +214,21 @@ sub _build_for_code
         $r;
     } @{$self->ids};
 
-    $self->column->multivalue ? \@values : $values[0];
+    if ($self->column->multivalue)
+    {
+        return \@values;
+    }
+    else {
+        # If the value is blank then still return a hash. This makes it easier
+        # to use in Lua without having to test for the existence of a value
+        # first
+        my $ret = $values[0];
+        $ret ||= {
+            value   => undef,
+            parents => {},
+        };
+        return $ret;
+    }
 }
 
 1;

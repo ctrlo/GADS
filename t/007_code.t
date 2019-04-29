@@ -269,6 +269,14 @@ my @tests = (
         after  => 'tree3'
     },
     {
+        name       => 'blank tree node',
+        type       => 'Calc',
+        code       => qq(function evaluate (L1tree1) \n return L1tree1.value \nend),
+        tree_value => undef,
+        before     => 'tree1',
+        after      => ''
+    },
+    {
         name   => 'flatten of hash',
         type   => 'Calc',
         code   => qq(function evaluate (L1tree1) \n return L1tree1 \nend),
@@ -434,7 +442,7 @@ foreach my $test (@tests)
         $record->fields->{$columns->{daterange1}->id}->set_value(['2014-10-10', '2015-10-10']);
         $record->fields->{$columns->{curval1}->id}->set_value(2)
             unless exists $test->{curval_update} && !$test->{curval_update};
-        $record->fields->{$columns->{tree1}->id}->set_value(12);
+        $record->fields->{$columns->{tree1}->id}->set_value(exists $test->{tree_value} ? $test->{tree_value} : 12);
         $record->user($schema->resultset('User')->find(2));
         try { $record->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
         $@->reportFatal; # In case any fatal errors
