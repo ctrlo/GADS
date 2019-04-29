@@ -215,6 +215,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "display_regex",
   { data_type => "text", is_nullable => 1 },
+  "display_condition",
+  { data_type => "char", is_nullable => 1, size => 3 },
   "display_matchtype",
   { data_type => "text", is_nullable => 1 },
   "instance_id",
@@ -398,6 +400,21 @@ __PACKAGE__->belongs_to(
     on_delete     => "NO ACTION",
     on_update     => "NO ACTION",
   },
+);
+
+=head2 display_fields
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::DisplayField>
+
+=cut
+
+__PACKAGE__->has_many(
+  "display_fields",
+  "GADS::Schema::Result::DisplayField",
+  { "foreign.layout_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 enums

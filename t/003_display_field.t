@@ -2,6 +2,7 @@ use Test::More; # tests => 1;
 use strict;
 use warnings;
 
+use GADS::Filter;
 use Log::Report;
 
 use t::lib::DataSheet;
@@ -25,10 +26,29 @@ my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
 $sheet->create_records;
 
+sub _filter
+{   my %params = @_;
+    my $col_id   = $params{col_id};
+    my $regex    = $params{regex};
+    my $operator = $params{operator} || 'equal';
+    my @rules = ({
+        id       => $col_id,
+        operator => $operator,
+        value    => $regex,
+    });
+    my $as_hash = {
+        condition => undef,
+        rules     => \@rules,
+    };
+    return GADS::Filter->new(
+        layout  => $layout,
+        as_hash => $as_hash,
+    );
+}
+
 my $string1  = $columns->{string1};
 my $integer1 = $columns->{integer1};
-$integer1->display_field($string1->id);
-$integer1->display_regex('foobar');
+$integer1->display_fields(_filter(col_id => $string1->id, regex => 'foobar'));
 $integer1->write;
 $layout->clear;
 
@@ -48,7 +68,7 @@ $record->find_current_id(3);
 
 my @types = (
     {
-        type   => 'exact',
+        type   => 'equal',
         normal => "foobar",
         blank  => "xxfoobarxx",
     },
@@ -58,17 +78,17 @@ my @types = (
         blank  => "foo",
     },
     {
-        type   => 'exact_negative',
+        type   => 'not_equal',
         normal => "foo",
         blank  => "foobar",
     },
     {
-        type   => 'contains_negative',
+        type   => 'not_contains',
         normal => "foo",
         blank  => "xxfoobarxx",
     },
     {
-        type          => 'exact',
+        type          => 'equal',
         normal        => ['foo', 'bar', 'foobar'],
         string_normal => 'bar, foo, foobar',
         blank         => ["xxfoobarxx", 'abc'],
@@ -81,14 +101,14 @@ my @types = (
         blank         => "fo",
     },
     {
-        type          => 'exact_negative',
+        type          => 'not_equal',
         normal        => ['foo', 'foobarx'],
         string_normal => 'foo, foobarx',
         blank         => ['foobar', 'foobar2'],
         string_blank  => 'foobar, foobar2',
     },
     {
-        type          => 'contains_negative',
+        type          => 'not_contains',
         normal        => ['fo'],
         string_normal => 'fo',
         blank         => ['foo', 'bar', 'xxfoobarxx'],
@@ -98,7 +118,7 @@ my @types = (
 
 foreach my $test (@types)
 {
-    $integer1->display_matchtype($test->{type});
+    $integer1->display_fields(_filter(col_id => $string1->id, regex => 'foobar', operator => $test->{type}));
     $integer1->write;
     $layout->clear;
 
@@ -135,7 +155,7 @@ foreach my $test (@types)
 }
 
 # Reset
-$integer1->display_matchtype('exact');
+$integer1->display_fields(_filter(col_id => $string1->id, regex => 'foobar', operator => 'equal'));
 $integer1->write;
 $layout->clear;
 
@@ -218,8 +238,7 @@ foreach my $field (@fields)
 {
     my $col = $columns->{$field->{field}};
 
-    $integer1->display_field($col->id);
-    $integer1->display_regex($field->{regex});
+    $integer1->display_fields(_filter(col_id => $col->id, regex => $field->{regex}));
     $integer1->write;
     $layout->clear;
 
@@ -250,8 +269,7 @@ foreach my $field (@fields)
 
 # Test blank value match
 {
-    $integer1->display_field($string1->id);
-    $integer1->display_regex('');
+    $integer1->display_fields(_filter(col_id => $string1->id, regex => ''));
     $integer1->write;
     $layout->clear;
     my $record = GADS::Record->new(
@@ -288,8 +306,7 @@ foreach my $field (@fields)
 {
     # Set up columns
     my $tree1 = $columns->{tree1};
-    $integer1->display_field($tree1->id);
-    $integer1->display_regex('(.*#)?tree3');
+    $integer1->display_fields(_filter(col_id => $tree1->id, regex => '(.*#)?tree3'));
     $integer1->write;
     $layout->clear;
 
@@ -327,7 +344,7 @@ foreach my $field (@fields)
     is($record->fields->{$integer1->id}->as_string, '360', 'Updated integer value is correct');
 
     # Now test 2 tree levels
-    $integer1->display_regex('tree2#tree3');
+    $integer1->display_fields(_filter(col_id => $tree1->id, regex => 'tree2#tree3'));
     $integer1->write;
     $layout->clear;
     # Set matching value of tree - int should be written
@@ -353,9 +370,11 @@ foreach my $field (@fields)
     is($record->fields->{$integer1->id}->as_string, '', 'Updated integer value with full tree path is correct');
 
     # Same, but test higher level of full tree path
-    $integer1->display_regex('tree2#');
+    $integer1->display_fields(_filter(col_id => $tree1->id, regex => 'tree2#', operator => 'contains'));
     $integer1->write;
     $layout->clear;
+    $record->clear;
+    $record->find_current_id(3);
     # Set matching value of tree - int should be written
     $record->fields->{$tree1->id}->set_value(12);
     $record->fields->{$integer1->id}->set_value('600');
@@ -370,8 +389,7 @@ foreach my $field (@fields)
 
 # Tests for dependent_not_shown
 {
-    $integer1->display_field($string1->id);
-    $integer1->display_regex('Foobar');
+    $integer1->display_fields(_filter(col_id => $string1->id, regex => 'Foobar'));
     $integer1->write;
     $layout->clear;
 
@@ -420,8 +438,7 @@ foreach my $field (@fields)
 
 # Tests for recursive display fields
 {
-    $string1->display_field($string1->id);
-    $string1->display_regex('Foobar');
+    $string1->display_fields(_filter(col_id => $string1->id, regex => 'Foobar'));
     try { $string1->write };
     like($@, qr/not be the same/, "Unable to write display field same as field itself");
 }

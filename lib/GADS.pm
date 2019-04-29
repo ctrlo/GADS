@@ -2560,16 +2560,12 @@ prefix '/:layout_name' => sub {
                     unless param('id'); # Can't change type as it would require DBIC resultsets to be removed and re-added
                 $column->$_(param $_)
                     foreach @{$column->option_names};
-                if (param 'display_condition')
-                {
-                    $column->display_field(param('display_field') || undef);
-                    $column->display_regex(param 'display_regex');
-                    $column->display_matchtype(param 'display_matchtype');
-                }
-                else {
-                    $column->display_field(undef);
-                    $column->display_regex(undef);
-                }
+                $column->display_fields(param 'display_fields');
+                # Set the layout in the GADS::Filter object, in case the write
+                # doesn't success, in which case the filter will need to be
+                # turned into base64 which requires layout to be set in
+                # GADS::Filter (to prevent a panic)
+                $column->display_fields->layout($layout);
 
                 my $no_alerts;
                 if ($column->type eq "file")

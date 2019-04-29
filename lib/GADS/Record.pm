@@ -1896,12 +1896,9 @@ sub set_blank_dependents
 
     foreach my $column ($self->layout->all(exclude_internal => 1))
     {
-        if (my $display_field = $column->display_field)
-        {
-            my $datum = $self->fields->{$column->id};
-            $datum->set_value('')
-                if $datum->dependent_not_shown && ($datum->column->can_child || !$self->parent_id);
-        }
+        my $datum = $self->fields->{$column->id};
+        $datum->set_value('')
+            if $datum->dependent_not_shown && ($datum->column->can_child || !$self->parent_id);
     }
 }
 

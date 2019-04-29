@@ -320,6 +320,52 @@ has filter => (
     },
 );
 
+has display_condition => (
+    is   => 'rw',
+    lazy => 1,
+    isa  => sub {
+        my $val = shift;
+        return if !$val || $val =~ /^(AND|OR)$/;
+        panic "Unknown display_condition: $val";
+    },
+    coerce => sub { return undef if !$_[0]; $_[0] =~ s/\h+$//r },
+);
+
+has display_fields => (
+    is      => 'rw',
+    lazy    => 1,
+    clearer => 1,
+    coerce  => sub {
+        my $val = shift;
+        return $val if ref $val eq 'GADS::Filter';
+        return GADS::Filter->new(
+            as_json => $val,
+        );
+    },
+    builder => sub {
+        my $self = shift;
+        my @rules;
+        foreach my $cond ($self->schema->resultset('DisplayField')->search({
+            layout_id => $self->id
+        })->all)
+        {
+            push @rules, {
+                id       => $cond->display_field_id,
+                operator => $cond->operator,
+                value    => $cond->regex,
+            };
+        }
+        my $as_hash = !@rules ? {} : {
+            condition => $self->display_condition,
+            rules     => \@rules,
+        };
+        return GADS::Filter->new(
+            layout  => $self->layout,
+            as_hash => $as_hash,
+        );
+    },
+);
+
 has userinput => (
     is      => 'rw',
     isa     => Bool,
@@ -404,17 +450,6 @@ sub _build_topic
     $self->topic_id or return;
     $self->schema->resultset('Topic')->find($self->topic_id);
 }
-
-has display_field => (
-    is  => 'rw',
-    isa => Maybe[Int],
-);
-
-has display_matchtype => (
-    is     => 'rw',
-    isa    => Str,
-    coerce => sub { $_[0] || "exact" }, # default
-);
 
 has display_regex => (
     is  => 'rw',
@@ -704,9 +739,7 @@ sub build_values
     $self->width($original->{width});
     $self->field("field$original->{id}");
     $self->type($original->{type});
-    $self->display_field($original->{display_field});
-    $self->display_matchtype($original->{display_matchtype});
-    $self->display_regex($original->{display_regex});
+    $self->display_condition($original->{display_condition});
 
     # XXX Move to curval class
     if ($self->type eq 'curval')
@@ -793,8 +826,8 @@ sub delete
     my $guard = $self->schema->txn_scope_guard;
 
     # First see if any views are conditional on this field
-    if (my @deps = $self->schema->resultset('Layout')->search({
-            display_field => $self->id
+    if (my @deps = $self->schema->resultset('DisplayField')->search({
+            display_field_id => $self->id
         })->all
     )
     {
@@ -912,8 +945,6 @@ sub write
         or error __"Please enter a name for item";
     $newitem->{type} = $self->type
         or error __"Please select a type for the item";
-    $self->display_field && $self->display_field == $self->id
-        and error __"Display condition field cannot be the same as the field itself";
 
     if ($newitem->{name_short} = $self->name_short)
     {
@@ -963,9 +994,7 @@ sub write
     $newitem->{helptext}          = $self->helptext;
     $newitem->{options}           = encode_json($self->options);
     $newitem->{link_parent}       = $self->link_parent_id;
-    $newitem->{display_field}     = $self->display_field;
-    $newitem->{display_matchtype} = $self->display_matchtype;
-    $newitem->{display_regex}     = $self->display_regex;
+    $newitem->{display_condition} = $self->display_fields->as_hash->{condition},
     $newitem->{instance_id}       = $self->layout->instance_id;
     $newitem->{position}          = $self->position
         if $self->position; # Used on layout import
@@ -1010,6 +1039,21 @@ sub write
     }
 
     $self->_write_permissions(id => $new_id || $self->id, %options);
+
+    # Write display_fields
+    my $display_rs = $self->schema->resultset('DisplayField');
+    $display_rs->delete;
+    foreach my $cond (@{$self->display_fields->filters})
+    {
+        $cond->{column_id} == $self->id
+            and error __"Display condition field cannot be the same as the field itself";
+        $display_rs->create({
+            layout_id        => $new_id || $self->id,
+            display_field_id => $cond->{column_id},
+            regex            => $cond->{value},
+            operator         => $cond->{operator},
+        });
+    }
 
     $guard->commit;
 

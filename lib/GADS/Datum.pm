@@ -132,15 +132,6 @@ has is_awaiting_approval => (
     default => 0,
 );
 
-sub ready_to_write
-{   my $self = shift;
-    if (my $col_id = $self->column->display_field)
-    {
-        return $self->record->fields->{$col_id}->ready_to_write;
-    }
-    return 1;
-}
-
 sub text_all
 {   my $self = shift;
     [$self->as_string];
@@ -171,26 +162,56 @@ sub html_withlinks { $_[0]->html }
 # Not lazy, otherwise changes in display_field will not update this
 sub dependent_not_shown
 {   my $self = shift;
-    my $display_field_id = $self->column->display_field
+
+    my @filters = @{$self->column->display_fields->filters}
         or return 0;
-    my $display_regex = $self->column->display_regex;
-    return 0 if !$self->record->fields->{$display_field_id};
-    my $matchtype = $self->column->display_matchtype;
-    $display_regex = '^'.$display_regex.'$'
-        if $matchtype =~ /exact/;
-    my $values = $self->record->fields->{$display_field_id}->value_regex_test;
-    my $return = $matchtype =~ /negative/ ? 0 : 1;
-    $values = [''] if !@$values;
-    foreach my $value (@$values)
+
+    my $display_condition = $self->column->display_condition;
+
+    my $shown = 0;
+
+    foreach my $filter (@{$self->column->display_fields->filters})
     {
-        if ($matchtype =~ /negative/) {
-            $return = 1 if $value =~ /$display_regex/;
-        } else {
-            $return = 0 if $value =~ /$display_regex/;
+        my $display_field_id = $filter->{column_id};
+        my $display_regex = $filter->{value};
+
+        if (!$self->record->fields->{$display_field_id})
+        {
+            $shown = 1;
+            next;
+        }
+
+        my $matchtype = $filter->{operator};
+        $display_regex = '^'.$display_regex.'$'
+            if $matchtype =~ /equal/;
+        my $values = $self->record->fields->{$display_field_id}->value_regex_test;
+        my $this_not_shown = $matchtype =~ /not/ ? 0 : 1;
+        $values = [''] if !@$values;
+        foreach my $value (@$values)
+        {
+            if ($matchtype =~ /not/) {
+                $this_not_shown = 1 if $value =~ /$display_regex/;
+            } else {
+                $this_not_shown = 0 if $value =~ /$display_regex/;
+            }
+        }
+
+        $shown = 1 if !$this_not_shown;
+
+        if ($display_condition)
+        {
+            if ($display_condition eq 'OR')
+            {
+                last if $shown;
+            }
+            else {
+                $shown = 0 if $this_not_shown;
+                last if !$shown;
+            }
         }
     }
 
-    return $return;
+    return !$shown;
 }
 
 sub clone
@@ -203,7 +224,6 @@ sub clone
         record_id      => $self->record_id,
         current_id     => $self->current_id,
         blank          => $self->blank,
-        ready_to_write => $self->ready_to_write,
         @extra
     );
 }

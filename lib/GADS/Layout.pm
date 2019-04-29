@@ -856,7 +856,7 @@ sub _order_dependencies
     return unless @columns;
 
     my %deps = map {
-        $_->id => $_->display_field ? [ $_->display_field ] : $_->depends_on,
+        $_->id => $_->depends_on,
     } @columns;
 
     my $source = Algorithm::Dependency::Source::HoA->new(\%deps);

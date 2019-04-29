@@ -131,11 +131,12 @@
 [% BLOCK field_display_conditions %]
     <section id="display_conditions">
         <h3>Display</h3>
-    [% UNLESS column.display_field %]
-        <p>This field is always displayed.</p>
-    [% END %]
+        <p>Use this section to define under what conditions this field is
+        displayed when editing a record. If no conditions are defined, then the
+        field will always displayed.</p>
 
     <div id="displayConditionsBuilder"></div>
+    <input type="hidden" id="displayConditions" name="display_fields">
     <p>Tip: You can use patterns [% whats_this('modalhelp_match') %] in your display conditions.</p>
     </section>
 [% END %]
@@ -695,6 +696,7 @@
                             },
                         [% END %]
                     ],
+                    allow_groups: 0,
                     operators: [
                         {type: 'equal',            accept_values: true,  apply_to: ['string']},
                         {type: 'contains',         accept_values: true,  apply_to: ['string']},
@@ -702,14 +704,18 @@
                         {type: 'not_contains',     accept_values: true,  apply_to: ['string']}
                     ]
                 });
-                [% IF column.display_field.as_json AND NOT column.display_field.as_json.match('^[{}\s]*$') %]
-                    var data = base64.decode('[% column.display_field.base64 %]');
+                [% IF column.display_fields.as_json AND NOT column.display_fields.as_json.match('^[{}\s]*$') %]
+                    var data = base64.decode('[% column.display_fields.base64 %]');
                     $('#displayConditionsBuilder').queryBuilder('setRules',
                         JSON.parse(data)
                     );
                 [% END %]
 
                 $('#submit_save').click(function() {
+
+                    var res = $('#displayConditionsBuilder').queryBuilder('getRules');
+                    $("#displayConditions").val(JSON.stringify(res, null, 2));
+
                     var current_builder = "#builder" + $('#refers_to_instance_id').val();
                     if( $('#jstree_demo_div').length && $('#jstree_demo_div').is(":visible") ) {
                         var v =$("#jstree_demo_div").jstree(true).get_json('#', { 'flat': false });
