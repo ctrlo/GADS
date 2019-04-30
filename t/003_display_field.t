@@ -47,6 +47,7 @@ sub _filter
 }
 
 my $string1  = $columns->{string1};
+my $enum1    = $columns->{enum1};
 my $integer1 = $columns->{integer1};
 $integer1->display_fields(_filter(col_id => $string1->id, regex => 'foobar'));
 $integer1->write;
@@ -151,6 +152,148 @@ foreach my $test (@types)
 
         is($record->fields->{$string1->id}->as_string, $test->{string_blank} || $test->{blank}, "Updated string value is correct (blank $test->{type})");
         is($record->fields->{$integer1->id}->as_string, '', "Updated integer value is correct (blank $test->{type})");
+    }
+}
+
+# Multiple field tests
+@types = (
+    {
+        display_condition => 'AND',
+        filters => [
+            {
+                type  => 'equal',
+                field => 'string1',
+                regex => 'foobar',
+            },
+            {
+                type  => 'equal',
+                field => 'enum1',
+                regex => 'foo1',
+            },
+        ],
+        values => [
+            {
+                normal => {
+                    string1 => 'foobar',
+                    enum1   => 7,
+                },
+                blank => {
+                    string1 => 'xxfoobarxx',
+                    enum1   => 8,
+                },
+            },
+            {
+                blank => {
+                    string1 => 'foobar',
+                    enum1   => 8,
+                },
+            },
+            {
+                blank => {
+                    string1 => 'xxfoobarxx',
+                    enum1   => 7,
+                },
+            },
+        ],
+    },
+    {
+        display_condition => 'OR',
+        filters => [
+            {
+                type  => 'equal',
+                field => 'string1',
+                regex => 'foobar',
+            },
+            {
+                type  => 'equal',
+                field => 'enum1',
+                regex => 'foo1',
+            },
+        ],
+        values => [
+            {
+                normal => {
+                    string1 => 'foobar',
+                    enum1   => 7,
+                },
+                blank => {
+                    string1 => 'xxfoobarxx',
+                    enum1   => 8,
+                },
+            },
+            {
+                normal => {
+                    string1 => 'foobar',
+                    enum1   => 8,
+                },
+            },
+            {
+                normal => {
+                    string1 => 'xxfoobarxx',
+                    enum1   => 7,
+                },
+            },
+        ],
+    },
+);
+
+foreach my $test (@types)
+{
+    my @rules = map {
+        {
+            id       => $columns->{$_->{field}}->id,
+            operator => $_->{type},
+            value    => $_->{regex},
+        }
+    } @{$test->{filters}};
+    my $as_hash = {
+        condition => $test->{display_condition},
+        rules     => \@rules,
+    };
+    my $filter = GADS::Filter->new(
+        layout  => $layout,
+        as_hash => $as_hash,
+    );
+    $integer1->display_fields($filter);
+    $integer1->write;
+    $layout->clear;
+
+    # Need to reload record for internal datums to reference column with
+    # updated settings
+    $record->clear;
+    $record->find_current_id(3);
+
+    foreach my $value (@{$test->{values}})
+    {
+        # Test write of value that should be shown
+        if ($value->{normal})
+        {
+            $record->fields->{$string1->id}->set_value($value->{normal}->{string1});
+            $record->fields->{$enum1->id}->set_value($value->{normal}->{enum1});
+            $record->fields->{$integer1->id}->set_value('150');
+            $record->write(no_alerts => 1);
+
+            $record->clear;
+            $record->find_current_id(3);
+
+            is($record->fields->{$string1->id}->as_string, $value->{normal}->{string1}, "Updated string value is correct");
+            is($record->fields->{$integer1->id}->as_string, '150', "Updated integer value is correct");
+        }
+
+        # Test write of value that shouldn't be shown (string)
+        if ($value->{blank})
+        {
+            $record->fields->{$string1->id}->set_value($value->{blank}->{string1});
+            $record->fields->{$enum1->id}->set_value($value->{blank}->{enum1});
+            $record->fields->{$integer1->id}->set_value('200');
+            $record->write(no_alerts => 1);
+
+            $record->clear;
+            $record->find_current_id(3);
+
+            is($record->fields->{$string1->id}->as_string, $value->{blank}->{string1}, "Updated string value is correct");
+            is($record->fields->{$integer1->id}->as_string, '', "Updated integer value is correct");
+        }
     }
 }
 
