@@ -310,7 +310,7 @@ sub assert_on_manage_fields_page {
     my $matching_el = $self->_assert_on_page(
         'body.layout',
         # TODO: Check the table name appears in the h2 text
-        [ { selector => 'h2', match => '\\AManage fields in ' } ],
+        [ { selector => 'h2.list-fields', match => '\\AManage fields in ' } ],
         $name,
     );
 
@@ -400,7 +400,8 @@ sub _assert_on_page {
     my $webdriver = $self->gads->webdriver;
 
     # TODO: Move 'tries' to configuration
-    my $page_el = $webdriver->find( $page_selector, dies => 0, tries => 25 );
+    my %find_arg = ( dies => 0, tries => 50 );
+    my $page_el = $webdriver->find( $page_selector, %find_arg );
 
     my @failure;
     if ( 0 == $page_el->size ) {
@@ -409,7 +410,7 @@ sub _assert_on_page {
     else {
         foreach my $expect_ref ( @$expectations ) {
             my $selector = $expect_ref->{selector};
-            my $matching_el = $webdriver->find( $selector, dies => 0 );
+            my $matching_el = $webdriver->find( $selector, %find_arg );
             if ( 0 == $matching_el->size ) {
                 push @failure, "No elements matching '${selector}' found";
             }

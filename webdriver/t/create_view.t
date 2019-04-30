@@ -88,9 +88,12 @@ $gads->select_table_to_edit_ok( 'Select the table created for testing',
 $gads->assert_on_manage_this_table_page;
 
 $gads->follow_link_ok( undef, 'Manage fields' );
+$gads->assert_on_manage_fields_page;
 $gads->select_field_to_edit_ok( 'Select the text field created for testing',
     $text_field_name );
 $gads->confirm_deletion_ok('Delete the text field created for testing');
+$gads->assert_on_manage_fields_page(
+    'On the manage fields page after deleting the first field' );
 $gads->select_field_to_edit_ok( 'Select the integer field created for testing',
     $int_field_name );
 $gads->confirm_deletion_ok('Delete the integer field created for testing');
