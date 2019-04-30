@@ -451,15 +451,30 @@ sub _build_topic
     $self->schema->resultset('Topic')->find($self->topic_id);
 }
 
-has display_regex => (
-    is  => 'rw',
-    isa => Maybe[Str],
+has has_display_field => (
+    is  => 'lazy',
+    isa => Bool,
 );
 
-sub regex_b64
+sub _build_has_display_field
 {   my $self = shift;
-    return unless $self->display_regex;
-    encode_base64 $self->display_regex, ''; # base64 plugin does not like new lines in content
+    !!@{$self->display_fields->filters};
+}
+
+has display_field_col_ids => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_display_field_col_ids
+{   my $self = shift;
+    [ map { $_->{column_id} } @{$self->display_fields->filters} ];
+}
+
+sub display_fields_b64
+{   my $self = shift;
+    $self->has_display_field or return;
+    encode_base64 $self->display_fields->as_json, ''; # base64 plugin does not like new lines in content
 }
 
 has helptext => (
@@ -1042,7 +1057,8 @@ sub write
 
     # Write display_fields
     my $display_rs = $self->schema->resultset('DisplayField');
-    $display_rs->delete;
+    $display_rs->search({ layout_id => $self->id })->delete
+        if $self->id;
     foreach my $cond (@{$self->display_fields->filters})
     {
         $cond->{column_id} == $self->id

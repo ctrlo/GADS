@@ -690,17 +690,17 @@ var setupDependentField = function () {
 
 var setupDependentFields = function (context) {
     var fields = $('[data-has-dependency]').map(function () {
-        var dependence  = $(this).data('has-dependency');
-        var pattern     = $(this).data('dependency');
-        var match_type  = $(this).data('dependency-type');
-        var is_negative = match_type.search('negative') > 0 ? true : false;
-        var regexp = match_type.search('exact') == 0
-            ? (new RegExp("^" + base64.decode(pattern) + "$"))
-            : (new RegExp(base64.decode(pattern)));
+        var dependency  = $(this).data('dependency');
+        var rules       = JSON.parse(base64.decode(dependency)).rules[0];
+        var match_type  = rules.operator;
+        var is_negative = match_type.search('not') > 0 ? true : false;
+        var regexp = match_type.search('equal') == 0
+            ? (new RegExp("^" + rules.value + "$"))
+            : (new RegExp(rules.value));
 
         return {
             field       : $(this),
-            dependsOn   : $('[data-column-id="' + dependence + '"]'),
+            dependsOn   : $('[data-column-id="' + rules.id + '"]'),
             regexp      : regexp,
             is_negative : is_negative
         };

@@ -637,31 +637,15 @@
         [% readonly = "" %]
     [% END %]
 
-    [% IF dispcol.display_field %]
-        [% dependency = dispcol %]
-        [% parent = dispcol.display_field %]
-        [% IF parent == last_column.id OR (indents.grep('^' _ parent _ '$')) %]
-            [% IF parent == last_column.id %]
-                [% indents.push(parent) %]
-            [% ELSE %]
-                [% WHILE indents.size AND parent != indents.last %]
-                    [% nothing = indents.pop %]
-                [% END %]
-            [% END %]
-            [% FOREACH i IN [1..indents.size] %]
-                <div class="row">
-                    <div class="col-md-11 col-md-offset-1">
-            [% END %]
-        [% END %]
-    [% ELSE %]
-        [% indents = [] %]
-        [% dependency = "" %]
-        [% parent = "" %]
+    [% indents = record_presentation.indent.${dispcol.id} %]
+    [% FOREACH i IN [1..indents] %]
+        <div class="row">
+            <div class="col-md-11 col-md-offset-1">
     [% END %]
+
     <div class="form-group" data-column-id="[% dispcol.id %]" data-column-type="[% dispcol.type %]" data-value-selector="[% dispcol.value_selector %]"
-        [% dependency && 'data-has-dependency="' _ parent _ '"' %]
-        [% (parent && dependency) && 'data-dependency="' _ dependency.regex_b64 _ '"' %]
-        [% (parent && dependency) && 'data-dependency-type="' _ dependency.display_matchtype _ '"' %]
+        [% dispcol.has_display_field && 'data-has-dependency="' _ dispcol.has_display_field _ '"' %]
+        [% dispcol.has_display_field && 'data-dependency="' _ dispcol.display_fields_b64 _ '"' %]
         [% dispcol.multivalue && 'data-is-multivalue="true"' %]
         [% dispcol.readonly && 'data-is-readonly="true"' %]
     >
@@ -730,7 +714,7 @@
         [% END %]
     </div>
 
-    [% FOREACH i IN [1..indents.size] %]
+    [% FOREACH i IN [1..indents] %]
         </div>
     </div>
     [% END %]
