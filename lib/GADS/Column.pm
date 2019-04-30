@@ -356,7 +356,7 @@ has display_fields => (
             };
         }
         my $as_hash = !@rules ? {} : {
-            condition => $self->display_condition,
+            condition => $self->display_condition || 'AND',
             rules     => \@rules,
         };
         return GADS::Filter->new(
