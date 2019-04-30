@@ -185,6 +185,50 @@ sub assert_field_exists {
     return $self;
 }
 
+=head3 assert_new_record_fields
+
+On the I<< New record >> page, takes an array of hash references
+describing all data entry fields that should exist.
+
+Each hash reference contains the following fields:
+
+=over
+
+=item label
+
+The text contents of the human readable label element
+
+=item type
+
+The value of the C<< data-column-type >> attribute on the element in the
+C<< form-group >> class.
+
+=back
+
+=cut
+
+sub assert_new_record_fields {
+    my ( $self, $name, $expected ) = @_;
+    $name //= "The new record page shows only the expected fields";
+    my $test = context();
+    my $webdriver = $self->gads->webdriver;
+
+    my $form_group_el = $webdriver->find('.edit-form .form-group');
+    my $found = [
+        map {
+            {
+                label => $_->find('label')->text,
+                type => $_->attr('data-column-type'),
+            },
+        } $form_group_el->split,
+    ];
+
+    is( $found, $expected, $name );
+
+    $test->release;
+    return $self;
+}
+
 =head3 assert_table_not_listed
 
 On the I<< Manage tables >> page, takes one argument containing the name
@@ -353,6 +397,27 @@ sub assert_on_manage_this_table_page {
     $self->_assert_on_page(
         'body.table',
         [ { selector => 'h2', text => 'Manage this table' } ],
+        $name,
+    );
+
+    $test->release;
+    return $self;
+}
+
+=head3 assert_on_new_record_page
+
+The I<< New record >> page is visible.
+
+=cut
+
+sub assert_on_new_record_page {
+    my ( $self, $name ) = @_;
+    $name //= 'The new record page is visible';
+    my $test = context();
+
+    $self->_assert_on_page(
+        'body.edit',
+        [ { selector => 'h2', text => 'New record' } ],
         $name,
     );
 
