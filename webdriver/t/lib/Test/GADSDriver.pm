@@ -241,7 +241,7 @@ sub assert_on_add_a_field_page {
     $name //= 'The add a field page is visible';
     my $test = context();
 
-    my $matching_el = $self->_assert_on_page(
+    $self->_assert_on_page(
         'body.layout\\/0',
         [
             # TODO: Check the table name appears in the h2 text
@@ -266,7 +266,7 @@ sub assert_on_add_a_table_page {
     $name //= 'The add a table page is visible';
     my $test = context();
 
-    my $matching_el = $self->_assert_on_page(
+    $self->_assert_on_page(
         'body.table\\/0',
         [ { selector => 'h2', text => 'Add a table' } ],
         $name,
@@ -307,7 +307,7 @@ sub assert_on_manage_fields_page {
     $name //= 'The manage fields page is visible';
     my $test = context();
 
-    my $matching_el = $self->_assert_on_page(
+    $self->_assert_on_page(
         'body.layout',
         # TODO: Check the table name appears in the h2 text
         [ { selector => 'h2.list-fields', match => '\\AManage fields in ' } ],
@@ -329,7 +329,7 @@ sub assert_on_manage_tables_page {
     $name //= 'The manage tables page is visible';
     my $test = context();
 
-    my $matching_el = $self->_assert_on_page(
+    $self->_assert_on_page(
         'body.table',
         [ { selector => 'h2', text => 'Manage tables' } ],
         $name,
@@ -350,7 +350,7 @@ sub assert_on_manage_this_table_page {
     $name //= 'The manage this table page is visible';
     my $test = context();
 
-    my $matching_el = $self->_assert_on_page(
+    $self->_assert_on_page(
         'body.table',
         [ { selector => 'h2', text => 'Manage this table' } ],
         $name,
