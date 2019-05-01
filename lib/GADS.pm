@@ -3478,17 +3478,28 @@ sub _process_edit
         }
         elsif (param 'draft')
         {
-            if (process sub { $record->write(draft => 1) })
+            if (process sub { $record->write(draft => 1, submission_token => param('submission_token')) })
             {
                 return forwardHome(
                     { success => 'Draft has been saved successfully'}, $layout->identifier.'/data' );
             }
+            elsif ($record->already_submitted_error)
+            {
+                return forwardHome(undef, $layout->identifier.'/data');
+            }
         }
-        elsif (!$failed && process( sub { $record->write(submission_token => param('submission_token')) }))
+        elsif (!$failed)
         {
-            my $forward = !$id && $layout->forward_record_after_create ? 'record/'.$record->current_id : $layout->identifier.'/data';
-            return forwardHome(
-                { success => 'Submission has been completed successfully for record ID '.$record->current_id }, $forward );
+            if (process( sub { $record->write(submission_token => param('submission_token')) }))
+            {
+                my $forward = !$id && $layout->forward_record_after_create ? 'record/'.$record->current_id : $layout->identifier.'/data';
+                return forwardHome(
+                    { success => 'Submission has been completed successfully for record ID '.$record->current_id }, $forward );
+            }
+            elsif ($record->already_submitted_error)
+            {
+                return forwardHome(undef, $layout->identifier.'/data');
+            }
         }
     }
     elsif($id) {
