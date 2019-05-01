@@ -61,6 +61,14 @@ if (!Array.prototype.includes) {
     };
 }
 
+if (typeof Array.prototype.forEach != 'function') {
+    Array.prototype.forEach = function(callback){
+      for (var i = 0; i < this.length; i++){
+        callback.apply(this, [this[i], i, this]);
+      }
+    };
+}
+
 // This wrapper fixes wrong placement of datepicker. See
 // https://github.com/uxsolutions/bootstrap-datepicker/issues/1941
 var originaldatepicker = $.fn.datepicker;
@@ -663,10 +671,10 @@ var setupFileUpload = function (context) {
  *
  */
 var setupDependentField = function () {
-    var $field      = this.field;
-    var $depends    = this.dependsOn;
-    var regexp      = this.regexp;
-    var is_negative = this.is_negative;
+
+    var condition = this.condition;
+    var rules     = this.rules;
+    var $field    = this.field;
 
     var some = function (set, test) {
         for (var i = 0, j = set.length; i < j; i++) {
@@ -677,32 +685,80 @@ var setupDependentField = function () {
         return false;
     };
 
-    $depends.on('change', function (e) {
-        var values = getFieldValues($depends);
-        some(values, function (value) {
-            return is_negative ? !regexp.test(value) : regexp.test(value)
-        }) ? $field.show() : $field.hide();
+    var test_all = function (condition, rules) {
+
+        if (rules.length == 0) {
+            return true;
+        }
+
+        var is_shown = condition == 'AND' ? true : false;
+
+        rules.forEach(function(rule) {
+
+            var $depends    = rule.dependsOn;
+            var regexp      = rule.regexp;
+            var is_negative = rule.is_negative;
+
+            var values = getFieldValues($depends);
+            var this_shown = some(values, function (value) {
+                return is_negative ? !regexp.test(value) : regexp.test(value)
+            });
+
+            if (this_shown == true && condition == 'OR') {
+                is_shown = true;
+            }
+            if (this_shown == false && condition == 'AND') {
+                is_shown = false;
+            }
+
+        });
+
+        return is_shown;
+
+    };
+
+    rules.forEach(function(rule) {
+
+        var $depends    = rule.dependsOn;
+        var regexp      = rule.regexp;
+        var is_negative = rule.is_negative;
+
+
+        $depends.on('change', function (e) {
+            test_all(condition, rules) ? $field.show() : $field.hide();
+        });
+
+        // trigger a change to toggle all dependencies
+        $depends.trigger('change');
     });
 
-    // trigger a change to toggle all dependencies
-    $depends.trigger('change');
+
 };
 
 var setupDependentFields = function (context) {
     var fields = $('[data-has-dependency]').map(function () {
         var dependency  = $(this).data('dependency');
-        var rules       = JSON.parse(base64.decode(dependency)).rules[0];
-        var match_type  = rules.operator;
-        var is_negative = match_type.search('not') > 0 ? true : false;
-        var regexp = match_type.search('equal') == 0
-            ? (new RegExp("^" + rules.value + "$"))
-            : (new RegExp(rules.value));
+        var decoded    = JSON.parse(base64.decode(dependency));
+        var rules      = decoded.rules;
+        var condition  = decoded.condition;
+
+        var rr = jQuery.map(rules, function(rule) {
+            var match_type  = rule.operator;
+            var is_negative = match_type.indexOf('not') !== -1 ? true : false;
+            var regexp = match_type.search('equal') == 0
+                ? (new RegExp("^" + rule.value + "$"))
+                : (new RegExp(rule.value));
+            return {
+                dependsOn   : $('[data-column-id="' + rule.id + '"]'),
+                regexp      : regexp,
+                is_negative : is_negative
+            };
+        });
 
         return {
-            field       : $(this),
-            dependsOn   : $('[data-column-id="' + rules.id + '"]'),
-            regexp      : regexp,
-            is_negative : is_negative
+            field     : $(this),
+            condition : condition,
+            rules     : rr
         };
     });
 
