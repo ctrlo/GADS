@@ -726,6 +726,18 @@ var setupDependentField = function () {
 
         $depends.on('change', function (e) {
             test_all(condition, rules) ? $field.show() : $field.hide();
+            var $panel = $field.closest('.panel-group');
+            if ($panel.length) {
+                $panel.find('.form-group').each(function() {
+                    var none_shown = true; // Assume not showing panel
+                    if ($(this).css('display') != 'none') {
+                        $panel.show();
+                        none_shown = false;
+                        return false; // Shortcut checking any more fields
+                    }
+                    if (none_shown) { $panel.hide() } // Nothing matched
+                });
+            }
         });
 
         // trigger a change to toggle all dependencies
