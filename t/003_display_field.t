@@ -453,6 +453,9 @@ foreach my $field (@fields)
     $integer1->write;
     $layout->clear;
 
+    $record->clear;
+    $record->find_current_id(3);
+
     # Set value of tree that should blank int
     $record->fields->{$tree1->id}->set_value(10); # value: tree1
     $record->fields->{$integer1->id}->set_value('250');
