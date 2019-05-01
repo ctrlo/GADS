@@ -119,6 +119,7 @@ foreach my $g(dir('_export/groups'))
 opendir my $root, '_export' or report FAULT => "Cannot open directory _export";
 
 my $column_mapping;
+my $metrics_mapping;
 my @all_columns;
 my @all_layouts;
 
@@ -164,13 +165,6 @@ foreach my $ins (readdir $root)
 
     $layout->import_hash($instance_info, report_only => $report_only);
     $layout->write unless $report_only;
-    # The layout in a column is a weakref, so it will have been destroyed by
-    # the time we try and use it later in the script. Therefore, keep a
-    # reference to it.
-    push @all_layouts, {
-        values => $instance_info,
-        layout => $layout,
-    };
 
     my $topic_mapping; # topic ID mapping
     if (-d "_export/$ins/topics")
@@ -294,7 +288,6 @@ foreach my $ins (readdir $root)
         }
     }
 
-    my $metrics_mapping;
     foreach my $mg (dir("_export/$ins/metrics"))
     {
         my $existing = schema->resultset('MetricGroup')->search({
@@ -323,7 +316,26 @@ foreach my $ins (readdir $root)
 
     $layout->clear;
 
-    foreach my $g (dir("_export/$ins/graphs"))
+    # The layout in a column is a weakref, so it will have been destroyed by
+    # the time we try and use it later in the script. Therefore, keep a
+    # reference to it.
+    push @all_layouts, {
+        values => $instance_info,
+        layout => $layout,
+        # Can't do graphs now as they may refer to other tables that haven't
+        # been imported yet
+        graphs => "_export/$ins/graphs",
+    };
+}
+
+foreach my $l (@all_layouts)
+{
+    my $layout = $l->{layout};
+    $layout->import_after_all($l->{values}, mapping => $column_mapping, report_only => $report_only);
+    $layout->write;
+    $layout->clear;
+
+    foreach my $g (dir($l->{graphs}))
     {
         # Convert to new column IDs
         $g->{x_axis} = $column_mapping->{$g->{x_axis}}
@@ -361,13 +373,7 @@ foreach my $ins (readdir $root)
         $graph->import_hash($g, report_only => $report_only);
         $graph->write unless $report_only;
     }
-}
 
-foreach my $l (@all_layouts)
-{
-    $l->{layout}->import_after_all($l->{values}, mapping => $column_mapping, report_only => $report_only);
-    $l->{layout}->write;
-    $l->{layout}->clear;
 }
 
 foreach (@all_columns)
