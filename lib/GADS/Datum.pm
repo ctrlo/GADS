@@ -248,6 +248,7 @@ sub _date_for_code
         hour   => $value->hour,
         minute => $value->minute,
         second => $value->second,
+        yday   => $value->doy,
         epoch  => $value->epoch,
     };
 }
