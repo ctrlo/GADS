@@ -581,6 +581,13 @@ var setupLessMoreWidgets = function (context) {
 
 // get the value from a field, depending on its type
 var getFieldValues = function ($depends) {
+
+    // If a field is not shown then treat it as a blank value (e.g. if fields
+    // are in a hierarchy and the top one is not shown
+    if ($depends.css('display') == 'none') {
+        return '';
+    }
+
     var type = $depends.data('column-type');
 
     if (type === 'enum' || type === 'curval') {
@@ -738,6 +745,11 @@ var setupDependentField = function () {
                     if (none_shown) { $panel.hide() } // Nothing matched
                 });
             }
+
+            // Trigger value check on any fields that depend on this one, e.g.
+            // if this one is now hidden then that will change its value to
+            // blank
+            $field.trigger('change');
         });
 
         // trigger a change to toggle all dependencies
