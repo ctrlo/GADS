@@ -1360,14 +1360,6 @@ sub import_hash
         old => length($self->helptext), new => length($values->{helptext}), name => $self->name
             if $report && $self->helptext ne $values->{helptext};
     $self->helptext($values->{helptext});
-    notice __x"Update: display_regex from {old} to {new} for {name}",
-        old => $self->display_regex, new => $values->{display_regex}, name => $self->name
-            if $report && ($self->display_regex || '') ne ($values->{display_regex} || '');
-    $self->display_regex($values->{display_regex});
-    notice __x"Update: display_matchtype from {old} to {new} for {name}",
-        old => $self->display_matchtype, new => $values->{display_matchtype}, name => $self->name
-            if $report && ($self->display_matchtype || '') ne ($values->{display_matchtype} || '');
-    $self->display_matchtype($values->{display_matchtype});
     notice __x"Update: multivalue from {old} to {new} for {name}",
         old => $self->multivalue, new => $values->{multivalue}, name => $self->name
             if $report && $self->multivalue != $values->{multivalue};
@@ -1408,14 +1400,23 @@ sub export_hash
         description       => $self->description,
         width             => $self->width,
         helptext          => $self->helptext,
-        display_field     => $self->display_field,
-        display_matchtype => $self->display_matchtype,
-        display_regex     => $self->display_regex,
+        display_condition => $self->display_condition,
         link_parent       => $self->link_parent && $self->link_parent->id,
         multivalue        => $self->multivalue,
         filter            => $self->filter->as_json,
-        permissions   => $permissions,
+        permissions       => $permissions,
     };
+
+    my @display_fields;
+    foreach my $filter (@{$self->display_fields->filters})
+    {
+        push @display_fields, {
+            id       => $filter->{column_id},
+            value    => $filter->{value},
+            operator => $filter->{operator},
+        };
+    }
+    $return->{display_fields} = \@display_fields;
     foreach my $option (@{$self->option_names})
     {
         $return->{$option} = $self->$option;
@@ -1432,13 +1433,27 @@ sub import_after_all
     my $mapping = $options{mapping};
     my $report  = $options{report_only};
 
-    my $new_id = $values->{display_field} ? $mapping->{$values->{display_field}} : undef;
-    notice __x"Update: display_field from {old} to {new} for {name}",
-        old => $self->display_field, new => $new_id, name => $self->name
-            if $report && ($self->display_field || 0) != ($new_id || 0);
-    $self->display_field($new_id);
+    if (@{$values->{display_fields}})
+    {
+        my @rules;
+        foreach my $filter (@{$values->{display_fields}})
+        {
+            $filter->{id} = $mapping->{$filter->{id}};
+            push @rules, $filter;
+        }
+        $self->display_fields->as_hash({
+            condition => $values->{display_condition},
+            rules     => \@rules,
+        });
+    }
+    else {
+        $self->display_fields->as_hash({});
+    }
+    notice __x"Update: display_fields has been updated for {name}",
+        name => $self->name
+            if $report && $self->display_fields->changed;
 
-    $new_id = $values->{link_parent} ? $mapping->{$values->{link_parent}} : undef;
+    my $new_id = $values->{link_parent} ? $mapping->{$values->{link_parent}} : undef;
     notice __x"Update: link_parent from {old} to {new} for {name}",
         old => $self->link_parent, new => $new_id, name => $self->name
             if $report && ($self->link_parent || 0) != ($new_id || 0);
