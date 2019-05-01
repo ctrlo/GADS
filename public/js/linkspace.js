@@ -902,28 +902,6 @@ var runPageSpecificCode = function (context) {
     }
 };
 
-var setupDisplayConditions = function(context) {
-    $('#toggle-display-regex', context).on('click', function() {
-        var $displayToggleButton = $(this),
-            $displayConditionField = $displayToggleButton.siblings('#display_condition').first(),
-            $displayField = $('#display_field'),
-            $displayRegex = $('#display_regex');
-
-        // Open and hide expanded element
-        toggleDisclosure.bind($displayToggleButton).call();
-
-        // Toggle field values
-        var currentlyExpanded = $displayToggleButton.attr('aria-expanded') === 'true';
-        $displayToggleButton.text(currentlyExpanded ? 'Delete condition' : 'Configure display');
-        $displayConditionField.val(currentlyExpanded ? 'true' : '');
-
-        if (!currentlyExpanded) {
-            $displayField.val('');
-            $displayRegex.val('');
-        }
-    });
-}
-
 var setupClickToEdit = function(context) {
     $('.click-to-edit', context).on('click', function() {
         var $editToggleButton = $(this);
@@ -1367,7 +1345,6 @@ var Linkspace = {
         setupDisclosureWidgets(context);
         setupSelectWidgets(context);
         setupFileUpload(context);
-        setupDisplayConditions(context);
         runPageSpecificCode(context);
         setupSubmitListener(context);
         setFirstInputFocus(context);
