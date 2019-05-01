@@ -15,7 +15,9 @@ migrate {
         display_field => { '!=' => undef },
     })->all)
     {
-        my $operator = $layout->display_matchtype eq 'exact_negative'
+        my $operator = !$layout->display_matchtype
+            ? 'equal'
+            : $layout->display_matchtype eq 'exact_negative'
             ? 'not_equal'
             : $layout->display_matchtype eq 'contains_negative'
             ? 'not_contains'
@@ -23,7 +25,7 @@ migrate {
             ? 'equal'
             : $layout->display_matchtype eq 'contains'
             ? 'contains'
-            : 'equal'; # default
+            : panic("Unknown display_matchtype: ".$layout->display_matchtype);
 
         $schema->resultset('DisplayField')->create({
             layout_id        => $layout->id,

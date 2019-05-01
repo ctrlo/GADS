@@ -1201,6 +1201,12 @@ has _need_app => (
 );
 
 
+has already_submitted_error => (
+    is      => 'rwp',
+    isa     => Bool,
+    default => 0,
+);
+
 # options (mostly used by onboard):
 # - update_only: update the values of the existing record instead of creating a
 # new version. This allows updates that aren't recorded in the history, and
@@ -1242,8 +1248,11 @@ sub write
                 });
             };
             # If the above borks, assume that the token has already been submitted
-            error __"This form has already been submitted and is currently being processed"
-                if $@;
+            if ($@)
+            {
+                $self->_set_already_submitted_error(1);
+                error __"This form has already been submitted and is currently being processed";
+            }
             # Normally all write options are passed to further writes within
             # this call. Don't pass the submission token though, otherwise it
             # will bork as having already been used
