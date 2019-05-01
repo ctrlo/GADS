@@ -728,7 +728,7 @@ var setupDependentField = function () {
             test_all(condition, rules) ? $field.show() : $field.hide();
             var $panel = $field.closest('.panel-group');
             if ($panel.length) {
-                $panel.find('.form-group').each(function() {
+                $panel.find('.linkspace-field').each(function() {
                     var none_shown = true; // Assume not showing panel
                     if ($(this).css('display') != 'none') {
                         $panel.show();

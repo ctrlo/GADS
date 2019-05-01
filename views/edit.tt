@@ -643,7 +643,7 @@
             <div class="col-md-11 col-md-offset-1">
     [% END %]
 
-    <div class="form-group" data-column-id="[% dispcol.id %]" data-column-type="[% dispcol.type %]" data-value-selector="[% dispcol.value_selector %]"
+    <div class="form-group linkspace-field" data-column-id="[% dispcol.id %]" data-column-type="[% dispcol.type %]" data-value-selector="[% dispcol.value_selector %]"
         [% dispcol.has_display_field && 'data-has-dependency="' _ dispcol.has_display_field _ '"' %]
         [% dispcol.has_display_field && 'data-dependency="' _ dispcol.display_fields_b64 _ '"' %]
         [% dispcol.multivalue && 'data-is-multivalue="true"' %]
