@@ -44,6 +44,10 @@ bin/seed-database.pl
 ```
 
 # Manually seeding database
+
+Only run this step if the database has not already been seeded with one of the
+supplied scripts (such as ```seed-database.pl```)
+
 ```
 # Deploy database (MySQL)
 DBIC_MIGRATION_USERNAME=gads DBIC_MIGRATION_PASSWORD=mysecret \
