@@ -122,6 +122,15 @@ has site_id => (
     is      => 'ro',
 );
 
+has site => (
+    is => 'lazy',
+);
+
+sub _build_site
+{   my $self = shift;
+    $self->schema->resultset('Site')->next;
+}
+
 has instance_id => (
     is      => 'ro',
     default => 1,

@@ -31,6 +31,8 @@ sub create_user
 
     my $guard = $self->result_source->schema->txn_scope_guard;
 
+    my $site = $self->result_source->schema->resultset('Site')->next;
+
     error __"An email address must be specified for the user"
         if !$params{email};
 
@@ -39,6 +41,15 @@ sub create_user
 
     error __x"User {email} already exists", email => $params{email}
         if $self->active(email => $params{email})->count;
+
+    error __x"Please select a {name} for the user", name => $site->organisation_name
+        if !$params{organisation} && $site->register_organisation_mandatory;
+
+    error __x"Please select a {name} for the user", name => $site->team_name
+        if !$params{team_id} && $site->register_team_mandatory;
+
+    error __x"Please select a {name} for the user", name => $site->department_name
+        if !$params{department_id} && $site->register_department_mandatory;
 
     my $code         = Session::Token->new( length => 32 )->get;
     my $request_base = $params{request_base};

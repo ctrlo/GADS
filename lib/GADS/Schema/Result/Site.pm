@@ -53,14 +53,20 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "register_organisation_name",
   { data_type => "text", is_nullable => 1 },
+  "register_organisation_mandatory",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "register_department_help",
   { data_type => "text", is_nullable => 1 },
   "register_department_name",
   { data_type => "text", is_nullable => 1 },
+  "register_department_mandatory",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "register_team_help",
   { data_type => "text", is_nullable => 1 },
   "register_team_name",
   { data_type => "text", is_nullable => 1 },
+  "register_team_mandatory",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "register_notes_help",
   { data_type => "text", is_nullable => 1 },
   "register_freetext1_name",
@@ -161,6 +167,11 @@ sub has_table_homepage
         return 1 if $table->homepage_text2 && $table->homepage_text2 !~ /^\s*$/;
     }
     return 0;
+}
+
+sub organisation_name
+{   my $self = shift;
+    $self->register_organisation_name || 'Organisation';
 }
 
 sub department_name
