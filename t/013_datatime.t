@@ -9,7 +9,6 @@ use Log::Report;
 use GADS::Graph;
 use GADS::Graph::Data;
 use GADS::Records;
-use GADS::RecordsGroup;
 
 use t::lib::DataSheet;
 
@@ -171,7 +170,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
             user        => $sheet->user,
         );
         $view->write;
-        $view->set_sorts($sheet->columns->{$sort}->id, 'asc');
+        $view->set_sorts([$sheet->columns->{$sort}->id], ['asc']);
 
         my $records = GADS::Records->new(
             from   => DateTime->now->add(days => 100),
@@ -472,7 +471,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     );
     $view->write;
     my $sort_field = $sheet->columns->{curval1}->id .'_'. $curval_sheet->columns->{string1}->id;
-    $view->set_sorts($sort_field, 'asc');
+    $view->set_sorts([$sort_field], ['asc']);
 
     my $records = GADS::Records->new(
         user   => undef,

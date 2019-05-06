@@ -202,6 +202,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 view_groups
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::ViewGroup>
+
+=cut
+
+__PACKAGE__->has_many(
+  "view_groups",
+  "GADS::Schema::Result::ViewGroup",
+  { "foreign.view_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 user
 
 Type: belongs_to

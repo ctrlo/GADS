@@ -192,7 +192,7 @@ foreach my $filter (@filters)
         user        => $user2,
     );
     $view->write;
-    $view->set_sorts([ $columns2->{daterange1}->id ], $filter->{sort});
+    $view->set_sorts([ $columns2->{daterange1}->id ], [ $filter->{sort} ]);
 
     my $records = GADS::Records->new(
         user    => $user2,

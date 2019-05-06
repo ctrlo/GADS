@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Globe;
 
 use GADS::Records;
-use GADS::RecordsGroup;
 use Log::Report 'linkspace';
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
@@ -31,8 +30,11 @@ has records => (
 
 sub _build_records
 {   my $self = shift;
-    my $type = $self->is_group ? 'GADS::RecordsGroup' : 'GADS::Records';
-    $type->new(max_results => 1000, %{$self->records_options});
+    GADS::Records->new(
+        is_group    => $self->is_group,
+        max_results => 1000,
+        %{$self->records_options},
+    );
 }
 
 has records_options => (

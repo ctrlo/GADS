@@ -30,7 +30,7 @@ our @person_properties = qw/id email username firstname surname freetext1 freete
 # Convert based on whether ID or full name provided
 sub value_field_as_index
 {   my ($self, $value) = @_;
-    return 'id' if $value =~ /^[0-9]+$/;
+    return 'id' if !$value || $value =~ /^[0-9]+$/;
     return $self->value_field;
 }
 

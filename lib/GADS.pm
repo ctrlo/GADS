@@ -55,7 +55,7 @@ use GADS::MetricGroup;
 use GADS::MetricGroups;
 use GADS::Record;
 use GADS::Records;
-use GADS::RecordsGroup;
+use GADS::RecordsGraph;
 use GADS::Type::Permissions;
 use GADS::Users;
 use GADS::Util;
@@ -1964,9 +1964,9 @@ prefix '/:layout_name' => sub {
             }
 
             my @columns = $view
-                ? $layout->view($view->id, user_can_read => 1)
+                ? $layout->view($view->id, user_can_read => 1, current_group_id => $records->current_group_id)
                 : $layout->all(user_can_read => 1);
-            unshift @columns, $layout->column_id;
+            unshift @columns, $layout->column_id unless $records->is_group;
             $params->{user_can_edit}        = $layout->user_can('write_existing');
             $params->{sort}                 = $records->sort_first;
             $params->{subset}               = $subset;
@@ -2436,7 +2436,13 @@ prefix '/:layout_name' => sub {
             $view->filter->as_json(param 'filter');
             if (process( sub { $view->write }))
             {
-                $view->set_sorts($params->{sortfield}, $params->{sorttype});
+                $view->set_sorts(
+                    [body_parameters->get_all('sortfield')],
+                    [body_parameters->get_all('sorttype')],
+                );
+                $view->set_groups(
+                    [body_parameters->get_all('groupfield')],
+                );
                 # Set current view to the one created/edited
                 session('persistent')->{view}->{$layout->instance_id} = $view->id;
                 # And remove any search to avoid confusion
@@ -3338,7 +3344,7 @@ sub _data_graph
     my $user    = logged_in_user;
     my $layout  = var 'layout';
     my $view    = current_view($user, $layout);
-    my $records = GADS::RecordsGroup->new(
+    my $records = GADS::RecordsGraph->new(
         user                => $user,
         search              => session('search'),
         view_limit_extra_id => current_view_limit_extra_id($user, $layout),

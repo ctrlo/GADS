@@ -944,8 +944,16 @@ sub view
         layout      => $self,
         instance_id => $self->instance_id,
     );
+    my $current_group_id = delete $options{current_group_id};
     my %view_layouts = map { $_ => 1 } @{$view->columns};
-    grep { $view_layouts{$_->{id}} } $self->all(%options);
+    my @cols = grep {
+        (!$current_group_id || $_->{id} != $current_group_id ) && $view_layouts{$_->{id}}
+    } $self->all(%options);
+    if ($current_group_id)
+    {
+        unshift @cols, $self->column($current_group_id);
+    }
+    return @cols;
 }
 
 # Returns what a user can do to the whole data set. Individual

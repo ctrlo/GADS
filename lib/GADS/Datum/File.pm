@@ -138,32 +138,38 @@ sub _build_files
         # XXX - messy to account for different initial values. Can be tidied once
         # we are no longer pre-fetching multiple records
         my @init_value = $self->has_init_value ? @{$self->init_value} : ();
-        my @values     = map { exists $_->{record_id} ? $_->{value} : $_ } @init_value;
+        my @values     = map { ref $_ eq 'HASH' && exists $_->{record_id} ? $_->{value} : $_ } @init_value;
 
         @return = map {
-            +{
+            ref $_ eq 'HASH'
+            ? +{
                 id       => $_->{id},
                 name     => $_->{name},
                 mimetype => $_->{mimetype},
-            };
-        } grep { $_ && $_->{id} } @values;
+            } : $self->_ids_to_files($_)
+        } grep { ref $_ eq 'HASH' ? $_->{id} : $_ } @values;
         $self->has_ids(1) if @values || $self->init_no_value;
     }
     elsif ($self->has_ids) {
-        @return = map {
-            +{
-                id       => $_->id,
-                name     => $_->name,
-                mimetype => $_->mimetype,
-            };
-        } $self->schema->resultset('Fileval')->search({
-            id => $self->ids,
-        },{
-            columns => [qw/id name mimetype/],
-        })->all;
+        @return = $self->_ids_to_files(@{$self->ids});
     }
 
     return \@return;
+}
+
+sub _ids_to_files
+{   my ($self, @ids) = @_;
+    map {
+        +{
+            id       => $_->id,
+            name     => $_->name,
+            mimetype => $_->mimetype,
+        };
+    } $self->schema->resultset('Fileval')->search({
+        id => \@ids,
+    },{
+        columns => [qw/id name mimetype/],
+    })->all;
 }
 
 sub search_values_unique

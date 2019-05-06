@@ -40,6 +40,10 @@ has '+fixedvals' => (
 
 sub _build_sprefix { 'value' };
 
+sub value_field_as_index
+{   return 'id';
+}
+
 after build_values => sub {
     my ($self, $original) = @_;
 

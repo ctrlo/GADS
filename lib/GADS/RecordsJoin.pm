@@ -581,8 +581,10 @@ sub value_next_join
 # Return a fully-qualified value field for a table
 sub fqvalue
 {   my ($self, $column, %options) = @_;
+    my $as_index = delete $options{as_index};
     my $tn = $self->table_name($column, %options);
-    "$tn." . $column->value_field;
+    my $value_field = $as_index ? $column->value_field_as_index : $column->value_field;
+    "$tn." . $value_field;
 }
 
 sub _dump_child

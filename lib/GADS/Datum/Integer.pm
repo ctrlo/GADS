@@ -58,7 +58,8 @@ has value => (
     builder => sub {
         my $self = shift;
         $self->has_init_value or return;
-        my $value = $self->init_value->[0]->{value};
+        my $value = $self->init_value->[0];
+        $value = $value->{value} if ref $value eq 'HASH';
         $self->has_value(1) if defined $value || $self->init_no_value;
         $value;
     },

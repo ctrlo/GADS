@@ -161,7 +161,7 @@ sub _build_value
 
     if ($self->init_value)
     {
-        my @vs = map { $_->{$column->value_field} } @{$self->init_value};
+        my @vs = map { ref $_ eq 'HASH' ? $_->{$column->value_field} : $_ } @{$self->init_value};
         @values = map {
             $column->return_type eq 'date'
                ?  $self->_parse_date($_)

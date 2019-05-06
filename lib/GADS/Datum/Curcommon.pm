@@ -115,10 +115,10 @@ sub _build__init_value_hash
             # is fraught with danger.
             push @ids, $id if $id && (!$record || !$record->is_draft);
         }
-        +{
-            records => \@records,
-            ids     => \@ids,
-        };
+        my $ret = {};
+        $ret->{records} = \@records if @records;
+        $ret->{ids}     = \@ids if @ids;
+        return $ret;
     }
     elsif ($self->column->type eq 'autocur' && !$self->values_as_records) # Would be nice to abstract to autocur class
     {

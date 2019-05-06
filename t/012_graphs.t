@@ -7,7 +7,7 @@ use Log::Report;
 use GADS::Graph;
 use GADS::Graph::Data;
 use GADS::Records;
-use GADS::RecordsGroup;
+use GADS::RecordsGraph;
 
 use t::lib::DataSheet;
 
@@ -515,7 +515,7 @@ foreach my $multivalue (0..1)
             $view->write;
         }
 
-        my $records = GADS::RecordsGroup->new(
+        my $records = GADS::RecordsGraph->new(
             user              => $sheet->user,
             layout            => $layout,
             schema            => $schema,
@@ -567,7 +567,7 @@ my $graph = GADS::Graph->new(
 );
 $graph->write;
 
-my $records = GADS::RecordsGroup->new(
+my $records = GADS::RecordsGraph->new(
     user   => $sheet->user,
     layout => $sheet->layout,
     schema => $sheet->schema,

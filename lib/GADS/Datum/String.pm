@@ -74,7 +74,7 @@ has values => (
     builder   => sub {
         my $self = shift;
         $self->has_init_value or return [];
-        my @values = map { $_->{value} } @{$self->init_value};
+        my @values = map { ref $_ eq 'HASH' ? $_->{value} : $_ } @{$self->init_value};
         $self->has_value(!!@values);
         $self->has_value(1) if @values || $self->init_no_value;
         [@values];

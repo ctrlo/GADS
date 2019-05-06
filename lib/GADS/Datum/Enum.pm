@@ -115,10 +115,23 @@ has value_hash => (
         # XXX - messy to account for different initial values. Can be tidied once
         # we are no longer pre-fetching multiple records
         my @init_value = $self->has_init_value ? @{$self->init_value} : ();
-        my @values     = map { exists $_->{record_id} ? $_->{value} : $_ } @init_value;
-        my @ids        = map { $_->{id} } @values;
-        my @texts      = map { $_->{value} || '' } @values;
-        my @deleted    = map { $_->{deleted} } @values;
+        my @values     = map { ref $_ eq 'HASH' && exists $_->{record_id} ? $_->{value} : $_ } @init_value;
+        my (@ids, @texts, @deleted);
+        foreach (@values)
+        {
+            if (ref $_ eq 'HASH')
+            {
+                push @ids, $_->{id};
+                push @texts, $_->{value} || '';
+                push @deleted, $_->{deleted};
+            }
+            else {
+                my $e = $self->column->enumval($_);
+                push @ids, $e && $e->{id};
+                push @texts, $e && $e->{value};
+                push @deleted, $e && $e->{deleted};
+            }
+        }
         $self->has_id(1) if (grep { defined $_ } @ids) || $self->init_no_value;
         +{
             ids     => \@ids,

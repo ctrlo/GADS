@@ -68,29 +68,33 @@ after set_value => sub {
         || (!defined($new_id) && defined $self->id)
         || (defined $self->id && defined $new_id && $self->id != $new_id)
     ) {
-        my $person;
-        $person = $self->schema->resultset('User')->find($new_id) if $new_id;
-        foreach my $f (qw(firstname surname email freetext1 freetext2 id))
-        {
-            $self->$f($person ? $person->$f : undef);
-        }
-        if ($person)
-        {
-            my $org = _org_to_hash($person->organisation);
-            $self->organisation($org);
-            my $dep = _org_to_hash($person->department);
-            $self->department($dep);
-            my $team = _org_to_hash($person->team);
-            $self->team($team);
-            my $title = _org_to_hash($person->title);
-            $self->title($title);
-        }
-        $self->_set_text($person ? $person->value : undef);
         $self->changed(1);
+        $self->id($new_id);
     }
     $self->oldvalue($clone);
-    $self->id($new_id);
 };
+
+sub _id_to_hash
+{   my ($self, $id) = @_;
+    $id or return undef;
+    my $prs = $self->schema->resultset('User')->search({ id => $id });
+    $prs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    return $prs->next;
+}
+
+sub clear
+{   my $self = shift;
+    $self->clear_email;
+    $self->clear_username;
+    $self->clear_firstname;
+    $self->clear_surname;
+    $self->clear_freetext1;
+    $self->clear_freetext2;
+    $self->clear_organisation;
+    $self->clear_department;
+    $self->clear_team;
+    $self->clear_title;
+}
 
 has schema => (
     is       => 'rw',
@@ -107,7 +111,7 @@ sub _org_to_hash
 }
 
 has value_hash => (
-    is      => 'ro',
+    is      => 'rwp',
     lazy    => 1,
     builder => sub {
         my $self = shift;
@@ -119,27 +123,33 @@ has value_hash => (
         my $value = ref $init_value eq 'ARRAY'
             ? $init_value->[0]
             : $init_value;
-        # XXX - messy to account for different initial values. Can be tidied once
-        # we are no longer pre-fetching multiple records
-        $value = $value->{value} if exists $value->{record_id};
-        my $id = $value->{id};
-        $self->has_id(1) if defined $id || $self->init_no_value;
-        +{
-            id            => $id,
-            email         => $value->{email},
-            username      => $value->{username},
-            firstname     => $value->{firstname},
-            surname       => $value->{surname},
-            freetext1     => $value->{freetext1},
-            freetext2     => $value->{freetext2},
-            organisation  => $value->{organisation},
-            department    => $value->{department},
-            department_id => $value->{department_id},
-            team          => $value->{team},
-            team_id       => $value->{team_id},
-            title         => $value->{title},
-            text          => $value->{value},
-        };
+        if (ref $value eq 'HASH')
+        {
+            # XXX - messy to account for different initial values. Can be tidied once
+            # we are no longer pre-fetching multiple records
+            $value = $value->{value} if exists $value->{record_id};
+            my $id = $value->{id};
+            $self->has_id(1) if defined $id || $self->init_no_value;
+            return +{
+                id            => $id,
+                email         => $value->{email},
+                username      => $value->{username},
+                firstname     => $value->{firstname},
+                surname       => $value->{surname},
+                freetext1     => $value->{freetext1},
+                freetext2     => $value->{freetext2},
+                organisation  => $value->{organisation},
+                department    => $value->{department},
+                department_id => $value->{department_id},
+                team          => $value->{team},
+                team_id       => $value->{team_id},
+                title         => $value->{title},
+                value         => $value->{value},
+            };
+        }
+        else {
+            return $self->_id_to_hash($value);
+        }
     },
 );
 
@@ -148,75 +158,69 @@ has allow_deleted => (
     is => 'rw',
 );
 
-has _rset => (
-    is        => 'lazy',
-    predicate => 1,
-);
-
-sub _build__rset
-{   my $self = shift;
-    $self->id or return;
-    $self->schema->resultset('User')->find($self->id);
-}
-
 has email => (
-    is      => 'rw',
+    is      => 'ro',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
-        $_[0]->value_hash ? $_[0]->value_hash->{email} : $_[0]->_rset && $_[0]->_rset->email;
+        $_[0]->value_hash && $_[0]->value_hash->{email};
     },
 );
 
 has username => (
-    is      => 'rw',
+    is      => 'ro',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
-        $_[0]->value_hash ? $_[0]->value_hash->{username} : $_[0]->_rset && $_[0]->_rset->username;
+        $_[0]->value_hash && $_[0]->value_hash->{username};
     },
 );
 
 has firstname => (
-    is      => 'rw',
+    is      => 'ro',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
-        $_[0]->value_hash ? $_[0]->value_hash->{firstname} : $_[0]->_rset && $_[0]->_rset->firstname;
+        $_[0]->value_hash && $_[0]->value_hash->{firstname};
     },
 );
 
 has surname => (
-    is      => 'rw',
+    is      => 'ro',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
-        $_[0]->value_hash ? $_[0]->value_hash->{surname} : $_[0]->_rset && $_[0]->_rset->surname;
+        $_[0]->value_hash && $_[0]->value_hash->{surname};
     },
 );
 
 has freetext1 => (
-    is      => 'rw',
+    is      => 'ro',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
-        $_[0]->value_hash ? $_[0]->value_hash->{freetext1} : $_[0]->_rset && $_[0]->_rset->freetext1;
+        $_[0]->value_hash && $_[0]->value_hash->{freetext1};
     },
 );
 
 has freetext2 => (
-    is      => 'rw',
+    is      => 'ro',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
-        $_[0]->value_hash ? $_[0]->value_hash->{freetext2} : $_[0]->_rset && $_[0]->_rset->freetext2;
+        $_[0]->value_hash && $_[0]->value_hash->{freetext2};
     },
 );
 
 has organisation => (
-    is      => 'rw',
+    is      => 'ro',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
-        # Organisation could be resultset object, or an ID, or a HASH with all details.
+        # Organisation could be an ID, or a HASH with all details.
         # Whatever it is, convert to hash ref
-        return $self->_has_rset && $self->_rset
-            ? _org_to_hash($self->_rset->organisation)
-            : $self->value_hash && ref $self->value_hash->{organisation} eq 'HASH'
+        $self->value_hash && ref $self->value_hash->{organisation} eq 'HASH'
             ? $self->value_hash->{organisation}
             : $self->value_hash && $self->value_hash->{organisation}
             ? _org_to_hash($self->schema->resultset('Organisation')->find($self->value_hash->{organisation}))
@@ -225,15 +229,14 @@ has organisation => (
 );
 
 has department => (
-    is      => 'rw',
+    is      => 'ro',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
-        # Department could be resultset object, or an ID, or a HASH with all details.
+        # Department could be an ID, or a HASH with all details.
         # Whatever it is, convert to hash ref
-        return $self->_has_rset && $self->_rset
-            ? _org_to_hash($self->_rset->department)
-            : $self->value_hash && ref $self->value_hash->{department} eq 'HASH'
+        $self->value_hash && ref $self->value_hash->{department} eq 'HASH'
             ? $self->value_hash->{department}
             : $self->value_hash && $self->value_hash->{department_id}
             ? _org_to_hash($self->schema->resultset('Department')->find($self->value_hash->{department_id}))
@@ -242,15 +245,14 @@ has department => (
 );
 
 has team => (
-    is      => 'rw',
+    is      => 'ro',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
-        # Team could be resultset object, or an ID, or a HASH with all details.
+        # Team could be an ID, or a HASH with all details.
         # Whatever it is, convert to hash ref
-        return $self->_has_rset && $self->_rset
-            ? _org_to_hash($self->_rset->team)
-            : $self->value_hash && ref $self->value_hash->{team} eq 'HASH'
+        $self->value_hash && ref $self->value_hash->{team} eq 'HASH'
             ? $self->value_hash->{team}
             : $self->value_hash && $self->value_hash->{team_id}
             ? _org_to_hash($self->schema->resultset('Team')->find($self->value_hash->{team_id}))
@@ -259,16 +261,18 @@ has team => (
 );
 
 has title => (
-    is      => 'rw',
+    is      => 'ro',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         my $self = shift;
-        # Do we have a resultset? If so, just return that
-        return $self->_rset->title if $self->_rset;
-        # Otherwise assume value_hash and build from that
-        my $title_id = $self->value_hash && $self->value_hash->{title}
-            or return undef;
-        $self->schema->resultset('Title')->find($title_id);
+        # Title could be an ID, or a HASH with all details.
+        # Whatever it is, convert to hash ref
+        $self->value_hash && ref $self->value_hash->{title} eq 'HASH'
+            ? $self->value_hash->{title}
+            : $self->value_hash && $self->value_hash->{title_id}
+            ? _org_to_hash($self->schema->resultset('Title')->find($self->value_hash->{title_id}))
+            : undef;
     },
 );
 
@@ -280,16 +284,21 @@ has text => (
     is      => 'rw',
     lazy    => 1,
     builder => sub {
-        $_[0]->value_hash ? $_[0]->value_hash->{text} : $_[0]->_rset && $_[0]->_rset->text;
+        $_[0]->value_hash && $_[0]->value_hash->{value};
     },
 );
 
 has id => (
     is      => 'rw',
     lazy    => 1,
-    trigger => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
+    trigger => sub {
+        my ($self, $value) = @_;
+        $self->clear;
+        $self->_set_value_hash($self->_id_to_hash($value));
+        $self->blank(defined $value ? 0 : 1)
+    },
     builder => sub {
-        $_[0]->value_hash && $_[0]->value_hash->{id}; # Don't try and build from rset, as that needs id set
+        $_[0]->value_hash && $_[0]->value_hash->{id};
     },
 );
 
@@ -327,14 +336,6 @@ around 'clone' => sub {
         @_,
     );
 };
-
-sub _set_text
-{   my ($self, $value) = @_;
-
-    # There used to be code here to update the cached value
-    # if required. Now all removed to controller
-    $self->text($value || "");
-}
 
 sub as_string
 {   my $self = shift;

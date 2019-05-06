@@ -7,7 +7,6 @@ use Log::Report;
 use GADS::Graph;
 use GADS::Graph::Data;
 use GADS::Records;
-use GADS::RecordsGroup;
 
 use t::lib::DataSheet;
 
@@ -30,7 +29,7 @@ my $view = GADS::View->new(
     columns     => [$sheet->columns->{string1}->id, $sheet->columns->{integer1}->id],
 );
 $view->write;
-$view->set_sorts($sheet->columns->{integer1}->id, 'asc');
+$view->set_sorts([$sheet->columns->{integer1}->id], ['asc']);
 
 my $records = GADS::Records->new(
     user   => $sheet->user,

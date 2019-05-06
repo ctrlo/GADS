@@ -10,7 +10,6 @@ use GADS::Graph;
 use GADS::Graph::Data;
 use GADS::Record;
 use GADS::Records;
-use GADS::RecordsGroup;
 
 use t::lib::DataSheet;
 
@@ -155,7 +154,7 @@ foreach my $multivalue (0..1)
         y_axis_stack => 'sum',
     );
     $graph->write;
-    $records = GADS::RecordsGroup->new(
+    $records = GADS::RecordsGraph->new(
         user    => undef,
         layout  => $layout,
         schema  => $schema,
@@ -167,7 +166,7 @@ foreach my $multivalue (0..1)
     );
     is_deeply($graph_data->xlabels, ['Foo10','Foo3'], "Graph labels for current date correct");
     is_deeply($graph_data->points, [[100,30]], "Graph data for current date correct");
-    $records = GADS::RecordsGroup->new(
+    $records = GADS::RecordsGraph->new(
         user    => undef,
         layout  => $layout,
         schema  => $schema,

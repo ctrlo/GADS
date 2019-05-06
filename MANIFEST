@@ -227,7 +227,7 @@ lib/GADS/MetricGroup.pm
 lib/GADS/MetricGroups.pm
 lib/GADS/Record.pm
 lib/GADS/Records.pm
-lib/GADS/RecordsGroup.pm
+lib/GADS/RecordsGraph.pm
 lib/GADS/RecordsJoin.pm
 lib/GADS/Role/Presentation/Column.pm
 lib/GADS/Role/Presentation/Datum.pm

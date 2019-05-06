@@ -126,6 +126,16 @@ sub _parse_dt
             to   => $original->[1],
         };
     }
+    elsif (!ref $original)
+    {
+        # XXX Nasty hack. Would be better to pull both values from DB
+        $original =~ /^([-0-9]+) to ([-0-9]+)$/;
+        $original = {
+            from => $1,
+            to   => $2,
+        };
+    }
+
     # Otherwise assume it's a hashref: { from => .., to => .. }
 
     if (!$original->{from} && !$original->{to})

@@ -9,7 +9,7 @@ use GADS::Filter;
 use GADS::Layout;
 use GADS::Record;
 use GADS::Records;
-use GADS::RecordsGroup;
+use GADS::RecordsGraph;
 use GADS::Schema;
 
 use t::lib::DataSheet;
@@ -941,7 +941,7 @@ foreach my $layout_from_instances (0..1)
             }
         }
 
-        $view->set_sorts($view_columns, 'asc');
+        $view->set_sorts($view_columns, ['asc']);
         $records = GADS::Records->new(
             user    => $user,
             view    => $view,
@@ -965,7 +965,7 @@ foreach my $layout_from_instances (0..1)
         $graph->y_axis_stack('count');
         $graph->write;
 
-        my $records_group = GADS::RecordsGroup->new(
+        my $records_group = GADS::RecordsGraph->new(
             user              => $user,
             layout            => $layout_filter || $layout,
             schema => $schema,
@@ -1883,7 +1883,7 @@ foreach my $multivalue (0..1)
                 $graph->y_axis_stack('count');
                 $graph->write;
 
-                my $records_group = GADS::RecordsGroup->new(
+                my $records_group = GADS::RecordsGraph->new(
                     user   => $user,
                     layout => $layout,
                     schema => $schema,

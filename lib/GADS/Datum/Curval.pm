@@ -26,7 +26,7 @@ sub _transform_value
 {   my ($self, $value) = @_;
     # XXX - messy to account for different initial values. Can be tidied once
     # we are no longer pre-fetching multiple records
-    $value = $value->{value} if exists $value->{value}
+    $value = $value->{value} if ref $value eq 'HASH' && exists $value->{value}
         && (!defined $value->{value} || ref $value->{value} eq 'HASH' || ref $value->{value} eq 'GADS::Record');
     my ($record, $id);
 

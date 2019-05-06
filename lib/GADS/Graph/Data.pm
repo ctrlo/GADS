@@ -317,7 +317,7 @@ sub _build_data
     if ($x_daterange && $records->dr_from && $records->dr_to)
     {
         # If this is a daterange x-axis, then use the start date
-        # as calculated by GADS::RecordsGroup, then interpolate
+        # as calculated by GADS::Records, then interpolate
         # until the end date. These same values will have been retrieved
         # in the resultset.
         my $pointer = $records->dr_from->clone;
@@ -399,7 +399,7 @@ sub _build_data
                       ? $x->field
                       : $self->y_axis_stack eq 'count'
                       ? 'id_count' # Don't use field count as NULLs are not counted
-                      : $y_axis->field."_".$self->y_axis_stack;
+                      : $y_axis->field;
             no warnings 'numeric', 'uninitialized';
             $results->{$x_value}->{$k} += $line->get_column($fname); # 2 loops for linked values
             # Add on the linked column from another datasheet, if applicable

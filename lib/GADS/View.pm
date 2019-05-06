@@ -85,8 +85,8 @@ has _view => (
             # instance_id isn't strictly needed as id is the primary key
             'me.instance_id' => $self->instance_id,
         },{
-            prefetch => ['sorts', 'alerts'],
-            order_by => 'sorts.id', # Ensure sorts are retrieve in correct order to apply
+            prefetch => ['sorts', 'alerts', 'view_groups'],
+            order_by => 'sorts.order', # Ensure sorts are retrieve in correct order to apply
         });
         if (!$view)
         {
@@ -176,9 +176,22 @@ has filter => (
 );
 
 has sorts => (
-    is      => 'rw',
+    is      => 'ro',
     lazy    => 1,
+    clearer => 1,
     builder => sub { $_[0]->_view && $_[0]->_get_sorts || [] },
+);
+
+has groups => (
+    is      => 'ro',
+    lazy    => 1,
+    clearer => 1,
+    builder => sub {
+        my $self = shift;
+        my $view = $self->_view
+            or return [];
+        [ $view->view_groups->all ];
+    },
 );
 
 has alert => (
@@ -544,19 +557,35 @@ sub _get_sorts
 }
 
 sub set_sorts
-{   my ($self, $sortfield, $sorttype) = @_;
+{   my $self = shift;
+    $self->_set_sorts_groups('sorts', @_);
+}
+
+sub set_groups
+{   my $self = shift;
+    $self->_set_sorts_groups('groups', @_);
+}
+
+sub _set_sorts_groups
+{   my ($self, $type, $sortfield, $sorttype) = @_;
+
+    $type =~ /^(sorts|groups)$/
+        or panic "Invalid sorts_groups type: $type";
+
+    ref $sortfield eq 'ARRAY'
+        or panic "Fields and types must be passed as arrays";
+
+    $type ne 'sorts' || ref $sorttype eq 'ARRAY'
+        or panic "Fields and types must be passed as arrays";
 
     my $schema = $self->schema;
-    # Delete all old ones first
-    $schema->resultset('Sort')->search({ view_id => $self->id })->delete;
+    my $table  = $type eq 'sorts' ? 'Sort' : 'ViewGroup';
 
-    # Collect all the sorts. These can be in a variety of formats. New
-    # ones will be a scalar for a single one or an arrayref for multiples.
-    # Existing ones will have a unique field ID. This is maintained to retain
-    # the data associated with that entry.
-    my @fields = ref $sortfield ? @$sortfield : ($sortfield // ()); # Allow empty string for ID
-    my @types  = ref $sorttype  ? @$sorttype  : ($sorttype  || ());
-    my @allsorts; my $type_last;
+    # Delete all old ones first
+    $schema->resultset($table)->search({ view_id => $self->id })->delete;
+
+    my @fields = @$sortfield;
+    my $order; my $type_last;
     foreach my $filter_id (@fields)
     {
         my ($parent_id, $layout_id);
@@ -568,29 +597,42 @@ sub set_sorts
         else {
             $layout_id = $filter_id;
         }
-        my $type = (shift @types) || $type_last;
-        error __x"Invalid type {type}", type => $type
-            unless grep { $_->{name} eq $type } @{sort_types()};
+        my $sorttype = shift @$sorttype || $type_last;
+        error __x"Invalid type {type}", type => $sorttype
+            if $type eq 'sorts' && !grep { $_->{name} eq $sorttype } @{sort_types()};
         # Check column is valid and user has access
-        error __x"Invalid field ID {id} in sort", id => $layout_id
+        error __x"Invalid field ID {id} in {type}", id => $layout_id, type => $type
             if $layout_id && !$self->layout->column($layout_id)->user_can('read');
-        error __x"Invalid field ID {id} in sort", id => $parent_id
+        error __x"Invalid field ID {id} in {type}", id => $parent_id, type => $type
             if $parent_id && !$self->layout->column($parent_id)->user_can('read');
         my $sort = {
             view_id   => $self->id,
-            layout_id => ($layout_id || undef), # ID will be empty string
+            layout_id => $layout_id,
             parent_id => $parent_id,
-            type      => $type,
+            order     => ++$order,
         };
-        # Assume that each new sort is applied with a new ID greater than the
-        # previous to give correct order.
-        # XXX Would be better having an "order" column in the table
-        my $s = $schema->resultset('Sort')->create($sort);
-        push @allsorts, $s->id;
-        $type_last = $type;
+        $sort->{type} = $sorttype if $type eq 'sorts';
+        $schema->resultset($table)->create($sort);
+        $type_last = $sorttype;
     }
     $self->_clear_view;
-    $self->sorts($self->_get_sorts);
+    if ($type eq 'sorts')
+    {
+        $self->clear_sorts;
+    }
+    else {
+        $self->clear_groups;
+    }
+}
+
+has is_group => (
+    is  => 'lazy',
+    isa => Bool,
+);
+
+sub _build_is_group
+{   my $self = shift;
+    !! @{$self->groups};
 }
 
 sub parse_date_filter

@@ -5,7 +5,7 @@ use Moo::Role;
 sub _presentation_details {
     my $self = shift;
 
-    return [] unless $self->as_string;
+    #return [] unless $self->as_string;
 
     my $rti = $self->column->refers_to_instance_id;
 

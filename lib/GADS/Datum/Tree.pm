@@ -86,14 +86,23 @@ has value_hash => (
         $self->has_init_value or return {};
         # XXX - messy to account for different initial values. Can be tidied once
         # we are no longer pre-fetching multiple records
-        my @values = map { exists $_->{record_id} ? $_->{value} : $_ } @{$self->init_value};
+
+        my @values = map { ref $_ eq 'HASH' && exists $_->{record_id} ? $_->{value} : $_ } @{$self->init_value};
         my (@ids, @texts);
-        foreach my $v (@values)
+        foreach (@values)
         {
-            next if !$v->{id};
-            push @ids, $v->{id};
-            push @texts, $v->{value} || '';
+            if (ref $_ eq 'HASH')
+            {
+                push @ids, $_->{id};
+                push @texts, $_->{value} || '';
+            }
+            else {
+                my $e = $self->column->node($_);
+                push @ids, $e && $e->{id};
+                push @texts, $e && $e->{value};
+            }
         }
+
         +{
             ids  => \@ids,
             text => \@texts,
