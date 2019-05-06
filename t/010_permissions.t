@@ -224,7 +224,7 @@ foreach my $user_type (qw/readwrite read limited/)
 # Check deletion of read permissions also updates dependent values
 foreach my $test (qw/single all/)
 {
-    my $sheet   = t::lib::DataSheet->new;
+    my $sheet   = t::lib::DataSheet->new(site_id => 1);
     my $schema  = $sheet->schema;
     my $layout  = $sheet->layout;
     my $columns = $sheet->columns;
@@ -312,7 +312,7 @@ foreach my $test (qw/single all/)
 
 # Check setting of global permissions - can only be done by superadmin
 {
-    my $sheet = t::lib::DataSheet->new;
+    my $sheet = t::lib::DataSheet->new(site_id => 1);
     $sheet->create_records;
     my $schema = $sheet->schema;
     foreach my $usertype (qw/user user_useradmin user_normal1/) # "user" is superadmin
