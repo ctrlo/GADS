@@ -123,7 +123,7 @@ Related object: L<GADS::Schema::Result::Layout>
 =cut
 
 __PACKAGE__->belongs_to(
-  "layout",
+  "parent",
   "GADS::Schema::Result::Layout",
   { id => "parent_id" },
   {
