@@ -10,6 +10,7 @@ use GADS::Graph;
 use GADS::Graph::Data;
 use GADS::Record;
 use GADS::Records;
+use GADS::RecordsGraph;
 
 use t::lib::DataSheet;
 

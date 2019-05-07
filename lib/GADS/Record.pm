@@ -184,6 +184,10 @@ sub has_fields
     return 1;
 }
 
+has is_group => (
+    is => 'ro',
+);
+
 has _columns_retrieved_index => (
     is  => 'lazy',
     isa => HashRef,
@@ -962,8 +966,14 @@ sub _transform_values
     foreach my $column (@{$self->columns_retrieved_do})
     {
         next if $column->internal;
-        my $value = $self->linked_id && $column->link_parent ? $original->{$column->link_parent->field} : $original->{$column->field};
-        $value = $self->linked_record_raw && $self->linked_record_raw->{$column->link_parent->field}
+        my $key = $self->linked_id && $column->link_parent ? $column->link_parent->field : $column->field;
+        # If this value was retrieved as part of a grouping, and if it's a sum,
+        # then the field key will be appended with "_sum". XXX Ideally we'd
+        # have a better way of knowing this has happened, but this should
+        # suffice for the moment.
+        $key = $key."_sum" if $self->is_group && $column->numeric;
+        my $value = $self->linked_id && $column->link_parent ? $original->{$key} : $original->{$key};
+        $value = $self->linked_record_raw && $self->linked_record_raw->{$key}
             if $self->linked_record_raw && $column->link_parent && !$self->is_historic;
 
         my $child_unique = ref $value eq 'ARRAY' && @$value > 0

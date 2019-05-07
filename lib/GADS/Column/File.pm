@@ -40,8 +40,11 @@ has '+fixedvals' => (
 
 sub _build_sprefix { 'value' };
 
+# Convert based on whether ID or name provided
 sub value_field_as_index
-{   return 'id';
+{   my ($self, $value) = @_;
+    return 'id' if !$value || $value =~ /^[0-9]+$/;
+    return $self->value_field;
 }
 
 after build_values => sub {

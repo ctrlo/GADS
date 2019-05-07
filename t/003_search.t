@@ -1775,7 +1775,7 @@ foreach my $multivalue (0..1)
                 }
             }
             else {
-                @sort_by = map { $_ && $columns->{$_}->id } @{$sort->{sort_by}};
+                @sort_by = map { $_ ? $columns->{$_}->id : $layout->column_id->id } @{$sort->{sort_by}};
             }
             $view->set_sorts([@sort_by], $sort_type);
 

@@ -2192,7 +2192,8 @@ sub _build_group_results
     # Work out the field name to select, and the appropriate aggregate function
     my @select_fields;
     my @cols;
-    if (my $view = $self->view)
+    my $view = $self->view;
+    if ($view && $view->is_group)
     {
         my %group_cols = map { $_->layout_id => 1 } @{$view->groups};
         @cols = map {
@@ -2203,7 +2204,7 @@ sub _build_group_results
                 group    => $group_cols{$_->id},
             }
         } $self->layout->view(
-            $self->view->id,
+            $view->id,
             order_dependencies => 1,
             user_can_read      => 1,
         );
@@ -2289,6 +2290,7 @@ sub _build_group_results
         my $select;
         my $as = $column->field;
         $as = $as.'_count' if $op eq 'count';
+        $as = $as.'_sum' if $op eq 'sum';
 
         # The select statement to get this column's value varies depending on
         # what we want to retrieve. If we're selecting a field with multiple
@@ -2589,7 +2591,7 @@ sub _build_group_results
     );
 
     return [$result->all]
-        if $self->isa('GADS::RecordsGraph');
+        if $self->isa('GADS::RecordsGraph') || $self->isa('GADS::RecordsGlobe');
 
     $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
@@ -2600,6 +2602,7 @@ sub _build_group_results
         push @all, GADS::Record->new(
             schema                  => $self->schema,
             record                  => $rec,
+            is_group                => $self->is_group,
             user                    => $self->user,
             layout                  => $self->layout,
             columns_retrieved_no    => $self->columns_retrieved_no,

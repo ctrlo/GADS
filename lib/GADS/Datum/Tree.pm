@@ -93,11 +93,13 @@ has value_hash => (
         {
             if (ref $_ eq 'HASH')
             {
+                next if !$_->{id};
                 push @ids, $_->{id};
                 push @texts, $_->{value} || '';
             }
             else {
-                my $e = $self->column->node($_);
+                my $e = $self->column->node($_)
+                    or next;
                 push @ids, $e && $e->{id};
                 push @texts, $e && $e->{value};
             }

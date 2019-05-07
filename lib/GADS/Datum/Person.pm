@@ -77,7 +77,7 @@ after set_value => sub {
 sub _id_to_hash
 {   my ($self, $id) = @_;
     $id or return undef;
-    my $prs = $self->schema->resultset('User')->search({ id => $id });
+    my $prs = $self->column->schema->resultset('User')->search({ id => $id });
     $prs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     return $prs->next;
 }
@@ -94,6 +94,7 @@ sub clear
     $self->clear_department;
     $self->clear_team;
     $self->clear_title;
+    $self->clear_text;
 }
 
 has schema => (
@@ -283,6 +284,7 @@ sub search_values_unique
 has text => (
     is      => 'rw',
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         $_[0]->value_hash && $_[0]->value_hash->{value};
     },

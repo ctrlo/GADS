@@ -584,7 +584,8 @@ sub _set_sorts_groups
     # Delete all old ones first
     $schema->resultset($table)->search({ view_id => $self->id })->delete;
 
-    my @fields = @$sortfield;
+    my @fields   = @$sortfield;
+    my @sorttype = $type eq 'sorts' && @$sorttype;
     my $order; my $type_last;
     foreach my $filter_id (@fields)
     {
@@ -597,7 +598,7 @@ sub _set_sorts_groups
         else {
             $layout_id = $filter_id;
         }
-        my $sorttype = shift @$sorttype || $type_last;
+        my $sorttype = shift @sorttype || $type_last;
         error __x"Invalid type {type}", type => $sorttype
             if $type eq 'sorts' && !grep { $_->{name} eq $sorttype } @{sort_types()};
         # Check column is valid and user has access

@@ -126,7 +126,8 @@ has value_hash => (
                 push @deleted, $_->{deleted};
             }
             else {
-                my $e = $self->column->enumval($_);
+                my $e = $self->column->enumval($_)
+                    or next;
                 push @ids, $e && $e->{id};
                 push @texts, $e && $e->{value};
                 push @deleted, $e && $e->{deleted};
