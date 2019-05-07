@@ -222,7 +222,6 @@
             <div class="col-md-4">
                 <p>
                     <select class="form-control" name="sortfield">
-                        <option value="" [% UNLESS sort.column.id %]selected[% END %]>ID</option>
                         [% FOR column IN layout.columns_for_filter %]
                             <option value="[% column.filter_id %]" [% IF sort.filter_id == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]</option>
                         [% END %]
