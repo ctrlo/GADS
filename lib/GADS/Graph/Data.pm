@@ -399,7 +399,7 @@ sub _build_data
                       ? $x->field
                       : $self->y_axis_stack eq 'count'
                       ? 'id_count' # Don't use field count as NULLs are not counted
-                      : $y_axis->field;
+                      : $y_axis->field."_".$self->y_axis_stack;
             no warnings 'numeric', 'uninitialized';
             $results->{$x_value}->{$k} += $line->get_column($fname); # 2 loops for linked values
             # Add on the linked column from another datasheet, if applicable
