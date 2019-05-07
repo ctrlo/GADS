@@ -456,7 +456,7 @@ sub html_form
         }
         # New entries may have a current ID from a failed database write, but
         # don't use
-        delete $val->{id} if $val->{record}->new_entry;
+        delete $val->{id} if $val->{record}->new_entry || $val->{record}->is_draft;
         $val->{presentation} = $val->{record}->presentation(@{$self->column->curval_fields});
         push @return, $val;
     }

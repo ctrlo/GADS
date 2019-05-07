@@ -156,7 +156,16 @@ foreach my $delete_not_used (0..1)
     $record->load_remembered_values(instance_id => $layout->instance_id);
     $curval_datum = $record->fields->{$curval->id};
     $curval_record_id = $curval_datum->ids->[0];
-    my @form_values = map { $_->{as_query} =~ s/foo20/foo30/; $_->{as_query} } @{$curval_datum->html_form};
+    my @form_values = @{$curval_datum->html_form};
+    my @qs = ("field8=foo10&field9=&field10=&field15=", "field8=foo20&field9=&field10=&field15=");
+    foreach my $form_value (@form_values)
+    {
+        # Draft record, so draft curval edits should not have an ID as they
+        # will be submitted afresh
+        ok(!$form_value->{id}, "Draft curval edit does not have an ID");
+        is($form_value->{as_query}, shift @qs, "Valid query data for draft curval edit");
+    }
+    @form_values = map { $_->{as_query} =~ s/foo20/foo30/; $_->{as_query} } @form_values;
     $curval_datum->set_value([@form_values]);
     $record->write(no_alerts => 1);
     my $current_id = $record->current_id;
