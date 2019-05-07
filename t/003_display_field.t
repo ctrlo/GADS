@@ -589,4 +589,12 @@ foreach my $field (@fields)
     like($@, qr/not be the same/, "Unable to write display field same as field itself");
 }
 
+# Finally check that columns with display fields can be deleted
+{
+    try { $string1->delete };
+    like($@, qr/remove these conditions before deletion/, "Correct error when deleting depended field");
+    try { $integer1->delete };
+    ok(!$@, "Correctly deleted independent display field");
+}
+
 done_testing();

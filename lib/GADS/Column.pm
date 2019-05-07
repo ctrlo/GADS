@@ -846,7 +846,7 @@ sub delete
         })->all
     )
     {
-        my @depsn = map { $_->name } @deps;
+        my @depsn = map { $_->layout->name } @deps;
         my $dep   = join ', ', @depsn;
         error __x"The following fields are conditional on this field: {dep}.
             Please remove these conditions before deletion.", dep => $dep;
@@ -934,6 +934,7 @@ sub delete
     $self->schema->resultset('Sort')->search({ parent_id => $self->id })->delete;
     $self->schema->resultset('LayoutDepend')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('LayoutGroup')->search({ layout_id => $self->id })->delete;
+    $self->schema->resultset('DisplayField')->search({ layout_id => $self->id })->delete;
 
     $self->schema->resultset('Instance')->search({ sort_layout_id => $self->id })->update({sort_layout_id => undef});;
     $self->schema->resultset('Layout')->find($self->id)->delete;
