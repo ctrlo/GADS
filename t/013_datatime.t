@@ -430,6 +430,9 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         {
             string1    => 'foobar3',
         },
+        {
+            string1    => '', # Test blank
+        },
     ];
     my $curval_sheet = t::lib::DataSheet->new(data => $data, instance_id => 2);
     $curval_sheet->create_records;
@@ -451,6 +454,10 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         },{
             string1    => 'Blank curval',
             date1      => '2015-03-10',
+        },{
+            string1    => 'Blank curval string',
+            date1      => '2015-04-10',
+            curval1    => 4,
         },
     ];
 
@@ -486,13 +493,14 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     my $return = $records->data_timeline(group => $sheet->columns->{curval1}->id);
 
     # Normal - should include dateranges that go over the from/to values
-    is( @{$return->{items}}, 5, "Correct number of items for group by curval" );
+    is( @{$return->{items}}, 6, "Correct number of items for group by curval" );
 
-    # Check that the pop-up values include all fields
     foreach my $item (@{$return->{items}})
     {
+        ok($item->{group}, "Item has a group defined");
+        # Check that the pop-up values include all fields
         # If the curval is blank, then don't expect it to appear in the pop-up
-        my $expected = $item->{current_id} == 7 ? 'string1,rag1' : 'string1,curval1,rag1';
+        my $expected = $item->{current_id} == 8 || $item->{current_id} == 9 ? 'string1,rag1' : 'string1,curval1,rag1';
         my $cols = join ',', map { $_->{name} } @{$item->{values}};
         # Should be all non-blank, non-date fields in view
         is($cols, $expected, "Correct columns in pop-up");

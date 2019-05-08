@@ -163,7 +163,8 @@ sub _build_items
         # If the grouping value is blank for this record, then set it to a
         # suitable textual value, otherwise it won't be rendered on the
         # timeline
-        @group_to_add = ('<blank>') if !@group_to_add;
+        @group_to_add = (undef) if !@group_to_add;
+        @group_to_add = map { $_ || '<blank>' } @group_to_add;
 
         my $count;
         my ($min_of_this, $max_of_this);
