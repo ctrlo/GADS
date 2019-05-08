@@ -36,7 +36,7 @@ foreach my $delete_not_used (0..1)
 
     # Add autocur and calc of autocur to curval sheet, to check that gets
     # updated on main sheet write
-    $curval_sheet->add_autocur(
+    my $autocur = $curval_sheet->add_autocur(
         refers_to_instance_id => 1,
         related_field_id      => $columns->{curval1}->id,
         curval_field_ids      => [$columns->{string1}->id],
@@ -182,6 +182,7 @@ foreach my $delete_not_used (0..1)
     $curval_record = $curval_datum->values->[0]->{record};
     is($curval_record->fields->{$curval_string->id}->as_string, 'foo10', "Curval value contains correct string value");
     is($curval_record->fields->{$calc->id}->as_string, '50', "Curval value contains correct autocur before write");
+    is($curval_record->fields->{$autocur->id}->as_string, 'Foo', "Autocur value is correct");
 }
 
 done_testing();

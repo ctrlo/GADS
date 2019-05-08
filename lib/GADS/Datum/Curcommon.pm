@@ -152,10 +152,12 @@ sub _build_values
     {
         foreach my $rec (@{$self->values_as_records})
         {
+            my $values = $self->column->_format_row($rec)->{values};
             push @return, +{
                 id       => !$rec->new_entry && $rec->current_id,
                 as_query => $rec->new_entry && $rec->as_query,
-                values   => $self->column->_format_row($rec)->{values},
+                values   => $values,
+                value    => $self->column->format_value(@$values),
                 record   => $rec,
             };
         }
@@ -167,10 +169,12 @@ sub _build_values
         foreach my $query (@{$self->values_as_query})
         {
             my $record = shift @records;
+            my $values = $self->column->_format_row($record)->{values};
             push @return, +{
                 id       => $record->current_id,
                 as_query => $query,
-                values   => $self->column->_format_row($record)->{values},
+                values   => $values,
+                value    => $self->column->format_value(@$values),
                 record   => $record,
             };
         }
