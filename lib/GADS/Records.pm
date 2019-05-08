@@ -2051,12 +2051,27 @@ sub data_timeline
             instance_id => $options{overlay},
         );
 
+        # Only show the first field, plus all the date fields
+        my $picked; my @to_show;
+        foreach ($layout->all_user_read)
+        {
+            if ($_->return_type =~ /date/)
+            {
+                push @to_show, $_;
+                next;
+            }
+            elsif (!$picked) {
+                push @to_show, $_;
+                $picked = 1;
+            }
+        }
         my $records = GADS::Records->new(
-            from   => $min,
-            to     => $max,
-            user   => $self->user,
-            layout => $layout,
-            schema => $self->schema,
+            columns => [ map { $_->id } @to_show ],
+            from    => $min,
+            to      => $max,
+            user    => $self->user,
+            layout  => $layout,
+            schema  => $self->schema,
         );
 
         my $timeline_overlay = GADS::Timeline->new(
