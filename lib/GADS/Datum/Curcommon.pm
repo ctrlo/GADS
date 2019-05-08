@@ -52,7 +52,7 @@ after set_value => sub {
     if (@records)
     {
         $self->_set_values_as_records(\@records);
-        @ids = map { $_->current_id => 1 } grep { !$_->new_entry } @records;
+        @ids = map { $_->current_id } grep { !$_->new_entry } @records;
         # Exclude the parent curval to prevent recursive loops
         my @queries = map { $_->as_query(exclude_curcommon => 1) } grep { $_->new_entry } @records;
         $self->_set_values_as_query(\@queries);
@@ -358,7 +358,7 @@ sub _build_values_as_query_records
         {
             next unless $col->type eq 'autocur';
             my $datum = $record->fields->{$col->id};
-            my @records = map { $_->{record} } @{$datum->values};
+            my @records = grep { $_->current_id != $self->record->current_id } map { $_->{record} } @{$datum->values};
             push @records, $self->record;
             $datum->set_value(\@records, allow_set_autocur => 1);
         }

@@ -124,6 +124,33 @@ foreach my $delete_not_used (0..1)
     $curval_datum = $record->fields->{$curval->id};
     like($curval_datum->as_string, qr/^(foo1; foo5|foo5; foo1)$/, "Curval value contains updated record");
 
+    # Edit existing - no actual change
+    $record = GADS::Record->new(
+        user                 => $sheet->user_normal1,
+        layout               => $layout,
+        schema               => $schema,
+        curcommon_all_fields => 1,
+    );
+    $record->find_current_id(3);
+    $curval_datum = $record->fields->{$curval->id};
+    $curval_count = $schema->resultset('Current')->search({ instance_id => 2 })->count;
+    $curval_datum->set_value([
+        # Construct a query equivalent to what it would be if a user edited a
+        # curval edit field and then saved it without any changes. That is, the
+        # query string of the form, plus the current_id parameter
+        map {
+            $_->{record}->as_query . "&current_id=" . $_->{record}->current_id
+        } @{$curval_datum->values}
+    ]);
+    $record->write(no_alerts => 1);
+    $curval_count2 = $schema->resultset('Current')->search({ instance_id => 2 })->count;
+    is($curval_count2, $curval_count, "No new curvals created");
+    $record->clear;
+    $record->find_current_id(3);
+    is($record->fields->{$calcmain->id}->as_string, "foo1foo5", "Main calc correct");
+    $curval_datum = $record->fields->{$curval->id};
+    like($curval_datum->as_string, qr/^(foo1; foo5|foo5; foo1)$/, "Curval value still contains same values");
+
     # Delete existing
     $curval_count = $schema->resultset('Current')->search({ instance_id => 2 })->count;
     $curval_datum->set_value([$curval_record_id]);

@@ -1974,7 +1974,8 @@ sub _field_write
                     foreach my $record (@{$datum_write->values_as_query_records})
                     {
                         $record->write(%options, no_draft_delete => 1, no_write_values => 1);
-                        push @{$self->_records_to_write_after}, $record;
+                        push @{$self->_records_to_write_after}, $record
+                            if $record->is_changed;
                         my $id = $record->current_id;
                         my %entry = %$entry; # Copy to stop referenced id being overwritten
                         $entry{value} = $id;
