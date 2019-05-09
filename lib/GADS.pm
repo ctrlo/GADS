@@ -1971,6 +1971,7 @@ prefix '/:layout_name' => sub {
             $params->{sort}                 = $records->sort_first;
             $params->{subset}               = $subset;
             $params->{records}              = $records->presentation(@columns);
+            $params->{aggregate}            = $records->aggregate_presentation(@columns);
             $params->{count}                = $records->count;
             $params->{columns}              = [ map $_->presentation(sort => $records->sort_first), @columns ];
             $params->{has_rag_column}       = grep { $_->type eq 'rag' } @columns;
@@ -2561,7 +2562,8 @@ prefix '/:layout_name' => sub {
                 $column->set_permissions(\%permissions);
 
                 $column->$_(param $_)
-                    foreach (qw/name name_short description helptext optional isunique set_can_child multivalue remember link_parent_id topic_id width/);
+                    foreach (qw/name name_short description helptext optional isunique set_can_child
+                        multivalue remember link_parent_id topic_id width aggregate/);
                 $column->type(param 'type')
                     unless param('id'); # Can't change type as it would require DBIC resultsets to be removed and re-added
                 $column->$_(param $_)

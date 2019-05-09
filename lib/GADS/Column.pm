@@ -451,6 +451,11 @@ sub _build_topic
     $self->schema->resultset('Topic')->find($self->topic_id);
 }
 
+has aggregate => (
+    is  => 'rw',
+    isa => Maybe[Str],
+);
+
 has has_display_field => (
     is  => 'lazy',
     isa => Bool,
@@ -755,6 +760,7 @@ sub build_values
     $self->field("field$original->{id}");
     $self->type($original->{type});
     $self->display_condition($original->{display_condition});
+    $self->aggregate($original->{aggregate} || undef);
 
     # XXX Move to curval class
     if ($self->type eq 'curval')
@@ -1012,6 +1018,7 @@ sub write
     $newitem->{link_parent}       = $self->link_parent_id;
     $newitem->{display_condition} = $self->display_fields->as_hash->{condition},
     $newitem->{instance_id}       = $self->layout->instance_id;
+    $newitem->{aggregate}         = $self->aggregate;
     $newitem->{position}          = $self->position
         if $self->position; # Used on layout import
 
@@ -1353,6 +1360,10 @@ sub import_hash
         old => $self->description, new => $values->{description}, name => $self->name
             if $report && $self->description ne $values->{description};
     $self->description($values->{description});
+    notice __x"Update: aggregate from {old} to {new} for {name}",
+        old => $self->aggregate, new => $values->{aggregate}, name => $self->name
+            if $report && ($self->aggregate || '') ne ($values->{aggregate} || '');
+    $self->aggregate($values->{aggregate});
     notice __x"Update: width from {old} to {new} for {name}",
         old => $self->width, new => $values->{width}, name => $self->name
             if $report && $self->width != $values->{width};
@@ -1405,6 +1416,7 @@ sub export_hash
         link_parent       => $self->link_parent && $self->link_parent->id,
         multivalue        => $self->multivalue,
         filter            => $self->filter->as_json,
+        aggregate         => $self->aggregate,
         permissions       => $permissions,
     };
 

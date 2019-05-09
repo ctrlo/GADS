@@ -168,6 +168,12 @@ __PACKAGE__->table("layout");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 aggregate
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 12
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -231,6 +237,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "topic_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "aggregate",
+  { data_type => "varchar", is_nullable => 1, size => 45 },
 );
 
 =head1 PRIMARY KEY

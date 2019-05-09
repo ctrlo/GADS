@@ -2197,6 +2197,57 @@ sub _compare_col
     return 1;
 }
 
+has columns_aggregate => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_columns_aggregate
+{   my $self = shift;
+    [ grep { $_->aggregate } @{$self->columns_retrieved_no} ];
+}
+
+# XXX Move into own role at some point
+sub aggregate_presentation
+{   my ($self, @columns) = @_;
+
+    my $record = $self->aggregate_results
+        or return undef;
+
+    my @presentation = map {
+        $record->fields->{$_->id} && $_->presentation(datum_presentation => $record->fields->{$_->id}->presentation)
+    } @columns;
+
+    return +{
+        columns => \@presentation,
+    };
+}
+
+has aggregate_results => (
+    is => 'lazy',
+);
+
+sub _build_aggregate_results
+{   my $self = shift;
+
+    return undef if ! @{$self->columns_aggregate};
+
+    my @columns = map {
+        +{
+            id       => $_->id,
+            column   => $_,
+            operator => $_->aggregate,
+        }
+    } @{$self->columns_aggregate};
+
+    my $results = $self->_build_group_results(columns => \@columns, is_group => 1);
+
+    panic "Unexpected number of aggregate results"
+        if @{$results} > 1;
+
+    return $results->[0];
+}
+
 sub _build_group_results
 {   my ($self, %options) = @_;
 
@@ -2208,7 +2259,12 @@ sub _build_group_results
     my @select_fields;
     my @cols;
     my $view = $self->view;
-    if ($view && $view->is_group)
+
+    if ($options{columns})
+    {
+        @cols = @{$options{columns}};
+    }
+    elsif ($view && $view->is_group)
     {
         my %group_cols = map { $_->layout_id => 1 } @{$view->groups};
         @cols = map {
@@ -2617,7 +2673,12 @@ sub _build_group_results
         push @all, GADS::Record->new(
             schema                  => $self->schema,
             record                  => $rec,
-            is_group                => $self->is_group,
+            # is_group affects what key is used by GADS::Record for the result
+            # (e.g. _sum). This is a bit messy and should be defined better. We
+            # force is_group to be 1 if calculating total aggregates, which
+            # will then force the sum. At the moment the only aggregate is sum,
+            # but that may change in the future
+            is_group                => $options{is_group} || $self->is_group,
             user                    => $self->user,
             layout                  => $self->layout,
             columns_retrieved_no    => $self->columns_retrieved_no,
