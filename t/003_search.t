@@ -180,6 +180,7 @@ my @filters = (
             operator => 'equal',
         }],
         count => 1,
+        aggregate => 7,
     },
     {
         name  => 'check case-insensitive search',
@@ -190,6 +191,7 @@ my @filters = (
             operator => 'begins_with',
         }],
         count => 2,
+        aggregate => 7,
     },
     {
         name  => 'string is long1',
@@ -200,6 +202,7 @@ my @filters = (
             operator => 'equal',
         }],
         count => 1,
+        aggregate => 2,
     },
     {
         name  => 'string is long',
@@ -210,6 +213,7 @@ my @filters = (
             operator => 'begins_with',
         }],
         count => 2,
+        aggregate => 5,
     },
     {
         name  => 'date is equal',
@@ -220,6 +224,7 @@ my @filters = (
             operator => 'equal',
         }],
         count => 2,
+        aggregate => 13,
     },
     {
         name  => 'date using CURDATE',
@@ -230,6 +235,7 @@ my @filters = (
             operator => 'equal',
         }],
         count => 2,
+        aggregate => 13,
     },
     {
         name  => 'date using CURDATE plus 1 year',
@@ -240,6 +246,7 @@ my @filters = (
             operator => 'equal',
         }],
         count => 1,
+        aggregate => '',
     },
     {
         name  => 'date in calc',
@@ -250,6 +257,7 @@ my @filters = (
             operator => 'equal',
         }],
         count => 1,
+        aggregate => 7,
     },
     {
         name  => 'negative filter for calc',
@@ -260,6 +268,7 @@ my @filters = (
             operator => 'less',
         }],
         count => 1,
+        aggregate => -4,
     },
     {
         name  => 'date is empty',
@@ -269,6 +278,7 @@ my @filters = (
             operator => 'is_empty',
         }],
         count => 4,
+        aggregate => 6,
     },
     {
         name  => 'date is empty - value as array ref',
@@ -279,6 +289,7 @@ my @filters = (
             value    => [],
         }],
         count => 4,
+        aggregate => 6,
     },
     {
         name  => 'date is blank string', # Treat as empty
@@ -290,6 +301,7 @@ my @filters = (
         }],
         count     => 4,
         no_errors => 1, # Would normally bork
+        aggregate => 6,
     },
     {
         name  => 'string begins with Foo',
@@ -300,6 +312,7 @@ my @filters = (
             operator => 'begins_with',
         }],
         count => 2,
+        aggregate => 7,
     },
     {
         name  => 'string contains ooba',
@@ -310,6 +323,7 @@ my @filters = (
             operator => 'contains',
         }],
         count => 1,
+        aggregate => '',
     },
     {
         name  => 'string does not contain ooba',
@@ -320,6 +334,7 @@ my @filters = (
             operator => 'not_contains',
         }],
         count => 6,
+        aggregate => 19,
     },
     {
         name  => 'string does not begin with Foo',
@@ -330,6 +345,7 @@ my @filters = (
             operator => 'not_begins_with',
         }],
         count => 5,
+        aggregate => 12,
     },
     {
         name  => 'string is empty',
@@ -339,6 +355,7 @@ my @filters = (
             operator => 'is_empty',
         }],
         count => 3,
+        aggregate => 7,
     },
     {
         name  => 'string is not equal to Foo',
@@ -349,6 +366,7 @@ my @filters = (
             operator => 'not_equal',
         }],
         count => 6,
+        aggregate => 12,
     },
     {
         name  => 'string is not equal to nothing', # should convert to not empty
@@ -359,6 +377,7 @@ my @filters = (
             operator => 'not_equal',
         }],
         count => 4,
+        aggregate => 12,
     },
     {
         name  => 'string is not equal to nothing (array ref)', # should convert to not empty
@@ -369,6 +388,7 @@ my @filters = (
             operator => 'not_equal',
         }],
         count => 4,
+        aggregate => 12,
     },
     {
         name  => 'greater than undefined value', # matches against empty instead
@@ -378,6 +398,7 @@ my @filters = (
             operator => 'greater',
         }],
         count => 1,
+        aggregate => '',
     },
     {
         name  => 'negative integer filter',
@@ -388,6 +409,7 @@ my @filters = (
             value    => -1,
         }],
         count => 1,
+        aggregate => -4,
     },
     {
         name  => 'daterange less than',
@@ -398,6 +420,7 @@ my @filters = (
             operator => 'less',
         }],
         count => 1,
+        aggregate => 7,
     },
     {
         name  => 'daterange less or equal',
@@ -408,6 +431,7 @@ my @filters = (
             operator => 'less_or_equal',
         }],
         count => 2,
+        aggregate => 7,
     },
     {
         name  => 'daterange greater than',
@@ -418,6 +442,7 @@ my @filters = (
             operator => 'greater',
         }],
         count => 1,
+        aggregate => 6,
     },
     {
         name  => 'daterange greater or equal',
@@ -428,6 +453,7 @@ my @filters = (
             operator => 'greater_or_equal',
         }],
         count => 2,
+        aggregate => 6,
     },
     {
         name  => 'daterange equal',
@@ -438,6 +464,7 @@ my @filters = (
             operator => 'equal',
         }],
         count => 1,
+        aggregate => 6,
     },
     {
         name  => 'daterange not equal',
@@ -448,6 +475,7 @@ my @filters = (
             operator => 'not_equal',
         }],
         count => 6,
+        aggregate => 13,
     },
     {
         name  => 'daterange empty',
@@ -457,6 +485,7 @@ my @filters = (
             operator => 'is_empty',
         }],
         count => 4,
+        aggregate => 6,
     },
     {
         name  => 'daterange not empty',
@@ -466,6 +495,7 @@ my @filters = (
             operator => 'is_not_empty',
         }],
         count => 3,
+        aggregate => 13,
     },
     {
         name  => 'daterange contains',
@@ -476,6 +506,7 @@ my @filters = (
             operator => 'contains',
         }],
         count => 2,
+        aggregate => 6,
     },
     {
         name  => 'daterange does not contain',
@@ -486,6 +517,7 @@ my @filters = (
             operator => 'not_contains',
         }],
         count => 5,
+        aggregate => 13,
     },
     {
         name  => 'nested search',
@@ -515,6 +547,7 @@ my @filters = (
         ],
         condition => 'AND',
         count     => 1,
+        aggregate => '',
     },
     {
         name  => 'Search using enum with different tree in view',
@@ -525,6 +558,7 @@ my @filters = (
             operator => 'equal',
         }],
         count => 3,
+        aggregate => 7,
     },
     {
         name  => 'Search negative multivalue enum',
@@ -535,6 +569,7 @@ my @filters = (
             operator => 'not_equal',
         }],
         count => 4,
+        aggregate => 12,
     },
     {
         name  => 'Search using enum with curval in view',
@@ -549,6 +584,7 @@ my @filters = (
         values => {
             $columns->{curval1}->id => "Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012",
         },
+        aggregate => 7,
     },
     {
         name  => 'Search 2 using enum with different tree in view',
@@ -562,6 +598,7 @@ my @filters = (
             }
         ],
         count => 2,
+        aggregate => 3,
     },
     {
         name  => 'Search for ID',
@@ -575,6 +612,7 @@ my @filters = (
             }
         ],
         count => 1,
+        aggregate => 5,
     },
     {
         name  => 'Search for multiple IDs',
@@ -588,6 +626,7 @@ my @filters = (
             }
         ],
         count => 2,
+        aggregate => 11,
     },
     {
         name  => 'Search for empty IDs',
@@ -601,6 +640,7 @@ my @filters = (
             }
         ],
         count => 0,
+        aggregate => '',
     },
     {
         name  => 'Search for version date 1',
@@ -621,6 +661,7 @@ my @filters = (
         ],
         condition => 'AND',
         count     => 7,
+        aggregate => 19,
     },
     {
         name  => 'Search for version date 2',
@@ -634,6 +675,7 @@ my @filters = (
             },
         ],
         count => 0,
+        aggregate => '',
     },
     {
         name  => 'Search for created date',
@@ -647,6 +689,7 @@ my @filters = (
             },
         ],
         count => 7,
+        aggregate => 19,
     },
     {
         name  => 'Search for version editor',
@@ -660,6 +703,7 @@ my @filters = (
             },
         ],
         count => 1, # Other records written by superadmin user on start
+        aggregate => 7,
     },
     {
         name  => 'Search for invalid date',
@@ -674,6 +718,7 @@ my @filters = (
         ],
         count     => 0,
         no_errors => 1,
+        aggregate => '',
     },
     {
         name  => 'Search for invalid daterange',
@@ -688,6 +733,7 @@ my @filters = (
         ],
         count     => 0,
         no_errors => 1,
+        aggregate => '',
     },
     {
         name  => 'Search by curval ID',
@@ -701,6 +747,7 @@ my @filters = (
             },
         ],
         count     => 2,
+        aggregate => 11,
     },
     {
         name  => 'Search by curval ID not equal',
@@ -714,6 +761,7 @@ my @filters = (
             },
         ],
         count     => 5,
+        aggregate => 8,
     },
     {
         name  => 'Search curval ID and enum, only curval in view',
@@ -734,6 +782,7 @@ my @filters = (
         ],
         condition => 'AND',
         count     => 1,
+        aggregate => -4,
     },
     {
         name  => 'Search by curval field',
@@ -747,6 +796,7 @@ my @filters = (
             },
         ],
         count     => 2,
+        aggregate => 11,
     },
     {
         name  => 'Search by curval field not equal',
@@ -760,6 +810,7 @@ my @filters = (
             },
         ],
         count     => 5,
+        aggregate => 8,
     },
     {
         name  => 'Search by curval enum field',
@@ -773,6 +824,7 @@ my @filters = (
             },
         ],
         count     => 2,
+        aggregate => 11,
     },
     {
         name  => 'Search by curval within curval',
@@ -786,6 +838,7 @@ my @filters = (
             },
         ],
         count     => 1,
+        aggregate => -4,
     },
     {
         name  => 'Search by curval enum field across 2 curvals',
@@ -806,6 +859,7 @@ my @filters = (
         ],
         condition => 'OR',
         count     => 3,
+        aggregate => 11,
     },
     {
         name  => 'Search by autocur ID',
@@ -820,6 +874,7 @@ my @filters = (
         ],
         count     => 1,
         layout    => $curval_sheet->layout,
+        aggregate => 50,
     },
     {
         name  => 'Search by autocur ID not equal',
@@ -837,6 +892,7 @@ my @filters = (
         # values that are counted separately on a graph
         count_graph => 2,
         layout      => $curval_sheet->layout,
+        aggregate   => 99,
     },
     {
         name  => 'Search for invalid autocur',
@@ -852,6 +908,7 @@ my @filters = (
         count     => 0,
         no_errors => 1,
         layout    => $curval_sheet->layout,
+        aggregate => '',
     },
     {
         name  => 'Search by record ID',
@@ -865,6 +922,7 @@ my @filters = (
             },
         ],
         count     => 1,
+        aggregate => -4,
     },
     {
         name  => 'Search by invalid record ID',
@@ -879,6 +937,7 @@ my @filters = (
         ],
         count     => 0,
         no_errors => 1,
+        aggregate => '',
     },
 );
 
@@ -891,6 +950,22 @@ foreach my $layout_from_instances (0..1)
     {
         $instances = GADS::Instances->new(schema => $schema, user => $user);
         $layout = $instances->layout($layout->instance_id);
+    }
+
+    my $integer1 = $layout->column_by_name('integer1');
+    if (!$layout_from_instances)
+    {
+        $integer1->aggregate('sum');
+        $integer1->write;
+        $layout->clear;
+    }
+
+    my $integer1_curval = $curval_sheet->layout->column_by_name('integer1');
+    if (!$layout_from_instances)
+    {
+        $integer1_curval->aggregate('sum');
+        $integer1_curval->write;
+        $curval_sheet->layout->clear;
     }
 
     foreach my $filter (@filters)
@@ -951,6 +1026,19 @@ foreach my $layout_from_instances (0..1)
 
         is( $records->count, $filter->{count}, "$filter->{name} for record count $filter->{count}");
         is( @{$records->results}, $filter->{count}, "$filter->{name} actual records matches count $filter->{count}");
+
+        # Basic aggregate tests
+        {
+            my @column_ids = @{$view->columns};
+            my $int_id = $records->layout->instance_id == $curval_sheet->layout->instance_id
+                ? $integer1_curval->id : $integer1->id;
+            push @column_ids, $int_id if ! grep $_ == $int_id, @column_ids;
+            $view->columns(\@column_ids);
+            $view->write(no_errors => $filter->{no_errors});
+            $records->clear;
+            my $aggregate = $records->aggregate_results;
+            is($aggregate->fields->{$int_id}->as_string, $filter->{aggregate}, "Aggregate integer value correct");
+        }
 
         # Basic graph test. Total of points on graph should match the number of results
         my $graph = GADS::Graph->new(

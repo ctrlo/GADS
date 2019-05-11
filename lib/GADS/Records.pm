@@ -2644,7 +2644,7 @@ sub _build_group_results
         }
     };
 
-    my $q = $self->search_query(prefetch => 1, search => 1, retain_join_order => 1, group => 1, sort => 0, aggregate => $options{aggregate}); # Called first to generate joins
+    my $q = $self->search_query(prefetch => 1, search => 1, retain_join_order => 1, group => 1, sort => 0); # Called first to generate joins
 
     my $select = {
         select => [@select_fields],
