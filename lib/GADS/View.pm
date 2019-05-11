@@ -563,6 +563,7 @@ sub set_sorts
 
 sub set_groups
 {   my $self = shift;
+    $self->clear_is_group;
     $self->_set_sorts_groups('groups', @_);
 }
 
@@ -627,8 +628,9 @@ sub _set_sorts_groups
 }
 
 has is_group => (
-    is  => 'lazy',
-    isa => Bool,
+    is      => 'lazy',
+    isa     => Bool,
+    clearer => 1,
 );
 
 sub _build_is_group

@@ -275,6 +275,10 @@ sub _jpfetch
 
     foreach (@jpstore2)
     {
+        # Include only aggregate columns if requested. This is used when a
+        # records object has been built, but then only the aggregate columns
+        # within that are required for an aggregate query
+        next if $options{aggregate} && !$_->{column}->aggregate;
         next if exists $options{prefetch} && !$options{prefetch} && $_->{prefetch} && !$options{group};
         $self->_jpfetch_add(options => \%options, join => $_, return => $joins);
     }

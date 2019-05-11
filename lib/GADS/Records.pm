@@ -779,8 +779,9 @@ sub _build_search_limit_reached
 }
 
 has is_group => (
-    is  => 'lazy',
-    isa => Bool,
+    is      => 'lazy',
+    isa     => Bool,
+    clearer => 1,
 );
 
 sub _build_is_group
@@ -791,7 +792,8 @@ sub _build_is_group
 # The current field that is being grouped by in the table view, where a view
 # has more than one group and they can be drilled down into
 has current_group_id => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_current_group_id
@@ -1305,11 +1307,14 @@ sub clear
     $self->clear_current_ids;
     $self->_clear_search_all_fields;
     $self->clear_results;
+    $self->clear_aggregate_results;
     $self->clear_search;
     $self->_set__next_single_id(0);
     $self->_set_current_ids(undef);
     $self->_clear_all_cids_store;
     $self->clear_default_sort;
+    $self->clear_is_group;
+    $self->clear_current_group_id;
 }
 
 # Construct various parameters used for the query. These are all
@@ -2224,7 +2229,8 @@ sub aggregate_presentation
 }
 
 has aggregate_results => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_aggregate_results
@@ -2240,7 +2246,7 @@ sub _build_aggregate_results
         }
     } @{$self->columns_aggregate};
 
-    my $results = $self->_build_group_results(columns => \@columns, is_group => 1);
+    my $results = $self->_build_group_results(columns => \@columns, is_group => 1, aggregate => 1);
 
     panic "Unexpected number of aggregate results"
         if @{$results} > 1;
@@ -2638,16 +2644,16 @@ sub _build_group_results
         }
     };
 
-    my $q = $self->search_query(prefetch => 1, search => 1, retain_join_order => 1, group => 1, sort => 0); # Called first to generate joins
+    my $q = $self->search_query(prefetch => 1, search => 1, retain_join_order => 1, group => 1, sort => 0, aggregate => $options{aggregate}); # Called first to generate joins
 
     my $select = {
         select => [@select_fields],
         join     => [
-            $self->linked_hash(group => 1, prefetch => 1, search => 0, retain_join_order => 1, sort => 0),
+            $self->linked_hash(group => 1, prefetch => 1, search => 0, retain_join_order => 1, sort => 0, aggregate => $options{aggregate}),
             {
                 'record_single' => [
                     'record_later',
-                    $self->jpfetch(group => 1, prefetch => 1, search => 0, linked => 0, retain_join_order => 1, sort => 0),
+                    $self->jpfetch(group => 1, prefetch => 1, search => 0, linked => 0, retain_join_order => 1, sort => 0, aggregate => $options{aggregate}),
                 ],
             },
         ],
