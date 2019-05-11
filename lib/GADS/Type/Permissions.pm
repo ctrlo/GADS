@@ -31,7 +31,7 @@ sub all
 
 sub permission
 {   my $short = shift;
-    GADS::Type::Permission->new(short => $_);
+    GADS::Type::Permission->new(short => $short);
 }
 
 sub permission_mapping
