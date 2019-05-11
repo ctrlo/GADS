@@ -2664,7 +2664,7 @@ sub _build_group_results
         if $self->rewind;
 
     my $result = $self->schema->resultset('Current')->search(
-        $self->_cid_search_query(sort => 0), $select
+        $self->_cid_search_query(sort => 0, aggregate => $options{aggregate}), $select
     );
 
     return [$result->all]

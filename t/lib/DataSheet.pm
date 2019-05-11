@@ -920,7 +920,7 @@ sub set_multivalue
         if ($self->multivalue_columns->{$col->type})
         {
             $col->multivalue($value);
-            $col->write;
+            $col->write(override_permissions => 1);
         }
     }
     $self->layout->clear;
