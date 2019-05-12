@@ -14,7 +14,7 @@ sub _presentation_details {
         href                  => $_->{value},
         refers_to_instance_id => $rti,
         values                => $_->{values},
-        presentation          => $_->{record}->presentation(@{$self->column->curval_fields}),
+        presentation          => $_->{record}->presentation(curval_fields => $self->column->curval_fields),
     }, @{$self->values};
 
     return \@links;

@@ -3,17 +3,31 @@ package GADS::Role::Presentation::Record;
 use Moo::Role;
 
 sub _presentation_map_columns {
-    my ($self, @columns) = @_;
+    my ($self, %options) = @_;
+
+    my @columns = @{delete $options{columns}};
 
     my @mapped = map {
-        $_->presentation(datum_presentation => $self->fields->{$_->id}->presentation);
+        $_->presentation(datum_presentation => $self->fields->{$_->id}->presentation, %options);
     } @columns;
 
     return \@mapped;
 }
 
 sub presentation {
-    my ($self, @columns) = @_;
+    my ($self, %options) = @_;
+
+    # For an edit show all relevant fields for edit, otherwise assume record
+    # read and show all view columns
+    my @columns = $options{edit} && $options{new}
+        ? $self->layout->all(sort_by_topics => 1, user_can_write_new => 1, can_child => $options{child}, userinput => 1)
+        : $options{edit}
+        ? $self->layout->all(sort_by_topics => 1, user_can_readwrite_existing => 1, can_child => $options{child}, userinput => 1)
+        : $options{curval_fields}
+        ? @{$options{curval_fields}}
+        : $options{group}
+        ? @{$self->columns_view}
+        : ($self->layout->column_id, @{$self->columns_view});
 
     # Work out the indentation each field should have. A field will be indented
     # if it has a display condition of an immediately-previous field. This will
@@ -51,7 +65,7 @@ sub presentation {
         parent_id       => $self->parent_id,
         current_id      => $self->current_id,
         instance_id     => $self->layout->instance_id,
-        columns         => $self->_presentation_map_columns(@columns),
+        columns         => $self->_presentation_map_columns(%options, columns => \@columns),
         indent          => $indent,
         deleted         => $self->deleted,
         deletedby       => $self->deletedby,

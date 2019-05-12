@@ -3,10 +3,10 @@ package GADS::Role::Presentation::Records;
 use Moo::Role;
 
 sub presentation {
-    my ($self, @columns) = @_;
+    my $self = shift;
 
     return [
-        map $_->presentation(@columns), @{$self->results}
+        map $_->presentation(group => $self->is_group), @{$self->results}
     ];
 }
 

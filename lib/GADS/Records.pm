@@ -281,6 +281,14 @@ has columns_retrieved_do => (
     clearer => 1,
 );
 
+# All the columns that will be rendered for the current view
+# XXX Possibly same as columns_retrieved_no?
+has columns_view => (
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
+);
+
 has max_results => (
     is      => 'rw',
     clearer => 1,
@@ -955,6 +963,7 @@ sub _build_standard_results
             layout                  => $self->layout,
             columns_retrieved_no    => $self->columns_retrieved_no,
             columns_retrieved_do    => $self->columns_retrieved_do,
+            columns_view            => $self->columns_view,
             set_deleted             => $rec->{deleted},
             set_deletedby           => $rec->{deletedby},
             set_record_created      => $rec->{record_created},
@@ -1297,12 +1306,36 @@ sub _build_columns_retrieved_no
     \@columns_retrieved_no;
 }
 
+sub _build_columns_view
+{   my $self = shift;
+
+    my @cols;
+
+    if (my $view = $self->view)
+    {
+        my %view_layouts = map { $_ => 1 } @{$view->columns};
+        @cols = grep {
+            (!$self->current_group_id || $_->{id} != $self->current_group_id ) && $view_layouts{$_->{id}}
+        } $self->layout->all(user_can_read => 1);
+        if ($self->current_group_id)
+        {
+            unshift @cols, $self->layout->column($self->current_group_id);
+        }
+    }
+    else {
+        @cols = $self->layout->all(user_can_read => 1);
+    }
+
+    return \@cols;
+}
+
 sub clear
 {   my $self = shift;
     $self->clear_pages;
     $self->_clear_view_limits;
     $self->clear_columns_retrieved_no;
     $self->clear_columns_retrieved_do;
+    $self->clear_columns_view;
     $self->clear_count;
     $self->clear_current_ids;
     $self->_clear_search_all_fields;
@@ -2214,14 +2247,14 @@ sub _build_columns_aggregate
 
 # XXX Move into own role at some point
 sub aggregate_presentation
-{   my ($self, @columns) = @_;
+{   my $self = shift;
 
     my $record = $self->aggregate_results
         or return undef;
 
     my @presentation = map {
         $record->fields->{$_->id} && $_->presentation(datum_presentation => $record->fields->{$_->id}->presentation)
-    } @columns;
+    } @{$self->columns_view};
 
     return +{
         columns => \@presentation,
@@ -2694,6 +2727,7 @@ sub _build_group_results
             layout                  => $self->layout,
             columns_retrieved_no    => $self->columns_retrieved_no,
             columns_retrieved_do    => $self->columns_retrieved_do,
+            columns_view            => $self->columns_view,
             curcommon_all_fields    => $self->curcommon_all_fields,
         );
     }

@@ -1183,10 +1183,10 @@ get '/record_body/:id' => require_login sub {
     $record->find_current_id($id);
     my $layout = $record->layout;
     var 'layout' => $layout;
-    my @columns = $layout->all(user_can_read => 1);
+    my @columns = @{$record->columns_view};
     template 'record_body' => {
         is_modal       => 1, # Assume modal if loaded via this route
-        record         => $record->presentation(@columns),
+        record         => $record->presentation,
         has_rag_column => !!(grep { $_->type eq 'rag' } @columns),
         all_columns    => \@columns,
     }, { layout => undef };
@@ -1222,11 +1222,11 @@ get qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
     var 'layout' => $layout;
 
     my @versions    = $record->versions;
-    my @columns     = $record->layout->all(user_can_read => 1);
+    my @columns     = @{$record->columns_view};
     my @first_crumb = $action eq 'purge' ? ( $layout, "/purge" => 'deleted records' ) : ( $layout, "/data" => 'records' );
 
     my $output = template 'record' => {
-        record         => $record->presentation(@columns),
+        record         => $record->presentation,
         versions       => \@versions,
         all_columns    => \@columns,
         has_rag_column => !!(grep { $_->type eq 'rag' } @columns),
@@ -1717,9 +1717,12 @@ prefix '/:layout_name' => sub {
         elsif ($viewtype eq 'calendar')
         {
             # Get details of the view and work out color markers for date fields
-            my @columns = $view
-                ? $layout->view($view->id, user_can_read => 1)
-                : $layout->all(user_can_read => 1);
+            my $records = GADS::Records->new(
+                user    => $user,
+                layout  => $layout,
+                schema  => schema,
+            );
+            my @columns = @{$records->columns_view};
             my @colors;
             my $graph = GADS::Graph::Data->new(
                 schema  => schema,
@@ -1963,15 +1966,13 @@ prefix '/:layout_name' => sub {
                 $subset->{pnumbers} = [1..$pages];
             }
 
-            my @columns = $view
-                ? $layout->view($view->id, user_can_read => 1, current_group_id => $records->current_group_id)
-                : $layout->all(user_can_read => 1);
+            my @columns = @{$records->columns_view};
             unshift @columns, $layout->column_id unless $records->is_group;
             $params->{user_can_edit}        = $layout->user_can('write_existing');
             $params->{sort}                 = $records->sort_first;
             $params->{subset}               = $subset;
-            $params->{records}              = $records->presentation(@columns);
-            $params->{aggregate}            = $records->aggregate_presentation(@columns);
+            $params->{records}              = $records->presentation;
+            $params->{aggregate}            = $records->aggregate_presentation;
             $params->{count}                = $records->count;
             $params->{columns}              = [ map $_->presentation(sort => $records->sort_first), @columns ];
             $params->{has_rag_column}       = grep { $_->type eq 'rag' } @columns;
@@ -3376,23 +3377,19 @@ sub _process_edit
 
     my $record = GADS::Record->new(%params);
 
-    my $include_draft = defined(param 'include_draft');
-
-    my $layout = var 'layout'; # undef for existing record
-
     if (my $delete_id = param 'delete')
     {
         $record->find_current_id($delete_id);
-        $layout = $record->layout;
         if (process( sub { $record->delete_current }))
         {
             return forwardHome(
-                { success => 'Record has been deleted successfully' }, $layout->identifier.'/data' );
+                { success => 'Record has been deleted successfully' }, $record->layout->identifier.'/data' );
         }
     }
 
     if (param 'delete_draft')
     {
+        my $layout = var('layout');
         if (process( sub { $record->delete_user_drafts }))
         {
             return forwardHome(
@@ -3400,11 +3397,18 @@ sub _process_edit
         }
     }
 
+    my $layout;
+
     if ($id)
     {
+        my $include_draft = defined(param 'include_draft');
         $record->find_current_id($id, include_draft => $include_draft);
         $layout = $record->layout;
         var 'layout' => $layout;
+    }
+    else {
+        # New record
+        $layout = var 'layout'; # undef for existing record
     }
 
     my $child = param('child') || $record->parent_id;
@@ -3412,11 +3416,9 @@ sub _process_edit
     my $modal = param('modal') && int param('modal');
     my $oi = param('oi') && int param('oi');
 
-    my @columns_to_show = $id
-        ? $layout->all(sort_by_topics => 1, user_can_readwrite_existing => 1, can_child => $child, userinput => 1)
-        : $layout->all(sort_by_topics => 1, user_can_write_new => 1, can_child => $child, userinput => 1);
-
     $record->initialise unless $id;
+
+    my $record_presentation = $record->presentation(edit => 1, new => !$id, child => $child);
 
     if (param('submit') || param('draft') || $modal || defined(param 'validate'))
     {
@@ -3432,8 +3434,9 @@ sub _process_edit
         # just silently ignoring them, IMHO.
         my @display_on_fields;
         my @validation_errors;
-        foreach my $col (@columns_to_show)
+        foreach my $c (@{$record_presentation->{columns}})
         {
+            my $col = $layout->column($c->{id});
             my $newv;
             if ($modal)
             {
@@ -3559,11 +3562,10 @@ sub _process_edit
         page                => 'edit',
         child               => $child_rec,
         layout_edit         => $layout,
-        all_columns         => \@columns_to_show,
         clone               => param('from'),
         submission_token    => !$modal && $record->create_submission_token,
         breadcrumbs         => $breadcrumbs,
-        record_presentation => $record->presentation(@columns_to_show),
+        record_presentation => $record->presentation(edit => 1, new => !$id, child => $child),
     };
 
     $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids

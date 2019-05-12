@@ -213,6 +213,11 @@ has columns_retrieved_do => (
     is => 'rw',
 );
 
+# Same as GADS::Records property
+has columns_view => (
+    is => 'rw',
+);
+
 # Whether this is a new record, not yet in the database
 has new_entry => (
     is      => 'ro',
@@ -702,6 +707,7 @@ sub _find
 
     $self->columns_retrieved_do($records->columns_retrieved_do);
     $self->columns_retrieved_no($records->columns_retrieved_no);
+    $self->columns_view($records->columns_view);
 
     my $record = {}; my $limit = 10; my $page = 1; my $first_run = 1;
     while (1)

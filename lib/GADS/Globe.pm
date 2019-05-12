@@ -314,7 +314,7 @@ sub _build_data
     {
         my %existing = map { $_->{col}->id => 1 } @extra;
         push @extra, map { +{ col => $_ } } grep { !$existing{$_->id} }
-            $records->layout->view($view_id, user_can_read => 1);
+            @{$records->columns_view};
         my @gc = $records->layout->all(is_globe => 1, user_can_read => 1);
         my $has_globe;
         $has_globe = 1
