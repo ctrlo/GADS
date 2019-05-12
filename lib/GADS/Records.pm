@@ -2646,6 +2646,11 @@ sub _build_group_results
 
     my $q = $self->search_query(prefetch => 1, search => 1, retain_join_order => 1, group => 1, sort => 0); # Called first to generate joins
 
+    # Ensure that no joins are added here that are multi-value fields,
+    # otherwise they will generate multiple rows for a single records, which
+    # will cause multiple aggregates and double-counting of other fields. The
+    # prefetch joins should only have been added above, and if they are
+    # multi-value fields should be added as independent sub-queries
     my $select = {
         select => [@select_fields],
         join     => [

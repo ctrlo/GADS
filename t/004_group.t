@@ -112,6 +112,9 @@ foreach my $multivalue (0..1)
     );
     $view->write;
     $view->set_groups([$string1->id]);
+    # Also add a sort, to check that doesn't result in unwanted multi-value
+    # field joins
+    $view->set_sorts([$enum1->id], ['asc']);
 
     my $records = GADS::Records->new(
         view   => $view,
