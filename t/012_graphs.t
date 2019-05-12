@@ -27,14 +27,14 @@ foreach my $multivalue (0..1)
             curval1    => 1,
             integer2   => 8,
         },{
-            string1    => 'Bar',
+            string1    => $multivalue ? ['Bar', 'FooBar'] : 'Bar',
             date1      => '2014-10-10',
             daterange1 => ['2010-01-04', '2011-06-03'],
-            integer1   => 150,
+            integer1   => 150, # Changed to 15
             enum1      => 7,
             tree1      => 'tree1',
             curval1    => 2,
-            integer2   => 80,
+            integer2   => 80, # Changed to 8
         },{
             string1    => 'Bar',
             integer1   => 35,
@@ -69,7 +69,14 @@ foreach my $multivalue (0..1)
     $cr->fields->{$curval_sheet->columns->{integer1}->id}->set_value(132);
     $cr->write(no_alerts => 1);
 
-    my $sheet   = t::lib::DataSheet->new(data => $data, schema => $schema, curval => 2, multivalue => $multivalue, column_count => {integer => 2});
+    my $sheet   = t::lib::DataSheet->new(
+        data               => $data,
+        schema             => $schema,
+        curval             => 2,
+        multivalue         => $multivalue,
+        column_count       => {integer => 2},
+        multivalue_columns => { enum => 1, string => 1 },
+    );
     my $layout  = $sheet->layout;
     my $columns = $sheet->columns;
     $sheet->create_records;
@@ -138,7 +145,7 @@ foreach my $multivalue (0..1)
             x_axis       => $columns->{string1}->id,
             y_axis       => $columns->{integer1}->id,
             y_axis_stack => 'sum',
-            data         => [[ 50, 10, 20 ]],
+            data         => [[ 50, 10, $multivalue ? 35 : 20 ]],
         },
         {
             name         => 'String x-axis, multi-integer sum y-axis',
@@ -146,11 +153,11 @@ foreach my $multivalue (0..1)
             x_axis       => $columns->{string1}->id,
             y_axis       => $calc2->id, #$columns->{calc2}->id,
             y_axis_stack => 'sum',
-            data         => [[ 96, 24, 39 ]],
+            data         => [[ 96, 24, $multivalue ? 63 : 39 ]],
             xlabels      => [qw/Bar Foo FooBar/],
         },
         {
-            name         => 'String x-axis, multi-integer sum y-axis ABC',
+            name         => 'String x-axis, multi-integer sum y-axis, filtered',
             type         => 'bar',
             x_axis       => $columns->{string1}->id,
             y_axis       => $calc2->id, #$columns->{calc2}->id,
@@ -182,7 +189,7 @@ foreach my $multivalue (0..1)
             y_axis       => $columns->{integer1}->id,
             y_axis_stack => 'sum',
             as_percent   => 1,
-            data         => [[ 63, 13, 25 ]],
+            data         => $multivalue ? [[ 53, 11, 37 ]] : [[ 63, 13, 25 ]],
         },
         {
             name         => 'Pie as percent',
@@ -191,7 +198,9 @@ foreach my $multivalue (0..1)
             y_axis       => $columns->{integer1}->id,
             y_axis_stack => 'sum',
             as_percent   => 1,
-            data         => [[[ 'Bar', 63 ], ['Foo', 13], ['FooBar', 25 ]]],
+            data         => $multivalue
+                ? [[[ 'Bar', 53 ], [ 'Foo', 11 ], ['FooBar', 37 ]]]
+                : [[[ 'Bar', 63 ], [ 'Foo', 13 ], ['FooBar', 25 ]]],
         },
         {
             name         => 'String x-axis, integer sum y-axis with view filter',
@@ -199,7 +208,7 @@ foreach my $multivalue (0..1)
             x_axis       => $columns->{string1}->id,
             y_axis       => $columns->{integer1}->id,
             y_axis_stack => 'sum',
-            data         => [[ 15, 10 ]],
+            data         => $multivalue ? [[ 15, 10, 15 ]] : [[ 15, 10 ]],
             rules => [
                 {
                     id       => $columns->{enum1}->id,
@@ -259,7 +268,7 @@ foreach my $multivalue (0..1)
             y_axis       => $columns->{integer1}->id,
             y_axis_stack => 'sum',
             group_by     => $columns->{enum1}->id,
-            data         => $multivalue ? [[ 0, 0, 20 ], [ 35, 0, 20 ], [ 15, 10, 0 ]] : [[ 35, 0, 20 ], [ 15, 10, 0 ]],
+            data         => $multivalue ? [[ 0, 0, 20 ], [ 35, 0, 20 ], [ 15, 10, 15 ]] : [[ 35, 0, 20 ], [ 15, 10, 0 ]],
         },
         {
             name         => 'String x-axis, sum y-axis, group by enum as percent',
@@ -269,7 +278,7 @@ foreach my $multivalue (0..1)
             y_axis_stack => 'sum',
             group_by     => $columns->{enum1}->id,
             as_percent   => 1,
-            data         => $multivalue ? [[ 0, 0, 50 ], [ 70, 0, 50 ], [ 30, 100, 0 ]] : [[ 70, 0, 100 ], [ 30, 100, 0 ]],
+            data         => $multivalue ? [[ 0, 0, 36 ], [ 70, 0, 36 ], [ 30, 100, 27 ]] : [[ 70, 0, 100 ], [ 30, 100, 0 ]],
         },
         {
             name         => 'Filter on multi-value enum',
@@ -389,7 +398,7 @@ foreach my $multivalue (0..1)
             y_axis       => $columns->{integer1}->id,
             y_axis_stack => 'sum',
             group_by     => $columns->{curval1}->id,
-            data         => [[ 35, 10, 0 ], [ 15, 0, 20 ]],
+            data         => $multivalue ? [[ 35, 10, 0 ], [ 15, 0, 35 ]] : [[ 35, 10, 0 ], [ 15, 0, 20 ]],
             labels       => [
                 'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012',
                 'Bar, 132, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
