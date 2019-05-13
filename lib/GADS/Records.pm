@@ -2245,22 +2245,6 @@ sub _build_columns_aggregate
     [ grep { $_->aggregate } @{$self->columns_retrieved_no} ];
 }
 
-# XXX Move into own role at some point
-sub aggregate_presentation
-{   my $self = shift;
-
-    my $record = $self->aggregate_results
-        or return undef;
-
-    my @presentation = map {
-        $record->fields->{$_->id} && $_->presentation(datum_presentation => $record->fields->{$_->id}->presentation)
-    } @{$self->columns_view};
-
-    return +{
-        columns => \@presentation,
-    };
-}
-
 has aggregate_results => (
     is      => 'lazy',
     clearer => 1,
