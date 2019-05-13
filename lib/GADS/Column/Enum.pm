@@ -242,6 +242,10 @@ sub _delete_unused_nodes
     }
 }
 
+has '+autocomplete_has_id' => (
+    default => 1,
+);
+
 sub resultset_for_values
 {   my $self = shift;
     return $self->schema->resultset('Enumval')->search({

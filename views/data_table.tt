@@ -26,7 +26,7 @@
                                 Email each person in this column
                             </button>
                         [% END %]
-                        <div class="column-filter" data-col-id="[% col.id %]" data-autocomplete-endpoint="/[% layout.identifier %]/match/layout/[% col.id %]?q=" data-values='[]'>
+                        <div class="column-filter" data-col-id="[% col.id %]" data-autocomplete-endpoint="/[% layout.identifier %]/match/layout/[% col.id %]?with_id=1&q=" data-values='[]' data-autocomplete-has-id="[% col.autocomplete_has_id %]">
                             <a class="column-filter__clear" href="?urlWithoutThisFilter">Clear filter</a>
                             <div class="column-filter__search">
                                 <input class="column-filter__search-input" type="text" name="q" placeholder="Search..." autocomplete="off" aria-controls="column-filter__values_[% col.id %]" />

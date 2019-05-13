@@ -78,6 +78,15 @@ sub cleanup
     $schema->resultset('String')->search({ layout_id => $id })->delete
 }
 
+sub resultset_for_values
+{   my $self = shift;
+    return $self->schema->resultset('String')->search({
+        layout_id => $self->id,
+    },{
+        group_by => 'me.value',
+    });
+}
+
 before import_hash => sub {
     my ($self, $values, %options) = @_;
     my $report = $options{report_only} && $self->id;

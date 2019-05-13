@@ -1290,12 +1290,25 @@ sub validate_search
 {   shift->validate(@_);
 }
 
+# Whether the autocomplete functionality for the field includes an ID as well
+# as a text value
+has autocomplete_has_id => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
+# Default sub returning nothing, for columns where a "like" search is not
+# possible (e.g. integer)
+sub resultset_for_values {};
+
 sub values_beginning_with
-{   my ($self, $match_string) = @_;
+{   my ($self, $match_string, %options) = @_;
 
     my $resultset = $self->resultset_for_values;
     my @value;
     my $value_field = 'me.'.$self->value_field;
+    $match_string =~ s/([_%])/\\$1/g;
     my $search = $match_string
         ? {
             $value_field => {
@@ -1303,17 +1316,30 @@ sub values_beginning_with
             },
         } : {};
     if ($resultset) {
-        $match_string =~ s/([_%])/\\$1/g;
         my $match_result = $resultset->search($search,
             {
-                rows   => 10,
+                rows => 10,
+            },
+        );
+        if ($options{with_id} && $self->autocomplete_has_id)
+        {
+            @value = map {
+                {
+                    id   => $_->get_column('id'),
+                    name => $_->get_column($self->value_field),
+                }
+            } $match_result->search({}, {
+                columns => ['id', $value_field],
+            })->all;
+        }
+        else {
+            @value = $match_result->search({},{
                 select => {
                     max => $value_field,
                     -as => $value_field,
-                }
-            },
-        );
-        @value = $match_result->get_column($value_field)->all;
+                },
+            })->get_column($value_field)->all;
+        }
     }
     return @value;
 }

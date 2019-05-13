@@ -1012,6 +1012,7 @@ var setupColumnFilters = function(context) {
         var $columnFilter =  $(this);
         var colId =  $columnFilter.data("col-id");
         var autocompleteEndpoint = $columnFilter.data("autocomplete-endpoint");
+        var autocompleteHasID = $columnFilter.data("autocomplete-has-id");
         var values = $columnFilter.data("values") || [];
         var $error = $columnFilter.find(".column-filter__error");
         var $searchInput = $columnFilter.find(".column-filter__search-input");
@@ -1037,12 +1038,16 @@ var setupColumnFilters = function(context) {
 
             $.getJSON(autocompleteEndpoint + q, function(data) {
                 _.each(data, function(searchValue) {
-                    if (!_.some(values, function(value) {return value.key === searchValue.key})) {
-                        values.push({
-                            key: searchValue.id.toString(),
-                            value: searchValue.name
-                        });
-                    };
+                    if (autocompleteHasID) {
+                        if (!_.some(values, function(value) {return value.key === searchValue.key})) {
+                            values.push({
+                                key: searchValue.id.toString(),
+                                value: searchValue.name
+                            });
+                        }
+                    } else {
+                        values.push({ value: searchValue });
+                    }
                 });
             })
             .fail(function(jqXHR, textStatus, textError) {

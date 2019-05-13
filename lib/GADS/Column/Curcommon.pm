@@ -541,6 +541,10 @@ sub validate_search
     1;
 }
 
+has '+autocomplete_has_id' => (
+    default => 1,
+);
+
 sub values_beginning_with
 {   my ($self, $match) = @_;
     return if !$self->filter_view_is_ready; # Record not ready yet in sub_values

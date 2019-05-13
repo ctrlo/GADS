@@ -459,6 +459,10 @@ sub _update
     }
 };
 
+has '+autocomplete_has_id' => (
+    default => 1,
+);
+
 sub resultset_for_values
 {   my $self = shift;
     if ($self->end_node_only)

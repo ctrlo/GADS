@@ -108,6 +108,10 @@ sub random
     $hash{(keys %hash)[rand keys %hash]}->value;
 }
 
+has '+autocomplete_has_id' => (
+    default => 1,
+);
+
 sub resultset_for_values
 {   my $self = shift;
     return $self->schema->resultset('User')->active;

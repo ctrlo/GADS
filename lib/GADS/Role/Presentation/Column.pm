@@ -6,17 +6,18 @@ sub presentation {
     my ($self, %options) = @_;
 
     my $return = {
-        id            => $self->id,
-        type          => $self->type,
-        name          => $self->name,
-        is_id         => $self->name_short eq '_id',
-        topic         => $self->topic && $self->topic->name,
-        topic_id      => $self->topic && $self->topic->id,
-        is_multivalue => $self->multivalue,
-        helptext      => $self->helptext,
-        readonly      => $options{new} ? !$self->user_can('write_new') : !$self->user_can('write_existing'),
-        data          => $options{datum_presentation},
-        is_group      => $options{group} && $options{group} == $self->id,
+        id                  => $self->id,
+        type                => $self->type,
+        name                => $self->name,
+        is_id               => $self->name_short eq '_id',
+        topic               => $self->topic && $self->topic->name,
+        topic_id            => $self->topic && $self->topic->id,
+        is_multivalue       => $self->multivalue,
+        helptext            => $self->helptext,
+        readonly            => $options{new} ? !$self->user_can('write_new') : !$self->user_can('write_existing'),
+        data                => $options{datum_presentation},
+        is_group            => $options{group} && $options{group} == $self->id,
+        autocomplete_has_id => $self->autocomplete_has_id,
     };
 
     # XXX Reference to self when this is used within edit.tt. Ideally this

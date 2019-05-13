@@ -113,6 +113,16 @@ sub cleanup
     $schema->resultset('FileOption')->search({ layout_id => $id })->delete;
 };
 
+sub resultset_for_values
+{   my $self = shift;
+    return $self->schema->resultset('Fileval')->search({
+        'files.layout_id' => $self->id,
+    }, {
+        join => 'files',
+        group_by => 'me.name',
+    });
+}
+
 before import_hash => sub {
     my ($self, $values, %options) = @_;
     my $report = $options{report_only} && $self->id;

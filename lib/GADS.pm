@@ -1853,12 +1853,10 @@ prefix '/:layout_name' => sub {
                     or next;
                 my $fid = $1;
                 my @values = query_parameters->get_all($key);
-                push @additional, map {
-                    {
-                        id    => $fid,
-                        value => $_,
-                    };
-                } @values;
+                push @additional, {
+                    id    => $fid,
+                    value => [query_parameters->get_all($key)],
+                };
             }
 
             my %params = (
@@ -3194,12 +3192,13 @@ prefix '/:layout_name' => sub {
 
         my $layout = var('layout') or pass;
         my $query = param('q');
+        my $with_id = param('with_id');
         my $layout_id = param('layout_id');
 
         my $column = $layout->column($layout_id, permission => 'read');
 
         content_type 'application/json';
-        to_json [ $column->values_beginning_with($query) ];
+        to_json [ $column->values_beginning_with($query, with_id => $with_id) ];
     };
 
 };
