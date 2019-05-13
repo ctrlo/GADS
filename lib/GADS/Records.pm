@@ -807,6 +807,7 @@ has current_group_id => (
 sub _build_current_group_id
 {   my $self = shift;
     return undef if !$self->is_group || !$self->view;
+    return undef if !@{$self->view->groups};
     $self->view->groups->[0]->layout_id;
 }
 
@@ -1354,7 +1355,9 @@ sub clear
 has additional_filters => (
     is      => 'ro',
     isa     => ArrayRef,
-    default => sub { [] },
+    # A default non-lazy value does not seem to work here
+    lazy    => 1,
+    builder => sub { [] },
     clearer => 1,
 );
 
