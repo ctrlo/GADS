@@ -999,6 +999,114 @@ var setupAccessibility = function(context) {
         });
     }
 }
+var getParams = function() {
+    return _.chain(location.search.slice(1).split('&'))
+        .map(function (item) { if (item) { return item.split('='); } })
+        .compact()
+        .object()
+        .value();
+}
+
+var setupColumnFilters = function(context) {
+    $(".column-filter", context).each(function() {
+        var $columnFilter =  $(this);
+        var colId =  $columnFilter.data("col-id");
+        var autocompleteEndpoint = $columnFilter.data("autocomplete-endpoint");
+        var values = $columnFilter.data("values") || [];
+        var $error = $columnFilter.find(".column-filter__error");
+        var $searchInput = $columnFilter.find(".column-filter__search-input");
+        var $clearSearchInput = $columnFilter.find(".column-filter__clear-search-input");
+        var $spinner = $columnFilter.find(".column-filter__spinner");
+        var $values = $columnFilter.find(".column-filter__values");
+        var $submit = $columnFilter.find(".column-filter__submit");
+
+        var onEmptySearch = function() {
+            $error.attr('hidden', '');
+            renderValues();
+        }
+
+        var fetchValues = _.debounce(function() {
+            var q = $searchInput.val();
+            if (!q.length) {
+                onEmptySearch();
+                return;
+            }
+
+            $error.attr('hidden', '');
+            $spinner.removeAttr('hidden');
+
+            $.getJSON(autocompleteEndpoint + q, function(data) {
+                _.each(data, function(searchValue) {
+                    if (!_.some(values, function(value) {return value.key === searchValue.key})) {
+                        values.push({
+                            key: searchValue.id.toString(),
+                            value: searchValue.name
+                        });
+                    };
+                });
+            })
+            .fail(function(jqXHR, textStatus, textError) {
+                $error.text(textError);
+                $error.removeAttr('hidden');
+            })
+            .always(function() {
+                $spinner.attr('hidden', '');
+                renderValues();
+            });
+        }, 250);
+
+        var renderValues = function() {
+            var q = $searchInput.val();
+            $values.empty();
+            var sortedAndFilteredValues = _.sortBy(_.filter(values, function(value) {return value.value.toLowerCase().indexOf(q.toLowerCase()) > -1}), "value");
+            _.each(sortedAndFilteredValues, function(value, index) {
+               $values.append(renderValue(value, index));
+            });
+        }
+
+        var renderValue = function(value, index) {
+            var uniquePrefix = 'column_filter_value_label_' + colId + '_' + index;
+            return $('<li class="column-filter__value">' +
+                '<label id="' + uniquePrefix + '_label" for="' + uniquePrefix + '">' +
+                    '<input id="' + uniquePrefix + '" type="checkbox" value="' + value.key + '" ' + (value.checked ? "checked" : "") + ' aria-labelledby="' + uniquePrefix + '_label">' +
+                    '<span role="option">' + value.value + '</span>' +
+                '</label>' +
+            '</li>');
+        }
+
+        $values.delegate("input", "change", function() {
+            var checkboxValue = $(this).val();
+            var valueIndex = _.findIndex(values, function(value) {return value.key === checkboxValue});
+            values[valueIndex].checked = this.checked;
+        });
+
+        $submit.on("click", function() {
+            var selectedValues = _.map(_.filter(values, "checked"), "key");
+            var params = getParams();
+            params["field" + colId] = selectedValues.join(",");
+            window.location = "?" + $.param(params);
+        });
+
+        $searchInput.on("keyup", fetchValues);
+        $searchInput.on("keyup", function() {
+            var val = $(this).val();
+            if (val.length) {
+                $clearSearchInput.removeAttr('hidden');
+            } else {
+                $clearSearchInput.attr('hidden', '');
+            }
+        });
+
+        $clearSearchInput.on("click", function(e) {
+            e.preventDefault();
+            $searchInput.val("");
+            $clearSearchInput.attr('hidden', '');
+            onEmptySearch();
+        });
+
+        renderValues();
+    });
+}
 
 var setupHtmlEditor = function (context) {
 
@@ -1374,6 +1482,7 @@ var Linkspace = {
         setFirstInputFocus(context);
         setupRecordPopup(context);
         setupAccessibility(context);
+        setupColumnFilters(context);
     },
 
     debug: function (msg) {
