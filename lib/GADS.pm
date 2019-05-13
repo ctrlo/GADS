@@ -3418,8 +3418,6 @@ sub _process_edit
 
     $record->initialise unless $id;
 
-    my $record_presentation = $record->presentation(edit => 1, new => !$id, child => $child);
-
     if (param('submit') || param('draft') || $modal || defined(param 'validate'))
     {
         my $failed;
@@ -3434,9 +3432,8 @@ sub _process_edit
         # just silently ignoring them, IMHO.
         my @display_on_fields;
         my @validation_errors;
-        foreach my $c (@{$record_presentation->{columns}})
+        foreach my $col ($record->edit_columns(new => !$id))
         {
-            my $col = $layout->column($c->{id});
             my $newv;
             if ($modal)
             {

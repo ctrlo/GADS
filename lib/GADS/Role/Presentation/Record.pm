@@ -14,15 +14,21 @@ sub _presentation_map_columns {
     return \@mapped;
 }
 
+sub edit_columns
+{   my ($self, %options) = @_;
+
+    return $options{new}
+        ? $self->layout->all(sort_by_topics => 1, user_can_write_new => 1, can_child => $options{child}, userinput => 1)
+        : $self->layout->all(sort_by_topics => 1, user_can_readwrite_existing => 1, can_child => $options{child}, userinput => 1);
+}
+
 sub presentation {
     my ($self, %options) = @_;
 
     # For an edit show all relevant fields for edit, otherwise assume record
     # read and show all view columns
-    my @columns = $options{edit} && $options{new}
-        ? $self->layout->all(sort_by_topics => 1, user_can_write_new => 1, can_child => $options{child}, userinput => 1)
-        : $options{edit}
-        ? $self->layout->all(sort_by_topics => 1, user_can_readwrite_existing => 1, can_child => $options{child}, userinput => 1)
+    my @columns = $options{edit}
+        ? $self->edit_columns(%options)
         : $options{curval_fields}
         ? @{$options{curval_fields}}
         : $options{group}
