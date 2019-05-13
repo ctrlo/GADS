@@ -1846,14 +1846,35 @@ prefix '/:layout_name' => sub {
             my $rows = defined param('download') ? undef : session('rows');
             my $page = defined param('download') ? undef : session('page');
 
-            my $records = GADS::Records->new(
+            my @additional;
+            foreach my $key (keys %{query_parameters()})
+            {
+                $key =~ /^field([0-9]+)$/
+                    or next;
+                my $fid = $1;
+                my @values = query_parameters->get_all($key);
+                push @additional, map {
+                    {
+                        id    => $fid,
+                        value => $_,
+                    };
+                } @values;
+            }
+
+            my %params = (
                 user                => $user,
                 search              => session('search'),
                 layout              => $layout,
                 schema              => schema,
                 rewind              => session('rewind'),
+                additional_filters  => \@additional,
                 view_limit_extra_id => current_view_limit_extra_id($user, $layout),
             );
+            # If this is a filter from a group view, then disable the group for
+            # this rendering
+            $params{is_group} = 0 if defined query_parameters->get('group_filter');
+
+            my $records = GADS::Records->new(%params);
 
             $records->view($view);
             $records->rows($rows);

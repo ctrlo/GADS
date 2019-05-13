@@ -1348,7 +1348,15 @@ sub clear
     $self->clear_default_sort;
     $self->clear_is_group;
     $self->clear_current_group_id;
+    $self->clear_additional_filters;
 }
+
+has additional_filters => (
+    is      => 'ro',
+    isa     => ArrayRef,
+    default => sub { [] },
+    clearer => 1,
+);
 
 # Construct various parameters used for the query. These are all
 # related, so it makes sense to construct them together.
@@ -1405,6 +1413,17 @@ sub _query_params
             push @limit, @res if @res;
         }
 
+        foreach my $additional (@{$self->additional_filters})
+        {
+            my $col = $layout->column($additional->{id});
+            my $f = {
+                id          => $col->id,
+                operator    => 'equal',
+                value       => $additional->{value},
+                value_field => $col->value_field_as_index,
+            };
+            push @limit, $self->_search_construct($f, $layout);
+        }
 
         # Now add all the filters as joins (we don't need to prefetch this data). However,
         # the filter might also be a column in the view from before, in which case add

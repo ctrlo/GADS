@@ -58,6 +58,8 @@
                                 (<a href="/edit/[% record.current_id %]">Edit</a>)
                             [% END %]
                         </td>
+                    [% ELSIF column.is_group %]
+                        <td>[% render_datum(column, 'group') %]</td>
                     [% ELSE %]
                         <td class="[% column.type %]">[% render_datum(column) %]</td>
                     [% END %]

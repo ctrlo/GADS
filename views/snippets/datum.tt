@@ -21,7 +21,7 @@
 [% END %]
 
 [% MACRO render_curcommon_datum(is_multivalue, curval, header, full_content) BLOCK %]
-    [% IF curval.text.length > MORE_LESS_TRESHOLD AND full_content != 'full' %]
+    [% IF curval.text.length > MORE_LESS_TRESHOLD AND NOT full_content %]
         [% WRAPPER more_less_block %]
             [% PROCESS curcommon_table %]
         [% END %]
@@ -64,7 +64,7 @@
 [% END %]
 
 [% MACRO render_string_datum(string, header, full_content) BLOCK %]
-    [% IF full_content != 'full' && string.html.defined && string.html.length > MORE_LESS_TRESHOLD %]
+    [% IF !full_content && string.html.defined && string.html.length > MORE_LESS_TRESHOLD %]
         [% WRAPPER more_less_block %]
             [% string.html %]
         [% END %]
@@ -74,7 +74,7 @@
 [% END %]
 
 [% MACRO render_enum_datum(data, header, full_content) BLOCK %]
-    [% IF full_content != 'full' && data.value.length > MORE_LESS_TRESHOLD %]
+    [% IF !full_content && data.value.length > MORE_LESS_TRESHOLD %]
         [% WRAPPER more_less_block %]
             [% data.value | html %]
         [% END %]
@@ -92,23 +92,35 @@
     [% END %]
 [% END %]
 
-[% MACRO render_datum(datum, full_content) BLOCK;
-    SWITCH datum.type;
-        CASE ['curval', 'autocur'];
-            render_curcommon_datum(datum.is_multivalue, datum.data, datum.name, full_content);
-        CASE 'file';
-            render_file_datum(datum.data, full_content);
-        CASE ['person', 'createdby'];
-            render_person_datum(datum.data);
-        CASE 'string';
-            render_string_datum(datum.data, datum.name, full_content);
-        CASE 'enum';
-            render_enum_datum(datum.data, datum.name, full_content);
-        CASE 'tree';
-            render_enum_datum(datum.data, datum.name, full_content);
-        CASE 'rag';
-            render_rag_datum(datum.data);
-        CASE;
-            datum.data.value | html;
+[% MACRO render_group BLOCK %]
+    <a href="?group_filter&field[% datum.id %]=[% datum.data.filter_value %]">[% datum.data.value OR '<blank>' | html %]</a>
+[% END %]
+
+[% MACRO render_datum(datum, render_options) BLOCK;
+
+    IF render_options == 'group';
+        render_group(datum);
+    ELSE;
+
+        full_content = 1 IF render_options == 'full';
+
+        SWITCH datum.type;
+            CASE ['curval', 'autocur'];
+                render_curcommon_datum(datum.is_multivalue, datum.data, datum.name, full_content);
+            CASE 'file';
+                render_file_datum(datum.data, full_content);
+            CASE ['person', 'createdby'];
+                render_person_datum(datum.data);
+            CASE 'string';
+                render_string_datum(datum.data, datum.name, full_content);
+            CASE 'enum';
+                render_enum_datum(datum.data, datum.name, full_content);
+            CASE 'tree';
+                render_enum_datum(datum.data, datum.name, full_content);
+            CASE 'rag';
+                render_rag_datum(datum.data);
+            CASE;
+                datum.data.value | html;
+        END;
     END;
 END %]

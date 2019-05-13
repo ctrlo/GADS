@@ -6,7 +6,7 @@ sub presentation {
     my $self = shift;
 
     return [
-        map $_->presentation(group => $self->is_group), @{$self->results}
+        map $_->presentation(group => $self->current_group_id), @{$self->results}
     ];
 }
 

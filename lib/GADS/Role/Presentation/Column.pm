@@ -16,6 +16,7 @@ sub presentation {
         helptext      => $self->helptext,
         readonly      => $options{new} ? !$self->user_can('write_new') : !$self->user_can('write_existing'),
         data          => $options{datum_presentation},
+        is_group      => $options{group} && $options{group} == $self->id,
     };
 
     # XXX Reference to self when this is used within edit.tt. Ideally this
