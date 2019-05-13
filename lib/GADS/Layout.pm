@@ -738,9 +738,10 @@ sub all_with_internal
 }
 
 sub columns_for_filter
-{   my $self = shift;
+{   my ($self, %options) = @_;
     my @columns;
-    my %restriction = (user_can_read => 1, include_internal => 1);
+    my %restriction = (include_internal => 1);
+    $restriction{user_can_read} = 1 unless $options{override_permissions};
     foreach my $col ($self->all(%restriction))
     {
         push @columns, $col;
