@@ -807,6 +807,7 @@ has current_group_id => (
 sub _build_current_group_id
 {   my $self = shift;
     return undef if !$self->is_group || !$self->view;
+    return undef if !@{$self->view->groups};
     $self->view->groups->[0]->layout_id;
 }
 
