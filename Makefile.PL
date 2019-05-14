@@ -44,6 +44,7 @@ our %prereq_pm = (
     'MooX::Types::MooseLike::DateTime'          => 0,
     'namespace::clean'                          => 0,
     'Net::OAuth2::AuthorizationServer::PasswordGrant' => 0,
+    'Plack'                                     => 1.0047,
     'Session::Token'                            => 0,
     'String::CamelCase'                         => 0,
     'Test::MockTime'                            => 0,
