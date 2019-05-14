@@ -8,16 +8,13 @@ use strict;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 
-use YAML           qw(LoadFile);
 use File::Basename qw(basename);
 use Config::Any    ();
 
-use Data::Dumper;
-$Data::Dumper::Indent = 1;
 my $config_fn = basename $0 . '/config.yml';
 my $lib       = "$FindBin::Bin/../lib";
 
-my $config = Config::Any->load_files({
+my $config    = Config::Any->load_files({
     files   => [ $config_fn ],
     use_ext => 1,
 });
