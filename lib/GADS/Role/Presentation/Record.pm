@@ -17,9 +17,15 @@ sub _presentation_map_columns {
 sub edit_columns
 {   my ($self, %options) = @_;
 
-    my @columns = $options{new}
-        ? $self->layout->all(sort_by_topics => 1, user_can_write_new => 1, can_child => $options{child}, userinput => 1)
-        : $self->layout->all(sort_by_topics => 1, user_can_readwrite_existing => 1, can_child => $options{child}, userinput => 1);
+    my %permissions = $options{approval} && $options{new}
+        ? (user_can_approve_new => 1)
+        : $options{approval}
+        ? (user_can_approve_existing => 1)
+        : $options{new}
+        ? (user_can_write_new => 1)
+        : (user_can_readwrite_existing => 1);
+
+    my @columns = $self->layout->all(sort_by_topics => 1, can_child => $options{child}, userinput => 1, %permissions);
 
     @columns = grep $_->type ne 'file', @columns
         if $options{bulk} && $options{bulk} eq 'update';
