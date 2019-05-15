@@ -2900,9 +2900,6 @@ prefix '/:layout_name' => sub {
         );
         $record->initialise;
 
-        # Files not supported at this time
-        my @columns_to_show = grep { $type eq 'clone' || $_->type ne 'file' } $layout->all(user_can_write_new => 1);
-
         # The records to update
         my %params = (
             view                 => $view,
@@ -2921,7 +2918,7 @@ prefix '/:layout_name' => sub {
         {
             # See which ones to update
             my $failed_initial; my @updated;
-            foreach my $col (@columns_to_show)
+            foreach my $col ($record->edit_columns(new => 1, bulk => $type))
             {
                 my @newv = body_parameters->get_all($col->field);
                 my $included = body_parameters->get('bulk_inc_'.$col->id); # Is it ticked to be included?
@@ -3029,12 +3026,12 @@ prefix '/:layout_name' => sub {
         }
 
         template 'edit' => {
-            view        => $view,
-            record      => $record,
-            all_columns => \@columns_to_show,
-            bulk_type   => $type,
-            page        => 'bulk',
-            breadcrumbs => [Crumb($layout), Crumb( $layout, "/data" => 'records' ), Crumb( $layout, "/bulk/$type" => "bulk $type records" )],
+            view                => $view,
+            record              => $record,
+            record_presentation => $record->presentation(edit => 1, new => 1, bulk => $type),
+            bulk_type           => $type,
+            page                => 'bulk',
+            breadcrumbs         => [Crumb($layout), Crumb( $layout, "/data" => 'records' ), Crumb( $layout, "/bulk/$type" => "bulk $type records" )],
         };
     };
 

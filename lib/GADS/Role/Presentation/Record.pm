@@ -17,9 +17,14 @@ sub _presentation_map_columns {
 sub edit_columns
 {   my ($self, %options) = @_;
 
-    return $options{new}
+    my @columns = $options{new}
         ? $self->layout->all(sort_by_topics => 1, user_can_write_new => 1, can_child => $options{child}, userinput => 1)
         : $self->layout->all(sort_by_topics => 1, user_can_readwrite_existing => 1, can_child => $options{child}, userinput => 1);
+
+    @columns = grep $_->type ne 'file', @columns
+        if $options{bulk} && $options{bulk} eq 'update';
+
+    return @columns;
 }
 
 sub presentation {
