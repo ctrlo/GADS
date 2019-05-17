@@ -1955,25 +1955,18 @@ sub csv_line
 }
 
 sub _filter_items
-{   my ($self, $original_from, $original_to, @items) = @_;
+{   my ($self, $from, $to) = (shift, shift, shift);
 
-    if ($self->exclusive_of_to)
-    {
-        @items = grep {
-            $_->{single} || $_->{end} < $original_to->epoch * 1000;
-        } @items;
+    if($self->exclusive_of_to)
+    {   my $to_tick = $to->epoch * 1000;
+        return grep { $_->{single} ? $_->{dt} >= $from && $_->{dt} <= $to : $_->{end} < $to_tick } @_;
     }
-    elsif ($self->exclusive_of_from)
-    {
-        @items = grep {
-            $_->{single} || $_->{start} > $original_from->epoch * 1000;
-        } @items;
+    elsif($self->exclusive_of_from)
+    {   my $from_tick = $from->epoch * 1000;
+        return grep { $_->{single} ? $from <= $_->{dt} && $_->{dt} <= $to : $from_tick < $_->{start} } @_;
     }
-    @items = grep {
-        !$_->{single} || ($_->{dt} >= $original_from && $_->{dt} <= $original_to)
-    } @items;
 
-    return @items;
+    grep { $_->{single} ? $_->{dt} >= $from && $_->{dt} <= $to : 1 } @_;
 }
 
 sub data_timeline
