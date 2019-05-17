@@ -100,6 +100,7 @@ $records = GADS::Records->new(
 is( @{$records->data_calendar}, 1, "Filter and single column returns correct number of points to plot for calendar" );
 $records->clear;
 is( @{$records->data_timeline->{items}}, 1, "Filter and single column returns correct number of points to plot for timeline" );
+ok( !@{$records->data_timeline->{groups}}, "No groups when no group_id set");
 
 # When a timeline includes a label, that column should be automatically
 # included even if it's not part of the view. Also include invalid group and
