@@ -1524,10 +1524,11 @@ sub write
         if $self->parent_id && !$child_unique && $self->new_entry;
 
     # Anything to update?
-    return if !($need_app || $need_rec) && !$options{update_only};
-
-    # Dummy run?
-    return if $options{dry_run};
+    if(   !($need_app || $need_rec || $options{update_only})
+       || $options{dry_run} )
+    {   $guard->commit;  # commit nothing, just finish guard
+        return;
+    }
 
     my $created_date = $options{version_datetime} || DateTime->now;
 

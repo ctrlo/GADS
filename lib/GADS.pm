@@ -2699,9 +2699,6 @@ prefix '/:layout_name' => sub {
             )->approval_of_new
             : 0;
 
-        my @columns_to_show = $approval_of_new ? $layout->all(user_can_approve_new => 1)
-            : $layout->all(user_can_approve_existing => 1);
-
         if (param 'submit')
         {
             # Get latest record for this approval
@@ -2722,7 +2719,7 @@ prefix '/:layout_name' => sub {
                 $record->initialise;
             }
             my $failed;
-            foreach my $col (@columns_to_show)
+            foreach my $col ($record->edit_columns(new => $approval_of_new, approval => 1))
             {
                 my $newv = param($col->field);
                 if ($col->userinput && defined $newv) # Not calculated fields
@@ -2739,8 +2736,7 @@ prefix '/:layout_name' => sub {
 
         my $page;
         my $params = {
-            all_columns => \@columns_to_show,
-            page        => 'approval',
+            page => 'approval',
         };
 
         if ($id)
@@ -2755,6 +2751,7 @@ prefix '/:layout_name' => sub {
             );
             $record->find_record_id($id);
             $params->{record} = $record;
+            $params->{record_presentation} = $record->presentation(edit => 1, new => $approval_of_new, approval => 1);
 
             # Get existing values for comparison
             unless ($approval_of_new)
@@ -2919,9 +2916,6 @@ prefix '/:layout_name' => sub {
         );
         $record->initialise;
 
-        # Files not supported at this time
-        my @columns_to_show = grep { $type eq 'clone' || $_->type ne 'file' } $layout->all(user_can_write_new => 1);
-
         # The records to update
         my %params = (
             view                 => $view,
@@ -2940,7 +2934,7 @@ prefix '/:layout_name' => sub {
         {
             # See which ones to update
             my $failed_initial; my @updated;
-            foreach my $col (@columns_to_show)
+            foreach my $col ($record->edit_columns(new => 1, bulk => $type))
             {
                 my @newv = body_parameters->get_all($col->field);
                 my $included = body_parameters->get('bulk_inc_'.$col->id); # Is it ticked to be included?
@@ -3048,12 +3042,12 @@ prefix '/:layout_name' => sub {
         }
 
         template 'edit' => {
-            view        => $view,
-            record      => $record,
-            all_columns => \@columns_to_show,
-            bulk_type   => $type,
-            page        => 'bulk',
-            breadcrumbs => [Crumb($layout), Crumb( $layout, "/data" => 'records' ), Crumb( $layout, "/bulk/$type" => "bulk $type records" )],
+            view                => $view,
+            record              => $record,
+            record_presentation => $record->presentation(edit => 1, new => 1, bulk => $type),
+            bulk_type           => $type,
+            page                => 'bulk',
+            breadcrumbs         => [Crumb($layout), Crumb( $layout, "/data" => 'records' ), Crumb( $layout, "/bulk/$type" => "bulk $type records" )],
         };
     };
 

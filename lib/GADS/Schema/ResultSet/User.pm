@@ -219,23 +219,20 @@ sub upload
         );
         $values{value} = _user_value(\%values);
 
-        my $u;
-        try { $u = $self->create_user(
-                current_user     => $options{current_user},
-                request_base     => $options{request_base},
-                no_welcome_email => 1, # Send at end in case of failures
-                %values) };
-        if ($@)
-        {
-            # ->wasFatal returns the trace message from the DBIC rollback
-            my ($e) = grep { $_->isFatal } $@->exceptions;
-            push @errors, {
+        my $u = try { $self->create_user(
+            current_user     => $options{current_user},
+            request_base     => $options{request_base},
+            no_welcome_email => 1, # Send at end in case of failures
+            %values);
+        };
+        if($@)
+        {   push @errors, {
                 row   => join (',', @$row),
-                error => $e,
+                error => $@->wasFatal,
             };
         }
-        else {
-            $values{code} = $u->resetpw,
+        else
+        {   $values{code} = $u->resetpw,
             $count++;
         }
 
