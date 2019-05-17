@@ -29,29 +29,23 @@ extends 'GADS::Datum::Code';
 
 sub as_string
 {   my $self = shift;
-    my @values = @{$self->value};
-    my @return;
-    foreach my $value (@values)
-    {
-        $value = $value->format_cldr($self->column->dateformat) if ref $value eq 'DateTime';
-        if ($self->column->return_type eq 'numeric')
-        {
-            if (my $dc = $self->column->decimal_places)
-            {
-                $value = sprintf("%.${dc}f", $value)
-            }
-            elsif (!defined $value)
-            {
-                $value = '';
-            }
-            else {
-                $value += 0; # Remove trailing zeros
-            }
-        }
-        $value //= "";
-        push @return, "$value";
+    my (@return, $df, $dc);
+
+    foreach my $value ( @{$self->value} )
+    {   push @return,
+            ! defined $value
+          ? ''
+          : ref $value eq 'DateTime'
+          ? $value->format_cldr($df //= $self->column->dateformat)
+          : $self->column->return_type eq 'numeric'
+          ? ( ($dc //= $self->column->decimal_places // 0)
+            ? sprintf("%.${dc}f", $value)
+            : ($value + 0)   # Remove trailing zeros
+            )
+          : $value;
     }
-    return join ', ', @return;
+
+    join ', ', @return;
 }
 
 sub _parse_date
@@ -66,10 +60,10 @@ sub convert_value
 
     my @values = $column->multivalue && ref $in->{return} eq 'ARRAY'
         ? @{$in->{return}} : $in->{return};
-    my $old_indent = $Data::Dumper::Indent;
-    $Data::Dumper::Indent = 0;
-    trace __x"Values into convert_value is: {value}", value => Dumper(\@values);
-    $Data::Dumper::Indent = $old_indent;
+
+    {  local $Data::Dumper::Indent = 0;
+       trace __x"Values into convert_value is: {value}", value => Dumper(\@values);
+    }
 
     if ($in->{error}) # Will have already been reported
     {
