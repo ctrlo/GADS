@@ -241,6 +241,8 @@ sub write_special
 
     # Clear what may be cached values that should be updated after write
     $self->clear;
+    # Re-add the layout - will be missing as a result of the clear
+    $self->filter->layout($self->layout);
 
     # Force any warnings to be shown about the chosen filter fields
     $self->data_filter_fields unless $options{override};
