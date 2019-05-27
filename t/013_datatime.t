@@ -295,6 +295,65 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     like( $items->[0]->{content}, qr/foo2/, "Correct first record for exclusive from" );
 }
 
+# Test permissions
+{
+    my $data = [
+        {
+            string1    => 'Foo',
+            enum1      => 1,
+            date1      => '2010-01-10',
+            daterange1 => ['2009-01-01', '2009-06-01'],
+        },
+        {
+            string1    => 'Bar',
+            enum1      => 2,
+            date1      => '2010-02-10',
+            daterange1 => ['2009-02-01', '2009-05-01'],
+        },
+    ];
+
+    my $sheet = t::lib::DataSheet->new(data => $data, user_permission_override => 0);
+    $sheet->create_records;
+    my $schema  = $sheet->schema;
+    my $layout  = $sheet->layout;
+    my $string1 = $sheet->columns->{string1};
+    $string1->set_permissions({$sheet->group->id => []});
+    $string1->write;
+    $layout->clear;
+
+    my $records = GADS::Records->new(
+        user    => $sheet->user_normal1,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    # Normal - should include dateranges that go over the from/to values
+    my @items = @{$records->data_timeline->{items}};
+    # 4 items for each record (2 date fields, plus created and edited)
+    is(@items, 8, "Correct number of timeline items");
+    foreach my $item (@items)
+    {
+        unlike($item->{content}, qr/(Foo|Bar)/, "String value not in restricted item content");
+        my $in_values = grep $_->{name} eq 'string1', @{$item->{values}};
+        ok(!$in_values, "String value not in restricted item values");
+    }
+
+    # Remove date field permissions and check now excluded
+    my $date1 = $sheet->columns->{date1};
+    $date1->set_permissions({$sheet->group->id => []});
+    $date1->write;
+    $layout->clear;
+    $records = GADS::Records->new(
+        user    => $sheet->user_normal1,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    @items = @{$records->data_timeline->{items}};
+    # 3 items for each record (1 date field, plus created and edited)
+    is(@items, 6, "Correct number of timeline items with date field removed");
+}
+
 # Date from a calc field
 {
     my $data = [

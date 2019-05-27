@@ -143,10 +143,10 @@ sub _build_items
     my $find_min =  $from && !$to ? $from->clone->truncate(to => 'day') : undef;
     my $find_max = !$from &&  $to ? $to->clone->truncate(to => 'day')->add(days => 1) : undef;
 
-    my $columns  = $records->columns_retrieved_no;
+    my @columns  = grep $_->user_can('read'), @{$records->columns_retrieved_no};
 
     my $date_column_count = 0;
-    foreach my $column (@$columns)
+    foreach my $column (@columns)
     {
         my @cols = $column;
         push @cols, @{$column->curval_fields}
@@ -187,7 +187,7 @@ sub _build_items
         {
             my (@dates, @values);
 
-            foreach my $column (@$columns)
+            foreach my $column (@columns)
             {   my @d = $fields->{$column->id};
 
                 if ($column->is_curcommon)
@@ -219,9 +219,6 @@ sub _build_items
 
                         next DATUM;
                     }
-
-                    $column->user_can('read')  #XXX move up in block?
-                         or next DATUM;
 
                     # Create colour if need be
                     my $color;
@@ -293,7 +290,6 @@ sub _build_items
                 }
             }
 
-#XXX group_to_add cannot be undef
             my $item_group;
             if($group_to_add)
             {   unless($item_group = $self->groups->{$group_to_add})
