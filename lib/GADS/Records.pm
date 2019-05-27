@@ -1956,25 +1956,18 @@ sub csv_line
 }
 
 sub _filter_items
-{   my ($self, $original_from, $original_to, @items) = @_;
+{   my ($self, $from, $to) = (shift, shift, shift);
 
-    if ($self->exclusive_of_to)
-    {
-        @items = grep {
-            $_->{single} || $_->{end} < $original_to->epoch * 1000;
-        } @items;
+    if($self->exclusive_of_to)
+    {   my $to_tick = $to->epoch * 1000;
+        return grep { $_->{single} ? $_->{dt} >= $from && $_->{dt} <= $to : $_->{end} < $to_tick } @_;
     }
-    elsif ($self->exclusive_of_from)
-    {
-        @items = grep {
-            $_->{single} || $_->{start} > $original_from->epoch * 1000;
-        } @items;
+    elsif($self->exclusive_of_from)
+    {   my $from_tick = $from->epoch * 1000;
+        return grep { $_->{single} ? $from <= $_->{dt} && $_->{dt} <= $to : $from_tick < $_->{start} } @_;
     }
-    @items = grep {
-        !$_->{single} || ($_->{dt} >= $original_from && $_->{dt} <= $original_to)
-    } @items;
 
-    return @items;
+    grep { $_->{single} ? $_->{dt} >= $from && $_->{dt} <= $to : 1 } @_;
 }
 
 sub data_timeline
@@ -1982,7 +1975,7 @@ sub data_timeline
 
     my $original_from = $self->from;
     my $original_to   = $self->to;
-    my $limit_qty     = $self->from && !$self->to;
+    my $limit_qty     = $original_from && ! $original_to;
 
     my $timeline = GADS::Timeline->new(
         type         => 'timeline',
@@ -1992,89 +1985,73 @@ sub data_timeline
         color_col_id => $options{color},
     );
 
-    my ($min, $max);
+    my (@items, $min, $max);
 
-    # We may have retrieved values other than the ones we want, for example
-    # additional date fields in records where we wanted the other one. Normally
-    # we don't want these. However, we will want to add them on if there are
-    # not many records in the original set
-    my (@items);
-    if ($limit_qty)
-    {
-        $self->max_results(100);
-        foreach my $run (qw/after before/)
-        {
-            my @over;
-            # Initial retrieval will be 100 records from today (center)
-            my @retrieved = @{$timeline->items};
-            $max = $timeline->retrieved_to if $run eq 'after';
-            $min = $timeline->retrieved_from if $run eq 'before';
+    if($limit_qty)
+    {   # We may have retrieved values other than the ones we want, for example
+        # additional date fields in records where we wanted the other one. Normally
+        # we don't want these. However, we will want to add them on if there are
+        # not many records in the original set
 
-            foreach (@retrieved)
-            {
-                if (
-                    ($run eq 'after' && $_->{dt} < $max)
-                    || ($run eq 'before' && $_->{dt} > $min)
-                )
-                {
-                    push @items, $_;
-                } else {
-                    push @over, $_;
-                }
+        $self->max_results(100);    # search 100 of today
+        my @retrieved = @{$timeline->items};
+        my $retrieved_count = $self->records_retrieved_count;
+
+        #### AFTER
+        $max = $timeline->retrieved_to;
+        my @after;
+        push @{$_->{dt} < $max ? \@items : \@after}, $_ for @retrieved;
+
+        if($retrieved_count < 100)
+        {   my @over = sort { DateTime->compare($a->{dt}, $b->{dt}) } @after;
+#XXX shouldn't we collect until @items==100?
+            for(my $r = $retrieved_count; $r < 100 && @over; $r++)
+            {   push @items, pop @over;
             }
-            if (
-                ($run eq 'after' && $self->records_retrieved_count < 100)
-                || ($run eq 'before' && $self->records_retrieved_count < 50)
-            )
-            {
-                my $r = $self->records_retrieved_count;
-                # Sort is expensive, but will only be called if there weren't many
-                # records to begin with
-                @over = sort { DateTime->compare($a->{dt}, $b->{dt}) } @over;
-                @over = reverse @over if $run eq 'before';
-                while ($r < 100 && @over)
-                {
-                    push @items, pop @over;
-                    $r++;
-                }
-            }
-
-            # Now add a smaller subset of before the required time
-            # my $days  = int $min->delta_days($max)->in_units('days') / 4;
-            $timeline->clear;
-            # Retrieve up to but not including the previous retrieval
-            if ($run eq 'after')
-            {
-                $self->to($original_from->clone->subtract(days => 1));
-                # $min = $original_from->clone->subtract(days => $days);
-                $self->from(undef);
-                # Don't limit by a number - take whatever is in that period
-                $self->max_results(50);
-            }
-
-            # Set the times for the display range. The time at midnight may
-            # have been adjusted for local time - reset it back to midnight.
-            # This also means that invalid times are avoided (e.g. if a day is
-            # subtracted from 26th March 2018 01:00 London then it will be an
-            # invalid time and DateTime will bork.
-            $min && $min->set_time_zone('UTC');
-            $max && $max->set_time_zone('UTC');
-            $min && $min->subtract(days => 1),
-            $max && $max->add(days => 2), # one day already added to show period to end of day
         }
+        $timeline->clear;
+
+        #### BEFORE
+        # Retrieve up to but not including the previous retrieval
+        $self->to($original_from->clone->subtract(days => 1));
+        $self->from(undef);
+        $self->max_results(50); # search 50
+
+        @retrieved = @{$timeline->items};
+        $retrieved_count = $self->records_retrieved_count;
+        $min = $timeline->retrieved_from;
+
+        my @before;
+        push @{$min < $_->{dt} ? \@items : \@before}, $_ for @retrieved;
+
+        if($retrieved_count < 50)
+        {   my @over = sort { DateTime->compare($b->{dt}, $a->{dt}) } @before;
+            for(my $r = $retrieved_count; $r < 100 && @over; $r++)   #XXX 100 @items?
+            {   push @items, pop @over;
+            }
+        }
+
+        $timeline->clear;
+
         # Clear max_results otherwise message will be rendered stating the max
         # results retrieved (as per search - see search_limit_reached)
         $self->clear_max_results;
 
+        # Set the times for the display range. The time at midnight may have been adjusted for
+        # local time - reset it back to midnight. This also means that invalid times are avoided
+        # E.g. if a day is subtracted from 26th March 2018 01:00 London then it will be an
+        # invalid time and DateTime will bork.
+        $min->set_time_zone('UTC')->subtract(days => 1) if $min;
+
+        # one day already added to show period to end of day
+        $max->set_time_zone('UTC')->add(days => 2) if $max;
     }
-    else {
-        my @retrieved = @{$timeline->items};
-
-        @items = $self->_filter_items($original_from, $original_to, @retrieved);
-
-        # Set the times for the display range
-        $min = $self->from;
-        $max = $self->to;
+    elsif($original_from && $original_to)
+    {   @items = $self->_filter_items($original_from, $original_to, @{$timeline->items});
+        ($min, $max) = ($original_from, $original_to);
+    }
+    else
+    {   @items = @{$timeline->items};
     }
 
     # Remove dt (DateTime) value, otherwise JSON encoding borks
@@ -2091,19 +2068,18 @@ sub data_timeline
         );
 
         # Only show the first field, plus all the date fields
-        my $picked; my @to_show;
+        my ($picked, @to_show);
         foreach ($layout->all_user_read)
         {
             if ($_->return_type =~ /date/)
-            {
-                push @to_show, $_;
-                next;
+            {   push @to_show, $_;
             }
-            elsif (!$picked) {
-                push @to_show, $_;
+            elsif(!$picked)
+            {   push @to_show, $_;
                 $picked = 1;
             }
         }
+
         my $records = GADS::Records->new(
             columns => [ map { $_->id } @to_show ],
             from    => $min,
