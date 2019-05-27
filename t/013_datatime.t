@@ -367,7 +367,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         },
     ];
 
-    my $year = 86400 * 365;
+    my $year = 86400 * 366; # 2008 is a leap year
     my $sheet = t::lib::DataSheet->new(
         data             => $data,
         calc_code        => "function evaluate (L1daterange1) \n return L1daterange1.from.epoch - $year \nend",
@@ -377,12 +377,11 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     $sheet->create_records;
     my $schema   = $sheet->schema;
     my $layout   = $sheet->layout;
-    my $dr1      = $sheet->columns->{daterange1}->id;
     my $showcols = [ map { $_->id } $layout->all(exclude_internal => 1) ];
 
     my $records = GADS::Records->new(
         from    => DateTime->new(year => 2007, month => 01, day => 01),
-        to      => DateTime->new(year => 2008, month => 12, day => 31),
+        to      => DateTime->new(year => 2008, month => 12, day => 01),
         user    => undef,
         columns => $showcols,
         layout  => $layout,
@@ -390,7 +389,12 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     );
 
     # Normal - should include dateranges that go over the from/to values
-    is( @{$records->data_timeline->{items}}, 1, "Records retrieved inclusive" );
+    my @items = @{$records->data_timeline->{items}};
+    is( @items, 1, "Records retrieved inclusive" );
+    my $item = $items[0];
+    is($item->{content}, "foo1 (calc1)", "Calc content for item");
+    my $time = DateTime->new(year => 2008, month => 1, day => 1);
+    is($item->{start}, $time->epoch * 1000, "Correct date for item");
 }
 
 # No records to display

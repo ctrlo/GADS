@@ -228,15 +228,13 @@ sub _build_items
                     }
 
                     my (@spans, $is_range);
-                    if($column_datum->type eq 'daterange')
+                    if($column_datum->return_type eq 'daterange')
                     {   @spans    = map +[ $_->start, $_->end ], @{$d->values};
                         $is_range = 1;
                     }
                     else
-                    {   my $type  = $d->column->type;
-#XXX above, we check for 'return_type', here it is 'type'
-                        @spans    = map +[ $_, $_ ],
-                            $type eq 'date' || $type eq 'createddate' ? @{$d->values} : @{$d->value};
+                    {   @spans    = map +[ $_, $_ ],
+                            @{$d->values};
                     }
 
                     foreach my $span (@spans)
