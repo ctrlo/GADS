@@ -1859,7 +1859,9 @@ sub _resolve
     # "bar" and hence the whole record including "foo".  We therefore have
     # to instead negate the record IDs containing that negative match.
     my $multivalue = $options{parent} ? $options{parent}->multivalue : $column->multivalue;
-    if ($multivalue && $condition->{type} eq 'not_equal')
+    my $previous_values = $options{filter}->{previous_values};
+    # XXX negative multivalue previous values to be tested
+    if ($multivalue && $condition->{type} eq 'not_equal' && !$previous_values)
     {
         # Create a non-negative match of all the IDs that we don't want to
         # match. Use a Records object so that all the normal requirements are
@@ -1887,14 +1889,34 @@ sub _resolve
     else {
         my $combiner = $condition->{type} =~ /(is_not_empty|not_equal|not_begins_with)/ ? '-and' : '-or';
         $value    = @$value > 1 ? [ $combiner => @$value ] : $value->[0];
-        $self->add_join($options{parent}, search => 1, linked => $is_linked, all_fields => $self->curcommon_all_fields)
-            if $options{parent};
-        $self->add_join($column, search => 1, linked => $is_linked, parent => $options{parent}, all_fields => $self->curcommon_all_fields);
-        my $s_table = $self->table_name($column, %options, search => 1);
         my $sq = {$condition->{operator} => $value};
         $sq = [ $sq, undef ] if $condition->{type} eq 'not_equal'
             || $condition->{type} eq 'not_begins_with' || $condition->{type} eq 'not_contains';
-        +( "$s_table.$_->{s_field}" => $sq );
+
+        if ($previous_values)
+        {
+            my $join = ['record'];
+            push @$join, $column->previous_values_join
+                if $column->previous_values_join;
+            my $all_values_rs = $self->schema->resultset($column->table)->search({
+                'me.layout_id' => $column->id,
+                $column->previous_values_prefix.".".$condition->{s_field} => $sq,
+            },{
+                join => $join,
+            });
+            return (
+                'me.id' => {
+                    -in => $all_values_rs->get_column('record.current_id')->as_query,
+                }
+            );
+        }
+        else {
+            $self->add_join($options{parent}, search => 1, linked => $is_linked, all_fields => $self->curcommon_all_fields)
+                if $options{parent};
+            $self->add_join($column, search => 1, linked => $is_linked, parent => $options{parent}, all_fields => $self->curcommon_all_fields);
+            my $s_table = $self->table_name($column, %options, search => 1);
+            +( "$s_table.$condition->{s_field}" => $sq );
+        }
     }
 }
 

@@ -176,6 +176,16 @@ sub tjoin
     +{$self->field => 'value'};
 }
 
+sub previous_values_prefix
+{   my $self = shift;
+    'value';
+}
+
+sub previous_values_join
+{   my $self = shift;
+    'value';
+}
+
 sub validate
 {   my ($self, $value, %options) = @_;
     return 1 if !$value;
