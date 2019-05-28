@@ -1672,12 +1672,31 @@ sub _search_construct
     # when they should evaluate false. Therefore convert.
     $filter->{value} = '' if ref $filter->{value} eq 'ARRAY' && !@{$filter->{value}};
 
+    # Whether we are also searching previous record values
+    my $previous_values = $filter->{previous_values};
+    # If we're searching previous record values and we have a negative search,
+    # then we have to flip things round to use a not_in condition (see below).
+    # This is because otherwise an -in condition will match records even though
+    # other values do not match. E.g. old value is Foo, new value is Bar, a
+    # not_equal value of "Foo" will match the new record and therefore return
+    # the result, even though the old value should have caused it to not be
+    # included
+    my $reverse         = $previous_values && $filter->{operator} =~ /^not/;
+
     # If testing a comparison but we have no value, then assume search empty/not empty
     # (used during filters on curval against current record values)
     my $filter_operator = $filter->{operator}; # Copy so as not to affect original hash ref
     $filter_operator = $filter_operator eq 'not_equal' ? 'is_not_empty' : 'is_empty'
         if $filter_operator !~ /(is_empty|is_not_empty)/
             && (!defined $filter->{value} || $filter->{value} eq ''); # Not zeros (valid search)
+
+    $filter_operator = 'equal'
+        if $reverse && $filter_operator eq 'not_equal';
+    $filter_operator = 'begins_with'
+        if $reverse && $filter_operator eq 'not_begins_with';
+    $filter_operator = 'contains'
+        if $reverse && $filter_operator eq 'not_contains';
+
     my $operator = $ops{$filter_operator}
         or error __x"Invalid operator {filter}", filter => $filter_operator;
 
@@ -1825,7 +1844,13 @@ sub _search_construct
     }
 
     my @final = map {
-        $self->_resolve($column, $_, \@values, 0, parent => $parent_column, filter => $filter, %options);
+        $self->_resolve($column, $_, \@values, 0,
+            parent          => $parent_column,
+            filter          => $filter,
+            previous_values => $previous_values,
+            reverse         => $reverse,
+            %options
+        );
     } @conditions;
     @final = ("-$gate" => [@final]);
     my $parent_column_link = $parent_column && $parent_column->link_parent;;
@@ -1840,7 +1865,13 @@ sub _search_construct
             $link_parent = $column->link_parent;
         }
         my @final2 = map {
-            $self->_resolve($link_parent, $_, \@values, 1, parent => $parent_column_link, filter => $filter, %options);
+            $self->_resolve($link_parent, $_, \@values, 1,
+                parent          => $parent_column_link,
+                filter          => $filter,
+                previous_values => $previous_values,
+                reverse         => $reverse,
+                %options
+            );
         } @conditions;
         @final2 = ("-$gate" => [@final2]);
         @final = (['-or' => [@final], [@final2]]);
@@ -1859,8 +1890,8 @@ sub _resolve
     # "bar" and hence the whole record including "foo".  We therefore have
     # to instead negate the record IDs containing that negative match.
     my $multivalue = $options{parent} ? $options{parent}->multivalue : $column->multivalue;
-    my $previous_values = $options{filter}->{previous_values};
-    # XXX negative multivalue previous values to be tested
+    my $reverse         = $options{reverse};
+    my $previous_values = $options{previous_values};
     if ($multivalue && $condition->{type} eq 'not_equal' && !$previous_values)
     {
         # Create a non-negative match of all the IDs that we don't want to
@@ -1904,11 +1935,21 @@ sub _resolve
             },{
                 join => $join,
             });
-            return (
-                'me.id' => {
-                    -in => $all_values_rs->get_column('record.current_id')->as_query,
-                }
-            );
+            if ($reverse)
+            {
+                return (
+                    'me.id' => {
+                        -not_in => $all_values_rs->get_column('record.current_id')->as_query,
+                    }
+                );
+            }
+            else {
+                return (
+                    'me.id' => {
+                        -in => $all_values_rs->get_column('record.current_id')->as_query,
+                    }
+                );
+            }
         }
         else {
             $self->add_join($options{parent}, search => 1, linked => $is_linked, all_fields => $self->curcommon_all_fields)

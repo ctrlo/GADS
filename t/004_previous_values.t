@@ -197,32 +197,197 @@ foreach my $value (@values)
 
 }
 
-my @integers = (
+my @tests = (
     {
-        value    => 50,
-        operator => 'less',
+        field          => 'integer1',
+        value_before   => 340,
+        value_after    => 450,
+        filter_value   => 420,
+        operator       => 'less',
+        count_normal   => 0,
+        count_previous => 1,
     },
     {
-        value    => 45,
-        operator => 'less_or_equal',
+        field          => 'integer1',
+        value_before   => 700,
+        value_after    => 450,
+        filter_value   => 600,
+        operator       => 'greater',
+        count_normal   => 0,
+        count_previous => 1,
     },
     {
-        value          => 55,
+        field          => 'integer1',
+        value_before   => 340,
+        value_after    => 450,
+        filter_value   => 340,
+        operator       => 'less_or_equal',
+        count_normal   => 0,
+        count_previous => 1,
+    },
+    {
+        field          => 'integer1',
+        value_before   => 340,
+        value_after    => 450,
+        filter_value   => 340,
         operator       => 'not_equal',
-        # Includes second record with blank values
         count_normal   => 1,
-        count_previous => 2,
+        count_previous => 0,
+    },
+    {
+        field          => 'integer1',
+        value_before   => undef,
+        value_after    => 100,
+        operator       => 'is_empty',
+        count_normal   => 0,
+        count_previous => 1,
+    },
+    {
+        field          => 'integer1',
+        value_before   => 100,
+        value_after    => undef,
+        operator       => 'is_not_empty',
+        count_normal   => 0,
+        count_previous => 1,
+    },
+    {
+        field          => 'string1',
+        value_before   => 'apples',
+        value_after    => 'oranges',
+        filter_value   => 'apples',
+        operator       => 'not_equal',
+        count_normal   => 1,
+        count_previous => 0,
+    },
+    {
+        field          => 'string1',
+        value_before   => 'apples',
+        value_after    => 'oranges',
+        filter_value   => 'pple',
+        operator       => 'contains',
+        count_normal   => 0,
+        count_previous => 1,
+    },
+    {
+        field          => 'string1',
+        value_before   => 'apples',
+        value_after    => 'oranges',
+        filter_value   => 'pple',
+        operator       => 'not_contains',
+        count_normal   => 1,
+        count_previous => 0,
+    },
+    {
+        field          => 'string1',
+        value_before   => 'apples',
+        value_after    => 'oranges',
+        filter_value   => 'appl',
+        operator       => 'not_begins_with',
+        count_normal   => 1,
+        count_previous => 0,
+    },
+    {
+        field          => 'string1',
+        value_before   => undef,
+        value_after    => 'Foobar',
+        operator       => 'is_empty',
+        count_normal   => 0,
+        count_previous => 1,
+        empty_defined  => 1,
+    },
+    {
+        field          => 'string1',
+        value_before   => 'Foobar',
+        value_after    => undef,
+        operator       => 'is_not_empty',
+        count_normal   => 0,
+        count_previous => 1,
+        empty_defined  => 1,
+    },
+    {
+        field          => 'string1',
+        value_before   => undef,
+        value_after    => 'Foobar',
+        operator       => 'is_empty',
+        count_normal   => 0,
+        count_previous => 1,
+        empty_defined  => 0,
+    },
+    {
+        field          => 'string1',
+        value_before   => 'Foobar',
+        value_after    => undef,
+        operator       => 'is_not_empty',
+        count_normal   => 0,
+        count_previous => 1,
+        empty_defined  => 0,
+    },
+    {
+        field          => 'enum1',
+        value_before   => [1,2],
+        value_after    => 3,
+        filter_value   => 'foo2',
+        operator       => 'not_equal',
+        count_normal   => 1,
+        count_previous => 0,
+    },
+    {
+        # Check other multivalue
+        field          => 'enum1',
+        value_before   => [1,2],
+        value_after    => 3,
+        filter_value   => 'foo1',
+        operator       => 'not_equal',
+        count_normal   => 1,
+        count_previous => 0,
     },
 );
 
-foreach my $test (@integers)
+foreach my $test (@tests)
 {
+    my $data = [
+        {
+            $test->{field} => $test->{value_before},
+        },
+    ];
+
+    my $sheet   = t::lib::DataSheet->new(
+        data       => $data,
+        multivalue => 1,
+    );
+    $sheet->create_records;
+    my $schema   = $sheet->schema;
+    my $layout   = $sheet->layout;
+    my $columns  = $sheet->columns;
+    my $col      = $columns->{$test->{field}},
+
+    my $record = GADS::Record->new(
+        schema => $schema,
+        layout => $layout,
+        user   => $sheet->user,
+    );
+    $record->find_current_id(1);
+    $record->fields->{$col->id}->set_value($test->{value_after});
+    $record->write(no_alerts => 1);
+
+    # Enable tests for both empty string and NULL values
+    if (exists $test->{empty_defined})
+    {
+        my $val = $test->{empty_defined} ? '' : undef;
+        $schema->resultset('String')->search({
+            value => [undef, ''],
+        })->update({
+            value       => $val,
+            value_index => $val,
+        });
+    }
+
     my $rules = GADS::Filter->new(
         as_hash => {
             rules     => [{
-                id       => $columns->{integer1}->id,
+                id       => $columns->{$test->{field}}->id,
                 type     => 'string',
-                value    => $test->{value},
+                value    => $test->{filter_value},
                 operator => $test->{operator},
             }],
         },
@@ -245,14 +410,14 @@ foreach my $test (@integers)
         schema  => $schema,
     );
 
-    is ($records->count, $test->{count_normal} || 0, "No results using normal search on integer value - operator $test->{operator}");
+    is ($records->count, $test->{count_normal}, "Correct number of results - operator $test->{operator}");
 
     $rules = GADS::Filter->new(
         as_hash => {
             rules     => [{
-                id              => $columns->{integer1}->id,
+                id              => $columns->{$test->{field}}->id,
                 type            => 'string',
-                value           => $test->{value},
+                value           => $test->{filter_value},
                 operator        => $test->{operator},
                 previous_values => 1,
             }],
@@ -276,7 +441,7 @@ foreach my $test (@integers)
         schema  => $schema,
     );
 
-    is ($records->count, $test->{count_previous} || 1, "Returned record when searching previous integer values - operator $test->{operator}");
+    is ($records->count, $test->{count_previous}, "Correct number of results inc previous - operator $test->{operator}");
 }
 
 done_testing();
