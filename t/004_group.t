@@ -126,9 +126,10 @@ foreach my $multivalue (0..1)
     my @results = @{$records->results};
     is(@results, 2, "Correct number of rows for group by string");
 
+    my @expected = (@$expected);
     foreach my $row (@results)
     {
-        my $expected = shift @$expected;
+        my $expected = shift @expected;
         is($row->fields->{$string1->id}, $expected->{string1}, "Group text correct");
         is($row->fields->{$integer1->id}, $expected->{integer1}, "Group integer correct");
         is($row->fields->{$calc1->id}, $expected->{calc1}, "Group calc correct");
@@ -138,6 +139,27 @@ foreach my $multivalue (0..1)
         is($row->fields->{$tree1->id}, $expected->{tree1}, "Group tree correct");
         is($row->fields->{$curval1->id}, $expected->{curval1}, "Group curval correct");
         is($row->id_count, 2, "ID count correct");
+    }
+
+    # Remove grouped column from view and check still gets added as required
+    $view->columns([$integer1->id]);
+    $view->write;
+
+    @expected = (@$expected);
+    $records->clear;
+    $records = GADS::Records->new(
+        view   => $view,
+        layout => $layout,
+        user   => $sheet->user,
+        schema => $schema,
+    );
+    @results = @{$records->results};
+    is(@results, 2, "Correct number of rows for group by string");
+    foreach my $row (@results)
+    {
+        my $expected = shift @expected;
+        is($row->fields->{$string1->id}, $expected->{string1}, "Group text correct");
+        is($row->fields->{$integer1->id}, $expected->{integer1}, "Group integer correct");
     }
 }
 

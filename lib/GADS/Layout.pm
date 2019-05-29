@@ -946,7 +946,7 @@ sub view
         instance_id => $self->instance_id,
     );
     my $current_group_id = delete $options{current_group_id};
-    my %view_layouts = map { $_ => 1 } @{$view->columns};
+    my %view_layouts = map { $_ => 1 } @{$view->columns}, map $_->layout_id, @{$view->groups};
     my @cols = grep {
         (!$current_group_id || $_->{id} != $current_group_id ) && $view_layouts{$_->{id}}
     } $self->all(%options);
