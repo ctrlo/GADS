@@ -844,7 +844,7 @@ sub _current_ids_rs
         if $page && $page > 1 && $page > $self->pages; # Building page count is expensive, avoid if not needed
 
     $select->{rows} = $self->rows if $self->rows && !$self->is_group;
-    $select->{page} = $page if $page;
+    $select->{page} = $page if $page && !$self->is_group;
     $select->{rows} ||= $self->max_results
         if $self->max_results;
 

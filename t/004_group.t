@@ -200,6 +200,7 @@ foreach my $multivalue (0..1)
         # Specify rows parameter to simulate default used for table view. This
         # should be ignored
         rows   => 50,
+        page   => 1,
         view   => $view,
         layout => $layout,
         user   => $sheet->user,
