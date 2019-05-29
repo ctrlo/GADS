@@ -188,6 +188,11 @@ has is_group => (
     is => 'ro',
 );
 
+has id_count => (
+    is      => 'rwp',
+    clearer => 1,
+);
+
 has _columns_retrieved_index => (
     is  => 'lazy',
     isa => HashRef,
@@ -676,6 +681,7 @@ sub clear
     $self->clear_is_historic;
     $self->clear_new_entry;
     $self->clear_layout;
+    $self->clear_id_count;
 }
 
 # XXX This whole section is getting messy and duplicating a lot of code from
@@ -1005,6 +1011,9 @@ sub _transform_values
             if $self->curcommon_all_fields && $column->is_curcommon;
         $fields->{$column->id} = $column->class->new(%params);
     }
+
+    $self->_set_id_count($original->{id_count});
+
     my $column_id = $self->layout->column_id;
     $fields->{$column_id->id} = GADS::Datum::ID->new(
         record           => $self,

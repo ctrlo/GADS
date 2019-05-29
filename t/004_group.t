@@ -137,6 +137,7 @@ foreach my $multivalue (0..1)
         is($row->fields->{$enum1->id}, $expected->{enum1}, "Group enum correct");
         is($row->fields->{$tree1->id}, $expected->{tree1}, "Group tree correct");
         is($row->fields->{$curval1->id}, $expected->{curval1}, "Group curval correct");
+        is($row->id_count, 2, "ID count correct");
     }
 }
 

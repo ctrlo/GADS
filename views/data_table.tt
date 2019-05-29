@@ -8,6 +8,9 @@
 <table class="data-table table table-striped col-md-12" id="data-table">
     <thead>
         <tr>
+            [% IF is_group %]
+                <th></th>
+            [% END %]
             [% FOREACH col IN columns %]
                 <th scope="col" aria-sort="[% col.sort.aria %]">
                     <button type="button" class="trigger" aria-expanded="false" aria-controls="col-[% col.id %]-options">[% col.sort.current %][% col.name | html_entity %] &rsaquo; </button>
@@ -34,6 +37,9 @@
     <tbody>
         [% FOREACH record IN records %]
             <tr>
+                [% IF is_group %]
+                    <td>[% record.id_count %]&nbsp;record[% IF record.id_count != 1 %]s[% END %]</td>
+                [% END %]
                 [% FOREACH column IN record.columns %]
                     [% IF loop.first AND column.is_id %]
                         <td>
