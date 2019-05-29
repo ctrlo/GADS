@@ -59,6 +59,7 @@ has pages => (
 sub _build_pages
 {   my $self = shift;
     my $count = $self->search_limit_reached || $self->count;
+    return 1 if $self->is_group;
     $self->rows ? ceil($count / $self->rows) : 1;
 }
 
@@ -842,7 +843,7 @@ sub _current_ids_rs
     $page = $self->pages
         if $page && $page > 1 && $page > $self->pages; # Building page count is expensive, avoid if not needed
 
-    $select->{rows} = $self->rows if $self->rows;
+    $select->{rows} = $self->rows if $self->rows && !$self->is_group;
     $select->{page} = $page if $page;
     $select->{rows} ||= $self->max_results
         if $self->max_results;

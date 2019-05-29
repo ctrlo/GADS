@@ -163,4 +163,103 @@ foreach my $multivalue (0..1)
     }
 }
 
+# Large number of records (greater than default number of rows in table). Check
+# that paging does not affect results
+{
+    my @data;
+    my %group_values;
+    for my $count (1..300)
+    {
+        my $id = substr $count, -1;
+        push @data, {
+            string1  => "Foo$id",
+            integer1 => $id * 10,
+        };
+    }
+
+    my $sheet = t::lib::DataSheet->new(data => \@data);
+    $sheet->create_records;
+    my $schema   = $sheet->schema;
+    my $layout   = $sheet->layout;
+    my $columns  = $sheet->columns;
+    my $string1  = $columns->{string1};
+    my $integer1 = $columns->{integer1};
+
+    my $view = GADS::View->new(
+        name        => 'Group view large',
+        columns     => [$string1->id, $integer1->id],
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+    );
+    $view->write;
+    $view->set_groups([$string1->id]);
+
+    my $records = GADS::Records->new(
+        # Specify rows parameter to simulate default used for table view. This
+        # should be ignored
+        rows   => 50,
+        view   => $view,
+        layout => $layout,
+        user   => $sheet->user,
+        schema => $schema,
+    );
+
+    my @results = @{$records->results};
+    is(@results, 10, "Correct number of rows for group of large number of records");
+    is($records->pages, 1, "Correct number of pages for large number of records");
+
+    my @expected = (
+        {
+            string1  => 'Foo0',
+            integer1 => 0,
+        },
+        {
+            string1  => 'Foo1',
+            integer1 => 300,
+        },
+        {
+            string1  => 'Foo2',
+            integer1 => 600,
+        },
+        {
+            string1  => 'Foo3',
+            integer1 => 900,
+        },
+        {
+            string1  => 'Foo4',
+            integer1 => 1200,
+        },
+        {
+            string1  => 'Foo5',
+            integer1 => 1500,
+        },
+        {
+            string1  => 'Foo6',
+            integer1 => 1800,
+        },
+        {
+            string1  => 'Foo7',
+            integer1 => 2100,
+        },
+        {
+            string1  => 'Foo8',
+            integer1 => 2400,
+        },
+        {
+            string1  => 'Foo9',
+            integer1 => 2700,
+        },
+    );
+    foreach my $row (@results)
+    {
+        my $expected = shift @expected;
+        is($row->fields->{$string1->id}, $expected->{string1}, "Group text correct");
+        is($row->fields->{$integer1->id}, $expected->{integer1}, "Group integer correct");
+        is($row->id_count, 30, "ID count correct for large records group");
+    }
+
+}
+
 done_testing();
