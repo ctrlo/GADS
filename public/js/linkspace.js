@@ -1085,16 +1085,6 @@ var setupColumnFilters = function(context) {
             values[valueIndex].checked = this.checked;
         });
 
-        $submit.on("click", function() {
-            var selectedValues = _.map(_.filter(values, "checked"), "id");
-            var params = getParams({except: "field" + colId});
-            selectedValues.forEach(function(value) {
-                params.push(["field" + colId, value]);
-            });
-            window.location = "?" + params.map(function(param) { return param[0] + "=" + param[1]; }).join("&");
-        });
-
-        $searchInput.on("keyup", fetchValues);
         $searchInput.on("keyup", function() {
             var val = $(this).val();
             if (val.length) {
@@ -1103,6 +1093,25 @@ var setupColumnFilters = function(context) {
                 $clearSearchInput.attr('hidden', '');
             }
         });
+
+        if (autocompleteHasID) {
+            $searchInput.on("keyup", fetchValues);
+
+            $submit.on("click", function() {
+                var selectedValues = _.map(_.filter(values, "checked"), "id");
+                var params = getParams({except: "field" + colId});
+                selectedValues.forEach(function(value) {
+                    params.push(["field" + colId, value]);
+                });
+                window.location = "?" + params.map(function(param) { return param[0] + "=" + param[1]; }).join("&");
+            });
+        } else {
+            $submit.on("click", function() {
+                var params = getParams({except: "field" + colId});
+                params.push(["field" + colId, $searchInput.val()]);
+                window.location = "?" + params.map(function(param) { return param[0] + "=" + param[1]; }).join("&");
+            });
+        }
 
         $clearSearchInput.on("click", function(e) {
             e.preventDefault();
