@@ -999,12 +999,12 @@ var setupAccessibility = function(context) {
         });
     }
 }
-var getParams = function() {
+var getParams = function(options = {}) {
     return _.chain(location.search.slice(1).split('&'))
         .map(function (item) { if (item) { return item.split('='); } })
         .compact()
-        .object()
-        .value();
+        .value()
+        .filter(function(param) { return param[0] !== options.except});
 }
 
 var setupColumnFilters = function(context) {
@@ -1039,9 +1039,9 @@ var setupColumnFilters = function(context) {
             $.getJSON(autocompleteEndpoint + q, function(data) {
                 _.each(data, function(searchValue) {
                     if (autocompleteHasID) {
-                        if (!_.some(values, function(value) {return value.key === searchValue.key})) {
+                        if (!_.some(values, function(value) {return value.id === searchValue.id.toString()})) {
                             values.push({
-                                key: searchValue.id.toString(),
+                                id: searchValue.id.toString(),
                                 value: searchValue.name
                             });
                         }
@@ -1073,7 +1073,7 @@ var setupColumnFilters = function(context) {
             var uniquePrefix = 'column_filter_value_label_' + colId + '_' + index;
             return $('<li class="column-filter__value">' +
                 '<label id="' + uniquePrefix + '_label" for="' + uniquePrefix + '">' +
-                    '<input id="' + uniquePrefix + '" type="checkbox" value="' + value.key + '" ' + (value.checked ? "checked" : "") + ' aria-labelledby="' + uniquePrefix + '_label">' +
+                    '<input id="' + uniquePrefix + '" type="checkbox" value="' + value.id + '" ' + (value.checked ? "checked" : "") + ' aria-labelledby="' + uniquePrefix + '_label">' +
                     '<span role="option">' + value.value + '</span>' +
                 '</label>' +
             '</li>');
@@ -1081,18 +1081,10 @@ var setupColumnFilters = function(context) {
 
         $values.delegate("input", "change", function() {
             var checkboxValue = $(this).val();
-            var valueIndex = _.findIndex(values, function(value) {return value.key === checkboxValue});
+            var valueIndex = _.findIndex(values, function(value) {return value.id === checkboxValue});
             values[valueIndex].checked = this.checked;
         });
 
-        $submit.on("click", function() {
-            var selectedValues = _.map(_.filter(values, "checked"), "key");
-            var params = getParams();
-            params["field" + colId] = selectedValues.join(",");
-            window.location = "?" + $.param(params);
-        });
-
-        $searchInput.on("keyup", fetchValues);
         $searchInput.on("keyup", function() {
             var val = $(this).val();
             if (val.length) {
@@ -1101,6 +1093,25 @@ var setupColumnFilters = function(context) {
                 $clearSearchInput.attr('hidden', '');
             }
         });
+
+        if (autocompleteHasID) {
+            $searchInput.on("keyup", fetchValues);
+
+            $submit.on("click", function() {
+                var selectedValues = _.map(_.filter(values, "checked"), "id");
+                var params = getParams({except: "field" + colId});
+                selectedValues.forEach(function(value) {
+                    params.push(["field" + colId, value]);
+                });
+                window.location = "?" + params.map(function(param) { return param[0] + "=" + param[1]; }).join("&");
+            });
+        } else {
+            $submit.on("click", function() {
+                var params = getParams({except: "field" + colId});
+                params.push(["field" + colId, $searchInput.val()]);
+                window.location = "?" + params.map(function(param) { return param[0] + "=" + param[1]; }).join("&");
+            });
+        }
 
         $clearSearchInput.on("click", function(e) {
             e.preventDefault();
