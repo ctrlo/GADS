@@ -999,12 +999,12 @@ var setupAccessibility = function(context) {
         });
     }
 }
-var getParams = function() {
+var getParams = function(options = {}) {
     return _.chain(location.search.slice(1).split('&'))
         .map(function (item) { if (item) { return item.split('='); } })
         .compact()
-        .object()
-        .value();
+        .value()
+        .filter(function(param) { return param[0] !== options.except});
 }
 
 var setupColumnFilters = function(context) {
@@ -1087,9 +1087,11 @@ var setupColumnFilters = function(context) {
 
         $submit.on("click", function() {
             var selectedValues = _.map(_.filter(values, "checked"), "id");
-            var params = getParams();
-            params["field" + colId] = selectedValues.join(",");
-            window.location = "?" + $.param(params);
+            var params = getParams({except: "field" + colId});
+            selectedValues.forEach(function(value) {
+                params.push(["field" + colId, value]);
+            });
+            window.location = "?" + params.map(function(param) { return param[0] + "=" + param[1]; }).join("&");
         });
 
         $searchInput.on("keyup", fetchValues);
