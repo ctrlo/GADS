@@ -20,7 +20,6 @@ config.yml-example
 contrib/linkspace.conf
 contrib/query-builder-2.patch
 contrib/query-builder.patch
-dbic.sh
 docs/developer-guide.md
 docs/kb/020-homepage.md
 docs/kb/020-homepage/010-homepages.md

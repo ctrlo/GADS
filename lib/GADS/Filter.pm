@@ -91,7 +91,10 @@ has has_value => (
 );
 
 has layout => (
-    is => 'rw',
+    is       => 'rw',
+    # Make a weak ref so that when this object is created, it doesn't require
+    # the reference to the layout to be destroyed to destroy this filter
+    weak_ref => 1,
 );
 
 # Takes a JSON string that has wide characters, decodes it into utf8 bytes

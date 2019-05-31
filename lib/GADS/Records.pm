@@ -59,6 +59,7 @@ has pages => (
 sub _build_pages
 {   my $self = shift;
     my $count = $self->search_limit_reached || $self->count;
+    return 1 if $self->is_group;
     $self->rows ? ceil($count / $self->rows) : 1;
 }
 
@@ -842,8 +843,8 @@ sub _current_ids_rs
     $page = $self->pages
         if $page && $page > 1 && $page > $self->pages; # Building page count is expensive, avoid if not needed
 
-    $select->{rows} = $self->rows if $self->rows;
-    $select->{page} = $page if $page;
+    $select->{rows} = $self->rows if $self->rows && !$self->is_group;
+    $select->{page} = $page if $page && !$self->is_group;
     $select->{rows} ||= $self->max_results
         if $self->max_results;
 
@@ -1693,12 +1694,31 @@ sub _search_construct
     # when they should evaluate false. Therefore convert.
     $filter->{value} = '' if ref $filter->{value} eq 'ARRAY' && !@{$filter->{value}};
 
+    # Whether we are also searching previous record values
+    my $previous_values = $filter->{previous_values};
+    # If we're searching previous record values and we have a negative search,
+    # then we have to flip things round to use a not_in condition (see below).
+    # This is because otherwise an -in condition will match records even though
+    # other values do not match. E.g. old value is Foo, new value is Bar, a
+    # not_equal value of "Foo" will match the new record and therefore return
+    # the result, even though the old value should have caused it to not be
+    # included
+    my $reverse         = $previous_values && $filter->{operator} =~ /^not/;
+
     # If testing a comparison but we have no value, then assume search empty/not empty
     # (used during filters on curval against current record values)
     my $filter_operator = $filter->{operator}; # Copy so as not to affect original hash ref
     $filter_operator = $filter_operator eq 'not_equal' ? 'is_not_empty' : 'is_empty'
         if $filter_operator !~ /(is_empty|is_not_empty)/
             && (!defined $filter->{value} || $filter->{value} eq ''); # Not zeros (valid search)
+
+    $filter_operator = 'equal'
+        if $reverse && $filter_operator eq 'not_equal';
+    $filter_operator = 'begins_with'
+        if $reverse && $filter_operator eq 'not_begins_with';
+    $filter_operator = 'contains'
+        if $reverse && $filter_operator eq 'not_contains';
+
     my $operator = $ops{$filter_operator}
         or error __x"Invalid operator {filter}", filter => $filter_operator;
 
@@ -1846,7 +1866,13 @@ sub _search_construct
     }
 
     my @final = map {
-        $self->_resolve($column, $_, \@values, 0, parent => $parent_column, filter => $filter, %options);
+        $self->_resolve($column, $_, \@values, 0,
+            parent          => $parent_column,
+            filter          => $filter,
+            previous_values => $previous_values,
+            reverse         => $reverse,
+            %options
+        );
     } @conditions;
     @final = ("-$gate" => [@final]);
     my $parent_column_link = $parent_column && $parent_column->link_parent;;
@@ -1861,7 +1887,13 @@ sub _search_construct
             $link_parent = $column->link_parent;
         }
         my @final2 = map {
-            $self->_resolve($link_parent, $_, \@values, 1, parent => $parent_column_link, filter => $filter, %options);
+            $self->_resolve($link_parent, $_, \@values, 1,
+                parent          => $parent_column_link,
+                filter          => $filter,
+                previous_values => $previous_values,
+                reverse         => $reverse,
+                %options
+            );
         } @conditions;
         @final2 = ("-$gate" => [@final2]);
         @final = (['-or' => [@final], [@final2]]);
@@ -1880,7 +1912,9 @@ sub _resolve
     # "bar" and hence the whole record including "foo".  We therefore have
     # to instead negate the record IDs containing that negative match.
     my $multivalue = $options{parent} ? $options{parent}->multivalue : $column->multivalue;
-    if ($multivalue && $condition->{type} eq 'not_equal')
+    my $reverse         = $options{reverse};
+    my $previous_values = $options{previous_values};
+    if ($multivalue && $condition->{type} eq 'not_equal' && !$previous_values)
     {
         # Create a non-negative match of all the IDs that we don't want to
         # match. Use a Records object so that all the normal requirements are
@@ -1908,14 +1942,44 @@ sub _resolve
     else {
         my $combiner = $condition->{type} =~ /(is_not_empty|not_equal|not_begins_with)/ ? '-and' : '-or';
         $value    = @$value > 1 ? [ $combiner => @$value ] : $value->[0];
-        $self->add_join($options{parent}, search => 1, linked => $is_linked, all_fields => $self->curcommon_all_fields)
-            if $options{parent};
-        $self->add_join($column, search => 1, linked => $is_linked, parent => $options{parent}, all_fields => $self->curcommon_all_fields);
-        my $s_table = $self->table_name($column, %options, search => 1);
         my $sq = {$condition->{operator} => $value};
         $sq = [ $sq, undef ] if $condition->{type} eq 'not_equal'
             || $condition->{type} eq 'not_begins_with' || $condition->{type} eq 'not_contains';
-        +( "$s_table.$_->{s_field}" => $sq );
+
+        if ($previous_values)
+        {
+            my $join = ['record'];
+            push @$join, $column->previous_values_join
+                if $column->previous_values_join;
+            my $all_values_rs = $self->schema->resultset($column->table)->search({
+                'me.layout_id' => $column->id,
+                $column->previous_values_prefix.".".$condition->{s_field} => $sq,
+            },{
+                join => $join,
+            });
+            if ($reverse)
+            {
+                return (
+                    'me.id' => {
+                        -not_in => $all_values_rs->get_column('record.current_id')->as_query,
+                    }
+                );
+            }
+            else {
+                return (
+                    'me.id' => {
+                        -in => $all_values_rs->get_column('record.current_id')->as_query,
+                    }
+                );
+            }
+        }
+        else {
+            $self->add_join($options{parent}, search => 1, linked => $is_linked, all_fields => $self->curcommon_all_fields)
+                if $options{parent};
+            $self->add_join($column, search => 1, linked => $is_linked, parent => $options{parent}, all_fields => $self->curcommon_all_fields);
+            my $s_table = $self->table_name($column, %options, search => 1);
+            +( "$s_table.$condition->{s_field}" => $sq );
+        }
     }
 }
 
@@ -1977,25 +2041,18 @@ sub csv_line
 }
 
 sub _filter_items
-{   my ($self, $original_from, $original_to, @items) = @_;
+{   my ($self, $from, $to) = (shift, shift, shift);
 
-    if ($self->exclusive_of_to)
-    {
-        @items = grep {
-            $_->{single} || $_->{end} < $original_to->epoch * 1000;
-        } @items;
+    if($self->exclusive_of_to)
+    {   my $to_tick = $to->epoch * 1000;
+        return grep { $_->{single} ? $_->{dt} >= $from && $_->{dt} <= $to : $_->{end} < $to_tick } @_;
     }
-    elsif ($self->exclusive_of_from)
-    {
-        @items = grep {
-            $_->{single} || $_->{start} > $original_from->epoch * 1000;
-        } @items;
+    elsif($self->exclusive_of_from)
+    {   my $from_tick = $from->epoch * 1000;
+        return grep { $_->{single} ? $from <= $_->{dt} && $_->{dt} <= $to : $from_tick < $_->{start} } @_;
     }
-    @items = grep {
-        !$_->{single} || ($_->{dt} >= $original_from && $_->{dt} <= $original_to)
-    } @items;
 
-    return @items;
+    grep { $_->{single} ? $_->{dt} >= $from && $_->{dt} <= $to : 1 } @_;
 }
 
 sub data_timeline
@@ -2003,7 +2060,7 @@ sub data_timeline
 
     my $original_from = $self->from;
     my $original_to   = $self->to;
-    my $limit_qty     = $self->from && !$self->to;
+    my $limit_qty     = $original_from && ! $original_to;
 
     my $timeline = GADS::Timeline->new(
         type         => 'timeline',
@@ -2013,89 +2070,73 @@ sub data_timeline
         color_col_id => $options{color},
     );
 
-    my ($min, $max);
+    my (@items, $min, $max);
 
-    # We may have retrieved values other than the ones we want, for example
-    # additional date fields in records where we wanted the other one. Normally
-    # we don't want these. However, we will want to add them on if there are
-    # not many records in the original set
-    my (@items);
-    if ($limit_qty)
-    {
-        $self->max_results(100);
-        foreach my $run (qw/after before/)
-        {
-            my @over;
-            # Initial retrieval will be 100 records from today (center)
-            my @retrieved = @{$timeline->items};
-            $max = $timeline->retrieved_to if $run eq 'after';
-            $min = $timeline->retrieved_from if $run eq 'before';
+    if($limit_qty)
+    {   # We may have retrieved values other than the ones we want, for example
+        # additional date fields in records where we wanted the other one. Normally
+        # we don't want these. However, we will want to add them on if there are
+        # not many records in the original set
 
-            foreach (@retrieved)
-            {
-                if (
-                    ($run eq 'after' && $_->{dt} < $max)
-                    || ($run eq 'before' && $_->{dt} > $min)
-                )
-                {
-                    push @items, $_;
-                } else {
-                    push @over, $_;
-                }
+        $self->max_results(100);    # search 100 of today
+        my @retrieved = @{$timeline->items};
+        my $retrieved_count = $self->records_retrieved_count;
+
+        #### AFTER
+        $max = $timeline->retrieved_to;
+        my @after;
+        push @{$_->{dt} < $max ? \@items : \@after}, $_ for @retrieved;
+
+        if($retrieved_count < 100)
+        {   my @over = sort { DateTime->compare($a->{dt}, $b->{dt}) } @after;
+#XXX shouldn't we collect until @items==100?
+            for(my $r = $retrieved_count; $r < 100 && @over; $r++)
+            {   push @items, pop @over;
             }
-            if (
-                ($run eq 'after' && $self->records_retrieved_count < 100)
-                || ($run eq 'before' && $self->records_retrieved_count < 50)
-            )
-            {
-                my $r = $self->records_retrieved_count;
-                # Sort is expensive, but will only be called if there weren't many
-                # records to begin with
-                @over = sort { DateTime->compare($a->{dt}, $b->{dt}) } @over;
-                @over = reverse @over if $run eq 'before';
-                while ($r < 100 && @over)
-                {
-                    push @items, pop @over;
-                    $r++;
-                }
-            }
-
-            # Now add a smaller subset of before the required time
-            # my $days  = int $min->delta_days($max)->in_units('days') / 4;
-            $timeline->clear;
-            # Retrieve up to but not including the previous retrieval
-            if ($run eq 'after')
-            {
-                $self->to($original_from->clone->subtract(days => 1));
-                # $min = $original_from->clone->subtract(days => $days);
-                $self->from(undef);
-                # Don't limit by a number - take whatever is in that period
-                $self->max_results(50);
-            }
-
-            # Set the times for the display range. The time at midnight may
-            # have been adjusted for local time - reset it back to midnight.
-            # This also means that invalid times are avoided (e.g. if a day is
-            # subtracted from 26th March 2018 01:00 London then it will be an
-            # invalid time and DateTime will bork.
-            $min && $min->set_time_zone('UTC');
-            $max && $max->set_time_zone('UTC');
-            $min && $min->subtract(days => 1),
-            $max && $max->add(days => 2), # one day already added to show period to end of day
         }
+        $timeline->clear;
+
+        #### BEFORE
+        # Retrieve up to but not including the previous retrieval
+        $self->to($original_from->clone->subtract(days => 1));
+        $self->from(undef);
+        $self->max_results(50); # search 50
+
+        @retrieved = @{$timeline->items};
+        $retrieved_count = $self->records_retrieved_count;
+        $min = $timeline->retrieved_from;
+
+        my @before;
+        push @{$min < $_->{dt} ? \@items : \@before}, $_ for @retrieved;
+
+        if($retrieved_count < 50)
+        {   my @over = sort { DateTime->compare($b->{dt}, $a->{dt}) } @before;
+            for(my $r = $retrieved_count; $r < 100 && @over; $r++)   #XXX 100 @items?
+            {   push @items, pop @over;
+            }
+        }
+
+        $timeline->clear;
+
         # Clear max_results otherwise message will be rendered stating the max
         # results retrieved (as per search - see search_limit_reached)
         $self->clear_max_results;
 
+        # Set the times for the display range. The time at midnight may have been adjusted for
+        # local time - reset it back to midnight. This also means that invalid times are avoided
+        # E.g. if a day is subtracted from 26th March 2018 01:00 London then it will be an
+        # invalid time and DateTime will bork.
+        $min->set_time_zone('UTC')->subtract(days => 1) if $min;
+
+        # one day already added to show period to end of day
+        $max->set_time_zone('UTC')->add(days => 2) if $max;
     }
-    else {
-        my @retrieved = @{$timeline->items};
-
-        @items = $self->_filter_items($original_from, $original_to, @retrieved);
-
-        # Set the times for the display range
-        $min = $self->from;
-        $max = $self->to;
+    elsif($original_from && $original_to)
+    {   @items = $self->_filter_items($original_from, $original_to, @{$timeline->items});
+        ($min, $max) = ($original_from, $original_to);
+    }
+    else
+    {   @items = @{$timeline->items};
     }
 
     # Remove dt (DateTime) value, otherwise JSON encoding borks
@@ -2112,19 +2153,18 @@ sub data_timeline
         );
 
         # Only show the first field, plus all the date fields
-        my $picked; my @to_show;
+        my ($picked, @to_show);
         foreach ($layout->all_user_read)
         {
             if ($_->return_type =~ /date/)
-            {
-                push @to_show, $_;
-                next;
+            {   push @to_show, $_;
             }
-            elsif (!$picked) {
-                push @to_show, $_;
+            elsif(!$picked)
+            {   push @to_show, $_;
                 $picked = 1;
             }
         }
+
         my $records = GADS::Records->new(
             columns => [ map { $_->id } @to_show ],
             from    => $min,

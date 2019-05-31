@@ -720,6 +720,7 @@
                         that.triggerValidationError(['no_filter'], $rule, null, null, null);
                         return {};
                     }
+                    var previous_values = $rule.find('.previous-values').is(':checked');
 
                     var filter = that.getFilterById(filterId),
                         operator = that.getOperatorByType(that.getRuleOperator($rule)),
@@ -741,6 +742,7 @@
                         type: filter.type,
                         input: filter.input,
                         operator: operator.type,
+                        previous_values: previous_values,
                         value: value
                     };
 
@@ -833,6 +835,7 @@
 
                     $rule.find('.rule-filter-container [name$=_filter]').val(rule.id).trigger('change');
                     $rule.find('.rule-operator-container [name$=_operator]').val(rule.operator).trigger('change');
+                    $rule.find('.previous-values').prop('checked', rule.previous_values);
 
                     if (operator.accept_values !== 0) {
                         that.setRuleValue($rule, rule.value, filter, operator, rule.data);
@@ -1827,6 +1830,7 @@
   <div class="rule-filter-container"></div> \
   <div class="rule-operator-container"></div> \
   <div class="rule-value-container"></div> \
+  <div style="display:block"><input class="previous-values" type="checkbox"> Include values from previous record versions for this filter</div> \
 </li>';
 
         return this.change('getRuleTemplate', h);

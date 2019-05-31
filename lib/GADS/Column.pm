@@ -777,6 +777,16 @@ sub tjoin
     return $self->field;
 }
 
+sub previous_values_prefix
+{   my $self = shift;
+    'me';
+}
+
+sub previous_values_join
+{   my $self = shift;
+    return undef;
+}
+
 # Overridden where required
 sub filter_value_to_text
 {   my ($self, $value) = @_;

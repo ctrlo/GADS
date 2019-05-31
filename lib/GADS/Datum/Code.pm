@@ -150,6 +150,10 @@ sub re_evaluate
     $self->changed(1) if !$self->equal($old, $new);
 }
 
+sub values
+{   $_[0]->value;
+}
+
 sub _build_value
 {   my $self = shift;
 

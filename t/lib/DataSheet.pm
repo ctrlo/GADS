@@ -490,23 +490,28 @@ sub __build_columns
 
     my $columns = {};
 
-    my $string1 = GADS::Column::String->new(
-        optional => $self->optional,
-        schema   => $schema,
-        user     => undef,
-        layout   => $layout,
-    );
-    $string1->type('string');
-    $string1->name('string1');
-    $string1->name_short("L${instance_id}string1");
-    $string1->multivalue(1) if $self->multivalue && $self->multivalue_columns->{string};
-    $string1->set_permissions({$self->group->id => $permissions})
-        unless $self->no_groups;
-    try { $string1->write };
-    if ($@)
+    my @strings;
+    foreach my $count (1..($self->column_count->{string} || 1))
     {
-        $@->wasFatal->throw(is_fatal => 0);
-        return;
+        my $string = GADS::Column::String->new(
+            optional => $self->optional,
+            schema   => $schema,
+            user     => undef,
+            layout   => $layout,
+        );
+        $string->type('string');
+        $string->name("string$count");
+        $string->name_short("L${instance_id}string$count");
+        $string->multivalue(1) if $self->multivalue && $self->multivalue_columns->{string};
+        $string->set_permissions({$self->group->id => $permissions})
+            unless $self->no_groups;
+        try { $string->write };
+        if ($@)
+        {
+            $@->wasFatal->throw(is_fatal => 0);
+            return;
+        }
+        push @strings, $string;
     }
 
     my @integers;
@@ -619,40 +624,50 @@ sub __build_columns
         push @trees, $tree;
     }
 
-    my $date1 = GADS::Column::Date->new(
-        optional => $self->optional,
-        schema   => $schema,
-        user     => undef,
-        layout   => $layout,
-    );
-    $date1->type('date');
-    $date1->name('date1');
-    $date1->name_short("L${instance_id}date1");
-    $date1->set_permissions({$self->group->id => $permissions})
-        unless $self->no_groups;
-    try { $date1->write };
-    if ($@)
+    my @dates;
+    foreach my $count (1..($self->column_count->{date} || 1))
     {
-        $@->wasFatal->throw(is_fatal => 0);
-        return;
+        my $date = GADS::Column::Date->new(
+            optional => $self->optional,
+            schema   => $schema,
+            user     => undef,
+            layout   => $layout,
+        );
+        $date->type('date');
+        $date->name("date$count");
+        $date->name_short("L${instance_id}date$count");
+        $date->set_permissions({$self->group->id => $permissions})
+            unless $self->no_groups;
+        try { $date->write };
+        if ($@)
+        {
+            $@->wasFatal->throw(is_fatal => 0);
+            return;
+        }
+        push @dates, $date;
     }
 
-    my $daterange1 = GADS::Column::Daterange->new(
-        optional => $self->optional,
-        schema   => $schema,
-        user     => undef,
-        layout   => $layout,
-    );
-    $daterange1->type('daterange');
-    $daterange1->name('daterange1');
-    $daterange1->name_short("L${instance_id}daterange1");
-    $daterange1->set_permissions({$self->group->id => $permissions})
-        unless $self->no_groups;
-    try { $daterange1->write };
-    if ($@)
+    my @dateranges;
+    foreach my $count (1..($self->column_count->{date} || 1))
     {
-        $@->wasFatal->throw(is_fatal => 0);
-        return;
+        my $daterange = GADS::Column::Daterange->new(
+            optional => $self->optional,
+            schema   => $schema,
+            user     => undef,
+            layout   => $layout,
+        );
+        $daterange->type('daterange');
+        $daterange->name("daterange$count");
+        $daterange->name_short("L${instance_id}daterange$count");
+        $daterange->set_permissions({$self->group->id => $permissions})
+            unless $self->no_groups;
+        try { $daterange->write };
+        if ($@)
+        {
+            $@->wasFatal->throw(is_fatal => 0);
+            return;
+        }
+        push @dateranges, $daterange;
     }
 
     my $file1 = GADS::Column::File->new(
@@ -783,11 +798,8 @@ sub __build_columns
     # the columns index in the layout, which would otherwise be incomplete.
     # We return the reference to the layout one, in case we change any of
     # the objects properties, which are used by the datums.
-    $columns->{string1}    = $layout->column($string1->id);
     $columns->{$_->name}   = $layout->column($_->id)
-        foreach (@enums, @curvals, @trees, @integers);
-    $columns->{date1}      = $layout->column($date1->id);
-    $columns->{daterange1} = $layout->column($daterange1->id);
+        foreach (@strings, @enums, @curvals, @trees, @integers, @dates, @dateranges);
     $columns->{calc1}      = $layout->column($calc1->id);
     $columns->{rag1}       = $layout->column($rag1->id);
     $columns->{file1}      = $layout->column($file1->id);
@@ -843,12 +855,15 @@ sub create_records
         );
 
         $record->initialise(instance_id => $self->layout->instance_id);
-        $record->fields->{$columns->{string1}->id}->set_value($datum->{string1});
-        $record->fields->{$columns->{date1}->id}->set_value($datum->{date1});
-        $record->fields->{$columns->{daterange1}->id}->set_value($datum->{daterange1});
 
         $record->fields->{$columns->{"integer$_"}->id}->set_value($datum->{"integer$_"})
             foreach 1..($self->column_count->{integer} || 1);
+        $record->fields->{$columns->{"string$_"}->id}->set_value($datum->{"string$_"})
+            foreach 1..($self->column_count->{string} || 1);
+        $record->fields->{$columns->{"date$_"}->id}->set_value($datum->{"date$_"})
+            foreach 1..($self->column_count->{date} || 1);
+        $record->fields->{$columns->{"daterange$_"}->id}->set_value($datum->{"daterange$_"})
+            foreach 1..($self->column_count->{daterange} || 1);
 
         # Convert enums and trees from textual values if required
         foreach my $type (qw/enum tree/)
