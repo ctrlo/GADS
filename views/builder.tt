@@ -26,6 +26,7 @@ $('#builder[% builder_id %]').queryBuilder({
                     values: {
                         'b_red': 'Red',
                         'c_amber': 'Amber',
+                        'c_yellow': 'Yellow',
                         'd_green': 'Green',
                         'a_grey': 'Grey',
                         'e_purple': 'Purple'
