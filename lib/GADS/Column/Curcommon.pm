@@ -347,6 +347,12 @@ sub filter_value_to_text
     $row->{value};
 }
 
+sub id_as_string
+{   my ($self, $id) = @_;
+    my @vals =  $self->ids_to_values([$id]);
+    $vals[0]->{value};
+}
+
 # Used to return a formatted value for a single datum. Normally called from a
 # Datum::Curval object
 sub ids_to_values
@@ -540,10 +546,6 @@ sub validate_search
     }
     1;
 }
-
-has '+autocomplete_has_id' => (
-    default => 1,
-);
 
 sub values_beginning_with
 {   my ($self, $match) = @_;

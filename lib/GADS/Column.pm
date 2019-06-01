@@ -1300,14 +1300,6 @@ sub validate_search
 {   shift->validate(@_);
 }
 
-# Whether the autocomplete functionality for the field includes an ID as well
-# as a text value
-has autocomplete_has_id => (
-    is      => 'ro',
-    isa     => Bool,
-    default => 0,
-);
-
 # Default sub returning nothing, for columns where a "like" search is not
 # possible (e.g. integer)
 sub resultset_for_values {};
@@ -1331,7 +1323,7 @@ sub values_beginning_with
                 rows => 10,
             },
         );
-        if ($options{with_id} && $self->autocomplete_has_id)
+        if ($options{with_id} && $self->fixedvals)
         {
             @value = map {
                 {

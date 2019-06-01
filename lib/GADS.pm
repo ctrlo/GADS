@@ -1993,7 +1993,10 @@ prefix '/:layout_name' => sub {
             $params->{records}              = $records->presentation;
             $params->{aggregate}            = $records->aggregate_presentation;
             $params->{count}                = $records->count;
-            $params->{columns}              = [ map $_->presentation(sort => $records->sort_first), @columns ];
+            $params->{columns}              = [ map $_->presentation(
+                sort    => $records->sort_first,
+                filters => \@additional,
+            ), @columns ];
             $params->{is_group}             = $records->is_group,
             $params->{has_rag_column}       = grep { $_->type eq 'rag' } @columns;
             $params->{viewtype}             = 'table';

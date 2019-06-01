@@ -74,14 +74,6 @@ after set_value => sub {
     $self->oldvalue($clone);
 };
 
-sub _id_to_hash
-{   my ($self, $id) = @_;
-    $id or return undef;
-    my $prs = $self->column->schema->resultset('User')->search({ id => $id });
-    $prs->result_class('DBIx::Class::ResultClass::HashRefInflator');
-    return $prs->next;
-}
-
 sub clear
 {   my $self = shift;
     $self->clear_email;
@@ -149,7 +141,7 @@ has value_hash => (
             };
         }
         else {
-            return $self->_id_to_hash($value);
+            return $self->column->id_to_hash($value);
         }
     },
 );
@@ -296,7 +288,7 @@ has id => (
     trigger => sub {
         my ($self, $value) = @_;
         $self->clear;
-        $self->_set_value_hash($self->_id_to_hash($value));
+        $self->_set_value_hash($self->column->id_to_hash($value));
         $self->blank(defined $value ? 0 : 1)
     },
     builder => sub {

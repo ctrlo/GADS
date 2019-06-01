@@ -116,6 +116,11 @@ sub _build__enumvals_index
     \%enumvals;
 }
 
+sub id_as_string
+{   my ($self, $id) = @_;
+    $self->node($id)->{value};
+}
+
 sub tjoin
 {   my $self = shift;
     +{$self->field => 'value'};
@@ -468,10 +473,6 @@ sub _update
         $self->_update($child, $new_tree);
     }
 };
-
-has '+autocomplete_has_id' => (
-    default => 1,
-);
 
 sub resultset_for_values
 {   my $self = shift;

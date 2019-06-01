@@ -87,6 +87,19 @@ has people_hash => (
     },
 );
 
+sub id_to_hash
+{   my ($self, $id) = @_;
+    $id or return undef;
+    my $prs = $self->schema->resultset('User')->search({ id => $id });
+    $prs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    return $prs->next;
+}
+
+sub id_as_string
+{   my ($self, $id) = @_;
+    $self->id_to_hash($id)->{value};
+}
+
 after build_values => sub {
     my ($self, $original) = @_;
 
@@ -107,10 +120,6 @@ sub random
     my %hash = %{$self->people_hash};
     $hash{(keys %hash)[rand keys %hash]}->value;
 }
-
-has '+autocomplete_has_id' => (
-    default => 1,
-);
 
 sub resultset_for_values
 {   my $self = shift;

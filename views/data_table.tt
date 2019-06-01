@@ -13,8 +13,7 @@
             [% END %]
             [% FOREACH col IN columns %]
                 <th scope="col" aria-sort="[% col.sort.aria %]">
-                    <!-- TODO: Replace filter_is_active with actual check -->
-                    <button type="button" class="trigger" aria-expanded="false" aria-controls="col-[% col.id %]-options">[% IF filter_is_active %]⧩[% END %][% col.sort.current %][% col.name | html_entity %] &rsaquo; </button>
+                    <button type="button" class="trigger" aria-expanded="false" aria-controls="col-[% col.id %]-options">[% IF col.has_filter %]⧩[% END %][% col.sort.current %][% col.name | html_entity %] &rsaquo; </button>
                     <div class="expandable popover" id="col-[% col.id %]-options">
                         <div class="column-name">[% col.name | html_entity %]</div>
                         <a href="?sort=[% col.sort.link %]" class="sort-link">
@@ -30,16 +29,9 @@
                                 Email each person in this column
                             </button>
                         [% END %]
-                        <!--
-                            TODO: In case the filter is active pass AND autocomplete_has_id=1 pass the selected values in data-values.
-                            Make sure to pass id's as strings.
-                            Example:
-                                data-values='[{"id": "23", "value": "Foo", "checked": true}, {"id": "24", "value": "Bar", "checked": true}]'
-                        -->
-                        <div class="column-filter" data-col-id="[% col.id %]" data-autocomplete-endpoint="/[% layout.identifier %]/match/layout/[% col.id %]?with_id=1&q=" data-values='[]' data-autocomplete-has-id="[% col.autocomplete_has_id %]">
-                            [% IF filter_is_active %]
-                                <!-- TODO: Properly create the URL without this filter -->
-                                <a class="column-filter__clear" href="?urlWithoutThisFilter">Clear filter</a>
+                        <div class="column-filter" data-col-id="[% col.id %]" data-autocomplete-endpoint="/[% layout.identifier %]/match/layout/[% col.id %]?with_id=1&q=" data-values='[% col.filter_values %]' data-autocomplete-has-id="[% col.fixedvals %]">
+                            [% IF col.has_filter %]
+                                <a class="column-filter__clear" href="?[% col.url_filter_remove %]">Clear filter</a>
                             [% END %]
                             <div class="column-filter__search">
                                 <input class="column-filter__search-input" type="text" name="q" placeholder="Search..." autocomplete="off" aria-controls="column-filter__values_[% col.id %]" />

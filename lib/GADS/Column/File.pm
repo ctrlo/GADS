@@ -34,10 +34,6 @@ has '+can_multivalue' => (
     default => 1,
 );
 
-has '+fixedvals' => (
-    default => 1,
-);
-
 sub _build_sprefix { 'value' };
 
 # Convert based on whether ID or name provided
@@ -50,6 +46,7 @@ sub value_field_as_index
 after build_values => sub {
     my ($self, $original) = @_;
 
+    $self->string_storage(1);
     $self->value_field('name');
     my ($file_option) = $original->{file_options}->[0];
     if ($file_option)

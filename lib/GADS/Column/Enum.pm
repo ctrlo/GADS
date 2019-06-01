@@ -81,6 +81,11 @@ has enumvals => (
     },
 );
 
+sub id_as_string
+{   my ($self, $id) = @_;
+    $self->enumval($id)->{value};
+}
+
 # Indexed list of enumvals
 has _enumvals_index => (
     is      => 'rw',
@@ -251,10 +256,6 @@ sub _delete_unused_nodes
         }
     }
 }
-
-has '+autocomplete_has_id' => (
-    default => 1,
-);
 
 sub resultset_for_values
 {   my $self = shift;

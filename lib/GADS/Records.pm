@@ -1422,9 +1422,9 @@ sub _query_params
             my $col = $layout->column($additional->{id});
             my $f = {
                 id          => $col->id,
-                operator    => 'equal',
+                operator    => $col->string_storage ? 'begins_with' : 'equal',
                 value       => $additional->{value},
-                value_field => $col->value_field_as_index,
+                value_field => $col->value_field_as_index($additional->{value}),
             };
             push @limit, $self->_search_construct($f, $layout);
         }
