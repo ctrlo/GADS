@@ -1870,7 +1870,7 @@ prefix '/:layout_name' => sub {
             );
             # If this is a filter from a group view, then disable the group for
             # this rendering
-            $params{is_group} = 0 if defined query_parameters->get('group_filter');
+            $params{is_group} = 0 if defined query_parameters->get('group_filter') && @additional;
 
             my $records = GADS::Records->new(%params);
 
@@ -1994,8 +1994,9 @@ prefix '/:layout_name' => sub {
             $params->{aggregate}            = $records->aggregate_presentation;
             $params->{count}                = $records->count;
             $params->{columns}              = [ map $_->presentation(
-                sort    => $records->sort_first,
-                filters => \@additional,
+                sort             => $records->sort_first,
+                filters          => \@additional,
+                query_parameters => query_parameters,
             ), @columns ];
             $params->{is_group}             = $records->is_group,
             $params->{has_rag_column}       = grep { $_->type eq 'rag' } @columns;

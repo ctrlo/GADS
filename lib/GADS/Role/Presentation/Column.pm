@@ -32,6 +32,11 @@ sub presentation {
                 foreach @{$filter->{value}};
         }
     }
+    foreach my $key (grep { $_ !~ /^field/ } keys %{$options{query_parameters}})
+    {
+        push @queries, "$key=$_"
+            foreach $options{query_parameters}->get_all($key);
+    }
     my $url_filter_remove = join '&', @queries;
 
     my $return = {
