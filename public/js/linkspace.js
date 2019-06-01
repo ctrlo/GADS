@@ -1094,6 +1094,13 @@ var setupColumnFilters = function(context) {
             }
         });
 
+        var paramfull = function (param) {
+            if (typeof param[1] === 'undefined') {
+                return param[0];
+            } else {
+                return param[0] + "=" + param[1];
+            }
+        };
         if (autocompleteHasID) {
             $searchInput.on("keyup", fetchValues);
 
@@ -1103,13 +1110,13 @@ var setupColumnFilters = function(context) {
                 selectedValues.forEach(function(value) {
                     params.push(["field" + colId, value]);
                 });
-                window.location = "?" + params.map(function(param) { return param[0] + "=" + param[1]; }).join("&");
+                window.location = "?" + params.map(function(param) { return paramfull(param); }).join("&");
             });
         } else {
             $submit.on("click", function() {
                 var params = getParams({except: "field" + colId});
                 params.push(["field" + colId, $searchInput.val()]);
-                window.location = "?" + params.map(function(param) { return param[0] + "=" + param[1]; }).join("&");
+                window.location = "?" + params.map(function(param) { return paramfull(param); }).join("&");
             });
         }
 
