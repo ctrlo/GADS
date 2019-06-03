@@ -9,7 +9,7 @@ sub presentation {
 
     # data-values='[{"id": "23", "value": "Foo", "checked": true}, {"id": "24", "value": "Bar", "checked": true}]'
 
-    my ($has_filter, @queries, $filter_values, $filter_text);
+    my ($has_filter, @queries, @filter_values, $filter_text);
     foreach my $filter (@{$options{filters}})
     {
         if ($filter->{id} == $self->id)
@@ -17,14 +17,13 @@ sub presentation {
             $has_filter = 1;
             if ($self->fixedvals)
             {
-                my @filter_values = map {
+                @filter_values = map {
                     +{
                         id      => $_,
                         value   => $self->id_as_string($_),
                         checked => \1,
                     }
                 } @{$filter->{value}};
-                $filter_values = encode_json \@filter_values;
             }
             else {
                 $filter_text = $filter->{value}->[0];
@@ -56,8 +55,9 @@ sub presentation {
         is_group            => $options{group} && $options{group} == $self->id,
         has_filter          => $has_filter,
         url_filter_remove   => $url_filter_remove,
-        filter_values       => $filter_values,
+        filter_values       => encode_json \@filter_values,
         filter_text         => $filter_text,
+        has_filter_search   => 1,
         fixedvals           => $self->fixedvals,
     };
 
@@ -100,7 +100,11 @@ sub presentation {
         }
     }
 
+    $self->after_presentation($return);
+
     return $return;
 }
+
+sub after_presentation {}; # Dummy, overridden
 
 1;

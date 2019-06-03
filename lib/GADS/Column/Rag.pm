@@ -25,6 +25,8 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column::Code';
 
+with 'GADS::Role::Presentation::Column::Rag';
+
 has '+type' => (
     default => 'rag',
 );
@@ -48,6 +50,27 @@ has unique_key => (
 has '+table' => (
     default => 'Ragval',
 );
+
+has '+fixedvals' => (
+    default => 1,
+);
+
+sub id_as_string
+{   my ($self, $id) = @_;
+    $id eq 'b_red'
+        ? 'Red'
+        : $id eq 'c_amber'
+        ? 'Amber'
+        : 'c_yellow'
+        ? 'Yellow'
+        : 'd_green'
+        ? 'Green'
+        : 'a_grey'
+        ? 'Grey'
+        : 'e_purple'
+        ? 'Purple'
+        : panic("Unknown RAG ID $id");
+}
 
 sub cleanup
 {   my ($class, $schema, $id) = @_;

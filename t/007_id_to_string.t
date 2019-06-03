@@ -63,6 +63,11 @@ my @tests = (
         id     => 2,
         string => 'Bar, foo2',
     },
+    {
+        name   => 'rag1',
+        id     => 'b_red',
+        string => 'Red',
+    },
 );
 
 foreach my $test (@tests)
