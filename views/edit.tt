@@ -74,7 +74,7 @@
                                 <li><b>[% col_click.name | html %]:</b>
                                     <span class="[% col_click.type %]">
                                     [% render_datum(
-                                         col_click.presentation(
+                                         col_click.column.presentation(
                                            'datum_presentation', record.fields.${col_click.id}.presentation
                                          ),
                                          'semi' # show images but not full render for other fields
