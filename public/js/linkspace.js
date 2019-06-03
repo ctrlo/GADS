@@ -999,7 +999,8 @@ var setupAccessibility = function(context) {
         });
     }
 }
-var getParams = function(options = {}) {
+var getParams = function(options) {
+    if (!options) { options = {} }; // IE11 compat
     return _.chain(location.search.slice(1).split('&'))
         .map(function (item) { if (item) { return item.split('='); } })
         .compact()
