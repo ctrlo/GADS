@@ -325,5 +325,14 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+# Same join but with different names, when needing to differentiate (e.g.
+# correlated queries where the main record needs to be referred to)
+__PACKAGE__->might_have(
+  "record_single_alternative",
+  "GADS::Schema::Result::Record",
+  { "foreign.current_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

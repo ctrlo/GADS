@@ -506,10 +506,10 @@ sub _search_construct;
 # Shortcut to generate the required joining hash for a DBIC search
 sub linked_hash
 {   my ($self, %options) = @_;
-    my @tables = $self->jpfetch(%options, linked => 1);
-    if (@tables)
+    if ($self->has_linked(%options))
     {
-        {
+        my @tables = $self->jpfetch(%options, linked => 1);
+        return {
             linked => [
                 {
                     record_single => [
@@ -521,9 +521,7 @@ sub linked_hash
         };
     }
     else {
-        {
-            linked => { record_single => 'record_later' },
-        }
+        return {};
     }
 }
 
@@ -2465,7 +2463,7 @@ sub _build_group_results
             {
                 my $f_rs = $self->schema->resultset('Curval')->search({
                     'mecurval.record_id' => {
-                        -ident => 'record_single_2.id' # Match against main query's records
+                        -ident => 'record_single.id'  # Match against main query's records
                     },
                     'mecurval.layout_id' => $parent->id,
                     'record_later.id'    => undef,
@@ -2474,7 +2472,7 @@ sub _build_group_results
                     alias => 'mecurval', # Can't use default "me" as already used in main query
                     join => {
                         'value' => {
-                            'record_single' => [
+                            'record_single_alternative' => [
                                 'record_later',
                                 $column->tjoin,
                             ],

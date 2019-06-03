@@ -201,15 +201,22 @@ sub add_linked_join
     $self->_add_jp(@_, linked => 1);
 }
 
+sub has_linked
+{   my ($self, %options) = @_;
+    return !!$self->jpfetch(%options, linked => 1);
+}
+
 sub record_later_search
 {   my ($self, %options) = @_;
     my $count = $options{no_current} ? 0 : 1; # Always at least one if joining onto current
 
+    my $include_linked = $options{linked} && $self->has_linked(%options);
+
     # Do 2 loops round, first for non-linked, second for linked, adding one to
     # the count in the middle for the linked record itself
-    foreach my $li (0..!!$options{linked}) # Only do second loop if linked requested
+    foreach my $li (0..!!$include_linked) # Only do second loop if linked requested
     {
-        $count++ if !$li && $options{linked};
+        $count++ if !$li && $include_linked;
         # Include a record_later search for each time we join a curval with its
         # full join structure. Don't add when only a curval value on its own is
         # being used.
@@ -403,8 +410,11 @@ sub record_name
         return 'me' if !$options{linked};
         $count = 0;
     }
-    else {
+    elsif ($self->has_linked(%options)) {
         $count = 1;
+    }
+    else {
+        $count = 0;
     }
     if (!$options{linked})
     {

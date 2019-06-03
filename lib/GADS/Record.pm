@@ -783,12 +783,16 @@ sub _find
 
         # Don't specify linked for fetching columns, we will get whataver is needed linked or not linked
         my @columns_fetch = $records->columns_fetch(search => 1, limit => $limit, page => $page); # Still need search in case of view limit
-        my $base = $find{record_id} ? 'me' : 'record_single_2';
+        my $has_linked = $records->has_linked(prefetch => 1, limit => $limit, page => $page);
+        my $base = $find{record_id} ? 'me' : $has_linked ? 'record_single_2' : 'record_single';
         push @columns_fetch, {id => "$base.id"};
         push @columns_fetch, $find{record_id} ? {deleted => "current.deleted"} : {deleted => "me.deleted"};
         push @columns_fetch, $find{record_id} ? {draftuser_id => "current.draftuser_id"} : {draftuser_id => "me.draftuser_id"};
-        push @columns_fetch, {linked_id => "linked.id"};
-        push @columns_fetch, {'linked.record_id' => "record_single.id"};
+        if ($has_linked)
+        {
+            push @columns_fetch, {linked_id => "linked.id"};
+            push @columns_fetch, {'linked.record_id' => "record_single.id"};
+        }
         push @columns_fetch, {current_id => "$base.current_id"};
         push @columns_fetch, {created => "$base.created"};
         push @columns_fetch, "deletedby.$_" foreach @GADS::Column::Person::person_properties;
