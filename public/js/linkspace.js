@@ -1113,6 +1113,14 @@ var setupColumnFilters = function(context) {
                 window.location = "?" + params.map(function(param) { return paramfull(param); }).join("&");
             });
         } else {
+            $searchInput.on('keypress', function(e) {
+                // KeyCode Enter
+                if (e.keyCode === 13) {
+                    e.preventDefault();
+                    $submit.trigger('click');
+                }
+            })
+
             $submit.on("click", function() {
                 var params = getParams({except: "field" + colId});
                 params.push(["field" + colId, $searchInput.val()]);
