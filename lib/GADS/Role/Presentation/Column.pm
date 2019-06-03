@@ -9,7 +9,7 @@ sub presentation {
 
     # data-values='[{"id": "23", "value": "Foo", "checked": true}, {"id": "24", "value": "Bar", "checked": true}]'
 
-    my ($has_filter, @queries, $filter_values);
+    my ($has_filter, @queries, $filter_values, $filter_text);
     foreach my $filter (@{$options{filters}})
     {
         if ($filter->{id} == $self->id)
@@ -25,6 +25,9 @@ sub presentation {
                     }
                 } @{$filter->{value}};
                 $filter_values = encode_json \@filter_values;
+            }
+            else {
+                $filter_text = $filter->{value}->[0];
             }
         }
         else {
@@ -54,6 +57,7 @@ sub presentation {
         has_filter          => $has_filter,
         url_filter_remove   => $url_filter_remove,
         filter_values       => $filter_values,
+        filter_text         => $filter_text,
         fixedvals           => $self->fixedvals,
     };
 

@@ -34,7 +34,7 @@
                                 <a class="column-filter__clear" href="?[% col.url_filter_remove %]">Clear filter</a>
                             [% END %]
                             <div class="column-filter__search">
-                                <input class="column-filter__search-input" type="text" name="q" placeholder="Search..." autocomplete="off" aria-controls="column-filter__values_[% col.id %]" />
+                                <input class="column-filter__search-input" type="text" name="q" placeholder="Search..." autocomplete="off" aria-controls="column-filter__values_[% col.id %]" value="[% col.filter_text | html %]" />
                                 <a href="#" class="column-filter__clear-search-input fa fa-times" title="Clear search input" hidden></a>
                             </div>
                             <p class="column-filter__spinner" hidden>
