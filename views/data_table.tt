@@ -74,7 +74,7 @@
                 [% END %]
             </tr>
         [% END %]
-        [% IF aggregate %]
+        [% IF aggregate AND count %]
             <tr class="info">
                 <td></td>
                 [% FOREACH column IN aggregate.columns %]
