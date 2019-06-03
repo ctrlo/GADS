@@ -1527,6 +1527,11 @@ small.search_term {
     margin: 0;
     cursor: pointer; }
 
+.data-table thead th:last-child .popover {
+  left: auto !important;
+  right: 8px !important;
+  /* Overwrite the custom inline style as applied by positionDisclosure(). */ }
+
 .data-table thead .helptext {
   padding-top: 1em; }
 
