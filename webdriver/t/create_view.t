@@ -63,6 +63,7 @@ $gads->assert_success_present('A success message is visible after adding a field
 $gads->assert_error_absent('No error message is visible after adding a field');
 $gads->follow_link_ok( undef, 'Add a field' );
 
+# Add fields to the new table
 $gads->submit_add_a_field_form_ok(
     'Add an integer field to the new table',
     { name => $int_field_name, type => 'Integer', group_name => $group_name },
@@ -73,6 +74,25 @@ $gads->assert_on_manage_fields_page(
     'On the manage fields page after adding two fields' );
 $gads->assert_field_exists( undef, { name => $text_field_name, type => 'Text' } );
 $gads->assert_field_exists( undef, { name => $int_field_name, type => 'Integer' } );
+
+$gads->navigate_ok(
+    'Navigate to the new record page',
+    [ qw( .dropdown-records .record-add ) ],
+);
+$gads->assert_on_new_record_page;
+$gads->assert_new_record_fields(
+    "The new record page only shows the two fields",
+    [
+        {
+            label => "${text_field_name}*",
+            type => 'string',
+        },
+        {
+            label => "${int_field_name}*",
+            type => 'intgr',
+        },
+    ],
+);
 
 # TODO: write main tests here
 
@@ -88,9 +108,12 @@ $gads->select_table_to_edit_ok( 'Select the table created for testing',
 $gads->assert_on_manage_this_table_page;
 
 $gads->follow_link_ok( undef, 'Manage fields' );
+$gads->assert_on_manage_fields_page;
 $gads->select_field_to_edit_ok( 'Select the text field created for testing',
     $text_field_name );
 $gads->confirm_deletion_ok('Delete the text field created for testing');
+$gads->assert_on_manage_fields_page(
+    'On the manage fields page after deleting the first field' );
 $gads->select_field_to_edit_ok( 'Select the integer field created for testing',
     $int_field_name );
 $gads->confirm_deletion_ok('Delete the integer field created for testing');
@@ -113,7 +136,7 @@ $gads->assert_error_absent;
 
 $gads->assert_on_manage_tables_page(
     'On the manage tables page after deleting a table' );
-$gads->assert_table_not_listed( 'The deleted table is not list',
+$gads->assert_table_not_listed( 'The deleted table is not listed',
     $table_name );
 
 done_testing();

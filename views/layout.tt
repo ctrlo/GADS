@@ -465,7 +465,7 @@
 [% END %]
 
 [% BLOCK edit_field %]
-    <h2>[% IF column.id %]Edit field[% ELSE %]Add a field to [% instance_name | html %][% END %]</h2>
+    <h2 class="edit-field">[% IF column.id %]Edit field[% ELSE %]Add a field to [% instance_name | html %][% END %]</h2>
 
     <div class="tab-interface">
         <ul role="tablist">
@@ -510,7 +510,7 @@
 [% END %]
 
 [% BLOCK list_fields %]
-    <h2>Manage fields in [% instance_name | html %]</h2>
+    <h2 class="list-fields">Manage fields in [% instance_name | html %]</h2>
 
     <p class="lead">
         Each field is a column in your table. You can control which groups of users can see, edit and delete each field.
