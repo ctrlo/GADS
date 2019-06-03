@@ -180,7 +180,7 @@
     <li class="dropdown">
         <button type="button" id="admin-menu" class="dropdown-toggle"
             data-toggle="dropdown" aria-controls="admin-menu-options" aria-expanded="false" aria-haspopup="true">
-            <span>Records</span>
+            <span class="dropdown-records">Records</span>
             <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
@@ -189,7 +189,7 @@
                 [% IF user.has_draft(layout.instance_id) %]
                     <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/edit/">Continue draft record</a></li>
                 [% ELSE %]
-                    <li [% IF page=="" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/edit/">Add a record</a></li>
+                    <li class="record-add[% IF page=="" %] active[% END %]"><a href="[% url.page %]/[% layout.identifier %]/edit/">Add a record</a></li>
                 [% END %]
             [% END %]
             [% IF layout.user_can("link") AND show_link %]
