@@ -33,6 +33,10 @@ sub _transform_value
     {
         # Do nothing
     }
+    elsif (!ref $value && defined $value) # Just ID
+    {
+        $id = $value;
+    }
     elsif ($value->{value} && ref $value->{value} eq 'GADS::Record')
     {
         $record = $value->{value};

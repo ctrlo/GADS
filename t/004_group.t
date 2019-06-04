@@ -93,6 +93,12 @@ foreach my $multivalue (0..1)
     $sheet->create_records;
     my $columns = $sheet->columns;
 
+    my $autocur = $curval_sheet->add_autocur(
+        refers_to_instance_id => 1,
+        related_field_id      => $columns->{curval1}->id,
+        curval_field_ids      => [$columns->{string1}->id],
+    );
+
     my $string1    = $columns->{string1};
     my $integer1   = $columns->{integer1};
     my $calc1      = $columns->{calc1};
@@ -161,6 +167,35 @@ foreach my $multivalue (0..1)
         is($row->fields->{$string1->id}, $expected->{string1}, "Group text correct");
         is($row->fields->{$integer1->id}, $expected->{integer1}, "Group integer correct");
     }
+
+    # Test autocur
+    $view = GADS::View->new(
+        name        => 'Group view autocur',
+        columns     => [$autocur->id],
+        instance_id => $curval_sheet->layout->instance_id,
+        layout      => $curval_sheet->layout,
+        schema      => $schema,
+        user        => $sheet->user,
+    );
+    $view->write;
+    $view->set_groups([$curval_sheet->columns->{string1}->id]);
+
+    $records = GADS::Records->new(
+        view   => $view,
+        layout => $curval_sheet->layout,
+        user   => $sheet->user,
+        schema => $schema,
+    );
+
+    @results = @{$records->results};
+    is(@results, 2, "Correct number of rows for group by string with autocur");
+    @expected = qw/foo2 foo1/; # Sorting does not currently work in group views
+    foreach my $row (@results)
+    {
+        my $exp = shift @expected;
+        is($row->fields->{$autocur->id}, $exp, "Group text correct");
+    }
+
 }
 
 # Large number of records (greater than default number of rows in table). Check
