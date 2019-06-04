@@ -161,7 +161,6 @@ sub resultset_for_values
 
 sub validate
 {   my ($self, $value) = @_;
-    return 1 if !$value;
     if ($self->return_type eq 'date')
     {
         return $self->parse_date($value);
