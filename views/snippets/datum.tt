@@ -108,6 +108,7 @@
             CASE ['curval', 'autocur'];
                 render_curcommon_datum(datum.is_multivalue, datum.data, datum.name, full_content);
             CASE 'file';
+                full_content = 1 IF render_options == 'semi';
                 render_file_datum(datum.data, full_content);
             CASE ['person', 'createdby'];
                 render_person_datum(datum.data);
