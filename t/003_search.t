@@ -736,6 +736,17 @@ my @filters = (
         aggregate => '',
     },
     {
+        name  => 'Search for blank calc date as empty string (array ref)',
+        rules => [{
+            id       => $columns->{calc1}->id,
+            type     => 'date',
+            value    => [''],
+            operator => 'equal',
+        }],
+        count => 4,
+        aggregate => 6,
+    },
+    {
         name  => 'Search by curval ID',
         columns => [$columns->{string1}->id],
         rules => [

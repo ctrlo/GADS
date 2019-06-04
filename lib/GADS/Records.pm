@@ -1708,7 +1708,11 @@ sub _search_construct
     my $filter_operator = $filter->{operator}; # Copy so as not to affect original hash ref
     $filter_operator = $filter_operator eq 'not_equal' ? 'is_not_empty' : 'is_empty'
         if $filter_operator !~ /(is_empty|is_not_empty)/
-            && (!defined $filter->{value} || $filter->{value} eq ''); # Not zeros (valid search)
+            && (
+                !defined $filter->{value}
+                || $filter->{value} eq ''
+                || (ref $filter->{value} && "@{$filter->{value}}" eq '')
+            ); # Not zeros (valid search)
 
     $filter_operator = 'equal'
         if $reverse && $filter_operator eq 'not_equal';
