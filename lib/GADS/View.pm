@@ -100,6 +100,8 @@ has _view => (
             && !$self->layout->user_can("layout") && $view->user_id != $user_id;
         $no_access ||= $view->global && $view->group_id
             && !$self->schema->resultset('User')->find($user_id)->has_group->{$view->group_id};
+        $no_access = 0
+            if $self->layout->user && $self->layout->user->permission->{superadmin};
         if ($no_access)
         {
             error __x"User {user} does not have access to view {view}",
