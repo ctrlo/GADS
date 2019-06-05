@@ -84,6 +84,13 @@
         </select>
     </div>
     <div class="form-group">
+        <label for="aggregate">Aggregate for field in table view:</label>
+        <select class="form-control" id="aggregate" name="aggregate">
+            <option value="" [% IF NOT column.aggregate %]selected[% END %]>&lt;no aggregate&gt;</option>
+            <option value="sum" [% IF column.aggregate == "sum" %]selected[% END %]>Sum</option>
+        </select>
+    </div>
+    <div class="form-group">
         <label for="link_parent_id">Link to a field in another table:</label>
         [% IF instance_layouts.size %]
             <select class="form-control" id="link_parent_id" name="link_parent_id">
