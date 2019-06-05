@@ -151,6 +151,12 @@ sub _build_subvals_input_required
     {
         push @cols, $self->layout->column($_)
             foreach @{$col->depends_on};
+        foreach my $disp ($self->schema->resultset('DisplayField')->search({
+            layout_id => $col->id
+        })->all)
+        {
+            push @cols, $self->layout->column($disp->display_field_id)
+        }
     }
     # Calc values do not need written to by user
     @cols = grep { $_->userinput } @cols;

@@ -367,13 +367,31 @@ my $calc2 = GADS::Column::Calc->new(
     name           => 'calc2',
     name_short     => 'L1calc2',
     return_type    => 'string',
-    code           => qq(function evaluate (_id) \n return {"Foo", "Bar"} \nend),
+    code           => qq(function evaluate (_id, L1date1, L1daterange1) \n return {"Foo", "Bar"} \nend),
     multivalue     => 1,
 );
 $calc2->write;
+
+# Add display field for filtering tests
+my $date1 = $columns->{date1};
+my @rules = ({
+    id       => $columns->{string1}->id,
+    operator => 'equal',
+    value    => 'Foo',
+});
+my $as_hash = {
+    condition => undef,
+    rules     => \@rules,
+};
+$date1->display_fields(GADS::Filter->new(
+    layout  => $layout,
+    as_hash => $as_hash,
+));
+$date1->write;
+
 $layout->clear;
 $curval_filter = $layout->column($curval_filter->id);
-foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid calcmulti/)
+foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid calcmulti displayfield/)
 {
     my $field = $test =~ /(string1|enum1|calc1)/
         ? $test
@@ -381,6 +399,8 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid calcmult
         ? 'string1'
         : $test =~ /(multi|negative)/
         ? 'enum1'
+        : $test eq 'displayfield'
+        ? 'date1'
         : 'string1';
     my $match = $test =~ /(string1|enum1|calc1|multi|negative)/ ? 1 : 0;
     my $value = $test eq 'calc1'
@@ -391,6 +411,8 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid calcmult
         ? "\$L1$field"
         : $test eq 'nomatch'
         ? '$L1tree1'
+        : $test eq 'displayfield'
+        ? '$L1date1'
         : '$L1string123';
 
     my $rules = $test eq 'multi'
@@ -437,6 +459,15 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid calcmult
                 operator => 'equal',
             }],
         }
+        : $test eq 'displayfield'
+        ? {
+            rules => [{
+                id       => $curval_sheet->columns->{'date1'}->id,
+                type     => 'string',
+                value    => $value,
+                operator => 'greater',
+            }],
+        }
         : {
             rules => [{
                 id       => $curval_sheet->columns->{$field}->id,
@@ -455,6 +486,15 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid calcmult
     $curval_filter->write;
     $curval_filter->clear;
 
+    my $input_required = $test eq 'displayfield'
+        ? 2
+        : $test eq 'calcmulti'
+        ? 3 # date1, daterange1, plus string1 which date1 is a display condition of
+        : $test eq 'invalid'
+        ? 0
+        : 1;
+    is(@{$curval_filter->subvals_input_required}, $input_required, "Correct number of input fields required for $test");
+
     # Clear the layout to force the column to be build, and also to build
     # dependencies properly in the next test
     $layout->clear;
@@ -469,10 +509,17 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid calcmult
     my $written_field = $field eq 'calc1' ? 'string1' : $field;
     my $datum = $record->fields->{$columns->{$written_field}->id};
     $datum->oldvalue($datum->clone);
+    $record->write(
+        dry_run           => 1,
+        missing_not_fatal => 1,
+        submitted_fields  => $curval_filter->subvals_input_required,
+    );
     my $count = $test =~ 'multi'
         ? 3
         : $test eq 'negative'
         ? 2
+        : $test eq 'displayfield'
+        ? 1
         : $match && $field eq 'enum1'
         ? 2
         : $match
@@ -488,6 +535,7 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid calcmult
         schema   => $schema,
     );
     $record_new->initialise;
+    my $cv = $layout->column($curval_filter->id);
     $count = $test eq 'multi'
         ? 1
         : $test eq 'negative'
