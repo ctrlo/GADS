@@ -1493,6 +1493,14 @@ sub write
         $child_unique = 1 if $column->can_child;
     }
 
+    my $created_date = $options{version_datetime} || DateTime->now;
+
+    if ($self->new_entry)
+    {
+        my $record_created_col = $self->layout->column_by_name_short('_created');
+        $self->fields->{$record_created_col->id}->set_value($created_date, is_parent_value => 1);
+    }
+
     # Test duplicate unique calc values
     foreach my $column ($self->layout->all)
     {
@@ -1543,8 +1551,6 @@ sub write
         return;
     }
 
-    my $created_date = $options{version_datetime} || DateTime->now;
-
     my $user_id = $self->user ? $self->user->id : undef;
 
     # New record?
@@ -1585,8 +1591,6 @@ sub write
         }
 
         $self->current_id($current->id);
-        my $record_created_col = $self->layout->column_by_name_short('_created');
-        $self->fields->{$record_created_col->id}->set_value($created_date, is_parent_value => 1);
     }
 
     my $createdby = $options{version_userid} || $user_id;
