@@ -519,7 +519,7 @@ sub _build_data
                 @data = map { _to_percent($sum, $_) } @data;
             }
             push @ps, [
-                $_, ($data[$idx++]||0),
+                encode_entities($_), ($data[$idx++]||0),
             ] foreach @xlabels;
             push @points, \@ps;
         }
@@ -564,7 +564,7 @@ sub _build_data
     }
 
     +{
-        xlabels => \@xlabels, # Populated, but not used for donut
+        xlabels => \@xlabels, # Populated, but not used for donut or pie
         points  => \@points,
         labels  => \@labels, # Not used for pie/donut
         options => $options,

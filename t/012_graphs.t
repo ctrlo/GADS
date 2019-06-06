@@ -203,6 +203,15 @@ foreach my $multivalue (0..1)
                 : [[[ 'Bar', 63 ], [ 'Foo', 13 ], ['FooBar', 25 ]]],
         },
         {
+            name         => 'Pie with blank value',
+            type         => 'pie',
+            x_axis       => $columns->{date1}->id,
+            y_axis       => $columns->{string1}->id,
+            y_axis_stack => 'count',
+            # Jqplot seems to want labels encoded only for pie graphs
+            data         => [[['2013-10-10', 1], ['2014-10-10', 1], ['2016-10-10', 1], ['&lt;no value&gt;', 1]]],
+        },
+        {
             name         => 'String x-axis, integer sum y-axis with view filter',
             type         => 'bar',
             x_axis       => $columns->{string1}->id,
