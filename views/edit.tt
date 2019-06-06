@@ -930,7 +930,7 @@
                     </span>
                     [% IF details %]
                     <span class="details">
-                        <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">Details</button>
+                        <button type="button" class="more-info" data-record-id="[% value.id %]" aria-label="View full details" aria-describedby="[% value_id %]_label">Details</button>
                     </span>
                     [% END %]
                 </li>
@@ -1046,7 +1046,7 @@
                     </span>
                     [% IF details %]
                     <span class="details">
-                        <button type="button" class="more-info" data-record-id="[% value.id %]" aria-describedby="[% value_id %]_label">Details</button>
+                        <button type="button" class="more-info" data-record-id="[% value.id %]" aria-label="View full details" aria-describedby="[% value_id %]_label">Details</button>
                     </span>
                     [% END %]
                 </li>
