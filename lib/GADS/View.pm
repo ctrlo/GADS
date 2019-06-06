@@ -484,6 +484,7 @@ sub delete
         or return; # Doesn't exist. May be attempt to delete view not yet written
     $self->schema->resultset('Sort')->search({ view_id => $view->id })->delete;
     $self->schema->resultset('ViewLayout')->search({ view_id => $view->id })->delete;
+    $self->schema->resultset('ViewGroup')->search({ view_id => $view->id })->delete;
     $self->schema->resultset('Filter')->search({ view_id => $view->id })->delete;
     $self->schema->resultset('AlertCache')->search({ view_id => $view->id })->delete;
     my @alerts = $self->schema->resultset('Alert')->search({ view_id => $view->id })->all;
