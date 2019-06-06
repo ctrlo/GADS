@@ -186,6 +186,10 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         # may be more records of the same date)
         my $group_id = $sort eq 'enum1' && $columns->{enum1}->id;
         my $timeline = $records->data_timeline(group => $group_id);
+        # Centre of timeline (now + 100 days) minus 50 days
+        is($timeline->{min}->ymd, '2008-02-19', "Correct start range of timeline");
+        # Centre of timeline plus 100 days (plus 1 day for additional visible range)
+        is($timeline->{max}->ymd, '2008-07-20', "Correct end range of timeline");
         my @items = @{$timeline->{items}};
         is( @items, 148, "Retrieved correct subset of records for large timeline" );
         if ($sort eq 'enum1')
@@ -290,9 +294,13 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     $records->clear;
     # Should not include dateranges that go over the from
     $records->exclusive('from');
-    $items = $records->data_timeline->{items};
+    my $data_timeline = $records->data_timeline;
+    $items = $data_timeline->{items};
     is( @$items, 2, "Records retrieved exclusive from" );
     like( $items->[0]->{content}, qr/foo2/, "Correct first record for exclusive from" );
+
+    is($data_timeline->{min}->ymd, '2009-03-01', "Correct start range of timeline");
+    is($data_timeline->{max}->ymd, '2011-03-01', "Correct end range of timeline");
 }
 
 # Test permissions
@@ -414,6 +422,8 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     );
 
     is( @{$records->data_timeline->{items}}, 0, "No timeline entries for no records" );
+    is($records->data_timeline->{min}, undef, "No min value for no items on timeline");
+    is($records->data_timeline->{max}, undef, "No max value for no items on timeline");
 }
 
 # Calc field as group
@@ -577,6 +587,46 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     is( @{$return->{groups}}, 4, "Correct number of groups for group by curval" );
     my $g = join ',', map { $_->{content} } sort { $a->{order} <=> $b->{order} } @{$return->{groups}};
     is($g, '&lt;blank&gt;,foobar1,foobar3,foobar4', "Curval group values correct");
+}
+
+# Test ranges of timeline when only specifying from, with only dates from a
+# curval. This is rather an edge-case, but has caused problems in the past.
+{
+    my $data = [
+        {
+            string1 => 'foo1',
+            curval1 => 1,
+        },
+        {
+            string1 => 'foo1',
+            curval1 => 2,
+        },
+    ];
+    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+    $curval_sheet->create_records;
+    my $schema = $curval_sheet->schema;
+    my $sheet = t::lib::DataSheet->new(data => $data, curval => 2, schema => $schema);
+    $sheet->create_records;
+
+    my $layout = $sheet->layout;
+    my $columns = $sheet->columns;
+
+    my $showcols = [ map { $_->id } $layout->all(exclude_internal => 1) ];
+
+    my $records = GADS::Records->new(
+        from    => DateTime->new(year => 2011, month => 06, day => 01),
+        user    => $sheet->user,
+        columns => [$columns->{string1}->id, $columns->{curval1}->id],
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    my $return = $records->data_timeline;
+    is($return->{min}->ymd, '2008-05-03', "Correct start range of timeline");
+    is($return->{max}->ymd, '2014-10-12', "Correct end range of timeline");
+
+    # Normal - should include dateranges that go over the from/to values
+    is( @{$return->{items}}, 4, "Correct number of items for timeline with only curval dates" );
 }
 
 # View with no date column. XXX This test doesn't actually check the bug that

@@ -180,8 +180,8 @@ sub _build_items
         }
 
         my $seqnr  = 0;
-        my $oldest = AT_BIGCHILL;
-        my $newest = AT_BIGBANG;
+        my $newest = AT_BIGCHILL;
+        my $oldest = AT_BIGBANG;
 
         foreach my $group_to_add (@groups_to_add)
         {
@@ -257,8 +257,8 @@ sub _build_items
                 }
             }
 
-            $oldest = min $oldest, map $_->{from}, @dates;
-            $newest = max $newest, map $_->{to}, @dates;
+            $oldest = max $oldest, map $_->{to}, @dates;
+            $newest = min $newest, map $_->{from}, @dates;
 
             my @titles;
             if(!$label_col_id)
