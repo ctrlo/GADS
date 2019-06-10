@@ -65,7 +65,10 @@ sub _introspector
                     # Under some circumstances, sqlite doesn't like only one
                     # value in a MIN()
                     return [ $_[0] ] if @_ == 1;
-                    my $fields = join ', ', @_;
+                    # Aghhhh, Sqlite returns NULL for a MIN() if any one of the
+                    # values is a NULL (unlike its aggregate function MIN and
+                    # the equivalent Pg function
+                    my $fields = join ', ', map "COALESCE($_, '9999-12-31')", @_;
                     [ "MIN( $fields )" ];
                 },
             }
@@ -74,7 +77,8 @@ sub _introspector
             greatest => sub {
                 sub {
                     return [ $_[0] ] if @_ == 1;
-                    my $fields = join ', ', @_;
+                    # See comment above
+                    my $fields = join ', ', map "COALESCE($_, '0000-01-01')", @_;
                     [ "MAX( $fields )" ];
                 },
             }

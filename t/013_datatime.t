@@ -202,7 +202,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
                 } elsif ($g->{content} eq 'foo2') {
                     is($g->{order}, 2, "foo2 group order correct");
                 } elsif ($g->{content} eq 'foo3') {
-                    is($g->{order}, 3, "foo1 group order correct");
+                    is($g->{order}, 3, "foo3 group order correct");
                 } else {
                     panic "Something's wrong";
                 }
@@ -611,8 +611,6 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     my $layout = $sheet->layout;
     my $columns = $sheet->columns;
 
-    my $showcols = [ map { $_->id } $layout->all(exclude_internal => 1) ];
-
     my $records = GADS::Records->new(
         from    => DateTime->new(year => 2011, month => 06, day => 01),
         user    => $sheet->user,
@@ -627,6 +625,80 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
 
     # Normal - should include dateranges that go over the from/to values
     is( @{$return->{items}}, 4, "Correct number of items for timeline with only curval dates" );
+}
+
+# Test ranges of timeline when only specifying from, with only dates from a
+# curval. This is rather an edge-case, but has caused problems in the past.
+{
+    my @curval_data;
+    my @data;
+    my $start = DateTime->now;
+
+    # Create a set of data around today's date (1/1/2008) and a set of data
+    # much before then. Only the set of data around today's date should be
+    # retrieved
+    for my $count (1..300)
+    {
+        push @curval_data, {
+            string1 => "Foo $count",
+            date1   => $start->ymd,
+        };
+        $start->add(days => 1);
+        push @data, {
+            string1 => "Bar $count",
+            curval1 => $count,
+        };
+    }
+    $start = DateTime->new(year => 1990, month => 1, day => 1);
+    for my $count (1..100)
+    {
+        push @curval_data, {
+            string1 => "Foo $count",
+            date1   => $start->ymd,
+        };
+        $start->add(days => 1);
+        push @data, {
+            string1 => "Bar $count",
+            curval1 => $count + 300,
+        };
+    }
+
+    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, data => \@curval_data);
+    $curval_sheet->create_records;
+    my $schema = $curval_sheet->schema;
+    my $sheet = t::lib::DataSheet->new(data => \@data, curval => 2, schema => $schema);
+    $sheet->create_records;
+
+    my $layout = $sheet->layout;
+    my $columns = $sheet->columns;
+
+    my $view = GADS::View->new(
+        name        => 'Test view',
+        columns     => [$columns->{string1}->id, $columns->{curval1}->id],
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+    );
+    $view->write;
+    $view->set_sorts([$sheet->columns->{string1}->id], ['asc']);
+
+    my $records = GADS::Records->new(
+        view    => $view,
+        from    => DateTime->now->add(days => 100), # 10th April 2008
+        user    => $sheet->user,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    my $return = $records->data_timeline;
+    # Normal - should include dateranges that go over the from/to values
+    is( @{$return->{items}}, 148, "Correct number of items for timeline with only curval dates" );
+    # 10th April 2008 - 50 days = 20th February 2008, minus 1 day to show range
+    is($return->{min}->ymd, '2008-02-19', "Correct start range of timeline");
+    # 10th April 2008 + 100 days = 19th July 2008, plus 1 day for width plus 1 day to show range
+    is($return->{max}->ymd, '2008-07-21', "Correct end range of timeline");
+
 }
 
 # View with no date column. XXX This test doesn't actually check the bug that

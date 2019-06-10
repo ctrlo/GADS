@@ -834,7 +834,7 @@ sub _current_ids_rs
             },
         ],
         '+select' => $self->_plus_select, # Used for additional sort columns
-        order_by  => $self->order_by(search => 1, with_min => 'group'),
+        order_by  => $self->order_by(search => 1, with_min => 1),
         distinct  => 1, # Otherwise multiple records returned for multivalue fields
     };
     my $page = $self->page;
@@ -1360,6 +1360,46 @@ has additional_filters => (
     clearer => 1,
 );
 
+sub _search_date
+{   my ($self, $c, $search_date, %options) = @_;
+    if ($c->is_curcommon)
+    {
+        foreach my $cc (@{$c->curval_fields})
+        {
+            $self->_search_date($cc, $search_date, parent_id => $c->id);
+        }
+    }
+    elsif ($c->return_type =~ /date/)
+    {
+        my $dateformat = GADS::Config->instance->dateformat;
+        # Apply any date filters if required
+        my @f;
+        my $sid = $options{parent_id} ? "$options{parent_id}_".$c->id : $c->id;
+        if (my $to = $self->to)
+        {
+            my $f = {
+                id       => $sid,
+                operator => $self->exclusive_of_to ? 'less' : 'less_or_equal',
+                value    => $to->format_cldr($dateformat),
+            };
+            push @f, $f;
+        }
+        if (my $from = $self->from)
+        {
+            my $f = {
+                id       => $sid,
+                operator => $self->exclusive_of_from ? 'greater' : 'greater_or_equal',
+                value    => $from->format_cldr($dateformat),
+            };
+            push @f, $f;
+        }
+        push @$search_date, {
+            condition => "AND",
+            rules     => \@f,
+        } if @f;
+    }
+}
+
 # Construct various parameters used for the query. These are all
 # related, so it makes sense to construct them together.
 sub _query_params
@@ -1367,37 +1407,10 @@ sub _query_params
 
     my $layout = $self->layout;
 
-    my @search_date;                    # The search criteria to narrow-down by date range
+    my $search_date = [];      # The search criteria to narrow-down by date range
     foreach my $c (@{$self->columns_retrieved_no})
     {
-        if ($c->return_type =~ /date/)
-        {
-            my $dateformat = GADS::Config->instance->dateformat;
-            # Apply any date filters if required
-            my @f;
-            if (my $to = $self->to)
-            {
-                my $f = {
-                    id       => $c->id,
-                    operator => $self->exclusive_of_to ? 'less' : 'less_or_equal',
-                    value    => $to->format_cldr($dateformat),
-                };
-                push @f, $f;
-            }
-            if (my $from = $self->from)
-            {
-                my $f = {
-                    id       => $c->id,
-                    operator => $self->exclusive_of_from ? 'greater' : 'greater_or_equal',
-                    value    => $from->format_cldr($dateformat),
-                };
-                push @f, $f;
-            }
-            push @search_date, {
-                condition => "AND",
-                rules     => \@f,
-            } if @f;
-        }
+        $self->_search_date($c, $search_date);
     }
 
     my @limit;  # The overall limit, for example reduction by date range or approval field
@@ -1409,9 +1422,9 @@ sub _query_params
     {
         @search = (); @limit = (); # Reset from first loop
         # Add any date ranges to the search from above
-        if (@search_date)
+        if (@$search_date)
         {
-            my @res = ($self->_search_construct({condition => 'OR', rules => \@search_date}, $layout));
+            my @res = ($self->_search_construct({condition => 'OR', rules => $search_date}, $layout));
             push @limit, @res if @res;
         }
 
@@ -1463,6 +1476,23 @@ sub _build__sorts_limit
     $self->_sort_builder(limit_qty => 1);
 }
 
+sub _all_sorts
+{   my ($self, $col, $sorts, %options) = @_;
+    if ($col->is_curcommon)
+    {
+        $self->_all_sorts($_, $sorts, parent_id => $col->id)
+            foreach @{$col->curval_fields};
+    }
+    elsif ($col->return_type =~ /date/)
+    {
+        push @$sorts, {
+            id   => $col->id,
+            parent_id => $options{parent_id},
+            type => $self->limit_qty eq 'from' ? 'asc' : 'desc',
+        };
+    }
+}
+
 sub _sort_builder
 {   my ($self, %options) = @_;
 
@@ -1475,14 +1505,12 @@ sub _sort_builder
     # fields.
     if ($options{limit_qty} && $self->limit_qty)
     {
+        my $sorts = [];
         foreach my $col (@{$self->columns_retrieved_no})
         {
-            next unless $col->return_type =~ /date/;
-            push @sorts, {
-                id   => $col->id,
-                type => $self->limit_qty eq 'from' ? 'asc' : 'desc',
-            };
+            $self->_all_sorts($col, $sorts);
         }
+        @sorts = @$sorts;
         return [] if !@sorts;
     }
     if (!@sorts && $self->sort)
@@ -1525,7 +1553,7 @@ sub order_by
 {   my ($self, %options) = @_;
 
     $self->_plus_select([]);
-    my @sorts = $options{with_min}
+    my @sorts = $options{with_min} && $self->limit_qty
         ? @{$self->_sorts_limit}
         : @{$self->_sorts};
 
@@ -1614,17 +1642,11 @@ sub order_by
             }
         } @order_by;
 
-        if ($options{with_min} eq 'group')
+        if ($options{with_min})
         {
             # When we have a group_by, we need an additional aggregate function
             my $func = $self->limit_qty eq 'from' ? 'min' : 'max';
             @order_by = map { +{ $func => { -ident => $_ } } } @order_by;
-        }
-        elsif ($options{with_min} eq 'each') {
-            @order_by = map { +{ -ident => $_ } } @order_by;
-        }
-        else {
-            panic "Invalid with_min option";
         }
         if ($self->limit_qty eq 'from')
         {
@@ -2103,6 +2125,7 @@ sub data_timeline
         $self->to($original_from->clone->subtract(days => 1));
         $self->from(undef);
         $self->max_results(50); # search 50
+        $self->clear_sorts;
 
         @retrieved = @{$timeline->items};
         $retrieved_count = $self->records_retrieved_count;
