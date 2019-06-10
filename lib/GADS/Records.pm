@@ -2111,11 +2111,14 @@ sub data_timeline
         my @after;
         push @{$_->{dt} < $max ? \@items : \@after}, $_ for @retrieved;
 
+        # If we still have "room" after taking the ones we want, start taking
+        # other values that were retrieved at the same time
         if($retrieved_count < 100)
-        {   my @over = sort { DateTime->compare($a->{dt}, $b->{dt}) } @after;
-#XXX shouldn't we collect until @items==100?
-            for(my $r = $retrieved_count; $r < 100 && @over; $r++)
-            {   push @items, pop @over;
+        {   my @over = sort { $a->{dt} <=> $b->{dt} } @after;
+            for(my $r = $retrieved_count; @items < 100 && @over; $r++)
+            {   push @items, shift @over;
+                # Adjust the range of the timeline
+                $max = $items[-1]->{dt_to} if $items[-1]->{dt_to} > $max;
             }
         }
         $timeline->clear;
@@ -2134,10 +2137,12 @@ sub data_timeline
         my @before;
         push @{$min < $_->{dt} ? \@items : \@before}, $_ for @retrieved;
 
+        # Same as above
         if($retrieved_count < 50)
-        {   my @over = sort { DateTime->compare($b->{dt}, $a->{dt}) } @before;
-            for(my $r = $retrieved_count; $r < 100 && @over; $r++)   #XXX 100 @items?
+        {   my @over = reverse sort { $b->{dt_to} <=> $a->{dt_to} } @before;
+            for(my $r = $retrieved_count; @items <= 50 && @over; $r++)   #XXX 100 @items?
             {   push @items, pop @over;
+                $min = $items[-1]->{dt} if $items[-1]->{dt} < $min;
             }
         }
 

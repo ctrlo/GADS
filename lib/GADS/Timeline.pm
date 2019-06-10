@@ -140,8 +140,8 @@ sub _build_items
 
     $records->columns_extra(\@extra);
 
-    my $find_min =  $from && !$to ? $from->clone->truncate(to => 'day') : undef;
-    my $find_max = !$from &&  $to ? $to->clone->truncate(to => 'day')->add(days => 1) : undef;
+    my $from_min =  $from && !$to ? $from->clone->truncate(to => 'day') : undef;
+    my $to_max   = !$from &&  $to ? $to->clone->truncate(to => 'day')->add(days => 1) : undef;
 
     my @columns  = grep $_->user_can('read'), @{$records->columns_retrieved_no};
 
@@ -180,8 +180,8 @@ sub _build_items
         }
 
         my $seqnr  = 0;
-        my $newest = AT_BIGCHILL;
-        my $oldest = AT_BIGBANG;
+        my $oldest = AT_BIGCHILL;
+        my $newest = AT_BIGBANG;
 
         foreach my $group_to_add (@groups_to_add)
         {
@@ -257,8 +257,8 @@ sub _build_items
                 }
             }
 
-            $oldest = max $oldest, map $_->{to}, @dates;
-            $newest = min $newest, map $_->{from}, @dates;
+            $oldest = min $oldest, map $_->{from}, @dates;
+            $newest = max $newest, map $_->{to}, @dates;
 
             my @titles;
             if(!$label_col_id)
@@ -337,6 +337,7 @@ sub _build_items
                     group      => $item_group,
                     column     => $d->{column},
                     dt         => $d->{from},
+                    dt_to      => $d->{to},
                     values     => \@popup_values,
                 );
 
@@ -360,15 +361,11 @@ sub _build_items
             }
         }
 
-        if($find_min && $oldest > ($self->retrieved_to || AT_BIGBANG))
-        {   $oldest = $find_min if $oldest < $find_min;
-            $self->_set_retrieved_to($oldest);
-        }
+        $self->_set_retrieved_from($newest)
+            if $to_max && $newest < ($self->retrieved_from || AT_BIGCHILL);
 
-        if($find_max && $newest < ($self->retrieved_from || AT_BIGCHILL))
-        {   $newest = $find_max if $newest > $find_max;
-            $self->_set_retrieved_from($newest);
-        }
+        $self->_set_retrieved_to($oldest)
+            if $from_min && $oldest > ($self->retrieved_to || AT_BIGBANG);
     }
 
     if(!@items)

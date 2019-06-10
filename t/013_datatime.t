@@ -426,6 +426,90 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     is($records->data_timeline->{max}, undef, "No max value for no items on timeline");
 }
 
+# No records with date fields to display
+{
+    my $sheet = t::lib::DataSheet->new(data => [{ string1 => 'Foobar' }]);
+    $sheet->create_records;
+    my $schema   = $sheet->schema;
+    my $layout   = $sheet->layout;
+    my $showcols = [ map { $_->id } $layout->all(exclude_internal => 1) ];
+
+    my $records = GADS::Records->new(
+        user    => undef,
+        columns => $showcols,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    is( @{$records->data_timeline->{items}}, 0, "No timeline entries for no records" );
+    is($records->data_timeline->{min}, undef, "No min value for no items on timeline");
+    is($records->data_timeline->{max}, undef, "No max value for no items on timeline");
+}
+
+# No records with date fields to display
+{
+    my @data;
+    my $now = DateTime->now;
+    my $early = DateTime->now->subtract(years => 10);
+    foreach my $count (1..300)
+    {
+        push @data, {
+            date1      => $now->clone,
+            daterange1 => [$early->ymd, $early->clone->add(months => 1)->ymd],
+        };
+        $now->add(days => 1);
+    }
+    my $sheet = t::lib::DataSheet->new(data => \@data);
+    $sheet->create_records;
+    my $schema   = $sheet->schema;
+    my $layout   = $sheet->layout;
+    my $showcols = [ map { $_->id } $layout->all(exclude_internal => 1) ];
+
+    my $records = GADS::Records->new(
+        from    => DateTime->now->add(days => 100),
+        user    => $sheet->user,
+        columns => $showcols,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    my $return = $records->data_timeline;
+
+    is( @{$return->{items}}, 148, "Correct number of timeline items" );
+    # 2008-01-01 + 100 days - 50 days - 1 day
+    is($return->{min}->ymd, '2008-02-19', "Min value is same as start of records");
+    # 2008-01-01 + 100 days + 100 days + 2 days
+    is($return->{max}->ymd, '2008-07-21', "Max value is same as end of records");
+}
+
+# No records with date fields to display
+{
+    my $sheet = t::lib::DataSheet->new;
+    $sheet->create_records;
+    my $schema   = $sheet->schema;
+    my $layout   = $sheet->layout;
+    my $showcols = [ map { $_->id } $layout->all(exclude_internal => 1) ];
+
+    my $from = DateTime->now->subtract(years => 1);
+    my $to   = DateTime->now->add(years => 2);
+
+    my $records = GADS::Records->new(
+        from    => $from,
+        to      => $to,
+        user    => undef,
+        columns => $showcols,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    my $return = $records->data_timeline;
+
+    # One record (Bar) with 2 date fields (date1 and daterange1)
+    is( @{$return->{items}}, 2, "Correct number of timeline items" );
+    is($return->{min}, $from, "Min value is same as start of records");
+    is($return->{max}, $to, "Max value is same as end of records");
+}
+
 # Calc field as group
 {
     my $data = [
@@ -461,6 +545,11 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         unlike($item->{content}, qr/(2009|2010)/, "Item does not contain group value");
     }
     is( @{$return->{groups}}, 2, "Correct number of groups for group by calc" );
+
+    # We didn't specify a from or a to, so the timeline will just plot whatever
+    # items it is given
+    is($return->{min}, undef, "No min value for no range specification");
+    is($return->{max}, undef, "No max value for no range specification");
 }
 
 # DST. Check that dates which fall on DST changes are okay.
