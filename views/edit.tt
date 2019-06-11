@@ -235,6 +235,25 @@
                 var m = $("#readmore_modal");
                 m.find('.modal-body').text('Loading...');
                 m.find('.modal-body').load('/record_body/' + record_id);
+
+                /* Trigger focus restoration on modal close */
+                m.one('show.bs.modal', function (showEvent) {
+                    /* Only register focus restorer if modal will actually get shown */
+                    if (showEvent.isDefaultPrevented()) {
+                        return;
+                    }
+                    m.one('hidden.bs.modal', function () {
+                        $(e.target).is(':visible') && $(e.target).trigger('focus');
+                    });
+                });
+
+                /* Stop propagation of the escape key, as may have side effects, like closing select widgets. */
+                m.one('keyup', function(e) {
+                    if (e.keyCode == 27) {
+                        e.stopPropagation();
+                    }
+                });
+
                 m.modal();
             });
 
