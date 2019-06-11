@@ -1065,10 +1065,17 @@ var setupColumnFilters = function(context) {
             });
         }, 250);
 
+        // Values are sorted when we've got a search input field, so additional values
+        // received from the API are sorted amongst currently available values.
+        var sortValues = function() {
+            return $searchInput.length === 1;
+        }
+
         var renderValues = function() {
             var q = searchQ();
             $values.empty();
-            var sortedAndFilteredValues = _.sortBy(_.filter(values, function(value) {return value.value.toLowerCase().indexOf(q.toLowerCase()) > -1}), "value");
+            var filteredValues = _.filter(values, function(value) {return value.value.toLowerCase().indexOf(q.toLowerCase()) > -1});
+            var sortedAndFilteredValues = sortValues() ? _.sortBy(filteredValues, "value") : filteredValues;
             _.each(sortedAndFilteredValues, function(value, index) {
                $values.append(renderValue(value, index));
             });
