@@ -416,6 +416,9 @@ var SelectWidget = function (multi) {
         }
     }
 
+    $search.unbind('blur');
+    $search.on('blur', possibleCloseWidget);
+
     $availableItems.unbind('blur');
     $availableItems.on('blur', possibleCloseWidget);
 
