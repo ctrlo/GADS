@@ -1022,13 +1022,17 @@ var setupColumnFilters = function(context) {
         var $values = $columnFilter.find(".column-filter__values");
         var $submit = $columnFilter.find(".column-filter__submit");
 
+        var searchQ = function() {
+            return $searchInput.length ? $searchInput.val() : "";
+        }
+
         var onEmptySearch = function() {
             $error.attr('hidden', '');
             renderValues();
         }
 
         var fetchValues = _.debounce(function() {
-            var q = $searchInput.val();
+            var q = searchQ();
             if (!q.length) {
                 onEmptySearch();
                 return;
@@ -1061,10 +1065,17 @@ var setupColumnFilters = function(context) {
             });
         }, 250);
 
+        // Values are sorted when we've got a search input field, so additional values
+        // received from the API are sorted amongst currently available values.
+        var sortValues = function() {
+            return $searchInput.length === 1;
+        }
+
         var renderValues = function() {
-            var q = $searchInput.val();
+            var q = searchQ();
             $values.empty();
-            var sortedAndFilteredValues = _.sortBy(_.filter(values, function(value) {return value.value.toLowerCase().indexOf(q.toLowerCase()) > -1}), "value");
+            var filteredValues = _.filter(values, function(value) {return value.value.toLowerCase().indexOf(q.toLowerCase()) > -1});
+            var sortedAndFilteredValues = sortValues() ? _.sortBy(filteredValues, "value") : filteredValues;
             _.each(sortedAndFilteredValues, function(value, index) {
                $values.append(renderValue(value, index));
             });
@@ -1124,7 +1135,7 @@ var setupColumnFilters = function(context) {
 
             $submit.on("click", function() {
                 var params = getParams({except: "field" + colId});
-                params.push(["field" + colId, $searchInput.val()]);
+                params.push(["field" + colId, searchQ()]);
                 window.location = "?" + params.map(function(param) { return paramfull(param); }).join("&");
             });
         }
