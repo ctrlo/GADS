@@ -2172,6 +2172,8 @@ sub data_timeline
     # Remove dt (DateTime) value, otherwise JSON encoding borks
     delete $_->{dt}
         foreach @items;
+    delete $_->{dt_to}
+        foreach @items;
 
     if ($options{overlay} && $options{overlay} != $self->layout->instance_id)
     {
