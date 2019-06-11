@@ -51,7 +51,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="user">User [% filtering.user | html_entity %]</label>
+                    <label for="user">User</label>
                     <select class="form-control" id="user" name="user">
                         <option value="" [% UNLESS filtering.user %]selected[% END %]>&lt;Ignore&gt;</option>
                         [% FOREACH u IN users.all %]
@@ -62,12 +62,12 @@
                 <div class="form-group">
                     <label for="from">From</label>
                     <input type="text" class="form-control datepicker" id="from"
-                        name="from" value="[% filtering.from.ymd %]">
+                        name="from" value="[% filtering.from.format_cldr(config.dateformat) %]">
                 </div>
                 <div class="form-group">
                     <label for="to">To</label>
                     <input type="text" class="form-control datepicker" id="to"
-                        name="to" value="[% filtering.to.ymd %]">
+                        name="to" value="[% filtering.to.format_cldr(config.dateformat) %]">
                 </div>
             </div>
             <div class="modal-footer">

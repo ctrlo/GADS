@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Audit;
 
 use DateTime;
+use GADS::DateTime;
 use GADS::Datum::Person;
 use Log::Report 'linkspace';
 use Moo;
@@ -56,11 +57,11 @@ has filtering => (
         );
         if ($value->{from} && ref $value->{from} ne 'DateTime')
         {
-            $value->{from} = $format->parse_datetime($value->{from});
+            $value->{from} = GADS::DateTime::parse_datetime($value->{from});
         }
         if ($value->{to} && ref $value->{to} ne 'DateTime')
         {
-            $value->{to} = $format->parse_datetime($value->{to});
+            $value->{to} = GADS::DateTime::parse_datetime($value->{to});
         }
         $value->{from} ||= DateTime->now->subtract(days => 7);
         $value->{to}   ||= DateTime->now;
