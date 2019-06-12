@@ -292,6 +292,7 @@ sub _build_fields
             {
                 foreach my $v (@{$column->enumvals})
                 {
+                    next if $v->{deleted};
                     my $text = _trim(lc $v->{value});
                     # See if it already exists - possible multiple values
                     if (exists $self->selects->{$f->id}->{$text})

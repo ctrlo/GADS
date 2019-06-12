@@ -49,6 +49,46 @@ $ENV{GADS_NO_FORK} = 1; # Prevent forking during import process
     is($record->created, '2014-10-10T12:00:00', "Record created datetime correct");
 }
 
+# Deleted version of live enumval and tree
+foreach my $type (qw/enum tree/)
+{
+    my $sheet = t::lib::DataSheet->new(data => []);
+
+    my $schema  = $sheet->schema;
+    my $layout  = $sheet->layout;
+    my $columns = $sheet->columns;
+    $sheet->create_records;
+
+    my $val = $type eq 'enum' ? 'foo1' : 'tree1';
+    my $enumval = $schema->resultset('Enumval')->search({ value => $val });
+    is($enumval->count, 1, "One current $val enumval");
+    $enumval->update({ deleted => 1 });
+    $schema->resultset('Enumval')->create({
+        layout_id => $enumval->next->layout_id,
+        value     => $val,
+    });
+
+    my $in = $type eq 'enum' ? "enum1\nfoo1" : "tree1\ntree1";
+    my $import = GADS::Import->new(
+        schema   => $schema,
+        layout   => $layout,
+        user     => $sheet->user,
+        file     => \$in,
+    );
+
+    my $current_rs = $schema->resultset('Current');
+    is($current_rs->count, 0, "Zero records to begin");
+    $import->process;
+
+    my $record = GADS::Record->new(
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->find_current_id(1);
+    is($record->fields->{$columns->{$type."1"}->id}->as_string, $val, "Deleted enum import successful");
+}
+
 my @tests = (
     {
         data      => "string1\nString content",
