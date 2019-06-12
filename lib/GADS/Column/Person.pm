@@ -30,8 +30,20 @@ our @person_properties = qw/id email username firstname surname freetext1 freete
 # Convert based on whether ID or full name provided
 sub value_field_as_index
 {   my ($self, $value) = @_;
-    return 'id' if !$value || $value =~ /^[0-9]+$/;
-    return $self->value_field;
+    my @values = ref $value eq 'ARRAY' ? @$value : $value;
+    my $type;
+    foreach (@values)
+    {
+        last if $type && $type ne 'id';
+        if (!$_ || /^[0-9]+$/)
+        {
+            $type = 'id';
+        }
+        else {
+            $type = $self->value_field;
+        }
+    }
+    return $type;
 }
 
 has '+has_filter_typeahead' => (

@@ -17,6 +17,7 @@ my $data = [
         date1      => '2010-10-10',
         daterange1 => ['2000-10-10', '2001-10-10'],
         curval1    => 1,
+        person1    => 1,
         file1      => {
             name     => 'file1.txt',
             mimetype => 'text/plain',
@@ -145,6 +146,12 @@ my @tests = (
         col    => 'rag1',
         search => ['b_red'],
         count  => 2,
+    },
+    {
+        name   => 'Person',
+        col    => 'person1',
+        search => ['1'],
+        count  => 1,
     },
 );
 
