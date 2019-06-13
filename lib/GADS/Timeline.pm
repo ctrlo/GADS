@@ -27,10 +27,11 @@ use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 use List::Util  qw(min max);
+use Scalar::Util qw/blessed/;
 
 use constant {
-    AT_BIGBANG  => DateTime->new(year => 0),
-    AT_BIGCHILL => DateTime->new(year => 9999),
+    AT_BIGBANG  => DateTime::Infinite::Past->new,
+    AT_BIGCHILL => DateTime::Infinite::Future->new,
 };
 
 has type => (
@@ -79,11 +80,15 @@ has _group_count => (
 has retrieved_from => (
     is      => 'rwp',
     isa     => Maybe[DateAndTime],
+    # Do not set to an infinite value, should be undef instead
+    coerce  => sub { return undef if ref($_[0]) =~ /Infinite/; $_[0] },
 );
 
 has retrieved_to => (
     is      => 'rwp',
     isa     => Maybe[DateAndTime],
+    # Do not set to an infinite value, should be undef instead
+    coerce  => sub { return undef if ref($_[0]) =~ /Infinite/; $_[0] },
 );
 
 has records => (
