@@ -985,15 +985,16 @@ sub write
             or error __"Short names must begin with a letter and can only contain letters, numbers and underscores";
         # Check short name is unique
         my $search = {
-            name_short  => $self->name_short,
+            'me.name_short'    => $self->name_short,
+            'instance.site_id' => $self->schema->site_id,
         };
         if ($self->id)
         {
             # Don't search self if already in DB
-            $search->{id}          = { '!=' => $self->id };
+            $search->{'me.id'} = { '!=' => $self->id };
         }
 
-        my $exists = $self->schema->resultset('Layout')->search($search)->next;
+        my $exists = $self->schema->resultset('Layout')->search($search, { join => 'instance' })->next;
         $exists and error __x"Short name {short} must be unique but already exists for field \"{name}\"",
             short => $self->name_short, name => $exists->name;
     }
