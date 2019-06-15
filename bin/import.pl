@@ -116,10 +116,24 @@ foreach my $g(dir('_export/groups'))
     $group_mapping->{$g->{id}} = $group->id;
 }
 
+my $user_mapping;
+if (-d '_export/users')
+{
+    foreach my $user (dir("_export/users"))
+    {
+        $user->{groups} = [map $group_mapping->{$_}, @{$user->{groups}}];
+        my $u = schema->resultset('User')->import_hash($user);
+        $user_mapping->{$user->{id}} = $u->id;
+    }
+}
+
 opendir my $root, '_export' or report FAULT => "Cannot open directory _export";
 
 my $column_mapping;
 my $metrics_mapping;
+my $record_mapping;
+my $enum_mapping = {};
+my $values_to_import = {};
 my @all_columns;
 my @all_layouts;
 
@@ -246,7 +260,7 @@ foreach my $ins (readdir $root)
         $column->topic_id($topic_mapping->{$col->{topic_id}}) if $col->{topic_id};
         # Don't add to the DBIx schema yet, as we may not have all the
         # information needed (e.g. related field IDs)
-        $column->write(override => 1, no_db_add => 1, no_cache_update => 1, update_dependents => 0);
+        $column->write(override => 1, no_db_add => 1, no_cache_update => 1, update_dependents => 0, enum_mapping => $enum_mapping);
         $column->import_after_write($col, report_only => $updated && $report_only, force => $force);
 
         my $perms_to_set = {};
@@ -326,6 +340,18 @@ foreach my $ins (readdir $root)
         # been imported yet
         graphs => "_export/$ins/graphs",
     };
+
+    foreach my $record (dir("_export/$ins/records"))
+    {
+        my $c = schema->resultset('Current')->import_hash($record,
+            instance         => $instance,
+            user_mapping     => $user_mapping,
+            values_to_import => $values_to_import,
+            column_mapping   => $column_mapping,
+        );
+        $record_mapping->{$record->{id}} = $c->id;
+    }
+    # XXX Then do record_id entries in records
 }
 
 foreach my $l (@all_layouts)
@@ -379,6 +405,18 @@ foreach my $l (@all_layouts)
 foreach (@all_columns)
 {
     my $col = $_->{column};
+
+    foreach my $val (@{$values_to_import->{$col->id}})
+    {
+        $val->{value} = $val->{value} && $record_mapping->{$val->{value}}
+            if $col->type eq 'curval';
+        $val->{value} = $val->{value} && $enum_mapping->{$val->{value}}
+            if $col->type eq 'enum' || $col->type eq 'tree';
+        $val->{value} = $val->{value} && $user_mapping->{$val->{value}}
+            if $col->type eq 'person';
+        $col->import_value($val);
+    }
+
     report TRACE => __x"Final update of column {name}", name => $col->name;
     $col->import_after_all($_->{values}, mapping => $column_mapping, report_only => $report_only && $_->{updated}, force => $force);
     # Now add to the DBIx schema

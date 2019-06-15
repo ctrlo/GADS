@@ -346,4 +346,15 @@ sub random
     $self->all_ids->[rand @{$self->all_ids}];
 }
 
+sub import_value
+{   my ($self, $value) = @_;
+
+    $self->schema->resultset('Curval')->create({
+        record_id    => $value->{record_id},
+        layout_id    => $self->id,
+        child_unique => $value->{child_unique},
+        value        => $value->{value},
+    });
+}
+
 1;

@@ -154,5 +154,18 @@ sub cleanup
     $schema->resultset('Daterange')->search({ layout_id => $id })->delete;
 }
 
+sub import_value
+{   my ($self, $value) = @_;
+
+    $self->schema->resultset('Daterange')->create({
+        record_id    => $value->{record_id},
+        layout_id    => $self->id,
+        child_unique => $value->{child_unique},
+        from         => $value->{from} && DateTime::Format::ISO8601->parse_datetime($value->{from}),
+        to           => $value->{to} && DateTime::Format::ISO8601->parse_datetime($value->{to}),
+        value        => $value->{value},
+    });
+}
+
 1;
 

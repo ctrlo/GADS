@@ -413,7 +413,7 @@ sub random
 }
 
 sub update
-{   my ($self, $tree) = @_;
+{   my ($self, $tree, %params) = @_;
 
     # Create a new hash ref with our new tree structure in. We'll copy
     # the new nodes into it as we go, and then compare it to the old
@@ -423,7 +423,7 @@ sub update
     # Do any updates
     foreach my $t (@$tree)
     {
-        $self->_update($t, $new_tree);
+        $self->_update($t, $new_tree, %params);
     }
 
     $self->_set__enumvals_index($new_tree);
@@ -432,10 +432,13 @@ sub update
 }
 
 sub _update
-{   my ($self, $t, $new_tree) = @_;
+{   my ($self, $t, $new_tree, %params) = @_;
 
     my $parent = $t->{parent} || '#';
     $parent = undef if $parent eq '#'; # Hash is top of tree (no parent)
+
+    my $enum_mapping = $params{enum_mapping};
+    my $source_id    = delete $t->{source_id};
 
     my $dbt;
     if ($t->{id} && $t->{id} =~ /^[0-9]+$/)
@@ -451,6 +454,9 @@ sub _update
                 parent => $parent,
                 value  => $t->{text},
             });
+
+            $enum_mapping->{$source_id} = $t->{id}
+                if $enum_mapping;
         }
         $new_tree->{$dbt->{id}} = $dbt;
     }
@@ -465,6 +471,8 @@ sub _update
         $dbt->{id} = $id;
         # Add to existing cache.
         $new_tree->{$id} = $dbt;
+        $enum_mapping->{$source_id} = $id
+            if $enum_mapping;
     }
 
     foreach my $child (@{$t->{children}})
@@ -509,6 +517,7 @@ sub _import_branch
         {
             notice __x"No change for tree value {value}", value => $old->{text}
                 if $report;
+            $new->{source_id} = $new->{id};
             $new->{id} = $old->{id};
             push @to_write, $new;
         }
@@ -518,6 +527,7 @@ sub _import_branch
             # Yes, assume the previous is a value change
             notice __x"Changing tree value {old} to {new}", old => $old->{text}, new => $new->{text}
                 if $report;
+            $new->{source_id} = $new->{id};
             $new->{id} = $old->{id};
             push @to_write, $new;
         }
@@ -527,7 +537,7 @@ sub _import_branch
             # Yes, assume new value
             notice __x"Adding tree value {new}", new => $new->{text}
                 if $report;
-            delete $new->{id};
+            $new->{source_id} = delete $new->{id};
             push @to_write, $new;
             # Add old one back onto stack for processing next loop
             unshift @old, $old;
@@ -537,7 +547,7 @@ sub _import_branch
             if ($new->{text})
             {
                 notice __x"Unknown treeval update {value}, forcing as requested", value => $new->{text};
-                delete $new->{id};
+                $new->{source_id} = delete $new->{id};
                 push @to_write, $new;
             }
             else {
@@ -583,11 +593,11 @@ sub import_after_write
         @to_write = $self->_import_branch(\@old, \@new, %options);
     }
     else {
-        delete $_->{id} foreach @new;
+        $_->{source_id} = delete $_->{id} foreach @new;
         @to_write = @new;
     }
 
-    $self->update(\@to_write);
+    $self->update(\@to_write, %options);
 }
 
 before import_hash => sub {
@@ -606,6 +616,17 @@ around export_hash => sub {
     $hash->{tree}          = $self->json; # Not actually JSON
     return $hash;
 };
+
+sub import_value
+{   my ($self, $value) = @_;
+
+    $self->schema->resultset('Enum')->create({
+        record_id    => $value->{record_id},
+        layout_id    => $self->id,
+        child_unique => $value->{child_unique},
+        value        => $value->{value},
+    });
+}
 
 1;
 

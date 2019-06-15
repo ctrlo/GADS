@@ -138,8 +138,9 @@ sub _build_retrieve_fields
 sub write_special
 {   my ($self, %options) = @_;
 
-    my $id   = $options{id};
-    my $rset = $options{rset};
+    my $id           = $options{id};
+    my $rset         = $options{rset};
+    my $enum_mapping = $options{enum_mapping};
 
     my $position;
     foreach my $en (@{$self->enumvals})
@@ -165,6 +166,8 @@ sub write_special
             });
             $en->{id} = $new->id;
         }
+        $enum_mapping->{$en->{source_id}} = $en->{id}
+            if $enum_mapping;
     }
 
     # Then delete any that no longer exist
@@ -287,6 +290,7 @@ before import_hash => sub {
             {
                 trace __x"No change for enum value {value}", value => $old->{value}
                     if $report;
+                $new->{source_id} = $new->{id};
                 $new->{id} = $old->{id};
                 push @to_write, $new;
                 next;
@@ -297,13 +301,14 @@ before import_hash => sub {
                 # Yes, assume the previous is a value change
                 notice __x"Changing enum value {old} to {new}", old => $old->{value}, new => $new->{value}
                     if $report;
+                $new->{source_id} = $new->{id};
                 $new->{id} = $old->{id};
                 push @to_write, $new;
             }
             elsif ($options{force})
             {
                 notice __x"Unknown enumval update {value}, forcing as requested", value => $new->{value};
-                delete $new->{id};
+                $new->{source_id} = delete $new->{id};
                 push @to_write, $new;
             }
             else {
@@ -321,11 +326,11 @@ before import_hash => sub {
             }
         }
         # Add any remaining new ones
-        delete $_->{id} foreach @new;
+        $_->{source_id} = delete $_->{id} foreach @new;
         push @to_write, @new;
     }
     else {
-        delete $_->{id} foreach @new;
+        $_->{source_id} = delete $_->{id} foreach @new;
         @to_write = @new;
     }
     $self->enumvals(\@to_write);
@@ -340,6 +345,17 @@ around export_hash => sub {
     $hash->{ordering} = $self->ordering;
     return $hash;
 };
+
+sub import_value
+{   my ($self, $value) = @_;
+
+    $self->schema->resultset('Enum')->create({
+        record_id    => $value->{record_id},
+        layout_id    => $self->id,
+        child_unique => $value->{child_unique},
+        value        => $value->{value},
+    });
+}
 
 1;
 

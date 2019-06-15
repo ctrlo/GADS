@@ -134,4 +134,14 @@ sub sqlt_deploy_hook {
     $sqlt_table->add_index(name => 'string_idx_value_index', fields => [ 'value_index' ]);
 }
 
+sub export_hash
+{   my $self = shift;
+    +{
+        layout_id    => $self->layout_id,
+        child_unique => $self->child_unique,
+        value        => $self->value,
+        value_index  => $self->value_index,
+    };
+}
+
 1;

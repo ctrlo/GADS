@@ -745,12 +745,12 @@ sub groups
 
     foreach my $g (@$groups)
     {
-        next unless $logged_in_user->permission->{superadmin} || $logged_in_user->has_group->{$g};
+        next unless !$logged_in_user || $logged_in_user->permission->{superadmin} || $logged_in_user->has_group->{$g};
         $self->find_or_create_related('user_groups', { group_id => $g });
     }
 
     # Delete any groups that no longer exist
-    my @allowed = map { $_->id }  grep { $logged_in_user->permission->{superadmin} || $logged_in_user->has_group->{$_->id} }
+    my @allowed = map { $_->id }  grep { !$logged_in_user || $logged_in_user->permission->{superadmin} || $logged_in_user->has_group->{$_->id} }
         $self->result_source->schema->resultset('Group')->all;
 
     my $search = {};
@@ -941,6 +941,29 @@ sub _user_value
     my $surname   = $user->{surname}   || '';
     my $value     = "$surname, $firstname";
     $value;
+}
+
+sub export_hash
+{   my $self = shift;
+    # XXX Department, organisation etc not currently exported
+    +{
+        id                    => $self->id,
+        firstname             => $self->firstname,
+        surname               => $self->surname,
+        value                 => $self->value,
+        email                 => $self->email,
+        username              => $self->username,
+        freetext1             => $self->freetext1,
+        freetext2             => $self->freetext2,
+        password              => $self->password,
+        pwchanged             => $self->pwchanged && $self->pwchanged->datetime,
+        deleted               => $self->deleted && $self->deleted->datetime,
+        lastlogin             => $self->lastlogin && $self->lastlogin->datetime,
+        account_request       => $self->account_request,
+        account_request_notes => $self->account_request_notes,
+        created               => $self->created && $self->created->datetime,
+        groups                => [map $_->id, $self->groups],
+    };
 }
 
 1;

@@ -334,5 +334,50 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+sub export_hash
+{   my $self = shift;
+
+    my $current = {
+        id        => $self->id,
+        serial    => $self->serial,
+        parent_id => $self->parent_id,
+        linked_id => $self->linked_id,
+        deleted   => $self->deleted && $self->deleted->datetime,
+        deletedby => $self->deletedby && $self->deletedby->id,
+    };
+
+    my @records;
+    foreach my $rec ($self->records)
+    {
+        my @values;
+
+        push @values, $_->export_hash
+            foreach $rec->curvals;
+        push @values, $_->export_hash
+            foreach $rec->dates;
+        push @values, $_->export_hash
+            foreach $rec->dateranges;
+        push @values, $_->export_hash
+            foreach $rec->enums;
+        push @values, $_->export_hash
+            foreach $rec->intgrs;
+        push @values, $_->export_hash
+            foreach $rec->people;
+        push @values, $_->export_hash
+            foreach $rec->strings;
+
+        push @records, {
+            created    => $rec->created->datetime,
+            createdby  => $rec->createdby && $rec->createdby->id,
+            approvedby => $rec->approvedby && $rec->approvedby->id,
+            record_id  => $rec->record_id,
+            approval   => $rec->approval,
+            values     => \@values,
+        };
+    };
+    $current->{records} = \@records;
+
+    return $current;
+}
+
 1;

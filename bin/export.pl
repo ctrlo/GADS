@@ -33,25 +33,12 @@ use Getopt::Long qw(:config pass_through);
 use JSON qw();
 use Log::Report syntax => 'LONG';
 
-my ($site_id, @instance_ids);
+my ($site_id, @instance_ids, $include_data);
 
 GetOptions (
-    'site-id=s'              => \$site_id,
-    'instance-id=s'              => \@instance_ids,
-#    'ignore-incomplete-dateranges' => \$ignore_incomplete_dateranges,
-#    'dry-run'                      => \$dry_run,
-#    'ignore-string-zeros'          => \$ignore_string_zeros,
-#    'force=s'                      => \$force,
-#    'invalid-csv=s'                => \$invalid_csv,
-#    'invalid-report=s'             => \@invalid_report,
-#    'instance-id=s'                => \$instance_id,
-#    'update-unique=s'              => \$update_unique,
-#    'skip-existing-unique=s'       => \$skip_existing_unique,
-#    'update-only'                  => \$update_only, # Do not write new version record
-#    'blank-invalid-enum'           => \$blank_invalid_enum,
-#    'no-change-unless-blank=s'     => \$no_change_unless_blank, # =bork or =blank_new
-#    'report-changes'               => \$report_changes,
-#    'append=s'                     => \@append,
+    'site-id=s'     => \$site_id,
+    'instance-id=s' => \@instance_ids,
+    'include-data'  => \$include_data,
 ) or exit;
 
 $site_id or report ERROR =>  "Please provide site ID with --site-id";
@@ -86,6 +73,13 @@ foreach my $group (schema->resultset('Group')->all)
     open(my $fh, ">:encoding(UTF-8)", $file)
         or report FAULT => "Error opening $file for write";
     print $fh $json;
+}
+
+if ($include_data)
+{
+    mkdir "_export/users"
+        or report FAULT => "Unable to create users directory";
+    dump_all("_export/users/", schema->resultset('User')->all);
 }
 
 foreach my $layout (@instances)
@@ -130,6 +124,16 @@ foreach my $layout (@instances)
     mkdir "$ins_dir/graphs"
         or report FAULT => "Unable to create graphs directory";
     dump_all("$ins_dir/graphs/", @{GADS::Graphs->new(schema => schema, layout => $layout)->all});
+
+    if ($include_data)
+    {
+        mkdir "$ins_dir/records"
+            or report FAULT => "Unable to create records directory";
+        dump_all("$ins_dir/records/", schema->resultset('Current')->search({
+            instance_id  => $instance_id,
+            draftuser_id => undef,
+        })->all);
+    }
 }
 
 sub dump_all

@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Column::Date;
 
 use DateTime::Format::CLDR;
+use DateTime::Format::ISO8601;
 use GADS::View;
 use Log::Report 'linkspace';
 use Moo;
@@ -105,6 +106,17 @@ sub validate_search
 sub cleanup
 {   my ($class, $schema, $id) = @_;
     $schema->resultset('Date')->search({ layout_id => $id })->delete;
+}
+
+sub import_value
+{   my ($self, $value) = @_;
+
+    $self->schema->resultset('Date')->create({
+        record_id    => $value->{record_id},
+        layout_id    => $self->id,
+        child_unique => $value->{child_unique},
+        value        => $value->{value} && DateTime::Format::ISO8601->parse_datetime($value->{value}),
+    });
 }
 
 1;

@@ -107,5 +107,17 @@ around export_hash => sub {
     return $hash;
 };
 
+sub import_value
+{   my ($self, $value) = @_;
+
+    $self->schema->resultset('String')->create({
+        record_id    => $value->{record_id},
+        layout_id    => $self->id,
+        child_unique => $value->{child_unique},
+        value        => $value->{value},
+        value_index  => $value->{value_index},
+    });
+}
+
 1;
 

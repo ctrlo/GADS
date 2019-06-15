@@ -151,5 +151,16 @@ sub sqlt_deploy_hook {
     $sqlt_table->add_index(name => 'daterange_idx_value', fields => ['value']);
 }
 
+sub export_hash
+{   my $self = shift;
+    +{
+        layout_id    => $self->layout_id,
+        child_unique => $self->child_unique,
+        from         => $self->from && $self->from->datetime,
+        to           => $self->to && $self->to->datetime,
+        value        => $self->value,
+    };
+}
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

@@ -158,6 +158,15 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fLF1UMTGT8AXmnBRIqJ/MQ
 
+sub export_hash
+{   my $self = shift;
+    +{
+        layout_id    => $self->layout_id,
+        child_unique => $self->child_unique,
+        value        => $self->value && $self->value->id,
+    };
+}
+
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
