@@ -5,6 +5,8 @@ use warnings;
 
 use parent 'DBIx::Class::ResultSet';
 
+use Log::Report 'linkspace';
+
 __PACKAGE__->load_components(qw/
     Helper::ResultSet::DateMethods1
     +GADS::Helper::Concat
@@ -32,6 +34,8 @@ sub import_hash
 
     foreach my $r (@{$record->{records}})
     {
+        error __"Import of record_id value not yet support"
+            if $r->{record_id};
         my $rec = $schema->resultset('Record')->import_hash($r, current => $current, %params);
     }
 
