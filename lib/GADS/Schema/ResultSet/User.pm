@@ -293,7 +293,7 @@ sub _user_value
 sub import_hash
 {   my ($self, $user) = @_;
 
-    my $u = $self->active(email => $user->{email});
+    my $u = !$user->{deleted} && $self->active(email => $user->{email})->next;
 
     if (!$u)
     {
