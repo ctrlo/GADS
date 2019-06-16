@@ -292,22 +292,29 @@ sub _user_value
 
 sub import_hash
 {   my ($self, $user) = @_;
-    my $u = $self->create({
-        firstname             => $user->{firstname},
-        surname               => $user->{surname},
-        value                 => $user->{value},
-        email                 => $user->{email},
-        username              => $user->{username},
-        freetext1             => $user->{freetext1},
-        freetext2             => $user->{freetext2},
-        password              => $user->{password},
-        pwchanged             => $user->{pwchanged} && DateTime::Format::ISO8601->parse_datetime($user->{pwchanged}),
-        deleted               => $user->{deleted} && DateTime::Format::ISO8601->parse_datetime($user->{deleted}),
-        lastlogin             => $user->{lastlogin} && DateTime::Format::ISO8601->parse_datetime($user->{lastlogin}),
-        account_request       => $user->{account_request},
-        account_request_notes => $user->{account_request_notes},
-        created               => $user->{created} && DateTime::Format::ISO8601->parse_datetime($user->{created}),
-    });
+
+    my $u = $self->active(email => $user->{email});
+
+    if (!$u)
+    {
+        $u = $self->create({
+            firstname             => $user->{firstname},
+            surname               => $user->{surname},
+            value                 => $user->{value},
+            email                 => $user->{email},
+            username              => $user->{username},
+            freetext1             => $user->{freetext1},
+            freetext2             => $user->{freetext2},
+            password              => $user->{password},
+            pwchanged             => $user->{pwchanged} && DateTime::Format::ISO8601->parse_datetime($user->{pwchanged}),
+            deleted               => $user->{deleted} && DateTime::Format::ISO8601->parse_datetime($user->{deleted}),
+            lastlogin             => $user->{lastlogin} && DateTime::Format::ISO8601->parse_datetime($user->{lastlogin}),
+            account_request       => $user->{account_request},
+            account_request_notes => $user->{account_request_notes},
+            created               => $user->{created} && DateTime::Format::ISO8601->parse_datetime($user->{created}),
+        });
+    }
+
     $u->groups(undef, $user->{groups});
 
     return $u;

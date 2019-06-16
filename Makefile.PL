@@ -24,6 +24,7 @@ our %prereq_pm = (
     'DateTime::Event::Random'                   => 0,
     'DateTime::Format::CLDR'                    => 0,
     'DateTime::Format::DateManip'               => 0,
+    'DateTime::Format::ISO8601'                 => 0,
     'DateTime::Format::SQLite'                  => 0,
     'DateTime::Format::Strptime'                => 0,
     'DateTime::Span'                            => 0,
