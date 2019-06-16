@@ -70,4 +70,8 @@ ok(!$sheet_site1->layout->column($string_site2->id), "Failed to access column fr
 # Then same with short name
 ok(!$sheet_site2->layout->column_by_name_short($string_site1->name_short), "Failed to access column from other site by short name");
 
+# Check that only one site's instances are returned
+my $instances = GADS::Instances->new(schema => $schema, user => undef, user_permission_override => 1);
+is(@{$instances->all}, 1, "Only one instance returned for site");
+
 done_testing();
