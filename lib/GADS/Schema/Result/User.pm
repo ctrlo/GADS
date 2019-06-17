@@ -963,6 +963,7 @@ sub export_hash
         account_request_notes => $self->account_request_notes,
         created               => $self->created && $self->created->datetime,
         groups                => [map $_->id, $self->groups],
+        permissions           => [map $_->permission->name, $self->user_permissions],
     };
 }
 
