@@ -261,7 +261,7 @@ foreach my $ins (readdir $root)
         # Don't add to the DBIx schema yet, as we may not have all the
         # information needed (e.g. related field IDs)
         $column->write(override => 1, no_db_add => 1, no_cache_update => 1, update_dependents => 0, enum_mapping => $enum_mapping);
-        $column->import_after_write($col, report_only => $updated && $report_only, force => $force);
+        $column->import_after_write($col, report_only => $updated && $report_only, force => $force, enum_mapping => $enum_mapping);
 
         my $perms_to_set = {};
         foreach my $old_id (keys %{$col->{permissions}})

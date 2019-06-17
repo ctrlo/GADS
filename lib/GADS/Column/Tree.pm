@@ -478,7 +478,7 @@ sub _update
     foreach my $child (@{$t->{children}})
     {
         $child->{parent} = $dbt->{id};
-        $self->_update($child, $new_tree);
+        $self->_update($child, $new_tree, %params);
     }
 };
 
@@ -593,7 +593,15 @@ sub import_after_write
         @to_write = $self->_import_branch(\@old, \@new, %options);
     }
     else {
-        $_->{source_id} = delete $_->{id} foreach @new;
+        sub _to_source {
+            foreach (@_)
+            {
+                $_->{source_id} = delete $_->{id};
+                _to_source(@{$_->{children}})
+                    if $_->{children};
+            }
+        }
+        _to_source(@new);
         @to_write = @new;
     }
 
