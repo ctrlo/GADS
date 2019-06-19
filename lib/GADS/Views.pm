@@ -61,6 +61,16 @@ has user_views => (
     builder => sub { $_[0]->_user_views },
 );
 
+has user_views_all => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_user_views_all
+{   my $all = shift->user_views;
+    [@{$all->{shared}}, @{$all->{personal}}, @{$all->{admin}}];
+}
+
 has global => (
     is  => 'lazy',
     isa => ArrayRef,
@@ -161,7 +171,7 @@ sub _build_all
 # Default user view
 sub default
 {   my $self = shift;
-    my @user_views   = @{$self->user_views} or return;
+    my @user_views   = @{$self->user_views_all} or return;
     my $default_view = shift @user_views or return;
     my $view_id      = $default_view->id or return;
     $self->view($view_id);

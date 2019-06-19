@@ -62,11 +62,6 @@ $layout->clear;
 try { $view2->filter };
 ok($@, "Failed to read view as normal user of other user view");
 
-sub _all_views
-{   my $all = shift;
-    @{$all->{shared}}, @{$all->{personal}}, @{$all->{admin}};
-}
-
 foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back again
 {
     # Create global view as normal user, should fail
@@ -97,7 +92,7 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
         layout      => $layout,
         instance_id => $layout->instance_id,
     );
-    my $has_view = grep { $_->id == $view->id } _all_views($views->user_views);
+    my $has_view = grep { $_->id == $view->id } @{$views->user_views_all};
     ok($success && $has_view || !$success, "User has view in list of available views");
 
     # Read group view as normal user not in that group
@@ -112,7 +107,7 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
         layout      => $layout,
         instance_id => $layout->instance_id,
     );
-    $has_view = grep { $_->id == $view->id } _all_views($views->user_views);
+    $has_view = grep { $_->id == $view->id } @{$views->user_views_all};
     ok($success && !$has_view || !$success, "User has view in list of available views");
     # Return to previous setting
     $user_create2->groups($user_admin, [@current_groups]);
@@ -172,7 +167,7 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
         other_user_id => $user_create1->id,
     );
 
-    my $has_view = grep { $_->name eq 'FooBar' } _all_views($views->user_views);
+    my $has_view = grep { $_->name eq 'FooBar' } @{$views->user_views_all};
     ok(!$has_view, "Normal user cannot see views of others");
 
     $layout->user($user_admin);
@@ -184,7 +179,7 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
         other_user_id => $user_create1->id,
     );
 
-    $has_view = grep { $_->name eq 'FooBar' } _all_views($views->user_views);
+    $has_view = grep { $_->name eq 'FooBar' } @{$views->user_views_all};
     ok($has_view, "Admin user can see views of others");
 
     # Then creating views for other users
@@ -200,7 +195,7 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
         layout        => $layout,
         instance_id   => $layout->instance_id,
     );
-    $has_view = grep { $_->name eq 'FooBar2' } _all_views($views->user_views);
+    $has_view = grep { $_->name eq 'FooBar2' } @{$views->user_views_all};
     ok(!$has_view, "Normal user cannot create view as other user");
     $layout->user($user_create1);
     $layout->clear;
@@ -209,7 +204,7 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
         layout        => $layout,
         instance_id   => $layout->instance_id,
     );
-    $has_view = grep { $_->name eq 'FooBar2' } _all_views($views->user_views);
+    $has_view = grep { $_->name eq 'FooBar2' } @{$views->user_views_all};
     ok($has_view, "Normal user created own view when trying to be other user");
 
     $view = GADS::View->new(%view_template, name => 'FooBar3', other_user_id => $user_create2->id);
@@ -225,7 +220,7 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
         instance_id   => $layout->instance_id,
     );
 
-    $has_view = grep { $_->name eq 'FooBar3' } _all_views($views->user_views);
+    $has_view = grep { $_->name eq 'FooBar3' } @{$views->user_views_all};
     ok($has_view, "Admin user can create view as other user");
 
     # Edit other user's view
@@ -248,7 +243,7 @@ foreach my $test (qw/is_admin global is_admin/) # Do test, change, then back aga
         instance_id   => $layout->instance_id,
     );
 
-    my ($view_other) = grep { $_->name eq 'FooBar4' } _all_views($views->user_views);
+    my ($view_other) = grep { $_->name eq 'FooBar4' } @{$views->user_views_all};
     is($view_other->id, $view->id, "Admin user updated other user's view");
 
 }
