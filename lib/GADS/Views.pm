@@ -101,7 +101,26 @@ sub _user_views
         order_by => ['me.global', 'me.is_admin', 'me.name'],
         collapse => 1,
     })->all;
-    \@views;
+    my $return = {
+        admin    => [],
+        shared   => [],
+        personal => [],
+    };
+    foreach my $view (@views)
+    {
+        if ($view->global)
+        {
+            push @{$return->{shared}}, $view;
+        }
+        elsif ($view->is_admin)
+        {
+            push @{$return->{admin}}, $view;
+        }
+        else {
+            push @{$return->{personal}}, $view;
+        }
+    }
+    $return;
 }
 
 has views_limit_extra => (

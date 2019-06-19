@@ -58,23 +58,7 @@
                             </a>
                         </li>
 
-                        <li role="presentation" class="divider"></li>
-
-                        [% first = 1 %]
-                        [% FOREACH ve IN user_views %]
-                            [% IF first AND NOT ve.global AND not ve.is_admin %]
-                                <li role="presentation" class="dropdown-header">[% IF views_other_user %]Views of [% views_other_user.value | html %][% ELSE %]Personal views[% END %]</li>
-                            [% ELSIF (first AND ve.global) OR (lastv AND ve.global != lastv.global) %]
-                                [% UNLESS first %]
-                                    <li role="presentation" class="divider"></li>
-                                [% END %]
-                                <li role="presentation" class="dropdown-header">Shared views</li>
-                            [% ELSIF (first AND ve.is_admin) OR (lastv AND ve.is_admin != lastv.is_admin) %]
-                                [% UNLESS first %]
-                                    <li role="presentation" class="divider"></li>
-                                [% END %]
-                                <li role="presentation" class="dropdown-header">Administration views</li>
-                            [% END %]
+                        [% BLOCK print_view %]
                             <li role="presentation"
                                     [% IF ve.id == v.id %]class="active"[% END %]
                                 >
@@ -83,7 +67,29 @@
                                     [% IF alerts.$veid %]<img src="/images/bell.png">[% END %]
                                 </a>
                             </li>
-                            [% lastv = ve %][% first = 0 %]
+                        [% END %]
+                        [% IF user_views.personal.size %]
+                            <li role="presentation" class="divider"></li>
+                            <li role="presentation" class="dropdown-header">
+                                [% IF views_other_user %]Views of [% views_other_user.value | html %][% ELSE %]Personal views[% END %]
+                            </li>
+                            [% FOREACH ve IN user_views.personal %]
+                                [% PROCESS print_view %]
+                            [% END %]
+                        [% END %]
+                        [% IF user_views.admin.size %]
+                            <li role="presentation" class="divider"></li>
+                            <li role="presentation" class="dropdown-header">Administration views</li>
+                            [% FOREACH ve IN user_views.admin %]
+                                [% PROCESS print_view %]
+                            [% END %]
+                        [% END %]
+                        [% IF user_views.shared.size %]
+                            <li role="presentation" class="divider"></li>
+                            <li role="presentation" class="dropdown-header">Shared views</li>
+                            [% FOREACH ve IN user_views.shared %]
+                                [% PROCESS print_view %]
+                            [% END %]
                         [% END %]
                     </ul>
                 </div>
