@@ -341,6 +341,7 @@ my @tests = (
     },
 );
 
+my $year = 2014; # Ensure that record writes do not go back in time
 foreach my $test (@tests)
 {
     # Create a calc field that has something invalid in the nested code
@@ -438,7 +439,7 @@ foreach my $test (@tests)
         like( $record_check->fields->{$code_col->id}->as_string, $before, "Correct code value for test $test->{name} (before)" );
 
         # Check we can update the record
-        set_fixed_time('11/15/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
+        set_fixed_time("11/15/$year 01:00:00", '%m/%d/%Y %H:%M:%S');
         $record->fields->{$columns->{daterange1}->id}->set_value(['2014-10-10', '2015-10-10']);
         $record->fields->{$columns->{curval1}->id}->set_value(2)
             unless exists $test->{curval_update} && !$test->{curval_update};
@@ -477,7 +478,8 @@ foreach my $test (@tests)
         # Reset values for next test
         $schema->resultset('Enumval')->find(12)->update({ deleted => 0 });
         $layout->clear;
-        set_fixed_time('10/22/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
+        $year++;
+        set_fixed_time("10/22/$year 01:00:00", '%m/%d/%Y %H:%M:%S');
         $record->fields->{$columns->{daterange1}->id}->set_value($data->[0]->{daterange1});
         $record->fields->{$columns->{curval1}->id}->set_value($data->[0]->{curval1});
         $record->fields->{$columns->{string1}->id}->set_value('');
