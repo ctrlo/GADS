@@ -19,9 +19,6 @@
                         <a href="?sort=[% col.sort.link %]" class="sort-link">
                             [% col.sort.symbol %] sort [% col.sort.text %]
                         </a>
-                        [% IF col.helptext %]
-                        <p class="helptext">[% col.helptext | html_entity %]</p>
-                        [% END %]
                         [% IF col.type == "person" AND layout.user_can("message") AND records.size %]
                             <button aria-haspopup="true" type="button" class="btn btn-sm btn-primary"
                                 data-toggle="modal" data-target="#modal_sendemail" data-peopcol_id="[% col.id %]">
@@ -48,6 +45,9 @@
                                 <button class="column-filter__button column-filter__submit btn btn-xs btn-default" type="submit">Go</a>
                             </div>
                         </div>
+                        [% IF col.helptext %]
+                        <p class="helptext">[% col.helptext | html_entity %]</p>
+                        [% END %]
                     </div>
                 </th>
             [% END %]
