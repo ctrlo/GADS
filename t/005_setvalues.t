@@ -45,6 +45,7 @@ my $values = {
         old_as_string  => '2000-10-10 to 2001-10-10',
         new            => ['2000-11-11', '2001-11-11'],
         new_as_string  => '2000-11-11 to 2001-11-11',
+        filter_value   => '2000-11-11 to 2001-11-11',
         addable        => ['+ 1 week', '+ 5 years'],
         addable_result => '2000-11-18 to 2006-11-11',
     },
@@ -63,8 +64,10 @@ my $values = {
 
         },
         new_as_string => 'User2, User2',
+        new_html_form => 2,
         new_html      => 'User2, User2',
-        },
+        filter_value  => 2,
+    },
     file1 => {
         old_as_string => 'file1.txt',
         new => {
@@ -72,8 +75,16 @@ my $values = {
             mimetype => 'text/plain',
             content  => 'Text file2',
         },
+        new_html_form => 2,
         new_as_string => 'file2.txt',
         new_html      => 'file2.txt',
+        filter_value  => 2,
+    },
+    calc1 => {
+        filter_value => '2000',
+    },
+    rag1 => {
+        filter_value => 'b_red',
     },
 };
 
@@ -148,22 +159,23 @@ foreach my $multivalue (0..1)
     foreach my $type (keys %$values)
     {
         my $col = $sheet->columns->{$type};
-        is( $record_new->fields->{$col->id}->as_string, '', 'New record $type is empty string' );
+        next if !$col->userinput;
+        is( $record_new->fields->{$col->id}->as_string, '', "New record $type is empty string" );
         if ($col->multivalue)
         {
-            is_deeply( $record_new->fields->{$col->id}->value, [], 'Multivalue of new record $type is empty array' )
+            is_deeply( $record_new->fields->{$col->id}->value, [], "Multivalue of new record $type is empty array" )
                 if $record_new->fields->{$col->id}->can('value');
-            is_deeply( $record_new->fields->{$col->id}->ids, [], 'Multivalue of new record $type is empty array' )
+            is_deeply( $record_new->fields->{$col->id}->ids, [], "Multivalue of new record $type is empty array" )
                 if $record_new->fields->{$col->id}->can('ids');
         }
         else {
-            is( $record_new->fields->{$col->id}->value, undef, 'Value of new record $type is undef' )
+            is( $record_new->fields->{$col->id}->value, undef, "Value of new record $type is undef" )
                 if $record_new->fields->{$col->id}->can('value');
-            is( $record_new->fields->{$col->id}->id, undef, 'ID of new record $type is undef' )
+            is( $record_new->fields->{$col->id}->id, undef, "ID of new record $type is undef" )
                 if $record_new->fields->{$col->id}->can('id') && $col->type ne 'tree';
         }
         # Check that id_hash can be generated correctly
-        is( ref $record_new->fields->{$col->id}->id_hash, 'HASH', '$type has id_hash' )
+        is( ref $record_new->fields->{$col->id}->id_hash, 'HASH', "$type has id_hash" )
             if $record_new->fields->{$col->id}->can('id_hash');
     }
 }
@@ -216,20 +228,29 @@ foreach my $multivalue (0..1)
 
                     next if $arrayref && $type eq 'daterange1';
                     my $datum = $record->fields->{$columns->{$type}->id};
-                    if ($test eq 'blank')
+                    if ($datum->column->userinput)
                     {
-                        ok( $datum->blank, "$type is blank$is_multi" );
+                        if ($test eq 'blank')
+                        {
+                            ok( $datum->blank, "$type is blank$is_multi" );
+                        }
+                        else {
+                            ok( !$datum->blank, "$type is not blank$is_multi" );
+                        }
+                        if ($arrayref)
+                        {
+                            try { $datum->set_value([$values->{$type}->{new}]) };
+                        }
+                        else {
+                            try { $datum->set_value($values->{$type}->{new}) };
+                        }
                     }
-                    else {
-                        ok( !$datum->blank, "$type is not blank$is_multi" );
-                    }
-                    if ($arrayref)
+                    if ($test eq 'changed' && !$deleted)
                     {
-                        try { $datum->set_value([$values->{$type}->{new}]) };
+                        my $filter_value = $values->{$type}->{filter_value} || $values->{$type}->{new};
+                        is( $datum->filter_value, $filter_value, "Filter value correct for $type" );
                     }
-                    else {
-                        try { $datum->set_value($values->{$type}->{new}) };
-                    }
+                    next if !$datum->column->userinput;
                     if ($deleted)
                     {
                         if ($test eq 'nochange')
@@ -262,6 +283,9 @@ foreach my $multivalue (0..1)
                         ok( $datum->oldvalue, "$type oldvalue exists$is_multi" );
                         my $old = $test eq 'changed' ? $values->{$type}->{old_as_string} : $values->{$type}->{new_as_string};
                         is( $datum->oldvalue && $datum->oldvalue->as_string, $old, "$type oldvalue exists and matches for test $test$is_multi" );
+                        my $html_form = $values->{$type}->{new_html_form} || $values->{$type}->{new};
+                        $html_form = [$html_form] if ref $html_form ne 'ARRAY';
+                        is_deeply( $datum->html_form, $html_form, "html_form value correct" );
                     }
                     elsif ($test eq 'blank')
                     {
@@ -322,6 +346,7 @@ $sheet->create_records;
 foreach my $c (keys %$values)
 {
     my $column = $columns->{$c};
+    next if !$column->userinput;
     # First check that an empty string replacing the null
     # value counts as not changed
     my $class  = $column->class;

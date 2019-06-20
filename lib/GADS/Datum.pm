@@ -147,6 +147,11 @@ sub html_form
     [ defined $self->value ? $self->value : '' ];
 }
 
+sub filter_value
+{   my $self = shift;
+    $self->html_form->[0];
+}
+
 # The values needed to pass to the set_values function of a datum. Normally the
 # same as the HTML fields, but overridden where necessary
 sub set_values { shift->html_form }

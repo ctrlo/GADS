@@ -9,7 +9,7 @@ sub presentation_base {
     return {
         type                => $self->column->type,
         value               => $self->as_string,
-        filter_value        => $self->column->multivalue ? $self->html_form->[0] : $self->html_form,
+        filter_value        => $self->filter_value,
         blank               => $self->blank,
         dependent_not_shown => $self->dependent_not_shown,
     };

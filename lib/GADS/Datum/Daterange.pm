@@ -223,6 +223,11 @@ sub _build_html_form
     } @{$self->values} ];
 }
 
+sub filter_value
+{   my $self = shift;
+    $self->text_all->[0];
+}
+
 sub search_values_unique
 {   shift->text_all;
 }

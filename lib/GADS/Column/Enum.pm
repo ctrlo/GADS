@@ -83,6 +83,7 @@ has enumvals => (
 
 sub id_as_string
 {   my ($self, $id) = @_;
+    $id or return undef;
     $self->enumval($id)->{value};
 }
 
