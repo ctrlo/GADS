@@ -2217,6 +2217,7 @@ sub data_timeline
         foreach my $overlay (@retrieved)
         {
             delete $overlay->{dt};
+            delete $overlay->{dt_to};
             $overlay->{type} = 'background';
             $overlay->{end}  = $overlay->{start} if !$overlay->{end};
             push @items, $overlay;
