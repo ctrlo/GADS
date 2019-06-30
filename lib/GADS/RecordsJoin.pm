@@ -365,9 +365,27 @@ sub _jpfetch_add
     }
 }
 
+# See comments on alternative join in GADS::DB
+sub _to_alt
+{   my $join = shift;
+    panic "Missing join" if !$join;
+    return $join."_alternative" if !ref $join;
+    return [ map _to_alt($_), @$join ]
+        if ref $join eq 'ARRAY';
+    my @keys = keys %$join;
+    panic "Unexpected number of keys for join ".Dumper $join if @keys > 1;
+    my $j1 = $keys[0];
+    my $j2 = $join->{$j1};
+    #my ($j1, $j2) = each %$join;
+    return { _to_alt($j1) => _to_alt($j2) };
+}
+
 sub jpfetch
-{   my $self = shift;
-    map { $_->{join} } $self->_jpfetch(@_);
+{   my ($self, %options) = @_;
+    my @joins = map { $_->{join} } $self->_jpfetch(%options);
+    @joins = map { _to_alt($_) } @joins
+        if $options{alt};
+    return @joins;
 }
 
 sub columns_fetch
@@ -448,7 +466,9 @@ sub table_name
     }
     my $jn = $self->_join_number($column, %options);
     my $index = $jn > 1 ? "_$jn" : '';
-    $column->sprefix . $index;
+    my $tn = $column->sprefix;
+    $tn .= "_alternative" if $options{alt};
+    $tn . $index;
 }
 
 sub _join_number
@@ -511,6 +531,7 @@ sub _join_number
     # join number for a table that hasn't been added.
     my $cid = $column->id;
     $options{parent} = $options{parent}->id if $options{parent}; # Prevent dumping of whole object
+    $options{extra_column} = $options{extra_column}->id if $options{extra_column};
     panic "Unable to get join number: column $cid hasn't been added for options ".Dumper(\%options);
 }
 

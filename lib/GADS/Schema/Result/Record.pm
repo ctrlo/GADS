@@ -172,6 +172,18 @@ __PACKAGE__->belongs_to(
   },
 );
 
+__PACKAGE__->belongs_to(
+  "createdby_alternative",
+  "GADS::Schema::Result::User",
+  { id => "createdby" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
 =head2 current
 
 Type: belongs_to
@@ -182,6 +194,13 @@ Related object: L<GADS::Schema::Result::Current>
 
 __PACKAGE__->belongs_to(
   "current",
+  "GADS::Schema::Result::Current",
+  { id => "current_id" },
+  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+);
+
+__PACKAGE__->belongs_to(
+  "current_alternative",
   "GADS::Schema::Result::Current",
   { id => "current_id" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
@@ -395,32 +414,40 @@ sub sqlt_deploy_hook {
 
 # Enable finding of latest record for current ID
 our $REWIND;
+my $join_sub = sub {
+    my $args = shift;
+    my $return = {
+        "$args->{foreign_alias}.current_id"  => { -ident => "$args->{self_alias}.current_id" },
+        # Changed from using "id" as the key to see which record is later,
+        # as after an import the IDs may be in a different order to that in
+        # which the records were created. If the created date is the same,
+        # use the IDs (primarily for tests, which sometimes have fixed times).
+        -or => [
+            {
+                "$args->{foreign_alias}.created" => { '>' => \"$args->{self_alias}.created" },
+            },
+            {
+                "$args->{foreign_alias}.created" => { '=' => \"$args->{self_alias}.created" },
+                "$args->{foreign_alias}.id"      => { '>' => \"$args->{self_alias}.id" },
+            },
+        ],
+        "$args->{foreign_alias}.approval"    => 0,
+    };
+    $return->{"$args->{foreign_alias}.created"} = { '<' => $REWIND }
+        if $REWIND;
+    return $return;
+};
+
 __PACKAGE__->might_have(
     "record_later",
     "GADS::Schema::Result::Record",
-    sub {
-        my $args = shift;
-        my $return = {
-            "$args->{foreign_alias}.current_id"  => { -ident => "$args->{self_alias}.current_id" },
-            # Changed from using "id" as the key to see which record is later,
-            # as after an import the IDs may be in a different order to that in
-            # which the records were created. If the created date is the same,
-            # use the IDs (primarily for tests, which sometimes have fixed times).
-            -or => [
-                {
-                    "$args->{foreign_alias}.created" => { '>' => \"$args->{self_alias}.created" },
-                },
-                {
-                    "$args->{foreign_alias}.created" => { '=' => \"$args->{self_alias}.created" },
-                    "$args->{foreign_alias}.id"      => { '>' => \"$args->{self_alias}.id" },
-                },
-            ],
-            "$args->{foreign_alias}.approval"    => 0,
-        };
-        $return->{"$args->{foreign_alias}.created"} = { '<' => $REWIND }
-            if $REWIND;
-        return $return;
-    }
+    $join_sub
+);
+
+__PACKAGE__->might_have(
+    "record_later_alternative",
+    "GADS::Schema::Result::Record",
+    $join_sub
 );
 
 1;

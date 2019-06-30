@@ -19,7 +19,7 @@ foreach my $multivalue (0..1)
             integer1   => 25,
             date1      => '2011-10-10',
             daterange1 => ['2000-01-02', '2001-03-03'],
-            enum1      => 7,
+            enum1      => 8,
             tree1      => 12,
             curval1    => 1,
         },
@@ -57,21 +57,21 @@ foreach my $multivalue (0..1)
             string1    => 'foo1',
             integer1   => 75,
             calc1      => 150,
-            date1      => '2012-10-10',
-            daterange1 => '2004-01-02 to 2005-03-03',
-            enum1      => $multivalue ? 'foo3' : 'foo1',
-            tree1      => 'tree3',
-            curval1    => 'Foo',
+            date1      => '2 unique',
+            daterange1 => '2 unique',
+            enum1      => $multivalue ? '3 unique' : '2 unique',
+            tree1      => '1 unique',
+            curval1    => '1 unique',
         },
         {
             string1    => 'foo2',
             integer1   => 130,
             calc1      => 260,
-            date1      => '2009-10-10',
-            daterange1 => '2007-01-02 to 2007-03-03',
-            enum1      => 'foo2',
-            tree1      => 'tree2',
-            curval1    => 'Bar',
+            date1      => '2 unique',
+            daterange1 => '2 unique',
+            enum1      => '1 unique',
+            tree1      => '1 unique',
+            curval1    => '1 unique',
         },
     ];
 
@@ -189,11 +189,9 @@ foreach my $multivalue (0..1)
 
     @results = @{$records->results};
     is(@results, 2, "Correct number of rows for group by string with autocur");
-    @expected = qw/foo2 foo1/; # Sorting does not currently work in group views
     foreach my $row (@results)
     {
-        my $exp = shift @expected;
-        is($row->fields->{$autocur->id}, $exp, "Group text correct");
+        is($row->fields->{$autocur->id}, '2 unique', "Group text correct");
     }
 
 }

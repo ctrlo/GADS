@@ -55,7 +55,13 @@ sub setup
 }
 
 sub add_column
-{   my ($class, $schema, $col) = @_;
+{   my $self = shift;
+    $self->_add_column(@_);
+    $self->_add_column(@_, 1);
+}
+
+sub _add_column
+{   my ($class, $schema, $col, $alt) = @_;
     my $coltype = $col->type eq "tree"
                 ? 'enum'
                 : $col->type eq "calc"
@@ -65,6 +71,10 @@ sub add_column
                 : $col->type;
 
     my $colname = "field".$col->id;
+    # We add each column twice, with a standard join and with an alternative
+    # join. The alternative join allows correlated sub-queries to be used, with
+    # the inner sub-query referencing a value from the main query
+    $colname .= "_alternative" if $alt;
 
     # Temporary hack
     # very inefficient and needs to go away when the rel options show up
@@ -134,6 +144,8 @@ sub update
             # Add them/it
             my $col = $schema->resultset('Layout')->find($_);
             $class->add_column($schema, $col)
+                if $col; # May have since been deleted
+            $class->add_column($schema, $col, 1)
                 if $col; # May have since been deleted
         }
     }

@@ -26,6 +26,7 @@ use GADS::AlertSend;
 use GADS::Config;
 use GADS::Datum::Autocur;
 use GADS::Datum::Calc;
+use GADS::Datum::Count;
 use GADS::Datum::Curval;
 use GADS::Datum::Date;
 use GADS::Datum::Daterange;
@@ -185,6 +186,10 @@ sub has_fields
 }
 
 has is_group => (
+    is => 'ro',
+);
+
+has group_cols => (
     is => 'ro',
 );
 
@@ -987,7 +992,16 @@ sub _transform_values
         # then the field key will be appended with "_sum". XXX Ideally we'd
         # have a better way of knowing this has happened, but this should
         # suffice for the moment.
-        $key = $key."_sum" if $self->is_group && $column->numeric;
+        if ($self->is_group)
+        {
+            if ($column->numeric)
+            {
+                $key = $key."_sum";
+            }
+            elsif (!$self->group_cols->{$column->id}) {
+                $key = $key."_distinct";
+            }
+        }
         my $value = $self->linked_id && $column->link_parent ? $original->{$key} : $original->{$key};
         $value = $self->linked_record_raw && $self->linked_record_raw->{$key}
             if $self->linked_record_raw && $column->link_parent && !$self->is_historic;
@@ -1013,7 +1027,10 @@ sub _transform_values
         # this column that there is no need to retrieve any other columns
         $column->retrieve_all_columns(1)
             if $self->curcommon_all_fields && $column->is_curcommon;
-        $fields->{$column->id} = $column->class->new(%params);
+        my $class = $self->is_group && !$column->numeric && !$self->group_cols->{$column->id}
+            ? 'GADS::Datum::Count'
+            : $column->class;
+        $fields->{$column->id} = $class->new(%params);
     }
 
     $self->_set_id_count($original->{id_count});

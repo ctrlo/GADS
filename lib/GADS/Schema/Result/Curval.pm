@@ -134,6 +134,18 @@ __PACKAGE__->belongs_to(
   },
 );
 
+__PACKAGE__->belongs_to(
+  "record_alternative",
+  "GADS::Schema::Result::Record",
+  { id => "record_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
 =head2 value
 
 Type: belongs_to
@@ -144,6 +156,18 @@ Related object: L<GADS::Schema::Result::Current>
 
 __PACKAGE__->belongs_to(
   "value",
+  "GADS::Schema::Result::Current",
+  { id => "value" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+__PACKAGE__->belongs_to(
+  "value_alternative",
   "GADS::Schema::Result::Current",
   { id => "value" },
   {

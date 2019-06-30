@@ -7,7 +7,7 @@ sub presentation { shift->presentation_base } # Default, overridden
 sub presentation_base {
     my $self = shift;
     return {
-        type                => $self->column->type,
+        type                => $self->isa('GADS::Datum::Count') ? 'count' : $self->column->type,
         value               => $self->as_string,
         filter_value        => $self->filter_value,
         blank               => $self->blank,

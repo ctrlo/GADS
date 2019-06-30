@@ -93,35 +93,35 @@
 [% END %]
 
 [% MACRO render_group BLOCK %]
-    <a href="?group_filter&field[% datum.id %]=[% datum.data.filter_value %]">[% datum.data.value OR '<blank>' | html %]</a>
+    <a href="?group_filter&field[% col.id %]=[% col.data.filter_value %]">[% col.data.value OR '<blank>' | html %]</a>
 [% END %]
 
-[% MACRO render_datum(datum, render_options) BLOCK;
+[% MACRO render_datum(col, render_options) BLOCK;
 
     IF render_options == 'group';
-        render_group(datum);
+        render_group(col);
     ELSE;
 
         full_content = 1 IF render_options == 'full';
 
-        SWITCH datum.type;
+        SWITCH col.type;
             CASE ['curval', 'autocur'];
-                render_curcommon_datum(datum.is_multivalue, datum.data, datum.name, full_content);
+                render_curcommon_datum(col.is_multivalue, col.data, col.name, full_content);
             CASE 'file';
                 full_content = 1 IF render_options == 'semi';
-                render_file_datum(datum.data, full_content);
+                render_file_datum(col.data, full_content);
             CASE ['person', 'createdby'];
-                render_person_datum(datum.data);
+                render_person_datum(col.data);
             CASE 'string';
-                render_string_datum(datum.data, datum.name, full_content);
+                render_string_datum(col.data, col.name, full_content);
             CASE 'enum';
-                render_enum_datum(datum.data, datum.name, full_content);
+                render_enum_datum(col.data, col.name, full_content);
             CASE 'tree';
-                render_enum_datum(datum.data, datum.name, full_content);
+                render_enum_datum(col.data, col.name, full_content);
             CASE 'rag';
-                render_rag_datum(datum.data);
+                render_rag_datum(col.data);
             CASE;
-                datum.data.value | html;
+                col.data.value | html;
         END;
     END;
 END %]

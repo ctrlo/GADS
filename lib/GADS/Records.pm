@@ -394,7 +394,7 @@ sub search_query
     my $linked        = delete $options{linked};
     my @search        = $self->_query_params(%options);
     my $root_table    = $options{root_table} || 'current';
-    my $current       = $root_table eq 'current' ? 'me' : 'current';
+    my $current       = $options{alias} ? $options{alias} : $root_table eq 'current' ? 'me' : 'current';
     my $record_single = $self->record_name(%options);
     unless ($self->include_approval)
     {
@@ -2384,13 +2384,13 @@ sub _build_group_results
     }
     elsif ($view && $view->is_group)
     {
-        my %group_cols = map { $_->layout_id => 1 } @{$view->groups};
+        my %view_group_cols = map { $_->layout_id => 1 } @{$view->groups};
         @cols = map {
             +{
                 id       => $_->id,
                 column   => $_,
-                operator => $_->numeric ? 'sum' : 'max',
-                group    => $group_cols{$_->id},
+                operator => $_->numeric ? 'sum' : $view_group_cols{$_->id} ? 'max' : 'distinct',
+                group    => $view_group_cols{$_->id},
             }
         } $self->layout->view(
             $view->id,
@@ -2403,11 +2403,22 @@ sub _build_group_results
     }
 
     my @parents;
+    my %group_cols;
+    %group_cols = map { $_->layout_id => 1 } @{$view->groups}
+        if $view;
     foreach my $col (@cols)
     {
         my $column = $self->layout->column($col->{id});
         $col->{column} = $column;
         $col->{operator} ||= 'max';
+
+        # Only include full fields as a group column, otherwise all curval
+        # sub-fields will be added, which for a multivalue curval will mean
+        # many unnecessary sub-queries below. We may want to add these later if
+        # making it possible to manually group by a curval sub-field
+        $group_cols{$col->{id}} = 1
+            if $col->{group} && !$col->{parent};
+
         # If it's got a parent curval, then add that too
         if ($col->{parent_id})
         {
@@ -2480,6 +2491,7 @@ sub _build_group_results
         my $as = $column->field;
         $as = $as.'_count' if $op eq 'count';
         $as = $as.'_sum' if $op eq 'sum';
+        $as = $as.'_distinct' if $op eq 'distinct' && !$col->{group};
 
         # The select statement to get this column's value varies depending on
         # what we want to retrieve. If we're selecting a field with multiple
@@ -2518,47 +2530,69 @@ sub _build_group_results
                 {
                     $select = $f_rs->get_column((ref $column->tjoin eq 'HASH' ? 'value_2' :  $column->field).".".$column->value_field)->sum_rs->as_query;
                 }
-                else {
+                elsif ($self->isa('GADS::RecordsGraph') || $self->isa('GADS::RecordsGlobe'))
+                {
                     $select = $f_rs->get_column((ref $column->tjoin eq 'HASH' ? 'value_2' :  $column->field).".".$column->value_field)->max_rs->as_query;
+                }
+                else {
+                    # At the moment we do not expect a distinct count to be
+                    # necessary for a field from within a curval. We might want
+                    # to add this functionality in the future, in which case it
+                    # will look something like the next else block
+                    panic "Unexpected count distinct for curval sub-field";
                 }
             }
             # Otherwise a standard subquery select for that type of field
             else {
-                $select = $self->schema->resultset('Current')
-                    ->correlate('record_single') # Correlate against main query's records
-                    ->related_resultset($column->field)
-                    ->get_column($column->value_field);
                 # Also need to add the main search query, otherwise if we take
                 # all the field's values for each record, then we won't be
                 # filtering the non-matched ones in the case of multivalue
-                # fields
-                my $searchq = $self->search_query(search => 1, extra_column => $column, linked => 1);
-                push @$searchq, {
-                    'mefield.id' => {
-                        -ident => 'me.id'
-                    },
-                };
+                # fields.
+                # Need to include "group" as an option to the subquery, to
+                # ensure that the grouping column is added to match to the main
+                # query's group column
+                my $searchq = $self->search_query(search => 1, extra_column => $column, linked => 0, group => 1, alt => 1, alias => 'mefield');
+                foreach my $group_id (keys %group_cols)
+                {
+                    my $group_col = $self->layout->column($group_id);
+                    push @$searchq, {
+                        $self->fqvalue($group_col, as_index => $as_index, search => 1, linked => 0, group => 1, alt => 1, extra_column => $group_col) => {
+                            -ident => $self->fqvalue($group_col, as_index => $as_index, search => 1, linked => 0, group => 1, extra_column => $group_col)
+                        },
+                    };
+                }
                 $select = $self->schema->resultset('Current')->search(
                     [-and => $searchq ],
                     {
                         alias => 'mefield',
                         join  => [
-                            [$self->linked_hash(search => 1, extra_column => $column)],
+                            [$self->linked_hash(search => 1, group => 1, alt => 1, extra_column => $column)],
                             {
                                 'record_single' => [ # The (assumed) single record for the required version of current
                                     'record_later',  # The record after the single record (undef when single is latest)
-                                    $self->jpfetch(search => 1, linked => 0, extra_column => $column),
+                                    $self->jpfetch(search => 1, linked => 0, group => 1, extra_column => $column, alt => 1),
                                 ],
                             },
                         ],
+                        select => {
+                            count => { distinct => $self->fqvalue($column, as_index => $as_index, search => 1, linked => 0, group => 1, alt => 1, extra_column => $column) },
+                            -as   => 'sub_query_as',
+                        },
                     },
-                )->get_column($self->fqvalue($column, as_index => $as_index, search => 1, linked => 0, extra_column => $column));
+                );
+                my $col_fq = $self->fqvalue($column, as_index => $as_index, search => 1, linked => 0, group => 1, alt => 1, extra_column => $column);
                 if ($column->numeric && $op eq 'sum')
                 {
-                    $select = $select->sum_rs->as_query;
+                    $select = $select->get_column($col_fq)->sum_rs->as_query;
+                    $op = 'max';
+                }
+                elsif ($self->isa('GADS::RecordsGraph') || $self->isa('GADS::RecordsGlobe'))
+                {
+                    $select = $select->get_column($col_fq)->max_rs->as_query;
                 }
                 else {
-                    $select = $select->max_rs->as_query;
+                    $select = $select->get_column('sub_query_as')->as_query;
+                    $op = 'max';
                 }
             }
         }
@@ -2567,10 +2601,21 @@ sub _build_group_results
             $select = $self->fqvalue($column, as_index => $as_index, prefetch => 1, group => 1, search => 0, linked => 0, parent => $parent, retain_join_order => 1);
         }
 
-        push @select_fields, {
-            $op => $select,
-            -as => $as,
-        };
+        if ($op eq 'distinct')
+        {
+            $select = {
+                count => { distinct => $select },
+                -as   => $as,
+            };
+            push @select_fields, $select;
+        }
+        else {
+            push @select_fields, {
+                $op => $select,
+                -as => $as,
+            };
+        }
+
         # Also add linked column if required
         push @select_fields, {
             $op => $self->fqvalue($column->link_parent, as_index => $as_index, prefetch => 1, search => 0, linked => 1, parent => $parent, retain_join_order => 1),
@@ -2802,6 +2847,7 @@ sub _build_group_results
             # will then force the sum. At the moment the only aggregate is sum,
             # but that may change in the future
             is_group                => $options{is_group} || $self->is_group,
+            group_cols              => \%group_cols,
             user                    => $self->user,
             layout                  => $self->layout,
             columns_retrieved_no    => $self->columns_retrieved_no,

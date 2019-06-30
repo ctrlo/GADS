@@ -154,6 +154,18 @@ __PACKAGE__->belongs_to(
   },
 );
 
+__PACKAGE__->belongs_to(
+  "value_alternative",
+  "GADS::Schema::Result::Enumval",
+  { id => "value" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
 
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QX4reeFlFXlcmy6Av3/YjA

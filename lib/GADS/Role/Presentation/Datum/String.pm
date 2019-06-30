@@ -8,7 +8,7 @@ sub presentation {
 
     my $base = $self->presentation_base;
 
-    my $raw = delete $base->{value};
+    my $raw = $base->{value};
 
     my $html = text2html(
         $raw,
