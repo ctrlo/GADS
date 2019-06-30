@@ -508,12 +508,13 @@ sub linked_hash
 {   my ($self, %options) = @_;
     if ($self->has_linked(%options))
     {
+        my $alt = $options{alt} ? "_alternative" : "";
         my @tables = $self->jpfetch(%options, linked => 1);
         return {
             linked => [
                 {
-                    record_single => [
-                        'record_later',
+                    "record_single$alt" => [
+                        "record_later$alt",
                         @tables,
                     ]
                 },
@@ -2568,8 +2569,8 @@ sub _build_group_results
                         join  => [
                             [$self->linked_hash(search => 1, group => 1, alt => 1, extra_column => $column)],
                             {
-                                'record_single' => [ # The (assumed) single record for the required version of current
-                                    'record_later',  # The record after the single record (undef when single is latest)
+                                'record_single_alternative' => [ # The (assumed) single record for the required version of current
+                                    'record_later_alternative',  # The record after the single record (undef when single is latest)
                                     $self->jpfetch(search => 1, linked => 0, group => 1, extra_column => $column, alt => 1),
                                 ],
                             },

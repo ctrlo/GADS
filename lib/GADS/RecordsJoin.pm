@@ -252,8 +252,9 @@ sub record_later_search
     for (1..$count)
     {
         my $id = $_ == 1 ? '' : "_$_";
+        my $alt = $options{alt} ? "_alternative" : "";
         push @search, {
-            "record_later$id.current_id" => undef,
+            "record_later$alt$id.current_id" => undef,
         };
     }
     @search;
