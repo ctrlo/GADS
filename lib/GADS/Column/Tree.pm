@@ -126,16 +126,6 @@ sub tjoin
     +{$self->field => 'value'};
 }
 
-sub previous_values_prefix
-{   my $self = shift;
-    'value';
-}
-
-sub previous_values_join
-{   my $self = shift;
-    'value';
-}
-
 # The whole tree, constructed here so that it only
 # needs to be done once
 has _tree => (

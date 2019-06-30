@@ -75,6 +75,12 @@ has is_deleted => (
     default => 0,
 );
 
+# Whether to search all previous values instead of just current record
+has previous_values => (
+    is      => 'ro',
+    default => 0,
+);
+
 # Whether to build all fields for any curvals. This is needed when producing a
 # record for editing that contains draft curvals (in which case all the fields
 # are rendered as a query), and when needing to retrieve the curcommon values
@@ -1964,47 +1970,54 @@ sub _resolve
             }
         );
     }
+    elsif ($previous_values)
+    {
+        my %filter = %{$options{filter}};
+        delete $filter{previous_values};
+        %filter = ( %filter, operator => $filter{operator} =~ s/^not_//r )
+            if $reverse; # Switch
+        my $records = GADS::Records->new(
+            schema       => $self->schema,
+            user         => $self->user,
+            layout       => $self->layout,
+            _view_limits => [], # Don't limit by view this as well, otherwise recursive loop happens
+            previous_values => 1,
+            view  => GADS::View->new(
+                filter      => \%filter,
+                instance_id => $self->layout->instance_id,
+                layout      => $self->layout,
+                schema      => $self->schema,
+                user        => $self->user,
+            ),
+        );
+
+        if ($reverse)
+        {
+            return (
+                'me.id' => {
+                    -not_in => $records->_current_ids_rs->as_query,
+                }
+            );
+        }
+        else {
+            return (
+                'me.id' => {
+                    -in => $records->_current_ids_rs->as_query,
+                }
+            );
+        }
+    }
     else {
         my $combiner = $condition->{type} =~ /(is_not_empty|not_equal|not_begins_with)/ ? '-and' : '-or';
         $value    = @$value > 1 ? [ $combiner => @$value ] : $value->[0];
         my $sq = {$condition->{operator} => $value};
         $sq = [ $sq, undef ] if $condition->{type} eq 'not_equal'
             || $condition->{type} eq 'not_begins_with' || $condition->{type} eq 'not_contains';
-
-        if ($previous_values)
-        {
-            my $join = ['record'];
-            push @$join, $column->previous_values_join
-                if $column->previous_values_join;
-            my $all_values_rs = $self->schema->resultset($column->table)->search({
-                'me.layout_id' => $column->id,
-                $column->previous_values_prefix.".".$condition->{s_field} => $sq,
-            },{
-                join => $join,
-            });
-            if ($reverse)
-            {
-                return (
-                    'me.id' => {
-                        -not_in => $all_values_rs->get_column('record.current_id')->as_query,
-                    }
-                );
-            }
-            else {
-                return (
-                    'me.id' => {
-                        -in => $all_values_rs->get_column('record.current_id')->as_query,
-                    }
-                );
-            }
-        }
-        else {
-            $self->add_join($options{parent}, search => 1, linked => $is_linked, all_fields => $self->curcommon_all_fields)
-                if $options{parent};
-            $self->add_join($column, search => 1, linked => $is_linked, parent => $options{parent}, all_fields => $self->curcommon_all_fields);
-            my $s_table = $self->table_name($column, %options, search => 1);
-            +( "$s_table.$condition->{s_field}" => $sq );
-        }
+        $self->add_join($options{parent}, search => 1, linked => $is_linked, all_fields => $self->curcommon_all_fields)
+            if $options{parent};
+        $self->add_join($column, search => 1, linked => $is_linked, parent => $options{parent}, all_fields => $self->curcommon_all_fields);
+        my $s_table = $self->table_name($column, %options, search => 1);
+        +( "$s_table.$condition->{s_field}" => $sq );
     }
 }
 

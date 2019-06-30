@@ -208,6 +208,9 @@ sub has_linked
 
 sub record_later_search
 {   my ($self, %options) = @_;
+
+    return () if $self->previous_values;
+
     my $count = $options{no_current} ? 0 : 1; # Always at least one if joining onto current
 
     my $include_linked = $options{linked} && $self->has_linked(%options);
