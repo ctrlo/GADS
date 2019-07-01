@@ -349,6 +349,7 @@ sub filter_value_to_text
 
 sub id_as_string
 {   my ($self, $id) = @_;
+    $id or return '';
     my @vals =  $self->ids_to_values([$id]);
     $vals[0]->{value};
 }

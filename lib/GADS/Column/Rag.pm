@@ -57,6 +57,7 @@ has '+fixedvals' => (
 
 sub id_as_string
 {   my ($self, $id) = @_;
+    $id or return '';
     $id eq 'b_red'
         ? 'Red'
         : $id eq 'c_amber'

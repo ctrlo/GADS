@@ -75,6 +75,7 @@ foreach my $test (@tests)
     my $col = $columns->{$test->{name}};
     ok($col->fixedvals, "Column $test->{name} has fixed values");
     is($col->id_as_string($test->{id}), $test->{string}, "ID to string correct for $test->{name}");
+    is($col->id_as_string(undef), '', "ID to string correct for $test->{name} for undefined ID");
 }
 
 done_testing();

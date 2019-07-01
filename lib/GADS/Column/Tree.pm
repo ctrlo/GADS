@@ -118,7 +118,8 @@ sub _build__enumvals_index
 
 sub id_as_string
 {   my ($self, $id) = @_;
-    $self->node($id)->{value};
+    my $node = $self->node($id) or return '';
+    $node->{value};
 }
 
 sub tjoin

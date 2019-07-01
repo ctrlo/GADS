@@ -109,7 +109,9 @@ sub id_to_hash
 
 sub id_as_string
 {   my ($self, $id) = @_;
-    $self->id_to_hash($id)->{value};
+    my $person = $self->id_to_hash($id)
+        or return '';
+    $person->{value};
 }
 
 after build_values => sub {
