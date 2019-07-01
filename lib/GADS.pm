@@ -73,6 +73,7 @@ use Text::CSV;
 use Text::Wrap qw(wrap $huge);
 $huge = 'overflow';
 use Tie::Cache;
+use URI::Escape qw/uri_escape_utf8/;
 use WWW::Mechanize::PhantomJS;
 
 use Dancer2; # Last to stop Moo generating conflicting namespace
@@ -2003,6 +2004,17 @@ prefix '/:layout_name' => sub {
             $params->{viewtype}             = 'table';
             $params->{page}                 = 'data_table';
             $params->{search_limit_reached} = $records->search_limit_reached;
+            if (@additional)
+            {
+                # Should be moved into presentation layer
+                my @filters;
+                foreach my $add (@additional)
+                {
+                    push @filters, "field$add->{id}=".uri_escape_utf8($_)
+                        foreach @{$add->{value}};
+                }
+                $params->{filter_url} = join '&', @filters;
+            }
         }
 
         # Get all alerts

@@ -93,20 +93,20 @@
     [% IF subset.page == 1 %]
         <li class="disabled"><span>&laquo;</span></li>
     [% ELSE %]
-        <li><a href="?page=[% subset.page - 1 %]">&laquo;</a></li>
+        <li><a href="?page=[% subset.page - 1 %][% IF filter_url %]&[% filter_url %][% END %]">&laquo;</a></li>
     [% END %]
     [% i = 0 %]
     [% FOREACH i IN subset.pnumbers %]
         [% IF i == '...' %]
             <li class="disabled"><span>[% i %]</span></li>
         [% ELSE %]
-            <li [% IF i == subset.page %]class="active"[% END %]><a href="?page=[% i %]">[% i %]</a></li>
+            <li [% IF i == subset.page %]class="active"[% END %]><a href="?page=[% i %][% IF filter_url %]&[% filter_url %][% END %]">[% i %]</a></li>
         [% END %]
     [% END %]
     [% IF subset.page == subset.pages %]
         <li class="next disabled"><span>&raquo;</span></li>
     [% ELSE %]
-        <li class="next"><a href="?page=[% subset.page + 1 %]">&raquo;</a></li>
+        <li class="next"><a href="?page=[% subset.page + 1 %][% IF filter_url %]&[% filter_url %][% END %]">&raquo;</a></li>
     [% END %]
 </ul>
 
