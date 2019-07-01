@@ -247,8 +247,17 @@ foreach my $multivalue (0..1)
                     }
                     if ($test eq 'changed' && !$deleted)
                     {
+                        # Check filter value for normal datum
                         my $filter_value = $values->{$type}->{filter_value} || $values->{$type}->{new};
                         is( $datum->filter_value, $filter_value, "Filter value correct for $type" );
+                        # Then create datum as it would be for grouped value and check again
+                        my $datum_filter = $datum->column->class->new(
+                            init_value       => [$filter_value],
+                            column           => $datum->column,
+                            schema           => $datum->column->schema,
+                            layout           => $datum->column->layout, # Only needed for code datums
+                        );
+                        is( $datum_filter->filter_value, $filter_value, "Filter value correct for $type (grouped datum)" );
                     }
                     next if !$datum->column->userinput;
                     if ($deleted)

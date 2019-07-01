@@ -211,6 +211,7 @@ sub node
     $self->_nodes->{$id} or return;
 
     {
+        id    => $id,
         node  => $self->_nodes->{$id},
         value => $self->_enumvals_index->{$id}->{value},
     }
