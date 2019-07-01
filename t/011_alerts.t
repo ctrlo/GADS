@@ -617,6 +617,30 @@ my @filters = (
         # existing record to value "2" will cause another similar change.
         alerts => 1,
     },
+    {
+        name  => 'Change of curval sub-field in filter',
+        rules => [{
+            id       => $columns->{curval1}->id . '_' . $curval_columns->{string1}->id,
+            type     => 'string',
+            value    => 'Bar',
+            operator => 'equal',
+        }],
+        columns          => [$columns->{string1}->id],
+        current_id       => 1,
+        alert_current_id => [3,4,5,6,7,19,20],
+        update_layout    => $curval_sheet->layout,
+        update => [
+            {
+                column => 'string1',
+                value  => 'Bar',
+            },
+        ],
+        # 7 new records appear in the view, which are the 7 records referencing
+        # curval record ID 1, none of which were contained in the view, and
+        # then all appear when the curval record is updated to include it in
+        # that view
+        alerts => 7,
+    },
 );
 
 # First write all the filters and alerts
@@ -666,15 +690,16 @@ foreach my $filter (@filters)
     })->delete;
 
     # First add record
+    my $update_layout = $filter->{update_layout} || $layout;
     my $record = GADS::Record->new(
         user     => $sheet->user_normal2,
-        layout   => $layout,
+        layout   => $update_layout,
         schema   => $schema,
     );
     $record->initialise;
     foreach my $datum (@{$filter->{update}})
     {
-        my $col_id = $columns->{$datum->{column}}->id;
+        my $col_id = $update_layout->column_by_name($datum->{column})->id;
         $record->fields->{$col_id}->set_value($datum->{value});
     }
     $record->write;
@@ -692,7 +717,7 @@ foreach my $filter (@filters)
     $record->find_current_id($filter->{current_id});
     foreach my $datum (@{$filter->{update}})
     {
-        my $col_id = $columns->{$datum->{column}}->id;
+        my $col_id = $update_layout->column_by_name($datum->{column})->id;
         $record->fields->{$col_id}->set_value($datum->{value});
     }
     $record->write;

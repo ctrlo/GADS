@@ -77,6 +77,48 @@ has columns => (
 sub process
 {   my $self = shift;
 
+    # First the direct layout
+    $self->_process_instance($self->layout, $self->current_ids);
+
+    # Now see if the column changes in this layout may have changed views in
+    # other layouts.
+    # First, are there any views not in the main layout that contain these fields?
+    my @instance_ids = $self->schema->resultset('View')->search({
+        'alerts.id'         => { '!=' => undef },
+        instance_id         => { '!=' => $self->layout->instance_id},
+        'filters.layout_id' => $self->columns,
+    },{
+        join     => ['alerts', 'filters'],
+        group_by => 'me.instance_id',
+    })->get_column('instance_id')->all;
+
+    # If there are, process each one
+    foreach my $instance_id (@instance_ids)
+    {
+        my $layout = GADS::Layout->new(
+            user                     => undef,
+            user_permission_override => 1,
+            schema                   => $self->schema,
+            config                   => $self->layout->config,
+            instance_id              => $instance_id,
+        );
+        # Get any current IDs that may have been affected, including historical
+        # versions (in case a filter has been set using previous values)
+        my @current_ids = $self->schema->resultset('Curval')->search({
+            'layout.instance_id' => $instance_id,
+            value                => $self->current_ids,
+        }, {
+            join     => ['layout', 'record'],
+            group_by => 'record.current_id',
+        })->get_column('record.current_id')->all;
+
+        $self->_process_instance($layout, \@current_ids);
+    }
+}
+
+sub _process_instance
+{   my ($self, $layout, $current_ids) = @_;
+
     # First see what views this record should be in. We use this to see if it's
     # dropped out or been added to any views.
 
@@ -86,7 +128,7 @@ sub process
     # all the views.
     my $search = {
         'alerts.id' => { '!=' => undef },
-        instance_id => $self->layout->instance_id,
+        instance_id => $layout->instance_id,
     };
     $search->{'filters.layout_id'} = $self->columns
         unless $self->current_new;
@@ -101,14 +143,14 @@ sub process
         # permissions are managed when sending the alerts
         user_permission_override => 1,
         schema                   => $self->schema,
-        layout                   => $self->layout,
-        instance_id              => $self->layout->instance_id,
+        layout                   => $layout,
+        instance_id              => $layout->instance_id,
     );
 
     my $records = GADS::Records->new(
         columns => [], # Otherwise all columns retrieved during search construct
         schema  => $self->schema,
-        layout  => $self->layout,
+        layout  => $layout,
         user    => $self->user,
     );
 
@@ -119,7 +161,7 @@ sub process
         #
         # All the views the record is *now* in
         my $now_in_views; my $now_in_views2;
-        foreach my $now_in ($records->search_views($self->current_ids, @views))
+        foreach my $now_in ($records->search_views($current_ids, @views))
         {
             # Create an easy to search hash for each view, user and record
             my $view_id = $now_in->{view}->id;
@@ -141,16 +183,16 @@ sub process
         $search = {
             'view.id' => \@view_ids,
         };
-        while ($i < @{$self->current_ids})
+        while ($i < @$current_ids)
         {
             # If the number of current_ids that we have been given is the same as the
             # number that exist in the database, then assume that we are searching
             # all records. Therefore don't specify (the potentially thousands) current_ids.
-            unless (@{$self->current_ids} == $records->count)
+            unless (@$current_ids == $records->count)
             {
                 my $max = $i + 499;
-                $max = @{$self->current_ids}-1 if $max >= @{$self->current_ids};
-                $search->{'me.current_id'} = [@{$self->current_ids}[$i..$max]];
+                $max = @$current_ids-1 if $max >= @$current_ids;
+                $search->{'me.current_id'} = [@$current_ids[$i..$max]];
             }
 
             push @original, $self->schema->resultset('AlertCache')->search($search,{
@@ -240,15 +282,16 @@ sub process
     my $i = 0; my @caches;
     $search = {
         'alert_caches.layout_id' => $self->columns, # Columns that have changed
+        'me.instance_id'         => $layout->instance_id,
     };
-    while ($i < @{$self->current_ids})
+    while ($i < @$current_ids)
     {
         # See above comments about searching current_ids
-        unless (@{$self->current_ids} == $records->count)
+        unless (@$current_ids == $records->count)
         {
             my $max = $i + 499;
-            $max = @{$self->current_ids}-1 if $max >= @{$self->current_ids};
-            $search->{'alert_caches.current_id'} = [@{$self->current_ids}[$i..$max]];
+            $max = @$current_ids-1 if $max >= @$current_ids;
+            $search->{'alert_caches.current_id'} = [@$current_ids[$i..$max]];
         }
         push @caches, $self->schema->resultset('View')->search($search,{
             prefetch => ['alert_caches', {'alerts' => 'user'} ],
@@ -273,7 +316,7 @@ sub process
             {
                 # For each user of this alert, check they have read access
                 # to the field in question, and send accordingly
-                next unless $self->layout->column($col_id)->user_id_can($alert->user_id, 'read');
+                next unless $layout->column($col_id)->user_id_can($alert->user_id, 'read');
                 if ($alert->frequency) # send later
                 {
                     my $write = {
@@ -301,7 +344,7 @@ sub process
         }
         foreach my $a (values %$send_now)
         {
-            my @colnames = map { $self->layout->column($_)->name } @{$a->{col_ids}};
+            my @colnames = map { $layout->column($_)->name } @{$a->{col_ids}};
             my @cids = @{$a->{cids}};
             $self->_send_alert('changed', \@cids, $view, [$a->{user}->email], \@colnames);
         }
