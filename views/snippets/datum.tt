@@ -104,7 +104,7 @@
 
         full_content = 1 IF render_options == 'full';
 
-        SWITCH col.type;
+        SWITCH col.data.type;
             CASE ['curval', 'autocur'];
                 render_curcommon_datum(col.is_multivalue, col.data, col.name, full_content);
             CASE 'file';
