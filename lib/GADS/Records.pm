@@ -2420,6 +2420,8 @@ sub _build_group_results
     my %group_cols;
     %group_cols = map { $_->layout_id => 1 } @{$view->groups}
         if $view;
+
+    my $is_count_distinct = !$self->isa('GADS::RecordsGraph') && !$self->isa('GADS::RecordsGlobe');
     foreach my $col (@cols)
     {
         my $column = $self->layout->column($col->{id});
@@ -2446,7 +2448,7 @@ sub _build_group_results
             $col->{parent} = $parent;
         }
         # If it's a curval, then add all its subfields
-        if ($column->type eq 'curval')
+        if ($column->type eq 'curval' && !$is_count_distinct)
         {
             foreach (@{$column->curval_fields})
             {
@@ -2544,7 +2546,7 @@ sub _build_group_results
                 {
                     $select = $f_rs->get_column((ref $column->tjoin eq 'HASH' ? 'value_2' :  $column->field).".".$column->value_field)->sum_rs->as_query;
                 }
-                elsif ($self->isa('GADS::RecordsGraph') || $self->isa('GADS::RecordsGlobe'))
+                elsif (!$is_count_distinct)
                 {
                     $select = $f_rs->get_column((ref $column->tjoin eq 'HASH' ? 'value_2' :  $column->field).".".$column->value_field)->max_rs->as_query;
                 }
@@ -2553,7 +2555,8 @@ sub _build_group_results
                     # necessary for a field from within a curval. We might want
                     # to add this functionality in the future, in which case it
                     # will look something like the next else block
-                    panic "Unexpected count distinct for curval sub-field";
+                    panic __x"Unexpected count distinct for curval sub-field {name} ({id})",
+                        name => $column->name, id => $column->id;
                 }
             }
             # Otherwise a standard subquery select for that type of field

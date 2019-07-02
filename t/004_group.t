@@ -86,7 +86,6 @@ foreach my $multivalue (0..1)
         curval           => 2,
         curval_field_ids => [$curval_sheet->columns->{string1}->id],
         multivalue       => $multivalue,
-        multivalue_columns => {enum => 1},
     );
 
     my $layout  = $sheet->layout;
