@@ -1,5 +1,5 @@
 <div class="btn-group">
-    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">Action <b class="caret"></b></button>
+    <button type="button" class="btn-action btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">Action <b class="caret"></b></button>
     <ul class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="edit_action">
         [% IF with_view %]
             <li role="presentation"><a role="menuitem" href="/record/[% record.current_id %]">View record</a></li>
@@ -15,7 +15,7 @@
             <li role="presentation"><a role="menuitem" href="/[% layout.identifier %]/link/[% record.current_id %]">Link record</a></li>
         [% END %]
         [% IF record.user_can_delete %]
-            <li role="presentation"><a role="menuitem" href="" data-toggle="modal" data-target="#modaldelete">Delete</a></li>
+            <li role="presentation"><a class="btn-delete" role="menuitem" href="" data-toggle="modal" data-target="#modaldelete">Delete</a></li>
         [% END %]
     </ul>
 </div>

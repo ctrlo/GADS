@@ -25,6 +25,10 @@ my $group_name = $ENV{GADS_GROUPNAME} //
 my $table_name = "TESTWD $$";
 my $text_field_name = "MytestName";
 my $int_field_name = "MytestInt";
+my @record = ({
+    name => 'One hundred and twenty three',
+    fields => [ 'One hundred and twenty three', 123 ],
+});
 
 my $gads = Test::GADSDriver->new;
 
@@ -93,8 +97,31 @@ $gads->assert_new_record_fields(
         },
     ],
 );
+$gads->submit_new_record_form_ok(
+    'Create a new record',
+    $record[0]{fields},
+);
+$gads->assert_success_present('The first record was added successfully');
+$gads->assert_error_absent(
+    'No error message is visible after adding the first record' );
+
+$gads->assert_on_see_records_page;
 
 # TODO: write main tests here
+
+# Tidy up: remove the record created earlier
+
+$gads->select_record_to_view_ok( 'Select the record created for testing',
+    $record[0]{name} );
+$gads->assert_on_view_record_page;
+
+$gads->delete_viewed_record_ok('Delete the record created for testing');
+
+$gads->assert_success_present('The first record was deleted successfully');
+$gads->assert_on_see_records_page;
+
+$gads->purge_deleted_records_ok;
+$gads->assert_success_present('The deleted records were purged successfully');
 
 # Tidy up: remove the table created earlier
 $gads->navigate_ok(
