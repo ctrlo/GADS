@@ -44,6 +44,8 @@ sub presentation {
         ? @{$options{curval_fields}}
         : $options{group}
         ? @{$self->columns_view}
+        : $options{purge}
+        ? $self->layout->column_id
         : ($self->layout->column_id, @{$self->columns_view});
 
     # Work out the indentation each field should have. A field will be indented

@@ -2120,7 +2120,7 @@ prefix '/:layout_name' => sub {
 
         my $params = {
             page    => 'purge',
-            records => $records->presentation,
+            records => $records->presentation(purge => 1),
         };
 
         $params->{breadcrumbs} = [Crumb($layout) => Crumb( $layout, '/data' => 'records' ) => Crumb( $layout, '/purge' => 'purge records' )];
