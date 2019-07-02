@@ -425,6 +425,49 @@ sub assert_on_new_record_page {
     return $self;
 }
 
+=head3 assert_on_see_records_page
+
+The I<< See records >> page is visible.
+
+=cut
+
+sub assert_on_see_records_page {
+    my ( $self, $name ) = @_;
+    $name //= 'The see records page is visible';
+    my $test = context();
+
+    $self->_assert_on_page(
+        'body.page.data_table',
+        [ { selector => 'h1', match => '\\AAll data\\s*' } ],
+        $name,
+    );
+
+    $test->release;
+    return $self;
+}
+
+=head3 assert_on_view_record_page
+
+The I<< View record >> page is visible.
+
+=cut
+
+sub assert_on_view_record_page {
+    my ( $self, $name ) = @_;
+    $name //= 'The view record page is visible';
+    my $test = context();
+
+    $self->_assert_on_page(
+        # TODO: Check the field values appear in the page content
+        'body.record',
+        [ { selector => 'h2', match => '\\ARecord ID ' } ],
+        $name,
+    );
+
+    $test->release;
+    return $self;
+}
+
 sub _assert_element {
     my( $self, $selector, $expect_present, $expected_re, $name ) = @_;
     my $test = context();
@@ -566,6 +609,36 @@ sub confirm_deletion_ok {
     return $self;
 }
 
+=head3 delete_viewed_record_ok
+
+Delete the currently viewed record
+
+=cut
+
+sub delete_viewed_record_ok {
+    my ( $self, $name ) = @_;
+    $name //= 'Delete the currently viewed record';
+    my $test = context();
+    my $webdriver = $self->gads->webdriver;
+
+    my @failure = $self->_find_and_click( [ qw( .btn-action .btn-delete ) ] );
+
+    my $modal_title_el = $webdriver->find('h4#myModalLabel');
+    if ( $modal_title_el->size && 'Delete record' eq $modal_title_el->text ) {
+        # TODO: note() that we're about to delete the record
+        $webdriver->find('#modaldelete .btn-primary.submit_button')->click;
+    }
+    else {
+        push @failure, "No 'Delete record' modal found";
+    }
+
+    $test->ok( !@failure, $name );
+    $test->diag($_) foreach @failure;
+
+    $test->release;
+    return $self
+}
+
 =head3 follow_link_ok
 
 Takes a string and follows a link containing that string's text.
@@ -606,6 +679,18 @@ sub navigate_ok {
     my $test = context();
     my $webdriver = $self->gads->webdriver;
 
+    my @failure = $self->_find_and_click($selectors_ref);
+    $test->ok( !@failure, $name );
+    $test->diag($_) foreach @failure;
+
+    $test->release;
+    return $self;
+}
+
+sub _find_and_click {
+    my ( $self, $selectors_ref ) = @_;
+    my $webdriver = $self->gads->webdriver;
+
     my @failure;
     foreach my $selector (@$selectors_ref) {
         # TODO: Move 'tries' to configuration
@@ -617,10 +702,36 @@ sub navigate_ok {
             $found_el->click;
         }
     }
+
+    return @failure;
+}
+
+=head3 purge_deleted_records_ok
+
+Purge all deleted records from the current table.
+
+=cut
+
+sub purge_deleted_records_ok {
+    my ( $self, $name ) = @_;
+    $name //= 'Purge all deleted records from the current table';
+    my $test = context();
+    my $webdriver = $self->gads->webdriver;
+
+    $test->note('About to purge the deleted records');
+    my @failure = $self->_find_and_click( [ "#admin-menu", ".manage-deleted" ] );
+    my $title_el = $webdriver->find( 'h2', dies => 0, tries => 10 );
+    push @failure, $self->_check_element_against_expectation(
+        $title_el, { text => 'Manage deleted records' } );
+
+    $webdriver->find('#selectall')->click;
+    $webdriver->find('button[data-target="#purge"]')->click;
+    $webdriver->find('button[type="submit"][name="purge"]')->click;
+
     $test->ok( !@failure, $name );
     $test->diag($_) foreach @failure;
-
     $test->release;
+
     return $self;
 }
 
@@ -655,6 +766,30 @@ sub _select_table_or_field_to_edit_ok {
     my $success = $self->_check_only_one(
         $edit_el, "${type_name} named '${table_or_field_name}'" );
     $edit_el->click if $success;
+    $test->ok( $success, $name );
+
+    $test->release;
+    return $self;
+}
+
+=head3 select_record_to_view_ok
+
+From the I<< See records >> page, select a named record to view.
+
+=cut
+
+sub select_record_to_view_ok {
+    my ( $self, $name, $record_name ) = @_;
+    $name //= "Select the '${record_name}' record to view";
+    my $test = context();
+
+    my $webdriver = $self->gads->webdriver;
+    my $xpath = "//tr[ contains( ., '${record_name}') ]//td[1]//a[1]";
+    my $link_el = $webdriver->find( $xpath, method => 'xpath', dies => 0 );
+    my $success = $self->_check_only_one(
+        $link_el, "record named '${record_name}'" );
+
+    $link_el->click if $success;
     $test->ok( $success, $name );
 
     $test->release;
@@ -786,6 +921,40 @@ sub submit_login_form_ok {
     my $result = $test->ok( $success, $name );
     $test->release;
     return $result;
+}
+
+=head3 submit_new_record_form_ok
+
+Submit the I<< New record >> form.  Takes an array reference of values
+to input.
+
+=cut
+
+sub submit_new_record_form_ok {
+    my ( $self, $name, $args_ref ) = @_;
+    $name //= 'Submit the new record form';
+    my @arg = @$args_ref;
+
+    my $test = context();
+
+    {
+        local $\ = ", ";
+        $test->note("About to create a record with values @arg");
+    }
+    my $success = $self->_fill_in_field(
+        $self->_new_record_selector(1), $arg[0] );
+    $success &&= $self->_fill_in_field(
+        $self->_new_record_selector(2), $arg[1] );
+    $self->gads->webdriver->find('[type=submit][name=submit]')->click;
+
+    my $result = $test->ok( $success, $name );
+    $test->release;
+    return $result;
+}
+
+sub _new_record_selector {
+    my ( $self, $offset ) = @_;
+    return ".edit-form .form-group:nth-child(${offset}) input";
 }
 
 sub _check_only_one {

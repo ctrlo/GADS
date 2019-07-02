@@ -204,7 +204,7 @@
                 <li [% IF page=="import" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/import/">Import records</a></li>
             [% END %]
 	    [% IF layout.user_can("purge") %]
-		<li [% IF page=="purge" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/purge/">Manage deleted records</a></li>
+		<li [% IF page=="purge" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/purge/" class="manage-deleted">Manage deleted records</a></li>
 	    [% END %]
         </ul>
     </li>
