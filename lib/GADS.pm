@@ -1684,7 +1684,7 @@ prefix '/:layout_name' => sub {
                     id           => $png,
                 };
 
-                my $mech = _page_as_mech('data_graph', $params);
+                my $mech = _page_as_mech('data_graph', $params, width => 630, height => 400);
                 $mech->eval_in_page('(function(plotData, options_in){do_plot_json(plotData, options_in)})(arguments[0],arguments[1]);',
                     $json, $options_in
                 );
@@ -3360,6 +3360,14 @@ sub _page_as_mech
                 format: 'A3',
                 orientation: 'landscape',
                 margin: '0.5cm'
+            };
+        ");
+    }
+    elsif ($options{width} && $options{height}) {
+        $mech->eval_in_phantomjs("
+            this.viewportSize = {
+                width: $options{width},
+                height: $options{height},
             };
         ");
     }
