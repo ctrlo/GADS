@@ -175,7 +175,7 @@ foreach my $withview (qw/none with without/)
     my $data = [
         {
             string1  => 'Foo',
-            integer1 => 25,
+            integer1 => 250,
             enum1    => [qw/foo1 foo2/],
         },
         {
@@ -201,6 +201,19 @@ foreach my $withview (qw/none with without/)
     );
     $curval_sheet->create_records;
     my $schema = $curval_sheet->schema;
+
+    # Make a change to one of the records that will be used for the curval
+    # field. This ensures that when we retrieve the amalgamated data that we
+    # are only retrieving the latest version
+    my $record = GADS::Record->new(
+        user   => $curval_sheet->user,
+        schema => $schema,
+        layout => $curval_sheet->layout,
+    );
+    $record->find_current_id(1);
+    $record->fields->{$curval_sheet->columns->{integer1}->id}->set_value(25);
+    $record->write(no_alerts => 1);
+
     my $curval_columns = $curval_sheet->columns;
 
     $data = [
