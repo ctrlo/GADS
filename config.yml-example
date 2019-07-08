@@ -77,9 +77,9 @@ plugins:
       dbic:
         provider: DBIC
         user_as_object: 1
-        users_resultset: user
-        roles_resultset: permission
-        user_roles_resultset: user_permission
+        users_resultset: User
+        roles_resultset: Permission
+        user_roles_resultset: UserPermission
         roles_role_column: name
         roles_key: permission
         password_expiry_days: 60
