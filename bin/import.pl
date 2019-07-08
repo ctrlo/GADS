@@ -341,15 +341,19 @@ foreach my $ins (readdir $root)
         graphs => "_export/$ins/graphs",
     };
 
-    foreach my $record (dir("_export/$ins/records"))
+    my $records_dir = "_export/$ins/records";
+    if (-d $records_dir)
     {
-        my $c = schema->resultset('Current')->import_hash($record,
-            instance         => $instance,
-            user_mapping     => $user_mapping,
-            values_to_import => $values_to_import,
-            column_mapping   => $column_mapping,
-        );
-        $record_mapping->{$record->{id}} = $c->id;
+        foreach my $record (dir($records_dir))
+        {
+            my $c = schema->resultset('Current')->import_hash($record,
+                instance         => $instance,
+                user_mapping     => $user_mapping,
+                values_to_import => $values_to_import,
+                column_mapping   => $column_mapping,
+            );
+            $record_mapping->{$record->{id}} = $c->id;
+        }
     }
     # XXX Then do record_id entries in records
 }
