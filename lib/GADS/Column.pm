@@ -693,28 +693,27 @@ sub group_has
     (grep { $_->short eq $perm } @$perms) ? 1 : 0;
 }
 
-# Return a human-readable summary of groups that have a particular permission
+# Return a human-readable summary of groups
 sub group_summary
-{   my ($self, $permission) = @_;
+{   my $self = shift;
 
-    my $groups = GADS::Groups->new(
-        schema => $self->schema,
-    );
+    my %groups;
 
-    # First get all group IDs that have this permission
-    my @group_ids = map {
-        (grep { $_->short eq $permission } @{$self->permissions->{$_}}) ? $_ : ();
-    } keys %{$self->permissions};
+    foreach my $perm ($self->schema->resultset('LayoutGroup')->search({ layout_id => $self->id })->all)
+    {
+        $groups{$perm->group->name} ||= [];
+        my $p = GADS::Type::Permission->new(short => $perm->permission);
+        push @{$groups{$perm->group->name}}, $p->medium;
+    }
 
-    # Then turn it into readable format, annotating whether it requires
-    # approval in the case of write permissions
-    sort map {
-        my $name = $groups->group($_)->name;
-        $name .= ' (with approval only)'
-            if $permission =~ /write/
-                && ! grep { $_->short eq "${permission}_no_approval" } @{$self->permissions->{$_}};
-        $name;
-    } @group_ids;
+    my $return =  '';
+
+    foreach my $group (keys %groups)
+    {
+        $return .= qq(Group "$group" has permissions: ).join ', ', @{$groups{$group}};
+    }
+
+    return $return;
 }
 
 sub _build_instance_id
@@ -1343,6 +1342,8 @@ sub code_regex
     my $name  = $self->name; my $suffix = $self->suffix;
     qr/\[\^?\Q$name\E$suffix\Q]/i;
 }
+
+sub additional_pdf_export {}
 
 sub import_hash
 {   my ($self, $values, %options) = @_;

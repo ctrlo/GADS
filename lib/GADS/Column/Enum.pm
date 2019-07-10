@@ -259,6 +259,13 @@ sub resultset_for_values
     });
 }
 
+sub additional_pdf_export
+{   my $self = shift;
+
+    my $enums = join ', ', map $_->{value}, @{$self->enumvals};
+    return ['Select values', $enums];
+}
+
 before import_hash => sub {
     my ($self, $values, %options) = @_;
     my $report = $options{report_only} && $self->id;
