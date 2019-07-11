@@ -1690,10 +1690,11 @@ prefix '/:layout_name' => sub {
                 );
 
                 my $png= $mech->content_as_png();
+                # Send as inline images to make copy and paste easier
                 return send_file(
                     \$png,
-                    content_type => 'image/png',
-                    filename     => "graph".$graph->id.".png",
+                    content_type        => 'image/png',
+                    content_disposition => 'inline', # Default is attachment
                 );
             }
             elsif (my $csv = param('csv'))
