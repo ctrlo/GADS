@@ -348,7 +348,7 @@ sub _jpfetch_add
             # These will be fetched later as individual columns.
             # Keep any for a sort - these still need to be used when fetching rows.
             my @children = @$children;
-            @children = grep { $_->{sort} || !$_->{column}->multivalue || $options->{include_multivalue} || $_->{group} } @$children
+            @children = grep { $_->{search} || $_->{sort} || !$_->{column}->multivalue || $options->{include_multivalue} || $_->{group} } @$children
                 if $options->{prefetch};
             push @$return, {
                 parent    => $parent,
@@ -561,8 +561,13 @@ sub _find
             $stash->{$value}++;
             if ($jp->{parent} && !$stash->{parents_included}->{$jp->{parent}->id})
             {
-                trace "Incrementing value count to account for parent";
-                $stash->{value}++;
+                if ($jp->{parent}->type eq 'curval')
+                {
+                    # A curval join has an extra "value" join whereas an
+                    # autocur does not
+                    trace "Incrementing value count to account for parent";
+                    $stash->{value}++;
+                }
                 $stash->{parents_included}->{$jp->{parent}->id} = 1;
             }
             if (!$options{find_value}

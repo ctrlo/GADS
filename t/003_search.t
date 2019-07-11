@@ -906,6 +906,21 @@ my @filters = (
         aggregate   => 99,
     },
     {
+        name  => 'Search by autocur enum field',
+        columns => [$curval_columns->{string1}->id],
+        rules => [
+            {
+                id       => $curval_columns->{autocur1}->id .'_'. $columns->{enum1}->id,
+                type     => 'string',
+                value    => 'foo1',
+                operator => 'equal',
+            },
+        ],
+        count     => 2,
+        layout    => $curval_sheet->layout,
+        aggregate => 149,
+    },
+    {
         name  => 'Search for invalid autocur',
         columns => [$curval_columns->{autocur1}->id],
         rules => [
