@@ -347,4 +347,53 @@ foreach my $test (@tests)
     }
 }
 
+# Now test that even if a field is set back to single-value, that any existing
+# multi-values are still displayed
+$enum1->multivalue(0);
+$enum1->write;
+$enum2->multivalue(0);
+$enum2->write;
+$curval1->multivalue(0);
+$curval1->write;
+$curval2->multivalue(0);
+$curval2->write;
+$tree1->multivalue(0);
+$tree1->write;
+$tree2->multivalue(0);
+$tree2->write;
+
+$layout->clear;
+$record->clear;
+
+# First test with record retrieved via GADS::Record
+$record->find_current_id(3);
+
+my %expected = (
+    enum1   => 'foo1, foo2',
+    enum2   => 'foo2, foo3',
+    curval1 => 'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012; Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+    curval2 => 'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+    tree1   => 'tree1, tree2',
+    tree2   => 'tree2, tree3',
+);
+
+foreach my $type (keys %expected)
+{
+    my $col = $columns->{$type};
+    is( $record->fields->{$col->id}->as_string, $expected{$type}, "$type correct for single field with multiple values (single retrieval)" );
+}
+
+# And now via GADS:Records
+my $records = GADS::Records->new(
+    user    => $user,
+    layout  => $layout,
+    schema  => $schema,
+);
+$record = $records->single;
+foreach my $type (keys %expected)
+{
+    my $col = $columns->{$type};
+    is( $record->fields->{$col->id}->as_string, $expected{$type}, "$type correct for single field with multiple values (multiple retrieval)" );
+}
+
 done_testing();

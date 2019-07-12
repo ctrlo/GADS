@@ -818,10 +818,36 @@ sub _find
 
         $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
 
-        my ($rec) = $result->all;
-        return if !$rec && $find{no_errors};
-        $rec or error __"Requested record not found";
-        $record = {%$record, %$rec};
+        my @recs = $result->all;
+        return if !@recs && $find{no_errors};
+        @recs or error __"Requested record not found";
+
+        # We shouldn't normally receive more than one record here, as multiple
+        # values for single fields are retrieved separately. However, if a
+        # field was previously a multiple-value field, and it was subsequently
+        # changed to a single-value field, then there may be some remaining
+        # multiple values for the single-value field. In that case, multiple
+        # records will be returned from the database.
+        foreach my $rec (@recs)
+        {
+            foreach my $key (keys %$rec)
+            {
+                # If we have multiple records, check whether we already have a
+                # value for that field, and if so add it, but only if it is
+                # different to the first (the ID will be different)
+                if ($key =~ /^field/ && $record->{$key})
+                {
+                    my @existing = ref $record->{$key} eq 'ARRAY' ? @{$record->{$key}} : ($record->{$key});
+                    @existing = grep { $_->{id} } @existing;
+                    push @existing, $rec->{$key}
+                        if ! grep { $rec->{$key}->{id} == $_->{id} } @existing;
+                    $record->{$key} = \@existing;
+                }
+                else {
+                    $record->{$key} = $rec->{$key};
+                }
+            }
+        }
         $page++;
         $first_run = 0;
     }

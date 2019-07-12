@@ -399,7 +399,7 @@ sub columns_fetch
     {
         my $column = $jp->{column};
         my $table = $self->table_name($column, prefetch => 1, %options);
-        my @values = @{$column->retrieve_fields};
+        my @values = (@{$column->retrieve_fields}, 'id');
         push @prefetch, {$column->field.".$_" => "$table.$_"} foreach @values; # unless $column->is_curcommon;
         push @prefetch, $column->field.'.child_unique'
             if $column->userinput;
@@ -411,7 +411,7 @@ sub columns_fetch
                 my %opt = %options;
                 # delete $opt{search};
                 my $table = $self->table_name($column2, prefetch => 1, %opt, parent => $column);
-                my @values = @{$column2->retrieve_fields};
+                my @values = (@{$column2->retrieve_fields}, 'id');
                 push @prefetch, {$column->field.".".$column2->field.".$_" => "$table.$_"} foreach @values;
             }
         }
