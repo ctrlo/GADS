@@ -225,7 +225,7 @@ sub _build_for_code
         $r;
     } @{$self->ids};
 
-    if ($self->column->multivalue)
+    if ($self->column->multivalue || @values > 1)
     {
         return \@values;
     }

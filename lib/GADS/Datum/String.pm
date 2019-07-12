@@ -98,7 +98,7 @@ has text_all => (
     builder => sub {
         my $self = shift;
         $self->values;
-        [ map { defined $_ ? $_ : '' } @{$self->values} ];
+        [ sort map { defined $_ ? $_ : '' } @{$self->values} ];
     },
 );
 
@@ -129,6 +129,14 @@ sub html_withlinks
         email     => 1,
         metachars => 1,
     );
+}
+
+sub _build_for_code
+{   my ($self, %options) = @_;
+
+    my @values = @{$self->text_all};
+
+    $self->column->multivalue || @values > 1 ? \@values : $values[0];
 }
 
 1;

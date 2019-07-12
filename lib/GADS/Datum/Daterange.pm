@@ -243,7 +243,7 @@ sub _build_for_code
         };
     } @{$self->values};
 
-    $self->column->multivalue ? \@return : $return[0];
+    $self->column->multivalue || @return > 1 ? \@return : $return[0];
 }
 
 1;

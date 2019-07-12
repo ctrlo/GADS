@@ -212,18 +212,23 @@ sub as_integer
 
 sub _build_for_code
 {   my ($self, %options) = @_;
-    if (!$self->column->multivalue)
-    {
-        return undef if $self->blank;
-        return $self->as_string;
-    }
-    my @values; my @text = @{$self->text_all};
-    foreach my $id (@{$self->id})
+
+    my @ids   = @{$self->value_hash->{ids}};
+    my @texts = @{$self->value_hash->{text}};
+
+    my @values;
+    foreach my $id (@ids)
     {
         push @values, {
             id    => $id,
-            value => pop @text,
+            value => pop @texts,
         };
+    }
+
+    if (!$self->column->multivalue && @values <= 1)
+    {
+        return undef if $self->blank;
+        return $self->as_string;
     }
 
     +{

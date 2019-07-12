@@ -378,6 +378,24 @@ has calc_return_type => (
     isa     => Str,
     default => 'integer',
 );
+has rag_code => (
+    is  => 'lazy',
+    isa => Str,
+);
+
+sub _build_rag_code
+{   my $self = shift;
+    my $instance_id = $self->instance_id;
+    return "
+        function evaluate (L${instance_id}daterange1)
+            if L${instance_id}daterange1 == nil then return end
+            if L${instance_id}daterange1.from.year < 2012 then return 'red' end
+            if L${instance_id}daterange1.from.year == 2012 then return 'amber' end
+            if L${instance_id}daterange1.from.year > 2012 then return 'green' end
+        end
+    ";
+}
+
 
 has multivalue => (
     is      => 'rwp',
@@ -388,10 +406,13 @@ has multivalue_columns => (
     is      => 'rw',
     builder => sub {
         +{
-            curval => 1,
-            enum   => 1,
-            tree   => 1,
-            file   => 1,
+            curval    => 1,
+            enum      => 1,
+            tree      => 1,
+            file      => 1,
+            date      => 1,
+            daterange => 1,
+            string    => 1,
         };
     },
 );
@@ -638,6 +659,7 @@ sub __build_columns
         $date->name_short("L${instance_id}date$count");
         $date->set_permissions({$self->group->id => $permissions})
             unless $self->no_groups;
+        $date->multivalue(1) if $self->multivalue && $self->multivalue_columns->{date};
         try { $date->write };
         if ($@)
         {
@@ -661,6 +683,7 @@ sub __build_columns
         $daterange->name_short("L${instance_id}daterange$count");
         $daterange->set_permissions({$self->group->id => $permissions})
             unless $self->no_groups;
+        $daterange->multivalue(1) if $self->multivalue && $self->multivalue_columns->{daterange};
         try { $daterange->write };
         if ($@)
         {
@@ -746,14 +769,7 @@ sub __build_columns
         user   => undef,
         layout => $layout,
     );
-    $rag1->code("
-        function evaluate (L${instance_id}daterange1)
-            if L${instance_id}daterange1 == nil then return end
-            if L${instance_id}daterange1.from.year < 2012 then return 'red' end
-            if L${instance_id}daterange1.from.year == 2012 then return 'amber' end
-            if L${instance_id}daterange1.from.year > 2012 then return 'green' end
-        end
-    ");
+    $rag1->code($self->rag_code);
     $rag1->type('rag');
     $rag1->name('rag1');
     $rag1->set_permissions({$self->group->id => $permissions})

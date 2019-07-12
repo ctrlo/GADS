@@ -481,7 +481,7 @@ sub _build_for_code
         }
     } (@{$self->values});
 
-    $self->column->multivalue ? \@values : $values[0];
+    $self->column->multivalue || @values > 1 ? \@values : $values[0];
 }
 
 1;
