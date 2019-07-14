@@ -77,7 +77,12 @@ my $sheet   = t::lib::DataSheet->new(
     multivalue       => 1,
     curval           => 2,
     curval_field_ids => [ $curval_sheet->columns->{string1}->id ],
-    calc_code        => "function evaluate (L1string1) \n return L1string1 \nend",
+    calc_code        => "function evaluate (L1string1)
+        if type(L1string1) == \"table\" then
+            L1string1 = L1string1[1]
+        end
+        return L1string1
+    end",
     calc_return_type => 'string',
 );
 my $layout  = $sheet->layout;

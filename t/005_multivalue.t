@@ -66,7 +66,7 @@ my $sheet   = t::lib::DataSheet->new(
                 text = text .. v
             end
             for i,v in ipairs(L1curval1) do
-                text = text .. v.field_values.L2string1
+                text = text .. v.field_values.L2string1[1]
             end
             for i,v in ipairs(L1tree1) do
                 text = text .. v.value

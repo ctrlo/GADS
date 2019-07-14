@@ -1010,6 +1010,11 @@ sub fetch_multivalues
     my $record_ids    = $params{record_ids};
     my $retrieved     = $params{retrieved};
     my $records       = $params{records};
+
+    my @linked_ids;
+    push @linked_ids, map { $_->linked_record_raw->{id} } grep { $_->linked_record_raw } @$records;
+    push @linked_ids, map { $_->linked_id } grep { $_->linked_id } @$records;
+
     my %curval_fields;
 
     my %multi; # Stash of all the multivalues to fetch and insert
@@ -1017,7 +1022,6 @@ sub fetch_multivalues
     foreach my $column (@{$self->columns_retrieved_no})
     {
         my @cols = ($column);
-        push @cols, $column->link_parent if $column->link_parent;
         if ($column->type eq 'curval')
         {
             push @cols, @{$column->curval_fields_multivalue};
@@ -1030,50 +1034,68 @@ sub fetch_multivalues
         }
         foreach my $col (@cols)
         {
-            my @retrieve_ids = @$record_ids;
-            next unless $col->multivalue;
-            next if $cols_done->{$col->id};
-            foreach my $parent_curval_field (@{$curval_fields{$col->field}})
+            # Perform 2 loops: one loop for the standard value, and then a
+            # second for linked values (if applicable). Both loops are needed
+            # as some columns may be multivalue and some may not be
+            my $is_linked = 0;
+            foreach my $loop (0..1)
             {
-                @retrieve_ids = ();
-                foreach my $rec (@$retrieved)
+                next if $loop && !$is_linked;
+                if ($col->multivalue && !$cols_done->{$col->id})
                 {
-                    if ($rec->{$parent_curval_field})
+                    my @retrieve_ids = $is_linked ? @linked_ids : @$record_ids;
+                    foreach my $parent_curval_field (@{$curval_fields{$col->field}})
                     {
-                        my @vals = ref $rec->{$parent_curval_field} eq 'ARRAY' ? @{$rec->{$parent_curval_field}} : $rec->{$parent_curval_field};
-                        push @retrieve_ids, map $_->{value}, @vals;
-                    }
-                    elsif ($rec->{record_single}) # XXX Legacy prefetch - can be removed once all prefetching removed
-                    {
-                        foreach (@{$rec->{record_single}->{$parent_curval_field}})
+                        @retrieve_ids = ();
+                        foreach my $rec (@$retrieved)
                         {
-                            push @retrieve_ids, $_->{value}->{record_single}->{id}
-                               if $_->{value};
+                            if ($rec->{$parent_curval_field})
+                            {
+                                my @vals = ref $rec->{$parent_curval_field} eq 'ARRAY' ? @{$rec->{$parent_curval_field}} : $rec->{$parent_curval_field};
+                                push @retrieve_ids, map $_->{value}, @vals;
+                            }
+                            elsif ($rec->{record_single}) # XXX Legacy prefetch - can be removed once all prefetching removed
+                            {
+                                foreach (@{$rec->{record_single}->{$parent_curval_field}})
+                                {
+                                    push @retrieve_ids, $_->{value}->{record_single}->{id}
+                                       if $_->{value};
+                                }
+                            }
                         }
                     }
+                    # Fetch the multivalues for either the main record IDs or the
+                    # records within the curval values. We fetch all values for a
+                    # particular type of field in one go (e.g. all the enum values).
+                    # Sometimes a field will be done, but it will have no values, in
+                    # which case it runs the danger of fetching all values again, thus
+                    # duplicating some values. We therefore have to flag to make sure
+                    # we don't do this.
+                    my %colsd;
+                    # Force all columns to be retrieved if it's a curcommon field and this
+                    # record has the flag saying they need to be
+                    $col->retrieve_all_columns(1)
+                        if $col->is_curcommon && $self->curcommon_all_fields;
+                    foreach my $val ($col->fetch_multivalues(\@retrieve_ids, is_draft => $params{is_draft}, curcommon_all_fields => $self->curcommon_all_fields))
+                    {
+                        my $field = "field$val->{layout_id}";
+                        next if $cols_done->{$val->{layout_id}};
+                        $multi{$val->{record_id}}->{$field} ||= [];
+                        push @{$multi{$val->{record_id}}->{$field}}, $val;
+                        $colsd{$val->{layout_id}} = 1;
+                    }
+                    $cols_done->{$_} = 1 foreach keys %colsd; # Flag that all these columns are done, even if no values
+                }
+
+                if ($col->link_parent)
+                {
+                    $col = $col->link_parent;
+                    $is_linked = 1;
+                }
+                else {
+                    $is_linked = 0;
                 }
             }
-            # Fetch the multivalues for either the main record IDs or the
-            # records within the curval values. We fetch all values for a
-            # particular type of field in one go (e.g. all the enum values).
-            # Sometimes a field will be done, but it will have no values, in
-            # which case it runs the danger of fetching all values again, thus
-            # duplicating some values. We therefore have to flag to make sure
-            # we don't do this.
-            my %colsd;
-            # Force all columns to be retrieved if it's a curcommon field and this
-            # record has the flag saying they need to be
-            $col->retrieve_all_columns(1)
-                if $col->is_curcommon && $self->curcommon_all_fields;
-            foreach my $val ($col->fetch_multivalues(\@retrieve_ids, is_draft => $params{is_draft}, curcommon_all_fields => $self->curcommon_all_fields))
-            {
-                my $field = "field$val->{layout_id}";
-                next if $cols_done->{$val->{layout_id}};
-                $multi{$val->{record_id}}->{$field} ||= [];
-                push @{$multi{$val->{record_id}}->{$field}}, $val;
-                $colsd{$val->{layout_id}} = 1;
-            }
-            $cols_done->{$_} = 1 foreach keys %colsd; # Flag that all these columns are done, even if no values
         }
     }
 
@@ -2424,7 +2446,7 @@ sub _build_group_results
     my @parents;
     my %group_cols;
     %group_cols = map { $_->layout_id => 1 } @{$view->groups}
-        if $view;
+        if $view && !$options{aggregate};
 
     my $is_count_distinct = !$self->isa('GADS::RecordsGraph') && !$self->isa('GADS::RecordsGlobe');
     foreach my $col (@cols)
@@ -2432,6 +2454,7 @@ sub _build_group_results
         my $column = $self->layout->column($col->{id});
         $col->{column} = $column;
         $col->{operator} ||= 'max';
+        $col->{drcol} = $self->dr_column && $self->dr_column == $column->id;
 
         # Only include full fields as a group column, otherwise all curval
         # sub-fields will be added, which for a multivalue curval will mean
@@ -2449,6 +2472,7 @@ sub _build_group_results
                 column   => $parent,
                 operator => $col->{operator},
                 group    => $col->{group},
+                drcol    => $self->dr_column && $self->dr_column == $column->id,
             };
             $col->{parent} = $parent;
         }
@@ -2495,12 +2519,26 @@ sub _build_group_results
         # excluded). The reason is that it will otherwise not cause the related
         # record_later searches to be generated when the curval sub-field is
         # retrieved in the same query
-        $self->add_prefetch($column, group => $col->{group}, parent => $parent);
-        $self->add_prefetch($column->link_parent, linked => 1, group => $col->{group}, parent => $parent)
-            if $column->link_parent;
+        if ($self->dr_column && $self->dr_column == $column->id)
+        {
+            if ($self->dr_column_parent)
+            {
+                $self->add_drcol($self->dr_column_parent);
+                $self->add_drcol($column, parent => $self->dr_column_parent);
+            }
+            else {
+                $self->add_drcol($column);
+            }
+        }
+        else {
+            $self->add_prefetch($column, group => $col->{group}, parent => $parent);
+            $self->add_prefetch($column->link_parent, linked => 1, group => $col->{group}, parent => $parent)
+                if $column->link_parent;
+        }
     }
 
     my $as_index = $self->group_values_as_index;
+    my $drcol    = !!$self->dr_column;
 
     foreach my $col (@cols)
     {
@@ -2522,7 +2560,7 @@ sub _build_group_results
         # to the multiple joins)
 
         # Field is either multivalue or its parent is
-        if (($column->multivalue || ($parent && $parent->multivalue)) && !$col->{group})
+        if (($column->multivalue || ($parent && $parent->multivalue)) && !$col->{group} && !$col->{drcol})
         {
             # Assume curval if it's a parent - we need to search the curval
             # table for all the curvals that are part of the records retrieved.
@@ -2572,14 +2610,20 @@ sub _build_group_results
                 # fields.
                 # Need to include "group" as an option to the subquery, to
                 # ensure that the grouping column is added to match to the main
-                # query's group column
-                my $searchq = $self->search_query(search => 1, extra_column => $column, linked => 0, group => 1, alt => 1, alias => 'mefield');
+                # query's group column. This does not apply if doing an overall
+                # aggregate though, as there is only a need to retrieve the
+                # overall results, not for each matching grouped row. If the
+                # "group" option is included unnecessarily, then this can cause
+                # joins of multiple-value fields which can include too many
+                # results in the aggregate.
+                my $include_group = %group_cols ? 1 : 0;
+                my $searchq = $self->search_query(search => 1, extra_column => $column, linked => 0, group => $include_group, alt => 1, alias => 'mefield');
                 foreach my $group_id (keys %group_cols)
                 {
                     my $group_col = $self->layout->column($group_id);
                     push @$searchq, {
-                        $self->fqvalue($group_col, as_index => $as_index, search => 1, linked => 0, group => 1, alt => 1, extra_column => $group_col) => {
-                            -ident => $self->fqvalue($group_col, as_index => $as_index, search => 1, linked => 0, group => 1, extra_column => $group_col)
+                        $self->fqvalue($group_col, as_index => $as_index, search => 1, linked => 0, group => 1, alt => 1, extra_column => $group_col, drcol => $drcol) => {
+                            -ident => $self->fqvalue($group_col, as_index => $as_index, search => 1, linked => 0, group => 1, extra_column => $group_col, drcol => $drcol)
                         },
                     };
                 }
@@ -2588,21 +2632,21 @@ sub _build_group_results
                     {
                         alias => 'mefield',
                         join  => [
-                            [$self->linked_hash(search => 1, group => 1, alt => 1, extra_column => $column)],
+                            [$self->linked_hash(search => 1, group => $include_group, alt => 1, extra_column => $column)],
                             {
                                 'record_single_alternative' => [ # The (assumed) single record for the required version of current
                                     'record_later_alternative',  # The record after the single record (undef when single is latest)
-                                    $self->jpfetch(search => 1, linked => 0, group => 1, extra_column => $column, alt => 1),
+                                    $self->jpfetch(search => 1, linked => 0, group => $include_group, extra_column => $column, alt => 1),
                                 ],
                             },
                         ],
                         select => {
-                            count => { distinct => $self->fqvalue($column, as_index => $as_index, search => 1, linked => 0, group => 1, alt => 1, extra_column => $column) },
+                            count => { distinct => $self->fqvalue($column, as_index => $as_index, search => 1, linked => 0, group => 1, alt => 1, extra_column => $column, drcol => $drcol) },
                             -as   => 'sub_query_as',
                         },
                     },
                 );
-                my $col_fq = $self->fqvalue($column, as_index => $as_index, search => 1, linked => 0, group => 1, alt => 1, extra_column => $column);
+                my $col_fq = $self->fqvalue($column, as_index => $as_index, search => 1, linked => 0, group => 1, alt => 1, extra_column => $column, drcol => $drcol);
                 if ($column->numeric && $op eq 'sum')
                 {
                     $select = $select->get_column($col_fq)->sum_rs->as_query;
@@ -2620,7 +2664,7 @@ sub _build_group_results
         }
         # Standard single-value field - select directly, no need for a subquery
         else {
-            $select = $self->fqvalue($column, as_index => $as_index, prefetch => 1, group => 1, search => 0, linked => 0, parent => $parent, retain_join_order => 1);
+            $select = $self->fqvalue($column, as_index => $as_index, prefetch => 1, group => 1, search => 0, linked => 0, parent => $parent, retain_join_order => 1, drcol => $drcol);
         }
 
         if ($op eq 'distinct')
@@ -2640,7 +2684,7 @@ sub _build_group_results
 
         # Also add linked column if required
         push @select_fields, {
-            $op => $self->fqvalue($column->link_parent, as_index => $as_index, prefetch => 1, search => 0, linked => 1, parent => $parent, retain_join_order => 1),
+            $op => $self->fqvalue($column->link_parent, as_index => $as_index, prefetch => 1, search => 0, linked => 1, parent => $parent, retain_join_order => 1, drcol => $drcol),
             -as => $as."_link",
         } if $column->link_parent;
     }
@@ -2659,15 +2703,6 @@ sub _build_group_results
         my $dr_col     = $self->layout->column($self->dr_column); # The daterange column for x-axis
         my $field      = $dr_col->field;
         my $field_link = $dr_col->link_parent && $dr_col->link_parent->field; # Related link field
-
-        if ($self->dr_column_parent)
-        {
-            $self->add_prefetch($self->dr_column_parent, include_multivalue => 1);
-            $self->add_prefetch($dr_col, include_multivalue => 1, parent => $self->dr_column_parent);
-        }
-        else {
-            $self->add_prefetch($dr_col, include_multivalue => 1);
-        }
 
         # First find out earliest and latest date in this result set
         my $select = [
@@ -2823,7 +2858,7 @@ sub _build_group_results
         }
     };
 
-    my $q = $self->search_query(prefetch => 1, search => 1, retain_join_order => 1, group => 1, sort => 0); # Called first to generate joins
+    my $q = $self->search_query(prefetch => 1, search => 1, retain_join_order => 1, group => 1, sort => 0, drcol => $drcol); # Called first to generate joins
 
     # Ensure that no joins are added here that are multi-value fields,
     # otherwise they will generate multiple rows for a single records, which
@@ -2833,11 +2868,11 @@ sub _build_group_results
     my $select = {
         select => [@select_fields],
         join     => [
-            $self->linked_hash(group => 1, prefetch => 1, search => 0, retain_join_order => 1, sort => 0, aggregate => $options{aggregate}),
+            $self->linked_hash(group => 1, prefetch => 1, search => 0, retain_join_order => 1, sort => 0, aggregate => $options{aggregate}, drcol => $drcol),
             {
                 'record_single' => [
                     'record_later',
-                    $self->jpfetch(group => 1, prefetch => 1, search => 0, linked => 0, retain_join_order => 1, sort => 0, aggregate => $options{aggregate}),
+                    $self->jpfetch(group => 1, prefetch => 1, search => 0, linked => 0, retain_join_order => 1, sort => 0, aggregate => $options{aggregate}, drcol => $drcol),
                 ],
             },
         ],

@@ -76,7 +76,18 @@ my $sheet   = t::lib::DataSheet->new(
     multivalue               => 1,
     instance_id              => 1,
     group                    => $curval_sheet->group,
-    calc_code                => "function evaluate (L1daterange1) \n if L1daterange1 == nil then return end \n return L1daterange1.from.epoch \n end",
+    calc_code                => "
+        function evaluate (L1daterange1)
+            if type(L1daterange1) == \"table\" and L1daterange1[1] then
+                dr1 = L1daterange1[1]
+            elseif type(L1daterange1) == \"table\" and next(L1daterange1) == nil then
+                dr1 = nil
+            else
+                dr1 = L1daterange1
+            end
+            if dr1 == nil then return end
+            return dr1.from.epoch
+        end",
     calc_return_type         => 'date',
     user_permission_override => 0,
     column_count     => {

@@ -370,7 +370,17 @@ has calc_code => (
 sub _build_calc_code
 {   my $self = shift;
     my $instance_id = $self->instance_id;
-    "function evaluate (L${instance_id}daterange1) \n if L${instance_id}daterange1 == null then return end \n return L${instance_id}daterange1.from.year\nend";
+    "function evaluate (L${instance_id}daterange1)
+        if type(L${instance_id}daterange1) == \"table\" and L${instance_id}daterange1[1] then
+            dr1 = L${instance_id}daterange1[1]
+        elseif type(L${instance_id}daterange1) == \"table\" and next(L${instance_id}daterange1) == nil then
+            dr1 = nil
+        else
+            dr1 = L${instance_id}daterange1
+        end
+        if dr1 == null then return end
+        return dr1.from.year
+    end";
 }
 
 has calc_return_type => (
@@ -388,10 +398,17 @@ sub _build_rag_code
     my $instance_id = $self->instance_id;
     return "
         function evaluate (L${instance_id}daterange1)
-            if L${instance_id}daterange1 == nil then return end
-            if L${instance_id}daterange1.from.year < 2012 then return 'red' end
-            if L${instance_id}daterange1.from.year == 2012 then return 'amber' end
-            if L${instance_id}daterange1.from.year > 2012 then return 'green' end
+            if type(L${instance_id}daterange1) == \"table\" and L${instance_id}daterange1[1] then
+                dr1 = L${instance_id}daterange1[1]
+            elseif type(L${instance_id}daterange1) == \"table\" and next(L${instance_id}daterange1) == nil then
+                dr1 = nil
+            else
+                dr1 = L${instance_id}daterange1
+            end
+            if dr1 == nil then return end
+            if dr1.from.year < 2012 then return 'red' end
+            if dr1.from.year == 2012 then return 'amber' end
+            if dr1.from.year > 2012 then return 'green' end
         end
     ";
 }
@@ -413,6 +430,7 @@ has multivalue_columns => (
             date      => 1,
             daterange => 1,
             string    => 1,
+            calc      => 1,
         };
     },
 );
@@ -799,6 +817,7 @@ sub __build_columns
     $calc1->return_type($self->calc_return_type);
     $calc1->set_permissions({$self->group->id => $permissions})
         unless $self->no_groups;
+    $calc1->multivalue(1) if $self->multivalue && $self->multivalue_columns->{calc};
     try { $calc1->write };
     if ($@)
     {

@@ -792,12 +792,8 @@ sub _find
         my $base = $find{record_id} ? 'me' : $has_linked ? 'record_single_2' : 'record_single';
         push @columns_fetch, {id => "$base.id"};
         push @columns_fetch, $find{record_id} ? {deleted => "current.deleted"} : {deleted => "me.deleted"};
+        push @columns_fetch, $find{record_id} ? {linked_id => "current.linked_id"} : {linked_id => "me.linked_id"};
         push @columns_fetch, $find{record_id} ? {draftuser_id => "current.draftuser_id"} : {draftuser_id => "me.draftuser_id"};
-        if ($has_linked)
-        {
-            push @columns_fetch, {linked_id => "linked.id"};
-            push @columns_fetch, {'linked.record_id' => "record_single.id"};
-        }
         push @columns_fetch, {current_id => "$base.current_id"};
         push @columns_fetch, {created => "$base.created"};
         push @columns_fetch, "deletedby.$_" foreach @GADS::Column::Person::person_properties;

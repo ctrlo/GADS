@@ -122,6 +122,7 @@ sub _add_jp
                 $j->{linked}   ||= $options{linked};
                 $j->{sort}     ||= $options{sort};
                 $j->{group}    ||= $options{group};
+                $j->{drcol}    ||= $options{drcol};
                 $self->_add_children($j, $column, %options)
                     if ($column->is_curcommon && $prefetch);
                 trace __x"Found existing, returning";
@@ -141,6 +142,7 @@ sub _add_jp
         linked     => $options{linked}, # Whether it's a linked table
         sort       => $options{sort},   # Whether it's used in an order_by clause
         group      => $options{group},  # Whether it's used in a group_by clause
+        drcol      => $options{drcol},  # Whether it's used as a daterange column on a graph x-axis
         column     => $column,
         parent     => $options{parent},
     };
@@ -164,6 +166,7 @@ sub _add_jp
                     $exists->{search} ||= $options{search};
                     $exists->{sort}   ||= $options{sort};
                     $exists->{group}  ||= $options{group};
+                    $exists->{drcol}  ||= $options{drcol};
                 }
                 else {
                     push @{$c->{children}}, $join_add
@@ -184,6 +187,11 @@ sub add_prefetch
 sub add_group
 {   my $self = shift;
     $self->_add_jp(@_, group => 1);
+}
+
+sub add_drcol
+{   my $self = shift;
+    $self->_add_jp(@_, drcol => 1);
 }
 
 sub add_join
@@ -237,6 +245,7 @@ sub record_later_search
                     ($options{search} && $_->{search} && $_->{parent} && !$is_curcommon) # Search in child of curval
                     || ($options{sort} && $_->{sort}) # sort is all children
                     || ($options{group} && $_->{group})
+                    || ($options{drcol} && $_->{drcol})
                     # prefetch is all children, but not when the curval has no fields
                     || ($options{prefetch} && $_->{prefetch} && !$_->{parent} && @{$_->{children}})
                 )
@@ -290,7 +299,7 @@ sub _jpfetch
         # records object has been built, but then only the aggregate columns
         # within that are required for an aggregate query
         next if $options{aggregate} && !$_->{column}->aggregate;
-        next if exists $options{prefetch} && !$options{prefetch} && $_->{prefetch} && !$options{group};
+        next if exists $options{prefetch} && !$options{prefetch} && $_->{prefetch} && !$options{group} && !$options{drcol};
         $self->_jpfetch_add(options => \%options, join => $_, return => $joins);
     }
     my @return;
@@ -331,6 +340,7 @@ sub _jpfetch_add
         ($options->{search} && $_->{search})
         || ($options->{sort} && $_->{sort})
         || ($options->{group} && $_->{group})
+        || ($options->{drcol} && $_->{drcol})
         || ($options->{prefetch} && $_->{prefetch})
         || ($options->{extra_column} && $_->{column}->id == $options->{extra_column}->id)
     )
@@ -348,7 +358,7 @@ sub _jpfetch_add
             # These will be fetched later as individual columns.
             # Keep any for a sort - these still need to be used when fetching rows.
             my @children = @$children;
-            @children = grep { $_->{search} || $_->{sort} || !$_->{column}->multivalue || $options->{include_multivalue} || $_->{group} } @$children
+            @children = grep { $_->{search} || $_->{sort} || !$_->{column}->multivalue || $options->{include_multivalue} || $_->{group} || $_->{drcol} } @$children
                 if $options->{prefetch};
             push @$return, {
                 parent    => $parent,
@@ -357,6 +367,7 @@ sub _jpfetch_add
                 search    => $join->{search},
                 sort      => $join->{sort},
                 group     => $join->{group},
+                drcol     => $join->{drcol},
                 prefetch  => $join->{prefetch},
                 linked    => $join->{linked},
                 all_joins => [$simple, @children],
@@ -652,6 +663,7 @@ child is ".$child->{column}->id." (".$child->{column}->name.") => {
     search   => $child->{search},
     sort     => $child->{sort},
     group    => $child->{group},
+    drcol    => $child->{drcol},
     parent   => $parent_id,
     children => $children
 },";
@@ -685,6 +697,7 @@ sub _dump_jp_store
         linked   => $jp->{linked},
         sort     => $jp->{sort},
         group    => $jp->{group},
+        drcol    => $jp->{drcol},
         curval   => $jp->{curval},
         children => $children
     },

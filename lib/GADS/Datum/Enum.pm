@@ -33,14 +33,20 @@ after set_value => sub {
     my $changed = "@values" ne "@old";
     if ($changed)
     {
-        my @text;
+        my @text; my @deleted;
         foreach (@values)
         {
             $self->column->validate($_, fatal => 1);
             push @text, $self->column->enumval($_)->{value};
+            push @deleted, $self->column->enumval($_)->{deleted};
         }
         $self->clear_text;
-        $self->text_all(\@text);
+        $self->clear_text_all;
+        $self->value_hash({
+            ids     => \@values,
+            text    => \@text,
+            deleted => \@deleted,
+        });
     }
     $self->changed($changed);
     $self->oldvalue($clone);
@@ -62,6 +68,7 @@ has text_all => (
     is      => 'rw',
     isa     => ArrayRef,
     lazy    => 1,
+    clearer => 1,
     builder => sub {
         $_[0]->value_hash->{text} || [];
     }
