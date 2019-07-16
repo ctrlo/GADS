@@ -97,6 +97,7 @@ foreach my $withview (qw/none with without/)
             user        => $sheet->user,
         );
         $view->write;
+        $view->set_groups([$columns->{string1}->id]); # Should make no difference whatsoever
         $records_options->{view} = $view;
     }
 

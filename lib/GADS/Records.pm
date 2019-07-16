@@ -2419,11 +2419,13 @@ sub _build_group_results
     my @cols;
     my $view = $self->view;
 
+    my $is_table_group = !$self->isa('GADS::RecordsGraph') && !$self->isa('GADS::RecordsGlobe');
+
     if ($options{columns})
     {
         @cols = @{$options{columns}};
     }
-    elsif ($view && $view->is_group)
+    elsif ($view && $view->is_group && $is_table_group)
     {
         my %view_group_cols = map { $_->layout_id => 1 } @{$view->groups};
         @cols = map {
@@ -2446,9 +2448,8 @@ sub _build_group_results
     my @parents;
     my %group_cols;
     %group_cols = map { $_->layout_id => 1 } @{$view->groups}
-        if $view && !$options{aggregate};
+        if $is_table_group && $view && !$options{aggregate};
 
-    my $is_count_distinct = !$self->isa('GADS::RecordsGraph') && !$self->isa('GADS::RecordsGlobe');
     foreach my $col (@cols)
     {
         my $column = $self->layout->column($col->{id});
@@ -2477,7 +2478,7 @@ sub _build_group_results
             $col->{parent} = $parent;
         }
         # If it's a curval, then add all its subfields
-        if ($column->type eq 'curval' && !$is_count_distinct)
+        if ($column->type eq 'curval' && !$is_table_group)
         {
             foreach (@{$column->curval_fields})
             {
@@ -2589,7 +2590,7 @@ sub _build_group_results
                 {
                     $select = $f_rs->get_column((ref $column->tjoin eq 'HASH' ? 'value_2' :  $column->field).".".$column->value_field)->sum_rs->as_query;
                 }
-                elsif (!$is_count_distinct)
+                elsif (!$is_table_group)
                 {
                     $select = $f_rs->get_column((ref $column->tjoin eq 'HASH' ? 'value_2' :  $column->field).".".$column->value_field)->max_rs->as_query;
                 }
