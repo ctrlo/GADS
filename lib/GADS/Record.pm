@@ -1540,6 +1540,20 @@ sub write
         $self->fields->{$record_created_col->id}->set_value($created_date, is_parent_value => 1);
     }
 
+    my $user_id = $self->user ? $self->user->id : undef;
+
+    my $createdby = $options{version_userid} || $user_id;
+    if (!$options{update_only} || $self->layout->forget_history)
+    {
+        # Keep original record values when only updating the record, except
+        # when the update_only is happening for forgetting version history, in
+        # which case we want to record these details
+        my $created = $self->layout->column_by_name_short('_version_datetime');
+        $self->fields->{$created->id}->set_value($created_date, is_parent_value => 1);
+        my $createdby_col = $self->layout->column_by_name_short('_version_user');
+        $self->fields->{$createdby_col->id}->set_value($createdby, no_validation => 1, is_parent_value => 1);
+    }
+
     # Test duplicate unique calc values
     foreach my $column ($self->layout->all)
     {
@@ -1590,8 +1604,6 @@ sub write
         return;
     }
 
-    my $user_id = $self->user ? $self->user->id : undef;
-
     # New record?
     if ($self->new_entry)
     {
@@ -1632,7 +1644,6 @@ sub write
         $self->current_id($current->id);
     }
 
-    my $createdby = $options{version_userid} || $user_id;
     if ($need_rec && !$options{update_only})
     {
         my $id = $self->schema->resultset('Record')->create({
@@ -1654,16 +1665,6 @@ sub write
     my $column_id = $self->layout->column_id;
     $self->fields->{$column_id->id}->current_id($self->current_id);
     $self->fields->{$column_id->id}->clear_value; # Will rebuild as current_id
-    if (!$options{update_only} || $self->layout->forget_history)
-    {
-        # Keep original record values when only updating the record, except
-        # when the update_only is happening for forgetting version history, in
-        # which case we want to record these details
-        my $created = $self->layout->column_by_name_short('_version_datetime');
-        $self->fields->{$created->id}->set_value($created_date, is_parent_value => 1);
-        my $createdby_col = $self->layout->column_by_name_short('_version_user');
-        $self->fields->{$createdby_col->id}->set_value($createdby, no_validation => 1, is_parent_value => 1);
-    }
 
     if ($need_app)
     {
