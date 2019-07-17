@@ -20,6 +20,7 @@ package GADS;
 
 use CtrlO::Crypt::XkcdPassword;
 use Crypt::URandom; # Make Dancer session generation cryptographically secure
+use Data::Dumper;
 use DateTime;
 use File::Temp qw/ tempfile /;
 use GADS::Alert;
@@ -182,7 +183,7 @@ hook before => sub {
     if (request->is_post)
     {
         # Protect against CSRF attacks
-        panic __x"csrf-token missing for path {path}", path => request->path
+        panic __x"csrf-token missing for uri {uri}, params {params}", uri => request->uri, params => Dumper(params)
             if !param 'csrf_token';
         error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
             if param('csrf_token') ne session('csrf_token');
@@ -312,7 +313,8 @@ hook before_template => sub {
     $tokens->{messages}      = session('messages');
     $tokens->{site}          = var 'site';
     $tokens->{config}        = GADS::Config->instance;
-    $tokens->{csrf_token}    = session 'csrf_token';
+    $tokens->{csrf_token}    = session 'csrf_token'
+        or panic __x"Missing CSRF token for uri {uri}", uri => request->uri;
 
     if (session('views_other_user_id') && $tokens->{page} =~ /(data|view)/)
     {
@@ -1308,7 +1310,7 @@ any ['get', 'post'] => '/resetpw/:code' => sub {
 
         if (param 'execute_reset')
         {
-            context->destroy_session;
+            app->destroy_session;
             my $user   = rset('User')->active(username => $username)->next;
             # Now we know this user is genuine, reset any failure that would
             # otherwise prevent them logging in
@@ -1317,6 +1319,7 @@ any ['get', 'post'] => '/resetpw/:code' => sub {
             $audit->login_change("Password reset performed for user ID ".$user->id);
             $new_password = _random_pw();
             user_password code => param('code'), new_password => $new_password;
+            _update_csrf_token();
         }
         my $output  = template 'login' => {
             site_name  => var('site')->name || 'Linkspace',
