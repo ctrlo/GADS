@@ -108,7 +108,7 @@ foreach my $layout (@instances)
                 ? 'Only displayed when all the following are true'
                 : $field->display_condition eq 'OR'
                 ? 'Only displayed when any of the following are true'
-                : die;
+                : 'Only display when the following is true';
             push @$data, [$type, $conds];
         }
         else {
