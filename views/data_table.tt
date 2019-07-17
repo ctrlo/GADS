@@ -154,6 +154,7 @@
                     })
                 });
                 $("#data-table").floatThead({
+                    floatContainerCss: {},
                     zIndex: function($table){
                         return 999;
                     },
