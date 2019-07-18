@@ -456,6 +456,11 @@ has aggregate => (
     isa => Maybe[Str],
 );
 
+has group_display => (
+    is  => 'rw',
+    isa => Maybe[Str],
+);
+
 has has_display_field => (
     is  => 'lazy',
     isa => Bool,
@@ -760,6 +765,8 @@ sub build_values
     $self->type($original->{type});
     $self->display_condition($original->{display_condition});
     $self->aggregate($original->{aggregate} || undef);
+    my $group_display = $self->numeric ? 'sum' : $original->{group_display};
+    $self->group_display($group_display);
 
     # XXX Move to curval class
     if ($self->type eq 'curval')
@@ -1019,6 +1026,13 @@ sub write
     $newitem->{display_condition} = $self->display_fields->as_hash->{condition},
     $newitem->{instance_id}       = $self->layout->instance_id;
     $newitem->{aggregate}         = $self->aggregate;
+    if ($self->numeric)
+    {
+        $newitem->{group_display} = 'sum';
+    }
+    else {
+        $newitem->{group_display} = $self->group_display && $self->group_display eq 'unique' ? 'unique' : undef;
+    }
     $newitem->{position}          = $self->position
         if $self->position; # Used on layout import
 
@@ -1384,6 +1398,10 @@ sub import_hash
         old => $self->aggregate, new => $values->{aggregate}, name => $self->name
             if $report && ($self->aggregate || '') ne ($values->{aggregate} || '');
     $self->aggregate($values->{aggregate});
+    notice __x"Update: group_display from {old} to {new} for {name}",
+        old => $self->group_display, new => $values->{group_display}, name => $self->name
+            if $report && ($self->group_display || '') ne ($values->{group_display} || '');
+    $self->group_display($values->{group_display});
     notice __x"Update: width from {old} to {new} for {name}",
         old => $self->width, new => $values->{width}, name => $self->name
             if $report && $self->width != $values->{width};
@@ -1437,6 +1455,7 @@ sub export_hash
         multivalue        => $self->multivalue,
         filter            => $self->filter->as_json,
         aggregate         => $self->aggregate,
+        group_display     => $self->group_display,
         permissions       => $permissions,
     };
 

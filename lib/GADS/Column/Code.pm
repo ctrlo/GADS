@@ -118,6 +118,7 @@ extends 'GADS::Column';
 
 has _rset_code => (
     is      => 'lazy',
+    clearer => 1,
 );
 
 has code => (
@@ -355,6 +356,9 @@ sub write_special
     my $id   = $options{id};
     my $rset = $options{rset};
 
+    # rset_code may have been built before the rset property had been
+    # initialised
+    $self->_clear_rset_code;
     my $new = !$id || !$self->_rset_code->code;
 
     # It is not uncommon for users to accidentally copy auto-corrected

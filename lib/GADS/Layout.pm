@@ -779,6 +779,9 @@ sub all
     @columns = $self->_order_dependencies(@columns) if $options{order_dependencies};
     @columns = grep { !$_->internal } @columns if $options{exclude_internal};
     @columns = grep { $_->internal } @columns if $options{only_internal};
+    @columns = grep { $_->group_display } @columns if $options{group_display};
+    @columns = grep { $options{include_column_ids}->{$_->id} } @columns
+        if $options{include_column_ids};
     @columns = grep { $_->isunique } @columns if $options{only_unique};
     @columns = grep { $_->can_child } @columns if $options{can_child};
     @columns = grep { $_->link_parent } @columns if $options{linked};
@@ -933,28 +936,6 @@ sub column_id
 {   my $self = shift;
     $self->column_by_name_short('_id')
         or panic "Internal _id column missing";
-}
-
-sub view
-{   my ($self, $view_id, %options) = @_;
-
-    return unless $view_id;
-    my $view    = GADS::View->new(
-        id          => $view_id,
-        schema      => $self->schema,
-        layout      => $self,
-        instance_id => $self->instance_id,
-    );
-    my $current_group_id = delete $options{current_group_id};
-    my %view_layouts = map { $_ => 1 } @{$view->columns}, map $_->layout_id, @{$view->groups};
-    my @cols = grep {
-        (!$current_group_id || $_->{id} != $current_group_id ) && $view_layouts{$_->{id}}
-    } $self->all(%options);
-    if ($current_group_id)
-    {
-        unshift @cols, $self->column($current_group_id);
-    }
-    return @cols;
 }
 
 # Returns what a user can do to the whole data set. Individual

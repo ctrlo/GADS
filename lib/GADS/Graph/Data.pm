@@ -311,7 +311,7 @@ sub _build_data
         : $x_axis
         ? ($x_axis)
         : $view
-        ? $self->records->layout->view($view->id, user_can_read => 1)
+        ? @{$self->records->columns_view}
         : $layout->all(user_can_read => 1);
 
     if ($x_daterange && $records->dr_from && $records->dr_to)

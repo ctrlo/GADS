@@ -83,13 +83,23 @@
             <option value="100" [% IF column.width == "100" %]selected[% END %]>Full-width</option>
         </select>
     </div>
-    <div class="form-group">
-        <label for="aggregate">Aggregate for field in table view:</label>
-        <select class="form-control" id="aggregate" name="aggregate">
-            <option value="" [% IF NOT column.aggregate %]selected[% END %]>&lt;no aggregate&gt;</option>
-            <option value="sum" [% IF column.aggregate == "sum" %]selected[% END %]>Sum</option>
-        </select>
-    </div>
+    [% IF column.numeric %]
+        <div class="form-group">
+            <label for="aggregate">Aggregate for field in table view:</label>
+            <select class="form-control" id="aggregate" name="aggregate">
+                <option value="" [% IF NOT column.aggregate %]selected[% END %]>&lt;no aggregate&gt;</option>
+                <option value="sum" [% IF column.aggregate == "sum" %]selected[% END %]>Sum</option>
+            </select>
+        </div>
+    [% ELSE %]
+        <div class="form-group">
+            <label for="group_display">Display in grouped view:</label>
+            <select class="form-control" id="group_display" name="group_display">
+                <option value="" [% IF NOT column.group_display %]selected[% END %]>Do not display in grouped views</option>
+                <option value="unique" [% IF column.group_display %]selected[% END %]>Display count of unique values in grouped views</option>
+            </select>
+        </div>
+    [% END %]
     <div class="form-group">
         <label for="link_parent_id">Link to a field in another table:</label>
         [% IF instance_layouts.size %]

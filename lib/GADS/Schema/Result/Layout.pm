@@ -174,6 +174,12 @@ __PACKAGE__->table("layout");
   is_nullable: 1
   size: 12
 
+=head2 group_display
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 12
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -238,6 +244,8 @@ __PACKAGE__->add_columns(
   "topic_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "aggregate",
+  { data_type => "varchar", is_nullable => 1, size => 45 },
+  "group_display",
   { data_type => "varchar", is_nullable => 1, size => 45 },
 );
 

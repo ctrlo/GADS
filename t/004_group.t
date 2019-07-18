@@ -91,6 +91,14 @@ foreach my $multivalue (0..1)
     my $layout  = $sheet->layout;
     $sheet->create_records;
     my $columns = $sheet->columns;
+    foreach my $col_id (keys %$columns)
+    {
+        my $c = $columns->{$col_id};
+        $c->group_display('unique')
+            if !$c->numeric;
+        $c->write;
+    }
+    $layout->clear;
 
     my $autocur = $curval_sheet->add_autocur(
         refers_to_instance_id => 1,
@@ -168,6 +176,8 @@ foreach my $multivalue (0..1)
     }
 
     # Test autocur
+    $autocur->group_display('unique');
+    $autocur->write;
     $view = GADS::View->new(
         name        => 'Group view autocur',
         columns     => [$autocur->id],
@@ -193,6 +203,60 @@ foreach my $multivalue (0..1)
         is($row->fields->{$autocur->id}, '2 unique', "Group text correct");
     }
 
+}
+
+# Make sure that correct columns are returned from view
+{
+    my $sheet   = t::lib::DataSheet->new;
+    my $schema  = $sheet->schema;
+    my $layout  = $sheet->layout;
+    my $columns = $sheet->columns;
+    $sheet->create_records;
+
+    my $string1  = $columns->{string1};
+    my $integer1 = $columns->{integer1};
+    my $enum1    = $columns->{enum1};
+
+    my $view = GADS::View->new(
+        name        => 'Group view',
+        columns     => [$string1->id, $integer1->id],
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+    );
+    $view->write;
+    $view->set_groups([$enum1->id]);
+
+    foreach my $run (0..2)
+    {
+        my @additional = ({
+            id    => $string1->id,
+            value => 'Foo',
+        });
+
+        my $records = GADS::Records->new(
+            view               => $view,
+            layout             => $layout,
+            user               => $sheet->user,
+            schema             => $schema,
+            additional_filters => $run == 1 ? \@additional : [],
+        );
+
+        my $vids = join ' ', map { $_->id } @{$records->columns_view};
+        my $expected = $run == 0
+            ? $enum1->id.' '.$integer1->id
+            : $enum1->id.' '.$string1->id.' '.$integer1->id;
+        is($vids, $expected, "Correct columns in group view");
+
+        if ($run == 1)
+        {
+            # Add string column as unique count
+            $string1->group_display('unique');
+            $string1->write;
+            $layout->clear;
+        }
+    }
 }
 
 # Large number of records (greater than default number of rows in table). Check

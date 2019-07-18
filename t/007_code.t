@@ -698,7 +698,7 @@ restore_time();
         code   => "foobar evaluate (L1curval)",
     );
     try { $calc2_col->write };
-    ok( $@, "Failed to write calc field with invalid function" );
+    like( $@, qr/Invalid code definition/, "Failed to write calc field with invalid function" );
 
     # Then with invalid short name
     $calc2_col = GADS::Column::Calc->new(
@@ -709,7 +709,7 @@ restore_time();
         code   => "function evaluate (L1curval) \n return L1curval1.value\nend",
     );
     try { $calc2_col->write };
-    ok( $@, "Failed to write calc field with invalid short names" );
+    like( $@, qr/Unknown short column name/, "Failed to write calc field with invalid short names" );
 
     # Then with short name from other table (invalid)
     $calc2_col = GADS::Column::Calc->new(

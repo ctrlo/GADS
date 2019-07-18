@@ -1297,11 +1297,7 @@ sub _build_columns_retrieved_do
     }
     elsif ($self->view)
     {
-        @columns = $layout->view(
-            $self->view->id,
-            order_dependencies => 1,
-            user_can_read      => 1,
-        );
+        @columns = @{$self->columns_view};
         if ($self->columns_extra)
         {
             foreach (@{$self->columns_extra})
@@ -1344,13 +1340,13 @@ sub _build_columns_view
 {   my $self = shift;
 
     my @cols;
-
     if (my $view = $self->view)
     {
-        my %view_layouts = map { $_ => 1 } @{$view->columns};
-        @cols = grep {
-            (!$self->current_group_id || $_->{id} != $self->current_group_id ) && $view_layouts{$_->{id}}
-        } $self->layout->all(user_can_read => 1);
+        my %view_layouts = map { $_ => 1 } @{$view->columns}, map $_->layout_id, @{$view->groups};
+        delete $view_layouts{$self->current_group_id}
+            if $self->current_group_id;
+        my $group_display = $view->is_group && !@{$self->additional_filters};
+        @cols = $self->layout->all(user_can_read => 1, group_display => $group_display, include_column_ids => \%view_layouts);
         if ($self->current_group_id)
         {
             unshift @cols, $self->layout->column($self->current_group_id);
@@ -2435,11 +2431,7 @@ sub _build_group_results
                 operator => $_->numeric ? 'sum' : $view_group_cols{$_->id} ? 'max' : 'distinct',
                 group    => $view_group_cols{$_->id},
             }
-        } $self->layout->view(
-            $view->id,
-            order_dependencies => 1,
-            user_can_read      => 1,
-        );
+        } @{$self->columns_view};
     }
     else {
         @cols = @{$self->columns};
