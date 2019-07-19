@@ -175,11 +175,6 @@ hook before => sub {
         ? var('api_user')
         : logged_in_user;
 
-    if (!session 'csrf_token')
-    {
-        _update_csrf_token();
-    }
-
     if (request->is_post)
     {
         # Protect against CSRF attacks
@@ -313,8 +308,15 @@ hook before_template => sub {
     $tokens->{messages}      = session('messages');
     $tokens->{site}          = var 'site';
     $tokens->{config}        = GADS::Config->instance;
-    $tokens->{csrf_token}    = session 'csrf_token'
-        or panic __x"Missing CSRF token for uri {uri}", uri => request->uri;
+
+    # This line used to be pre-request. However, occasionally errors have been
+    # experienced with pages not submitting CSRF tokens. I think these may have
+    # been race conditions where the session had been destroyed between the
+    # pre-request and template rendering functions. Therefore, produce the
+    # token here if needed
+    _update_csrf_token()
+        if !session 'csrf_token';
+    $tokens->{csrf_token}    = session 'csrf_token';
 
     if (session('views_other_user_id') && $tokens->{page} =~ /(data|view)/)
     {
