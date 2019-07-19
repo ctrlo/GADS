@@ -42,6 +42,7 @@ use GADS::Datum::Tree;
 use GADS::Layout;
 use Log::Report 'linkspace';
 use JSON qw(encode_json);
+use PDF::Table 0.11.0; # Needed for colspan feature
 use POSIX ();
 use Scope::Guard qw(guard);
 use Session::Token;
@@ -2314,14 +2315,22 @@ sub pdf
         font_size  => 8,
     };
 
+    my $cell_props = [];
     foreach my $d (@$data)
     {
-        my $gap = $max_fields - @$d;
-        push @$d, '' for (0..$gap);
+        my $has = @$d;
+        # $max_fields does not include field name
+        my $gap = $max_fields - $has + 1;
+        push @$d, undef for (1..$gap);
+        push @$cell_props, [
+            (undef) x ($has - 1),
+            {colspan => $gap + 1}
+        ];
     }
 
     $pdf->table(
-        data => $data,
+        data       => $data,
+        cell_props => $cell_props,
     );
 
     $pdf;
