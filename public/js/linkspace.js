@@ -982,7 +982,7 @@ var setupRecordPopup = function(context) {
     });
     // Stop the clicking of more-less buttons within the record details popping
     // up the more-less box and the record modal
-    $(".record-popup .clipped").click(function(event){
+    $(".record-popup button").click(function(event){
         event.stopPropagation();
     });
 }
