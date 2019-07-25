@@ -313,8 +313,8 @@ before import_hash => sub {
                 # Different, don't know what to do, require manual intervention
                 if ($report)
                 {
-                    notice __x"Error: don't know how to handle enumval updates for {name}, manual intervention required",
-                        name => $self->name;
+                    notice __x"Error: don't know how to handle enumval updates for {name}, manual intervention required. Old value: {old}, new value: {new}",
+                        name => $self->name, old => $old->{value}, new => $new->{value};
                     return;
                 }
                 else {
