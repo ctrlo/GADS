@@ -370,6 +370,8 @@ foreach my $l (@all_layouts)
         # Convert to new column IDs
         $g->{x_axis} = $column_mapping->{$g->{x_axis}}
             if $g->{x_axis};
+        $g->{x_axis_link} = $column_mapping->{$g->{x_axis_link}}
+            if $g->{x_axis_link};
         $g->{y_axis} = $column_mapping->{$g->{y_axis}};
         $g->{group_by} = $column_mapping->{$g->{group_by}}
             if $g->{group_by};
