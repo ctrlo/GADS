@@ -271,14 +271,26 @@ before import_hash => sub {
     my $report = $options{report_only} && $self->id;
     my @new = @{$values->{enumvals}};
     my @to_write;
+
+    # Sort by IDs so that the imported values have been created in the same
+    # order as they were created in the source system. This means that if
+    # further imports/exports are done, that it is possible to compare
+    # better (as above) and work out what has been created and updated
+    @new = sort { $a->{id} <=> $b->{id} } @new;
+
     # We have no unqiue identifier with which to match, so we have to compare
     # the new and the old lists to try and work out what's changed. Simple
     # changes are handled automatically, more complicated ones will require
     # manual intervention
     if (my @old = @{$self->enumvals})
     {
+        # First see if there are any changes at all
+        my @old_sorted = sort map $_->{value}, @old;
+        my @new_sorted = sort map $_->{value}, @new;
+
+        return if @old_sorted eq @new_sorted;
+
         @old = sort { $a->{id} <=> $b->{id} } @old;
-        @new = sort { $a->{id} <=> $b->{id} } @new;
         while (@old)
         {
             my $old = shift @old;
