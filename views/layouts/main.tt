@@ -268,7 +268,7 @@
         [% END %]
         [% IF page == "data_table" %]
             [% IF hostlocal %]
-                <script type="text/javascript" src="[% url.js %]/jquery.floatThead-slim.min.js"></script>
+                <script type="text/javascript" src="[% url.js %]/jquery.floatThead.js"></script>
             [% ELSE %]
                 <script type="text/javascript" src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/floatthead/2.1.3/jquery.floatThead.min.js"></script>
             [% END %]
