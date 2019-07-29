@@ -112,4 +112,49 @@ is($aggregate->fields->{$calc1->id}->as_string, "410", "Correct total of calc va
     is($aggregate->fields->{$calc1->id}->as_string, "410", "Correct total of calc values");
 }
 
+# Large number of records (greater than default number of rows in table). Check
+# that paging does not affect results
+{
+    my @data;
+    for my $count (1..300)
+    {
+        push @data, {
+            string1  => "Foo",
+            integer1 => 10,
+        };
+    }
+
+    my $sheet = t::lib::DataSheet->new(data => \@data);
+    $sheet->create_records;
+    my $schema   = $sheet->schema;
+    my $layout   = $sheet->layout;
+    my $columns  = $sheet->columns;
+    my $integer1 = $columns->{integer1};
+    my $calc1    = $columns->{calc1};
+
+    $integer1->aggregate('sum');
+    $integer1->write;
+    $calc1->aggregate('sum');
+    $calc1->write;
+    $layout->clear;
+
+    my $records = GADS::Records->new(
+        # Specify rows parameter to simulate default used for table view. This
+        # should be ignored
+        rows   => 50,
+        page   => 1,
+        layout => $layout,
+        user   => $sheet->user,
+        schema => $schema,
+    );
+
+    @results = @{$records->results};
+    is(@results, 50, "Correct number of normal rows");
+    is($records->pages, 6, "Correct number of pages for large number of records");
+
+    my $aggregate = $records->aggregate_results;
+
+    is($aggregate->fields->{$integer1->id}->as_string, "3000", "Group integer correct for large amount of results");
+}
+
 done_testing();
