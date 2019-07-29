@@ -496,7 +496,7 @@ sub resultset_for_values
 
 sub _import_branch
 {   my ($self, $old_in, $new_in, %options) = @_;
-    my $report = $options{report};
+    my $report = $options{report_only};
     my @old = sort { $a->{text} cmp $b->{text} } @$old_in;
     my @new = sort { $a->{text} cmp $b->{text} } @$new_in;
     my @to_write;
@@ -507,7 +507,7 @@ sub _import_branch
         # If it's the same, easy, onto the next one
         if ($old->{text} && $new->{text} && $old->{text} eq $new->{text})
         {
-            notice __x"No change for tree value {value}", value => $old->{text}
+            trace __x"No change for tree value {value}", value => $old->{text}
                 if $report;
             $new->{source_id} = $new->{id};
             $new->{id} = $old->{id};
@@ -550,13 +550,13 @@ sub _import_branch
             # Different, don't know what to do, require manual intervention
             if ($report)
             {
-                notice __x"Error: don't know how to handle tree updates, manual intervention required."
-                    ." (failed at old {old} new {new})", old => $old->{text}, new => $new->{text};
+                notice __x"Error: don't know how to handle tree updates for {name}, manual intervention required."
+                    ." (failed at old {old} new {new})", name => $self->name, old => $old->{text}, new => $new->{text};
                 return;
             }
             else {
-                error __x"Error: don't know how to handle tree updates, manual intervention required"
-                    ." (failed at old {old} new {new}, column {column})", old => $old->{text}, new => $new->{text},
+                error __x"Error: don't know how to handle tree updates for {name}, manual intervention required"
+                    ." (failed at old {old} new {new}, column {column})", name => $self->name, old => $old->{text}, new => $new->{text},
                     column => $self->name;
             }
         }
