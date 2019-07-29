@@ -132,7 +132,8 @@
                                 <li role="presentation"><a role="menuitem" id="clone_href" class="bulk_href" tabindex="-1" href="/[% layout.identifier %]/bulk/clone/">Clone all [% sel_type %]...</a></li>
                             [% END %]
                             [% IF viewtype == "table" AND records.size AND layout.user_can("download") %]
-                                <li role="presentation"><a role="menuitem" tabindex="-1" href="/[% layout.identifier %]/data?download">Download records in current view</a></li>
+                                <li role="presentation"><a role="menuitem" tabindex="-1"
+                                        href="/[% layout.identifier %]/data?download[% IF filter_url %]&[% filter_url %][% END %]">Download records</a></li>
                             [% END %]
                         </ul>
                     </div>
