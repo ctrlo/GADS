@@ -94,8 +94,9 @@ sub write_code
 before import_hash => sub {
     my ($self, $values, %options) = @_;
     my $report = $options{report_only} && $self->id;
-    notice __x"Update: RAG code has changed"
-        if $report && $self->code ne $values->{code};
+    notice __x"Update: RAG code has changed for {name}",
+        name => $self->name
+            if $report && $self->code ne $values->{code};
     $self->code($values->{code});
 };
 
