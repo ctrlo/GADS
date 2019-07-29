@@ -50,16 +50,17 @@ use Log::Report syntax => 'LONG';
 use String::CamelCase qw(camelize);
 use Path::Tiny;
 
-my ($site_id, $purge, $add, $report_only, $merge, $update_cached, $force);
+my ($site_id, $purge, $add, $report_only, $merge, $update_cached, $force, @ignore_fields);
 
 GetOptions (
-    'site-id=s'     => \$site_id,
-    'purge'         => \$purge,
-    'add'           => \$add,           # Add as new table to existing system
-    'report-only'   => \$report_only,
-    'merge'         => \$merge,         # Merge into existing table
-    'update-cached' => \$update_cached,
-    'force'         => \$force,         # Force updates
+    'site-id=s'      => \$site_id,
+    'purge'          => \$purge,
+    'add'            => \$add,           # Add as new table to existing system
+    'report-only'    => \$report_only,
+    'merge'          => \$merge,         # Merge into existing table
+    'update-cached'  => \$update_cached,
+    'force'          => \$force,         # Force updates
+    'ignore-field=s' => \@ignore_fields,
 ) or exit;
 
 $site_id or report ERROR =>  "Please provide site ID with --site-id";
@@ -136,6 +137,7 @@ my $enum_mapping = {};
 my $values_to_import = {};
 my @all_columns;
 my @all_layouts;
+my %ignore_fields = map { $_ => 1 } @ignore_fields;
 
 foreach my $ins (readdir $root)
 {
@@ -230,6 +232,13 @@ foreach my $ins (readdir $root)
     {
         my $updated;
         my $column = $layout->column_by_name($col->{name});
+
+        if ($column && $ignore_fields{$column->name})
+        {
+            $column_mapping->{$col->{id}} = $column->id;
+            next;
+        }
+
         if ($column)
         {
             report TRACE => __x"Update: Column {name} already exists, will update", name => $col->{name}
@@ -296,9 +305,12 @@ foreach my $ins (readdir $root)
     {
         foreach my $col (values %existing_columns)
         {
-            report NOTICE => __x"Deletion: Column {name} no longer exist", name => $col->name;
-            $col->delete
-                unless $report_only;
+            unless ($ignore_fields{$col->name})
+            {
+                report NOTICE => __x"Deletion: Column {name} no longer exist", name => $col->name;
+                $col->delete
+                    unless $report_only;
+            }
         }
     }
 
@@ -409,6 +421,8 @@ foreach my $l (@all_layouts)
 foreach (@all_columns)
 {
     my $col = $_->{column};
+
+    next if $ignore_fields{$col->name};
 
     foreach my $val (@{$values_to_import->{$col->id}})
     {
