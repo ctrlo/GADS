@@ -1494,7 +1494,7 @@ sub import_after_all
             push @rules, $filter;
         }
         $self->display_fields->as_hash({
-            condition => $values->{display_condition},
+            condition => $values->{display_condition} || 'AND',
             rules     => \@rules,
         });
     }
