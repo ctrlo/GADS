@@ -26,11 +26,6 @@
     max-width: 13em;
     text-overflow: ellipsis;
     -ms-text-overflow: ellipsis;
-    &:hover {
-        & + .popover {
-            display: block;
-        }
-    }
 }
 
 .data-table thead .column-name {
@@ -47,8 +42,6 @@
     padding: .5em;
     margin-top: 6px;
     min-width: 200px;
-    top: auto !important; /* Overwrite the custom inline style as applied by positionDisclosure(). */
-    left: 8px !important; /* Overwrite the custom inline style as applied by positionDisclosure(). */
 
     /* Add a ::before to expand the hover area so there's no gap anymore between the button and the popover. */
     &::before {
@@ -132,11 +125,6 @@
         margin: 0;
         cursor: pointer;
     }
-}
-
-.data-table thead th:last-child .popover {
-    left: auto !important;
-    right: 8px !important; /* Overwrite the custom inline style as applied by positionDisclosure(). */
 }
 
 .data-table thead .helptext {
