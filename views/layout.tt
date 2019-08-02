@@ -385,16 +385,17 @@
             </div>
         </div>
         <div class="form-group">
-            <label for="no_cache_update">Status updates:</label>
+            <label>Status updates:</label>
             <div class="radio">
                 <label>
-                    <input type="radio" name="no_cache_update" value="0" checked>Update all existing values immediately
+                    <input type="radio" name="no_cache_update_calc" value="0">Update all existing values immediately
+                        (may take a long time for a lot of records)
                 </label>
             </div>
 
             <div class="radio">
                 <label>
-                    <input type="radio" name="no_cache_update" value="1">Do not immediately update all existing values
+                    <input type="radio" name="no_cache_update_calc" value="1" checked>Do not immediately update all existing values
                         (values will be updated overnight instead)
                 </label>
             </div>
@@ -421,15 +422,16 @@
             </div>
         </div>
         <div class="form-group">
-            <label for="no_cache_update">Status updates:</label>
+            <label>Status updates:</label>
             <div class="radio">
                 <label>
-                    <input type="radio" name="no_cache_update" value="0" checked>Update all existing values immediately
+                    <input type="radio" name="no_cache_update_rag" value="0">Update all existing values immediately
+                        (may take a long time for a lot of records)
                 </label>
             </div>
             <div class="radio">
                 <label>
-                    <input type="radio" name="no_cache_update" value="1">Do not immediately update all existing values
+                    <input type="radio" name="no_cache_update_rag" value="1" checked>Do not immediately update all existing values
                         (values will be updated overnight instead)
                 </label>
             </div>

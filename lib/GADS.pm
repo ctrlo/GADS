@@ -2666,7 +2666,8 @@ prefix '/:layout_name' => sub {
                     $column->related_field_id(param 'related_field_id');
                 }
 
-                if (process( sub { $column->write(no_alerts => $no_alerts, no_cache_update => param('no_cache_update')) }))
+                my $no_cache_update = $column->type eq 'rag' ? param('no_cache_update_rag') : param('no_cache_update_calc');
+                if (process( sub { $column->write(no_alerts => $no_alerts, no_cache_update => $no_cache_update) }))
                 {
                     my $msg = param('id')
                         ? qq(Your field has been updated successfully)
