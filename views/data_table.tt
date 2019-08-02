@@ -158,6 +158,9 @@
                     zIndex: function($table){
                         return 999;
                     },
+                    ariaLabel: function($table, $headerCell, columnIndex) {
+                        return $headerCell.data('thlabel');
+                    }
                 });
                 if (!FontDetect.isFontLoaded('14px/1 FontAwesome')) {
                     $( ".use-icon-font" ).hide();

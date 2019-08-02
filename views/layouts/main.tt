@@ -267,10 +267,10 @@
             [% END %]
         [% END %]
         [% IF page == "data_table" %]
-            [% IF hostlocal %]
-                <script type="text/javascript" src="[% url.js %]/jquery.floatThead.js"></script>
+            [% IF hostlocal OR 1 # CDN version not available at time of writing %]
+                <script type="text/javascript" src="[% url.js %]/jquery.floatThead.min.js"></script>
             [% ELSE %]
-                <script type="text/javascript" src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/floatthead/2.1.3/jquery.floatThead.min.js"></script>
+                <script type="text/javascript" src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/floatthead/2.1.4/jquery.floatThead.min.js"></script>
             [% END %]
         [% END %]
         [% IF page.match("data") %]
