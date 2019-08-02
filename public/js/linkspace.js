@@ -893,37 +893,75 @@ var positionDisclosure = function (offsetTop, offsetLeft, triggerHeight) {
         'left': left,
         'top' : top
     });
+
+    // If the popover is outside the body move it a bit to the left
+    if (document.body && document.body.clientWidth && $disclosure.get(0).getBoundingClientRect) {
+        var windowOffset = document.body.clientWidth - $disclosure.get(0).getBoundingClientRect().right;
+        if (windowOffset < 0) {
+            $disclosure.css({
+                'left': (offsetLeft + windowOffset) + 'px',
+            });
+        }
+    }
 };
 
-var toggleDisclosure = function () {
+var onDisclosureClick = function() {
     var $trigger = $(this);
-    var $disclosure = $trigger.siblings('.expandable').first();
+    var currentlyPermanentExpanded = $trigger.hasClass('expanded--permanent');
 
-    var offset = $trigger.position();
+    toggleDisclosure($trigger, !currentlyPermanentExpanded, true);
+}
 
-    if ($disclosure.hasClass('popover')) {
-        positionDisclosure.call(
-            $disclosure, offset.top, offset.left, $trigger.height()
-        );
-    }
-
+var onDisclosureMouseover = function() {
+    var $trigger = $(this);
     var currentlyExpanded = $trigger.attr('aria-expanded') === 'true';
-    $trigger.attr('aria-expanded', !currentlyExpanded);
+
+    if (!currentlyExpanded) {
+        toggleDisclosure($trigger, true, false);
+    }
+}
+
+var onDisclosureMouseout = function() {
+    var $trigger = $(this);
+    var currentlyExpanded = $trigger.attr('aria-expanded') === 'true';
+    var currentlyPermanentExpanded = $trigger.hasClass('expanded--permanent');
+
+    if (currentlyExpanded && !currentlyPermanentExpanded) {
+        toggleDisclosure($trigger, false, false);
+    }
+}
+
+var toggleDisclosure = function ($trigger, state, permanent) {
+    $trigger.attr('aria-expanded', state);
+    $trigger.toggleClass('expanded--permanent', state && permanent);
 
     var expandedLabel = $trigger.data('label-expanded');
     var collapsedLabel = $trigger.data('label-collapsed');
 
     if (collapsedLabel && expandedLabel) {
-        $trigger.html(currentlyExpanded ? collapsedLabel : expandedLabel);
+        $trigger.html(state ? expandedLabel : collapsedLabel);
     }
 
-    $disclosure.toggleClass('expanded', !currentlyExpanded);
+    var $disclosure = $trigger.siblings('.expandable').first();
+    $disclosure.toggleClass('expanded', state);
 
-    $trigger.trigger((currentlyExpanded ? 'collapse' : 'expand'), $disclosure);
+    if ($disclosure.hasClass('popover')) {
+        var offset = $trigger.position();
+        positionDisclosure.call(
+            $disclosure, offset.top, offset.left, $trigger.outerHeight() + 6
+        );
+    }
+
+    $trigger.trigger((state ? 'expand' : 'collapse'), $disclosure);
 };
 
+
 var setupDisclosureWidgets = function (context) {
-    $('.trigger[aria-expanded]', context).on('click', toggleDisclosure);
+    $('.trigger[aria-expanded]', context).on('click', onDisclosureClick);
+
+    // Also show/hide disclosures on hover in the data-table
+    $('.data-table .trigger[aria-expanded]', context).on('mouseover', onDisclosureMouseover);
+    $('.data-table .trigger[aria-expanded]', context).on('mouseout', onDisclosureMouseout);
 }
 
 var runPageSpecificCode = function (context) {
@@ -941,7 +979,7 @@ var setupClickToEdit = function(context) {
         var $editToggleButton = $(this);
 
         // Open and hide expanded element
-        toggleDisclosure.bind($editToggleButton).call();
+        onDisclosureClick.bind($editToggleButton).call();
 
         $editToggleButton.siblings('.topic-click-to-edit-fields').hide();
         $editToggleButton.hide();
@@ -1734,7 +1772,7 @@ Linkspace.layout = function () {
         $('#permissions').addClass('permission-group-' + groupId);
         $newRule.find('.group-name').text($selectedGroup.text());
 
-        $newRule.find('button.edit').on('click', toggleDisclosure);
+        $newRule.find('button.edit').on('click', onDisclosureClick);
 
         handlePermissionChange.call($newRule);
         closePermissionConfig();
