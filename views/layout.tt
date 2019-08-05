@@ -324,6 +324,16 @@
             <input id="force_regex" class="form-control" type="text" name="force_regex" value="[% column.force_regex | html_entity %]">
         </div>
     </div>
+    <div class="field-options intgr">
+        <div class="form-group">
+            <label for="show_calculator">Show pop-up calculator:</label>
+            <div class="checkbox">
+                <label>
+                    <input id="show_calculator" type="checkbox" name="show_calculator" [% IF column.show_calculator %]checked[% END %]>Show pop-up calculator
+                </label>
+            </div>
+        </div>
+    </div>
     <div class="field-options date daterange">
         <div class="form-group">
             <label for="show_datepicker">Show date picker:</label>

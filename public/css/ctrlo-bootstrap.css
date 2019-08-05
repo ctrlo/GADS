@@ -1708,6 +1708,9 @@ small.search_term {
 #manage-fields.column-type-autocur .field-options.autocur {
   display: block; }
 
+#manage-fields.column-type-intgr .field-options.intgr {
+  display: block; }
+
 #manage-fields.column-type-rag #options .stored-value,
 #manage-fields.column-type-calc #options .stored-value {
   display: none; }

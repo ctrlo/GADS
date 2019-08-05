@@ -706,7 +706,7 @@
                 [% ELSE %]
                     [% IF dispcol.type == "date" AND dispcol.show_datepicker AND !readonly %]
                         [% class = "form-control datepicker" %]
-                    [% ELSIF dispcol.type == "intgr" AND editvalue.value.defined %]
+                    [% ELSIF dispcol.type == "intgr" AND editvalue.value.defined AND dispcol.show_calculator %]
                         [% class = "form-control intcalculator" %]
                     [% ELSE %]
                         [% class = "form-control" %]

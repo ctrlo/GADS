@@ -36,6 +36,23 @@ has '+return_type' => (
     builder => sub { 'integer' },
 );
 
+has '+option_names' => (
+    default => sub { [qw/show_calculator/] },
+);
+
+has show_calculator => (
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    builder => sub {
+        my $self = shift;
+        return 0 unless $self->has_options;
+        $self->options->{show_calculator};
+    },
+    trigger => sub { $_[0]->reset_options },
+);
+
 sub validate
 {   my ($self, $value, %options) = @_;
 
