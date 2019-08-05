@@ -434,6 +434,8 @@
         conditions: ['AND', 'OR'],
         default_condition: 'AND',
 
+        showPreviousValues: false,
+
         default_rule_flags: {
             filter_readonly: false,
             operator_readonly: false,
@@ -1815,6 +1817,10 @@
      * @return {string}
      */
     QueryBuilder.prototype.getRuleTemplate = function(rule_id) {
+        var show_previous = this.settings.showPreviousValues
+            ? '<div style="display:block"><input class="previous-values" type="checkbox"> \
+                Include values from previous record versions for this filter</div>'
+            : '';
         var h = '\
 <li id="'+ rule_id +'" class="rule-container"> \
   <div class="rule-header"> \
@@ -1830,7 +1836,7 @@
   <div class="rule-filter-container"></div> \
   <div class="rule-operator-container"></div> \
   <div class="rule-value-container"></div> \
-  <div style="display:block"><input class="previous-values" type="checkbox"> Include values from previous record versions for this filter</div> \
+  ' + show_previous + ' \
 </li>';
 
         return this.change('getRuleTemplate', h);
