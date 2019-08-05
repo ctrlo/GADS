@@ -710,6 +710,7 @@
 
             out.condition = that.getGroupCondition($group);
             out.rules = [];
+            out.previous_values = $group.find('.previous-values-group').is(':checked');
 
             for (var i=0, l=$elements.length; i<l; i++) {
                 var $rule = $elements.eq(i),
@@ -805,6 +806,9 @@
                 $buttons.filter('[value='+ cond +']').prop('checked', data.condition.toUpperCase() == cond.toUpperCase());
             }
             $buttons.trigger('change');
+
+            $group.find('>div>.previous-values-group').prop('checked', data.previous_values);
+            console.log($group);
 
             $.each(data.rules, function(i, rule) {
                 if (rule.rules && rule.rules.length>0) {
@@ -1756,6 +1760,10 @@
      * @return {string}
      */
     QueryBuilder.prototype.getGroupTemplate = function(group_id, level) {
+        var show_previous = this.settings.showPreviousValues
+            ? '<div style="display:block"><input class="previous-values-group" type="checkbox"> \
+                Include previous record versions for this whole group</div>'
+            : '';
         var h = '\
 <dl id="'+ group_id +'" class="rules-group-container"> \
   <dt class="rules-group-header"> \
@@ -1784,6 +1792,7 @@
   <dd class=rules-group-body> \
     <ul class=rules-list></ul> \
   </dd> \
+  ' + show_previous + ' \
 </dl>';
 
         return this.change('getGroupTemplate', h, level);

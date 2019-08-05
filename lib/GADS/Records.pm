@@ -1703,6 +1703,33 @@ sub _search_construct
     my $ignore_perms = $options{ignore_perms};
     if (my $rules = $filter->{rules})
     {
+        # Previous values for a group. This allows previous values to be
+        # searched only for a whole group (e.g. to include previous values only
+        # between certain edit dates). Construct the whole group as a
+        # GADS::Records and return that as a query
+        if ($filter->{previous_values})
+        {
+            my $encoded = GADS::Filter->new(
+                as_hash => {%$filter, previous_values => 0}
+            );
+
+            my $records = GADS::Records->new(
+                schema       => $self->schema,
+                user         => $self->user,
+                layout       => $self->layout,
+                _view_limits => [], # Don't limit by view this as well, otherwise recursive loop happens
+                previous_values => 1,
+                view  => GADS::View->new(
+                    filter      => $encoded,
+                    instance_id => $self->layout->instance_id,
+                    layout      => $self->layout,
+                    schema      => $self->schema,
+                    user        => $self->user,
+                ),
+            );
+
+            return +{ 'me.id' => { -in => $records->_current_ids_rs->as_query } };
+        }
         # Filter has other nested filters
         my @final;
         foreach my $rule (@$rules)
