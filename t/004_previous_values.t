@@ -173,7 +173,7 @@ foreach my $value (@values)
                 type            => 'string',
                 value           => $value->{begin_string},
                 operator        => 'equal',
-                previous_values => 1,
+                previous_values => 'positive',
             }],
         },
     );
@@ -421,7 +421,7 @@ foreach my $test (@tests)
                 type            => 'string',
                 value           => $test->{filter_value},
                 operator        => $test->{operator},
-                previous_values => 1,
+                previous_values => 'positive',
             }],
         },
     );
@@ -473,7 +473,7 @@ foreach my $test (@tests)
     $record->fields->{$columns->{string1}->id}->set_value('foobar');
     $record->write(no_alerts => 1);
 
-    set_fixed_time('01/01/2015 01:00:00', '%m/%d/%Y %H:%M:%S');
+    set_fixed_time('01/02/2015 01:00:00', '%m/%d/%Y %H:%M:%S');
     $record = GADS::Record->new(
         schema => $schema,
         layout => $layout,
@@ -516,7 +516,7 @@ foreach my $test (@tests)
                 ],
                 operator => 'AND',
             };
-            $hash->{previous_values} = 1 unless $test eq 'normal';
+            $hash->{previous_values} = 'positive' unless $test eq 'normal';
             my $rules = GADS::Filter->new(
                 as_hash => $hash,
             );
@@ -572,7 +572,7 @@ foreach my $test (@tests)
                                 operator        => 'less',
                             }
                         ],
-                        previous_values => 1,
+                        previous_values => 'positive',
                     },
                     {
                         rules => [
@@ -595,7 +595,7 @@ foreach my $test (@tests)
                                 operator        => 'less',
                             }
                         ],
-                        previous_values => 1,
+                        previous_values => 'positive',
                     },
                 ],
                 operator        => 'AND',
@@ -622,6 +622,127 @@ foreach my $test (@tests)
         my $expected = $inrange ? 1 : 0;
         is ($records->count, $expected, "Correct number of results for group include previous with value change");
     }
+
+    # Negative group previous values match
+    foreach my $match (qw/positive negative/) # Check both to ensure difference
+    {
+        my $rules = GADS::Filter->new(
+            as_hash => {
+                rules     => [
+                    {
+                        rules => [
+                            {
+                                id              => $int->id,
+                                type            => 'string',
+                                value           => 20,
+                                operator        => 'equal',
+                            },
+                            {
+                                id              => $layout->column_by_name_short('_version_datetime')->id,
+                                type            => 'string',
+                                value           => '2015-06-01',
+                                operator        => 'less',
+                            },
+                        ],
+                        previous_values => $match,
+                    },
+                ],
+            },
+        );
+
+        my $view_previous = GADS::View->new(
+            name        => 'Test view previous group',
+            filter      => $rules,
+            instance_id => $sheet->instance_id,
+            layout      => $sheet->layout,
+            schema      => $schema,
+            user        => $sheet->user,
+        );
+        $view_previous->write;
+
+        $records = GADS::Records->new(
+            user    => $sheet->user,
+            view    => $view_previous,
+            layout  => $sheet->layout,
+            schema  => $schema,
+        );
+
+        my $expected = $match eq 'negative' ? 0 : 1;
+        is ($records->count, $expected, "Correct number of results for negative previous value group");
+    }
+
+    # Now a test to see if a value has changed in a certain period
+    foreach my $inrange (0..1)
+    {
+        my $rules = GADS::Filter->new(
+            as_hash => {
+                rules     => [
+                    {
+                        rules => [
+                            {
+                                id              => $int->id,
+                                type            => 'string',
+                                value           => 20,
+                                operator        => 'equal',
+                            },
+                            {
+                                id              => $layout->column_by_name_short('_version_datetime')->id,
+                                type            => 'string',
+                                value           => '2014-12-31',
+                                operator        => 'less',
+                            }
+                        ],
+                        previous_values => 'negative',
+                    },
+                    {
+                        rules => [
+                            {
+                                id              => $int->id,
+                                type            => 'string',
+                                value           => 20,
+                                operator        => 'equal',
+                            },
+                            {
+                                id              => $layout->column_by_name_short('_version_datetime')->id,
+                                type            => 'string',
+                                value           => '2015-01-01',
+                                operator        => 'greater',
+                            },
+                            {
+                                id              => $layout->column_by_name_short('_version_datetime')->id,
+                                type            => 'string',
+                                value           => '2015-12-31',
+                                operator        => 'less',
+                            }
+                        ],
+                        previous_values => 'positive',
+                    },
+                ],
+                operator        => 'AND',
+            },
+        );
+
+        my $view_previous = GADS::View->new(
+            name        => 'Test view previous group',
+            filter      => $rules,
+            instance_id => $sheet->instance_id,
+            layout      => $sheet->layout,
+            schema      => $schema,
+            user        => $sheet->user,
+        );
+        $view_previous->write;
+
+        $records = GADS::Records->new(
+            user    => $sheet->user,
+            view    => $view_previous,
+            layout  => $sheet->layout,
+            schema  => $schema,
+        );
+
+        my $expected = $inrange ? 1 : 1;
+        is ($records->count, $expected, "Correct number of results for searching for change in period");
+    }
+
 }
 
 done_testing();

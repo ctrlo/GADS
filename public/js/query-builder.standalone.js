@@ -709,8 +709,12 @@
                 $elements = $group.find('>.rules-group-body>.rules-list>*');
 
             out.condition = that.getGroupCondition($group);
+            var $previous_values_div = $group.find('>.previous-values-div');
             out.rules = [];
-            out.previous_values = $group.find('>.previous-values-div>.previous-values-group').is(':checked');
+            if ($previous_values_div.find('.previous-values-group').is(':checked')) {
+                out.previous_values = $previous_values_div.find('.previous-values-group-negative').is(':checked')
+                    ? 'negative' : 'positive';
+            }
 
             for (var i=0, l=$elements.length; i<l; i++) {
                 var $rule = $elements.eq(i),
@@ -807,7 +811,13 @@
             }
             $buttons.trigger('change');
 
-            $group.find('>.previous-values-div>.previous-values-group').prop('checked', data.previous_values);
+            var $previous_values_div = $group.find('>.previous-values-div');
+            if (data.previous_values) {
+                $previous_values_div.find('.previous-values-group').prop('checked', true);
+                if (data.previous_values == "negative") {
+                    $previous_values_div.find('.previous-values-group-negative').prop('checked', true);
+                }
+            }
 
             $.each(data.rules, function(i, rule) {
                 if (rule.rules && rule.rules.length>0) {
@@ -1759,9 +1769,17 @@
      * @return {string}
      */
     QueryBuilder.prototype.getGroupTemplate = function(group_id, level) {
-        var show_previous = this.settings.showPreviousValues
-            ? '<div style="display:block" class="previous-values-div"><input class="previous-values-group" type="checkbox"> \
-                Include previous record versions for this whole group</div>'
+        var show_previous = this.settings.showPreviousValues // XXX remove horrible styling hack
+            ? '<div style="display:block" class="previous-values-div"> \
+                <label style="font-weight: lighter; display:inline"> \
+                    <input class="previous-values-group" type="checkbox"> \
+                    Include previous record versions for this whole group \
+                </label> \
+                (<label style="font-weight: lighter; display:inline"> \
+                    <input class="previous-values-group-negative" type="checkbox"> \
+                    negative match \
+                </label> \
+                )</div>'
             : '';
         var h = '\
 <dl id="'+ group_id +'" class="rules-group-container"> \

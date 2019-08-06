@@ -1728,7 +1728,8 @@ sub _search_construct
                 ),
             );
 
-            return +{ 'me.id' => { -in => $records->_current_ids_rs->as_query } };
+            my $match = $filter->{previous_values} eq 'negative' ? '-not_in' : '-in';
+            return +{ 'me.id' => { $match => $records->_current_ids_rs->as_query } };
         }
         # Filter has other nested filters
         my @final;
