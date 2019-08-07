@@ -725,8 +725,9 @@ var setupLessMoreWidgets = function (context) {
 var getFieldValues = function ($depends) {
 
     // If a field is not shown then treat it as a blank value (e.g. if fields
-    // are in a hierarchy and the top one is not shown
-    if ($depends.css('display') == 'none') {
+    // are in a hierarchy and the top one is not shown, or if the user does
+    // not have write access to the field)
+    if ($depends.length == 0 || $depends.css('display') == 'none') {
         return [''];
     }
 
@@ -879,8 +880,7 @@ var setupDependentField = function () {
         var regexp      = rule.regexp;
         var is_negative = rule.is_negative;
 
-
-        $depends.on('change', function (e) {
+        var processChange = function () {
             test_all(condition, rules) ? $field.show() : $field.hide();
             var $panel = $field.closest('.panel-group');
             if ($panel.length) {
@@ -899,6 +899,18 @@ var setupDependentField = function () {
             // if this one is now hidden then that will change its value to
             // blank
             $field.trigger('change');
+        };
+
+        // If the field depended on is not actually in the form (e.g. if the
+        // user doesn't have access to it) then treat it as an empty value and
+        // process as normal. Process immediately as the value won't change
+        if ($depends.length == 0) {
+            processChange();
+        }
+
+        // Standard change of visible form field
+        $depends.on('change', function (e) {
+            processChange();
         });
 
         // trigger a change to toggle all dependencies
