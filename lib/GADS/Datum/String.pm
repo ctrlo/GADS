@@ -98,6 +98,9 @@ has text_all => (
     builder => sub {
         my $self = shift;
         $self->values;
+        # By default we return empty strings. These make their way to grouped
+        # display as the value to filter for, so this ensures that something
+        # like "undef" doesn't display
         [ sort map { defined $_ ? $_ : '' } @{$self->values} ];
     },
 );
@@ -134,7 +137,10 @@ sub html_withlinks
 sub _build_for_code
 {   my ($self, %options) = @_;
 
-    my @values = @{$self->text_all};
+    # Consistently return undef for empty string, so that the variable can be
+    # tested in Lua easily using "if variable", otherwise empty strings are
+    # treated as true in Lua
+    my @values = map length $_ || undef, @{$self->text_all};
 
     $self->column->multivalue || @values > 1 ? \@values : $values[0];
 }
