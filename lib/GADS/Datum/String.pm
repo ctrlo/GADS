@@ -140,7 +140,7 @@ sub _build_for_code
     # Consistently return undef for empty string, so that the variable can be
     # tested in Lua easily using "if variable", otherwise empty strings are
     # treated as true in Lua
-    my @values = map length $_ || undef, @{$self->text_all};
+    my @values = map length $_ ? $_ : undef, @{$self->text_all};
 
     $self->column->multivalue || @values > 1 ? \@values : $values[0];
 }
