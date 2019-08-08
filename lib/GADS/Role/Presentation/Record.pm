@@ -83,6 +83,7 @@ sub presentation {
     return {
         parent_id       => $self->parent_id,
         current_id      => $self->current_id,
+        record_id       => $self->record_id,
         instance_id     => $self->layout->instance_id,
         columns         => $self->_presentation_map_columns(%options, columns => \@columns),
         indent          => $indent,
