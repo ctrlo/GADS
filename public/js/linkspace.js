@@ -411,7 +411,7 @@ var SelectWidget = function (multi) {
 
     function possibleCloseWidget(e) {
         var newlyFocussedElement = e.relatedTarget || document.activeElement;
-        if (!$selectWidget.find(newlyFocussedElement).length && newlyFocussedElement && !$(newlyFocussedElement).is(".modal, .page, .col-md-12")) {
+        if (!$selectWidget.find(newlyFocussedElement).length && newlyFocussedElement && !$(newlyFocussedElement).is(".modal, .page") && $selectWidget.get(0).parentNode !== newlyFocussedElement) {
             collapse($widget, $trigger, $target);
         }
     }
