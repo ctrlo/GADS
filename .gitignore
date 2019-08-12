@@ -19,3 +19,4 @@ _Inline/
 .sass-cache/
 node_modules/
 /.vagrant
+/public/**/*.map
