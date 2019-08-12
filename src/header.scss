@@ -1,0 +1,10 @@
+.ld-header-container {
+  display: flex;
+  flex-direction: row;
+  padding: 12px;
+  margin: 10px;
+  border: solid gray 1px;
+  > * {
+    margin-right: 12px;
+  }
+}

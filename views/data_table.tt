@@ -4,6 +4,18 @@
 
 [% PROCESS snippets/rag_legend.tt IF has_rag_column %]
 
+<div id="ld-app" class="react-grid-layout" data-dashboard="23" data-dashboard-endpoint="/api/dashboard" data-widget-types='["graph", "chart", "table", "bar"]'>
+    <div class="ld-widget-container" data-grid='{"i": "23", "x": 0, "y": 0, "w": 4, "h": 2, "minW": 4}'>
+        uno
+    </div>
+    <div class="ld-widget-container" data-grid='{"i": "24", "x": 4, "y": 0, "w": 2, "h": 2}'>
+        due
+    </div>
+    <div class="ld-widget-container" data-grid='{"i": "25", "x": 6, "y": 0, "w": 6, "h": 4}'>
+        tres
+    </div>
+</div>
+
 <div class="hscroll row">
 <table class="data-table table table-striped col-md-12" id="data-table">
     <thead>
