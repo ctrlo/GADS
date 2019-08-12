@@ -50,7 +50,7 @@ has as_json => (
     trigger => sub {
         my ($self, $new) = @_;
         # Need to compare as structures, as stringified JSON could be in different orders
-        $self->_set_changed(1) if $self->has_value && !Compare($self->as_hash, decode_json_utf8($new));
+        $self->_set_changed(1) if $self->has_value && !Compare($self->as_hash, decode_json_utf8($new), { ignore_hash_keys => ['column_id'] });
         $self->clear_as_hash;
         # Force the hash to build with the new value, which will effectively
         # allow it to hold the old value, if we make any further changse (which
@@ -74,7 +74,7 @@ has as_hash => (
     },
     trigger => sub {
         my ($self, $new) = @_;
-        $self->_set_changed(1) if $self->has_value && !Compare(decode_json_utf8($self->as_json), $new);
+        $self->_set_changed(1) if $self->has_value && !Compare(decode_json_utf8($self->as_json), $new, { ignore_hash_keys => ['column_id'] });
         $self->clear_as_json;
         # Force the JSON to build with the new value, which will effectively
         # allow it to hold the old value, if we make any further changse (which

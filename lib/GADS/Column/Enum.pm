@@ -284,60 +284,74 @@ before import_hash => sub {
     # manual intervention
     if (my @old = @{$self->enumvals})
     {
+        @old = sort { $a->{id} <=> $b->{id} } @old;
+
         # First see if there are any changes at all
         my @old_sorted = sort map $_->{value}, @old;
         my @new_sorted = sort map $_->{value}, @new;
 
-        return if @old_sorted eq @new_sorted;
-
-        @old = sort { $a->{id} <=> $b->{id} } @old;
-        while (@old)
+        # We shouldn't need to do this as it should just be handled below, but
+        # some older imports imported enumvals in a different order to the
+        # source system (now fixed) so the import routines below don't function
+        # as they expect enum values in a consistent order
+        if (@old_sorted eq @new_sorted)
         {
-            my $old = shift @old;
-            my $new = shift @new;
-            # If it's the same, easy, onto the next one
-            if ($old->{value} eq $new->{value})
+            foreach my $old (@old)
             {
-                trace __x"No change for enum value {value}", value => $old->{value}
-                    if $report;
-                $new->{source_id} = $new->{id};
-                $new->{id} = $old->{id};
-                push @to_write, $new;
-                next;
-            }
-            # Different. Is the next one the same?
-            if ($old[0] && $new[0] && $old[0]->{value} eq $new[0]->{value})
-            {
-                # Yes, assume the previous is a value change
-                notice __x"Changing enum value {old} to {new}", old => $old->{value}, new => $new->{value}
-                    if $report;
-                $new->{source_id} = $new->{id};
-                $new->{id} = $old->{id};
-                push @to_write, $new;
-            }
-            elsif ($options{force})
-            {
-                notice __x"Unknown enumval update {value}, forcing as requested", value => $new->{value};
-                $new->{source_id} = delete $new->{id};
-                push @to_write, $new;
-            }
-            else {
-                # Different, don't know what to do, require manual intervention
-                if ($report)
-                {
-                    notice __x"Error: don't know how to handle enumval updates for {name}, manual intervention required. Old value: {old}, new value: {new}",
-                        name => $self->name, old => $old->{value}, new => $new->{value};
-                    return;
-                }
-                else {
-                    error __x"Error: don't know how to handle enumval updates for {name}, manual intervention required",
-                        name => $self->name;
-                }
+                my $new = shift @new;
+                $old->{source_id} = $new->{id};
+                push @to_write, $old;
             }
         }
-        # Add any remaining new ones
-        $_->{source_id} = delete $_->{id} foreach @new;
-        push @to_write, @new;
+        else {
+            while (@old)
+            {
+                my $old = shift @old;
+                my $new = shift @new;
+                # If it's the same, easy, onto the next one
+                if ($old->{value} eq $new->{value})
+                {
+                    trace __x"No change for enum value {value}", value => $old->{value}
+                        if $report;
+                    $new->{source_id} = $new->{id};
+                    $new->{id} = $old->{id};
+                    push @to_write, $new;
+                    next;
+                }
+                # Different. Is the next one the same?
+                if ($old[0] && $new[0] && $old[0]->{value} eq $new[0]->{value})
+                {
+                    # Yes, assume the previous is a value change
+                    notice __x"Changing enum value {old} to {new}", old => $old->{value}, new => $new->{value}
+                        if $report;
+                    $new->{source_id} = $new->{id};
+                    $new->{id} = $old->{id};
+                    push @to_write, $new;
+                }
+                elsif ($options{force})
+                {
+                    notice __x"Unknown enumval update {value}, forcing as requested", value => $new->{value};
+                    $new->{source_id} = delete $new->{id};
+                    push @to_write, $new;
+                }
+                else {
+                    # Different, don't know what to do, require manual intervention
+                    if ($report)
+                    {
+                        notice __x"Error: don't know how to handle enumval updates for {name}, manual intervention required. Old value: {old}, new value: {new}",
+                            name => $self->name, old => $old->{value}, new => $new->{value};
+                        return;
+                    }
+                    else {
+                        error __x"Error: don't know how to handle enumval updates for {name}, manual intervention required",
+                            name => $self->name;
+                    }
+                }
+            }
+            # Add any remaining new ones
+            $_->{source_id} = delete $_->{id} foreach @new;
+            push @to_write, @new;
+        }
     }
     else {
         $_->{source_id} = delete $_->{id} foreach @new;

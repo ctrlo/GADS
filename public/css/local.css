@@ -250,3 +250,9 @@ a.sort-link {
 a.sort-link:hover {
     text-decoration: underline;
 }
+
+/* div used by HTML::FromText for retaining line breaks.
+ * Make sure the beginning of text doesn't line break */
+.hft-lines {
+    display: inline;
+}

@@ -2,6 +2,8 @@ use Test::More; # tests => 1;
 use strict;
 use warnings;
 
+use Test::MockTime qw(set_fixed_time restore_time); # Load before DateTime
+use DateTime;
 use JSON qw(encode_json);
 use Log::Report;
 use GADS::Filter;
@@ -171,7 +173,7 @@ foreach my $value (@values)
                 type            => 'string',
                 value           => $value->{begin_string},
                 operator        => 'equal',
-                previous_values => 1,
+                previous_values => 'positive',
             }],
         },
     );
@@ -419,7 +421,7 @@ foreach my $test (@tests)
                 type            => 'string',
                 value           => $test->{filter_value},
                 operator        => $test->{operator},
-                previous_values => 1,
+                previous_values => 'positive',
             }],
         },
     );
@@ -442,6 +444,305 @@ foreach my $test (@tests)
     );
 
     is ($records->count, $test->{count_previous}, "Correct number of results inc previous - operator $test->{operator}");
+}
+
+# Test previous values for groups. Make some edits over a period of time, and
+# attempt to retrieve previous values only between certain edit dates
+{
+    set_fixed_time('01/01/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
+
+    my $sheet   = t::lib::DataSheet->new(
+        data       => [{
+            integer1 => 10,
+        }],
+        multivalue => 1,
+    );
+    $sheet->create_records;
+    my $schema   = $sheet->schema;
+    my $layout   = $sheet->layout;
+    my $columns  = $sheet->columns;
+    my $int      = $columns->{integer1},
+
+    set_fixed_time('09/01/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
+    my $record = GADS::Record->new(
+        schema => $schema,
+        layout => $layout,
+        user   => $sheet->user,
+    );
+    $record->find_current_id(1);
+    $record->fields->{$columns->{string1}->id}->set_value('foobar');
+    $record->write(no_alerts => 1);
+
+    set_fixed_time('01/02/2015 01:00:00', '%m/%d/%Y %H:%M:%S');
+    $record = GADS::Record->new(
+        schema => $schema,
+        layout => $layout,
+        user   => $sheet->user,
+    );
+    $record->find_current_id(1);
+    $record->fields->{$int->id}->set_value(20);
+    $record->write(no_alerts => 1);
+
+    set_fixed_time('01/01/2016 01:00:00', '%m/%d/%Y %H:%M:%S');
+    $record->clear;
+    $record->find_current_id(1);
+    $record->fields->{$int->id}->set_value(30);
+    $record->write(no_alerts => 1);
+
+    foreach my $test ('normal', 'inrange', 'outrange')
+    {
+        foreach my $negative (0..1)
+        {
+            my $hash = {
+                rules     => [
+                    {
+                        id              => $int->id,
+                        type            => 'string',
+                        value           => 20,
+                        operator        => $negative ? 'not_equal' : 'equal',
+                    },
+                    {
+                        id              => $layout->column_by_name_short('_version_datetime')->id,
+                        type            => 'string',
+                        value           => $test eq 'inrange' ? '2014-10-01' : '2014-06-01',
+                        operator        => 'greater',
+                    },
+                    {
+                        id              => $layout->column_by_name_short('_version_datetime')->id,
+                        type            => 'string',
+                        value           => $test eq 'inrange' ? '2015-06-01' : '2014-10-01',
+                        operator        => 'less',
+                    }
+                ],
+                operator => 'AND',
+            };
+            $hash->{previous_values} = 'positive' unless $test eq 'normal';
+            my $rules = GADS::Filter->new(
+                as_hash => $hash,
+            );
+
+            my $view_previous = GADS::View->new(
+                name        => 'Test view previous group',
+                filter      => $rules,
+                instance_id => $sheet->instance_id,
+                layout      => $sheet->layout,
+                schema      => $schema,
+                user        => $sheet->user,
+            );
+            $view_previous->write;
+
+            my $records = GADS::Records->new(
+                user    => $sheet->user,
+                view    => $view_previous,
+                layout  => $sheet->layout,
+                schema  => $schema,
+            );
+
+            my $expected = $test eq 'inrange' ? 1 : 0;
+            $expected = $expected ? 0 : 1
+                if $negative && $test ne 'normal';
+            is ($records->count, $expected, "Correct number of results for group include previous ($test), negative: $negative");
+        }
+    }
+
+    # Now a test to see if a value has changed in a certain period
+    foreach my $inrange (0..1)
+    {
+        my $rules = GADS::Filter->new(
+            as_hash => {
+                rules     => [
+                    {
+                        rules => [
+                            {
+                                id              => $int->id,
+                                type            => 'string',
+                                value           => 10,
+                                operator        => 'equal',
+                            },
+                            {
+                                id              => $layout->column_by_name_short('_version_datetime')->id,
+                                type            => 'string',
+                                value           => $inrange ? '2013-06-01' : '2014-10-01',
+                                operator        => 'greater',
+                            },
+                            {
+                                id              => $layout->column_by_name_short('_version_datetime')->id,
+                                type            => 'string',
+                                value           => '2015-06-01',
+                                operator        => 'less',
+                            }
+                        ],
+                        previous_values => 'positive',
+                    },
+                    {
+                        rules => [
+                            {
+                                id              => $int->id,
+                                type            => 'string',
+                                value           => 10,
+                                operator        => 'not_equal',
+                            },
+                            {
+                                id              => $layout->column_by_name_short('_version_datetime')->id,
+                                type            => 'string',
+                                value           => $inrange ? '2013-06-01' : '2014-10-01',
+                                operator        => 'greater',
+                            },
+                            {
+                                id              => $layout->column_by_name_short('_version_datetime')->id,
+                                type            => 'string',
+                                value           => '2015-06-01',
+                                operator        => 'less',
+                            }
+                        ],
+                        previous_values => 'positive',
+                    },
+                ],
+                operator        => 'AND',
+            },
+        );
+
+        my $view_previous = GADS::View->new(
+            name        => 'Test view previous group',
+            filter      => $rules,
+            instance_id => $sheet->instance_id,
+            layout      => $sheet->layout,
+            schema      => $schema,
+            user        => $sheet->user,
+        );
+        $view_previous->write;
+
+        $records = GADS::Records->new(
+            user    => $sheet->user,
+            view    => $view_previous,
+            layout  => $sheet->layout,
+            schema  => $schema,
+        );
+
+        my $expected = $inrange ? 1 : 0;
+        is ($records->count, $expected, "Correct number of results for group include previous with value change");
+    }
+
+    # Negative group previous values match
+    foreach my $match (qw/positive negative/) # Check both to ensure difference
+    {
+        my $rules = GADS::Filter->new(
+            as_hash => {
+                rules     => [
+                    {
+                        rules => [
+                            {
+                                id              => $int->id,
+                                type            => 'string',
+                                value           => 20,
+                                operator        => 'equal',
+                            },
+                            {
+                                id              => $layout->column_by_name_short('_version_datetime')->id,
+                                type            => 'string',
+                                value           => '2015-06-01',
+                                operator        => 'less',
+                            },
+                        ],
+                        previous_values => $match,
+                    },
+                ],
+            },
+        );
+
+        my $view_previous = GADS::View->new(
+            name        => 'Test view previous group',
+            filter      => $rules,
+            instance_id => $sheet->instance_id,
+            layout      => $sheet->layout,
+            schema      => $schema,
+            user        => $sheet->user,
+        );
+        $view_previous->write;
+
+        $records = GADS::Records->new(
+            user    => $sheet->user,
+            view    => $view_previous,
+            layout  => $sheet->layout,
+            schema  => $schema,
+        );
+
+        my $expected = $match eq 'negative' ? 0 : 1;
+        is ($records->count, $expected, "Correct number of results for negative previous value group");
+    }
+
+    # Now a test to see if a value has changed in a certain period
+    foreach my $inrange (0..1)
+    {
+        my $rules = GADS::Filter->new(
+            as_hash => {
+                rules     => [
+                    {
+                        rules => [
+                            {
+                                id              => $int->id,
+                                type            => 'string',
+                                value           => 20,
+                                operator        => 'equal',
+                            },
+                            {
+                                id              => $layout->column_by_name_short('_version_datetime')->id,
+                                type            => 'string',
+                                value           => '2014-12-31',
+                                operator        => 'less',
+                            }
+                        ],
+                        previous_values => 'negative',
+                    },
+                    {
+                        rules => [
+                            {
+                                id              => $int->id,
+                                type            => 'string',
+                                value           => 20,
+                                operator        => 'equal',
+                            },
+                            {
+                                id              => $layout->column_by_name_short('_version_datetime')->id,
+                                type            => 'string',
+                                value           => '2015-01-01',
+                                operator        => 'greater',
+                            },
+                            {
+                                id              => $layout->column_by_name_short('_version_datetime')->id,
+                                type            => 'string',
+                                value           => '2015-12-31',
+                                operator        => 'less',
+                            }
+                        ],
+                        previous_values => 'positive',
+                    },
+                ],
+                operator        => 'AND',
+            },
+        );
+
+        my $view_previous = GADS::View->new(
+            name        => 'Test view previous group',
+            filter      => $rules,
+            instance_id => $sheet->instance_id,
+            layout      => $sheet->layout,
+            schema      => $schema,
+            user        => $sheet->user,
+        );
+        $view_previous->write;
+
+        $records = GADS::Records->new(
+            user    => $sheet->user,
+            view    => $view_previous,
+            layout  => $sheet->layout,
+            schema  => $schema,
+        );
+
+        my $expected = $inrange ? 1 : 1;
+        is ($records->count, $expected, "Correct number of results for searching for change in period");
+    }
+
 }
 
 done_testing();

@@ -819,7 +819,7 @@ sub _build_current_group_id
 
 # Produce a standard set of results without grouping
 sub _current_ids_rs
-{   my $self = shift;
+{   my ($self, %options) = @_;
 
     # Build the search query first, to ensure that all join numbers are correct
     my $search_query    = $self->search_query(search => 1, sort => 1, linked => 1); # Need to call first to build joins
@@ -848,10 +848,13 @@ sub _current_ids_rs
     $page = $self->pages
         if $page && $page > 1 && $page > $self->pages; # Building page count is expensive, avoid if not needed
 
-    $select->{rows} = $self->rows if $self->rows && !$self->is_group;
-    $select->{page} = $page if $page && !$self->is_group;
-    $select->{rows} ||= $self->max_results
-        if $self->max_results;
+    if (!$self->is_group && !$options{aggregate})
+    {
+        $select->{rows} = $self->rows if $self->rows;
+        $select->{page} = $page if $page;
+        $select->{rows} ||= $self->max_results
+            if $self->max_results;
+    }
 
     # Get the current IDs
     # Only take the latest record_single (no later ones)
@@ -875,9 +878,9 @@ sub _cid_search_query
     # then we would be creating some very big queries with the sub-query, and
     # therefore performance (Pg at least) has been shown to be better if we run
     # the ID subquery first and only pass the IDs in to the main query
-    if ($self->is_group)
+    if ($self->is_group || $options{aggregate})
     {
-        $search->{'me.id'} = { -in => $self->_current_ids_rs->as_query };
+        $search->{'me.id'} = { -in => $self->_current_ids_rs(%options)->as_query };
     }
     else {
         $search->{'me.id'} = $self->current_ids;
@@ -1700,6 +1703,34 @@ sub _search_construct
     my $ignore_perms = $options{ignore_perms};
     if (my $rules = $filter->{rules})
     {
+        # Previous values for a group. This allows previous values to be
+        # searched only for a whole group (e.g. to include previous values only
+        # between certain edit dates). Construct the whole group as a
+        # GADS::Records and return that as a query
+        if ($filter->{previous_values})
+        {
+            my $encoded = GADS::Filter->new(
+                as_hash => {%$filter, previous_values => 0}
+            );
+
+            my $records = GADS::Records->new(
+                schema       => $self->schema,
+                user         => $self->user,
+                layout       => $self->layout,
+                _view_limits => [], # Don't limit by view this as well, otherwise recursive loop happens
+                previous_values => 1,
+                view  => GADS::View->new(
+                    filter      => $encoded,
+                    instance_id => $self->layout->instance_id,
+                    layout      => $self->layout,
+                    schema      => $self->schema,
+                    user        => $self->user,
+                ),
+            );
+
+            my $match = $filter->{previous_values} eq 'negative' ? '-not_in' : '-in';
+            return +{ 'me.id' => { $match => $records->_current_ids_rs->as_query } };
+        }
         # Filter has other nested filters
         my @final;
         foreach my $rule (@$rules)

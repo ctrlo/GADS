@@ -12,7 +12,7 @@
                 <th></th>
             [% END %]
             [% FOREACH col IN columns %]
-                <th scope="col" aria-sort="[% col.sort.aria %]">
+                <th scope="col" aria-sort="[% col.sort.aria %]" data-thlabel="[% col.name | html %]">
                     <button type="button" class="trigger" aria-expanded="false" aria-controls="col-[% col.id %]-options">[% IF col.has_filter %]⧩[% END %][% col.sort.current %][% col.name | html_entity %] &rsaquo; </button>
                     <div class="expandable popover" id="col-[% col.id %]-options">
                         <div class="column-name">[% col.name | html_entity %]</div>
@@ -158,6 +158,9 @@
                     zIndex: function($table){
                         return 999;
                     },
+                    ariaLabel: function($table, $headerCell, columnIndex) {
+                        return $headerCell.data('thlabel');
+                    }
                 });
                 if (!FontDetect.isFontLoaded('14px/1 FontAwesome')) {
                     $( ".use-icon-font" ).hide();

@@ -27,7 +27,7 @@ sub presentation {
 
     my $base = $self->presentation_base;
 
-    $base->{text}  = delete $base->{value};
+    $base->{text}  = $base->{value};
     $base->{links} = $self->_presentation_details;
 
     return $base;

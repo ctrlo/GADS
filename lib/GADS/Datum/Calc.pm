@@ -200,6 +200,6 @@ sub _build_for_code
     $self->column->multivalue ? \@return : $return[0];
 }
 
-sub _build_blank { !shift->as_string }
+sub _build_blank { ! length shift->as_string }
 
 1;

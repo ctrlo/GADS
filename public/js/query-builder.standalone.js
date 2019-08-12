@@ -434,6 +434,8 @@
         conditions: ['AND', 'OR'],
         default_condition: 'AND',
 
+        showPreviousValues: false,
+
         default_rule_flags: {
             filter_readonly: false,
             operator_readonly: false,
@@ -707,7 +709,12 @@
                 $elements = $group.find('>.rules-group-body>.rules-list>*');
 
             out.condition = that.getGroupCondition($group);
+            var $previous_values_div = $group.find('>.previous-values-div');
             out.rules = [];
+            if ($previous_values_div.find('.previous-values-group').is(':checked')) {
+                out.previous_values = $previous_values_div.find('.previous-values-group-negative').is(':checked')
+                    ? 'negative' : 'positive';
+            }
 
             for (var i=0, l=$elements.length; i<l; i++) {
                 var $rule = $elements.eq(i),
@@ -803,6 +810,14 @@
                 $buttons.filter('[value='+ cond +']').prop('checked', data.condition.toUpperCase() == cond.toUpperCase());
             }
             $buttons.trigger('change');
+
+            var $previous_values_div = $group.find('>.previous-values-div');
+            if (data.previous_values) {
+                $previous_values_div.find('.previous-values-group').prop('checked', true);
+                if (data.previous_values == "negative") {
+                    $previous_values_div.find('.previous-values-group-negative').prop('checked', true);
+                }
+            }
 
             $.each(data.rules, function(i, rule) {
                 if (rule.rules && rule.rules.length>0) {
@@ -1754,6 +1769,18 @@
      * @return {string}
      */
     QueryBuilder.prototype.getGroupTemplate = function(group_id, level) {
+        var show_previous = this.settings.showPreviousValues // XXX remove horrible styling hack
+            ? '<div style="display:block" class="previous-values-div"> \
+                <label style="font-weight: lighter; display:inline"> \
+                    <input class="previous-values-group" type="checkbox"> \
+                    Include previous record versions for this whole group \
+                </label> \
+                (<label style="font-weight: lighter; display:inline"> \
+                    <input class="previous-values-group-negative" type="checkbox"> \
+                    negative match \
+                </label> \
+                )</div>'
+            : '';
         var h = '\
 <dl id="'+ group_id +'" class="rules-group-container"> \
   <dt class="rules-group-header"> \
@@ -1782,6 +1809,7 @@
   <dd class=rules-group-body> \
     <ul class=rules-list></ul> \
   </dd> \
+  ' + show_previous + ' \
 </dl>';
 
         return this.change('getGroupTemplate', h, level);
@@ -1815,6 +1843,10 @@
      * @return {string}
      */
     QueryBuilder.prototype.getRuleTemplate = function(rule_id) {
+        var show_previous = this.settings.showPreviousValues
+            ? '<div style="display:block"><input class="previous-values" type="checkbox"> \
+                Include values from previous record versions for this filter</div>'
+            : '';
         var h = '\
 <li id="'+ rule_id +'" class="rule-container"> \
   <div class="rule-header"> \
@@ -1830,7 +1862,7 @@
   <div class="rule-filter-container"></div> \
   <div class="rule-operator-container"></div> \
   <div class="rule-value-container"></div> \
-  <div style="display:block"><input class="previous-values" type="checkbox"> Include values from previous record versions for this filter</div> \
+  ' + show_previous + ' \
 </li>';
 
         return this.change('getRuleTemplate', h);

@@ -100,6 +100,145 @@ window.guid = function() {
     return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
 }
 
+var setupCalculator = function (context) {
+
+    var selector = '.intcalculator';
+    var $nodes = $('.fileupload', context);
+    var $nodes = $(selector, context).closest('.form-group').find('label');
+
+    $nodes.each(function () {
+        var $el = $(this);
+        var calculator_id   = 'calculator_div';
+        var calculator_elem = $('<div class="dropdown-menu" id="' + calculator_id + '"></div>');
+        calculator_elem.css({
+            position: 'absolute',
+            'z-index': 1100,
+            display: 'none',
+            padding: '10px'
+        });
+        $('body').append(calculator_elem);
+
+        calculator_elem.append(' \
+            <form class="form-inline"> \
+                <div class="form-group btn-group operator" data-toggle="buttons"></div> \
+                <div class="form-group"><input type="text" placeholder="Number" class="form-control"></input></div> \
+                <div class="form-group"> \
+                    <input type="submit" value="Calculate" class="btn btn-default"></input> \
+                </div> \
+            </form> \
+        ');
+
+        $(document).mouseup(function (e)
+        {
+            if (!calculator_elem.is(e.target)
+                && calculator_elem.has(e.target).length === 0)
+            {
+                calculator_elem.hide();
+            }
+        });
+
+        var calculator_operation;
+        var integer_input_elem;
+
+        var calculator_button = [
+            {
+                action:     'add',
+                subvaluelabel:      '+',
+                keypress:   [ '+' ],
+                operation:  function (a, b) { return a + b; }
+            },
+            {
+                action:     'subtract',
+                label:      '-',
+                keypress:   [ '-' ],
+                operation:  function (a, b) { return a - b; }
+            },
+            {
+                action:     'multiply',
+                label:      '×',
+                keypress:   [ '*', 'X', 'x', '×' ],
+                operation:  function (a, b) { return a * b; }
+            },
+            {
+                action:     'divide',
+                label:      '÷',
+                keypress:   [ '/', '÷' ],
+                operation:  function (a, b) { return a / b; }
+            }
+        ];
+        var keypress_action = {};
+        var operator_btns_elem = calculator_elem.find('.operator');
+        for (var i in calculator_button) {
+            ( function () {
+                var btn = calculator_button[i];
+                var button_elem = $(
+                    '<label class="btn btn-primary" style="width:40px">'
+                    + '<input type="radio" name="op" class="btn_label_' + btn.action + '">'
+                    + btn.label
+                    + '</input>'
+                    + '</label>'
+                );
+                operator_btns_elem.append(button_elem);
+                button_elem.on('click', function() {
+                    calculator_operation = btn.operation;
+                    calculator_elem.find(':text').focus();
+                });
+                for (var j in btn.keypress) {
+                    var keypress = btn.keypress[j];
+                    keypress_action[keypress] = btn.action;
+                }
+            })();
+        }
+
+        calculator_elem.find(':text').on('keypress', function (e) {
+            var key_pressed = e.key;
+            if (key_pressed in keypress_action) {
+                var button_selector = '.btn_label_'
+                    + keypress_action[key_pressed];
+                calculator_elem.find(button_selector).click();
+                e.preventDefault();
+            }
+        });
+        calculator_elem.find('form').on('submit', function (e) {
+            var new_value = calculator_operation(
+                + integer_input_elem.val(),
+                + calculator_elem.find(':text').val()
+            );
+            integer_input_elem.val(new_value);
+            calculator_elem.hide();
+            e.preventDefault();
+        });
+
+        var $calc_button =
+            $('<span class="btn-xs btn-link openintcalculator">Calculator</span>');
+        $calc_button.insertAfter($el).on('click', function (e) {
+            var calc_elem = $(e.target);
+            var container_elem = calc_elem.closest('.form-group');
+            var input_elem = container_elem.find(selector);
+
+            var container_y_offset = container_elem.offset().top;
+            var container_height = container_elem.height();
+            var calculator_y_offset;
+            var calc_div_height = $('#calculator_div').height();
+            if (  container_y_offset > calc_div_height ) {
+                calculator_y_offset = container_y_offset - calc_div_height;
+            }
+            else {
+                calculator_y_offset = container_y_offset + container_height;
+            }
+            calculator_elem.css({
+                top: calculator_y_offset,
+                left: container_elem.offset().left
+            });
+            var calc_input = calculator_elem.find(':text');
+            calc_input.val('');
+            calculator_elem.show();
+            calc_input.focus();
+            integer_input_elem = input_elem;
+        });
+    });
+}
+
 /*
  * A SelectWidget is a custom disclosure widget
  * with multi or single options selectable.
@@ -411,7 +550,7 @@ var SelectWidget = function (multi) {
 
     function possibleCloseWidget(e) {
         var newlyFocussedElement = e.relatedTarget || document.activeElement;
-        if (!$selectWidget.find(newlyFocussedElement).length && newlyFocussedElement && !$(newlyFocussedElement).is(".modal, .page, .col-md-12")) {
+        if (!$selectWidget.find(newlyFocussedElement).length && newlyFocussedElement && !$(newlyFocussedElement).is(".modal, .page") && $selectWidget.get(0).parentNode !== newlyFocussedElement) {
             collapse($widget, $trigger, $target);
         }
     }
@@ -586,8 +725,9 @@ var setupLessMoreWidgets = function (context) {
 var getFieldValues = function ($depends) {
 
     // If a field is not shown then treat it as a blank value (e.g. if fields
-    // are in a hierarchy and the top one is not shown
-    if ($depends.css('display') == 'none') {
+    // are in a hierarchy and the top one is not shown, or if the user does
+    // not have write access to the field)
+    if ($depends.length == 0 || $depends.css('display') == 'none') {
         return [''];
     }
 
@@ -740,8 +880,7 @@ var setupDependentField = function () {
         var regexp      = rule.regexp;
         var is_negative = rule.is_negative;
 
-
-        $depends.on('change', function (e) {
+        var processChange = function () {
             test_all(condition, rules) ? $field.show() : $field.hide();
             var $panel = $field.closest('.panel-group');
             if ($panel.length) {
@@ -760,6 +899,18 @@ var setupDependentField = function () {
             // if this one is now hidden then that will change its value to
             // blank
             $field.trigger('change');
+        };
+
+        // If the field depended on is not actually in the form (e.g. if the
+        // user doesn't have access to it) then treat it as an empty value and
+        // process as normal. Process immediately as the value won't change
+        if ($depends.length == 0) {
+            processChange();
+        }
+
+        // Standard change of visible form field
+        $depends.on('change', function (e) {
+            processChange();
         });
 
         // trigger a change to toggle all dependencies
@@ -893,37 +1044,75 @@ var positionDisclosure = function (offsetTop, offsetLeft, triggerHeight) {
         'left': left,
         'top' : top
     });
+
+    // If the popover is outside the body move it a bit to the left
+    if (document.body && document.body.clientWidth && $disclosure.get(0).getBoundingClientRect) {
+        var windowOffset = document.body.clientWidth - $disclosure.get(0).getBoundingClientRect().right;
+        if (windowOffset < 0) {
+            $disclosure.css({
+                'left': (offsetLeft + windowOffset) + 'px',
+            });
+        }
+    }
 };
 
-var toggleDisclosure = function () {
+var onDisclosureClick = function() {
     var $trigger = $(this);
-    var $disclosure = $trigger.siblings('.expandable').first();
+    var currentlyPermanentExpanded = $trigger.hasClass('expanded--permanent');
 
-    var offset = $trigger.position();
+    toggleDisclosure($trigger, !currentlyPermanentExpanded, true);
+}
 
-    if ($disclosure.hasClass('popover')) {
-        positionDisclosure.call(
-            $disclosure, offset.top, offset.left, $trigger.height()
-        );
-    }
-
+var onDisclosureMouseover = function() {
+    var $trigger = $(this);
     var currentlyExpanded = $trigger.attr('aria-expanded') === 'true';
-    $trigger.attr('aria-expanded', !currentlyExpanded);
+
+    if (!currentlyExpanded) {
+        toggleDisclosure($trigger, true, false);
+    }
+}
+
+var onDisclosureMouseout = function() {
+    var $trigger = $(this);
+    var currentlyExpanded = $trigger.attr('aria-expanded') === 'true';
+    var currentlyPermanentExpanded = $trigger.hasClass('expanded--permanent');
+
+    if (currentlyExpanded && !currentlyPermanentExpanded) {
+        toggleDisclosure($trigger, false, false);
+    }
+}
+
+var toggleDisclosure = function ($trigger, state, permanent) {
+    $trigger.attr('aria-expanded', state);
+    $trigger.toggleClass('expanded--permanent', state && permanent);
 
     var expandedLabel = $trigger.data('label-expanded');
     var collapsedLabel = $trigger.data('label-collapsed');
 
     if (collapsedLabel && expandedLabel) {
-        $trigger.html(currentlyExpanded ? collapsedLabel : expandedLabel);
+        $trigger.html(state ? expandedLabel : collapsedLabel);
     }
 
-    $disclosure.toggleClass('expanded', !currentlyExpanded);
+    var $disclosure = $trigger.siblings('.expandable').first();
+    $disclosure.toggleClass('expanded', state);
 
-    $trigger.trigger((currentlyExpanded ? 'collapse' : 'expand'), $disclosure);
+    if ($disclosure.hasClass('popover')) {
+        var offset = $trigger.position();
+        positionDisclosure.call(
+            $disclosure, offset.top, offset.left, $trigger.outerHeight() + 6
+        );
+    }
+
+    $trigger.trigger((state ? 'expand' : 'collapse'), $disclosure);
 };
 
+
 var setupDisclosureWidgets = function (context) {
-    $('.trigger[aria-expanded]', context).on('click', toggleDisclosure);
+    $('.trigger[aria-expanded]', context).on('click', onDisclosureClick);
+
+    // Also show/hide disclosures on hover in the data-table
+    $('.data-table .trigger[aria-expanded]', context).on('mouseover', onDisclosureMouseover);
+    $('.data-table .trigger[aria-expanded]', context).on('mouseout', onDisclosureMouseout);
 }
 
 var runPageSpecificCode = function (context) {
@@ -941,7 +1130,7 @@ var setupClickToEdit = function(context) {
         var $editToggleButton = $(this);
 
         // Open and hide expanded element
-        toggleDisclosure.bind($editToggleButton).call();
+        onDisclosureClick.bind($editToggleButton).call();
 
         $editToggleButton.siblings('.topic-click-to-edit-fields').hide();
         $editToggleButton.hide();
@@ -1609,6 +1798,7 @@ Linkspace.edit = function (context) {
     setupTreeFields(context);
     setupDependentFields(context);
     setupClickToEdit(context);
+    setupCalculator(context);
 }
 
 Linkspace.record = function () {
@@ -1734,7 +1924,7 @@ Linkspace.layout = function () {
         $('#permissions').addClass('permission-group-' + groupId);
         $newRule.find('.group-name').text($selectedGroup.text());
 
-        $newRule.find('button.edit').on('click', toggleDisclosure);
+        $newRule.find('button.edit').on('click', onDisclosureClick);
 
         handlePermissionChange.call($newRule);
         closePermissionConfig();

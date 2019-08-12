@@ -324,6 +324,16 @@
             <input id="force_regex" class="form-control" type="text" name="force_regex" value="[% column.force_regex | html_entity %]">
         </div>
     </div>
+    <div class="field-options intgr">
+        <div class="form-group">
+            <label for="show_calculator">Show pop-up calculator:</label>
+            <div class="checkbox">
+                <label>
+                    <input id="show_calculator" type="checkbox" name="show_calculator" [% IF column.show_calculator %]checked[% END %]>Show pop-up calculator
+                </label>
+            </div>
+        </div>
+    </div>
     <div class="field-options date daterange">
         <div class="form-group">
             <label for="show_datepicker">Show date picker:</label>
@@ -385,16 +395,17 @@
             </div>
         </div>
         <div class="form-group">
-            <label for="no_cache_update">Status updates:</label>
+            <label>Status updates:</label>
             <div class="radio">
                 <label>
-                    <input type="radio" name="no_cache_update" value="0" checked>Update all existing values immediately
+                    <input type="radio" name="no_cache_update_calc" value="0">Update all existing values immediately
+                        (may take a long time for a lot of records)
                 </label>
             </div>
 
             <div class="radio">
                 <label>
-                    <input type="radio" name="no_cache_update" value="1">Do not immediately update all existing values
+                    <input type="radio" name="no_cache_update_calc" value="1" checked>Do not immediately update all existing values
                         (values will be updated overnight instead)
                 </label>
             </div>
@@ -421,15 +432,16 @@
             </div>
         </div>
         <div class="form-group">
-            <label for="no_cache_update">Status updates:</label>
+            <label>Status updates:</label>
             <div class="radio">
                 <label>
-                    <input type="radio" name="no_cache_update" value="0" checked>Update all existing values immediately
+                    <input type="radio" name="no_cache_update_rag" value="0">Update all existing values immediately
+                        (may take a long time for a lot of records)
                 </label>
             </div>
             <div class="radio">
                 <label>
-                    <input type="radio" name="no_cache_update" value="1">Do not immediately update all existing values
+                    <input type="radio" name="no_cache_update_rag" value="1" checked>Do not immediately update all existing values
                         (values will be updated overnight instead)
                 </label>
             </div>

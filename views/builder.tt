@@ -1,4 +1,7 @@
 $('#builder[% builder_id %]').queryBuilder({
+    [% IF include_previous %]
+        showPreviousValues: true,
+    [% END %]
     filters: [
         [% FOR col IN builder_layout.columns_for_filter("override_permissions", override_permissions) %]
             {

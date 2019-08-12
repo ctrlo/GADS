@@ -928,4 +928,66 @@ foreach my $multi (0..1)
     }
 }
 
+# Ensure that blank and null string fields in the database are treated the same
+foreach my $test (qw/string_empty string_null calc_empty calc_null/)
+{
+    my $data = [
+        {
+            string1 => '',
+        },
+    ];
+
+    my $sheet   = t::lib::DataSheet->new(
+        data             => $data,
+        calc_code        => 'function evaluate (_id) return "" end',
+        calc_return_type => 'string',
+    );
+    $sheet->create_records;
+    my $schema  = $sheet->schema;
+    my $layout  = $sheet->layout;
+    my $columns = $sheet->columns;
+
+    my $field = $test =~ /string/ ? 'L1string1' : 'L1calc1';
+    my $code = "
+        function evaluate ($field)
+            if L1string1 == nil then
+                return \"nil\"
+            end
+            if L1string1 == \"\" then
+                return \"empty\"
+            end
+            return \"unexpected: \" .. L1string1
+        end";
+
+    my $calc2 = GADS::Column::Calc->new(
+        schema => $schema,
+        user   => undef,
+        layout => $layout,
+        name   => 'L1calc2',
+        code   => $code,
+    );
+    $calc2->write;
+    $layout->clear;
+
+    # Manually update database to ensure that both stored empty strings and
+    # undefined values are tested
+    $schema->resultset('Calcval')->update({
+        value_text => $test =~ /null/ ? undef : '',
+    });
+    $schema->resultset('String')->update({
+        value => $test =~ /null/ ? undef : '',
+    });
+
+    # Force update of calc2 field
+    $calc2->update_cached;
+
+    my $record = GADS::Record->new(
+        user   => $sheet->user,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->find_current_id(1);
+    is($record->fields->{$calc2->id}->as_string, 'nil', "Calc from string correct ($test)");
+}
+
 done_testing();

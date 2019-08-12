@@ -1415,6 +1415,10 @@ small.search_term {
   opacity: 1; }
 
 /* less / more */
+/* Ensure that more-less divs to not wrap away from their heading in click-to-edit topics */
+.more-less {
+  display: inline; }
+
 .more-less.clipped {
   max-height: 60px;
   overflow: hidden; }
@@ -1453,8 +1457,6 @@ small.search_term {
   max-width: 13em;
   text-overflow: ellipsis;
   -ms-text-overflow: ellipsis; }
-  .data-table thead button:hover + .popover {
-    display: block; }
 
 .data-table thead .column-name {
   font-weight: bold;
@@ -1469,10 +1471,6 @@ small.search_term {
   padding: .5em;
   margin-top: 6px;
   min-width: 200px;
-  top: auto !important;
-  /* Overwrite the custom inline style as applied by positionDisclosure(). */
-  left: 8px !important;
-  /* Overwrite the custom inline style as applied by positionDisclosure(). */
   /* Add a ::before to expand the hover area so there's no gap anymore between the button and the popover. */ }
   .data-table thead .popover::before {
     content: "";
@@ -1526,11 +1524,6 @@ small.search_term {
   .data-table thead .popover .column-filter__button {
     margin: 0;
     cursor: pointer; }
-
-.data-table thead th:last-child .popover {
-  left: auto !important;
-  right: 8px !important;
-  /* Overwrite the custom inline style as applied by positionDisclosure(). */ }
 
 .data-table thead .helptext {
   padding-top: 1em; }
@@ -1717,6 +1710,9 @@ small.search_term {
   display: block; }
 
 #manage-fields.column-type-autocur .field-options.autocur {
+  display: block; }
+
+#manage-fields.column-type-intgr .field-options.intgr {
   display: block; }
 
 #manage-fields.column-type-rag #options .stored-value,
