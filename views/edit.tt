@@ -124,7 +124,7 @@
             [% columns_done = {} %]
             [% click_to_edits = [] %]
 
-            [% FOREACH col_panel IN record_presentation.columns %]
+            [% FOREACH col_panel IN record.columns %]
                 [% IF layout_edit.has_topics %]
                     [% IF col_panel.topic.id != previous_topic %]
                         [% IF in_panel %]
@@ -502,7 +502,7 @@
         [% readonly = "" %]
     [% END %]
 
-    [% indents = record_presentation.indent.${dispcol.id} %]
+    [% indents = record.indent.${dispcol.id} %]
     [% FOREACH i IN [1..indents] %]
         <div class="row">
             <div class="col-md-11 col-md-offset-1">

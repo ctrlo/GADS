@@ -3606,7 +3606,6 @@ sub _process_edit
     }
 
     my $params = {
-        record              => $record,
         modal               => $modal,
         page                => 'edit',
         child               => $child_rec,
@@ -3614,7 +3613,7 @@ sub _process_edit
         clone               => param('from'),
         submission_token    => !$modal && $record->create_submission_token,
         breadcrumbs         => $breadcrumbs,
-        record_presentation => $record->presentation(edit => 1, new => !$id, child => $child),
+        record              => $record->presentation(edit => 1, new => !$id, child => $child),
     };
 
     $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids
