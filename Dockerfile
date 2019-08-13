@@ -1,4 +1,4 @@
-FROM perl
+FROM perl:5.30.0-stretch
 
 RUN mkdir -p /gads
 WORKDIR /gads
