@@ -248,7 +248,7 @@ has has_curuser => (
 
 sub _build_has_curuser
 {   my $self = shift;
-    grep {
+    !! grep {
         ($self->layout->column($_->{column_id})->type eq 'person'
             && $_->{value} && $_->{value} eq '[CURUSER]')
         || ($self->layout->column($_->{column_id})->return_type eq 'string'
