@@ -25,6 +25,8 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
+with 'GADS::Role::Presentation::Column::Daterange';
+
 has '+return_type' => (
     builder => sub { 'daterange' },
 );

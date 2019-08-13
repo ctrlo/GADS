@@ -46,9 +46,10 @@ sub presentation {
         type                => $self->type,
         name                => $self->name,
         is_id               => $self->name_short && $self->name_short eq '_id',
-        topic               => $self->topic && $self->topic->name,
+        topic               => $self->topic,
         topic_id            => $self->topic && $self->topic->id,
         is_multivalue       => $self->multivalue,
+        has_multivalue_plus => $self->has_multivalue_plus,
         helptext            => $self->helptext,
         readonly            => $options{new} ? !$self->user_can('write_new') : !$self->user_can('write_existing'),
         data                => $options{datum_presentation},
@@ -59,13 +60,9 @@ sub presentation {
         filter_text         => $filter_text,
         has_filter_search   => 1,
         fixedvals           => $self->fixedvals,
+        widthcols           => $self->widthcols,
+        optional            => $self->optional,
     };
-
-    # XXX Reference to self when this is used within edit.tt. Ideally this
-    # wouldn't be needed and all parameters that are needed would be passed as
-    # above.
-    $return->{column} = $self
-        if $options{edit};
 
     if (my $sort = $options{sort})
     {

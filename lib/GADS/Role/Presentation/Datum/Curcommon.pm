@@ -30,6 +30,14 @@ sub presentation {
     $base->{text}  = $base->{value};
     $base->{links} = $self->_presentation_details;
 
+    # Function to return the values for the drop-down selector, but only the
+    # selected ones. This makes rendering the edit page quicker, as in the case of
+    # a filtered drop-down, the values will be fetched each time it gets the
+    # focus anyway
+    $base->{selected_values} = [
+        map { $self->column->_format_row($_->{record}) } @{$self->values}
+    ];
+
     return $base;
 }
 

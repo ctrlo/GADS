@@ -24,6 +24,8 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
+with 'GADS::Role::Presentation::Column::String';
+
 has textbox => (
     is      => 'rw',
     isa     => Bool,

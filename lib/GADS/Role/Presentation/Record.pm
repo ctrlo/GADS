@@ -82,6 +82,7 @@ sub presentation {
 
     return {
         parent_id       => $self->parent_id,
+        linked_id       => $self->linked_id,
         current_id      => $self->current_id,
         record_id       => $self->record_id,
         instance_id     => $self->layout->instance_id,
@@ -93,6 +94,10 @@ sub presentation {
         user_can_delete => $self->user_can_delete,
         user_can_edit   => $self->layout->user_can('write_existing'),
         id_count        => $self->id_count,
+        versions        => [$self->versions],
+        has_rag_column  => !!(grep { $_->type eq 'rag' } @columns),
+        new_entry       => $self->new_entry,
+        is_draft        => $self->is_draft,
     }
 }
 

@@ -27,7 +27,7 @@
 <p></p>
 
 [% BLOCK panel_start %]
-    [% topic = col_panel.column.topic %]
+    [% topic = col_panel.topic %]
     [% IF !topic OR topic.initial_state == 'open' %]
         [% open = 1 %]
     [% ELSE %]
@@ -73,13 +73,7 @@
                             [% FOREACH col_click IN click_to_edits %]
                                 <li><b>[% col_click.name | html %]:</b>
                                     <span class="[% col_click.type %]">
-                                    [% render_datum(
-                                         col_click.column.presentation(
-                                           'datum_presentation', record.fields.${col_click.id}.presentation
-                                         ),
-                                         'semi' # show images but not full render for other fields
-                                       )
-                                    %]
+                                        [% render_datum(col_click, 'semi') # show images but not full render for other fields %]
                                     </span>
                                 </li>
                             [% END %]
@@ -132,7 +126,7 @@
 
             [% FOREACH col_panel IN record_presentation.columns %]
                 [% IF layout_edit.has_topics %]
-                    [% IF col_panel.column.topic.id != previous_topic %]
+                    [% IF col_panel.topic.id != previous_topic %]
                         [% IF in_panel %]
                             [% PROCESS panel_end %]
                             [% in_panel = 0 %]
@@ -141,11 +135,11 @@
                         [% in_panel = 1 %]
                     [% END %]
                 [% END %]
-                [% PROCESS do_col col = col_panel %]
+                [% PROCESS showcol col = col_panel %]
                 [% IF click_to_edit %]
                     [% click_to_edits.push(col_panel) %]
                 [% END %]
-                [% previous_topic = col_panel.column.topic.id %]
+                [% previous_topic = col_panel.topic.id %]
             [% END %]
             [% IF layout_edit.has_topics %]
                 [% PROCESS panel_end %]
@@ -162,7 +156,7 @@
         <div class="navbar navbar-default navbar-fixed-bottom edit-controls">
             <div class="container">
                 <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
-                    [% IF record.has_next_values AND page != "bulk" %]Next[% ELSE %]Submit[% END %]
+                    Submit
                 </button>
                 [% IF record.new_entry AND page != "bulk" %]
                     <button type="submit" name="draft" value="submit" class="btn btn-primary submit_button">
@@ -478,11 +472,14 @@
 [% END %]
 
 [% BLOCK showcol %]
+
+    [% datum = col.data %]
+    [% dispcol = col %]
     [% field = 'field' _ dispcol.id %]
     [% colid = dispcol.id %]
 
     [%# Skip field if it's an approval request but a value not needing approval %]
-    [% NEXT IF page == "approval" AND NOT (record.fields.$colid.has_value)  %]
+    [% NEXT IF page == "approval" AND NOT (datum.has_value)  %]
 
     [%# Skip if it's a child record and the value doesn't exist %]
     [% NEXT IF record.parent_id AND NOT dispcol.can_child AND NOT layout_edit.user_can("create_child") %]
@@ -497,18 +494,7 @@
         [% oldvalue = existing.fields.$colid.html %] [%# All value already entity-encoded %]
     [% END %]
 
-    [%# This is painful. There appears to be no way to undefine a variable in TT,
-        other than including raw Perl, which then requires a config change. So,
-        use a hash for the value, and make it empty each loop. The value key
-        is used for what would have been the value variable. %]
-    [% value = {} %]
-
-    [%# If form_value returns undef, then TT still gives it the value of "".
-        Therefore, test the function first for undef, then assign. We rely
-        on an undefined value for tests later. %]
-    [% IF record.fields.$colid.defined %][% value.value = record.fields.$colid %][% END %]
-
-    [% editvalue = value.value %]
+    [% editvalue = datum %]
 
     [% IF readonly  AND page != "approval" %]
         [% readonly = "readonly" %]
@@ -615,7 +601,7 @@
                 [% ELSIF dispcol.type == "tree" %]
                     [% IF readonly %]
                         <div class="form-group">
-                            [% editvalue.html %]
+                            [% render_datum(col) %]
                         </div>
                         [%# Send values back, otherwise controller will think blank values submitted %]
                         [% FOREACH val IN editvalue.ids %]
@@ -643,7 +629,7 @@
                     [% END %]
                 [% ELSIF dispcol.type == "person" %]
                     <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
-                        [% IF dispcol.optional OR editvalue.deleted OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
+                        [% IF dispcol.optional OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
                             <option></option>
                         [% END %]
                         [% selected = "" %]
@@ -671,7 +657,7 @@
                             <p class="help-block">No current file (read-only field, cannot be updated).</p>
                         [% END %]
                     [% ELSE %]
-                        <div class="fileupload" data-field="[% field %]" data-fileupload-url="/file?ajax=1" data-multivalue="[% dispcol.multivalue %]">
+                        <div class="fileupload" data-field="[% field %]" data-fileupload-url="/file?ajax=1" data-multivalue="[% dispcol.is_multivalue %]">
                             [%# Ensure something gets sent back to show it's been displayed %]
                             <input type="hidden" name="[% field %]">
                             <div class="progress-bar__container">
@@ -687,7 +673,7 @@
                                     </li>
                                 [% END %]
                             </ul>
-                            [% IF dispcol.multivalue == multivalue %]
+                            [% IF dispcol.is_multivalue == multivalue %]
                                 <input type="file" name="file" multiple>
                             [% ELSE %]
                                 <input type="file" name="file">
@@ -768,7 +754,7 @@
         <div class="select-widget-dropdown">
             <div class="form-group form-control" [% readonly %] >
                 <ul id="[% field %]_value" class="current">
-                    [% checked = !editvalue.id %]
+                    [% checked = editvalue.blank %]
                     [% value_id = field _ '__blank' %]
                     <li [% !checked && 'hidden' %] data-list-item="[% value_id %]" class="current__blank">blank</li>
                 [% FOREACH value IN values %]
@@ -861,7 +847,7 @@
         IF page == "bulk";
             values = column.all_values;
         ELSIF column.has_subvals;
-            values = column.selected_values(editvalue);
+            values = editvalue.selected_values;
         ELSE;
             values = column.filtered_values;
         END;

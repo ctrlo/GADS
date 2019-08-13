@@ -1223,7 +1223,6 @@ get '/record_body/:id' => require_login sub {
     template 'record_body' => {
         is_modal       => 1, # Assume modal if loaded via this route
         record         => $record->presentation,
-        has_rag_column => !!(grep { $_->type eq 'rag' } @columns),
         all_columns    => \@columns,
     }, { layout => undef };
 };
@@ -1257,15 +1256,10 @@ get qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
     my $layout = $record->layout;
     var 'layout' => $layout;
 
-    my @versions    = $record->versions;
-    my @columns     = @{$record->columns_view};
     my @first_crumb = $action eq 'purge' ? ( $layout, "/purge" => 'deleted records' ) : ( $layout, "/data" => 'records' );
 
     my $output = template 'record' => {
         record         => $record->presentation,
-        versions       => \@versions,
-        all_columns    => \@columns,
-        has_rag_column => !!(grep { $_->type eq 'rag' } @columns),
         page           => 'record',
         is_history     => $action eq 'history',
         breadcrumbs    => [Crumb($layout) => Crumb(@first_crumb) => Crumb( "/record/".$record->current_id => 'record id ' . $record->current_id )]

@@ -25,6 +25,8 @@ use MooX::Types::MooseLike::Base qw/ArrayRef HashRef/;
 
 extends 'GADS::Column';
 
+with 'GADS::Role::Presentation::Column::Enum';
+
 has enumvals => (
     is      => 'rw',
     isa     => ArrayRef,
