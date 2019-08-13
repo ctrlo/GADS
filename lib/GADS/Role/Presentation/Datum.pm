@@ -12,6 +12,7 @@ sub presentation_base {
         filter_value        => $self->filter_value,
         blank               => $self->blank,
         dependent_not_shown => $self->dependent_not_shown,
+        html_form           => $self->html_form,
     };
 }
 

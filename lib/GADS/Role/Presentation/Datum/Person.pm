@@ -44,6 +44,7 @@ sub presentation {
 
     $base->{text}    = $self->text;
     $base->{details} = $self->_presentation_details;
+    $base->{id}      = $self->id;
 
     return $base;
 }

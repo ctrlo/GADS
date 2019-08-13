@@ -6,7 +6,7 @@
 [% END %]
 
 [% PROCESS snippets/datum.tt %]
-[% PROCESS snippets/rag_legend.tt IF has_rag_column %]
+[% PROCESS snippets/rag_legend.tt IF record.has_rag_column %]
 
 <table class="table table-striped">
     <tr>
@@ -17,8 +17,8 @@
         [% colid = col.id %]
         [% NEXT IF !is_history AND col.data.dependent_not_shown %]
         [% NEXT IF is_modal AND col.type == "autocur" %]
-        [% IF col.topic != last_topic %]
-            <tr><th colspan="2"><h2>[% col.topic OR "Other" | html %]</h2></tr>
+        [% IF col.topic.name != last_topic.name %]
+            <tr><th colspan="2"><h2>[% col.topic.name OR "Other" | html %]</h2></tr>
         [% END %]
         <tr [% IF col.data.blank AND NOT layout.no_hide_blank %]class="click-to-view-blank-field expandable"[% END %]>
             <th>[% col.name | html_entity %]</th>

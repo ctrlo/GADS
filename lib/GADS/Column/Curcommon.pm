@@ -28,6 +28,8 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
+with 'GADS::Role::Presentation::Column::Curcommon';
+
 has '+is_curcommon' => (
     default => 1,
 );

@@ -24,6 +24,8 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Datum';
 
+with 'GADS::Role::Presentation::Datum::Tree';
+
 after set_value => sub {
     my ($self, $value) = @_;
     my $clone = $self->clone; # Copy before changing text

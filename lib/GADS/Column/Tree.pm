@@ -28,6 +28,8 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
+with 'GADS::Role::Presentation::Column::Tree';
+
 sub DESTROY
 {   my $self = shift;
     $self->_root->delete_tree if $self->_has_tree;
