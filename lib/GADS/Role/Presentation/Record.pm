@@ -11,7 +11,7 @@ sub _presentation_map_columns {
         $_->presentation(datum_presentation => $self->fields->{$_->id}->presentation, %options);
     } @columns;
 
-    return \@mapped;
+    return @mapped;
 }
 
 sub edit_columns
@@ -80,13 +80,35 @@ sub presentation {
         $previous = $col;
     }
 
+    my %topics; my $order;
+    my @presentation_columns = $self->_presentation_map_columns(%options, columns => \@columns);
+    foreach my $col (@presentation_columns)
+    {
+        my $topic_id = $col->{topic_id} || 0;
+        if (!$topics{$topic_id})
+        {
+            # Topics are listed in the order of their first column to appear in
+            # the layout
+            $order++;
+            $topics{$topic_id} = {
+                order   => $order,
+                topic   => $col->{topic},
+                columns => [],
+            }
+        }
+        push @{$topics{$topic_id}->{columns}}, $col;
+    }
+
+    my @topics = sort { $a->{order} <=> $b->{order} } values %topics;
+
     return {
         parent_id       => $self->parent_id,
         linked_id       => $self->linked_id,
         current_id      => $self->current_id,
         record_id       => $self->record_id,
         instance_id     => $self->layout->instance_id,
-        columns         => $self->_presentation_map_columns(%options, columns => \@columns),
+        columns         => \@presentation_columns,
+        topics          => \@topics,
         indent          => $indent,
         deleted         => $self->deleted,
         deletedby       => $self->deletedby,
