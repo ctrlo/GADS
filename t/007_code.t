@@ -65,6 +65,7 @@ my $calc_integer = GADS::Column::Calc->new(
     return_type => 'integer',
     code        => "function evaluate (L1string1) \n return 450 \nend",
 );
+$calc_integer->set_permissions({$sheet->group->id => $sheet->default_permissions});
 $calc_integer->write;
 my $calc_numeric = GADS::Column::Calc->new(
     schema      => $schema,
@@ -75,6 +76,7 @@ my $calc_numeric = GADS::Column::Calc->new(
     return_type => 'numeric',
     code        => "function evaluate (L1string1) \n return 10.56 \nend",
 );
+$calc_numeric->set_permissions({$sheet->group->id => $sheet->default_permissions});
 $calc_numeric->write;
 $layout->clear;
 
@@ -345,19 +347,21 @@ my $year = 2014; # Ensure that record writes do not go back in time
 foreach my $test (@tests)
 {
     # Create a calc field that has something invalid in the nested code
+    my $layout_code = $test->{layout} || $layout;
     my $code_col = "GADS::Column::$test->{type}"->new(
         schema         => $schema,
         user           => undef,
-        layout         => $test->{layout} || $layout,
+        layout         => $layout_code,
         name           => 'code col',
         return_type    => $test->{return_type} || 'string',
         decimal_places => $test->{decimal_places},
         code           => $test->{code},
         multivalue     => $test->{multivalue},
     );
+    $code_col->set_permissions({$sheet->group->id => $sheet->default_permissions});
     $code_col->write;
 
-    $layout->clear;
+    $layout_code->clear;
 
     my @results;
     
@@ -966,6 +970,7 @@ foreach my $test (qw/string_empty string_null calc_empty calc_null/)
         name   => 'L1calc2',
         code   => $code,
     );
+    $calc2->set_permissions({$sheet->group->id => $sheet->default_permissions});
     $calc2->write;
     $layout->clear;
 

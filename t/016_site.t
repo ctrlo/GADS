@@ -19,7 +19,7 @@ $sheet_site2->create_records;
 # Check site 1 records
 $schema->site_id(1);
 my $records_site1 = GADS::Records->new(
-    user    => undef,
+    user    => $sheet_site1->user,
     layout  => $sheet_site1->layout,
     schema  => $schema,
 );
@@ -28,7 +28,7 @@ my @current_ids = map { $_->current_id } @{$records_site1->results};
 is( "@current_ids", "1 2", "Current IDs correct for site 1" );
 # Try and access record from site 2
 my $record = GADS::Record->new(
-    user   => undef,
+    user   => $sheet_site1->user,
     layout => $sheet_site1->layout,
     schema => $schema,
 );
@@ -40,7 +40,7 @@ ok( $@, "Failed to retrieve record from other site (2)" );
 # Site 2 tests
 $schema->site_id(2);
 my $records_site2 = GADS::Records->new(
-    user    => undef,
+    user    => $sheet_site2->user,
     layout  => $sheet_site2->layout,
     schema  => $schema,
 );
@@ -51,7 +51,7 @@ is( "@current_ids", "3 4", "Current IDs correct for site 2" );
 
 # Try and access record from site 1
 $record = GADS::Record->new(
-    user   => undef,
+    user   => $sheet_site2->user,
     layout => $sheet_site2->layout,
     schema => $schema,
 );

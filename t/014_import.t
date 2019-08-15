@@ -40,7 +40,7 @@ $ENV{GADS_NO_FORK} = 1; # Prevent forking during import process
     $import->process;
 
     my $record = GADS::Record->new(
-        user   => undef,
+        user   => $sheet->user,
         layout => $layout,
         schema => $schema,
     );
@@ -81,7 +81,7 @@ foreach my $type (qw/enum tree/)
     $import->process;
 
     my $record = GADS::Record->new(
-        user   => undef,
+        user   => $sheet->user,
         layout => $layout,
         schema => $schema,
     );

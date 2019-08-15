@@ -39,6 +39,7 @@ $curval->refers_to_instance_id($layout->instance_id);
 $curval->curval_field_ids([$columns->{string1}->id]);
 $curval->type('curval');
 $curval->name('curval1');
+$curval->set_permissions({$sheet->group->id => $sheet->default_permissions});
 $curval->write;
 
 my $record = GADS::Record->new(

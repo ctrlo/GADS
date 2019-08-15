@@ -1261,7 +1261,7 @@ $schema->resultset('AlertCache')->delete;
 my $sheet2 = t::lib::DataSheet->new(schema => $schema, instance_id => 2, curval_offset => 6);
 $sheet2->create_records;
 my $record = GADS::Record->new(
-    user     => undef,
+    user     => $sheet2->user,
     layout   => $sheet2->layout,
     schema   => $schema,
 );
