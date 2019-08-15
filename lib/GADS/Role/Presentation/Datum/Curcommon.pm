@@ -27,8 +27,9 @@ sub presentation {
 
     my $base = $self->presentation_base;
 
-    $base->{text}  = $base->{value};
-    $base->{links} = $self->_presentation_details;
+    $base->{text}    = $base->{value};
+    $base->{id_hash} = $self->id_hash;
+    $base->{links}   = $self->_presentation_details;
 
     # Function to return the values for the drop-down selector, but only the
     # selected ones. This makes rendering the edit page quicker, as in the case of
