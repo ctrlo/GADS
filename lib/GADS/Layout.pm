@@ -398,6 +398,12 @@ has user_permission_override => (
     default => 0,
 );
 
+has user_permission_override_search => (
+    is      => 'rw',
+    isa     => Bool,
+    default => 0,
+);
+
 has columns_index => (
     is      => 'rw',
     lazy    => 1,

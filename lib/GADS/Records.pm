@@ -258,10 +258,6 @@ sub exclusive_of_to {
     $ex eq 'to';
 }
 
-has remembered_only => (
-    is => 'rw',
-);
-
 # Array ref with column IDs
 has columns => (
     is => 'rw',
@@ -1312,8 +1308,10 @@ sub _build_columns_retrieved_do
         }
     }
     else {
+        # Otherwise assume all columns needed, even ones the user does not have
+        # access to. This is so that any writes still write all column values,
+        # regardless of whether a user has access
         @columns = $layout->all(
-            remembered_only    => $self->remembered_only,
             order_dependencies => 1,
         );
     }
@@ -1594,7 +1592,8 @@ sub order_by
     foreach my $s (@sorts)
     {
         my $type   = "-$s->{type}";
-        my $column = $self->layout->column($s->{id});
+        my $column = $self->layout->column($s->{id}, permission => 'read')
+            or next;
         my $column_parent = $self->layout->column($s->{parent_id});
         my @cols_main = $column->sort_columns;
         my @cols_link = $column->link_parent ? $column->link_parent->sort_columns : ();
@@ -1700,7 +1699,7 @@ sub order_by
 sub _search_construct
 {   my ($self, $filter, $layout, %options) = @_;
 
-    my $ignore_perms = $options{ignore_perms};
+    my $ignore_perms = $options{ignore_perms} || $self->layout->user_permission_override_search;
     if (my $rules = $filter->{rules})
     {
         # Previous values for a group. This allows previous values to be
@@ -2203,6 +2202,10 @@ sub data_timeline
         $min = $timeline->retrieved_from;
 
         my @before;
+        # Don't including retrieved items that are the same as the min. This is
+        # to ensure that we don't have a situation where some records at the
+        # min value are displayed and some aren't, meaning we don't know where
+        # to retrieve to when adding more items to the timeline.
         push @{$min < $_->{dt} ? \@items : \@before}, $_ for @retrieved;
 
         # Same as above

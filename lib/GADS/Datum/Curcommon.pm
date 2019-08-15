@@ -354,7 +354,7 @@ sub _build_values_as_query_records
         }
         # Update any autocur fields with this record, so that the value can be
         # used immediately, without having to first write this record
-        foreach my $col ($self->column->layout_parent->all(user_can_write_new => 1))
+        foreach my $col ($self->column->layout_parent->all)
         {
             next unless $col->type eq 'autocur';
             my $datum = $record->fields->{$col->id};

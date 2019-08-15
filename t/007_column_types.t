@@ -102,7 +102,7 @@ ok($@, "Failed to write calc code with invalid character");
 #
 # First check that we cannot delete a record that is referred to
 my $record = GADS::Record->new(
-    user   => undef,
+    user   => $sheet->user,
     layout => $layout,
     schema => $schema,
 );
@@ -138,6 +138,7 @@ my $curval_blank = GADS::Column::Curval->new(
     refers_to_instance_id => $curval_sheet->layout->instance_id,
     curval_field_ids      => [],
 );
+$curval_blank->set_permissions({$sheet->group->id => $sheet->default_permissions});
 $curval_blank->write;
 # Clear the layout to force the column to be build, and also to build
 # dependencies properly in the next test
@@ -158,6 +159,7 @@ my $curval_blank_filter = GADS::Column::Curval->new(
     refers_to_instance_id => $curval_sheet->layout->instance_id,
     curval_field_ids      => [],
 );
+$curval_blank_filter->set_permissions({$sheet->group->id => $sheet->default_permissions});
 $curval_blank_filter->write;
 # Clear the layout to force the column to be build
 $layout->clear;
@@ -178,6 +180,7 @@ my $curval_add_remove = GADS::Column::Curval->new(
     refers_to_instance_id => $curval_sheet->layout->instance_id,
     curval_field_ids      => [$curval_sheet->columns->{string1}->id],
 );
+$curval_add_remove->set_permissions({$sheet->group->id => $sheet->default_permissions});
 $curval_add_remove->write;
 # Should be one more
 is($schema->resultset('CurvalField')->count, $field_count + 1, "Correct number of fields after new");
@@ -215,6 +218,7 @@ my $curval_filter = GADS::Column::Curval->new(
     refers_to_instance_id => $curval_sheet->layout->instance_id,
     curval_field_ids      => [ $curval_sheet->columns->{integer1}->id ], # Purposefully different to previous tests
 );
+$curval_filter->set_permissions({$sheet->group->id => $sheet->default_permissions});
 $curval_filter->write;
 # Clear the layout to force the column to be build, and also to build
 # dependencies properly in the next test
@@ -375,6 +379,7 @@ my $calc2 = GADS::Column::Calc->new(
     code           => qq(function evaluate (_id, L1date1, L1daterange1) \n return {"Foo", "Bar"} \nend),
     multivalue     => 1,
 );
+$calc2->set_permissions({$sheet->group->id => $sheet->default_permissions});
 $calc2->write;
 
 # Add display field for filtering tests

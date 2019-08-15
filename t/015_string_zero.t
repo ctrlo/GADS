@@ -15,7 +15,7 @@ foreach my $value ('', '0')
     my $columns = $sheet->columns;
     $sheet->create_records;
     my $record = GADS::Record->new(
-        user   => undef,
+        user   => $sheet->user,
         layout => $layout,
         schema => $schema,
     );
@@ -39,7 +39,7 @@ foreach my $value ('', '0')
     }
     $record->write(no_alerts => 1);
     my $records = GADS::Records->new(
-        user    => undef,
+        user    => $sheet->user,
         layout  => $layout,
         schema  => $schema,
     );

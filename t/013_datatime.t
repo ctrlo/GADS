@@ -821,4 +821,84 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     is( @{$records->data_timeline->{items}}, 0, "No timeline entries for no records" );
 }
 
+# Test to check that date fields in a curval that the user does not have access
+# to are not included in the timeline calculations.
+# Assume a "from" date of 2010-01-01. Create 200 records starting at that date,
+# with normal dates ascending from there and curval dates the inverse. The
+# curval dates are not accessible by the user, and should therefore not affect
+# the records pulled.
+{
+    my @data;
+    my $start = DateTime->new(year => 2010, month => 1, day => 1);
+    my $from = $start->clone;
+
+    # Create a set of data around today's date (1/1/2008) and a set of data
+    # much before then. Only the set of data around today's date should be
+    # retrieved
+    for my $count (1..200)
+    {
+        push @data, {
+            string1 => "Bar $count",
+            date1   => $start->ymd,
+            curval1 => $count,
+        };
+        $start->add(days => 1);
+    }
+    my @curval_data;
+    for my $count (1..200)
+    {
+        push @curval_data, {
+            string1 => "Foo $count",
+            date1   => $start->ymd,
+        };
+        $start->subtract(days => 1);
+    }
+
+    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, data => \@curval_data, user_permission_override => 0, multivalue => 1);
+    $curval_sheet->create_records;
+    my $curval_date = $curval_sheet->columns->{date1};
+    $curval_date->set_permissions({});
+    $curval_date->write;
+    $curval_sheet->layout->clear;
+
+    my $schema = $curval_sheet->schema;
+    my $sheet = t::lib::DataSheet->new(data => \@data, curval => 2, schema => $schema, user_permission_override => 0, multivalue => 1);
+    $sheet->create_records;
+
+    my $layout = $sheet->layout;
+    $layout->clear;
+
+    my $columns = $sheet->columns;
+
+    my $records = GADS::Records->new(
+        from    => $from,
+        user    => $sheet->user_normal1,
+        layout  => $curval_sheet->layout,
+        schema  => $schema,
+    );
+
+    my $return = $records->data_timeline;
+    # No records after the "from" are retrieved, as we don't have permission to
+    # them (date1 of the curval sheet only). The other dates available (created
+    # date) are all the same and therefore not retrieved as we only use values
+    # after the minimum date retrieved (see comments in GADS::Records)
+    is( @{$return->{items}}, 0, "Correct number of items for timeline for curval table" );
+
+    $records = GADS::Records->new(
+        from    => $from,
+        user    => $sheet->user_normal1,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    $return = $records->data_timeline;
+    # Full set of records after the from date, nothing before as above
+    is( @{$return->{items}}, 99, "Correct number of items for timeline with no access to curval dates" );
+    # Min retrieved is created date (1st Jan 2008), minus one day to show
+    # range, although there isn't anything to show at this range
+    is($return->{min}->ymd, '2007-12-31', "Correct start range of timeline");
+    # 1st Jan 2010 + 100 days = 11th April 2010, plus 1 day for width plus 1 day to show range
+    is($return->{max}->ymd, '2010-04-13', "Correct end range of timeline");
+}
+
 done_testing();

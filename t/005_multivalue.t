@@ -322,7 +322,7 @@ foreach my $test (@tests)
         columns     => [ map { $_->id } $layout->all ],
         layout      => $layout,
         schema      => $schema,
-        user        => undef,
+        user        => $sheet->user,
     );
     $view->write;
 

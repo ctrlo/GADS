@@ -114,7 +114,7 @@ has curval_field_ids => (
             join     => 'child',
             order_by => 'child.position',
         })->all;
-        return [map { $_->child_id } @curval_field_ids];
+        [ map $_->child_id, @curval_field_ids ];
     },
     trigger => sub {
         $_[0]->clear_curval_fields;
@@ -129,7 +129,7 @@ has curval_fields => (
 
 sub _build_curval_fields
 {   my $self = shift;
-    [ map { $self->layout_parent->column($_) } @{$self->curval_field_ids} ];
+    [ map { $self->layout_parent->column($_, permission => 'read') } @{$self->curval_field_ids} ];
 }
 
 has curval_field_ids_index => (
@@ -203,7 +203,7 @@ has curval_fields_all => (
 
 sub _build_curval_fields_all
 {   my $self = shift;
-    [ map { $self->layout_parent->column($_) } @{$self->curval_field_ids_all} ];
+    [ map { $self->layout_parent->column($_, permission => 'read') } @{$self->curval_field_ids_all} ];
 }
 
 sub sort_columns
@@ -523,11 +523,14 @@ sub _build_layout_parent
 {   my $self = shift;
     $self->refers_to_instance_id or return;
     GADS::Layout->new(
-        user                     => $self->layout->user,
-        user_permission_override => 1,
-        schema                   => $self->schema,
-        config                   => GADS::Config->instance,
-        instance_id              => $self->refers_to_instance_id,
+        user                            => $self->layout->user,
+        # We want to honour the permissions for the fields that we retrieve,
+        # but apply filtering regardless (for curval filter fields)
+        user_permission_override        => $self->override_permissions,
+        user_permission_override_search => 1,
+        schema                          => $self->schema,
+        config                          => GADS::Config->instance,
+        instance_id                     => $self->refers_to_instance_id,
     );
 }
 
@@ -603,10 +606,10 @@ sub values_beginning_with
 sub _format_row
 {   my ($self, $row, %options) = @_;
     my $value_key = $options{value_key} || 'value';
-    my @col_ids   = @{$self->curval_field_ids};
     my @values;
     foreach my $fid (@{$self->curval_field_ids})
     {
+        next if !$self->layout_parent->column($fid, permission => 'read');
         push @values, $row->fields->{$fid};
     }
     my $text     = $self->format_value(@values);

@@ -30,7 +30,7 @@ my $layout = $sheet->layout;
 $sheet->create_records;
 
 my $records = GADS::Records->new(
-    user    => undef,
+    user    => $sheet->user,
     layout  => $layout,
     schema  => $schema,
 );

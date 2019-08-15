@@ -1223,9 +1223,10 @@ sub delete_user_drafts
         while (1)
         {
             my $draft = GADS::Record->new(
-                user     => undef,
-                layout   => $self->layout,
-                schema   => $self->schema,
+                user                     => undef,
+                user_permission_override => 1,
+                layout                   => $self->layout,
+                schema                   => $self->schema,
             );
             $draft->find_draftuser_id($self->user->id, instance_id => $self->layout->instance_id)
                 or last;

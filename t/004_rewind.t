@@ -37,7 +37,7 @@ foreach my $multivalue (0..1)
     my $integer1 = $sheet->columns->{integer1};
 
     my $records = GADS::Records->new(
-        user    => undef,
+        user    => $sheet->user,
         layout  => $layout,
         schema  => $schema,
     );
@@ -74,7 +74,7 @@ foreach my $multivalue (0..1)
     );
     # Use rewind feature and check records are as they were on previous date
     $records = GADS::Records->new(
-        user    => undef,
+        user    => $sheet->user,
         layout  => $layout,
         schema  => $schema,
         rewind  => $previous,
@@ -88,7 +88,7 @@ foreach my $multivalue (0..1)
     # Go back to second set (2015)
     $previous->add(years => 1);
     $records = GADS::Records->new(
-        user    => undef,
+        user    => $sheet->user,
         layout  => $layout,
         schema  => $schema,
         rewind  => $previous,
@@ -99,7 +99,7 @@ foreach my $multivalue (0..1)
 
     # And back to today
     $records = GADS::Records->new(
-        user    => undef,
+        user    => $sheet->user,
         layout  => $layout,
         schema  => $schema,
     );
@@ -109,7 +109,7 @@ foreach my $multivalue (0..1)
 
     # Retrieve single record
     $record = GADS::Record->new(
-        user   => undef,
+        user   => $sheet->user,
         layout => $layout,
         schema => $schema,
     );
@@ -118,7 +118,7 @@ foreach my $multivalue (0..1)
     my $vs = join ' ', map { $_->created->ymd } $record->versions;
     is($vs, "2016-10-10 2015-10-10 2014-10-10", "All versions in live version");
     $record = GADS::Record->new(
-        user   => undef,
+        user   => $sheet->user,
         layout => $layout,
         schema => $schema,
         rewind => $previous,
@@ -156,7 +156,7 @@ foreach my $multivalue (0..1)
     );
     $graph->write;
     $records = GADS::RecordsGraph->new(
-        user    => undef,
+        user    => $sheet->user,
         layout  => $layout,
         schema  => $schema,
     );
@@ -168,7 +168,7 @@ foreach my $multivalue (0..1)
     is_deeply($graph_data->xlabels, ['Foo10','Foo3'], "Graph labels for current date correct");
     is_deeply($graph_data->points, [[100,30]], "Graph data for current date correct");
     $records = GADS::RecordsGraph->new(
-        user    => undef,
+        user    => $sheet->user,
         layout  => $layout,
         schema  => $schema,
         rewind  => $previous,

@@ -109,7 +109,7 @@ foreach my $format (qw/yyyy-MM-dd dd-MM-yyyy/)
     $view->write;
 
     my $records = GADS::Records->new(
-        user    => undef,
+        user    => $sheet->user,
         view    => $view,
         layout  => $layout,
         schema  => $schema,
@@ -124,7 +124,7 @@ foreach my $format (qw/yyyy-MM-dd dd-MM-yyyy/)
 
     # Check additional date filter as used in calendar
     $records = GADS::Records->new(
-        user    => undef,
+        user    => $sheet->user,
         view    => $view,
         from    => DateTime->new(year => 2010, month => 10, day => 1),
         to      => DateTime->new(year => 2010, month => 11, day => 1),

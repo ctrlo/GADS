@@ -310,7 +310,7 @@ $layout->clear;
 
     # Start with new record, otherwise existing blank value will not bork
     my $record = GADS::Record->new(
-        user   => undef,
+        user   => $sheet->user,
         layout => $layout,
         schema => $schema,
     );
@@ -416,7 +416,7 @@ foreach my $field (@fields)
     $integer1->write;
     $layout->clear;
     my $record = GADS::Record->new(
-        user   => undef,
+        user   => $sheet->user,
         layout => $layout,
         schema => $schema,
     );
@@ -430,7 +430,7 @@ foreach my $field (@fields)
     is($record->fields->{$integer1->id}->as_string, '789', "Value written for blank regex match");
 
     $record = GADS::Record->new(
-        user   => undef,
+        user   => $sheet->user,
         layout => $layout,
         schema => $schema,
     );
@@ -570,7 +570,7 @@ foreach my $field (@fields)
     # Although dependent_not_shown is not used in table view, it is still
     # generated as part of the presentation layer
     my $records = GADS::Records->new(
-        user   => undef,
+        user   => $sheet->user,
         layout => $layout,
         schema => $schema,
         columns => [$integer1->id],
