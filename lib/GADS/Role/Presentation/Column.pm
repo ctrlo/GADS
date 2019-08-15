@@ -48,7 +48,7 @@ sub presentation {
         is_id               => $self->name_short && $self->name_short eq '_id',
         topic               => $self->topic,
         topic_id            => $self->topic && $self->topic->id,
-        is_multivalue       => $self->multivalue,
+        multivalue          => $self->multivalue,
         has_multivalue_plus => $self->has_multivalue_plus,
         helptext            => $self->helptext,
         readonly            => $options{new} ? !$self->user_can('write_new') : !$self->user_can('write_existing'),
@@ -62,6 +62,7 @@ sub presentation {
         fixedvals           => $self->fixedvals,
         widthcols           => $self->widthcols,
         optional            => $self->optional,
+        userinput           => $self->userinput,
     };
 
     if (my $sort = $options{sort})
