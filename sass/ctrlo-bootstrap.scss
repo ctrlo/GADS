@@ -807,6 +807,38 @@ a.list-group-item-danger.active,a.list-group-item-danger.active:hover,a.list-gro
 .panel-heading {
         border-top-right-radius:-1px;
         border-top-left-radius:-1px;
+
+        &[data-toggle] {
+                position: relative;
+                padding-right: 100px;
+
+                &:before {
+                        content: "";
+                        position: absolute;
+                        top: 13px;
+                        right: 18px;
+                        width: 0;
+                        height: 0;
+                        border-left: 5px solid black;
+                        border-right: none;
+                        border-bottom: 5px solid transparent;
+                        border-top: 5px solid transparent;
+                }
+        }
+
+        &[data-toggle][aria-expanded=true] {
+                &:before {
+                        top: 15px;
+                        right: 15px;
+                        border-left: 5px solid transparent;
+                        border-right: 5px solid transparent;
+                        border-bottom: none;
+                        border-top: 5px solid black;
+                }
+        }
+}
+a.panel-heading {
+        display: block;
 }
 .panel-title {
         font-size:17px;
