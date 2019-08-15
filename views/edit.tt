@@ -27,8 +27,8 @@
 <p></p>
 
 [% BLOCK panel_start %]
-    [% topic = col_panel.topic %]
-    [% IF !topic OR topic.initial_state == 'open' %]
+    [% block_topic = topic.topic %]
+    [% IF !block_topic OR block_topic.initial_state == 'open' %]
         [% open = 1 %]
     [% ELSE %]
         [% open = 0 %]
@@ -40,7 +40,7 @@
                     <a role="button" data-toggle="collapse" data-parent="#accordion[% col_panel.id %]"
                         href="#topic[% col_panel.id %]" aria-expanded="[% IF open %]true[% ELSE %]false[% END %]"
                         aria-controls="topic[% col_panel.id %]">
-                        [% topic.name OR 'Other' | html %]
+                        [% block_topic.name OR 'Other' | html %]
                     </a>
                 </h4>
             </div>
@@ -49,38 +49,16 @@
                     [% IF topic.need_completed_topics_count %]
                         <div role="alert" class="alert alert-warning">
                             Fields in this section cannot be completed until mandatory fields
-                            in the [% topic.need_completed_topics_as_string | html %]
-                            section[% IF topic.need_completed_topics_count > 1 %]s[% END %]
+                            in the [% block_topic.need_completed_topics_as_string | html %]
+                            section[% IF block_topic.need_completed_topics_count > 1 %]s[% END %]
                             have been completed.
                         </div>
                     [% END %]
-                    [% IF topic.description %]
-                        <div role="alert" class="alert alert-info">[% topic.description | html %]</div>
+                    [% IF block_topic.description %]
+                        <div role="alert" class="alert alert-info">[% block_topic.description | html %]</div>
                     [% END %]
-                [% IF topic.click_to_edit AND NOT record.new_entry %]
-                    [% click_to_edit = 1 %]
-                    <button class="btn btn-default pull-right click-to-edit" type="button" aria-expanded="false">Edit</button>
-                    <div id="topic_forms[% topic_id %]" class="expandable">
-                [% ELSE %]
-                    [% click_to_edit = 0 %]
-                [% END %]
 [% END %]
 [% BLOCK panel_end %]
-                [% IF click_to_edit %]
-                    </div>
-                    <div class="topic-click-to-edit-fields">
-                        <ul>
-                            [% FOREACH col_click IN click_to_edits %]
-                                <li><b>[% col_click.name | html %]:</b>
-                                    <span class="[% col_click.type %]">
-                                        [% render_datum(col_click, 'semi') # show images but not full render for other fields %]
-                                    </span>
-                                </li>
-                            [% END %]
-                        </ul>
-                    </div>
-                    [% click_to_edits = [] %]
-                [% END %]
                 </div>
             </div>
         </div>
@@ -121,28 +99,37 @@
             [% END %]
             [% jscode = [] %]
             [% typeaheads = [] %]
-            [% columns_done = {} %]
-            [% click_to_edits = [] %]
 
-            [% FOREACH col_panel IN record.columns %]
+            [% FOREACH topic IN record.topics %]
+                [% click_to_edits = [] %]
                 [% IF layout_edit.has_topics %]
-                    [% IF col_panel.topic.id != previous_topic %]
-                        [% IF in_panel %]
-                            [% PROCESS panel_end %]
-                            [% in_panel = 0 %]
-                        [% END %]
-                        [% PROCESS panel_start %]
-                        [% in_panel = 1 %]
+                    [% PROCESS panel_start %]
+                [% END %]
+                [% UNLESS record.new_entry %]
+                    <button class="btn btn-default pull-right click-to-edit" type="button" aria-expanded="false">Edit</button>
+                [% END %]
+                <div id="topic_forms[% topic_id %]" class="[% UNLESS record.new_entry %]expandable[% END %]">
+                    [% FOREACH col_panel IN topic.columns %]
+                        [% PROCESS showcol col = col_panel %]
+                        [% click_to_edits.push(col_panel) %]
                     [% END %]
+                </div>
+                [% UNLESS record.new_entry %]
+                    <div class="topic-click-to-edit-fields">
+                        <ul>
+                            [% FOREACH col_click IN click_to_edits %]
+                                <li><b>[% col_click.name | html %]:</b>
+                                    <span class="[% col_click.type %]">
+                                        [% render_datum(col_click, 'semi') # show images but not full render for other fields %]
+                                    </span>
+                                </li>
+                            [% END %]
+                        </ul>
+                    </div>
                 [% END %]
-                [% PROCESS showcol col = col_panel %]
-                [% IF click_to_edit %]
-                    [% click_to_edits.push(col_panel) %]
+                [% IF layout_edit.has_topics %]
+                    [% PROCESS panel_end %]
                 [% END %]
-                [% previous_topic = col_panel.topic.id %]
-            [% END %]
-            [% IF layout_edit.has_topics %]
-                [% PROCESS panel_end %]
             [% END %]
         </div>
     </div>
@@ -473,13 +460,13 @@
 
 [% BLOCK showcol %]
 
-    [% datum = col.data %]
+    [% editvalue = col.data %]
     [% dispcol = col %]
     [% field = 'field' _ dispcol.id %]
     [% colid = dispcol.id %]
 
     [%# Skip field if it's an approval request but a value not needing approval %]
-    [% NEXT IF page == "approval" AND NOT (datum.has_value)  %]
+    [% NEXT IF page == "approval" AND NOT (editvalue.has_value)  %]
 
     [%# Skip if it's a child record and the value doesn't exist %]
     [% NEXT IF record.parent_id AND NOT dispcol.can_child AND NOT layout_edit.user_can("create_child") %]
@@ -586,8 +573,6 @@
 
     [% last_column = dispcol %]
 
-    [%# Prevent recursive loops %]
-    [% columns_done.$colid = 1 %]
 [% END %]
 
 [% BLOCK print_field %]
