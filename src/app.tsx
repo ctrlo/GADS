@@ -27,6 +27,7 @@ class App extends React.Component<any, any> {
     super(props);
 
     const layout = props.widgets.map(w => w.config);
+    this.formRef = React.createRef()
 
     this.state = {
       widgets: props.widgets,
@@ -84,8 +85,7 @@ class App extends React.Component<any, any> {
 
   saveActiveWidget = (e) => {
     e.preventDefault();
-    const formContainer = document.getElementById("ld-form-container");
-    const formEl = formContainer!.querySelector("form");
+    const formEl = this.formRef.current.querySelector("form");
     if (formEl) {
       const form = serialize(formEl);
       this.props.api.saveWidget(formEl.action, form);
@@ -193,7 +193,7 @@ class App extends React.Component<any, any> {
       </div>
       <div className="ld-modal__content-container">
         {this.state.loadingEditHtml
-          ? <span className='ld-modal__loading'>Loading...</span> : <div id="ld-form-container" dangerouslySetInnerHTML={{ __html: this.state.editHtml }} />}
+          ? <span className='ld-modal__loading'>Loading...</span> : <div ref={this.formRef} dangerouslySetInnerHTML={{ __html: this.state.editHtml }} />}
       </div>
       <div className='ld-modal__footer'>
         <span className="ld-modal__button" onClick={this.deleteActiveWidget}><u>Delete</u></span>
