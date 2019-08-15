@@ -35,13 +35,16 @@
 #   $ yarn install --add <package>
 #   $ exit
 #
+# Rebuild the app image (ie when an additional perl package is added)
+#   $ docker-compose build --no-cache app
+#
 # Debugging
 #
 #   Enter a running container:
-#   $ docker-composer exec app bash
+#   $ docker-compose exec app bash
 #
 #   If a container failed to start, run it manually:
-#   $ docker run -v `pwd`:/gads -it gads_app /bin/bash
+#   $ docker run -u 1000:1000 -v `pwd`:/gads -it gads_app /bin/bash
 #
 
 version: '3'
@@ -56,6 +59,7 @@ services:
     environment:
       - DBIC_MIGRATION_USERNAME=postgres
       - DBIC_MIGRATION_PASSWORD=postgres
+    user: 1000:1000
     depends_on:
       - db
   db:
