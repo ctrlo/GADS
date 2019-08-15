@@ -7,7 +7,7 @@ if (root) {
   var containerWidth = root.offsetWidth;
   var colWidth = (containerWidth - margin[0] * (cols - 1) - containerPadding[0] * 2) / cols;
 
-  var calculateStyle = function calculateStyle(x, y, w, h) {
+  function calculateStyle(x, y, w, h) {
     var left = Math.round((colWidth + margin[0]) * x + containerPadding[0]);
     var top = Math.round((rowHeight + margin[1]) * y + containerPadding[1]);
     var width = Math.round(colWidth * w + Math.max(0, w - 1) * margin[0]);
@@ -16,8 +16,16 @@ if (root) {
   };
 
   var widgets = root.querySelectorAll("div");
+  var bottom = 0;
+  var currentY;
   for (var i = 0; i < widgets.length; i++) {
     var grid = JSON.parse(widgets[i].getAttribute('data-grid'));
+    currentY = grid.y + grid.h;
+    if (currentY > bottom) bottom = currentY;
     widgets[i].setAttribute("style", calculateStyle(grid.x, grid.y, grid.w, grid.h));
   }
+
+  var containerHeight = bottom * rowHeight +
+    (bottom - 1) * margin[1] + containerPadding[1] * 2
+  root.setAttribute("style", "height: " + containerHeight + "px")
 }
