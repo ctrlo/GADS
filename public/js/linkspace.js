@@ -1799,9 +1799,6 @@ Linkspace.edit = function (context) {
     setupDependentFields(context);
     setupClickToEdit(context);
     setupCalculator(context);
-}
-
-Linkspace.record = function () {
     setupClickToViewBlank();
 }
 
