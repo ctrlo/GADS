@@ -37,8 +37,6 @@ sub _presentation_details {
 sub presentation {
     my $self = shift;
 
-    return undef if $self->blank;
-
     my $base = $self->presentation_base;
     delete $base->{value};
 
