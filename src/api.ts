@@ -17,7 +17,7 @@ export default class ApiClient {
       headers: Object.assign(this.headers),
     };
     if (body) {
-      Object.assign(opts, { body: JSON.stringify(body) });
+      opts.body = JSON.stringify(body);
     }
     return fetch(fullRoute, opts);
   }

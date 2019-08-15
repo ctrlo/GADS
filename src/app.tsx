@@ -75,13 +75,14 @@ class App extends React.Component<any, any> {
 
   deleteActiveWidget = () => {
     // eslint-disable-next-line no-alert
-    if (window.confirm("Deleting a widget is permanent! Are you sure?")) {
-      this.setState({
-        widgets: this.state.widgets.filter(item => item.config.i !== this.state.activeItem),
-        editModalOpen: false,
-      });
-      this.props.api.deleteWidget(this.state.activeItem);
-    }
+    if (!window.confirm("Deleting a widget is permanent! Are you sure?"))
+      return
+
+    this.setState({
+      widgets: this.state.widgets.filter(item => item.config.i !== this.state.activeItem),
+      editModalOpen: false,
+    });
+    this.props.api.deleteWidget(this.state.activeItem);
   }
 
   saveActiveWidget = (e) => {
@@ -127,7 +128,7 @@ class App extends React.Component<any, any> {
 
   // eslint-disable-next-line no-unused-vars
   addWidget = async (type) => {
-    const i = new Date().toISOString(); // await this.props.api.createWidget(type)
+    const i = new Date().getTime().toString(); // await this.props.api.createWidget(type)
     const { x, y } = this.firstAvailableSpot(2, 2);
     const widgetLayout = {
       i,
@@ -208,21 +209,23 @@ class App extends React.Component<any, any> {
 
   overWriteSubmitEventListener = () => {
     const formContainer = document.getElementById("ld-form-container");
-    if (formContainer) {
-      const form = formContainer.querySelector("form");
-      if (form) {
-        form.addEventListener("submit", this.saveActiveWidget);
-        const submitButton = document.createElement("input");
-        submitButton.setAttribute("type", "submit");
-        submitButton.setAttribute("style", "visibility: hidden");
-        form.appendChild(submitButton);
-      }
-    }
+    if (!formContainer)
+      return
+
+    const form = formContainer.querySelector("form");
+    if (!form)
+      return
+
+    form.addEventListener("submit", this.saveActiveWidget);
+    const submitButton = document.createElement("input");
+    submitButton.setAttribute("type", "submit");
+    submitButton.setAttribute("style", "visibility: hidden");
+    form.appendChild(submitButton);
   }
 
   render() {
     return (
-      <div>
+      <React.Fragment>
         <Header widgetTypes={this.props.widgetTypes} addWidget={this.addWidget}/>
         {this.renderModal()}
         <ReactGridLayout
@@ -234,7 +237,7 @@ class App extends React.Component<any, any> {
         >
           {this.generateDOM()}
         </ReactGridLayout>
-      </div>
+      </React.Fragment>
     );
   }
 }
