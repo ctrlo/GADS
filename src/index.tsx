@@ -16,7 +16,6 @@ import App from "./app";
 import ApiClient from "./api";
 import "./index.scss";
 
-// grid configuration
 const gridConfig = {
   cols: 12,
   margin: [10, 10],
@@ -28,7 +27,7 @@ const root = document.getElementById("ld-app");
 
 if (root) {
   root.className = "";
-  const widgetsEls = Array.prototype.slice.call(root!.querySelectorAll("div"));
+  const widgetsEls = Array.prototype.slice.call(document.querySelectorAll("#ld-app > div"));
   const widgets = widgetsEls.map(el => ({
     html: el.innerHTML,
     config: JSON.parse(el.getAttribute("data-grid")),
