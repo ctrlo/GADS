@@ -22,8 +22,6 @@ use Moo;
 
 extends 'GADS::Datum::Curcommon';
 
-with 'GADS::Role::Presentation::Datum::Curval';
-
 sub _transform_value
 {   my ($self, $value) = @_;
     # XXX - messy to account for different initial values. Can be tidied once
