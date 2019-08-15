@@ -48,5 +48,5 @@ export default class ApiClient {
     return html.text();
   }
 
-  saveWidget = (url, params) => this.POST(`${url}?${params}`, null)
+  saveWidget = (url, params) => this.PUT(`${url}?${params}`, null)
 }
