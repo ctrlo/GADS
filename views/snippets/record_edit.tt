@@ -1,11 +1,6 @@
 <div class="btn-group">
     <button type="button" class="btn-action btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">Action <b class="caret"></b></button>
     <ul class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="edit_action">
-        [% IF with_view %]
-            <li role="presentation"><a role="menuitem" href="/record/[% record.current_id %]">View record</a></li>
-        [% ELSE %]
-            <li role="presentation"><a role="menuitem" href="/edit/[% record.current_id %]">Edit record</a></li>
-        [% END %]
         <li role="presentation"><a role="menuitem" href="/[% layout.identifier %]/edit/?from=[% record.current_id %]">Copy record</a></li>
         <li role="presentation"><a role="menuitem" href="/record/[% record.current_id %]?pdf">Download as PDF</a></li>
         [% IF layout.user_can("create_child") AND NOT record.parent_id AND layout.has_children %]

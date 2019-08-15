@@ -2496,8 +2496,6 @@ views/metric.tt
 views/metrics.tt
 views/modal_dialog.tt
 views/purge.tt
-views/record.tt
-views/record_body.tt
 views/search.tt
 views/search_form.tt
 views/snippets/datum.tt

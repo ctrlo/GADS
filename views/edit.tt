@@ -8,7 +8,7 @@
             Clone records
         [% END %]
     [% ELSIF NOT record.new_entry %]
-        Edit record ID [% record.current_id %]
+        Record ID [% record.current_id %] [% IF record.deleted %](deleted)[% END %]
         [% IF record.parent_id %]
             <small>(child of record [% record.parent_id %])</small>
         [% END %]
@@ -20,11 +20,51 @@
         New record
     [% END %]
 </h2>
-[% IF NOT record.new_entry %]
-    <p></p>
-    [% PROCESS snippets/record_edit.tt with_view = 1 %]
+
+[% IF record.child_record_ids.size %]
+    <h4>Child records</h4>
+    <ul>
+        [% FOREACH rec IN record.child_record_ids %]
+        <li><a href="/record/[% rec %]">[% rec %]</a></li>
+        [% END %]
+    </ul>
 [% END %]
-<p></p>
+
+[% UNLESS is_modal %]
+    <div class="btn-group">
+        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#">Version history <b class="caret"></b></button>
+        <ul id="menu1" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop4">
+            [% IF record.deleted %]
+                [% history_link = "purgehistory" %]
+            [% ELSE %]
+                [% history_link = "history" %]
+            [% END %]
+            [% FOREACH version IN record.versions %]
+                <li [% IF version.id == record.record_id %]class="active"[% END %] role="presentation">
+                    <a role="menuitem" tabindex="-1" href="/[% history_link %]/[% version.id %]">[% version.created %]
+                        [% IF version.createdby %]
+                            ([% version.createdby.value | html %])
+                        [% END %]
+                    </a>
+                </li>
+            [% END %]
+        </ul>
+    </div>
+
+    [% UNLESS layout.no_hide_blank %]
+        <button class="btn btn-default pull-right click-to-view-blank" type="button" aria-expanded="false">Show blank values</button>
+    [% END %]
+
+    [% IF NOT record.new_entry %]
+        <p></p>
+        [% PROCESS snippets/record_edit.tt %]
+    [% END %]
+    <p></p>
+[% END %]
+
+[% PROCESS snippets/rag_legend.tt IF record.has_rag_column %]
+
+<p>Last updated by [% record.createdby.html %]</p>
 
 [% BLOCK panel_start %]
     [% block_topic = topic.topic %]
@@ -90,7 +130,7 @@
         <p role="alert" class="alert alert-danger" hidden></p>
     [% END %]
     <div class="row">
-        <div class="[% IF modal OR layout.max_width == 100 %]col-md-12[% ELSE %]col-md-6[% END %]">
+        <div class="[% IF modal OR is_modal OR layout.max_width == 100 %]col-md-12[% ELSE %]col-md-6[% END %]">
             [% IF cur_id %]
                 <input type="hidden" name="current_id" value="[% record.current_id %]">
             [% END %]
@@ -100,31 +140,40 @@
             [% jscode = [] %]
             [% typeaheads = [] %]
 
+            [% IF record.user_can_edit AND NOT record.deleted AND NOT record.new_entry AND NOT is_history AND NOT is_modal %]
+                [% editable = 1 %]
+            [% END %]
             [% FOREACH topic IN record.topics %]
                 [% click_to_edits = [] %]
                 [% IF layout_edit.has_topics %]
                     [% PROCESS panel_start %]
                 [% END %]
-                [% UNLESS record.new_entry %]
+                [% IF editable %]
                     <button class="btn btn-default pull-right click-to-edit" type="button" aria-expanded="false">Edit</button>
                 [% END %]
                 <div id="topic_forms[% topic_id %]" class="[% UNLESS record.new_entry %]expandable[% END %]">
                     [% FOREACH col_panel IN topic.columns %]
-                        [% PROCESS showcol col = col_panel %]
+                        [% IF editable AND col_panel.userinput %]
+                            [% PROCESS showcol col = col_panel %]
+                        [% END %]
                         [% click_to_edits.push(col_panel) %]
                     [% END %]
                 </div>
                 [% UNLESS record.new_entry %]
                     <div class="topic-click-to-edit-fields">
-                        <ul>
+                        <table class="table table-striped">
                             [% FOREACH col_click IN click_to_edits %]
-                                <li><b>[% col_click.name | html %]:</b>
-                                    <span class="[% col_click.type %]">
-                                        [% render_datum(col_click, 'semi') # show images but not full render for other fields %]
-                                    </span>
-                                </li>
+                                [% NEXT IF !is_history AND col_click.data.dependent_not_shown %]
+                                [% NEXT IF is_modal AND col.type == "autocur" %]
+
+                                <tr [% IF col_click.data.blank AND NOT layout.no_hide_blank %]class="click-to-view-blank-field expandable"[% END %]>
+                                    <th>[% col_click.name | html_entity %]</th>
+                                    <td class="[% col_click.type %]">
+                                        [% render_datum(col_click, 'full') %]
+                                    </td>
+                                </tr>
                             [% END %]
-                        </ul>
+                        </table>
                     </div>
                 [% END %]
                 [% IF layout_edit.has_topics %]
@@ -139,7 +188,7 @@
         </p>
         <button type="submit" class="btn btn-primary" id="curval-add">[% IF record.new_entry %]Add[% ELSE %]Update[% END %]</button>
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-    [% ELSE %]
+    [% ELSIF NOT is_modal %]
         <div class="navbar navbar-default navbar-fixed-bottom edit-controls">
             <div class="container">
                 <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
@@ -173,8 +222,7 @@
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
-[% WRAPPER modal_dialog.tt modal_id="readmore_modal" modal_large=1 %]
-[% END %]
+[% PROCESS snippets/record_readmore.tt %]
 
 <div class="modal fade" id="curval_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -642,7 +690,7 @@
                             <p class="help-block">No current file (read-only field, cannot be updated).</p>
                         [% END %]
                     [% ELSE %]
-                        <div class="fileupload" data-field="[% field %]" data-fileupload-url="/file?ajax=1" data-multivalue="[% dispcol.is_multivalue %]">
+                        <div class="fileupload" data-field="[% field %]" data-fileupload-url="/file?ajax=1" data-multivalue="[% dispcol.multivalue %]">
                             [%# Ensure something gets sent back to show it's been displayed %]
                             <input type="hidden" name="[% field %]">
                             <div class="progress-bar__container">
@@ -658,7 +706,7 @@
                                     </li>
                                 [% END %]
                             </ul>
-                            [% IF dispcol.is_multivalue == multivalue %]
+                            [% IF dispcol.multivalue == multivalue %]
                                 <input type="file" name="file" multiple>
                             [% ELSE %]
                                 <input type="file" name="file">

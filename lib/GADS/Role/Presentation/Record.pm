@@ -25,7 +25,7 @@ sub edit_columns
         ? (user_can_write_new => 1)
         : (user_can_readwrite_existing => 1);
 
-    my @columns = $self->layout->all(sort_by_topics => 1, can_child => $options{child}, userinput => 1, %permissions);
+    my @columns = $self->layout->all(sort_by_topics => 1, can_child => $options{child}, %permissions);
 
     @columns = grep $_->type ne 'file', @columns
         if $options{bulk} && $options{bulk} eq 'update';

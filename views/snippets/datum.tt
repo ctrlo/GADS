@@ -106,7 +106,7 @@
 
         SWITCH col.data.type;
             CASE ['curval', 'autocur'];
-                render_curcommon_datum(col.is_multivalue, col.data, col.name, full_content);
+                render_curcommon_datum(col.multivalue, col.data, col.name, full_content);
             CASE 'file';
                 IF render_options == 'semi';
                     full_content = 1;

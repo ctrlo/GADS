@@ -614,9 +614,8 @@ any ['get', 'post'] => '/login' => sub {
 };
 
 any ['get', 'post'] => '/edit/:id' => require_login sub {
-
     my $id = param 'id';
-    _process_edit($id);
+    redirect "/record/$id";
 };
 
 any ['get', 'post'] => '/myaccount/?' => require_login sub {
@@ -1219,15 +1218,15 @@ get '/record_body/:id' => require_login sub {
     $record->find_current_id($id);
     my $layout = $record->layout;
     var 'layout' => $layout;
-    my @columns = @{$record->columns_view};
-    template 'record_body' => {
-        is_modal       => 1, # Assume modal if loaded via this route
-        record         => $record->presentation,
-        all_columns    => \@columns,
-    }, { layout => undef };
+
+    my ($params, $options) = _process_edit($id, $record);
+    $options->{layout} = undef;
+    $params->{is_modal} = 1; # Assume modal if loaded via this route
+
+    template 'edit' => $params, $options;
 };
 
-get qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
+any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
 
     my ($action, $id) = splat;
 
@@ -1258,13 +1257,10 @@ get qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
 
     my @first_crumb = $action eq 'purge' ? ( $layout, "/purge" => 'deleted records' ) : ( $layout, "/data" => 'records' );
 
-    my $output = template 'record' => {
-        record         => $record->presentation,
-        page           => 'record',
-        is_history     => $action eq 'history',
-        breadcrumbs    => [Crumb($layout) => Crumb(@first_crumb) => Crumb( "/record/".$record->current_id => 'record id ' . $record->current_id )]
-    };
-    $output;
+    my ($params, $options) = _process_edit($id, $record);
+    $params->{is_history} = $action eq 'history';
+    $params->{breadcrumbs} = [Crumb($layout) => Crumb(@first_crumb) => Crumb( "/record/".$record->current_id => 'record id ' . $record->current_id )];
+    template 'edit' => $params, $options;
 };
 
 any ['get', 'post'] => '/audit/?' => require_role audit => sub {
@@ -3082,7 +3078,8 @@ prefix '/:layout_name' => sub {
     any ['get', 'post'] => '/edit/?' => require_login sub {
 
         my $layout = var('layout') or pass;
-        _process_edit();
+        my ($params, $options) = _process_edit();
+        template 'edit' => $params, $options;
     };
 
     any ['get', 'post'] => '/import/?' => require_any_role [qw/layout useradmin/] => sub {
@@ -3415,7 +3412,7 @@ sub _data_graph
 }
 
 sub _process_edit
-{   my $id = shift;
+{   my ($id, $record) = @_;
 
     my $user   = logged_in_user;
     my %params = (
@@ -3427,10 +3424,15 @@ sub _process_edit
     );
     $params{layout} = var('layout') if var('layout'); # Used when creating a new record
 
-    my $record = GADS::Record->new(%params);
+    my $layout;
 
-    if (my $delete_id = param 'delete')
+    if ($id && $record)
     {
+        $layout = $record->layout;
+    }
+    elsif (my $delete_id = param 'delete')
+    {
+        $record = GADS::Record->new(%params);
         $record->find_current_id($delete_id);
         if (process( sub { $record->delete_current }))
         {
@@ -3438,21 +3440,20 @@ sub _process_edit
                 { success => 'Record has been deleted successfully' }, $record->layout->identifier.'/data' );
         }
     }
-
-    if (param 'delete_draft')
+    elsif (param 'delete_draft')
     {
-        my $layout = var('layout');
+        $record = GADS::Record->new(%params);
+        $record->find_current_id($delete_id);
+        $layout = var('layout');
         if (process( sub { $record->delete_user_drafts }))
         {
             return forwardHome(
                 { success => 'Draft has been deleted successfully' }, $layout->identifier.'/data' );
         }
     }
-
-    my $layout;
-
-    if ($id)
+    elsif ($id)
     {
+        $record = GADS::Record->new(%params);
         my $include_draft = defined(param 'include_draft');
         $record->find_current_id($id, include_draft => $include_draft);
         $layout = $record->layout;
@@ -3460,7 +3461,8 @@ sub _process_edit
     }
     else {
         # New record
-        $layout = var 'layout'; # undef for existing record
+        $record = GADS::Record->new(%params);
+        $record->initialise unless $id;
     }
 
     my $child = param('child') || $record->parent_id;
@@ -3468,7 +3470,6 @@ sub _process_edit
     my $modal = param('modal') && int param('modal');
     my $oi = param('oi') && int param('oi');
 
-    $record->initialise unless $id;
 
     if (param('submit') || param('draft') || $modal || defined(param 'validate'))
     {
@@ -3621,7 +3622,8 @@ sub _process_edit
 
     my $options = $modal ? { layout => undef } : {};
 
-    template 'edit' => $params, $options;
+    return ($params, $options);
+
 }
 
 true;
