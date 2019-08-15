@@ -35,7 +35,7 @@ sub _build_value
 
 sub _build_blank {
     my $self = shift;
-    !! $self->value;
+    ! $self->value;
 }
 
 sub as_string
