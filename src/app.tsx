@@ -9,7 +9,6 @@ import Header from "./header";
 
 const ReactGridLayout = WidthProvider(RGL);
 
-Modal.setAppElement("#ld-app");
 const modalStyle = {
   content: {
     top: "50%",
@@ -26,6 +25,7 @@ const modalStyle = {
 class App extends React.Component<any, any> {
   constructor(props) {
     super(props);
+    Modal.setAppElement("#ld-app");
 
     const layout = props.widgets.map(w => w.config);
     this.formRef = React.createRef()
