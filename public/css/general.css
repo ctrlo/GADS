@@ -5,31 +5,27 @@
 .ld-edit-button {
   position: absolute;
   top: 0;
-  right: 8px;
-  cursor: pointer; }
-
-.ld-modal__button {
-  cursor: pointer; }
+  right: 8px; }
 
 .ld-modal__header {
   padding: 0px 12px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
+  position: relative;
   min-width: 400px;
   border-bottom: 1px solid grey; }
 
 .ld-modal__footer {
   padding: 8px 12px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
+  position: relative;
   border-top: 1px solid grey; }
 
-.ld-modal__footer-right :not(:last-child) {
-  margin-right: 12px; }
+.ld-modal__right-container {
+  position: absolute;
+  right: 12px;
+  top: 8px; }
+  .ld-modal__right-container > * {
+    margin-right: 12px; }
+    .ld-modal__right-container > *:last-child {
+      margin-right: 0; }
 
 .ld-modal__content-container {
   min-height: 100px;
@@ -42,11 +38,12 @@
   margin-right: -50%;
   transform: translate(-50%, -50%); }
 
+.ReactModal__Body--open {
+  overflow-y: hidden; }
+
 .ld-header-container {
-  display: flex;
-  flex-direction: row;
   padding: 12px;
-  margin: 10px;
+  margin-top: 10px;
   border: solid gray 1px; }
   .ld-header-container > * {
     margin-right: 12px; }

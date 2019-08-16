@@ -59484,25 +59484,25 @@ var ApiClient = /** @class */ (function () {
     function ApiClient(baseUrl) {
         var _this = this;
         if (baseUrl === void 0) { baseUrl = ""; }
-        this.saveLayout = function (i, layout) {
-            var strippedLayout = layout.map(function (w) { return (tslib_1.__assign({}, w, { moved: undefined })); });
-            return _this.POST("/dashboard/" + i, strippedLayout);
+        this.saveLayout = function (id, layout) {
+            var strippedLayout = layout.map(function (widget) { return (tslib_1.__assign({}, widget, { moved: undefined })); });
+            return _this.POST("/dashboard/" + id, strippedLayout);
         };
         this.createWidget = function (type) { return _this.POST("/widget?type=" + type, null); };
-        this.getWidgetHtml = function (i) { return _this.GET("/widget/" + i); };
-        this.deleteWidget = function (i) { return _this.DELETE("/widget/" + i); };
-        this.getEditFormHtml = function (i) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+        this.getWidgetHtml = function (id) { return _this.GET("/widget/" + id); };
+        this.deleteWidget = function (id) { return _this.DELETE("/widget/" + id); };
+        this.getEditFormHtml = function (id) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
             var html;
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.GET("/widget/" + i + "/edit")];
+                    case 0: return [4 /*yield*/, this.GET("/widget/" + id + "/edit")];
                     case 1:
                         html = _a.sent();
                         return [2 /*return*/, html.text()];
                 }
             });
         }); };
-        this.saveWidget = function (url, params) { return _this.POST(url + "?" + params, null); };
+        this.saveWidget = function (url, params) { return _this.PUT(url + "?" + params, null); };
         this.baseUrl = baseUrl;
         this.headers = {};
     }
@@ -59518,7 +59518,7 @@ var ApiClient = /** @class */ (function () {
                     headers: Object.assign(this.headers)
                 };
                 if (body) {
-                    Object.assign(opts, { body: JSON.stringify(body) });
+                    opts.body = JSON.stringify(body);
                 }
                 return [2 /*return*/, fetch(fullRoute, opts)];
             });
@@ -59565,7 +59565,6 @@ var react_modal_1 = tslib_1.__importDefault(__webpack_require__(/*! react-modal 
 var react_grid_layout_1 = tslib_1.__importStar(__webpack_require__(/*! react-grid-layout */ "./node_modules/react-grid-layout/index.js"));
 var header_1 = tslib_1.__importDefault(__webpack_require__(/*! ./header */ "./src/header.tsx"));
 var ReactGridLayout = react_grid_layout_1.WidthProvider(react_grid_layout_1["default"]);
-react_modal_1["default"].setAppElement("#ld-app");
 var modalStyle = {
     content: {
         top: "50%",
@@ -59574,6 +59573,7 @@ var modalStyle = {
         bottom: "auto",
         marginRight: "-50%",
         transform: "translate(-50%, -50%)",
+        msTransform: "translate(-50%, -50%)",
         padding: 0
     }
 };
@@ -59584,29 +59584,29 @@ var App = /** @class */ (function (_super) {
         _this.componentDidUpdate = function () {
             window.requestAnimationFrame(_this.overWriteSubmitEventListener);
         };
-        _this.updateWidgetHtml = function (i) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+        _this.updateWidgetHtml = function (id) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
             var newHtml, newWidgets;
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.props.api.getWidgetHtml(i)];
+                    case 0: return [4 /*yield*/, this.props.api.getWidgetHtml(id)];
                     case 1:
                         newHtml = _a.sent();
-                        newWidgets = this.state.widgets.map(function (w) {
-                            if (w.config.i === i) {
-                                return tslib_1.__assign({}, w, { html: newHtml });
+                        newWidgets = this.state.widgets.map(function (widget) {
+                            if (widget.config.i === id) {
+                                return tslib_1.__assign({}, widget, { html: newHtml });
                             }
-                            return w;
+                            return widget;
                         });
                         this.setState({ widgets: newWidgets });
                         return [2 /*return*/];
                 }
             });
         }); };
-        _this.fetchEditForm = function (i) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+        _this.fetchEditForm = function (id) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
             var editFormHtml;
             return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.props.api.getEditFormHtml(i)];
+                    case 0: return [4 /*yield*/, this.props.api.getEditFormHtml(id)];
                     case 1:
                         editFormHtml = _a.sent();
                         this.setState({ loadingEditHtml: false, editHtml: editFormHtml });
@@ -59614,28 +59614,27 @@ var App = /** @class */ (function (_super) {
                 }
             });
         }); };
-        _this.onEditClick = function (i) { return function (event) {
+        _this.onEditClick = function (id) { return function (event) {
             event.preventDefault();
-            _this.fetchEditForm(i);
-            _this.setState({ editModalOpen: true, loadingEditHtml: true, activeItem: i });
+            _this.fetchEditForm(id);
+            _this.setState({ editModalOpen: true, loadingEditHtml: true, activeItem: id });
         }; };
         _this.closeModal = function () {
             _this.setState({ editModalOpen: false });
         };
         _this.deleteActiveWidget = function () {
             // eslint-disable-next-line no-alert
-            if (window.confirm("Deleting a widget is permanent! Are you sure?")) {
-                _this.setState({
-                    widgets: _this.state.widgets.filter(function (item) { return item.config.i !== _this.state.activeItem; }),
-                    editModalOpen: false
-                });
-                _this.props.api.deleteWidget(_this.state.activeItem);
-            }
+            if (!window.confirm("Deleting a widget is permanent! Are you sure?"))
+                return;
+            _this.setState({
+                widgets: _this.state.widgets.filter(function (item) { return item.config.i !== _this.state.activeItem; }),
+                editModalOpen: false
+            });
+            _this.props.api.deleteWidget(_this.state.activeItem);
         };
-        _this.saveActiveWidget = function (e) {
-            e.preventDefault();
-            var formContainer = document.getElementById("ld-form-container");
-            var formEl = formContainer.querySelector("form");
+        _this.saveActiveWidget = function (event) {
+            event.preventDefault();
+            var formEl = _this.formRef.current.querySelector("form");
             if (formEl) {
                 var form = form_serialize_1["default"](formEl);
                 _this.props.api.saveWidget(formEl.action, form);
@@ -59676,13 +59675,13 @@ var App = /** @class */ (function (_super) {
         };
         // eslint-disable-next-line no-unused-vars
         _this.addWidget = function (type) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
-            var i, _a, x, y, widgetLayout, newLayout;
+            var id, _a, x, y, widgetLayout, newLayout;
             var _this = this;
             return tslib_1.__generator(this, function (_b) {
-                i = new Date().toISOString();
+                id = new Date().getTime().toString();
                 _a = this.firstAvailableSpot(2, 2), x = _a.x, y = _a.y;
                 widgetLayout = {
-                    i: i,
+                    i: id,
                     x: x,
                     y: y,
                     w: 2,
@@ -59695,14 +59694,13 @@ var App = /** @class */ (function (_super) {
                         html: "Loading..."
                     }),
                     layout: newLayout
-                }, function () { return _this.updateWidgetHtml(i); });
+                }, function () { return _this.updateWidgetHtml(id); });
                 this.props.api.saveLayout(this.props.dashboardId, newLayout);
                 return [2 /*return*/];
             });
         }); };
         _this.generateDOM = function () { return (_this.state.widgets.map(function (widget) { return (react_1["default"].createElement("div", { key: widget.config.i, className: "ld-widget-container" },
-            react_1["default"].createElement("span", { className: "ld-edit-button", onClick: _this.onEditClick(widget.config.i) },
-                react_1["default"].createElement("u", null, "Edit")),
+            react_1["default"].createElement("button", { className: "ld-edit-button", onClick: _this.onEditClick(widget.config.i) }, "Edit"),
             react_1["default"].createElement("div", { dangerouslySetInnerHTML: { __html: widget.html } }))); })); };
         _this.onLayoutChange = function (layout) {
             if (_this.shouldSaveLayout(_this.state.layout, layout)) {
@@ -59739,32 +59737,31 @@ var App = /** @class */ (function (_super) {
                 react_1["default"].createElement("h4", null,
                     "Edit widget ",
                     _this.state.activeItem),
-                react_1["default"].createElement("span", { className: "ld-modal__button", onClick: _this.closeModal },
-                    react_1["default"].createElement("u", null, "Close"))),
+                react_1["default"].createElement("div", { className: 'ld-modal__right-container', style: { top: 0 } },
+                    react_1["default"].createElement("button", { className: "ld-modal__button", onClick: _this.closeModal }, "Close"))),
             react_1["default"].createElement("div", { className: "ld-modal__content-container" }, _this.state.loadingEditHtml
-                ? react_1["default"].createElement("span", { className: 'ld-modal__loading' }, "Loading...") : react_1["default"].createElement("div", { id: "ld-form-container", dangerouslySetInnerHTML: { __html: _this.state.editHtml } })),
+                ? react_1["default"].createElement("button", { className: 'ld-modal__loading' }, "Loading...") : react_1["default"].createElement("div", { ref: _this.formRef, dangerouslySetInnerHTML: { __html: _this.state.editHtml } })),
             react_1["default"].createElement("div", { className: 'ld-modal__footer' },
-                react_1["default"].createElement("span", { className: "ld-modal__button", onClick: _this.deleteActiveWidget },
-                    react_1["default"].createElement("u", null, "Delete")),
-                react_1["default"].createElement("div", { className: 'ld-modal__footer-right' },
-                    react_1["default"].createElement("span", { className: "ld-modal__button", onClick: _this.closeModal },
-                        react_1["default"].createElement("u", null, "Cancel")),
-                    react_1["default"].createElement("span", { className: "ld-modal__button", onClick: _this.saveActiveWidget },
-                        react_1["default"].createElement("u", null, "Save")))))); };
+                react_1["default"].createElement("button", { className: "ld-modal__button", onClick: _this.deleteActiveWidget }, "Delete"),
+                react_1["default"].createElement("div", { className: 'ld-modal__right-container' },
+                    react_1["default"].createElement("button", { className: "ld-modal__button", onClick: _this.closeModal }, "Cancel"),
+                    react_1["default"].createElement("button", { className: "ld-modal__button", onClick: _this.saveActiveWidget }, "Save"))))); };
         _this.overWriteSubmitEventListener = function () {
             var formContainer = document.getElementById("ld-form-container");
-            if (formContainer) {
-                var form = formContainer.querySelector("form");
-                if (form) {
-                    form.addEventListener("submit", _this.saveActiveWidget);
-                    var submitButton = document.createElement("input");
-                    submitButton.setAttribute("type", "submit");
-                    submitButton.setAttribute("style", "visibility: hidden");
-                    form.appendChild(submitButton);
-                }
-            }
+            if (!formContainer)
+                return;
+            var form = formContainer.querySelector("form");
+            if (!form)
+                return;
+            form.addEventListener("submit", _this.saveActiveWidget);
+            var submitButton = document.createElement("input");
+            submitButton.setAttribute("type", "submit");
+            submitButton.setAttribute("style", "visibility: hidden");
+            form.appendChild(submitButton);
         };
-        var layout = props.widgets.map(function (w) { return w.config; });
+        react_modal_1["default"].setAppElement("#ld-app");
+        var layout = props.widgets.map(function (widget) { return widget.config; });
+        _this.formRef = react_1["default"].createRef();
         _this.state = {
             widgets: props.widgets,
             layout: layout,
@@ -59776,8 +59773,8 @@ var App = /** @class */ (function (_super) {
         return _this;
     }
     App.prototype.render = function () {
-        return (react_1["default"].createElement("div", null,
-            react_1["default"].createElement(header_1["default"], { widgetTypes: this.props.widgetTypes, addWidget: this.addWidget }),
+        return (react_1["default"].createElement(react_1["default"].Fragment, null,
+            react_1["default"].createElement(header_1["default"], { widgetTypes: this.props.widgetTypes, addWidget: this.addWidget, hMargin: this.props.gridConfig.containerPadding[0] }),
             this.renderModal(),
             react_1["default"].createElement(ReactGridLayout, tslib_1.__assign({ useCSSTransforms: false, layout: this.state.layout, onLayoutChange: this.onLayoutChange, items: this.state.layout.length }, this.props.gridConfig), this.generateDOM())));
     };
@@ -59813,11 +59810,11 @@ var tslib_1 = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.j
 var react_1 = tslib_1.__importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
 __webpack_require__(/*! ./header.scss */ "./src/header.scss");
 var Header = function (_a) {
-    var widgetTypes = _a.widgetTypes, addWidget = _a.addWidget;
-    var _b = react_1.useState(widgetTypes[0]), type = _b[0], setType = _b[1];
-    return (react_1["default"].createElement("div", { className: 'ld-header-container' },
-        react_1["default"].createElement("select", { value: type, onChange: function (e) { return setType(e.target.value); } }, widgetTypes.map(function (t) { return (react_1["default"].createElement("option", { key: t, value: t }, t)); })),
-        react_1["default"].createElement("button", { onClick: function () { return addWidget(type); } }, "Add Widget")));
+    var widgetTypes = _a.widgetTypes, addWidget = _a.addWidget, hMargin = _a.hMargin;
+    var _b = react_1.useState(widgetTypes[0]), currentType = _b[0], setType = _b[1];
+    return (react_1["default"].createElement("div", { className: 'ld-header-container', style: { marginLeft: hMargin, marginRight: hMargin } },
+        react_1["default"].createElement("select", { value: currentType, onChange: function (event) { return setType(event.target.value); } }, widgetTypes.map(function (type) { return (react_1["default"].createElement("option", { key: type, value: type }, type)); })),
+        react_1["default"].createElement("button", { onClick: function () { return addWidget(currentType); } }, "Add Widget")));
 };
 exports["default"] = Header;
 
@@ -59860,17 +59857,16 @@ var react_dom_1 = tslib_1.__importDefault(__webpack_require__(/*! react-dom */ "
 var app_1 = tslib_1.__importDefault(__webpack_require__(/*! ./app */ "./src/app.tsx"));
 var api_1 = tslib_1.__importDefault(__webpack_require__(/*! ./api */ "./src/api.ts"));
 __webpack_require__(/*! ./index.scss */ "./src/index.scss");
-// grid configuration
 var gridConfig = {
     cols: 12,
     margin: [10, 10],
-    containerPadding: [10, 10],
+    containerPadding: [0, 10],
     rowHeight: 80
 };
 var root = document.getElementById("ld-app");
 if (root) {
     root.className = "";
-    var widgetsEls = Array.prototype.slice.call(root.querySelectorAll("div"));
+    var widgetsEls = Array.prototype.slice.call(document.querySelectorAll("#ld-app > div"));
     var widgets = widgetsEls.map(function (el) { return ({
         html: el.innerHTML,
         config: JSON.parse(el.getAttribute("data-grid"))
