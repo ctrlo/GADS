@@ -228,7 +228,11 @@ class App extends React.Component<any, any> {
   render() {
     return (
       <React.Fragment>
-        <Header widgetTypes={this.props.widgetTypes} addWidget={this.addWidget}/>
+        <Header
+          widgetTypes={this.props.widgetTypes}
+          addWidget={this.addWidget}
+          hMargin={this.props.gridConfig.containerPadding[0]}
+        />
         {this.renderModal()}
         <ReactGridLayout
           useCSSTransforms={false}

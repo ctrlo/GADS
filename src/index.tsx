@@ -19,7 +19,7 @@ import "./index.scss";
 const gridConfig = {
   cols: 12,
   margin: [10, 10],
-  containerPadding: [10, 10],
+  containerPadding: [0, 10],
   rowHeight: 80,
 };
 

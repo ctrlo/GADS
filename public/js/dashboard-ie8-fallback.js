@@ -1,6 +1,6 @@
 var cols = 12;
 var margin = [10, 10];
-var containerPadding = [10, 10];
+var containerPadding = [0, 10];
 var rowHeight = 80;
 var root = document.getElementById('ld-app');
 if (root) {
