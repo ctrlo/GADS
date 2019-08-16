@@ -16,24 +16,21 @@
 
 .ld-modal__header {
   padding: 0px 12px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
+  position: relative;
   min-width: 400px;
   border-bottom: 1px solid grey;
 }
 
 .ld-modal__footer {
   padding: 8px 12px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
+  position: relative;
   border-top: 1px solid grey;
 }
 
-.ld-modal__footer-right {
+.ld-modal__right-container {
+  position: absolute;
+  right: 12px;
+  top: 8px;
   > * {
     margin-right: 12px;
     &:last-child {

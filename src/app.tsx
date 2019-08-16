@@ -191,7 +191,9 @@ class App extends React.Component<any, any> {
     >
       <div className='ld-modal__header'>
         <h4>Edit widget {this.state.activeItem}</h4>
-        <span className="ld-modal__button" onClick={this.closeModal}><u>Close</u></span>
+        <div className='ld-modal__right-container' style={{top: 0}}>
+          <span className="ld-modal__button" onClick={this.closeModal}><u>Close</u></span>
+        </div>
       </div>
       <div className="ld-modal__content-container">
         {this.state.loadingEditHtml
@@ -199,7 +201,7 @@ class App extends React.Component<any, any> {
       </div>
       <div className='ld-modal__footer'>
         <span className="ld-modal__button" onClick={this.deleteActiveWidget}><u>Delete</u></span>
-        <div className='ld-modal__footer-right'>
+        <div className='ld-modal__right-container'>
           <span className="ld-modal__button" onClick={this.closeModal}><u>Cancel</u></span>
           <span className="ld-modal__button" onClick={this.saveActiveWidget}><u>Save</u></span>
         </div>
