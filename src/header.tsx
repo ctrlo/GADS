@@ -2,15 +2,15 @@ import React, { useState } from "react";
 import "./header.scss";
 
 const Header = ({ widgetTypes, addWidget, hMargin }) => {
-  const [type, setType] = useState(widgetTypes[0]);
+  const [currentType, setType] = useState(widgetTypes[0]);
   return (
     <div className='ld-header-container' style={{marginLeft: hMargin, marginRight: hMargin}}>
-      <select value={type} onChange={e => setType(e.target.value)}>
-        {widgetTypes.map(t => (
-          <option key={t} value={t}>{t}</option>
+      <select value={currentType} onChange={event => setType(event.target.value)}>
+        {widgetTypes.map(type => (
+          <option key={type} value={type}>{type}</option>
         ))}
       </select>
-      <button onClick={() => addWidget(type)}>Add Widget</button>
+      <button onClick={() => addWidget(currentType)}>Add Widget</button>
     </div>
   );
 };

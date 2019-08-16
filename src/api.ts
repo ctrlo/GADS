@@ -32,19 +32,19 @@ export default class ApiClient {
 
   DELETE(route) { return this._fetch(route, "DELETE", null); }
 
-  saveLayout = (i, layout) => {
-    const strippedLayout = layout.map(w => ({ ...w, moved: undefined }));
-    return this.POST(`/dashboard/${i}`, strippedLayout);
+  saveLayout = (id, layout) => {
+    const strippedLayout = layout.map(widget => ({ ...widget, moved: undefined }));
+    return this.POST(`/dashboard/${id}`, strippedLayout);
   }
 
   createWidget = type => this.POST(`/widget?type=${type}`, null)
 
-  getWidgetHtml = i => this.GET(`/widget/${i}`)
+  getWidgetHtml = id => this.GET(`/widget/${id}`)
 
-  deleteWidget = i => this.DELETE(`/widget/${i}`)
+  deleteWidget = id => this.DELETE(`/widget/${id}`)
 
-  getEditFormHtml = async (i) => {
-    const html = await this.GET(`/widget/${i}/edit`);
+  getEditFormHtml = async id => {
+    const html = await this.GET(`/widget/${id}/edit`);
     return html.text();
   }
 

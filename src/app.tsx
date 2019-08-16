@@ -27,7 +27,7 @@ class App extends React.Component<any, any> {
     super(props);
     Modal.setAppElement("#ld-app");
 
-    const layout = props.widgets.map(w => w.config);
+    const layout = props.widgets.map(widget => widget.config);
     this.formRef = React.createRef()
 
     this.state = {
@@ -44,29 +44,29 @@ class App extends React.Component<any, any> {
     window.requestAnimationFrame(this.overWriteSubmitEventListener);
   }
 
-  updateWidgetHtml = async (i) => {
-    const newHtml = await this.props.api.getWidgetHtml(i);
-    const newWidgets = this.state.widgets.map((w) => {
-      if (w.config.i === i) {
+  updateWidgetHtml = async (id) => {
+    const newHtml = await this.props.api.getWidgetHtml(id);
+    const newWidgets = this.state.widgets.map(widget => {
+      if (widget.config.i === id) {
         return {
-          ...w,
+          ...widget,
           html: newHtml,
         };
       }
-      return w;
+      return widget;
     });
     this.setState({ widgets: newWidgets });
   }
 
-  fetchEditForm = async (i) => {
-    const editFormHtml = await this.props.api.getEditFormHtml(i);
+  fetchEditForm = async (id) => {
+    const editFormHtml = await this.props.api.getEditFormHtml(id);
     this.setState({ loadingEditHtml: false, editHtml: editFormHtml });
   }
 
-  onEditClick = i => (event) => {
+  onEditClick = id => (event) => {
     event.preventDefault();
-    this.fetchEditForm(i);
-    this.setState({ editModalOpen: true, loadingEditHtml: true, activeItem: i });
+    this.fetchEditForm(id);
+    this.setState({ editModalOpen: true, loadingEditHtml: true, activeItem: id });
   }
 
   closeModal = () => {
@@ -85,8 +85,8 @@ class App extends React.Component<any, any> {
     this.props.api.deleteWidget(this.state.activeItem);
   }
 
-  saveActiveWidget = (e) => {
-    e.preventDefault();
+  saveActiveWidget = (event) => {
+    event.preventDefault();
     const formEl = this.formRef.current.querySelector("form");
     if (formEl) {
       const form = serialize(formEl);
@@ -128,10 +128,10 @@ class App extends React.Component<any, any> {
 
   // eslint-disable-next-line no-unused-vars
   addWidget = async (type) => {
-    const i = new Date().getTime().toString(); // await this.props.api.createWidget(type)
+    const id = new Date().getTime().toString(); // await this.props.api.createWidget(type)
     const { x, y } = this.firstAvailableSpot(2, 2);
     const widgetLayout = {
-      i,
+      i: id,
       x,
       y,
       w: 2,
@@ -144,7 +144,7 @@ class App extends React.Component<any, any> {
         html: "Loading...",
       }),
       layout: newLayout,
-    }, () => this.updateWidgetHtml(i));
+    }, () => this.updateWidgetHtml(id));
     this.props.api.saveLayout(this.props.dashboardId, newLayout);
   }
 
