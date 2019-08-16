@@ -151,7 +151,7 @@ class App extends React.Component<any, any> {
   generateDOM = () => (
     this.state.widgets.map(widget => (
       <div key={widget.config.i} className="ld-widget-container">
-        <span className="ld-edit-button" onClick={this.onEditClick(widget.config.i)}><u>Edit</u></span>
+        <button className="ld-edit-button" onClick={this.onEditClick(widget.config.i)}>Edit</button>
         <div dangerouslySetInnerHTML={{ __html: widget.html }} />
       </div>
     ))
@@ -192,18 +192,18 @@ class App extends React.Component<any, any> {
       <div className='ld-modal__header'>
         <h4>Edit widget {this.state.activeItem}</h4>
         <div className='ld-modal__right-container' style={{top: 0}}>
-          <span className="ld-modal__button" onClick={this.closeModal}><u>Close</u></span>
+          <button className="ld-modal__button" onClick={this.closeModal}>Close</button>
         </div>
       </div>
       <div className="ld-modal__content-container">
         {this.state.loadingEditHtml
-          ? <span className='ld-modal__loading'>Loading...</span> : <div ref={this.formRef} dangerouslySetInnerHTML={{ __html: this.state.editHtml }} />}
+          ? <button className='ld-modal__loading'>Loading...</button> : <div ref={this.formRef} dangerouslySetInnerHTML={{ __html: this.state.editHtml }} />}
       </div>
       <div className='ld-modal__footer'>
-        <span className="ld-modal__button" onClick={this.deleteActiveWidget}><u>Delete</u></span>
+        <button className="ld-modal__button" onClick={this.deleteActiveWidget}>Delete</button>
         <div className='ld-modal__right-container'>
-          <span className="ld-modal__button" onClick={this.closeModal}><u>Cancel</u></span>
-          <span className="ld-modal__button" onClick={this.saveActiveWidget}><u>Save</u></span>
+          <button className="ld-modal__button" onClick={this.closeModal}>Cancel</button>
+          <button className="ld-modal__button" onClick={this.saveActiveWidget}>Save</button>
         </div>
       </div>
     </Modal>
