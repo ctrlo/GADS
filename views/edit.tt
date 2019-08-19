@@ -146,7 +146,7 @@
                 [% END %]
                 [% IF editable %]
                     <div class="form-group">
-                        <button class="btn btn-default pull-right click-to-edit" type="button" aria-expanded="false" data-edit-el="#topic_forms[% block_topic.id %]" data-view-el="#topic_show[% block_topic.id %]">Edit</button>
+                        <button class="btn btn-default pull-right click-to-edit" type="button" data-edit-el="#topic_forms[% block_topic.id %]" data-view-el="#topic_show[% block_topic.id %]">Edit</button>
                         [% IF block_topic.description %]
                             <p>[% block_topic.description | html %]</p>
                         [% END %]

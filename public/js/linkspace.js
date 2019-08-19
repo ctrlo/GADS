@@ -1127,9 +1127,9 @@ var runPageSpecificCode = function (context) {
 var setupClickToEdit = function(context) {
     $('.click-to-edit', context).on('click', function() {
         var $editToggleButton = $(this);
-        $($editToggleButton.data('viewEl')).removeClass('expanded');
-        $($editToggleButton.data('editEl')).addClass('expanded');
-        $editToggleButton.hide();
+        this.innerHTML = this.innerHTML === "Edit" ? "View" : "Edit";
+        $($editToggleButton.data('viewEl')).toggleClass('expanded');
+        $($editToggleButton.data('editEl')).toggleClass('expanded');
     });
 }
 
