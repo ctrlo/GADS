@@ -62,20 +62,32 @@
             <div class="panel panel-default">
                 <div class="panel-heading">Version history</div>
                 <div class="panel-body">
-                    [% IF record.deleted %]
-                        [% history_link = "purgehistory" %]
-                    [% ELSE %]
-                        [% history_link = "history" %]
-                    [% END %]
-                    [% FOREACH version IN record.versions %]
-                        <li [% IF version.id == record.record_id %]class="active"[% END %] role="presentation">
-                            <a tabindex="-1" href="/[% history_link %]/[% version.id %]">[% version.created %]
-                                [% IF version.createdby %]
-                                    ([% version.createdby.value | html %])
-                                [% END %]
-                            </a>
-                        </li>
-                    [% END %]
+                    <div class="btn-group-vertical">
+                        [% dropdown_title = "Select version..." %]
+                        [% FOREACH version IN record.versions %]
+                            [% IF version.id == record.record_id %]
+                                [% dropdown_title = version.created %]
+                            [% END %]
+                        [% END %]
+
+                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#">[% dropdown_title | html %] <b class="caret"></b></button>
+                        <ul id="menu1" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop4">
+                            [% IF record.deleted %]
+                                [% history_link = "purgehistory" %]
+                            [% ELSE %]
+                                [% history_link = "history" %]
+                            [% END %]
+                            [% FOREACH version IN record.versions %]
+                                <li [% IF version.id == record.record_id %]class="active"[% END %] role="presentation">
+                                    <a role="menuitem" tabindex="-1" href="/[% history_link %]/[% version.id %]">[% version.created %]
+                                        [% IF version.createdby %]
+                                            ([% version.createdby.value | html %])
+                                        [% END %]
+                                    </a>
+                                </li>
+                            [% END %]
+                        </ul>
+                    </div>
                 </div>
             </div>
         [% END %]
