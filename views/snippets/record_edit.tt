@@ -1,18 +1,18 @@
-<div class="btn-group">
-    <button type="button" class="btn-action btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#">Action <b class="caret"></b></button>
-    <ul class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="edit_action">
-        <li role="presentation"><a role="menuitem" href="/[% layout.identifier %]/edit/?from=[% record.current_id %]">Copy record</a></li>
-        <li role="presentation"><a role="menuitem" href="/record/[% record.current_id %]?pdf">Download as PDF</a></li>
-        [% IF layout.user_can("create_child") AND NOT record.parent_id AND layout.has_children %]
-            <li role="presentation"><a role="menuitem" href="/[% layout.identifier %]/edit/?child=[% record.current_id %]">Create child record</a></li>
-        [% END %]
-        [% IF user.permission.link %]
-            <li role="presentation"><a role="menuitem" href="/[% layout.identifier %]/link/[% record.current_id %]">Link record</a></li>
-        [% END %]
-        [% IF record.user_can_delete %]
-            <li role="presentation"><a class="btn-delete" role="menuitem" href="" data-toggle="modal" data-target="#modaldelete">Delete</a></li>
-        [% END %]
-    </ul>
+<div class="btn-group-vertical" role="group">
+    [% UNLESS layout.no_hide_blank %]
+        <button type="button" class="btn btn-default click-to-view-blank">Show blank values</button>
+    [% END %]
+    <a class="btn btn-default" href="/[% layout.identifier %]/edit/?from=[% record.current_id %]">Copy record</a>
+    <a class="btn btn-default" href="/record/[% record.current_id %]?pdf">Download as PDF</a>
+    [% IF layout.user_can("create_child") AND NOT record.parent_id AND layout.has_children %]
+        <a class="btn btn-default" href="/[% layout.identifier %]/edit/?child=[% record.current_id %]">Create child record</a>
+    [% END %]
+    [% IF user.permission.link %]
+        <a class="btn btn-default" href="/[% layout.identifier %]/link/[% record.current_id %]">Link record</a>
+    [% END %]
+    [% IF record.user_can_delete %]
+        <button type="button" class="btn btn-danger btn-delete" data-toggle="modal" data-target="#modaldelete">Delete</a>
+    [% END %]
 </div>
 
 [% IF record.user_can_delete %]

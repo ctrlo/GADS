@@ -1594,6 +1594,16 @@ a.panel-heading {
   border-bottom-color: #eed3d7;
 }
 
+.panel-body .btn-group-vertical {
+  display: block;
+}
+.panel-body .btn-group-vertical a.btn {
+  text-decoration: none;
+}
+.panel-body dl:last-child {
+  margin-bottom: 0;
+}
+
 .well {
   border-radius: 0px;
 }

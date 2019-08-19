@@ -930,6 +930,17 @@ a.panel-heading {
 .panel-danger>.panel-footer+.panel-collapse .panel-body {
         border-bottom-color:#eed3d7;
 }
+.panel-body {
+        .btn-group-vertical {
+                display: block;
+                a.btn {
+                        text-decoration: none;
+                }
+        }
+        dl:last-child {
+                margin-bottom: 0;
+        }
+}
 .well {
         border-radius:0px;
 }

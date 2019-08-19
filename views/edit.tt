@@ -21,50 +21,75 @@
     [% END %]
 </h2>
 
-[% IF record.child_record_ids.size %]
-    <h4>Child records</h4>
-    <ul>
-        [% FOREACH rec IN record.child_record_ids %]
-        <li><a href="/record/[% rec %]">[% rec %]</a></li>
-        [% END %]
-    </ul>
-[% END %]
-
-[% UNLESS is_modal %]
-    <div class="btn-group">
-        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#">Version history <b class="caret"></b></button>
-        <ul id="menu1" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop4">
-            [% IF record.deleted %]
-                [% history_link = "purgehistory" %]
-            [% ELSE %]
-                [% history_link = "history" %]
-            [% END %]
-            [% FOREACH version IN record.versions %]
-                <li [% IF version.id == record.record_id %]class="active"[% END %] role="presentation">
-                    <a role="menuitem" tabindex="-1" href="/[% history_link %]/[% version.id %]">[% version.created %]
-                        [% IF version.createdby %]
-                            ([% version.createdby.value | html %])
-                        [% END %]
-                    </a>
-                </li>
-            [% END %]
-        </ul>
+<div class="row">
+    <div class="col-md-9">
+        [% PROCESS form %]
     </div>
+    <div class="col-md-3">
+        [% IF record.child_record_ids.size %]
+            <div class="panel panel-default">
+                <div class="panel-heading">Child records</div>
+                <div class="panel-body">
+                    <ul>
+                        [% FOREACH rec IN record.child_record_ids %]
+                            <li><a href="/record/[% rec %]">[% rec %]</a></li>
+                        [% END %]
+                    </ul>
+                </div>
+            </div>
+        [% END %]
 
-    [% UNLESS layout.no_hide_blank %]
-        <button class="btn btn-default pull-right click-to-view-blank" type="button" aria-expanded="false">Show blank values</button>
-    [% END %]
+        <div class="panel panel-default">
+            <div class="panel-heading">Meta data</div>
+            <div class="panel-body">
+                <dl>
+                    <dt>Last updated by</dt>
+                    <dd>[% record.createdby.html %]</dd>
+                </dl>
+            </div>
+        </div>
 
-    [% IF NOT record.new_entry %]
-        <p></p>
-        [% PROCESS snippets/record_edit.tt %]
-    [% END %]
-    <p></p>
-[% END %]
+        [% UNLESS is_modal %]
+            <div class="panel panel-default">
+                <div class="panel-heading">Actions</div>
+                <div class="panel-body">
+                    [% IF NOT record.new_entry %]
+                        [% PROCESS snippets/record_edit.tt %]
+                    [% END %]
+                </div>
+            </div>
 
-[% PROCESS snippets/rag_legend.tt IF record.has_rag_column %]
+            <div class="panel panel-default">
+                <div class="panel-heading">Version history</div>
+                <div class="panel-body">
+                    [% IF record.deleted %]
+                        [% history_link = "purgehistory" %]
+                    [% ELSE %]
+                        [% history_link = "history" %]
+                    [% END %]
+                    [% FOREACH version IN record.versions %]
+                        <li [% IF version.id == record.record_id %]class="active"[% END %] role="presentation">
+                            <a tabindex="-1" href="/[% history_link %]/[% version.id %]">[% version.created %]
+                                [% IF version.createdby %]
+                                    ([% version.createdby.value | html %])
+                                [% END %]
+                            </a>
+                        </li>
+                    [% END %]
+                </div>
+            </div>
+        [% END %]
 
-<p>Last updated by [% record.createdby.html %]</p>
+        [% IF record.has_rag_column %]
+            <div class="panel panel-default">
+                <div class="panel-heading">Legend</div>
+                <div class="panel-body">
+                    [% PROCESS snippets/rag_legend.tt %]
+                </div>
+            </div>
+        [% END %]
+    </div>
+</div>
 
 [% BLOCK panel_start %]
     [% block_topic = topic.topic %]
@@ -104,116 +129,119 @@
 [% IF NOT record.new_entry %]
     [% cur_id = record.current_id %]
 [% END %]
-<form class="edit-form" method="post" enctype="multipart/form-data"
-    [% IF modal %]
-        [% IF cur_id %]
-            [% action = "/edit/" _ cur_id %]
-        [% ELSE %]
-            [% action = "/" _ layout.identifier _ "/edit/" %]
-        [% END %]
-        action="[% action %]" [%# This form also used for bulk actions %]
-        data-curval-id="[% modal %]"
-        data-current-id="[% cur_id %]"
-        data-modal-field-ids="[% modal_field_ids %]"
-        data-instance-name="[% layout.identifier %]"
-    [% END %]
->
-    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-    [% IF submission_token %]
-        <input type="hidden" name="submission_token" value="[% submission_token %]">
-    [% END %]
-    [% IF modal %]
-        <p role="alert" class="alert alert-danger" hidden></p>
-    [% END %]
-    <div class="row">
-        <div class="[% IF modal OR is_modal OR layout.max_width == 100 %]col-md-12[% ELSE %]col-md-6[% END %]">
-            [% IF cur_id %]
-                <input type="hidden" name="current_id" value="[% record.current_id %]">
-            [% END %]
-            [% IF child %]
-                <input type="hidden" name="child" value="[% child %]">
-            [% END %]
-            [% jscode = [] %]
-            [% typeaheads = [] %]
 
-            [% IF record.user_can_edit AND NOT record.deleted AND NOT record.new_entry AND NOT is_history AND NOT is_modal %]
-                [% editable = 1 %]
+[% BLOCK form %]
+    <form class="edit-form" method="post" enctype="multipart/form-data"
+        [% IF modal %]
+            [% IF cur_id %]
+                [% action = "/edit/" _ cur_id %]
+            [% ELSE %]
+                [% action = "/" _ layout.identifier _ "/edit/" %]
             [% END %]
-            [% FOREACH topic IN record.topics %]
-                [% click_to_edits = [] %]
-                [% IF layout_edit.has_topics %]
-                    [% PROCESS panel_start %]
+            action="[% action %]" [%# This form also used for bulk actions %]
+            data-curval-id="[% modal %]"
+            data-current-id="[% cur_id %]"
+            data-modal-field-ids="[% modal_field_ids %]"
+            data-instance-name="[% layout.identifier %]"
+        [% END %]
+    >
+        <input type="hidden" name="csrf_token" value="[% csrf_token %]">
+        [% IF submission_token %]
+            <input type="hidden" name="submission_token" value="[% submission_token %]">
+        [% END %]
+        [% IF modal %]
+            <p role="alert" class="alert alert-danger" hidden></p>
+        [% END %]
+        <div class="row">
+            <div class="[% IF modal OR is_modal OR layout.max_width == 100 %]col-md-12[% ELSE %]col-md-6[% END %]">
+                [% IF cur_id %]
+                    <input type="hidden" name="current_id" value="[% record.current_id %]">
                 [% END %]
-                [% IF editable %]
-                    <div class="form-group">
-                        <button class="btn btn-default pull-right click-to-edit" type="button" data-edit-el="#topic_forms[% block_topic.id %]" data-view-el="#topic_show[% block_topic.id %]">Edit</button>
+                [% IF child %]
+                    <input type="hidden" name="child" value="[% child %]">
+                [% END %]
+                [% jscode = [] %]
+                [% typeaheads = [] %]
+
+                [% IF record.user_can_edit AND NOT record.deleted AND NOT record.new_entry AND NOT is_history AND NOT is_modal %]
+                    [% editable = 1 %]
+                [% END %]
+                [% FOREACH topic IN record.topics %]
+                    [% click_to_edits = [] %]
+                    [% IF layout_edit.has_topics %]
+                        [% PROCESS panel_start %]
+                    [% END %]
+                    [% IF editable %]
+                        <div class="form-group">
+                            <button class="btn btn-default pull-right click-to-edit" type="button" data-edit-el="#topic_forms[% block_topic.id %]" data-view-el="#topic_show[% block_topic.id %]">Edit</button>
+                            [% IF block_topic.description %]
+                                <p>[% block_topic.description | html %]</p>
+                            [% END %]
+                        </div>
+                    [% ELSE %]
                         [% IF block_topic.description %]
                             <p>[% block_topic.description | html %]</p>
                         [% END %]
-                    </div>
-                [% ELSE %]
-                    [% IF block_topic.description %]
-                        <p>[% block_topic.description | html %]</p>
                     [% END %]
-                [% END %]
-                <div id="topic_forms[% block_topic.id %]" class="[% UNLESS record.new_entry %]expandable[% END %]">
-                    [% FOREACH col_panel IN topic.columns %]
-                        [% IF editable AND col_panel.userinput %]
-                            [% PROCESS showcol col = col_panel %]
-                        [% END %]
-                        [% click_to_edits.push(col_panel) %]
-                    [% END %]
-                </div>
-                [% UNLESS record.new_entry %]
-                    <div id="topic_show[% block_topic.id %]" class="expandable expanded">
-                        <table class="table table-striped">
-                            [% FOREACH col_click IN click_to_edits %]
-                                [% NEXT IF !is_history AND col_click.data.dependent_not_shown %]
-                                [% NEXT IF is_modal AND col.type == "autocur" %]
-
-                                <tr [% IF col_click.data.blank AND NOT layout.no_hide_blank %]class="click-to-view-blank-field expandable"[% END %]>
-                                    <th>[% col_click.name | html_entity %]</th>
-                                    <td class="[% col_click.type %]">
-                                        [% render_datum(col_click, 'full') %]
-                                    </td>
-                                </tr>
+                    <div id="topic_forms[% block_topic.id %]" class="[% UNLESS record.new_entry %]expandable[% END %]">
+                        [% FOREACH col_panel IN topic.columns %]
+                            [% IF editable AND col_panel.userinput %]
+                                [% PROCESS showcol col = col_panel %]
                             [% END %]
-                        </table>
+                            [% click_to_edits.push(col_panel) %]
+                        [% END %]
                     </div>
-                [% END %]
-                [% IF layout_edit.has_topics %]
-                    [% PROCESS panel_end %]
-                [% END %]
-            [% END %]
-        </div>
-    </div>
-    [% IF modal %]
-        <p class="spinner" hidden>
-            Validating... <i class="fa fa-spinner fa-spin" style="font-size:24px"></i>
-        </p>
-        <button type="submit" class="btn btn-primary" id="curval-add">[% IF record.new_entry %]Add[% ELSE %]Update[% END %]</button>
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-    [% ELSIF NOT is_modal %]
-        <div class="navbar navbar-default navbar-fixed-bottom edit-controls">
-            <div class="container">
-                <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
-                    Submit
-                </button>
-                [% IF record.new_entry AND page != "bulk" %]
-                    <button type="submit" name="draft" value="submit" class="btn btn-primary submit_button">
-                        Save draft
-                    </button>
-                    [% IF record.is_draft %]
-                        <button type="submit" name="delete_draft" value="submit" class="btn btn-primary submit_button">
-                            Delete draft
-                        </button>
+                    [% UNLESS record.new_entry %]
+                        <div id="topic_show[% block_topic.id %]" class="expandable expanded">
+                            <table class="table table-striped">
+                                [% FOREACH col_click IN click_to_edits %]
+                                    [% NEXT IF !is_history AND col_click.data.dependent_not_shown %]
+                                    [% NEXT IF is_modal AND col.type == "autocur" %]
+
+                                    <tr [% IF col_click.data.blank AND NOT layout.no_hide_blank %]class="click-to-view-blank-field expandable"[% END %]>
+                                        <th>[% col_click.name | html_entity %]</th>
+                                        <td class="[% col_click.type %]">
+                                            [% render_datum(col_click, 'full') %]
+                                        </td>
+                                    </tr>
+                                [% END %]
+                            </table>
+                        </div>
+                    [% END %]
+                    [% IF layout_edit.has_topics %]
+                        [% PROCESS panel_end %]
                     [% END %]
                 [% END %]
-                <a href="/[% layout.identifier %]/data" class="btn btn-default" role="button">Cancel</a>
             </div>
         </div>
-    [% END %]
-</form>
+        [% IF modal %]
+            <p class="spinner" hidden>
+                Validating... <i class="fa fa-spinner fa-spin" style="font-size:24px"></i>
+            </p>
+            <button type="submit" class="btn btn-primary" id="curval-add">[% IF record.new_entry %]Add[% ELSE %]Update[% END %]</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        [% ELSIF NOT is_modal %]
+            <div class="navbar navbar-default navbar-fixed-bottom edit-controls">
+                <div class="container">
+                    <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
+                        Submit
+                    </button>
+                    [% IF record.new_entry AND page != "bulk" %]
+                        <button type="submit" name="draft" value="submit" class="btn btn-primary submit_button">
+                            Save draft
+                        </button>
+                        [% IF record.is_draft %]
+                            <button type="submit" name="delete_draft" value="submit" class="btn btn-primary submit_button">
+                                Delete draft
+                            </button>
+                        [% END %]
+                    [% END %]
+                    <a href="/[% layout.identifier %]/data" class="btn btn-default" role="button">Cancel</a>
+                </div>
+            </div>
+        [% END %]
+    </form>
+[% END %]
 
 <div class="modal fade" id="helptext_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
