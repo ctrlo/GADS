@@ -219,6 +219,9 @@ output {
 .form-control::-webkit-input-placeholder {
         color:#999999;
 }
+.form-group:last-child {
+        margin-bottom: 0;
+}
 input[type="date"] {
         line-height:35px;
 }
