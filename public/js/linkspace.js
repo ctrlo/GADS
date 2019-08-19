@@ -1127,11 +1127,8 @@ var runPageSpecificCode = function (context) {
 var setupClickToEdit = function(context) {
     $('.click-to-edit', context).on('click', function() {
         var $editToggleButton = $(this);
-
-        // Open and hide expanded element
-        onDisclosureClick.bind($editToggleButton).call();
-
-        $editToggleButton.siblings('.topic-click-to-edit-fields').hide();
+        $($editToggleButton.data('viewEl')).removeClass('expanded');
+        $($editToggleButton.data('editEl')).addClass('expanded');
         $editToggleButton.hide();
     });
 }

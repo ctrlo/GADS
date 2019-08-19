@@ -186,6 +186,9 @@ table {
 }
 .table {
         margin-bottom:21px;
+        &:last-child {
+                margin-bottom: 0;
+        }
 }
 @media (max-width:767px) {
         .table-responsive {
@@ -1437,6 +1440,23 @@ small.search_term {
 
 .edit-form {
     margin-bottom: 4em;
+
+    .table {
+        table-layout: fixed;
+    }
+    .table > tbody > tr:first-child > th,
+    .table > tbody > tr:first-child > td {
+        border-top: 0;
+    }
+    th {
+        width: 30%;
+    }
+
+    .form-group:after {
+        content: " ";
+        clear: both;
+        display: table;
+    }
 }
 
 .edit-form--validating {

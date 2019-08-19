@@ -93,9 +93,6 @@
                             have been completed.
                         </div>
                     [% END %]
-                    [% IF block_topic.description %]
-                        <div role="alert" class="alert alert-info">[% block_topic.description | html %]</div>
-                    [% END %]
 [% END %]
 [% BLOCK panel_end %]
                 </div>
@@ -148,9 +145,18 @@
                     [% PROCESS panel_start %]
                 [% END %]
                 [% IF editable %]
-                    <button class="btn btn-default pull-right click-to-edit" type="button" aria-expanded="false">Edit</button>
+                    <div class="form-group">
+                        <button class="btn btn-default pull-right click-to-edit" type="button" aria-expanded="false" data-edit-el="#topic_forms[% block_topic.id %]" data-view-el="#topic_show[% block_topic.id %]">Edit</button>
+                        [% IF block_topic.description %]
+                            <p>[% block_topic.description | html %]</p>
+                        [% END %]
+                    </div>
+                [% ELSE %]
+                    [% IF block_topic.description %]
+                        <p>[% block_topic.description | html %]</p>
+                    [% END %]
                 [% END %]
-                <div id="topic_forms[% topic_id %]" class="[% UNLESS record.new_entry %]expandable[% END %]">
+                <div id="topic_forms[% block_topic.id %]" class="[% UNLESS record.new_entry %]expandable[% END %]">
                     [% FOREACH col_panel IN topic.columns %]
                         [% IF editable AND col_panel.userinput %]
                             [% PROCESS showcol col = col_panel %]
@@ -159,7 +165,7 @@
                     [% END %]
                 </div>
                 [% UNLESS record.new_entry %]
-                    <div class="topic-click-to-edit-fields">
+                    <div id="topic_show[% block_topic.id %]" class="expandable expanded">
                         <table class="table table-striped">
                             [% FOREACH col_click IN click_to_edits %]
                                 [% NEXT IF !is_history AND col_click.data.dependent_not_shown %]
