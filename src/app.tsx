@@ -131,7 +131,7 @@ class App extends React.Component<any, any> {
 
   // eslint-disable-next-line no-unused-vars
   addWidget = async (type) => {
-    const id = new Date().getTime().toString(); // await this.props.api.createWidget(type)
+    const id = await this.props.api.createWidget(type)
     const { x, y } = this.firstAvailableSpot(2, 2);
     const widgetLayout = {
       i: id,
