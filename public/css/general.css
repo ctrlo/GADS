@@ -1,14 +1,39 @@
 .ld-widget-container {
   position: relative;
-  border: 2px red solid; }
+  overflow: hidden;
+  border: 1px solid transparent; }
+  .ld-widget-container .ld-draggable-handle,
+  .ld-widget-container .react-resizable-handle {
+    transition: opacity 0.2s;
+    opacity: 0.2; }
+  .ld-widget-container .ld-edit-button {
+    transition: opacity 0.2s, background-color 0.2s;
+    background-color: transparent !important;
+    opacity: 0.2; }
+  .ld-widget-container:hover {
+    border-color: #e8e8e8; }
+    .ld-widget-container:hover .ld-draggable-handle,
+    .ld-widget-container:hover .react-resizable-handle {
+      opacity: 1; }
+    .ld-widget-container:hover .ld-edit-button {
+      background-color: #ebebeb !important;
+      opacity: 1; }
+
+.ld-draggable-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  bottom: 0;
+  right: 20px;
+  cursor: move; }
 
 .ld-edit-button {
   position: absolute;
-  top: 0;
+  top: 8px;
   right: 8px; }
 
 .ld-modal__header {
-  padding: 0px 12px;
+  padding: 14px 12px;
   position: relative;
   min-width: 400px;
   border-bottom: 1px solid grey; }
@@ -29,7 +54,8 @@
 
 .ld-modal__content-container {
   min-height: 100px;
-  position: relative; }
+  position: relative;
+  padding: 15px; }
 
 .ld-modal__loading {
   position: absolute;
@@ -46,6 +72,8 @@
   margin-top: 10px;
   border: solid gray 1px; }
   .ld-header-container > * {
+    vertical-align: top;
+    display: inline-block;
     margin-right: 12px; }
 
 .react-grid-layout {
