@@ -1,11 +1,11 @@
 .ld-widget-container {
   position: relative;
-  border: 2px red solid;
+  background: #e8e8e8;
 }
 
 .ld-edit-button {
   position: absolute;
-  top: 0;
+  top: 8px;
   right: 8px;
 }
 
@@ -13,7 +13,7 @@
 }
 
 .ld-modal__header {
-  padding: 0px 12px;
+  padding: 14px 12px;
   position: relative;
   min-width: 400px;
   border-bottom: 1px solid grey;

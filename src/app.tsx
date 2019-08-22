@@ -154,7 +154,7 @@ class App extends React.Component<any, any> {
   generateDOM = () => (
     this.state.widgets.map(widget => (
       <div key={widget.config.i} className="ld-widget-container">
-        <button className="ld-edit-button" onClick={this.onEditClick(widget.config.i)}>Edit</button>
+        <button className="ld-edit-button btn btn-sm btn-primary" onClick={this.onEditClick(widget.config.i)}>Edit</button>
         <div dangerouslySetInnerHTML={{ __html: widget.html }} />
       </div>
     ))
@@ -193,20 +193,20 @@ class App extends React.Component<any, any> {
       contentLabel="Edit Modal"
     >
       <div className='ld-modal__header'>
-        <h4>Edit widget {this.state.activeItem}</h4>
-        <div className='ld-modal__right-container' style={{top: 0}}>
-          <button className="ld-modal__button" onClick={this.closeModal}>Close</button>
+        <h4 style={{margin: 0}}>Edit widget {this.state.activeItem}</h4>
+        <div className='ld-modal__right-container'>
+          <button className="btn btn-sm btn-primary" onClick={this.closeModal}>Close</button>
         </div>
       </div>
       <div className="ld-modal__content-container">
         {this.state.loadingEditHtml
-          ? <button className='ld-modal__loading'>Loading...</button> : <div ref={this.formRef} dangerouslySetInnerHTML={{ __html: this.state.editHtml }} />}
+          ? <span className='ld-modal__loading'>Loading...</span> : <div ref={this.formRef} dangerouslySetInnerHTML={{ __html: this.state.editHtml }} />}
       </div>
       <div className='ld-modal__footer'>
-        <button className="ld-modal__button" onClick={this.deleteActiveWidget}>Delete</button>
+        <button className="btn btn-sm btn-primary" onClick={this.deleteActiveWidget}>Delete</button>
         <div className='ld-modal__right-container'>
-          <button className="ld-modal__button" onClick={this.closeModal}>Cancel</button>
-          <button className="ld-modal__button" onClick={this.saveActiveWidget}>Save</button>
+          <button className="btn btn-sm btn-primary" onClick={this.closeModal}>Cancel</button>
+          <button className="btn btn-sm btn-primary" onClick={this.saveActiveWidget}>Save</button>
         </div>
       </div>
     </Modal>

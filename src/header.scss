@@ -3,6 +3,8 @@
   margin-top: 10px;
   border: solid gray 1px;
   > * {
+    vertical-align: top;
+    display: inline-block;
     margin-right: 12px;
   }
 }
