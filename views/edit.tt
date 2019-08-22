@@ -1,25 +1,27 @@
 [% PROCESS snippets/datum.tt %]
 
-<h2>
-    [% IF page == "bulk" %]
-        [% IF bulk_type == "update" %]
-            Bulk update
-        [% ELSIF bulk_type == "clone" %]
-            Clone records
+[% IF is_modal != "edit" %]
+    <h2>
+        [% IF page == "bulk" %]
+            [% IF bulk_type == "update" %]
+                Bulk update
+            [% ELSIF bulk_type == "clone" %]
+                Clone records
+            [% END %]
+        [% ELSIF NOT record.new_entry %]
+            Record ID [% record.current_id %] [% IF record.deleted %](deleted)[% END %]
+            [% IF record.parent_id %]
+                <small>(child of record [% record.parent_id %])</small>
+            [% END %]
+        [% ELSIF child %]
+            Create child record of [% child %]
+        [% ELSIF clone %]
+            New record copied from record ID [% clone | html %]
+        [% ELSE %]
+            New record
         [% END %]
-    [% ELSIF NOT record.new_entry %]
-        Record ID [% record.current_id %] [% IF record.deleted %](deleted)[% END %]
-        [% IF record.parent_id %]
-            <small>(child of record [% record.parent_id %])</small>
-        [% END %]
-    [% ELSIF child %]
-        Create child record of [% child %]
-    [% ELSIF clone %]
-        New record copied from record ID [% clone | html %]
-    [% ELSE %]
-        New record
-    [% END %]
-</h2>
+    </h2>
+[% END %]
 
 [% IF record.child_record_ids.size %]
     <h4>Child records</h4>
@@ -64,7 +66,9 @@
 
 [% PROCESS snippets/rag_legend.tt IF record.has_rag_column %]
 
-<p>Last updated by [% record.createdby.html %]</p>
+[% IF is_modal != "edit" %]
+    <p>Last updated by [% record.createdby.html %]</p>
+[% END %]
 
 [% BLOCK panel_start %]
     [% block_topic = topic.topic %]
@@ -109,14 +113,14 @@
     [% cur_id = record.current_id %]
 [% END %]
 <form class="edit-form" method="post" enctype="multipart/form-data"
-    [% IF modal %]
+    [% IF modal_curval_id %]
         [% IF cur_id %]
-            [% action = "/edit/" _ cur_id %]
+            [% action = "/record/" _ cur_id %]
         [% ELSE %]
-            [% action = "/" _ layout.identifier _ "/edit/" %]
+            [% action = "/" _ layout.identifier _ "/record/" %]
         [% END %]
         action="[% action %]" [%# This form also used for bulk actions %]
-        data-curval-id="[% modal %]"
+        data-curval-id="[% modal_curval_id %]"
         data-current-id="[% cur_id %]"
         data-modal-field-ids="[% modal_field_ids %]"
         data-instance-name="[% layout.identifier %]"
@@ -126,11 +130,11 @@
     [% IF submission_token %]
         <input type="hidden" name="submission_token" value="[% submission_token %]">
     [% END %]
-    [% IF modal %]
+    [% IF is_modal == "edit" %]
         <p role="alert" class="alert alert-danger" hidden></p>
     [% END %]
     <div class="row">
-        <div class="[% IF modal OR is_modal OR layout.max_width == 100 %]col-md-12[% ELSE %]col-md-6[% END %]">
+        <div class="[% IF is_modal OR layout.max_width == 100 %]col-md-12[% ELSE %]col-md-6[% END %]">
             [% IF cur_id %]
                 <input type="hidden" name="current_id" value="[% record.current_id %]">
             [% END %]
@@ -140,26 +144,29 @@
             [% jscode = [] %]
             [% typeaheads = [] %]
 
-            [% IF record.user_can_edit AND NOT record.deleted AND NOT record.new_entry AND NOT is_history AND NOT is_modal %]
-                [% editable = 1 %]
+            [% IF record.user_can_edit AND NOT record.deleted AND NOT is_history AND is_modal != "view" %]
+                [% edit_fields = 1 %]
+                [% IF NOT record.new_entry AND NOT is_modal %]
+                    [% edit_button = 1 %]
+                [% END %]
             [% END %]
             [% FOREACH topic IN record.topics %]
                 [% click_to_edits = [] %]
                 [% IF layout_edit.has_topics %]
                     [% PROCESS panel_start %]
                 [% END %]
-                [% IF editable %]
+                [% IF edit_button %]
                     <button class="btn btn-default pull-right click-to-edit" type="button" aria-expanded="false">Edit</button>
                 [% END %]
-                <div id="topic_forms[% topic_id %]" class="[% UNLESS record.new_entry %]expandable[% END %]">
+                <div id="topic_forms[% topic_id %]" class="[% IF edit_button %]expandable[% END %]">
                     [% FOREACH col_panel IN topic.columns %]
-                        [% IF editable AND col_panel.userinput %]
+                        [% IF edit_fields AND col_panel.userinput %]
                             [% PROCESS showcol col = col_panel %]
                         [% END %]
                         [% click_to_edits.push(col_panel) %]
                     [% END %]
                 </div>
-                [% UNLESS record.new_entry %]
+                [% IF NOT record.new_entry AND is_modal != "edit" %]
                     <div class="topic-click-to-edit-fields">
                         <table class="table table-striped">
                             [% FOREACH col_click IN click_to_edits %]
@@ -182,7 +189,7 @@
             [% END %]
         </div>
     </div>
-    [% IF modal %]
+    [% IF is_modal == "edit" %]
         <p class="spinner" hidden>
             Validating... <i class="fa fa-spinner fa-spin" style="font-size:24px"></i>
         </p>
@@ -306,9 +313,9 @@
                 var m = $("#curval_modal");
                 m.find('.modal-body').text('Loading...');
                 var url = current_id
-                    ? '/edit/' + current_id
-                    : '/' + instance_name + '/edit/';
-                m.find('.modal-body').load(url + '?include_draft&modal=' + layout_id + '&' + form_data, function() {
+                    ? '/record/' + current_id
+                    : '/' + instance_name + '/record/';
+                m.find('.modal-body').load(url + '?include_draft&modal_curval_id=' + layout_id + '&' + form_data, function() {
                     if (mode === "edit") {
                         m.find("form").data('guid', guid);
                     }

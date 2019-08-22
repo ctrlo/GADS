@@ -1190,7 +1190,7 @@ get '/record_body/:id' => require_login sub {
 
     my ($params, $options) = _process_edit($id, $record);
     $options->{layout} = undef;
-    $params->{is_modal} = 1; # Assume modal if loaded via this route
+    $params->{is_modal} = 'view'; # Assume modal if loaded via this route
 
     template 'edit' => $params, $options;
 };
@@ -1226,7 +1226,8 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
 
     my @first_crumb = $action eq 'purge' ? ( $layout, "/purge" => 'deleted records' ) : ( $layout, "/data" => 'records' );
 
-    my ($params, $options) = _process_edit($id, $record);
+    my ($params, $options, $json) = _process_edit($id, $record);
+    return $json if $json;
     $params->{is_history} = $action eq 'history';
     $params->{breadcrumbs} = [Crumb($layout) => Crumb(@first_crumb) => Crumb( "/record/".$record->current_id => 'record id ' . $record->current_id )];
     template 'edit' => $params, $options;
@@ -3455,11 +3456,11 @@ sub _process_edit
 
     my $child = param('child') || $record->parent_id;
 
-    my $modal = param('modal') && int param('modal');
+    my $modal_curval_id = param('modal_curval_id') && int param('modal_curval_id');
     my $oi = param('oi') && int param('oi');
 
 
-    if (param('submit') || param('draft') || $modal || defined(param 'validate'))
+    if (param('submit') || param('draft') || $modal_curval_id || defined(param 'validate'))
     {
         my $failed;
 
@@ -3476,7 +3477,7 @@ sub _process_edit
         foreach my $col ($record->edit_columns(new => !$id))
         {
             my $newv;
-            if ($modal)
+            if ($modal_curval_id)
             {
                 next unless defined query_parameters->get($col->field);
                 $newv = [query_parameters->get_all($col->field)];
@@ -3515,13 +3516,13 @@ sub _process_edit
             }
             my $message = join '; ', @validation_errors;
             content_type 'application/json; charset="utf-8"';
-            return encode_json ({
+            return undef, undef, encode_json ({
                 error   => $message ? 1 : 0,
                 message => $message,
                 values  => +{ map { $_->field => $record->fields->{$_->id}->as_string } $layout->all },
             });
         }
-        elsif ($modal)
+        elsif ($modal_curval_id)
         {
             # Do nothing, just a live edit, no write required
         }
@@ -3595,20 +3596,21 @@ sub _process_edit
     }
 
     my $params = {
-        modal               => $modal,
+        is_modal            => $modal_curval_id && 'edit',
+        modal_curval_id     => $modal_curval_id,
         page                => 'edit',
         child               => $child_rec,
         layout_edit         => $layout,
         clone               => param('from'),
-        submission_token    => !$modal && $record->create_submission_token,
+        submission_token    => !$modal_curval_id && $record->create_submission_token,
         breadcrumbs         => $breadcrumbs,
         record              => $record->presentation(edit => 1, new => !$id, child => $child),
     };
 
-    $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids
-        if $modal;
+    $params->{modal_field_ids} = encode_json $layout->column($modal_curval_id)->curval_field_ids
+        if $modal_curval_id;
 
-    my $options = $modal ? { layout => undef } : {};
+    my $options = $modal_curval_id ? { layout => undef } : {};
 
     return ($params, $options);
 
