@@ -34,7 +34,7 @@ export default class ApiClient {
 
   saveLayout = (id, layout) => {
     const strippedLayout = layout.map(widget => ({ ...widget, moved: undefined }));
-    return this.POST(`/dashboard/${id}`, strippedLayout);
+    return this.PUT(`/dashboard/${id}`, strippedLayout);
   }
 
   createWidget = type => this.POST(`/widget?type=${type}`, null)
