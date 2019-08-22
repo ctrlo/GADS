@@ -18,8 +18,11 @@ const modalStyle = {
     marginRight: "-50%",
     transform: "translate(-50%, -50%)",
     msTransform: "translate(-50%, -50%)",
-    padding: 0,
+    padding: 0
   },
+  overlay: {
+    zIndex: 1500
+  }
 };
 
 class App extends React.Component<any, any> {
