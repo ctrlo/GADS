@@ -101,15 +101,9 @@ foreach my $layout (@instances)
         push @$data, ['Allow multiple values', $field->multivalue ? 'Yes' : 'No'];
         push @$data, ['Permissions', $field->group_summary];
 
-        if (my @display = schema->resultset('DisplayField')->search({ layout_id => $field->id })->all)
+        if (my $df = $field->display_fields_summary)
         {
-            my $conds = join '; ', map { $_->display_field->name." ".$_->operator." ".$_->regex } @display;
-            my $type = $field->display_condition eq 'AND'
-                ? 'Only displayed when all the following are true'
-                : $field->display_condition eq 'OR'
-                ? 'Only displayed when any of the following are true'
-                : 'Only display when the following is true';
-            push @$data, [$type, $conds];
+            push @$data, $df;
         }
         else {
             push @$data, ['Display conditions', 'This field is always displayed'];

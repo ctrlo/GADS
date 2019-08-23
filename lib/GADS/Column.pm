@@ -366,6 +366,27 @@ has display_fields => (
     },
 );
 
+sub display_fields_as_text
+{   my $self = shift;
+    my $df = $self->display_fields_summary
+        or return '';
+    join ': ', @$df;
+}
+
+sub display_fields_summary
+{   my $self = shift;
+    if (my @display = $self->schema->resultset('DisplayField')->search({ layout_id => $self->id })->all)
+    {
+        my $conds = join '; ', map { $_->display_field->name." ".$_->operator." ".$_->regex } @display;
+        my $type = $self->display_condition eq 'AND'
+            ? 'Only displayed when all the following are true'
+            : $self->display_condition eq 'OR'
+            ? 'Only displayed when any of the following are true'
+            : 'Only display when the following is true';
+        return [$type, $conds];
+    }
+}
+
 has userinput => (
     is      => 'rw',
     isa     => Bool,
