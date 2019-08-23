@@ -32,7 +32,7 @@ use GADS::Layout;
 use GADS::Record;
 use Log::Report;
 use Text::CSV;
-use Getopt::Long qw(:config pass_through);
+use Getopt::Long;
 
 GADS::DB->setup(schema);
 

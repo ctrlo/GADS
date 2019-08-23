@@ -11,7 +11,7 @@ use Dancer2::Plugin::DBIC;
 use DateTime::Event::Random;
 use GADS::DB;
 use GADS::Layout;
-use Getopt::Long qw(:config pass_through);
+use Getopt::Long;
 use Text::CSV;
 
 my ($instance_id, $site_id);

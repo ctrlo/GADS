@@ -28,7 +28,7 @@ use Dancer2::Plugin::DBIC;
 use GADS::Config;
 use GADS::Layout;
 use GADS::Views;
-use Getopt::Long qw(:config pass_through);
+use Getopt::Long;
 use String::CamelCase qw(camelize);
 use YAML::XS qw/LoadFile DumpFile/;
 

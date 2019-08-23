@@ -30,7 +30,7 @@ use GADS::DB;
 use GADS::Layout;
 use GADS::Record;
 use Text::CSV;
-use Getopt::Long qw(:config pass_through);
+use Getopt::Long;
 use List::MoreUtils 'first_index';
 
 my ($take_first_enum, $ignore_incomplete_dateranges,
