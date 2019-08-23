@@ -715,7 +715,7 @@ sub group_summary
 
     foreach my $group (keys %groups)
     {
-        $return .= qq(Group "$group" has permissions: ).join ', ', @{$groups{$group}};
+        $return .= qq(Group "$group" has permissions: ).join(', ', @{$groups{$group}})."\n";
     }
 
     return $return;
