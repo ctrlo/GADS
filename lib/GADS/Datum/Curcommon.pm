@@ -63,7 +63,7 @@ after set_value => sub {
     {
         $self->_set_values_as_query(\@queries);
         $self->clear_values_as_query_records; # Rebuild for new queries
-        $changed = 1 if grep { $_->is_changed } @{$self->values_as_query_records};
+        $changed = 1 if grep { $_->is_edited } @{$self->values_as_query_records};
         # Remove any updated records from the list of old IDs in order to see
         # what has changed
         my %updated = map { $_->current_id => 1 } grep { !$_->new_entry } @{$self->values_as_query_records};
@@ -77,7 +77,6 @@ after set_value => sub {
         $self->changed(1);
         $self->column->validate($_, fatal => 1)
             foreach @ids;
-        $self->_set_ids(\@ids);
         # Need to clear initial values, to ensure new value is built from this new ID
         $self->clear_values;
         $self->clear_text;
@@ -86,6 +85,13 @@ after set_value => sub {
         $self->_clear_records;
         $self->clear_blank;
     }
+
+    # Even if nothing has changed, we still need to set ids. This is because
+    # the set values may have included unchanged records as queries. In this
+    # case, the unchaged records will still be written as records
+    # (values_as_query_records) even though they have not changed, so we don't
+    # to also write the same IDs as values which will duplicate them.
+    $self->_set_ids(\@ids);
     $self->oldvalue($clone);
 };
 

@@ -388,10 +388,19 @@ has changed => (
     default => 0,
 );
 
-# Whether the record has changed (i.e. if any fields have changed)
-sub is_changed
+# Whether the record has changed (i.e. if any fields have changed). This only
+# includes fields that are input as a user, as a record will often have a value
+# changed just by performing an edit (e.g. last edited time)
+sub is_edited
 {   my $self = shift;
-    return !! grep { $self->fields->{$_}->changed } keys %{$self->fields};
+    return !! grep {
+        $_->changed
+    } grep {
+        $_->column->userinput
+    } map {
+        $self->fields->{$_}
+    }
+    keys %{$self->fields};
 }
 
 has current_id => (
@@ -2041,7 +2050,7 @@ sub _field_write
                     {
                         $record->write(%options, no_draft_delete => 1, no_write_values => 1);
                         push @{$self->_records_to_write_after}, $record
-                            if $record->is_changed;
+                            if $record->is_edited;
                         my $id = $record->current_id;
                         my %entry = %$entry; # Copy to stop referenced id being overwritten
                         $entry{value} = $id;
