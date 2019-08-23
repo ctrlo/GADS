@@ -46,7 +46,7 @@ sub _flatten_thing
     return @{${$thing}};
 }
 
-sub _introspector
+sub _introspector_concat # Do not conflict with _introspector in DBIx::Class::Helper::*
 {
     my $d = DBIx::Introspector->new(drivers => '2013-12.01');
 
@@ -151,7 +151,7 @@ sub _helper
     my $storage = $self->result_source->storage;
     $storage->ensure_connected;
 
-    my $d = _introspector();
+    my $d = _introspector_concat();
 
     @things = map { _flatten_thing $self, $_ } @things;
 

@@ -10,7 +10,9 @@ use Log::Report 'linkspace';
 __PACKAGE__->load_components(qw/
     Helper::ResultSet::DateMethods1
     +GADS::Helper::Concat
-    Helper::ResultSet::CorrelateRelationship/
+    Helper::ResultSet::CorrelateRelationship
+    Helper::ResultSet::Random
+    /
 );
 
 sub active_rs

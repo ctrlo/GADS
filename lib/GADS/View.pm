@@ -512,6 +512,10 @@ sub sort_types
             name        => "desc",
             description => "Descending"
         },
+        {
+            name        => "random",
+            description => "Random"
+        },
     ]
 }
 
