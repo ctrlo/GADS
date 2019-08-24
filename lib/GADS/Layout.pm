@@ -869,7 +869,6 @@ sub _order_dependencies
     return unless @columns;
 
     my %deps = map {
-        $_->id => $_->depends_on,
         $_->id => $_->has_display_field ? $_->display_field_col_ids : $_->depends_on
     } @columns;
 
