@@ -1537,6 +1537,10 @@ prefix '/:layout_name' => sub {
                 { success => "$count records successfully deleted" }, $layout->identifier.'/data' );
         }
 
+        if ( app->has_hook('plugin.data.before_request') ) {
+            app->execute_hook( 'plugin.data.before_request', user => $user );
+        }
+
         # Check for rewind configuration
         if (param('modal_rewind') || param('modal_rewind_reset'))
         {
@@ -2037,6 +2041,16 @@ prefix '/:layout_name' => sub {
             layout        => $layout,
             instance_id   => $layout->instance_id,
         );
+
+        if ( app->has_hook('plugin.data.before_template') ) {
+            my %arg = (
+                user => $user,
+                layout => $layout,
+                params => $params,
+            );
+            # Note, this might modify $params
+            app->execute_hook( 'plugin.data.before_template', %arg );
+        }
 
         $params->{user_views}               = $views->user_views;
         $params->{views_limit_extra}        = $views->views_limit_extra;
