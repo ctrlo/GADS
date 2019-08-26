@@ -158,8 +158,14 @@ hook before => sub {
         # other things), so a check here prevents emails being generated with
         # hostnames that are attack websites. A nicer fix (to allow different
         # host names) would be to use the host from the database.
-        error __x"Unknown host {host}", host => request->base->host
-            if request->base->host ne $site->host;
+        if (request->base->host ne $site->host)
+        {
+            trace __x"Unknown host: {host}. Redirecting to configured host: {site}",
+                host => request->base->host, site => $site->host;
+            my $uri = request->base;
+            $uri->host($site->host);
+            redirect $uri;
+        }
         trace __x"Single site, site ID is {id}", id => $site->id;
         schema->site_id($site->id);
         var 'site' => $site;
