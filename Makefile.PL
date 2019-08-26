@@ -36,6 +36,7 @@ our %prereq_pm = (
     'HTML::Scrubber'                            => 0,
     'Inline::Lua'                               => 0.15,
     'List::Compare'                             => 0,
+    'List::MoreUtils'                           => 0,
     'Log::Report'                               => 1.28,
     'Mail::Message'                             => 0,
     'Mail::Transport::Sendmail'                 => 0,
