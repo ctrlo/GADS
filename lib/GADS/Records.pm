@@ -1592,45 +1592,52 @@ sub order_by
         : @{$self->_sorts};
 
     my @order_by;
+    my $random_sort = $self->schema->resultset('Current')->_rand_order_by;
     foreach my $s (@sorts)
     {
-        my $type   = "-$s->{type}";
-        my $column = $self->layout->column($s->{id}, permission => 'read')
-            or next;
-        my $column_parent = $self->layout->column($s->{parent_id});
-        my @cols_main = $column->sort_columns;
-        my @cols_link = $column->link_parent ? $column->link_parent->sort_columns : ();
-        foreach my $col_sort (@cols_main)
+        if ($s->{type} eq 'random')
         {
-            if ($column_parent)
+            push @order_by, \$random_sort;
+        }
+        else {
+            my $type   = "-$s->{type}";
+            my $column = $self->layout->column($s->{id}, permission => 'read')
+                or next;
+            my $column_parent = $self->layout->column($s->{parent_id});
+            my @cols_main = $column->sort_columns;
+            my @cols_link = $column->link_parent ? $column->link_parent->sort_columns : ();
+            foreach my $col_sort (@cols_main)
             {
-                $self->add_join($column_parent, sort => 1);
-                $self->add_join($col_sort, sort => 1, parent => $column_parent);
+                if ($column_parent)
+                {
+                    $self->add_join($column_parent, sort => 1);
+                    $self->add_join($col_sort, sort => 1, parent => $column_parent);
+                }
+                else {
+                    $self->add_join($column->sort_parent, sort => 1)
+                        if $column->sort_parent;
+                    $self->add_join($col_sort, sort => 1, parent => $column->sort_parent);
+                }
+                my $s_table = $self->table_name($col_sort, sort => 1, %options, parent => $column_parent || $column->sort_parent);
+                my $sort_name;
+                if ($column->link_parent) # Original column, not the sub-column ($col_sort)
+                {
+                    my $col_link = shift @cols_link;
+                    $self->add_join($col_link, sort => 1);
+                    my $main = "$s_table.".$column->sort_field;
+                    my $link = $self->table_name($col_link, sort => 1, linked => 1, %options).".".$col_link->sort_field;
+                    $sort_name = $self->schema->resultset('Current')->helper_concat(
+                         { -ident => $main },
+                         { -ident => $link },
+                    );
+                }
+                else {
+                    $sort_name = "$s_table.".$col_sort->sort_field;
+                }
+                push @order_by, {
+                    $type => $sort_name,
+                };
             }
-            else {
-                $self->add_join($column->sort_parent, sort => 1)
-                    if $column->sort_parent;
-                $self->add_join($col_sort, sort => 1, parent => $column->sort_parent);
-            }
-            my $s_table = $self->table_name($col_sort, sort => 1, %options, parent => $column_parent || $column->sort_parent);
-            my $sort_name;
-            if ($column->link_parent) # Original column, not the sub-column ($col_sort)
-            {
-                my $col_link = shift @cols_link;
-                $self->add_join($col_link, sort => 1);
-                my $main = "$s_table.".$column->sort_field;
-                my $link = $self->table_name($col_link, sort => 1, linked => 1, %options).".".$col_link->sort_field;
-                $sort_name = $self->schema->resultset('Current')->helper_concat(
-                     { -ident => $main },
-                     { -ident => $link },
-                );
-            }
-            else {
-                $sort_name = "$s_table.".$col_sort->sort_field;
-            }
-            push @order_by, {
-                $type => $sort_name,
-            };
         }
     }
 

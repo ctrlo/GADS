@@ -29,7 +29,7 @@ use GADS::Graphs;
 use GADS::Layout;
 use GADS::MetricGroups;
 use GADS::Schema;
-use Getopt::Long qw(:config pass_through);
+use Getopt::Long;
 use JSON qw();
 use Log::Report syntax => 'LONG';
 

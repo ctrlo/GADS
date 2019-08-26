@@ -124,6 +124,22 @@ foreach my $delete_not_used (0..1)
     $curval_datum = $record->fields->{$curval->id};
     like($curval_datum->as_string, qr/^(foo1; foo5|foo5; foo1)$/, "Curval value contains updated record");
 
+    # Edit existing - one edited via query but no changes, other changed as normal
+    $curval_count = $schema->resultset('Current')->search({ instance_id => 2 })->count;
+    my ($d1) = map { $_->{id} } grep { $_->{field_values}->{L2string1} eq 'foo1' }
+        @{$curval_datum->for_code};
+    my ($d2) = map { $_->{id} } grep { $_->{field_values}->{L2string1} eq 'foo5' }
+        @{$curval_datum->for_code};
+    $curval_datum->set_value([$curval_string->field."=foo1&current_id=$d1", $curval_string->field."=foo6&current_id=$d2"]);
+    $record->write(no_alerts => 1);
+    $curval_count2 = $schema->resultset('Current')->search({ instance_id => 2 })->count;
+    is($curval_count2, $curval_count, "No new curvals created");
+    $record->clear;
+    $record->find_current_id(3);
+    is($record->fields->{$calcmain->id}->as_string, "foo1foo6", "Main calc correct");
+    $curval_datum = $record->fields->{$curval->id};
+    like($curval_datum->as_string, qr/^(foo1; foo6|foo6; foo1)$/, "Curval value contains updated and unchanged records");
+
     # Edit existing - no actual change
     $record = GADS::Record->new(
         user                 => $sheet->user_normal1,
@@ -142,14 +158,16 @@ foreach my $delete_not_used (0..1)
             $_->{record}->as_query . "&current_id=" . $_->{record}->current_id
         } @{$curval_datum->values}
     ]);
+    # Set other value to ensure main record is flagged as changed and full write happens
+    $record->fields->{$columns->{date1}->id}->set_value('2020-10-10');
     $record->write(no_alerts => 1);
     $curval_count2 = $schema->resultset('Current')->search({ instance_id => 2 })->count;
     is($curval_count2, $curval_count, "No new curvals created");
     $record->clear;
     $record->find_current_id(3);
-    is($record->fields->{$calcmain->id}->as_string, "foo1foo5", "Main calc correct");
+    is($record->fields->{$calcmain->id}->as_string, "foo1foo6", "Main calc correct");
     $curval_datum = $record->fields->{$curval->id};
-    like($curval_datum->as_string, qr/^(foo1; foo5|foo5; foo1)$/, "Curval value still contains same values");
+    like($curval_datum->as_string, qr/^(foo1; foo6|foo6; foo1)$/, "Curval value still contains same values");
 
     # Delete existing
     $curval_count = $schema->resultset('Current')->search({ instance_id => 2 })->count;

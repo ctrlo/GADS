@@ -44,7 +44,7 @@ use GADS::Graphs;
 use GADS::Groups;
 use GADS::MetricGroups;
 use GADS::Schema;
-use Getopt::Long qw(:config pass_through);
+use Getopt::Long;
 use JSON qw();
 use Log::Report syntax => 'LONG';
 use String::CamelCase qw(camelize);

@@ -59,7 +59,7 @@ sub presentation {
             foreach my $display_field_id (@{$col->display_field_col_ids})
             {
                 my ($seen) = grep { $_ == $display_field_id } keys %$this_indent;
-                if ($seen || $display_field_id == $previous->id)
+                if ($seen || ($previous && $display_field_id == $previous->id))
                 {
                     $indent->{$col->id} = $seen && $indent->{$seen} ? ($indent->{$seen} + 1) : 1;
                     $this_indent->{$col->id} = $indent->{$col->id};

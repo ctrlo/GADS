@@ -565,7 +565,8 @@
                 [% IF layout.has_topics %]
                     <th>Topic</th>
                 [% END %]
-                <th>Description</th>
+                <th>Short name</th>
+                <th>Display conditions</th>
             </tr>
         </thead>
         <tbody class="sortable">
@@ -596,7 +597,10 @@
                     <td class="drag">[% col.topic.name | html %]</td>
                 [% END %]
                 <td class="drag">
-                    [% col.description | html_entity %]
+                    [% col.name_short | html_entity %]
+                </td>
+                <td class="drag">
+                    [% col.display_fields_as_text.join(': ') | html_entity %]
                 </td>
             </tr>
             [% END %]
