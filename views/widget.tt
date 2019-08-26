@@ -1,0 +1,91 @@
+<div class="row">
+    <div class="col-md-12">
+        <form action="/widget/[% widget.grid_id %]/edit">
+            [% IF widget.type == "notice" %]
+                Summer note editor here
+                <div class="summernote"></div>
+            [% ELSIF widget.type == "graph" %]
+                [% PROCESS form_graph %]
+            [% ELSIF widget.type == "table" %]
+                [% PROCESS form_table %]
+            [% ELSIF widget.type == "timeline" %]
+                [% PROCESS form_timeline %]
+            [% ELSIF widget.type == "globe" %]
+                [% PROCESS form_globe %]
+            [% END %]
+        </form>
+    </div>
+</div>
+
+[% BLOCK select_views %]
+    <div class="form-group">
+        <label for="view_id">View</label>
+        <select class="form-control" id="view_id" name="view_id">
+            [% IF NOT widget.view_id %]
+                <option></option>
+            [% END %]
+            [% IF user_views.personal.size %]
+                <optgroup label="Personal views">
+                    [% FOREACH ve IN user_views.personal %]
+                        <option value="[% ve.id %]" [% IF widget.view_id == ve.id %]selected[% END %]>
+                            [% ve.name | html_entity %]
+                        </option>
+                    [% END %]
+                </optgroup>
+            [% END %]
+            [% IF user_views.admin.size %]
+                <optgroup label="Administration views">
+                    [% FOREACH ve IN user_views.admin %]
+                        <option value="[% ve.id %]" [% IF widget.view_id == ve.id %]selected[% END %]>
+                            [% ve.name | html_entity %]
+                        </option>
+                    [% END %]
+                </optgroup>
+            [% END %]
+            [% IF user_views.shared.size %]
+                <optgroup label="Shared views">
+                    [% FOREACH ve IN user_views.shared %]
+                        <option value="[% ve.id %]" [% IF widget.view_id == ve.id %]selected[% END %]>
+                            [% ve.name | html_entity %]
+                        </option>
+                    [% END %]
+                </optgroup>
+            [% END %]
+        </select>
+    </div>
+[% END %]
+
+[% BLOCK form_graph %]
+    [% PROCESS select_views %]
+    <div class="form-group">
+        <label for="graph_id">Graph</label>
+        <select class="form-control" id="graph_id" name="graph_id">
+            [% IF NOT widget.graph_id %]
+                <option></option>
+            [% END %]
+            [% FOREACH graph IN graphs %]
+                <option value="[% graph.id %]" [% IF widget.graph_id == graph.id %]selected[% END %]>
+                    [% graph.title | html %]
+                </option>
+            [% END %]
+        </select>
+    </div>
+[% END %]
+
+[% BLOCK form_table %]
+    [% PROCESS select_views %]
+    <div class="form-group">
+        <label for="rows">Rows</label>
+        <input type="text" class="form-control" name="rows" id="rows" value="[% widget.rows %]">
+    </div>
+[% END %]
+
+[% BLOCK form_timeline %]
+    [% PROCESS select_views %]
+    [% PROCESS snippets/timeline_options.tt %]
+[% END %]
+
+[% BLOCK form_globe %]
+    [% PROCESS select_views %]
+    [% PROCESS snippets/globe_options.tt %]
+[% END %]

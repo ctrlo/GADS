@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Config;
 
+use Path::Class qw(dir);
 use Moo;
 
 with 'MooX::Singleton';
@@ -33,6 +34,19 @@ has config => (
         $self->clear_dateformat_datepicker;
     },
 );
+
+has app_location => (
+    is => 'ro',
+);
+
+has template_location => (
+    is => 'lazy',
+);
+
+sub _build_template_location
+{   my $self = shift;
+    dir($self->app_location, "views");
+}
 
 has gads => (
     is      => 'ro',

@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Graph;
 
+use JSON qw(decode_json encode_json);
 use GADS::Graphs;
 use Log::Report 'linkspace';
 use Moo;
@@ -201,6 +202,18 @@ has metric_group_id => (
 has selected => (
     is  => 'rw',
 );
+
+sub as_json
+{   my $self = shift;
+    encode_json {
+        type         => $self->type,
+        x_axis_name  => $self->x_axis_name,
+        y_axis_label => $self->y_axis_label,
+        stackseries  => \$self->stackseries,
+        showlegend   => \$self->showlegend,
+        id           => $self->id,
+    };
+}
 
 sub delete
 {   my $self = shift;

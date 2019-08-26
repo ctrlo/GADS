@@ -1,14 +1,10 @@
-<div class="row">
-    [% IF homepage_text2 %]
-        <div class="col-md-6">
-    [% ELSE %]
-        <div class="col-md-12">
-    [% END %]
-            [% homepage_text %]
-        </div>
-    [% IF homepage_text2 %]
-        <div class="col-md-6">
-            [% homepage_text2 %]
+<div id="ld-app" class="react-grid-layout" data-dashboard="[% dashboard.id %]"
+    data-dashboard-endpoint="/[% layout.identifier %]/api/dashboard"
+    data-widget-types='["graph", "chart", "table", "bar"]'
+>
+    [% FOREACH widget IN dashboard.widgets %]
+        <div class="ld-widget-container" data-grid='[% widget.grid %]'>
+            [% widget.html %]
         </div>
     [% END %]
 </div>

@@ -5,43 +5,7 @@
     </div>
 [% END %]
 
-<div id="globe" style="width:100%;margin-left:0;height:70vh;margin-top:0"></div>
-
-<script type="text/javascript">
-    var jscode='[% FILTER remove('\n+') %]
-        [% FILTER replace('\'', '\\\'') %]
-
-            Plotly.setPlotConfig({locale: 'en-GB'});
-
-            var data = JSON.parse(base64.decode("[% globe_data %]"));
-
-            var layout = {
-                margin: {
-                    t: 10,
-                    l: 10,
-                    r: 10,
-                    b: 10
-                },
-                geo: {
-                    scope: 'world',
-                    showcountries: true,
-                    countrycolor: 'grey',
-                    resolution: 110
-                }
-            };
-
-            var options = {
-                showLink: false,
-                displaylogo: false,
-                'modeBarButtonsToRemove' : ['sendDataToCloud'],
-                topojsonURL: '[% url.js %]/'
-            };
-
-            Plotly.newPlot('globe', data, layout, options);
-
-        [% END %]
-    [% END %]';
-</script>
+[% PROCESS snippets/data_globe_inner.tt %]
 
 [% WRAPPER modal_dialog.tt modal_id="readmore_modal" modal_large=1 %]
 [% END %]

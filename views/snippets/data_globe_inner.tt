@@ -1,0 +1,1 @@
+<div class="globe" style="width:100%;margin-left:0;height:70vh;margin-top:0" data-globe-data="[% globe_data %]" data-topojsonurl="/js/"></div>

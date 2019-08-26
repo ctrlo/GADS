@@ -413,6 +413,195 @@ prefix '/:layout_name' => sub {
             ]
         };
     };
+
+    post '/api/dashboard/widget' => require_login sub {
+
+        my $user   = logged_in_user;
+        my $layout = var('layout') or pass;
+
+        my $type = query_parameters->get('type');
+
+        # XXX Need to check whether user has permission
+        my $widget = schema->resultset('Widget')->create({
+            dashboard_id => undef, # XXX Needs adding
+            type         => $type,
+        });
+
+        return $widget->grid_id;
+    };
+
+    post '/api/dashboard/dashboard/:id' => require_login sub {
+
+        my $user   = logged_in_user;
+        my $layout = var('layout') or pass;
+
+        return  _update_dashboard($user, $layout);
+    };
+
+    get '/api/dashboard/widget/:id' => require_login sub {
+        my $layout = var('layout') or pass;
+        my $user   = logged_in_user;
+        # _get_widget will raise an exception if it does not exist
+        return  _get_widget(route_parameters->get('id'), $layout, $user)->html;
+    };
+
+    get '/api/dashboard/widget/:id/edit' => require_login sub {
+        my $layout = var('layout') or pass;
+        my $user   = logged_in_user;
+        my $widget = _get_widget_write(route_parameters->get('id'), $layout, $user);
+
+        my $views = GADS::Views->new(
+            user          => $user,
+            schema        => schema,
+            layout        => $layout,
+            instance_id   => $layout->instance_id,
+        );
+
+        my $graphs = GADS::Graphs->new(
+            user   => $user,
+            schema => schema,
+            layout => $layout,
+        );
+
+        return template 'widget' => {
+            widget          => $widget,
+            user_views      => $views->user_views,
+            graphs          => $graphs->all,
+            tl_options      => $widget->tl_options_inflated,
+            globe_options   => $widget->globe_options_inflated,
+            columns_read    => [$layout->all(user_can_read => 1)],
+        },{
+            layout => undef, # Do not render page header, footer etc
+        };
+    };
+
+    put '/api/dashboard/widget/:id/edit' => require_login sub {
+        my $layout = var('layout') or pass;
+        my $user   = logged_in_user;
+        my $widget = _get_widget_write(route_parameters->get('id'), $layout, $user);
+
+        if ($widget->type eq 'graph')
+        {
+            $widget->update({
+                graph_id => query_parameters->get('graph_id'),
+                view_id  => query_parameters->get('view_id'),
+            });
+        }
+        elsif ($widget->type eq 'table')
+        {
+            $widget->update({
+                rows     => query_parameters->get('rows'),
+                view_id  => query_parameters->get('view_id'),
+            });
+        }
+        elsif ($widget->type eq 'timeline')
+        {
+            my $tl_options = {
+                label   => query_parameters->get('tl_label'),
+                group   => query_parameters->get('tl_group'),
+                color   => query_parameters->get('tl_color'),
+                overlay => query_parameters->get('tl_overlay'),
+            };
+            $widget->update({
+                tl_options => encode_json($tl_options),
+                view_id    => query_parameters->get('view_id'),
+            });
+        }
+        elsif ($widget->type eq 'globe')
+        {
+            my $globe_options = {
+                label   => query_parameters->get('globe_label'),
+                group   => query_parameters->get('globe_group'),
+                color   => query_parameters->get('globe_color'),
+            };
+            $widget->update({
+                globe_options => encode_json($globe_options),
+                view_id       => query_parameters->get('view_id'),
+            });
+        }
+
+        return 1;
+    };
+
+    del '/api/dashboard/widget/:id' => require_login sub {
+        my $layout = var('layout') or pass;
+        my $user   = logged_in_user;
+        _get_widget_write(route_parameters->get('id'), $layout, $user)->delete;
+    };
 };
+
+sub _get_widget_write
+{   my ($widget_id, $layout, $user) = @_;
+    my $widget = _get_widget($widget_id, $layout, $user);
+    my $user_id = $widget->dashboard->user_id;
+    if ($user_id || $layout->user_can('layout'))
+    {
+        return $widget;
+    }
+    # User does not have write access
+    status 403;
+    error __x"User does not have write access to widget ID {id}", id => $widget_id;
+}
+
+sub _get_widget
+{   my ($widget_id, $layout, $user) = @_;
+    my $widget = schema->resultset('Widget')->search({
+        grid_id => route_parameters->get('id'),
+    })->next;
+    if (!$widget)
+    {
+        status 404;
+        error __x"Widget ID {id} not found", id => $widget_id;
+    }
+    my $dashboard = $widget->dashboard;
+    $widget->layout($layout);
+    !$dashboard->user_id and return $widget; # Public
+    $dashboard->user_id == $user->id and return $widget;
+    # User does not have access
+    status 403;
+    error __x"User does not have access to widget ID {id}", id => $widget_id;
+}
+
+sub _update_dashboard
+{   my ($user, $layout) = @_;
+
+    my $id = route_parameters->get('id');
+
+    my $dashboard = schema->resultset('Dashboard')->find($id);
+
+    if (!$dashboard)
+    {
+        status 404;
+        error __x"Dashboard {id} not found", id => $id;
+    }
+
+    if (
+        !$layout->user_can('layout')
+        || ($dashboard->user_id && $dashboard->user_id != $user->{id})
+    )
+    {
+        status 403;
+        error __x"User does not have write access to dashboard ID {id}", id => $id;
+    }
+
+    my $widgets = decode_json request->body;
+
+    foreach my $widget (@$widgets)
+    {
+        my $w = schema->resultset('Widget')->update_or_create({
+            dashboard_id => $dashboard->id,
+            grid_id      => $widget->{i},
+            static       => $widget->{static} ? 1 : 0,
+            h            => $widget->{h},
+            w            => $widget->{w},
+            x            => $widget->{x},
+            y            => $widget->{y},
+        }, {
+            key => 'widget_ux_dashboard_grid',
+        });
+    }
+
+    return 1;
+}
 
 1;

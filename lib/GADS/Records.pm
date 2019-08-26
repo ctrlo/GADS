@@ -1357,6 +1357,9 @@ sub _build_columns_view
         @cols = $self->layout->all(user_can_read => 1);
     }
 
+    unshift @cols, $self->layout->column_id
+        unless $self->is_group;
+
     return \@cols;
 }
 

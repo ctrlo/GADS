@@ -110,7 +110,8 @@ our $VERSION = '0.1';
 set behind_proxy => config->{behind_proxy}; # XXX Why doesn't this work in config file
 
 GADS::Config->instance(
-    config => config,
+    config       => config,
+    app_location => app->location,
 );
 
 GADS::SchemaInstance->instance(
@@ -1350,6 +1351,8 @@ prefix '/:layout_name' => sub {
     get '/?' => require_login sub {
         my $layout = var('layout') or pass;
 
+        my $user    = logged_in_user;
+
         my $homepage_text  = $layout->homepage_text;
         my $homepage_text2 = $layout->homepage_text2;
 
@@ -1362,7 +1365,13 @@ prefix '/:layout_name' => sub {
             $homepage_text2 = $site->homepage_text2;
         }
 
+        my $dashboard = schema->resultset('Dashboard')->dashboard(
+            user   => $user,
+            layout => $layout,
+        );
+
         template 'index' => {
+            dashboard      => $dashboard,
             homepage_text  => $homepage_text,
             homepage_text2 => $homepage_text2,
             page           => 'index',
@@ -1669,25 +1678,14 @@ prefix '/:layout_name' => sub {
             if (my $png = param('png'))
             {
                 my $gdata = _data_graph($png);
-                my $json  = encode_json {
-                    points  => $gdata->points,
-                    labels  => $gdata->labels_encoded,
-                    xlabels => $gdata->xlabels,
-                    options => $gdata->options,
-                };
+                my $json  = $gdata->as_json;
                 my $graph = GADS::Graph->new(
                     id     => $png,
                     layout => $layout,
                     schema => schema
                 );
-                my $options_in = encode_json {
-                    type         => $graph->type,
-                    x_axis_name  => $graph->x_axis_name,
-                    y_axis_label => $graph->y_axis_label,
-                    stackseries  => \$graph->stackseries,
-                    showlegend   => \$graph->showlegend,
-                    id           => $png,
-                };
+                my $options_in = $graph->as_json;
+                $params->{graph_id} = $png;
 
                 my $mech = _page_as_mech('data_graph', $params, width => 630, height => 400);
                 $mech->eval_in_page('(function(plotData, options_in){do_plot_json(plotData, options_in)})(arguments[0],arguments[1]);',
@@ -1993,7 +1991,6 @@ prefix '/:layout_name' => sub {
             }
 
             my @columns = @{$records->columns_view};
-            unshift @columns, $layout->column_id unless $records->is_group;
             $params->{user_can_edit}        = $layout->user_can('write_existing');
             $params->{sort}                 = $records->sort_first;
             $params->{subset}               = $subset;

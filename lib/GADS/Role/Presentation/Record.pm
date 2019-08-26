@@ -46,7 +46,7 @@ sub presentation {
         ? @{$self->columns_view}
         : $options{purge}
         ? $self->layout->column_id
-        : ($self->layout->column_id, @{$self->columns_view});
+        : @{$self->columns_view};
 
     # Work out the indentation each field should have. A field will be indented
     # if it has a display condition of an immediately-previous field. This will

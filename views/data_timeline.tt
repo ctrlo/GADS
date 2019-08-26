@@ -6,15 +6,7 @@
     </div>
 [% END %]
 
-<div class="wrapper">
-    <div id="loading-div" class="centered-overlay">
-         <div class="loader"></div>
-    </div>
-    <div id="visualization" data-records="[% records %]" data-groups="[% groups %]" data-rewind="[% session.rewind %]"
-        data-width="[% tl_options.canvas_width %]" data-height="[% tl_options.canvas_height %]" data-min="[% timeline.min %]"
-        data-max="[% timeline.max %]" style="width:100%">
-    </div>
-</div>
+[% PROCESS snippets/data_timeline_inner.tt %]
 
 <p></p>
 

@@ -230,6 +230,16 @@ sub get_color
     $color;
 }
 
+sub as_json
+{   my $self = shift;
+    encode_json {
+        points  => $self->points,
+        labels  => $self->labels_encoded,
+        xlabels => $self->xlabels,
+        options => $self->options,
+    };
+}
+
 sub _build_data
 {   my $self = shift;
 
