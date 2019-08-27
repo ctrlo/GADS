@@ -1,52 +1,41 @@
 .ld-widget-container {
   position: relative;
-  background: #e8e8e8;
+  overflow: hidden;
+  border: 1px solid transparent;
+
+  .react-resizable-handle {
+    transition: opacity 0.2s;
+    opacity: 0.2;
+  }
+
+  .ld-edit-button {
+    transition: opacity 0.2s, background-color 0.2s;
+    background-color: transparent !important;
+    opacity: 0.2;
+  }
+
+  &:hover {
+    border-color: #e8e8e8;
+
+    .react-resizable-handle {
+      opacity: 1;
+    }
+
+    .ld-edit-button {
+      background-color: #ebebeb !important;
+      opacity: 1;
+    }
+  }
 }
 
 .react-resizable-handle:hover {
   opacity: 1;
 }
 
-.ld-hover-region {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 50%;
-  width: calc(100% - 80px);
-  max-width: 160px;
-  max-height: 160px;
-}
-
-.ld-hover-region__edit {
-  &:hover > * {
-    opacity: 1;
-    background-color: #fff !important;
-  }
-}
-
-.ld-hover-region__handle {
-  top: 50%;
-  bottom: -24px;
-  right: -24px;
-  & + span {
-    transition: opacity 0.2s;
-    opacity: 0.2;
-  }
-  &:hover + span {
-    opacity: 1;
-  }
-}
-
 .ld-edit-button {
-  transition: opacity 0.2s, background-color 0.2s;
-  background-color: transparent !important;
-  opacity: 0.2;
   position: absolute;
   top: 8px;
   right: 8px;
-  &:hover {
-    background-color: #ebebeb !important;
-  }
 }
 
 .ld-modal__header {
