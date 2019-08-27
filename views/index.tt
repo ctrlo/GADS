@@ -1,5 +1,5 @@
 <div id="ld-app" class="react-grid-layout" data-dashboard="[% dashboard.id %]"
-    data-dashboard-endpoint="/[% layout.identifier %]/api/dashboard"
+    data-dashboard-endpoint="/[% layout.identifier %]/api/dashboard/[% dashboard.id %]"
     data-widget-types='["notice", "table", "graph", "timeline", "globe"]'
 >
     [% FOREACH widget IN dashboard.widgets %]

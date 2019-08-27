@@ -414,41 +414,44 @@ prefix '/:layout_name' => sub {
         };
     };
 
-    post '/api/dashboard/widget' => require_login sub {
+    post '/api/dashboard/:dashboard_id/widget' => require_login sub {
 
         my $user   = logged_in_user;
         my $layout = var('layout') or pass;
 
         my $type = query_parameters->get('type');
 
+        # Check access
+        my $dashboard = _get_dashboard_write(route_parameters->get('dashboard_id'), $layout, $user);
+
         # XXX Need to check whether user has permission
         my $widget = schema->resultset('Widget')->create({
-            dashboard_id => undef, # XXX Needs adding
+            dashboard_id => $dashboard->id,
             type         => $type,
         });
 
         return _success($widget->grid_id);
     };
 
-    put '/api/dashboard/dashboard/:id' => require_login sub {
+    put '/api/dashboard/:dashboard_id/dashboard/:id' => require_login sub {
 
         my $user   = logged_in_user;
         my $layout = var('layout') or pass;
 
-        return  _update_dashboard($user, $layout);
+        return  _update_dashboard($layout, $user);
     };
 
-    get '/api/dashboard/widget/:id' => require_login sub {
+    get '/api/dashboard/:dashboard_id/widget/:id' => require_login sub {
         my $layout = var('layout') or pass;
         my $user   = logged_in_user;
         # _get_widget will raise an exception if it does not exist
-        return  _get_widget(route_parameters->get('id'), $layout, $user)->html;
+        return  _get_widget(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user)->html;
     };
 
-    get '/api/dashboard/widget/:id/edit' => require_login sub {
+    get '/api/dashboard/:dashboard_id/widget/:id/edit' => require_login sub {
         my $layout = var('layout') or pass;
         my $user   = logged_in_user;
-        my $widget = _get_widget_write(route_parameters->get('id'), $layout, $user);
+        my $widget = _get_widget_write(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user);
 
         my $views = GADS::Views->new(
             user          => $user,
@@ -475,10 +478,10 @@ prefix '/:layout_name' => sub {
         };
     };
 
-    put '/api/dashboard/widget/:id/edit' => require_login sub {
+    put '/api/dashboard/:dashboard_id/widget/:id/edit' => require_login sub {
         my $layout = var('layout') or pass;
         my $user   = logged_in_user;
-        my $widget = _get_widget_write(route_parameters->get('id'), $layout, $user);
+        my $widget = _get_widget_write(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user);
 
         if ($widget->type eq 'notice')
         {
@@ -529,58 +532,56 @@ prefix '/:layout_name' => sub {
         return _success("Widget updated successfully");
     };
 
-    del '/api/dashboard/widget/:id' => require_login sub {
+    del '/api/dashboard/:dashboard_id/widget/:id' => require_login sub {
         my $layout = var('layout') or pass;
         my $user   = logged_in_user;
-        _get_widget_write(route_parameters->get('id'), $layout, $user)->delete;
+        _get_widget_write(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user)->delete;
     };
 };
 
 sub _get_widget_write
-{   my ($widget_id, $layout, $user) = @_;
-    my $widget = _get_widget($widget_id, $layout, $user);
-    my $user_id = $widget->dashboard->user_id;
-    if ($user_id || $layout->user_can('layout'))
-    {
-        return $widget;
-    }
-    # User does not have write access
-    status 403;
-    error __x"User does not have write access to widget ID {id}", id => $widget_id;
+{   my ($widget_id, $dashboard_id, $layout, $user) = @_;
+    my $widget = _get_widget($widget_id, $dashboard_id, $layout, $user);
+
+    # Check write access to dashboard, borks on unauth
+    _get_dashboard_write($widget->dashboard_id, $layout, $user);
+
+    return $widget;
 }
 
 sub _get_widget
-{   my ($widget_id, $layout, $user) = @_;
+{   my ($widget_id, $dashboard_id, $layout, $user) = @_;
     my $widget = schema->resultset('Widget')->search({
-        grid_id => route_parameters->get('id'),
+        dashboard_id => $dashboard_id,
+        grid_id      => route_parameters->get('id'),
     })->next;
     if (!$widget)
     {
         status 404;
         error __x"Widget ID {id} not found", id => $widget_id;
     }
-    my $dashboard = $widget->dashboard;
+
+    # Check access. Borks if no access
+    _get_dashboard($widget->dashboard->id, $layout, $user);
+
     $widget->layout($layout);
-    !$dashboard->user_id and return $widget; # Public
-    $dashboard->user_id == $user->id and return $widget;
-    # User does not have access
-    status 403;
-    error __x"User does not have access to widget ID {id}", id => $widget_id;
+    return $widget;
 }
 
-sub _update_dashboard
-{   my ($user, $layout) = @_;
-
-    my $id = route_parameters->get('id');
-
+sub _get_dashboard
+{   my ($id, $layout, $user) = @_;
     my $dashboard = schema->resultset('Dashboard')->find($id);
-
     if (!$dashboard)
     {
         status 404;
         error __x"Dashboard {id} not found", id => $id;
     }
+    return $dashboard;
+}
 
+sub _get_dashboard_write
+{   my ($id, $layout, $user) = @_;
+    my $dashboard = _get_dashboard($id, $layout, $user);
     if (
         !$layout->user_can('layout')
         || ($dashboard->user_id && $dashboard->user_id != $user->{id})
@@ -589,6 +590,15 @@ sub _update_dashboard
         status 403;
         error __x"User does not have write access to dashboard ID {id}", id => $id;
     }
+    return $dashboard;
+}
+
+sub _update_dashboard
+{   my ($layout, $user) = @_;
+
+    my $id = route_parameters->get('id');
+
+    my $dashboard = _get_dashboard_write($id, $layout, $user);
 
     my $widgets = decode_json request->body;
 
