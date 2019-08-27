@@ -1400,11 +1400,27 @@ var setupHtmlEditor = function (context) {
     $('.summernote', context).summernote({
         height: 400,
         callbacks: {
+            // Load initial content
+            onInit: function() {
+                var $sum_div = $(this);
+                var $sum_input = $sum_div.siblings('input[type=hidden].summernote_content');
+                $(this).summernote('code', $sum_input.val());
+            },
             onImageUpload: function(files) {
                 for(var i = 0; i < files.length; i++) {
                     handleHtmlEditorFileUpload(files[i], this);
                 }
-            }
+            },
+            onChange: function (contents, $editable) {
+                var $sum_div = $(this).closest('.summernote');
+                // Ensure submitted content is empty string if blank content
+                // (easier checking for blank values)
+                if ($sum_div.summernote('isEmpty')) {
+                    contents = '';
+                }
+                var $sum_input = $sum_div.siblings('input[type=hidden].summernote_content');
+                $sum_input.val(contents);
+            },
         }
     });
 
@@ -1412,23 +1428,6 @@ var setupHtmlEditor = function (context) {
     if (context !== undefined) {
         return;
     }
-
-    $('#homepage_text_sn').summernote('code', $('#homepage_text').val());
-    $('#homepage_text2_sn').summernote('code', $('#homepage_text2').val());
-    $('#update').click(function(){
-        if ($('#homepage_text_sn').summernote('isEmpty')) {
-            var content = '';
-        } else {
-            var content = $('#homepage_text_sn').summernote('code');
-        }
-        $('#homepage_text').val(content);
-        if ($('#homepage_text2_sn').summernote('isEmpty')) {
-            content = '';
-        } else {
-            content = $('#homepage_text2_sn').summernote('code');
-        }
-        $('#homepage_text2').val(content);
-    });
 };
 
 // Functions for graph plotting

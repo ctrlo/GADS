@@ -480,7 +480,13 @@ prefix '/:layout_name' => sub {
         my $user   = logged_in_user;
         my $widget = _get_widget_write(route_parameters->get('id'), $layout, $user);
 
-        if ($widget->type eq 'graph')
+        if ($widget->type eq 'notice')
+        {
+            $widget->update({
+                content => query_parameters->get('content'),
+            });
+        }
+        elsif ($widget->type eq 'graph')
         {
             $widget->update({
                 graph_id => query_parameters->get('graph_id'),

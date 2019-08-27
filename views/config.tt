@@ -36,7 +36,7 @@
                     <textarea class="form-control" id="homepage_text" name="homepage_text">[% instance.homepage_text | html_entity %]</textarea>
                 [% ELSE %]
                     <div class="summernote" id="homepage_text_sn"></div>
-                    <input type="hidden" name="homepage_text" id="homepage_text" value="[% instance.homepage_text | html_entity %]">
+                    <input type="hidden" name="homepage_text" id="homepage_text" class="summernote_content" value="[% instance.homepage_text | html %]">
                 [% END %]
             </div>
             <div class="form-group">
@@ -45,7 +45,7 @@
                     <textarea class="form-control" id="homepage_text2" name="homepage_text2">[% instance.homepage_text2 | html_entity %]</textarea>
                 [% ELSE %]
                     <div class="summernote" id="homepage_text2_sn"></div>
-                    <input type="hidden" name="homepage_text2" id="homepage_text2" value = "[% instance.homepage_text2 | html_entity %]">
+                    <input type="hidden" name="homepage_text2" id="homepage_text2" class="summernote_content" value="[% instance.homepage_text2 | html %]">
                 [% END %]
             </div>
             <button type="submit" id="update" name="update" value="update" class="btn btn-primary">Save</button>

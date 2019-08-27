@@ -2,8 +2,8 @@
     <div class="col-md-12">
         <form action="/widget/[% widget.grid_id %]/edit">
             [% IF widget.type == "notice" %]
-                Summer note editor here
                 <div class="summernote"></div>
+                <input type="hidden" class="summernote_content" name="content" value="[% widget.content | html %]">
             [% ELSIF widget.type == "graph" %]
                 [% PROCESS form_graph %]
             [% ELSIF widget.type == "table" %]
