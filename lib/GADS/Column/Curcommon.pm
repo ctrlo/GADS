@@ -526,7 +526,7 @@ sub _build_layout_parent
         user                            => $self->layout->user,
         # We want to honour the permissions for the fields that we retrieve,
         # but apply filtering regardless (for curval filter fields)
-        user_permission_override        => $self->override_permissions,
+        user_permission_override        => $self->override_permissions || $self->user_permission_override,
         user_permission_override_search => 1,
         schema                          => $self->schema,
         config                          => GADS::Config->instance,
