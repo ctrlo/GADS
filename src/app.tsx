@@ -165,10 +165,10 @@ class App extends React.Component<any, any> {
   generateDOM = () => (
     this.state.widgets.map(widget => (
       <div key={widget.config.i} className="ld-widget-container">
+        <div dangerouslySetInnerHTML={{ __html: widget.html }} />
         <div className="ld-hover-region ld-hover-region__edit">
           <button className="ld-edit-button btn btn-sm btn-primary" onClick={this.onEditClick(widget.config.i)}>Edit</button>
         </div>
-        <div dangerouslySetInnerHTML={{ __html: widget.html }} />
         <div className="ld-hover-region ld-hover-region__handle" />
       </div>
     ))
