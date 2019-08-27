@@ -234,7 +234,7 @@
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasTextRenderer.min.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasAxisLabelRenderer.min.js"></script>
         [% END %]
-        [% IF page.match('(view|data|layout)') %]
+        [% IF page.match('(view|data|layout|index)') %]
             <script type="text/javascript" src="[% url.js %]/underscore-min.js"></script>
         [% END %]
         [% IF page.match('(view|layout)') %]
@@ -275,7 +275,7 @@
         [% IF page.match("data") %]
             <script type='text/javascript' src='[% url.js %]/fontdetect.min.js'></script>
         [% END %]
-        [% IF page == "config" || page == "system" %]
+        [% IF page == "config" || page == "system" || page == "index" %]
             [% IF 0 %]
                 <script type="text/javascript" src="[% url.js %]/tiny_mce/tiny_mce.js"></script>
             [% ELSE %]
