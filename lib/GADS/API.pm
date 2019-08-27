@@ -427,7 +427,7 @@ prefix '/:layout_name' => sub {
             type         => $type,
         });
 
-        return $widget->grid_id;
+        return _success($widget->grid_id);
     };
 
     put '/api/dashboard/dashboard/:id' => require_login sub {
@@ -520,7 +520,7 @@ prefix '/:layout_name' => sub {
             });
         }
 
-        return 1;
+        return _success("Widget updated successfully");
     };
 
     del '/api/dashboard/widget/:id' => require_login sub {
@@ -601,7 +601,15 @@ sub _update_dashboard
         });
     }
 
-    return 1;
+    return _success("Dashboard updated successfully");
 }
 
+sub _success
+{   my $msg = shift;
+    content_type 'application/json;charset=UTF-8';
+    return encode_json {
+        is_error => 0,
+        message  => $msg,
+    };
+}
 1;
