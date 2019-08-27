@@ -159,8 +159,14 @@ hook before => sub {
         # other things), so a check here prevents emails being generated with
         # hostnames that are attack websites. A nicer fix (to allow different
         # host names) would be to use the host from the database.
-        error __x"Unknown host {host}", host => request->base->host
-            if request->base->host ne $site->host;
+        if (request->base->host ne $site->host)
+        {
+            trace __x"Unknown host: {host}. Redirecting to configured host: {site}",
+                host => request->base->host, site => $site->host;
+            my $uri = request->base;
+            $uri->host($site->host);
+            redirect $uri;
+        }
         trace __x"Single site, site ID is {id}", id => $site->id;
         schema->site_id($site->id);
         var 'site' => $site;
@@ -1546,6 +1552,10 @@ prefix '/:layout_name' => sub {
                 { success => "$count records successfully deleted" }, $layout->identifier.'/data' );
         }
 
+        if ( app->has_hook('plugin.data.before_request') ) {
+            app->execute_hook( 'plugin.data.before_request', user => $user );
+        }
+
         # Check for rewind configuration
         if (param('modal_rewind') || param('modal_rewind_reset'))
         {
@@ -2035,6 +2045,16 @@ prefix '/:layout_name' => sub {
             instance_id   => $layout->instance_id,
         );
 
+        if ( app->has_hook('plugin.data.before_template') ) {
+            my %arg = (
+                user => $user,
+                layout => $layout,
+                params => $params,
+            );
+            # Note, this might modify $params
+            app->execute_hook( 'plugin.data.before_template', %arg );
+        }
+
         $params->{user_views}               = $views->user_views;
         $params->{views_limit_extra}        = $views->views_limit_extra;
         $params->{current_view_limit_extra} = current_view_limit_extra($user, $layout) || $layout->default_view_limit_extra;
@@ -2179,7 +2199,7 @@ prefix '/:layout_name' => sub {
             layout      => $layout,
             page        => 'graph',
             graphs      => $graphs,
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, '/data' => 'records' ) => Crumb( $layout, '/graph' => 'manage graphs' )],
+            breadcrumbs => [Crumb($layout) => Crumb( $layout, '/data' => 'records' ) => Crumb( $layout, '/graph' => 'graphs' )],
         };
 
         template 'graphs' => $params;
@@ -2238,7 +2258,7 @@ prefix '/:layout_name' => sub {
             instance_id => session('persistent')->{instance_id},
         )->all;
 
-        my $graph_name = $id ? $graph->title : "new graph";
+        my $graph_name = $id ? $graph->title : "add a graph";
         my $graph_id   = $id ? $graph->id : 0;
         $params->{breadcrumbs}   = [
             Crumb($layout) => Crumb( $layout, '/data' => 'records' )
@@ -2268,7 +2288,7 @@ prefix '/:layout_name' => sub {
             metrics     => $metrics,
             breadcrumbs => [Crumb($layout) => Crumb( $layout, '/data' => 'records' )
                 => Crumb( $layout, '/graph' => 'graphs' )
-                => Crumb( $layout, '/metric' => 'metrics' )
+                => Crumb( $layout, '/metrics' => 'metrics' )
             ],
         };
 
@@ -2348,11 +2368,11 @@ prefix '/:layout_name' => sub {
 
         $params->{metricgroup} = $metricgroup;
 
-        my $metric_name = $id ? $metricgroup->name : "new metric";
+        my $metric_name = $id ? $metricgroup->name : "add a metric";
         my $metric_id   = $id ? $metricgroup->id : 0;
         $params->{breadcrumbs} = [Crumb($layout) => Crumb( $layout, '/data' => 'records' )
                 => Crumb( $layout, '/graph' => 'graphs' )
-                => Crumb( $layout, '/metric' => 'metrics' ) => Crumb( $layout, "/metric/$metric_id" => $metric_name )
+                => Crumb( $layout, '/metrics' => 'metrics' ) => Crumb( $layout, "/metric/$metric_id" => $metric_name )
         ],
 
         template 'metric' => $params;

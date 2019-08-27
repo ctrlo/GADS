@@ -1,0 +1,3 @@
+To upgrade the installed database run:
+
+  bin/db-migrate.pl

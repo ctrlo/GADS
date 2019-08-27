@@ -468,7 +468,7 @@ public/js/jqplot/jqplot.trendline.min.js
 public/js/jquery-1.12.4.min.js
 public/js/jquery-ui.min.js
 public/js/jquery.dataTables.min.js
-public/js/jquery.floatThead-slim.min.js
+public/js/jquery.floatThead.min.js
 public/js/jquery.jqplot.min.js
 public/js/jstree-misc.js
 public/js/jstree.min.js

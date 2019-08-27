@@ -262,7 +262,7 @@
             [% IF hostlocal %]
                 <script type="text/javascript" src="[% url.js %]/plotly-geo-1.38.2.js"></script>
             [% ELSE %]
-                <script type="text/javascript" src="[% schema %]://cdn.plot.ly/plotly-geo-1.38.2.min.js"></script>
+                <script type="text/javascript" src="[% scheme %]://cdn.plot.ly/plotly-geo-1.38.2.min.js"></script>
             [% END %]
         [% END %]
         [% IF page == "data_table" %]
