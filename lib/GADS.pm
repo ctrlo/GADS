@@ -2371,7 +2371,7 @@ prefix '/:layout_name' => sub {
 
         $params->{metricgroup} = $metricgroup;
 
-        my $metric_name = $id ? $metricgroup->name : "new metric";
+        my $metric_name = $id ? $metricgroup->name : "add a metric";
         my $metric_id   = $id ? $metricgroup->id : 0;
         $params->{breadcrumbs} = [Crumb($layout) => Crumb( $layout, '/data' => 'records' )
                 => Crumb( $layout, '/graph' => 'graphs' )
