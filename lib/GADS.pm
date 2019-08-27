@@ -2291,7 +2291,7 @@ prefix '/:layout_name' => sub {
             metrics     => $metrics,
             breadcrumbs => [Crumb($layout) => Crumb( $layout, '/data' => 'records' )
                 => Crumb( $layout, '/graph' => 'graphs' )
-                => Crumb( $layout, '/metric' => 'metrics' )
+                => Crumb( $layout, '/metrics' => 'metrics' )
             ],
         };
 
@@ -2375,7 +2375,7 @@ prefix '/:layout_name' => sub {
         my $metric_id   = $id ? $metricgroup->id : 0;
         $params->{breadcrumbs} = [Crumb($layout) => Crumb( $layout, '/data' => 'records' )
                 => Crumb( $layout, '/graph' => 'graphs' )
-                => Crumb( $layout, '/metric' => 'metrics' ) => Crumb( $layout, "/metric/$metric_id" => $metric_name )
+                => Crumb( $layout, '/metrics' => 'metrics' ) => Crumb( $layout, "/metric/$metric_id" => $metric_name )
         ],
 
         template 'metric' => $params;
