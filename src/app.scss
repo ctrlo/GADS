@@ -3,6 +3,7 @@
   overflow: hidden;
   border: 1px solid transparent;
 
+  .ld-draggable-handle,
   .react-resizable-handle {
     transition: opacity 0.2s;
     opacity: 0.2;
@@ -17,6 +18,7 @@
   &:hover {
     border-color: #e8e8e8;
 
+    .ld-draggable-handle,
     .react-resizable-handle {
       opacity: 1;
     }
@@ -28,8 +30,13 @@
   }
 }
 
-.react-resizable-handle:hover {
-  opacity: 1;
+.ld-draggable-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  bottom: 0;
+  right: 20px;
+  cursor: move;
 }
 
 .ld-edit-button {

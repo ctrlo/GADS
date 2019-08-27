@@ -167,6 +167,7 @@ class App extends React.Component<any, any> {
       <div key={widget.config.i} className="ld-widget-container">
         <div dangerouslySetInnerHTML={{ __html: widget.html }} />
         <button className="ld-edit-button btn btn-sm btn-primary" onClick={this.onEditClick(widget.config.i)}>Edit</button>
+        <span className="ld-draggable-handle"><i className="fa fa-arrows"></i></span>
       </div>
     ))
   )
@@ -249,6 +250,7 @@ class App extends React.Component<any, any> {
         />
         {this.renderModal()}
         <ReactGridLayout
+          draggableHandle=".ld-draggable-handle"
           useCSSTransforms={false}
           layout={this.state.layout}
           onLayoutChange={this.onLayoutChange}
