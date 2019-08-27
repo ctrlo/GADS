@@ -1350,6 +1350,35 @@ var setupColumnFilters = function(context) {
     });
 }
 
+var handleHtmlEditorFileUpload = function(file, el) {
+    if(file.type.includes('image')) {
+        var data = new FormData();
+        data.append('file', file);
+        data.append('csrf_token', $('body').data('csrf-token'));
+        $.ajax({
+            url: '/file?ajax&is_independent',
+            type: 'POST',
+            contentType: false,
+            cache: false,
+            processData: false,
+            dataType: 'JSON',
+            data: data,
+            success: function (response) {
+                if(response.is_ok) {
+                    $(el).summernote('editor.insertImage', response.url);
+                } else {
+                    console.log(response.error);
+                }
+            }
+        })
+        .fail(function(e) {
+            console.log(e);
+        });
+    } else {
+        console.log("The type of file uploaded was not an image");
+    }
+}
+
 var setupHtmlEditor = function (context) {
 
     // Legacy editor - may be needed for IE8 support in the future
@@ -1364,17 +1393,26 @@ var setupHtmlEditor = function (context) {
         theme_advanced_buttons3 : ""
     });
     */
+    if (!$.summernote) {
+        return;
+    }
 
-    $('.summernote').summernote({
+    $('.summernote', context).summernote({
         height: 400,
         callbacks: {
             onImageUpload: function(files) {
                 for(var i = 0; i < files.length; i++) {
-                    upload_file(files[i], this);
+                    handleHtmlEditorFileUpload(files[i], this);
                 }
             }
         }
     });
+
+    // Only setup global logic on initial setup
+    if (context !== undefined) {
+        return;
+    }
+
     $('#homepage_text_sn').summernote('code', $('#homepage_text').val());
     $('#homepage_text2_sn').summernote('code', $('#homepage_text2').val());
     $('#update').click(function(){
@@ -1391,34 +1429,6 @@ var setupHtmlEditor = function (context) {
         }
         $('#homepage_text2').val(content);
     });
-    function upload_file(file, el) {
-        if(file.type.includes('image')) {
-            var data = new FormData();
-            data.append('file', file);
-            data.append('csrf_token', $('body').data('csrf-token'));
-            $.ajax({
-                url: '/file?ajax&is_independent',
-                type: 'POST',
-                contentType: false,
-                cache: false,
-                processData: false,
-                dataType: 'JSON',
-                data: data,
-                success: function (response) {
-                    if(response.is_ok) {
-                        $(el).summernote('editor.insertImage', response.url);
-                    } else {
-                        console.log(response.error);
-                    }
-                }
-            })
-            .fail(function(e) {
-                console.log(e);
-            });
-        } else {
-            console.log("The type of file uploaded was not an image");
-        }
-    }
 };
 
 // Functions for graph plotting
@@ -1766,6 +1776,7 @@ var Linkspace = {
         setupRecordPopup(context);
         setupAccessibility(context);
         setupColumnFilters(context);
+        setupHtmlEditor(context);
     },
 
     debug: function (msg) {
