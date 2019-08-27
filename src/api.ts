@@ -39,7 +39,10 @@ export default class ApiClient {
 
   createWidget = type => this.POST(`/widget?type=${type}`, null)
 
-  getWidgetHtml = id => this.GET(`/widget/${id}`)
+  getWidgetHtml = async id => {
+    const html = await this.GET(`/widget/${id}`);
+    return html.text();
+  }
 
   deleteWidget = id => this.DELETE(`/widget/${id}`)
 
@@ -48,5 +51,8 @@ export default class ApiClient {
     return html.text();
   }
 
-  saveWidget = (url, params) => this.PUT(`${url}?${params}`, null)
+  saveWidget = async (url, params) => {
+    const result = await this.PUT(`${url}?${params}`, null);
+    return result.text();
+  }
 }

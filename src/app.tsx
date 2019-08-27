@@ -88,15 +88,22 @@ class App extends React.Component<any, any> {
     this.props.api.deleteWidget(this.state.activeItem);
   }
 
-  saveActiveWidget = (event) => {
+  saveActiveWidget = async (event) => {
     event.preventDefault();
     const formEl = this.formRef.current.querySelector("form");
-    if (formEl) {
-      const form = serialize(formEl);
-      this.props.api.saveWidget(formEl.action, form);
-    } else {
+    if (!formEl) {
       // eslint-disable-next-line no-console
       console.error("No form element was found!");
+      return;
+    }
+
+    const form = serialize(formEl);
+    const result = await this.props.api.saveWidget(formEl.getAttribute("action"), form);
+    if (result === "1") {
+      this.updateWidgetHtml(this.state.activeItem);
+      this.closeModal();
+    } else {
+      this.setState({ editHtml: result });
     }
   }
 
@@ -156,7 +163,7 @@ class App extends React.Component<any, any> {
       <div key={widget.config.i} className="ld-widget-container">
         <div className="ld-hover-region ld-hover-region__edit">
           <button className="ld-edit-button btn btn-sm btn-primary" onClick={this.onEditClick(widget.config.i)}>Edit</button>
-        </div> 
+        </div>
         <div dangerouslySetInnerHTML={{ __html: widget.html }} />
         <div className="ld-hover-region ld-hover-region__handle" />
       </div>
