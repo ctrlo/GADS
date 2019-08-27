@@ -1596,6 +1596,7 @@ var setupTimeline = function (container, options_in) {
         moment: function (date) {
             return timeline.moment(date).utc();
         },
+        clickToUse: container.data('click-to-use') ? true : false,
         zoomFriction: 10,
         template: Handlebars.templates.timelineitem,
         orientation: {axis: "both"}

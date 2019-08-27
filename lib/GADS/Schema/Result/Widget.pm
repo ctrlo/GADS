@@ -236,9 +236,10 @@ sub html
 
         my $output;
         my $params = {
-            records  => encode_base64(encode_json(delete $timeline->{items}), ''),
-            groups   => encode_base64(encode_json(delete $timeline->{groups}), ''),
-            timeline => $timeline,
+            records      => encode_base64(encode_json(delete $timeline->{items}), ''),
+            groups       => encode_base64(encode_json(delete $timeline->{groups}), ''),
+            click_to_use => 1,
+            timeline     => $timeline,
         };
         my $t = $template->process('snippets/data_timeline_inner.tt', $params, \$output)
             or panic $template->error;
