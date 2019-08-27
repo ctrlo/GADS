@@ -342,9 +342,16 @@ sub filter_value_to_text
 {   my ($self, $id) = @_;
     # Check for valid ID (in case search filter is corrupted) - Pg will choke
     # on invalid IDs
-    $id =~ /^[0-9]+$/ or return '';
-    my ($row) = $self->ids_to_values([$id]);
-    $row->{value};
+    my $return;
+    # Exceptions are raised if trying to convert an invalid ID into a value.
+    # This can happen when a filter has been set up and then its referred-to
+    # curval record is deleted
+    try {
+        $id =~ /^[0-9]+$/ or return '';
+        my ($row) = $self->ids_to_values([$id]);
+        $return = $row->{value};
+    };
+    $return;
 }
 
 sub id_as_string
