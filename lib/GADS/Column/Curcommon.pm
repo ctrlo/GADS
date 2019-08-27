@@ -342,9 +342,16 @@ sub filter_value_to_text
 {   my ($self, $id) = @_;
     # Check for valid ID (in case search filter is corrupted) - Pg will choke
     # on invalid IDs
-    $id =~ /^[0-9]+$/ or return '';
-    my ($row) = $self->ids_to_values([$id]);
-    $row->{value};
+    my $return;
+    # Exceptions are raised if trying to convert an invalid ID into a value.
+    # This can happen when a filter has been set up and then its referred-to
+    # curval record is deleted
+    try {
+        $id =~ /^[0-9]+$/ or return '';
+        my ($row) = $self->ids_to_values([$id]);
+        $return = $row->{value};
+    };
+    $return;
 }
 
 sub id_as_string
@@ -526,7 +533,7 @@ sub _build_layout_parent
         user                            => $self->layout->user,
         # We want to honour the permissions for the fields that we retrieve,
         # but apply filtering regardless (for curval filter fields)
-        user_permission_override        => $self->override_permissions,
+        user_permission_override        => $self->override_permissions || $self->user_permission_override,
         user_permission_override_search => 1,
         schema                          => $self->schema,
         config                          => GADS::Config->instance,
