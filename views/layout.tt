@@ -573,8 +573,15 @@
             [% FOREACH col IN layout.all %]
             <tr>
                 <input type="hidden" name="position" value="[% col.id %]">
-                <td>
-                    [% UNLESS col.internal %]
+                [%
+                  # Do not allow dragging from edit button, otherwise clicking
+                  #  edit sometimes moves the field instead of opening it for
+                  #  editing
+                %]
+                <td [% IF col.internal %]class="drag"[% END %]>
+                    [% IF col.internal %]
+                        Read-only
+                    [% ELSE %]
                         <a href="/[% layout.identifier %]/layout/[% col.id %]">Edit</a>
                     [% END %]
                 </td>
