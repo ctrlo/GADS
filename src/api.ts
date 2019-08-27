@@ -10,7 +10,13 @@ export default class ApiClient {
   async _fetch(route, method, body) {
     if (!route) throw new Error("Route is undefined");
 
-    const fullRoute = `${this.baseUrl}${route}`;
+    let csrfParam = "";
+    if (method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE") {
+      const csrfToken = document.querySelector("body").getAttribute("data-csrf-token");
+      csrfParam = route.indexOf("?") > -1 ? `&csrf-token=${csrfToken}` : `?csrf-token=${csrfToken}`;
+    }
+
+    const fullRoute = `${this.baseUrl}${route}${csrfParam}`;
 
     const opts = {
       method,
