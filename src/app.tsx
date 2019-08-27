@@ -43,8 +43,12 @@ class App extends React.Component<any, any> {
     };
   }
 
-  componentDidUpdate = () => {
+  componentDidUpdate = (prevProps, prevState) => {
     window.requestAnimationFrame(this.overWriteSubmitEventListener);
+
+    if (this.state.editModalOpen && prevState.loadingEditHtml && !this.state.loadingEditHtml && this.formRef) {
+      window.Linkspace.init(this.formRef.current);
+    }
   }
 
   updateWidgetHtml = async (id) => {
