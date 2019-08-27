@@ -185,7 +185,7 @@ hook before => sub {
     if (request->is_post)
     {
         # Protect against CSRF attacks
-        panic __x"csrf-token missing for uri {uri}, params {params}", uri => request->uri, params => Dumper(params)
+        panic __x"csrf-token missing for uri {uri}, params {params}", uri => request->uri, params => Dumper({params})
             if !param 'csrf_token';
         error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
             if param('csrf_token') ne session('csrf_token');
