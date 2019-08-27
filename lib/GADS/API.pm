@@ -34,8 +34,8 @@ fatal_handler sub {
     return unless $dsl && $dsl->app->request && $dsl->app->request->uri =~ m!^/([0-9a-z]+/)?api/!i;
     status $reason eq 'PANIC' ? 'Internal Server Error' : 'Bad Request';
     $dsl->send_as(JSON => {
-        error   => 1,
-        message => $msg->toString },
+        is_error => \1,
+        message  => $msg->toString },
     { content_type => 'application/json; charset=UTF-8' });
 };
 
