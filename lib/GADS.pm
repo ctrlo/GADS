@@ -2261,7 +2261,7 @@ prefix '/:layout_name' => sub {
             instance_id => session('persistent')->{instance_id},
         )->all;
 
-        my $graph_name = $id ? $graph->title : "new graph";
+        my $graph_name = $id ? $graph->title : "add a graph";
         my $graph_id   = $id ? $graph->id : 0;
         $params->{breadcrumbs}   = [
             Crumb($layout) => Crumb( $layout, '/data' => 'records' )
