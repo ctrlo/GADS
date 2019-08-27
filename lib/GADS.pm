@@ -2202,7 +2202,7 @@ prefix '/:layout_name' => sub {
             layout      => $layout,
             page        => 'graph',
             graphs      => $graphs,
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, '/data' => 'records' ) => Crumb( $layout, '/graph' => 'manage graphs' )],
+            breadcrumbs => [Crumb($layout) => Crumb( $layout, '/data' => 'records' ) => Crumb( $layout, '/graph' => 'graphs' )],
         };
 
         template 'graphs' => $params;
