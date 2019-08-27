@@ -7,6 +7,12 @@ import RGL, { WidthProvider } from "react-grid-layout";
 
 import Header from "./header";
 
+declare global {
+  interface Window {
+    Linkspace : any;
+  }
+}
+
 const ReactGridLayout = WidthProvider(RGL);
 
 const modalStyle = {
@@ -26,6 +32,8 @@ const modalStyle = {
 };
 
 class App extends React.Component<any, any> {
+  private formRef;
+
   constructor(props) {
     super(props);
     Modal.setAppElement("#ld-app");

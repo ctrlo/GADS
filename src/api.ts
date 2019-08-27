@@ -12,13 +12,16 @@ export default class ApiClient {
 
     let csrfParam = "";
     if (method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE") {
-      const csrfToken = document.querySelector("body").getAttribute("data-csrf-token");
-      csrfParam = route.indexOf("?") > -1 ? `&csrf-token=${csrfToken}` : `?csrf-token=${csrfToken}`;
+      const body = document.querySelector("body");
+      const csrfToken = body ? body.getAttribute("data-csrf-token") : null;
+      if (csrfToken) {
+        csrfParam = route.indexOf("?") > -1 ? `&csrf-token=${csrfToken}` : `?csrf-token=${csrfToken}`;
+      }
     }
 
     const fullRoute = `${this.baseUrl}${route}${csrfParam}`;
 
-    const opts = {
+    const opts : any = {
       method,
       headers: Object.assign(this.headers),
     };
