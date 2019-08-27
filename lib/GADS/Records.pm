@@ -1796,7 +1796,7 @@ sub _search_construct
     # (used during filters on curval against current record values)
     my $filter_operator = $filter->{operator}; # Copy so as not to affect original hash ref
     $filter_operator = $filter_operator eq 'not_equal' ? 'is_not_empty' : 'is_empty'
-        if $filter_operator !~ /(is_empty|is_not_empty)/
+        if $filter_operator !~ /(?:is_empty|is_not_empty)/
             && (
                 !defined $filter->{value}
                 || $filter->{value} eq ''
