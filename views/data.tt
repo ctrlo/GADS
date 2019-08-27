@@ -135,6 +135,7 @@
                                 <li role="presentation"><a role="menuitem" tabindex="-1"
                                         href="/[% layout.identifier %]/data?download[% IF filter_url %]&[% filter_url %][% END %]">Download records</a></li>
                             [% END %]
+                            [% INCLUDE 'extra_presentation_roles.tt' %]
                         </ul>
                     </div>
                 [% END %]
@@ -195,8 +196,10 @@
             [% END %]
             </div>
         [% END %]
-
     </div>
+
+[% INCLUDE 'extra_views.tt' %]
+
 [% IF viewtype == "graph" %]
     [% INCLUDE 'data_graph.tt' %]
 [% ELSIF viewtype == "calendar" %]
