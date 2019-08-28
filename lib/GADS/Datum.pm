@@ -175,12 +175,13 @@ sub dependent_not_shown
 
     my $shown = 0;
 
+    my $fields = $self->record->fields;
     foreach my $filter (@{$self->column->display_fields->filters})
     {
         my $display_field_id = $filter->{column_id};
         my $display_regex = $filter->{value};
 
-        if (!$self->record->fields->{$display_field_id})
+        if (!$fields->{$display_field_id})
         {
             $shown = 1;
             next;
@@ -189,7 +190,7 @@ sub dependent_not_shown
         my $matchtype = $filter->{operator};
         $display_regex = '^'.$display_regex.'$'
             if $matchtype =~ /equal/;
-        my $values = $self->record->fields->{$display_field_id}->value_regex_test;
+        my $values = $fields->{$display_field_id}->value_regex_test;
         my $this_not_shown = $matchtype =~ /not/ ? 0 : 1;
         $values = [''] if !@$values;
         foreach my $value (@$values)
