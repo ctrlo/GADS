@@ -1185,7 +1185,7 @@ foreach my $viewtype (qw/normal group global/)
 }
 
 # Test some bulk alerts, which normally happen on code field updates
-diag "About to test alerts for bulk updates. This could take some time...";
+note "About to test alerts for bulk updates. This could take some time...";
 
 # Some bulk data, almost all matching the filter, but not quite,
 # to test big queries (otherwise current_ids is not searched)
