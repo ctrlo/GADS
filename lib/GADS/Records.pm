@@ -2103,7 +2103,7 @@ sub csv_header
         unless $self->layout->user_can("download");
 
     my @columns = @{$self->columns_retrieved_no};
-    my @colnames = ("ID");
+    my @colnames;
     push @colnames, "Parent" if $self->has_children;
     push @colnames, map { $_->name } @columns;
     my $csv = $self->_csv;
@@ -2131,7 +2131,7 @@ sub csv_line
         or return;
 
     my @columns = @{$self->columns_retrieved_no};
-    my @items = ($line->current_id);
+    my @items;
     push @items, $line->parent_id if $self->has_children;
     push @items, map { $line->fields->{$_->id} } @columns;
     my $csv = $self->_csv;
