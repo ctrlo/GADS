@@ -25,10 +25,16 @@ my $group_name = $ENV{GADS_GROUPNAME} //
 my $table_name = "TESTWD $$";
 my $text_field_name = "MytestName";
 my $int_field_name = "MytestInt";
-my @record = ({
-    name => 'One hundred and twenty three',
-    fields => [ 'One hundred and twenty three', 123 ],
-});
+my @record = (
+    {
+        name => 'One hundred and twenty three',
+        fields => [ 'One hundred and twenty three', 123 ],
+    },
+    {
+        name => 'Twenty four',
+        fields =>  [ 'Twenty four', 24 ],
+    },
+);
 
 my $gads = Test::GADSDriver->new;
 
@@ -79,6 +85,7 @@ $gads->assert_on_manage_fields_page(
 $gads->assert_field_exists( undef, { name => $text_field_name, type => 'Text' } );
 $gads->assert_field_exists( undef, { name => $int_field_name, type => 'Integer' } );
 
+# Create records in the table
 $gads->navigate_ok(
     'Navigate to the new record page',
     [ qw( .dropdown-records .record-add ) ],
@@ -98,26 +105,47 @@ $gads->assert_new_record_fields(
     ],
 );
 $gads->submit_new_record_form_ok(
-    'Create a new record',
+    'Create the first new record',
     $record[0]{fields},
 );
 $gads->assert_success_present('The first record was added successfully');
 $gads->assert_error_absent(
     'No error message is visible after adding the first record' );
+$gads->assert_on_see_records_page;
 
+$gads->navigate_ok(
+    'Navigate to the new record page again',
+    [ qw( .dropdown-records .record-add ) ],
+);
+$gads->assert_on_new_record_page;
+$gads->submit_new_record_form_ok(
+    'Create the second new record',
+    $record[1]{fields},
+);
+$gads->assert_success_present('The second record was added successfully');
+$gads->assert_error_absent(
+    'No error message is visible after adding the second record' );
 $gads->assert_on_see_records_page;
 
 # TODO: write main tests here
 
-# Tidy up: remove the record created earlier
-
-$gads->select_record_to_view_ok( 'Select the record created for testing',
-    $record[0]{name} );
+# Tidy up: remove the records created earlier
+$gads->select_record_to_view_ok(
+    'Select the first record created for testing', $record[0]{name} );
 $gads->assert_on_view_record_page;
 
-$gads->delete_viewed_record_ok('Delete the record created for testing');
+$gads->delete_viewed_record_ok('Delete the first record created for testing');
 
 $gads->assert_success_present('The first record was deleted successfully');
+$gads->assert_on_see_records_page;
+
+$gads->select_record_to_view_ok(
+    'Select the second record created for testing', $record[1]{name} );
+$gads->assert_on_view_record_page;
+
+$gads->delete_viewed_record_ok('Delete the second record created for testing');
+
+$gads->assert_success_present('The second record was deleted successfully');
 $gads->assert_on_see_records_page;
 
 $gads->purge_deleted_records_ok;
