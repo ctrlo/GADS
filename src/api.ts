@@ -46,7 +46,10 @@ export default class ApiClient {
     return this.PUT(`/dashboard/${id}`, strippedLayout);
   }
 
-  createWidget = type => this.POST(`/widget?type=${type}`, null)
+  createWidget = async type => {
+    const response = await this.POST(`/widget?type=${type}`, null)
+    return await response.json();
+  }
 
   getWidgetHtml = async id => {
     const html = await this.GET(`/widget/${id}`);
@@ -62,6 +65,6 @@ export default class ApiClient {
 
   saveWidget = async (url, params) => {
     const result = await this.PUT(`${url}?${params}`, null);
-    return result.text();
+    return await result.json();
   }
 }

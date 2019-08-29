@@ -1,3 +1,13 @@
+<form method="get" action="" class="well well-sm form-inline">
+    <div class="form-group">
+        <select name="dashboard-id" class="form-control">
+            <option value="4">Global dashboard</option>
+            <option value="5">Administrator dashboard</option>
+        </select>
+    </div>
+    <button class="btn btn-primary">Switch</button>
+</form>
+
 <div id="ld-app" class="react-grid-layout" data-dashboard="[% dashboard.id %]"
     data-dashboard-endpoint="/[% layout.identifier %]/api/dashboard/[% dashboard.id %]"
     data-widget-types='["notice", "table", "graph", "timeline", "globe"]'
