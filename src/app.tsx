@@ -233,7 +233,6 @@ class App extends React.Component<any, any> {
       <div className='ld-modal__footer'>
         <button className="btn btn-sm btn-primary" onClick={this.deleteActiveWidget}>Delete</button>
         <div className='ld-modal__right-container'>
-          <button className="btn btn-sm btn-primary" onClick={this.closeModal}>Cancel</button>
           <button className="btn btn-sm btn-primary" onClick={this.saveActiveWidget}>Save</button>
         </div>
       </div>
