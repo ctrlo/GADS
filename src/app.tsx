@@ -112,7 +112,7 @@ class App extends React.Component<any, any> {
 
     const form = serialize(formEl);
     const result = await this.props.api.saveWidget(formEl.getAttribute("action"), form);
-    if (!result.error) {
+    if (result.is_error) {
       this.setState({ editError: result.message });
       return;
     }
