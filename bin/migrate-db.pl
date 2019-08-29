@@ -8,27 +8,22 @@ use strict;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 
-use File::Basename qw(basename);
-use Config::Any    ();
+use Dancer2;
+my $config = config;
 
-my $config_fn = basename $0 . '/config.yml';
-my $lib       = "$FindBin::Bin/../lib";
-
-my $config    = Config::Any->load_files({
-    files   => [ $config_fn ],
-    use_ext => 1,
-});
-
-my $db_settings = $config->[0]{'config.yml'}{plugins}{DBIC}{default}
+my $db_settings = $config->{plugins}{DBIC}{default}
     or die "configuration file structure changed.";
 
 $ENV{DBIC_MIGRATION_USERNAME} = $db_settings->{user};
 $ENV{DBIC_MIGRATION_PASSWORD} = $db_settings->{password};
 my $dsn = $db_settings->{dsn};
 
+my $lib       = "$FindBin::Bin/../lib";
+
 system 'dbic-migration', "-I$lib",
     "--schema_class='GADS::Schema'",
     "--dsn='$dsn'",
     "--dbic_connect_attrs",
     "quote_names=1",
-    "upgrade";
+    "upgrade"
+	and die "Migration failed";
