@@ -219,7 +219,7 @@ class App extends React.Component<any, any> {
       contentLabel="Edit Modal"
     >
       <div className='ld-modal__header'>
-        <h4 style={{margin: 0}}>Edit widget {this.state.activeItem}</h4>
+        <h4 style={{margin: 0}}>Edit widget</h4>
         <div className='ld-modal__right-container'>
           <button className="btn btn-sm btn-primary" onClick={this.closeModal}>Close</button>
         </div>
