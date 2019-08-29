@@ -47,6 +47,7 @@ class App extends React.Component<any, any> {
       editModalOpen: false,
       activeItem: 0,
       editHtml: "",
+      editError: null,
       loadingEditHtml: true,
     };
   }
@@ -75,7 +76,7 @@ class App extends React.Component<any, any> {
 
   fetchEditForm = async (id) => {
     const editFormHtml = await this.props.api.getEditFormHtml(id);
-    this.setState({ loadingEditHtml: false, editHtml: editFormHtml });
+    this.setState({ loadingEditHtml: false, editError: false, editHtml: editFormHtml });
   }
 
   onEditClick = id => (event) => {
@@ -111,12 +112,12 @@ class App extends React.Component<any, any> {
 
     const form = serialize(formEl);
     const result = await this.props.api.saveWidget(formEl.getAttribute("action"), form);
-    if (result === "1") {
-      this.updateWidgetHtml(this.state.activeItem);
-      this.closeModal();
-    } else {
-      this.setState({ editHtml: result });
+    if (!result.error) {
+      this.setState({ editError: result.message });
+      return;
     }
+    this.updateWidgetHtml(this.state.activeItem);
+    this.closeModal();
   }
 
   isGridConflict = (x, y, w, h) => {
@@ -150,7 +151,12 @@ class App extends React.Component<any, any> {
 
   // eslint-disable-next-line no-unused-vars
   addWidget = async (type) => {
-    const id = await this.props.api.createWidget(type)
+    const result = await this.props.api.createWidget(type)
+    if (result.error) {
+      alert(result.message);
+      return;
+    }
+    const id = result.message;
     const { x, y } = this.firstAvailableSpot(2, 2);
     const widgetLayout = {
       i: id,
@@ -219,6 +225,8 @@ class App extends React.Component<any, any> {
         </div>
       </div>
       <div className="ld-modal__content-container">
+        {this.state.editError
+          ? <p className="alert alert-danger">{this.state.editError}</p> : null}
         {this.state.loadingEditHtml
           ? <span className='ld-modal__loading'>Loading...</span> : <div ref={this.formRef} dangerouslySetInnerHTML={{ __html: this.state.editHtml }} />}
       </div>
