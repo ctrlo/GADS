@@ -131,19 +131,19 @@ $gads->assert_on_see_records_page;
 
 # Tidy up: remove the records created earlier
 $gads->select_record_to_view_ok(
-    'Select the first record created for testing', $record[0]{name} );
+    'Select the first record created', $record[0]{name} );
 $gads->assert_on_view_record_page;
 
-$gads->delete_viewed_record_ok('Delete the first record created for testing');
+$gads->delete_viewed_record_ok('Delete the first record created');
 
 $gads->assert_success_present('The first record was deleted successfully');
 $gads->assert_on_see_records_page;
 
 $gads->select_record_to_view_ok(
-    'Select the second record created for testing', $record[1]{name} );
+    'Select the second record created', $record[1]{name} );
 $gads->assert_on_view_record_page;
 
-$gads->delete_viewed_record_ok('Delete the second record created for testing');
+$gads->delete_viewed_record_ok('Delete the second record created');
 
 $gads->assert_success_present('The second record was deleted successfully');
 $gads->assert_on_see_records_page;
@@ -158,20 +158,20 @@ $gads->navigate_ok(
 );
 $gads->assert_on_manage_tables_page;
 
-$gads->select_table_to_edit_ok( 'Select the table created for testing',
+$gads->select_table_to_edit_ok( 'Select the table created',
     $table_name );
 $gads->assert_on_manage_this_table_page;
 
 $gads->follow_link_ok( undef, 'Manage fields' );
 $gads->assert_on_manage_fields_page;
-$gads->select_field_to_edit_ok( 'Select the text field created for testing',
+$gads->select_field_to_edit_ok( 'Select the text field created',
     $text_field_name );
-$gads->confirm_deletion_ok('Delete the text field created for testing');
+$gads->confirm_deletion_ok('Delete the text field created');
 $gads->assert_on_manage_fields_page(
     'On the manage fields page after deleting the first field' );
-$gads->select_field_to_edit_ok( 'Select the integer field created for testing',
+$gads->select_field_to_edit_ok( 'Select the integer field created',
     $int_field_name );
-$gads->confirm_deletion_ok('Delete the integer field created for testing');
+$gads->confirm_deletion_ok('Delete the integer field created');
 $gads->assert_on_manage_fields_page(
     'On the manage fields page after deleting fields' );
 
@@ -181,11 +181,11 @@ $gads->navigate_ok(
 );
 $gads->assert_on_manage_tables_page;
 
-$gads->select_table_to_edit_ok( 'Select the table created for testing',
+$gads->select_table_to_edit_ok( 'Select the table created',
     $table_name );
 $gads->assert_on_manage_this_table_page;
 
-$gads->confirm_deletion_ok('Delete the table created for testing');
+$gads->confirm_deletion_ok('Delete the table created');
 $gads->assert_success_present;
 $gads->assert_error_absent;
 
