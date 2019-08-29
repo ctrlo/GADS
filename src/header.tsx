@@ -1,16 +1,21 @@
-import React, { useState } from "react";
+import React from "react";
 import "./header.scss";
 
 const Header = ({ widgetTypes, addWidget, hMargin }) => {
-  const [currentType, setType] = useState(widgetTypes[0]);
   return (
     <div className='ld-header-container' style={{marginLeft: hMargin, marginRight: hMargin}}>
-      <select className="form-control" style={{width: 150}} value={currentType} onChange={event => setType(event.target.value)}>
-        {widgetTypes.map(type => (
-          <option key={type} value={type}>{type}</option>
-        ))}
-      </select>
-      <button className="btn btn-primary" onClick={() => addWidget(currentType)}>Add Widget</button>
+      <div className="btn-group">
+        <button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
+          Add Widget <span className="caret"></span>
+        </button>
+        <ul id="menu_view" className="dropdown-menu scrollable-menu" role="menu">
+			    <li>
+            {widgetTypes.map(type => (
+              <a href="#" key={type} onClick={(e) => {e.preventDefault(); addWidget(type)}}>{type}</a>
+            ))}
+          </li>
+        </ul>
+      </div>
     </div>
   );
 };

@@ -68,13 +68,7 @@
   overflow-y: hidden; }
 
 .ld-header-container {
-  padding: 12px;
-  margin-top: 10px;
-  border: solid gray 1px; }
-  .ld-header-container > * {
-    vertical-align: top;
-    display: inline-block;
-    margin-right: 12px; }
+  text-align: right; }
 
 .react-grid-layout {
   position: relative;
