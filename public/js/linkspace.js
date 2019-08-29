@@ -2110,21 +2110,23 @@ Linkspace.layout = function () {
     $('#current-permissions .permission').each(handlePermissionChange);
 };
 
-Linkspace.index = function () {
+Linkspace.index = function (context) {
     $(document).ready(function () {
-        $('.dashboard-graph').each(function () {
-            var graph = $(this);
-            var graph_data = base64.decode(graph.data('plot-data'));
-            var options_in = base64.decode(graph.data('plot-options'));
-            do_plot_json(graph_data, options_in);
-        });
-        $('.visualization').each(function () {
-            setupTimeline($(this), {});
-        });
-        $('.globe').each(function () {
-            setupGlobe($(this));
-        });
-        setupTippy();
+        if (context === undefined) {
+            $('.dashboard-graph').each(function () {
+                var graph = $(this);
+                var graph_data = base64.decode(graph.data('plot-data'));
+                var options_in = base64.decode(graph.data('plot-options'));
+                do_plot_json(graph_data, options_in);
+            });
+            $('.visualization').each(function () {
+                setupTimeline($(this), {});
+            });
+            $('.globe').each(function () {
+                setupGlobe($(this));
+            });
+            setupTippy();
+        }
     });
 }
 
