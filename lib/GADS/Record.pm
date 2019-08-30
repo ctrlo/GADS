@@ -1133,7 +1133,8 @@ sub _transform_values
 }
 
 sub values_by_shortname
-{   my ($self, @names) = @_;
+{   my ($self, %params) = @_;
+    my @names = @{$params{names}};
     +{
         map {
             my $col = $self->layout->column_by_name_short($_)
@@ -1146,6 +1147,12 @@ sub values_by_shortname
                 : $linked && $self->fields->{$col->id}->oldvalue # linked, and linked value has been overwritten
                 ? $self->fields->{$col->id}->oldvalue
                 : $self->fields->{$col->id};
+            # Retain and provide recurse-prevention information. See further
+            # comments in GADS::Column::Curcommon
+            my $already_seen_code = $params{already_seen_code};
+            $already_seen_code->{$col->id} = $params{level};
+            $d->already_seen_code($already_seen_code);
+            $d->already_seen_level($params{level} + ($col->is_curcommon ? 1 : 0));
             $_ => $d->for_code;
         } @names
     };

@@ -109,8 +109,15 @@ foreach my $delete_not_used (0..1)
     is($record->fields->{$calcmain->id}->as_string, "foo1foo2", "Main calc correct");
     $curval_datum = $record->fields->{$curval->id};
     like($curval_datum->as_string, qr/^(foo1; foo2|foo2; foo1)$/, "Curval value contains second new record");
+    $record->clear;
+    # Check autocur from added curval
+    $record->find_current_id(6);
+    is($record->fields->{$calc->id}->as_string, "50", "Autocur calc correct");
 
     # Edit existing
+    $record->clear;
+    $record->find_current_id(3);
+    $curval_datum = $record->fields->{$curval->id};
     $curval_count = $schema->resultset('Current')->search({ instance_id => 2 })->count;
     my ($d) = map { $_->{id} } grep { $_->{field_values}->{L2string1} eq 'foo2' }
         @{$curval_datum->for_code};
