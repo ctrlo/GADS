@@ -70,15 +70,14 @@ sub _add_children
 {   my ($self, $join, $column, %options) = @_;
     $join->{children} ||= [];
     my %existing = map { $_->{column}->id => 1 } @{$join->{children}};
-    foreach my $c (@{$column->curval_fields_retrieve(all_fields => $options{all_fields})})
+    foreach my $c (@{$column->curval_fields_retrieve(all_fields => $options{all_fields}, already_seen => $options{already_seen})})
     {
-        next if $c->is_curcommon;
         next if $c->internal;
         # prefetch and linked match the parent.
         # search and sort are left blank, but may be updated with an
         # additional direct call with just the child and that option.
         my $child = {
-            join       => $c->tjoin(all_fields => $options{all_fields}),
+            join       => $c->tjoin(all_fields => $options{all_fields}, already_seen => $options{already_seen}),
             prefetch   => 1,
             curval     => $c->is_curcommon,
             column     => $c,
@@ -86,6 +85,7 @@ sub _add_children
         };
         $self->_add_children($child, $c, %options)
             if $c->is_curcommon;
+        $options{already_seen}->{$c->id} = 1;
         push @{$join->{children}}, $child
             if !$existing{$c->id};
     }
@@ -103,6 +103,11 @@ sub _add_jp
     trace __x"Checking or adding {field} to the store", field => $column->field;
 
     my $prefetch = (!$column->multivalue || $options{include_multivalue}) && $options{prefetch};
+
+    # A hash to ensure that we don't recurse into the same fields over and
+    # over. For example, if we are viewing a curval which has an autocur that
+    # refers back to it, only join these on once.
+    my $already_seen = {};
 
     # Check whether join is already in store, if so update
     trace __x"Check to see if it's already in the store";
@@ -123,7 +128,7 @@ sub _add_jp
                 $j->{sort}     ||= $options{sort};
                 $j->{group}    ||= $options{group};
                 $j->{drcol}    ||= $options{drcol};
-                $self->_add_children($j, $column, %options)
+                $self->_add_children($j, $column, %options, already_seen => $already_seen)
                     if ($column->is_curcommon && $prefetch);
                 trace __x"Found existing, returning";
                 return;
@@ -149,7 +154,7 @@ sub _add_jp
 
     # If it's a curval field then we need to account for any joins that are
     # part of the curval
-    $self->_add_children($join_add, $column, %options)
+    $self->_add_children($join_add, $column, %options, already_seen => $already_seen)
         if ($column->is_curcommon && $prefetch);
 
     # Otherwise add it
@@ -527,10 +532,12 @@ sub _join_number
                         return $n if $n;
                     }
                 }
-                trace "Looking at join ".$j2->{column}->id;
-                $n = _find($column, $j2, $stash, %options);
-                trace __x"return from find request is: {n}", n => $n;
-                return $n if $n;
+                else {
+                    trace "Looking at join ".$j2->{column}->id;
+                    $n = _find($column, $j2, $stash, %options);
+                    trace __x"return from find request is: {n}", n => $n;
+                    return $n if $n;
+                }
             }
         }
         else {

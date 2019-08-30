@@ -84,6 +84,8 @@ after set_value => sub {
         $self->_clear_init_value_hash;
         $self->_clear_records;
         $self->clear_blank;
+        $self->clear_already_seen_code;
+        $self->clear_already_seen_level;
     }
 
     # Even if nothing has changed, we still need to set ids. This is because
@@ -440,10 +442,10 @@ sub field_values
 }
 
 sub field_values_for_code
-{   my $self = shift;
+{   my ($self, %options) = @_;
     $self->_records
-        ? $self->column->field_values_for_code(rows => $self->_records)
-        : $self->column->field_values_for_code(ids => $self->ids);
+        ? $self->column->field_values_for_code(rows => $self->_records, %options)
+        : $self->column->field_values_for_code(ids => $self->ids, %options);
 }
 
 sub set_values
@@ -476,8 +478,9 @@ sub html_form
 sub _build_for_code
 {   my ($self, %options) = @_;
 
+    my $already_seen_code = $self->already_seen_code;
     # Get all field data in one chunk
-    my $field_values = $self->field_values_for_code;
+    my $field_values = $self->field_values_for_code(already_seen_code => $already_seen_code, level => $self->already_seen_level);
 
     my @values = map {
         +{
@@ -485,7 +488,7 @@ sub _build_for_code
             value        => $_->{value},
             field_values => $field_values->{$_->{id}},
         }
-    } (@{$self->values});
+    } grep { $_->{id} } (@{$self->values}); # Values that have not been written will not have an ID
 
     $self->column->multivalue || @values > 1 ? \@values : $values[0];
 }

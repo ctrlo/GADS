@@ -60,7 +60,13 @@ has vars => (
 
 sub _build_vars
 {   my $self = shift;
-    $self->record->values_by_shortname($self->column->params);
+    # Ensure recurse-prevention information is passed onto curval/autocurs
+    # within code values
+    $self->record->values_by_shortname(
+        already_seen_code => $self->already_seen_code,
+        level             => $self->already_seen_level,
+        names             => [$self->column->params],
+    );
 }
 
 around 'clone' => sub {
@@ -145,6 +151,8 @@ sub re_evaluate
         $self->clear_init_value;
         $self->clear_value;
         $self->clear_vars;
+        $self->clear_already_seen_level;
+        $self->clear_already_seen_code;
     }
     my $new = $self->value; # Force new value to be calculated
     $self->changed(1) if !$self->equal($old, $new);

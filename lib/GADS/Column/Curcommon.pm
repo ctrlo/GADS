@@ -188,11 +188,11 @@ sub curval_field_ids_retrieve
 sub curval_fields_retrieve
 {   my ($self, %options) = @_;
     return $self->curval_fields if !$options{all_fields};
-    return $self->curval_fields_all
-        if $self->type eq 'curval' || $self->schema->resultset('LayoutDepend')->search({
-            depends_on => $self->id,
-        })->count;
-    return $self->curval_fields;
+    my $ret =  $self->curval_fields_all;
+    # Prevent recursive loops of fields that refer to each other
+    $ret = [grep { !$options{already_seen}->{$_->id} } @$ret];
+    $options{already_seen}->{$_->id} = 1 foreach @$ret;
+    $ret;
 };
 
 has curval_fields_all => (
@@ -371,6 +371,8 @@ sub ids_to_values
 
 sub field_values_for_code
 {   my $self = shift;
+    my %options = @_;
+    my $already_seen_code = $options{already_seen_code};
     my $values = $self->field_values(@_, all_fields => 1);
 
     my @retrieve_cols = grep {
@@ -383,7 +385,16 @@ sub field_values_for_code
     {
         foreach my $col (@retrieve_cols)
         {
-            $return->{$cid}->{$col->name_short} = $values->{$cid}->{$col->id} && $values->{$cid}->{$col->id}->for_code;
+            if (my $d = $values->{$cid}->{$col->id})
+            {
+                # Ensure that the "global" (within parent datum) already_seen
+                # hash is passed around all sub-datums.
+                $d->already_seen_code($already_seen_code);
+                # As we delve further into more values, increase the level for
+                # each curval/autocur
+                $d->already_seen_level($options{level} + ($col->is_curcommon ? 1 : 0));
+                $return->{$cid}->{$col->name_short} = $d->for_code;
+            }
         }
     }
 
@@ -400,7 +411,7 @@ sub field_values
     # when a single record is being written.
 
     # Array for the rows to be returned
-    my @return;
+    my @rows;
 
     my @need_ids; # IDs of those records that need to be fully retrieved
 
@@ -417,7 +428,7 @@ sub field_values
             !$_->has_fields($self->curval_field_ids_retrieve(all_fields => $params{all_fields}))
         } @{$params{rows}};
         # Those that don't can be added straight to the return array
-        @return = grep {
+        @rows = grep {
             $_->has_fields($self->curval_field_ids_retrieve(all_fields => $params{all_fields}))
         } @{$params{rows}};
     }
@@ -432,41 +443,46 @@ sub field_values
         # If all columns needed, flag that in the column properties. This
         # allows it to be checked later
         $self->retrieve_all_columns(1) if $params{all_fields};
-        push @return, @{$self->_get_rows(\@need_ids)};
+        push @rows, @{$self->_get_rows(\@need_ids)};
     }
     elsif ($params{rows}) {
         # Just use existing rows
-        @return = @{$params{rows}};
+        @rows = @{$params{rows}};
     }
     else {
         panic "Neither rows not ids passed to all_field_values";
     }
-    +{
-        map {
-            my $row = $_;
-            $row->current_id => {
-                map {
-                    defined $row->fields->{$_->id}
-                        or panic __x"Missing field {name}. Was Records build with all fields?", name => $_->name;
-                    $_->id => $row->fields->{$_->id}
-                } grep {
-                    # Prevent recursive loops. XXX Is there a better way? We
-                    # don't include curval and autocurs, as they may refer back
-                    # to this field, and we don't include calc and rag fields,
-                    # as they can also have input fields that refer back to
-                    # this (e.g. curval has a code field, the code field has an
-                    # autocur field, the autocur refers back to the curval). It
-                    # would be better of finding some way of spotting that
-                    # recursion is happening and stopping it then.
-                    $_->type !~ /(?:autocur|curval)/
-                        # Allow code fields for curvals. For autocurs, the code
-                        # fields can refer back to the parent record during a
-                        # curval-edit
-                        && !($self->type eq 'autocur' && $_->type =~ /(?:calc|rag)/)
-                } @{$self->curval_fields_retrieve(all_fields => $params{all_fields})}
-            },
-        } @return
+
+    my %return;
+    foreach my $row (@rows)
+    {
+        my $ret;
+        # Curval values that have not been written yet don't have an ID
+        next if !$row->current_id;
+        foreach my $col (@{$self->curval_fields_retrieve(all_fields => $params{all_fields})})
+        {
+            # Prevent recursive loops. It's possible that a curval and autocur
+            # field will recursively refer to each other. This is complicated
+            # by calc fields including these - when the values to pass into the
+            # code are generated, we check that we're not producing recursively
+            # inside each other. Calc and rag fields can have input fields that
+            # refer back to this (e.g. curval has a code field, the code field
+            # has an autocur field, the autocur refers back to the curval).
+            #
+            # Check whether the field has already been seen, but ensure that it
+            # was seen at a different recursive level to where we are now. This
+            # is because for multivalue curval fields, the same field will be
+            # seen multiple times for multiple records at the same array level.
+            next if $params{already_seen_code}->{$col->id}
+                && $params{already_seen_code}->{$col->id} != $params{level};
+            defined $row->fields->{$col->id}
+                or panic __x"Missing field {name}. Was Records build with all fields?", name => $col->name;
+            $ret->{$col->id} = $row->fields->{$col->id};
+            $params{already_seen_code}->{$col->id} = $params{level};
+        }
+        $return{$row->current_id} = $ret;
     }
+    return \%return;
 }
 
 sub _get_rows
