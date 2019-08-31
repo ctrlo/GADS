@@ -251,7 +251,6 @@ var SelectWidget = function (multi) {
     var $selectWidget = this;
     var $widget = this.find('.form-control');
     var isSingle = this.hasClass('single');
-    var $container = $('main');
     var $trigger = $widget.find('[aria-expanded]');
     var $current = this.find('.current');
     var $available = this.find('.available');
@@ -921,7 +920,7 @@ var setupDependentField = function () {
 };
 
 var setupDependentFields = function (context) {
-    var fields = $('[data-has-dependency]').map(function () {
+    var fields = $('[data-has-dependency]', context).map(function () {
         var dependency  = $(this).data('dependency');
         var decoded    = JSON.parse(base64.decode(dependency));
         var rules      = decoded.rules;
@@ -934,7 +933,7 @@ var setupDependentFields = function (context) {
                 ? (new RegExp("^" + rule.value + "$"))
                 : (new RegExp(rule.value));
             return {
-                dependsOn   : $('[data-column-id="' + rule.id + '"]'),
+                dependsOn   : $('[data-column-id="' + rule.id + '"]', context),
                 regexp      : regexp,
                 is_negative : is_negative
             };
@@ -1148,10 +1147,10 @@ var setupSubmitListener = function(context) {
 }
 
 // Used to hide and then display blank fields when viewing a record
-var setupClickToViewBlank = function() {
-    $('.click-to-view-blank').on('click', function() {
+var setupClickToViewBlank = function(context) {
+    $('.click-to-view-blank', context).on('click', function() {
         var $viewToggleButton = $(this);
-        $('.click-to-view-blank-field').show();
+        $('.click-to-view-blank-field', context).show();
         $viewToggleButton.hide();
     });
 }
@@ -1171,7 +1170,7 @@ var setupRecordPopup = function(context) {
     });
     // Stop the clicking of more-less buttons within the record details popping
     // up the more-less box and the record modal
-    $(".record-popup button").click(function(event){
+    $(".record-popup button", context).click(function(event){
         event.stopPropagation();
     });
 }
@@ -1801,8 +1800,8 @@ Linkspace.edit = function (context) {
     setupCalculator(context);
 }
 
-Linkspace.record = function () {
-    setupClickToViewBlank();
+Linkspace.record = function (context) {
+    setupClickToViewBlank(context);
 }
 
 Linkspace.config = function () {
@@ -1834,11 +1833,11 @@ Linkspace.data_calendar = function () {
     setupOtherUserViews();
 }
 
-Linkspace.layout = function () {
+Linkspace.layout = function (context) {
     $('.tab-interface').each(Linkspace.TabPanel);
 
     var $config = $('#permission-configuration');
-    var $rule = $('.permission-rule');
+    var $rule = $('.permission-rule', context);
 
     var $ruleTemplate = $('#permission-rule-template');
     var $cancelRuleButton = $rule.find('button.cancel-permission');
