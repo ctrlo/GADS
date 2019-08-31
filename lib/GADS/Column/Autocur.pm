@@ -64,7 +64,11 @@ has related_field => (
     clearer => 1,
     builder => sub {
         my $self = shift;
-        $self->schema->resultset('Layout')->find($self->related_field_id);
+        # Under normal circumstances we will have a full layout with columns
+        # built. If not, fall back to retrieving from database. The latter is
+        # needed when initialising the schema in GADS::DB::setup()
+        $self->layout->column($self->related_field_id)
+            || $self->schema->resultset('Layout')->find($self->related_field_id);
     }
 );
 

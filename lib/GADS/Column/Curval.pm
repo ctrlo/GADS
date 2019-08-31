@@ -38,9 +38,8 @@ has value_selector => (
     coerce => sub { $_[0] || 'dropdown' },
     builder => sub {
         my $self = shift;
-        my $default = $self->_rset && $self->_rset->typeahead ? 'typeahead' : 'dropdown';
-        return $default unless $self->has_options;
-        exists $self->options->{value_selector} ? $self->options->{value_selector} : $default;
+        return 'dropdown' unless $self->has_options;
+        exists $self->options->{value_selector} ? $self->options->{value_selector} : 'dropdown';
     },
     trigger => sub { $_[0]->reset_options },
 );
@@ -185,16 +184,13 @@ sub _build_data_filter_fields
 
 sub _build_refers_to_instance_id
 {   my $self = shift;
-    my ($random) = $self->schema->resultset('CurvalField')->search({
-        parent_id => $self->id,
-    });
-    return $random->child->instance->id if $random;
     if (@{$self->curval_field_ids})
     {
-        # Maybe it hasn't been written yet, try again
+        # Pick a random field from the selected display fields to work out the
+        # parent layout
         my $random_id = $self->curval_field_ids->[0];
-        my $random = $self->schema->resultset('Layout')->find($random_id);
-        return $random->instance->id if $random;
+        my $random = $self->layout->column($random_id);
+        return $random->instance_id if $random;
     }
     return undef;
 }

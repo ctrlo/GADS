@@ -331,6 +331,11 @@ has display_condition => (
     coerce => sub { return undef if !$_[0]; $_[0] =~ s/\h+$//r },
 );
 
+has set_display_fields => (
+    is        => 'rw',
+    predicate => 1,
+);
+
 has display_fields => (
     is      => 'rw',
     lazy    => 1,
@@ -345,15 +350,27 @@ has display_fields => (
     builder => sub {
         my $self = shift;
         my @rules;
-        foreach my $cond ($self->schema->resultset('DisplayField')->search({
-            layout_id => $self->id
-        })->all)
+        if ($self->has_set_display_fields)
         {
-            push @rules, {
-                id       => $cond->display_field_id,
-                operator => $cond->operator,
-                value    => $cond->regex,
-            };
+            @rules = map {
+                +{
+                    id       => $_->{display_field_id},
+                    operator => $_->{operator},
+                    value    => $_->{regex},
+                },
+            } @{$self->set_display_fields};
+        }
+        else {
+            foreach my $cond ($self->schema->resultset('DisplayField')->search({
+                layout_id => $self->id
+            })->all)
+            {
+                push @rules, {
+                    id       => $cond->display_field_id,
+                    operator => $cond->operator,
+                    value    => $cond->regex,
+                };
+            }
         }
         my $as_hash = !@rules ? {} : {
             condition => $self->display_condition || 'AND',
@@ -477,9 +494,18 @@ has aggregate => (
     isa => Maybe[Str],
 );
 
+has set_group_display => (
+    is => 'rw',
+);
+
 has group_display => (
-    is  => 'rw',
-    isa => Maybe[Str],
+    is      => 'rw',
+    isa     => Maybe[Str],
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->numeric ? 'sum' : $self->set_group_display;
+    },
 );
 
 has has_display_field => (
@@ -785,9 +811,9 @@ sub build_values
     $self->field("field$original->{id}");
     $self->type($original->{type});
     $self->display_condition($original->{display_condition});
+    $self->set_display_fields($original->{display_fields});
+    $self->set_group_display($original->{group_display});
     $self->aggregate($original->{aggregate} || undef);
-    my $group_display = $self->numeric ? 'sum' : $original->{group_display};
-    $self->group_display($group_display);
 
     # XXX Move to curval class
     if ($self->type eq 'curval')

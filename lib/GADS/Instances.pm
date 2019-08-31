@@ -161,6 +161,8 @@ sub _build__layouts
             schema                    => $self->schema,
             config                    => GADS::Config->instance,
             instance_id               => $instance->id,
+            name                      => $instance->name,
+            name_short                => $instance->name_short,
             layout_perms              => $layout_perms->{$instance->id},
             user_permission_override  => $self->user_permission_override,
             _user_permissions_table   => $p_table || {},

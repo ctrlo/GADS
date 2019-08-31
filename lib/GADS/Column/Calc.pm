@@ -50,6 +50,13 @@ sub _build__rset_code
     return $code;
 }
 
+after build_values => sub {
+    my ($self, $original) = @_;
+    my $calc = $original->{calcs}->[0];
+    $self->return_type($calc->{return_format});
+    $self->decimal_places($calc->{decimal_places});
+};
+
 # Convert return format to database column field
 sub _format_to_field
 {   my $return_type = shift;
@@ -96,9 +103,10 @@ has '+return_type' => (
             or error __x"Bad return type {type}", type => $_[0];
     },
     lazy    => 1,
+    coerce  => sub { return $_[0] || 'string' },
     builder => sub {
         my $self = shift;
-        $self->_rset_code && $self->_rset_code->return_format || 'string';
+        $self->_rset_code && $self->_rset_code->return_format;
     },
     trigger => sub { shift->clear_value_field },
 );
