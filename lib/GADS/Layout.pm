@@ -324,10 +324,13 @@ sub _build__user_permissions_overall
     }
     else {
         my $perms = $self->_user_permissions_columns->{$user_id};
-        foreach my $col ($self->all)
+        # Don't use $self->all to save all columns being built unnecessarily.
+        # This may only be called to see whether the user has any access to
+        # this table
+        foreach my $col_id (@{$self->all_ids})
         {
             $overall->{$_} = 1
-                foreach keys %{$perms->{$col->id}};
+                foreach keys %{$perms->{$col_id}};
         }
     }
 
@@ -601,6 +604,7 @@ sub clear
     $self->clear_api_index_layout_id;
     $self->clear_columns;
     $self->clear_cols_db;
+    $self->clear_all_ids;
     $self->clear_default_view_limit_extra;
     $self->clear_default_view_limit_extra_id;
     $self->clear_forget_history;
@@ -642,9 +646,8 @@ sub _build_cols_db
     my $cols_rs = $schema->resultset('Layout')->search({
         'me.instance_id' => { -in => $instance_id_sql },
     },{
-        order_by => ['me.position', 'enumvals.id'],
-        join     => 'enumvals',
-        prefetch => ['calcs', 'rags', 'link_parent'],
+        order_by => ['me.position'],
+        prefetch => ['calcs', 'rags', 'link_parent', 'display_fields'],
     });
     $cols_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     [$cols_rs->all];
@@ -674,6 +677,19 @@ sub _build_columns
     }
 
     \@return;
+}
+
+# Array with all the IDs of the columns of this layout. This is used to save
+# having to fully build all columns if only the IDs are needed
+has all_ids => (
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
+);
+
+sub _build_all_ids
+{   my $self = shift;
+    [ map { $_->{id} } grep { $_->{instance_id} == $self->instance_id } @{$self->cols_db} ]
 }
 
 has has_globe => (

@@ -1292,7 +1292,7 @@ sub _build_columns_retrieved_do
         my @col_ids = map { ref $_ eq 'HASH' ? $_->{id} : $_ } @{$self->columns};
         @col_ids = grep {defined $_} @col_ids; # Remove undef column IDs
         my %col_ids = map { $_ => 1 } @col_ids;
-        @columns = grep { $col_ids{$_->id} } $layout->all(order_dependencies => 1);
+        @columns = grep { $col_ids{$_->id} } $layout->all;
     }
     elsif ($self->view)
     {
@@ -1311,9 +1311,7 @@ sub _build_columns_retrieved_do
         # Otherwise assume all columns needed, even ones the user does not have
         # access to. This is so that any writes still write all column values,
         # regardless of whether a user has access
-        @columns = $layout->all(
-            order_dependencies => 1,
-        );
+        @columns = $layout->all;
     }
     foreach my $c (@columns)
     {
